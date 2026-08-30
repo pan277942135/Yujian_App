@@ -1,0 +1,49 @@
+name: Import MODEL_M1 v0.2
+
+on:
+  push:
+    branches: [mobile-model-v0.2]
+    paths:
+      - '.github/workflows/import-mobile-model-v0.2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-model:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout v0.2 branch
+        uses: actions/checkout@v4
+        with:
+          ref: mobile-model-v0.2
+          fetch-depth: 1
+
+      - name: Download exact verified mobile model release
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            'https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/fish_classifier_v0_2.tflite' \
+            --output /tmp/fish_classifier.tflite
+          test "$(stat -c%s /tmp/fish_classifier.tflite)" = "6220308"
+          echo '9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e  /tmp/fish_classifier.tflite' | sha256sum -c -
+          test "$(dd if=/tmp/fish_classifier.tflite bs=1 skip=4 count=4 status=none)" = 'TFL3'
+
+      - name: Install production model asset
+        run: |
+          cp /tmp/fish_classifier.tflite app/src/main/assets/fish_classifier.tflite
+          python3 scripts/verify_production_model.py
+
+      - name: Commit verified binary to branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/assets/fish_classifier.tflite
+          if git diff --cached --quiet; then
+            echo 'Verified v0.2 model is already committed.'
+            exit 0
+          fi
+          git commit -m 'model: install verified MODEL_M1_v0.2 TFLite'
+          git push origin HEAD:mobile-model-v0.2
