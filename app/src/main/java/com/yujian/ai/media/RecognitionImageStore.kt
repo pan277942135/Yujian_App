@@ -25,7 +25,9 @@ object RecognitionImageStore {
 
     suspend fun normalize(context: Context, uri: Uri, source: String): SelectedImage = withContext(Dispatchers.IO) {
         val rotation = runCatching {
-            context.contentResolver.openInputStream(uri)?.use { ExifInterface(it).rotationDegrees }
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                ExifInterface(input).rotationDegrees
+            } ?: 0
         }.getOrDefault(0)
 
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
