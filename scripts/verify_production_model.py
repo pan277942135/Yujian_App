@@ -7,8 +7,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "app/src/main/assets/fish_classifier.tflite"
-EXPECTED_SIZE = 2_077_712
-EXPECTED_SHA256 = "5bb77f0bea96be2c6d2ace8a0fea36e8907bc9e4076beac05e0c82f44c345459"
+EXPECTED_SIZE = 6_220_308
+EXPECTED_SHA256 = "9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e"
+EXPECTED_MODEL_VERSION = "MODEL_M1_v0.2_LITERT_WHOLE_FISH"
+EXPECTED_CLASS_COUNT = 9
+EXPECTED_PREPROCESS = "whole_image_letterbox_imagenet"
 
 
 def fail(message: str) -> None:
@@ -37,6 +40,9 @@ def main() -> None:
     print(f"path={MODEL.relative_to(ROOT)}")
     print(f"size={size}")
     print(f"sha256={digest}")
+    print(f"model_version={EXPECTED_MODEL_VERSION}")
+    print(f"class_count={EXPECTED_CLASS_COUNT}")
+    print(f"preprocess={EXPECTED_PREPROCESS}")
 
 
 if __name__ == "__main__":
