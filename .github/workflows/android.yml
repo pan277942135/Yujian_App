@@ -35,5 +35,8 @@ jobs:
       - name: Assemble debug APK
         run: gradle :app:assembleDebug --stacktrace
 
+      - name: Compile Android runtime smoke test
+        run: gradle :app:assembleDebugAndroidTest --stacktrace
+
       - name: Android lint
         run: gradle :app:lintDebug --stacktrace
