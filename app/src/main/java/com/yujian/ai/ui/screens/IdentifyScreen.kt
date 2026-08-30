@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -23,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.components.FishIllustration
@@ -54,8 +57,22 @@ fun IdentifyScreen(
                     .onFailure { error = it.message ?: "照片读取失败" }
                 loading = false
             }
+        } else if (!success) {
+            error = "未完成拍照，请重新拍摄"
         }
     }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            error = null
+            val target = RecognitionImageStore.createCameraTarget(context)
+            cameraTarget = target
+            cameraLauncher.launch(target.uri)
+        } else {
+            error = "需要相机权限才能拍照识鱼，也可以直接从相册选择照片"
+        }
+    }
+
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) scope.launch {
             loading = true
@@ -131,9 +148,14 @@ fun IdentifyScreen(
             }
             Button(
                 onClick = {
-                    val target = RecognitionImageStore.createCameraTarget(context)
-                    cameraTarget = target
-                    cameraLauncher.launch(target.uri)
+                    error = null
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                        val target = RecognitionImageStore.createCameraTarget(context)
+                        cameraTarget = target
+                        cameraLauncher.launch(target.uri)
+                    } else {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
                 },
                 enabled = !loading,
                 modifier = Modifier.weight(1f).height(52.dp),
