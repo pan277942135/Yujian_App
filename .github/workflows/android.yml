@@ -12,11 +12,19 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download verified MODEL_M1_v0.2 mobile asset
+        shell: bash
+        run: |
+          mkdir -p app/src/main/assets
+          curl -fL --retry 3 --retry-delay 2 \
+            -o app/src/main/assets/fish_classifier.tflite \
+            https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/fish_classifier_v0_2.tflite
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py
@@ -45,7 +53,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: Yujian-App-debug-${{ github.sha }}
+          name: Yujian-App-M1-v0.2-debug-${{ github.sha }}
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7

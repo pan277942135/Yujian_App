@@ -1,12 +1,14 @@
-# Production TFLite asset gate
+# MODEL_M1_v0.2 mobile asset gate
 
-This branch is ready for the exact production model asset:
+The Android app now uses the verified mobile export of `MODEL_M1_v0.2` published by the Model Factory repository.
 
-- destination: `app/src/main/assets/fish_classifier.tflite`
-- expected bytes: `2077712`
-- expected SHA-256: `5bb77f0bea96be2c6d2ace8a0fea36e8907bc9e4076beac05e0c82f44c345459`
-- TFLite identifier: `TFL3`
+- canonical release: `pan277942135/Yujian` → `mobile-model-v0.2`
+- release asset: `fish_classifier_v0_2.tflite`
+- Android destination: `app/src/main/assets/fish_classifier.tflite`
+- expected bytes: `6220308`
+- expected SHA-256: `9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e`
+- TFLite input: `[1,3,224,224]` Float32 NCHW
+- output: `[1,9]` Float32 logits
+- preprocessing: whole-image aspect-preserving letterbox, padding RGB `[124,116,104]`, ImageNet mean/std normalization, no crop
 
-`python3 scripts/verify_production_model.py` and Android CI reject any missing or different file.
-
-The model is the Android-validated v1.1.2 production asset with input `[1,224,224,3]` Float32 RGB and output `[1,10]`.
+CI downloads the exact release asset before building and rejects any size/hash mismatch.

@@ -2,6 +2,10 @@ package com.yujian.ai.ai
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.Log
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
@@ -14,6 +18,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
 import kotlin.math.exp
+import kotlin.math.min
 
 class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     private val modelBytes: ByteArray by lazy {
@@ -22,8 +27,11 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }.also { bytes ->
             val actual = bytes.sha256()
             check(actual == MODEL_SHA256) { "鱼类识别模型校验失败：$actual" }
+            check(bytes.size == MODEL_BYTES) { "鱼类识别模型大小异常：${bytes.size}" }
+            InferenceTrace.model(actual, bytes.size)
         }
     }
+
     private val interpreterLazy = lazy {
         val buffer = ByteBuffer.allocateDirect(modelBytes.size).order(ByteOrder.nativeOrder())
         buffer.put(modelBytes).rewind()
@@ -35,87 +43,135 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val started = System.nanoTime()
         val inputTensor = interpreter.getInputTensor(0)
         val inputShape = inputTensor.shape()
-        require(inputShape.size == 4 && inputShape.last() == 3) { "模型输入需为 NHWC RGB" }
-        val resized = prepareModelBitmap(bitmap, inputShape[2], inputShape[1])
-        val input = makeInputBuffer(resized, inputTensor.dataType(), inputTensor.quantizationParams().scale, inputTensor.quantizationParams().zeroPoint)
+        require(inputTensor.dataType() == DataType.FLOAT32) { "MODEL_M1_v0.2 输入必须为 FLOAT32" }
+        require(inputShape.size == 4) { "MODEL_M1_v0.2 输入必须为 4D tensor" }
+
+        val nchw = inputShape[1] == 3
+        val nhwc = inputShape[3] == 3
+        require(nchw || nhwc) { "模型输入必须包含 3 个 RGB 通道，实际=${inputShape.contentToString()}" }
+        val height = if (nchw) inputShape[2] else inputShape[1]
+        val width = if (nchw) inputShape[3] else inputShape[2]
+
+        InferenceTrace.bitmap("source_bitmap", bitmap)
+        val prepared = prepareModelBitmap(bitmap, width, height)
+        InferenceTrace.bitmap("model_input_letterbox", prepared)
+        val input = makeInputBuffer(prepared, nchw)
+
         val outputTensor = interpreter.getOutputTensor(0)
+        require(outputTensor.dataType() == DataType.FLOAT32) { "MODEL_M1_v0.2 输出必须为 FLOAT32" }
         val count = outputTensor.shape().last()
         require(count == MODEL_LABELS.size) { "模型输出类别数应为 ${MODEL_LABELS.size}，实际为 $count" }
-        val bytesPerValue = when (outputTensor.dataType()) {
-            DataType.FLOAT32 -> 4
-            DataType.UINT8, DataType.INT8 -> 1
-            else -> error("暂不支持的模型输出类型：${outputTensor.dataType()}")
-        }
-        val output = ByteBuffer.allocateDirect(count * bytesPerValue).order(ByteOrder.nativeOrder())
+
+        val output = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
         interpreter.run(input, output)
         output.rewind()
-        val rawScores = when (outputTensor.dataType()) {
-            DataType.FLOAT32 -> FloatArray(count) { output.float }
-            DataType.UINT8 -> FloatArray(count) {
-                val q = output.get().toInt() and 0xFF
-                (q - outputTensor.quantizationParams().zeroPoint) * outputTensor.quantizationParams().scale
-            }
-            DataType.INT8 -> FloatArray(count) {
-                (output.get().toInt() - outputTensor.quantizationParams().zeroPoint) * outputTensor.quantizationParams().scale
-            }
-            else -> error("暂不支持的模型输出类型")
-        }
-        val probabilities = normalizeScores(rawScores)
+        val logits = FloatArray(count) { output.float }
+        val probabilities = softmax(logits)
         val candidates = MODEL_LABELS.mapIndexed { index, label ->
             RecognitionCandidate(index, label.first, label.second, probabilities[index].coerceIn(0f, 1f))
         }.sortedByDescending { it.confidence }
         val top1 = candidates.first()
-        Log.i(LOG_TAG, "Top1 index=${top1.classIndex} species=${top1.speciesKey} confidence=${top1.confidence}")
-        RecognitionPrediction(MODEL_VERSION, MODEL_SHA256, top1, candidates, (System.nanoTime() - started) / 1_000_000)
+        val latencyMs = (System.nanoTime() - started) / 1_000_000
+        Log.i(
+            LOG_TAG,
+            "model=$MODEL_VERSION top1=${top1.classIndex}:${top1.speciesKey} confidence=${top1.confidence} latencyMs=$latencyMs",
+        )
+        Log.i(
+            LOG_TAG,
+            "top3=" + candidates.take(3).joinToString { "${it.classIndex}:${it.speciesKey}:${it.confidence}" },
+        )
+        RecognitionPrediction(MODEL_VERSION, MODEL_SHA256, top1, candidates, latencyMs)
     }
 
+    /**
+     * Approved MODEL_M1_v0.2 mobile preprocessing:
+     * preserve the whole image, fit it inside the model square, never crop fish anatomy,
+     * and pad with ImageNet-mean RGB so the padding becomes ~0 after normalization.
+     */
     private fun prepareModelBitmap(bitmap: Bitmap, width: Int, height: Int): Bitmap {
-        val cropSize = minOf(bitmap.width, bitmap.height)
-        val cropped = Bitmap.createBitmap(bitmap, (bitmap.width - cropSize) / 2, (bitmap.height - cropSize) / 2, cropSize, cropSize)
-        return if (cropped.width == width && cropped.height == height) cropped else Bitmap.createScaledBitmap(cropped, width, height, true)
+        require(bitmap.width > 0 && bitmap.height > 0)
+        val scale = min(width.toFloat() / bitmap.width, height.toFloat() / bitmap.height)
+        val drawWidth = bitmap.width * scale
+        val drawHeight = bitmap.height * scale
+        val left = (width - drawWidth) / 2f
+        val top = (height - drawHeight) / 2f
+
+        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { out ->
+            val canvas = Canvas(out)
+            canvas.drawColor(Color.rgb(PADDING_R, PADDING_G, PADDING_B))
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+            canvas.drawBitmap(bitmap, null, RectF(left, top, left + drawWidth, top + drawHeight), paint)
+        }
     }
 
-    private fun makeInputBuffer(bitmap: Bitmap, type: DataType, scale: Float, zeroPoint: Int): ByteBuffer {
+    private fun makeInputBuffer(bitmap: Bitmap, nchw: Boolean): ByteBuffer {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        val buffer = ByteBuffer.allocateDirect(pixels.size * 3 * if (type == DataType.FLOAT32) 4 else 1).order(ByteOrder.nativeOrder())
-        pixels.forEach { pixel ->
-            intArrayOf(pixel shr 16 and 0xFF, pixel shr 8 and 0xFF, pixel and 0xFF).forEach { channel ->
-                when (type) {
-                    DataType.FLOAT32 -> buffer.putFloat(channel / 255f)
-                    DataType.UINT8 -> buffer.put(channel.coerceIn(0, 255).toByte())
-                    DataType.INT8 -> {
-                        val safeScale = if (scale == 0f) 1f else scale
-                        buffer.put(((channel / 255f) / safeScale + zeroPoint).toInt().coerceIn(-128, 127).toByte())
-                    }
-                    else -> error("暂不支持的模型输入类型：$type")
-                }
+        val pixelCount = pixels.size
+        val values = FloatArray(pixelCount * 3)
+
+        pixels.forEachIndexed { index, pixel ->
+            val r = normalize(pixel shr 16 and 0xFF, IMAGENET_MEAN[0], IMAGENET_STD[0])
+            val g = normalize(pixel shr 8 and 0xFF, IMAGENET_MEAN[1], IMAGENET_STD[1])
+            val b = normalize(pixel and 0xFF, IMAGENET_MEAN[2], IMAGENET_STD[2])
+            if (nchw) {
+                values[index] = r
+                values[pixelCount + index] = g
+                values[pixelCount * 2 + index] = b
+            } else {
+                val offset = index * 3
+                values[offset] = r
+                values[offset + 1] = g
+                values[offset + 2] = b
             }
         }
-        buffer.rewind(); return buffer
+
+        InferenceTrace.tensorHead(values)
+        return ByteBuffer.allocateDirect(values.size * 4).order(ByteOrder.nativeOrder()).also { buffer ->
+            buffer.asFloatBuffer().put(values)
+            buffer.rewind()
+        }
     }
 
-    private fun normalizeScores(values: FloatArray): FloatArray {
-        val sum = values.sum()
-        if (values.all { it in 0f..1f } && sum in 0.9f..1.1f) return values
+    private fun normalize(channel: Int, mean: Float, std: Float): Float = (channel / 255f - mean) / std
+
+    private fun softmax(values: FloatArray): FloatArray {
         val max = values.maxOrNull() ?: 0f
         val exps = values.map { exp((it - max).toDouble()).toFloat() }
         val denominator = exps.sum().coerceAtLeast(0.0001f)
         return exps.map { it / denominator }.toFloatArray()
     }
 
-    override fun close() { if (interpreterLazy.isInitialized()) interpreterLazy.value.close() }
-    private fun ByteArray.sha256(): String = MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
+    override fun close() {
+        if (interpreterLazy.isInitialized()) interpreterLazy.value.close()
+    }
+
+    private fun ByteArray.sha256(): String =
+        MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
 
     companion object {
         const val MODEL_FILE = "fish_classifier.tflite"
-        const val MODEL_VERSION = "MODEL_M1_LEGACY_V1_1_2_TFLITE"
-        const val MODEL_SHA256 = "5bb77f0bea96be2c6d2ace8a0fea36e8907bc9e4076beac05e0c82f44c345459"
+        const val MODEL_VERSION = "MODEL_M1_v0.2"
+        const val MODEL_BYTES = 6_220_308
+        const val MODEL_SHA256 = "9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e"
         private const val LOG_TAG = "FishRecognitionEngine"
+
+        private const val PADDING_R = 124
+        private const val PADDING_G = 116
+        private const val PADDING_B = 104
+        private val IMAGENET_MEAN = floatArrayOf(0.485f, 0.456f, 0.406f)
+        private val IMAGENET_STD = floatArrayOf(0.229f, 0.224f, 0.225f)
+
         val MODEL_LABELS = listOf(
-            "tilapia" to "罗非鱼", "grass_carp" to "草鱼", "bass" to "鲈鱼", "silver_carp" to "鲢鱼",
-            "common_carp" to "鲤鱼", "crucian_carp" to "鲫鱼", "catfish" to "鲶鱼", "bighead_carp" to "鳙鱼",
-            "mandarin_fish" to "鳜鱼", "snakehead" to "黑鱼",
+            "grass_carp" to "草鱼",
+            "bighead_carp" to "鳙鱼",
+            "silver_carp" to "白鲢",
+            "common_carp" to "鲤鱼",
+            "crucian_carp" to "鲫鱼",
+            "largemouth_bass" to "加州鲈",
+            "snakehead" to "黑鱼",
+            "yellow_catfish" to "黄骨鱼",
+            "black_carp" to "青鱼",
         )
     }
 }
