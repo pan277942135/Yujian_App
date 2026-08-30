@@ -27,7 +27,7 @@ class FeedbackRepository(private val context: Context) {
     suspend fun submitOrQueue(imageFile: File, draft: FeedbackDraft): Boolean = withContext(Dispatchers.IO) {
         val entry = persistQueueEntry(imageFile, draft)
         if (!isConfigured()) return@withContext false
-        if (upload(entry.first, entry.second)) {
+        if (upload(entry.first, JSONObject(entry.second.readText(Charsets.UTF_8)), smoke = false)) {
             entry.first.delete()
             entry.second.delete()
             true
@@ -39,12 +39,33 @@ class FeedbackRepository(private val context: Context) {
         var sent = 0
         queueDir.listFiles { f -> f.extension == "json" }?.sortedBy { it.lastModified() }?.forEach { meta ->
             val image = File(queueDir, meta.nameWithoutExtension + ".jpg")
-            if (image.exists() && upload(image, meta)) {
+            if (image.exists() && upload(image, JSONObject(meta.readText(Charsets.UTF_8)), smoke = false)) {
                 image.delete(); meta.delete(); sent++
             }
         }
         sent
     }
+
+    /**
+     * UAT-only transport smoke. It exercises the same authenticated multipart client
+     * as production feedback, while the backend smoke mode writes + verifies + deletes
+     * a temporary GCS object and does not create a FeedbackEvent.
+     */
+    suspend fun submitUatSmoke(imageFile: File, sourceEventId: String): Boolean = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext false
+        val json = JSONObject()
+            .put("source_event_id", sourceEventId)
+            .put("feedback_type", "confirmed")
+            .put("source", "android_uat_smoke")
+            .put("model_version", "android-uat-smoke")
+            .put("predicted_species", "草鱼")
+            .put("confidence", 0.99)
+            .put("corrected_species", JSONObject.NULL)
+            .put("user_note", JSONObject.NULL)
+        upload(imageFile, json, smoke = true)
+    }
+
+    fun isNetworkConfigured(): Boolean = isConfigured()
 
     private fun isConfigured(): Boolean = BuildConfig.FEEDBACK_BASE_URL.isNotBlank() && BuildConfig.FEEDBACK_INGEST_KEY.isNotBlank()
 
@@ -68,8 +89,7 @@ class FeedbackRepository(private val context: Context) {
         return image to meta
     }
 
-    private fun upload(image: File, metadata: File): Boolean = runCatching {
-        val json = JSONObject(metadata.readText(Charsets.UTF_8))
+    private fun upload(image: File, json: JSONObject, smoke: Boolean): Boolean = runCatching {
         val boundary = "YuJianBoundary${System.currentTimeMillis()}"
         val baseUrl = BuildConfig.FEEDBACK_BASE_URL.trimEnd('/')
         val connection = (URL("$baseUrl/api/feedback/ingest").openConnection() as HttpURLConnection).apply {
@@ -96,6 +116,7 @@ class FeedbackRepository(private val context: Context) {
             field("confidence", json.optDouble("confidence").takeIf { !it.isNaN() }?.toString())
             field("corrected_species", if (json.isNull("corrected_species")) null else json.optString("corrected_species"))
             field("user_note", if (json.isNull("user_note")) null else json.optString("user_note"))
+            if (smoke) field("smoke", "true")
             out.writeBytes("--$boundary\r\n")
             out.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"feedback.jpg\"\r\n")
             out.writeBytes("Content-Type: image/jpeg\r\n\r\n")
@@ -103,8 +124,7 @@ class FeedbackRepository(private val context: Context) {
             out.writeBytes("\r\n--$boundary--\r\n")
         }
         val code = connection.responseCode
-        connection.inputStream.takeIf { code in 200..299 }?.close()
-        connection.errorStream?.close()
+        if (code in 200..299) connection.inputStream.use { it.readBytes() } else connection.errorStream?.use { it.readBytes() }
         connection.disconnect()
         code in 200..299
     }.getOrDefault(false)
