@@ -33,12 +33,40 @@ object RecognitionImageStore {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
             ?: error("无法读取照片")
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "照片格式不受支持" }
+
         var sample = 1
         val maxDimension = maxOf(bounds.outWidth, bounds.outHeight)
         while (maxDimension / sample > 2048) sample *= 2
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
             ?: error("照片格式不受支持")
+        persistNormalized(context, decoded, rotation, source)
+    }
+
+    suspend fun normalizeCameraFile(context: Context, file: File): SelectedImage = withContext(Dispatchers.IO) {
+        require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
+
+        val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "拍照文件无法解析，请重新拍摄" }
+
+        var sample = 1
+        val maxDimension = maxOf(bounds.outWidth, bounds.outHeight)
+        while (maxDimension / sample > 2048) sample *= 2
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
+            ?: error("拍照文件无法解析，请重新拍摄")
+        persistNormalized(context, decoded, rotation, "camera")
+    }
+
+    private fun persistNormalized(
+        context: Context,
+        decoded: Bitmap,
+        rotation: Int,
+        source: String,
+    ): SelectedImage {
         val oriented = if (rotation == 0) decoded else Bitmap.createBitmap(
             decoded, 0, 0, decoded.width, decoded.height,
             Matrix().apply { postRotate(rotation.toFloat()) }, true,
@@ -49,10 +77,6 @@ object RecognitionImageStore {
         normalized.outputStream().use { output ->
             check(oriented.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
         }
-        SelectedImage(filePath = normalized.absolutePath, bitmap = oriented, source = source)
-    }
-
-    suspend fun normalizeCameraFile(context: Context, file: File): SelectedImage {
-        return normalize(context, Uri.fromFile(file), "camera")
+        return SelectedImage(filePath = normalized.absolutePath, bitmap = oriented, source = source)
     }
 }
