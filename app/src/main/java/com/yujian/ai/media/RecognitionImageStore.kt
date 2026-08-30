@@ -24,41 +24,48 @@ object RecognitionImageStore {
     }
 
     suspend fun normalize(context: Context, uri: Uri, source: String): SelectedImage = withContext(Dispatchers.IO) {
-        val rotation = runCatching {
+        // Copy the provider URI into app-private cache once. This avoids relying on
+        // the photo provider granting multiple readable streams and also makes
+        // Google Photos / cloud-backed content URIs behave like local files.
+        val tempDir = File(context.cacheDir, "gallery_imports").apply { mkdirs() }
+        val tempFile = File(tempDir, "import_${UUID.randomUUID()}.img")
+        try {
             context.contentResolver.openInputStream(uri)?.use { input ->
-                ExifInterface(input).rotationDegrees
-            } ?: 0
-        }.getOrDefault(0)
-
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-            ?: error("无法读取照片")
-        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "照片格式不受支持" }
-
-        var sample = 1
-        val maxDimension = maxOf(bounds.outWidth, bounds.outHeight)
-        while (maxDimension / sample > 2048) sample *= 2
-        val options = BitmapFactory.Options().apply { inSampleSize = sample }
-        val decoded = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
-            ?: error("照片格式不受支持")
-        persistNormalized(context, decoded, rotation, source)
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            } ?: error("无法读取照片")
+            require(tempFile.length() > 0L) { "照片内容为空，请重新选择" }
+            normalizeLocalFile(context, tempFile, source, "照片格式不受支持")
+        } finally {
+            tempFile.delete()
+        }
     }
 
     suspend fun normalizeCameraFile(context: Context, file: File): SelectedImage = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
+        normalizeLocalFile(context, file, "camera", "拍照文件无法解析，请重新拍摄")
+    }
 
+    private fun normalizeLocalFile(
+        context: Context,
+        file: File,
+        source: String,
+        invalidMessage: String,
+    ): SelectedImage {
         val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+
+        // BitmapFactory intentionally returns null when inJustDecodeBounds=true;
+        // valid decoding is determined from outWidth/outHeight instead.
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
-        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "拍照文件无法解析，请重新拍摄" }
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { invalidMessage }
 
         var sample = 1
         val maxDimension = maxOf(bounds.outWidth, bounds.outHeight)
         while (maxDimension / sample > 2048) sample *= 2
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
-            ?: error("拍照文件无法解析，请重新拍摄")
-        persistNormalized(context, decoded, rotation, "camera")
+            ?: error(invalidMessage)
+        return persistNormalized(context, decoded, rotation, source)
     }
 
     private fun persistNormalized(
