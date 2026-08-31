@@ -21,6 +21,20 @@ import kotlin.math.exp
 import kotlin.math.min
 
 class FishRecognitionEngine(private val context: Context) : AutoCloseable {
+    private data class PreparedBitmap(
+        val bitmap: Bitmap,
+        val scale: Float,
+        val drawWidth: Float,
+        val drawHeight: Float,
+        val padLeft: Float,
+        val padTop: Float,
+    )
+
+    private data class ModelInput(
+        val buffer: ByteBuffer,
+        val values: FloatArray,
+    )
+
     private val modelBytes: ByteArray by lazy {
         context.assets.open(MODEL_FILE).use { input ->
             ByteArrayOutputStream().use { out -> input.copyTo(out); out.toByteArray() }
@@ -51,11 +65,12 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         require(nchw || nhwc) { "模型输入必须包含 3 个 RGB 通道，实际=${inputShape.contentToString()}" }
         val height = if (nchw) inputShape[2] else inputShape[1]
         val width = if (nchw) inputShape[3] else inputShape[2]
+        val layout = if (nchw) "NCHW" else "NHWC"
 
         InferenceTrace.bitmap("source_bitmap", bitmap)
         val prepared = prepareModelBitmap(bitmap, width, height)
-        InferenceTrace.bitmap("model_input_letterbox", prepared)
-        val input = makeInputBuffer(prepared, nchw)
+        InferenceTrace.bitmap("model_input_letterbox", prepared.bitmap)
+        val input = makeInputBuffer(prepared.bitmap, nchw)
 
         val outputTensor = interpreter.getOutputTensor(0)
         require(outputTensor.dataType() == DataType.FLOAT32) { "MODEL_M1_v0.2 输出必须为 FLOAT32" }
@@ -63,7 +78,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         require(count == MODEL_LABELS.size) { "模型输出类别数应为 ${MODEL_LABELS.size}，实际为 $count" }
 
         val output = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
-        interpreter.run(input, output)
+        interpreter.run(input.buffer, output)
         output.rewind()
         val logits = FloatArray(count) { output.float }
         val probabilities = softmax(logits)
@@ -72,6 +87,29 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }.sortedByDescending { it.confidence }
         val top1 = candidates.first()
         val latencyMs = (System.nanoTime() - started) / 1_000_000
+
+        InferenceTrace.report(
+            modelVersion = MODEL_VERSION,
+            modelSha256 = MODEL_SHA256,
+            sourceBitmap = bitmap,
+            preparedBitmap = prepared.bitmap,
+            inputShape = inputShape,
+            layout = layout,
+            scale = prepared.scale,
+            drawWidth = prepared.drawWidth,
+            drawHeight = prepared.drawHeight,
+            padLeft = prepared.padLeft,
+            padTop = prepared.padTop,
+            paddingRgb = intArrayOf(PADDING_R, PADDING_G, PADDING_B),
+            normalizationMean = IMAGENET_MEAN,
+            normalizationStd = IMAGENET_STD,
+            inputValues = input.values,
+            logits = logits,
+            probabilities = probabilities,
+            labels = MODEL_LABELS,
+            latencyMs = latencyMs,
+        )
+
         Log.i(
             LOG_TAG,
             "model=$MODEL_VERSION top1=${top1.classIndex}:${top1.speciesKey} confidence=${top1.confidence} latencyMs=$latencyMs",
@@ -88,7 +126,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
      * preserve the whole image, fit it inside the model square, never crop fish anatomy,
      * and pad with ImageNet-mean RGB so the padding becomes ~0 after normalization.
      */
-    private fun prepareModelBitmap(bitmap: Bitmap, width: Int, height: Int): Bitmap {
+    private fun prepareModelBitmap(bitmap: Bitmap, width: Int, height: Int): PreparedBitmap {
         require(bitmap.width > 0 && bitmap.height > 0)
         val scale = min(width.toFloat() / bitmap.width, height.toFloat() / bitmap.height)
         val drawWidth = bitmap.width * scale
@@ -96,15 +134,23 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val left = (width - drawWidth) / 2f
         val top = (height - drawHeight) / 2f
 
-        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { out ->
+        val prepared = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { out ->
             val canvas = Canvas(out)
             canvas.drawColor(Color.rgb(PADDING_R, PADDING_G, PADDING_B))
             val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
             canvas.drawBitmap(bitmap, null, RectF(left, top, left + drawWidth, top + drawHeight), paint)
         }
+        return PreparedBitmap(
+            bitmap = prepared,
+            scale = scale,
+            drawWidth = drawWidth,
+            drawHeight = drawHeight,
+            padLeft = left,
+            padTop = top,
+        )
     }
 
-    private fun makeInputBuffer(bitmap: Bitmap, nchw: Boolean): ByteBuffer {
+    private fun makeInputBuffer(bitmap: Bitmap, nchw: Boolean): ModelInput {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val pixelCount = pixels.size
@@ -127,10 +173,11 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }
 
         InferenceTrace.tensorHead(values)
-        return ByteBuffer.allocateDirect(values.size * 4).order(ByteOrder.nativeOrder()).also { buffer ->
-            buffer.asFloatBuffer().put(values)
-            buffer.rewind()
+        val buffer = ByteBuffer.allocateDirect(values.size * 4).order(ByteOrder.nativeOrder()).also { out ->
+            out.asFloatBuffer().put(values)
+            out.rewind()
         }
+        return ModelInput(buffer = buffer, values = values)
     }
 
     private fun normalize(channel: Int, mean: Float, std: Float): Float = (channel / 255f - mean) / std
