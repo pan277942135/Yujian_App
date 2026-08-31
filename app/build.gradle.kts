@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId = "com.yujian.ai.uiv2"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 35
         versionCode = 3
         versionName = "2.2.0-m1-v0.2"
