@@ -18,7 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yujian.ai.model.RecognitionPrediction
+import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.components.FishIllustration
 import com.yujian.ai.ui.components.YujianTopBar
@@ -30,8 +30,8 @@ import kotlinx.coroutines.delay
 fun RecognizingScreen(
     image: SelectedImage?,
     onBack: () -> Unit,
-    recognize: suspend () -> RecognitionPrediction,
-    onFinished: (RecognitionPrediction) -> Unit,
+    recognize: suspend () -> ProductionRecognitionResult,
+    onFinished: (ProductionRecognitionResult) -> Unit,
 ) {
     var stage by remember { mutableIntStateOf(0) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -40,17 +40,17 @@ fun RecognizingScreen(
         if (image == null) { error = "没有可识别的照片"; return@LaunchedEffect }
         error = null
         stage = 1
-        val prediction = async { runCatching { recognize() } }
-        delay(450); stage = 2
-        delay(450); stage = 3
-        delay(300)
-        prediction.await().onSuccess(onFinished).onFailure {
+        val result = async { runCatching { recognize() } }
+        delay(400); stage = 2
+        delay(400); stage = 3
+        delay(250)
+        result.await().onSuccess(onFinished).onFailure {
             error = it.message ?: "识别失败，请重新选择照片"
         }
     }
 
     Column(Modifier.fillMaxSize().background(WarmBackground)) {
-        YujianTopBar(title = "正在认识这条鱼", subtitle = if (error == null) "本机 AI 正在识别" else "这次没认出来", onBack = onBack)
+        YujianTopBar(title = "正在认识这条鱼", subtitle = if (error == null) "先找鱼，再识别鱼种" else "这次没认出来", onBack = onBack)
         Box(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).height(312.dp)
                 .clip(RoundedCornerShape(28.dp)).background(SoftWater), contentAlignment = Alignment.Center,
@@ -68,9 +68,9 @@ fun RecognizingScreen(
 
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp).background(CardWhite, RoundedCornerShape(24.dp)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Text("我正在看这些", color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            RecognitionStep("识别轮廓", stage >= 1, stage == 1 && error == null)
-            RecognitionStep("分析鱼鳍与嘴型", stage >= 2, stage == 2 && error == null)
-            RecognitionStep("比对颜色和花纹", stage >= 3, stage == 3 && error == null)
+            RecognitionStep("检测照片中的鱼体", stage >= 1, stage == 1 && error == null)
+            RecognitionStep("检查鱼体是否完整清晰", stage >= 2, stage == 2 && error == null)
+            RecognitionStep("比对鱼种特征", stage >= 3, stage == 3 && error == null)
         }
 
         if (error != null) {
@@ -82,7 +82,7 @@ fun RecognizingScreen(
             }
         } else {
             Column(Modifier.fillMaxWidth().padding(horizontal = 64.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("识别在手机本地完成，通常只需几秒", color = MutedInk, fontSize = 12.sp)
+                Text("检测与识别都在手机本地完成", color = MutedInk, fontSize = 12.sp)
                 Box(Modifier.fillMaxWidth().padding(top = 12.dp).height(7.dp).background(Color(0xFFE1E6E4), RoundedCornerShape(50))) {
                     val fraction = when (stage) { 1 -> .34f; 2 -> .68f; 3 -> .92f; else -> .05f }
                     Box(Modifier.fillMaxWidth(fraction).height(7.dp).background(WaterTeal, RoundedCornerShape(50)))
