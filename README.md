@@ -1,5 +1,12 @@
 # 渔见 AI Android App
 
+> ## 新任务先读
+>
+> 先读取本仓库 [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md)，再读取项目级主指导文档：
+> https://github.com/pan277942135/Yujian/blob/main/docs/PROJECT_GUIDE.md
+>
+> 本 README 下方包含早期阶段记录，其中“尚未接入真实 TFLite”等描述已经属于历史状态。**当前事实以 `PROJECT_GUIDE.md`、最新 `main` 代码和 CI 为准。**
+
 渔见 AI / YuJian 的 MVP 用户端 Android 工程。当前已经把 P01–P08 串成一条可交互的 Jetpack Compose 主流程。
 
 ## 已实现页面
@@ -83,8 +90,8 @@ P01 / Bottom Navigation
 - UI: Jetpack Compose + Material 3
 - Navigation: Navigation Compose
 
-## 当前边界
+## 当前边界（历史记录）
 
-P03 目前是完整的识别体验状态流，但还没有在本仓库接入生产 `fish_classifier.tflite`；P04 当前用 MVP 示例 Top1（草鱼 / 92%）作为识别输出，并支持用户纠正。下一阶段应把旧客户端已经验证过的生产 TFLite 推理引擎迁入本仓库，用真实推理结果替换这段示例输出。
+> 以下内容是早期阶段记录，已经不是当前状态。请以根目录 `PROJECT_GUIDE.md`、项目级主指导文档、最新代码和 CI 为准。
 
-当前执行环境没有 Android SDK / Gradle 依赖缓存，因此本阶段只做源码、导航和交互链路构建以及 GitHub 文件级检查，不把未执行的 `assembleDebug` 冒充为 Build PASS。
+P03 早期曾是完整的识别体验状态流，但当时还没有在本仓库接入生产 `fish_classifier.tflite`；P04 使用过 MVP 示例 Top1（草鱼 / 92%）作为识别输出，并支持用户纠正。后续阶段已经继续推进真实模型接入与 Runtime Parity 诊断。
