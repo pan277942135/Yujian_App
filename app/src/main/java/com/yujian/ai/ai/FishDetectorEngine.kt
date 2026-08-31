@@ -10,6 +10,8 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
+import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -18,7 +20,7 @@ import kotlin.math.min
  *
  * Contract mirrors backend app/detector_runtime.py:
  * - YOLOX-Nano, 416x416
- * - RGB source -> bilinear resize -> top-left letterbox with 114
+ * - RGB source -> Pillow-compatible BILINEAR resize -> top-left letterbox with 114
  * - BGR, FLOAT32, NCHW, values remain in 0..255
  * - decoded ONNX rows: [cx, cy, w, h, objectness, fish_probability]
  * - confidence = objectness * fish_probability
@@ -48,6 +50,11 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val sha256: String,
         val inputSize: Int,
         val inputName: String,
+    )
+
+    private data class PillowAxisCoefficients(
+        val starts: IntArray,
+        val weights: Array<IntArray>,
     )
 
     private val environment: OrtEnvironment = OrtEnvironment.getEnvironment()
@@ -158,12 +165,10 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val scale = min(inputSize / bitmap.width.toFloat(), inputSize / bitmap.height.toFloat())
         val drawWidth = max(1, (bitmap.width * scale).toInt())
         val drawHeight = max(1, (bitmap.height * scale).toInt())
-        val resized = Bitmap.createScaledBitmap(bitmap, drawWidth, drawHeight, true)
+        val resizedPixels = pillowBilinearResize(bitmap, drawWidth, drawHeight)
         val pixelCount = inputSize * inputSize
         val values = FloatArray(pixelCount * 3) { YOLOX_FILL.toFloat() }
-        val pixels = IntArray(drawWidth * drawHeight)
-        resized.getPixels(pixels, 0, drawWidth, 0, 0, drawWidth, drawHeight)
-        pixels.forEachIndexed { sourceIndex, pixel ->
+        resizedPixels.forEachIndexed { sourceIndex, pixel ->
             val x = sourceIndex % drawWidth
             val y = sourceIndex / drawWidth
             val target = y * inputSize + x
@@ -174,12 +179,121 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             values[pixelCount + target] = g.toFloat()
             values[pixelCount * 2 + target] = r.toFloat()
         }
-        if (resized !== bitmap) resized.recycle()
 
         val buffer = ByteBuffer.allocateDirect(values.size * 4).order(ByteOrder.nativeOrder())
         buffer.asFloatBuffer().put(values)
         buffer.rewind()
         return PreparedInput(buffer, scale, drawWidth, drawHeight)
+    }
+
+    /**
+     * Mirrors Pillow's 8-bit Image.Resampling.BILINEAR resize path.
+     *
+     * Pillow resize is a separable convolution. During downsampling it widens the
+     * bilinear support by the scale factor (anti-aliasing), quantizes normalized
+     * coefficients to 22-bit fixed point, clips after the horizontal pass, then
+     * repeats the same process vertically. Skia's Bitmap.createScaledBitmap does
+     * not use this exact contract and materially changes borderline detector scores.
+     */
+    private fun pillowBilinearResize(bitmap: Bitmap, outWidth: Int, outHeight: Int): IntArray {
+        require(outWidth > 0 && outHeight > 0)
+        val inWidth = bitmap.width
+        val inHeight = bitmap.height
+        val source = IntArray(inWidth * inHeight)
+        bitmap.getPixels(source, 0, inWidth, 0, 0, inWidth, inHeight)
+        if (inWidth == outWidth && inHeight == outHeight) {
+            return source.mapTo(IntArray(source.size)) { pixel -> pixel or (0xFF shl 24) }
+        }
+
+        val horizontalCoefficients = pillowBilinearCoefficients(inWidth, outWidth)
+        val horizontal = IntArray(outWidth * inHeight)
+        for (y in 0 until inHeight) {
+            val sourceRow = y * inWidth
+            val targetRow = y * outWidth
+            for (xOut in 0 until outWidth) {
+                val start = horizontalCoefficients.starts[xOut]
+                val weights = horizontalCoefficients.weights[xOut]
+                var red = PILLOW_ROUNDING
+                var green = PILLOW_ROUNDING
+                var blue = PILLOW_ROUNDING
+                for (offset in weights.indices) {
+                    val pixel = source[sourceRow + start + offset]
+                    val weight = weights[offset]
+                    red += (pixel shr 16 and 0xFF) * weight
+                    green += (pixel shr 8 and 0xFF) * weight
+                    blue += (pixel and 0xFF) * weight
+                }
+                horizontal[targetRow + xOut] = packRgb(
+                    pillowClip(red),
+                    pillowClip(green),
+                    pillowClip(blue),
+                )
+            }
+        }
+
+        val verticalCoefficients = pillowBilinearCoefficients(inHeight, outHeight)
+        val output = IntArray(outWidth * outHeight)
+        for (yOut in 0 until outHeight) {
+            val start = verticalCoefficients.starts[yOut]
+            val weights = verticalCoefficients.weights[yOut]
+            val targetRow = yOut * outWidth
+            for (x in 0 until outWidth) {
+                var red = PILLOW_ROUNDING
+                var green = PILLOW_ROUNDING
+                var blue = PILLOW_ROUNDING
+                for (offset in weights.indices) {
+                    val pixel = horizontal[(start + offset) * outWidth + x]
+                    val weight = weights[offset]
+                    red += (pixel shr 16 and 0xFF) * weight
+                    green += (pixel shr 8 and 0xFF) * weight
+                    blue += (pixel and 0xFF) * weight
+                }
+                output[targetRow + x] = packRgb(
+                    pillowClip(red),
+                    pillowClip(green),
+                    pillowClip(blue),
+                )
+            }
+        }
+        return output
+    }
+
+    private fun pillowBilinearCoefficients(inSize: Int, outSize: Int): PillowAxisCoefficients {
+        val scale = inSize.toDouble() / outSize.toDouble()
+        val filterScale = max(scale, 1.0)
+        val support = filterScale
+        val starts = IntArray(outSize)
+        val weights = Array(outSize) { IntArray(0) }
+        for (outIndex in 0 until outSize) {
+            val center = (outIndex + 0.5) * scale
+            var minSource = (center - support + 0.5).toInt()
+            if (minSource < 0) minSource = 0
+            var maxSource = (center + support + 0.5).toInt()
+            if (maxSource > inSize) maxSource = inSize
+            val count = maxSource - minSource
+            val raw = DoubleArray(count)
+            var total = 0.0
+            for (offset in 0 until count) {
+                val distance = abs((offset + minSource - center + 0.5) / filterScale)
+                val weight = if (distance < 1.0) 1.0 - distance else 0.0
+                raw[offset] = weight
+                total += weight
+            }
+            val fixed = IntArray(count)
+            if (total != 0.0) {
+                for (offset in 0 until count) {
+                    val normalized = raw[offset] / total
+                    fixed[offset] = if (normalized < 0.0) {
+                        (-0.5 + normalized * PILLOW_PRECISION_SCALE).toInt()
+                    } else {
+                        (0.5 + normalized * PILLOW_PRECISION_SCALE).toInt()
+                    }
+                }
+            }
+            starts[outIndex] = minSource
+            weights[outIndex] = fixed
+        }
+        return PillowAxisCoefficients(starts, weights)
     }
 
     override fun close() {
@@ -203,6 +317,9 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val CONTRACT_FILE = "recognition_pipeline_v1.json"
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
+        private const val PILLOW_PRECISION_BITS = 22
+        private const val PILLOW_PRECISION_SCALE = 1 shl PILLOW_PRECISION_BITS
+        private const val PILLOW_ROUNDING = 1 shl (PILLOW_PRECISION_BITS - 1)
 
         internal fun decodeAndNms(
             rows: Array<FloatArray>,
@@ -261,6 +378,12 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
                 rows[index] as? FloatArray ?: error("DET_FISH_v0.1 row[$index] 不是 FloatArray")
             }
         }
+
+        private fun packRgb(red: Int, green: Int, blue: Int): Int =
+            (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
+
+        private fun pillowClip(accumulator: Int): Int =
+            (accumulator shr PILLOW_PRECISION_BITS).coerceIn(0, 255)
 
         private fun ByteArray.sha256(): String =
             MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
