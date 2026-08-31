@@ -13,7 +13,6 @@ import com.yujian.ai.ai.FishInputStatus
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +35,7 @@ class DetectorGoldenParityTest {
         val cases = manifest.getJSONArray("cases")
         assertEquals(5, cases.length())
 
+        val failures = mutableListOf<String>()
         val seen = mutableSetOf<FishInputStatus>()
         FishDetectorEngine(appContext).use { engine ->
             repeat(cases.length()) { index ->
@@ -47,46 +47,72 @@ class DetectorGoldenParityTest {
                 val bitmap = decodeOrientedTestAsset("detector/golden/$caseId.$extension")
                 try {
                     val expectedDimensions = case.getJSONObject("source_dimensions")
-                    assertEquals("$caseId width", expectedDimensions.getInt("width"), bitmap.width)
-                    assertEquals("$caseId height", expectedDimensions.getInt("height"), bitmap.height)
+                    val expectedInput = case.getJSONObject("detector_input")
+                    if (expectedDimensions.getInt("width") != bitmap.width || expectedDimensions.getInt("height") != bitmap.height) {
+                        failures += "$caseId source dimensions expected=${expectedDimensions.getInt("width")}x${expectedDimensions.getInt("height")} actual=${bitmap.width}x${bitmap.height}"
+                        return@repeat
+                    }
 
                     val run = kotlinx.coroutines.runBlocking { engine.detect(bitmap) }
-                    assertEquals("$caseId detector SHA", manifest.getString("onnx_sha256"), run.onnxSha256)
                     val assessment = FishDetectionQualityGate.assess(run.detections)
+                    seen += assessment.status
                     val expectedDetections = case.getJSONArray("detections")
                     val diagnostic = buildString {
-                        append("$caseId expectedStatus=$expectedStatus actualStatus=${assessment.status}")
-                        append(" expectedDetections=")
-                        append(expectedDetections.toString())
+                        append("case=$caseId expectedStatus=$expectedStatus actualStatus=${assessment.status}")
+                        append(" expectedInputScale=${expectedInput.getDouble("scale")}")
+                        append(" expectedDraw=${expectedInput.getInt("draw_width")}x${expectedInput.getInt("draw_height")}")
+                        append(" actualInputScale=${run.inputScale}")
+                        append(" actualDraw=${run.inputDrawWidth}x${run.inputDrawHeight}")
+                        append(" expectedDetections=${expectedDetections}")
                         append(" actualDetections=")
                         append(run.detections.joinToString(prefix = "[", postfix = "]") { detection ->
                             "{confidence=${detection.confidence},bbox=[${detection.box.x1},${detection.box.y1},${detection.box.x2},${detection.box.y2}]}"
                         })
-                        append(" inputScale=${run.inputScale} draw=${run.inputDrawWidth}x${run.inputDrawHeight}")
                     }
-                    assertEquals(diagnostic, expectedStatus, assessment.status)
-                    seen += assessment.status
+                    println("DETECTOR_GOLDEN_DIAGNOSTIC $diagnostic")
 
-                    assertEquals("$caseId detection count", expectedDetections.length(), run.detections.size)
-                    repeat(expectedDetections.length()) { detectionIndex ->
+                    if (manifest.getString("onnx_sha256") != run.onnxSha256) {
+                        failures += "$caseId detector SHA mismatch expected=${manifest.getString("onnx_sha256")} actual=${run.onnxSha256}"
+                    }
+                    if (assessment.status != expectedStatus) failures += "$caseId status mismatch: $diagnostic"
+                    if (expectedDetections.length() != run.detections.size) {
+                        failures += "$caseId detection count expected=${expectedDetections.length()} actual=${run.detections.size}"
+                    }
+
+                    val compareCount = minOf(expectedDetections.length(), run.detections.size)
+                    repeat(compareCount) { detectionIndex ->
                         val expected = expectedDetections.getJSONObject(detectionIndex)
                         val expectedBox = expected.getJSONArray("bbox")
                         val actual = run.detections[detectionIndex]
-                        assertClose("$caseId[$detectionIndex].x1", expectedBox.getDouble(0).toFloat(), actual.box.x1, bboxTolerance)
-                        assertClose("$caseId[$detectionIndex].y1", expectedBox.getDouble(1).toFloat(), actual.box.y1, bboxTolerance)
-                        assertClose("$caseId[$detectionIndex].x2", expectedBox.getDouble(2).toFloat(), actual.box.x2, bboxTolerance)
-                        assertClose("$caseId[$detectionIndex].y2", expectedBox.getDouble(3).toFloat(), actual.box.y2, bboxTolerance)
+                        val expectedConfidence = expected.getDouble("confidence").toFloat()
+                        if (abs(expectedConfidence - actual.confidence) > 0.05f) {
+                            failures += "$caseId[$detectionIndex] confidence expected=$expectedConfidence actual=${actual.confidence} delta=${abs(expectedConfidence - actual.confidence)}"
+                        }
+                        val expectedCoords = floatArrayOf(
+                            expectedBox.getDouble(0).toFloat(), expectedBox.getDouble(1).toFloat(),
+                            expectedBox.getDouble(2).toFloat(), expectedBox.getDouble(3).toFloat(),
+                        )
+                        val actualCoords = floatArrayOf(actual.box.x1, actual.box.y1, actual.box.x2, actual.box.y2)
+                        expectedCoords.indices.forEach { coord ->
+                            if (abs(expectedCoords[coord] - actualCoords[coord]) > bboxTolerance) {
+                                failures += "$caseId[$detectionIndex].bbox[$coord] expected=${expectedCoords[coord]} actual=${actualCoords[coord]} tolerance=$bboxTolerance"
+                            }
+                        }
                     }
 
-                    if (expectedStatus == FishInputStatus.READY) {
-                        val expectedCrop = case.getJSONArray("crop_pixels")
-                        assertNotNull("$caseId cropBox", assessment.cropBox)
-                        val actualCrop = FishDetectionQualityGate.cropBoxPixels(
-                            requireNotNull(assessment.cropBox), bitmap.width, bitmap.height,
-                        )
-                        assertIntArrayClose(caseId, expectedCrop, actualCrop, cropTolerance)
-                    } else {
-                        assertTrue("$caseId classifier must be gated", assessment.cropBox == null)
+                    val expectedCrop = if (case.isNull("crop_pixels")) null else case.getJSONArray("crop_pixels")
+                    val actualCrop = assessment.cropBox?.let { FishDetectionQualityGate.cropBoxPixels(it, bitmap.width, bitmap.height) }
+                    if (expectedCrop == null && actualCrop != null) {
+                        failures += "$caseId unexpected crop=${actualCrop.contentToString()}"
+                    } else if (expectedCrop != null && actualCrop == null) {
+                        failures += "$caseId missing crop expected=${expectedCrop}"
+                    } else if (expectedCrop != null && actualCrop != null) {
+                        repeat(actualCrop.size) { coord ->
+                            val expectedValue = expectedCrop.getInt(coord)
+                            if (kotlin.math.abs(expectedValue - actualCrop[coord]) > cropTolerance) {
+                                failures += "$caseId crop[$coord] expected=$expectedValue actual=${actualCrop[coord]} tolerance=$cropTolerance"
+                            }
+                        }
                     }
                 } finally {
                     if (!bitmap.isRecycled) bitmap.recycle()
@@ -94,16 +120,15 @@ class DetectorGoldenParityTest {
             }
         }
 
-        assertEquals(
-            setOf(
-                FishInputStatus.READY,
-                FishInputStatus.NO_FISH,
-                FishInputStatus.INCOMPLETE_FISH,
-                FishInputStatus.FISH_TOO_SMALL,
-                FishInputStatus.MULTIPLE_FISH,
-            ),
-            seen,
+        val expectedStatuses = setOf(
+            FishInputStatus.READY,
+            FishInputStatus.NO_FISH,
+            FishInputStatus.INCOMPLETE_FISH,
+            FishInputStatus.FISH_TOO_SMALL,
+            FishInputStatus.MULTIPLE_FISH,
         )
+        if (seen != expectedStatuses) failures += "status coverage expected=$expectedStatuses actual=$seen"
+        assertTrue("Detector golden parity failures:\n${failures.joinToString("\n")}", failures.isEmpty())
     }
 
     private fun readTestAssetBytes(path: String): ByteArray = testContext.assets.open(path).use { it.readBytes() }
@@ -126,21 +151,6 @@ class DetectorGoldenParityTest {
         }
         return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true).also {
             if (it !== source && !source.isRecycled) source.recycle()
-        }
-    }
-
-    private fun assertClose(label: String, expected: Float, actual: Float, tolerance: Float) {
-        assertTrue("$label expected=$expected actual=$actual tolerance=$tolerance", abs(expected - actual) <= tolerance)
-    }
-
-    private fun assertIntArrayClose(label: String, expected: JSONArray, actual: IntArray, tolerance: Int) {
-        assertEquals("$label crop length", expected.length(), actual.size)
-        repeat(actual.size) { index ->
-            val expectedValue = expected.getInt(index)
-            assertTrue(
-                "$label crop[$index] expected=$expectedValue actual=${actual[index]} tolerance=$tolerance",
-                kotlin.math.abs(expectedValue - actual[index]) <= tolerance,
-            )
         }
     }
 }
