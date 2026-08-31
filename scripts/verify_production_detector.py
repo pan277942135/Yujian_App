@@ -6,15 +6,20 @@ import json
 from pathlib import Path
 
 ASSETS = Path("app/src/main/assets")
+TEST_ASSETS = Path("app/src/androidTest/assets/detector")
 ONNX = ASSETS / "fish_detector_yolox_nano_v0_1.onnx"
 METADATA = ASSETS / "detector_metadata.json"
 CONTRACT = ASSETS / "recognition_pipeline_v1.json"
+GOLDEN_MANIFEST = TEST_ASSETS / "golden_cases.json"
+GOLDEN_DIR = TEST_ASSETS / "golden"
 
 EXPECTED_MODEL = "DET_FISH_v0.1"
 EXPECTED_DATASET = "DET_DS_v0.1"
 EXPECTED_FAMILY = "YOLOX_NANO"
 EXPECTED_CONTRACT = "RECOGNITION_PIPELINE_v1"
 EXPECTED_INPUT = 416
+EXPECTED_GOLDEN_SCHEMA = "DET_FISH_GOLDEN_CASES_v1"
+EXPECTED_CASE_IDS = {"ready", "no_fish", "incomplete_fish", "fish_too_small", "multiple_fish"}
 
 
 def fail(message: str) -> None:
@@ -31,6 +36,48 @@ def sha256(path: Path) -> str:
 
 def close(left: float, right: float) -> bool:
     return abs(left - right) <= 1e-8
+
+
+def verify_golden_assets(actual_onnx_sha: str) -> None:
+    if not GOLDEN_MANIFEST.is_file():
+        fail(f"missing {GOLDEN_MANIFEST}")
+    manifest = json.loads(GOLDEN_MANIFEST.read_text(encoding="utf-8"))
+    if manifest.get("schema_version") != EXPECTED_GOLDEN_SCHEMA:
+        fail("golden schema mismatch")
+    if manifest.get("model_version") != EXPECTED_MODEL:
+        fail("golden model_version mismatch")
+    if manifest.get("dataset_version") != EXPECTED_DATASET:
+        fail("golden dataset_version mismatch")
+    if manifest.get("onnx_sha256") != actual_onnx_sha:
+        fail("golden ONNX SHA256 mismatch")
+    if int(manifest.get("crop_pixel_tolerance", -1)) != 0:
+        fail("golden crop_pixel_tolerance must be zero")
+    bbox_tolerance = manifest.get("bbox_tolerance")
+    if not isinstance(bbox_tolerance, (int, float)) or float(bbox_tolerance) <= 0.0:
+        fail("golden bbox_tolerance invalid")
+
+    cases = manifest.get("cases") or []
+    if len(cases) != 5:
+        fail(f"golden case count mismatch: {len(cases)}")
+    seen: set[str] = set()
+    for case in cases:
+        case_id = str(case.get("id") or "")
+        if not case_id or case_id in seen:
+            fail(f"invalid or duplicate golden case id: {case_id!r}")
+        seen.add(case_id)
+        source_uri = str(case.get("golden_gcs_uri") or "")
+        suffix = Path(source_uri.rsplit("/", 1)[-1]).suffix.lower()
+        if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
+            fail(f"unsupported golden image suffix for {case_id}: {suffix}")
+        fixture = GOLDEN_DIR / f"{case_id}{suffix}"
+        if not fixture.is_file():
+            fail(f"missing golden fixture {fixture}")
+        expected_sha = str(case.get("source_sha256") or "")
+        if not expected_sha or sha256(fixture) != expected_sha:
+            fail(f"golden fixture SHA256 mismatch for {case_id}")
+
+    if seen != EXPECTED_CASE_IDS:
+        fail(f"golden case coverage mismatch: {sorted(seen)}")
 
 
 def main() -> None:
@@ -85,10 +132,13 @@ def main() -> None:
     if len(output_shape) != 3 or output_shape[0] != 1 or output_shape[-1] != 6:
         fail(f"unexpected ONNX output shape {output_shape}")
 
+    verify_golden_assets(actual_sha)
+
     print(
         "PRODUCTION_DETECTOR_VERIFY_PASS "
         f"model={EXPECTED_MODEL} bytes={actual_bytes} sha256={actual_sha} "
-        f"input={onnx_doc.get('input_shape')} output={output_shape}"
+        f"input={onnx_doc.get('input_shape')} output={output_shape} "
+        f"golden_cases={len(EXPECTED_CASE_IDS)}"
     )
 
 
