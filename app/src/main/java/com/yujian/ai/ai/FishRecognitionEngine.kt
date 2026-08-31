@@ -53,7 +53,10 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     }
     private val interpreter get() = interpreterLazy.value
 
-    suspend fun recognize(bitmap: Bitmap): RecognitionPrediction = withContext(Dispatchers.Default) {
+    suspend fun recognize(
+        bitmap: Bitmap,
+        pipelineContext: InferenceTrace.PipelineContext? = null,
+    ): RecognitionPrediction = withContext(Dispatchers.Default) {
         val started = System.nanoTime()
         val inputTensor = interpreter.getInputTensor(0)
         val inputShape = inputTensor.shape()
@@ -67,7 +70,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val width = if (nchw) inputShape[3] else inputShape[2]
         val layout = if (nchw) "NCHW" else "NHWC"
 
-        InferenceTrace.bitmap("source_bitmap", bitmap)
+        InferenceTrace.bitmap("classifier_source_bitmap", bitmap)
         val prepared = prepareModelBitmap(bitmap, width, height)
         InferenceTrace.bitmap("model_input_letterbox", prepared.bitmap)
         val input = makeInputBuffer(prepared.bitmap, nchw)
@@ -108,6 +111,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             probabilities = probabilities,
             labels = MODEL_LABELS,
             latencyMs = latencyMs,
+            pipelineContext = pipelineContext,
         )
 
         Log.i(
@@ -122,9 +126,12 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     }
 
     /**
-     * Approved MODEL_M1_v0.2 mobile preprocessing:
-     * preserve the whole image, fit it inside the model square, never crop fish anatomy,
-     * and pad with ImageNet-mean RGB so the padding becomes ~0 after normalization.
+     * MODEL_M1_v0.2 classifier preprocessing.
+     *
+     * The caller owns source selection. The production FishRecognitionPipeline passes
+     * a detector-expanded fish crop; classifier-only parity tests can pass a direct bitmap.
+     * This method preserves the entire supplied bitmap, fits it inside the model square,
+     * and pads with ImageNet-mean RGB so padding becomes ~0 after normalization.
      */
     private fun prepareModelBitmap(bitmap: Bitmap, width: Int, height: Int): PreparedBitmap {
         require(bitmap.width > 0 && bitmap.height > 0)
