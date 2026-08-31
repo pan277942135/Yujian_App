@@ -6,6 +6,7 @@ import android.graphics.Matrix
 import androidx.exifinterface.media.ExifInterface
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.FishDetectorEngine
 import com.yujian.ai.ai.FishInputStatus
@@ -21,11 +22,12 @@ import kotlin.math.abs
 
 @RunWith(AndroidJUnit4::class)
 class DetectorGoldenParityTest {
-    private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+    private val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+    private val testContext = InstrumentationRegistry.getInstrumentation().context
 
     @Test
     fun productionDetectorMatchesBackendGoldenCases() {
-        val manifest = JSONObject(readAssetText("detector/golden_cases.json"))
+        val manifest = JSONObject(readTestAssetText("detector/golden_cases.json"))
         assertEquals("DET_FISH_GOLDEN_CASES_v1", manifest.getString("schema_version"))
         assertEquals(FishDetectorEngine.MODEL_VERSION, manifest.getString("model_version"))
         assertEquals(FishDetectorEngine.DATASET_VERSION, manifest.getString("dataset_version"))
@@ -35,14 +37,14 @@ class DetectorGoldenParityTest {
         assertEquals(5, cases.length())
 
         val seen = mutableSetOf<FishInputStatus>()
-        FishDetectorEngine(context).use { engine ->
+        FishDetectorEngine(appContext).use { engine ->
             repeat(cases.length()) { index ->
                 val case = cases.getJSONObject(index)
                 val expectedStatus = FishInputStatus.valueOf(case.getString("expected_status"))
                 val caseId = case.getString("id")
                 val uri = case.getString("golden_gcs_uri")
                 val extension = uri.substringAfterLast('.', "jpg").lowercase()
-                val bitmap = decodeOrientedAsset("detector/golden/$caseId.$extension")
+                val bitmap = decodeOrientedTestAsset("detector/golden/$caseId.$extension")
                 try {
                     val expectedDimensions = case.getJSONObject("source_dimensions")
                     assertEquals("$caseId width", expectedDimensions.getInt("width"), bitmap.width)
@@ -94,11 +96,11 @@ class DetectorGoldenParityTest {
         )
     }
 
-    private fun readAssetBytes(path: String): ByteArray = context.assets.open(path).use { it.readBytes() }
-    private fun readAssetText(path: String): String = readAssetBytes(path).toString(Charsets.UTF_8)
+    private fun readTestAssetBytes(path: String): ByteArray = testContext.assets.open(path).use { it.readBytes() }
+    private fun readTestAssetText(path: String): String = readTestAssetBytes(path).toString(Charsets.UTF_8)
 
-    private fun decodeOrientedAsset(path: String): Bitmap {
-        val bytes = readAssetBytes(path)
+    private fun decodeOrientedTestAsset(path: String): Bitmap {
+        val bytes = readTestAssetBytes(path)
         val source = requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size)) { "Cannot decode $path" }
         val orientation = ByteArrayInputStream(bytes).use { ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL) }
         val matrix = Matrix()
