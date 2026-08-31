@@ -1,5 +1,9 @@
 package com.yujian.ai.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,9 +24,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yujian.ai.ai.InferenceTrace
 import com.yujian.ai.feedback.FeedbackDraft
 import com.yujian.ai.model.*
 import com.yujian.ai.ui.components.TagChip
@@ -41,6 +47,8 @@ fun RecognitionResultScreen(
     onRetry: () -> Unit,
     onSave: (CatchRecord, FeedbackDraft) -> Unit,
 ) {
+    val context = LocalContext.current
+    val debugReport = InferenceTrace.lastReport
     var selectedKey by remember(prediction) { mutableStateOf(prediction.top1.speciesKey) }
     var selectedName by remember(prediction) { mutableStateOf(prediction.top1.speciesName) }
     var showCorrection by remember(prediction) { mutableStateOf(prediction.lowConfidence) }
@@ -84,6 +92,29 @@ fun RecognitionResultScreen(
                     color = DeepInk, fontSize = 13.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 16.dp),
                 )
                 Text("模型 ${prediction.modelVersion} · ${prediction.latencyMs} ms", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+        }
+        if (debugReport.isNotBlank()) {
+            item {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("YuJian inference debug", debugReport))
+                            Toast.makeText(context, "识别调试信息已复制", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                    ) {
+                        Text("复制识别调试信息", color = WaterTeal)
+                    }
+                    Text(
+                        "包含预处理、tensor SHA、完整 9 维 logits / probability，复制后直接发给我即可。",
+                        color = MutedInk,
+                        fontSize = 10.sp,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                    )
+                }
             }
         }
         if (prediction.lowConfidence) {
