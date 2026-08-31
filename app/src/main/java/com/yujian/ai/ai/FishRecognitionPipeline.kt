@@ -43,8 +43,21 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         val right = pixels[2]
         val bottom = pixels[3]
         val crop = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
+        val primary = requireNotNull(assessment.primary) { "READY assessment must contain a primary fish detection" }
+        val box = primary.box.normalized()
+        val traceContext = InferenceTrace.PipelineContext(
+            originalWidth = bitmap.width,
+            originalHeight = bitmap.height,
+            detectorModelVersion = detectorRun.modelVersion,
+            detectorConfidence = primary.confidence,
+            detectorBox = floatArrayOf(box.x1, box.y1, box.x2, box.y2),
+            cropExpandRatio = FishDetectionQualityGate.CROP_EXPAND_RATIO,
+            cropPixels = pixels.copyOf(),
+            cropWidth = crop.width,
+            cropHeight = crop.height,
+        )
         return try {
-            val prediction = classifier.recognize(crop)
+            val prediction = classifier.recognize(crop, traceContext)
             ProductionRecognitionResult(
                 status = FishInputStatus.READY,
                 detectorRun = detectorRun,
