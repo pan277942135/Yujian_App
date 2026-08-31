@@ -14,7 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.yujian.ai.ai.FishRecognitionEngine
+import com.yujian.ai.ai.FishRecognitionPipeline
+import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.feedback.FeedbackRepository
 import com.yujian.ai.model.*
 import com.yujian.ai.ui.screens.*
@@ -29,15 +30,16 @@ fun YujianApp() {
     val context = LocalContext.current.applicationContext
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
-    val recognitionEngine = remember { FishRecognitionEngine(context) }
+    val recognitionPipeline = remember { FishRecognitionPipeline(context) }
     val feedbackRepository = remember { FeedbackRepository(context) }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
+    var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
     var catchRecord by remember { mutableStateOf(DemoData.catch) }
     val backStackEntry by nav.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    DisposableEffect(Unit) { onDispose { recognitionEngine.close() } }
+    DisposableEffect(Unit) { onDispose { recognitionPipeline.close() } }
     LaunchedEffect(Unit) { feedbackRepository.flushQueued() }
 
     val bottomItems = listOf(
@@ -74,7 +76,11 @@ fun YujianApp() {
                 composable("identify") {
                     IdentifyScreen(
                         image = sessionImage, onBack = { nav.popBackStack() },
-                        onImageSelected = { sessionImage = it; prediction = null },
+                        onImageSelected = {
+                            sessionImage = it
+                            productionResult = null
+                            prediction = null
+                        },
                         onStartRecognition = { if (sessionImage != null) nav.navigate("recognizing") },
                     )
                 }
@@ -82,12 +88,42 @@ fun YujianApp() {
                     RecognizingScreen(
                         image = sessionImage,
                         onBack = { nav.popBackStack() },
-                        recognize = { recognitionEngine.recognize(requireNotNull(sessionImage).bitmap) },
+                        recognize = { recognitionPipeline.recognize(requireNotNull(sessionImage).bitmap) },
                         onFinished = { result ->
-                            prediction = result
-                            nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
+                            productionResult = result
+                            prediction = result.prediction
+                            if (result.ready) {
+                                nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
+                            } else {
+                                nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+                            }
                         },
                     )
+                }
+                composable("recognition_issue") {
+                    val current = productionResult
+                    if (current == null || current.ready) {
+                        LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("recognition_issue") { inclusive = true } } }
+                    } else {
+                        RecognitionIssueScreen(
+                            image = sessionImage,
+                            result = current,
+                            onBack = { nav.popBackStack() },
+                            onChooseAnother = {
+                                productionResult = null
+                                prediction = null
+                                nav.navigate("identify") {
+                                    popUpTo("identify") { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            },
+                            onRetry = {
+                                productionResult = null
+                                prediction = null
+                                nav.navigate("recognizing") { popUpTo("recognition_issue") { inclusive = true } }
+                            },
+                        )
+                    }
                 }
                 composable("result") {
                     val currentPrediction = prediction
@@ -96,7 +132,11 @@ fun YujianApp() {
                     } else {
                         RecognitionResultScreen(
                             image = sessionImage, prediction = currentPrediction, onBack = { nav.popBackStack() },
-                            onRetry = { prediction = null; nav.navigate("recognizing") { popUpTo("result") { inclusive = true } } },
+                            onRetry = {
+                                productionResult = null
+                                prediction = null
+                                nav.navigate("recognizing") { popUpTo("result") { inclusive = true } }
+                            },
                             onSave = { saved, feedback ->
                                 catchRecord = saved
                                 sessionImage?.let { selected ->
