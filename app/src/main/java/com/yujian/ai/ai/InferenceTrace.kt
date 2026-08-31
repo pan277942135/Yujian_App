@@ -170,7 +170,7 @@ object InferenceTrace {
     }
 
     private fun sha256(bytes: ByteArray): String =
-        MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
+        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     private fun formatFloatArray(values: FloatArray): String =
         values.joinToString(prefix = "[", postfix = "]", separator = ",") { formatFloat(it) }
