@@ -16,6 +16,22 @@ import java.util.Locale
 object InferenceTrace {
     private const val TAG = "YujianInference"
 
+    /**
+     * Production-pipeline context supplied when the classifier input comes from
+     * DET_FISH_v0.1 rather than directly from the user-selected bitmap.
+     */
+    data class PipelineContext(
+        val originalWidth: Int,
+        val originalHeight: Int,
+        val detectorModelVersion: String,
+        val detectorConfidence: Float,
+        val detectorBox: FloatArray,
+        val cropExpandRatio: Float,
+        val cropPixels: IntArray,
+        val cropWidth: Int,
+        val cropHeight: Int,
+    )
+
     @Volatile
     var lastReport: String = ""
         private set
@@ -58,6 +74,7 @@ object InferenceTrace {
         probabilities: FloatArray,
         labels: List<Pair<String, String>>,
         latencyMs: Long,
+        pipelineContext: PipelineContext? = null,
     ) {
         val tensorSha = floatArraySha256Le(inputValues)
         val preparedRgbSha = bitmapRgbSha256(preparedBitmap)
@@ -81,13 +98,35 @@ object InferenceTrace {
             appendLine("=== YUJIAN_INFERENCE_REPORT_BEGIN ===")
             appendLine("model_version=$modelVersion")
             appendLine("model_sha256=$modelSha256")
+            if (pipelineContext == null) {
+                appendLine("pipeline=CLASSIFIER_ONLY")
+                appendLine("original_size=${sourceBitmap.width}x${sourceBitmap.height}")
+                appendLine("classifier_source=DIRECT_BITMAP")
+                appendLine("classifier_source_size=${sourceBitmap.width}x${sourceBitmap.height}")
+                appendLine("classifier_preprocess=LETTERBOX")
+                appendLine("preprocess=WHOLE_IMAGE_LETTERBOX")
+            } else {
+                appendLine("pipeline=DETECTOR_CROP_CLASSIFIER")
+                appendLine("original_size=${pipelineContext.originalWidth}x${pipelineContext.originalHeight}")
+                appendLine("detector_model_version=${pipelineContext.detectorModelVersion}")
+                appendLine("detector_confidence=${formatFloat(pipelineContext.detectorConfidence)}")
+                appendLine("detector_bbox_normalized=${formatFloatArray(pipelineContext.detectorBox)}")
+                appendLine("crop_expand_ratio=${formatFloat(pipelineContext.cropExpandRatio)}")
+                appendLine("crop_pixels=${pipelineContext.cropPixels.contentToString()}")
+                appendLine("crop_size=${pipelineContext.cropWidth}x${pipelineContext.cropHeight}")
+                appendLine("classifier_source=DETECTOR_CROP")
+                appendLine("classifier_source_size=${sourceBitmap.width}x${sourceBitmap.height}")
+                appendLine("classifier_preprocess=LETTERBOX")
+                appendLine("preprocess=FISH_CROP_LETTERBOX")
+            }
+            // Kept for backwards-compatible tooling. In production this is the
+            // detector crop passed into the classifier, not necessarily the user image.
             appendLine("source_size=${sourceBitmap.width}x${sourceBitmap.height}")
             appendLine("model_input_size=${preparedBitmap.width}x${preparedBitmap.height}")
             appendLine("input_shape=${inputShape.contentToString()}")
             appendLine("input_dtype=FLOAT32")
             appendLine("input_layout=$layout")
             appendLine("color_order=RGB")
-            appendLine("preprocess=WHOLE_IMAGE_LETTERBOX")
             appendLine("interpolation=ANDROID_CANVAS_FILTER_BITMAP")
             appendLine("letterbox_scale=${formatFloat(scale)}")
             appendLine("letterbox_draw_size=${formatFloat(drawWidth)}x${formatFloat(drawHeight)}")
@@ -131,7 +170,10 @@ object InferenceTrace {
     }
 
     private fun sha256(bytes: ByteArray): String =
-        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
+
+    private fun formatFloatArray(values: FloatArray): String =
+        values.joinToString(prefix = "[", postfix = "]", separator = ",") { formatFloat(it) }
 
     private fun formatFloat(value: Float): String = String.format(Locale.US, "%.8f", value)
 }
