@@ -53,10 +53,20 @@ class DetectorGoldenParityTest {
                     val run = kotlinx.coroutines.runBlocking { engine.detect(bitmap) }
                     assertEquals("$caseId detector SHA", manifest.getString("onnx_sha256"), run.onnxSha256)
                     val assessment = FishDetectionQualityGate.assess(run.detections)
-                    assertEquals("$caseId status", expectedStatus, assessment.status)
+                    val expectedDetections = case.getJSONArray("detections")
+                    val diagnostic = buildString {
+                        append("$caseId expectedStatus=$expectedStatus actualStatus=${assessment.status}")
+                        append(" expectedDetections=")
+                        append(expectedDetections.toString())
+                        append(" actualDetections=")
+                        append(run.detections.joinToString(prefix = "[", postfix = "]") { detection ->
+                            "{confidence=${detection.confidence},bbox=[${detection.box.x1},${detection.box.y1},${detection.box.x2},${detection.box.y2}]}"
+                        })
+                        append(" inputScale=${run.inputScale} draw=${run.inputDrawWidth}x${run.inputDrawHeight}")
+                    }
+                    assertEquals(diagnostic, expectedStatus, assessment.status)
                     seen += assessment.status
 
-                    val expectedDetections = case.getJSONArray("detections")
                     assertEquals("$caseId detection count", expectedDetections.length(), run.detections.size)
                     repeat(expectedDetections.length()) { detectionIndex ->
                         val expected = expectedDetections.getJSONObject(detectionIndex)
