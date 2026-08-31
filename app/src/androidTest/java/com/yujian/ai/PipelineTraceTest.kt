@@ -14,7 +14,6 @@ import com.yujian.ai.ai.InferenceTrace
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,7 +42,7 @@ class PipelineTraceTest {
             }
             assertEquals(FishInputStatus.READY, result.status)
             assertTrue(result.ready)
-            val cropPixels = assertNotNull(result.cropPixels) as IntArray
+            val cropPixels = requireNotNull(result.cropPixels) { "READY pipeline result must expose crop pixels" }
             val cropWidth = cropPixels[2] - cropPixels[0]
             val cropHeight = cropPixels[3] - cropPixels[1]
             val primary = requireNotNull(result.assessment.primary)
