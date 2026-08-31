@@ -135,7 +135,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run classifier and detector golden parity on Android 9
+      - name: Run classifier, detector, and pipeline trace parity on Android 9
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 28
@@ -146,3 +146,4 @@ jobs:
           script: |
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.InferenceParityTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.DetectorGoldenParityTest --stacktrace
+            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
