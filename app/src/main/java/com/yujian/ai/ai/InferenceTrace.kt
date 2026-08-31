@@ -111,7 +111,7 @@ object InferenceTrace {
                 appendLine("detector_model_version=${pipelineContext.detectorModelVersion}")
                 appendLine("detector_confidence=${formatFloat(pipelineContext.detectorConfidence)}")
                 appendLine("detector_bbox_normalized=${formatFloatArray(pipelineContext.detectorBox)}")
-                appendLine("crop_expand_ratio=${formatFloat(pipelineContext.cropExpandRatio)}")
+                appendLine("crop_expand_ratio=${formatRatio(pipelineContext.cropExpandRatio)}")
                 appendLine("crop_pixels=${pipelineContext.cropPixels.contentToString()}")
                 appendLine("crop_size=${pipelineContext.cropWidth}x${pipelineContext.cropHeight}")
                 appendLine("classifier_source=DETECTOR_CROP")
@@ -174,6 +174,8 @@ object InferenceTrace {
 
     private fun formatFloatArray(values: FloatArray): String =
         values.joinToString(prefix = "[", postfix = "]", separator = ",") { formatFloat(it) }
+
+    private fun formatRatio(value: Float): String = String.format(Locale.US, "%.2f", value)
 
     private fun formatFloat(value: Float): String = String.format(Locale.US, "%.8f", value)
 }
