@@ -202,7 +202,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val source = IntArray(inWidth * inHeight)
         bitmap.getPixels(source, 0, inWidth, 0, 0, inWidth, inHeight)
         if (inWidth == outWidth && inHeight == outHeight) {
-            return source.mapTo(IntArray(source.size)) { pixel -> pixel or (0xFF shl 24) }
+            return IntArray(source.size) { index -> source[index] or (0xFF shl 24) }
         }
 
         val horizontalCoefficients = pillowBilinearCoefficients(inWidth, outWidth)
