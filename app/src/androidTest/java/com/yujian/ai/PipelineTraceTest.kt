@@ -47,22 +47,30 @@ class PipelineTraceTest {
             val cropHeight = cropPixels[3] - cropPixels[1]
             val primary = requireNotNull(result.assessment.primary)
             val report = InferenceTrace.lastReport
+            println("PIPELINE_TRACE_REPORT\n$report")
 
-            assertTrue(report.contains("pipeline=DETECTOR_CROP_CLASSIFIER"))
-            assertTrue(report.contains("original_size=${bitmap.width}x${bitmap.height}"))
-            assertTrue(report.contains("detector_model_version=${result.detectorRun.modelVersion}"))
-            assertTrue(report.contains("detector_confidence="))
-            assertTrue(report.contains("detector_bbox_normalized="))
-            assertTrue(report.contains("crop_expand_ratio=0.15000000"))
-            assertTrue(report.contains("crop_pixels=${cropPixels.contentToString()}"))
-            assertTrue(report.contains("crop_size=${cropWidth}x${cropHeight}"))
-            assertTrue(report.contains("classifier_source=DETECTOR_CROP"))
-            assertTrue(report.contains("classifier_source_size=${cropWidth}x${cropHeight}"))
-            assertTrue(report.contains("preprocess=FISH_CROP_LETTERBOX"))
+            assertReportContains(report, "pipeline=DETECTOR_CROP_CLASSIFIER")
+            assertReportContains(report, "original_size=${bitmap.width}x${bitmap.height}")
+            assertReportContains(report, "detector_model_version=${result.detectorRun.modelVersion}")
+            assertReportContains(report, "detector_confidence=")
+            assertReportContains(report, "detector_bbox_normalized=")
+            assertReportContains(report, "crop_expand_ratio=0.15")
+            assertReportContains(report, "crop_pixels=${cropPixels.contentToString()}")
+            assertReportContains(report, "crop_size=${cropWidth}x${cropHeight}")
+            assertReportContains(report, "classifier_source=DETECTOR_CROP")
+            assertReportContains(report, "classifier_source_size=${cropWidth}x${cropHeight}")
+            assertReportContains(report, "preprocess=FISH_CROP_LETTERBOX")
             assertTrue(primary.confidence >= FishDetectionQualityGate.STRONG_CONFIDENCE)
         } finally {
             if (!bitmap.isRecycled) bitmap.recycle()
         }
+    }
+
+    private fun assertReportContains(report: String, expected: String) {
+        assertTrue(
+            "Expected inference report to contain '$expected'.\nActual report:\n$report",
+            report.contains(expected),
+        )
     }
 
     private fun readTestAssetBytes(path: String): ByteArray = testContext.assets.open(path).use { it.readBytes() }
