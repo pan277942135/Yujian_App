@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -19,6 +20,9 @@ import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.feedback.FeedbackRepository
 import com.yujian.ai.inference.InferenceAsset
 import com.yujian.ai.inference.InferenceRecorder
+import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.knowledge.FishKnowledgeDetail
+import com.yujian.ai.knowledge.FishKnowledgeRepository
 import com.yujian.ai.model.*
 import com.yujian.ai.ui.screens.*
 import com.yujian.ai.ui.theme.*
@@ -35,16 +39,37 @@ fun YujianApp() {
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
+    val fishKnowledgeRepository = remember { FishKnowledgeRepository() }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
     var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
     var catchRecord by remember { mutableStateOf(DemoData.catch) }
+    var guideSpecies by remember { mutableStateOf(emptyList<FishGuideItem>()) }
+    var guideLoading by remember { mutableStateOf(true) }
+    var guideOfflinePreview by remember { mutableStateOf(false) }
+    var guideError by remember { mutableStateOf<String?>(null) }
+    var guideRetry by remember { mutableStateOf(0) }
     val backStackEntry by nav.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
     DisposableEffect(Unit) { onDispose { recognitionPipeline.close() } }
     LaunchedEffect(Unit) { feedbackRepository.flushQueued() }
+    LaunchedEffect(guideRetry) {
+        guideLoading = true
+        guideError = null
+        runCatching { fishKnowledgeRepository.listSpecies() }
+            .onSuccess { remote ->
+                guideSpecies = mergeGuideItems(remote)
+                guideOfflinePreview = false
+            }
+            .onFailure { error ->
+                guideSpecies = localGuideItems()
+                guideOfflinePreview = true
+                guideError = error.message ?: "Fish Knowledge API 暂不可用"
+            }
+        guideLoading = false
+    }
 
     val bottomItems = listOf(
         BottomItem("home", "首页") { Icon(Icons.Rounded.Home, null) },
@@ -171,16 +196,80 @@ fun YujianApp() {
                         )
                     }
                 }
-                composable("guide") { FishGuideHomeScreen { fish -> nav.navigate("species/${fish.key}") } }
+                composable("guide") {
+                    FishGuideHomeScreen(
+                        species = guideSpecies,
+                        loading = guideLoading,
+                        offlinePreview = guideOfflinePreview,
+                        error = guideError,
+                        resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
+                        onRetry = { guideRetry++ },
+                        onSpeciesClick = { fish -> nav.navigate("species/${Uri.encode(fish.id)}") },
+                    )
+                }
                 composable("species/{key}", arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
                     val key = entry.arguments?.getString("key") ?: "grass_carp"
-                    val fish = DemoData.species.firstOrNull { it.key == key } ?: DemoData.species.first()
-                    FishSpeciesDetailScreen(fish, { nav.popBackStack() }, { nav.navigate("catch") })
+                    val fallback = guideSpecies.firstOrNull { it.id == key } ?: localGuideItems().firstOrNull { it.id == key }
+                    var detail by remember(key) { mutableStateOf<FishKnowledgeDetail?>(null) }
+                    var detailLoading by remember(key) { mutableStateOf(true) }
+                    var detailOfflinePreview by remember(key) { mutableStateOf(false) }
+                    var detailError by remember(key) { mutableStateOf<String?>(null) }
+                    var detailRetry by remember(key) { mutableStateOf(0) }
+                    LaunchedEffect(key, detailRetry) {
+                        detailLoading = true
+                        detailError = null
+                        runCatching { fishKnowledgeRepository.getDetail(key) }
+                            .onSuccess {
+                                detail = it
+                                detailOfflinePreview = false
+                            }
+                            .onFailure { error ->
+                                detailOfflinePreview = true
+                                detailError = error.message ?: "鱼种详情暂不可用"
+                            }
+                        detailLoading = false
+                    }
+                    FishSpeciesDetailScreen(
+                        detail = detail,
+                        fallback = fallback,
+                        loading = detailLoading,
+                        offlinePreview = detailOfflinePreview,
+                        error = detailError,
+                        resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
+                        onRetry = { detailRetry++ },
+                        onBack = { nav.popBackStack() },
+                        onOpenCatch = { nav.navigate("catch") },
+                    )
                 }
                 composable("catch") { CatchDetailScreen(catchRecord, { nav.popBackStack() }, { nav.navigate("share") }) }
                 composable("share") { ShareCenterScreen(catchRecord) { nav.popBackStack() } }
                 composable("my") { MyScreen({ nav.navigate("guide") }, { nav.navigate("catch") }) }
             }
         }
+    }
+}
+
+private fun localGuideItems(): List<FishGuideItem> = DemoData.species.map { fish ->
+    FishGuideItem(
+        id = fish.key,
+        nameCn = fish.name,
+        aliases = fish.aliases.split("、").map(String::trim).filter(String::isNotBlank),
+        category = fish.category,
+        summary = fish.description,
+        discovered = fish.discovered,
+        catches = fish.catches,
+    )
+}
+
+private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
+    val local = localGuideItems().associateBy { it.id }
+    return remote.map { item ->
+        val localItem = local[item.id]
+        item.copy(
+            aliases = localItem?.aliases ?: item.aliases,
+            category = localItem?.category ?: item.category,
+            discovered = localItem?.discovered ?: false,
+            catches = localItem?.catches ?: 0,
+        )
     }
 }

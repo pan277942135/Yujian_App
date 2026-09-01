@@ -53,10 +53,22 @@ Android App 仍处于第一版 0→1 产品阶段，离商用 MVP 还有较长�
 - 图片生命周期
 - 权限 / 异常处理
 - Feedback 稳定上传
+- Fish Knowledge 内容 API 与图鉴详情页
 - Crash / 性能 / 真实设备测试
 - Release signing / 正式 package
 
 **Runtime Parity PASS 只代表 AI 能力可信接入 App，不代表 App 已达到商用 MVP。**
+
+## Fish Knowledge 内容展示
+
+图鉴首页与鱼种详情页从 Backend 的公开只读接口读取内容：
+
+```text
+GET /api/v1/fish/species
+GET /api/v1/fish/species/{species_id}/detail
+```
+
+构建时可通过 `YUJIAN_FISH_KNOWLEDGE_BASE_URL` 指定内容 API 地址；未指定时复用 `YUJIAN_FEEDBACK_BASE_URL`。详情页按 `ACTIVE` 内容渲染列表封面、五张鱼鉴卡、Gallery、结构化知识和视频，并保留鱼获入口与排行榜占位。未配置地址或网络不可用时会明确显示离线预览，不影响本地 Detector / Classifier 推理。
 
 ## 当前模型方向
 

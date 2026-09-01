@@ -7,6 +7,8 @@ plugins {
 fun quotedBuildConfig(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 val feedbackBaseUrl = providers.gradleProperty("YUJIAN_FEEDBACK_BASE_URL")
     .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_BASE_URL")).orElse("").get()
+val fishKnowledgeBaseUrl = providers.gradleProperty("YUJIAN_FISH_KNOWLEDGE_BASE_URL")
+    .orElse(providers.environmentVariable("YUJIAN_FISH_KNOWLEDGE_BASE_URL")).orElse(feedbackBaseUrl).get()
 val feedbackIngestKey = providers.gradleProperty("YUJIAN_FEEDBACK_INGEST_KEY")
     .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_INGEST_KEY")).orElse("").get()
 
@@ -24,6 +26,7 @@ android {
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "FEEDBACK_BASE_URL", quotedBuildConfig(feedbackBaseUrl))
         buildConfigField("String", "FEEDBACK_INGEST_KEY", quotedBuildConfig(feedbackIngestKey))
+        buildConfigField("String", "FISH_KNOWLEDGE_BASE_URL", quotedBuildConfig(fishKnowledgeBaseUrl))
     }
 
     compileOptions {
