@@ -1,6 +1,7 @@
 package com.yujian.ai.model
 
 import android.graphics.Bitmap
+import java.util.UUID
 
 data class FishSpecies(
     val key: String,
@@ -20,6 +21,8 @@ data class SelectedImage(
     val filePath: String,
     val bitmap: Bitmap,
     val source: String,
+    /** Stable identity shared by original image, crop, feedback and backend assets. */
+    val imageId: String = "yj_img_${UUID.randomUUID()}",
 )
 
 data class RecognitionCandidate(
