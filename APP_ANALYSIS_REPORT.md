@@ -279,13 +279,14 @@ Model Factory's `/api/v1/inference/upload`. Offline entries stay retryable in
 Detector or Crop dataset builder can consume the image; the App candidate box
 is never promoted automatically.
 
-The Android implementation commits are:
+The Android implementation commits on `main` are:
 
-1. `ba17c87` — inference contracts
-2. `2499b91` — recorder and crop persistence
-3. `4cbc323` — authenticated inference upload transport
-
+1. `ffb9c96` — inference contracts
+2. `6f92fc5` — recorder and crop persistence
+3. `0358d64` — authenticated inference upload transport
 4. `27a4c872` — feedback identity field and shared preprocess contract
+5. `c62d422` — final production pipeline analysis
+6. `9c35f5b` — implementation status and acceptance update
 
 The existing `DET_FISH_v0.1` and `MODEL_M1_v0.2` runtime assets and their UAT
 behavior remain unchanged.
@@ -302,4 +303,3 @@ behavior remain unchanged.
 - 必须新增：统一 Contract、stable image_id、InferenceRecorder、crop 持久化、新 inference upload API、App record 到 Dataset 适配器、Detector Error Analyzer。
 - 必须保持：DET_FISH_v0.1、MODEL_M1_v0.2、现有 Android UAT、Classifier 推理逻辑、Dataset Freeze 状态机和 Feedback 人工 Review 边界。
 - Phase A → E 已完成并已推送到 `main`：Contract、Recorder/crop 持久化、上传传输、后端接收、review-gated 数据集适配与 Detector Error Analyzer 均已落地；后续只允许沿现有人工 Review → Dataset Freeze 闸门扩展，不把 candidate bbox 当作训练真值。
-
