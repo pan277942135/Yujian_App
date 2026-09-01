@@ -11,7 +11,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class FishKnowledgeRepository(
-    private val baseUrl: String = BuildConfig.FEEDBACK_BASE_URL,
+    private val baseUrl: String = BuildConfig.FISH_KNOWLEDGE_BASE_URL,
 ) {
     suspend fun listSpecies(): List<FishGuideItem> = withContext(Dispatchers.IO) {
         val array = JSONArray(get("/api/v1/fish/species"))
