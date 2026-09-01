@@ -285,8 +285,7 @@ The Android implementation commits are:
 2. `2499b91` — recorder and crop persistence
 3. `4cbc323` — authenticated inference upload transport
 
-4. `pending` — feedback identity field and shared preprocess contract (will be
-   recorded by the next main commit)
+4. `27a4c872` — feedback identity field and shared preprocess contract
 
 The existing `DET_FISH_v0.1` and `MODEL_M1_v0.2` runtime assets and their UAT
 behavior remain unchanged.
