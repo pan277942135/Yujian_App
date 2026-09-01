@@ -13,6 +13,19 @@ enum class FishInputStatus(val wireName: String) {
     FISH_TOO_SMALL("fish_too_small"),
 }
 
+/**
+ * Android UX quality level layered on top of the frozen detector contract.
+ *
+ * GOOD and WARNING are both classifier-eligible. INVALID is the only level that
+ * blocks MODEL_M1_v0.2. This keeps common field photos usable when a tail touches
+ * the frame or the fish is lightly occluded, while still blocking ambiguous input.
+ */
+enum class FishQualityLevel(val wireName: String) {
+    GOOD("good"),
+    WARNING("warning"),
+    INVALID("invalid"),
+}
+
 data class NormalizedFishBox(
     val x1: Float,
     val y1: Float,
@@ -64,10 +77,16 @@ data class FishInputAssessment(
     val strongDetections: List<FishDetection>,
     val weakDetections: List<FishDetection>,
     val reason: String,
-)
+    val qualityLevel: FishQualityLevel = FishQualityLevel.GOOD,
+) {
+    val qualityReason: String get() = reason
+    val bboxAreaRatio: Float? get() = primary?.areaRatio
+    val isClassifierEligible: Boolean get() = qualityLevel != FishQualityLevel.INVALID && cropBox != null
+}
 
 object FishDetectionQualityGate {
     const val CONTRACT_VERSION = "RECOGNITION_PIPELINE_v1"
+    const val QUALITY_GATE_VERSION = "QUALITY_GATE_v1.1"
     const val STRONG_CONFIDENCE = 0.35f
     const val WEAK_CONFIDENCE = 0.20f
     const val NMS_IOU = 0.45f
@@ -95,10 +114,11 @@ object FishDetectionQualityGate {
                 FishInputAssessment(
                     FishInputStatus.UNCERTAIN,
                     weak.first(),
-                    null,
+                    weak.first().box.expand(CROP_EXPAND_RATIO),
                     strong,
                     weak,
                     "weak_fish_detection_only",
+                    FishQualityLevel.WARNING,
                 )
             } else {
                 FishInputAssessment(
@@ -108,6 +128,7 @@ object FishDetectionQualityGate {
                     strong,
                     weak,
                     "no_fish_detection_above_weak_threshold",
+                    FishQualityLevel.INVALID,
                 )
             }
         }
@@ -121,6 +142,7 @@ object FishDetectionQualityGate {
                 strong,
                 weak,
                 "multiple_strong_fish_detections",
+                FishQualityLevel.INVALID,
             )
         }
 
@@ -128,10 +150,11 @@ object FishDetectionQualityGate {
             return FishInputAssessment(
                 FishInputStatus.INCOMPLETE_FISH,
                 primary,
-                null,
+                primary.box.expand(CROP_EXPAND_RATIO),
                 strong,
                 weak,
                 "primary_fish_bbox_touches_image_edge",
+                FishQualityLevel.WARNING,
             )
         }
 
@@ -143,6 +166,7 @@ object FishDetectionQualityGate {
                 strong,
                 weak,
                 "primary_fish_area_below_minimum",
+                FishQualityLevel.INVALID,
             )
         }
 
@@ -153,6 +177,7 @@ object FishDetectionQualityGate {
             strong,
             weak,
             "single_complete_fish_ready_for_classifier",
+            FishQualityLevel.GOOD,
         )
     }
 

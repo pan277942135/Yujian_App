@@ -30,6 +30,9 @@ object InferenceTrace {
         val cropPixels: IntArray,
         val cropWidth: Int,
         val cropHeight: Int,
+        val qualityLevel: String = "GOOD",
+        val qualityReason: String = "unknown",
+        val bboxAreaRatio: Float = 0f,
     )
 
     @Volatile
@@ -100,6 +103,10 @@ object InferenceTrace {
             appendLine("model_sha256=$modelSha256")
             if (pipelineContext == null) {
                 appendLine("pipeline=CLASSIFIER_ONLY")
+                appendLine("quality_level=NOT_APPLICABLE")
+                appendLine("quality_reason=classifier_only")
+                appendLine("bbox_area_ratio=NA")
+                appendLine("crop_size=NA")
                 appendLine("original_size=${sourceBitmap.width}x${sourceBitmap.height}")
                 appendLine("classifier_source=DIRECT_BITMAP")
                 appendLine("classifier_source_size=${sourceBitmap.width}x${sourceBitmap.height}")
@@ -111,6 +118,10 @@ object InferenceTrace {
                 appendLine("detector_model_version=${pipelineContext.detectorModelVersion}")
                 appendLine("detector_confidence=${formatFloat(pipelineContext.detectorConfidence)}")
                 appendLine("detector_bbox_normalized=${formatFloatArray(pipelineContext.detectorBox)}")
+                appendLine("quality_gate_version=${FishDetectionQualityGate.QUALITY_GATE_VERSION}")
+                appendLine("quality_level=${pipelineContext.qualityLevel}")
+                appendLine("quality_reason=${pipelineContext.qualityReason}")
+                appendLine("bbox_area_ratio=${formatFloat(pipelineContext.bboxAreaRatio)}")
                 appendLine("crop_expand_ratio=${formatRatio(pipelineContext.cropExpandRatio)}")
                 appendLine("crop_pixels=${pipelineContext.cropPixels.contentToString()}")
                 appendLine("crop_size=${pipelineContext.cropWidth}x${pipelineContext.cropHeight}")

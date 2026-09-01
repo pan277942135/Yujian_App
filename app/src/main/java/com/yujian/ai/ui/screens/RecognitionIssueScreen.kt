@@ -1,6 +1,5 @@
 package com.yujian.ai.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,8 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,12 +65,12 @@ fun RecognitionIssueScreen(
     Column(Modifier.fillMaxSize().background(WarmBackground)) {
         YujianTopBar(title = "检查照片", subtitle = "先确认鱼体，再判断鱼种", onBack = onBack)
         if (image != null) {
-            Image(
-                bitmap = image.bitmap.asImageBitmap(),
-                contentDescription = "待重新拍摄的鱼获照片",
+            DetectorOverlayImage(
+                bitmap = image.bitmap,
+                detectorBox = result.assessment.primary?.box,
+                cropBox = result.assessment.cropBox,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).height(290.dp)
                     .clip(RoundedCornerShape(28.dp)),
-                contentScale = ContentScale.Crop,
             )
         }
 
@@ -83,6 +80,11 @@ fun RecognitionIssueScreen(
         ) {
             Text(copy.title, color = DeepInk, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(copy.body, color = MutedInk, fontSize = 14.sp, lineHeight = 22.sp)
+            Text(
+                "Quality Gate ${result.assessment.qualityLevel.name} · ${result.assessment.qualityReason}",
+                color = Color(0xFFB24A3A),
+                fontSize = 11.sp,
+            )
             result.assessment.primary?.let { primary ->
                 Text(
                     "鱼体检测置信度 ${(primary.confidence * 100).toInt()}%",

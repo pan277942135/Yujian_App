@@ -147,3 +147,4 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.InferenceParityTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.DetectorGoldenParityTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
+            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.FishDetectionQualityGateTest --stacktrace

@@ -131,7 +131,10 @@ fun YujianApp() {
                         LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("result") { inclusive = true } } }
                     } else {
                         RecognitionResultScreen(
-                            image = sessionImage, prediction = currentPrediction, onBack = { nav.popBackStack() },
+                            image = sessionImage,
+                            prediction = currentPrediction,
+                            productionResult = productionResult,
+                            onBack = { nav.popBackStack() },
                             onRetry = {
                                 productionResult = null
                                 prediction = null

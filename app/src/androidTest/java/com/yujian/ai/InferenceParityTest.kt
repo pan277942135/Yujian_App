@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishRecognitionEngine
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,6 +41,9 @@ class InferenceParityTest {
 
         assertEquals(FishRecognitionEngine.MODEL_VERSION, prediction.modelVersion)
         assertEquals(FishRecognitionEngine.MODEL_SHA256, prediction.modelSha256)
+        assertNotNull(prediction.modelInputBitmap)
+        assertEquals(224, requireNotNull(prediction.modelInputBitmap).width)
+        assertEquals(224, requireNotNull(prediction.modelInputBitmap).height)
         assertEquals(9, prediction.candidates.size)
         val top3 = prediction.candidates.take(3)
         assertEquals(listOf(2, 4, 1), top3.map { it.classIndex })

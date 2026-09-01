@@ -18,8 +18,8 @@ android {
         applicationId = "com.yujian.ai.uiv2"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "2.2.0-m1-v0.2"
+        versionCode = 4
+        versionName = "2.3.1-quality-gate-v1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "FEEDBACK_BASE_URL", quotedBuildConfig(feedbackBaseUrl))

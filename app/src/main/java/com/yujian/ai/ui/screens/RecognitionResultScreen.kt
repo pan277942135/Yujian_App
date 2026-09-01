@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.screens
 
+import android.graphics.Bitmap
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -28,13 +29,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yujian.ai.ai.FishDetectionQualityGate
+import com.yujian.ai.ai.FishQualityLevel
 import com.yujian.ai.ai.InferenceTrace
+import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.feedback.FeedbackDraft
 import com.yujian.ai.model.*
 import com.yujian.ai.ui.components.TagChip
 import com.yujian.ai.ui.components.YujianTopBar
 import com.yujian.ai.ui.theme.*
 import java.util.UUID
+import java.util.Locale
 import kotlin.math.roundToInt
 
 private data class CorrectionOption(val key: String, val name: String)
@@ -43,12 +48,34 @@ private data class CorrectionOption(val key: String, val name: String)
 fun RecognitionResultScreen(
     image: SelectedImage?,
     prediction: RecognitionPrediction,
+    productionResult: ProductionRecognitionResult? = null,
     onBack: () -> Unit,
     onRetry: () -> Unit,
     onSave: (CatchRecord, FeedbackDraft) -> Unit,
 ) {
     val context = LocalContext.current
     val debugReport = InferenceTrace.lastReport
+    val assessment = productionResult?.assessment
+    val qualityLevel = assessment?.qualityLevel ?: FishQualityLevel.GOOD
+    val cropPixels = productionResult?.cropPixels
+    val cropPixelsKey = cropPixels?.contentToString()
+    val cropPreview = remember(image?.bitmap, cropPixelsKey) {
+        val source = image?.bitmap
+        if (source == null || cropPixels == null || cropPixels.size < 4) {
+            null
+        } else {
+            val left = cropPixels[0].coerceIn(0, source.width - 1)
+            val top = cropPixels[1].coerceIn(0, source.height - 1)
+            val right = cropPixels[2].coerceIn(left + 1, source.width)
+            val bottom = cropPixels[3].coerceIn(top + 1, source.height)
+            Bitmap.createBitmap(source, left, top, right - left, bottom - top)
+        }
+    }
+    DisposableEffect(cropPreview) {
+        onDispose {
+            if (cropPreview != null && cropPreview !== image?.bitmap && !cropPreview.isRecycled) cropPreview.recycle()
+        }
+    }
     var selectedKey by remember(prediction) { mutableStateOf(prediction.top1.speciesKey) }
     var selectedName by remember(prediction) { mutableStateOf(prediction.top1.speciesName) }
     var showCorrection by remember(prediction) { mutableStateOf(prediction.lowConfidence) }
@@ -65,13 +92,37 @@ fun RecognitionResultScreen(
     LazyColumn(Modifier.fillMaxSize().background(WarmBackground), contentPadding = PaddingValues(bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { YujianTopBar(title = "识别结果", onBack = onBack) }
         item {
-            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(270.dp).clip(RoundedCornerShape(28.dp)).background(SoftWater), contentAlignment = Alignment.Center) {
-                image?.let { Image(it.bitmap.asImageBitmap(), "已识别鱼获照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
-                Box(Modifier.align(Alignment.TopStart).padding(18.dp).background(Color.White.copy(alpha = .9f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 7.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(8.dp).background(WaterTeal, CircleShape))
-                        Text("本机 AI 识别完成", color = WaterTeal, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 7.dp))
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                Box(
+                    Modifier.fillMaxWidth().height(270.dp).clip(RoundedCornerShape(28.dp)).background(SoftWater),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    image?.let {
+                        DetectorOverlayImage(
+                            bitmap = it.bitmap,
+                            detectorBox = assessment?.primary?.box,
+                            cropBox = assessment?.cropBox,
+                            modifier = Modifier.fillMaxSize(),
+                        )
                     }
+                    Box(Modifier.align(Alignment.TopStart).padding(18.dp).background(Color.White.copy(alpha = .92f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 7.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(8.dp).background(qualityColor(qualityLevel), CircleShape))
+                            Text(
+                                "本机 AI 识别完成 · ${qualityLevel.name}",
+                                color = qualityColor(qualityLevel),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(start = 7.dp),
+                            )
+                        }
+                    }
+                }
+                if (assessment?.primary != null) {
+                    DetectorOverlayLegend(
+                        showCrop = assessment.cropBox != null,
+                        modifier = Modifier.padding(start = 4.dp, top = 7.dp),
+                    )
                 }
             }
         }
@@ -92,6 +143,34 @@ fun RecognitionResultScreen(
                     color = DeepInk, fontSize = 13.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 16.dp),
                 )
                 Text("模型 ${prediction.modelVersion} · ${prediction.latencyMs} ms", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+                assessment?.let { gate ->
+                    Text(
+                        "Quality Gate ${gate.qualityLevel.name} · ${gate.qualityReason}",
+                        color = MutedInk,
+                        fontSize = 10.sp,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+        }
+        if (assessment?.qualityLevel == FishQualityLevel.WARNING) {
+            item {
+                QualityWarningCard(assessment.qualityReason)
+            }
+        }
+        if (assessment != null && image != null) {
+            item {
+                DetectorMetadataCard(
+                    assessment = assessment,
+                    cropPixels = cropPixels,
+                    sourceWidth = image.bitmap.width,
+                    sourceHeight = image.bitmap.height,
+                )
+            }
+        }
+        if (cropPreview != null || prediction.modelInputBitmap != null) {
+            item {
+                CropPreviewCard(cropPreview = cropPreview, modelInput = prediction.modelInputBitmap)
             }
         }
         if (debugReport.isNotBlank()) {
@@ -109,7 +188,7 @@ fun RecognitionResultScreen(
                         Text("复制识别调试信息", color = WaterTeal)
                     }
                     Text(
-                        "包含预处理、tensor SHA、完整 9 维 logits / probability，复制后直接发给我即可。",
+                        "包含 quality gate、原图 bbox、crop size、预处理、tensor SHA 和完整 logits / probability，复制后直接发给我即可。",
                         color = MutedInk,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
@@ -189,3 +268,117 @@ fun RecognitionResultScreen(
         }
     }
 }
+
+@Composable
+private fun QualityWarningCard(reason: String) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(Color(0xFFFFF4E4), RoundedCornerShape(22.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text("画面可用，但需要留意", color = Color(0xFF9A5A16), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text(
+            when (reason) {
+                "primary_fish_bbox_touches_image_edge" -> "鱼体有一部分贴近或超出画面边缘，已保留这张照片并继续识别。保存前请结合原图确认鱼种。"
+                "weak_fish_detection_only" -> "检测置信度偏低，但仍保留候选并继续识别。请结合原图确认结果。"
+                else -> "检测存在轻微质量风险，但没有阻断本次识别。保存前请结合原图确认鱼种。"
+            },
+            color = Color(0xFF7D5A32),
+            fontSize = 12.sp,
+            lineHeight = 19.sp,
+        )
+    }
+}
+
+@Composable
+private fun DetectorMetadataCard(
+    assessment: com.yujian.ai.ai.FishInputAssessment,
+    cropPixels: IntArray?,
+    sourceWidth: Int,
+    sourceHeight: Int,
+) {
+    val primary = assessment.primary
+    val bbox = primary?.box?.normalized()
+    val cropSize = cropPixels?.takeIf { it.size >= 4 }?.let { "${it[2] - it[0]}×${it[3] - it[1]} px" } ?: "未生成"
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(CardWhite, RoundedCornerShape(22.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        Text("Detector Overlay", color = DeepInk, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text("原图 ${sourceWidth}×${sourceHeight} · Quality Gate ${assessment.qualityLevel.name}", color = MutedInk, fontSize = 11.sp)
+        primary?.let {
+            Text(
+                "原图 bbox [${format3(bbox?.x1 ?: 0f)}, ${format3(bbox?.y1 ?: 0f)}, ${format3(bbox?.x2 ?: 0f)}, ${format3(bbox?.y2 ?: 0f)}]",
+                color = DeepInk,
+                fontSize = 12.sp,
+            )
+            Text(
+                "confidence ${format3(it.confidence)} · bbox_area_ratio ${format3(assessment.bboxAreaRatio ?: 0f)}",
+                color = MutedInk,
+                fontSize = 11.sp,
+            )
+        }
+        Text(
+            "crop size $cropSize · expand ratio ${format2(FishDetectionQualityGate.CROP_EXPAND_RATIO)}",
+            color = MutedInk,
+            fontSize = 11.sp,
+        )
+    }
+}
+
+@Composable
+private fun CropPreviewCard(
+    cropPreview: Bitmap?,
+    modelInput: Bitmap?,
+) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(CardWhite, RoundedCornerShape(22.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Crop Preview", color = DeepInk, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text("实际送入 MODEL_M1_v0.2：detector crop → FISH_CROP_LETTERBOX", color = MutedInk, fontSize = 11.sp)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            cropPreview?.let {
+                PreviewTile(
+                    bitmap = it,
+                    label = "detector crop · ${it.width}×${it.height}",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            modelInput?.let {
+                PreviewTile(
+                    bitmap = it,
+                    label = "MODEL_M1 input · ${it.width}×${it.height}",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PreviewTile(bitmap: Bitmap, label: String, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Box(
+            Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(16.dp)).background(SoftWater),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = label,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
+        }
+        Text(label, color = MutedInk, fontSize = 10.sp, lineHeight = 14.sp)
+    }
+}
+
+private fun qualityColor(level: FishQualityLevel): Color = when (level) {
+    FishQualityLevel.GOOD -> WaterTeal
+    FishQualityLevel.WARNING -> Color(0xFFE58B2A)
+    FishQualityLevel.INVALID -> Color(0xFFB24A3A)
+}
+
+private fun format3(value: Float): String = String.format(Locale.US, "%.3f", value)
+
+private fun format2(value: Float): String = String.format(Locale.US, "%.2f", value)

@@ -10,6 +10,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.FishDetectorEngine
 import com.yujian.ai.ai.FishInputStatus
+import com.yujian.ai.ai.FishQualityLevel
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -102,7 +103,8 @@ class DetectorGoldenParityTest {
 
                     val expectedCrop = if (case.isNull("crop_pixels")) null else case.getJSONArray("crop_pixels")
                     val actualCrop = assessment.cropBox?.let { FishDetectionQualityGate.cropBoxPixels(it, bitmap.width, bitmap.height) }
-                    if (expectedCrop == null && actualCrop != null) {
+                    val v11WarningCrop = expectedCrop == null && assessment.qualityLevel == FishQualityLevel.WARNING && actualCrop != null
+                    if (expectedCrop == null && actualCrop != null && !v11WarningCrop) {
                         failures += "$caseId unexpected crop=${actualCrop.contentToString()}"
                     } else if (expectedCrop != null && actualCrop == null) {
                         failures += "$caseId missing crop expected=${expectedCrop}"

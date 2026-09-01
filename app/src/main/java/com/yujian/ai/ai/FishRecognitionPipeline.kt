@@ -12,7 +12,8 @@ data class ProductionRecognitionResult(
     val prediction: RecognitionPrediction?,
     val cropPixels: IntArray?,
 ) {
-    val ready: Boolean get() = status == FishInputStatus.READY && prediction != null
+    /** GOOD and WARNING both reach the classifier; INVALID is the only blocked level. */
+    val ready: Boolean get() = assessment.isClassifierEligible && prediction != null
     val totalLatencyMs: Long get() = detectorRun.latencyMs + (prediction?.latencyMs ?: 0L)
 }
 
@@ -23,7 +24,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
     suspend fun recognize(bitmap: Bitmap): ProductionRecognitionResult {
         val detectorRun = detector.detect(bitmap)
         val assessment = FishDetectionQualityGate.assess(detectorRun.detections)
-        if (assessment.status != FishInputStatus.READY || assessment.cropBox == null) {
+        if (!assessment.isClassifierEligible) {
             return ProductionRecognitionResult(
                 status = assessment.status,
                 detectorRun = detectorRun,
@@ -33,8 +34,9 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             )
         }
 
+        val cropBox = requireNotNull(assessment.cropBox) { "Classifier-eligible assessment must contain a crop box" }
         val pixels = FishDetectionQualityGate.cropBoxPixels(
-            assessment.cropBox,
+            cropBox,
             bitmap.width,
             bitmap.height,
         )
@@ -43,7 +45,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         val right = pixels[2]
         val bottom = pixels[3]
         val crop = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
-        val primary = requireNotNull(assessment.primary) { "READY assessment must contain a primary fish detection" }
+        val primary = requireNotNull(assessment.primary) { "Classifier-eligible assessment must contain a primary fish detection" }
         val box = primary.box.normalized()
         val traceContext = InferenceTrace.PipelineContext(
             originalWidth = bitmap.width,
@@ -55,11 +57,14 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             cropPixels = pixels.copyOf(),
             cropWidth = crop.width,
             cropHeight = crop.height,
+            qualityLevel = assessment.qualityLevel.name,
+            qualityReason = assessment.qualityReason,
+            bboxAreaRatio = requireNotNull(assessment.bboxAreaRatio),
         )
         return try {
             val prediction = classifier.recognize(crop, traceContext)
             ProductionRecognitionResult(
-                status = FishInputStatus.READY,
+                status = assessment.status,
                 detectorRun = detectorRun,
                 assessment = assessment,
                 prediction = prediction,

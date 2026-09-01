@@ -122,7 +122,14 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             LOG_TAG,
             "top3=" + candidates.take(3).joinToString { "${it.classIndex}:${it.speciesKey}:${it.confidence}" },
         )
-        RecognitionPrediction(MODEL_VERSION, MODEL_SHA256, top1, candidates, latencyMs)
+        RecognitionPrediction(
+            modelVersion = MODEL_VERSION,
+            modelSha256 = MODEL_SHA256,
+            top1 = top1,
+            candidates = candidates,
+            latencyMs = latencyMs,
+            modelInputBitmap = prepared.bitmap,
+        )
     }
 
     /**

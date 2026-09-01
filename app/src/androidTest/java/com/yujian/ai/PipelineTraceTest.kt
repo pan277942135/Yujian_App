@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.FishInputStatus
+import com.yujian.ai.ai.FishQualityLevel
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.InferenceTrace
 import kotlinx.coroutines.runBlocking
@@ -54,6 +55,10 @@ class PipelineTraceTest {
             assertReportContains(report, "detector_model_version=${result.detectorRun.modelVersion}")
             assertReportContains(report, "detector_confidence=")
             assertReportContains(report, "detector_bbox_normalized=")
+            assertReportContains(report, "quality_gate_version=QUALITY_GATE_v1.1")
+            assertReportContains(report, "quality_level=GOOD")
+            assertReportContains(report, "quality_reason=single_complete_fish_ready_for_classifier")
+            assertReportContains(report, "bbox_area_ratio=")
             assertReportContains(report, "crop_expand_ratio=0.15")
             assertReportContains(report, "crop_pixels=${cropPixels.contentToString()}")
             assertReportContains(report, "crop_size=${cropWidth}x${cropHeight}")
@@ -61,6 +66,40 @@ class PipelineTraceTest {
             assertReportContains(report, "classifier_source_size=${cropWidth}x${cropHeight}")
             assertReportContains(report, "preprocess=FISH_CROP_LETTERBOX")
             assertTrue(primary.confidence >= FishDetectionQualityGate.STRONG_CONFIDENCE)
+        } finally {
+            if (!bitmap.isRecycled) bitmap.recycle()
+        }
+    }
+
+    @Test
+    fun incompleteFishWarningStillRunsClassifier() = runBlocking {
+        val manifest = JSONObject(readTestAssetText("detector/golden_cases.json"))
+        val cases = manifest.getJSONArray("cases")
+        val warningCase = (0 until cases.length())
+            .map { cases.getJSONObject(it) }
+            .first { it.getString("expected_status") == FishInputStatus.INCOMPLETE_FISH.name }
+        val uri = warningCase.getString("golden_gcs_uri")
+        val extension = uri.substringAfterLast('.', "jpg").lowercase()
+        val bitmap = decodeOrientedTestAsset("detector/golden/${warningCase.getString("id")}.${extension}")
+
+        try {
+            val result = FishRecognitionPipeline(appContext).use { pipeline ->
+                pipeline.recognize(bitmap)
+            }
+            assertEquals(FishInputStatus.INCOMPLETE_FISH, result.status)
+            assertEquals(FishQualityLevel.WARNING, result.assessment.qualityLevel)
+            assertTrue(result.ready)
+            assertTrue(result.prediction != null)
+            val cropPixels = requireNotNull(result.cropPixels)
+            val report = InferenceTrace.lastReport
+
+            assertReportContains(report, "quality_gate_version=QUALITY_GATE_v1.1")
+            assertReportContains(report, "quality_level=WARNING")
+            assertReportContains(report, "quality_reason=primary_fish_bbox_touches_image_edge")
+            assertReportContains(report, "bbox_area_ratio=")
+            assertReportContains(report, "crop_pixels=${cropPixels.contentToString()}")
+            assertReportContains(report, "classifier_source=DETECTOR_CROP")
+            assertReportContains(report, "preprocess=FISH_CROP_LETTERBOX")
         } finally {
             if (!bitmap.isRecycled) bitmap.recycle()
         }
