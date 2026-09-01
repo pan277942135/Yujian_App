@@ -52,6 +52,7 @@ FeedbackRepository（本地队列 + multipart 上传）
 | 结果页 | ui/screens/RecognitionResultScreen.kt | Prediction + ProductionRecognitionResult | 原图 bbox/crop overlay、crop preview、确认/纠正 | 直接复用数据源 |
 | Overlay | ui/screens/DetectorOverlay.kt | Bitmap + detector/crop box | FIT_CENTER 下绘制框 | 直接复用；当前只是展示，不是编辑器 |
 | Feedback | feedback/FeedbackRepository.kt / FeedbackDraft | 图片文件 + 用户反馈 | filesDir/feedback_queue 下 JSON/JPG；上传 /api/feedback/ingest | 直接复用队列和传输 |
+| Preprocess | app/src/main/assets/preprocess_contract_v1.json | CROP_CLASSIFIER_V1 | 224px RGB、ImageNet normalize、letterbox、padding [124,116,104]、crop expand 0.15 | 与 Trainer contract 对齐 |
 | 调试元数据 | ai/InferenceTrace.kt / PipelineContext | Detector/Crop/Classifier 上下文 | 完整文本报告与 Logcat | 复用字段来源；不能代替 JSON Recorder |
 
 ## 3. 目标 Contract 映射
@@ -257,6 +258,38 @@ Intelligence：漏检、错框、过大、过小、多鱼分类；只生成建�
 5. feat: generate reviewed detector dataset from app inference
 6. feat: add detector error analyzer to model intelligence
 7. test: add detector crop feedback end to end coverage
+
+## 8. Production Pipeline v2 implementation status
+
+The planned analysis has now been implemented without replacing the detector,
+quality gate, crop algorithm, classifier or FeedbackRepository:
+
+| Asset | Production contract | Persistence / hand-off |
+|---|---|---|
+| Original image | `image_id = yj_img_<UUID>` | `filesDir/yujian/inference/YYYY/MM/DD/<image_id>.jpg` |
+| Detector output | `candidate_bbox` (normalized xywh) | `DetectionContract`; never a ground-truth label |
+| Crop | detector-expanded crop, `expand_ratio=0.15` | `<image_id>_crop.jpg` plus `CropContract` |
+| Classifier output | model version, species, confidence, latency | `ClassifierContract` |
+| Complete record | `INFERENCE_RECORD_V2` | `<image_id>.json`, atomically written |
+| User feedback | confirmed / corrected / new-species candidate | same record; correction marks `hard_case=true` |
+
+The upload transport sends the record, original image and optional crop to the
+Model Factory's `/api/v1/inference/upload`. Offline entries stay retryable in
+`filesDir/inference_queue`. Backend review must write `accepted_bbox` before a
+Detector or Crop dataset builder can consume the image; the App candidate box
+is never promoted automatically.
+
+The Android implementation commits are:
+
+1. `ba17c87` — inference contracts
+2. `2499b91` — recorder and crop persistence
+3. `4cbc323` — authenticated inference upload transport
+
+4. `pending` — feedback identity field and shared preprocess contract (will be
+   recorded by the next main commit)
+
+The existing `DET_FISH_v0.1` and `MODEL_M1_v0.2` runtime assets and their UAT
+behavior remain unchanged.
 
 执行规则：
 
