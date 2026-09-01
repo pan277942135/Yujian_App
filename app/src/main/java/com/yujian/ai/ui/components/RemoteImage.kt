@@ -7,8 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,14 +28,15 @@ fun RemoteImage(
     contentScale: ContentScale = ContentScale.Crop,
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
 ) {
-    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = url) {
-        val loadedBitmap = if (url.isNullOrBlank()) {
+    val bitmapState = remember(url) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(url) {
+        bitmapState.value = if (url.isNullOrBlank()) {
             null
         } else {
             withContext(Dispatchers.IO) { loadBitmap(url) }
         }
-        value = loadedBitmap
     }
+    val bitmap = bitmapState.value
     if (bitmap != null) {
         Image(
             bitmap = bitmap!!.asImageBitmap(),
