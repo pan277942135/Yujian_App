@@ -17,6 +17,8 @@ import androidx.navigation.navArgument
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.feedback.FeedbackRepository
+import com.yujian.ai.inference.InferenceAsset
+import com.yujian.ai.inference.InferenceRecorder
 import com.yujian.ai.model.*
 import com.yujian.ai.ui.screens.*
 import com.yujian.ai.ui.theme.*
@@ -32,9 +34,11 @@ fun YujianApp() {
     val scope = rememberCoroutineScope()
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
     val feedbackRepository = remember { FeedbackRepository(context) }
+    val inferenceRecorder = remember { InferenceRecorder(context) }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
+    var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
     var catchRecord by remember { mutableStateOf(DemoData.catch) }
     val backStackEntry by nav.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -80,6 +84,7 @@ fun YujianApp() {
                             sessionImage = it
                             productionResult = null
                             prediction = null
+                            inferenceAsset = null
                         },
                         onStartRecognition = { if (sessionImage != null) nav.navigate("recognizing") },
                     )
@@ -88,7 +93,12 @@ fun YujianApp() {
                     RecognizingScreen(
                         image = sessionImage,
                         onBack = { nav.popBackStack() },
-                        recognize = { recognitionPipeline.recognize(requireNotNull(sessionImage).bitmap) },
+                        recognize = {
+                            val selected = requireNotNull(sessionImage)
+                            val result = recognitionPipeline.recognize(selected.bitmap)
+                            inferenceAsset = inferenceRecorder.record(selected, result)
+                            result
+                        },
                         onFinished = { result ->
                             productionResult = result
                             prediction = result.prediction
@@ -143,7 +153,14 @@ fun YujianApp() {
                             onSave = { saved, feedback ->
                                 catchRecord = saved
                                 sessionImage?.let { selected ->
-                                    scope.launch { feedbackRepository.submitOrQueue(File(selected.filePath), feedback) }
+                                    scope.launch {
+                                        val asset = inferenceAsset
+                                        val updated = asset?.let { inferenceRecorder.attachFeedback(it, feedback) }
+                                        feedbackRepository.submitOrQueue(
+                                            updated?.imageFile ?: File(selected.filePath),
+                                            feedback.copy(imageId = selected.imageId),
+                                        )
+                                    }
                                 }
                                 nav.navigate("catch") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
                             },

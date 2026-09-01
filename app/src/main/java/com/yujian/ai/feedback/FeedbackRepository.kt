@@ -19,6 +19,7 @@ data class FeedbackDraft(
     val confidence: Float,
     val correctedSpecies: String?,
     val userNote: String? = null,
+    val imageId: String? = null,
 )
 
 class FeedbackRepository(private val context: Context) {
@@ -77,12 +78,17 @@ class FeedbackRepository(private val context: Context) {
         if (!meta.exists()) {
             val json = JSONObject()
                 .put("source_event_id", draft.sourceEventId)
+                .put("image_id", draft.imageId ?: JSONObject.NULL)
                 .put("feedback_type", draft.feedbackType)
                 .put("source", "android_app")
                 .put("model_version", draft.modelVersion)
                 .put("predicted_species", draft.predictedSpecies)
                 .put("confidence", draft.confidence.toDouble())
                 .put("corrected_species", draft.correctedSpecies ?: JSONObject.NULL)
+                .put("ai_prediction", draft.predictedSpecies)
+                .put("user_label", draft.correctedSpecies ?: JSONObject.NULL)
+                .put("is_error", draft.correctedSpecies != null && draft.correctedSpecies != draft.predictedSpecies)
+                .put("hard_case", draft.correctedSpecies != null && draft.correctedSpecies != draft.predictedSpecies)
                 .put("user_note", draft.userNote ?: JSONObject.NULL)
             meta.writeText(json.toString(), Charsets.UTF_8)
         }

@@ -250,6 +250,7 @@ fun RecognitionResultScreen(
                     val customUnknown = selectedKey.startsWith("user_")
                     val draft = FeedbackDraft(
                         sourceEventId = "APP_${UUID.randomUUID()}",
+                        imageId = image?.imageId,
                         feedbackType = when { customUnknown -> "new_species_candidate"; corrected -> "corrected"; else -> "confirmed" },
                         modelVersion = prediction.modelVersion,
                         predictedSpecies = prediction.top1.speciesName,
