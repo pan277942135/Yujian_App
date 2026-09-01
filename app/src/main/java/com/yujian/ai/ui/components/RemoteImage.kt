@@ -28,7 +28,12 @@ fun RemoteImage(
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
 ) {
     val bitmap by produceState<Bitmap?>(initialValue = null, key1 = url) {
-        value = if (url.isNullOrBlank()) null else withContext(Dispatchers.IO) { loadBitmap(url) }
+        val loadedBitmap = if (url.isNullOrBlank()) {
+            null
+        } else {
+            withContext(Dispatchers.IO) { loadBitmap(url) }
+        }
+        value = loadedBitmap
     }
     if (bitmap != null) {
         Image(
