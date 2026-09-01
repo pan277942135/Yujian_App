@@ -156,10 +156,14 @@ fun YujianApp() {
                                     scope.launch {
                                         val asset = inferenceAsset
                                         val updated = asset?.let { inferenceRecorder.attachFeedback(it, feedback) }
-                                        feedbackRepository.submitOrQueue(
-                                            updated?.imageFile ?: File(selected.filePath),
-                                            feedback.copy(imageId = selected.imageId),
-                                        )
+                                        if (updated != null) {
+                                            feedbackRepository.submitInferenceOrQueue(updated)
+                                        } else {
+                                            feedbackRepository.submitOrQueue(
+                                                File(selected.filePath),
+                                                feedback.copy(imageId = selected.imageId),
+                                            )
+                                        }
                                     }
                                 }
                                 nav.navigate("catch") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
