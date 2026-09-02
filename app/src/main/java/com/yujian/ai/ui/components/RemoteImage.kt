@@ -26,14 +26,15 @@ fun RemoteImage(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     contentScale: ContentScale = ContentScale.Crop,
+    headers: Map<String, String> = emptyMap(),
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
 ) {
-    val bitmapState = remember(url) { mutableStateOf<Bitmap?>(null) }
-    LaunchedEffect(url) {
+    val bitmapState = remember(url, headers) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(url, headers) {
         bitmapState.value = if (url.isNullOrBlank()) {
             null
         } else {
-            withContext(Dispatchers.IO) { loadBitmap(url) }
+            withContext(Dispatchers.IO) { loadBitmap(url, headers) }
         }
     }
     val bitmap = bitmapState.value
@@ -49,11 +50,12 @@ fun RemoteImage(
     }
 }
 
-private fun loadBitmap(url: String): Bitmap? = runCatching {
+private fun loadBitmap(url: String, headers: Map<String, String>): Bitmap? = runCatching {
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
         connectTimeout = 8_000
         readTimeout = 12_000
         instanceFollowRedirects = true
+        headers.forEach { (name, value) -> setRequestProperty(name, value) }
     }
     try {
         if (connection.responseCode !in 200..299) return null

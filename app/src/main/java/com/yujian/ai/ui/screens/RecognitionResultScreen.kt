@@ -41,6 +41,7 @@ import com.yujian.ai.ui.theme.*
 import java.util.UUID
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 private data class CorrectionOption(val key: String, val name: String)
 
@@ -51,7 +52,8 @@ fun RecognitionResultScreen(
     productionResult: ProductionRecognitionResult? = null,
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    onSave: (CatchRecord, FeedbackDraft) -> Unit,
+    onSave: suspend (CatchRecord, FeedbackDraft) -> Result<Unit>,
+    onOpenKnowledge: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val debugReport = InferenceTrace.lastReport
@@ -88,6 +90,9 @@ fun RecognitionResultScreen(
             DemoData.species.map { CorrectionOption(it.key, it.name) })
             .distinctBy { it.name }
     }
+    val saveScope = rememberCoroutineScope()
+    var saving by remember(prediction) { mutableStateOf(false) }
+    var saveError by remember(prediction) { mutableStateOf<String?>(null) }
 
     LazyColumn(Modifier.fillMaxSize().background(WarmBackground), contentPadding = PaddingValues(bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { YujianTopBar(title = "识别结果", onBack = onBack) }
@@ -238,6 +243,15 @@ fun RecognitionResultScreen(
                 }
             }
         }
+        onOpenKnowledge?.takeIf { !selectedKey.startsWith("user_") }?.let { openKnowledge ->
+            item {
+                OutlinedButton(
+                    onClick = openKnowledge,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                ) { Text("查看鱼鉴", color = WaterTeal, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+            }
+        }
         item {
             Button(
                 onClick = {
@@ -258,13 +272,33 @@ fun RecognitionResultScreen(
                         correctedSpecies = selectedName.takeIf { corrected || customUnknown },
                         userNote = "model_sha256=${prediction.modelSha256};source=${image?.source ?: "unknown"}",
                     )
-                    onSave(record, draft)
+                    saveScope.launch {
+                        saving = true
+                        saveError = null
+                        val result: Result<Unit> = try {
+                            onSave(record, draft)
+                        } catch (error: Throwable) {
+                            Result.failure(error)
+                        }
+                        if (result.isFailure) {
+                            saveError = result.exceptionOrNull()?.message ?: "保存鱼获失败"
+                        }
+                        saving = false
+                    }
                 },
+                enabled = !saving,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(54.dp), shape = RoundedCornerShape(27.dp), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-            ) { Icon(Icons.Rounded.Add, null); Text("保存这次鱼获", modifier = Modifier.padding(start = 8.dp), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+            ) { 
+                if (saving) CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                else Icon(Icons.Rounded.Add, null)
+                Text(if (saving) "保存中…" else "保存这次鱼获", modifier = Modifier.padding(start = 8.dp), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+            if (!saveError.isNullOrBlank()) {
+                Text(saveError ?: "", color = Color(0xFFB42318), fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp))
+            }
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                TextButton(onClick = onRetry) { Icon(Icons.Rounded.Refresh, null, tint = WaterTeal); Text("重新识别", color = WaterTeal, modifier = Modifier.padding(start = 5.dp)) }
-                TextButton(onClick = { showCorrection = !showCorrection }) { Text(if (showCorrection) "收起纠正" else "这不是我要的鱼", color = MutedInk) }
+                TextButton(onClick = onRetry, enabled = !saving) { Icon(Icons.Rounded.Refresh, null, tint = WaterTeal); Text("重新识别", color = WaterTeal, modifier = Modifier.padding(start = 5.dp)) }
+                TextButton(onClick = { showCorrection = !showCorrection }, enabled = !saving) { Text(if (showCorrection) "收起纠正" else "这不是我要的鱼", color = MutedInk) }
             }
         }
     }

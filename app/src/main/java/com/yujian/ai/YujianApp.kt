@@ -15,6 +15,10 @@ import android.net.Uri
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.yujian.ai.account.CatchSubmission
+import com.yujian.ai.account.UserRepository
+import com.yujian.ai.account.UserSession
+import com.yujian.ai.account.UserSessionManager
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.feedback.FeedbackRepository
@@ -28,6 +32,7 @@ import com.yujian.ai.ui.screens.*
 import com.yujian.ai.ui.theme.*
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.IOException
 
 data class BottomItem(val route: String, val label: String, val icon: @Composable () -> Unit)
 
@@ -40,11 +45,21 @@ fun YujianApp() {
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
     val fishKnowledgeRepository = remember { FishKnowledgeRepository() }
+    val userSessionManager = remember { UserSessionManager(context) }
+    val userRepository = remember { UserRepository() }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
     var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
     var catchRecord by remember { mutableStateOf(DemoData.catch) }
+    var session by remember { mutableStateOf(userSessionManager.current()) }
+    var authLoading by remember { mutableStateOf(false) }
+    var authError by remember { mutableStateOf<String?>(null) }
+    var catchItems by remember { mutableStateOf(emptyList<com.yujian.ai.account.RemoteCatch>()) }
+    var catchStatistics by remember { mutableStateOf<com.yujian.ai.account.CatchStatistics?>(null) }
+    var catchLoading by remember { mutableStateOf(false) }
+    var catchError by remember { mutableStateOf<String?>(null) }
+    var catchRefresh by remember { mutableStateOf(0) }
     var guideSpecies by remember { mutableStateOf(emptyList<FishGuideItem>()) }
     var guideLoading by remember { mutableStateOf(true) }
     var guideOfflinePreview by remember { mutableStateOf(false) }
@@ -55,6 +70,30 @@ fun YujianApp() {
 
     DisposableEffect(Unit) { onDispose { recognitionPipeline.close() } }
     LaunchedEffect(Unit) { feedbackRepository.flushQueued() }
+    LaunchedEffect(session?.userId, catchRefresh) {
+        val active = session
+        if (active == null) {
+            catchItems = emptyList()
+            catchStatistics = null
+            catchError = null
+            catchLoading = false
+        } else {
+            catchLoading = true
+            catchError = null
+            runCatching {
+                val stats = userRepository.statistics(active)
+                val items = userRepository.listCatches(active)
+                stats to items
+            }.onSuccess { (stats, items) ->
+                catchStatistics = stats
+                catchItems = items
+            }.onFailure { error ->
+                catchError = error.message ?: "鱼获数据暂不可用"
+            }
+            catchLoading = false
+        }
+    }
+
     LaunchedEffect(guideRetry) {
         guideLoading = true
         guideError = null
@@ -75,10 +114,10 @@ fun YujianApp() {
         BottomItem("home", "首页") { Icon(Icons.Rounded.Home, null) },
         BottomItem("identify", "识鱼") { Icon(Icons.Rounded.PhotoCamera, null) },
         BottomItem("guide", "图鉴") { Icon(Icons.Rounded.Style, null) },
-        BottomItem("catch", "鱼获") { Icon(Icons.Rounded.Water, null) },
+        BottomItem("my_catches", "鱼获") { Icon(Icons.Rounded.Water, null) },
         BottomItem("my", "我的") { Icon(Icons.Rounded.Person, null) },
     )
-    val bottomVisibleRoutes = setOf("home", "guide", "catch", "my")
+    val bottomVisibleRoutes = setOf("home", "guide", "my_catches", "my")
 
     Scaffold(containerColor = WarmBackground, bottomBar = {
         if (currentRoute in bottomVisibleRoutes) {
@@ -98,9 +137,58 @@ fun YujianApp() {
         }
     }) { insets ->
         Box(Modifier.fillMaxSize().padding(insets).background(WarmBackground)) {
-            NavHost(nav, startDestination = "home") {
+            NavHost(nav, startDestination = if (session == null) "login" else "home") {
+                composable("login") {
+                    LoginScreen(
+                        loading = authLoading,
+                        error = authError,
+                        onLogin = { username, password ->
+                            authLoading = true
+                            authError = null
+                            scope.launch {
+                                runCatching { userRepository.login(username, password) }
+                                    .onSuccess { loggedIn ->
+                                        userSessionManager.save(loggedIn)
+                                        session = loggedIn
+                                        nav.navigate("home") { popUpTo("login") { inclusive = true } }
+                                    }
+                                    .onFailure { error -> authError = error.message ?: "登录失败" }
+                                authLoading = false
+                            }
+                        },
+                        onRegister = {
+                            authError = null
+                            nav.navigate("register")
+                        },
+                    )
+                }
+                composable("register") {
+                    RegisterScreen(
+                        loading = authLoading,
+                        error = authError,
+                        onRegister = { username, password, nickname ->
+                            authLoading = true
+                            authError = null
+                            scope.launch {
+                                runCatching {
+                                    userRepository.register(username, password, nickname)
+                                    userRepository.login(username, password)
+                                }.onSuccess { loggedIn ->
+                                    userSessionManager.save(loggedIn)
+                                    session = loggedIn
+                                    nav.navigate("home") { popUpTo("login") { inclusive = true } }
+                                }.onFailure { error -> authError = error.message ?: "注册失败" }
+                                authLoading = false
+                            }
+                        },
+                        onBack = {
+                            authError = null
+                            nav.popBackStack()
+                        },
+                    )
+                }
                 composable("home") {
-                    HomeScreen(catchRecord, { nav.navigate("identify") }, { nav.navigate("guide") }, { nav.navigate("catch") })
+                    HomeScreen(catchRecord, { nav.navigate("identify") }, { nav.navigate("guide") }, { nav.navigate("my_catches") })
                 }
                 composable("identify") {
                     IdentifyScreen(
@@ -175,10 +263,25 @@ fun YujianApp() {
                                 prediction = null
                                 nav.navigate("recognizing") { popUpTo("result") { inclusive = true } }
                             },
-                            onSave = { saved, feedback ->
-                                catchRecord = saved
-                                sessionImage?.let { selected ->
-                                    scope.launch {
+                            onSave = save@{ saved, feedback ->
+                                val active = session ?: return@save Result.failure(IOException("请先登录后再保存鱼获"))
+                                val selected = sessionImage ?: return@save Result.failure(IOException("找不到原始照片"))
+                                runCatching {
+                                    val uploadedUrl = userRepository.uploadCatchImage(File(selected.filePath), active)
+                                    val catchId = userRepository.createCatch(
+                                        active,
+                                        CatchSubmission(
+                                            imageUrl = uploadedUrl,
+                                            speciesId = saved.speciesKey,
+                                            speciesName = saved.speciesName,
+                                            confidence = (saved.confidence / 100f).coerceIn(0f, 1f),
+                                            modelVersion = saved.modelVersion.orEmpty(),
+                                            imageId = selected.imageId,
+                                        ),
+                                    )
+                                    catchRecord = saved.copy(id = catchId)
+                                    catchRefresh += 1
+                                    runCatching {
                                         val asset = inferenceAsset
                                         val updated = asset?.let { inferenceRecorder.attachFeedback(it, feedback) }
                                         if (updated != null) {
@@ -190,8 +293,11 @@ fun YujianApp() {
                                             )
                                         }
                                     }
+                                    nav.navigate("my_catches") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
                                 }
-                                nav.navigate("catch") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
+                            },
+                            onOpenKnowledge = {
+                                nav.navigate("species/${Uri.encode(currentPrediction.top1.speciesKey)}")
                             },
                         )
                     }
@@ -238,12 +344,49 @@ fun YujianApp() {
                         resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
                         onRetry = { detailRetry++ },
                         onBack = { nav.popBackStack() },
-                        onOpenCatch = { nav.navigate("catch") },
+                        onOpenCatch = { nav.navigate("my_catches") },
                     )
+                }
+                composable("my_catches") {
+                    if (session == null) {
+                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("my_catches") { inclusive = true } } }
+                    } else {
+                        MyCatchesScreen(
+                            session = session,
+                            statistics = catchStatistics,
+                            catches = catchItems,
+                            loading = catchLoading,
+                            error = catchError,
+                            resolveImageUrl = userRepository::resolveAssetUrl,
+                            onBack = { nav.popBackStack() },
+                            onRetry = { catchRefresh += 1 },
+                            onOpenKnowledge = { speciesId -> nav.navigate("species/${Uri.encode(speciesId)}") },
+                        )
+                    }
                 }
                 composable("catch") { CatchDetailScreen(catchRecord, { nav.popBackStack() }, { nav.navigate("share") }) }
                 composable("share") { ShareCenterScreen(catchRecord) { nav.popBackStack() } }
-                composable("my") { MyScreen({ nav.navigate("guide") }, { nav.navigate("catch") }) }
+                composable("my") {
+                    MyScreen(
+                        onGuide = { nav.navigate("guide") },
+                        onCatch = { nav.navigate("my_catches") },
+                        session = session,
+                        statistics = catchStatistics,
+                        recentCatches = catchItems,
+                        loading = catchLoading,
+                        error = catchError,
+                        resolveImageUrl = userRepository::resolveAssetUrl,
+                        onLogin = { nav.navigate("login") },
+                        onLogout = {
+                            userSessionManager.clear()
+                            session = null
+                            catchItems = emptyList()
+                            catchStatistics = null
+                            nav.navigate("login") { popUpTo("home") { inclusive = true } }
+                        },
+                        onCatchClick = { item -> nav.navigate("species/${Uri.encode(item.speciesId)}") },
+                    )
+                }
             }
         }
     }
