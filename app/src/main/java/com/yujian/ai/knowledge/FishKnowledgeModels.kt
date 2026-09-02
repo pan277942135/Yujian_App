@@ -41,9 +41,9 @@ data class FishKnowledgeCard(
     val title: String,
     val imageUrl: String,
     val description: String,
-    val content: FishKnowledgeCardContent = FishKnowledgeCardContent(),
     val sortOrder: Int,
     val status: String,
+    val content: FishKnowledgeCardContent = FishKnowledgeCardContent(),
 )
 
 data class FishKnowledgeFeature(
