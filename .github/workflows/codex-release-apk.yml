@@ -81,7 +81,7 @@ jobs:
             --out app-universal-release.apk \
             "$RUNNER_TEMP/app-universal-release-aligned.apk"
           "$build_tools/apksigner" verify --verbose app-universal-release.apk
-          unzip -l app-universal-release.apk | rg 'classes.*\\.dex|AndroidManifest.xml'
+          unzip -l app-universal-release.apk | grep -E 'classes.*\\.dex|AndroidManifest.xml'
           sha256sum app-universal-release.apk
           du -h app-universal-release.apk
 
