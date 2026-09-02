@@ -41,8 +41,74 @@ data class FishKnowledgeCard(
     val title: String,
     val imageUrl: String,
     val description: String,
+    val content: FishKnowledgeCardContent = FishKnowledgeCardContent(),
     val sortOrder: Int,
     val status: String,
+)
+
+data class FishKnowledgeFeature(
+    val title: String,
+    val text: String,
+)
+
+data class FishKnowledgeSimilar(
+    val name: String,
+    val difference: String,
+)
+
+data class FishKnowledgeCardContent(
+    val type: String = "",
+    val tag: String = "",
+    val rarity: Int = 0,
+    val power: Int = 0,
+    val challenge: Int = 0,
+    val description: String = "",
+    val features: List<FishKnowledgeFeature> = emptyList(),
+    val similar: List<FishKnowledgeSimilar> = emptyList(),
+    val habitat: List<String> = emptyList(),
+    val waterLayer: String = "",
+    val season: String = "",
+    val behavior: String = "",
+    val diet: String = "",
+    val method: String = "",
+    val rod: String = "",
+    val line: String = "",
+    val hook: String = "",
+    val bait: List<String> = emptyList(),
+    val find: String = "",
+    val attract: String = "",
+    val action: String = "",
+    val tip: String = "",
+)
+
+data class FishKnowledgeEcology(
+    val habitat: List<String> = emptyList(),
+    val waterLayer: String = "",
+    val season: String = "",
+    val behavior: String = "",
+    val diet: String = "",
+)
+
+data class FishKnowledgeGear(
+    val method: String = "",
+    val rod: String = "",
+    val line: String = "",
+    val hook: String = "",
+    val bait: List<String> = emptyList(),
+)
+
+data class FishKnowledgeSkill(
+    val find: String = "",
+    val attract: String = "",
+    val action: String = "",
+    val tip: String = "",
+)
+
+data class FishKnowledgeStructured(
+    val displayTag: String? = null,
+    val ecology: FishKnowledgeEcology = FishKnowledgeEcology(),
+    val gear: FishKnowledgeGear = FishKnowledgeGear(),
+    val skill: FishKnowledgeSkill = FishKnowledgeSkill(),
 )
 
 data class FishKnowledgeGalleryImage(
@@ -94,6 +160,7 @@ data class FishKnowledgeDetail(
     val fishing: FishKnowledgeFishing,
     val videos: List<FishKnowledgeVideo>,
     val similarity: List<FishKnowledgeSimilarity>,
+    val knowledge: FishKnowledgeStructured = FishKnowledgeStructured(),
     val dynamicAvailable: Boolean = false,
 )
 

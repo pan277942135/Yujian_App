@@ -31,6 +31,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.knowledge.FishGuideItem
 import com.yujian.ai.knowledge.FishKnowledgeCard
+import com.yujian.ai.knowledge.FishKnowledgeCardContent
 import com.yujian.ai.knowledge.FishKnowledgeDetail
 import com.yujian.ai.knowledge.FishKnowledgeGalleryImage
 import com.yujian.ai.knowledge.FishKnowledgeVideo
@@ -59,6 +64,7 @@ import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 
+private val cardOrder = listOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL")
 private val cardLabels = mapOf(
     "HERO" to "英雄卡",
     "IDENTIFICATION" to "识别卡",
@@ -66,9 +72,31 @@ private val cardLabels = mapOf(
     "GEAR" to "装备卡",
     "SKILL" to "作钓技术卡",
 )
-
 private val cardGold = Color(0xFFD6B56D)
 private val cardInk = Color(0xFF171717)
+
+private enum class DetailTab(val label: String) {
+    INTRO("鱼种介绍"),
+    CATCH("我的鱼获"),
+    RANKING("排行榜"),
+}
+
+private fun cardSlots(detail: FishKnowledgeDetail): List<FishKnowledgeCard> {
+    val existing = detail.cards.associateBy { it.cardType.trim().uppercase() }
+    return cardOrder.mapIndexed { index, type ->
+        existing[type] ?: FishKnowledgeCard(
+            id = -(index + 1),
+            speciesId = detail.species.id,
+            cardType = type,
+            title = "${detail.species.nameCn}${cardLabels[type] ?: "鱼鉴卡"}",
+            imageUrl = "",
+            description = "",
+            content = FishKnowledgeCardContent(type = type),
+            sortOrder = index,
+            status = "DRAFT",
+        )
+    }
+}
 
 @Composable
 fun FishSpeciesDetailScreen(
@@ -101,6 +129,9 @@ fun FishSpeciesDetailScreen(
     val species = content.species
     val aliases = species.aliases.joinToString("、")
     val catchCount = fallback?.catches ?: 0
+    val cards = remember(content) { cardSlots(content) }
+    var selectedTab by remember(species.id) { mutableStateOf(DetailTab.INTRO) }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(WarmBackground),
         contentPadding = PaddingValues(bottom = 40.dp),
@@ -125,9 +156,7 @@ fun FishSpeciesDetailScreen(
             }
         }
 
-        item {
-            HeroCard(content, resolveAssetUrl)
-        }
+        item { HeroCard(content, resolveAssetUrl) }
 
         item {
             Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
@@ -154,56 +183,42 @@ fun FishSpeciesDetailScreen(
         }
 
         item {
-            SectionCard(title = "五张鱼鉴卡") {
-                if (content.cards.isEmpty()) {
-                    EmptyAsset("鱼鉴卡内容待发布")
-                } else {
-                    LazyRow(contentPadding = PaddingValues(end = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(content.cards, key = { it.id }) { card ->
-                            FishCardView(card = card, imageUrl = resolveAssetUrl(card.imageUrl))
-                        }
+            SectionCard(title = "五张鱼鉴卡 · 左右滑动") {
+                LazyRow(contentPadding = PaddingValues(end = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(cards, key = { it.id }) { card ->
+                        FishCardView(card = card, imageUrl = resolveAssetUrl(card.imageUrl))
                     }
                 }
             }
         }
 
-        item {
-            KnowledgeSection(content)
-        }
+        item { DetailTabs(selected = selectedTab, onSelected = { selectedTab = it }) }
 
-        if (content.gallery.isNotEmpty()) {
-            item {
-                SectionCard(title = "真实照片") {
-                    LazyRow(contentPadding = PaddingValues(end = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(content.gallery, key = { it.id }) { image ->
-                            GalleryView(image, resolveAssetUrl(image.url))
-                        }
-                    }
-                }
-            }
-        }
+        when (selectedTab) {
+            DetailTab.INTRO -> {
+                item { KnowledgeSection(content) }
 
-        item {
-            FishingSection(content, resolveAssetUrl)
-        }
-
-        item {
-            DynamicSection(catchCount = catchCount, onOpenCatch = onOpenCatch)
-        }
-
-        if (content.similarity.isNotEmpty()) {
-            item {
-                SectionCard(title = "相似鱼辨识") {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        content.similarity.forEach { similar ->
-                            Column(Modifier.fillMaxWidth().background(WarmBackground, RoundedCornerShape(12.dp)).padding(12.dp)) {
-                                Text(similar.similarSpeciesNameCn, color = DeepInk, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                Text(similar.difference, color = MutedInk, fontSize = 12.sp, lineHeight = 19.sp, modifier = Modifier.padding(top = 5.dp))
+                if (content.gallery.isNotEmpty()) {
+                    item {
+                        SectionCard(title = "真实照片") {
+                            LazyRow(contentPadding = PaddingValues(end = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                items(content.gallery, key = { it.id }) { image ->
+                                    GalleryView(image, resolveAssetUrl(image.url))
+                                }
                             }
                         }
                     }
                 }
+
+                item { FishingSection(content, resolveAssetUrl) }
+
+                if (content.similarity.isNotEmpty()) {
+                    item { SimilaritySection(content) }
+                }
             }
+
+            DetailTab.CATCH -> item { CatchSection(catchCount = catchCount, onOpenCatch = onOpenCatch) }
+            DetailTab.RANKING -> item { RankingSection() }
         }
     }
 }
@@ -223,13 +238,26 @@ private fun HeroCard(detail: FishKnowledgeDetail, resolveAssetUrl: (String?) -> 
             FishIllustration(Modifier.align(Alignment.Center), size = 210.dp, bodyColor = WaterTeal.copy(alpha = .72f))
         }
         Box(Modifier.align(Alignment.TopStart).padding(18.dp).background(Color.White.copy(alpha = .88f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 7.dp)) {
-            Text("${detail.species.nameCn} · ${detail.cover?.style ?: "FISH KNOWLEDGE"}", color = WaterTeal, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "${detail.species.nameCn} · ${detail.knowledge.displayTag ?: detail.cover?.style ?: "FISH KNOWLEDGE"}",
+                color = WaterTeal,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }
 
 @Composable
 private fun FishCardView(card: FishKnowledgeCard, imageUrl: String?) {
+    val structured = card.content
+    val supportingText = when (card.cardType) {
+        "IDENTIFICATION" -> structured.features.take(2).joinToString(" · ") { "${it.title}：${it.text}" }
+        "ECO" -> listOf(structured.waterLayer, structured.behavior).filter { it.isNotBlank() }.joinToString(" · ")
+        "GEAR" -> listOf(structured.rod, structured.hook).filter { it.isNotBlank() }.joinToString(" · ")
+        "SKILL" -> structured.tip
+        else -> structured.description.ifBlank { card.description }
+    }
     Box(
         Modifier.width(190.dp).height(238.dp).clip(RoundedCornerShape(16.dp)).background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
     ) {
@@ -238,11 +266,35 @@ private fun FishCardView(card: FishKnowledgeCard, imageUrl: String?) {
             Column {
                 Text(card.cardType, color = cardGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Text(cardLabels[card.cardType] ?: "鱼鉴卡", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
+                if (structured.tag.isNotBlank()) Text(structured.tag, color = cardGold, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
+                if (structured.rarity > 0 || structured.power > 0 || structured.challenge > 0) {
+                    Text("稀有 ${structured.rarity}  ·  力量 ${structured.power}  ·  挑战 ${structured.challenge}", color = Color.White.copy(alpha = .75f), fontSize = 9.sp, modifier = Modifier.padding(top = 5.dp))
+                }
             }
             Column {
                 Text(card.title.ifBlank { "内容待补充" }, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                if (card.description.isNotBlank()) Text(card.description, color = Color.White.copy(alpha = .78f), fontSize = 11.sp, lineHeight = 17.sp, modifier = Modifier.padding(top = 6.dp))
-                if (imageUrl == null) Text("暂无真实图片", color = cardGold.copy(alpha = .82f), fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+                if (supportingText.isNotBlank()) {
+                    Text(supportingText, color = Color.White.copy(alpha = .78f), fontSize = 10.sp, lineHeight = 15.sp, maxLines = 3, modifier = Modifier.padding(top = 6.dp))
+                }
+                if (imageUrl == null) Text("暂无真实图片 · ${if (card.status == "ACTIVE") "可展示" else "待发布"}", color = cardGold.copy(alpha = .82f), fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailTabs(selected: DetailTab, onSelected: (DetailTab) -> Unit) {
+    Row(
+        Modifier.padding(horizontal = 20.dp).fillMaxWidth().background(CardWhite, RoundedCornerShape(18.dp)).padding(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        DetailTab.entries.forEach { tab ->
+            Box(
+                Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(if (tab == selected) DeepInk else Color.Transparent)
+                    .clickable { onSelected(tab) }.padding(vertical = 11.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(tab.label, color = if (tab == selected) Color.White else MutedInk, fontSize = 12.sp, fontWeight = if (tab == selected) FontWeight.Bold else FontWeight.Medium)
             }
         }
     }
@@ -251,31 +303,35 @@ private fun FishCardView(card: FishKnowledgeCard, imageUrl: String?) {
 @Composable
 private fun KnowledgeSection(detail: FishKnowledgeDetail) {
     val profile = detail.profile
+    val facts = listOfNotNull(
+        profile.bodyShape?.takeIf { it.isNotBlank() }?.let { "体型" to it },
+        profile.food?.takeIf { it.isNotBlank() }?.let { "食性" to it },
+        profile.season.takeIf { it.isNotEmpty() }?.let { "活跃季节" to it.joinToString("、") },
+        profile.habitat.takeIf { it.isNotEmpty() }?.let { "常见水域" to it.joinToString("、") },
+        detail.knowledge.ecology.waterLayer.takeIf { it.isNotBlank() }?.let { "活动水层" to it },
+    )
     SectionCard(title = "结构化知识") {
-        val facts = listOfNotNull(
-            profile.bodyShape?.takeIf { it.isNotBlank() }?.let { "体型" to it },
-            profile.food?.takeIf { it.isNotBlank() }?.let { "食性" to it },
-            profile.season.takeIf { it.isNotEmpty() }?.let { "活跃季节" to it.joinToString("、") },
-            profile.habitat.takeIf { it.isNotEmpty() }?.let { "常见水域" to it.joinToString("、") },
-        )
         if (facts.isNotEmpty()) {
-            facts.chunked(2).forEach { row ->
+            facts.chunked(2).forEachIndexed { index, row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    row.forEach { (label, value) ->
-                        InfoItem(label, value, Modifier.weight(1f))
-                    }
+                    row.forEach { (label, value) -> InfoItem(label, value, Modifier.weight(1f)) }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
-                if (row != facts.chunked(2).last()) Spacer(Modifier.height(12.dp))
+                if (index < facts.chunked(2).lastIndex) Spacer(Modifier.height(12.dp))
             }
         }
         if (profile.features.isNotEmpty()) {
             Text("视觉特征", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.padding(top = 7.dp)) {
-                profile.features.forEach { TagChip(it, true) }
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp), modifier = Modifier.padding(top = 7.dp)) {
+                profile.features.forEach { Text("• $it", color = DeepInk, fontSize = 13.sp, lineHeight = 19.sp) }
             }
         }
-        if (facts.isEmpty() && profile.features.isEmpty()) EmptyAsset("结构化知识待补充")
+        val behavior = detail.knowledge.ecology.behavior
+        if (behavior.isNotBlank()) {
+            Text("习性", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 16.dp))
+            Text(behavior, color = DeepInk, fontSize = 13.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 5.dp))
+        }
+        if (facts.isEmpty() && profile.features.isEmpty() && behavior.isBlank()) EmptyAsset("结构化知识待补充")
     }
 }
 
@@ -283,22 +339,91 @@ private fun KnowledgeSection(detail: FishKnowledgeDetail) {
 private fun FishingSection(detail: FishKnowledgeDetail, resolveAssetUrl: (String?) -> String?) {
     SectionCard(title = "怎么钓这条鱼") {
         val fishing = detail.fishing
-        if (fishing.waterLayer != null) InfoItem("水层", fishing.waterLayer, Modifier.fillMaxWidth())
-        if (fishing.bait.isNotEmpty()) {
+        val gear = detail.knowledge.gear
+        val skill = detail.knowledge.skill
+        val waterLayer = fishing.waterLayer
+        val bait = gear.bait.ifEmpty { fishing.bait }
+        val methods = fishing.method
+        if (waterLayer != null) InfoItem("水层", waterLayer, Modifier.fillMaxWidth())
+        if (bait.isNotEmpty()) {
             Text("饵料", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 14.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.padding(top = 7.dp)) { fishing.bait.forEach { TagChip(it, true) } }
+            Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.padding(top = 7.dp)) { bait.forEach { TagChip(it, true) } }
         }
-        if (fishing.method.isNotEmpty()) {
+        if (methods.isNotEmpty()) {
             Text("钓法", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 14.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.padding(top = 7.dp)) { fishing.method.forEach { TagChip(it) } }
+            Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.padding(top = 7.dp)) { methods.forEach { TagChip(it) } }
+        }
+        val equipment = listOf(gear.rod, gear.line, gear.hook).filter { it.isNotBlank() }
+        if (equipment.isNotEmpty()) {
+            Text("装备建议", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 14.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 7.dp)) {
+                equipment.forEach { Text("• $it", color = DeepInk, fontSize = 12.sp) }
+            }
         }
         if (fishing.summary.isNotBlank()) Text(fishing.summary, color = DeepInk, fontSize = 13.sp, lineHeight = 20.sp, modifier = Modifier.padding(top = 14.dp))
-        if (fishing.waterLayer == null && fishing.bait.isEmpty() && fishing.method.isEmpty() && fishing.summary.isBlank()) EmptyAsset("钓鱼知识待补充")
+        if (skill.tip.isNotBlank()) Text("提醒：${skill.tip}", color = WaterTeal, fontSize = 12.sp, lineHeight = 19.sp, modifier = Modifier.padding(top = 12.dp))
+        if (waterLayer == null && bait.isEmpty() && methods.isEmpty() && fishing.summary.isBlank() && equipment.isEmpty() && skill.tip.isBlank()) EmptyAsset("钓鱼知识待补充")
         if (detail.videos.isNotEmpty()) {
             Text("相关视频", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 17.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 7.dp)) {
                 detail.videos.forEach { video -> VideoRow(video, resolveAssetUrl(video.coverUrl)) }
             }
+        }
+    }
+}
+
+@Composable
+private fun SimilaritySection(detail: FishKnowledgeDetail) {
+    SectionCard(title = "相似鱼辨识") {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            detail.similarity.forEach { similar ->
+                Column(Modifier.fillMaxWidth().background(WarmBackground, RoundedCornerShape(12.dp)).padding(12.dp)) {
+                    Text(similar.similarSpeciesNameCn, color = DeepInk, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(similar.difference, color = MutedInk, fontSize = 12.sp, lineHeight = 19.sp, modifier = Modifier.padding(top = 5.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CatchSection(catchCount: Int, onOpenCatch: () -> Unit) {
+    SectionCard(title = "我的鱼获") {
+        if (catchCount == 0) EmptyAsset("还没有鱼获记录") else CatchPreviewRow(catchCount)
+        Button(
+            onClick = onOpenCatch,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
+        ) {
+            Text(if (catchCount > 0) "查看我的鱼获 · $catchCount" else "记录我的鱼获")
+        }
+        Text("鱼获详情会保留照片、时间、重量、长度和地点。", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 10.dp))
+    }
+}
+
+@Composable
+private fun CatchPreviewRow(count: Int) {
+    Row(Modifier.fillMaxWidth().background(WarmBackground, RoundedCornerShape(14.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(68.dp).clip(RoundedCornerShape(10.dp)).background(SoftWater), contentAlignment = Alignment.Center) {
+            FishIllustration(size = 48.dp, bodyColor = WaterTeal.copy(alpha = .6f))
+        }
+        Column(Modifier.padding(start = 10.dp)) {
+            Text("最近鱼获", color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text("共 $count 条 · 照片待查看", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+            Text("时间 / 重量 / 长度 / 地点", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+@Composable
+private fun RankingSection() {
+    SectionCard(title = "排行榜") {
+        EmptyAsset("暂无排行榜")
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.Center) {
+            Text("敬请期待", color = MutedInk, fontSize = 12.sp)
+        }
+        OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+            Text("排行榜即将开放")
         }
     }
 }
@@ -331,21 +456,6 @@ private fun GalleryView(image: FishKnowledgeGalleryImage, imageUrl: String?) {
             else Text("暂无图片", color = MutedInk, fontSize = 11.sp)
         }
         Text(image.title ?: image.type, color = DeepInk, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
-    }
-}
-
-@Composable
-private fun DynamicSection(catchCount: Int, onOpenCatch: () -> Unit) {
-    SectionCard(title = "我的鱼获与排行榜") {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = onOpenCatch, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal), contentPadding = PaddingValues(horizontal = 8.dp)) {
-                Text(if (catchCount > 0) "查看我的鱼获 · $catchCount" else "记录我的鱼获", fontSize = 12.sp)
-            }
-            OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 8.dp)) {
-                Text("排行榜即将开放", fontSize = 12.sp)
-            }
-        }
-        Text("动态内容入口已预留，当前接口不会伪造用户统计。", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 10.dp))
     }
 }
 

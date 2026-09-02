@@ -267,7 +267,7 @@ private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
         val localItem = local[item.id]
         item.copy(
             aliases = localItem?.aliases ?: item.aliases,
-            category = localItem?.category ?: item.category,
+            category = item.category.ifBlank { localItem?.category.orEmpty() },
             discovered = localItem?.discovered ?: false,
             catches = localItem?.catches ?: 0,
         )

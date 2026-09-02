@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Refresh
@@ -31,8 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,17 +87,21 @@ fun FishGuideHomeScreen(
         return
     }
 
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize().background(WarmBackground),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 110.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item {
-            Text("鱼类图鉴", color = DeepInk, fontSize = 29.sp, fontWeight = FontWeight.Bold)
-            Text("把见过的鱼，一条条收藏起来", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+        item(span = { GridItemSpan(2) }) {
+            Column {
+                Text("鱼类图鉴", color = DeepInk, fontSize = 29.sp, fontWeight = FontWeight.Bold)
+                Text("把见过的鱼，一条条收藏起来", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+            }
         }
 
-        item {
+        item(span = { GridItemSpan(2) }) {
             if (error != null) {
                 Row(
                     Modifier.fillMaxWidth().background(Color(0xFFFFF3E8), RoundedCornerShape(16.dp)).padding(12.dp),
@@ -110,7 +118,7 @@ fun FishGuideHomeScreen(
             }
         }
 
-        item {
+        item(span = { GridItemSpan(2) }) {
             val discovered = species.count { it.discovered }
             Box(
                 modifier = Modifier
@@ -138,7 +146,7 @@ fun FishGuideHomeScreen(
             }
         }
 
-        item {
+        item(span = { GridItemSpan(2) }) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
@@ -156,7 +164,7 @@ fun FishGuideHomeScreen(
             )
         }
 
-        item {
+        item(span = { GridItemSpan(2) }) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 GuideFilter.entries.forEach { item ->
                     Box(modifier = Modifier.clickable { filter = item }) { TagChip(item.label, emphasized = filter == item) }
@@ -164,7 +172,7 @@ fun FishGuideHomeScreen(
             }
         }
 
-        item {
+        item(span = { GridItemSpan(2) }) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("鱼种", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("${visible.size} 种", color = MutedInk, fontSize = 12.sp)
@@ -172,45 +180,43 @@ fun FishGuideHomeScreen(
         }
 
         items(visible, key = { it.id }) { fish ->
-            SpeciesRow(fish = fish, imageUrl = resolveAssetUrl(fish.coverImage), onClick = { onSpeciesClick(fish) })
+            SpeciesCard(fish = fish, imageUrl = resolveAssetUrl(fish.coverImage), onClick = { onSpeciesClick(fish) })
         }
 
         if (!loading && visible.isEmpty()) {
-            item { Text("没有匹配的鱼种。", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(vertical = 24.dp)) }
+            item(span = { GridItemSpan(2) }) { Text("没有匹配的鱼种。", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(vertical = 24.dp)) }
         }
     }
 }
 
 @Composable
-private fun SpeciesRow(fish: FishGuideItem, imageUrl: String?, onClick: () -> Unit) {
-    Row(
+private fun SpeciesCard(fish: FishGuideItem, imageUrl: String?, onClick: () -> Unit) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(24.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
-            .background(CardWhite, RoundedCornerShape(24.dp))
+            .shadow(8.dp, RoundedCornerShape(22.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
+            .background(CardWhite, RoundedCornerShape(22.dp))
             .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(10.dp),
     ) {
         Box(
-            modifier = Modifier.size(82.dp).background(if (fish.discovered) SoftWater else Color(0xFFEEEFEA), RoundedCornerShape(18.dp)),
+            modifier = Modifier.fillMaxWidth().height(164.dp).clip(RoundedCornerShape(16.dp)).background(if (fish.discovered) SoftWater else Color(0xFFEEEFEA)),
             contentAlignment = Alignment.Center,
         ) {
             if (imageUrl != null) {
-                RemoteImage(imageUrl, Modifier.fillMaxSize(), contentDescription = fish.nameCn)
+                RemoteImage(imageUrl, Modifier.fillMaxSize(), contentDescription = fish.nameCn, contentScale = ContentScale.Crop)
             } else {
-                FishIllustration(size = 66.dp, bodyColor = if (fish.discovered) WaterTeal.copy(alpha = .72f) else MutedInk.copy(alpha = .45f))
+                FishIllustration(size = 112.dp, bodyColor = if (fish.discovered) WaterTeal.copy(alpha = .72f) else MutedInk.copy(alpha = .45f))
+            }
+            if (fish.discovered) {
+                Box(Modifier.align(Alignment.TopEnd).padding(8.dp).background(Color.White.copy(alpha = .88f), RoundedCornerShape(50)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Text("已发现", color = WaterTeal, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
-        Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(fish.nameCn, color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                if (fish.discovered) Text("已发现", color = WaterTeal, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-            }
-            if (fish.aliases.isNotEmpty()) Text(fish.aliases.joinToString("、"), color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
-            Text(fish.category.ifBlank { "鱼鉴内容" }, color = MutedInk, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
-            if (fish.catches > 0) Text("我的鱼获 ${fish.catches} 次", color = WaterTeal, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
-        }
-        Text("›", color = MutedInk, fontSize = 28.sp)
+        Text(fish.nameCn, color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 11.dp))
+        TagChip(fish.category.ifBlank { "鱼鉴内容" }, emphasized = true)
+        if (fish.catches > 0) Text("我的鱼获 ${fish.catches} 次", color = WaterTeal, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
+        else Text("查看完整鱼鉴", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
     }
 }
