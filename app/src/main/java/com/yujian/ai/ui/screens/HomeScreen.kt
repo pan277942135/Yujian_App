@@ -26,11 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yujian.ai.model.CatchRecord
+import com.yujian.ai.catches.CatchStatistics
+import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.FishIllustration
+import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.theme.CardWhite
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
@@ -40,7 +43,11 @@ import com.yujian.ai.ui.theme.WaterTeal
 
 @Composable
 fun HomeScreen(
-    recentCatch: CatchRecord,
+    nickname: String,
+    statistics: CatchStatistics,
+    recentCatch: RemoteCatch?,
+    resolveImageUrl: (String?) -> String?,
+    accessToken: String,
     onIdentify: () -> Unit,
     onGuide: () -> Unit,
     onRecentCatch: () -> Unit,
@@ -66,7 +73,7 @@ fun HomeScreen(
         }
 
         item {
-            Text("下午好 :)", color = MutedInk, fontSize = 14.sp)
+            Text("你好，${nickname.ifBlank { "钓友" }}", color = MutedInk, fontSize = 14.sp)
             Text("今天钓到什么？", color = DeepInk, fontSize = 29.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
         }
 
@@ -111,8 +118,8 @@ fun HomeScreen(
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard(modifier = Modifier.weight(1f), value = "12 / 200", label = "已发现鱼种")
-                StatCard(modifier = Modifier.weight(1f), value = "36", label = "累计鱼获")
+                StatCard(modifier = Modifier.weight(1f), value = "${statistics.speciesCount} 种", label = "已识别鱼种")
+                StatCard(modifier = Modifier.weight(1f), value = statistics.totalCatches.toString(), label = "累计鱼获")
             }
         }
 
@@ -121,29 +128,39 @@ fun HomeScreen(
         }
 
         item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(8.dp, RoundedCornerShape(24.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
-                    .background(CardWhite, RoundedCornerShape(24.dp))
-                    .clickable(onClick = onRecentCatch)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier.size(88.dp).background(SoftWater, RoundedCornerShape(18.dp)),
-                    contentAlignment = Alignment.Center,
+            if (recentCatch == null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().background(CardWhite, RoundedCornerShape(24.dp)).padding(18.dp),
                 ) {
-                    FishIllustration(size = 70.dp, bodyColor = Color(0xFF748F78))
+                    Text("还没有鱼获记录", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("拍照识鱼后，第一条记录会出现在这里。", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 5.dp))
                 }
-                Column(Modifier.weight(1f).padding(start = 16.dp)) {
-                    Text(recentCatch.speciesName, color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text("${recentCatch.weightKg} kg", color = WaterTeal, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
-                    Text("${recentCatch.location} · ${recentCatch.timeLabel}", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 7.dp))
-                }
-                if (recentCatch.isNewRecord) {
-                    Box(Modifier.background(Color(0xFFFFF7DA), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 6.dp)) {
-                        Text("新记录", color = Color(0xFFA17114), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(8.dp, RoundedCornerShape(24.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
+                        .background(CardWhite, RoundedCornerShape(24.dp))
+                        .clickable(onClick = onRecentCatch)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier.size(88.dp).background(SoftWater, RoundedCornerShape(18.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        RemoteImage(
+                            url = resolveImageUrl(recentCatch.imageUrl),
+                            authToken = accessToken,
+                            modifier = Modifier.fillMaxSize(),
+                            contentDescription = "${recentCatch.speciesName} 鱼获照片",
+                            contentScale = ContentScale.Crop,
+                        ) { FishIllustration(size = 70.dp, bodyColor = Color(0xFF748F78)) }
+                    }
+                    Column(Modifier.weight(1f).padding(start = 16.dp)) {
+                        Text(recentCatch.speciesName, color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text("${recentCatch.confidencePercent}% 把握", color = WaterTeal, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
+                        Text(recentCatch.createdAt.take(10).replace('-', '.'), color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 7.dp))
                     }
                 }
             }

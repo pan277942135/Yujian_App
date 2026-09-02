@@ -238,10 +238,20 @@ fun YujianApp() {
                     )
                 }
                 composable("home") {
-                    if (session == null) {
+                    val active = session
+                    if (active == null) {
                         LaunchedEffect(Unit) { logoutToLogin() }
                     } else {
-                        HomeScreen(DemoData.catch, { nav.navigate("identify") }, { nav.navigate("guide") }, { nav.navigate("my") })
+                        HomeScreen(
+                            nickname = active.nickname,
+                            statistics = catchesState.statistics,
+                            recentCatch = catchesState.catches.firstOrNull(),
+                            resolveImageUrl = catchRepository::resolveUrl,
+                            accessToken = active.accessToken,
+                            onIdentify = { nav.navigate("identify") },
+                            onGuide = { nav.navigate("guide") },
+                            onRecentCatch = { nav.navigate("my") },
+                        )
                     }
                 }
                 composable("identify") {
