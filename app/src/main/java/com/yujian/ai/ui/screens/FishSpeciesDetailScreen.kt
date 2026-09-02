@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -98,6 +101,25 @@ private fun cardSlots(detail: FishKnowledgeDetail): List<FishKnowledgeCard> {
     }
 }
 
+private fun orderedHeroCards(detail: FishKnowledgeDetail): List<FishKnowledgeCard> =
+    detail.cards
+        .mapNotNull { card ->
+            val normalizedType = card.cardType.trim().uppercase()
+            val order = cardOrder.indexOf(normalizedType)
+            if (order < 0 || !card.status.equals("ACTIVE", ignoreCase = true)) {
+                null
+            } else {
+                order to card
+            }
+        }
+        .sortedWith(
+            compareBy<Pair<Int, FishKnowledgeCard>> { it.first }
+                .thenBy { it.second.sortOrder }
+                .thenBy { it.second.id },
+        )
+        .distinctBy { it.first }
+        .map { it.second }
+
 @Composable
 fun FishSpeciesDetailScreen(
     detail: FishKnowledgeDetail?,
@@ -130,6 +152,7 @@ fun FishSpeciesDetailScreen(
     val aliases = species.aliases.joinToString("、")
     val catchCount = fallback?.catches ?: 0
     val cards = remember(content) { cardSlots(content) }
+    val heroCards = remember(content) { orderedHeroCards(content) }
     var selectedTab by remember(species.id) { mutableStateOf(DetailTab.INTRO) }
 
     LazyColumn(
@@ -156,7 +179,7 @@ fun FishSpeciesDetailScreen(
             }
         }
 
-        item { HeroCard(content, resolveAssetUrl) }
+        item { HeroCarousel(heroCards, resolveAssetUrl) }
 
         item {
             Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
@@ -224,25 +247,108 @@ fun FishSpeciesDetailScreen(
 }
 
 @Composable
-private fun HeroCard(detail: FishKnowledgeDetail, resolveAssetUrl: (String?) -> String?) {
-    val imageUrl = detail.cover?.takeIf { it.status == "ACTIVE" }?.imageUrl?.let(resolveAssetUrl)
-        ?: detail.species.coverImage?.let(resolveAssetUrl)
-    Box(
-        modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().height(286.dp)
-            .shadow(18.dp, RoundedCornerShape(28.dp), ambientColor = WaterTeal.copy(alpha = .08f), spotColor = WaterTeal.copy(alpha = .08f))
-            .clip(RoundedCornerShape(28.dp)).background(SoftWater),
-    ) {
-        if (imageUrl != null) {
-            RemoteImage(imageUrl, Modifier.fillMaxSize(), contentDescription = detail.species.nameCn, contentScale = ContentScale.Crop)
-        } else {
-            FishIllustration(Modifier.align(Alignment.Center), size = 210.dp, bodyColor = WaterTeal.copy(alpha = .72f))
+private fun HeroCarousel(
+    cards: List<FishKnowledgeCard>,
+    resolveAssetUrl: (String?) -> String?,
+) {
+    if (cards.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(28.dp))
+                .background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("暂无鱼鉴卡", color = cardGold, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
-        Box(Modifier.align(Alignment.TopStart).padding(18.dp).background(Color.White.copy(alpha = .88f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 7.dp)) {
+        return
+    }
+
+    val pagerState = rememberPagerState(pageCount = { cards.size })
+    Column(Modifier.padding(horizontal = 20.dp).fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .shadow(
+                    18.dp,
+                    RoundedCornerShape(28.dp),
+                    ambientColor = WaterTeal.copy(alpha = .08f),
+                    spotColor = WaterTeal.copy(alpha = .08f),
+                )
+                .clip(RoundedCornerShape(28.dp))
+                .background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+            ) { page ->
+                val card = cards[page]
+                val imageUrl = card.imageUrl
+                    .takeIf { it.isNotBlank() }
+                    ?.let(resolveAssetUrl)
+                if (imageUrl != null) {
+                    RemoteImage(
+                        imageUrl,
+                        Modifier.fillMaxSize(),
+                        contentDescription = "${card.cardType} ${card.title}",
+                        contentScale = ContentScale.Fit,
+                    )
+                } else {
+                    HeroCardPlaceholder(card)
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            cards.indices.forEach { index ->
+                val selected = index == pagerState.currentPage
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 3.dp)
+                        .size(if (selected) 8.dp else 6.dp)
+                        .clip(CircleShape)
+                        .background(if (selected) WaterTeal else MutedInk.copy(alpha = .35f)),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroCardPlaceholder(card: FishKnowledgeCard) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(28.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column {
+            Text(card.cardType, color = cardGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Text(
-                "${detail.species.nameCn} · ${detail.knowledge.displayTag ?: detail.cover?.style ?: "FISH KNOWLEDGE"}",
-                color = WaterTeal,
-                fontSize = 11.sp,
+                cardLabels[card.cardType] ?: "鱼鉴卡",
+                color = Color.White,
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        Column {
+            Text(
+                card.title.ifBlank { "内容待补充" },
+                color = Color.White,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "暂无真实图片",
+                color = cardGold.copy(alpha = .82f),
+                fontSize = 13.sp,
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
