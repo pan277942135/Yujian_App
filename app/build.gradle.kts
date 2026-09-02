@@ -9,6 +9,8 @@ val feedbackBaseUrl = providers.gradleProperty("YUJIAN_FEEDBACK_BASE_URL")
     .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_BASE_URL")).orElse("").get()
 val fishKnowledgeBaseUrl = providers.gradleProperty("YUJIAN_FISH_KNOWLEDGE_BASE_URL")
     .orElse(providers.environmentVariable("YUJIAN_FISH_KNOWLEDGE_BASE_URL")).orElse(feedbackBaseUrl).get()
+val userApiBaseUrl = providers.gradleProperty("YUJIAN_API_BASE_URL")
+    .orElse(providers.environmentVariable("YUJIAN_API_BASE_URL")).orElse(feedbackBaseUrl).get()
 val feedbackIngestKey = providers.gradleProperty("YUJIAN_FEEDBACK_INGEST_KEY")
     .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_INGEST_KEY")).orElse("").get()
 
@@ -27,6 +29,7 @@ android {
         buildConfigField("String", "FEEDBACK_BASE_URL", quotedBuildConfig(feedbackBaseUrl))
         buildConfigField("String", "FEEDBACK_INGEST_KEY", quotedBuildConfig(feedbackIngestKey))
         buildConfigField("String", "FISH_KNOWLEDGE_BASE_URL", quotedBuildConfig(fishKnowledgeBaseUrl))
+        buildConfigField("String", "USER_API_BASE_URL", quotedBuildConfig(userApiBaseUrl))
     }
 
     compileOptions {
