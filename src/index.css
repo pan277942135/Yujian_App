@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-water-teal: #388478;
+    --color-deep-ink: #172421;
+    --color-muted-ink: #748782;
+    --color-card-white: #FFFFFF;
+    --color-soft-water: #EAF4F2;
+    --color-warm-bg: #F6F8F7;
+    --color-achievement: #FBE6B6;
+    --color-crop-orange: #F29C38;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #F6F8F7;
+    color: #172421;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(116, 135, 130, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(116, 135, 130, 0.45);
+}
+
+/* Mobile container styling */
+.app-viewport {
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  background-color: #F6F8F7;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 768px) {
+  .app-viewport {
+    border-left: 1px solid rgba(116, 135, 130, 0.12);
+    border-right: 1px solid rgba(116, 135, 130, 0.12);
+  }
+}
