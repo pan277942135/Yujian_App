@@ -36,6 +36,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.ProductionRecognitionResult
+import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
+import com.yujian.ai.ai.subject.FishSubjectResult
+import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.auth.ApiException
 import com.yujian.ai.auth.AuthRepository
 import com.yujian.ai.catches.CatchRepository
@@ -85,6 +88,7 @@ fun YujianApp() {
     val authRepository = remember { AuthRepository() }
     val catchRepository = remember { CatchRepository() }
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
+    val subjectPreviewEngine = remember { FishSubjectPreviewEngine(context) }
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
     val fishKnowledgeRepository = remember { FishKnowledgeRepository() }
@@ -95,6 +99,7 @@ fun YujianApp() {
     var catchReload by remember { mutableIntStateOf(0) }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
+    var subjectResult by remember { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
     var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
     var catchSaving by remember { mutableStateOf(false) }
@@ -114,7 +119,7 @@ fun YujianApp() {
         nav.navigate("login") { launchSingleTop = true }
     }
 
-    DisposableEffect(Unit) { onDispose { recognitionPipeline.close() } }
+    DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectPreviewEngine.close() } }
     LaunchedEffect(Unit) { feedbackRepository.flushQueued() }
     LaunchedEffect(guideRetry) {
         guideLoading = true
@@ -261,6 +266,7 @@ fun YujianApp() {
                         onImageSelected = {
                             sessionImage = it
                             productionResult = null
+                            subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                             prediction = null
                             inferenceAsset = null
                             catchSaveError = null
@@ -280,6 +286,7 @@ fun YujianApp() {
                         },
                         onFinished = { result ->
                             productionResult = result
+                            subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                             prediction = result.prediction
                             if (result.ready) {
                                 nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
@@ -313,6 +320,14 @@ fun YujianApp() {
                 }
                 composable("result") {
                     val currentPrediction = prediction
+                    LaunchedEffect(currentPrediction, productionResult, sessionImage) {
+                        val selected = sessionImage
+                        val bbox = productionResult?.assessment?.primary?.box
+                        if (currentPrediction != null && selected != null && bbox != null && subjectResult.status == SubjectStatus.IDLE) {
+                            subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
+                            subjectResult = subjectPreviewEngine.generate(selected.bitmap, bbox)
+                        }
+                    }
                     if (currentPrediction == null) {
                         LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("result") { inclusive = true } } }
                     } else {
@@ -320,6 +335,7 @@ fun YujianApp() {
                             image = sessionImage,
                             prediction = currentPrediction,
                             productionResult = productionResult,
+                            subjectResult = subjectResult,
                             onBack = { nav.popBackStack() },
                             onRetry = {
                                 productionResult = null

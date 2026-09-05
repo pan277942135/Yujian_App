@@ -33,6 +33,9 @@ import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.FishQualityLevel
 import com.yujian.ai.ai.InferenceTrace
 import com.yujian.ai.ai.ProductionRecognitionResult
+import com.yujian.ai.ai.subject.FishSubjectResult
+import com.yujian.ai.ai.subject.SubjectStatus
+import com.yujian.ai.BuildConfig
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.feedback.FeedbackDraft
 import com.yujian.ai.model.*
@@ -49,6 +52,7 @@ fun RecognitionResultScreen(
     image: SelectedImage?,
     prediction: RecognitionPrediction,
     productionResult: ProductionRecognitionResult? = null,
+    subjectResult: FishSubjectResult = FishSubjectResult(SubjectStatus.IDLE),
     onBack: () -> Unit,
     onRetry: () -> Unit,
     saving: Boolean = false,
@@ -175,6 +179,9 @@ fun RecognitionResultScreen(
             item {
                 CropPreviewCard(cropPreview = cropPreview, modelInput = prediction.modelInputBitmap)
             }
+        }
+        if (subjectResult.status != SubjectStatus.IDLE && subjectResult.status != SubjectStatus.FAILED) {
+            item { SubjectPreviewContainer(subjectResult) }
         }
         if (debugReport.isNotBlank()) {
             item {
@@ -386,6 +393,43 @@ private fun CropPreviewCard(
                     modifier = Modifier.weight(1f),
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SubjectPreviewContainer(result: FishSubjectResult) {
+    val bitmap = remember(result.bitmapPath) {
+        result.bitmapPath?.let { android.graphics.BitmapFactory.decodeFile(it) }
+    }
+    DisposableEffect(bitmap) {
+        onDispose { bitmap?.takeIf { !it.isRecycled }?.recycle() }
+    }
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(CardWhite, RoundedCornerShape(22.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Fish Subject Preview", color = DeepInk, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        when (result.status) {
+            SubjectStatus.PROCESSING -> Text("正在整理鱼体", color = MutedInk, fontSize = 12.sp)
+            SubjectStatus.READY -> {
+                Text("AI 提取出的鱼体主体", color = MutedInk, fontSize = 11.sp)
+                Box(
+                    Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(16.dp)).background(SoftWater),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    bitmap?.let {
+                        Image(it.asImageBitmap(), "透明鱼体主体", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                    }
+                }
+                if (BuildConfig.DEBUG) {
+                    Text(
+                        "subject_status=${result.status} · processing_ms=${result.processingMs} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality}",
+                        color = MutedInk, fontSize = 10.sp,
+                    )
+                }
+            }
+            else -> Unit
         }
     }
 }
