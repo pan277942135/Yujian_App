@@ -180,7 +180,7 @@ fun RecognitionResultScreen(
                 CropPreviewCard(cropPreview = cropPreview, modelInput = prediction.modelInputBitmap)
             }
         }
-        if (subjectResult.status != SubjectStatus.IDLE && subjectResult.status != SubjectStatus.FAILED) {
+        if (subjectResult.status != SubjectStatus.IDLE) {
             item { SubjectPreviewContainer(subjectResult) }
         }
         if (debugReport.isNotBlank()) {
@@ -411,7 +411,7 @@ private fun SubjectPreviewContainer(result: FishSubjectResult) {
     ) {
         Text("Fish Subject Preview", color = DeepInk, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         when (result.status) {
-            SubjectStatus.PROCESSING -> Text("正在整理鱼体", color = MutedInk, fontSize = 12.sp)
+            SubjectStatus.PROCESSING -> Text("正在提取鱼体…", color = MutedInk, fontSize = 12.sp)
             SubjectStatus.READY -> {
                 Text("AI 提取出的鱼体主体", color = MutedInk, fontSize = 11.sp)
                 Box(
@@ -424,12 +424,31 @@ private fun SubjectPreviewContainer(result: FishSubjectResult) {
                 }
                 if (BuildConfig.DEBUG) {
                     Text(
-                        "subject_status=${result.status} · processing_ms=${result.processingMs} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality}",
+                        "subject_status=${result.status} · processing_ms=${result.processingMs} · roi=${result.roiWidth}×${result.roiHeight} · mask_size=${result.maskSize}/${result.expectedMaskSize} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality}",
                         color = MutedInk, fontSize = 10.sp,
                     )
                 }
             }
-            else -> Unit
+            SubjectStatus.FAILED -> if (BuildConfig.DEBUG) {
+                Text("状态：FAILED", color = Color(0xFFB24A3A), fontSize = 12.sp)
+                Text(
+                    "error_code=${result.errorCode ?: "UNKNOWN"} · processing_ms=${result.processingMs}",
+                    color = Color(0xFFB24A3A), fontSize = 10.sp,
+                )
+                Text(
+                    "exception=${result.exceptionClass ?: "-"} · mlkit_code=${result.mlKitErrorCode ?: "-"}",
+                    color = MutedInk, fontSize = 10.sp,
+                )
+                Text(
+                    "message=${result.errorMessage ?: "-"} · root=${result.rootCause ?: "-"}",
+                    color = MutedInk, fontSize = 10.sp,
+                )
+                Text(
+                    "roi=${result.roiWidth}×${result.roiHeight} · mask_size=${result.maskSize}/${result.expectedMaskSize} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality ?: "-"}",
+                    color = MutedInk, fontSize = 10.sp,
+                )
+            }
+            SubjectStatus.IDLE -> Unit
         }
     }
 }
