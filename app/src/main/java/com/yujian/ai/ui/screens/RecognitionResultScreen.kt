@@ -36,12 +36,12 @@ import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.BuildConfig
+import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.feedback.FeedbackDraft
 import com.yujian.ai.model.*
 import com.yujian.ai.ui.components.TagChip
 import com.yujian.ai.ui.components.YujianTopBar
 import com.yujian.ai.ui.theme.*
-import java.util.UUID
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -55,7 +55,10 @@ fun RecognitionResultScreen(
     subjectResult: FishSubjectResult = FishSubjectResult(SubjectStatus.IDLE),
     onBack: () -> Unit,
     onRetry: () -> Unit,
-    onSave: (CatchRecord, FeedbackDraft) -> Unit,
+    saving: Boolean = false,
+    saveError: String? = null,
+    onSave: (CatchSaveDraft, FeedbackDraft) -> Unit,
+    onViewGuide: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val debugReport = InferenceTrace.lastReport
@@ -246,17 +249,19 @@ fun RecognitionResultScreen(
             }
         }
         item {
+            if (!saveError.isNullOrBlank()) {
+                Text(
+                    saveError,
+                    color = Color(0xFFB24A3A),
+                    fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(Color(0xFFFFF4E4), RoundedCornerShape(16.dp)).padding(13.dp),
+                )
+            }
             Button(
                 onClick = {
-                    val record = DemoData.catch.copy(
-                        id = "catch_${UUID.randomUUID()}", speciesKey = selectedKey, speciesName = selectedName,
-                        confidence = confidence, note = "由真实识鱼结果保存。${DemoData.catch.note}",
-                        modelVersion = prediction.modelVersion, aiSpeciesKey = prediction.top1.speciesKey,
-                        aiSpeciesName = prediction.top1.speciesName, aiConfidence = confidence, userCorrected = corrected,
-                    )
                     val customUnknown = selectedKey.startsWith("user_")
                     val draft = FeedbackDraft(
-                        sourceEventId = "APP_${UUID.randomUUID()}",
+                        sourceEventId = "APP_${java.util.UUID.randomUUID()}",
                         imageId = image?.imageId,
                         feedbackType = when { customUnknown -> "new_species_candidate"; corrected -> "corrected"; else -> "confirmed" },
                         modelVersion = prediction.modelVersion,
@@ -265,10 +270,39 @@ fun RecognitionResultScreen(
                         correctedSpecies = selectedName.takeIf { corrected || customUnknown },
                         userNote = "model_sha256=${prediction.modelSha256};source=${image?.source ?: "unknown"}",
                     )
-                    onSave(record, draft)
+                    onSave(
+                        CatchSaveDraft(
+                            speciesId = selectedKey,
+                            speciesName = selectedName,
+                            confidence = prediction.top1.confidence,
+                            modelVersion = prediction.modelVersion,
+                            detectorResult = productionResult?.let { result ->
+                                result.assessment.primary?.let { primary ->
+                                    org.json.JSONObject()
+                                        .put("detector_version", result.detectorRun.modelVersion)
+                                        .put("confidence", primary.confidence.toDouble())
+                                        .put("quality", result.assessment.qualityLevel.name)
+                                        .put("quality_reason", result.assessment.qualityReason)
+                                }
+                            },
+                            classifierResult = org.json.JSONObject()
+                                .put("model_version", prediction.modelVersion)
+                                .put("prediction_species", prediction.top1.speciesKey)
+                                .put("confidence", prediction.top1.confidence.toDouble())
+                                .put("user_selected_species", selectedKey),
+                        ),
+                        draft,
+                    )
                 },
+                enabled = !saving,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(54.dp), shape = RoundedCornerShape(27.dp), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-            ) { Icon(Icons.Rounded.Add, null); Text("保存这次鱼获", modifier = Modifier.padding(start = 8.dp), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+            ) { Icon(Icons.Rounded.Add, null); Text(if (saving) "正在保存…" else "保存这次鱼获", modifier = Modifier.padding(start = 8.dp), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+            OutlinedButton(
+                onClick = { onViewGuide(selectedKey) },
+                enabled = !saving && !selectedKey.startsWith("user_"),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
+                shape = RoundedCornerShape(20.dp),
+            ) { Text("查看鱼鉴", color = WaterTeal) }
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(onClick = onRetry) { Icon(Icons.Rounded.Refresh, null, tint = WaterTeal); Text("重新识别", color = WaterTeal, modifier = Modifier.padding(start = 5.dp)) }
                 TextButton(onClick = { showCorrection = !showCorrection }) { Text(if (showCorrection) "收起纠正" else "这不是我要的鱼", color = MutedInk) }

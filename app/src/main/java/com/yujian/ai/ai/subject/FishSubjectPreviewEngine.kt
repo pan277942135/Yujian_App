@@ -39,8 +39,10 @@ class FishSubjectPreviewEngine(
             )
             roi = Bitmap.createBitmap(source, pixels[0], pixels[1], pixels[2] - pixels[0], pixels[3] - pixels[1])
             val segmentation = Tasks.await(segmenter.process(InputImage.fromBitmap(roi, 0)))
-            val values = segmentation.foregroundConfidenceMask
+            val mask = segmentation.foregroundConfidenceMask
                 ?: return@withContext failed("MASK_UNAVAILABLE", started)
+            val values = FloatArray(mask.remaining())
+            mask.get(values)
             val quality = FishSubjectQualityGate.assess(values, roi.width, roi.height)
             val area = values.count { it >= FishSubjectQualityGate.MASK_THRESHOLD }.toFloat() / values.size
             if (quality == FishSubjectQuality.INVALID) return@withContext failed("SUBJECT_QUALITY_INVALID", started, area, quality)
