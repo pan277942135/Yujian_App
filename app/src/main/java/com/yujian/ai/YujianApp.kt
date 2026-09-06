@@ -37,6 +37,9 @@ import androidx.navigation.navArgument
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
+import com.yujian.ai.ai.subject.FishSubjectModelManager
+import com.yujian.ai.ai.subject.SubjectModelState
+import com.yujian.ai.ai.subject.SubjectModelStatus
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.auth.ApiException
@@ -89,6 +92,7 @@ fun YujianApp() {
     val catchRepository = remember { CatchRepository() }
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
     val subjectPreviewEngine = remember { FishSubjectPreviewEngine(context) }
+    val subjectModelManager = remember { FishSubjectModelManager(context) }
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
     val fishKnowledgeRepository = remember { FishKnowledgeRepository() }
@@ -100,6 +104,7 @@ fun YujianApp() {
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
     var subjectResult by remember { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
+    var subjectModelState by remember { mutableStateOf(SubjectModelState()) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
     var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
     var catchSaving by remember { mutableStateOf(false) }
@@ -119,7 +124,7 @@ fun YujianApp() {
         nav.navigate("login") { launchSingleTop = true }
     }
 
-    DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectPreviewEngine.close() } }
+    DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectPreviewEngine.close(); subjectModelManager.close() } }
     LaunchedEffect(Unit) { feedbackRepository.flushQueued() }
     LaunchedEffect(guideRetry) {
         guideLoading = true
@@ -320,13 +325,8 @@ fun YujianApp() {
                 }
                 composable("result") {
                     val currentPrediction = prediction
-                    LaunchedEffect(currentPrediction, productionResult, sessionImage) {
-                        val selected = sessionImage
-                        val bbox = productionResult?.assessment?.primary?.box
-                        if (currentPrediction != null && selected != null && bbox != null && subjectResult.status == SubjectStatus.IDLE) {
-                            subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
-                            subjectResult = subjectPreviewEngine.generate(selected.bitmap, bbox)
-                        }
+                    LaunchedEffect(Unit) {
+                        subjectModelState = subjectModelManager.checkStatus()
                     }
                     if (currentPrediction == null) {
                         LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("result") { inclusive = true } } }
@@ -336,6 +336,23 @@ fun YujianApp() {
                             prediction = currentPrediction,
                             productionResult = productionResult,
                             subjectResult = subjectResult,
+                            subjectModelState = subjectModelState,
+                            onPrepareSubjectModel = {
+                                scope.launch {
+                                    subjectModelState = SubjectModelState(SubjectModelStatus.DOWNLOADING)
+                                    subjectModelState = subjectModelManager.prepareSubjectModel()
+                                }
+                            },
+                            onGenerateSubject = {
+                                val selected = sessionImage
+                                val bbox = productionResult?.assessment?.primary?.box
+                                if (selected != null && bbox != null) {
+                                    scope.launch {
+                                        subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
+                                        subjectResult = subjectPreviewEngine.generate(selected.bitmap, bbox)
+                                    }
+                                }
+                            },
                             onBack = { nav.popBackStack() },
                             onRetry = {
                                 productionResult = null
