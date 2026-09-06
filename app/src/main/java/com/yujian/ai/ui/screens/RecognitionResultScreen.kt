@@ -34,6 +34,8 @@ import com.yujian.ai.ai.FishQualityLevel
 import com.yujian.ai.ai.InferenceTrace
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectResult
+import com.yujian.ai.ai.subject.SubjectModelState
+import com.yujian.ai.ai.subject.SubjectModelStatus
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.catches.CatchSaveDraft
@@ -53,6 +55,9 @@ fun RecognitionResultScreen(
     prediction: RecognitionPrediction,
     productionResult: ProductionRecognitionResult? = null,
     subjectResult: FishSubjectResult = FishSubjectResult(SubjectStatus.IDLE),
+    subjectModelState: SubjectModelState = SubjectModelState(),
+    onPrepareSubjectModel: () -> Unit = {},
+    onGenerateSubject: () -> Unit = {},
     onBack: () -> Unit,
     onRetry: () -> Unit,
     saving: Boolean = false,
@@ -180,8 +185,14 @@ fun RecognitionResultScreen(
                 CropPreviewCard(cropPreview = cropPreview, modelInput = prediction.modelInputBitmap)
             }
         }
-        if (subjectResult.status != SubjectStatus.IDLE) {
-            item { SubjectPreviewContainer(subjectResult) }
+        item {
+            SubjectPreviewContainer(
+                result = subjectResult,
+                modelState = subjectModelState,
+                canGenerate = productionResult?.assessment?.primary != null && image != null,
+                onPrepareSubjectModel = onPrepareSubjectModel,
+                onGenerateSubject = onGenerateSubject,
+            )
         }
         if (debugReport.isNotBlank()) {
             item {
@@ -398,7 +409,13 @@ private fun CropPreviewCard(
 }
 
 @Composable
-private fun SubjectPreviewContainer(result: FishSubjectResult) {
+private fun SubjectPreviewContainer(
+    result: FishSubjectResult,
+    modelState: SubjectModelState,
+    canGenerate: Boolean,
+    onPrepareSubjectModel: () -> Unit,
+    onGenerateSubject: () -> Unit,
+) {
     val bitmap = remember(result.bitmapPath) {
         result.bitmapPath?.let { android.graphics.BitmapFactory.decodeFile(it) }
     }
@@ -410,45 +427,46 @@ private fun SubjectPreviewContainer(result: FishSubjectResult) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Fish Subject Preview", color = DeepInk, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text(
+            when (modelState.status) {
+                SubjectModelStatus.NOT_READY -> "ML Kit：未下载"
+                SubjectModelStatus.DOWNLOADING -> "ML Kit：正在下载…"
+                SubjectModelStatus.READY -> "ML Kit：已准备"
+                SubjectModelStatus.FAILED -> "ML Kit：下载失败"
+            },
+            color = MutedInk, fontSize = 12.sp,
+        )
+        when (modelState.status) {
+            SubjectModelStatus.NOT_READY -> OutlinedButton(onClick = onPrepareSubjectModel, modifier = Modifier.fillMaxWidth()) { Text("下载模型", color = WaterTeal) }
+            SubjectModelStatus.DOWNLOADING -> OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) { Text("下载中…") }
+            SubjectModelStatus.READY -> Button(onClick = onGenerateSubject, enabled = canGenerate, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal)) { Text("鱼体提取") }
+            SubjectModelStatus.FAILED -> {
+                if (BuildConfig.DEBUG) {
+                    Text("error_code=${modelState.errorCode ?: "-"}", color = Color(0xFFB24A3A), fontSize = 10.sp)
+                    Text("message=${modelState.errorMessage ?: "-"}", color = MutedInk, fontSize = 10.sp)
+                }
+                OutlinedButton(onClick = onPrepareSubjectModel, modifier = Modifier.fillMaxWidth()) { Text("重新下载", color = WaterTeal) }
+            }
+        }
         when (result.status) {
             SubjectStatus.PROCESSING -> Text("正在提取鱼体…", color = MutedInk, fontSize = 12.sp)
             SubjectStatus.READY -> {
                 Text("AI 提取出的鱼体主体", color = MutedInk, fontSize = 11.sp)
-                Box(
-                    Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(16.dp)).background(SoftWater),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    bitmap?.let {
-                        Image(it.asImageBitmap(), "透明鱼体主体", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-                    }
-                }
-                if (BuildConfig.DEBUG) {
-                    Text(
-                        "subject_status=${result.status} · processing_ms=${result.processingMs} · roi=${result.roiWidth}×${result.roiHeight} · mask_size=${result.maskSize}/${result.expectedMaskSize} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality}",
-                        color = MutedInk, fontSize = 10.sp,
-                    )
+                Box(Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(16.dp)).background(SoftWater), contentAlignment = Alignment.Center) {
+                    bitmap?.let { Image(it.asImageBitmap(), "透明鱼体主体", Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
                 }
             }
             SubjectStatus.FAILED -> if (BuildConfig.DEBUG) {
                 Text("状态：FAILED", color = Color(0xFFB24A3A), fontSize = 12.sp)
-                Text(
-                    "error_code=${result.errorCode ?: "UNKNOWN"} · processing_ms=${result.processingMs}",
-                    color = Color(0xFFB24A3A), fontSize = 10.sp,
-                )
-                Text(
-                    "exception=${result.exceptionClass ?: "-"} · mlkit_code=${result.mlKitErrorCode ?: "-"}",
-                    color = MutedInk, fontSize = 10.sp,
-                )
-                Text(
-                    "message=${result.errorMessage ?: "-"} · root=${result.rootCause ?: "-"}",
-                    color = MutedInk, fontSize = 10.sp,
-                )
-                Text(
-                    "roi=${result.roiWidth}×${result.roiHeight} · mask_size=${result.maskSize}/${result.expectedMaskSize} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality ?: "-"}",
-                    color = MutedInk, fontSize = 10.sp,
-                )
+                Text("error_code=${result.errorCode ?: "UNKNOWN"} · processing_ms=${result.processingMs}", color = Color(0xFFB24A3A), fontSize = 10.sp)
+                Text("exception=${result.exceptionClass ?: "-"} · mlkit_code=${result.mlKitErrorCode ?: "-"}", color = MutedInk, fontSize = 10.sp)
+                Text("message=${result.errorMessage ?: "-"} · root=${result.rootCause ?: "-"}", color = MutedInk, fontSize = 10.sp)
+                Text("roi=${result.roiWidth}×${result.roiHeight} · mask_size=${result.maskSize}/${result.expectedMaskSize} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality ?: "-"}", color = MutedInk, fontSize = 10.sp)
             }
             SubjectStatus.IDLE -> Unit
+        }
+        if (BuildConfig.DEBUG && result.status != SubjectStatus.FAILED) {
+            Text("subject_status=${result.status} · processing_ms=${result.processingMs} · roi=${result.roiWidth}×${result.roiHeight} · mask_size=${result.maskSize}/${result.expectedMaskSize} · mask_area_ratio=${format3(result.maskAreaRatio)} · quality=${result.quality ?: "-"}", color = MutedInk, fontSize = 10.sp)
         }
     }
 }
