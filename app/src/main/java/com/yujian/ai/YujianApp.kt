@@ -6,16 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material.icons.rounded.Style
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,13 +58,11 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.screens.RegisterScreen
-import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.launch
 import java.io.File
 
-data class BottomItem(val route: String, val label: String, val icon: @Composable () -> Unit)
 
 private data class CatchArchiveState(
     val catches: List<RemoteCatch> = emptyList(),
@@ -163,39 +152,7 @@ fun YujianApp() {
         }
     }
 
-    val bottomItems = listOf(
-        BottomItem("home", "首页") { Icon(Icons.Rounded.Home, null) },
-        BottomItem("identify", "识鱼") { Icon(Icons.Rounded.PhotoCamera, null) },
-        BottomItem("guide", "图鉴") { Icon(Icons.Rounded.Style, null) },
-        BottomItem("my", "我的") { Icon(Icons.Rounded.Person, null) },
-    )
-    val bottomVisibleRoutes = setOf("home", "guide", "my")
-
-    Scaffold(containerColor = WarmBackground, bottomBar = {
-        if (currentRoute in bottomVisibleRoutes && session != null) {
-            NavigationBar(containerColor = Color.White) {
-                bottomItems.forEach { item ->
-                    NavigationBarItem(
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            nav.navigate(item.route) {
-                                popUpTo("home") { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = item.icon,
-                        label = { Text(item.label) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = WaterTeal, selectedTextColor = WaterTeal,
-                            indicatorColor = WaterTeal.copy(alpha = .14f),
-                            unselectedIconColor = MutedInk, unselectedTextColor = MutedInk,
-                        ),
-                    )
-                }
-            }
-        }
-    }) { insets ->
+    Scaffold(containerColor = Color.Transparent) { insets ->
         Box(Modifier.fillMaxSize().padding(insets).background(WarmBackground)) {
             NavHost(nav, startDestination = if (session == null) "login" else "home") {
                 composable("login") {
@@ -255,12 +212,15 @@ fun YujianApp() {
                         HomeScreen(
                             nickname = active.nickname,
                             statistics = catchesState.statistics,
-                            recentCatch = catchesState.catches.firstOrNull(),
+                            recentCatches = catchesState.catches,
                             resolveImageUrl = catchRepository::resolveUrl,
                             accessToken = active.accessToken,
                             onIdentify = { nav.navigate("identify") },
-                            onGuide = { nav.navigate("guide") },
-                            onRecentCatch = { nav.navigate("my") },
+                            onSpeciesClick = { nav.navigate("guide") },
+                            onCatchesClick = { nav.navigate("my") },
+                            onRecordDaysClick = { },
+                            onProfileClick = { nav.navigate("my") },
+                            onCatchClick = { nav.navigate("my") },
                         )
                     }
                 }

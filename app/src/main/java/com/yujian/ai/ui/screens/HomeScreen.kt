@@ -1,186 +1,203 @@
 package com.yujian.ai.ui.screens
 
+import android.view.HapticFeedbackConstants
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.ui.components.FishIllustration
 import com.yujian.ai.ui.components.RemoteImage
-import com.yujian.ai.ui.theme.CardWhite
-import com.yujian.ai.ui.theme.DeepInk
-import com.yujian.ai.ui.theme.MutedInk
-import com.yujian.ai.ui.theme.SoftWater
-import com.yujian.ai.ui.theme.WarmBackground
-import com.yujian.ai.ui.theme.WaterTeal
 
+private val Ink = Color(0xFF18324A)
+private val Muted = Color(0xCC18324A)
+private val Gold = Color(0xFFE8D5A7)
+private val Glass = Color(0x59FFFFFF)
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     nickname: String,
     statistics: CatchStatistics,
-    recentCatch: RemoteCatch?,
+    recentCatches: List<RemoteCatch>,
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     onIdentify: () -> Unit,
-    onGuide: () -> Unit,
-    onRecentCatch: () -> Unit,
+    onSpeciesClick: () -> Unit,
+    onCatchesClick: () -> Unit,
+    onRecordDaysClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onCatchClick: (String) -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(WarmBackground),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 110.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-    ) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(42.dp).background(SoftWater, RoundedCornerShape(16.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    FishIllustration(size = 34.dp, bodyColor = WaterTeal)
+    val view = LocalView.current
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val transition = rememberInfiniteTransition(label = "p01-home")
+    val waterAlpha by transition.animateFloat(0.20f, 0.40f, infiniteRepeatable(tween(24000), RepeatMode.Reverse), label = "water")
+    val fogX by transition.animateFloat(0f, 18f, infiniteRepeatable(tween(30000), RepeatMode.Reverse), label = "fog")
+    val fishY by transition.animateFloat(0f, -8f, infiniteRepeatable(tween(4000), RepeatMode.Reverse), label = "fish")
+    val cameraScale by transition.animateFloat(1f, 1.05f, infiniteRepeatable(tween(2000), RepeatMode.Reverse), label = "camera")
+    var selectedIndex by remember { mutableStateOf(0) }
+
+    Box(Modifier.fillMaxSize()) {
+        Image(painterResource(R.drawable.home_morning_bg), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        Image(painterResource(R.drawable.mountain_fog_layer), null, Modifier.fillMaxSize().graphicsLayer { translationX = fogX }, contentScale = ContentScale.Crop)
+        Image(painterResource(R.drawable.water_surface_overlay), null, Modifier.fillMaxSize().alpha(waterAlpha), contentScale = ContentScale.Crop)
+
+        Column(
+            modifier = Modifier.fillMaxSize().padding(top = topInset + 18.dp, bottom = bottomInset + 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+                Column(Modifier.align(Alignment.CenterStart)) {
+                    Text("渔见", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                    Text("拍照收藏每次渔获", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
                 }
-                Column(Modifier.padding(start = 10.dp)) {
-                    Text("渔见 AI", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("收藏每一次渔获", color = MutedInk, fontSize = 12.sp)
-                }
+                Image(
+                    painterResource(R.drawable.profile_button_glass),
+                    contentDescription = "个人中心",
+                    modifier = Modifier.size(54.dp).align(Alignment.CenterEnd).clickable(onClick = onProfileClick),
+                )
             }
-        }
 
-        item {
-            Text("你好，${nickname.ifBlank { "钓友" }}", color = MutedInk, fontSize = 14.sp)
-            Text("今天钓到什么？", color = DeepInk, fontSize = 29.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
-        }
+            StatisticsSummary(statistics, recentCatches, onSpeciesClick, onCatchesClick, onRecordDaysClick)
 
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(18.dp, RoundedCornerShape(28.dp), ambientColor = WaterTeal.copy(alpha = .08f), spotColor = WaterTeal.copy(alpha = .08f))
-                    .background(SoftWater, RoundedCornerShape(28.dp))
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier.size(92.dp).background(Color.White, RoundedCornerShape(46.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    FishIllustration(size = 70.dp, bodyColor = WaterTeal)
-                }
-                Column(Modifier.weight(1f).padding(start = 18.dp)) {
-                    Text("拍照识鱼", color = DeepInk, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                    Text("拍下鱼获，让 AI 帮你认出来", color = DeepInk, fontSize = 13.sp, modifier = Modifier.padding(top = 5.dp))
-                    Text("鱼体完整 · 光线充足 · 少遮挡", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
-                    Button(
-                        onClick = onIdentify,
-                        modifier = Modifier.padding(top = 16.dp).height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-                    ) {
-                        Icon(Icons.Rounded.PhotoCamera, contentDescription = null)
-                        Text("拍照识鱼", modifier = Modifier.padding(start = 8.dp), fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
-        }
-
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("我的探索", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("查看图鉴", color = WaterTeal, fontSize = 12.sp, modifier = Modifier.clickable(onClick = onGuide).padding(8.dp))
-            }
-        }
-
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard(modifier = Modifier.weight(1f), value = "${statistics.speciesCount} 种", label = "已识别鱼种")
-                StatCard(modifier = Modifier.weight(1f), value = statistics.totalCatches.toString(), label = "累计鱼获")
-            }
-        }
-
-        item {
-            Text("最近鱼获", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        }
-
-        item {
-            if (recentCatch == null) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().background(CardWhite, RoundedCornerShape(24.dp)).padding(18.dp),
-                ) {
-                    Text("还没有鱼获记录", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text("拍照识鱼后，第一条记录会出现在这里。", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 5.dp))
-                }
+            Spacer(Modifier.weight(1f))
+            if (recentCatches.isEmpty()) {
+                EmptyCatchCard()
             } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(8.dp, RoundedCornerShape(24.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
-                        .background(CardWhite, RoundedCornerShape(24.dp))
-                        .clickable(onClick = onRecentCatch)
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier.size(88.dp).background(SoftWater, RoundedCornerShape(18.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        RemoteImage(
-                            url = resolveImageUrl(recentCatch.imageUrl),
-                            authToken = accessToken,
-                            modifier = Modifier.fillMaxSize(),
-                            contentDescription = "${recentCatch.speciesName} 鱼获照片",
-                            contentScale = ContentScale.Crop,
-                        ) { FishIllustration(size = 70.dp, bodyColor = Color(0xFF748F78)) }
-                    }
-                    Column(Modifier.weight(1f).padding(start = 16.dp)) {
-                        Text(recentCatch.speciesName, color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text("${recentCatch.confidencePercent}% 把握", color = WaterTeal, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp))
-                        Text(recentCatch.createdAt.take(10).replace('-', '.'), color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 7.dp))
-                    }
-                }
+                CatchCarousel(
+                    catches = recentCatches,
+                    selectedIndex = selectedIndex,
+                    fishY = fishY,
+                    resolveImageUrl = resolveImageUrl,
+                    accessToken = accessToken,
+                    onIndexChanged = { selectedIndex = it },
+                    onCatchClick = onCatchClick,
+                )
             }
+            Spacer(Modifier.weight(1f))
+
+            Box(Modifier.size(126.dp).graphicsLayer { scaleX = cameraScale; scaleY = cameraScale }.clickable {
+                view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+                onIdentify()
+            }) {
+                Image(painterResource(R.drawable.camera_outer_ring), null, Modifier.fillMaxSize())
+                Image(painterResource(R.drawable.camera_icon), "开始识鱼", Modifier.size(52.dp).align(Alignment.Center))
+            }
+            Text("拍照识鱼", color = Ink, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
 
 @Composable
-private fun StatCard(modifier: Modifier, value: String, label: String) {
-    Column(
-        modifier = modifier
-            .shadow(8.dp, RoundedCornerShape(22.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
-            .background(CardWhite, RoundedCornerShape(22.dp))
-            .padding(16.dp),
+private fun StatisticsSummary(
+    statistics: CatchStatistics,
+    catches: List<RemoteCatch>,
+    onSpeciesClick: () -> Unit,
+    onCatchesClick: () -> Unit,
+    onRecordDaysClick: () -> Unit,
+) {
+    val days = remember(catches) { catches.map { it.createdAt.take(10) }.filter(String::isNotBlank).distinct().size }
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp).clip(RoundedCornerShape(32.dp)).background(Glass).padding(vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        Box(Modifier.size(34.dp).background(SoftWater, RoundedCornerShape(17.dp)), contentAlignment = Alignment.Center) {
-            Text("◒", color = WaterTeal, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Stat("${statistics.speciesCount}", "鱼种", onSpeciesClick)
+        Stat("${statistics.totalCatches}", "渔获", onCatchesClick)
+        Stat("$days", "天记录", onRecordDaysClick)
+    }
+}
+
+@Composable
+private fun Stat(value: String, label: String, onClick: () -> Unit) {
+    Column(Modifier.width(88.dp).clickable(onClick = onClick).padding(vertical = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = Ink, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
+    }
+}
+
+@Composable
+private fun CatchCarousel(
+    catches: List<RemoteCatch>, selectedIndex: Int, fishY: Float,
+    resolveImageUrl: (String?) -> String?, accessToken: String,
+    onIndexChanged: (Int) -> Unit, onCatchClick: (String) -> Unit,
+) {
+    val pagerState = rememberPagerState(initialPage = selectedIndex, pageCount = { catches.size })
+    LaunchedEffect(pagerState.currentPage) { onIndexChanged(pagerState.currentPage) }
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 52.dp),
+        pageSpacing = 14.dp,
+    ) { index ->
+        val item = catches[index]
+        CatchCard(item, index == pagerState.currentPage, fishY, resolveImageUrl, accessToken) { onCatchClick(item.id) }
+    }
+}
+
+@Composable
+private fun CatchCard(item: RemoteCatch, active: Boolean, fishY: Float, resolveImageUrl: (String?) -> String?, token: String, onClick: () -> Unit) {
+    Box(Modifier.size(width = 286.dp, height = 356.dp).graphicsLayer { scaleX = if (active) 1f else .92f; scaleY = if (active) 1f else .92f; alpha = if (active) 1f else .72f }.clickable(onClick = onClick)) {
+        Box(Modifier.fillMaxSize().clip(RoundedCornerShape(28.dp)).background(Color(0x4DFFFFFF)))
+        RemoteImage(resolveImageUrl(item.imageUrl), Modifier.fillMaxSize().padding(22.dp).graphicsLayer { translationY = fishY }, "${item.speciesName} 鱼获照片", ContentScale.Crop, token) {
+            Image(painterResource(R.drawable.fish_subject), "鱼获主体", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
         }
-        Spacer(Modifier.height(10.dp))
-        Text(value, color = DeepInk, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-        Text(label, color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 2.dp))
+        Image(painterResource(R.drawable.fish_card_frame), null, Modifier.fillMaxSize())
+        Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0xA6FFFFFF)).padding(18.dp)) {
+            Text(item.speciesName, color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(item.capturedAt.ifBlank { item.createdAt.take(16) }, color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+@Composable
+private fun EmptyCatchCard() {
+    Column(Modifier.padding(horizontal = 34.dp).fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Glass).padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("还没有鱼获", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text("拍下第一条鱼，\n它会收藏在这里", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
     }
 }
