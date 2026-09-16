@@ -213,8 +213,8 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     companion object {
         const val MODEL_FILE = "fish_classifier.tflite"
         const val MODEL_VERSION = "MODEL_M1_v0.2"
-        const val MODEL_BYTES = 6_220_308
-        const val MODEL_SHA256 = "9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e"
+        const val MODEL_BYTES = 6_249_008
+        const val MODEL_SHA256 = "b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7"
         private const val LOG_TAG = "FishRecognitionEngine"
 
         private const val PADDING_R = 124
