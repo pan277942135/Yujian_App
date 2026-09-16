@@ -7,8 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "app/src/main/assets/fish_classifier.tflite"
-EXPECTED_SIZE = 6_220_308
-EXPECTED_SHA256 = "9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e"
+EXPECTED_SIZE = 6_249_008
+EXPECTED_SHA256 = "b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7"
 
 
 def fail(message: str) -> None:
