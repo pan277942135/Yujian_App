@@ -3,8 +3,8 @@ package com.yujian.ai
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -75,6 +75,7 @@ private data class CatchArchiveState(
     val error: String? = null,
 )
 
+@Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun YujianApp() {
     val context = LocalContext.current.applicationContext
@@ -176,8 +177,11 @@ fun YujianApp() {
             }
     }
 
-    Scaffold(containerColor = Color.Transparent) { insets ->
-        Box(Modifier.fillMaxSize().padding(insets).background(WarmBackground)) {
+    Scaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0),
+    ) { _ ->
+        Box(Modifier.fillMaxSize().background(WarmBackground)) {
             // Home is available before authentication. The same route resolves
             // Empty vs Normal from the active local/remote fish archive.
             NavHost(nav, startDestination = "home") {

@@ -1,0 +1,34 @@
+{
+  "package": "YuJian_home_empty_frontend_assets_V1.2",
+  "purpose": "Empty Home runtime assets for frontend/Android implementation",
+  "runtime": {
+    "background": "assets/background/home_empty_bg_no_bobber.webp",
+    "bobber": {
+      "image": "assets/bobber/bobber_real.png",
+      "reflection": "assets/bobber/bobber_reflection.png",
+      "shadow": "assets/bobber/bobber_water_shadow.png",
+      "motion": "config/bobber_motion.json",
+      "anchor": "config/focal_points.json"
+    },
+    "ripple": {
+      "inner": "assets/ripple/ripple_inner.png",
+      "outer": "assets/ripple/ripple_outer.png",
+      "motion": "config/ripple_motion.json"
+    },
+    "camera": {
+      "outer": "assets/camera/camera_outer.png",
+      "inner": "assets/camera/camera_inner.png",
+      "icon": "assets/camera/camera_icon.svg",
+      "motion": "config/camera_breath.json"
+    },
+    "icons": {
+      "album": "assets/icons/album_icon.svg",
+      "loginChevron": "assets/icons/login_chevron.svg"
+    }
+  },
+  "layout": {
+    "focalPoints": "config/focal_points.json",
+    "screenAdapt": "config/screen_adapt.json",
+    "safeArea": "config/safe_area_guide.json"
+  }
+}

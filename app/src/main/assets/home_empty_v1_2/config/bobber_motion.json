@@ -1,0 +1,48 @@
+{
+  "version": "1.2",
+  "idle": {
+    "translateY_dp": [
+      0,
+      -1,
+      1,
+      0
+    ],
+    "rotation_deg": [
+      -0.4,
+      0.3,
+      -0.2,
+      0
+    ],
+    "duration_ms": 3600,
+    "easing": "easeInOutSine"
+  },
+  "bite": {
+    "interval_ms_random": [
+      4000,
+      8000
+    ],
+    "sequence": [
+      {
+        "t_ms": 0,
+        "translateY_dp": 0,
+        "rotation_deg": 0
+      },
+      {
+        "t_ms": 140,
+        "translateY_dp": 4,
+        "rotation_deg": 0.8
+      },
+      {
+        "t_ms": 320,
+        "translateY_dp": 1,
+        "rotation_deg": -0.4
+      },
+      {
+        "t_ms": 760,
+        "translateY_dp": 0,
+        "rotation_deg": 0
+      }
+    ]
+  },
+  "lifecycle": "pause_on_stop_resume_on_start"
+}
