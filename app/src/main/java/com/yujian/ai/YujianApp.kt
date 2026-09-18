@@ -250,6 +250,7 @@ fun YujianApp() {
                         },
                         accessToken = active?.accessToken.orEmpty(),
                         isLoggedIn = active != null,
+                        avatarUrl = active?.avatarUrl,
                         showEmptyState = emptyHome,
                         onIdentify = { nav.navigate("identify") },
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
