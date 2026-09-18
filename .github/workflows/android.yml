@@ -169,7 +169,7 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.DetectorGoldenParityTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.FishDetectionQualityGateTest --stacktrace
-            if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            test "$GITHUB_EVENT_NAME" = "push" && test "$GITHUB_REF" = "refs/heads/main" || exit 0
               mkdir -p build/home-empty-evidence
               adb install -r app/build/outputs/apk/debug/app-debug.apk
               adb shell wm size 1080x1920
@@ -190,7 +190,6 @@ jobs:
               sleep 3
               adb shell screenrecord --time-limit 10 /sdcard/home-empty-motion.mp4
               adb pull /sdcard/home-empty-motion.mp4 build/home-empty-evidence/home-empty-motion-10s.mp4
-            fi
 
       - name: Upload Home Empty visual evidence
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
