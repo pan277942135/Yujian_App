@@ -1,0 +1,18 @@
+{
+  "version": "1.2",
+  "data_source": "real FishCatch only",
+  "sample_in_production": false,
+  "missing": {
+    "length": "hide",
+    "weight": "hide",
+    "location": "hide",
+    "time": "use createdAt"
+  },
+  "stats": {
+    "speciesCount": "distinct species",
+    "catchCount": "saved catches",
+    "recordDays": "distinct catch days"
+  },
+  "guest_avatar": "assets/avatar/guest_avatar.png",
+  "logged_in_avatar": "user.avatarUrl"
+}

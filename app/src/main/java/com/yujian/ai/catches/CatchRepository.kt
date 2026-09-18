@@ -24,6 +24,9 @@ data class RemoteCatch(
     val modelVersion: String,
     val capturedAt: String,
     val createdAt: String,
+    val lengthCm: Float? = null,
+    val weightKg: Float? = null,
+    val location: String? = null,
 ) {
     val confidencePercent: Int get() = (confidence * 100).roundToInt().coerceIn(0, 100)
 }
@@ -124,7 +127,21 @@ class CatchRepository(
         modelVersion = item.optString("model_version"),
         capturedAt = item.optString("captured_at"),
         createdAt = item.optString("created_at"),
+        lengthCm = item.optionalFloat("length_cm", "length"),
+        weightKg = item.optionalFloat("weight_kg", "weight"),
+        location = item.optString("location").ifBlank { item.optString("location_name") }
+            .takeIf(String::isNotBlank),
     )
+
+    private fun JSONObject.optionalFloat(vararg keys: String): Float? {
+        keys.forEach { key ->
+            if (has(key) && !isNull(key)) {
+                val value = optDouble(key, Double.NaN)
+                if (!value.isNaN()) return value.toFloat()
+            }
+        }
+        return null
+    }
 
     private fun json(method: String, path: String, token: String, body: JSONObject?): JSONObject {
         val connection = connection(method, path, token, "application/json; charset=utf-8")
