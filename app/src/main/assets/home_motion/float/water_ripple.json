@@ -1,0 +1,18 @@
+{
+  "name": "water_ripple",
+  "description": "鱼漂周围轻微水波扩散",
+  "loop": true,
+  "duration_ms": 5000,
+  "animation": {
+    "scale": [
+      0.95,
+      1.08,
+      0.95
+    ],
+    "opacity": [
+      0.35,
+      0.08,
+      0.35
+    ]
+  }
+}
