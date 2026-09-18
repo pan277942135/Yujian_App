@@ -57,16 +57,16 @@ fun NormalHomeContent(
     modifier: Modifier = Modifier,
 ) {
     val transition = rememberInfiniteTransition(label = "normal-home")
-    val cameraScale by transition.animateFloat(
+    val cardScale by transition.animateFloat(
         1f,
-        1.045f,
-        infiniteRepeatable(tween(2600), RepeatMode.Reverse),
-        label = "camera-breath",
+        1.008f,
+        infiniteRepeatable(tween(6000), RepeatMode.Reverse),
+        label = "recent-card-scale",
     )
     val cardY by transition.animateFloat(
         0f,
         -3f,
-        infiniteRepeatable(tween(3800), RepeatMode.Reverse),
+        infiniteRepeatable(tween(6000), RepeatMode.Reverse),
         label = "recent-card-idle",
     )
     val recent = recentCatches.firstOrNull()
@@ -106,7 +106,11 @@ fun NormalHomeContent(
         }
 
         if (recent != null) {
-            Box(Modifier.fillMaxWidth().graphicsLayer { translationY = cardY }) {
+            Box(Modifier.fillMaxWidth().graphicsLayer {
+                translationY = cardY
+                scaleX = cardScale
+                scaleY = cardScale
+            }) {
                 RecentFishCard(
                     item = recent,
                     imageUrl = resolveImageUrl(recent.imageUrl),
@@ -118,7 +122,7 @@ fun NormalHomeContent(
 
         Spacer(Modifier.weight(1f))
         Text("记录下一条鱼", color = Ink, fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
-        HomeCameraButton(cameraScale = cameraScale, onClick = onIdentify)
+        HomeCameraButton(onClick = onIdentify)
         Text("拍照识鱼", color = Ink, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
     }
 }

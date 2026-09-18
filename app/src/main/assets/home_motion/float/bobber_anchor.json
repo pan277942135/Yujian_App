@@ -1,0 +1,9 @@
+{
+  "name": "bobber_anchor",
+  "description": "鱼漂在背景中的定位",
+  "coordinate": "normalized",
+  "position": {
+    "x": 0.68,
+    "y": 0.62
+  }
+}

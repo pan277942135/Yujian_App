@@ -46,6 +46,15 @@ data class CatchSaveDraft(
     val classifierResult: JSONObject? = null,
 )
 
+/** Reserved domain object for the future First Journey memory entry. */
+data class MemoryEntry(
+    val id: String,
+    val catchId: String,
+    val title: String,
+    val assetUrl: String? = null,
+    val createdAt: String,
+)
+
 class CatchRepository(
     private val baseUrl: String = BuildConfig.USER_API_BASE_URL,
 ) {

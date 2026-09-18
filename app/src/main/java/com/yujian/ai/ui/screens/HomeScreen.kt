@@ -1,13 +1,9 @@
 package com.yujian.ai.ui.screens
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,6 +11,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -22,6 +19,11 @@ import androidx.compose.foundation.layout.weight
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.NormalHomeContent
 
@@ -60,33 +63,16 @@ fun HomeScreen(
 ) {
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val transition = rememberInfiniteTransition(label = "home-motion")
-    val cameraScale by transition.animateFloat(
-        1f,
-        1.045f,
-        infiniteRepeatable(tween(2600), RepeatMode.Reverse),
-        label = "camera-breath",
-    )
-    val floatY by transition.animateFloat(
-        0f,
-        6f,
-        infiniteRepeatable(tween(3200), RepeatMode.Reverse),
-        label = "float-motion",
-    )
-
     Box(Modifier.fillMaxSize().clipToBounds()) {
         // Empty and Normal are two states of the same Home world. The Normal
         // addon explicitly depends on this already-frozen public background.
         Image(
             painterResource(R.drawable.empty_home_bg),
             null,
-            Modifier.fillMaxSize().graphicsLayer {
-                scaleX = 1.01f
-                scaleY = 1.01f
-                translationY = if (showEmptyState) floatY else 0f
-            },
+            Modifier.fillMaxSize().graphicsLayer { scaleX = 1.01f; scaleY = 1.01f },
             contentScale = ContentScale.Crop,
         )
+        if (showEmptyState) EmptyHomeMotion(Modifier.fillMaxSize())
         Column(
             modifier = Modifier.fillMaxSize().padding(top = topInset + 18.dp, bottom = bottomInset + 14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -94,7 +80,6 @@ fun HomeScreen(
             if (showEmptyState) {
                 EmptyHomeContent(
                     isLoggedIn = isLoggedIn,
-                    cameraScale = cameraScale,
                     onIdentify = onIdentify,
                     onAlbumClick = onAlbumClick,
                     onLoginClick = onLoginClick,
@@ -123,7 +108,6 @@ fun HomeScreen(
 @Composable
 private fun EmptyHomeContent(
     isLoggedIn: Boolean,
-    cameraScale: Float,
     onIdentify: () -> Unit,
     onAlbumClick: () -> Unit,
     onLoginClick: () -> Unit,
@@ -168,11 +152,83 @@ private fun EmptyHomeContent(
         fontSize = 16.sp,
         modifier = Modifier.padding(bottom = 10.dp),
     )
-    HomeCameraButton(cameraScale = cameraScale, onClick = onIdentify)
+    HomeCameraButton(onClick = onIdentify)
     Text(
         "从相册选择",
         color = Color.White.copy(alpha = 0.92f),
         fontSize = 13.sp,
         modifier = Modifier.clickable(onClick = onAlbumClick).padding(horizontal = 18.dp, vertical = 10.dp),
     )
+}
+
+/** Shared Empty Home lake motion from home_motion V1.1. */
+@Composable
+private fun EmptyHomeMotion(modifier: Modifier) {
+    val transition = rememberInfiniteTransition(label = "empty-home-motion")
+    val floatY by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 4f,
+        animationSpec = infiniteRepeatable(tween(4500), RepeatMode.Reverse),
+        label = "bobber-y",
+    )
+    val floatRotation by transition.animateFloat(
+        initialValue = -1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(4500), RepeatMode.Reverse),
+        label = "bobber-rotation",
+    )
+    val rippleScale by transition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(tween(5000), RepeatMode.Reverse),
+        label = "ripple-scale",
+    )
+    val rippleAlpha by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.08f,
+        animationSpec = infiniteRepeatable(tween(5000), RepeatMode.Reverse),
+        label = "ripple-alpha",
+    )
+
+    BoxWithConstraints(modifier) {
+        val anchorX = maxWidth * 0.68f
+        val anchorY = maxHeight * 0.62f
+
+        AssetImage(
+            "home_motion/float/ripple_outer.png",
+            Modifier
+                .offset(x = anchorX - 56.dp, y = anchorY - 10.dp)
+                .size(112.dp, 34.dp)
+                .graphicsLayer { scaleX = rippleScale; scaleY = rippleScale; alpha = rippleAlpha },
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+        )
+        AssetImage(
+            "home_motion/float/ripple_inner.png",
+            Modifier
+                .offset(x = anchorX - 48.dp, y = anchorY - 8.dp)
+                .size(96.dp, 30.dp)
+                .graphicsLayer { scaleX = rippleScale; scaleY = rippleScale; alpha = rippleAlpha * 0.82f },
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+        )
+        AssetImage(
+            "home_motion/float/bobber_shadow.png",
+            Modifier
+                .offset(x = anchorX - 29.dp, y = anchorY + 4.dp)
+                .size(58.dp, 18.dp)
+                .graphicsLayer { alpha = 0.6f },
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+        )
+        AssetImage(
+            "home_motion/float/bobber.png",
+            Modifier
+                .offset(x = anchorX - 25.dp, y = anchorY - 68.dp)
+                .size(50.dp, 90.dp)
+                .graphicsLayer { translationY = floatY; rotationZ = floatRotation },
+            contentDescription = "湖面鱼漂",
+            contentScale = ContentScale.Fit,
+        )
+    }
 }

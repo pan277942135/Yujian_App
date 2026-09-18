@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -55,9 +56,21 @@ fun RecentFishCard(
                 .padding(horizontal = 2.dp, vertical = 5.dp)
                 .clip(RoundedCornerShape(28.dp)),
         ) {
+            // Safe crop rule: a soft, enlarged background fills the card;
+            // the actual photo stays fit-centered so the fish is not cut off.
             RemoteImage(
                 imageUrl,
-                Modifier.fillMaxSize(),
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { scaleX = 1.14f; scaleY = 1.14f; alpha = 0.34f }
+                    .blur(22.dp),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                authToken = accessToken,
+            )
+            RemoteImage(
+                imageUrl,
+                Modifier.fillMaxSize().padding(16.dp),
                 contentDescription = "${item.speciesName} 鱼获照片",
                 contentScale = ContentScale.Fit,
                 authToken = accessToken,

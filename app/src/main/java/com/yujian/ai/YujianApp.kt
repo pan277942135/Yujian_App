@@ -234,8 +234,9 @@ fun YujianApp() {
                 }
                 composable("home") {
                     val active = session
-                    val emptyHome = catchesState.error == null &&
-                        (catchesState.loading || resolveHomeState(catchesState.statistics, catchesState.catches) == HomeState.EMPTY)
+                    // The Home state is derived only from fish records. Login,
+                    // loading, and server statistics never select Empty/Normal.
+                    val emptyHome = resolveHomeState(catchesState.catches) == HomeState.EMPTY
                     HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
