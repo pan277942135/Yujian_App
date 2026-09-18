@@ -5,9 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +25,14 @@ import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
-import com.yujian.ai.ui.components.FishIllustration
 import com.yujian.ai.ui.components.RemoteImage
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
-private val Ink = Color(0xFF18324A)
+private const val FISH_CARD_ROOT = "home_normal_v1_2/assets/fish_card"
+private val CardShape = RoundedCornerShape(28.dp)
 
 @Composable
 fun RecentFishCard(
@@ -40,81 +43,109 @@ fun RecentFishCard(
 ) {
     Box(
         Modifier
-            .fillMaxWidth()
-            .height(350.dp)
-            .padding(horizontal = 30.dp)
+            .fillMaxSize()
             .clickable(onClick = onClick),
     ) {
         AssetImage(
-            "home_normal/fish_card/fish_card_shadow.png",
-            Modifier.fillMaxSize().alpha(0.52f),
+            "$FISH_CARD_ROOT/fish_card_shadow.png",
+            Modifier.fillMaxSize().alpha(0.48f),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
         )
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 2.dp, vertical = 5.dp)
-                .clip(RoundedCornerShape(28.dp)),
+                .padding(horizontal = 2.dp, vertical = 4.dp)
+                .clip(CardShape),
         ) {
-            // Safe crop rule: a soft, enlarged background fills the card;
-            // the actual photo stays fit-centered so the fish is not cut off.
             RemoteImage(
-                imageUrl,
-                Modifier
+                url = imageUrl,
+                modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer { scaleX = 1.14f; scaleY = 1.14f; alpha = 0.34f }
-                    .blur(22.dp),
+                    .graphicsLayerForPhoto(1.08f, 0.22f)
+                    .blur(18.dp),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 authToken = accessToken,
             )
             RemoteImage(
-                imageUrl,
-                Modifier.fillMaxSize().padding(16.dp),
+                url = imageUrl,
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 contentDescription = "${item.speciesName} 鱼获照片",
                 contentScale = ContentScale.Fit,
                 authToken = accessToken,
             ) {
                 Image(
-                    painterResource(R.drawable.fish_subject),
-                    "鱼获主体",
-                    Modifier.fillMaxSize().padding(24.dp),
-                    contentScale = ContentScale.Fit,
+                    painter = painterResource(R.drawable.image_error_v12),
+                    contentDescription = "图片加载失败",
+                    modifier = Modifier.size(44.dp),
                 )
             }
             AssetImage(
-                "home_normal/fish_card/fish_card_gradient.png",
+                "$FISH_CARD_ROOT/fish_card_gradient.png",
                 Modifier.fillMaxSize(),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
             )
             Column(
-                Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 22.dp),
+                Modifier.align(Alignment.BottomStart).padding(horizontal = 24.dp, vertical = 22.dp),
             ) {
-                Text(item.speciesName.ifBlank { "未命名鱼获" }, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                Text(
-                    item.capturedAt.ifBlank { item.createdAt.take(16) }.replace('T', ' '),
-                    color = Color.White.copy(alpha = 0.88f),
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 5.dp),
-                )
+                Text(item.speciesName, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Medium)
+                displayMeasurement(item)?.let { value ->
+                    Text(value, color = Color.White.copy(alpha = 0.94f), fontSize = 15.sp, modifier = Modifier.padding(top = 5.dp))
+                }
+                formatCatchMeta(item)?.let { value ->
+                    Text(value, color = Color.White.copy(alpha = 0.88f), fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+                }
             }
         }
         AssetImage(
-            "home_normal/fish_card/fish_card_mask.png",
-            Modifier.fillMaxSize().alpha(0.08f),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-        )
-        AssetImage(
-            "home_normal/fish_card/fish_card_outline.png",
+            "$FISH_CARD_ROOT/fish_card_outline.png",
             Modifier.fillMaxSize().alpha(0.72f),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
         )
     }
 }
+
+private fun Modifier.graphicsLayerForPhoto(scale: Float, alpha: Float): Modifier = graphicsLayer {
+    scaleX = scale
+    scaleY = scale
+    this.alpha = alpha
+}
+
+private fun displayMeasurement(item: RemoteCatch): String? = buildList {
+    item.lengthCm?.takeIf { it > 0f }?.let { add("${formatNumber(it)} cm") }
+    item.weightKg?.takeIf { it > 0f }?.let { add("${formatNumber(it)} kg") }
+}.takeIf(List<String>::isNotEmpty)?.joinToString(" · ")
+
+private fun formatCatchMeta(item: RemoteCatch): String? {
+    val time = item.capturedAt.ifBlank { item.createdAt }.takeIf(String::isNotBlank)?.let(::formatRelativeTime)
+    val location = item.location?.trim()?.takeIf(String::isNotBlank)
+    return listOfNotNull(time, location).joinToString(" · ").takeIf(String::isNotBlank)
+}
+
+private fun formatNumber(value: Float): String = "%.2f".format(Locale.US, value).trimEnd('0').trimEnd('.')
+
+private fun formatRelativeTime(value: String): String {
+    val date = parseCatchDate(value) ?: return value.take(16).replace('T', ' ')
+    val now = Calendar.getInstance()
+    val target = Calendar.getInstance().apply { time = date }
+    val time = SimpleDateFormat("HH:mm", Locale.US).format(date)
+    return when {
+        now.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+            now.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR) -> "今天 $time"
+        isYesterday(now, target) -> "昨天 $time"
+        else -> SimpleDateFormat("MM月dd日 HH:mm", Locale.CHINA).format(date)
+    }
+}
+
+private fun isYesterday(now: Calendar, target: Calendar): Boolean {
+    val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
+    return yesterday.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+        yesterday.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
+}
+
+private fun parseCatchDate(value: String): Date? = runCatching {
+    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(value)
+}.getOrNull()

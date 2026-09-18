@@ -34,6 +34,8 @@ class AuthRepository(
                 ?: throw IOException("登录响应缺少用户 ID"),
             username = user.optString("username"),
             nickname = user.optString("nickname"),
+            avatarUrl = user.optString("avatar_url").takeIf(String::isNotBlank)
+                ?: user.optString("avatarUrl").takeIf(String::isNotBlank),
         )
     }
 
