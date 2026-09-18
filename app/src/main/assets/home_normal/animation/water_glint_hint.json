@@ -1,0 +1,29 @@
+{
+  "name": "water_glint_hint",
+  "version": 1,
+  "duration_ms": 8000,
+  "loop": true,
+  "properties": {
+    "opacity": {
+      "keyframes": [
+        [
+          0,
+          0.0
+        ],
+        [
+          2000,
+          0.04
+        ],
+        [
+          5000,
+          0.02
+        ],
+        [
+          8000,
+          0.0
+        ]
+      ],
+      "unit": "alpha"
+    }
+  }
+}

@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun IdentifyScreen(
     image: SelectedImage?,
+    autoOpenGallery: Boolean = false,
     onBack: () -> Unit,
     onImageSelected: (SelectedImage) -> Unit,
     onStartRecognition: () -> Unit,
@@ -82,6 +83,10 @@ fun IdentifyScreen(
                 .onFailure { error = it.message ?: "照片读取失败" }
             loading = false
         }
+    }
+
+    LaunchedEffect(autoOpenGallery) {
+        if (autoOpenGallery) galleryLauncher.launch("image/*")
     }
 
     Column(Modifier.fillMaxSize().background(WarmBackground)) {

@@ -9,6 +9,14 @@ data class UserSession(
     val nickname: String,
 )
 
+/** The app can be used before authentication; this is the resolved state. */
+data class UserSessionState(
+    val isLogin: Boolean,
+    val userId: String?,
+    val guestId: String,
+    val hasSeenIntroVideo: Boolean,
+)
+
 /** Persistent, app-private storage for the consumer App Bearer session. */
 class UserSessionManager(context: Context) {
     private val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
@@ -30,8 +38,39 @@ class UserSessionManager(context: Context) {
             .apply()
     }
 
+    fun guestId(): String {
+        val existing = preferences.getString(KEY_GUEST_ID, null)?.takeIf(String::isNotBlank)
+        if (existing != null) return existing
+        val generated = "guest_${java.util.UUID.randomUUID()}"
+        preferences.edit().putString(KEY_GUEST_ID, generated).apply()
+        return generated
+    }
+
+    fun state(): UserSessionState = UserSessionState(
+        isLogin = current() != null,
+        userId = current()?.userId,
+        guestId = guestId(),
+        hasSeenIntroVideo = preferences.getBoolean(KEY_INTRO_VIDEO_SEEN, false),
+    )
+
+    fun markIntroVideoSeen() {
+        preferences.edit().putBoolean(KEY_INTRO_VIDEO_SEEN, true).apply()
+    }
+
+    fun guestRegistrationPromptShown(): Boolean = preferences.getBoolean(KEY_GUEST_PROMPT_SHOWN, false)
+
+    fun markGuestRegistrationPromptShown() {
+        preferences.edit().putBoolean(KEY_GUEST_PROMPT_SHOWN, true).apply()
+    }
+
     fun clear() {
-        preferences.edit().clear().apply()
+        // Keep the guest identity and local guest archive across logout.
+        preferences.edit()
+            .remove(KEY_TOKEN)
+            .remove(KEY_USER_ID)
+            .remove(KEY_USERNAME)
+            .remove(KEY_NICKNAME)
+            .apply()
     }
 
     private companion object {
@@ -40,5 +79,8 @@ class UserSessionManager(context: Context) {
         const val KEY_USER_ID = "user_id"
         const val KEY_USERNAME = "username"
         const val KEY_NICKNAME = "nickname"
+        const val KEY_GUEST_ID = "guest_id"
+        const val KEY_GUEST_PROMPT_SHOWN = "guest_registration_prompt_shown"
+        const val KEY_INTRO_VIDEO_SEEN = "has_seen_intro_video"
     }
 }
