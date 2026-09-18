@@ -22,7 +22,7 @@ class InferenceContractTest {
     @Test
     fun confirmed_feedback_is_not_a_hard_case() {
         val feedback = FeedbackContract.fromDraft(
-            FeedbackDraft("APP_1", "confirmed", "MODEL_M1_v0.2", "grass_carp", .82f, null),
+            FeedbackDraft("APP_1", "confirmed", "MODEL_M1_v0.6", "grass_carp", .82f, null),
         )
         assertTrue(feedback.toJson().getBoolean("is_error").not())
         assertTrue(feedback.toJson().getBoolean("hard_case").not())
@@ -31,7 +31,7 @@ class InferenceContractTest {
     @Test
     fun corrected_feedback_is_a_hard_case_candidate() {
         val feedback = FeedbackContract.fromDraft(
-            FeedbackDraft("APP_2", "corrected", "MODEL_M1_v0.2", "grass_carp", .82f, "common_carp"),
+            FeedbackDraft("APP_2", "corrected", "MODEL_M1_v0.6", "grass_carp", .82f, "common_carp"),
         )
         assertTrue(feedback.isError)
         assertTrue(feedback.hardCase)

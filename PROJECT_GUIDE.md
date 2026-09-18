@@ -121,27 +121,28 @@ App 内置基础模型
 当前主分类模型：
 
 ```text
-MODEL_M1_v0.2
+MODEL_M1_v0.6
 ```
 
 当前移动模型：
 
 ```text
 fish_classifier_v0_2.tflite
-SHA256: 9575ede5c6c85b850647016d76e8e5175fa9ea6b609c47c83f54b4062e47d14e
+SHA256: b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7
+输出类别数: 16
 ```
 
-当前已知问题：
+当前已验证状态：
 
 ```text
 同一 Golden Image：
-TorchScript Top-1 = yellow_catfish / index 7
-Android TFLite Runtime 当前无法复现
+TFLite Top-1 = sharpbelly / index 10
+Android parity contract = [1,16] Float32
 ```
 
 常见 RGB/BGR、NCHW/NHWC、ImageNet/0..1 组合已经诊断过，不能解释问题。
 
-下一步必须先比较：
+CI 持续比较：
 
 ```text
 TorchScript 完整输出

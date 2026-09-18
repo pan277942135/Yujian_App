@@ -38,7 +38,7 @@ data class RecognitionPrediction(
     val top1: RecognitionCandidate,
     val candidates: List<RecognitionCandidate>,
     val latencyMs: Long,
-    /** The rendered 224x224 bitmap whose pixels are normalized into MODEL_M1_v0.2. */
+    /** The rendered 224x224 bitmap whose pixels are normalized into MODEL_M1_v0.6. */
     val modelInputBitmap: Bitmap? = null,
 ) {
     val lowConfidence: Boolean

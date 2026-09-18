@@ -22,7 +22,7 @@ FishDetectionQualityGate（QUALITY_GATE_v1.1）
   ↓
 expanded bbox crop（expand 0.15）
   ↓
-FishRecognitionEngine（MODEL_M1_v0.2 / TFLite）
+FishRecognitionEngine（MODEL_M1_v0.6 / 16-class TFLite）
   ↓
 RecognitionPrediction（Top-1 / Top-K / confidence / latency）
   ↓
@@ -288,7 +288,7 @@ The Android implementation commits on `main` are:
 5. `c62d422` — final production pipeline analysis
 6. `9c35f5b` — implementation status and acceptance update
 
-The existing `DET_FISH_v0.1` and `MODEL_M1_v0.2` runtime assets and their UAT
+The existing `DET_FISH_v0.1` and `MODEL_M1_v0.6` runtime assets and their UAT
 behavior remain unchanged.
 
 执行规则：
@@ -301,5 +301,5 @@ behavior remain unchanged.
 
 - 可直接复用：Detector、BBox、Quality Gate、Crop 算法、Classifier、Overlay、Feedback Queue、Backend FeedbackEvent、现有 Detector Dataset 下载/split/门禁逻辑。
 - 必须新增：统一 Contract、stable image_id、InferenceRecorder、crop 持久化、新 inference upload API、App record 到 Dataset 适配器、Detector Error Analyzer。
-- 必须保持：DET_FISH_v0.1、MODEL_M1_v0.2、现有 Android UAT、Classifier 推理逻辑、Dataset Freeze 状态机和 Feedback 人工 Review 边界。
+- 必须保持：DET_FISH_v0.1、MODEL_M1_v0.6、现有 Android UAT、Classifier 推理逻辑、Dataset Freeze 状态机和 Feedback 人工 Review 边界。
 - Phase A → E 已完成并已推送到 `main`：Contract、Recorder/crop 持久化、上传传输、后端接收、review-gated 数据集适配与 Detector Error Analyzer 均已落地；后续只允许沿现有人工 Review → Dataset Freeze 闸门扩展，不把 candidate bbox 当作训练真值。

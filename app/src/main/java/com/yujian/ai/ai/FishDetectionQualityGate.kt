@@ -17,7 +17,7 @@ enum class FishInputStatus(val wireName: String) {
  * Android UX quality level layered on top of the frozen detector contract.
  *
  * GOOD and WARNING are both classifier-eligible. INVALID is the only level that
- * blocks MODEL_M1_v0.2. This keeps common field photos usable when a tail touches
+ * blocks MODEL_M1_v0.6. This keeps common field photos usable when a tail touches
  * the frame or the fish is lightly occluded, while still blocking ambiguous input.
  */
 enum class FishQualityLevel(val wireName: String) {

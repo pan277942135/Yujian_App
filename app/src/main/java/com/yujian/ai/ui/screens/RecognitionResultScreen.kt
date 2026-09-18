@@ -388,7 +388,7 @@ private fun CropPreviewCard(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Crop Preview", color = DeepInk, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-        Text("实际送入 MODEL_M1_v0.2：detector crop → FISH_CROP_LETTERBOX", color = MutedInk, fontSize = 11.sp)
+        Text("实际送入 MODEL_M1_v0.6：detector crop → FISH_CROP_LETTERBOX", color = MutedInk, fontSize = 11.sp)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             cropPreview?.let {
                 PreviewTile(
