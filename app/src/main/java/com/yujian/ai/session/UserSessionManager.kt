@@ -7,7 +7,6 @@ data class UserSession(
     val userId: String,
     val username: String,
     val nickname: String,
-    val avatarUrl: String? = null,
 )
 
 /** The app can be used before authentication; this is the resolved state. */
@@ -27,8 +26,7 @@ class UserSessionManager(context: Context) {
         val userId = preferences.getString(KEY_USER_ID, null)?.takeIf(String::isNotBlank) ?: return null
         val username = preferences.getString(KEY_USERNAME, "") ?: ""
         val nickname = preferences.getString(KEY_NICKNAME, "") ?: ""
-        val avatarUrl = preferences.getString(KEY_AVATAR_URL, null)
-        return UserSession(token, userId, username, nickname, avatarUrl)
+        return UserSession(token, userId, username, nickname)
     }
 
     fun save(session: UserSession) {
@@ -37,7 +35,6 @@ class UserSessionManager(context: Context) {
             .putString(KEY_USER_ID, session.userId)
             .putString(KEY_USERNAME, session.username)
             .putString(KEY_NICKNAME, session.nickname)
-            .putString(KEY_AVATAR_URL, session.avatarUrl)
             .apply()
     }
 
@@ -73,7 +70,6 @@ class UserSessionManager(context: Context) {
             .remove(KEY_USER_ID)
             .remove(KEY_USERNAME)
             .remove(KEY_NICKNAME)
-            .remove(KEY_AVATAR_URL)
             .apply()
     }
 
@@ -83,7 +79,6 @@ class UserSessionManager(context: Context) {
         const val KEY_USER_ID = "user_id"
         const val KEY_USERNAME = "username"
         const val KEY_NICKNAME = "nickname"
-        const val KEY_AVATAR_URL = "avatar_url"
         const val KEY_GUEST_ID = "guest_id"
         const val KEY_GUEST_PROMPT_SHOWN = "guest_registration_prompt_shown"
         const val KEY_INTRO_VIDEO_SEEN = "has_seen_intro_video"

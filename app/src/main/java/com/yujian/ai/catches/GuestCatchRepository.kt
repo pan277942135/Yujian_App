@@ -107,21 +107,7 @@ class GuestCatchRepository(context: Context) {
         modelVersion = optString("model_version"),
         capturedAt = optString("captured_at"),
         createdAt = optString("created_at"),
-        lengthCm = optionalFloat("length_cm", "length"),
-        weightKg = optionalFloat("weight_kg", "weight"),
-        location = optString("location").ifBlank { optString("location_name") }
-            .takeIf(String::isNotBlank),
     )
-
-    private fun JSONObject.optionalFloat(vararg keys: String): Float? {
-        keys.forEach { key ->
-            if (has(key) && !isNull(key)) {
-                val value = optDouble(key, Double.NaN)
-                if (!value.isNaN()) return value.toFloat()
-            }
-        }
-        return null
-    }
 
     private fun RemoteCatch.toJson(): JSONObject = JSONObject()
         .put("id", id)
@@ -132,9 +118,6 @@ class GuestCatchRepository(context: Context) {
         .put("model_version", modelVersion)
         .put("captured_at", capturedAt)
         .put("created_at", createdAt)
-        .put("length_cm", lengthCm ?: JSONObject.NULL)
-        .put("weight_kg", weightKg ?: JSONObject.NULL)
-        .put("location", location ?: JSONObject.NULL)
 
     private fun nowIso(): String = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date())
 

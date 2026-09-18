@@ -170,32 +170,44 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.FishDetectionQualityGateTest --stacktrace
             test "$GITHUB_EVENT_NAME" = "push" && test "$GITHUB_REF" = "refs/heads/main" || exit 0
-              mkdir -p build/home-empty-evidence
-              adb install -r app/build/outputs/apk/debug/app-debug.apk
-              adb shell wm size 1080x1920
-              adb shell am force-stop com.yujian.ai.uiv2
-              adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
-              sleep 5
-              adb exec-out screencap -p > build/home-empty-evidence/home-empty-16-9.png
+            mkdir -p build/home-evidence
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
 
-              adb shell wm size 1080x2340
-              sleep 3
-              adb exec-out screencap -p > build/home-empty-evidence/home-empty-19-5-9.png
+            adb shell pm clear com.yujian.ai.uiv2
+            adb shell wm size 1080x1920
+            adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
+            sleep 5
+            adb exec-out screencap -p > build/home-evidence/home-empty-16-9.png
 
-              adb shell wm size 1080x2520
-              sleep 3
-              adb exec-out screencap -p > build/home-empty-evidence/home-empty-21-9.png
+            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.HomeVisualEvidenceSeedTest#seedSingleGuestCatch --stacktrace
+            adb shell wm size 1080x2340
+            adb shell am force-stop com.yujian.ai.uiv2
+            adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
+            sleep 5
+            adb exec-out screencap -p > build/home-evidence/home-normal-guest-one-19-5-9.png
 
-              adb shell wm size 1080x2400
-              sleep 3
-              adb shell screenrecord --time-limit 10 /sdcard/home-empty-motion.mp4
-              adb pull /sdcard/home-empty-motion.mp4 build/home-empty-evidence/home-empty-motion-10s.mp4
+            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.HomeVisualEvidenceSeedTest#seedMultipleGuestCatches --stacktrace
+            adb shell wm size 1080x2400
+            adb shell am force-stop com.yujian.ai.uiv2
+            adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
+            sleep 5
+            adb exec-out screencap -p > build/home-evidence/home-normal-guest-multiple-20-9.png
 
-      - name: Upload Home Empty visual evidence
+            adb shell wm size 1080x2520
+            sleep 3
+            adb exec-out screencap -p > build/home-evidence/home-normal-guest-multiple-21-9.png
+
+            adb shell wm size 1080x2400
+            sleep 3
+            adb shell screenrecord --time-limit 10 /sdcard/home-normal-motion.mp4
+            adb pull /sdcard/home-normal-motion.mp4 build/home-evidence/home-normal-motion-10s.mp4
+
+
+      - name: Upload Home visual evidence
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-home-empty-visual-evidence-${{ github.sha }}
-          path: build/home-empty-evidence
+          name: YuJian-home-visual-evidence-${{ github.sha }}
+          path: build/home-evidence
           if-no-files-found: error
           retention-days: 7
