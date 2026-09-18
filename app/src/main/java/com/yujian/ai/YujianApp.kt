@@ -52,6 +52,7 @@ import com.yujian.ai.session.UserSessionManager
 import com.yujian.ai.ui.screens.FishGuideHomeScreen
 import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
 import com.yujian.ai.ui.screens.HomeScreen
+import com.yujian.ai.ui.screens.RemoteCatchDetailScreen
 import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.screens.LoginScreen
 import com.yujian.ai.ui.screens.MyScreen
@@ -259,8 +260,29 @@ fun YujianApp() {
                         onCatchesClick = { nav.navigate("my") },
                         onRecordDaysClick = { },
                         onProfileClick = { if (active == null) nav.navigate("login") else nav.navigate("my") },
-                        onCatchClick = { nav.navigate("my") },
+                        onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
                     )
+                }
+                composable(
+                    route = "catch/{catchId}",
+                    arguments = listOf(navArgument("catchId") { type = NavType.StringType }),
+                ) { entry ->
+                    val catchId = entry.arguments?.getString("catchId").orEmpty()
+                    val selectedCatch = catchesState.catches.firstOrNull { it.id == catchId }
+                    if (selectedCatch == null) {
+                        LaunchedEffect(catchId) { nav.popBackStack() }
+                    } else {
+                        RemoteCatchDetailScreen(
+                            catch = selectedCatch,
+                            imageUrl = if (File(selectedCatch.imageUrl).exists()) {
+                                "file://" + selectedCatch.imageUrl
+                            } else {
+                                catchRepository.resolveUrl(selectedCatch.imageUrl)
+                            },
+                            accessToken = session?.accessToken.orEmpty(),
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
                 }
                 composable(
                     route = "identify?openGallery={openGallery}",
