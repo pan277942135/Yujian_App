@@ -179,7 +179,7 @@ fun YujianApp() {
     Scaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0),
-    ) {
+    ) { _ ->
         Box(Modifier.fillMaxSize().background(WarmBackground)) {
             // Home is available before authentication. The same route resolves
             // Empty vs Normal from the active local/remote fish archive.
