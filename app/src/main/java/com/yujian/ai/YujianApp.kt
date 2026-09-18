@@ -283,9 +283,9 @@ fun YujianApp() {
                     RecognizingScreen(
                         image = sessionImage,
                         onBack = { nav.popBackStack() },
-                        recognize = {
+                        recognize = { onProgress ->
                             val selected = requireNotNull(sessionImage)
-                            val result = recognitionPipeline.recognize(selected.bitmap)
+                            val result = recognitionPipeline.recognize(selected.bitmap, onProgress)
                             inferenceAsset = inferenceRecorder.record(selected, result)
                             result
                         },
