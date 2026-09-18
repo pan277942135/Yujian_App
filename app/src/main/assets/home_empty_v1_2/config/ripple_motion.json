@@ -1,0 +1,26 @@
+{
+  "version": "1.2",
+  "trigger": "bite_start",
+  "duration_ms": 1200,
+  "inner": {
+    "scale": [
+      0.88,
+      1.05
+    ],
+    "alpha": [
+      0.28,
+      0.0
+    ]
+  },
+  "outer": {
+    "scale": [
+      0.92,
+      1.12
+    ],
+    "alpha": [
+      0.18,
+      0.0
+    ]
+  },
+  "easing": "easeOutCubic"
+}
