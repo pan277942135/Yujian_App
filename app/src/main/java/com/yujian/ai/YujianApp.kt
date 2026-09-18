@@ -75,6 +75,7 @@ private data class CatchArchiveState(
     val error: String? = null,
 )
 
+@Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun YujianApp() {
     val context = LocalContext.current.applicationContext
