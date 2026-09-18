@@ -83,12 +83,16 @@ jobs:
       - name: Android lint
         run: gradle :app:lintDebug --stacktrace
 
+      - name: Prepare YuJian debug APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
+
       - name: Upload installable debug APK
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: Yujian-App-DET-FISH-v0.1-M1-v0.6-debug-${{ github.sha }}
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: YuJian-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/YuJian-debug.apk
           if-no-files-found: error
           retention-days: 7
 

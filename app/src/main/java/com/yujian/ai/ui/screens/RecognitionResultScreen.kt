@@ -27,7 +27,7 @@ import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.feedback.FeedbackDraft
-import com.yujian.ai.model.DemoData
+import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -68,9 +68,9 @@ fun RecognitionResultScreen(
     var locationText by remember(prediction) { mutableStateOf("") }
     val currentTime = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date()) }
     val options = remember(prediction) {
-        (prediction.candidates + DemoData.species.map { fish ->
-            RecognitionCandidate(-1, fish.key, fish.name, 0f)
-        }).distinctBy { it.speciesKey }.take(16)
+        (prediction.candidates + FishRecognitionEngine.MODEL_LABELS.mapIndexed { index, label ->
+            RecognitionCandidate(index, label.first, label.second, 0f)
+        }).distinctBy { it.speciesKey }.take(FishRecognitionEngine.MODEL_CLASS_COUNT)
     }
 
     LazyColumn(
