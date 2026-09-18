@@ -2,6 +2,7 @@ package com.yujian.ai.ui.components
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.File
 
 @Composable
 fun RemoteImage(
@@ -51,6 +53,12 @@ fun RemoteImage(
 }
 
 private fun loadBitmap(url: String, authToken: String?): Bitmap? = runCatching {
+    if (url.startsWith("file://")) {
+        return@runCatching BitmapFactory.decodeFile(Uri.parse(url).path)
+    }
+    if (url.startsWith("/")) {
+        return@runCatching BitmapFactory.decodeFile(File(url).absolutePath)
+    }
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
         connectTimeout = 8_000
         readTimeout = 12_000

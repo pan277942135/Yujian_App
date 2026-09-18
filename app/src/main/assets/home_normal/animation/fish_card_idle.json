@@ -1,0 +1,67 @@
+{
+  "name": "fish_card_idle",
+  "version": 1,
+  "duration_ms": 6000,
+  "loop": true,
+  "properties": {
+    "translateY": {
+      "keyframes": [
+        [
+          0,
+          0
+        ],
+        [
+          1500,
+          -3
+        ],
+        [
+          3000,
+          0
+        ],
+        [
+          4500,
+          3
+        ],
+        [
+          6000,
+          0
+        ]
+      ],
+      "unit": "dp"
+    },
+    "scale": {
+      "keyframes": [
+        [
+          0,
+          1.0
+        ],
+        [
+          3000,
+          1.008
+        ],
+        [
+          6000,
+          1.0
+        ]
+      ],
+      "unit": "ratio"
+    },
+    "shadowOpacity": {
+      "keyframes": [
+        [
+          0,
+          0.18
+        ],
+        [
+          3000,
+          0.22
+        ],
+        [
+          6000,
+          0.18
+        ]
+      ],
+      "unit": "alpha"
+    }
+  }
+}

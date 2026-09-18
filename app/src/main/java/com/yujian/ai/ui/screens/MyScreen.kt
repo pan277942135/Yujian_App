@@ -42,7 +42,7 @@ import com.yujian.ai.ui.theme.WaterTeal
 
 @Composable
 fun MyScreen(
-    session: UserSession,
+    session: UserSession?,
     statistics: CatchStatistics,
     catches: List<RemoteCatch>,
     loading: Boolean,
@@ -71,10 +71,11 @@ fun MyScreen(
                     FishIllustration(size = 56.dp, bodyColor = WaterTeal)
                 }
                 Column(Modifier.padding(start = 16.dp).weight(1f)) {
-                    Text(session.nickname.ifBlank { session.username }, color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    val displayName = session?.let { it.nickname.ifBlank { it.username } } ?: "游客"
+                    Text(displayName, color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Text("已保存 ${statistics.totalCatches} 次鱼获", color = MutedInk, fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
                 }
-                TextButton(onClick = onLogout) { Text("退出", color = MutedInk, fontSize = 12.sp) }
+                TextButton(onClick = onLogout) { Text(if (session == null) "登录/注册" else "退出", color = MutedInk, fontSize = 12.sp) }
             }
         }
         item {
@@ -105,7 +106,7 @@ fun MyScreen(
             }
         } else {
             items(catches, key = { it.id }) { catch ->
-                CatchRow(catch, resolveImageUrl, session.accessToken) { onSpecies(catch.speciesId) }
+                CatchRow(catch, resolveImageUrl, session?.accessToken.orEmpty()) { onSpecies(catch.speciesId) }
             }
         }
         item { MenuCard("我的图鉴", "看看已认识的鱼种", onGuide) }
