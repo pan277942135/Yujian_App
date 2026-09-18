@@ -30,7 +30,8 @@ class HomeVisualEvidenceSeedTest {
         File(context.filesDir, "guest_catches").deleteRecursively()
 
         val source = File(context.cacheDir, "visual-seed.jpg")
-        context.assets.open("golden_yellow_catfish_224.jpg").use { input ->
+        InstrumentationRegistry.getInstrumentation().context.assets
+            .open("golden_yellow_catfish_224.jpg").use { input ->
             source.outputStream().use { output -> input.copyTo(output) }
         }
         val repository = GuestCatchRepository(context)
