@@ -26,13 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ViewTreeLifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.yujian.ai.ui.components.AssetImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.keyframes
@@ -157,7 +158,7 @@ internal fun rememberHomeMotionRunning(): Boolean {
     val context = LocalContext.current
     var lifecycleStarted by remember { mutableStateOf(true) }
     DisposableEffect(view) {
-        val lifecycle = ViewTreeLifecycleOwner.get(view)?.lifecycle
+        val lifecycle = view.findViewTreeLifecycleOwner()?.lifecycle
         if (lifecycle == null) {
             onDispose { }
         } else {
