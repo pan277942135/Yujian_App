@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -105,7 +106,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun EmptyHomeContent(
+private fun ColumnScope.EmptyHomeContent(
     isLoggedIn: Boolean,
     onIdentify: () -> Unit,
     onAlbumClick: () -> Unit,
