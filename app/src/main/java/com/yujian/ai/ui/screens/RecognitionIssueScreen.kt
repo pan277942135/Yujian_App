@@ -18,14 +18,9 @@ import androidx.compose.ui.unit.sp
 import com.yujian.ai.ai.FishInputStatus
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.model.SelectedImage
-import com.yujian.ai.ui.components.YujianTopBar
-import com.yujian.ai.ui.theme.CardWhite
-import com.yujian.ai.ui.theme.DeepInk
-import com.yujian.ai.ui.theme.MutedInk
-import com.yujian.ai.ui.theme.WarmBackground
-import com.yujian.ai.ui.theme.WaterTeal
-
-private data class IssueCopy(val title: String, val body: String)
+import com.yujian.ai.ui.identify.IdentifyState
+import com.yujian.ai.ui.identify.resolveIdentifyResultState
+import com.yujian.ai.ui.theme.*
 
 @Composable
 fun RecognitionIssueScreen(
@@ -35,88 +30,42 @@ fun RecognitionIssueScreen(
     onChooseAnother: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    val copy = when (result.status) {
-        FishInputStatus.NO_FISH -> IssueCopy(
-            "没有检测到鱼",
-            "请重新拍摄或选择包含鱼的照片。",
-        )
-        FishInputStatus.UNCERTAIN -> IssueCopy(
-            "没有确认到清晰鱼体",
-            "照片里可能有鱼，但当前画面不够确定。请换一张鱼体更清晰的照片。",
-        )
-        FishInputStatus.MULTIPLE_FISH -> IssueCopy(
-            "检测到多条鱼",
-            "请重新拍摄单条鱼，或选择主体更明确的照片。",
-        )
-        FishInputStatus.INCOMPLETE_FISH -> IssueCopy(
-            "鱼体没有完整进入画面",
-            "请尽量让鱼头、鱼尾和主要鳍部完整出现在照片中。",
-        )
-        FishInputStatus.FISH_TOO_SMALL -> IssueCopy(
-            "鱼离镜头有点远",
-            "靠近一点再拍，更容易准确识别鱼种。",
-        )
-        FishInputStatus.READY -> IssueCopy(
-            "鱼体已准备好",
-            "正在进入鱼种识别。",
-        )
+    val state = resolveIdentifyResultState(result.status, result.prediction)
+    val copy = when (state) {
+        IdentifyState.NO_FISH -> "没有找到鱼获主体" to "请重新拍摄，尽量让鱼体完整地进入画面。"
+        IdentifyState.TOO_FAR -> "鱼距离太远" to "靠近一点再拍，鱼体会更容易被识别。"
+        else -> when (result.status) {
+            FishInputStatus.MULTIPLE_FISH -> "画面里有不止一条鱼" to "请换一张主体更明确的照片。"
+            FishInputStatus.INCOMPLETE_FISH -> "鱼体没有完整进入画面" to "请尽量保留鱼头、鱼尾和主要鳍部。"
+            else -> "这张照片还不够确定" to "换一张光线更好、遮挡更少的照片试试。"
+        }
     }
 
     Column(Modifier.fillMaxSize().background(WarmBackground)) {
-        YujianTopBar(title = "检查照片", subtitle = "先确认鱼体，再判断鱼种", onBack = onBack)
+        Text("再看一眼", color = DeepInk, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 20.dp, top = 24.dp))
+        Text("没有关系，重新拍一张就好", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(start = 20.dp, top = 6.dp, bottom = 10.dp))
         if (image != null) {
             DetectorOverlayImage(
                 bitmap = image.bitmap,
                 detectorBox = result.assessment.primary?.box,
-                cropBox = result.assessment.cropBox,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).height(290.dp)
-                    .clip(RoundedCornerShape(28.dp)),
+                cropBox = null,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(290.dp).clip(RoundedCornerShape(28.dp)),
             )
         }
-
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp).background(CardWhite, RoundedCornerShape(24.dp)).padding(22.dp),
+            Modifier.fillMaxWidth().padding(20.dp).background(CardWhite, RoundedCornerShape(24.dp)).padding(22.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(copy.title, color = DeepInk, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Text(copy.body, color = MutedInk, fontSize = 14.sp, lineHeight = 22.sp)
-            Text(
-                "Quality Gate ${result.assessment.qualityLevel.name} · ${result.assessment.qualityReason}",
-                color = Color(0xFFB24A3A),
-                fontSize = 11.sp,
-            )
-            result.assessment.primary?.let { primary ->
-                Text(
-                    "鱼体检测置信度 ${(primary.confidence * 100).toInt()}%",
-                    color = WaterTeal,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
+            Text(copy.first, color = DeepInk, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(copy.second, color = MutedInk, fontSize = 14.sp, lineHeight = 22.sp)
+            result.assessment.primary?.let {
+                Text("已经找到鱼体主体，但画面需要更近一点", color = WaterTeal, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
-            Text(
-                "Detector ${result.detectorRun.modelVersion} · ${result.detectorRun.latencyMs} ms",
-                color = Color(0xFF89938F),
-                fontSize = 11.sp,
-            )
         }
-
         Spacer(Modifier.weight(1f))
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(
-                onClick = onChooseAnother,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-            ) { Text("重新选择照片", fontWeight = FontWeight.SemiBold) }
-            OutlinedButton(
-                onClick = onRetry,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(24.dp),
-            ) { Text("再检测一次") }
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Button(onClick = onChooseAnother, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(26.dp), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal)) { Text("重新选择照片", fontWeight = FontWeight.SemiBold) }
+            OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(24.dp)) { Text("再检测一次") }
         }
     }
 }
