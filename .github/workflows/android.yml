@@ -10,6 +10,10 @@ permissions:
   contents: read
 
 env:
+  MODEL_TFLITE_URL: https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/fish_classifier_v0_2.tflite
+  MODEL_TFLITE_SHA256: b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7
+  MODEL_TENSOR_CONTRACT_URL: https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/tensor_contract.json
+  MODEL_TENSOR_CONTRACT_SHA256: f9a477f4f9ecd23b0162ee7f06c0f6965f005a52f17755e11f7b9283e104b1d8
   DETECTOR_BUNDLE_URL: https://github.com/pan277942135/Yujian/releases/download/detector-model-v0.1/det_fish_v0_1_android_bundle.zip
   DETECTOR_BUNDLE_SHA256: 246ddacaf89ca7ecc9c64a47d3e12c5ee9088d92c763a38626778505ae8c15ee
   YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
@@ -25,13 +29,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download verified MODEL_M1_v0.2 mobile asset
+      - name: Download verified MODEL_M1_v0.6 mobile asset and tensor contract
         shell: bash
         run: |
           mkdir -p app/src/main/assets
           curl -fL --retry 3 --retry-delay 2 \
             -o app/src/main/assets/fish_classifier.tflite \
-            https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/fish_classifier_v0_2.tflite
+            "$MODEL_TFLITE_URL"
+          curl -fL --retry 3 --retry-delay 2 \
+            -o app/src/main/assets/model_tensor_contract.json \
+            "$MODEL_TENSOR_CONTRACT_URL"
+          echo "$MODEL_TFLITE_SHA256  app/src/main/assets/fish_classifier.tflite" | sha256sum -c -
+          echo "$MODEL_TENSOR_CONTRACT_SHA256  app/src/main/assets/model_tensor_contract.json" | sha256sum -c -
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py
@@ -78,7 +87,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: Yujian-App-DET-FISH-v0.1-M1-v0.2-debug-${{ github.sha }}
+          name: Yujian-App-DET-FISH-v0.1-M1-v0.6-debug-${{ github.sha }}
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
@@ -92,13 +101,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download verified MODEL_M1_v0.2 mobile asset
+      - name: Download verified MODEL_M1_v0.6 mobile asset and tensor contract
         shell: bash
         run: |
           mkdir -p app/src/main/assets
           curl -fL --retry 3 --retry-delay 2 \
             -o app/src/main/assets/fish_classifier.tflite \
-            https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/fish_classifier_v0_2.tflite
+            "$MODEL_TFLITE_URL"
+          curl -fL --retry 3 --retry-delay 2 \
+            -o app/src/main/assets/model_tensor_contract.json \
+            "$MODEL_TENSOR_CONTRACT_URL"
+          echo "$MODEL_TFLITE_SHA256  app/src/main/assets/fish_classifier.tflite" | sha256sum -c -
+          echo "$MODEL_TENSOR_CONTRACT_SHA256  app/src/main/assets/model_tensor_contract.json" | sha256sum -c -
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py

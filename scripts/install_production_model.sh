@@ -3,12 +3,14 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE="${1:-}"
+CONTRACT_SOURCE="${2:-}"
 DEST="$ROOT/app/src/main/assets/fish_classifier.tflite"
-EXPECTED_SHA="5bb77f0bea96be2c6d2ace8a0fea36e8907bc9e4076beac05e0c82f44c345459"
-EXPECTED_SIZE="2077712"
+CONTRACT_DEST="$ROOT/app/src/main/assets/model_tensor_contract.json"
+EXPECTED_SHA="b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7"
+EXPECTED_SIZE="6249008"
 
-if [[ -z "$SOURCE" || ! -f "$SOURCE" ]]; then
-  echo "Usage: $0 /path/to/fish_classifier.tflite" >&2
+if [[ -z "$SOURCE" || ! -f "$SOURCE" || -z "$CONTRACT_SOURCE" || ! -f "$CONTRACT_SOURCE" ]]; then
+  echo "Usage: $0 /path/to/fish_classifier.tflite /path/to/tensor_contract.json" >&2
   exit 2
 fi
 
@@ -20,6 +22,7 @@ SHA="$(sha256sum "$SOURCE" | awk '{print $1}')"
 
 mkdir -p "$(dirname "$DEST")"
 cp "$SOURCE" "$DEST"
+cp "$CONTRACT_SOURCE" "$CONTRACT_DEST"
 python3 "$ROOT/scripts/verify_production_model.py"
 
 echo "Installed exact production model at app/src/main/assets/fish_classifier.tflite"

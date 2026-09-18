@@ -32,8 +32,8 @@ class ProductionE2ESmokeTest {
 
         assertEquals(FishRecognitionEngine.MODEL_SHA256, prediction.modelSha256)
         assertEquals(FishRecognitionEngine.MODEL_VERSION, prediction.modelVersion)
-        assertEquals(9, prediction.candidates.size)
-        assertTrue(prediction.top1.classIndex in 0..8)
+        assertEquals(FishRecognitionEngine.MODEL_CLASS_COUNT, prediction.candidates.size)
+        assertTrue(prediction.top1.classIndex in 0 until FishRecognitionEngine.MODEL_CLASS_COUNT)
         assertTrue(prediction.top1.confidence.isFinite())
         assertTrue(prediction.top1.confidence in 0f..1f)
         assertTrue(prediction.candidates.all { it.confidence.isFinite() && it.confidence in 0f..1f })

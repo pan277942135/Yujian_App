@@ -12,7 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Golden-image parity for the approved MODEL_M1_v0.2 Android preprocessing contract.
+ * Golden-image parity for the approved MODEL_M1_v0.6 Android preprocessing contract.
  * The fixture is already 224×224; production still executes its whole-image letterbox
  * path, NCHW RGB packing, and ImageNet normalization before these asserted logits.
  */
@@ -44,11 +44,11 @@ class InferenceParityTest {
         assertNotNull(prediction.modelInputBitmap)
         assertEquals(224, requireNotNull(prediction.modelInputBitmap).width)
         assertEquals(224, requireNotNull(prediction.modelInputBitmap).height)
-        assertEquals(9, prediction.candidates.size)
+        assertEquals(FishRecognitionEngine.MODEL_CLASS_COUNT, prediction.candidates.size)
         val top3 = prediction.candidates.take(3)
-        assertEquals(listOf(2, 4, 1), top3.map { it.classIndex })
-        assertEquals(listOf("silver_carp", "crucian_carp", "bighead_carp"), top3.map { it.speciesKey })
-        val expected = floatArrayOf(0.137937f, 0.132004f, 0.111724f)
+        assertEquals(listOf(10, 2, 1), top3.map { it.classIndex })
+        assertEquals(listOf("sharpbelly", "blunt_snout_bream", "black_carp"), top3.map { it.speciesKey })
+        val expected = floatArrayOf(0.211211f, 0.120793f, 0.092158f)
         top3.zip(expected.asList()).forEach { (candidate, expectedConfidence) ->
             assertEquals(expectedConfidence, candidate.confidence, 0.0002f)
         }
