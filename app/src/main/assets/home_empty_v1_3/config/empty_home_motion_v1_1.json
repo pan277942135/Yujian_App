@@ -17,6 +17,8 @@
     "trigger_offset_ms": 200,
     "secondary_delay_ms": 170,
     "duration_ms": 1100,
+    "primary_duration_ms": 800,
+    "secondary_duration_ms": 900,
     "primary_alpha": [0.30, 0.0],
     "secondary_alpha": [0.20, 0.0]
   },
