@@ -1,8 +1,23 @@
 package com.yujian.ai.ui.screens
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -10,35 +25,45 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.lazy.LazyColumn
 import com.yujian.ai.ai.FishInputStatus
+import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.feedback.FeedbackDraft
-import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.IdentifyState
 import com.yujian.ai.ui.identify.resolveIdentifyResultState
-import com.yujian.ai.ui.identify.title
-import com.yujian.ai.ui.theme.*
+import com.yujian.ai.ui.theme.CardWhite
+import com.yujian.ai.ui.theme.DeepInk
+import com.yujian.ai.ui.theme.MutedInk
+import com.yujian.ai.ui.theme.SoftWater
+import com.yujian.ai.ui.theme.WarmBackground
+import com.yujian.ai.ui.theme.WaterTeal
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.min
 
 @Composable
 fun RecognitionResultScreen(
@@ -60,17 +85,27 @@ fun RecognitionResultScreen(
         productionResult?.status ?: FishInputStatus.READY,
         prediction,
     )
-    var selectedKey by remember(prediction) { mutableStateOf(prediction.top1.speciesKey) }
-    var selectedName by remember(prediction) { mutableStateOf(prediction.top1.speciesName) }
+    var selectedKey by remember(prediction) {
+        mutableStateOf(if (state == IdentifyState.UNKNOWN) "" else prediction.top1.speciesKey)
+    }
+    var selectedName by remember(prediction) {
+        mutableStateOf(if (state == IdentifyState.UNKNOWN) "" else prediction.top1.speciesName)
+    }
     var customName by remember(prediction) { mutableStateOf("") }
     var lengthText by remember(prediction) { mutableStateOf("") }
     var weightText by remember(prediction) { mutableStateOf("") }
     var locationText by remember(prediction) { mutableStateOf("") }
-    val currentTime = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date()) }
-    val options = remember(prediction) {
-        (prediction.candidates + FishRecognitionEngine.MODEL_LABELS.mapIndexed { index, label ->
+    var pickerVisible by remember(prediction) { mutableStateOf(false) }
+    val currentTime = remember {
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date())
+    }
+    val modelCandidates = remember(prediction) {
+        prediction.candidates.distinctBy { it.speciesKey }.take(3)
+    }
+    val allSpecies = remember {
+        FishRecognitionEngine.MODEL_LABELS.mapIndexed { index, label ->
             RecognitionCandidate(index, label.first, label.second, 0f)
-        }).distinctBy { it.speciesKey }.take(FishRecognitionEngine.MODEL_CLASS_COUNT)
+        }
     }
 
     LazyColumn(
@@ -79,89 +114,91 @@ fun RecognitionResultScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Column(Modifier.padding(horizontal = 20.dp, vertical = 22.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
                 Text("识别结果", color = DeepInk, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Text(state.title(), color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
-            }
-        }
-        item {
-            Box(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(270.dp)
-                    .clip(RoundedCornerShape(28.dp)).background(SoftWater),
-            ) {
-                image?.let {
-                    if (productionResult?.assessment?.primary != null) {
-                        DetectorOverlayImage(
-                            bitmap = it.bitmap,
-                            detectorBox = productionResult.assessment.primary.box,
-                            cropBox = null,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    } else {
-                        Image(it.bitmap.asImageBitmap(), "识别照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                    }
-                }
-            }
-        }
-        item {
-            Column(Modifier.padding(horizontal = 20.dp)) {
                 Text(
                     when (state) {
                         IdentifyState.SUCCESS -> "看起来是"
-                        IdentifyState.CONFIRM -> "可能是"
-                        IdentifyState.UNKNOWN -> "请手动选择鱼种"
-                        else -> "识别结果"
+                        IdentifyState.CONFIRM -> "更像哪一种？"
+                        IdentifyState.UNKNOWN -> "还不能确定这是什么鱼"
+                        else -> state.titleForResult()
                     },
                     color = MutedInk,
                     fontSize = 13.sp,
-                )
-                Text(selectedName, color = DeepInk, fontSize = 31.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
-                Text(
-                    "置信度 ${(prediction.top1.confidence * 100).toInt().coerceIn(0, 100)}% · ${prediction.modelVersion}",
-                    color = MutedInk,
-                    fontSize = 11.sp,
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
         }
+
         item {
-            Column(Modifier.padding(horizontal = 20.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("鱼获信息", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                if (lengthText.isNotBlank()) InfoRow("长度", lengthText)
-                if (weightText.isNotBlank()) InfoRow("重量", weightText)
-                InfoRow("时间", currentTime.replace('T', ' ').substringBeforeLast(':'))
-                if (locationText.isNotBlank()) InfoRow("地点", locationText)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .height(300.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(SoftWater),
+            ) {
+                image?.let {
+                    ResultPhoto(bitmap = it.bitmap, modifier = Modifier.fillMaxSize())
+                }
             }
         }
-        if (state == IdentifyState.CONFIRM || state == IdentifyState.UNKNOWN) {
+
+        item {
+            Column(Modifier.padding(horizontal = 20.dp)) {
+                Text(
+                    when (state) {
+                        IdentifyState.SUCCESS -> selectedName
+                        IdentifyState.CONFIRM -> selectedName
+                        IdentifyState.UNKNOWN -> "选择鱼种"
+                        else -> selectedName
+                    },
+                    color = DeepInk,
+                    fontSize = 31.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                InfoRow("时间", formatCaptureTime(currentTime))
+            }
+        }
+
+        if (state == IdentifyState.CONFIRM) {
             item {
-                Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        if (state == IdentifyState.CONFIRM) "请选择更接近的一项" else "手动选择鱼种",
-                        color = DeepInk,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    options.chunked(2).forEach { row ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            row.forEach { option ->
-                                OutlinedButton(
-                                    onClick = { selectedKey = option.speciesKey; selectedName = option.speciesName },
-                                    modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(18.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        containerColor = if (selectedKey == option.speciesKey) SoftWater else Color.Transparent,
-                                        contentColor = if (selectedKey == option.speciesKey) WaterTeal else DeepInk,
-                                    ),
-                                ) { Text(option.speciesName, maxLines = 1) }
-                            }
-                            repeat(2 - row.size) { Spacer(Modifier.weight(1f)) }
-                        }
+                CandidateButtons(
+                    title = "请选择更接近的一项",
+                    candidates = modelCandidates,
+                    selectedKey = selectedKey,
+                    onSelect = { selectedKey = it.speciesKey; selectedName = it.speciesName },
+                )
+            }
+        }
+
+        if (state == IdentifyState.UNKNOWN) {
+            item {
+                Column(
+                    Modifier.padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("选择鱼种", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    OutlinedButton(
+                        onClick = { pickerVisible = !pickerVisible },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                    ) {
+                        Text(if (pickerVisible) "收起 16 类鱼种" else "打开鱼种选择")
+                    }
+                    if (pickerVisible) {
+                        CandidateButtons(
+                            title = "",
+                            candidates = allSpecies,
+                            selectedKey = selectedKey,
+                            onSelect = { selectedKey = it.speciesKey; selectedName = it.speciesName },
+                        )
                     }
                     OutlinedTextField(
                         value = customName,
                         onValueChange = { customName = it.take(20) },
-                        label = { Text("没有找到？输入鱼种") },
+                        label = { Text("其他鱼种（可选）") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -170,21 +207,62 @@ fun RecognitionResultScreen(
                         TextButton(onClick = {
                             selectedName = customName.trim()
                             selectedKey = "user_${customName.trim().hashCode().toUInt().toString(16)}"
-                        }) { Text("使用“${customName.trim()}”", color = WaterTeal) }
+                        }) {
+                            Text("使用“${customName.trim()}”", color = WaterTeal)
+                        }
                     }
                 }
             }
         }
+
         item {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(lengthText, { lengthText = it.take(8) }, label = { Text("长度（cm，可选）") }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp))
-                OutlinedTextField(weightText, { weightText = it.take(8) }, label = { Text("重量（kg，可选）") }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp))
-                OutlinedTextField(locationText, { locationText = it.take(40) }, label = { Text("地点（可选）") }, singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp))
+            Column(
+                Modifier
+                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .background(CardWhite.copy(alpha = 0.52f), RoundedCornerShape(22.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("补充鱼获信息", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                if (lengthText.isNotBlank()) InfoRow("长度", lengthText)
+                if (weightText.isNotBlank()) InfoRow("重量", weightText)
+                if (locationText.isNotBlank()) InfoRow("地点", locationText)
+                OutlinedTextField(
+                    value = lengthText,
+                    onValueChange = { lengthText = it.take(8) },
+                    label = { Text("长度（cm，可选）") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                )
+                OutlinedTextField(
+                    value = weightText,
+                    onValueChange = { weightText = it.take(8) },
+                    label = { Text("重量（kg，可选）") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                )
+                OutlinedTextField(
+                    value = locationText,
+                    onValueChange = { locationText = it.take(40) },
+                    label = { Text("地点（可选）") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                )
             }
         }
+
         item {
             if (!saveError.isNullOrBlank()) {
-                Text(saveError, color = Color(0xFFB24A3A), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp))
+                Text(
+                    saveError,
+                    color = Color(0xFFB24A3A),
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
             }
             Button(
                 onClick = {
@@ -213,11 +291,14 @@ fun RecognitionResultScreen(
                             detectorResult = productionResult?.assessment?.primary?.let {
                                 JSONObject()
                                     .put("confidence", it.confidence.toDouble())
-                                    .put("box", JSONObject()
-                                        .put("x1", it.box.x1.toDouble())
-                                        .put("y1", it.box.y1.toDouble())
-                                        .put("x2", it.box.x2.toDouble())
-                                        .put("y2", it.box.y2.toDouble()))
+                                    .put(
+                                        "box",
+                                        JSONObject()
+                                            .put("x1", it.box.x1.toDouble())
+                                            .put("y1", it.box.y1.toDouble())
+                                            .put("x2", it.box.x2.toDouble())
+                                            .put("y2", it.box.y2.toDouble()),
+                                    )
                             },
                             classifierResult = JSONObject()
                                 .put("state", state.name)
@@ -235,23 +316,123 @@ fun RecognitionResultScreen(
                     )
                 },
                 enabled = !saving && selectedName.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(54.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .height(54.dp),
                 shape = RoundedCornerShape(27.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-            ) { Text(if (saving) "正在保存…" else "保存这条鱼获", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+            ) {
+                Text(
+                    if (saving) "正在保存…" else "保存这条鱼获",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
+
         item {
-            Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(onClick = onRetry, modifier = Modifier.weight(1f), shape = RoundedCornerShape(22.dp)) { Text("重新识别") }
-                OutlinedButton(onClick = { if (!selectedKey.startsWith("user_")) onViewGuide(selectedKey) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(22.dp)) { Text("查看鱼鉴") }
+            Row(
+                Modifier.padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onRetry,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(22.dp),
+                ) { Text("重新识别") }
+                OutlinedButton(
+                    onClick = {
+                        if (!selectedKey.startsWith("user_")) onViewGuide(selectedKey)
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(22.dp),
+                ) { Text("查看鱼鉴") }
             }
         }
     }
 }
 
 @Composable
+private fun CandidateButtons(
+    title: String,
+    candidates: List<RecognitionCandidate>,
+    selectedKey: String,
+    onSelect: (RecognitionCandidate) -> Unit,
+) {
+    Column(
+        Modifier.padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (title.isNotBlank()) {
+            Text(title, color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+        candidates.chunked(2).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { option ->
+                    OutlinedButton(
+                        onClick = { onSelect(option) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (selectedKey == option.speciesKey) SoftWater else Color.Transparent,
+                            contentColor = if (selectedKey == option.speciesKey) WaterTeal else DeepInk,
+                        ),
+                    ) { Text(option.speciesName, maxLines = 1) }
+                }
+                repeat(2 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResultPhoto(bitmap: Bitmap, modifier: Modifier) {
+    BoxWithConstraints(modifier) {
+        val density = LocalDensity.current
+        val widthPx = with(density) { maxWidth.toPx() }
+        val heightPx = with(density) { maxHeight.toPx() }
+        val scale = min(widthPx / bitmap.width.toFloat(), heightPx / bitmap.height.toFloat())
+        val drawnWidth = bitmap.width * scale
+        val drawnHeight = bitmap.height * scale
+        val left = (widthPx - drawnWidth) / 2f
+        val top = (heightPx - drawnHeight) / 2f
+
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().blur(18.dp).graphicsLayer {
+                alpha = 0.28f
+            },
+            contentScale = ContentScale.Crop,
+        )
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = "鱼获原图",
+            modifier = Modifier
+                .offset(with(density) { left.toDp() }, with(density) { top.toDp() })
+                .size(with(density) { drawnWidth.toDp() }, with(density) { drawnHeight.toDp() }),
+            contentScale = ContentScale.FillBounds,
+        )
+    }
+}
+
+private fun formatCaptureTime(value: String): String =
+    runCatching {
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+            .parse(value)
+            ?.let { SimpleDateFormat("今天 HH:mm", Locale.CHINA).format(it) }
+    }.getOrNull() ?: value.replace('T', ' ').substringBeforeLast(':')
+
+private fun IdentifyState.titleForResult(): String = when (this) {
+    IdentifyState.NO_FISH -> "没有找到鱼获主体"
+    IdentifyState.TOO_FAR -> "鱼距离太远"
+    else -> "识别完成"
+}
+
+@Composable
 private fun InfoRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
         Text(label, color = MutedInk, fontSize = 13.sp, modifier = Modifier.width(48.dp))
         Text(value, color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
     }
