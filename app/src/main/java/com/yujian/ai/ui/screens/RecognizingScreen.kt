@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.screens
 
+import android.os.SystemClock
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,7 +27,8 @@ import com.yujian.ai.ui.theme.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+
+private const val CAPTURE_TO_RESULT_MS = 3_000L
 
 @Composable
 fun RecognizingScreen(
@@ -48,32 +50,33 @@ fun RecognizingScreen(
         assessment = null
         error = null
         coroutineScope {
+            val startedAt = SystemClock.elapsedRealtime()
             val recognition = async {
                 runCatching {
+                    // The engine can finish faster than the design timeline. Keep
+                    // the UI timeline authoritative so users can see each stage.
                     recognize { progress ->
-                        phase = progress.phase
                         progress.assessment?.let { assessment = it }
                     }
                 }
             }
-            launch {
-                delay(800)
-                if (phase.ordinal < RecognitionPhase.DETECTING.ordinal) phase = RecognitionPhase.DETECTING
+
+            while (!recognition.isCompleted) {
+                phase = phaseForElapsed(SystemClock.elapsedRealtime() - startedAt)
+                delay(50)
             }
-            launch {
-                delay(1500)
-                if (phase.ordinal < RecognitionPhase.OUTLINE.ordinal) phase = RecognitionPhase.OUTLINE
-            }
-            launch {
-                delay(2300)
-                if (phase.ordinal < RecognitionPhase.CLASSIFYING.ordinal) phase = RecognitionPhase.CLASSIFYING
-            }
-            launch {
-                delay(3000)
-                if (phase.ordinal < RecognitionPhase.RESULT.ordinal) phase = RecognitionPhase.RESULT
-            }
-            recognition.await()
-                .onSuccess(onFinished)
+
+            val result = recognition.await()
+            val remaining = CAPTURE_TO_RESULT_MS -
+                (SystemClock.elapsedRealtime() - startedAt)
+            if (remaining > 0L) delay(remaining)
+
+            phase = RecognitionPhase.RESULT
+            result
+                .onSuccess { completed ->
+                    assessment = completed.assessment
+                    onFinished(completed)
+                }
                 .onFailure { error = it.message ?: "识别失败，请重新选择照片" }
         }
     }
@@ -102,11 +105,13 @@ fun RecognizingScreen(
             contentAlignment = Alignment.Center,
         ) {
             if (image != null) {
-                if (assessment?.primary != null) {
+                if (assessment?.primary != null && phase.ordinal >= RecognitionPhase.OUTLINE.ordinal) {
                     DetectorOverlayImage(
                         bitmap = image.bitmap,
                         detectorBox = assessment?.primary?.box,
                         cropBox = null,
+                        showDetectorOutline = phase == RecognitionPhase.OUTLINE ||
+                            phase == RecognitionPhase.CLASSIFYING,
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
@@ -168,6 +173,13 @@ fun RecognizingScreen(
             )
         }
     }
+}
+
+private fun phaseForElapsed(elapsedMs: Long): RecognitionPhase = when {
+    elapsedMs < 800L -> RecognitionPhase.CAPTURED
+    elapsedMs < 1_500L -> RecognitionPhase.DETECTING
+    elapsedMs < 2_300L -> RecognitionPhase.OUTLINE
+    else -> RecognitionPhase.CLASSIFYING
 }
 
 private fun phaseLabel(phase: RecognitionPhase): String = when (phase) {
