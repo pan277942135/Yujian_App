@@ -127,10 +127,10 @@ fun RecognitionResultScreen(
         item {
             Column(Modifier.padding(horizontal = 20.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("鱼获信息", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                InfoRow("长度", lengthText.ifBlank { "待测量" })
-                InfoRow("重量", weightText.ifBlank { "待补充" })
+                if (lengthText.isNotBlank()) InfoRow("长度", lengthText)
+                if (weightText.isNotBlank()) InfoRow("重量", weightText)
                 InfoRow("时间", currentTime.replace('T', ' ').substringBeforeLast(':'))
-                InfoRow("地点", locationText.ifBlank { "待设置" })
+                if (locationText.isNotBlank()) InfoRow("地点", locationText)
             }
         }
         if (state == IdentifyState.CONFIRM || state == IdentifyState.UNKNOWN) {

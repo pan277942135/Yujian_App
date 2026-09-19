@@ -205,17 +205,23 @@ private fun rememberBobberMotion(config: HomeEmptyDesignConfig, running: Boolean
             return@LaunchedEffect
         }
         while (isActive) {
-            idleY.animateTo(0f, keyframes {
-                durationMillis = config.idleDurationMs
-                -1f at config.idleDurationMs / 4
-                1f at config.idleDurationMs * 3 / 4
-            })
-            idleRotation.animateTo(0f, keyframes {
-                durationMillis = config.idleDurationMs
-                -0.4f at config.idleDurationMs / 4
-                0.3f at config.idleDurationMs / 2
-                -0.2f at config.idleDurationMs * 3 / 4
-            })
+            coroutineScope {
+                launch {
+                    idleY.animateTo(0f, keyframes {
+                        durationMillis = config.idleDurationMs
+                        -1f at config.idleDurationMs / 4
+                        1f at config.idleDurationMs * 3 / 4
+                    })
+                }
+                launch {
+                    idleRotation.animateTo(0f, keyframes {
+                        durationMillis = config.idleDurationMs
+                        -0.4f at config.idleDurationMs / 4
+                        0.3f at config.idleDurationMs / 2
+                        -0.2f at config.idleDurationMs * 3 / 4
+                    })
+                }
+            }
         }
     }
 
@@ -237,16 +243,22 @@ private fun rememberBobberMotion(config: HomeEmptyDesignConfig, running: Boolean
             biteRotation.snapTo(0f)
             return@LaunchedEffect
         }
-        biteY.animateTo(0f, keyframes {
-            durationMillis = config.biteDurationMs
-            4f at 140
-            1f at 320
-        })
-        biteRotation.animateTo(0f, keyframes {
-            durationMillis = config.biteDurationMs
-            0.8f at 140
-            -0.4f at 320
-        })
+        coroutineScope {
+            launch {
+                biteY.animateTo(0f, keyframes {
+                    durationMillis = config.biteDurationMs
+                    4f at 140
+                    1f at 320
+                })
+            }
+            launch {
+                biteRotation.animateTo(0f, keyframes {
+                    durationMillis = config.biteDurationMs
+                    0.8f at 140
+                    -0.4f at 320
+                })
+            }
+        }
     }
 
     return BobberMotion(
@@ -349,8 +361,8 @@ private fun HomeBiteRipple(
         visible = true
         innerScale.snapTo(0.88f)
         outerScale.snapTo(0.92f)
-        innerAlpha.snapTo(0.28f)
-        outerAlpha.snapTo(0.18f)
+        innerAlpha.snapTo(0.36f)
+        outerAlpha.snapTo(0.24f)
         coroutineScope {
             launch { innerScale.animateTo(1.05f, tween(durationMs, easing = EaseOutCubic)) }
             launch { outerScale.animateTo(1.12f, tween(durationMs, easing = EaseOutCubic)) }
