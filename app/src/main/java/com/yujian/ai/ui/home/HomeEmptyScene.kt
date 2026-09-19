@@ -432,6 +432,7 @@ internal fun HomeEmptyScene(modifier: Modifier = Modifier) {
     val rippleInner = rememberAssetBitmap(RIPPLE_INNER)
     val rippleOuter = rememberAssetBitmap(RIPPLE_OUTER)
     val density = LocalDensity.current
+    val bobberMotion = rememberBobberMotion(config, motionState.running)
 
     BoxWithConstraints(modifier.clipToBounds()) {
         background?.let {
@@ -473,7 +474,7 @@ internal fun HomeEmptyScene(modifier: Modifier = Modifier) {
         )
 
         HomeBiteRipple(
-            pulseId = rememberBobberMotion(config, motionState.running).ripplePulse,
+            pulseId = bobberMotion.ripplePulse,
             running = motionState.running,
             durationMs = config.rippleDurationMs,
             x = anchorX,
@@ -506,9 +507,8 @@ internal fun HomeEmptyScene(modifier: Modifier = Modifier) {
                     )
                     .size(shadowWidth, shadowHeight)
                     .graphicsLayer {
-                        scaleX = rememberBobberMotion(config, motionState.running).shadowScaleX
-                        alpha = config.shadowBaseAlpha *
-                            rememberBobberMotion(config, motionState.running).shadowAlphaMultiplier
+                        scaleX = bobberMotion.shadowScaleX
+                        alpha = config.shadowBaseAlpha * bobberMotion.shadowAlphaMultiplier
                     },
                 contentScale = ContentScale.FillBounds,
             )
@@ -526,15 +526,13 @@ internal fun HomeEmptyScene(modifier: Modifier = Modifier) {
                     )
                     .size(reflectionWidth, reflectionHeight)
                     .graphicsLayer {
-                        scaleY = rememberBobberMotion(config, motionState.running).reflectionScaleY
-                        alpha = config.reflectionBaseAlpha *
-                            rememberBobberMotion(config, motionState.running).reflectionAlphaMultiplier
+                        scaleY = bobberMotion.reflectionScaleY
+                        alpha = config.reflectionBaseAlpha * bobberMotion.reflectionAlphaMultiplier
                     },
                 contentScale = ContentScale.FillBounds,
             )
         }
         bobber?.let {
-            val bobberMotion = rememberBobberMotion(config, motionState.running)
             Image(
                 bitmap = it.asImageBitmap(),
                 contentDescription = null,
