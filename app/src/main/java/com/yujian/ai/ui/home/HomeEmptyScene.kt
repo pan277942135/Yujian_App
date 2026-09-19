@@ -615,7 +615,7 @@ internal fun HomeEmptyScene(modifier: Modifier = Modifier) {
             (config.rippleOuterHeightRefPx * transform.scale).toDp()
         }
         val bodyTop = anchorY - bodyHeight * config.bodyContactY
-        val sinkPx = with(density) { config.sinkDp.toDp().toPx() }
+        val sinkPx = with(density) { config.sinkDp.dp.toPx() }
 
         HomeBiteRipple(
             pulseId = bobberMotion.ripplePulse,
@@ -686,7 +686,7 @@ internal fun HomeEmptyScene(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .offset(
                         x = anchorX - bodyWidth * config.bodyContactX +
-                            with(density) { bobberMotion.biteHorizontalDp.toDp() },
+                            bobberMotion.biteHorizontalDp.dp,
                         y = bodyTop,
                     )
                     .size(bodyWidth, bodyHeight)
