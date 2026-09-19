@@ -76,7 +76,7 @@ fun HomeCameraButton(onClick: () -> Unit) {
                 launch {
                     breathOuterAlpha.animateTo(0.65f, keyframes {
                         durationMillis = 3000
-                        0.88f at 1500
+                        0.9f at 1500
                     })
                 }
             }
