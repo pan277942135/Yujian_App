@@ -3,7 +3,6 @@ package com.yujian.ai.ui.screens
 import android.app.Activity
 import android.graphics.Color as AndroidColor
 import android.os.SystemClock
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
