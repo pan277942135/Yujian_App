@@ -343,6 +343,7 @@ private fun rememberBobberMotion(config: HomeEmptyDesignConfig, running: Boolean
 
     LaunchedEffect(running, config.cycleDurationMs, config.quietDurationMs) {
         if (!running) {
+            biteId = 0
             biteProgress.snapTo(0f)
             biteHorizontalDp.snapTo(0f)
             biteRotation.snapTo(0f)
