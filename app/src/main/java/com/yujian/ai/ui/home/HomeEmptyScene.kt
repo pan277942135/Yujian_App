@@ -311,7 +311,7 @@ private fun rememberBobberMotion(config: HomeEmptyDesignConfig, running: Boolean
                         durationMillis = config.idleDurationMs
                         -0.22f at config.idleDurationMs / 4
                         0.18f at config.idleDurationMs / 2
-                        -0.08f at config.idleDurationMs * 3 / 4
+                        0f at config.idleDurationMs * 3 / 4
                     })
                 }
             }
