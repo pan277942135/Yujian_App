@@ -316,7 +316,7 @@ private fun RecognitionPhoto(
 }
 
 private fun Modifier.graphicsLayerForRecognition(alpha: Float): Modifier =
-    androidx.compose.ui.graphics.graphicsLayer { this.alpha = alpha }
+    this.graphicsLayer { this.alpha = alpha }
 
 private fun extractContour(bitmap: Bitmap): List<ContourSegment> {
     val width = bitmap.width
