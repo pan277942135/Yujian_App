@@ -345,6 +345,14 @@ fun YujianApp() {
                                 prediction = null
                                 nav.navigate("identify") { popUpTo("identify") { inclusive = false }; launchSingleTop = true }
                             },
+                            onChooseGallery = {
+                                productionResult = null
+                                prediction = null
+                                nav.navigate("identify?openGallery=true") {
+                                    popUpTo("recognition_issue") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            },
                             onRetry = {
                                 productionResult = null
                                 prediction = null
