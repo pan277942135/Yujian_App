@@ -1,199 +1,286 @@
 package com.yujian.ai.ui.screens
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Collections
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.yujian.ai.R
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
-import com.yujian.ai.ui.components.FishIllustration
-import com.yujian.ai.ui.components.YujianTopBar
-import com.yujian.ai.ui.theme.*
+import com.yujian.ai.ui.home.HomeCameraButton
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private const val CAPTURE_FREEZE_MS = 420L
+
+/**
+ * Camera entry for both Empty and Normal Home.
+ *
+ * The preview is CameraX-backed; the normalized file is the only image passed
+ * into the detector/classifier pipeline. Gallery selection uses the same
+ * normalization path and enters recognition automatically.
+ */
 @Composable
 fun IdentifyScreen(
     image: SelectedImage?,
     autoOpenGallery: Boolean = false,
     onBack: () -> Unit,
-    onImageSelected: (SelectedImage) -> Unit,
-    onStartRecognition: () -> Unit,
+    onImageReady: (SelectedImage) -> Unit,
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-    var cameraTarget by remember { mutableStateOf<RecognitionImageStore.CameraTarget?>(null) }
+    val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    var permissionRequested by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        val target = cameraTarget
-        if (success && target != null) {
-            scope.launch {
-                loading = true
-                error = null
-                runCatching { RecognitionImageStore.normalizeCameraFile(context, target.file) }
-                    .onSuccess(onImageSelected)
-                    .onFailure { error = it.message ?: "照片读取失败" }
-                loading = false
-            }
-        } else if (!success) {
-            error = "未完成拍照，请重新拍摄"
+    val cameraController = remember(context) {
+        LifecycleCameraController(context).apply {
+            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            setEnabledUseCases(CameraController.IMAGE_CAPTURE)
         }
     }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            error = null
-            val target = RecognitionImageStore.createCameraTarget(context)
-            cameraTarget = target
-            cameraLauncher.launch(target.uri)
+    DisposableEffect(view) {
+        val activity = view.context as? Activity
+        if (activity == null) {
+            onDispose { }
         } else {
-            error = "需要相机权限才能拍照识鱼，也可以直接从相册选择照片"
+            val controller = WindowCompat.getInsetsController(activity.window, view)
+            controller.isAppearanceLightStatusBars = false
+            controller.isAppearanceLightNavigationBars = false
+            onDispose {
+                controller.isAppearanceLightStatusBars = true
+                controller.isAppearanceLightNavigationBars = true
+            }
         }
     }
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) scope.launch {
+    DisposableEffect(cameraController, lifecycleOwner, hasCameraPermission) {
+        if (hasCameraPermission) {
+            cameraController.bindToLifecycle(lifecycleOwner)
+        }
+        onDispose { cameraController.unbind() }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        hasCameraPermission = granted
+        if (!granted) {
+            error = "相机权限未开启，你仍然可以从相册选择照片"
+        } else {
+            error = null
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent(),
+    ) { uri ->
+        if (uri == null || loading) return@rememberLauncherForActivityResult
+        scope.launch {
             loading = true
             error = null
-            runCatching { RecognitionImageStore.normalize(context, uri, "gallery") }
-                .onSuccess(onImageSelected)
-                .onFailure { error = it.message ?: "照片读取失败" }
+            runCatching {
+                RecognitionImageStore.normalize(context, uri, "gallery")
+            }.onSuccess { selected ->
+                delay(CAPTURE_FREEZE_MS)
+                onImageReady(selected)
+            }.onFailure {
+                error = it.message ?: "照片读取失败，请重新选择"
+            }
             loading = false
         }
     }
 
-    LaunchedEffect(autoOpenGallery) {
-        if (autoOpenGallery) galleryLauncher.launch("image/*")
+    fun openGallery() {
+        if (!loading) galleryLauncher.launch("image/*")
     }
 
-    Column(Modifier.fillMaxSize().background(WarmBackground)) {
-        YujianTopBar(title = "拍照识鱼", subtitle = "让鱼体尽量完整地进入框内", onBack = onBack)
-        Box(
-            modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(28.dp)).background(Color(0xFF0E3337)),
-        ) {
-            if (image != null) {
-                Image(image.bitmap.asImageBitmap(), "待识别鱼获照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .18f)))
+    fun capture() {
+        if (!hasCameraPermission) {
+            if (!permissionRequested) {
+                permissionRequested = true
+                permissionLauncher.launch(Manifest.permission.CAMERA)
             } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    FishIllustration(size = 190.dp, bodyColor = SoftWater.copy(alpha = .86f))
-                }
+                error = "请在系统设置中开启相机权限，或改用相册选择"
             }
-            Box(
-                Modifier.align(Alignment.Center).fillMaxWidth(.78f).height(270.dp)
-                    .border(2.dp, Color(0xFFA7D8CE), RoundedCornerShape(24.dp)),
-            )
-            Box(
-                Modifier.align(Alignment.TopStart).padding(18.dp)
-                    .background(Color.White.copy(alpha = .14f), RoundedCornerShape(50))
-                    .padding(horizontal = 14.dp, vertical = 7.dp),
-            ) {
-                Text(
-                    text = if (loading) "正在准备照片" else if (image == null) "准备取景" else "照片已选好",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-            Column(
-                Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(text = "把鱼放在框内", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Text(
-                    text = "鱼体完整 · 光线充足 · 少遮挡",
-                    color = Color.White.copy(alpha = .72f),
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(top = 5.dp),
-                )
-            }
+            return
         }
-        Text(
-            text = error ?: if (image == null) "拍清楚一点，我会认得更准" else "照片准备好了，可以开始认识这条鱼",
-            color = if (error == null) MutedInk else MaterialTheme.colorScheme.error,
-            fontSize = 13.sp,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp),
+        if (loading) return
+        val target = RecognitionImageStore.createCameraTarget(context)
+        loading = true
+        error = null
+        val output = ImageCapture.OutputFileOptions.Builder(target.file).build()
+        cameraController.takePicture(
+            output,
+            ContextCompat.getMainExecutor(context),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                    scope.launch {
+                        runCatching {
+                            RecognitionImageStore.normalizeCameraFile(context, target.file)
+                        }.onSuccess { selected ->
+                            delay(CAPTURE_FREEZE_MS)
+                            onImageReady(selected)
+                        }.onFailure {
+                            error = it.message ?: "拍照文件无法解析，请重新拍摄"
+                        }
+                        loading = false
+                    }
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    loading = false
+                    error = exception.message ?: "没有完成拍照，请重新拍摄"
+                }
+            },
         )
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            OutlinedButton(
-                onClick = { galleryLauncher.launch("image/*") },
-                enabled = !loading,
-                modifier = Modifier.weight(1f).height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-            ) {
-                Icon(Icons.Rounded.Collections, null, tint = WaterTeal)
-                Text(text = "相册", color = DeepInk, modifier = Modifier.padding(start = 8.dp))
-            }
-            Button(
-                onClick = {
-                    error = null
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                        val target = RecognitionImageStore.createCameraTarget(context)
-                        cameraTarget = target
-                        cameraLauncher.launch(target.uri)
-                    } else {
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
+    LaunchedEffect(autoOpenGallery) {
+        if (autoOpenGallery) openGallery()
+        else if (!hasCameraPermission && !permissionRequested) {
+            permissionRequested = true
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
+        if (image != null && loading) {
+            Image(
+                bitmap = image.bitmap.asImageBitmap(),
+                contentDescription = "刚拍下的鱼获",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
+        } else if (hasCameraPermission) {
+            AndroidView(
+                factory = { context ->
+                    PreviewView(context).apply {
+                        scaleType = PreviewView.ScaleType.FILL_CENTER
+                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                        controller = cameraController
                     }
                 },
-                enabled = !loading,
-                modifier = Modifier.weight(1f).height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SoftWater, contentColor = WaterTeal),
-            ) {
-                Icon(Icons.Rounded.PhotoCamera, null)
-                Text(text = "拍照", modifier = Modifier.padding(start = 8.dp), fontWeight = FontWeight.SemiBold)
-            }
-        }
-        Button(
-            onClick = onStartRecognition,
-            enabled = image != null && !loading,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(54.dp),
-            shape = RoundedCornerShape(27.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = WaterTeal,
-                disabledContainerColor = WaterTeal.copy(alpha = .28f),
-            ),
-        ) {
-            Box(
-                Modifier.size(22.dp).background(Color.White.copy(alpha = .18f), CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = "✦", color = Color.White, fontSize = 12.sp)
-            }
-            Text(
-                text = "开始识别",
-                modifier = Modifier.padding(start = 10.dp),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxSize(),
+                update = { it.controller = cameraController },
             )
         }
-        Spacer(Modifier.height(20.dp))
+
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = if (loading) 0.30f else 0.12f)),
+        )
+
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = safeInsets.calculateTopPadding() + 8.dp, start = 12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "返回",
+                tint = Color.White,
+            )
+        }
+
+        if (!hasCameraPermission && !autoOpenGallery) {
+            Button(
+                onClick = {
+                    permissionRequested = true
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                },
+                modifier = Modifier.align(Alignment.Center),
+            ) { Text("开启相机") }
+        }
+
+        error?.let {
+            Text(
+                text = it,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = safeInsets.calculateBottomPadding() + 132.dp),
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = safeInsets.calculateBottomPadding() + 18.dp),
+            horizontalArrangement = Arrangement.spacedBy(34.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier
+                    .size(54.dp)
+                    .clickable(onClick = ::openGallery),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.album_icon_v12),
+                    contentDescription = "从相册选择",
+                    modifier = Modifier.size(30.dp),
+                )
+            }
+            HomeCameraButton(onClick = ::capture)
+        }
     }
 }
