@@ -295,15 +295,15 @@ fun YujianApp() {
                         image = sessionImage,
                         autoOpenGallery = entry.arguments?.getBoolean("openGallery") == true,
                         onBack = { nav.popBackStack() },
-                        onImageSelected = {
-                            sessionImage = it
+                        onImageReady = { selected ->
+                            sessionImage = selected
                             productionResult = null
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                             prediction = null
                             inferenceAsset = null
                             catchSaveError = null
+                            nav.navigate("recognizing") { launchSingleTop = true }
                         },
-                        onStartRecognition = { if (sessionImage != null) nav.navigate("recognizing") },
                     )
                 }
                 composable("recognizing") {
@@ -315,6 +315,9 @@ fun YujianApp() {
                             val result = recognitionPipeline.recognize(selected.bitmap, onProgress)
                             inferenceAsset = inferenceRecorder.record(selected, result)
                             result
+                        },
+                        generateSubject = { selected, box ->
+                            subjectPreviewEngine.generate(selected.bitmap, box)
                         },
                         onFinished = { result ->
                             productionResult = result
