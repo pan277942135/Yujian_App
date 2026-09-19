@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -39,19 +42,27 @@ fun HomeCameraButton(onClick: () -> Unit) {
             outerAlpha.snapTo(0.65f)
             return@LaunchedEffect
         }
-        while (true) {
-            outerScale.animateTo(1f, keyframes {
-                durationMillis = 3000
-                1.04f at 1500
-            })
-            innerScale.animateTo(1f, keyframes {
-                durationMillis = 3000
-                1.015f at 1500
-            })
-            outerAlpha.animateTo(0.65f, keyframes {
-                durationMillis = 3000
-                0.9f at 1500
-            })
+        while (isActive) {
+            coroutineScope {
+                launch {
+                    outerScale.animateTo(1f, keyframes {
+                        durationMillis = 3000
+                        1.04f at 1500
+                    })
+                }
+                launch {
+                    innerScale.animateTo(1f, keyframes {
+                        durationMillis = 3000
+                        1.015f at 1500
+                    })
+                }
+                launch {
+                    outerAlpha.animateTo(0.65f, keyframes {
+                        durationMillis = 3000
+                        0.9f at 1500
+                    })
+                }
+            }
         }
     }
 
