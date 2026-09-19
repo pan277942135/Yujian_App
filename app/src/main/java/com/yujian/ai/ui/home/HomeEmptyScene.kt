@@ -159,7 +159,6 @@ private fun loadHomeEmptyDesignConfig(context: Context): HomeEmptyDesignConfig {
     val geometry = readJson(context, ASSET_ROOT + "/config/bobber_geometry.json")
     val rippleGeometry = readJson(context, ASSET_ROOT + "/config/ripple_geometry.json")
     val motionContract = readJson(context, MOTION_CONTRACT)
-    val motionV13 = readJson(context, ASSET_ROOT + "/config/bobber_motion_v13.json")
 
     val canvas = geometry?.optJSONObject("reference_canvas_px")
     val anchor = geometry?.optJSONObject("water_contact_anchor_normalized")
@@ -179,7 +178,6 @@ private fun loadHomeEmptyDesignConfig(context: Context): HomeEmptyDesignConfig {
     val cycle = motionContract?.optJSONObject("cycle")
     val ripple = motionContract?.optJSONObject("ripple")
     val particles = motionContract?.optJSONObject("ambient_particles")
-    val biteV13 = motionV13?.optJSONObject("bite")
 
     val sinkRange = cycle?.optJSONArray("sink_dp")
     val horizontalRange = cycle?.optJSONArray("horizontal_dp")
