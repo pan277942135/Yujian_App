@@ -1,0 +1,36 @@
+{
+  "version": "1.3",
+  "reference_canvas_px": {
+    "w": 1080,
+    "h": 1920
+  },
+  "bobber": {
+    "water_contact_ref_px": {
+      "x": 792,
+      "y": 1048
+    },
+    "body_visual_ref_px": {
+      "w": 16,
+      "h": 56
+    },
+    "ripple_outer_ref_px": {
+      "w": 116,
+      "h": 34
+    },
+    "tolerance": {
+      "position_px": 10,
+      "size_percent": 10
+    }
+  },
+  "required_device_aspects": [
+    "16:9",
+    "19.5:9",
+    "20:9",
+    "21:9"
+  ],
+  "required_states": [
+    "guest",
+    "logged_in"
+  ],
+  "method": "Overlay true runtime screenshot against frozen reference. Do not accept code-only evidence."
+}

@@ -1,0 +1,14 @@
+{
+  "version": "1.3",
+  "minimum_touch_target_dp": 48,
+  "supported_font_scale_without_clipping": 1.3,
+  "semantics": {
+    "camera": "拍照识鱼",
+    "album": "从相册选择照片",
+    "login": "登录",
+    "profile": "个人中心",
+    "bobber": "decorative"
+  },
+  "reduce_motion": "respect system animator settings",
+  "title": "image resource must provide contentDescription; do not duplicate visible text for screen reader"
+}

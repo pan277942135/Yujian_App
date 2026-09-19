@@ -1,0 +1,17 @@
+{
+  "version": "1.3",
+  "assets": {
+    "outer": "assets/camera/camera_outer.png",
+    "inner": "assets/camera/camera_inner.png",
+    "icon": "assets/camera/camera_icon.svg"
+  },
+  "button_dp_by_height": {
+    "short_phone_lt_720dp": 96,
+    "normal_phone_720_820dp": 100,
+    "tall_phone_gt_820dp": 104
+  },
+  "icon_ratio_of_button": 0.5,
+  "touch_target_min_dp": 96,
+  "idle_motion": "config/camera_breath.json",
+  "press_motion": "config/camera_press.json"
+}

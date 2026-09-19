@@ -1,0 +1,52 @@
+{
+  "version": "1.3",
+  "background": {
+    "asset": "assets/background/home_empty_bg_no_bobber.webp",
+    "content_scale": "Crop",
+    "alignment": "Center",
+    "extends_behind_system_bars": true
+  },
+  "header": {
+    "top": "safeTop + 16dp",
+    "horizontal_padding_dp": 24,
+    "brand": {
+      "text": "渔见",
+      "font_sp": 19,
+      "weight": "Normal",
+      "alpha": 0.84
+    },
+    "guest": {
+      "text": "登录",
+      "chevron": "assets/icons/login_chevron.svg",
+      "font_sp": 14
+    },
+    "logged_in": {
+      "avatar_dp": 40,
+      "fallback": "assets/icons/profile_fallback.svg"
+    },
+    "min_touch_target_dp": 48
+  },
+  "title": {
+    "existing_android_resource": "R.drawable.empty_home_title",
+    "top_gap_after_header_dp": 16,
+    "width_ratio": 0.84,
+    "max_width_dp": 390,
+    "content_description": "现在，轮到你记录第一条鱼"
+  },
+  "cta_group": {
+    "bottom": "safeBottom + 28dp",
+    "scrim": "assets/overlays/cta_scrim.png",
+    "scrim_max_alpha": 0.165,
+    "prompt": "对准鱼获，拍一张",
+    "prompt_font_sp": 16,
+    "prompt_to_camera_dp": 8,
+    "camera_to_album_dp": 2,
+    "album_font_sp": 13,
+    "album_icon_dp": 17,
+    "album_min_touch_target_dp": 48
+  },
+  "large_screen": {
+    "content_max_width_dp": 430,
+    "center_content": true
+  }
+}
