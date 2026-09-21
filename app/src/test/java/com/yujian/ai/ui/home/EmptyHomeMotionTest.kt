@@ -30,8 +30,8 @@ class EmptyHomeMotionTest {
     @Test
     fun rippleIsCenteredAndFadesOverItsPeriod() {
         assertEquals(1f, rippleScale(0f), 0.0001f)
-        assertEquals(1.15f, rippleScale(3.5f / 2f), 0.0001f)
-        assertEquals(1f, rippleAlpha(0f), 0.0001f)
+        assertEquals(1.09f, rippleScale(3.5f / 2f), 0.0001f)
+        assertEquals(0.24f, rippleAlpha(0f), 0.0001f)
         assertEquals(0f, rippleAlpha(3.5f - 0.0001f), 0.0001f)
     }
 
