@@ -194,11 +194,7 @@ jobs:
             adb logcat -c
             adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
             sleep 5
-            if ! adb shell pidof com.yujian.ai.uiv2 | grep -q '[0-9]'; then
-              echo 'EMPTY_HOME_APP_NOT_RUNNING'
-              adb logcat -d -b all -v threadtime | tail -n 400
-              exit 1
-            fi
+            if ! adb shell pidof com.yujian.ai.uiv2 | grep -q '[0-9]'; then echo 'EMPTY_HOME_APP_NOT_RUNNING'; adb logcat -d -b all -v threadtime | tail -n 400; exit 1; fi
             adb exec-out screencap -p > build/home-evidence/home-empty-16-9.png
             adb shell screenrecord --time-limit 10 /sdcard/home-empty-motion-10s.mp4
             adb pull /sdcard/home-empty-motion-10s.mp4 build/home-evidence/home-empty-motion-10s.mp4
