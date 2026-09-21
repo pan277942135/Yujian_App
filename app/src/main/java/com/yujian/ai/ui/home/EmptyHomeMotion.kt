@@ -140,10 +140,10 @@ internal fun rippleProgress(timeSeconds: Float): Float =
     (timeSeconds % 3.5f) / 3.5f
 
 internal fun rippleScale(timeSeconds: Float): Float =
-    1f + 0.3f * rippleProgress(timeSeconds)
+    1f + 0.18f * rippleProgress(timeSeconds)
 
 internal fun rippleAlpha(timeSeconds: Float): Float =
-    1f - rippleProgress(timeSeconds)
+    0.24f * (1f - rippleProgress(timeSeconds))
 
 internal fun cloudOffsetPx(timeSeconds: Float): Float =
     1.9099f * sin((timeSeconds % 60f) / 60f * (2f * PI.toFloat()))

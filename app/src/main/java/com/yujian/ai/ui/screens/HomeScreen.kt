@@ -2,6 +2,7 @@ package com.yujian.ai.ui.screens
 
 import android.app.Activity
 import android.graphics.Color as AndroidColor
+import android.os.Build
 import android.os.SystemClock
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -96,9 +97,15 @@ fun HomeScreen(
             WindowCompat.setDecorFitsSystemWindows(window, false)
             window.statusBarColor = AndroidColor.TRANSPARENT
             window.navigationBarColor = AndroidColor.TRANSPARENT
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                window.navigationBarDividerColor = AndroidColor.TRANSPARENT
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = false
+            }
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = true
-                isAppearanceLightNavigationBars = true
+                isAppearanceLightNavigationBars = false
             }
         }
         onDispose { }
@@ -184,13 +191,23 @@ private fun ColumnScope.EmptyHomeContent(
             .widthIn(max = 430.dp)
             .padding(horizontal = 24.dp),
     ) {
-        Text(
-            text = "渔见",
-            color = Ink.copy(alpha = 0.84f),
-            fontSize = 19.sp,
-            fontWeight = FontWeight.Normal,
+        Column(
             modifier = Modifier.align(Alignment.CenterStart),
-        )
+            verticalArrangement = Arrangement.spacedBy(1.dp),
+        ) {
+            Text(
+                text = "渔见",
+                color = Ink.copy(alpha = 0.84f),
+                fontSize = 19.sp,
+                fontWeight = FontWeight.Normal,
+            )
+            Text(
+                text = "拍照收藏每次渔获",
+                color = Ink.copy(alpha = 0.62f),
+                fontSize = 9.sp,
+                letterSpacing = 0.4.sp,
+            )
+        }
         if (!isLoggedIn) {
             Row(
                 modifier = Modifier
@@ -251,8 +268,8 @@ private fun ColumnScope.EmptyHomeContent(
         painter = painterResource(R.drawable.empty_home_title),
         contentDescription = "现在，轮到你记录第一条鱼",
         modifier = Modifier
-            .fillMaxWidth(0.84f)
-            .widthIn(max = 390.dp)
+            .fillMaxWidth(0.90f)
+            .widthIn(max = 360.dp)
             .padding(top = 16.dp),
         contentScale = ContentScale.Fit,
     )

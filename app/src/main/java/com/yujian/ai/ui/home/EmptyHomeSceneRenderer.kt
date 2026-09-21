@@ -30,21 +30,20 @@ internal fun EmptyHomeSceneRenderer(
     runtimeAssets: EmptyHomeRuntimeAssets?,
 ) {
     Box(modifier.clipToBounds()) {
-        if (runtimeAssets == null) {
-            AssetImage(
-                FALLBACK_BACKGROUND,
-                Modifier.fillMaxSize(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-            )
-        } else {
+        AssetImage(
+            FALLBACK_BACKGROUND,
+            Modifier.fillMaxSize(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+        )
+        if (runtimeAssets != null) {
             val particles = remember { createSunParticleSpecs() }
             val paint = remember {
                 Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
             }
             val destination = remember { RectF() }
             Canvas(Modifier.fillMaxSize()) {
-                drawRuntimeScene(
+                drawRuntimeOverlays(
                     assets = runtimeAssets,
                     motionState = motionState,
                     particles = particles,
@@ -56,7 +55,7 @@ internal fun EmptyHomeSceneRenderer(
     }
 }
 
-private fun DrawScope.drawRuntimeScene(
+private fun DrawScope.drawRuntimeOverlays(
     assets: EmptyHomeRuntimeAssets,
     motionState: HomeMotionState,
     particles: List<SunParticleSpec>,
@@ -66,19 +65,6 @@ private fun DrawScope.drawRuntimeScene(
     val transform = calculateReferenceSceneTransform(size.width, size.height)
     val time = if (motionState.running) motionState.sceneTimeSeconds else 0f
 
-    drawReferenceBitmap(
-        bitmap = assets.staticScene,
-        x = 0f,
-        y = 0f,
-        width = REFERENCE_SCENE_WIDTH,
-        height = REFERENCE_SCENE_HEIGHT,
-        alpha = 1f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
-
-    // The renderer owns dynamic overlays only. Static scene pixels are decoded once.
     drawReferenceBitmap(
         bitmap = assets.cloud,
         x = cloudOffsetPx(time),
@@ -91,50 +77,10 @@ private fun DrawScope.drawRuntimeScene(
         destination = destination,
     )
 
-    val glowScale = if (motionState.reduceMotion) 1f else sunGlowScale(time)
-    val glowAlpha = if (motionState.reduceMotion) 1f else sunGlowAlpha(time)
-    drawReferenceBitmap(
-        bitmap = assets.sunGlow,
-        x = 845f - assets.sunGlow.width / 2f,
-        y = 680f - assets.sunGlow.height / 2f,
-        width = assets.sunGlow.width.toFloat(),
-        height = assets.sunGlow.height.toFloat(),
-        alpha = glowAlpha,
-        scale = glowScale,
-        pivotX = 845f,
-        pivotY = 680f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
-
     if (motionState.running && !motionState.reduceMotion) {
-        val beamEnvelope = sunBeamEnvelope(time)
-        drawReferenceBitmap(
-            bitmap = assets.sunBeamMask,
-            x = 710f,
-            y = 680f,
-            width = assets.sunBeamMask.width.toFloat(),
-            height = assets.sunBeamMask.height.toFloat(),
-            alpha = 0.16f * beamEnvelope,
-            transform = transform,
-            paint = paint,
-            destination = destination,
-        )
-        drawReferenceBitmap(
-            bitmap = assets.sunParticleMask,
-            x = 735f,
-            y = 700f,
-            width = assets.sunParticleMask.width.toFloat(),
-            height = assets.sunParticleMask.height.toFloat(),
-            alpha = 0.78f * beamEnvelope,
-            transform = transform,
-            paint = paint,
-            destination = destination,
-        )
         drawSunParticles(
             time = time,
-            envelope = beamEnvelope,
+            envelope = sunBeamEnvelope(time),
             particles = particles,
             transform = transform,
         )
