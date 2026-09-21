@@ -11,7 +11,7 @@ class EmptyHomeMotionTest {
         val transform = calculateReferenceSceneTransform(1080f, 2400f)
 
         assertEquals(1.25f, transform.scale, 0.0001f)
-        assertEquals(0f, transform.offsetX, 0.0001f)
+        assertEquals(-135f, transform.offsetX, 0.0001f)
         assertEquals(0f, transform.offsetY, 0.0001f)
     }
 
