@@ -79,16 +79,16 @@ jobs:
           gradle-version: '8.9'
 
       - name: Unit tests
-        run: gradle test --stacktrace
+        run: gradle test --stacktrace --no-daemon --max-workers=2
 
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --stacktrace
+        run: gradle :app:assembleDebug --stacktrace --no-daemon --max-workers=2
 
       - name: Compile Android runtime smoke test
-        run: gradle :app:assembleDebugAndroidTest --stacktrace
+        run: gradle :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
 
       - name: Android lint
-        run: gradle :app:lintDebug --stacktrace
+        run: gradle :app:lintDebug --stacktrace --no-daemon --max-workers=2
 
       - name: Prepare YuJian debug APK
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
