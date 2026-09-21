@@ -191,13 +191,23 @@ private fun ColumnScope.EmptyHomeContent(
             .widthIn(max = 430.dp)
             .padding(horizontal = 24.dp),
     ) {
-        Text(
-            text = "渔见",
-            color = Ink.copy(alpha = 0.84f),
-            fontSize = 19.sp,
-            fontWeight = FontWeight.Normal,
+        Column(
             modifier = Modifier.align(Alignment.CenterStart),
-        )
+            verticalArrangement = Arrangement.spacedBy(1.dp),
+        ) {
+            Text(
+                text = "渔见",
+                color = Ink.copy(alpha = 0.84f),
+                fontSize = 19.sp,
+                fontWeight = FontWeight.Normal,
+            )
+            Text(
+                text = "拍照收藏每次渔获",
+                color = Ink.copy(alpha = 0.62f),
+                fontSize = 9.sp,
+                letterSpacing = 0.4.sp,
+            )
+        }
         if (!isLoggedIn) {
             Row(
                 modifier = Modifier

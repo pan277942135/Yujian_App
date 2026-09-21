@@ -17,11 +17,8 @@ private const val ROOT = "empty_home_runtime_v1"
 
 internal data class EmptyHomeRuntimeAssets(
     val cloud: Bitmap,
-    val sunGlow: Bitmap,
     val bobber: Bitmap,
     val ripple: Bitmap,
-    val sunBeamMask: Bitmap,
-    val sunParticleMask: Bitmap,
     val cameraBase: Bitmap,
     val cameraGoldRim: Bitmap,
     val cameraBreathGlow: Bitmap,
@@ -41,11 +38,8 @@ private fun decodeAsset(context: Context, path: String): Bitmap {
 private fun loadRuntimeAssets(context: Context): EmptyHomeRuntimeAssets =
     EmptyHomeRuntimeAssets(
         cloud = decodeAsset(context, "dynamic/cloud_layer.png"),
-        sunGlow = decodeAsset(context, "dynamic/sun_glow.png"),
         bobber = decodeAsset(context, "dynamic/bobber.png"),
         ripple = decodeAsset(context, "dynamic/ripple_mask.png"),
-        sunBeamMask = decodeAsset(context, "dynamic/sun_beam_mask.png"),
-        sunParticleMask = decodeAsset(context, "dynamic/sun_particle_mask.png"),
         cameraBase = decodeAsset(context, "camera/camera_button_base.png"),
         cameraGoldRim = decodeAsset(context, "camera/camera_gold_rim_mask.png"),
         cameraBreathGlow = decodeAsset(context, "camera/camera_breath_glow.png"),

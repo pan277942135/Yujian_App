@@ -77,50 +77,10 @@ private fun DrawScope.drawRuntimeOverlays(
         destination = destination,
     )
 
-    val glowScale = if (motionState.reduceMotion) 1f else sunGlowScale(time)
-    val glowAlpha = if (motionState.reduceMotion) 1f else sunGlowAlpha(time)
-    drawReferenceBitmap(
-        bitmap = assets.sunGlow,
-        x = 845f - assets.sunGlow.width / 2f,
-        y = 680f - assets.sunGlow.height / 2f,
-        width = assets.sunGlow.width.toFloat(),
-        height = assets.sunGlow.height.toFloat(),
-        alpha = glowAlpha,
-        scale = glowScale,
-        pivotX = 845f,
-        pivotY = 680f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
-
     if (motionState.running && !motionState.reduceMotion) {
-        val beamEnvelope = sunBeamEnvelope(time)
-        drawReferenceBitmap(
-            bitmap = assets.sunBeamMask,
-            x = 710f,
-            y = 680f,
-            width = assets.sunBeamMask.width.toFloat(),
-            height = assets.sunBeamMask.height.toFloat(),
-            alpha = 0.16f * beamEnvelope,
-            transform = transform,
-            paint = paint,
-            destination = destination,
-        )
-        drawReferenceBitmap(
-            bitmap = assets.sunParticleMask,
-            x = 735f,
-            y = 700f,
-            width = assets.sunParticleMask.width.toFloat(),
-            height = assets.sunParticleMask.height.toFloat(),
-            alpha = 0.78f * beamEnvelope,
-            transform = transform,
-            paint = paint,
-            destination = destination,
-        )
         drawSunParticles(
             time = time,
-            envelope = beamEnvelope,
+            envelope = sunBeamEnvelope(time),
             particles = particles,
             transform = transform,
         )
