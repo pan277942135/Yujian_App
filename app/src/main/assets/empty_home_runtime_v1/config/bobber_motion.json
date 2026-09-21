@@ -1,0 +1,42 @@
+{
+  "layer": "bobber",
+  "type": "float",
+  "axis": "y",
+  "range_px": 3,
+  "duration_s": 4.6,
+  "easing": "ease_in_out_sine",
+  "loop": true,
+  "anchor": {
+    "x": 750,
+    "y": 1143
+  },
+  "keyframes": [
+    {
+      "time_s": 0.0,
+      "offset_y_px": 0.0
+    },
+    {
+      "time_s": 1.15,
+      "offset_y_px": -3.0
+    },
+    {
+      "time_s": 2.3,
+      "offset_y_px": 0.0
+    },
+    {
+      "time_s": 3.45,
+      "offset_y_px": 3.0
+    },
+    {
+      "time_s": 4.6,
+      "offset_y_px": 0.0
+    }
+  ],
+  "constraints": {
+    "x_offset_px": 0,
+    "rotation_deg": 0,
+    "scale": 1,
+    "rod_tip_locked": true,
+    "line_layer_not_independently_transformed": true
+  }
+}
