@@ -30,21 +30,20 @@ internal fun EmptyHomeSceneRenderer(
     runtimeAssets: EmptyHomeRuntimeAssets?,
 ) {
     Box(modifier.clipToBounds()) {
-        if (runtimeAssets == null) {
-            AssetImage(
-                FALLBACK_BACKGROUND,
-                Modifier.fillMaxSize(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-            )
-        } else {
+        AssetImage(
+            FALLBACK_BACKGROUND,
+            Modifier.fillMaxSize(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+        )
+        if (runtimeAssets != null) {
             val particles = remember { createSunParticleSpecs() }
             val paint = remember {
                 Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
             }
             val destination = remember { RectF() }
             Canvas(Modifier.fillMaxSize()) {
-                drawRuntimeScene(
+                drawRuntimeOverlays(
                     assets = runtimeAssets,
                     motionState = motionState,
                     particles = particles,
@@ -56,7 +55,7 @@ internal fun EmptyHomeSceneRenderer(
     }
 }
 
-private fun DrawScope.drawRuntimeScene(
+private fun DrawScope.drawRuntimeOverlays(
     assets: EmptyHomeRuntimeAssets,
     motionState: HomeMotionState,
     particles: List<SunParticleSpec>,
@@ -66,19 +65,6 @@ private fun DrawScope.drawRuntimeScene(
     val transform = calculateReferenceSceneTransform(size.width, size.height)
     val time = if (motionState.running) motionState.sceneTimeSeconds else 0f
 
-    drawReferenceBitmap(
-        bitmap = assets.staticScene,
-        x = 0f,
-        y = 0f,
-        width = REFERENCE_SCENE_WIDTH,
-        height = REFERENCE_SCENE_HEIGHT,
-        alpha = 1f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
-
-    // The renderer owns dynamic overlays only. Static scene pixels are decoded once.
     drawReferenceBitmap(
         bitmap = assets.cloud,
         x = cloudOffsetPx(time),
