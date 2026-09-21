@@ -55,7 +55,11 @@ import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.HomeEmptyScene
+import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
+import com.yujian.ai.ui.home.HomeMotionState
 import com.yujian.ai.ui.home.NormalHomeContent
+import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
+import com.yujian.ai.ui.home.rememberHomeMotionState
 
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
@@ -83,6 +87,8 @@ fun HomeScreen(
 ) {
     val view = LocalView.current
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+    val homeMotionState = rememberHomeMotionState()
+    val emptyRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = showEmptyState)
 
     DisposableEffect(view) {
         val activity = view.context as? Activity
@@ -100,7 +106,11 @@ fun HomeScreen(
 
     Box(Modifier.fillMaxSize()) {
         if (showEmptyState) {
-            HomeEmptyScene(Modifier.fillMaxSize())
+            HomeEmptyScene(
+                modifier = Modifier.fillMaxSize(),
+                motionState = homeMotionState,
+                runtimeAssets = emptyRuntimeAssets,
+            )
         } else {
             AssetImage(
                 HomeBackground,
@@ -128,6 +138,8 @@ fun HomeScreen(
                     onAlbumClick = onAlbumClick,
                     onLoginClick = onLoginClick,
                     onProfileClick = onProfileClick,
+                    motionState = homeMotionState,
+                    runtimeAssets = emptyRuntimeAssets,
                 )
             } else {
                 NormalHomeContent(
@@ -160,6 +172,8 @@ private fun ColumnScope.EmptyHomeContent(
     onAlbumClick: () -> Unit,
     onLoginClick: () -> Unit,
     onProfileClick: () -> Unit,
+    motionState: HomeMotionState,
+    runtimeAssets: EmptyHomeRuntimeAssets?,
 ) {
     val loginClick = rememberDebouncedClick(onLoginClick)
     val albumClick = rememberDebouncedClick(onAlbumClick)
@@ -272,7 +286,11 @@ private fun ColumnScope.EmptyHomeContent(
                 ),
                 modifier = Modifier.padding(bottom = 8.dp),
             )
-            HomeCameraButton(onClick = onIdentify)
+            HomeCameraButton(
+                onClick = onIdentify,
+                motionState = motionState,
+                runtimeAssets = runtimeAssets,
+            )
             Row(
                 modifier = Modifier
                     .sizeIn(minWidth = 48.dp, minHeight = 48.dp)

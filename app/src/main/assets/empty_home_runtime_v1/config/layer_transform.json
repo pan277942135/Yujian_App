@@ -1,0 +1,862 @@
+{
+  "source_master": "EmptyHome_Master_Normalized_V1.png",
+  "canvas": {
+    "width": 1080,
+    "height": 1920
+  },
+  "coordinate_system": "origin=(0,0) top-left; x right; y down; pixel centers at integer coordinates",
+  "frozen_anchors": {
+    "sun_center": {
+      "x": 845,
+      "y": 680
+    },
+    "horizon_y": 904,
+    "rod_tip": {
+      "x": 405,
+      "y": 975
+    },
+    "bobber_center": {
+      "x": 750,
+      "y": 1143
+    },
+    "water_contact": {
+      "x": 750,
+      "y": 1158
+    },
+    "sun_reflection_axis": {
+      "x": 842,
+      "y0": 900,
+      "y1": 1560
+    }
+  },
+  "anchor_semantics": {
+    "water_contact": {
+      "role": "bobber_seam_and_ripple_pivot",
+      "exact_pixel_may_be_alpha_empty": true,
+      "reason": "The ripple is an annulus and its frozen center is intentionally transparent; the protected bobber occupies the seam coordinate.",
+      "support_layers": [
+        "fishing/bobber.png",
+        "fishing/bobber_contact.png",
+        "fishing/ripple_mask.png"
+      ]
+    }
+  },
+  "layers": [
+    {
+      "layer": "sky_base",
+      "path": "runtime_layers/environment/sky_base.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 905
+      },
+      "anchor": {
+        "x": 540,
+        "y": 320
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 10,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "cloud_layer",
+      "path": "runtime_layers/environment/cloud_layer.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 5,
+        "width": 1080,
+        "height": 645
+      },
+      "anchor": {
+        "x": 540,
+        "y": 300
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 20,
+      "motion_safe": true,
+      "animation_capability": {
+        "position": true,
+        "alpha": true,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "mountain_far",
+      "path": "runtime_layers/environment/mountain_far.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 548,
+        "width": 1080,
+        "height": 213
+      },
+      "anchor": {
+        "x": 540,
+        "y": 650
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 30,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": true,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "mountain_near",
+      "path": "runtime_layers/environment/mountain_near.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 761,
+        "width": 1080,
+        "height": 60
+      },
+      "anchor": {
+        "x": 540,
+        "y": 790
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 40,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": true,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "forest_fog",
+      "path": "runtime_layers/environment/forest_fog.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 821,
+        "width": 1080,
+        "height": 105
+      },
+      "anchor": {
+        "x": 540,
+        "y": 870
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 50,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "sun",
+      "path": "runtime_layers/lighting/sun.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 827,
+        "y": 661,
+        "width": 38,
+        "height": 40
+      },
+      "anchor": {
+        "x": 845,
+        "y": 680
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 90,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "sun_glow",
+      "path": "runtime_layers/lighting/sun_glow.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 660,
+        "y": 495,
+        "width": 370,
+        "height": 371
+      },
+      "anchor": {
+        "x": 845,
+        "y": 680
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 80,
+      "motion_safe": true,
+      "animation_capability": {
+        "position": false,
+        "alpha": true,
+        "scale": true,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "sun_reflection",
+      "path": "runtime_layers/lighting/sun_reflection.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 770,
+        "y": 890,
+        "width": 166,
+        "height": 489
+      },
+      "anchor": {
+        "x": 842,
+        "y": 1100
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 110,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": true,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "lake_highlight",
+      "path": "runtime_layers/lighting/lake_highlight.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 1,
+        "y": 890,
+        "width": 1079,
+        "height": 520
+      },
+      "anchor": {
+        "x": 540,
+        "y": 1120
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 115,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": true,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "lake_base",
+      "path": "runtime_layers/water/lake_base.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 890,
+        "width": 1080,
+        "height": 520
+      },
+      "anchor": {
+        "x": 540,
+        "y": 1100
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 60,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "lake_motion_mask",
+      "path": "runtime_layers/water/lake_motion_mask.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 925,
+        "width": 1080,
+        "height": 525
+      },
+      "anchor": {
+        "x": 540,
+        "y": 1120
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 0,
+      "motion_safe": true,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": true
+      }
+    },
+    {
+      "layer": "rod",
+      "path": "runtime_layers/fishing/rod.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 968,
+        "width": 422,
+        "height": 541
+      },
+      "anchor": {
+        "x": 405,
+        "y": 975
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 150,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "line",
+      "path": "runtime_layers/fishing/line.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 404,
+        "y": 974,
+        "width": 343,
+        "height": 159
+      },
+      "anchor": {
+        "x": 405,
+        "y": 975
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 160,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "bobber",
+      "path": "runtime_layers/fishing/bobber.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 743,
+        "y": 1112,
+        "width": 15,
+        "height": 49
+      },
+      "anchor": {
+        "x": 750,
+        "y": 1143
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 180,
+      "motion_safe": true,
+      "animation_capability": {
+        "position": true,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "bobber_contact",
+      "path": "runtime_layers/fishing/bobber_contact.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 694,
+        "y": 1144,
+        "width": 122,
+        "height": 108
+      },
+      "anchor": {
+        "x": 750,
+        "y": 1158
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 170,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "ripple_mask",
+      "path": "runtime_layers/fishing/ripple_mask.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 690,
+        "y": 1137,
+        "width": 124,
+        "height": 46
+      },
+      "anchor": {
+        "x": 750,
+        "y": 1158
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 175,
+      "motion_safe": true,
+      "animation_capability": {
+        "position": false,
+        "alpha": true,
+        "scale": true,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "foreground_blur",
+      "path": "runtime_layers/foreground/foreground_blur.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 1010,
+        "width": 1080,
+        "height": 910
+      },
+      "anchor": {
+        "x": 540,
+        "y": 1600
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 120,
+      "motion_safe": true,
+      "animation_capability": {
+        "position": true,
+        "alpha": false,
+        "scale": false,
+        "parallax": true,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "foreground_object",
+      "path": "runtime_layers/foreground/foreground_object.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 1320,
+        "width": 1080,
+        "height": 600
+      },
+      "anchor": {
+        "x": 540,
+        "y": 1600
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 130,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "hidden_sky_restore",
+      "path": "runtime_layers/restoration/hidden_sky_restore.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 0,
+        "y": 5,
+        "width": 1080,
+        "height": 861
+      },
+      "anchor": {
+        "x": 845,
+        "y": 680
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 5,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "hidden_lake_restore",
+      "path": "runtime_layers/restoration/hidden_lake_restore.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 1,
+        "y": 890,
+        "width": 1079,
+        "height": 520
+      },
+      "anchor": {
+        "x": 842,
+        "y": 1100
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 55,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "hidden_bobber_area_restore",
+      "path": "runtime_layers/restoration/hidden_bobber_area_restore.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 680,
+        "y": 1102,
+        "width": 146,
+        "height": 160
+      },
+      "anchor": {
+        "x": 750,
+        "y": 1158
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 65,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    },
+    {
+      "layer": "ui_content",
+      "path": "runtime_layers/content/ui_content.png",
+      "canvas": {
+        "width": 1080,
+        "height": 1920
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1080,
+        "height": 1920
+      },
+      "bounds": {
+        "x": 71,
+        "y": 74,
+        "width": 945,
+        "height": 1757
+      },
+      "anchor": {
+        "x": 540,
+        "y": 960
+      },
+      "rotation": 0,
+      "scale": 1,
+      "z_index": 200,
+      "motion_safe": false,
+      "animation_capability": {
+        "position": false,
+        "alpha": false,
+        "scale": false,
+        "parallax": false,
+        "shader_mask": false
+      }
+    }
+  ],
+  "motion_revision": "V1.1",
+  "static_master_preserved": true
+}

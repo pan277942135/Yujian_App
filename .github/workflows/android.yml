@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,6 +29,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify Empty Home runtime asset contract
+        run: python3 scripts/verify_empty_home_runtime_assets.py
 
       - name: Download verified MODEL_M1_v0.6 mobile asset and tensor contract
         shell: bash
@@ -74,6 +78,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Unit tests
+        run: gradle test --stacktrace
+
       - name: Assemble debug APK
         run: gradle :app:assembleDebug --stacktrace
 
@@ -84,11 +91,10 @@ jobs:
         run: gradle :app:lintDebug --stacktrace
 
       - name: Prepare YuJian debug APK
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
 
       - name: Upload installable debug APK
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: YuJian-debug-${{ github.sha }}
@@ -104,6 +110,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify Empty Home runtime asset contract
+        run: python3 scripts/verify_empty_home_runtime_assets.py
 
       - name: Download verified MODEL_M1_v0.6 mobile asset and tensor contract
         shell: bash
@@ -169,15 +178,24 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.DetectorGoldenParityTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.FishDetectionQualityGateTest --stacktrace
-            test "$GITHUB_EVENT_NAME" = "push" && test "$GITHUB_REF" = "refs/heads/main" || exit 0
+            if [ "$GITHUB_EVENT_NAME" != "push" ] && [ "$GITHUB_EVENT_NAME" != "pull_request" ] && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then exit 0; fi
             mkdir -p build/home-evidence
             adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+            # The emulator action disables animations for deterministic legacy
+            # parity tests. Empty Home has its own reduce-motion contract, so
+            # restore the normal animator scales before visual evidence.
+            adb shell settings put global animator_duration_scale 1.0 || true
+            adb shell settings put global transition_animation_scale 1.0 || true
+            adb shell settings put global window_animation_scale 1.0 || true
 
             adb shell pm clear com.yujian.ai.uiv2
             adb shell wm size 1080x1920
             adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
             sleep 5
             adb exec-out screencap -p > build/home-evidence/home-empty-16-9.png
+            adb shell screenrecord --time-limit 10 /sdcard/home-empty-motion-10s.mp4
+            adb pull /sdcard/home-empty-motion-10s.mp4 build/home-evidence/home-empty-motion-10s.mp4
 
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.HomeVisualEvidenceSeedTest#seedSingleGuestCatch --stacktrace
             adb install -r app/build/outputs/apk/debug/app-debug.apk
@@ -206,7 +224,7 @@ jobs:
 
 
       - name: Upload Home visual evidence
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: YuJian-home-visual-evidence-${{ github.sha }}
