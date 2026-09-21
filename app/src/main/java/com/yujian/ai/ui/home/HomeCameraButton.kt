@@ -29,7 +29,7 @@ private const val LEGACY_CAMERA_INNER = "home_empty_v1_3/assets/camera/camera_in
  * share the Empty Home SceneClock.
  */
 @Composable
-fun HomeCameraButton(
+internal fun HomeCameraButton(
     onClick: () -> Unit,
     motionState: HomeMotionState = rememberHomeMotionState(),
     runtimeAssets: EmptyHomeRuntimeAssets? = null,
