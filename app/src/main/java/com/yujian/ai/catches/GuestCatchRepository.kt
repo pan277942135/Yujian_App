@@ -111,6 +111,8 @@ class GuestCatchRepository(context: Context) {
         weightKg = optionalFloat("weight_kg", "weight"),
         location = optString("location").ifBlank { optString("location_name") }
             .takeIf(String::isNotBlank),
+        bsideStatus = BsideStatus.fromWire(optString("bside_status")),
+        bsideUri = optString("bside_uri").takeIf(String::isNotBlank),
     )
 
     private fun JSONObject.optionalFloat(vararg keys: String): Float? {
@@ -135,6 +137,8 @@ class GuestCatchRepository(context: Context) {
         .put("length_cm", lengthCm ?: JSONObject.NULL)
         .put("weight_kg", weightKg ?: JSONObject.NULL)
         .put("location", location ?: JSONObject.NULL)
+        .put("bside_status", bsideStatus.name)
+        .put("bside_uri", bsideUri ?: JSONObject.NULL)
 
     private fun nowIso(): String = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date())
 

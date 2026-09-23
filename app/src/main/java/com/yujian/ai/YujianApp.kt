@@ -37,6 +37,7 @@ import com.yujian.ai.auth.ApiException
 import com.yujian.ai.auth.AuthRepository
 import com.yujian.ai.catches.CatchRepository
 import com.yujian.ai.catches.CatchStatistics
+import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.GuestCatchRepository
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.feedback.FeedbackRepository
@@ -133,6 +134,39 @@ fun YujianApp() {
                     catchReload++
                 }
         }
+    }
+
+    fun applyBsideStatus(catchId: String, status: BsideStatus, resultUri: String?) {
+        catchesState = catchesState.copy(
+            catches = catchesState.catches.map { item ->
+                if (item.id == catchId) item.copy(
+                    bsideStatus = status,
+                    bsideUri = if (status == BsideStatus.READY) resultUri else null,
+                ) else item
+            },
+        )
+    }
+
+    fun requestBsideGeneration(record: RemoteCatch) {
+        val active = session ?: return
+        if (record.bsideStatus == BsideStatus.GENERATING) return
+        applyBsideStatus(record.id, BsideStatus.GENERATING, null)
+        scope.launch {
+            runCatching { catchRepository.createBsideJob(active.accessToken, record.id) }
+                .onSuccess { generated -> applyBsideStatus(record.id, generated.status, generated.resultUri) }
+                .onFailure { error ->
+                    applyBsideStatus(record.id, BsideStatus.FAILED, null)
+                    catchesState = catchesState.copy(error = error.message ?: "渔获卡生成请求失败，请重试")
+                }
+        }
+    }
+
+    suspend fun refreshBsideStatus(catchId: String): Boolean {
+        val active = session ?: return true
+        return runCatching { catchRepository.bsideStatus(active.accessToken, catchId) }
+            .onSuccess { generated -> applyBsideStatus(catchId, generated.status, generated.resultUri) }
+            .map { it.status != BsideStatus.GENERATING }
+            .getOrDefault(false)
     }
 
     DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectPreviewEngine.close(); subjectModelManager.close() } }
@@ -279,8 +313,11 @@ fun YujianApp() {
                             } else {
                                 catchRepository.resolveUrl(selectedCatch.imageUrl)
                             },
+                            bsideUrl = catchRepository.resolveUrl(selectedCatch.bsideUri),
                             accessToken = session?.accessToken.orEmpty(),
                             onBack = { nav.popBackStack() },
+                            onBsideAction = if (session != null) { { requestBsideGeneration(selectedCatch) } } else null,
+                            onPollBside = { refreshBsideStatus(selectedCatch.id) },
                         )
                     }
                 }
@@ -503,6 +540,7 @@ fun YujianApp() {
                         onSpecies = { speciesId -> nav.navigate("species/${Uri.encode(speciesId)}") },
                         onRetry = { catchReload++ },
                         onLogout = { if (active == null) nav.navigate("login") else logoutToHome() },
+                        onBsideAction = if (active != null) { { record -> requestBsideGeneration(record) } } else null,
                     )
                 }
             }
