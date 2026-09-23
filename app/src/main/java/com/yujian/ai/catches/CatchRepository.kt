@@ -15,6 +15,25 @@ import kotlin.math.roundToInt
 
 data class UploadedCatchImage(val uploadId: String, val imageUrl: String)
 
+enum class BsideStatus {
+    NONE,
+    GENERATING,
+    READY,
+    FAILED;
+
+    companion object {
+        fun fromWire(value: String?): BsideStatus = entries.firstOrNull {
+            it.name == value?.trim()?.uppercase()
+        } ?: NONE
+    }
+}
+
+data class BsideGeneration(
+    val jobId: String?,
+    val status: BsideStatus,
+    val resultUri: String?,
+)
+
 data class RemoteCatch(
     val id: String,
     val imageUrl: String,
@@ -27,6 +46,8 @@ data class RemoteCatch(
     val lengthCm: Float? = null,
     val weightKg: Float? = null,
     val location: String? = null,
+    val bsideStatus: BsideStatus = BsideStatus.NONE,
+    val bsideUri: String? = null,
 ) {
     val confidencePercent: Int get() = (confidence * 100).roundToInt().coerceIn(0, 100)
 }
@@ -110,6 +131,14 @@ class CatchRepository(
         )
     }
 
+    suspend fun createBsideJob(token: String, catchId: String): BsideGeneration = withContext(Dispatchers.IO) {
+        parseBsideGeneration(json("POST", "/api/v1/catches/$catchId/bside", token, null))
+    }
+
+    suspend fun bsideStatus(token: String, catchId: String): BsideGeneration = withContext(Dispatchers.IO) {
+        parseBsideGeneration(json("GET", "/api/v1/catches/$catchId/bside-status", token, null))
+    }
+
     fun resolveUrl(path: String?): String? {
         val value = path?.trim().orEmpty()
         if (value.isBlank()) return null
@@ -131,6 +160,14 @@ class CatchRepository(
         weightKg = item.optionalFloat("weight_kg", "weight"),
         location = item.optString("location").ifBlank { item.optString("location_name") }
             .takeIf(String::isNotBlank),
+        bsideStatus = BsideStatus.fromWire(item.optString("bside_status")),
+        bsideUri = item.optString("bside_uri").takeIf(String::isNotBlank),
+    )
+
+    private fun parseBsideGeneration(item: JSONObject): BsideGeneration = BsideGeneration(
+        jobId = item.optString("job_id").takeIf(String::isNotBlank),
+        status = BsideStatus.fromWire(item.optString("status")),
+        resultUri = item.optString("result_uri").takeIf(String::isNotBlank),
     )
 
     private fun JSONObject.optionalFloat(vararg keys: String): Float? {

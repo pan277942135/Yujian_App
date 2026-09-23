@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.catches.CatchStatistics
+import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.session.UserSession
 import com.yujian.ai.ui.components.FishIllustration
@@ -52,6 +54,7 @@ fun MyScreen(
     onSpecies: (String) -> Unit,
     onRetry: () -> Unit,
     onLogout: () -> Unit,
+    onBsideAction: ((RemoteCatch) -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(WarmBackground),
@@ -106,7 +109,13 @@ fun MyScreen(
             }
         } else {
             items(catches, key = { it.id }) { catch ->
-                CatchRow(catch, resolveImageUrl, session?.accessToken.orEmpty()) { onSpecies(catch.speciesId) }
+                CatchRow(
+                    catch = catch,
+                    resolveImageUrl = resolveImageUrl,
+                    accessToken = session?.accessToken.orEmpty(),
+                    onClick = { onSpecies(catch.speciesId) },
+                    onBsideAction = onBsideAction,
+                )
             }
         }
         item { MenuCard("我的图鉴", "看看已认识的鱼种", onGuide) }
@@ -119,6 +128,7 @@ private fun CatchRow(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     onClick: () -> Unit,
+    onBsideAction: ((RemoteCatch) -> Unit)?,
 ) {
     Row(
         modifier = Modifier
@@ -143,7 +153,27 @@ private fun CatchRow(
             Text("${catch.confidencePercent}% 把握", color = WaterTeal, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
             Text(formatCatchDate(catch.createdAt), color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 5.dp))
         }
-        Text("›", color = WaterTeal, fontSize = 28.sp)
+        Column(horizontalAlignment = Alignment.End) {
+            if (onBsideAction != null && catch.bsideStatus != BsideStatus.READY) {
+                OutlinedButton(
+                    onClick = { onBsideAction(catch) },
+                    enabled = catch.bsideStatus != BsideStatus.GENERATING,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = WaterTeal),
+                    modifier = Modifier.padding(bottom = 4.dp),
+                ) {
+                    Text(
+                        when (catch.bsideStatus) {
+                            BsideStatus.NONE -> "提取渔获"
+                            BsideStatus.GENERATING -> "生成中..."
+                            BsideStatus.FAILED -> "重新生成"
+                            BsideStatus.READY -> ""
+                        },
+                        fontSize = 11.sp,
+                    )
+                }
+            }
+            Text("›", color = WaterTeal, fontSize = 28.sp)
+        }
     }
 }
 
