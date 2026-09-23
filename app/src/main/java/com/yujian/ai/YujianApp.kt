@@ -537,7 +537,7 @@ fun YujianApp() {
                             if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
                         },
                         onGuide = { nav.navigate("guide") },
-                        onSpecies = { speciesId -> nav.navigate("species/${Uri.encode(speciesId)}") },
+                        onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
                         onLogout = { if (active == null) nav.navigate("login") else logoutToHome() },
                         onBsideAction = if (active != null) { { record -> requestBsideGeneration(record) } } else null,
