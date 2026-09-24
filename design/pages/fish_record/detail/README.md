@@ -2,7 +2,14 @@
 
 Role: **Memory Archive Baseline**
 
-Status: visual source registered; binary Git copy pending.
+Status: **FROZEN**
+
+## Frozen visual reference
+
+- Canonical reference: design/system/core_visual_v1/reference/fish_record_detail_v2.png
+- SHA-256: 3bb0fd5fd38d0721f5ac89489c224deae29c09401e2c9239fcf9435b320eeb58
+- System authority: YuJian Core Visual System V1
+- Verification: reference_manifest.json and verify_core_ui_v1_references.py
 
 This is the single long-term detail destination for one FishRecord.
 

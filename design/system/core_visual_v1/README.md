@@ -1,6 +1,6 @@
 # YuJian Core Visual System V1
 
-Status: **SOURCE OF TRUTH — SPECIFICATION ESTABLISHED**
+Status: **DESIGN SOURCE OF TRUTH — FROZEN**
 
 Core screen set:
 1. Empty Home
@@ -23,3 +23,13 @@ A screen is FROZEN only when:
 - cross-page rules are satisfied.
 
 Do not create replacement/generated reference images to close a missing-source gate.
+
+## Current frozen source
+
+All six Core UI V1 references are present under reference/ with canonical filenames and
+verified SHA-256 records. The eight-file registry, supplemental provenance, and
+machine-checkable gate are maintained in reference/reference_manifest.json.
+
+Shared component, page-asset, extraction, cross-page, and recompose decisions are
+maintained in validation/. These decisions guide implementation; frozen PNGs remain
+read-only visual authority.

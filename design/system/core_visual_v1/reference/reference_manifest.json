@@ -1,82 +1,121 @@
 {
-  "version": "1.1",
-  "status": "SOURCE_REGISTERED_BINARY_COPY_PENDING",
-  "local_source_validation": "PASS",
-  "source_canvas_px": [
-    941,
-    1672
-  ],
-  "design_reference_standard_px": [
-    1080,
-    1920
-  ],
-  "note": "All six supplied source PNGs were locally verified byte-for-byte by SHA-256 and dimensions. Git reference binaries are still pending copy; do not mark FROZEN until repository blobs are present and verified.",
+  "version": "1.2",
+  "status": "FROZEN",
+  "core_reference_count": 6,
+  "supplemental_reference_count": 2,
+  "source_authority": "Current product-uploaded PNG binaries on GitHub branch chore/core-ui-v1-freeze.",
+  "canonicalization": {
+    "method": "git mv",
+    "content_change": "NONE",
+    "verification": "SHA-256, byte size, PNG decode, and dimensions are verified after the path move."
+  },
+  "freeze_gate": {
+    "present": "PASS",
+    "png_validation": "PASS",
+    "dimensions_recorded": "PASS",
+    "sha256_recorded": "PASS",
+    "byte_size_recorded": "PASS"
+  },
   "references": [
     {
-      "id": "fish_record_detail_v2",
-      "source_filename": "湖畔鱼获详情界面.png",
-      "target_filename": "fish_record_detail_v2.png",
-      "bytes": 1998862,
+      "id": "empty_home_v2",
+      "source_filename": "晨雾湖畔，记录第一条鱼.png",
+      "canonical_filename": "empty_home_v2.png",
       "width": 941,
       "height": 1672,
-      "sha256": "3bb0fd5fd38d0721f5ac89489c224deae29c09401e2c9239fcf9435b320eeb58",
+      "bytes": 1978353,
+      "sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
       "source_validation": "PASS",
-      "git_binary_status": "pending_binary_copy"
+      "git_binary_status": "PRESENT_VERIFIED",
+      "freeze_status": "FROZEN"
     },
     {
-      "id": "my_catches_v2",
-      "source_filename": "湖畔晨曦中的鱼获日志(1).png",
-      "target_filename": "my_catches_v2.png",
-      "bytes": 1957786,
-      "width": 941,
-      "height": 1672,
-      "sha256": "d88e1542103aaa6af98da036b62ed6b18fca8e1b870dcc817fecea27e05072bd",
+      "id": "normal_home_v1",
+      "source_filename": "yujian_home_with_catches_full_bleed_refined_v1.png",
+      "canonical_filename": "normal_home_v1.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 2157565,
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
       "source_validation": "PASS",
-      "git_binary_status": "pending_binary_copy"
+      "git_binary_status": "PRESENT_VERIFIED",
+      "freeze_status": "FROZEN"
     },
     {
       "id": "recognition_result_v1",
       "source_filename": "湖畔钓获识别记录界面.png",
-      "target_filename": "recognition_result_v1.png",
-      "bytes": 1692317,
+      "canonical_filename": "recognition_result_v1.png",
       "width": 941,
       "height": 1672,
+      "bytes": 1692317,
       "sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
       "source_validation": "PASS",
-      "git_binary_status": "pending_binary_copy"
+      "git_binary_status": "PRESENT_VERIFIED",
+      "freeze_status": "FROZEN"
+    },
+    {
+      "id": "fish_record_detail_v2",
+      "source_filename": "湖畔鱼获详情界面.png",
+      "canonical_filename": "fish_record_detail_v2.png",
+      "width": 941,
+      "height": 1672,
+      "bytes": 1998862,
+      "sha256": "3bb0fd5fd38d0721f5ac89489c224deae29c09401e2c9239fcf9435b320eeb58",
+      "source_validation": "PASS",
+      "git_binary_status": "PRESENT_VERIFIED",
+      "freeze_status": "FROZEN"
+    },
+    {
+      "id": "my_catches_v2",
+      "source_filename": "湖畔晨曦中的鱼获日志(1).png",
+      "canonical_filename": "my_catches_v2.png",
+      "width": 941,
+      "height": 1672,
+      "bytes": 1957786,
+      "sha256": "d88e1542103aaa6af98da036b62ed6b18fca8e1b870dcc817fecea27e05072bd",
+      "source_validation": "PASS",
+      "git_binary_status": "PRESENT_VERIFIED",
+      "freeze_status": "FROZEN"
     },
     {
       "id": "fish_guide_v2",
-      "source_filename": "晨曦湖畔鱼鉴界面.png",
-      "target_filename": "fish_guide_v2.png",
-      "bytes": 2108009,
+      "source_filename": "晨雾湖畔鱼鉴草鱼卡片.png",
+      "canonical_filename": "fish_guide_v2.png",
       "width": 941,
       "height": 1672,
-      "sha256": "fff5588c80616ba273c0c80e0e150c2a0a9f0f11b380ca18edefddf8c13f70c8",
+      "bytes": 2096893,
+      "sha256": "e1002e0ae2b7e87c070907fb14d25448e122b4479cb23eeccac88dedce230fcf",
       "source_validation": "PASS",
-      "git_binary_status": "pending_binary_copy"
+      "git_binary_status": "PRESENT_VERIFIED",
+      "freeze_status": "FROZEN"
+    }
+  ],
+  "supplemental_references": [
+    {
+      "id": "fish_memory_reference",
+      "source_filename": "千岛湖晨雾中的草鱼记忆.png",
+      "canonical_filename": "supplemental/fish_memory_reference.png",
+      "type": "SUPPLEMENTAL_REFERENCE",
+      "usage": "Fish-memory visual reference; not part of the Core UI 6/6 freeze count.",
+      "provenance": "Current product-uploaded GitHub PNG, moved with git mv.",
+      "width": 941,
+      "height": 1672,
+      "bytes": 1699366,
+      "sha256": "ca585b85d1c6fec224e402d368e60d122913ca6c0cb6e5cc6750c266d7fb8a93",
+      "source_validation": "PASS"
     },
     {
-      "id": "empty_home_v2",
-      "source_filename": "晨雾湖畔，记录第一条鱼.png",
-      "target_filename": "empty_home_v2.png",
-      "bytes": 1978353,
+      "id": "fish_guide_unlit_state",
+      "source_filename": "雾山湖畔的未点亮鱼鉴.png",
+      "canonical_filename": "supplemental/fish_guide_unlit_state.png",
+      "type": "SUPPLEMENTAL_REFERENCE",
+      "usage": "Fish Guide unlit-state reference; part of the FishGuideCard state system, not the Core UI 6/6 freeze count.",
+      "provenance": "Current product-uploaded GitHub PNG, moved with git mv.",
       "width": 941,
       "height": 1672,
-      "sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
-      "source_validation": "PASS",
-      "git_binary_status": "pending_binary_copy"
-    },
-    {
-      "id": "normal_home_v1",
-      "source_filename": "玉见湖畔钓获.png",
-      "target_filename": "normal_home_v1.png",
-      "bytes": 1893850,
-      "width": 941,
-      "height": 1672,
-      "sha256": "37be4aa46e4f1db60c54dcf67ba50ab20b034077fba734e32ce050fa1eab31cc",
-      "source_validation": "PASS",
-      "git_binary_status": "pending_binary_copy"
+      "bytes": 2063258,
+      "sha256": "68a3b83884f9fe0fd9a0b3a7325e75f9b22d8b734860063a9e16fc60d725bc62",
+      "source_validation": "PASS"
     }
   ]
 }

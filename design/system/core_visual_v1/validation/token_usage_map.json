@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "status": "PASS",
+  "purpose": "Records the frozen-screen evidence, reason, and implementation usage for the existing Core Visual System V1 token families. No new visual direction is introduced here.",
+  "token_families": [
+    {
+      "token_file": "tokens/color_tokens.json",
+      "source_screens": [
+        "empty_home_v2",
+        "normal_home_v1",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "The six references consistently use morning lake blue-gray, mist white, restrained gold, and a dark legibility overlay.",
+      "usage": "Background atmosphere, readable dark text/icons, white capture core, rare meaningful gold, and hero metadata protection."
+    },
+    {
+      "token_file": "tokens/typography_tokens.json",
+      "source_screens": [
+        "empty_home_v2",
+        "normal_home_v1",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "Brand/emotional copy, editorial fish and page titles, and restrained data text remain visually distinct across the set.",
+      "usage": "BRAND for logo/emotional copy, DISPLAY for titles/species, UI for metadata, controls, measurements, and annotations."
+    },
+    {
+      "token_file": "tokens/spacing_tokens.json",
+      "source_screens": [
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "The content screens preserve breathing room and use scrolling rather than compressing dense information into one viewport.",
+      "usage": "Section rhythm, card internals, text relationships, and adaptive runtime layout."
+    },
+    {
+      "token_file": "tokens/radius_tokens.json",
+      "source_screens": [
+        "normal_home_v1",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "Cards and circular capture/avatar elements use a consistent soft, natural contour family.",
+      "usage": "Annotations, pills, content cards, hero cards, camera button, and avatar surfaces."
+    },
+    {
+      "token_file": "tokens/glass_tokens.json",
+      "source_screens": [
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "Glass is repeatedly used to maintain readability over the natural world while keeping the landscape quieter than content.",
+      "usage": "Primary content, secondary story/content, and low-weight overlay/pill treatments."
+    },
+    {
+      "token_file": "tokens/motion_tokens.json",
+      "source_screens": [
+        "empty_home_v2",
+        "normal_home_v1",
+        "my_catches_v2"
+      ],
+      "reason": "The capture entry and Empty Home scene require calm ambient life while content screens must avoid decorative looping.",
+      "usage": "Bobber/ripple/cloud/beam motion, capture-button rim sweep and breathing, and restrained content-screen feedback."
+    }
+  ]
+}

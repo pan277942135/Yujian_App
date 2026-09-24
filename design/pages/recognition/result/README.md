@@ -2,7 +2,14 @@
 
 Role: **Capture → Record Bridge**
 
-Status: visual source registered; binary Git copy pending.
+Status: **FROZEN**
+
+## Frozen visual reference
+
+- Canonical reference: design/system/core_visual_v1/reference/recognition_result_v1.png
+- SHA-256: c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482
+- System authority: YuJian Core Visual System V1
+- Verification: reference_manifest.json and verify_core_ui_v1_references.py
 
 ## Responsibility
 Fast fish-species confirmation + lightweight base information entry.

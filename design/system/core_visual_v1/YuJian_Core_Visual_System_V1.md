@@ -29,6 +29,11 @@ YuJian is a natural-memory product, not a fishing dashboard or collection game.
 - top-left design coordinate origin
 - runtime must use adaptive layout; reference pixels are not literal Android pixels
 
+The 1080 × 1920 canvas remains the design-coordinate standard. The frozen source PNG
+binaries deliberately retain their product-uploaded dimensions (five at 941 × 1672 and
+Normal Home at 1080 × 1920); their exact dimensions are authoritative in
+reference/reference_manifest.json and must not be normalized by resizing or re-exporting.
+
 ## 3. Background
 ### BG_ENV_HERO
 Use: Empty Home / Normal Home. Environment participates in the story: morning sky, distant mountain, thin mist, lake, restrained warm-gold light.

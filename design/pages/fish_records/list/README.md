@@ -2,7 +2,14 @@
 
 Role: **Chronological Archive**
 
-Status: visual source registered; binary Git copy pending.
+Status: **FROZEN**
+
+## Frozen visual reference
+
+- Canonical reference: design/system/core_visual_v1/reference/my_catches_v2.png
+- SHA-256: d88e1542103aaa6af98da036b62ed6b18fca8e1b870dcc817fecea27e05072bd
+- System authority: YuJian Core Visual System V1
+- Verification: reference_manifest.json and verify_core_ui_v1_references.py
 
 ## Structure
 - search / filter
