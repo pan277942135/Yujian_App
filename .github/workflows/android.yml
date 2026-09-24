@@ -214,8 +214,11 @@ jobs:
             adb shell screenrecord --time-limit 15 /sdcard/full_runtime_15s.mp4
             adb pull /sdcard/full_runtime_15s.mp4 build/home-evidence/full_runtime_15s.mp4
             ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -t 10 -c copy build/home-evidence/environment_motion.mp4
-            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -vf crop=360:420:350:930 -an build/home-evidence/bobber_ripple_crop.mp4
-            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -vf crop=420:520:330:1320 -an build/home-evidence/camera_motion.mp4
+            # Android's screenrecord output resolution is device-dependent. Keep
+            # evidence crops in normalized reference-space proportions instead
+            # of assuming a 1080x1920 recording.
+            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -vf "crop=iw/3:ih*0.22:iw*0.324:ih*0.484" -an build/home-evidence/bobber_ripple_crop.mp4
+            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -vf "crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69" -an build/home-evidence/camera_motion.mp4
             python3 scripts/build_empty_home_runtime_evidence.py --evidence-dir build/home-evidence --build-sha "$GITHUB_SHA"
             cp design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png build/home-evidence/static_reference.png
 
