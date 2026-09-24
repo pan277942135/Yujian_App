@@ -15,6 +15,19 @@
     "runtime_debug.json",
     "visual_parity_report.json"
   ],
-  "runtime_evidence": "PENDING_CI",
+  "runtime_evidence": "PASS",
+  "verified_run": {
+    "android_ci_run_id": 35965640545,
+    "implementation_head_sha": "29ac676a2f636fa697cae960d64d0d24e239fb0e",
+    "tested_merge_sha": "4c47fd5123a9f7dc0fa37d3d2d81e8973200c596",
+    "workflow_url": "https://github.com/pan277942135/Yujian_App/actions/runs/35965640545",
+    "artifact_id": 10793778050,
+    "artifact_digest": "sha256:3f7f98c2bc9270700e994818dab97794a92f128bbbdb345a5a859d8690c6047d"
+  },
+  "visual_parity": {
+    "status": "PASS",
+    "mean_absolute_rgb_error": 32.9584,
+    "threshold": 40.0
+  },
   "notes": "Large MP4 evidence is deliberately stored as a GitHub Actions artifact, not committed to Git history."
 }
