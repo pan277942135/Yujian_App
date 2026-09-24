@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "status": "SOURCE_REGISTERED_BINARY_COPY_PENDING",
+  "source_canvas_px": [
+    941,
+    1672
+  ],
+  "design_reference_standard_px": [
+    1080,
+    1920
+  ],
+  "note": "Current supplied render exports are 941×1672 at 9:16. Preserve them as canonical visual references; 1080×1920 remains the design coordinate standard.",
+  "references": [
+    {
+      "id": "fish_record_detail_v2",
+      "source_filename": "湖畔鱼获详情界面.png",
+      "target_filename": "fish_record_detail_v2.png",
+      "sha256": "3bb0fd5fd38d0721f5ac89489c224deae29c09401e2c9239fcf9435b320eeb58",
+      "status": "pending_binary_copy"
+    },
+    {
+      "id": "my_catches_v2",
+      "source_filename": "湖畔晨曦中的鱼获日志(1).png",
+      "target_filename": "my_catches_v2.png",
+      "sha256": "d88e1542103aaa6af98da036b62ed6b18fca8e1b870dcc817fecea27e05072bd",
+      "status": "pending_binary_copy"
+    },
+    {
+      "id": "recognition_result_v1",
+      "source_filename": "湖畔钓获识别记录界面.png",
+      "target_filename": "recognition_result_v1.png",
+      "sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
+      "status": "pending_binary_copy"
+    },
+    {
+      "id": "fish_guide_v2",
+      "source_filename": "晨曦湖畔鱼鉴界面.png",
+      "target_filename": "fish_guide_v2.png",
+      "sha256": "fff5588c80616ba273c0c80e0e150c2a0a9f0f11b380ca18edefddf8c13f70c8",
+      "status": "pending_binary_copy"
+    },
+    {
+      "id": "empty_home_v2",
+      "source_filename": "晨雾湖畔，记录第一条鱼.png",
+      "target_filename": "empty_home_v2.png",
+      "sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
+      "status": "pending_binary_copy"
+    },
+    {
+      "id": "normal_home_v1",
+      "source_filename": "玉见湖畔钓获.png",
+      "target_filename": "normal_home_v1.png",
+      "sha256": "37be4aa46e4f1db60c54dcf67ba50ab20b034077fba734e32ce050fa1eab31cc",
+      "status": "pending_binary_copy"
+    }
+  ]
+}
