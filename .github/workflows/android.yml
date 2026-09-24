@@ -194,10 +194,7 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.ui.designsystem.DesignSystemComponentPreviewTest --stacktrace
             if [ "$GITHUB_EVENT_NAME" != "push" ] && [ "$GITHUB_EVENT_NAME" != "pull_request" ] && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then exit 0; fi
             mkdir -p build/designsystem-evidence
-            DESIGNSYSTEM_CAPTURE_SETTLE_SECONDS=5 \
-              bash scripts/capture_designsystem_runtime_evidence.sh \
-                app/build/outputs/apk/debug/app-debug.apk \
-                build/designsystem-evidence
+            DESIGNSYSTEM_CAPTURE_SETTLE_SECONDS=5 bash scripts/capture_designsystem_runtime_evidence.sh app/build/outputs/apk/debug/app-debug.apk build/designsystem-evidence
             mkdir -p build/home-evidence
             adb install -r app/build/outputs/apk/debug/app-debug.apk
 
