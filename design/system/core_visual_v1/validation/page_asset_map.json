@@ -1,0 +1,139 @@
+{
+  "version": "1.0",
+  "status": "PASS",
+  "policy": "Same World does not imply the same bitmap. Every page keeps its frozen composition while shared visual language is supplied by tokens and components.",
+  "pages": [
+    {
+      "page_id": "empty_home_v2",
+      "reference": "reference/empty_home_v2.png",
+      "asset_decisions": [
+        {
+          "asset": "morning_lake_environment_and_foreground",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "PAGE_SPECIFIC",
+          "reason": "The full-bleed scene contains page-specific composition, rod, line, bobber, and brand-copy placement; no independent master layer is available."
+        },
+        {
+          "asset": "bobber_ripple",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "NATIVE_OR_SEPARATE_APPROVED_LAYER",
+          "reason": "Motion is frozen in motion tokens, but no reusable source bitmap may be extracted from the screenshot."
+        }
+      ]
+    },
+    {
+      "page_id": "normal_home_v1",
+      "reference": "reference/normal_home_v1.png",
+      "asset_decisions": [
+        {
+          "asset": "home_morning_lake_treatment",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "PAGE_SPECIFIC",
+          "reason": "It belongs to the shared world but is not the same composition as Empty Home."
+        },
+        {
+          "asset": "recent_catch_photo",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_MEDIA",
+          "reason": "The hero must display the user's actual latest FishRecord media."
+        },
+        {
+          "asset": "user_avatar",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_PROFILE_MEDIA",
+          "reason": "Identity media is user data, not a design-system asset."
+        }
+      ]
+    },
+    {
+      "page_id": "recognition_result_v1",
+      "reference": "reference/recognition_result_v1.png",
+      "asset_decisions": [
+        {
+          "asset": "captured_fish_image",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_MEDIA",
+          "reason": "Recognition acts on the current capture; the image cannot be shared as a static asset."
+        },
+        {
+          "asset": "reduced_background_treatment",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "PAGE_SPECIFIC",
+          "reason": "It inherits the morning world at lower salience while preserving the capture-to-record page composition."
+        }
+      ]
+    },
+    {
+      "page_id": "fish_record_detail_v2",
+      "reference": "reference/fish_record_detail_v2.png",
+      "asset_decisions": [
+        {
+          "asset": "fish_record_hero_media",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_MEDIA",
+          "reason": "The hero is the selected FishRecord's real catch image."
+        },
+        {
+          "asset": "memory_media",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_MEDIA",
+          "reason": "Photos, video, and generated memory material belong to an individual FishRecord."
+        },
+        {
+          "asset": "detail_background_treatment",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "PAGE_SPECIFIC",
+          "reason": "The same world is deliberately quieter than Home to protect record details."
+        }
+      ]
+    },
+    {
+      "page_id": "my_catches_v2",
+      "reference": "reference/my_catches_v2.png",
+      "asset_decisions": [
+        {
+          "asset": "record_thumbnails",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_MEDIA",
+          "reason": "Timeline cards must render the user's record photos."
+        },
+        {
+          "asset": "chronological_timeline_treatment",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "NATIVE_LAYOUT",
+          "reason": "Month/date grouping and location summaries are data-driven structure, not bitmap art."
+        },
+        {
+          "asset": "low_salience_data_background",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "PAGE_SPECIFIC",
+          "reason": "The visual world is reduced further for a dense archive and must not reuse the Home screenshot."
+        }
+      ]
+    },
+    {
+      "page_id": "fish_guide_v2",
+      "reference": "reference/fish_guide_v2.png",
+      "asset_decisions": [
+        {
+          "asset": "species_subject",
+          "classification": "PAGE_SPECIFIC",
+          "implementation": "RUNTIME_OR_APPROVED_SPECIES_MEDIA",
+          "reason": "A FishGuideCard needs its specific species image or illustration; the frozen card must not be cropped for reuse."
+        },
+        {
+          "asset": "lit_and_unlit_card_state",
+          "classification": "VARIANT",
+          "implementation": "ONE_FISH_GUIDE_CARD_SYSTEM",
+          "reason": "fish_guide_v2 and supplemental/fish_guide_unlit_state define states of the same natural field-guide component."
+        },
+        {
+          "asset": "guide_background_treatment",
+          "classification": "REFERENCE_ONLY",
+          "implementation": "PAGE_SPECIFIC",
+          "reason": "It follows BG_DATA and protects the carousel and archive information."
+        }
+      ]
+    }
+  ]
+}
