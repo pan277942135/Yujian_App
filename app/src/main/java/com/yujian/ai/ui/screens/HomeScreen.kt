@@ -36,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -65,7 +64,6 @@ import com.yujian.ai.ui.home.rememberHomeMotionState
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
     "home_empty_v1_3/assets/background/home_empty_bg_no_bobber.webp"
-private const val CtaScrim = "home_empty_v1_3/assets/overlays/cta_scrim.png"
 
 @Composable
 fun HomeScreen(
@@ -282,14 +280,6 @@ private fun ColumnScope.EmptyHomeContent(
             .widthIn(max = 430.dp)
             .height(190.dp),
     ) {
-        AssetImage(
-            CtaScrim,
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = 0.165f },
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-        )
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,

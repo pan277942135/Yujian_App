@@ -1,0 +1,11 @@
+{
+  "album_tap": {
+    "semantic": "platform_light_click"
+  },
+  "camera_tap": {
+    "duration_hint_ms": 20,
+    "semantic": "light_impact"
+  },
+  "idle": "none",
+  "page_enter": "none"
+}

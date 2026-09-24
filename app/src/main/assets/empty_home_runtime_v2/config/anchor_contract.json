@@ -1,0 +1,99 @@
+{
+  "bobber": {
+    "bbox_reference_px": {
+      "height": 122,
+      "width": 24,
+      "x": 518,
+      "y": 1084
+    },
+    "bottom_reference_px": [
+      530,
+      1206
+    ],
+    "center_normalized": [
+      0.490741,
+      0.596354
+    ],
+    "center_reference_px": [
+      530,
+      1145
+    ],
+    "water_contact_reference_px": [
+      530,
+      1168
+    ]
+  },
+  "camera_button": {
+    "bbox_reference_px": {
+      "height": 208,
+      "width": 208,
+      "x": 436,
+      "y": 1500
+    },
+    "center_normalized": [
+      0.5,
+      0.835417
+    ],
+    "center_reference_px": [
+      540,
+      1604
+    ]
+  },
+  "hero_title": {
+    "accessible_text": "现在，轮到你，记录第一条鱼。",
+    "bbox_reference_px": {
+      "height": 310,
+      "width": 620,
+      "x": 50,
+      "y": 224
+    }
+  },
+  "line": {
+    "bbox_reference_px": {
+      "height": 250,
+      "width": 170,
+      "x": 400,
+      "y": 950
+    },
+    "end_reference_px": [
+      530,
+      1169
+    ],
+    "start_reference_px": [
+      415,
+      950
+    ]
+  },
+  "reference_canvas": {
+    "height": 1920,
+    "width": 1080
+  },
+  "ripple": {
+    "bbox_reference_px": {
+      "height": 82,
+      "width": 238,
+      "x": 411,
+      "y": 1127
+    },
+    "center_normalized": [
+      0.490741,
+      0.608333
+    ],
+    "center_reference_px": [
+      530,
+      1168
+    ]
+  },
+  "rod": {
+    "bbox_reference_px": {
+      "height": 365,
+      "width": 450,
+      "x": 0,
+      "y": 950
+    },
+    "tip_reference_px": [
+      431,
+      958
+    ]
+  }
+}

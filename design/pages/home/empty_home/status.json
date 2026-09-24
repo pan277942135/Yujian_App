@@ -1,0 +1,10 @@
+{
+  "android_evidence": "PENDING_CI",
+  "android_runtime": "PENDING_CI",
+  "asset_production": "PASS",
+  "design_frozen": true,
+  "feature": "home_empty_v2",
+  "scope": "android_only",
+  "shared_contracts": "PASS",
+  "source_sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b"
+}

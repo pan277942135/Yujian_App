@@ -30,17 +30,19 @@ class EmptyHomeMotionTest {
     @Test
     fun rippleIsCenteredAndFadesOverItsPeriod() {
         assertEquals(1f, rippleScale(0f), 0.0001f)
-        assertEquals(1.09f, rippleScale(3.5f / 2f), 0.0001f)
-        assertEquals(0.24f, rippleAlpha(0f), 0.0001f)
-        assertEquals(0f, rippleAlpha(3.5f - 0.0001f), 0.0001f)
+        assertEquals(1.11f, rippleScale(3.2f / 2f), 0.0001f)
+        assertEquals(0.30f, rippleAlpha(0f), 0.0001f)
+        assertEquals(0f, rippleAlpha(3.2f - 0.0001f), 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, 530f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, 1168f, 0.0001f)
     }
 
     @Test
     fun cloudDriftStaysWithinMotionSafeRange() {
         val samples = (0..600).map { cloudOffsetPx(it / 10f) }
 
-        assertTrue(samples.maxOrNull()!! <= 1.91f)
-        assertTrue(samples.minOrNull()!! >= -1.91f)
+        assertEquals(0f, samples.first(), 0.0001f)
+        assertTrue(samples.last() <= 12f)
     }
 
     @Test

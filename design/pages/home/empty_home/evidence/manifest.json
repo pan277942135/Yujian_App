@@ -1,0 +1,20 @@
+{
+  "feature": "home_empty_v2",
+  "platform": "android",
+  "source": "real APK run on GitHub Actions Android emulator",
+  "artifact_name_pattern": "YuJian-home-visual-evidence-<commit-sha>",
+  "required_files": [
+    "static_reference.png",
+    "runtime_static.png",
+    "runtime_4s.png",
+    "anchor_overlay.png",
+    "bobber_ripple_crop.mp4",
+    "environment_motion.mp4",
+    "camera_motion.mp4",
+    "full_runtime_15s.mp4",
+    "runtime_debug.json",
+    "visual_parity_report.json"
+  ],
+  "runtime_evidence": "PENDING_CI",
+  "notes": "Large MP4 evidence is deliberately stored as a GitHub Actions artifact, not committed to Git history."
+}
