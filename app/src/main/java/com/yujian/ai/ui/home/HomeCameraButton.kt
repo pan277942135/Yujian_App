@@ -21,8 +21,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.components.AssetImage
 
-private const val LEGACY_CAMERA_OUTER = "home_empty_v1_3/assets/camera/camera_outer.png"
-private const val LEGACY_CAMERA_INNER = "home_empty_v1_3/assets/camera/camera_inner.png"
+private const val FALLBACK_CAMERA_BASE = "empty_home_runtime_v2/camera/camera_button_base.png"
 
 /**
  * The camera hitbox remains fixed while the visual base, breath and rim sweep
@@ -59,25 +58,21 @@ internal fun HomeCameraButton(
                 role = Role.Button
             }
             .clickable {
-                view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+                // Android's light keyboard tap is the closest platform semantic to V2 Light Impact.
+                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                 onClick()
             },
         contentAlignment = Alignment.Center,
     ) {
         if (runtimeAssets == null) {
             AssetImage(
-                LEGACY_CAMERA_OUTER,
+                FALLBACK_CAMERA_BASE,
                 Modifier
                     .fillMaxSize()
                     .graphicsLayer {
                         scaleX = cameraScale
                         scaleY = cameraScale
                     },
-                contentDescription = null,
-            )
-            AssetImage(
-                LEGACY_CAMERA_INNER,
-                Modifier.fillMaxSize(),
                 contentDescription = null,
             )
         } else {

@@ -20,3 +20,10 @@ This directory is the design source of truth for YuJian / 渔见.
 - Fish Guide
 
 System specification: `design/system/core_visual_v1/YuJian_Core_Visual_System_V1.md`.
+
+## Empty Home V2 runtime source
+
+`design/pages/home/empty_home` is the frozen Empty Home V2 design-to-runtime source of truth.
+It contains the original visual source, reproducible reusable masters, contracts, validation
+outputs, and Android evidence. The Android runtime is the only platform represented by this V2
+delivery; no iOS or HarmonyOS readiness claim is implied.
