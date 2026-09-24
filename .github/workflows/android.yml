@@ -191,7 +191,10 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.FishDetectionQualityGateTest --stacktrace
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.EmptyHomeV2RuntimeContractTest --stacktrace
+            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.ui.designsystem.DesignSystemComponentPreviewTest --stacktrace
             if [ "$GITHUB_EVENT_NAME" != "push" ] && [ "$GITHUB_EVENT_NAME" != "pull_request" ] && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then exit 0; fi
+            mkdir -p build/designsystem-evidence
+            DESIGNSYSTEM_CAPTURE_SETTLE_SECONDS=5 bash scripts/capture_designsystem_runtime_evidence.sh app/build/outputs/apk/debug/app-debug.apk build/designsystem-evidence
             mkdir -p build/home-evidence
             adb install -r app/build/outputs/apk/debug/app-debug.apk
 
@@ -254,5 +257,14 @@ jobs:
         with:
           name: YuJian-home-visual-evidence-${{ github.sha }}
           path: build/home-evidence
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload YuJian Design System runtime evidence
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-designsystem-runtime-evidence-${{ github.sha }}
+          path: build/designsystem-evidence
           if-no-files-found: error
           retention-days: 7
