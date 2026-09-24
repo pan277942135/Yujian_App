@@ -1,0 +1,28 @@
+{
+  "clean_scene": {
+    "input_path": "source/provenance/clean_scene_input_local_inpaint.png",
+    "input_sha256": "c4f8c340db51719e2c808812a56f965de06351678c1f385e73da3d0dc60567db",
+    "path": "intermediate/background/clean_scene_master_1080x1920.png",
+    "provenance": "local inpaint cleanup of only UI, rod, line, bobber and ripple regions from the frozen visual; no scene redesign",
+    "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22"
+  },
+  "design_version": "Empty_Home_Final_Design_V2",
+  "frozen_input": {
+    "canonical_path": "source/frozen/Empty_Home_Final_Design_V2.png",
+    "original_dimensions": [
+      941,
+      1672
+    ],
+    "received_filename": "晨雾湖畔，记录第一条鱼.png",
+    "sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b"
+  },
+  "normalized_reference": {
+    "method": "uniform width scale with one-pixel edge padding; no crop and no semantic content added",
+    "normalized_dimensions": [
+      1080,
+      1920
+    ],
+    "path": "source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+    "sha256": "ebf96d310678b5fd47149cd8dadf3dd24cb00b2b83253876aa4cf9e89f954b77"
+  }
+}

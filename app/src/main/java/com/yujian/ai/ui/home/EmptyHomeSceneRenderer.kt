@@ -10,8 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -20,8 +18,7 @@ import com.yujian.ai.ui.components.AssetImage
 import kotlin.math.roundToInt
 
 private const val FALLBACK_BACKGROUND =
-    "home_empty_v1_3/assets/background/home_empty_bg_no_bobber.webp"
-private const val GOLD = 0xFFFDCF88
+    "empty_home_runtime_v2/static/scene_base.webp"
 
 @Composable
 internal fun EmptyHomeSceneRenderer(
@@ -67,24 +64,61 @@ private fun DrawScope.drawRuntimeOverlays(
 
     drawReferenceBitmap(
         bitmap = assets.cloud,
-        x = cloudOffsetPx(time),
-        y = 5f,
+        x = 214f + cloudOffsetPx(time),
+        y = 92f,
         width = assets.cloud.width.toFloat(),
         height = assets.cloud.height.toFloat(),
-        alpha = 1f,
+        alpha = 0.45f,
         transform = transform,
         paint = paint,
         destination = destination,
     )
 
     if (motionState.running && !motionState.reduceMotion) {
+        drawReferenceBitmap(
+            bitmap = assets.sunBeam,
+            x = 654f,
+            y = 474f,
+            width = assets.sunBeam.width.toFloat(),
+            height = assets.sunBeam.height.toFloat(),
+            alpha = 0.18f * sunBeamEnvelope(time),
+            transform = transform,
+            paint = paint,
+            destination = destination,
+        )
         drawSunParticles(
             time = time,
             envelope = sunBeamEnvelope(time),
             particles = particles,
             transform = transform,
+            particleBitmap = assets.particle,
+            paint = paint,
+            destination = destination,
         )
     }
+
+    drawReferenceBitmap(
+        bitmap = assets.rod,
+        x = 0f,
+        y = 950f,
+        width = assets.rod.width.toFloat(),
+        height = assets.rod.height.toFloat(),
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+    drawReferenceBitmap(
+        bitmap = assets.line,
+        x = 400f,
+        y = 950f,
+        width = assets.line.width.toFloat(),
+        height = assets.line.height.toFloat(),
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
 
     val bobberOffset = if (motionState.running && !motionState.reduceMotion) {
         bobberOffsetPx(time)
@@ -93,30 +127,30 @@ private fun DrawScope.drawRuntimeOverlays(
     }
     drawReferenceBitmap(
         bitmap = assets.ripple,
-        x = 690f,
-        y = 1158f - assets.ripple.height / 2f + bobberOffset,
+        x = EMPTY_HOME_V2_RIPPLE_X,
+        y = EMPTY_HOME_V2_RIPPLE_Y + bobberOffset,
         width = assets.ripple.width.toFloat(),
         height = assets.ripple.height.toFloat(),
         alpha = if (motionState.running && !motionState.reduceMotion) {
             rippleAlpha(time)
         } else {
-            1f
+            0.30f
         },
         scale = if (motionState.running && !motionState.reduceMotion) {
             rippleScale(time)
         } else {
             1f
         },
-        pivotX = 750f,
-        pivotY = 1158f,
+        pivotX = EMPTY_HOME_V2_WATER_CONTACT_X,
+        pivotY = EMPTY_HOME_V2_WATER_CONTACT_Y + bobberOffset,
         transform = transform,
         paint = paint,
         destination = destination,
     )
     drawReferenceBitmap(
         bitmap = assets.bobber,
-        x = 743f,
-        y = 1112f + bobberOffset,
+        x = EMPTY_HOME_V2_BOBBER_X,
+        y = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
         width = assets.bobber.width.toFloat(),
         height = assets.bobber.height.toFloat(),
         alpha = 1f,
@@ -131,18 +165,24 @@ private fun DrawScope.drawSunParticles(
     envelope: Float,
     particles: List<SunParticleSpec>,
     transform: ReferenceSceneTransform,
+    particleBitmap: Bitmap,
+    paint: Paint,
+    destination: RectF,
 ) {
     particles.forEach { particle ->
         val progress = (time / 4.8f + particle.phase) % 1f
         val x = particle.x + particle.driftX * progress
         val y = particle.y + particle.travelY * progress
-        drawCircle(
-            color = Color(GOLD).copy(alpha = particle.alpha * envelope),
-            radius = particle.radius * transform.scale,
-            center = Offset(
-                x = transform.offsetX + x * transform.scale,
-                y = transform.offsetY + y * transform.scale,
-            ),
+        drawReferenceBitmap(
+            bitmap = particleBitmap,
+            x = x - particle.radius,
+            y = y - particle.radius,
+            width = particle.radius * 2f,
+            height = particle.radius * 2f,
+            alpha = particle.alpha * envelope,
+            transform = transform,
+            paint = paint,
+            destination = destination,
         )
     }
 }
