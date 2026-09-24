@@ -160,6 +160,7 @@ fun HomeScreen(
                     onRecordDaysClick = onRecordDaysClick,
                     onProfileClick = onProfileClick,
                     onCatchClick = onCatchClick,
+                    motionState = homeMotionState,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

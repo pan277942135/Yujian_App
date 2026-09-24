@@ -15,19 +15,46 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
+import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val Ink = Color(0xFF18324A)
-private val Muted = Color(0xCC18324A)
-private val Divider = Color.White.copy(alpha = 0.38f)
+internal data class HomeStatValues(
+    val speciesCount: Int,
+    val catchCount: Int,
+    val recordDays: Int,
+)
+
+/**
+ * Server totals remain authoritative when available. The local catch archive is
+ * the offline/guest fallback and provides the distinct record-day calculation.
+ */
+internal fun resolveHomeStatValues(
+    statistics: CatchStatistics,
+    catches: List<RemoteCatch>,
+): HomeStatValues {
+    val localSpeciesCount = catches
+        .map { it.speciesId.ifBlank { it.speciesName } }
+        .filter(String::isNotBlank)
+        .distinct()
+        .size
+    val recordDays = catches
+        .mapNotNull(::catchDayKey)
+        .distinct()
+        .size
+
+    return HomeStatValues(
+        speciesCount = statistics.speciesCount.takeIf { it > 0 } ?: localSpeciesCount,
+        catchCount = statistics.totalCatches.takeIf { it > 0 } ?: catches.size,
+        recordDays = recordDays,
+    )
+}
 
 @Composable
 fun HomeStats(
@@ -37,47 +64,60 @@ fun HomeStats(
     onCatchesClick: () -> Unit,
     onRecordDaysClick: () -> Unit,
 ) {
-    val realSpeciesCount = remember(catches) {
-        catches
-            .map { it.speciesId.ifBlank { it.speciesName } }
-            .filter(String::isNotBlank)
-            .distinct()
-            .size
-    }
-    val realCatchCount = catches.size
-    val recordDays = remember(catches) {
-        catches
-            .mapNotNull { parseDate(it.capturedAt.ifBlank { it.createdAt }) }
-            .map { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(it) }
-            .distinct()
-            .size
-    }
+    val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     Row(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 22.dp, vertical = 14.dp),
+            .padding(horizontal = YuJianSpacing.lg),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HomeStat(Modifier.weight(1f), realSpeciesCount.toString(), "鱼种", onSpeciesClick)
-        Box(Modifier.width(1.dp).height(34.dp).background(Divider))
-        HomeStat(Modifier.weight(1f), realCatchCount.toString(), "鱼获", onCatchesClick)
-        Box(Modifier.width(1.dp).height(34.dp).background(Divider))
-        HomeStat(Modifier.weight(1f), recordDays.toString(), "记录天数", onRecordDaysClick)
+        HomeStat(Modifier.weight(1f), values.speciesCount.toString(), "鱼种", onSpeciesClick)
+        Box(
+            Modifier
+                .width(1.dp)
+                .height(YuJianSpacing.xl)
+                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
+        )
+        HomeStat(Modifier.weight(1f), values.catchCount.toString(), "鱼获", onCatchesClick)
+        Box(
+            Modifier
+                .width(1.dp)
+                .height(YuJianSpacing.xl)
+                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
+        )
+        HomeStat(Modifier.weight(1f), values.recordDays.toString(), "记录天数", onRecordDaysClick)
     }
+}
+
+@Composable
+private fun HomeStat(modifier: Modifier, value: String, label: String, onClick: () -> Unit) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = YuJianSpacing.xs),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = value,
+            style = YuJianTypography.dataNumber.copy(color = YuJianColors.TextPrimary),
+        )
+        Text(
+            text = label,
+            style = YuJianTypography.caption.copy(color = YuJianColors.TextPrimary.copy(alpha = 0.78f)),
+        )
+    }
+}
+
+private fun catchDayKey(catch: RemoteCatch): String? {
+    val value = catch.capturedAt.ifBlank { catch.createdAt }.trim()
+    if (value.isBlank()) return null
+    parseDate(value)?.let { date ->
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
+    }
+    return value.take(10).takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
 }
 
 private fun parseDate(value: String): Date? = runCatching {
     SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(value)
 }.getOrNull()
-
-@Composable
-private fun HomeStat(modifier: Modifier, value: String, label: String, onClick: () -> Unit) {
-    Column(
-        modifier.clickable(onClick = onClick).padding(vertical = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(value, color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Normal)
-        Text(label, color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 3.dp))
-    }
-}
