@@ -81,6 +81,7 @@ fun RecognizingScreen(
     recognize: suspend ((RecognitionProgress) -> Unit) -> ProductionRecognitionResult,
     generateSubject: (suspend (SelectedImage, NormalizedFishBox) -> FishSubjectResult)? = null,
     onFinished: (ProductionRecognitionResult) -> Unit,
+    phaseOverride: RecognitionPhase? = null,
 ) {
     var phase by remember { mutableStateOf(RecognitionPhase.CAPTURED) }
     var assessment by remember { mutableStateOf<FishInputAssessment?>(null) }
@@ -148,6 +149,8 @@ fun RecognizingScreen(
         }
     }
 
+    val renderedPhase = phaseOverride ?: phase
+
     Column(
         Modifier
             .fillMaxSize()
@@ -179,8 +182,8 @@ fun RecognizingScreen(
                 subjectBitmap = subjectBitmap,
                 subjectBox = subjectBox,
                 contour = contour,
-                focusActive = phase.ordinal >= RecognitionPhase.OUTLINE.ordinal,
-                phase = phase,
+                focusActive = renderedPhase.ordinal >= RecognitionPhase.OUTLINE.ordinal,
+                phase = renderedPhase,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
@@ -207,7 +210,7 @@ fun RecognizingScreen(
             }
         } else {
             Text(
-                text = RecognitionRuntimeContract.labelFor(phase),
+                text = RecognitionRuntimeContract.labelFor(renderedPhase),
                 color = WaterTeal,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
