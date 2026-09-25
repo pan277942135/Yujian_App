@@ -37,9 +37,11 @@ class YuJianDesignTokensTest {
 
     @Test
     fun captureMotionAndHapticTokensMatchFrozenDesign() {
+        assertEquals(3_000, YuJianMotion.CaptureRimSweepFirstDelayMillis)
         assertEquals(1_400, YuJianMotion.CaptureRimSweepDurationMillis)
         assertEquals(9_000, YuJianMotion.CaptureRimSweepRepeatIntervalMillis)
         assertEquals(5_000, YuJianMotion.CaptureBreathingDurationMillis)
+        assertTrue(YuJianMotion.CaptureBreathingMaxScale <= 1.015f)
         assertEquals(
             setOf(
                 YuJianHaptic.Feedback.Light,

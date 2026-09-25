@@ -32,16 +32,6 @@ internal const val EMPTY_HOME_V2_RIPPLE_Y = 1127f
 internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 530f
 internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1168f
 
-// Shared Empty Home fishing contact geometry in reference-canvas pixels.
-// The supplied bobber is rendered by its transparent canvas, while its
-// visible alpha bounds remain approximately 15 x 49 px.
-internal const val WATER_CONTACT_X = 750f
-internal const val WATER_CONTACT_Y = 1158f
-internal const val BOBBER_RENDER_X = 739.9f
-internal const val BOBBER_RENDER_Y = 1105.24f
-internal const val BOBBER_RENDER_WIDTH = 21.21f
-internal const val BOBBER_RENDER_HEIGHT = 53.75f
-
 /**
  * One frame clock shared by the Empty Home scene and its camera action layer.
  * The clock intentionally stops while the host lifecycle is paused.
@@ -151,6 +141,11 @@ internal fun calculateReferenceSceneTransform(
 
 internal fun bobberOffsetPx(timeSeconds: Float): Float =
     -3f * sin((timeSeconds % 4.6f) / 4.6f * (2f * PI.toFloat()))
+
+internal fun emptyHomeMotionActive(
+    running: Boolean,
+    reduceMotion: Boolean,
+): Boolean = running && !reduceMotion
 
 internal fun rippleProgress(timeSeconds: Float): Float =
     (timeSeconds % 3.2f) / 3.2f

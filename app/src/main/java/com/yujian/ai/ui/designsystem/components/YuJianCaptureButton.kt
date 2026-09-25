@@ -57,7 +57,7 @@ fun YuJianCaptureButton(
     )
     val breathingScale by transition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.015f,
+        targetValue = YuJianMotion.CaptureBreathingMaxScale,
         animationSpec = YuJianMotion.captureBreathingSpec(),
         label = "CaptureBreathing",
     )
@@ -86,11 +86,13 @@ fun YuJianCaptureButton(
                     scaleY = visualScale
                     alpha = if (enabled) 1f else 0.48f
                 }
-                .shadow(5.dp, CircleShape, clip = false),
+                // Keep the control legible over the lake without the heavy
+                // Material-FAB shadow that conflicts with the frozen visual.
+                .shadow(1.dp, CircleShape, clip = false),
             contentAlignment = Alignment.Center,
         ) {
             Canvas(Modifier.fillMaxSize()) {
-                val stroke = 1.5.dp.toPx()
+                val stroke = 1.dp.toPx()
                 drawCircle(color = YuJianColors.LakeWhite)
                 drawCircle(
                     color = YuJianColors.MorningGold.copy(alpha = 0.76f),
@@ -98,11 +100,11 @@ fun YuJianCaptureButton(
                 )
                 if (visibleSweepAlpha > 0f) {
                     drawArc(
-                        color = YuJianColors.MorningGold.copy(alpha = visibleSweepAlpha),
+                        color = YuJianColors.MorningGold.copy(alpha = 0.82f * visibleSweepAlpha),
                         startAngle = -110f + rimProgress * 360f,
                         sweepAngle = 56f,
                         useCenter = false,
-                        style = Stroke(width = stroke * 2f, cap = StrokeCap.Round),
+                        style = Stroke(width = stroke * 1.35f, cap = StrokeCap.Round),
                     )
                 }
             }
