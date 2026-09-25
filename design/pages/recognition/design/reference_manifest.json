@@ -1,0 +1,42 @@
+{
+  "feature": "Recognition Flow V1",
+  "version": "1.1",
+  "references": [
+    {
+      "file": "01_Capture_Transition_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "02_AI_Understanding_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "03_Fish_Highlight_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "04_Fish_Identifying_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "05_Result_High_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "06_Result_Medium_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "07_Result_Low_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "08_Error_No_Fish_Frozen.png",
+      "status": "FROZEN"
+    },
+    {
+      "file": "09_Error_Image_Quality_Frozen.png",
+      "status": "FROZEN"
+    }
+  ]
+}
