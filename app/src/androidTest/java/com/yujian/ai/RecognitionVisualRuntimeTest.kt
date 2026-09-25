@@ -12,6 +12,9 @@ import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionRuntimeContract
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.screens.RecognizingScreen
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -34,6 +37,7 @@ class RecognitionVisualRuntimeTest {
             prediction = null,
             cropPixels = null,
         )
+        val finished = CountDownLatch(1)
 
         composeRule.setContent {
             RecognizingScreen(
@@ -43,15 +47,15 @@ class RecognitionVisualRuntimeTest {
                     onProgress(com.yujian.ai.ai.RecognitionProgress(com.yujian.ai.ai.RecognitionPhase.OUTLINE, assessment))
                     result
                 },
-                onFinished = {},
+                onFinished = { finished.countDown() },
             )
         }
 
-        composeRule.waitUntil(timeoutMillis = 15_000L) {
-            runCatching {
-                composeRule.onNodeWithText("认识完成").assertExists()
-            }.isSuccess
-        }
+        assertTrue(
+            "recognition did not reach the contract result phase",
+            finished.await(RecognitionRuntimeContract.RESULT_START_MS + 12_000L, TimeUnit.MILLISECONDS),
+        )
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("认识完成").assertExists()
         bitmap.recycle()
     }
