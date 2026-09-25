@@ -142,6 +142,11 @@ internal fun calculateReferenceSceneTransform(
 internal fun bobberOffsetPx(timeSeconds: Float): Float =
     -3f * sin((timeSeconds % 4.6f) / 4.6f * (2f * PI.toFloat()))
 
+internal fun emptyHomeMotionActive(
+    running: Boolean,
+    reduceMotion: Boolean,
+): Boolean = running && !reduceMotion
+
 internal fun rippleProgress(timeSeconds: Float): Float =
     (timeSeconds % 3.2f) / 3.2f
 

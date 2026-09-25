@@ -19,6 +19,9 @@ internal fun HomeCameraButton(
 ) {
     YuJianCaptureButton(
         onClick = onClick,
-        motionEnabled = motionState.running,
+        motionEnabled = emptyHomeMotionActive(
+            running = motionState.running,
+            reduceMotion = motionState.reduceMotion,
+        ),
     )
 }

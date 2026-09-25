@@ -25,6 +25,7 @@ class EmptyHomeMotionTest {
         assertEquals(3f, samples[3], 0.0001f)
         assertEquals(0f, samples[4], 0.0001f)
         assertEquals(6f, samples.maxOrNull()!! - samples.minOrNull()!!, 0.0001f)
+        assertTrue(samples.all { it in -3f..3f })
     }
 
     @Test
@@ -35,6 +36,13 @@ class EmptyHomeMotionTest {
         assertEquals(0f, rippleAlpha(3.2f - 0.0001f), 0.0001f)
         assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, 530f, 0.0001f)
         assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, 1168f, 0.0001f)
+    }
+
+    @Test
+    fun reducedMotionFreezesSceneAndDisablesIdleEffects() {
+        assertTrue(emptyHomeMotionActive(running = true, reduceMotion = false))
+        assertTrue(!emptyHomeMotionActive(running = true, reduceMotion = true))
+        assertTrue(!emptyHomeMotionActive(running = false, reduceMotion = false))
     }
 
     @Test

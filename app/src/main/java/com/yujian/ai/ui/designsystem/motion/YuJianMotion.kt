@@ -28,6 +28,7 @@ object YuJianMotion {
     const val CaptureRimSweepDurationMillis = 1_400
     const val CaptureRimSweepRepeatIntervalMillis = 9_000
     const val CaptureBreathingDurationMillis = 5_000
+    const val CaptureBreathingMaxScale = 1.015f
     const val PressFeedbackDurationMillis = 140
     const val GlassInteractionDurationMillis = 180
 

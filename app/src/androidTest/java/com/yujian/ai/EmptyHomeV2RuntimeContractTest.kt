@@ -32,6 +32,7 @@ class EmptyHomeV2RuntimeContractTest {
         assertEquals(3200, ripple.getInt("duration_ms"))
         assertEquals(1.22, ripple.getDouble("scale_to"), 0.0001)
         assertEquals(0.30, ripple.getDouble("alpha_from"), 0.0001)
+        assertEquals("ripple_below_bobber", ripple.getString("z_order"))
         assertEquals(
             anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString(),
             anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString(),
