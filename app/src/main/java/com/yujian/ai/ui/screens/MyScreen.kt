@@ -51,7 +51,7 @@ fun MyScreen(
     error: String?,
     resolveImageUrl: (String?) -> String?,
     onGuide: () -> Unit,
-    onSpecies: (String) -> Unit,
+    onCatch: (String) -> Unit,
     onRetry: () -> Unit,
     onLogout: () -> Unit,
     onBsideAction: ((RemoteCatch) -> Unit)? = null,
@@ -113,7 +113,7 @@ fun MyScreen(
                     catch = catch,
                     resolveImageUrl = resolveImageUrl,
                     accessToken = session?.accessToken.orEmpty(),
-                    onClick = { onSpecies(catch.speciesId) },
+                    onClick = { onCatch(catch.id) },
                     onBsideAction = onBsideAction,
                 )
             }
