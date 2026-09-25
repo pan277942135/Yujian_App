@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,25 +14,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.radius.YuJianRadius
+import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
 private const val FISH_CARD_ROOT = "home_normal_v1_2/assets/fish_card"
-private val CardShape = RoundedCornerShape(28.dp)
-
 @Composable
 fun RecentFishCard(
     item: RemoteCatch,
@@ -56,7 +53,7 @@ fun RecentFishCard(
             Modifier
                 .fillMaxSize()
                 .padding(horizontal = 2.dp, vertical = 4.dp)
-                .clip(CardShape),
+                .clip(YuJianRadius.glassCard),
         ) {
             RemoteImage(
                 url = imageUrl,
@@ -90,12 +87,23 @@ fun RecentFishCard(
             Column(
                 Modifier.align(Alignment.BottomStart).padding(horizontal = 24.dp, vertical = 22.dp),
             ) {
-                Text(item.speciesName, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = item.speciesName,
+                    style = YuJianTypography.sectionTitle.copy(color = YuJianColors.OnDark),
+                )
                 displayMeasurement(item)?.let { value ->
-                    Text(value, color = Color.White.copy(alpha = 0.94f), fontSize = 15.sp, modifier = Modifier.padding(top = 5.dp))
+                    Text(
+                        text = value,
+                        style = YuJianTypography.body.copy(color = YuJianColors.OnDark.copy(alpha = 0.94f)),
+                        modifier = Modifier.padding(top = 5.dp),
+                    )
                 }
                 formatCatchMeta(item)?.let { value ->
-                    Text(value, color = Color.White.copy(alpha = 0.88f), fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+                    Text(
+                        text = value,
+                        style = YuJianTypography.caption.copy(color = YuJianColors.OnDark.copy(alpha = 0.88f)),
+                        modifier = Modifier.padding(top = 5.dp),
+                    )
                 }
             }
         }
