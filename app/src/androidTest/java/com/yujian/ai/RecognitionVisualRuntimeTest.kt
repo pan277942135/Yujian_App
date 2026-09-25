@@ -49,7 +49,7 @@ class RecognitionVisualRuntimeTest {
             )
         }
 
-        assertEquals(2, composeRule.onAllNodesWithText("认识完成").fetchSemanticsNodes().size)
+        assertEquals(1, composeRule.onAllNodesWithText("识别完成").fetchSemanticsNodes().size)
         bitmap.recycle()
     }
 }

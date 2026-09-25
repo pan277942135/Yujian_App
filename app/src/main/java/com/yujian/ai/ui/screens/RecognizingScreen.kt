@@ -2,24 +2,30 @@ package com.yujian.ai.ui.screens
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color as AndroidColor
-import android.os.SystemClock
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,39 +40,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.util.Log
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ai.RecognitionProgress
-import com.yujian.ai.ai.RecognitionRuntimeContract
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
-import com.yujian.ai.ui.theme.CardWhite
-import com.yujian.ai.ui.theme.DeepInk
-import com.yujian.ai.ui.theme.MutedInk
-import com.yujian.ai.ui.theme.SoftWater
-import com.yujian.ai.ui.theme.WarmBackground
-import com.yujian.ai.ui.theme.WaterTeal
+import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.math.max
 import kotlin.math.min
 
 private const val OUTLINE_THRESHOLD = 36
 private const val OUTLINE_STRIDE = 4
+private const val LOG_TAG = "RecognitionProcessingScene"
 
 private data class ContourSegment(
     val startX: Float,
@@ -75,6 +73,7 @@ private data class ContourSegment(
     val endY: Float,
 )
 
+/** Compatibility entry point retained for the navigation graph. */
 @Composable
 fun RecognizingScreen(
     image: SelectedImage?,
@@ -82,16 +81,38 @@ fun RecognizingScreen(
     recognize: suspend ((RecognitionProgress) -> Unit) -> ProductionRecognitionResult,
     generateSubject: (suspend (SelectedImage, NormalizedFishBox) -> FishSubjectResult)? = null,
     onFinished: (ProductionRecognitionResult) -> Unit,
+    onFailure: (Throwable) -> Unit = {},
     phaseOverride: RecognitionPhase? = null,
 ) {
-    var phase by remember { mutableStateOf(RecognitionPhase.CAPTURED) }
-    var assessment by remember { mutableStateOf<FishInputAssessment?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var subjectBitmap by remember(image?.filePath) { mutableStateOf<Bitmap?>(null) }
-    var subjectBox by remember(image?.filePath) { mutableStateOf<NormalizedFishBox?>(null) }
-    var contour by remember(image?.filePath) { mutableStateOf(emptyList<ContourSegment>()) }
+    RecognitionProcessingScene(
+        image = image,
+        onBack = onBack,
+        recognize = recognize,
+        generateSubject = generateSubject,
+        onFinished = onFinished,
+        onFailure = onFailure,
+        phaseOverride = phaseOverride,
+    )
+}
 
-    LaunchedEffect(image?.filePath, assessment?.primary?.box) {
+/** Shared photo + ambient layer + fish focus layer + frozen status card. */
+@Composable
+fun RecognitionProcessingScene(
+    image: SelectedImage?,
+    onBack: () -> Unit,
+    recognize: suspend ((RecognitionProgress) -> Unit) -> ProductionRecognitionResult,
+    generateSubject: (suspend (SelectedImage, NormalizedFishBox) -> FishSubjectResult)? = null,
+    onFinished: (ProductionRecognitionResult) -> Unit,
+    onFailure: (Throwable) -> Unit = {},
+    phaseOverride: RecognitionPhase? = null,
+) {
+    var phase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
+    var assessment by remember(image?.imageId) { mutableStateOf<FishInputAssessment?>(null) }
+    var subjectBitmap by remember(image?.imageId) { mutableStateOf<Bitmap?>(null) }
+    var subjectBox by remember(image?.imageId) { mutableStateOf<NormalizedFishBox?>(null) }
+    var contour by remember(image?.imageId) { mutableStateOf(emptyList<ContourSegment>()) }
+
+    LaunchedEffect(image?.imageId, assessment?.primary?.box) {
         val selected = image ?: return@LaunchedEffect
         val primary = assessment?.primary ?: return@LaunchedEffect
         val generator = generateSubject ?: return@LaunchedEffect
@@ -99,90 +120,43 @@ fun RecognizingScreen(
         subjectBox = null
         contour = emptyList()
         val result = runCatching { generator(selected, primary.box) }.getOrNull()
-        if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) {
-            return@LaunchedEffect
-        }
-        val loaded = withContext(Dispatchers.IO) {
-            BitmapFactory.decodeFile(result.bitmapPath)
-        } ?: return@LaunchedEffect
+        if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) return@LaunchedEffect
+        val loaded = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(result.bitmapPath) }
+            ?: return@LaunchedEffect
         subjectBitmap = loaded
         subjectBox = primary.box.expand(0.12f)
         contour = withContext(Dispatchers.Default) { extractContour(loaded) }
     }
 
-    LaunchedEffect(image?.filePath) {
-        if (image == null) {
-            error = "没有可识别的照片"
+    LaunchedEffect(image?.imageId) {
+        val selected = image
+        if (selected == null) {
+            val error = IllegalStateException("recognition image is unavailable")
+            Log.e(LOG_TAG, "Recognition image unavailable", error)
+            phase = RecognitionPhase.FAILURE
+            onFailure(error)
             return@LaunchedEffect
         }
         phase = RecognitionPhase.CAPTURED
         assessment = null
-        error = null
-        coroutineScope {
-            val startedAt = SystemClock.elapsedRealtime()
-            val recognition = async {
-                runCatching {
-                    // Recognition progress is consumed as data only. The
-                    // production timeline below controls what the user sees.
-                    recognize { progress ->
-                        progress.assessment?.let { assessment = it }
-                    }
-                }
+        runCatching {
+            recognize { progress ->
+                phase = progress.phase
+                progress.assessment?.let { assessment = it }
             }
-
-            while (!recognition.isCompleted) {
-                phase = RecognitionRuntimeContract.phaseAt(SystemClock.elapsedRealtime() - startedAt)
-                    .takeUnless { it == RecognitionPhase.RESULT }
-                    ?: RecognitionPhase.CLASSIFYING
-                delay(40)
-            }
-
-            val result = recognition.await()
-            val remaining = RecognitionRuntimeContract.RESULT_START_MS -
-                (SystemClock.elapsedRealtime() - startedAt)
-            if (remaining > 0L) delay(remaining)
-
-            phase = RecognitionPhase.CLASSIFYING
-            result
-                .onSuccess { completed ->
-                    assessment = completed.assessment
-                    phase = if (completed.ready) RecognitionPhase.RESULT else RecognitionPhase.FAILURE
-                    onFinished(completed)
-                }
-                .onFailure {
-                    Log.e(LOG_TAG, "Recognition runtime failed", it)
-                    phase = RecognitionPhase.FAILURE
-                    error = recognitionFailureMessage(it)
-                }
+        }.onSuccess { result ->
+            assessment = result.assessment
+            phase = if (result.prediction != null) RecognitionPhase.RESULT else RecognitionPhase.FAILURE
+            onFinished(result)
+        }.onFailure { error ->
+            Log.e(LOG_TAG, "Recognition runtime failed", error)
+            phase = RecognitionPhase.FAILURE
+            onFailure(error)
         }
     }
 
     val renderedPhase = phaseOverride ?: phase
-
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(WarmBackground)
-            .padding(top = 18.dp),
-    ) {
-        Text(
-            text = if (phase == RecognitionPhase.RESULT) "正在认识这条鱼" else "正在认识这条鱼",
-            color = DeepInk,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-        Text(
-            text = when {
-                error != null || phase == RecognitionPhase.FAILURE -> "这次没有完成识别"
-                phase == RecognitionPhase.CAPTURED || phase == RecognitionPhase.DETECTING -> "正在寻找鱼体"
-                else -> "正在认识这条鱼"
-            },
-            color = MutedInk,
-            fontSize = 13.sp,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-        )
-
+    Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) {
             RecognitionPhoto(
                 bitmap = image.bitmap,
@@ -190,54 +164,62 @@ fun RecognizingScreen(
                 subjectBitmap = subjectBitmap,
                 subjectBox = subjectBox,
                 contour = contour,
-                focusActive = renderedPhase.ordinal >= RecognitionPhase.OUTLINE.ordinal,
-                phase = renderedPhase,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(390.dp)
-                    .clip(RoundedCornerShape(28.dp)),
+                focusActive = renderedPhase == RecognitionPhase.OUTLINE ||
+                    renderedPhase == RecognitionPhase.CLASSIFYING,
+                modifier = Modifier.fillMaxSize(),
             )
         }
 
-        if (error != null || phase == RecognitionPhase.FAILURE) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 22.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(error ?: GENERIC_RECOGNITION_FAILURE_MESSAGE, color = Color(0xFFB24A3A), fontSize = 13.sp)
-                Button(
-                    onClick = onBack,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(25.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-                ) { Text("重新拍摄或选择照片", fontWeight = FontWeight.SemiBold) }
-            }
-        } else {
-            Text(
-                text = RecognitionRuntimeContract.labelFor(renderedPhase),
-                color = WaterTeal,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 18.dp),
-            )
-            Text(
-                text = "请稍等片刻",
-                color = MutedInk,
-                fontSize = 12.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp),
-            )
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.align(Alignment.TopStart).padding(top = 18.dp, start = 12.dp),
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
         }
+
+        RecognitionStatusCard(
+            phase = renderedPhase,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = 34.dp),
+        )
     }
 }
 
-internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
-internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String =
-    GENERIC_RECOGNITION_FAILURE_MESSAGE
-private const val LOG_TAG = "RecognizingScreen"
+@Composable
+private fun RecognitionStatusCard(phase: RecognitionPhase, modifier: Modifier = Modifier) {
+    val copy = when (phase) {
+        RecognitionPhase.CAPTURED -> "正在准备识别" to "AI 已获取这张照片"
+        RecognitionPhase.DETECTING -> "正在理解照片" to "查找鱼获线索"
+        RecognitionPhase.OUTLINE -> "已定位到鱼体" to "正在分析这次鱼获"
+        RecognitionPhase.CLASSIFYING -> "正在认识这条鱼" to "分析鱼体特征"
+        RecognitionPhase.RESULT -> "识别完成" to "正在整理识别结果"
+        RecognitionPhase.FAILURE -> "识别没有完成" to GENERIC_RECOGNITION_FAILURE_MESSAGE.replace('\n', ' ')
+    }
+    Row(
+        modifier
+            .fillMaxWidth()
+            .height(112.dp)
+            .clip(RoundedCornerShape(30.dp))
+            .background(Color(0xD91A2C35))
+            .border(1.dp, Color(0x80F6D79B), RoundedCornerShape(30.dp))
+            .padding(horizontal = 28.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(22.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(54.dp)) {
+            CircularProgressIndicator(
+                modifier = Modifier.fillMaxSize(),
+                color = Color(0xFFFFD77E),
+                trackColor = Color(0x668A979B),
+                strokeWidth = 4.dp,
+            )
+            Box(Modifier.size(12.dp).clip(CircleShape).background(Color(0xFFFFE7A8)))
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(copy.first, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+            Text(copy.second, color = Color(0xFFBFD0D7), fontSize = 14.sp)
+        }
+    }
+}
 
 @Composable
 private fun RecognitionPhoto(
@@ -247,95 +229,72 @@ private fun RecognitionPhoto(
     subjectBox: NormalizedFishBox?,
     contour: List<ContourSegment>,
     focusActive: Boolean,
-    phase: RecognitionPhase,
     modifier: Modifier,
 ) {
-    BoxWithConstraints(modifier.background(Color(0xFF123D3D))) {
+    BoxWithConstraints(modifier) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
         val heightPx = with(density) { maxHeight.toPx() }
-        val scale = min(widthPx / bitmap.width.toFloat(), heightPx / bitmap.height.toFloat())
-        val drawnWidth = bitmap.width * scale
-        val drawnHeight = bitmap.height * scale
-        val left = (widthPx - drawnWidth) / 2f
-        val top = (heightPx - drawnHeight) / 2f
+        val transform = calculateRecognitionImageTransform(widthPx, heightPx, bitmap.width, bitmap.height)
 
         Image(
             bitmap = bitmap.asImageBitmap(),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize().blur(18.dp).graphicsLayerForRecognition(0.28f),
+            modifier = Modifier.fillMaxSize().blur(22.dp).graphicsLayer { alpha = 0.25f },
             contentScale = ContentScale.Crop,
         )
         Image(
             bitmap = bitmap.asImageBitmap(),
             contentDescription = "正在识别的鱼获照片",
-            modifier = Modifier
-                .offset(with(density) { left.toDp() }, with(density) { top.toDp() })
-                .size(with(density) { drawnWidth.toDp() }, with(density) { drawnHeight.toDp() }),
-            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
         )
-
         Canvas(Modifier.fillMaxSize()) {
             val box = focusBox?.normalized()
             if (focusActive && box != null) {
                 val center = Offset(
-                    left + (box.x1 + box.width / 2f) * drawnWidth,
-                    top + (box.y1 + box.height / 2f) * drawnHeight,
+                    transform.mapBox(box).x,
+                    transform.mapBox(box).y,
                 )
+                val radius = min(transform.drawnWidth * box.width, transform.drawnHeight * box.height).coerceAtLeast(90f)
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(Color(0x35FFE0A0), Color.Transparent),
+                        colors = listOf(Color(0xB5FFE1A0), Color(0x24FFE1A0), Color.Transparent),
                         center = center,
-                        radius = min(drawnWidth, drawnHeight) * 0.40f,
+                        radius = radius * 1.55f,
                     ),
-                    radius = min(drawnWidth, drawnHeight) * 0.40f,
+                    radius = radius * 1.55f,
                     center = center,
                 )
             }
             if (subjectBitmap != null && subjectBox != null && contour.isNotEmpty()) {
                 val crop = subjectBox.normalized()
                 contour.forEach { segment ->
-                    val x1 = left + (crop.x1 + segment.startX * crop.width) * drawnWidth
-                    val y1 = top + (crop.y1 + segment.startY * crop.height) * drawnHeight
-                    val x2 = left + (crop.x1 + segment.endX * crop.width) * drawnWidth
-                    val y2 = top + (crop.y1 + segment.endY * crop.height) * drawnHeight
-                    drawLine(
-                        color = Color(0x35F6D79B),
-                        start = Offset(x1, y1),
-                        end = Offset(x2, y2),
-                        strokeWidth = 7.dp.toPx(),
-                        cap = StrokeCap.Round,
+                    val start = transform.mapNormalized(
+                        crop.x1 + segment.startX * crop.width,
+                        crop.y1 + segment.startY * crop.height,
+                    )
+                    val end = transform.mapNormalized(
+                        crop.x1 + segment.endX * crop.width,
+                        crop.y1 + segment.endY * crop.height,
                     )
                     drawLine(
-                        color = Color(0xE6F4D08E),
-                        start = Offset(x1, y1),
-                        end = Offset(x2, y2),
-                        strokeWidth = 2.2.dp.toPx(),
+                        color = Color(0x66FFE0A0),
+                        start = Offset(start.x, start.y),
+                        end = Offset(end.x, end.y),
+                        strokeWidth = 2.5.dp.toPx(),
                         cap = StrokeCap.Round,
                     )
                 }
             }
         }
-
-        Text(
-            text = RecognitionRuntimeContract.labelFor(phase.timelineLabelPhase()),
-            color = Color.White,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
-                .background(Color.Black.copy(alpha = 0.28f), RoundedCornerShape(50))
-                .padding(horizontal = 12.dp, vertical = 7.dp),
-        )
     }
 }
 
-private fun RecognitionPhase.timelineLabelPhase(): RecognitionPhase =
-    if (this == RecognitionPhase.FAILURE) RecognitionPhase.CLASSIFYING else this
+internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
 
-private fun Modifier.graphicsLayerForRecognition(alpha: Float): Modifier =
-    this.graphicsLayer { this.alpha = alpha }
+internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String =
+    GENERIC_RECOGNITION_FAILURE_MESSAGE
 
 private fun extractContour(bitmap: Bitmap): List<ContourSegment> {
     val width = bitmap.width
@@ -344,7 +303,7 @@ private fun extractContour(bitmap: Bitmap): List<ContourSegment> {
     val pixels = IntArray(width * height)
     bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
     fun foreground(x: Int, y: Int): Boolean =
-        AndroidColor.alpha(pixels[y.coerceIn(0, height - 1) * width + x.coerceIn(0, width - 1)]) >= OUTLINE_THRESHOLD
+        android.graphics.Color.alpha(pixels[y.coerceIn(0, height - 1) * width + x.coerceIn(0, width - 1)]) >= OUTLINE_THRESHOLD
 
     val segments = ArrayList<ContourSegment>()
     var y = 0
