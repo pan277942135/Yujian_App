@@ -1,4 +1,5 @@
 {
+  "contract_version": "RECOGNITION_RUNTIME_v1",
   "states": [
     "CAPTURED",
     "DETECTING",
@@ -26,6 +27,11 @@
       "SUCCESS",
       "CONFIRM",
       "UNKNOWN"
-    ]
+    ],
+    "SUCCESS": [],
+    "CONFIRM": [],
+    "UNKNOWN": [],
+    "NO_FISH": [],
+    "TOO_FAR": []
   }
 }
