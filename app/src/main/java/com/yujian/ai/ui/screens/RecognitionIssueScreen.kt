@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.ai.FishInputStatus
+import com.yujian.ai.ai.RecognitionFailureCode
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.IdentifyState
@@ -46,13 +47,19 @@ fun RecognitionIssueScreen(
     onRetry: () -> Unit,
 ) {
     val state = resolveIdentifyResultState(result.status, result.prediction)
-    val copy = when (state) {
+    val copy = when (result.failureCode) {
+        RecognitionFailureCode.CLASSIFIER_FAILED ->
+            "识别模型暂时没有完成" to "请保持网络和设备状态稳定，再试一次。"
+        RecognitionFailureCode.INVALID_CROP ->
+            "照片主体没有形成有效取景" to "换一张主体更完整的照片试试。"
+        else -> when (state) {
         IdentifyState.NO_FISH -> "没有找到可识别的鱼获主体" to "让鱼体尽量完整地进入画面，再试一次。"
         IdentifyState.TOO_FAR -> "这条鱼离得有点远" to "靠近一点再拍，鱼体会更容易被识别。"
         else -> when (result.status) {
             FishInputStatus.MULTIPLE_FISH -> "画面里有不止一条鱼" to "换一张主体更明确的照片。"
             FishInputStatus.INCOMPLETE_FISH -> "鱼体没有完整进入画面" to "尽量保留鱼头、鱼尾和主要鳍部。"
             else -> "这张照片还不够确定" to "换一张光线更好、遮挡更少的照片试试。"
+        }
         }
     }
 
