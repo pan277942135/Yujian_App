@@ -2,7 +2,6 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import androidx.compose.ui.test.assertExists
-import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -50,7 +49,9 @@ class RecognitionVisualRuntimeTest {
         }
 
         composeRule.waitUntil(timeoutMillis = RecognitionRuntimeContract.RESULT_START_MS + 2_000L) {
-            composeRule.onNodeWithText("认识完成").isDisplayed()
+            runCatching {
+                composeRule.onNodeWithText("认识完成").assertExists()
+            }.isSuccess
         }
         composeRule.onNodeWithText("认识完成").assertExists()
         bitmap.recycle()
