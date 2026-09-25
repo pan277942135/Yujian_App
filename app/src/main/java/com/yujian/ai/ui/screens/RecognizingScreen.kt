@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.util.Log
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
@@ -131,6 +132,8 @@ fun RecognizingScreen(
 
             while (!recognition.isCompleted) {
                 phase = RecognitionRuntimeContract.phaseAt(SystemClock.elapsedRealtime() - startedAt)
+                    .takeUnless { it == RecognitionPhase.RESULT }
+                    ?: RecognitionPhase.CLASSIFYING
                 delay(40)
             }
 
@@ -139,13 +142,18 @@ fun RecognizingScreen(
                 (SystemClock.elapsedRealtime() - startedAt)
             if (remaining > 0L) delay(remaining)
 
-            phase = RecognitionPhase.RESULT
+            phase = RecognitionPhase.CLASSIFYING
             result
                 .onSuccess { completed ->
                     assessment = completed.assessment
+                    phase = if (completed.ready) RecognitionPhase.RESULT else RecognitionPhase.FAILURE
                     onFinished(completed)
                 }
-                .onFailure { error = it.message ?: "识别失败，请重新拍摄或选择照片" }
+                .onFailure {
+                    Log.e(LOG_TAG, "Recognition runtime failed", it)
+                    phase = RecognitionPhase.FAILURE
+                    error = recognitionFailureMessage(it)
+                }
         }
     }
 
@@ -166,7 +174,7 @@ fun RecognizingScreen(
         )
         Text(
             text = when {
-                error != null -> "这次没有完成识别"
+                error != null || phase == RecognitionPhase.FAILURE -> "这次没有完成识别"
                 phase == RecognitionPhase.CAPTURED || phase == RecognitionPhase.DETECTING -> "正在寻找鱼体"
                 else -> "正在认识这条鱼"
             },
@@ -192,7 +200,7 @@ fun RecognizingScreen(
             )
         }
 
-        if (error != null) {
+        if (error != null || phase == RecognitionPhase.FAILURE) {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -200,7 +208,7 @@ fun RecognizingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(error.orEmpty(), color = Color(0xFFB24A3A), fontSize = 13.sp)
+                Text(error ?: GENERIC_RECOGNITION_FAILURE_MESSAGE, color = Color(0xFFB24A3A), fontSize = 13.sp)
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -225,6 +233,11 @@ fun RecognizingScreen(
         }
     }
 }
+
+internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
+internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String =
+    GENERIC_RECOGNITION_FAILURE_MESSAGE
+private const val LOG_TAG = "RecognizingScreen"
 
 @Composable
 private fun RecognitionPhoto(

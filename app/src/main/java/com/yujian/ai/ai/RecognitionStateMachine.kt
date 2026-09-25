@@ -82,7 +82,7 @@ class RecognitionStateMachine(
                 ClassificationRoute.UNKNOWN -> terminal(RecognitionTerminal.UNKNOWN)
             }
             is RecognitionEvent.Failed -> state.copy(
-                phase = RecognitionPhase.RESULT,
+                phase = RecognitionPhase.FAILURE,
                 terminal = RecognitionTerminal.ERROR,
                 failureCode = event.code,
             )
@@ -91,5 +91,13 @@ class RecognitionStateMachine(
     }
 
     private fun terminal(route: RecognitionTerminal): RecognitionState =
-        state.copy(phase = RecognitionPhase.RESULT, terminal = route)
+        state.copy(
+            phase = when (route) {
+                RecognitionTerminal.NO_FISH,
+                RecognitionTerminal.TOO_FAR,
+                RecognitionTerminal.ERROR -> RecognitionPhase.FAILURE
+                else -> RecognitionPhase.RESULT
+            },
+            terminal = route,
+        )
 }

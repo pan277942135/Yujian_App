@@ -11,6 +11,7 @@ enum class RecognitionPhase {
     OUTLINE,
     CLASSIFYING,
     RESULT,
+    FAILURE,
 }
 
 data class RecognitionProgress(
@@ -68,7 +69,6 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 prediction = null,
                 cropPixels = null,
             )
-            onProgress(RecognitionProgress(RecognitionPhase.RESULT, assessment))
             return blocked
         }
 
@@ -87,7 +87,6 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             )
         } catch (error: IllegalArgumentException) {
             stateMachine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.INVALID_CROP))
-            onProgress(RecognitionProgress(RecognitionPhase.RESULT, assessment))
             return ProductionRecognitionResult(
                 status = assessment.status,
                 detectorRun = detectorRun,
@@ -138,7 +137,6 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             throw cancelled
         } catch (error: Exception) {
             stateMachine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.CLASSIFIER_FAILED))
-            onProgress(RecognitionProgress(RecognitionPhase.RESULT, assessment))
             ProductionRecognitionResult(
                 status = assessment.status,
                 detectorRun = detectorRun,
