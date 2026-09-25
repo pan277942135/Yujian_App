@@ -1,0 +1,25 @@
+{
+  "contract_version": "RECOGNITION_RUNTIME_v1",
+  "timeline_ms": [
+    {
+      "time": 0,
+      "state": "CAPTURED"
+    },
+    {
+      "time": 800,
+      "state": "DETECTING"
+    },
+    {
+      "time": 1500,
+      "state": "OUTLINE"
+    },
+    {
+      "time": 2300,
+      "state": "CLASSIFYING"
+    },
+    {
+      "time": 3000,
+      "state": "RESULT"
+    }
+  ]
+}
