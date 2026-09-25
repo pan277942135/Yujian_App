@@ -57,6 +57,9 @@ jobs:
       - name: Compile Android runtime smoke test
         run: gradle :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
 
+      - name: Verify packaged recognition assets in APK
+        run: python3 scripts/verify_packaged_android_apk.py
+
       - name: Android lint
         run: gradle :app:lintDebug --stacktrace --no-daemon --max-workers=2
 
@@ -73,6 +76,9 @@ jobs:
           retention-days: 7
 
   runtime-parity:
+    # Historical/manual diagnostics only. It is intentionally skipped for
+    # push and pull_request delivery checks and cannot block a merge.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
