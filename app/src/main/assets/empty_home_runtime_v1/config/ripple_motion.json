@@ -1,22 +1,23 @@
 {
   "layer": "ripple_mask",
   "type": "ripple",
-  "source_asset": "runtime_layers/fishing/ripple_mask.png",
+  "source_asset": "dynamic/ripple_mask.png",
   "motion_safe_asset": "animation/ripple_motion_safe.png",
   "anchor": {
     "x": 750,
     "y": 1158
   },
-  "scale_from": 1.0,
-  "scale_to": 1.3,
-  "alpha_from": 0.5,
-  "alpha_to": 0.0,
-  "duration_s": 3.5,
+  "scale_from": 1,
+  "scale_to": 1.22,
+  "alpha_from": 0.3,
+  "alpha_to": 0,
+  "duration_s": 3.2,
   "loop": true,
-  "bobber_coupling": "follow_bobber_y_offset",
+  "bobber_coupling": "fixed_to_water_contact",
   "rings": 1,
   "constraints": {
     "no_glow": true,
-    "no_large_water_wave": true
+    "no_large_water_wave": true,
+    "ripple_center_locked_to_water_contact": true
   }
 }

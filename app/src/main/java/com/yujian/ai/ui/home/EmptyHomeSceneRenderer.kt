@@ -97,52 +97,18 @@ private fun DrawScope.drawRuntimeOverlays(
         )
     }
 
-    drawReferenceBitmap(
-        bitmap = assets.rod,
-        x = 0f,
-        y = 950f,
-        width = assets.rod.width.toFloat(),
-        height = assets.rod.height.toFloat(),
-        alpha = 1f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
-    drawReferenceBitmap(
-        bitmap = assets.line,
-        x = 400f,
-        y = 950f,
-        width = assets.line.width.toFloat(),
-        height = assets.line.height.toFloat(),
-        alpha = 1f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
-
-    val bobberOffset = if (motionState.running && !motionState.reduceMotion) {
-        bobberOffsetPx(time)
-    } else {
-        0f
-    }
+    val bobberMotionActive = motionState.running && !motionState.reduceMotion
+    val bobberOffset = if (bobberMotionActive) bobberOffsetPx(time) else 0f
     drawReferenceBitmap(
         bitmap = assets.ripple,
-        x = EMPTY_HOME_V2_RIPPLE_X,
-        y = EMPTY_HOME_V2_RIPPLE_Y + bobberOffset,
+        x = WATER_CONTACT_X - assets.ripple.width / 2f,
+        y = WATER_CONTACT_Y - assets.ripple.height / 2f,
         width = assets.ripple.width.toFloat(),
         height = assets.ripple.height.toFloat(),
-        alpha = if (motionState.running && !motionState.reduceMotion) {
-            rippleAlpha(time)
-        } else {
-            0.30f
-        },
-        scale = if (motionState.running && !motionState.reduceMotion) {
-            rippleScale(time)
-        } else {
-            1f
-        },
-        pivotX = EMPTY_HOME_V2_WATER_CONTACT_X,
-        pivotY = EMPTY_HOME_V2_WATER_CONTACT_Y + bobberOffset,
+        alpha = if (bobberMotionActive) rippleAlpha(time) else 0f,
+        scale = if (bobberMotionActive) rippleScale(time) else 1f,
+        pivotX = WATER_CONTACT_X,
+        pivotY = WATER_CONTACT_Y,
         transform = transform,
         paint = paint,
         destination = destination,

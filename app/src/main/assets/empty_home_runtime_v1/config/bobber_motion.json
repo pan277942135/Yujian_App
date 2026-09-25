@@ -8,28 +8,28 @@
   "loop": true,
   "anchor": {
     "x": 750,
-    "y": 1143
+    "y": 1133.5
   },
   "keyframes": [
     {
-      "time_s": 0.0,
-      "offset_y_px": 0.0
+      "time_s": 0,
+      "offset_y_px": 0
     },
     {
       "time_s": 1.15,
-      "offset_y_px": -3.0
+      "offset_y_px": -3
     },
     {
       "time_s": 2.3,
-      "offset_y_px": 0.0
+      "offset_y_px": 0
     },
     {
       "time_s": 3.45,
-      "offset_y_px": 3.0
+      "offset_y_px": 3
     },
     {
       "time_s": 4.6,
-      "offset_y_px": 0.0
+      "offset_y_px": 0
     }
   ],
   "constraints": {
@@ -37,6 +37,25 @@
     "rotation_deg": 0,
     "scale": 1,
     "rod_tip_locked": true,
-    "line_layer_not_independently_transformed": true
+    "line_layer_not_independently_transformed": true,
+    "water_contact_locked": true,
+    "ripple_center_shared": true
+  },
+  "asset": "dynamic/bobber.png",
+  "water_contact": {
+    "x": 750,
+    "y": 1158
+  },
+  "render_bbox": {
+    "x": 739.9,
+    "y": 1105.24,
+    "width": 21.21,
+    "height": 53.75
+  },
+  "visible_bbox": {
+    "x": 742.5,
+    "y": 1109,
+    "width": 15,
+    "height": 49
   }
 }
