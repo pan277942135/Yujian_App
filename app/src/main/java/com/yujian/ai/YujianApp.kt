@@ -535,19 +535,16 @@ fun YujianApp() {
                 composable("my") {
                     val active = session
                     MyScreen(
-                        session = active,
-                        statistics = catchesState.statistics,
                         catches = catchesState.catches,
                         loading = catchesState.loading,
                         error = catchesState.error,
                         resolveImageUrl = { path ->
                             if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
                         },
-                        onGuide = { nav.navigate("guide") },
+                        accessToken = active?.accessToken.orEmpty(),
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
-                        onLogout = { if (active == null) nav.navigate("login") else logoutToHome() },
-                        onBsideAction = if (active != null) { { record -> requestBsideGeneration(record) } } else null,
+                        onCapture = { nav.navigate("identify") },
                     )
                 }
             }

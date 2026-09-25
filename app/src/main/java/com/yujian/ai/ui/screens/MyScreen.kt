@@ -1,207 +1,373 @@
 package com.yujian.ai.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yujian.ai.catches.CatchStatistics
-import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.session.UserSession
-import com.yujian.ai.ui.components.FishIllustration
-import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.designsystem.components.YuJianFishRecordRowCard
+import com.yujian.ai.ui.home.HomeCameraButton
+import com.yujian.ai.ui.mycatches.CatchTimeRange
+import com.yujian.ai.ui.mycatches.GrowthMarkResolver
+import com.yujian.ai.ui.mycatches.MyCatchesDayGroup
+import com.yujian.ai.ui.mycatches.MyCatchesFilterState
+import com.yujian.ai.ui.mycatches.MyCatchesMonthGroup
+import com.yujian.ai.ui.mycatches.MyCatchesEmptyState
+import com.yujian.ai.ui.mycatches.filterAndSortCatches
+import com.yujian.ai.ui.mycatches.groupCatchesByMonthAndDay
+import com.yujian.ai.ui.mycatches.resolveMyCatchesEmptyState
+import com.yujian.ai.ui.mycatches.toFishRecordPresentation
 import com.yujian.ai.ui.theme.CardWhite
 import com.yujian.ai.ui.theme.DeepInk
+import com.yujian.ai.ui.theme.Hairline
 import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.SoftWater
-import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 
+private enum class FilterSheetKind { Species, Location, Time }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyScreen(
-    session: UserSession?,
-    statistics: CatchStatistics,
     catches: List<RemoteCatch>,
     loading: Boolean,
     error: String?,
     resolveImageUrl: (String?) -> String?,
-    onGuide: () -> Unit,
+    accessToken: String,
     onCatch: (String) -> Unit,
     onRetry: () -> Unit,
-    onLogout: () -> Unit,
-    onBsideAction: ((RemoteCatch) -> Unit)? = null,
+    onCapture: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(WarmBackground),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 110.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedSpecies by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var selectedLocations by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var selectedTimeRange by rememberSaveable { mutableStateOf(CatchTimeRange.All.name) }
+    var openFilter by remember { mutableStateOf<FilterSheetKind?>(null) }
+    val listState = rememberLazyListState()
+    val filter = MyCatchesFilterState(
+        speciesIds = selectedSpecies.toSet(),
+        locations = selectedLocations.toSet(),
+        timeRange = CatchTimeRange.entries.firstOrNull { it.name == selectedTimeRange } ?: CatchTimeRange.All,
+    )
+    val filtered = filterAndSortCatches(catches, query, filter)
+    val monthGroups = groupCatchesByMonthAndDay(filtered)
+    val growthMarks = remember(catches) { GrowthMarkResolver.resolve(catches) }
+    val emptyState = resolveMyCatchesEmptyState(catches.size, query, filter, filtered.size, loading, !error.isNullOrBlank())
+    val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(Color(0xFFE7F0F1), Color(0xFFF5F2EC)))),
     ) {
-        item {
-            Text("我的", color = DeepInk, fontSize = 29.sp, fontWeight = FontWeight.Bold)
-            Text("收藏每一次渔获，也收藏自己的钓鱼轨迹", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().background(SoftWater, RoundedCornerShape(28.dp)).padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.size(74.dp).background(Color.White, RoundedCornerShape(37.dp)), contentAlignment = Alignment.Center) {
-                    FishIllustration(size = 56.dp, bodyColor = WaterTeal)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 18.dp,
+                end = 18.dp,
+                top = safeInsets.calculateTopPadding() + 10.dp,
+                bottom = safeInsets.calculateBottomPadding() + 112.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item(key = "my-catches-header") {
+                Column(Modifier.padding(bottom = 2.dp)) {
+                    Text("我的鱼获", color = DeepInk, fontSize = 29.sp, fontWeight = FontWeight.Bold)
+                    Text("按时间留存每一次真实鱼获", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
                 }
-                Column(Modifier.padding(start = 16.dp).weight(1f)) {
-                    val displayName = session?.let { it.nickname.ifBlank { it.username } } ?: "游客"
-                    Text(displayName, color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("已保存 ${statistics.totalCatches} 次鱼获", color = MutedInk, fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
-                }
-                TextButton(onClick = onLogout) { Text(if (session == null) "登录/注册" else "退出", color = MutedInk, fontSize = 12.sp) }
             }
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ProfileStat(Modifier.weight(1f), statistics.speciesCount.toString(), "已识别鱼种")
-                ProfileStat(Modifier.weight(1f), statistics.totalCatches.toString(), "累计鱼获")
-                ProfileStat(Modifier.weight(1f), statistics.topSpecies.firstOrNull()?.speciesName ?: "—", "最常钓")
+            item(key = "search") {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "搜索") },
+                    placeholder = { Text("搜索鱼种或地点", color = MutedInk) },
+                    shape = RoundedCornerShape(16.dp),
+                )
             }
-        }
-        item { Text("最近鱼获", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-        if (loading) {
-            item { Text("正在同步你的鱼获…", color = MutedInk, fontSize = 13.sp) }
-        } else if (!error.isNullOrBlank()) {
-            item {
-                Column(Modifier.fillMaxWidth().background(CardWhite, RoundedCornerShape(20.dp)).padding(16.dp)) {
-                    Text(error, color = MutedInk, fontSize = 12.sp)
-                    Button(onClick = onRetry, colors = ButtonDefaults.buttonColors(containerColor = WaterTeal), modifier = Modifier.padding(top = 10.dp)) {
-                        Text("重新加载")
+            item(key = "filters") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterEntry("鱼种", selectedSpecies.size, selectedSpecies.isNotEmpty()) { openFilter = FilterSheetKind.Species }
+                    FilterEntry("地点", selectedLocations.size, selectedLocations.isNotEmpty()) { openFilter = FilterSheetKind.Location }
+                    FilterEntry("时间", if (filter.timeRange == CatchTimeRange.All) 0 else 1, filter.timeRange != CatchTimeRange.All) { openFilter = FilterSheetKind.Time }
+                    if (filter.isActive || query.isNotBlank()) {
+                        TextButton(onClick = {
+                            query = ""
+                            selectedSpecies = emptyList()
+                            selectedLocations = emptyList()
+                            selectedTimeRange = CatchTimeRange.All.name
+                        }) { Text("清除", color = WaterTeal) }
                     }
                 }
             }
-        } else if (catches.isEmpty()) {
-            item {
-                Column(Modifier.fillMaxWidth().background(CardWhite, RoundedCornerShape(22.dp)).padding(20.dp)) {
-                    Text("还没有鱼获记录", color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text("拍一张鱼获照片，AI 识别后保存到这里。", color = MutedInk, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
-                }
-            }
-        } else {
-            items(catches, key = { it.id }) { catch ->
-                CatchRow(
-                    catch = catch,
-                    resolveImageUrl = resolveImageUrl,
-                    accessToken = session?.accessToken.orEmpty(),
-                    onClick = { onCatch(catch.id) },
-                    onBsideAction = onBsideAction,
+            item(key = "archive-summary") {
+                Text(
+                    text = if (catches.isEmpty()) "时间档案" else "${filtered.size} 次鱼获 · ${filtered.map { it.speciesId.ifBlank { it.speciesName } }.distinct().size} 种鱼",
+                    color = MutedInk,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp),
                 )
             }
-        }
-        item { MenuCard("我的图鉴", "看看已认识的鱼种", onGuide) }
-    }
-}
-
-@Composable
-private fun CatchRow(
-    catch: RemoteCatch,
-    resolveImageUrl: (String?) -> String?,
-    accessToken: String,
-    onClick: () -> Unit,
-    onBsideAction: ((RemoteCatch) -> Unit)?,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(6.dp, RoundedCornerShape(20.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
-            .background(CardWhite, RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.size(76.dp).clip(RoundedCornerShape(16.dp)).background(SoftWater), contentAlignment = Alignment.Center) {
-            RemoteImage(
-                url = resolveImageUrl(catch.imageUrl),
-                authToken = accessToken,
-                modifier = Modifier.fillMaxSize(),
-                contentDescription = "${catch.speciesName} 鱼获照片",
-                contentScale = ContentScale.Crop,
-            ) { FishIllustration(size = 52.dp, bodyColor = WaterTeal.copy(alpha = .7f)) }
-        }
-        Column(Modifier.padding(start = 14.dp).weight(1f)) {
-            Text(catch.speciesName, color = DeepInk, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-            Text("${catch.confidencePercent}% 把握", color = WaterTeal, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-            Text(formatCatchDate(catch.createdAt), color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 5.dp))
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            if (onBsideAction != null && catch.bsideStatus != BsideStatus.READY) {
-                OutlinedButton(
-                    onClick = { onBsideAction(catch) },
-                    enabled = catch.bsideStatus != BsideStatus.GENERATING,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = WaterTeal),
-                    modifier = Modifier.padding(bottom = 4.dp),
-                ) {
-                    Text(
-                        when (catch.bsideStatus) {
-                            BsideStatus.NONE -> "提取渔获"
-                            BsideStatus.GENERATING -> "生成中..."
-                            BsideStatus.FAILED -> "重新生成"
-                            BsideStatus.READY -> ""
-                        },
-                        fontSize = 11.sp,
-                    )
+            if (loading) {
+                item(key = "loading") { ArchiveLoading() }
+            } else if (!error.isNullOrBlank()) {
+                item(key = "error") { ArchiveError(error, onRetry) }
+            } else if (emptyState != MyCatchesEmptyState.None) {
+                item(key = "empty-${emptyState.name}") {
+                    when (emptyState) {
+                        MyCatchesEmptyState.Archive -> ArchiveEmpty(onCapture)
+                        MyCatchesEmptyState.Search -> SearchEmpty { query = "" }
+                        MyCatchesEmptyState.Filter -> FilterEmpty {
+                            selectedSpecies = emptyList()
+                            selectedLocations = emptyList()
+                            selectedTimeRange = CatchTimeRange.All.name
+                        }
+                        MyCatchesEmptyState.None -> Unit
+                    }
+                }
+            } else {
+                monthGroups.forEach { month ->
+                    item(key = "month-${month.key}") { MonthHeader(month) }
+                    month.days.forEach { day ->
+                        item(key = "day-${day.key}") { DayHeader(day) }
+                        items(day.catches, key = { it.id }) { record ->
+                            YuJianFishRecordRowCard(
+                                record = record,
+                                presentation = record.toFishRecordPresentation(
+                                    imageUrl = resolveImageUrl(record.imageUrl),
+                                    annotations = growthMarks[record.id].orEmpty(),
+                                ),
+                                accessToken = accessToken,
+                                onClick = { onCatch(record.id) },
+                            )
+                        }
+                    }
                 }
             }
-            Text("›", color = WaterTeal, fontSize = 28.sp)
         }
     }
-}
 
-private fun formatCatchDate(value: String): String = value.take(10).replace('-', '.')
-
-@Composable
-private fun ProfileStat(modifier: Modifier, value: String, label: String) {
-    Column(modifier.background(CardWhite, RoundedCornerShape(20.dp)).padding(14.dp)) {
-        Text(value, color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-        Text(label, color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
+    openFilter?.let { kind ->
+        FilterSheet(
+            kind = kind,
+            catches = catches,
+            filter = filter,
+            onDismiss = { openFilter = null },
+            onSpeciesChanged = { selectedSpecies = it.toList() },
+            onLocationsChanged = { selectedLocations = it.toList() },
+            onTimeChanged = { selectedTimeRange = it.name },
+        )
     }
 }
 
 @Composable
-private fun MenuCard(title: String, subtitle: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(6.dp, RoundedCornerShape(22.dp), ambientColor = Color.Black.copy(alpha = .04f), spotColor = Color.Black.copy(alpha = .04f))
-            .background(CardWhite, RoundedCornerShape(22.dp))
-            .clickable(onClick = onClick)
-            .padding(18.dp),
-        verticalAlignment = Alignment.CenterVertically,
+private fun FilterEntry(label: String, count: Int, active: Boolean, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (active) SoftWater.copy(alpha = 0.72f) else Color.White.copy(alpha = 0.45f),
+            contentColor = if (active) WaterTeal else DeepInk,
+        ),
+        border = BorderStroke(1.dp, if (active) WaterTeal.copy(alpha = 0.45f) else Hairline),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+        Icon(Icons.Rounded.FilterList, contentDescription = null, modifier = Modifier.size(15.dp))
+        Spacer(Modifier.size(4.dp))
+        Text(if (count == 0) label else "$label $count", fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun MonthHeader(month: MyCatchesMonthGroup) {
+    Text(month.label, color = DeepInk, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 12.dp, bottom = 2.dp))
+}
+
+@Composable
+private fun DayHeader(day: MyCatchesDayGroup) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp)) {
+        Box(Modifier.size(10.dp).background(WaterTeal, CircleShape))
+        Spacer(Modifier.size(10.dp))
+        Text(day.label, color = DeepInk, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(day.summary, color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+@Composable
+private fun ArchiveLoading() {
+    Surface(color = CardWhite.copy(alpha = 0.55f), shape = RoundedCornerShape(18.dp)) {
+        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = WaterTeal, strokeWidth = 2.dp)
+            Text("正在整理你的时间档案…", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(start = 10.dp))
         }
-        Text("›", color = WaterTeal, fontSize = 28.sp)
+    }
+}
+
+@Composable
+private fun ArchiveError(error: String, onRetry: () -> Unit) {
+    Surface(color = CardWhite.copy(alpha = 0.64f), shape = RoundedCornerShape(18.dp)) {
+        Column(Modifier.fillMaxWidth().padding(18.dp)) {
+            Text("鱼获档案暂时无法加载", color = DeepInk, fontWeight = FontWeight.SemiBold)
+            Text(error, color = MutedInk, fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+            TextButton(onClick = onRetry, modifier = Modifier.padding(top = 4.dp)) { Text("重新加载", color = WaterTeal) }
+        }
+    }
+}
+
+@Composable
+private fun ArchiveEmpty(onCapture: () -> Unit) {
+    Surface(color = CardWhite.copy(alpha = 0.64f), shape = RoundedCornerShape(22.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("还没有鱼获记录", color = DeepInk, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text("记录第一条鱼，让时间留下来。", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+            Spacer(Modifier.height(12.dp))
+            HomeCameraButton(onClick = onCapture)
+        }
+    }
+}
+
+@Composable
+private fun SearchEmpty(onClear: () -> Unit) = EmptyMessage("没有找到匹配的鱼获", "换一个鱼种或地点试试。", "清除搜索", onClear)
+
+@Composable
+private fun FilterEmpty(onClear: () -> Unit) = EmptyMessage("筛选条件下暂无鱼获", "可以调整或清除筛选条件。", "清除筛选", onClear)
+
+@Composable
+private fun EmptyMessage(title: String, subtitle: String, action: String, onClick: () -> Unit) {
+    Surface(color = CardWhite.copy(alpha = 0.64f), shape = RoundedCornerShape(22.dp)) {
+        Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(title, color = DeepInk, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, color = MutedInk, fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+            TextButton(onClick = onClick, modifier = Modifier.padding(top = 4.dp)) { Text(action, color = WaterTeal) }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterSheet(
+    kind: FilterSheetKind,
+    catches: List<RemoteCatch>,
+    filter: MyCatchesFilterState,
+    onDismiss: () -> Unit,
+    onSpeciesChanged: (Set<String>) -> Unit,
+    onLocationsChanged: (Set<String>) -> Unit,
+    onTimeChanged: (CatchTimeRange) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val species = catches.map { it.speciesId.ifBlank { it.speciesName } to it.speciesName }.distinctBy { it.first }.sortedBy { it.second }
+    val locations = catches.mapNotNull { it.location?.trim()?.takeIf(String::isNotBlank) }.distinct().sorted()
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 20.dp).padding(bottom = 16.dp)) {
+            Text(
+                when (kind) {
+                    FilterSheetKind.Species -> "按鱼种筛选"
+                    FilterSheetKind.Location -> "按地点筛选"
+                    FilterSheetKind.Time -> "按时间筛选"
+                },
+                color = DeepInk,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(10.dp))
+            when (kind) {
+                FilterSheetKind.Species -> {
+                    OptionList(Modifier.heightIn(max = 360.dp)) {
+                        species.forEach { (key, label) ->
+                            item(key = key) {
+                                CheckOption(label, key in filter.speciesIds) { onSpeciesChanged(filter.speciesIds.toggle(key)) }
+                            }
+                        }
+                    }
+                }
+                FilterSheetKind.Location -> {
+                    OptionList(Modifier.heightIn(max = 360.dp)) {
+                        locations.forEach { location ->
+                            item(key = location) {
+                                CheckOption(location, location in filter.locations) { onLocationsChanged(filter.locations.toggle(location)) }
+                            }
+                        }
+                    }
+                }
+                FilterSheetKind.Time -> {
+                    CatchTimeRange.entries.forEach { range ->
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(selected = filter.timeRange == range, onClick = { onTimeChanged(range) })
+                            Text(range.label, color = DeepInk, fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text("完成", color = WaterTeal) }
+        }
+    }
+}
+
+private fun <T> Set<T>.toggle(value: T): Set<T> = if (value in this) this - value else this + value
+
+@Composable
+private fun OptionList(modifier: Modifier = Modifier, content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
+    LazyColumn(modifier = modifier, content = content)
+}
+
+@Composable
+private fun CheckOption(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = selected, onCheckedChange = { onClick() })
+        Text(label, color = DeepInk, fontSize = 14.sp)
     }
 }
