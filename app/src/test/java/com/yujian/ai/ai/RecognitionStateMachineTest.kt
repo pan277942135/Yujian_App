@@ -37,6 +37,26 @@ class RecognitionStateMachineTest {
     }
 
     @Test
+    fun classifierRoutesExposeHighMediumAndLowResultStates() {
+        listOf(
+            ClassificationRoute.SUCCESS to RecognitionTerminal.SUCCESS,
+            ClassificationRoute.CONFIRM to RecognitionTerminal.CONFIRM,
+            ClassificationRoute.UNKNOWN to RecognitionTerminal.UNKNOWN,
+        ).forEach { (route, terminal) ->
+            val machine = RecognitionStateMachine()
+            machine.dispatch(RecognitionEvent.CaptureReady)
+            machine.dispatch(RecognitionEvent.DetectionStarted)
+            machine.dispatch(RecognitionEvent.DetectionFinished(DetectionRoute.OUTLINE))
+            machine.dispatch(RecognitionEvent.ClassificationStarted)
+
+            val result = machine.dispatch(RecognitionEvent.ClassificationFinished(route))
+
+            assertEquals(RecognitionPhase.RESULT, result.phase)
+            assertEquals(terminal, result.terminal)
+        }
+    }
+
+    @Test
     fun invalidEventsDoNotSkipStagesAndFailuresAreTerminal() {
         val machine = RecognitionStateMachine()
         assertEquals(RecognitionPhase.CAPTURED, machine.dispatch(RecognitionEvent.ClassificationStarted).phase)

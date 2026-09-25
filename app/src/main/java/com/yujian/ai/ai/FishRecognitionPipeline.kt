@@ -26,6 +26,7 @@ data class ProductionRecognitionResult(
     val prediction: RecognitionPrediction?,
     val cropPixels: IntArray?,
     val failureCode: RecognitionFailureCode? = null,
+    val terminal: RecognitionTerminal? = null,
 ) {
     val ready: Boolean get() = assessment.isClassifierEligible && prediction != null
     val totalLatencyMs: Long get() = detectorRun.latencyMs + (prediction?.latencyMs ?: 0L)
@@ -67,6 +68,11 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 assessment = assessment,
                 prediction = null,
                 cropPixels = null,
+                terminal = when (route) {
+                    DetectionRoute.NO_FISH -> RecognitionTerminal.NO_FISH
+                    DetectionRoute.TOO_FAR -> RecognitionTerminal.TOO_FAR
+                    DetectionRoute.OUTLINE -> null
+                },
             )
             onProgress(RecognitionProgress(RecognitionPhase.RESULT, assessment))
             return blocked
@@ -95,6 +101,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 prediction = null,
                 cropPixels = null,
                 failureCode = RecognitionFailureCode.INVALID_CROP,
+                terminal = RecognitionTerminal.ERROR,
             )
         }
         val primary = requireNotNull(assessment.primary)
@@ -131,6 +138,11 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 assessment = assessment,
                 prediction = prediction,
                 cropPixels = pixels,
+                terminal = when (route) {
+                    ClassificationRoute.SUCCESS -> RecognitionTerminal.SUCCESS
+                    ClassificationRoute.CONFIRM -> RecognitionTerminal.CONFIRM
+                    ClassificationRoute.UNKNOWN -> RecognitionTerminal.UNKNOWN
+                },
             )
             onProgress(RecognitionProgress(RecognitionPhase.RESULT, assessment))
             ready
@@ -146,6 +158,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 prediction = null,
                 cropPixels = pixels,
                 failureCode = RecognitionFailureCode.CLASSIFIER_FAILED,
+                terminal = RecognitionTerminal.ERROR,
             )
         } finally {
             if (crop !== bitmap && !crop.isRecycled) crop.recycle()

@@ -19,8 +19,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -54,6 +58,9 @@ import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.IdentifyState
 import com.yujian.ai.ui.identify.resolveIdentifyResultState
+import com.yujian.ai.ui.recognition.RecognitionPresentation
+import com.yujian.ai.ui.recognition.RecognitionPhotoBackdrop
+import com.yujian.ai.ui.recognition.RecognitionResultLevel
 import com.yujian.ai.ui.theme.CardWhite
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
@@ -86,11 +93,16 @@ fun RecognitionResultScreen(
         productionResult?.status ?: FishInputStatus.READY,
         prediction,
     )
+    val level = productionResult?.let(RecognitionPresentation::resultLevel) ?: when (state) {
+        IdentifyState.SUCCESS -> RecognitionResultLevel.HIGH
+        IdentifyState.CONFIRM -> RecognitionResultLevel.MEDIUM
+        else -> RecognitionResultLevel.LOW
+    }
     var selectedKey by remember(prediction) {
-        mutableStateOf(if (state == IdentifyState.UNKNOWN) "" else prediction.top1.speciesKey)
+        mutableStateOf(if (level == RecognitionResultLevel.LOW) "" else prediction.top1.speciesKey)
     }
     var selectedName by remember(prediction) {
-        mutableStateOf(if (state == IdentifyState.UNKNOWN) "" else prediction.top1.speciesName)
+        mutableStateOf(if (level == RecognitionResultLevel.LOW) "" else prediction.top1.speciesName)
     }
     var customName by remember(prediction) { mutableStateOf("") }
     var lengthText by remember(prediction) { mutableStateOf("") }
@@ -109,25 +121,34 @@ fun RecognitionResultScreen(
         }
     }
 
-    LazyColumn(
-        Modifier.fillMaxSize().background(WarmBackground),
+    Box(Modifier.fillMaxSize()) {
+        image?.let { RecognitionPhotoBackdrop(it.bitmap, Modifier.fillMaxSize()) }
+        LazyColumn(
+        Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 30.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Column(Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
-                Text("识别结果", color = DeepInk, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 12.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = DeepInk)
+                }
+                Column(Modifier.padding(start = 4.dp)) {
+                    Text("识别结果", color = DeepInk, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    when (state) {
-                        IdentifyState.SUCCESS -> "看起来是"
-                        IdentifyState.CONFIRM -> "更像哪一种？"
-                        IdentifyState.UNKNOWN -> "还不能确定这是什么鱼"
-                        else -> state.titleForResult()
+                    when (level) {
+                        RecognitionResultLevel.HIGH -> "看起来是"
+                        RecognitionResultLevel.MEDIUM -> "帮我确认一下，这条鱼更像哪一种？"
+                        RecognitionResultLevel.LOW -> "无法确认是什么鱼"
                     },
                     color = MutedInk,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(top = 6.dp),
                 )
+                }
             }
         }
 
@@ -149,11 +170,9 @@ fun RecognitionResultScreen(
         item {
             Column(Modifier.padding(horizontal = 20.dp)) {
                 Text(
-                    when (state) {
-                        IdentifyState.SUCCESS -> selectedName
-                        IdentifyState.CONFIRM -> selectedName
-                        IdentifyState.UNKNOWN -> "选择鱼种"
-                        else -> selectedName
+                    when (level) {
+                        RecognitionResultLevel.HIGH, RecognitionResultLevel.MEDIUM -> selectedName
+                        RecognitionResultLevel.LOW -> "选择鱼种"
                     },
                     color = DeepInk,
                     fontSize = 31.sp,
@@ -163,7 +182,7 @@ fun RecognitionResultScreen(
             }
         }
 
-        if (state == IdentifyState.CONFIRM) {
+        if (level == RecognitionResultLevel.MEDIUM) {
             item {
                 CandidateButtons(
                     title = "请选择更接近的一项",
@@ -174,7 +193,7 @@ fun RecognitionResultScreen(
             }
         }
 
-        if (state == IdentifyState.UNKNOWN) {
+        if (level == RecognitionResultLevel.LOW) {
             item {
                 Column(
                     Modifier.padding(horizontal = 20.dp),
@@ -281,7 +300,7 @@ fun RecognitionResultScreen(
                         predictedSpecies = prediction.top1.speciesName,
                         confidence = prediction.top1.confidence,
                         correctedSpecies = selectedName.takeIf { corrected || customUnknown },
-                        userNote = "identify_state=${state.name};length_cm=$lengthText;weight_kg=$weightText;location=$locationText",
+                        userNote = "recognition_level=${level.name};length_cm=$lengthText;weight_kg=$weightText;location=$locationText",
                     )
                     onSave(
                         CatchSaveDraft(
@@ -302,7 +321,7 @@ fun RecognitionResultScreen(
                                     )
                             },
                             classifierResult = JSONObject()
-                                .put("state", state.name)
+                                .put("state", level.name)
                                 .put("model_version", prediction.modelVersion)
                                 .put("prediction_species", prediction.top1.speciesKey)
                                 .put("confidence", prediction.top1.confidence.toDouble())
@@ -351,6 +370,7 @@ fun RecognitionResultScreen(
                 ) { Text("查看鱼鉴") }
             }
         }
+    }
     }
 }
 
