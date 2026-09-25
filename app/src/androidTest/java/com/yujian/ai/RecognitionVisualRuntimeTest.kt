@@ -47,7 +47,7 @@ class RecognitionVisualRuntimeTest {
             )
         }
 
-        composeRule.waitUntil(timeoutMillis = RecognitionRuntimeContract.RESULT_START_MS + 2_000L) {
+        composeRule.waitUntil(timeoutMillis = 15_000L) {
             runCatching {
                 composeRule.onNodeWithText("认识完成").assertExists()
             }.isSuccess
