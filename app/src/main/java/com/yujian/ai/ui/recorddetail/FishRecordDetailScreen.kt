@@ -44,7 +44,7 @@ fun FishRecordDetailScreen(
     when (uiState) {
         FishRecordDetailUiState.Loading -> DetailMessage("正在打开这条鱼获…", onBack = onBack)
         FishRecordDetailUiState.Empty -> DetailMessage("没有找到这条鱼获记录", onBack = onBack)
-        is FishRecordDetailUiState.Error -> DetailMessage(uiState.message, onBack = onBack, retryLabel = null)
+        is FishRecordDetailUiState.Error -> DetailMessage(uiState.message, onBack = onBack)
         is FishRecordDetailUiState.Success -> {
             val record = uiState.record
             LazyColumn(
