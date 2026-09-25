@@ -2,7 +2,7 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.FishDetectorEngine
@@ -12,6 +12,7 @@ import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.screens.RecognizingScreen
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,7 +49,7 @@ class RecognitionVisualRuntimeTest {
             )
         }
 
-        composeRule.onNodeWithText("认识完成").assertExists()
+        assertEquals(2, composeRule.onAllNodesWithText("认识完成").fetchSemanticsNodes().size)
         bitmap.recycle()
     }
 }
