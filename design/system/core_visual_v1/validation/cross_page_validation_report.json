@@ -1,0 +1,144 @@
+{
+  "version": "1.0",
+  "status": "PASS",
+  "source_of_truth": "design/system/core_visual_v1/reference/reference_manifest.json",
+  "criteria": [
+    {
+      "id": "same_world",
+      "rule": "All pages belong to the same restrained morning-lake world, without forcing a shared bitmap."
+    },
+    {
+      "id": "nature_before_ui",
+      "rule": "Natural atmosphere precedes dashboard or control language."
+    },
+    {
+      "id": "real_fish_before_data",
+      "rule": "Real catch media outranks statistics whenever catch media exists."
+    },
+    {
+      "id": "one_primary_focus",
+      "rule": "Each viewport has one clear first visual center."
+    },
+    {
+      "id": "glass_consistency",
+      "rule": "Glass protects readability and layer separation; it does not become a visual effect."
+    },
+    {
+      "id": "gold_restraint",
+      "rule": "Gold remains reserved for brand, important moments, and meaningful records."
+    },
+    {
+      "id": "achievement_below_memory",
+      "rule": "Meaningful-record annotations remain below fish, story, and memory."
+    },
+    {
+      "id": "no_gamification_drift",
+      "rule": "No XP, levels, rarity, legendary treatment, HUD rewards, or collection-game hierarchy."
+    },
+    {
+      "id": "shared_component_consistency",
+      "rule": "Capture button, hero-card family, icon family, type roles, and glass levels do not fork by page."
+    }
+  ],
+  "pages": [
+    {
+      "page_id": "empty_home_v2",
+      "reference": "reference/empty_home_v2.png",
+      "status": "PASS",
+      "checked_criteria": [
+        "same_world",
+        "nature_before_ui",
+        "one_primary_focus",
+        "glass_consistency",
+        "gold_restraint",
+        "no_gamification_drift",
+        "shared_component_consistency"
+      ],
+      "evidence": "Quiet full-bleed lake and brand copy are primary; the capture entry uses the shared button contract."
+    },
+    {
+      "page_id": "normal_home_v1",
+      "reference": "reference/normal_home_v1.png",
+      "status": "PASS",
+      "checked_criteria": [
+        "same_world",
+        "nature_before_ui",
+        "real_fish_before_data",
+        "one_primary_focus",
+        "glass_consistency",
+        "gold_restraint",
+        "achievement_below_memory",
+        "no_gamification_drift",
+        "shared_component_consistency"
+      ],
+      "evidence": "The recent real catch is primary; summary statistics are secondary and the capture entry follows the shared button contract."
+    },
+    {
+      "page_id": "recognition_result_v1",
+      "reference": "reference/recognition_result_v1.png",
+      "status": "PASS",
+      "checked_criteria": [
+        "same_world",
+        "nature_before_ui",
+        "real_fish_before_data",
+        "one_primary_focus",
+        "glass_consistency",
+        "gold_restraint",
+        "no_gamification_drift",
+        "shared_component_consistency"
+      ],
+      "evidence": "The captured fish and confirmation task are primary; the background recedes and information panels use restrained glass."
+    },
+    {
+      "page_id": "fish_record_detail_v2",
+      "reference": "reference/fish_record_detail_v2.png",
+      "status": "PASS",
+      "checked_criteria": [
+        "same_world",
+        "nature_before_ui",
+        "real_fish_before_data",
+        "one_primary_focus",
+        "glass_consistency",
+        "gold_restraint",
+        "achievement_below_memory",
+        "no_gamification_drift",
+        "shared_component_consistency"
+      ],
+      "evidence": "The selected real catch and memory archive hierarchy lead; background salience is reduced and the shared DETAIL hero contract applies."
+    },
+    {
+      "page_id": "my_catches_v2",
+      "reference": "reference/my_catches_v2.png",
+      "status": "PASS",
+      "checked_criteria": [
+        "same_world",
+        "nature_before_ui",
+        "real_fish_before_data",
+        "one_primary_focus",
+        "glass_consistency",
+        "gold_restraint",
+        "achievement_below_memory",
+        "no_gamification_drift",
+        "shared_component_consistency"
+      ],
+      "evidence": "A chronological memory archive retains fish records above annotations; dense content uses a quieter background and a shared capture entry."
+    },
+    {
+      "page_id": "fish_guide_v2",
+      "reference": "reference/fish_guide_v2.png",
+      "status": "PASS",
+      "checked_criteria": [
+        "same_world",
+        "nature_before_ui",
+        "real_fish_before_data",
+        "one_primary_focus",
+        "glass_consistency",
+        "gold_restraint",
+        "achievement_below_memory",
+        "no_gamification_drift",
+        "shared_component_consistency"
+      ],
+      "evidence": "The species carousel stays a natural field-guide/archive experience; lit and unlit states are one FishGuideCard system without game reward language."
+    }
+  ]
+}

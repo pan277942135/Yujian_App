@@ -13,10 +13,14 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private const val ROOT = "empty_home_runtime_v1"
+private const val ROOT = "empty_home_runtime_v2"
 
 internal data class EmptyHomeRuntimeAssets(
     val cloud: Bitmap,
+    val sunBeam: Bitmap,
+    val particle: Bitmap,
+    val rod: Bitmap,
+    val line: Bitmap,
     val bobber: Bitmap,
     val ripple: Bitmap,
     val cameraBase: Bitmap,
@@ -37,7 +41,11 @@ private fun decodeAsset(context: Context, path: String): Bitmap {
 
 private fun loadRuntimeAssets(context: Context): EmptyHomeRuntimeAssets =
     EmptyHomeRuntimeAssets(
-        cloud = decodeAsset(context, "dynamic/cloud_layer.png"),
+        cloud = decodeAsset(context, "dynamic/cloud.png"),
+        sunBeam = decodeAsset(context, "dynamic/sun_beam_mask.png"),
+        particle = decodeAsset(context, "dynamic/particle_mask.png"),
+        rod = decodeAsset(context, "dynamic/rod.png"),
+        line = decodeAsset(context, "dynamic/line.png"),
         bobber = decodeAsset(context, "dynamic/bobber.png"),
         ripple = decodeAsset(context, "dynamic/ripple_mask.png"),
         cameraBase = decodeAsset(context, "camera/camera_button_base.png"),

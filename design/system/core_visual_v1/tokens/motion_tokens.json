@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "principle": "alive, not animated",
+  "empty_home": {
+    "bobber": {
+      "axis": "Y",
+      "range_reference_px": "+/-3",
+      "duration_ms": 4600,
+      "keyframes_ms_px": [
+        [
+          0,
+          0
+        ],
+        [
+          1150,
+          -3
+        ],
+        [
+          2300,
+          0
+        ],
+        [
+          3450,
+          3
+        ],
+        [
+          4600,
+          0
+        ]
+      ],
+      "x_motion": 0,
+      "rotation": 0,
+      "scale_animation": 0,
+      "loop": true
+    },
+    "ripple": {
+      "count": 1,
+      "center": "water_contact",
+      "scale": [
+        1,
+        1.22
+      ],
+      "alpha": [
+        0.3,
+        0
+      ],
+      "duration_ms": 3200,
+      "loop": true,
+      "render_order": "lake -> ripple -> bobber"
+    },
+    "cloud": {
+      "speed_reference_px_per_s": 0.2,
+      "baseline_cycle_s": 60
+    },
+    "sun_particle_beam": {
+      "duration_ms": 4800,
+      "max_alpha": 0.18,
+      "particle_count": "6-12"
+    },
+    "camera_gold_rim_sweep": {
+      "first_ms": 3000,
+      "duration_ms": 1400,
+      "repeat_interval_ms": 9000
+    },
+    "camera_breathing": {
+      "duration_ms": 5000,
+      "max_scale": 1.015
+    }
+  },
+  "content_screens": {
+    "allowed": [
+      "soft entrance",
+      "scroll physics",
+      "image transition",
+      "light press feedback"
+    ],
+    "forbidden": [
+      "page-wide synchronized looping",
+      "decorative continuous HUD motion"
+    ]
+  }
+}

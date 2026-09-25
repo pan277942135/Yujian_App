@@ -25,6 +25,12 @@ import kotlin.random.Random
 
 internal const val REFERENCE_SCENE_WIDTH = 1080f
 internal const val REFERENCE_SCENE_HEIGHT = 1920f
+internal const val EMPTY_HOME_V2_BOBBER_X = 518f
+internal const val EMPTY_HOME_V2_BOBBER_Y = 1084f
+internal const val EMPTY_HOME_V2_RIPPLE_X = 411f
+internal const val EMPTY_HOME_V2_RIPPLE_Y = 1127f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 530f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1168f
 
 /**
  * One frame clock shared by the Empty Home scene and its camera action layer.
@@ -137,16 +143,16 @@ internal fun bobberOffsetPx(timeSeconds: Float): Float =
     -3f * sin((timeSeconds % 4.6f) / 4.6f * (2f * PI.toFloat()))
 
 internal fun rippleProgress(timeSeconds: Float): Float =
-    (timeSeconds % 3.5f) / 3.5f
+    (timeSeconds % 3.2f) / 3.2f
 
 internal fun rippleScale(timeSeconds: Float): Float =
-    1f + 0.18f * rippleProgress(timeSeconds)
+    1f + 0.22f * rippleProgress(timeSeconds)
 
 internal fun rippleAlpha(timeSeconds: Float): Float =
-    0.24f * (1f - rippleProgress(timeSeconds))
+    0.30f * (1f - rippleProgress(timeSeconds))
 
 internal fun cloudOffsetPx(timeSeconds: Float): Float =
-    1.9099f * sin((timeSeconds % 60f) / 60f * (2f * PI.toFloat()))
+    (timeSeconds % 60f) * 0.2f
 
 internal fun sunBeamEnvelope(timeSeconds: Float): Float {
     val phase = (timeSeconds % 4.8f) / 4.8f

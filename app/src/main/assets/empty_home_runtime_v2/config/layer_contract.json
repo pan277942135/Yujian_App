@@ -1,0 +1,19 @@
+{
+  "design_version": "Empty_Home_Final_Design_V2",
+  "order": [
+    "scene_base",
+    "cloud_atmosphere",
+    "sun_ambient",
+    "rod",
+    "line",
+    "ripple",
+    "bobber",
+    "native_ui"
+  ],
+  "rules": {
+    "native_ui_is_baked": false,
+    "ripple_below_bobber": true,
+    "ripple_count": 1,
+    "scene_base_has_baked_ripple": false
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "assets": [
+    {
+      "alpha": false,
+      "asset_id": "home_empty_v2_scene_base_master",
+      "coordinate_space": "reference_1080x1920",
+      "height": 1920,
+      "master_format": "png_rgb",
+      "path": "design/pages/home/empty_home/shared/assets/background/scene_base_master.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_static",
+      "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 1080
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_rod_master",
+      "coordinate_space": "reference_1080x1920",
+      "height": 365,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/fishing/rod_master.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "8750d752f261efa64f23f52aadf4a46187143d9b5686d81cb58b48b61604b785",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 450
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_line_master",
+      "coordinate_space": "reference_1080x1920",
+      "height": 250,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/fishing/line_master.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "3979a8b8aad8962f59be722b71665ff7b3428c1019c97e39319047b2bb420ca2",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 170
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_bobber_master",
+      "coordinate_space": "reference_1080x1920",
+      "height": 122,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/fishing/bobber_master.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "69c36ab7477f2356aa14323ba2c24b6134f6d222000fcef5ce44acf1dec68be2",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 24
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_ripple_master_mask",
+      "coordinate_space": "reference_1080x1920",
+      "height": 82,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/fishing/ripple_master_mask.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "252fedfe3952559c8908686cb09c4f6812745b17200355f253c43915794b381d",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 238
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_cloud_master",
+      "coordinate_space": "reference_1080x1920",
+      "height": 180,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/atmosphere/cloud_master.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "73fd9b549c5d81ccdddca813e2491436e49f48db317d4584c5399893890bb4b3",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 620
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_sun_beam_master_mask",
+      "coordinate_space": "reference_1080x1920",
+      "height": 520,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/atmosphere/sun_beam_master_mask.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "9a200b932b88959024891ed3fbeb536a51ec98186f462b7eb0762ade3ed2d337",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 340
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_particle_master_mask",
+      "coordinate_space": "reference_1080x1920",
+      "height": 28,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/atmosphere/particle_master_mask.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "c5d7cd1946cb5553db95283ba6a2ece7676b570abe986f8dcafde546fc2b6c52",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 28
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_capture_button_base",
+      "coordinate_space": "reference_1080x1920",
+      "height": 208,
+      "master_format": "png_rgba",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "b02a2274723a2f24b3afb3716100d3bfa853ef28e9f259ff940c1366f29b2fae",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 208
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_capture_button_gold_rim",
+      "coordinate_space": "reference_1080x1920",
+      "height": 208,
+      "master_format": "png_rgba",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "9cbee62354d015dfe3d003de2bdc43b3336a621635f88d4bde36fe10c7e7a43d",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 208
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_capture_button_breath_glow",
+      "coordinate_space": "reference_1080x1920",
+      "height": 208,
+      "master_format": "png_rgba",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "de989d9c4021220198370b535e8e4c8c3fbba2db53547771fc52d6cdbc0ac00e",
+      "source": "Empty_Home_Final_Design_V2",
+      "version": "2.0",
+      "width": 208
+    }
+  ],
+  "design_version": "Empty_Home_Final_Design_V2"
+}
