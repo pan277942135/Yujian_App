@@ -318,7 +318,7 @@ private fun RecognitionPhoto(
         }
 
         Text(
-            text = RecognitionRuntimeContract.labelFor(phase),
+            text = RecognitionRuntimeContract.labelFor(phase.timelineLabelPhase()),
             color = Color.White,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -330,6 +330,9 @@ private fun RecognitionPhoto(
         )
     }
 }
+
+private fun RecognitionPhase.timelineLabelPhase(): RecognitionPhase =
+    if (this == RecognitionPhase.FAILURE) RecognitionPhase.CLASSIFYING else this
 
 private fun Modifier.graphicsLayerForRecognition(alpha: Float): Modifier =
     this.graphicsLayer { this.alpha = alpha }
