@@ -1,0 +1,18 @@
+# Generated recognition release assets are fetched and verified by the canonical bootstrap.
+app/src/main/assets/fish_classifier.tflite
+app/src/main/assets/model_tensor_contract.json
+app/src/main/assets/fish_detector_yolox_nano_v0_1.onnx
+app/src/main/assets/detector_metadata.json
+app/src/main/assets/recognition_pipeline_v1.json
+app/src/androidTest/assets/detector/golden_cases.json
+app/src/androidTest/assets/detector/golden/
+
+# Local Gradle and QA outputs.
+.gradle/
+.gradle-local/
+.gradle-user/
+.android-user/
+.kotlin/
+build/
+app/build/
+scripts/__pycache__/

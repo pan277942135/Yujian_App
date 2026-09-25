@@ -11,12 +11,6 @@ permissions:
   contents: read
 
 env:
-  MODEL_TFLITE_URL: https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/fish_classifier_v0_2.tflite
-  MODEL_TFLITE_SHA256: b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7
-  MODEL_TENSOR_CONTRACT_URL: https://github.com/pan277942135/Yujian/releases/download/mobile-model-v0.2/tensor_contract.json
-  MODEL_TENSOR_CONTRACT_SHA256: f9a477f4f9ecd23b0162ee7f06c0f6965f005a52f17755e11f7b9283e104b1d8
-  DETECTOR_BUNDLE_URL: https://github.com/pan277942135/Yujian/releases/download/detector-model-v0.1/det_fish_v0_1_android_bundle.zip
-  DETECTOR_BUNDLE_SHA256: 246ddacaf89ca7ecc9c64a47d3e12c5ee9088d92c763a38626778505ae8c15ee
   YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
   YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
   YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
@@ -37,39 +31,11 @@ jobs:
           python3 scripts/verify_recognition_runtime_contract.py
           python3 scripts/verify_recognition_runtime_contract.py
 
-      - name: Download verified MODEL_M1_v0.6 mobile asset and tensor contract
-        shell: bash
-        run: |
-          mkdir -p app/src/main/assets
-          curl -fL --retry 3 --retry-delay 2 \
-            -o app/src/main/assets/fish_classifier.tflite \
-            "$MODEL_TFLITE_URL"
-          curl -fL --retry 3 --retry-delay 2 \
-            -o app/src/main/assets/model_tensor_contract.json \
-            "$MODEL_TENSOR_CONTRACT_URL"
-          echo "$MODEL_TFLITE_SHA256  app/src/main/assets/fish_classifier.tflite" | sha256sum -c -
-          echo "$MODEL_TENSOR_CONTRACT_SHA256  app/src/main/assets/model_tensor_contract.json" | sha256sum -c -
+      - name: Bootstrap verified recognition assets
+        run: python3 scripts/bootstrap_android_recognition_assets.py
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py
-
-      - name: Download and install verified DET_FISH_v0.1 Android bundle
-        shell: bash
-        run: |
-          curl -fL --retry 3 --retry-delay 2 -o /tmp/detector_bundle.zip "$DETECTOR_BUNDLE_URL"
-          echo "$DETECTOR_BUNDLE_SHA256  /tmp/detector_bundle.zip" | sha256sum -c -
-          rm -rf /tmp/detector_bundle
-          mkdir -p /tmp/detector_bundle app/src/main/assets app/src/androidTest/assets/detector
-          unzip -q /tmp/detector_bundle.zip -d /tmp/detector_bundle
-          cp /tmp/detector_bundle/fish_detector_yolox_nano_v0_1.onnx app/src/main/assets/
-          cp /tmp/detector_bundle/detector_metadata.json app/src/main/assets/
-          cp /tmp/detector_bundle/recognition_pipeline_v1.json app/src/main/assets/
-          cp /tmp/detector_bundle/golden_cases.json app/src/androidTest/assets/detector/
-          rm -rf app/src/androidTest/assets/detector/golden
-          cp -R /tmp/detector_bundle/golden app/src/androidTest/assets/detector/golden
-
-      - name: Verify production detector model and contract
-        run: python3 scripts/verify_production_detector.py
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -123,39 +89,11 @@ jobs:
       - name: Install runtime evidence image dependency
         run: python3 -m pip install --user Pillow
 
-      - name: Download verified MODEL_M1_v0.6 mobile asset and tensor contract
-        shell: bash
-        run: |
-          mkdir -p app/src/main/assets
-          curl -fL --retry 3 --retry-delay 2 \
-            -o app/src/main/assets/fish_classifier.tflite \
-            "$MODEL_TFLITE_URL"
-          curl -fL --retry 3 --retry-delay 2 \
-            -o app/src/main/assets/model_tensor_contract.json \
-            "$MODEL_TENSOR_CONTRACT_URL"
-          echo "$MODEL_TFLITE_SHA256  app/src/main/assets/fish_classifier.tflite" | sha256sum -c -
-          echo "$MODEL_TENSOR_CONTRACT_SHA256  app/src/main/assets/model_tensor_contract.json" | sha256sum -c -
+      - name: Bootstrap verified recognition assets
+        run: python3 scripts/bootstrap_android_recognition_assets.py
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py
-
-      - name: Download and install verified DET_FISH_v0.1 Android bundle
-        shell: bash
-        run: |
-          curl -fL --retry 3 --retry-delay 2 -o /tmp/detector_bundle.zip "$DETECTOR_BUNDLE_URL"
-          echo "$DETECTOR_BUNDLE_SHA256  /tmp/detector_bundle.zip" | sha256sum -c -
-          rm -rf /tmp/detector_bundle
-          mkdir -p /tmp/detector_bundle app/src/main/assets app/src/androidTest/assets/detector
-          unzip -q /tmp/detector_bundle.zip -d /tmp/detector_bundle
-          cp /tmp/detector_bundle/fish_detector_yolox_nano_v0_1.onnx app/src/main/assets/
-          cp /tmp/detector_bundle/detector_metadata.json app/src/main/assets/
-          cp /tmp/detector_bundle/recognition_pipeline_v1.json app/src/main/assets/
-          cp /tmp/detector_bundle/golden_cases.json app/src/androidTest/assets/detector/
-          rm -rf app/src/androidTest/assets/detector/golden
-          cp -R /tmp/detector_bundle/golden app/src/androidTest/assets/detector/golden
-
-      - name: Verify production detector model and contract
-        run: python3 scripts/verify_production_detector.py
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
