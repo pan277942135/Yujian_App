@@ -53,7 +53,6 @@ import com.yujian.ai.session.UserSessionManager
 import com.yujian.ai.ui.screens.FishGuideHomeScreen
 import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
 import com.yujian.ai.ui.screens.HomeScreen
-import com.yujian.ai.ui.screens.RemoteCatchDetailScreen
 import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.screens.LoginScreen
 import com.yujian.ai.ui.screens.MyScreen
@@ -64,6 +63,9 @@ import com.yujian.ai.ui.screens.RegisterScreen
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
 import com.yujian.ai.ui.components.GuestRegistrationDialog
+import com.yujian.ai.ui.recorddetail.FishRecordDetailPresentation
+import com.yujian.ai.ui.recorddetail.FishRecordDetailScreen
+import com.yujian.ai.ui.recorddetail.FishRecordDetailRoute
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.launch
@@ -298,28 +300,33 @@ fun YujianApp() {
                     )
                 }
                 composable(
-                    route = "catch/{catchId}",
+                    route = FishRecordDetailRoute,
                     arguments = listOf(navArgument("catchId") { type = NavType.StringType }),
                 ) { entry ->
                     val catchId = entry.arguments?.getString("catchId").orEmpty()
-                    val selectedCatch = catchesState.catches.firstOrNull { it.id == catchId }
-                    if (selectedCatch == null) {
-                        LaunchedEffect(catchId) { nav.popBackStack() }
-                    } else {
-                        RemoteCatchDetailScreen(
-                            catch = selectedCatch,
-                            imageUrl = if (File(selectedCatch.imageUrl).exists()) {
-                                "file://" + selectedCatch.imageUrl
-                            } else {
-                                catchRepository.resolveUrl(selectedCatch.imageUrl)
-                            },
-                            bsideUrl = catchRepository.resolveUrl(selectedCatch.bsideUri),
-                            accessToken = session?.accessToken.orEmpty(),
-                            onBack = { nav.popBackStack() },
-                            onBsideAction = if (session != null) { { requestBsideGeneration(selectedCatch) } } else null,
-                            onPollBside = { refreshBsideStatus(selectedCatch.id) },
-                        )
-                    }
+                    val detailState = FishRecordDetailPresentation.resolve(
+                        catchId = catchId,
+                        records = catchesState.catches,
+                        loading = catchesState.loading,
+                        error = catchesState.error,
+                    )
+                    FishRecordDetailScreen(
+                        uiState = detailState,
+                        imageUrlFor = { record ->
+                            if (File(record.imageUrl).exists()) "file://${record.imageUrl}"
+                            else catchRepository.resolveUrl(record.imageUrl)
+                        },
+                        bsideUrlFor = { record -> catchRepository.resolveUrl(record.bsideUri) },
+                        accessToken = session?.accessToken.orEmpty(),
+                        onBack = { nav.popBackStack() },
+                        onOpenFishGuide = { record -> nav.navigate("species/${Uri.encode(record.speciesId)}") },
+                        onShare = { },
+                        onEditRecord = { },
+                        onAddMedia = { },
+                        onGenerateMemory = if (session != null) {
+                            { record -> requestBsideGeneration(record) }
+                        } else null,
+                    )
                 }
                 composable(
                     route = "identify?openGallery={openGallery}",
