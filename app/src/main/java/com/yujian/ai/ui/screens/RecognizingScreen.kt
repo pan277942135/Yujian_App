@@ -47,6 +47,7 @@ import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ai.RecognitionProgress
+import com.yujian.ai.ai.RecognitionRuntimeContract
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
@@ -63,7 +64,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlin.math.min
 
-private const val CAPTURE_TO_RESULT_MS = 2_600L
 private const val OUTLINE_THRESHOLD = 36
 private const val OUTLINE_STRIDE = 4
 
@@ -81,6 +81,7 @@ fun RecognizingScreen(
     recognize: suspend ((RecognitionProgress) -> Unit) -> ProductionRecognitionResult,
     generateSubject: (suspend (SelectedImage, NormalizedFishBox) -> FishSubjectResult)? = null,
     onFinished: (ProductionRecognitionResult) -> Unit,
+    phaseOverride: RecognitionPhase? = null,
 ) {
     var phase by remember { mutableStateOf(RecognitionPhase.CAPTURED) }
     var assessment by remember { mutableStateOf<FishInputAssessment?>(null) }
@@ -129,12 +130,12 @@ fun RecognizingScreen(
             }
 
             while (!recognition.isCompleted) {
-                phase = phaseForElapsed(SystemClock.elapsedRealtime() - startedAt)
+                phase = RecognitionRuntimeContract.phaseAt(SystemClock.elapsedRealtime() - startedAt)
                 delay(40)
             }
 
             val result = recognition.await()
-            val remaining = CAPTURE_TO_RESULT_MS -
+            val remaining = RecognitionRuntimeContract.RESULT_START_MS -
                 (SystemClock.elapsedRealtime() - startedAt)
             if (remaining > 0L) delay(remaining)
 
@@ -147,6 +148,8 @@ fun RecognizingScreen(
                 .onFailure { error = it.message ?: "识别失败，请重新拍摄或选择照片" }
         }
     }
+
+    val renderedPhase = phaseOverride ?: phase
 
     Column(
         Modifier
@@ -179,8 +182,8 @@ fun RecognizingScreen(
                 subjectBitmap = subjectBitmap,
                 subjectBox = subjectBox,
                 contour = contour,
-                focusActive = phase.ordinal >= RecognitionPhase.OUTLINE.ordinal,
-                phase = phase,
+                focusActive = renderedPhase.ordinal >= RecognitionPhase.OUTLINE.ordinal,
+                phase = renderedPhase,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
@@ -207,7 +210,7 @@ fun RecognizingScreen(
             }
         } else {
             Text(
-                text = phaseLabel(phase),
+                text = RecognitionRuntimeContract.labelFor(renderedPhase),
                 color = WaterTeal,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -302,7 +305,7 @@ private fun RecognitionPhoto(
         }
 
         Text(
-            text = phaseLabel(phase),
+            text = RecognitionRuntimeContract.labelFor(phase),
             color = Color.White,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -355,19 +358,4 @@ private fun extractContour(bitmap: Bitmap): List<ContourSegment> {
         y += yStep
     }
     return segments
-}
-
-private fun phaseForElapsed(elapsedMs: Long): RecognitionPhase = when {
-    elapsedMs < 350L -> RecognitionPhase.CAPTURED
-    elapsedMs < 1_100L -> RecognitionPhase.DETECTING
-    elapsedMs < 1_850L -> RecognitionPhase.OUTLINE
-    else -> RecognitionPhase.CLASSIFYING
-}
-
-private fun phaseLabel(phase: RecognitionPhase): String = when (phase) {
-    RecognitionPhase.CAPTURED -> "照片已准备好"
-    RecognitionPhase.DETECTING -> "正在寻找鱼体"
-    RecognitionPhase.OUTLINE -> "鱼体轮廓出现"
-    RecognitionPhase.CLASSIFYING -> "正在认识这条鱼"
-    RecognitionPhase.RESULT -> "认识完成"
 }

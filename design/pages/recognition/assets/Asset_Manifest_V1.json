@@ -1,0 +1,17 @@
+{
+  "feature": "Recognition Flow V1",
+  "assets": [
+    {
+      "name": "RecognitionStatusCard",
+      "status": "FROZEN"
+    },
+    {
+      "name": "AI_Ring_Indicator",
+      "status": "FROZEN"
+    },
+    {
+      "name": "Fish_Highlight_Layer",
+      "status": "FROZEN"
+    }
+  ]
+}
