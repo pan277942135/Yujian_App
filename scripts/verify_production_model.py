@@ -62,7 +62,7 @@ def main() -> None:
     if not CONTRACT.is_file():
         fail(f"missing {CONTRACT.relative_to(ROOT)}")
     try:
-        contract = json.loads(CONTRACT.read_text())
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
         input_contract = contract["inputs"][0]
         output_contract = contract["outputs"][0]
     except (OSError, json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
@@ -77,7 +77,7 @@ def main() -> None:
     if output_contract.get("dtype") != EXPECTED_DTYPE:
         fail(f"output dtype mismatch: expected {EXPECTED_DTYPE}, got {output_contract.get('dtype')}")
 
-    source = LABELS_SOURCE.read_text()
+    source = LABELS_SOURCE.read_text(encoding="utf-8")
     class_keys = re.findall(r'^\s+"([a-z0-9_]+)" to "[^"]+",?$', source, re.MULTILINE)
     if class_keys != EXPECTED_CLASS_KEYS:
         fail(f"Android label order mismatch: expected {EXPECTED_CLASS_KEYS}, got {class_keys}")

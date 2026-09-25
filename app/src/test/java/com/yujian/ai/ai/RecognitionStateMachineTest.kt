@@ -27,6 +27,7 @@ class RecognitionStateMachineTest {
             RecognitionTerminal.NO_FISH,
             noFish.dispatch(RecognitionEvent.DetectionFinished(DetectionRoute.NO_FISH)).terminal,
         )
+        assertEquals(RecognitionPhase.FAILURE, noFish.state.phase)
 
         val tooFar = RecognitionStateMachine()
         tooFar.dispatch(RecognitionEvent.DetectionStarted)
@@ -43,7 +44,7 @@ class RecognitionStateMachineTest {
         assertEquals(RecognitionPhase.CAPTURED, machine.state.phase)
 
         val failed = machine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.DETECTOR_FAILED))
-        assertEquals(RecognitionPhase.RESULT, failed.phase)
+        assertEquals(RecognitionPhase.FAILURE, failed.phase)
         assertEquals(RecognitionTerminal.ERROR, failed.terminal)
         assertEquals(RecognitionFailureCode.DETECTOR_FAILED, failed.failureCode)
     }
