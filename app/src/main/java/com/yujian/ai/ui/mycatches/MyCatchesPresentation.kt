@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.mycatches
 
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.presentation.presentationSpeciesName
+import com.yujian.ai.presentation.sanitizeOptionalText
 import java.text.DecimalFormat
 import java.util.Locale
 
@@ -24,19 +26,23 @@ object GrowthMarkResolver {
     fun resolve(catches: List<RemoteCatch>): Map<String, List<GrowthMark>> {
         val result = catches.associate { it.id to mutableListOf<GrowthMark>() }.toMutableMap()
         val chronological = catches.sortedWith(
-            compareBy<RemoteCatch> { resolveCatchTimestamp(it).millis }.thenBy { it.id },
+            compareBy<RemoteCatch> { resolveCatchTimestamp(it).millis ?: Long.MIN_VALUE }.thenBy { it.id },
         )
 
         chronological.groupBy { it.speciesId.ifBlank { it.speciesName } }.values.forEach { records ->
             records.firstOrNull()?.let { first ->
-                result.getValue(first.id).add(GrowthMark(GrowthMarkType.FirstSpecies, "首条${first.speciesName}"))
+                result.getValue(first.id).add(
+                    GrowthMark(GrowthMarkType.FirstSpecies, "首条${presentationSpeciesName(first.speciesName)}"),
+                )
             }
         }
         chronological.mapNotNull { record ->
-            record.location?.trim()?.takeIf(String::isNotBlank)?.let { it to record }
+            sanitizeOptionalText(record.location)?.let { it to record }
         }.groupBy({ it.first }, { it.second }).values.forEach { records ->
             records.firstOrNull()?.let { first ->
-                result.getValue(first.id).add(GrowthMark(GrowthMarkType.FirstLocation, "首次${first.location}"))
+                sanitizeOptionalText(first.location)?.let { location ->
+                    result.getValue(first.id).add(GrowthMark(GrowthMarkType.FirstLocation, "首次$location"))
+                }
             }
         }
         catches.maxByOrNull { it.lengthCm ?: Float.MIN_VALUE }?.takeIf { it.lengthCm != null }?.let { record ->
@@ -67,9 +73,9 @@ fun RemoteCatch.toFishRecordPresentation(
     return FishRecordPresentation(
         id = id,
         imageUrl = imageUrl,
-        speciesName = speciesName,
+        speciesName = presentationSpeciesName(speciesName),
         measurementLabel = formatCatchMeasurements(lengthCm, weightKg),
-        location = location?.trim()?.takeIf(String::isNotBlank),
+        location = sanitizeOptionalText(location),
         dateLabel = timestamp.dayLabel,
         annotations = annotations,
     )

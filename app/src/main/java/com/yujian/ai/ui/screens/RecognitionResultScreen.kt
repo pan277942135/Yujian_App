@@ -60,6 +60,7 @@ import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
+import com.yujian.ai.presentation.PresentationSanitizer
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -419,11 +420,7 @@ private fun ResultPhoto(bitmap: Bitmap, modifier: Modifier) {
 }
 
 private fun formatCaptureTime(value: String): String =
-    runCatching {
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-            .parse(value)
-            ?.let { SimpleDateFormat("今天 HH:mm", Locale.CHINA).format(it) }
-    }.getOrNull() ?: value.replace('T', ' ').substringBeforeLast(':')
+    PresentationSanitizer.formatDetailTimestamp(value, null) ?: "时间未知"
 
 private fun IdentifyState.titleForResult(): String = when (this) {
     IdentifyState.NO_FISH -> "没有找到鱼获主体"

@@ -45,9 +45,7 @@ import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.yujian.ai.presentation.PresentationSanitizer
 import kotlin.math.abs
 
 private const val GUEST_AVATAR = "home_normal_v1_2/assets/avatar/guest_avatar.png"
@@ -80,7 +78,7 @@ internal fun NormalHomeContent(
     modifier: Modifier = Modifier,
 ) {
     val recent = remember(recentCatches) {
-        recentCatches.sortedByDescending(::catchTimestamp)
+        recentCatches.sortedByDescending { catchTimestamp(it) ?: Long.MIN_VALUE }
     }
 
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.TopCenter) {
@@ -328,9 +326,5 @@ private fun Modifier.graphicsLayerForPagerCard(
     this.alpha = alpha
 }
 
-internal fun catchTimestamp(item: RemoteCatch): Date {
-    val value = item.capturedAt.ifBlank { item.createdAt }
-    return runCatching {
-        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(value)
-    }.getOrNull() ?: Date(0)
-}
+internal fun catchTimestamp(item: RemoteCatch): Long? =
+    PresentationSanitizer.resolveTimestamp(item.capturedAt, item.createdAt).millis

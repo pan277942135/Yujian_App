@@ -24,6 +24,7 @@ import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import com.yujian.ai.presentation.presentationSpeciesName
 
 @Composable
 fun FishMemorySection(
@@ -74,7 +75,7 @@ fun FishMemorySection(
                             url = bsideUrl,
                             authToken = accessToken,
                             modifier = Modifier.fillMaxWidth().padding(top = YuJianSpacing.xs),
-                            contentDescription = "${record.speciesName} 鱼获记忆",
+                            contentDescription = "${presentationSpeciesName(record.speciesName)} 鱼获记忆",
                             contentScale = ContentScale.Crop,
                         )
                     }

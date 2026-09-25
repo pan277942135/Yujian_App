@@ -11,6 +11,7 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.components.YuJianHeroCard
 import com.yujian.ai.ui.designsystem.components.YuJianHeroVariant
+import com.yujian.ai.presentation.presentationSpeciesName
 
 @Composable
 fun FishRecordHeroCard(
@@ -24,7 +25,7 @@ fun FishRecordHeroCard(
     } ?: listOfNotNull(FishRecordDetailPresentation.location(record))
 
     YuJianHeroCard(
-        title = record.speciesName.ifBlank { "鱼获" },
+        title = presentationSpeciesName(record.speciesName),
         metadata = metadata,
         variant = YuJianHeroVariant.DETAIL,
         editLabel = "编辑 >",
@@ -34,7 +35,7 @@ fun FishRecordHeroCard(
                 url = imageUrl,
                 authToken = accessToken,
                 modifier = Modifier.fillMaxSize(),
-                contentDescription = "${record.speciesName} 鱼获照片",
+                contentDescription = "${presentationSpeciesName(record.speciesName)} 鱼获照片",
                 contentScale = ContentScale.Crop,
                 placeholder = {
                     Box(Modifier.fillMaxSize().background(Color(0xFF6D8491)))
