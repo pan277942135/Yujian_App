@@ -228,25 +228,12 @@ private fun FrozenRecognitionHarness(
     noFish: ProductionRecognitionResult,
     imageQuality: ProductionRecognitionResult,
 ) {
-    val nav = rememberNavController()
     val stateValue = state.value
-    LaunchedEffect(stateValue) {
-        val route = when (stateValue) {
-            FrozenState.CAPTURE_TRANSITION,
-            FrozenState.AI_UNDERSTANDING,
-            FrozenState.FISH_HIGHLIGHT,
-            FrozenState.FISH_IDENTIFYING -> "recognizing"
-            FrozenState.RESULT_HIGH,
-            FrozenState.RESULT_MEDIUM,
-            FrozenState.RESULT_LOW -> "result"
-            FrozenState.ERROR_NO_FISH,
-            FrozenState.ERROR_IMAGE_QUALITY,
-            FrozenState.TECHNICAL_FAILURE -> "recognition_issue"
-        }
-        nav.navigate(route) { launchSingleTop = true }
-    }
-    NavHost(nav, startDestination = "recognizing") {
-        composable("recognizing") {
+    when (stateValue) {
+        FrozenState.CAPTURE_TRANSITION,
+        FrozenState.AI_UNDERSTANDING,
+        FrozenState.FISH_HIGHLIGHT,
+        FrozenState.FISH_IDENTIFYING -> {
             RecognitionProcessingScene(
                 image = photo,
                 onBack = {},
@@ -271,7 +258,9 @@ private fun FrozenRecognitionHarness(
                 visualClockOverrideMs = 3_200L,
             )
         }
-        composable("result") {
+        FrozenState.RESULT_HIGH,
+        FrozenState.RESULT_MEDIUM,
+        FrozenState.RESULT_LOW -> {
             val result = when (stateValue) {
                 FrozenState.RESULT_HIGH -> high
                 FrozenState.RESULT_MEDIUM -> medium
@@ -287,7 +276,9 @@ private fun FrozenRecognitionHarness(
                 onViewGuide = {},
             )
         }
-        composable("recognition_issue") {
+        FrozenState.ERROR_NO_FISH,
+        FrozenState.ERROR_IMAGE_QUALITY,
+        FrozenState.TECHNICAL_FAILURE -> {
             val result = when (stateValue) {
                 FrozenState.ERROR_NO_FISH -> noFish
                 FrozenState.ERROR_IMAGE_QUALITY -> imageQuality
