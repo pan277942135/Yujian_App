@@ -65,6 +65,9 @@ fun RecognitionAmbientField(
 
 @Composable
 private fun ambientClock(override: Long?): Long {
+    // Screenshot/test mode is deliberately still: do not install an infinite
+    // transition that keeps Compose's idler busy while a fixed clock is used.
+    if (override != null) return override
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "ambient-field")
     val fraction by transition.animateFloat(
         initialValue = 0f,
@@ -75,7 +78,7 @@ private fun ambientClock(override: Long?): Long {
         ),
         label = "ambient-clock",
     )
-    return override ?: (fraction * 10_000f).toLong()
+    return (fraction * 10_000f).toLong()
 }
 
 private fun intensityFor(phase: RecognitionPhase) = when (phase) {
