@@ -65,13 +65,14 @@ class RecognitionFrozenFlowEmulatorTest {
     @Before
     fun setUp() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val context = instrumentation.targetContext
+        val targetContext = instrumentation.targetContext
+        val testContext = instrumentation.context
         device = UiDevice.getInstance(instrumentation)
-        evidenceDir = File(context.getExternalFilesDir(null), "recognition-evidence").apply {
+        evidenceDir = File(targetContext.getExternalFilesDir(null), "recognition-evidence").apply {
             deleteRecursively()
             mkdirs()
         }
-        val bitmap = context.assets.open("golden_yellow_catfish_224.jpg").use(BitmapFactory::decodeStream)
+        val bitmap = testContext.assets.open("golden_yellow_catfish_224.jpg").use(BitmapFactory::decodeStream)
             ?: error("golden photo fixture is unavailable")
         photo = SelectedImage("recognition-emulator-fixture", bitmap, "instrumentation")
 
