@@ -87,9 +87,9 @@ jobs:
           retention-days: 7
 
   emulator-frozen-flow:
-    # Product-review gate. It is explicitly manual so the obsolete runtime
-    # evidence job cannot become a PR delivery blocker again.
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_frozen_emulator_gate == true }}
+    # Deterministic Recognition gate: run automatically for PR updates and
+    # remain manually runnable through workflow_dispatch.
+    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_frozen_emulator_gate == true) }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 35
