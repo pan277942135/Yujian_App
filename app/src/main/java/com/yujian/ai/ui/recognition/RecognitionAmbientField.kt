@@ -48,18 +48,20 @@ fun RecognitionAmbientField(
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
     lowPerformance: Boolean = false,
+    resolveProgress: Float = 0f,
 ) {
     val clock = ambientClock(visualClockMs)
     val intensity = remember(phase) { intensityFor(phase) }
+    val fade = 1f - resolveProgress.coerceIn(0f, 1f)
     Canvas(modifier.fillMaxSize()) {
         val paths = rememberAmbientPaths(size)
-        drawEdgeBloom(intensity.edge)
+        drawEdgeBloom(intensity.edge * fade)
         FILAMENTS.forEachIndexed { index, filament ->
             // Three to five paths are normally visible; the others remain below the reveal threshold.
-            val visibility = activeMultiplier(index, clock, intensity.filaments)
+            val visibility = activeMultiplier(index, clock, intensity.filaments) * fade
             if (visibility > 0.01f) drawFilament(paths[index], filament, clock, intensity.speed, visibility, lowPerformance)
         }
-        drawParticles(clock, intensity, lowPerformance)
+        drawParticles(clock, intensity.copy(particles = intensity.particles * fade), lowPerformance)
     }
 }
 
@@ -117,7 +119,8 @@ private fun DrawScope.drawFilament(path: Path, filament: Filament, clock: Long, 
     )
     drawPath(path, filament.color.copy(alpha = alpha * .08f * if (lowPerformance) .8f else 1f), style = stroke(10.dp, .08f))
     drawPath(path, filament.color.copy(alpha = alpha * .22f), style = stroke(4.dp, .22f))
-    drawPath(path, filament.hot.copy(alpha = (alpha * .46f).coerceAtMost(.50f)), style = stroke(filament.width, 1f))
+    // V1.1 increases core visibility rather than spreading a larger bloom.
+    drawPath(path, filament.hot.copy(alpha = (alpha * 1.15f).coerceAtMost(.50f)), style = stroke(filament.width, 1f))
 }
 
 private fun DrawScope.drawParticles(clock: Long, intensity: FieldIntensity, lowPerformance: Boolean) {
