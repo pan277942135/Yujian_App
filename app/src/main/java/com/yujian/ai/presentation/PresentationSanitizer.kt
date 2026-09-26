@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 /** Shared boundary between backend values and user-visible presentation text. */
 object PresentationSanitizer {
@@ -24,15 +25,25 @@ object PresentationSanitizer {
 
     enum class TimestampSource { CapturedAt, CreatedAt, Missing }
 
-    data class ResolvedTimestamp(val date: Date?, val source: TimestampSource) {
+    data class ResolvedTimestamp(
+        val date: Date?,
+        val source: TimestampSource,
+        val timeZone: TimeZone = TimeZone.getDefault(),
+    ) {
         val millis: Long? get() = date?.time
         val isValid: Boolean get() = date != null
     }
 
+    private data class ParsedTimestamp(val date: Date, val timeZone: TimeZone)
+
     /** capturedAt wins only when it is actually parseable; createdAt is the fallback. */
     fun resolveTimestamp(capturedAt: String?, createdAt: String?): ResolvedTimestamp {
-        parseTimestamp(capturedAt)?.let { return ResolvedTimestamp(it, TimestampSource.CapturedAt) }
-        parseTimestamp(createdAt)?.let { return ResolvedTimestamp(it, TimestampSource.CreatedAt) }
+        parseTimestamp(capturedAt)?.let {
+            return ResolvedTimestamp(it.date, TimestampSource.CapturedAt, it.timeZone)
+        }
+        parseTimestamp(createdAt)?.let {
+            return ResolvedTimestamp(it.date, TimestampSource.CreatedAt, it.timeZone)
+        }
         return ResolvedTimestamp(null, TimestampSource.Missing)
     }
 
@@ -40,40 +51,75 @@ object PresentationSanitizer {
         capturedAt: String?,
         createdAt: String?,
         nowMillis: Long = System.currentTimeMillis(),
-    ): String? = resolveTimestamp(capturedAt, createdAt).date?.let { date ->
-        val now = Calendar.getInstance().apply { timeInMillis = nowMillis }
-        val target = Calendar.getInstance().apply { time = date }
-        val time = SimpleDateFormat("HH:mm", Locale.CHINA).format(date)
-        when {
+    ): String? {
+        val resolved = resolveTimestamp(capturedAt, createdAt)
+        val date = resolved.date ?: return null
+        val zone = resolved.timeZone
+        val now = Calendar.getInstance(zone).apply { timeInMillis = nowMillis }
+        val target = Calendar.getInstance(zone).apply { time = date }
+        val time = formatter("HH:mm", Locale.CHINA, zone).format(date)
+        return when {
             sameDay(now, target) -> "今天 $time"
             isYesterday(now, target) -> "昨天 $time"
-            else -> SimpleDateFormat("MM月dd日 HH:mm", Locale.CHINA).format(date)
+            else -> formatter("MM月dd日 HH:mm", Locale.CHINA, zone).format(date)
         }
     }
 
-    fun formatDayLabel(capturedAt: String?, createdAt: String?): String? =
-        resolveTimestamp(capturedAt, createdAt).date?.let { SimpleDateFormat("MM月dd日", Locale.CHINA).format(it) }
+    fun formatDayLabel(capturedAt: String?, createdAt: String?): String? {
+        val resolved = resolveTimestamp(capturedAt, createdAt)
+        val date = resolved.date ?: return null
+        return formatter("MM月dd日", Locale.CHINA, resolved.timeZone).format(date)
+    }
 
-    fun formatMonthLabel(capturedAt: String?, createdAt: String?): String? =
-        resolveTimestamp(capturedAt, createdAt).date?.let { SimpleDateFormat("yyyy年M月", Locale.CHINA).format(it) }
+    fun formatMonthLabel(capturedAt: String?, createdAt: String?): String? {
+        val resolved = resolveTimestamp(capturedAt, createdAt)
+        val date = resolved.date ?: return null
+        return formatter("yyyy年M月", Locale.CHINA, resolved.timeZone).format(date)
+    }
 
     fun formatDetailTimestamp(capturedAt: String?, createdAt: String?): String? =
         formatHomeTimestamp(capturedAt, createdAt)
 
-    fun dateKey(capturedAt: String?, createdAt: String?): String? =
-        resolveTimestamp(capturedAt, createdAt).date?.let { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(it) }
+    fun dateKey(capturedAt: String?, createdAt: String?): String? {
+        val resolved = resolveTimestamp(capturedAt, createdAt)
+        val date = resolved.date ?: return null
+        return formatter("yyyy-MM-dd", Locale.US, resolved.timeZone).format(date)
+    }
 
-    fun monthKey(capturedAt: String?, createdAt: String?): String? =
-        resolveTimestamp(capturedAt, createdAt).date?.let { SimpleDateFormat("yyyy-MM", Locale.US).format(it) }
+    fun monthKey(capturedAt: String?, createdAt: String?): String? {
+        val resolved = resolveTimestamp(capturedAt, createdAt)
+        val date = resolved.date ?: return null
+        return formatter("yyyy-MM", Locale.US, resolved.timeZone).format(date)
+    }
 
-    private fun parseTimestamp(value: String?): Date? {
+    private fun parseTimestamp(value: String?): ParsedTimestamp? {
         val normalized = sanitizeOptionalText(value) ?: return null
+        val zone = timestampTimeZone(normalized)
         return timestampPatterns.firstNotNullOfOrNull { pattern ->
-            val formatter = SimpleDateFormat(pattern, Locale.US).apply { isLenient = false }
+            val formatter = SimpleDateFormat(pattern, Locale.US).apply {
+                isLenient = false
+                timeZone = zone
+            }
             val position = ParsePosition(0)
-            formatter.parse(normalized, position)?.takeIf { position.index == normalized.length }
+            formatter.parse(normalized, position)
+                ?.takeIf { position.index == normalized.length }
+                ?.let { ParsedTimestamp(it, zone) }
         }
     }
+
+    private fun timestampTimeZone(value: String): TimeZone {
+        if (value.endsWith("Z", ignoreCase = true)) return TimeZone.getTimeZone("UTC")
+        val offset = Regex("""([+-])(\d{2}):?(\d{2})$""").find(value)
+        return if (offset != null) {
+            val (_, sign, hour, minute) = offset.groupValues
+            TimeZone.getTimeZone("GMT$sign$hour:$minute")
+        } else {
+            TimeZone.getDefault()
+        }
+    }
+
+    private fun formatter(pattern: String, locale: Locale, zone: TimeZone) =
+        SimpleDateFormat(pattern, locale).apply { timeZone = zone }
 
     private fun sameDay(first: Calendar, second: Calendar): Boolean =
         first.get(Calendar.YEAR) == second.get(Calendar.YEAR) &&
