@@ -35,7 +35,7 @@ class RecognitionVisualStateControllerTest {
         controller.current(350); controller.current(950); controller.current(1_550)
         assertEquals(0f, controller.resolveProgress(2_600))
         assertEquals(RecognitionPhase.CLASSIFYING, controller.current(2_600))
-        assertEquals(1f, controller.resolveProgress(2_750))
+        assertEquals(.75f, controller.resolveProgress(2_750))
     }
 
     @Test fun slowDetectorCannotInventOutline() {
