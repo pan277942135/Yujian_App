@@ -72,7 +72,7 @@ class RecognitionFrozenFlowEmulatorTest {
             deleteRecursively()
             mkdirs()
         }
-        device.executeShellCommand("rm -rf /sdcard/recognition-evidence && mkdir -p /sdcard/recognition-evidence")
+        device.executeShellCommand("rm -rf /data/local/tmp/recognition-evidence && mkdir -p /data/local/tmp/recognition-evidence")
         val bitmap = testContext.assets.open("golden_yellow_catfish_224.jpg").use(BitmapFactory::decodeStream)
             ?: error("golden photo fixture is unavailable")
         photo = SelectedImage("recognition-emulator-fixture", bitmap, "instrumentation")
@@ -163,7 +163,7 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(device.displayHeight, bitmap.height)
         bitmap?.recycle()
 
-        val publicPath = "/sdcard/recognition-evidence/$name"
+        val publicPath = "/data/local/tmp/recognition-evidence/$name"
         device.executeShellCommand("screencap -p $publicPath")
         val publicBytes = device.executeShellCommand("wc -c < $publicPath").trim().toLongOrNull() ?: 0L
         assertTrue("public screenshot capture failed: $name", publicBytes > 0L)
