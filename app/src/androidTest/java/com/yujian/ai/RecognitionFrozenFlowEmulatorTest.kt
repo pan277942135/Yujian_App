@@ -103,8 +103,8 @@ class RecognitionFrozenFlowEmulatorTest {
         render(state, FrozenState.CAPTURE_TRANSITION, "正在准备识别", "01_capture_transition.png")
         assertVisible("AI 已获取这张照片")
 
-        render(state, FrozenState.AI_UNDERSTANDING, "正在理解照片", "02_ai_understanding.png")
-        assertVisible("查找鱼获线索")
+        render(state, FrozenState.AI_UNDERSTANDING, "正在理解这张照片", "02_ai_understanding.png")
+        assertVisible("寻找这次鱼获的线索")
         assertNoDirtyTechnicalUi()
 
         render(state, FrozenState.FISH_HIGHLIGHT, "已定位到鱼体", "03_fish_highlight.png")
@@ -268,6 +268,7 @@ private fun FrozenRecognitionHarness(
                     FrozenState.FISH_IDENTIFYING -> RecognitionPhase.CLASSIFYING
                     else -> RecognitionPhase.CAPTURED
                 },
+                visualClockOverrideMs = 3_200L,
             )
         }
         composable("result") {
