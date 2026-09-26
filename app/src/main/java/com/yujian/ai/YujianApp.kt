@@ -103,6 +103,7 @@ fun YujianApp() {
     var catchReload by remember { mutableIntStateOf(0) }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
+    var recognitionTechnicalFailure by remember { mutableStateOf(false) }
     var subjectResult by remember { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var subjectModelState by remember { mutableStateOf(SubjectModelState()) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
@@ -342,6 +343,7 @@ fun YujianApp() {
                         onImageReady = { selected ->
                             sessionImage = selected
                             productionResult = null
+                            recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                             prediction = null
                             inferenceAsset = null
@@ -365,6 +367,7 @@ fun YujianApp() {
                         },
                         onFinished = { result ->
                             productionResult = result
+                            recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                             prediction = result.prediction
                             if (result.ready) {
@@ -373,24 +376,32 @@ fun YujianApp() {
                                 nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
                             }
                         },
+                        onFailure = {
+                            productionResult = null
+                            recognitionTechnicalFailure = true
+                            nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+                        },
                     )
                 }
                 composable("recognition_issue") {
                     val current = productionResult
-                    if (current == null || current.ready) {
+                    if (current == null && !recognitionTechnicalFailure) {
                         LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("recognition_issue") { inclusive = true } } }
                     } else {
                         RecognitionIssueScreen(
                             image = sessionImage,
                             result = current,
+                            technicalFailure = recognitionTechnicalFailure,
                             onBack = { nav.popBackStack() },
                             onChooseAnother = {
                                 productionResult = null
+                                recognitionTechnicalFailure = false
                                 prediction = null
                                 nav.navigate("identify") { popUpTo("identify") { inclusive = false }; launchSingleTop = true }
                             },
                             onChooseGallery = {
                                 productionResult = null
+                                recognitionTechnicalFailure = false
                                 prediction = null
                                 nav.navigate("identify?openGallery=true") {
                                     popUpTo("recognition_issue") { inclusive = true }
@@ -399,6 +410,7 @@ fun YujianApp() {
                             },
                             onRetry = {
                                 productionResult = null
+                                recognitionTechnicalFailure = false
                                 prediction = null
                                 nav.navigate("recognizing") { popUpTo("recognition_issue") { inclusive = true } }
                             },
@@ -438,6 +450,7 @@ fun YujianApp() {
                             onBack = { nav.popBackStack() },
                             onRetry = {
                                 productionResult = null
+                                recognitionTechnicalFailure = false
                                 prediction = null
                                 nav.navigate("recognizing") { popUpTo("result") { inclusive = true } }
                             },

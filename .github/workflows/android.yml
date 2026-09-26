@@ -6,6 +6,17 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_frozen_emulator_gate:
+        description: Run the deterministic Frozen Recognition emulator gate
+        required: false
+        default: true
+        type: boolean
+      run_legacy_runtime_parity:
+        description: Run the historical runtime-parity diagnostics
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -75,10 +86,79 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  emulator-frozen-flow:
+    # Deterministic Recognition gate: run automatically for PR updates and
+    # remain manually runnable through workflow_dispatch.
+    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_frozen_emulator_gate == true) }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bootstrap verified recognition assets
+        run: python3 scripts/bootstrap_android_recognition_assets.py
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Assemble APKs for emulator gate
+        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
+
+      - name: Run deterministic Frozen Recognition emulator gate
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          arch: x86_64
+          target: default
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            set +e
+            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionFrozenFlowEmulatorTest --stacktrace
+            gate_status=$?
+            mkdir -p evidence/ui_rework_v1/recognition
+            for name in \
+              01_capture_transition.png \
+              02_ai_understanding.png \
+              03_fish_highlight.png \
+              04_fish_identifying.png \
+              05_result_high.png \
+              06_result_medium.png \
+              07_result_low.png \
+              08_error_no_fish.png \
+              09_error_image_quality.png
+            do
+              adb exec-out run-as com.yujian.ai.uiv2 cat "cache/recognition-evidence/$name" > "evidence/ui_rework_v1/recognition/$name" || true
+              if [ ! -s "evidence/ui_rework_v1/recognition/$name" ]; then
+                rm -f "evidence/ui_rework_v1/recognition/$name"
+              fi
+            done
+            exit $gate_status
+
+      - name: Upload Frozen Recognition emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recognition-frozen-flow-emulator-evidence-${{ github.sha }}
+          path: evidence/ui_rework_v1/recognition
+          if-no-files-found: warn
+          retention-days: 14
+
   runtime-parity:
     # Historical/manual diagnostics only. It is intentionally skipped for
     # push and pull_request delivery checks and cannot block a merge.
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_legacy_runtime_parity == true }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
