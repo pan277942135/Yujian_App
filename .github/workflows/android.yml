@@ -128,7 +128,7 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionFrozenFlowEmulatorTest --stacktrace
             gate_status=$?
             mkdir -p evidence/ui_rework_v1/recognition
-            adb pull /sdcard/Android/data/com.yujian.ai.uiv2/files/recognition-evidence/. evidence/ui_rework_v1/recognition/ || true
+            adb pull /sdcard/recognition-evidence/. evidence/ui_rework_v1/recognition/ || true
             exit $gate_status
 
       - name: Upload Frozen Recognition emulator evidence

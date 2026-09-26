@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +47,12 @@ fun RecognitionIssueScreen(
     onRetry: () -> Unit,
 ) {
     val state = result?.let(::resolveRecognitionUiState)
+    val compactHeight = LocalConfiguration.current.screenHeightDp < 700
+    val heroHeight = if (compactHeight) 276.dp else 340.dp
+    val panelOuterPadding = if (compactHeight) 14.dp else 20.dp
+    val panelInnerPadding = if (compactHeight) 18.dp else 24.dp
+    val panelSpacing = if (compactHeight) 10.dp else 14.dp
+    val actionHeight = if (compactHeight) 50.dp else 54.dp
     val copy = when {
         technicalFailure || state == RecognitionUiState.TECHNICAL_FAILURE ->
             "识别没有完成" to "请重新拍摄或选择照片。"
@@ -63,26 +70,26 @@ fun RecognitionIssueScreen(
             Image(
                 bitmap = it.bitmap.asImageBitmap(),
                 contentDescription = "本次识别照片",
-                modifier = Modifier.fillMaxWidth().height(340.dp).padding(horizontal = 20.dp).clip(RoundedCornerShape(28.dp)),
+                modifier = Modifier.fillMaxWidth().height(heroHeight).padding(horizontal = 20.dp).clip(RoundedCornerShape(28.dp)),
                 contentScale = ContentScale.Crop,
             )
         }
         Column(
-            Modifier.fillMaxWidth().padding(20.dp).background(Color(0xE6F4F8FC), RoundedCornerShape(24.dp)).padding(24.dp),
+            Modifier.fillMaxWidth().padding(panelOuterPadding).background(Color(0xE6F4F8FC), RoundedCornerShape(24.dp)).padding(panelInnerPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(panelSpacing),
         ) {
             Text(copy.first, color = DeepInk, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Text(copy.second, color = MutedInk, fontSize = 15.sp, lineHeight = 23.sp)
             Button(
                 onClick = onChooseAnother,
-                modifier = Modifier.fillMaxWidth().height(54.dp),
+                modifier = Modifier.fillMaxWidth().height(actionHeight),
                 shape = RoundedCornerShape(27.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
             ) { Text("重新拍摄", fontWeight = FontWeight.SemiBold) }
             OutlinedButton(
                 onClick = onChooseGallery,
-                modifier = Modifier.fillMaxWidth().height(54.dp),
+                modifier = Modifier.fillMaxWidth().height(actionHeight),
                 shape = RoundedCornerShape(27.dp),
             ) { Text("从相册选择", color = DeepInk) }
         }

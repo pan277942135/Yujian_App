@@ -68,10 +68,11 @@ class RecognitionFrozenFlowEmulatorTest {
         val targetContext = instrumentation.targetContext
         val testContext = instrumentation.context
         device = UiDevice.getInstance(instrumentation)
-        evidenceDir = File(targetContext.getExternalFilesDir(null), "recognition-evidence").apply {
+        evidenceDir = File(targetContext.cacheDir, "recognition-evidence").apply {
             deleteRecursively()
             mkdirs()
         }
+        device.executeShellCommand("rm -rf /sdcard/recognition-evidence && mkdir -p /sdcard/recognition-evidence")
         val bitmap = testContext.assets.open("golden_yellow_catfish_224.jpg").use(BitmapFactory::decodeStream)
             ?: error("golden photo fixture is unavailable")
         photo = SelectedImage("recognition-emulator-fixture", bitmap, "instrumentation")
@@ -148,7 +149,7 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun render(state: MutableState<FrozenState>, next: FrozenState, expected: String, screenshotName: String?) {
         composeRule.runOnUiThread { state.value = next }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(expected).assertIsDisplayed()
+        assertVisible(expected)
         if (screenshotName != null) capture(screenshotName)
     }
 
@@ -161,10 +162,23 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(device.displayWidth, bitmap.width)
         assertEquals(device.displayHeight, bitmap.height)
         bitmap?.recycle()
+
+        val publicPath = "/sdcard/recognition-evidence/$name"
+        device.executeShellCommand("screencap -p $publicPath")
+        val publicBytes = device.executeShellCommand("wc -c < $publicPath").trim().toLongOrNull() ?: 0L
+        assertTrue("public screenshot capture failed: $name", publicBytes > 0L)
     }
 
     private fun assertVisible(text: String) {
-        composeRule.onNodeWithText(text).assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 10_000L) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+        try {
+            composeRule.onNodeWithText(text).assertIsDisplayed()
+        } catch (error: AssertionError) {
+            val tree = composeRule.onRoot(useUnmergedTree = true).printToString()
+            throw AssertionError("Expected visible component: $text\n$tree", error)
+        }
     }
 
     private fun assertNoDirtyTechnicalUi() {
