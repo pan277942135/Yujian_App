@@ -78,6 +78,7 @@ fun RecognitionProcessingScene(
     var contour by remember(image?.imageId) { mutableStateOf(emptyList<RecognitionContourSegment>()) }
     var finishedResult by remember(image?.imageId) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var delivered by remember(image?.imageId) { mutableStateOf(false) }
+    var visualNowMs by remember(image?.imageId) { mutableStateOf(SystemClock.uptimeMillis()) }
     val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(SystemClock.uptimeMillis()) } }
 
     LaunchedEffect(image?.imageId, assessment?.primary?.box) {
@@ -94,7 +95,7 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(image?.imageId) {
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
-        controller.reset(SystemClock.uptimeMillis()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED
+        controller.reset(SystemClock.uptimeMillis()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = SystemClock.uptimeMillis()
         assessment = null
         runCatching {
             recognize { progress ->
@@ -116,7 +117,8 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(realPhase, image?.imageId) {
         while (isActive && phaseOverride == null && !delivered) {
-            visualPhase = controller.current(SystemClock.uptimeMillis())
+            visualNowMs = SystemClock.uptimeMillis()
+            visualPhase = controller.current(visualNowMs)
             if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true) {
                 delivered = true; onFinished(requireNotNull(finishedResult))
             }
@@ -125,26 +127,33 @@ fun RecognitionProcessingScene(
     }
 
     val rendered = phaseOverride ?: visualPhase
+    val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
+    val resolveProgress = if (phaseOverride != null) 0f else controller.resolveProgress(visualNowMs)
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
-        if (image != null) RecognitionPhoto(image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour, visualClockOverrideMs, Modifier.fillMaxSize())
+        if (image != null) RecognitionPhoto(image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour, visualClockOverrideMs, phaseElapsedMs, resolveProgress, Modifier.fillMaxSize())
         IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(top = 18.dp, start = 12.dp)) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
         }
-        RecognitionStatusOverlay(rendered, Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = 34.dp))
+        RecognitionStatusOverlay(
+            rendered,
+            Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = if (rendered == RecognitionPhase.DETECTING) 84.dp else 34.dp),
+            resolveProgress,
+        )
     }
 }
 
 @Composable
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
-    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?, modifier: Modifier,
+    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
+    phaseElapsedMs: Long, resolveProgress: Float, modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
     val transform = calculateRecognitionImageTransform(with(density) { maxWidth.toPx() }, with(density) { maxHeight.toPx() }, bitmap.width, bitmap.height)
-    Image(bitmap.asImageBitmap(), null, Modifier.fillMaxSize().graphicsLayer { alpha = .25f }, contentScale = ContentScale.Crop)
+    // The captured image is opaque on the first Recognition frame; only visual overlays animate.
     Image(bitmap.asImageBitmap(), "正在识别的鱼获照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-    RecognitionAmbientField(phase, Modifier.fillMaxSize(), visualClockOverrideMs)
-    RecognitionFishFocus(phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(), visualClockOverrideMs)
+    RecognitionAmbientField(phase, Modifier.fillMaxSize(), visualClockOverrideMs, resolveProgress = resolveProgress)
+    RecognitionFishFocus(phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(), visualClockOverrideMs, phaseElapsedMs, resolveProgress)
 }
 
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
