@@ -21,9 +21,7 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.yujian.ai.presentation.PresentationSanitizer
 
 internal data class HomeStatValues(
     val speciesCount: Int,
@@ -110,14 +108,5 @@ private fun HomeStat(modifier: Modifier, value: String, label: String, onClick: 
 }
 
 private fun catchDayKey(catch: RemoteCatch): String? {
-    val value = catch.capturedAt.ifBlank { catch.createdAt }.trim()
-    if (value.isBlank()) return null
-    parseDate(value)?.let { date ->
-        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
-    }
-    return value.take(10).takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+    return PresentationSanitizer.dateKey(catch.capturedAt, catch.createdAt)
 }
-
-private fun parseDate(value: String): Date? = runCatching {
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(value)
-}.getOrNull()

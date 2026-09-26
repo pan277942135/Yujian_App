@@ -3,8 +3,13 @@ package com.yujian.ai.ui.recorddetail
 import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 class FishRecordDetailPresentationTest {
     private val record = RemoteCatch(
@@ -60,6 +65,37 @@ class FishRecordDetailPresentationTest {
     fun media_uses_only_real_record_image() {
         assertEquals(listOf("https://example.test/catch.jpg"), FishRecordDetailPresentation.mediaUrls(record))
         assertTrue(FishRecordDetailPresentation.mediaUrls(record.copy(imageUrl = "")).isEmpty())
+    }
+
+    @Test
+    fun sentinelLocationIsMissingAndTimestampIsHumanReadable() {
+        val zone = TimeZone.getTimeZone("GMT+08:00")
+        val todayAt2007 = Calendar.getInstance(zone).apply {
+            set(Calendar.HOUR_OF_DAY, 20)
+            set(Calendar.MINUTE, 7)
+            set(Calendar.SECOND, 19)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val createdAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).apply {
+            timeZone = zone
+        }.format(todayAt2007.time)
+        val missingLocation = record.copy(
+            location = "null",
+            capturedAt = "invalid",
+            createdAt = createdAt,
+        )
+
+        assertEquals(null, FishRecordDetailPresentation.location(missingLocation))
+        assertEquals("今天 20:07", FishRecordDetailPresentation.capturedAt(missingLocation))
+        assertFalse(FishRecordDetailPresentation.capturedAt(missingLocation)!!.contains("T20:07"))
+    }
+
+    @Test
+    fun invalidBothTimestampsNeverBecome1970() {
+        val missing = record.copy(capturedAt = "invalid", createdAt = "undefined")
+
+        assertEquals(null, FishRecordDetailPresentation.capturedAt(missing))
+        assertFalse(FishRecordDetailPresentation.capturedAt(missing).orEmpty().contains("1970"))
     }
 
     @Test

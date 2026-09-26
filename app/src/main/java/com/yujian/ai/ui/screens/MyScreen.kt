@@ -67,6 +67,8 @@ import com.yujian.ai.ui.mycatches.filterAndSortCatches
 import com.yujian.ai.ui.mycatches.groupCatchesByMonthAndDay
 import com.yujian.ai.ui.mycatches.resolveMyCatchesEmptyState
 import com.yujian.ai.ui.mycatches.toFishRecordPresentation
+import com.yujian.ai.presentation.presentationSpeciesName
+import com.yujian.ai.presentation.sanitizeOptionalText
 import com.yujian.ai.ui.theme.CardWhite
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.Hairline
@@ -309,8 +311,11 @@ private fun FilterSheet(
     onTimeChanged: (CatchTimeRange) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val species = catches.map { it.speciesId.ifBlank { it.speciesName } to it.speciesName }.distinctBy { it.first }.sortedBy { it.second }
-    val locations = catches.mapNotNull { it.location?.trim()?.takeIf(String::isNotBlank) }.distinct().sorted()
+    val species = catches
+        .map { it.speciesId.ifBlank { it.speciesName } to presentationSpeciesName(it.speciesName) }
+        .distinctBy { it.first }
+        .sortedBy { it.second }
+    val locations = catches.mapNotNull { sanitizeOptionalText(it.location) }.distinct().sorted()
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 20.dp).padding(bottom = 16.dp)) {
             Text(
