@@ -163,10 +163,9 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(device.displayHeight, bitmap.height)
         bitmap?.recycle()
 
-        val publicPath = "/data/local/tmp/recognition-evidence/$name"
-        device.executeShellCommand("screencap -p $publicPath")
-        val publicBytes = device.executeShellCommand("wc -c < $publicPath").trim().toLongOrNull() ?: 0L
-        assertTrue("public screenshot capture failed: $name", publicBytes > 0L)
+        // Evidence remains in the target app cache during instrumentation.
+        // CI exports it after the test through adb run-as; do not make the
+        // instrumentation process depend on writing /data/local/tmp.
     }
 
     private fun assertVisible(text: String) {
