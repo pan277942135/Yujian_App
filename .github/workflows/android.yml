@@ -128,7 +128,22 @@ jobs:
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionFrozenFlowEmulatorTest --stacktrace
             gate_status=$?
             mkdir -p evidence/ui_rework_v1/recognition
-            adb pull /data/local/tmp/recognition-evidence/. evidence/ui_rework_v1/recognition/ || true
+            for name in \
+              01_capture_transition.png \
+              02_ai_understanding.png \
+              03_fish_highlight.png \
+              04_fish_identifying.png \
+              05_result_high.png \
+              06_result_medium.png \
+              07_result_low.png \
+              08_error_no_fish.png \
+              09_error_image_quality.png
+            do
+              adb exec-out run-as com.yujian.ai.uiv2 cat "cache/recognition-evidence/$name" > "evidence/ui_rework_v1/recognition/$name" || true
+              if [ ! -s "evidence/ui_rework_v1/recognition/$name" ]; then
+                rm -f "evidence/ui_rework_v1/recognition/$name"
+              fi
+            done
             exit $gate_status
 
       - name: Upload Frozen Recognition emulator evidence
