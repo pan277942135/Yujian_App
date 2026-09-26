@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +62,7 @@ class RecognitionFrozenFlowEmulatorTest {
     private lateinit var low: ProductionRecognitionResult
     private lateinit var noFish: ProductionRecognitionResult
     private lateinit var imageQuality: ProductionRecognitionResult
+    private var currentFrozenState: FrozenState = FrozenState.CAPTURE_TRANSITION
 
     @Before
     fun setUp() {
@@ -147,10 +149,13 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     private fun render(state: MutableState<FrozenState>, next: FrozenState, expected: String, screenshotName: String?) {
+        println("RENDER_STATE=$next EXPECTED=$expected")
+        currentFrozenState = next
         composeRule.runOnUiThread { state.value = next }
         composeRule.waitForIdle()
         assertVisible(expected)
         if (screenshotName != null) capture(screenshotName)
+        println("PASS_STATE=$next")
     }
 
     private fun capture(name: String) {
@@ -169,14 +174,18 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     private fun assertVisible(text: String) {
-        composeRule.waitUntil(timeoutMillis = 10_000L) {
-            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
-        }
         try {
+            composeRule.waitUntil(timeoutMillis = 10_000L) {
+                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+            }
             composeRule.onNodeWithText(text).assertIsDisplayed()
-        } catch (error: AssertionError) {
-            val tree = composeRule.onRoot(useUnmergedTree = true).printToString()
-            throw AssertionError("Expected visible component: $text\n$tree", error)
+        } catch (error: Throwable) {
+            val tree = runCatching { composeRule.onRoot(useUnmergedTree = true).printToString() }
+                .getOrElse { "<semantics tree unavailable: ${it::class.java.simpleName}: ${it.message}>" }
+            throw AssertionError(
+                "Frozen state assertion failed\nexpected=$text\nstate=$currentFrozenState\nsemantics=\n$tree",
+                error,
+            )
         }
     }
 
@@ -229,6 +238,7 @@ private fun FrozenRecognitionHarness(
     imageQuality: ProductionRecognitionResult,
 ) {
     val stateValue = state.value
+    key(stateValue) {
     when (stateValue) {
         FrozenState.CAPTURE_TRANSITION,
         FrozenState.AI_UNDERSTANDING,
@@ -294,5 +304,6 @@ private fun FrozenRecognitionHarness(
                 onRetry = {},
             )
         }
+    }
     }
 }
