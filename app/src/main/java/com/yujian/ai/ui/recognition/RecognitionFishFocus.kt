@@ -35,6 +35,8 @@ fun RecognitionFishFocus(
     transform: RecognitionImageTransform,
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
+    phaseElapsedMs: Long = Long.MAX_VALUE,
+    resolveProgress: Float = 0f,
 ) {
     val active = phase == RecognitionPhase.OUTLINE || phase == RecognitionPhase.CLASSIFYING
     if (!active || focusBox == null) return
@@ -44,15 +46,17 @@ fun RecognitionFishFocus(
         val center = Offset(point.x, point.y)
         val radiusX = transform.drawnWidth * normalized.width * .62f + 14.dp.toPx()
         val radiusY = transform.drawnHeight * normalized.height * .72f + 14.dp.toPx()
+        val fade = 1f - resolveProgress.coerceIn(0f, 1f)
+        val reveal = if (phase == RecognitionPhase.OUTLINE) (phaseElapsedMs / 360f).coerceIn(0f, 1f) else 1f
         val breathing = if (phase == RecognitionPhase.CLASSIFYING) {
             val t = ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) / 1_900f
-            .12f + ((sin(t * 2f * PI - PI / 2f) + 1f) / 2f).toFloat() * .06f
-        } else .16f
+            .15f + ((sin(t * 2f * PI - PI / 2f) + 1f) / 2f).toFloat() * .05f
+        } else .19f * reveal
         drawOval(
             brush = Brush.radialGradient(
                 0f to Color.Transparent,
                 .58f to Color.Transparent,
-                .82f to Color(0x2EF6D99B),
+                .82f to Color(0x2EF6D99B).copy(alpha = .18f * reveal * fade),
                 1f to Color(0x00F6D99B),
                 center = center,
                 radius = maxOf(radiusX, radiusY) * 1.18f,
@@ -62,19 +66,21 @@ fun RecognitionFishFocus(
         )
         // The fish interior stays transparent: only a restrained elliptical response is drawn.
         drawOval(
-            color = Color(0xFFF6D99B).copy(alpha = breathing),
+            color = Color(0xFFF6D99B).copy(alpha = breathing * fade),
             topLeft = Offset(center.x - radiusX, center.y - radiusY),
             size = androidx.compose.ui.geometry.Size(radiusX * 2f, radiusY * 2f),
             style = Stroke(width = 1.2.dp.toPx()),
         )
         if (subjectBitmap != null && subjectBox != null && contour.isNotEmpty()) {
             val crop = subjectBox.normalized()
-            val contourAlpha = if (phase == RecognitionPhase.CLASSIFYING) breathing.coerceIn(.30f, .42f) else .36f
+            val contourAlpha = if (phase == RecognitionPhase.CLASSIFYING) {
+                .34f + (breathing - .15f) / .05f * .10f
+            } else .36f * reveal
             contour.forEach { segment ->
                 val start = transform.mapNormalized(crop.x1 + segment.startX * crop.width, crop.y1 + segment.startY * crop.height)
                 val end = transform.mapNormalized(crop.x1 + segment.endX * crop.width, crop.y1 + segment.endY * crop.height)
-                drawLine(Color(0x66FFE7AE).copy(alpha = contourAlpha * .35f), Offset(start.x, start.y), Offset(end.x, end.y), 8.dp.toPx(), StrokeCap.Round)
-                drawLine(Color(0xFFFFE7AE).copy(alpha = contourAlpha), Offset(start.x, start.y), Offset(end.x, end.y), 1.4.dp.toPx(), StrokeCap.Round)
+                drawLine(Color(0x66FFE7AE).copy(alpha = contourAlpha * .35f * fade), Offset(start.x, start.y), Offset(end.x, end.y), 8.dp.toPx(), StrokeCap.Round)
+                drawLine(Color(0xFFFFE7AE).copy(alpha = contourAlpha * fade), Offset(start.x, start.y), Offset(end.x, end.y), 1.4.dp.toPx(), StrokeCap.Round)
             }
         }
     }
