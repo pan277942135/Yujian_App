@@ -41,7 +41,7 @@ class PresentationSanitizationRuntimeTest {
         waitForText("我的鱼获")
         assertRuntimeClean("My Catches with null location")
         assertVisible("草鱼")
-        assertVisible("09月25日")
+        assertVisible(currentDayLabel())
         assertVisible("1条鱼获")
         assertAbsent("首次null")
         screenshot("02_my_catches_null_clean.png")
@@ -81,6 +81,9 @@ class PresentationSanitizationRuntimeTest {
         assertTrue(preferences.edit().putString("records", JSONArray().put(record).toString()).commit())
         context.getSharedPreferences("yujian_user_session", Context.MODE_PRIVATE).edit().clear().commit()
     }
+
+    private fun currentDayLabel(): String =
+        SimpleDateFormat("MM月dd日", Locale.CHINA).format(Calendar.getInstance().time)
 
     private fun fixtureTimestamp(): String {
         val calendar = Calendar.getInstance().apply {
