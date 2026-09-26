@@ -5,6 +5,10 @@ import com.yujian.ai.ai.RecognitionPhase
 /**
  * Presents the real recognition phases long enough to be perceived, without
  * ever delaying detector or classifier work. This class has no model access.
+ *
+ * V1.1 intentionally has no fast-result compression: a completed model is
+ * retained while the frozen 2.8s visual story plays. Slow model phases still
+ * gate advancement, so the UI never invents an OUTLINE before a real bbox.
  */
 class RecognitionVisualStateController(
     private val minVisibleMs: Map<RecognitionPhase, Long> = DEFAULT_MIN_VISIBLE_MS,
@@ -42,6 +46,16 @@ class RecognitionVisualStateController(
 
     fun presentedPhase(): RecognitionPhase = presented
 
+    fun phaseElapsedMs(nowMs: Long): Long = (nowMs - phaseStartedAtMs).coerceAtLeast(0L)
+
+    /** 0..1 for the final 200ms fade, but only once a real result exists. */
+    fun resolveProgress(nowMs: Long): Float {
+        if (presented != RecognitionPhase.CLASSIFYING || actual != RecognitionPhase.RESULT) return 0f
+        val elapsed = (nowMs - phaseStartedAtMs).coerceAtLeast(0L)
+        return ((elapsed - (minimum(RecognitionPhase.CLASSIFYING) - RESOLVE_FADE_MS)).toFloat() / RESOLVE_FADE_MS)
+            .coerceIn(0f, 1f)
+    }
+
     private fun canAdvance(nowMs: Long): Boolean {
         val next = next(presented)
         if (next == RecognitionPhase.RESULT) {
@@ -49,19 +63,10 @@ class RecognitionVisualStateController(
         } else if (rank(actual) < rank(next)) {
             return false
         }
-        val elapsed = nowMs - phaseStartedAtMs
-        val required = effectiveMinimum(presented)
-        return elapsed >= required || (resultReceivedAtMs != UNSET && nowMs - resultReceivedAtMs >= maxPostResultHoldMs)
+        return nowMs - phaseStartedAtMs >= minimum(presented)
     }
 
-    private fun effectiveMinimum(phase: RecognitionPhase): Long {
-        val normal = minVisibleMs[phase] ?: 0L
-        if (resultReceivedAtMs == UNSET) return normal
-        // A fast model may finish before all visual states have been displayed.
-        // Compress evenly into the bounded post-result window, retaining order.
-        val sequenceTotal = DEFAULT_SEQUENCE.sumOf { minVisibleMs[it] ?: 0L }.coerceAtLeast(1L)
-        return (normal * maxPostResultHoldMs / sequenceTotal).coerceAtLeast(MIN_COMPRESSED_VISIBLE_MS)
-    }
+    private fun minimum(phase: RecognitionPhase): Long = minVisibleMs[phase] ?: 0L
 
     private fun next(phase: RecognitionPhase): RecognitionPhase = when (phase) {
         RecognitionPhase.CAPTURED -> RecognitionPhase.DETECTING
@@ -79,14 +84,15 @@ class RecognitionVisualStateController(
     }
 
     companion object {
-        const val MAX_POST_RESULT_HOLD_MS = 900L
-        private const val MIN_COMPRESSED_VISIBLE_MS = 80L
+        /** Kept as an API compatibility constant for callers/tests from V1. */
+        const val MAX_POST_RESULT_HOLD_MS = 2_800L
+        const val RESOLVE_FADE_MS = 200L
         private const val UNSET = Long.MIN_VALUE
         val DEFAULT_MIN_VISIBLE_MS = mapOf(
-            RecognitionPhase.CAPTURED to 220L,
-            RecognitionPhase.DETECTING to 320L,
-            RecognitionPhase.OUTLINE to 350L,
-            RecognitionPhase.CLASSIFYING to 250L,
+            RecognitionPhase.CAPTURED to 350L,
+            RecognitionPhase.DETECTING to 600L,
+            RecognitionPhase.OUTLINE to 600L,
+            RecognitionPhase.CLASSIFYING to 1_250L,
         )
         private val DEFAULT_SEQUENCE = listOf(
             RecognitionPhase.CAPTURED,
