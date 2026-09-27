@@ -52,11 +52,13 @@ if ! [[ "${data_free_kb}" =~ ^[0-9]+$ ]] || (( data_free_kb < 524288 )); then
 fi
 
 set +e
+adb logcat -c
 gradle :app:connectedDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionFrozenFlowEmulatorTest \
   --stacktrace
 gate_status=$?
 set -e
+adb logcat -d -v threadtime RecognitionFrozenGate:I '*:S' || true
 
 mkdir -p evidence/ui_rework_v1/recognition
 for name in \
