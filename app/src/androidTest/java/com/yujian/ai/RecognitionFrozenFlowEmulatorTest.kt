@@ -2,8 +2,11 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
@@ -16,10 +19,14 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.printToString
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -39,10 +46,12 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.theme.YujianTheme
+import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -54,6 +63,16 @@ import java.io.File
 class RecognitionFrozenFlowEmulatorTest {
     private companion object {
         const val FROZEN_GATE_LOG_TAG = "RecognitionFrozenGate"
+
+        @JvmStatic
+        @BeforeClass
+        fun clearFrozenEvidenceOnce() {
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            File(instrumentation.targetContext.cacheDir, "recognition-evidence").deleteRecursively()
+            UiDevice.getInstance(instrumentation).executeShellCommand(
+                "rm -f /sdcard/recognition_processing_v1_1.mp4",
+            )
+        }
     }
 
     @get:Rule
@@ -75,10 +94,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val targetContext = instrumentation.targetContext
         val testContext = instrumentation.context
         device = UiDevice.getInstance(instrumentation)
-        evidenceDir = File(targetContext.cacheDir, "recognition-evidence").apply {
-            deleteRecursively()
-            mkdirs()
-        }
+        evidenceDir = File(targetContext.cacheDir, "recognition-evidence").apply { mkdirs() }
         device.executeShellCommand("rm -rf /data/local/tmp/recognition-evidence && mkdir -p /data/local/tmp/recognition-evidence")
         val bitmap = testContext.assets.open("golden_yellow_catfish_224.jpg").use(BitmapFactory::decodeStream)
             ?: error("golden photo fixture is unavailable")
@@ -151,6 +167,94 @@ class RecognitionFrozenFlowEmulatorTest {
         render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", null)
         assertVisible("请重新拍摄或选择照片。")
         assertNoDirtyTechnicalUi()
+    }
+
+
+    @Test
+    fun recordsMeasuredNormalSpeedProcessingFlow() {
+        val startRecognition = CompletableDeferred<Unit>()
+        val deliveredAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
+        val showProcessing = mutableStateOf(false)
+        val showResult = mutableStateOf(false)
+
+        composeRule.setContent {
+            YujianTheme {
+                when {
+                    showResult.value -> RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(high.prediction),
+                        productionResult = high,
+                        onBack = {}, onRetry = {}, onSave = { _, _ -> }, onViewGuide = {},
+                    )
+                    showProcessing.value -> RecognitionProcessingScene(
+                        image = photo,
+                        onBack = {},
+                        recognize = { onProgress ->
+                            startRecognition.await()
+                            onProgress(RecognitionProgress(RecognitionPhase.DETECTING))
+                            kotlinx.coroutines.delay(80L)
+                            onProgress(RecognitionProgress(RecognitionPhase.OUTLINE, high.assessment))
+                            kotlinx.coroutines.delay(80L)
+                            onProgress(RecognitionProgress(RecognitionPhase.CLASSIFYING, high.assessment))
+                            kotlinx.coroutines.delay(80L)
+                            high
+                        },
+                        onFinished = {
+                            deliveredAtMs.set(SystemClock.elapsedRealtime())
+                            showResult.value = true
+                        },
+                    )
+                    else -> Image(
+                        bitmap = photo.bitmap.asImageBitmap(),
+                        contentDescription = "已选择的鱼获照片",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithContentDescription("已选择的鱼获照片").assertIsDisplayed()
+        device.executeShellCommand(
+            "rm -f /sdcard/recognition_processing_v1_1.mp4; " +
+                "sh -c 'screenrecord --time-limit 5 /sdcard/recognition_processing_v1_1.mp4 >/dev/null 2>&1 &'",
+        )
+        Thread.sleep(200L)
+
+        val acceptedAtMs = SystemClock.elapsedRealtime()
+        composeRule.runOnUiThread { showProcessing.value = true }
+        startRecognition.complete(Unit)
+        val detectingAtMs = waitForFlowCopy("正在理解这张照片")
+        val outlineAtMs = waitForFlowCopy("已定位到鱼体")
+        val classifyingAtMs = waitForFlowCopy("正在认识这条鱼")
+        composeRule.waitUntil(timeoutMillis = 4_500L) { deliveredAtMs.get() > 0L }
+        val resultAtMs = deliveredAtMs.get()
+        Thread.sleep(2_150L) // Keep the first Result frame stable until screenrecord finalizes.
+
+        val capturedMs = detectingAtMs - acceptedAtMs
+        val detectingMs = outlineAtMs - detectingAtMs
+        val outlineMs = classifyingAtMs - outlineAtMs
+        val classifyingMs = resultAtMs - classifyingAtMs
+        val totalMs = resultAtMs - acceptedAtMs
+        val fishFocusStableMs = resultAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS - classifyingAtMs
+        assertTrue("processing visual flow was outside the frozen bound: ${totalMs}ms", totalMs in 2_500L..3_000L)
+        assertTrue("final fish focus was too short: ${fishFocusStableMs}ms", fishFocusStableMs >= 1_000L)
+        File(evidenceDir, "recognition_processing_timing.txt").writeText(
+            "CAPTURED duration: ${capturedMs}ms\n" +
+                "DETECTING duration: ${detectingMs}ms\n" +
+                "OUTLINE duration: ${outlineMs}ms\n" +
+                "CLASSIFYING duration: ${classifyingMs}ms\n" +
+                "TOTAL duration: ${totalMs}ms\n" +
+                "FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
+        )
+        trace("TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs")
+    }
+
+    private fun waitForFlowCopy(text: String): Long {
+        composeRule.waitUntil(timeoutMillis = 4_000L) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(text).assertIsDisplayed()
+        return SystemClock.elapsedRealtime()
     }
 
     private fun render(state: MutableState<FrozenState>, next: FrozenState, expected: String, screenshotName: String?) {
