@@ -10,8 +10,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,15 +38,24 @@ import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 
+private val USERNAME_PATTERN = Regex("^[A-Za-z0-9_-]{3,32}$")
+
+fun isValidAuthUsername(value: String): Boolean = USERNAME_PATTERN.matches(value.trim())
+
+fun isValidRegisterForm(username: String, password: String, nickname: String): Boolean =
+    isValidAuthUsername(username) && password.length in 6..72 && nickname.trim().length in 1..20
+
 @Composable
 fun LoginScreen(
     loading: Boolean,
     error: String?,
     onLogin: (username: String, password: String) -> Unit,
     onRegister: () -> Unit,
+    onForgotPassword: () -> Unit = {},
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     AuthLayout(title = "登录渔见", subtitle = "保存每一次真实鱼获") {
         OutlinedTextField(
             value = username, onValueChange = { username = it.take(32) },
@@ -51,8 +65,16 @@ fun LoginScreen(
         OutlinedTextField(
             value = password, onValueChange = { password = it.take(128) },
             modifier = Modifier.fillMaxWidth(), singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
             label = { Text("密码") }, shape = RoundedCornerShape(18.dp),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                    )
+                }
+            },
         )
         AuthError(error)
         Button(
@@ -61,8 +83,11 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(27.dp),
             colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
         ) { Text(if (loading) "登录中…" else "登录", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+        TextButton(onClick = onForgotPassword, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+            Text("忘记密码？", color = WaterTeal)
+        }
         TextButton(onClick = onRegister, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
-            Text("还没有账号？去注册", color = WaterTeal)
+            Text("还没有账号？创建账号", color = WaterTeal)
         }
     }
 }
@@ -77,6 +102,7 @@ fun RegisterScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     AuthLayout(title = "创建账号", subtitle = "用一个账号，留住你的钓鱼轨迹") {
         OutlinedTextField(
             value = username, onValueChange = { username = it.take(32) },
@@ -87,18 +113,26 @@ fun RegisterScreen(
         OutlinedTextField(
             value = password, onValueChange = { password = it.take(128) },
             modifier = Modifier.fillMaxWidth(), singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
             label = { Text("密码") }, supportingText = { Text("至少 6 位") }, shape = RoundedCornerShape(18.dp),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                    )
+                }
+            },
         )
         OutlinedTextField(
             value = nickname, onValueChange = { nickname = it.take(32) },
             modifier = Modifier.fillMaxWidth(), singleLine = true,
-            label = { Text("昵称") }, shape = RoundedCornerShape(18.dp),
+            label = { Text("昵称（必填）") }, supportingText = { Text("1–20 个字符") }, shape = RoundedCornerShape(18.dp),
         )
         AuthError(error)
         Button(
             onClick = { onRegister(username.trim(), password, nickname.trim()) },
-            enabled = !loading && username.isNotBlank() && password.length >= 6 && nickname.isNotBlank(),
+            enabled = !loading && isValidRegisterForm(username, password, nickname),
             modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(27.dp),
             colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
         ) { Text(if (loading) "注册中…" else "注册并登录", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
