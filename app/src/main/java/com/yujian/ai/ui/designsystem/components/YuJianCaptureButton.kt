@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material3.Icon
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
@@ -34,6 +36,22 @@ import kotlin.math.sin
 
 private val CaptureVisualSize = 56.dp
 private val CaptureIconSize = 24.dp
+private val RasterCaptureVisualSize = 64.dp
+
+/** Frozen Empty Home V2 raster masters, passed by the home renderer. */
+data class YuJianCaptureButtonRasterAssets(
+    val base: ImageBitmap,
+    val goldRimSweep: ImageBitmap,
+    val breathGlow: ImageBitmap,
+)
+
+/** Scene-clock values keep Empty Home idle effects phase-independent. */
+data class YuJianCaptureButtonRasterMotion(
+    val breathScale: Float,
+    val breathGlowAlpha: Float,
+    val sweepRotationDegrees: Float,
+    val sweepAlpha: Float,
+)
 
 /**
  * Native Core UI V1 capture control. The touch target is 64 dp while the
@@ -46,6 +64,8 @@ fun YuJianCaptureButton(
     enabled: Boolean = true,
     contentDescription: String = "开始识鱼",
     motionEnabled: Boolean = true,
+    rasterAssets: YuJianCaptureButtonRasterAssets? = null,
+    rasterMotion: YuJianCaptureButtonRasterMotion? = null,
 ) {
     val haptic = rememberYuJianHaptic()
     val transition = rememberYuJianInfiniteTransition(label = "YuJianCaptureButton")
@@ -62,8 +82,8 @@ fun YuJianCaptureButton(
         label = "CaptureBreathing",
     )
     val sweepAlpha = sin(rimProgress * PI.toFloat()).coerceAtLeast(0f)
-    val visualScale = if (motionEnabled) breathingScale else 1f
-    val visibleSweepAlpha = if (motionEnabled) sweepAlpha else 0f
+    val visualScale = if (motionEnabled) rasterMotion?.breathScale ?: breathingScale else 1f
+    val visibleSweepAlpha = if (motionEnabled) rasterMotion?.sweepAlpha ?: sweepAlpha else 0f
 
     Box(
         modifier = modifier
@@ -80,7 +100,7 @@ fun YuJianCaptureButton(
     ) {
         Box(
             modifier = Modifier
-                .size(CaptureVisualSize)
+                .size(if (rasterAssets != null) RasterCaptureVisualSize else CaptureVisualSize)
                 .graphicsLayer {
                     scaleX = visualScale
                     scaleY = visualScale
@@ -91,29 +111,53 @@ fun YuJianCaptureButton(
                 .shadow(1.dp, CircleShape, clip = false),
             contentAlignment = Alignment.Center,
         ) {
-            Canvas(Modifier.fillMaxSize()) {
-                val stroke = 1.dp.toPx()
-                drawCircle(color = YuJianColors.LakeWhite)
-                drawCircle(
-                    color = YuJianColors.MorningGold.copy(alpha = 0.76f),
-                    style = Stroke(width = stroke),
+            if (rasterAssets != null) {
+                val glowAlpha = if (motionEnabled) rasterMotion?.breathGlowAlpha ?: 0f else 0f
+                Image(
+                    bitmap = rasterAssets.breathGlow,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = glowAlpha },
+                )
+                Image(
+                    bitmap = rasterAssets.base,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
                 )
                 if (visibleSweepAlpha > 0f) {
-                    drawArc(
-                        color = YuJianColors.MorningGold.copy(alpha = 0.82f * visibleSweepAlpha),
-                        startAngle = -110f + rimProgress * 360f,
-                        sweepAngle = 56f,
-                        useCenter = false,
-                        style = Stroke(width = stroke * 1.35f, cap = StrokeCap.Round),
+                    Image(
+                        bitmap = rasterAssets.goldRimSweep,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().graphicsLayer {
+                            alpha = visibleSweepAlpha
+                            rotationZ = rasterMotion?.sweepRotationDegrees ?: (-110f + rimProgress * 360f)
+                        },
                     )
                 }
+            } else {
+                Canvas(Modifier.fillMaxSize()) {
+                    val stroke = 1.dp.toPx()
+                    drawCircle(color = YuJianColors.LakeWhite)
+                    drawCircle(
+                        color = YuJianColors.MorningGold.copy(alpha = 0.76f),
+                        style = Stroke(width = stroke),
+                    )
+                    if (visibleSweepAlpha > 0f) {
+                        drawArc(
+                            color = YuJianColors.MorningGold.copy(alpha = 0.82f * visibleSweepAlpha),
+                            startAngle = -110f + rimProgress * 360f,
+                            sweepAngle = 56f,
+                            useCenter = false,
+                            style = Stroke(width = stroke * 1.35f, cap = StrokeCap.Round),
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = Icons.Rounded.CameraAlt,
+                    contentDescription = null,
+                    tint = YuJianColors.DeepInk,
+                    modifier = Modifier.size(CaptureIconSize),
+                )
             }
-            Icon(
-                imageVector = Icons.Rounded.CameraAlt,
-                contentDescription = null,
-                tint = YuJianColors.DeepInk,
-                modifier = Modifier.size(CaptureIconSize),
-            )
         }
     }
 }

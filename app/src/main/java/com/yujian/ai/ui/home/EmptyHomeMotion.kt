@@ -32,6 +32,14 @@ internal const val EMPTY_HOME_V2_RIPPLE_Y = 1127f
 internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 530f
 internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1168f
 
+// Environment loops deliberately start on distinct phases. Their periods and
+// amplitudes remain frozen; only page-entry synchronization is avoided.
+internal const val BOBBER_PHASE_OFFSET_SECONDS = 1.15f
+internal const val RIPPLE_PHASE_OFFSET_SECONDS = 0.42f
+internal const val CLOUD_PHASE_OFFSET_SECONDS = 17.6f
+internal const val SUN_BEAM_PHASE_OFFSET_SECONDS = 2.08f
+internal const val CAMERA_BREATH_PHASE_OFFSET_SECONDS = 1.71f
+
 /**
  * One frame clock shared by the Empty Home scene and its camera action layer.
  * The clock intentionally stops while the host lifecycle is paused.
@@ -196,7 +204,10 @@ internal fun cameraSweepState(timeSeconds: Float): CameraSweepState {
     val progress = elapsed / 1.4f
     return CameraSweepState(
         rotationDegrees = 330f + progress * 360f,
-        alpha = 0.38f * sin(progress * PI.toFloat()).coerceAtLeast(0f),
+        // The native mask's alpha is more restrained than the Canvas arc it
+        // replaces. This calibrated value preserves the frozen cadence while
+        // making one sweep legible in a normal 11–12 s runtime recording.
+        alpha = 0.45f * sin(progress * PI.toFloat()).coerceAtLeast(0f),
     )
 }
 
