@@ -1,6 +1,10 @@
 package com.yujian.ai.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +25,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,9 +43,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.yujian.ai.ai.FishInputStatus
 import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.ProductionRecognitionResult
@@ -97,6 +104,15 @@ fun RecognitionResultScreen(
     var weightText by remember(prediction) { mutableStateOf("") }
     var locationText by remember(prediction) { mutableStateOf("") }
     var pickerVisible by remember(prediction) { mutableStateOf(false) }
+    var locationExplanationVisible by remember(prediction) { mutableStateOf(false) }
+    val context = LocalContext.current
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { result ->
+        val granted = result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) locationText = "当前位置"
+    }
     val currentTime = remember {
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date())
     }
@@ -253,6 +269,9 @@ fun RecognitionResultScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
                 )
+                TextButton(onClick = { locationExplanationVisible = true }) {
+                    Text("使用当前位置", color = WaterTeal)
+                }
             }
         }
 
@@ -351,6 +370,24 @@ fun RecognitionResultScreen(
                 ) { Text("查看鱼鉴") }
             }
         }
+    }
+    if (locationExplanationVisible) {
+        AlertDialog(
+            onDismissRequest = { locationExplanationVisible = false },
+            title = { Text("添加地点") },
+            text = { Text("只有当你主动选择“使用当前位置”时，渔见才会获取你的位置，用于为当前鱼获添加地点。\n\n拒绝不会影响拍照识鱼和保存鱼获。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    locationExplanationVisible = false
+                    context.getSharedPreferences("yujian_location_permission", 0).edit().putBoolean("asked", true).apply()
+                    val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    if (fine || coarse) locationText = "当前位置"
+                    else locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
+                }) { Text("允许使用当前位置", color = WaterTeal) }
+            },
+            dismissButton = { TextButton(onClick = { locationExplanationVisible = false }) { Text("暂不使用") } },
+        )
     }
 }
 

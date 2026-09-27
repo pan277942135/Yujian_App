@@ -64,6 +64,30 @@ class FeedbackRepository(private val context: Context) {
     }
 
     /**
+     * Consent-scoped upload for model improvement. It deliberately uploads the
+     * detector crop as the required image part and redacts the original-image
+     * path/detection object from the record. No full catch photo is sent through
+     * this path.
+     */
+    suspend fun submitConsentCrop(asset: InferenceAsset): Boolean = withContext(Dispatchers.IO) {
+        val crop = asset.cropFile ?: return@withContext false
+        if (!isConfigured()) return@withContext false
+        val recordFile = File(inferenceQueueDir, "consent_${asset.record.imageId}.json")
+        val redacted = JSONObject(asset.recordFile.readText(Charsets.UTF_8)).apply {
+            put("source", "android_consent_crop")
+            put("source_image_path", "consent_crop")
+            remove("detection")
+            optJSONObject("crop")?.put("crop_path", "consent_crop")
+        }
+        recordFile.writeText(redacted.toString(2), Charsets.UTF_8)
+        try {
+            uploadInference(recordFile, crop, null)
+        } finally {
+            recordFile.delete()
+        }
+    }
+
+    /**
      * UAT-only transport smoke. It exercises the same authenticated multipart client
      * as production feedback, while the backend smoke mode writes + verifies + deletes
      * a temporary GCS object and does not create a FeedbackEvent.

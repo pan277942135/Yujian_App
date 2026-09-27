@@ -50,12 +50,28 @@ import com.yujian.ai.model.DemoData
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.session.UserSessionManager
+import com.yujian.ai.privacy.AccountPrivacyCapabilities
+import com.yujian.ai.privacy.PrivacyPromptFrequency
+import com.yujian.ai.privacy.PrivacyPromptFrequencyStore
+import com.yujian.ai.privacy.canPrompt
+import com.yujian.ai.privacy.recordDismissal
+import com.yujian.ai.privacy.suppressAfterManualWithdrawal
 import com.yujian.ai.ui.screens.FishGuideHomeScreen
 import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
 import com.yujian.ai.ui.screens.HomeScreen
 import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.screens.LoginScreen
 import com.yujian.ai.ui.screens.MyScreen
+import com.yujian.ai.ui.screens.AccountMyScreen
+import com.yujian.ai.ui.screens.AccountLoginScreen
+import com.yujian.ai.ui.screens.AboutYujianScreen
+import com.yujian.ai.ui.screens.ChangePasswordScreen
+import com.yujian.ai.ui.screens.ComingSoonKind
+import com.yujian.ai.ui.screens.ComingSoonSheet
+import com.yujian.ai.ui.screens.CorrectionConsentPromptSheet
+import com.yujian.ai.ui.screens.DataPrivacyScreen
+import com.yujian.ai.ui.screens.EditProfileScreen
+import com.yujian.ai.ui.screens.LegalDocumentScreen
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognizingScreen
@@ -88,6 +104,7 @@ fun YujianApp() {
     val sessionManager = remember { UserSessionManager(context) }
     val guestId = remember { sessionManager.guestId() }
     val authRepository = remember { AuthRepository() }
+    val promptFrequencyStore = remember { PrivacyPromptFrequencyStore(context) }
     val catchRepository = remember { CatchRepository() }
     val guestCatchRepository = remember(guestId) { GuestCatchRepository(context) }
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
@@ -116,6 +133,9 @@ fun YujianApp() {
     var guideOfflinePreview by remember { mutableStateOf(false) }
     var guideError by remember { mutableStateOf<String?>(null) }
     var guideRetry by remember { mutableIntStateOf(0) }
+    var comingSoon by remember { mutableStateOf<ComingSoonKind?>(null) }
+    var promptFrequency by remember { mutableStateOf(promptFrequencyStore.load()) }
+    var correctionPromptVisible by remember { mutableStateOf(false) }
     val backStackEntry by nav.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
@@ -124,6 +144,18 @@ fun YujianApp() {
         session = null
         catchesState = CatchArchiveState()
         nav.navigate("home") { launchSingleTop = true }
+    }
+
+    fun applyProfile(profile: com.yujian.ai.auth.AccountProfile) {
+        val active = session ?: return
+        val updated = active.copy(
+            userId = profile.id,
+            username = profile.username,
+            nickname = profile.nickname,
+            avatarUrl = profile.avatarUrl,
+        )
+        sessionManager.save(updated)
+        session = updated
     }
 
     fun adoptGuestArchive(loggedIn: com.yujian.ai.session.UserSession) {
@@ -172,7 +204,17 @@ fun YujianApp() {
     }
 
     DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectPreviewEngine.close(); subjectModelManager.close() } }
-    LaunchedEffect(Unit) { feedbackRepository.flushQueued() }
+    // Inference uploads are consent-scoped. Existing queued artifacts are not
+    // flushed automatically because their original-photo provenance predates
+    // the current server consent check.
+    LaunchedEffect(session?.accessToken) {
+        val active = session ?: return@LaunchedEffect
+        runCatching { authRepository.getProfile(active.accessToken) }
+            .onSuccess(::applyProfile)
+            .onFailure { error ->
+                if ((error as? ApiException)?.statusCode == 401) logoutToHome()
+            }
+    }
     LaunchedEffect(guideRetry) {
         guideLoading = true
         guideError = null
@@ -240,11 +282,16 @@ fun YujianApp() {
                                     }
                                     .onFailure { error ->
                                         authLoading = false
-                                        authError = error.message ?: "登录失败，请稍后重试"
+                                        authError = authErrorMessage(error, "登录失败，请稍后重试")
                                     }
                             }
                         },
                         onRegister = { authError = null; nav.navigate("register") },
+                        onForgotPassword = {
+                            if (!AccountPrivacyCapabilities.forgotPasswordEnabled) {
+                                comingSoon = ComingSoonKind.FORGOT_PASSWORD
+                            }
+                        },
                     )
                 }
                 composable("register") {
@@ -266,7 +313,7 @@ fun YujianApp() {
                                     nav.navigate("home") { popUpTo("login") { inclusive = true } }
                                 }.onFailure { error ->
                                     authLoading = false
-                                    authError = error.message ?: "注册失败，请稍后重试"
+                                    authError = authErrorMessage(error, "注册失败，请稍后重试")
                                 }
                             }
                         },
@@ -293,7 +340,7 @@ fun YujianApp() {
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
                         onLoginClick = { nav.navigate("login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
-                        onCatchesClick = { nav.navigate("my") },
+                        onCatchesClick = { nav.navigate("my_catches") },
                         onRecordDaysClick = { },
                         onProfileClick = { if (active == null) nav.navigate("login") else nav.navigate("my") },
                         onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
@@ -463,11 +510,25 @@ fun YujianApp() {
                                             catchSaving = false
                                             catchReload++
                                             if (active != null) {
-                                                inferenceAsset?.let { asset ->
-                                                    scope.launch {
+                                                scope.launch {
+                                                    val privacy = runCatching { authRepository.getPrivacySettings(active.accessToken) }.getOrNull()
+                                                    inferenceAsset?.let { asset ->
                                                         val updated = inferenceRecorder.attachFeedback(asset, feedback)
-                                                        feedbackRepository.submitInferenceOrQueue(updated)
+                                                        // Inference/training uploads are denied by default. The server
+                                                        // consent value is read after the record is durably saved.
+                                                        if (privacy?.enabled == true && feedback.correctedSpecies?.isNotBlank() == true) {
+                                                            feedbackRepository.submitConsentCrop(updated)
+                                                        }
                                                     }
+                                                    val corrected = feedback.correctedSpecies?.isNotBlank() == true &&
+                                                        !feedback.correctedSpecies.equals(feedback.predictedSpecies, ignoreCase = true)
+                                                    if (corrected && privacy != null && promptFrequency.canPrompt(
+                                                            nowMillis = System.currentTimeMillis(),
+                                                            consentEnabled = privacy.enabled,
+                                                            speciesCorrected = true,
+                                                            fishRecordSaved = true,
+                                                        )
+                                                    ) correctionPromptVisible = true
                                                 }
                                             }
                                             if (active == null && !sessionManager.guestRegistrationPromptShown()) {
@@ -529,10 +590,26 @@ fun YujianApp() {
                         resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
                         onRetry = { detailRetry++ },
                         onBack = { nav.popBackStack() },
-                        onOpenCatch = { nav.navigate("my") },
+                        onOpenCatch = { nav.navigate("my_catches") },
                     )
                 }
                 composable("my") {
+                    val active = session
+                    if (active == null) {
+                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("my") { inclusive = true } } }
+                    } else {
+                        AccountMyScreen(
+                            profile = active,
+                            statistics = catchesState.statistics,
+                            recordDays = catchesState.catches.map { it.capturedAt.ifBlank { it.createdAt }.take(10) }.filter(String::isNotBlank).distinct().size,
+                            onEditProfile = { nav.navigate("edit_profile") },
+                            onAccountLogin = { nav.navigate("account_login") },
+                            onAbout = { nav.navigate("about") },
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
+                }
+                composable("my_catches") {
                     val active = session
                     MyScreen(
                         catches = catchesState.catches,
@@ -547,6 +624,77 @@ fun YujianApp() {
                         onCapture = { nav.navigate("identify") },
                     )
                 }
+                composable("edit_profile") {
+                    val active = session
+                    if (active == null) {
+                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("edit_profile") { inclusive = true } } }
+                    } else {
+                        EditProfileScreen(
+                            profile = active,
+                            authRepository = authRepository,
+                            onProfileUpdated = ::applyProfile,
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
+                }
+                composable("account_login") {
+                    val active = session
+                    if (active == null) {
+                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("account_login") { inclusive = true } } }
+                    } else {
+                        AccountLoginScreen(
+                            profile = active,
+                            onChangePassword = { nav.navigate("change_password") },
+                            onDataPrivacy = { nav.navigate("data_privacy") },
+                            onLogout = ::logoutToHome,
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
+                }
+                composable("change_password") {
+                    val active = session
+                    if (active == null) {
+                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("change_password") { inclusive = true } } }
+                    } else {
+                        ChangePasswordScreen(
+                            authRepository = authRepository,
+                            accessToken = active.accessToken,
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
+                }
+                composable("data_privacy") {
+                    val active = session
+                    if (active == null) {
+                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("data_privacy") { inclusive = true } } }
+                    } else {
+                        DataPrivacyScreen(
+                            authRepository = authRepository,
+                            accessToken = active.accessToken,
+                            onPrivacyPolicy = { nav.navigate("privacy_policy") },
+                            onComingSoon = { kind ->
+                                if ((kind == ComingSoonKind.EXPORT_DATA && !AccountPrivacyCapabilities.dataExportEnabled) ||
+                                    (kind == ComingSoonKind.DELETE_ACCOUNT && !AccountPrivacyCapabilities.accountDeletionEnabled)
+                                ) comingSoon = kind
+                            },
+                            onManualWithdrawal = { promptFrequency = promptFrequency.suppressAfterManualWithdrawal() },
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
+                }
+                composable("about") {
+                    AboutYujianScreen(
+                        onUserAgreement = { nav.navigate("user_agreement") },
+                        onPrivacyPolicy = { nav.navigate("privacy_policy") },
+                        onBack = { nav.popBackStack() },
+                    )
+                }
+                composable("privacy_policy") {
+                    LegalDocumentScreen(title = "隐私政策", isPrivacyPolicy = true, onBack = { nav.popBackStack() })
+                }
+                composable("user_agreement") {
+                    LegalDocumentScreen(title = "用户协议", isPrivacyPolicy = false, onBack = { nav.popBackStack() })
+                }
             }
             if (guestRegistrationPromptVisible) {
                 GuestRegistrationDialog(
@@ -555,6 +703,29 @@ fun YujianApp() {
                         nav.navigate("login") { launchSingleTop = true }
                     },
                     onLater = { guestRegistrationPromptVisible = false },
+                )
+            }
+            comingSoon?.let { kind -> ComingSoonSheet(kind = kind, onDismiss = { comingSoon = null }) }
+            if (correctionPromptVisible) {
+                CorrectionConsentPromptSheet(
+                    onEnable = {
+                        correctionPromptVisible = false
+                        scope.launch {
+                            runCatching {
+                                authRepository.setAiModelImprovementConsent(
+                                    requireNotNull(session).accessToken,
+                                    enabled = true,
+                                    source = "species_correction_prompt",
+                                )
+                            }
+                        }
+                    },
+                    onDismiss = {
+                        correctionPromptVisible = false
+                        val updated = promptFrequency.recordDismissal(System.currentTimeMillis())
+                        promptFrequency = updated
+                        promptFrequencyStore.save(updated)
+                    },
                 )
             }
         }
@@ -584,4 +755,11 @@ private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
             catches = localItem?.catches ?: 0,
         )
     }
+}
+
+private fun authErrorMessage(error: Throwable, fallback: String): String = when ((error as? ApiException)?.statusCode) {
+    401 -> "账号或密码错误"
+    409 -> "账号已存在"
+    422 -> "账号、密码或昵称格式不符合要求"
+    else -> error.message?.takeIf(String::isNotBlank) ?: fallback
 }
