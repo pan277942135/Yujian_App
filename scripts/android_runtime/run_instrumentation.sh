@@ -23,7 +23,10 @@ android_runtime_run_instrumentation() {
     runtime_set_failure "INSTRUMENTATION" "ADB_TRANSPORT_DURING_INSTRUMENTATION"
     return "$EXIT_BLOCKED_INFRA"
   fi
-  if grep -Eiq 'INSTRUMENTATION_FAILED|FAILURES!!!|Process (crashed|has died)|Process .* (crashed|has died)|Assertion(Error|FailedError)|There were test failures|INSTRUMENTATION_CODE: -1|test failure' "$log"; then
+  # AndroidJUnitRunner on API 28 may emit INSTRUMENTATION_CODE: -1 even
+  # after a clean "OK (N tests)" completion. Classify from explicit failure
+  # markers first, then require a positive completion marker below.
+  if grep -Eiq 'INSTRUMENTATION_FAILED|FAILURES!!!|Process (crashed|has died)|Process .* (crashed|has died)|Assertion(Error|FailedError)|There were test failures|test failure' "$log"; then
     runtime_set_failure "INSTRUMENTATION" "TEST_ASSERTION_FAILED"
     return "$EXIT_FAIL_TEST"
   fi
