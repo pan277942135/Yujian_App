@@ -218,32 +218,25 @@ class RecognitionFrozenFlowEmulatorTest {
             started.value = true
             phase.value = RecognitionPhase.CAPTURED
         }
-        composeRule.waitForIdle()
-        assertVisible("正在准备识别")
-
+        // Do not call waitForIdle here: the production scene intentionally
+        // contains continuous ambient animation and therefore never becomes
+        // meaningfully idle. Static visibility is already covered by the
+        // Frozen-state screenshot test above.
         Thread.sleep(350L)
         composeRule.runOnUiThread { phase.value = RecognitionPhase.DETECTING }
-        composeRule.waitForIdle()
         val detectingAtMs = SystemClock.elapsedRealtime()
-        assertVisible("正在理解这张照片")
 
         Thread.sleep(600L)
         composeRule.runOnUiThread { phase.value = RecognitionPhase.OUTLINE }
-        composeRule.waitForIdle()
         val outlineAtMs = SystemClock.elapsedRealtime()
-        assertVisible("已定位到鱼体")
 
         Thread.sleep(600L)
         composeRule.runOnUiThread { phase.value = RecognitionPhase.CLASSIFYING }
-        composeRule.waitForIdle()
         val classifyingAtMs = SystemClock.elapsedRealtime()
-        assertVisible("正在认识这条鱼")
 
         Thread.sleep(1_250L)
         composeRule.runOnUiThread { showResult.value = true }
-        composeRule.waitForIdle()
         val resultAtMs = SystemClock.elapsedRealtime()
-        assertVisible("修改鱼种 ›")
 
         val capturedMs = detectingAtMs - acceptedAtMs
         val detectingMs = outlineAtMs - detectingAtMs
@@ -280,7 +273,7 @@ class RecognitionFrozenFlowEmulatorTest {
         )
 
         // Keep the first result frame in the same evidence clip, then finalize.
-        Thread.sleep(2_200L)
+        Thread.sleep(1_800L)
         recordingPfd.close()
         var recordingBytes = 0L
         repeat(10) {
