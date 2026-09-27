@@ -122,8 +122,63 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # Keep a roomy /data partition for the debug + androidTest APK pair.
+          # The gate also verifies the actual free space before Gradle installs.
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           script: |
+            set -euo pipefail
+
+            echo "FROZEN_GATE_DEVICE_DIAGNOSTICS_BEGIN"
+            adb devices -l || true
+            initial_adb_state="$(adb get-state 2>&1 || true)"
+            echo "ADB_INITIAL_STATE=${initial_adb_state}"
+
+            # android-emulator-runner waits for the platform boot property, but
+            # ddmlib can still inherit an offline adb transport after a cold boot.
+            # Restart adb once only when the initial diagnostic proves it unstable.
+            if [ "${initial_adb_state}" != "device" ]; then
+              echo "ADB_RECOVERY=restart_once"
+              adb kill-server
+              adb start-server
+            fi
+
+            adb wait-for-device
+            boot_completed=""
+            for attempt in $(seq 1 30); do
+              current_adb_state="$(adb get-state 2>&1 || true)"
+              boot_completed="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+              echo "ADB_READINESS attempt=${attempt} state=${current_adb_state} boot_completed=${boot_completed}"
+              if [ "${current_adb_state}" = "device" ] && [ "${boot_completed}" = "1" ]; then
+                break
+              fi
+              sleep 2
+            done
+            if [ "${current_adb_state}" != "device" ] || [ "${boot_completed}" != "1" ]; then
+              echo "FROZEN_GATE_DEVICE_NOT_READY state=${current_adb_state} boot_completed=${boot_completed}"
+              adb devices -l || true
+              exit 1
+            fi
+
+            # Required pre-install diagnostics. Keep them adjacent to Gradle so
+            # any infrastructure failure can be distinguished from a test failure.
+            adb wait-for-device
+            adb shell getprop sys.boot_completed
+            adb devices -l
+            adb shell pm list packages | head -n 20 || true
+
+            # Remove stale application and instrumentation packages before UTP
+            # installs the exact APK pair assembled above.
+            adb uninstall com.yujian.ai.uiv2 || true
+            adb uninstall com.yujian.ai.uiv2.test || true
+
+            adb shell df -h /data
+            data_free_kb="$(adb shell df -k /data | awk 'NR == 2 { print $4 }' | tr -d '\r')"
+            echo "DATA_FREE_KB=${data_free_kb}"
+            if ! [[ "${data_free_kb}" =~ ^[0-9]+$ ]] || [ "${data_free_kb}" -lt 524288 ]; then
+              echo "FROZEN_GATE_DATA_INSUFFICIENT free_kb=${data_free_kb} required_kb=524288"
+              exit 1
+            fi
+
             set +e
             gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionFrozenFlowEmulatorTest --stacktrace
             gate_status=$?
