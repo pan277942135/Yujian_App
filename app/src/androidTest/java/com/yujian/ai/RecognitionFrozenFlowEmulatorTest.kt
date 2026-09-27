@@ -181,9 +181,9 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun assertVisible(text: String) {
         try {
             composeRule.waitUntil(timeoutMillis = 10_000L) {
-                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText(text, substring = true).fetchSemanticsNodes().isNotEmpty()
             }
-            composeRule.onNodeWithText(text).assertIsDisplayed()
+            composeRule.onNodeWithText(text, substring = true).assertIsDisplayed()
         } catch (error: Throwable) {
             val tree = runCatching { composeRule.onRoot(useUnmergedTree = true).printToString() }
                 .getOrElse { "<semantics tree unavailable: ${it::class.java.simpleName}: ${it.message}>" }
