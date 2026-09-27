@@ -173,6 +173,9 @@ class RecognitionFrozenFlowEmulatorTest {
     @Test
     fun recordsMeasuredNormalSpeedProcessingFlow() {
         val deliveredAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
+        val detectingAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
+        val outlineAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
+        val classifyingAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
         val showProcessing = mutableStateOf(false)
         val showResult = mutableStateOf(false)
 
@@ -204,6 +207,15 @@ class RecognitionFrozenFlowEmulatorTest {
                             deliveredAtMs.set(SystemClock.elapsedRealtime())
                             showResult.value = true
                         },
+                        onVisualPhasePresented = { phase, presentedAtMs ->
+                            when (phase) {
+                                RecognitionPhase.DETECTING -> detectingAtMs.compareAndSet(-1L, presentedAtMs)
+                                RecognitionPhase.OUTLINE -> outlineAtMs.compareAndSet(-1L, presentedAtMs)
+                                RecognitionPhase.CLASSIFYING -> classifyingAtMs.compareAndSet(-1L, presentedAtMs)
+                                else -> Unit
+                            }
+                            trace("TIMING_PHASE=${phase.name} AT_MS=${presentedAtMs}")
+                        },
                     )
                     else -> Image(
                         bitmap = photo.bitmap.asImageBitmap(),
@@ -215,27 +227,47 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
         composeRule.onNodeWithContentDescription("已选择的鱼获照片").assertIsDisplayed()
-        device.executeShellCommand(
-            "rm -f /sdcard/recognition_processing_v1_1.mp4; " +
-                "sh -c 'screenrecord --time-limit 5 /sdcard/recognition_processing_v1_1.mp4 >/dev/null 2>&1 &'",
-        )
-        Thread.sleep(200L)
+        device.executeShellCommand("rm -f /sdcard/recognition_processing_v1_1.mp4")
+        val recordingFailure = java.util.concurrent.atomic.AtomicReference<Throwable?>(null)
+        val recordingThread = Thread {
+            runCatching {
+                // Keep the shell command attached to this worker thread until
+                // screenrecord finalizes. A detached child was intermittently
+                // reaped before the MP4 directory entry was committed.
+                device.executeShellCommand(
+                    "screenrecord --time-limit 5 /sdcard/recognition_processing_v1_1.mp4",
+                )
+            }.onFailure(recordingFailure::set)
+        }.apply {
+            name = "recognition-processing-screenrecord"
+            start()
+        }
+        Thread.sleep(250L)
 
         val acceptedAtMs = SystemClock.elapsedRealtime()
         composeRule.runOnUiThread { showProcessing.value = true }
-        val detectingAtMs = waitForFlowCopy("正在理解这张照片")
-        val outlineAtMs = waitForFlowCopy("已定位到鱼体")
-        val classifyingAtMs = waitForFlowCopy("正在认识这条鱼")
-        composeRule.waitUntil(timeoutMillis = 4_500L) { deliveredAtMs.get() > 0L }
+        composeRule.waitUntil(timeoutMillis = 4_500L) {
+            deliveredAtMs.get() > 0L &&
+                detectingAtMs.get() > 0L &&
+                outlineAtMs.get() > 0L &&
+                classifyingAtMs.get() > 0L
+        }
         val resultAtMs = deliveredAtMs.get()
         Thread.sleep(2_150L) // Keep the first Result frame stable until screenrecord finalizes.
+        recordingThread.join(7_000L)
+        assertFalse("recognition screenrecord did not finalize", recordingThread.isAlive)
+        recordingFailure.get()?.let { throw AssertionError("recognition screenrecord failed", it) }
+        val recordingBytes = device.executeShellCommand(
+            "wc -c < /sdcard/recognition_processing_v1_1.mp4 2>/dev/null || echo 0",
+        ).trim().lineSequence().lastOrNull()?.toLongOrNull() ?: 0L
+        assertTrue("recognition processing MP4 was not persisted", recordingBytes > 1_024L)
 
-        val capturedMs = detectingAtMs - acceptedAtMs
-        val detectingMs = outlineAtMs - detectingAtMs
-        val outlineMs = classifyingAtMs - outlineAtMs
-        val classifyingMs = resultAtMs - classifyingAtMs
+        val capturedMs = detectingAtMs.get() - acceptedAtMs
+        val detectingMs = outlineAtMs.get() - detectingAtMs.get()
+        val outlineMs = classifyingAtMs.get() - outlineAtMs.get()
+        val classifyingMs = resultAtMs - classifyingAtMs.get()
         val totalMs = resultAtMs - acceptedAtMs
-        val fishFocusStableMs = resultAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS - classifyingAtMs
+        val fishFocusStableMs = resultAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS - classifyingAtMs.get()
         assertTrue("processing visual flow was outside the frozen bound: ${totalMs}ms", totalMs in 2_500L..3_000L)
         assertTrue("final fish focus was too short: ${fishFocusStableMs}ms", fishFocusStableMs >= 1_000L)
         File(evidenceDir, "recognition_processing_timing.txt").writeText(

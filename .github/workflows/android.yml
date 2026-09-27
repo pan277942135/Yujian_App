@@ -141,6 +141,10 @@ jobs:
             api_level: 30
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          - gate: empty-home-v2
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           - gate: runtime-parity
             api_level: 28
             required: false
@@ -167,7 +171,7 @@ jobs:
           ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true }}
+        if: ${{ matrix.gate == 'empty-home-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg

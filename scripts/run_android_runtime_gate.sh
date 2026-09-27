@@ -9,7 +9,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage:
   bash scripts/run_android_runtime_gate.sh \
-    --gate recognition-frozen|data-sanitization|runtime-parity \
+    --gate recognition-frozen|data-sanitization|empty-home-v2|runtime-parity \
     --app-apk path/to/app-debug.apk \
     --test-apk path/to/app-debug-androidTest.apk \
     --evidence-dir evidence/runtime/<gate> \
@@ -67,6 +67,9 @@ case "$GATE" in
     ;;
   data-sanitization)
     source "$RUNTIME_DIR/gates/data_sanitization.sh"
+    ;;
+  empty-home-v2)
+    source "$RUNTIME_DIR/gates/empty_home_v2.sh"
     ;;
   runtime-parity)
     source "$RUNTIME_DIR/gates/runtime_parity.sh"

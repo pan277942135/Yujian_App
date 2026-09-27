@@ -73,14 +73,17 @@ fun RecognitionFishFocus(
         )
         if (subjectBitmap != null && subjectBox != null && contour.isNotEmpty()) {
             val crop = subjectBox.normalized()
+            // Use the upper half of the frozen contour-alpha range
+            // so the located fish remains legible on a real phone display
+            // without introducing a detector box or HUD treatment.
             val contourAlpha = if (phase == RecognitionPhase.CLASSIFYING) {
-                .34f + (breathing - .15f) / .05f * .10f
-            } else .36f * reveal
+                .36f + ((breathing - .15f) / .05f).coerceIn(0f, 1f) * .06f
+            } else .42f * reveal
             contour.forEach { segment ->
                 val start = transform.mapNormalized(crop.x1 + segment.startX * crop.width, crop.y1 + segment.startY * crop.height)
                 val end = transform.mapNormalized(crop.x1 + segment.endX * crop.width, crop.y1 + segment.endY * crop.height)
-                drawLine(Color(0x66FFE7AE).copy(alpha = contourAlpha * .35f * fade), Offset(start.x, start.y), Offset(end.x, end.y), 8.dp.toPx(), StrokeCap.Round)
-                drawLine(Color(0xFFFFE7AE).copy(alpha = contourAlpha * fade), Offset(start.x, start.y), Offset(end.x, end.y), 1.4.dp.toPx(), StrokeCap.Round)
+                drawLine(Color(0x66FFE7AE).copy(alpha = contourAlpha * .42f * fade), Offset(start.x, start.y), Offset(end.x, end.y), 8.dp.toPx(), StrokeCap.Round)
+                drawLine(Color(0xFFFFE7AE).copy(alpha = contourAlpha * fade), Offset(start.x, start.y), Offset(end.x, end.y), 1.5.dp.toPx(), StrokeCap.Round)
             }
         }
     }
