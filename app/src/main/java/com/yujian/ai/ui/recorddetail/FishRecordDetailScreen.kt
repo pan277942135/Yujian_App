@@ -27,6 +27,7 @@ import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.components.YuJianTopBar
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import com.yujian.ai.presentation.presentationSpeciesName
 
 @Composable
 fun FishRecordDetailScreen(
@@ -115,7 +116,7 @@ private fun AboutCatchSection(record: RemoteCatch) {
     YuJianGlassCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs)) {
             Text("关于这次鱼获", style = YuJianTypography.sectionTitle)
-            DetailField("鱼种", record.speciesName)
+            DetailField("鱼种", presentationSpeciesName(record.speciesName))
             FishRecordDetailPresentation.measurement(record)?.let { DetailField("尺寸", it) }
             FishRecordDetailPresentation.location(record)?.let { DetailField("地点", it) }
             FishRecordDetailPresentation.capturedAt(record)?.let {

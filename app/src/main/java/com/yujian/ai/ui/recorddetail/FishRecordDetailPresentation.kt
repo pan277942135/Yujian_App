@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.recorddetail
 
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.presentation.PresentationSanitizer
+import com.yujian.ai.presentation.sanitizeOptionalText
 import java.util.Locale
 
 /** Pure presentation decisions kept separate from Compose for deterministic tests. */
@@ -22,11 +24,10 @@ object FishRecordDetailPresentation {
         record.weightKg?.takeIf { it > 0f }?.let { "${formatNumber(it)} kg" },
     ).joinToString(" · ").takeIf(String::isNotBlank)
 
-    fun location(record: RemoteCatch): String? = record.location?.trim()?.takeIf(String::isNotBlank)
+    fun location(record: RemoteCatch): String? = sanitizeOptionalText(record.location)
 
-    fun capturedAt(record: RemoteCatch): String? = record.capturedAt.trim()
-        .takeIf(String::isNotBlank)
-        ?: record.createdAt.trim().takeIf(String::isNotBlank)
+    fun capturedAt(record: RemoteCatch): String? =
+        PresentationSanitizer.formatDetailTimestamp(record.capturedAt, record.createdAt)
 
     fun mediaUrls(record: RemoteCatch): List<String> = listOfNotNull(
         record.imageUrl.trim().takeIf(String::isNotBlank),

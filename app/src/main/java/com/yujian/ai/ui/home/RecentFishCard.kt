@@ -25,9 +25,9 @@ import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
+import com.yujian.ai.presentation.PresentationSanitizer
+import com.yujian.ai.presentation.presentationSpeciesName
+import com.yujian.ai.presentation.sanitizeOptionalText
 import java.util.Locale
 
 private const val FISH_CARD_ROOT = "home_normal_v1_2/assets/fish_card"
@@ -68,7 +68,7 @@ fun RecentFishCard(
             RemoteImage(
                 url = imageUrl,
                 modifier = Modifier.fillMaxSize().padding(16.dp),
-                contentDescription = "${item.speciesName} 鱼获照片",
+                contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
                 contentScale = ContentScale.Fit,
                 authToken = accessToken,
             ) {
@@ -88,7 +88,7 @@ fun RecentFishCard(
                 Modifier.align(Alignment.BottomStart).padding(horizontal = 24.dp, vertical = 22.dp),
             ) {
                 Text(
-                    text = item.speciesName,
+                    text = presentationSpeciesName(item.speciesName),
                     style = YuJianTypography.sectionTitle.copy(color = YuJianColors.OnDark),
                 )
                 displayMeasurement(item)?.let { value ->
@@ -128,32 +128,9 @@ private fun displayMeasurement(item: RemoteCatch): String? = buildList {
 }.takeIf(List<String>::isNotEmpty)?.joinToString(" · ")
 
 private fun formatCatchMeta(item: RemoteCatch): String? {
-    val time = item.capturedAt.ifBlank { item.createdAt }.takeIf(String::isNotBlank)?.let(::formatRelativeTime)
-    val location = item.location?.trim()?.takeIf(String::isNotBlank)
+    val time = PresentationSanitizer.formatHomeTimestamp(item.capturedAt, item.createdAt)
+    val location = sanitizeOptionalText(item.location)
     return listOfNotNull(time, location).joinToString(" · ").takeIf(String::isNotBlank)
 }
 
 private fun formatNumber(value: Float): String = "%.2f".format(Locale.US, value).trimEnd('0').trimEnd('.')
-
-private fun formatRelativeTime(value: String): String {
-    val date = parseCatchDate(value) ?: return value.take(16).replace('T', ' ')
-    val now = Calendar.getInstance()
-    val target = Calendar.getInstance().apply { time = date }
-    val time = SimpleDateFormat("HH:mm", Locale.US).format(date)
-    return when {
-        now.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
-            now.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR) -> "今天 $time"
-        isYesterday(now, target) -> "昨天 $time"
-        else -> SimpleDateFormat("MM月dd日 HH:mm", Locale.CHINA).format(date)
-    }
-}
-
-private fun isYesterday(now: Calendar, target: Calendar): Boolean {
-    val yesterday = (now.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
-    return yesterday.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
-        yesterday.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
-}
-
-private fun parseCatchDate(value: String): Date? = runCatching {
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(value)
-}.getOrNull()

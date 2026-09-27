@@ -41,6 +41,9 @@ import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.RemoteImage
 import kotlinx.coroutines.delay
+import com.yujian.ai.presentation.PresentationSanitizer
+import com.yujian.ai.presentation.presentationSpeciesName
+import com.yujian.ai.presentation.sanitizeOptionalText
 
 private val Ink = Color(0xFF18324A)
 private val Muted = Color(0xCC18324A)
@@ -98,17 +101,17 @@ fun RemoteCatchDetailScreen(
             RemoteImage(
                 url = imageUrl, authToken = accessToken,
                 modifier = Modifier.fillMaxSize().padding(10.dp).graphicsLayer { rotationY = rotation; cameraDistance = 12f * density },
-                contentDescription = "${catch.speciesName} 鱼获照片", contentScale = ContentScale.Fit,
+                contentDescription = "${presentationSpeciesName(catch.speciesName)} 鱼获照片", contentScale = ContentScale.Fit,
             ) { Image(painter = painterResource(R.drawable.image_error_v12), contentDescription = "图片加载失败", modifier = Modifier.size(56.dp)) }
             if (!bsideUrl.isNullOrBlank()) {
                 RemoteImage(
                     url = bsideUrl, authToken = accessToken,
                     modifier = Modifier.fillMaxSize().padding(10.dp).graphicsLayer { rotationY = rotation - 180f; cameraDistance = 12f * density },
-                    contentDescription = "${catch.speciesName} AI 渔境卡", contentScale = ContentScale.Fit,
+                    contentDescription = "${presentationSpeciesName(catch.speciesName)} AI 渔境卡", contentScale = ContentScale.Fit,
                 )
             }
         }
-        Text(catch.speciesName, color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+        Text(presentationSpeciesName(catch.speciesName), color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Medium)
         detailMeasurement(catch)?.let { Text(it, color = Ink, fontSize = 16.sp, modifier = Modifier.padding(top = 6.dp)) }
         detailMeta(catch)?.let { Text(it, color = Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp)) }
         when (catch.bsideStatus) {
@@ -132,8 +135,8 @@ private fun detailMeasurement(catch: RemoteCatch): String? = listOfNotNull(
 ).joinToString(" · ").takeIf(String::isNotBlank)
 
 private fun detailMeta(catch: RemoteCatch): String? = listOfNotNull(
-    catch.capturedAt.ifBlank { catch.createdAt }.takeIf(String::isNotBlank),
-    catch.location?.takeIf(String::isNotBlank),
+    PresentationSanitizer.formatDetailTimestamp(catch.capturedAt, catch.createdAt),
+    sanitizeOptionalText(catch.location),
 ).joinToString(" · ").takeIf(String::isNotBlank)
 
 private fun formatDetailNumber(value: Float): String = "%.2f".format(java.util.Locale.US, value).trimEnd('0').trimEnd('.')
