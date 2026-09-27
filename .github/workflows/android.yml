@@ -76,9 +76,9 @@ jobs:
           retention-days: 7
 
   runtime-parity:
-    # Historical/manual diagnostics only. It is intentionally skipped for
-    # push and pull_request delivery checks and cannot block a merge.
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    # Keep legacy delivery CI light, but make the Empty Home V2 parity branch
+    # run its real emulator/evidence gate before it is merged.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.head_ref == 'fix/empty-home-v2-parity' }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
