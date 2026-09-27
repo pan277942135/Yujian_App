@@ -79,4 +79,37 @@ do
   fi
 done
 
+
+adb exec-out run-as com.yujian.ai.uiv2 cat "cache/recognition-evidence/recognition_processing_timing.txt" \
+  > "evidence/ui_rework_v1/recognition/recognition_processing_timing.txt" || true
+if [[ ! -s "evidence/ui_rework_v1/recognition/recognition_processing_timing.txt" ]]; then
+  rm -f "evidence/ui_rework_v1/recognition/recognition_processing_timing.txt"
+fi
+adb pull /sdcard/recognition_processing_v1_1.mp4 \
+  evidence/ui_rework_v1/recognition/recognition_processing_v1_1.mp4 >/dev/null || true
+if [[ ! -s "evidence/ui_rework_v1/recognition/recognition_processing_v1_1.mp4" ]]; then
+  rm -f "evidence/ui_rework_v1/recognition/recognition_processing_v1_1.mp4"
+fi
+
+if (( gate_status == 0 )); then
+  for name in \
+    01_capture_transition.png \
+    02_ai_understanding.png \
+    03_fish_highlight.png \
+    04_fish_identifying.png \
+    05_result_high.png \
+    06_result_medium.png \
+    07_result_low.png \
+    08_error_no_fish.png \
+    09_error_image_quality.png \
+    recognition_processing_timing.txt \
+    recognition_processing_v1_1.mp4
+  do
+    if [[ ! -s "evidence/ui_rework_v1/recognition/${name}" ]]; then
+      echo "FROZEN_GATE_EVIDENCE_MISSING=${name}"
+      gate_status=1
+    fi
+  done
+fi
+
 exit "${gate_status}"
