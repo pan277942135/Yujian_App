@@ -36,15 +36,22 @@ android_runtime_install_apks() {
 
   while true; do
     printf 'INSTALL_ATTEMPT=%s APK=%s\n' "$((install_retry + 1))" "$app_apk" >> "$app_log"
-    "${YUJIAN_ADB_BIN}" install -r -t "$app_apk" >> "$app_log" 2>&1
+    timeout 120s "${YUJIAN_ADB_BIN}" install -r -t "$app_apk" >> "$app_log" 2>&1
     app_rc=$?
+    if (( app_rc == 124 )); then
+      printf 'INSTALL_TIMEOUT=120s\n' >> "$app_log"
+    fi
     if (( app_rc == 0 )); then
       break
     fi
 
-    if runtime_is_transport_failure_file "$app_log"; then
+    if (( app_rc == 124 )) || runtime_is_transport_failure_file "$app_log"; then
       if (( install_retry >= 1 )); then
-        runtime_set_failure "INSTALL" "ADB_TRANSPORT_DURING_INSTALL"
+        if (( app_rc == 124 )); then
+          runtime_set_failure "INSTALL" "ADB_INSTALL_TIMEOUT"
+        else
+          runtime_set_failure "INSTALL" "ADB_TRANSPORT_DURING_INSTALL"
+        fi
         return "$EXIT_BLOCKED_INFRA"
       fi
       install_retry=1
@@ -71,7 +78,7 @@ android_runtime_install_apks() {
   "${YUJIAN_ADB_BIN}" install -r -t "$test_apk" >> "$test_log" 2>&1
   test_rc=$?
   if (( test_rc != 0 )); then
-    if runtime_is_transport_failure_file "$test_log"; then
+    if (( test_rc == 124 )) || runtime_is_transport_failure_file "$test_log"; then
       if (( install_retry >= 1 )); then
         runtime_set_failure "INSTALL" "ADB_TRANSPORT_DURING_INSTALL"
         return "$EXIT_BLOCKED_INFRA"
@@ -83,11 +90,18 @@ android_runtime_install_apks() {
         return "$EXIT_BLOCKED_INFRA"
       fi
       printf 'INSTALL_RETRY=1 APK=%s\n' "$test_apk" >> "$test_log"
-      "${YUJIAN_ADB_BIN}" install -r -t "$test_apk" >> "$test_log" 2>&1
+      timeout 120s "${YUJIAN_ADB_BIN}" install -r -t "$test_apk" >> "$test_log" 2>&1
       test_rc=$?
+      if (( test_rc == 124 )); then
+        printf 'INSTALL_TIMEOUT=120s\n' >> "$test_log"
+      fi
     fi
   fi
   if (( test_rc != 0 )); then
+    if (( test_rc == 124 )); then
+      runtime_set_failure "INSTALL" "ADB_TEST_APK_INSTALL_TIMEOUT"
+      return "$EXIT_BLOCKED_INFRA"
+    fi
     if runtime_is_storage_failure_file "$test_log"; then
       runtime_set_failure "INSTALL" "INSUFFICIENT_STORAGE"
       return "$EXIT_BLOCKED_INFRA"
