@@ -145,11 +145,11 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("重新拍摄")
 
         render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_error_image_quality.png")
-        assertVisible("请拍摄更清晰的照片")
+        assertVisible("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。")
         assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
 
         render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", null)
-        assertVisible("请重新拍摄或选择照片")
+        assertVisible("请重新拍摄或选择照片。")
         assertNoDirtyTechnicalUi()
     }
 
