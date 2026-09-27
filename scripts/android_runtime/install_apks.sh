@@ -13,14 +13,22 @@ android_runtime_install_apks() {
   # Only the documented package-not-installed responses are tolerated.  Any
   # other uninstall error is an infrastructure failure and is not swallowed.
   local uninstall_rc
-  "${YUJIAN_ADB_BIN}" uninstall "$YUJIAN_APP_PACKAGE" > "$YUJIAN_INFRA_DIR/uninstall_app.log" 2>&1
+  timeout 30s "${YUJIAN_ADB_BIN}" uninstall "$YUJIAN_APP_PACKAGE" > "$YUJIAN_INFRA_DIR/uninstall_app.log" 2>&1
   uninstall_rc=$?
+  if (( uninstall_rc == 124 )); then
+    runtime_set_failure "INSTALL" "ADB_UNINSTALL_APP_TIMEOUT"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   if (( uninstall_rc != 0 )) && ! grep -Eiq 'Unknown package|not installed|DELETE_FAILED_INTERNAL_ERROR' "$YUJIAN_INFRA_DIR/uninstall_app.log"; then
     runtime_set_failure "INSTALL" "ADB_UNINSTALL_APP_FAILED"
     return "$EXIT_BLOCKED_INFRA"
   fi
-  "${YUJIAN_ADB_BIN}" uninstall "$YUJIAN_TEST_PACKAGE" > "$YUJIAN_INFRA_DIR/uninstall_test.log" 2>&1
+  timeout 30s "${YUJIAN_ADB_BIN}" uninstall "$YUJIAN_TEST_PACKAGE" > "$YUJIAN_INFRA_DIR/uninstall_test.log" 2>&1
   uninstall_rc=$?
+  if (( uninstall_rc == 124 )); then
+    runtime_set_failure "INSTALL" "ADB_UNINSTALL_TEST_TIMEOUT"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   if (( uninstall_rc != 0 )) && ! grep -Eiq 'Unknown package|not installed|DELETE_FAILED_INTERNAL_ERROR' "$YUJIAN_INFRA_DIR/uninstall_test.log"; then
     runtime_set_failure "INSTALL" "ADB_UNINSTALL_TEST_FAILED"
     return "$EXIT_BLOCKED_INFRA"
@@ -75,8 +83,11 @@ android_runtime_install_apks() {
   done
 
   printf 'INSTALL_ATTEMPT=%s APK=%s\n' "$((install_retry + 1))" "$test_apk" >> "$test_log"
-  "${YUJIAN_ADB_BIN}" install -r -t "$test_apk" >> "$test_log" 2>&1
+  timeout 120s "${YUJIAN_ADB_BIN}" install -r -t "$test_apk" >> "$test_log" 2>&1
   test_rc=$?
+  if (( test_rc == 124 )); then
+    printf 'INSTALL_TIMEOUT=120s\n' >> "$test_log"
+  fi
   if (( test_rc != 0 )); then
     if (( test_rc == 124 )) || runtime_is_transport_failure_file "$test_log"; then
       if (( install_retry >= 1 )); then
@@ -118,8 +129,12 @@ android_runtime_install_apks() {
     return "$EXIT_BLOCKED_INFRA"
   fi
 
-  "${YUJIAN_ADB_BIN}" shell pm path "$YUJIAN_APP_PACKAGE" > "$verify_log" 2>&1
+  timeout 30s "${YUJIAN_ADB_BIN}" shell pm path "$YUJIAN_APP_PACKAGE" > "$verify_log" 2>&1
   verify_rc=$?
+  if (( verify_rc == 124 )); then
+    runtime_set_failure "INSTALL" "ADB_VERIFY_APP_TIMEOUT"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   if (( verify_rc != 0 )) || grep -Eiq 'offline|no devices|transport|closed' "$verify_log"; then
     runtime_set_failure "INSTALL" "ADB_TRANSPORT_AFTER_INSTALL"
     return "$EXIT_BLOCKED_INFRA"
@@ -130,8 +145,12 @@ android_runtime_install_apks() {
   fi
 
   : > "$verify_log"
-  "${YUJIAN_ADB_BIN}" shell pm path "$YUJIAN_TEST_PACKAGE" >> "$verify_log" 2>&1
+  timeout 30s "${YUJIAN_ADB_BIN}" shell pm path "$YUJIAN_TEST_PACKAGE" >> "$verify_log" 2>&1
   verify_rc=$?
+  if (( verify_rc == 124 )); then
+    runtime_set_failure "INSTALL" "ADB_VERIFY_TEST_TIMEOUT"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   if (( verify_rc != 0 )) || grep -Eiq 'offline|no devices|transport|closed' "$verify_log"; then
     runtime_set_failure "INSTALL" "ADB_TRANSPORT_AFTER_INSTALL"
     return "$EXIT_BLOCKED_INFRA"
