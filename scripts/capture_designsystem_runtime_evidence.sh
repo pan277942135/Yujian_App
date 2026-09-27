@@ -16,9 +16,8 @@ if [[ ! -f "$APK_PATH" ]]; then
   exit 1
 fi
 
-if [[ "${SKIP_ADB_INSTALL:-0}" != "1" ]]; then
-  "$ADB_BIN" install -r "$APK_PATH"
-fi
+# Installation is deliberately owned by scripts/run_android_runtime_gate.sh.
+# This evidence helper only captures the already-installed frozen runtime.
 
 mkdir -p "$OUTPUT_DIR"
 
