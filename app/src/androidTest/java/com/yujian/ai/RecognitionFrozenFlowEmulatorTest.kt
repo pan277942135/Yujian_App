@@ -121,7 +121,7 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.RESULT_HIGH, "修改鱼种", "05_result_high.png")
+        render(state, FrozenState.RESULT_HIGH, "修改鱼种 ›", "05_result_high.png")
         assertVisible("草鱼")
         composeRule.onNodeWithText("保存本次鱼获").assertIsEnabled()
 
@@ -181,9 +181,9 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun assertVisible(text: String) {
         try {
             composeRule.waitUntil(timeoutMillis = 10_000L) {
-                composeRule.onAllNodesWithText(text, substring = true).fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
             }
-            composeRule.onNodeWithText(text, substring = true).assertIsDisplayed()
+            composeRule.onNodeWithText(text).assertIsDisplayed()
         } catch (error: Throwable) {
             val tree = runCatching { composeRule.onRoot(useUnmergedTree = true).printToString() }
                 .getOrElse { "<semantics tree unavailable: ${it::class.java.simpleName}: ${it.message}>" }
