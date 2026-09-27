@@ -192,13 +192,7 @@ jobs:
           disable-animations: true
           emulator-options: ${{ matrix.emulator_options }}
           script: |
-            bash scripts/run_android_runtime_gate.sh \
-              --gate "${{ matrix.gate }}" \
-              --api-level "${{ matrix.api_level }}" \
-              --build-sha "$GITHUB_SHA" \
-              --app-apk build/runtime-apks/app-debug.apk \
-              --test-apk build/runtime-apks/app-debug-androidTest.apk \
-              --evidence-dir "evidence/runtime/${{ matrix.gate }}"
+            bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
 
       - name: Materialize runtime status when emulator action fails before Harness startup
         if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
