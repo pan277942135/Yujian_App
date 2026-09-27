@@ -228,20 +228,12 @@ class RecognitionFrozenFlowEmulatorTest {
         }
         composeRule.onNodeWithContentDescription("已选择的鱼获照片").assertIsDisplayed()
         device.executeShellCommand("rm -f /sdcard/recognition_processing_v1_1.mp4")
-        val recordingFailure = java.util.concurrent.atomic.AtomicReference<Throwable?>(null)
-        val recordingThread = Thread {
-            runCatching {
-                // Keep the shell command attached to this worker thread until
-                // screenrecord finalizes. A detached child was intermittently
-                // reaped before the MP4 directory entry was committed.
-                device.executeShellCommand(
-                    "screenrecord --time-limit 5 /sdcard/recognition_processing_v1_1.mp4",
-                )
-            }.onFailure(recordingFailure::set)
-        }.apply {
-            name = "recognition-processing-screenrecord"
-            start()
-        }
+        // UiDevice.executeShellCommand waits for screenrecord to exit and can
+        // monopolize UiAutomation while the Compose timing flow is running.
+        // UiAutomation.executeShellCommand returns a PFD immediately, keeping
+        // the recording alive without blocking phase presentation.
+        val recordingPfd = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("screenrecord --time-limit 5 /sdcard/recognition_processing_v1_1.mp4")
         Thread.sleep(250L)
 
         val acceptedAtMs = SystemClock.elapsedRealtime()
@@ -253,10 +245,8 @@ class RecognitionFrozenFlowEmulatorTest {
                 classifyingAtMs.get() > 0L
         }
         val resultAtMs = deliveredAtMs.get()
-        Thread.sleep(2_150L) // Keep the first Result frame stable until screenrecord finalizes.
-        recordingThread.join(7_000L)
-        assertFalse("recognition screenrecord did not finalize", recordingThread.isAlive)
-        recordingFailure.get()?.let { throw AssertionError("recognition screenrecord failed", it) }
+        Thread.sleep(2_550L) // Keep the first Result frame stable until screenrecord finalizes.
+        recordingPfd.close()
         val recordingBytes = device.executeShellCommand(
             "wc -c < /sdcard/recognition_processing_v1_1.mp4 2>/dev/null || echo 0",
         ).trim().lineSequence().lastOrNull()?.toLongOrNull() ?: 0L
