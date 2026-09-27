@@ -43,6 +43,9 @@ class EmptyHomeMotionTest {
         assertTrue(emptyHomeMotionActive(running = true, reduceMotion = false))
         assertTrue(!emptyHomeMotionActive(running = true, reduceMotion = true))
         assertTrue(!emptyHomeMotionActive(running = false, reduceMotion = false))
+        // The single frozen contact ripple remains visible while its loop is
+        // stopped, so the bobber does not look pasted onto the lake.
+        assertEquals(0.30f, rippleAlpha(0f), 0.0001f)
     }
 
     @Test
@@ -62,6 +65,8 @@ class EmptyHomeMotionTest {
         assertEquals(0f, cameraSweepState(2.99f).alpha, 0.0001f)
         assertTrue(cameraSweepState(3.7f).alpha > 0f)
         assertEquals(0f, cameraSweepState(4.41f).alpha, 0.0001f)
+        assertTrue(cameraSweepState(3.7f).alpha <= 0.4501f)
+        assertTrue(cameraSweepState(12.7f).alpha > 0f)
     }
 
     @Test
@@ -78,5 +83,18 @@ class EmptyHomeMotionTest {
     fun cameraBreathHasNegligibleCenterDrift() {
         val centerDrift = abs(0f)
         assertTrue(centerDrift <= 0.5f)
+    }
+
+    @Test
+    fun environmentalLoopsUseDistinctEntryPhases() {
+        val phases = setOf(
+            BOBBER_PHASE_OFFSET_SECONDS,
+            RIPPLE_PHASE_OFFSET_SECONDS,
+            CLOUD_PHASE_OFFSET_SECONDS,
+            SUN_BEAM_PHASE_OFFSET_SECONDS,
+            CAMERA_BREATH_PHASE_OFFSET_SECONDS,
+        )
+        assertEquals(5, phases.size)
+        assertTrue(CAMERA_BREATH_PHASE_OFFSET_SECONDS != 0f)
     }
 }

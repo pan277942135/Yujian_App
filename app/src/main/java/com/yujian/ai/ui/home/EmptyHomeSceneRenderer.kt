@@ -88,7 +88,7 @@ private fun DrawScope.drawRuntimeOverlays(
 
     drawReferenceBitmap(
         bitmap = assets.cloud,
-        x = 214f + cloudOffsetPx(time),
+        x = 214f + cloudOffsetPx(time + CLOUD_PHASE_OFFSET_SECONDS),
         y = 92f,
         width = assets.cloud.width.toFloat(),
         height = assets.cloud.height.toFloat(),
@@ -105,14 +105,14 @@ private fun DrawScope.drawRuntimeOverlays(
             y = 474f,
             width = assets.sunBeam.width.toFloat(),
             height = assets.sunBeam.height.toFloat(),
-            alpha = 0.18f * sunBeamEnvelope(time),
+            alpha = 0.18f * sunBeamEnvelope(time + SUN_BEAM_PHASE_OFFSET_SECONDS),
             transform = transform,
             paint = paint,
             destination = destination,
         )
         drawSunParticles(
             time = time,
-            envelope = sunBeamEnvelope(time),
+            envelope = sunBeamEnvelope(time + SUN_BEAM_PHASE_OFFSET_SECONDS),
             particles = particles,
             transform = transform,
             particleBitmap = assets.particle,
@@ -161,7 +161,7 @@ private fun DrawScope.drawRuntimeOverlays(
         reduceMotion = motionState.reduceMotion,
     )
     val bobberOffset = if (bobberMotionActive) {
-        bobberOffsetPx(time)
+        bobberOffsetPx(time + BOBBER_PHASE_OFFSET_SECONDS)
     } else {
         0f
     }
@@ -173,23 +173,13 @@ private fun DrawScope.drawRuntimeOverlays(
         y = EMPTY_HOME_V2_RIPPLE_Y,
         width = assets.ripple.width.toFloat(),
         height = assets.ripple.height.toFloat(),
-        alpha = if (bobberMotionActive) {
-            rippleAlpha(time)
-        } else {
-            0f
-        },
-        scale = if (bobberMotionActive) {
-            rippleScale(time)
-        } else {
-            1f
-        },
+        // Reduce Motion freezes the contact state rather than removing it:
+        // the lake still reads as a correctly seated bobber at rest.
+        alpha = if (bobberMotionActive) rippleAlpha(time + RIPPLE_PHASE_OFFSET_SECONDS) else 0.30f,
+        scale = if (bobberMotionActive) rippleScale(time + RIPPLE_PHASE_OFFSET_SECONDS) else 1f,
         pivotX = EMPTY_HOME_V2_WATER_CONTACT_X,
         pivotY = EMPTY_HOME_V2_WATER_CONTACT_Y,
-        colorFilter = if (bobberMotionActive) {
-            RippleAlphaNormalizationFilter
-        } else {
-            null
-        },
+        colorFilter = RippleAlphaNormalizationFilter,
         transform = transform,
         paint = paint,
         destination = destination,

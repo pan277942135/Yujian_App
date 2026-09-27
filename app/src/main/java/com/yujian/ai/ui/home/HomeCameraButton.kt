@@ -1,7 +1,11 @@
 package com.yujian.ai.ui.home
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.asImageBitmap
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
+import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
+import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
 /**
  * Home compatibility entry point.
@@ -15,13 +19,32 @@ import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 internal fun HomeCameraButton(
     onClick: () -> Unit,
     motionState: HomeMotionState = rememberHomeMotionState(),
-    @Suppress("UNUSED_PARAMETER") runtimeAssets: EmptyHomeRuntimeAssets? = null,
+    runtimeAssets: EmptyHomeRuntimeAssets? = null,
 ) {
+    val active = emptyHomeMotionActive(
+        running = motionState.running,
+        reduceMotion = motionState.reduceMotion,
+    )
+    val rasterAssets = remember(runtimeAssets) {
+        runtimeAssets?.let {
+            YuJianCaptureButtonRasterAssets(
+                base = it.cameraBase.asImageBitmap(),
+                goldRimSweep = it.cameraGoldRim.asImageBitmap(),
+                breathGlow = it.cameraBreathGlow.asImageBitmap(),
+            )
+        }
+    }
+    val sceneTime = if (active) motionState.sceneTimeSeconds else 0f
+    val sweep = cameraSweepState(sceneTime)
     YuJianCaptureButton(
         onClick = onClick,
-        motionEnabled = emptyHomeMotionActive(
-            running = motionState.running,
-            reduceMotion = motionState.reduceMotion,
+        motionEnabled = active,
+        rasterAssets = rasterAssets,
+        rasterMotion = YuJianCaptureButtonRasterMotion(
+            breathScale = cameraBreathScale(sceneTime + CAMERA_BREATH_PHASE_OFFSET_SECONDS),
+            breathGlowAlpha = cameraBreathGlowAlpha(sceneTime + CAMERA_BREATH_PHASE_OFFSET_SECONDS),
+            sweepRotationDegrees = sweep.rotationDegrees,
+            sweepAlpha = sweep.alpha,
         ),
     )
 }

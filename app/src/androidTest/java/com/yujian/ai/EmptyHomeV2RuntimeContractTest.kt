@@ -1,5 +1,6 @@
 package com.yujian.ai
 
+import android.graphics.BitmapFactory
 import androidx.test.platform.app.InstrumentationRegistry
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -37,5 +38,20 @@ class EmptyHomeV2RuntimeContractTest {
             anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString(),
             anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString(),
         )
+
+        assets.open("$root/camera/camera_button_base.png").use { stream ->
+            val base = requireNotNull(BitmapFactory.decodeStream(stream))
+            assertEquals(208, base.width)
+            assertEquals(208, base.height)
+            assertEquals(0, base.getPixel(0, 0).ushr(24))
+            assertEquals(0, base.getPixel(base.width - 1, 0).ushr(24))
+            assertEquals(0, base.getPixel(0, base.height - 1).ushr(24))
+            assertEquals(0, base.getPixel(base.width - 1, base.height - 1).ushr(24))
+            assertEquals(255, base.getPixel(base.width / 2, base.height / 2).ushr(24))
+
+            val haptic = assets.open("$root/config/haptic_contract.json").bufferedReader().use { JSONObject(it.readText()) }
+            assertEquals("none", haptic.getString("page_enter"))
+            assertEquals("none", haptic.getString("idle"))
+        }
     }
 }

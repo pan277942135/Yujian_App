@@ -139,9 +139,9 @@
         "android"
       ],
       "role": "runtime_dynamic",
-      "sha256": "b02a2274723a2f24b3afb3716100d3bfa853ef28e9f259ff940c1366f29b2fae",
+      "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
       "source": "Empty_Home_Final_Design_V2",
-      "version": "2.0",
+      "version": "2.1",
       "width": 208
     },
     {

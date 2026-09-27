@@ -40,14 +40,25 @@ def main() -> None:
         d.text((px + 26, py - 18), label, fill=colour)
     overlay.save(out / "anchor_overlay.png")
 
-    reference = Image.open(FEATURE / "source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png").convert("RGB")
+    # The native canonical PNG remains the sole visual authority. Runtime
+    # screenshots are resampled only for comparison/output dimensions.
+    reference = Image.open(ROOT / "design/system/core_visual_v1/reference/empty_home_v2.png").convert("RGB")
+    reference_at_runtime_size = reference.resize(image.size, Image.Resampling.LANCZOS)
+    reference_at_runtime_size.save(out / "frozen_reference.png")
+    side_by_side = Image.new("RGB", (image.width * 2, image.height))
+    side_by_side.paste(reference_at_runtime_size, (0, 0))
+    side_by_side.paste(image, (image.width, 0))
+    side_by_side.save(out / "side_by_side.png")
+    difference = ImageChops.difference(reference_at_runtime_size, image)
+    difference.save(out / "pixel_diff_heatmap.png")
     candidate = image.resize((1080, 1920), Image.Resampling.LANCZOS)
-    diff = ImageChops.difference(reference, candidate)
+    reference_for_metric = reference.resize((1080, 1920), Image.Resampling.LANCZOS)
+    diff = ImageChops.difference(reference_for_metric, candidate)
     histogram = diff.histogram()
     mae = sum(index % 256 * count for index, count in enumerate(histogram)) / (1080 * 1920 * 3)
     parity = {
         "source": "real Android APK screenshot runtime_static.png",
-        "reference": "Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+        "reference": "design/system/core_visual_v1/reference/empty_home_v2.png",
         "metric": "mean_absolute_rgb_error",
         "value": round(mae, 4),
         "threshold": 40.0,
@@ -71,7 +82,7 @@ def main() -> None:
         "camera_gold_rim": motion["camera_gold_rim"],
         "camera_breath": motion["camera_breath"],
         "fps_summary": {"capture": "Android adb screenrecord", "duration_s": 15, "expected_frame_rate": 30},
-        "phase_offsets": {"cloud_s": 0, "sun_particle_s": 0, "bobber_s": 0, "ripple_s": 0},
+        "phase_offsets": {"cloud_s": 17.6, "sun_particle_s": 2.08, "bobber_s": 1.15, "ripple_s": 0.42, "camera_breath_s": 1.71},
     }
     (out / "runtime_debug.json").write_text(json.dumps(debug, ensure_ascii=False, indent=2) + "\n")
     if parity["status"] != "PASS":
