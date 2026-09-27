@@ -47,7 +47,6 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.theme.YujianTheme
-import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -173,7 +172,6 @@ class RecognitionFrozenFlowEmulatorTest {
 
     @Test
     fun recordsMeasuredNormalSpeedProcessingFlow() {
-        val startRecognition = CompletableDeferred<Unit>()
         val deliveredAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
         val showProcessing = mutableStateOf(false)
         val showResult = mutableStateOf(false)
@@ -191,7 +189,9 @@ class RecognitionFrozenFlowEmulatorTest {
                         image = photo,
                         onBack = {},
                         recognize = { onProgress ->
-                            startRecognition.await()
+                            // Let the production scene establish CAPTURED before
+                            // the deterministic fixture emits real phase updates.
+                            kotlinx.coroutines.delay(100L)
                             onProgress(RecognitionProgress(RecognitionPhase.DETECTING))
                             kotlinx.coroutines.delay(80L)
                             onProgress(RecognitionProgress(RecognitionPhase.OUTLINE, high.assessment))
@@ -223,7 +223,6 @@ class RecognitionFrozenFlowEmulatorTest {
 
         val acceptedAtMs = SystemClock.elapsedRealtime()
         composeRule.runOnUiThread { showProcessing.value = true }
-        startRecognition.complete(Unit)
         val detectingAtMs = waitForFlowCopy("正在理解这张照片")
         val outlineAtMs = waitForFlowCopy("已定位到鱼体")
         val classifyingAtMs = waitForFlowCopy("正在认识这条鱼")
@@ -251,11 +250,20 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     private fun waitForFlowCopy(text: String): Long {
-        composeRule.waitUntil(timeoutMillis = 4_000L) {
-            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        trace("TIMING_WAIT=$text")
+        try {
+            composeRule.waitUntil(timeoutMillis = 4_000L) {
+                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithText(text).assertIsDisplayed()
+            return SystemClock.elapsedRealtime()
+        } catch (error: Throwable) {
+            val tree = runCatching { composeRule.onRoot(useUnmergedTree = true).printToString() }
+                .getOrElse { "<semantics tree unavailable: ${it::class.java.simpleName}: ${it.message}>" }
+            val message = "Timing visual state assertion failed\nexpected=$text\nsemantics=\n$tree"
+            Log.e(FROZEN_GATE_LOG_TAG, message, error)
+            throw AssertionError(message, error)
         }
-        composeRule.onNodeWithText(text).assertIsDisplayed()
-        return SystemClock.elapsedRealtime()
     }
 
     private fun render(state: MutableState<FrozenState>, next: FrozenState, expected: String, screenshotName: String?) {
