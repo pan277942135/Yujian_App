@@ -54,10 +54,7 @@ import com.yujian.ai.R
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.home.HomeCameraButton
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private const val CAPTURE_FREEZE_MS = 420L
 
 /**
  * Camera entry for both Empty and Normal Home.
@@ -87,6 +84,9 @@ fun IdentifyScreen(
     var permissionRequested by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    // This local handoff is set before navigation, so CameraX and its controls
+    // cannot share a frame with the Recognition processing scene.
+    var handoffImage by remember { mutableStateOf<SelectedImage?>(null) }
 
     val cameraController = remember(context) {
         LifecycleCameraController(context).apply {
@@ -136,9 +136,9 @@ fun IdentifyScreen(
             loading = true
             error = null
             runCatching {
-                RecognitionImageStore.normalize(context, uri, "gallery")
+            RecognitionImageStore.normalize(context, uri, "gallery")
             }.onSuccess { selected ->
-                delay(CAPTURE_FREEZE_MS)
+                handoffImage = selected
                 onImageReady(selected)
             }.onFailure {
                 error = it.message ?: "照片读取失败，请重新选择"
@@ -173,9 +173,9 @@ fun IdentifyScreen(
                 override fun onImageSaved(result: ImageCapture.OutputFileResults) {
                     scope.launch {
                         runCatching {
-                            RecognitionImageStore.normalizeCameraFile(context, target.file)
-                        }.onSuccess { selected ->
-                            delay(CAPTURE_FREEZE_MS)
+                        RecognitionImageStore.normalizeCameraFile(context, target.file)
+                    }.onSuccess { selected ->
+                            handoffImage = selected
                             onImageReady(selected)
                         }.onFailure {
                             error = it.message ?: "拍照文件无法解析，请重新拍摄"
@@ -201,9 +201,10 @@ fun IdentifyScreen(
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        if (image != null && loading) {
+        val displayedPhoto = handoffImage ?: image
+        if (displayedPhoto != null && (loading || handoffImage != null)) {
             Image(
-                bitmap = image.bitmap.asImageBitmap(),
+                bitmap = displayedPhoto.bitmap.asImageBitmap(),
                 contentDescription = "刚拍下的鱼获",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit,
@@ -222,26 +223,27 @@ fun IdentifyScreen(
             )
         }
 
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = if (loading) 0.30f else 0.12f)),
-        )
-
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = safeInsets.calculateTopPadding() + 8.dp, start = 12.dp),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
-                tint = Color.White,
+        if (handoffImage == null) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = if (loading) 0.30f else 0.12f)),
             )
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = safeInsets.calculateTopPadding() + 8.dp, start = 12.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "返回",
+                    tint = Color.White,
+                )
+            }
         }
 
-        if (!hasCameraPermission && !autoOpenGallery) {
+        if (handoffImage == null && !hasCameraPermission && !autoOpenGallery) {
             Button(
                 onClick = {
                     permissionRequested = true
@@ -251,7 +253,7 @@ fun IdentifyScreen(
             ) { Text("开启相机") }
         }
 
-        error?.let {
+        error?.takeIf { handoffImage == null }?.let {
             Text(
                 text = it,
                 color = Color.White,
@@ -261,7 +263,7 @@ fun IdentifyScreen(
             )
         }
 
-        Row(
+        if (handoffImage == null) Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = safeInsets.calculateBottomPadding() + 18.dp),
