@@ -12,12 +12,23 @@ android_runtime_run_instrumentation() {
 
   # Direct adb instrumentation is intentionally executed exactly once.  A
   # failing assertion must never be hidden by an automatic rerun.
-  "${YUJIAN_ADB_BIN}" shell am instrument \
+  timeout 180s "${YUJIAN_ADB_BIN}" shell am instrument \
     -w \
     -r \
     -e class "$test_classes" \
     "$YUJIAN_INSTRUMENTATION_TARGET" >> "$log" 2>&1
   local runner_rc=$?
+  if (( runner_rc == 124 )); then
+    printf 'INSTRUMENTATION_TIMEOUT=180s\n' >> "$log"
+    local state
+    state="$(runtime_adb_state)"
+    if [[ "$state" == "device" ]]; then
+      runtime_set_failure "INSTRUMENTATION" "INSTRUMENTATION_TIMEOUT"
+      return "$EXIT_FAIL_TEST"
+    fi
+    runtime_set_failure "INSTRUMENTATION" "ADB_TRANSPORT_DURING_INSTRUMENTATION_TIMEOUT"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
 
   if runtime_is_transport_failure_file "$log"; then
     runtime_set_failure "INSTRUMENTATION" "ADB_TRANSPORT_DURING_INSTRUMENTATION"
