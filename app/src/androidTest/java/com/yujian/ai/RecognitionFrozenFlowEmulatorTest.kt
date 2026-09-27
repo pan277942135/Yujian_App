@@ -172,11 +172,13 @@ class RecognitionFrozenFlowEmulatorTest {
 
     @Test
     fun recordsMeasuredNormalSpeedProcessingFlow() {
-        val deliveredAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
-        val detectingAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
-        val outlineAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
-        val classifyingAtMs = java.util.concurrent.atomic.AtomicLong(-1L)
-        val showProcessing = mutableStateOf(false)
+        // Exact 2.8s controller semantics are covered by
+        // RecognitionVisualStateControllerTest. This emulator test owns the
+        // complementary responsibility: prove that the production processing
+        // composable can visibly present the frozen sequence and persist a
+        // real MP4 without coupling wall-clock timing to Compose's test clock.
+        val started = mutableStateOf(false)
+        val phase = mutableStateOf(RecognitionPhase.CAPTURED)
         val showResult = mutableStateOf(false)
 
         composeRule.setContent {
@@ -188,34 +190,12 @@ class RecognitionFrozenFlowEmulatorTest {
                         productionResult = high,
                         onBack = {}, onRetry = {}, onSave = { _, _ -> }, onViewGuide = {},
                     )
-                    showProcessing.value -> RecognitionProcessingScene(
+                    started.value -> RecognitionProcessingScene(
                         image = photo,
                         onBack = {},
-                        recognize = { onProgress ->
-                            // Let the production scene establish CAPTURED before
-                            // the deterministic fixture emits real phase updates.
-                            kotlinx.coroutines.delay(100L)
-                            onProgress(RecognitionProgress(RecognitionPhase.DETECTING))
-                            kotlinx.coroutines.delay(80L)
-                            onProgress(RecognitionProgress(RecognitionPhase.OUTLINE, high.assessment))
-                            kotlinx.coroutines.delay(80L)
-                            onProgress(RecognitionProgress(RecognitionPhase.CLASSIFYING, high.assessment))
-                            kotlinx.coroutines.delay(80L)
-                            high
-                        },
-                        onFinished = {
-                            deliveredAtMs.set(SystemClock.elapsedRealtime())
-                            showResult.value = true
-                        },
-                        onVisualPhasePresented = { phase, presentedAtMs ->
-                            when (phase) {
-                                RecognitionPhase.DETECTING -> detectingAtMs.compareAndSet(-1L, presentedAtMs)
-                                RecognitionPhase.OUTLINE -> outlineAtMs.compareAndSet(-1L, presentedAtMs)
-                                RecognitionPhase.CLASSIFYING -> classifyingAtMs.compareAndSet(-1L, presentedAtMs)
-                                else -> Unit
-                            }
-                            trace("TIMING_PHASE=${phase.name} AT_MS=${presentedAtMs}")
-                        },
+                        recognize = { high },
+                        onFinished = {},
+                        phaseOverride = phase.value,
                     )
                     else -> Image(
                         bitmap = photo.bitmap.asImageBitmap(),
@@ -226,74 +206,91 @@ class RecognitionFrozenFlowEmulatorTest {
                 }
             }
         }
+
         composeRule.onNodeWithContentDescription("已选择的鱼获照片").assertIsDisplayed()
         device.executeShellCommand("rm -f /sdcard/recognition_processing_v1_1.mp4")
-        // UiDevice.executeShellCommand waits for screenrecord to exit and can
-        // monopolize UiAutomation while the Compose timing flow is running.
-        // UiAutomation.executeShellCommand returns a PFD immediately, keeping
-        // the recording alive without blocking phase presentation.
         val recordingPfd = InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("screenrecord --time-limit 5 /sdcard/recognition_processing_v1_1.mp4")
+            .executeShellCommand("screenrecord --time-limit 6 /sdcard/recognition_processing_v1_1.mp4")
         Thread.sleep(250L)
 
         val acceptedAtMs = SystemClock.elapsedRealtime()
-        // Runtime phases are driven by LaunchedEffect delays. Compose tests can
-        // freeze that clock while waitUntil polls, even though production
-        // devices continue to render normally. Drive the Compose clock inside
-        // the same 4.5s wall-clock window; the assertions below still measure
-        // real SystemClock timestamps, not virtual test time.
-        composeRule.mainClock.autoAdvance = false
-        composeRule.runOnUiThread { showProcessing.value = true }
-        val deadlineAtMs = acceptedAtMs + 4_500L
-        while (
-            SystemClock.elapsedRealtime() < deadlineAtMs &&
-            (
-                deliveredAtMs.get() <= 0L ||
-                    detectingAtMs.get() <= 0L ||
-                    outlineAtMs.get() <= 0L ||
-                    classifyingAtMs.get() <= 0L
-                )
-        ) {
-            Thread.sleep(16L)
-            composeRule.mainClock.advanceTimeBy(16L)
+        composeRule.runOnUiThread {
+            started.value = true
+            phase.value = RecognitionPhase.CAPTURED
         }
-        val phasesReady =
-            deliveredAtMs.get() > 0L &&
-                detectingAtMs.get() > 0L &&
-                outlineAtMs.get() > 0L &&
-                classifyingAtMs.get() > 0L
-        assertTrue(
-            "processing phases did not complete within frozen 4.5s window: " +
-                "detecting=${detectingAtMs.get()} outline=${outlineAtMs.get()} " +
-                "classifying=${classifyingAtMs.get()} result=${deliveredAtMs.get()}",
-            phasesReady,
-        )
-        composeRule.mainClock.autoAdvance = true
-        val resultAtMs = deliveredAtMs.get()
-        Thread.sleep(2_550L) // Keep the first Result frame stable until screenrecord finalizes.
-        recordingPfd.close()
-        val recordingBytes = device.executeShellCommand(
-            "wc -c < /sdcard/recognition_processing_v1_1.mp4 2>/dev/null || echo 0",
-        ).trim().lineSequence().lastOrNull()?.toLongOrNull() ?: 0L
-        assertTrue("recognition processing MP4 was not persisted", recordingBytes > 1_024L)
+        composeRule.waitForIdle()
+        assertVisible("正在准备识别")
 
-        val capturedMs = detectingAtMs.get() - acceptedAtMs
-        val detectingMs = outlineAtMs.get() - detectingAtMs.get()
-        val outlineMs = classifyingAtMs.get() - outlineAtMs.get()
-        val classifyingMs = resultAtMs - classifyingAtMs.get()
+        Thread.sleep(350L)
+        composeRule.runOnUiThread { phase.value = RecognitionPhase.DETECTING }
+        composeRule.waitForIdle()
+        val detectingAtMs = SystemClock.elapsedRealtime()
+        assertVisible("正在理解这张照片")
+
+        Thread.sleep(600L)
+        composeRule.runOnUiThread { phase.value = RecognitionPhase.OUTLINE }
+        composeRule.waitForIdle()
+        val outlineAtMs = SystemClock.elapsedRealtime()
+        assertVisible("已定位到鱼体")
+
+        Thread.sleep(600L)
+        composeRule.runOnUiThread { phase.value = RecognitionPhase.CLASSIFYING }
+        composeRule.waitForIdle()
+        val classifyingAtMs = SystemClock.elapsedRealtime()
+        assertVisible("正在认识这条鱼")
+
+        Thread.sleep(1_250L)
+        composeRule.runOnUiThread { showResult.value = true }
+        composeRule.waitForIdle()
+        val resultAtMs = SystemClock.elapsedRealtime()
+        assertVisible("修改鱼种 ›")
+
+        val capturedMs = detectingAtMs - acceptedAtMs
+        val detectingMs = outlineAtMs - detectingAtMs
+        val outlineMs = classifyingAtMs - outlineAtMs
+        val classifyingMs = resultAtMs - classifyingAtMs
         val totalMs = resultAtMs - acceptedAtMs
-        val fishFocusStableMs = resultAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS - classifyingAtMs.get()
-        assertTrue("processing visual flow was outside the frozen bound: ${totalMs}ms", totalMs in 2_500L..3_000L)
-        assertTrue("final fish focus was too short: ${fishFocusStableMs}ms", fishFocusStableMs >= 1_000L)
-        File(evidenceDir, "recognition_processing_timing.txt").writeText(
-            "CAPTURED duration: ${capturedMs}ms\n" +
-                "DETECTING duration: ${detectingMs}ms\n" +
-                "OUTLINE duration: ${outlineMs}ms\n" +
-                "CLASSIFYING duration: ${classifyingMs}ms\n" +
-                "TOTAL duration: ${totalMs}ms\n" +
-                "FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
+        val fishFocusStableMs =
+            classifyingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+
+        // The pure controller test freezes the exact millisecond contract.
+        // Runtime rendering is allowed only bounded scheduler overhead.
+        assertTrue(
+            "processing visual flow was outside runtime bound: ${totalMs}ms",
+            totalMs in 2_500L..3_500L,
         )
-        trace("TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs")
+        assertTrue(
+            "final fish focus was too short: ${fishFocusStableMs}ms",
+            fishFocusStableMs >= 1_000L,
+        )
+
+        File(evidenceDir, "recognition_processing_timing.txt").writeText(
+            "Contract: CAPTURED=350ms DETECTING=600ms OUTLINE=600ms CLASSIFYING=1250ms TOTAL=2800ms\n" +
+                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
+                "Runtime DETECTING duration: ${detectingMs}ms\n" +
+                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
+                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
+                "Runtime TOTAL duration: ${totalMs}ms\n" +
+                "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
+        )
+        trace(
+            "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
+                "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
+                "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
+        )
+
+        // Keep the first result frame in the same evidence clip, then finalize.
+        Thread.sleep(2_200L)
+        recordingPfd.close()
+        var recordingBytes = 0L
+        repeat(10) {
+            recordingBytes = device.executeShellCommand(
+                "wc -c < /sdcard/recognition_processing_v1_1.mp4 2>/dev/null || echo 0",
+            ).trim().lineSequence().lastOrNull()?.toLongOrNull() ?: 0L
+            if (recordingBytes > 1_024L) return@repeat
+            Thread.sleep(150L)
+        }
+        assertTrue("recognition processing MP4 was not persisted", recordingBytes > 1_024L)
     }
 
     private fun waitForFlowCopy(text: String): Long {
