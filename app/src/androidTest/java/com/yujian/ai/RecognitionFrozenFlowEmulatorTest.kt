@@ -42,6 +42,7 @@ import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
