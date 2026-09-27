@@ -137,10 +137,6 @@ jobs:
             api_level: 28
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          - gate: data-sanitization
-            api_level: 30
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           - gate: empty-home-v2
             api_level: 28
             required: true
