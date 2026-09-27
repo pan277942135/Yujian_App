@@ -2,6 +2,7 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -51,6 +52,10 @@ import java.io.File
  * The harness injects pipeline state, but never substitutes a test-only screen.
  */
 class RecognitionFrozenFlowEmulatorTest {
+    private companion object {
+        const val FROZEN_GATE_LOG_TAG = "RecognitionFrozenGate"
+    }
+
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -149,13 +154,13 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     private fun render(state: MutableState<FrozenState>, next: FrozenState, expected: String, screenshotName: String?) {
-        println("RENDER_STATE=$next EXPECTED=$expected")
+        trace("RENDER_STATE=$next EXPECTED=$expected")
         currentFrozenState = next
         composeRule.runOnUiThread { state.value = next }
         composeRule.waitForIdle()
         assertVisible(expected)
         if (screenshotName != null) capture(screenshotName)
-        println("PASS_STATE=$next")
+        trace("PASS_STATE=$next")
     }
 
     private fun capture(name: String) {
@@ -182,11 +187,15 @@ class RecognitionFrozenFlowEmulatorTest {
         } catch (error: Throwable) {
             val tree = runCatching { composeRule.onRoot(useUnmergedTree = true).printToString() }
                 .getOrElse { "<semantics tree unavailable: ${it::class.java.simpleName}: ${it.message}>" }
-            throw AssertionError(
-                "Frozen state assertion failed\nexpected=$text\nstate=$currentFrozenState\nsemantics=\n$tree",
-                error,
-            )
+            val message = "Frozen state assertion failed\nexpected=$text\nstate=$currentFrozenState\nsemantics=\n$tree"
+            Log.e(FROZEN_GATE_LOG_TAG, message, error)
+            throw AssertionError(message, error)
         }
+    }
+
+    private fun trace(message: String) {
+        println(message)
+        Log.i(FROZEN_GATE_LOG_TAG, message)
     }
 
     private fun assertNoDirtyTechnicalUi() {
