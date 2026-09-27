@@ -77,6 +77,13 @@ jobs:
       - name: Prepare YuJian debug APK
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
 
+      - name: Prepare Recognition Visual V1.1 QA APK
+        id: recognition_qa_apk
+        run: |
+          filename="YuJian_Recognition_Visual_V1_1_QA_$(TZ=Asia/Shanghai date +%Y%m%d).apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${filename}"
+          echo "filename=${filename}" >> "$GITHUB_OUTPUT"
+
       - name: Upload installable debug APK
         if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
@@ -85,6 +92,15 @@ jobs:
           path: app/build/outputs/apk/debug/YuJian-debug.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload Recognition Visual V1.1 QA APK
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.recognition_qa_apk.outputs.filename }}
+          path: app/build/outputs/apk/debug/${{ steps.recognition_qa_apk.outputs.filename }}
+          if-no-files-found: error
+          retention-days: 14
 
   emulator-frozen-flow:
     # Deterministic Recognition gate: run automatically for PR updates and
