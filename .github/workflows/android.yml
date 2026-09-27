@@ -64,6 +64,9 @@ jobs:
       - name: Compile Android runtime smoke test
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
 
+      - name: Verify packaged launcher icon in APK
+        run: python3 scripts/verify_packaged_launcher_icon.py
+
       - name: Verify packaged recognition assets in APK
         run: python3 scripts/verify_packaged_android_apk.py
 
