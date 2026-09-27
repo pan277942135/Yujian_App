@@ -109,6 +109,10 @@ case "$1" in
         printf 'INSTRUMENTATION_STATUS: numtests=1\nFAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
         exit 1
       fi
+      if [[ "$MODE" == "process-crash" ]]; then
+        printf 'INSTRUMENTATION_RESULT: shortMsg=Process crashed.\nINSTRUMENTATION_CODE: 0\n'
+        exit 0
+      fi
       printf 'INSTRUMENTATION_RESULT: stream=\nOK (1 test)\nINSTRUMENTATION_CODE: 0\n'
       exit 0
     fi

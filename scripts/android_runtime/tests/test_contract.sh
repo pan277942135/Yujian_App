@@ -70,5 +70,6 @@ run_case boot-timeout boot-timeout BLOCKED_INFRA 10
 run_case low-disk low-disk BLOCKED_INFRA 10
 run_case invalid-artifact invalid-apk FAIL_ARTIFACT 20
 run_case test-failure test-fail FAIL_TEST 30
+run_case process-crash process-crash FAIL_TEST 30
 run_case evidence-missing missing-evidence FAIL_EVIDENCE 40
 run_case pass ready PASS 0

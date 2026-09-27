@@ -23,7 +23,7 @@ android_runtime_run_instrumentation() {
     runtime_set_failure "INSTRUMENTATION" "ADB_TRANSPORT_DURING_INSTRUMENTATION"
     return "$EXIT_BLOCKED_INFRA"
   fi
-  if grep -Eiq 'INSTRUMENTATION_FAILED|FAILURES!!!|Process .* (crashed|has died)|Assertion(Error|FailedError)|There were test failures|INSTRUMENTATION_CODE: -1|test failure' "$log"; then
+  if grep -Eiq 'INSTRUMENTATION_FAILED|FAILURES!!!|Process (crashed|has died)|Process .* (crashed|has died)|Assertion(Error|FailedError)|There were test failures|INSTRUMENTATION_CODE: -1|test failure' "$log"; then
     runtime_set_failure "INSTRUMENTATION" "TEST_ASSERTION_FAILED"
     return "$EXIT_FAIL_TEST"
   fi
