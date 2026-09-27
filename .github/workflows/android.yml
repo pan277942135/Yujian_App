@@ -126,7 +126,9 @@ jobs:
           # The gate also verifies the actual free space before Gradle installs.
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           script: |
-            set -euo pipefail
+            # android-emulator-runner executes this block with /usr/bin/sh.
+            # Keep the readiness gate POSIX-shell compatible.
+            set -eu
 
             echo "FROZEN_GATE_DEVICE_DIAGNOSTICS_BEGIN"
             adb devices -l || true
@@ -174,7 +176,13 @@ jobs:
             adb shell df -h /data
             data_free_kb="$(adb shell df -k /data | awk 'NR == 2 { print $4 }' | tr -d '\r')"
             echo "DATA_FREE_KB=${data_free_kb}"
-            if ! [[ "${data_free_kb}" =~ ^[0-9]+$ ]] || [ "${data_free_kb}" -lt 524288 ]; then
+            case "${data_free_kb}" in
+              ''|*[!0-9]*)
+                echo "FROZEN_GATE_DATA_INSUFFICIENT free_kb=${data_free_kb} required_kb=524288"
+                exit 1
+                ;;
+            esac
+            if [ "${data_free_kb}" -lt 524288 ]; then
               echo "FROZEN_GATE_DATA_INSUFFICIENT free_kb=${data_free_kb} required_kb=524288"
               exit 1
             fi
