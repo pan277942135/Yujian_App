@@ -21,32 +21,46 @@ gate_collect_evidence() {
     "${YUJIAN_ADB_BIN}" shell wm size 1080x1920
     "${YUJIAN_ADB_BIN}" logcat -c
 
-    # Resolve through the manifest launcher instead of hard-coding the Kotlin Activity package.
-    # Then wait for actual Home semantics; a running pid can still be only the startup window.
+    # Launch the production activity, then wait only for the real resumed
+    # Activity. Compose text is intentionally NOT read through UIAutomator:
+    # that bridge is unreliable for this screen and previously produced false
+    # FAIL_EVIDENCE while the page was visibly rendered.
     "${YUJIAN_ADB_BIN}" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
 
-    home_ready=0
-    for attempt in $(seq 1 30); do
-      "${YUJIAN_ADB_BIN}" shell uiautomator dump /sdcard/empty_home_window.xml >/dev/null 2>&1 || true
-      window_xml="$("${YUJIAN_ADB_BIN}" shell cat /sdcard/empty_home_window.xml 2>/dev/null | tr -d '\r' || true)"
+    home_resumed=0
+    for attempt in $(seq 1 20); do
       resumed="$("${YUJIAN_ADB_BIN}" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
-      printf 'EMPTY_HOME_UI_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
-      if [[ "$window_xml" == *"对准鱼获，拍一张"* ]] || [[ "$window_xml" == *"现在，轮到你记录第一条鱼"* ]]; then
-        home_ready=1
+      printf 'EMPTY_HOME_ACTIVITY_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
+      if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* ]]; then
+        home_resumed=1
         break
       fi
       sleep 1
     done
 
-    if (( home_ready != 1 )); then
-      echo 'EMPTY_HOME_UI_NOT_READY' >&2
+    if (( home_resumed != 1 )); then
+      echo 'EMPTY_HOME_ACTIVITY_NOT_RESUMED' >&2
       "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/startup_not_ready.png" || true
       "${YUJIAN_ADB_BIN}" logcat -d -b all -v threadtime > "$home_dir/startup_logcat.txt" || true
       exit 1
     fi
 
-    sleep 1
+    # Allow decoded scene assets one bounded render settle, capture the actual
+    # production frame, and reject only a real blank/startup frame.
+    sleep 2
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_static.png"
+    python3 - "$home_dir/runtime_static.png" <<'PY'
+from PIL import Image, ImageStat
+import sys
+img = Image.open(sys.argv[1]).convert("RGB")
+stat = ImageStat.Stat(img)
+mean = sum(stat.mean) / 3.0
+spread = sum(stat.stddev) / 3.0
+if mean > 245 and spread < 8:
+    raise SystemExit(f"EMPTY_HOME_BLANK_FRAME mean={mean:.2f} spread={spread:.2f}")
+print(f"EMPTY_HOME_FRAME_READY mean={mean:.2f} spread={spread:.2f}")
+PY
+
     cp "$home_dir/runtime_static.png" "$home_dir/01_empty_home_static.png"
     sleep 4
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_4s.png"
