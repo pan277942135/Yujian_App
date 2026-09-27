@@ -237,13 +237,38 @@ class RecognitionFrozenFlowEmulatorTest {
         Thread.sleep(250L)
 
         val acceptedAtMs = SystemClock.elapsedRealtime()
+        // Runtime phases are driven by LaunchedEffect delays. Compose tests can
+        // freeze that clock while waitUntil polls, even though production
+        // devices continue to render normally. Drive the Compose clock inside
+        // the same 4.5s wall-clock window; the assertions below still measure
+        // real SystemClock timestamps, not virtual test time.
+        composeRule.mainClock.autoAdvance = false
         composeRule.runOnUiThread { showProcessing.value = true }
-        composeRule.waitUntil(timeoutMillis = 4_500L) {
+        val deadlineAtMs = acceptedAtMs + 4_500L
+        while (
+            SystemClock.elapsedRealtime() < deadlineAtMs &&
+            (
+                deliveredAtMs.get() <= 0L ||
+                    detectingAtMs.get() <= 0L ||
+                    outlineAtMs.get() <= 0L ||
+                    classifyingAtMs.get() <= 0L
+                )
+        ) {
+            Thread.sleep(16L)
+            composeRule.mainClock.advanceTimeBy(16L)
+        }
+        val phasesReady =
             deliveredAtMs.get() > 0L &&
                 detectingAtMs.get() > 0L &&
                 outlineAtMs.get() > 0L &&
                 classifyingAtMs.get() > 0L
-        }
+        assertTrue(
+            "processing phases did not complete within frozen 4.5s window: " +
+                "detecting=${detectingAtMs.get()} outline=${outlineAtMs.get()} " +
+                "classifying=${classifyingAtMs.get()} result=${deliveredAtMs.get()}",
+            phasesReady,
+        )
+        composeRule.mainClock.autoAdvance = true
         val resultAtMs = deliveredAtMs.get()
         Thread.sleep(2_550L) // Keep the first Result frame stable until screenrecord finalizes.
         recordingPfd.close()
