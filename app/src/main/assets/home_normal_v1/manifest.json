@@ -1,0 +1,29 @@
+{
+  "package": "YuJian_home_normal_runtime_V1",
+  "type": "page-runtime",
+  "status": "FROZEN_VISUAL_CLOSURE",
+  "frozen_authority": {
+    "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "width": 1080,
+    "height": 1920,
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
+  },
+  "runtime_root": "home_normal_v1",
+  "assets": [
+    "assets/background/normal_home_bg.webp",
+    "assets/avatar/guest_avatar.png",
+    "assets/fish_card/fish_card_gradient.png",
+    "assets/fish_card/fish_card_mask.png",
+    "assets/fish_card/fish_card_outline.png",
+    "assets/fish_card/fish_card_shadow.png"
+  ],
+  "shared_component_policy": {
+    "capture_button": "HomeCameraButton / YuJianPrimaryCaptureButton",
+    "capture_visual_assets": "empty_home_runtime_v2/camera only",
+    "reason": "Core UI V1 Shared Means Shared; page-specific background and fish-card media remain under home_normal_v1."
+  },
+  "migration": {
+    "binary_reencoding": false,
+    "legacy_runtime_dependencies_removed": ["home_empty_v1_3", "home_normal_v1_2"]
+  }
+}
