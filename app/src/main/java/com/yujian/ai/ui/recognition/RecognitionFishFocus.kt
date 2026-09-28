@@ -25,7 +25,13 @@ data class RecognitionContourSegment(
     val endY: Float,
 )
 
-/** Optional, visual-only subject response. A missing contour always falls back to halo. */
+/**
+ * Recognition V1.2 fish focus.
+ *
+ * Level A follows the real subject alpha contour and is the main AI moment.
+ * Level B remains an unobtrusive bbox-derived halo/perimeter fallback and never
+ * becomes a detector rectangle. The fish interior is never tinted.
+ */
 @Composable
 fun RecognitionFishFocus(
     phase: RecognitionPhase,
@@ -43,61 +49,119 @@ fun RecognitionFishFocus(
 ) {
     val active = phase == RecognitionPhase.OUTLINE || phase == RecognitionPhase.CLASSIFYING
     if (!active || focusBox == null) return
+
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val focusTag = when {
         lowPerformance -> "recognition-fish-focus-level-b-low-performance"
         levelAAvailable -> "recognition-fish-focus-level-a"
         else -> "recognition-fish-focus-level-b"
     }
+
     Canvas(modifier.fillMaxSize().testTag(focusTag)) {
         val normalized = focusBox.normalized()
         val point = transform.mapBox(normalized)
         val center = Offset(point.x, point.y)
         val radiusX = transform.drawnWidth * normalized.width * .62f + 14.dp.toPx()
         val radiusY = transform.drawnHeight * normalized.height * .72f + 14.dp.toPx()
-        val fade = 1f - resolveProgress.coerceIn(0f, 1f)
-        val reveal = if (phase == RecognitionPhase.OUTLINE) (phaseElapsedMs / 360f).coerceIn(0f, 1f) else 1f
-        val breathing = if (phase == RecognitionPhase.CLASSIFYING) {
+
+        val remaining = 1f - resolveProgress.coerceIn(0f, 1f)
+        val fade = remaining * remaining
+
+        val revealRaw = if (phase == RecognitionPhase.OUTLINE) {
+            (phaseElapsedMs / 370f).coerceIn(0f, 1f)
+        } else {
+            1f
+        }
+        val reveal = revealRaw * revealRaw * (3f - 2f * revealRaw)
+
+        val pulse = if (phase == RecognitionPhase.CLASSIFYING) {
             if (reduceMotion) {
-                .15f
+                .90f
             } else {
                 val t = ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) / 1_900f
-                .15f + ((sin(t * 2f * PI - PI / 2f) + 1f) / 2f).toFloat() * .05f
+                val wave = ((sin(t * 2f * PI - PI / 2f) + 1f) / 2f).toFloat()
+                .86f + wave * .14f
             }
-        } else .19f * reveal
-        val haloAlpha = if (phase == RecognitionPhase.CLASSIFYING) breathing.coerceIn(.12f, .18f) else .18f * reveal
+        } else {
+            reveal
+        }
+
+        val fallbackHaloStrength = if (levelAAvailable && !lowPerformance) .12f else .20f
+        val haloStrength = fallbackHaloStrength * pulse * fade
+
+        // A restrained bbox-derived local bloom supports the real contour but
+        // never becomes the primary focus when Level A is available.
         drawOval(
             brush = Brush.radialGradient(
                 0f to Color.Transparent,
-                .58f to Color.Transparent,
-                .82f to Color(0x2EF6D99B).copy(alpha = haloAlpha * fade),
-                1f to Color(0x00F6D99B),
+                .56f to Color.Transparent,
+                .76f to Color(0x00F6D99B),
+                .88f to Color(0xFFF6D99B).copy(alpha = haloStrength),
+                1f to Color.Transparent,
                 center = center,
                 radius = maxOf(radiusX, radiusY) * 1.18f,
             ),
             topLeft = Offset(center.x - radiusX * 1.18f, center.y - radiusY * 1.18f),
             size = androidx.compose.ui.geometry.Size(radiusX * 2.36f, radiusY * 2.36f),
         )
-        // The fish interior stays transparent: only a restrained elliptical response is drawn.
+
+        // Level B / structural perimeter. It remains visible enough to show that
+        // a fish was located even when subject alpha is unavailable.
+        val perimeterAlpha = if (levelAAvailable && !lowPerformance) {
+            .12f * pulse * fade
+        } else {
+            .32f * pulse * fade
+        }
         drawOval(
-            color = Color(0xFFF6D99B).copy(alpha = breathing * fade),
+            color = Color(0xFFFFE7AE).copy(alpha = perimeterAlpha),
             topLeft = Offset(center.x - radiusX, center.y - radiusY),
             size = androidx.compose.ui.geometry.Size(radiusX * 2f, radiusY * 2f),
-            style = Stroke(width = 1.2.dp.toPx()),
+            style = Stroke(width = if (levelAAvailable && !lowPerformance) .9.dp.toPx() else 1.35.dp.toPx()),
         )
+
         if (!lowPerformance && levelAAvailable) {
             val crop = requireNotNull(subjectBox).normalized()
-            // Use the upper half of the frozen contour-alpha range
-            // so the located fish remains legible on a real phone display
-            // without introducing a detector box or HUD treatment.
-            val contourAlpha = if (phase == RecognitionPhase.CLASSIFYING) {
-                if (reduceMotion) .36f else .36f + ((breathing - .15f) / .05f).coerceIn(0f, 1f) * .06f
-            } else .42f * reveal
+            val contourStrength = when (phase) {
+                RecognitionPhase.OUTLINE -> .92f * reveal
+                RecognitionPhase.CLASSIFYING -> .78f * pulse
+                else -> 0f
+            }
+
             contour.forEach { segment ->
-                val start = transform.mapNormalized(crop.x1 + segment.startX * crop.width, crop.y1 + segment.startY * crop.height)
-                val end = transform.mapNormalized(crop.x1 + segment.endX * crop.width, crop.y1 + segment.endY * crop.height)
-                drawLine(Color(0x66FFE7AE).copy(alpha = contourAlpha * .42f * fade), Offset(start.x, start.y), Offset(end.x, end.y), 8.dp.toPx(), StrokeCap.Round)
-                drawLine(Color(0xFFFFE7AE).copy(alpha = contourAlpha * fade), Offset(start.x, start.y), Offset(end.x, end.y), 1.5.dp.toPx(), StrokeCap.Round)
+                val start = transform.mapNormalized(
+                    crop.x1 + segment.startX * crop.width,
+                    crop.y1 + segment.startY * crop.height,
+                )
+                val end = transform.mapNormalized(
+                    crop.x1 + segment.endX * crop.width,
+                    crop.y1 + segment.endY * crop.height,
+                )
+                val from = Offset(start.x, start.y)
+                val to = Offset(end.x, end.y)
+
+                // Three-pass contour: broad local bloom + mid glow + thin hot core.
+                // The broad pass is deliberately low-alpha so the photo texture remains dominant.
+                drawLine(
+                    color = Color(0xFFFFD887).copy(alpha = (contourStrength * .18f * fade).coerceAtMost(.18f)),
+                    start = from,
+                    end = to,
+                    strokeWidth = 11.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = Color(0xFFFFDE9B).copy(alpha = (contourStrength * .40f * fade).coerceAtMost(.38f)),
+                    start = from,
+                    end = to,
+                    strokeWidth = 4.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = Color(0xFFFFE7AE).copy(alpha = (contourStrength * .96f * fade).coerceAtMost(.90f)),
+                    start = from,
+                    end = to,
+                    strokeWidth = 1.55.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
             }
         }
     }

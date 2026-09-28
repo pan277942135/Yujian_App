@@ -2,10 +2,12 @@ package com.yujian.ai.ui.recognition
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -20,6 +22,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.RecognitionPhase
+import android.os.SystemClock
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -28,8 +33,16 @@ private val AiBlueHot = Color(0xFFD8F5FA)
 private val AiGoldCore = Color(0xFFF6D99B)
 private val AiGoldHot = Color(0xFFFFE7AE)
 
-private data class FieldIntensity(val edge: Float, val filaments: Float, val particles: Float, val speed: Float)
+private data class FieldIntensity(
+    val edge: Float,
+    val primary: Float,
+    val secondary: Float,
+    val particles: Float,
+    val speed: Float,
+)
+
 private data class Cubic(val x: Float, val y: Float)
+
 private data class Filament(
     val id: String,
     val color: Color,
@@ -42,7 +55,13 @@ private data class Filament(
     val end: Cubic,
 )
 
-/** Fixed V1 ambient field. Geometry is intentionally data, not generated art. */
+/**
+ * Recognition V1.2 ambient AI field.
+ *
+ * The photo always stays fully opaque. Energy is constrained to the perimeter:
+ * primary blue/gold filaments provide the readable AI field while secondary
+ * hairline filaments and sparse nodes supply the high-fidelity texture.
+ */
 @Composable
 fun RecognitionAmbientField(
     phase: RecognitionPhase,
@@ -54,79 +73,224 @@ fun RecognitionAmbientField(
 ) {
     val clock = ambientClock(visualClockMs, reduceMotion)
     val intensity = remember(phase) { intensityFor(phase) }
-    val fade = 1f - resolveProgress.coerceIn(0f, 1f)
+    val remaining = 1f - resolveProgress.coerceIn(0f, 1f)
+    // RESULT should feel like the AI field releases quickly rather than lingering
+    // over the normal result screen.
+    val fade = remaining * remaining
     val evidenceTag = "recognition-ambient-" +
         (if (reduceMotion) "reduced-motion" else "motion") + "-" +
         (if (lowPerformance) "low-performance" else "normal-performance")
+
     Canvas(modifier.fillMaxSize().testTag(evidenceTag)) {
-        val paths = rememberAmbientPaths(size)
+        val primaryPaths = rememberAmbientPaths(size, PRIMARY_FILAMENTS)
+        val secondaryPaths = rememberAmbientPaths(size, SECONDARY_FILAMENTS)
+
         drawEdgeBloom(intensity.edge * fade)
-        FILAMENTS.forEachIndexed { index, filament ->
-            // Three to five paths are normally visible; the others remain below the reveal threshold.
-            val visibility = activeMultiplier(index, clock, intensity.filaments) * fade
-            if (visibility > 0.01f) drawFilament(paths[index], filament, clock, intensity.speed, visibility, lowPerformance)
+
+        PRIMARY_FILAMENTS.forEachIndexed { index, filament ->
+            val visibility = activeMultiplier(index, clock, intensity.primary) * fade
+            if (visibility > 0.01f) {
+                drawPrimaryFilament(
+                    path = primaryPaths[index],
+                    filament = filament,
+                    clock = clock,
+                    speed = intensity.speed,
+                    alpha = visibility,
+                    lowPerformance = lowPerformance,
+                )
+            }
         }
+
+        if (!lowPerformance) {
+            SECONDARY_FILAMENTS.forEachIndexed { index, filament ->
+                val visibility = activeMultiplier(index + PRIMARY_FILAMENTS.size, clock, intensity.secondary) * fade
+                if (visibility > 0.008f) {
+                    drawSecondaryFilament(
+                        path = secondaryPaths[index],
+                        filament = filament,
+                        clock = clock,
+                        speed = intensity.speed * .84f,
+                        alpha = visibility,
+                    )
+                }
+            }
+        }
+
+        drawEnergyNodes(clock, intensity, fade, lowPerformance)
         drawParticles(clock, intensity.copy(particles = intensity.particles * fade), lowPerformance)
     }
 }
 
 @Composable
 private fun ambientClock(override: Long?, reduceMotion: Boolean): Long {
-    // Screenshot/test mode is deliberately still: do not install an infinite
-    // transition that keeps Compose's idler busy while a fixed clock is used.
     if (override != null) return override
     if (reduceMotion) return 0L
-    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "ambient-field")
-    val fraction by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            animation = androidx.compose.animation.core.tween(10_000, easing = androidx.compose.animation.core.LinearEasing),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Restart,
-        ),
-        label = "ambient-clock",
-    )
-    return (fraction * 10_000f).toLong()
-}
 
-private fun intensityFor(phase: RecognitionPhase) = when (phase) {
-    RecognitionPhase.CAPTURED -> FieldIntensity(.20f, .15f, .05f, 1f)
-    RecognitionPhase.DETECTING -> FieldIntensity(.30f, .35f, .20f, 1f)
-    RecognitionPhase.OUTLINE -> FieldIntensity(.22f, .24f, .12f, .82f)
-    RecognitionPhase.CLASSIFYING -> FieldIntensity(.18f, .20f, .08f, .65f)
-    else -> FieldIntensity(0f, 0f, 0f, 0f)
-}
-
-private fun DrawScope.rememberAmbientPaths(size: Size): List<Path> = FILAMENTS.map { filament ->
-    Path().apply {
-        moveTo(filament.start.x * size.width, filament.start.y * size.height)
-        cubicTo(
-            filament.control1.x * size.width, filament.control1.y * size.height,
-            filament.control2.x * size.width, filament.control2.y * size.height,
-            filament.end.x * size.width, filament.end.y * size.height,
-        )
+    // The field is intentionally sampled at 30 fps. On API28, a 60 fps
+    // recomposition loop plus multi-pass path rendering can starve the visual
+    // state controller. 30 fps remains visually fluid for slow 5–10 second
+    // filament travel while preserving the frozen phase timing contract.
+    val startedAt = remember { SystemClock.uptimeMillis() }
+    var nowMs by remember { mutableLongStateOf(startedAt) }
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            nowMs = SystemClock.uptimeMillis()
+            delay(33L)
+        }
     }
+    return (nowMs - startedAt).coerceAtLeast(0L) % 10_000L
 }
+
+/**
+ * Perceptual V1.2 energy curve:
+ * CAPTURED is already clearly alive, DETECTING remains energetic,
+ * OUTLINE gives visual priority to the real fish, CLASSIFYING slows down.
+ */
+private fun intensityFor(phase: RecognitionPhase) = when (phase) {
+    RecognitionPhase.CAPTURED -> FieldIntensity(.34f, .88f, .52f, .42f, 1.00f)
+    RecognitionPhase.DETECTING -> FieldIntensity(.30f, .82f, .42f, .38f, .92f)
+    RecognitionPhase.OUTLINE -> FieldIntensity(.24f, .60f, .26f, .26f, .78f)
+    RecognitionPhase.CLASSIFYING -> FieldIntensity(.16f, .42f, .14f, .16f, .52f)
+    else -> FieldIntensity(0f, 0f, 0f, 0f, 0f)
+}
+
+private fun DrawScope.rememberAmbientPaths(size: Size, filaments: List<Filament>): List<Path> =
+    filaments.map { filament ->
+        Path().apply {
+            moveTo(filament.start.x * size.width, filament.start.y * size.height)
+            cubicTo(
+                filament.control1.x * size.width,
+                filament.control1.y * size.height,
+                filament.control2.x * size.width,
+                filament.control2.y * size.height,
+                filament.end.x * size.width,
+                filament.end.y * size.height,
+            )
+        }
+    }
 
 private fun DrawScope.drawEdgeBloom(alpha: Float) {
     if (alpha <= 0f) return
-    // Narrow corner/edge gradients preserve the photo and never tint the full frame.
-    drawCircle(AiBlueCore.copy(alpha = alpha * .055f), radius = size.minDimension * .42f, center = Offset(size.width, size.height * .20f))
-    drawCircle(AiGoldCore.copy(alpha = alpha * .05f), radius = size.minDimension * .32f, center = Offset(0f, size.height * .16f))
+
+    // Cheap local emissions only. The line field provides the readable energy;
+    // these circles stay very low-alpha so the photo never receives a full wash.
+    drawCircle(
+        AiBlueCore.copy(alpha = (alpha * .030f).coerceAtMost(.012f)),
+        radius = size.minDimension * .18f,
+        center = Offset(size.width * 1.01f, size.height * .15f),
+    )
+    drawCircle(
+        AiGoldCore.copy(alpha = (alpha * .030f).coerceAtMost(.012f)),
+        radius = size.minDimension * .16f,
+        center = Offset(-size.width * .01f, size.height * .12f),
+    )
+    drawCircle(
+        AiBlueCore.copy(alpha = (alpha * .026f).coerceAtMost(.010f)),
+        radius = size.minDimension * .17f,
+        center = Offset(-size.width * .02f, size.height * .86f),
+    )
+    drawCircle(
+        AiGoldCore.copy(alpha = (alpha * .026f).coerceAtMost(.010f)),
+        radius = size.minDimension * .18f,
+        center = Offset(size.width * 1.02f, size.height * .86f),
+    )
 }
 
-private fun DrawScope.drawFilament(path: Path, filament: Filament, clock: Long, speed: Float, alpha: Float, lowPerformance: Boolean) {
+private fun DrawScope.drawPrimaryFilament(
+    path: Path,
+    filament: Filament,
+    clock: Long,
+    speed: Float,
+    alpha: Float,
+    lowPerformance: Boolean,
+) {
     val phase = ((clock / 10_000f * speed + filament.offset) % 1f + 1f) % 1f
     val length = size.maxDimension * 1.7f
     val visible = length * (.18f + ((filament.offset * 100).toInt() % 18) / 100f)
     val effect = PathEffect.dashPathEffect(floatArrayOf(visible, length - visible), -phase * length)
-    fun stroke(width: Dp, multiplier: Float) = Stroke(
-        width = width.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round, pathEffect = effect,
+
+    fun stroke(width: Dp, pathEffect: PathEffect? = null) = Stroke(
+        width = width.toPx(),
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round,
+        pathEffect = pathEffect,
     )
-    drawPath(path, filament.color.copy(alpha = alpha * .08f * if (lowPerformance) .8f else 1f), style = stroke(10.dp, .08f))
-    drawPath(path, filament.color.copy(alpha = alpha * .22f), style = stroke(4.dp, .22f))
-    // V1.1 increases core visibility rather than spreading a larger bloom.
-    drawPath(path, filament.hot.copy(alpha = (alpha * 1.15f).coerceAtMost(.50f)), style = stroke(filament.width, 1f))
+
+    val perf = if (lowPerformance) .80f else 1f
+
+    // Two-pass skeleton + two-pass moving hot segment. This preserves the
+    // bright V1.2 appearance with one third fewer path draws on API28.
+    drawPath(
+        path,
+        filament.color.copy(alpha = (alpha * .34f * perf).coerceAtMost(.26f)),
+        style = stroke(3.2.dp),
+    )
+    drawPath(
+        path,
+        filament.hot.copy(alpha = (alpha * .62f).coerceAtMost(.46f)),
+        style = stroke((filament.width.value * .82f).dp),
+    )
+    drawPath(
+        path,
+        filament.color.copy(alpha = (alpha * .62f * perf).coerceAtMost(.44f)),
+        style = stroke(4.2.dp, effect),
+    )
+    drawPath(
+        path,
+        filament.hot.copy(alpha = (alpha * 1.60f).coerceAtMost(.90f)),
+        style = stroke(filament.width, effect),
+    )
+}
+
+private fun DrawScope.drawSecondaryFilament(
+    path: Path,
+    filament: Filament,
+    clock: Long,
+    speed: Float,
+    alpha: Float,
+) {
+    val phase = ((clock / 10_000f * speed + filament.offset) % 1f + 1f) % 1f
+    val length = size.maxDimension * 1.8f
+    val visible = length * (.20f + ((filament.offset * 100).toInt() % 12) / 100f)
+    val effect = PathEffect.dashPathEffect(floatArrayOf(visible, length - visible), -phase * length)
+
+    fun stroke(width: Dp, pathEffect: PathEffect? = null) = Stroke(
+        width = width.toPx(),
+        cap = StrokeCap.Round,
+        join = StrokeJoin.Round,
+        pathEffect = pathEffect,
+    )
+
+    // Hairlines use one persistent strand plus one moving hot strand.
+    drawPath(
+        path,
+        filament.color.copy(alpha = (alpha * .42f).coerceAtMost(.16f)),
+        style = stroke(1.45.dp),
+    )
+    drawPath(
+        path,
+        filament.hot.copy(alpha = (alpha * 1.35f).coerceAtMost(.52f)),
+        style = stroke(filament.width, effect),
+    )
+}
+
+private fun DrawScope.drawEnergyNodes(
+    clock: Long,
+    intensity: FieldIntensity,
+    fade: Float,
+    lowPerformance: Boolean,
+) {
+    val count = if (lowPerformance) 2 else ENERGY_NODES.size
+    repeat(count) { index ->
+        val node = ENERGY_NODES[index]
+        val t = ((clock % 4_800L) / 4_800f + index * .21f) % 1f
+        val pulse = (.55f + .45f * sin(t * 2f * PI).toFloat()).coerceIn(.18f, 1f)
+        val base = intensity.primary * fade * pulse
+        val center = Offset(node.x * size.width, node.y * size.height)
+        val color = if (index % 2 == 0) AiGoldHot else AiBlueHot
+        drawCircle(color.copy(alpha = (base * .12f).coerceAtMost(.09f)), 11.dp.toPx(), center)
+        drawCircle(color.copy(alpha = (base * .48f).coerceAtMost(.38f)), 2.2.dp.toPx(), center)
+    }
 }
 
 private fun DrawScope.drawParticles(clock: Long, intensity: FieldIntensity, lowPerformance: Boolean) {
@@ -141,7 +305,9 @@ private fun DrawScope.drawParticles(clock: Long, intensity: FieldIntensity, lowP
         val peak = if (hot) .50f else .35f
         val pulse = sin(t * PI).toFloat().coerceAtLeast(0f)
         drawCircle(
-            color = (if (hot) AiGoldHot else AiBlueHot).copy(alpha = (intensity.particles * peak * pulse).coerceAtMost(peak)),
+            color = (if (hot) AiGoldHot else AiBlueHot).copy(
+                alpha = (intensity.particles * peak * pulse).coerceAtMost(peak),
+            ),
             radius = if (hot) 3.dp.toPx() else 1.5f.dp.toPx(),
             center = Offset(x, y),
         )
@@ -150,15 +316,31 @@ private fun DrawScope.drawParticles(clock: Long, intensity: FieldIntensity, lowP
 
 private fun activeMultiplier(index: Int, clock: Long, base: Float): Float {
     val wave = ((sin((clock / 10_000f + index * .19f) * 2f * PI) + 1.0) / 2.0).toFloat()
-    return base * if (wave > .27f) (.65f + wave * .35f) else .10f
+    // Never let a whole perimeter path disappear at a particular clock phase.
+    // Motion is expressed by the hot dash; the underlying energy field remains.
+    return base * (.62f + wave * .38f)
 }
 
-private val PARTICLE_ANCHORS = listOf(
-    Cubic(.84f, .10f), Cubic(.96f, .33f), Cubic(.92f, .64f), Cubic(.73f, .88f),
-    Cubic(.08f, .18f), Cubic(.04f, .51f), Cubic(.18f, .90f), Cubic(.48f, .97f),
+private val ENERGY_NODES = listOf(
+    Cubic(.96f, .13f),
+    Cubic(.98f, .54f),
+    Cubic(.10f, .88f),
+    Cubic(.03f, .28f),
 )
 
-private val FILAMENTS = listOf(
+private val PARTICLE_ANCHORS = listOf(
+    Cubic(.84f, .10f),
+    Cubic(.96f, .33f),
+    Cubic(.92f, .64f),
+    Cubic(.73f, .88f),
+    Cubic(.08f, .18f),
+    Cubic(.04f, .51f),
+    Cubic(.18f, .90f),
+    Cubic(.48f, .97f),
+)
+
+/** Frozen V1.1 primary paths; V1.2 changes visibility, not the identity of these paths. */
+private val PRIMARY_FILAMENTS = listOf(
     Filament("B1", AiBlueCore, AiBlueHot, 1.2.dp, .00f, Cubic(.78f, -.02f), Cubic(.94f, .06f), Cubic(1.02f, .22f), Cubic(.96f, .42f)),
     Filament("B2", AiBlueCore, AiBlueHot, 1.0.dp, .23f, Cubic(1.01f, .18f), Cubic(.92f, .31f), Cubic(.95f, .52f), Cubic(1.02f, .68f)),
     Filament("B3", AiBlueCore, AiBlueHot, 1.2.dp, .47f, Cubic(1.02f, .61f), Cubic(.92f, .75f), Cubic(.84f, .89f), Cubic(.66f, 1.02f)),
@@ -166,4 +348,20 @@ private val FILAMENTS = listOf(
     Filament("G1", AiGoldCore, AiGoldHot, 1.1.dp, .12f, Cubic(-.02f, .18f), Cubic(.03f, .08f), Cubic(.12f, .02f), Cubic(.26f, -.02f)),
     Filament("G2", AiGoldCore, AiGoldHot, .9.dp, .39f, Cubic(-.02f, .33f), Cubic(.04f, .47f), Cubic(.02f, .62f), Cubic(-.01f, .78f)),
     Filament("G3", AiGoldCore, AiGoldHot, 1.2.dp, .64f, Cubic(-.01f, .74f), Cubic(.08f, .86f), Cubic(.20f, .95f), Cubic(.38f, 1.02f)),
+)
+
+/**
+ * Hairline paths stay near the perimeter and intentionally do not connect into
+ * a closed ring. They add the dense photographic "energy field" feel from the
+ * approved high-fidelity authority without becoming HUD chrome.
+ */
+private val SECONDARY_FILAMENTS = listOf(
+    Filament("SB1", AiBlueCore, AiBlueHot, .65.dp, .08f, Cubic(.58f, -.01f), Cubic(.76f, .01f), Cubic(.91f, .08f), Cubic(1.01f, .20f)),
+    Filament("SB2", AiBlueCore, AiBlueHot, .55.dp, .31f, Cubic(1.01f, .32f), Cubic(.98f, .46f), Cubic(.99f, .59f), Cubic(1.01f, .76f)),
+    Filament("SB3", AiBlueCore, AiBlueHot, .70.dp, .56f, Cubic(.98f, .73f), Cubic(.91f, .88f), Cubic(.80f, .97f), Cubic(.58f, 1.01f)),
+    Filament("SB4", AiBlueCore, AiBlueHot, .55.dp, .78f, Cubic(.03f, .62f), Cubic(.02f, .75f), Cubic(.08f, .89f), Cubic(.24f, 1.01f)),
+    Filament("SG1", AiGoldCore, AiGoldHot, .60.dp, .17f, Cubic(-.01f, .10f), Cubic(.10f, .03f), Cubic(.24f, .00f), Cubic(.42f, -.01f)),
+    Filament("SG2", AiGoldCore, AiGoldHot, .55.dp, .44f, Cubic(-.01f, .24f), Cubic(.02f, .39f), Cubic(.01f, .54f), Cubic(.00f, .67f)),
+    Filament("SG3", AiGoldCore, AiGoldHot, .65.dp, .67f, Cubic(.00f, .79f), Cubic(.10f, .91f), Cubic(.25f, .98f), Cubic(.46f, 1.01f)),
+    Filament("SG4", AiGoldCore, AiGoldHot, .55.dp, .88f, Cubic(.70f, 1.01f), Cubic(.83f, .97f), Cubic(.94f, .89f), Cubic(1.01f, .78f)),
 )
