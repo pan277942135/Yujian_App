@@ -45,21 +45,47 @@ gate_collect_evidence() {
       exit 1
     fi
 
-    # Allow decoded scene assets one bounded render settle, capture the actual
-    # production frame, and reject only a real blank/startup frame.
-    sleep 2
-    "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_static.png"
-    python3 - "$home_dir/runtime_static.png" <<'PY'
+    # Compose can report the Activity as resumed before decoded scene assets
+    # have reached the first real frame. Wait on pixels/parity only; do not
+    # use UIAutomator text as a readiness signal for this Compose screen.
+    render_ready=0
+    for attempt in $(seq 1 20); do
+      candidate="$home_dir/runtime_static_candidate.png"
+      "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$candidate"
+      if python3 - "$candidate" "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/empty_home_v2.png" <<'PY'
 from PIL import Image, ImageStat
 import sys
+from PIL import ImageChops
+
 img = Image.open(sys.argv[1]).convert("RGB")
 stat = ImageStat.Stat(img)
 mean = sum(stat.mean) / 3.0
 spread = sum(stat.stddev) / 3.0
-if mean > 245 and spread < 8:
+if (mean > 245 and spread < 8) or (mean < 8 and spread < 8):
     raise SystemExit(f"EMPTY_HOME_BLANK_FRAME mean={mean:.2f} spread={spread:.2f}")
-print(f"EMPTY_HOME_FRAME_READY mean={mean:.2f} spread={spread:.2f}")
+
+reference = Image.open(sys.argv[2]).convert("RGB").resize(img.size, Image.Resampling.LANCZOS)
+diff = ImageChops.difference(reference, img)
+histogram = diff.histogram()
+mae = sum(index % 256 * count for index, count in enumerate(histogram)) / (img.width * img.height * 3)
+if mae > 40:
+    raise SystemExit(f"EMPTY_HOME_PARITY_NOT_READY mean={mean:.2f} spread={spread:.2f} mae={mae:.4f}")
+print(f"EMPTY_HOME_FRAME_READY mean={mean:.2f} spread={spread:.2f} mae={mae:.4f}")
 PY
+      then
+        mv "$candidate" "$home_dir/runtime_static.png"
+        render_ready=1
+        break
+      fi
+      printf 'EMPTY_HOME_RENDER_SETTLE attempt=%s\n' "$attempt"
+      sleep 1
+    done
+
+    if (( render_ready != 1 )); then
+      echo 'EMPTY_HOME_RENDER_NOT_READY'
+      "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/render_not_ready.png" || true
+      exit 1
+    fi
 
     cp "$home_dir/runtime_static.png" "$home_dir/01_empty_home_static.png"
     sleep 4
@@ -89,6 +115,12 @@ PY
     ffmpeg -y -i "$home_dir/full_runtime_15s.mp4" -vf 'crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69' -an "$home_dir/camera_motion.mp4"
 
     python3 "$YUJIAN_REPO_ROOT/scripts/build_empty_home_runtime_evidence.py" --evidence-dir "$home_dir" --build-sha "$YUJIAN_BUILD_SHA"
+    parity_status="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])' "$home_dir/visual_parity_report.json")"
+    if [[ "$parity_status" != "PASS" ]]; then
+      cat "$home_dir/visual_parity_report.json" >&2
+      echo "EMPTY_HOME_VISUAL_PARITY_FAILED status=$parity_status" >&2
+      exit 1
+    fi
     cp "$YUJIAN_REPO_ROOT/design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png" "$home_dir/static_reference.png"
   ); then
     runtime_set_failure "EVIDENCE" "EMPTY_HOME_V2_EVIDENCE_COMMAND_FAILED"
