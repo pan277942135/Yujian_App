@@ -8,19 +8,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -45,6 +46,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -53,9 +55,9 @@ import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.HomeEmptyScene
-import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.HomeMotionState
 import com.yujian.ai.ui.home.NormalHomeContent
 import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
@@ -64,6 +66,18 @@ import com.yujian.ai.ui.home.rememberHomeMotionState
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
     "home_empty_v1_3/assets/background/home_empty_bg_no_bobber.webp"
+
+private const val EmptyHomeReferenceWidth = 1080f
+private const val EmptyHomeReferenceHeight = 1920f
+private const val EmptyHomeHeroX = 50f
+private const val EmptyHomeHeroY = 224f
+private const val EmptyHomeHeroWidth = 620f
+private const val EmptyHomeHeroHeight = 310f
+private const val EmptyHomePromptY = 1430f
+private const val EmptyHomeCameraX = 436f
+private const val EmptyHomeCameraY = 1500f
+private const val EmptyHomeCameraSize = 208f
+private const val EmptyHomeAlbumY = 1725f
 
 @Composable
 fun HomeScreen(
@@ -116,6 +130,20 @@ fun HomeScreen(
                 motionState = homeMotionState,
                 runtimeAssets = emptyRuntimeAssets,
             )
+            EmptyHomeContent(
+                modifier = Modifier.fillMaxSize(),
+                topInset = safeInsets.calculateTopPadding(),
+                isLoggedIn = isLoggedIn,
+                avatarUrl = avatarUrl,
+                resolveImageUrl = resolveImageUrl,
+                accessToken = accessToken,
+                onIdentify = onIdentify,
+                onAlbumClick = onAlbumClick,
+                onLoginClick = onLoginClick,
+                onProfileClick = onProfileClick,
+                motionState = homeMotionState,
+                runtimeAssets = emptyRuntimeAssets,
+            )
         } else {
             AssetImage(
                 HomeBackground,
@@ -123,30 +151,15 @@ fun HomeScreen(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
             )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    top = safeInsets.calculateTopPadding() + 16.dp,
-                    bottom = safeInsets.calculateBottomPadding() + 28.dp,
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            if (showEmptyState) {
-                EmptyHomeContent(
-                    isLoggedIn = isLoggedIn,
-                    avatarUrl = avatarUrl,
-                    resolveImageUrl = resolveImageUrl,
-                    accessToken = accessToken,
-                    onIdentify = onIdentify,
-                    onAlbumClick = onAlbumClick,
-                    onLoginClick = onLoginClick,
-                    onProfileClick = onProfileClick,
-                    motionState = homeMotionState,
-                    runtimeAssets = emptyRuntimeAssets,
-                )
-            } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        top = safeInsets.calculateTopPadding() + 16.dp,
+                        bottom = safeInsets.calculateBottomPadding() + 28.dp,
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 NormalHomeContent(
                     statistics = statistics,
                     recentCatches = recentCatches,
@@ -169,7 +182,9 @@ fun HomeScreen(
 }
 
 @Composable
-private fun ColumnScope.EmptyHomeContent(
+private fun EmptyHomeContent(
+    modifier: Modifier,
+    topInset: Dp,
     isLoggedIn: Boolean,
     avatarUrl: String?,
     resolveImageUrl: (String?) -> String?,
@@ -184,106 +199,116 @@ private fun ColumnScope.EmptyHomeContent(
     val loginClick = rememberDebouncedClick(onLoginClick)
     val albumClick = rememberDebouncedClick(onAlbumClick)
 
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .widthIn(max = 430.dp)
-            .padding(horizontal = 24.dp),
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.CenterStart),
-            verticalArrangement = Arrangement.spacedBy(1.dp),
+    BoxWithConstraints(modifier) {
+        val scaleX = maxWidth / EmptyHomeReferenceWidth
+        val scaleY = maxHeight / EmptyHomeReferenceHeight
+        fun refX(value: Float): Dp = scaleX * value
+        fun refY(value: Float): Dp = scaleY * value
+
+        Box(
+            Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .widthIn(max = 430.dp)
+                .padding(
+                    top = topInset + 16.dp,
+                    start = 24.dp,
+                    end = 24.dp,
+                ),
         ) {
-            Text(
-                text = "渔见",
-                color = Ink.copy(alpha = 0.84f),
-                fontSize = 19.sp,
-                fontWeight = FontWeight.Normal,
-            )
-            Text(
-                text = "拍照收藏每次渔获",
-                color = Ink.copy(alpha = 0.62f),
-                fontSize = 9.sp,
-                letterSpacing = 0.4.sp,
-            )
-        }
-        if (!isLoggedIn) {
-            Row(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                    .semantics {
-                        contentDescription = "登录"
-                        role = Role.Button
-                    }
-                    .clickable(onClick = loginClick),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            Column(
+                modifier = Modifier.align(Alignment.CenterStart),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 Text(
-                    "登录",
+                    text = "渔见",
                     color = Ink.copy(alpha = 0.84f),
-                    fontSize = 14.sp,
+                    fontSize = 19.sp,
                     fontWeight = FontWeight.Normal,
                 )
-                Image(
-                    painter = painterResource(R.drawable.login_chevron_v13),
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
+                Text(
+                    text = "拍照收藏每次渔获",
+                    color = Ink.copy(alpha = 0.62f),
+                    fontSize = 9.sp,
+                    letterSpacing = 0.4.sp,
                 )
             }
-        } else {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp)
-                    .semantics {
-                        contentDescription = "个人中心"
-                        role = Role.Button
-                    }
-                    .clickable(onClick = onProfileClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                RemoteImage(
-                    url = resolveImageUrl(avatarUrl),
-                    authToken = accessToken,
-                    contentDescription = null,
+            if (!isLoggedIn) {
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
-                    placeholder = {
-                        Image(
-                            painter = painterResource(R.drawable.profile_fallback_v13),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    },
-                )
+                        .align(Alignment.CenterEnd)
+                        .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                        .semantics {
+                            contentDescription = "登录"
+                            role = Role.Button
+                        }
+                        .clickable(onClick = loginClick),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        "登录",
+                        color = Ink.copy(alpha = 0.84f),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.login_chevron_v13),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(48.dp)
+                        .semantics {
+                            contentDescription = "个人中心"
+                            role = Role.Button
+                        }
+                        .clickable(onClick = onProfileClick),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    RemoteImage(
+                        url = resolveImageUrl(avatarUrl),
+                        authToken = accessToken,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        placeholder = {
+                            Image(
+                                painter = painterResource(R.drawable.profile_fallback_v13),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
+                    )
+                }
             }
         }
-    }
 
-    Image(
-        painter = painterResource(R.drawable.empty_home_title),
-        contentDescription = "现在，轮到你记录第一条鱼",
-        modifier = Modifier
-            .fillMaxWidth(0.90f)
-            .widthIn(max = 360.dp)
-            .padding(top = 16.dp),
-        contentScale = ContentScale.Fit,
-    )
+        Image(
+            painter = painterResource(R.drawable.empty_home_title),
+            contentDescription = "现在，轮到你记录第一条鱼",
+            modifier = Modifier
+                .offset(
+                    x = refX(EmptyHomeHeroX),
+                    y = refY(EmptyHomeHeroY),
+                )
+                .width(refX(EmptyHomeHeroWidth))
+                .height(refY(EmptyHomeHeroHeight)),
+            contentScale = ContentScale.FillBounds,
+        )
 
-    Spacer(Modifier.weight(1f))
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .widthIn(max = 430.dp)
-            .height(190.dp),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = refY(EmptyHomePromptY))
+                .fillMaxWidth()
+                .height(refY(64f)),
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = "对准鱼获，拍一张",
@@ -292,38 +317,48 @@ private fun ColumnScope.EmptyHomeContent(
                 style = TextStyle(
                     shadow = Shadow(Color.Black.copy(alpha = 0.28f), blurRadius = 3f),
                 ),
-                modifier = Modifier.padding(bottom = 8.dp),
             )
-            HomeCameraButton(
-                onClick = onIdentify,
-                motionState = motionState,
-                runtimeAssets = runtimeAssets,
+        }
+
+        val cameraSize = refX(EmptyHomeCameraSize)
+        HomeCameraButton(
+            onClick = onIdentify,
+            modifier = Modifier.offset(
+                x = refX(EmptyHomeCameraX),
+                y = refY(EmptyHomeCameraY),
+            ),
+            motionState = motionState,
+            runtimeAssets = runtimeAssets,
+            visualSize = cameraSize,
+            touchTargetSize = cameraSize,
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = refY(EmptyHomeAlbumY))
+                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .semantics {
+                    contentDescription = "从相册选择照片"
+                    role = Role.Button
+                }
+                .clickable(onClick = albumClick),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Image(
+                painter = painterResource(R.drawable.album_icon_v13),
+                contentDescription = null,
+                modifier = Modifier.size(17.dp),
             )
-            Row(
-                modifier = Modifier
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                    .semantics {
-                        contentDescription = "从相册选择照片"
-                        role = Role.Button
-                    }
-                    .clickable(onClick = albumClick),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.album_icon_v13),
-                    contentDescription = null,
-                    modifier = Modifier.size(17.dp),
-                )
-                Text(
-                    text = "从相册选择",
-                    color = Color.White.copy(alpha = 0.92f),
-                    fontSize = 13.sp,
-                    style = TextStyle(
-                        shadow = Shadow(Color.Black.copy(alpha = 0.24f), blurRadius = 2f),
-                    ),
-                )
-            }
+            Text(
+                text = "从相册选择",
+                color = Color.White.copy(alpha = 0.92f),
+                fontSize = 13.sp,
+                style = TextStyle(
+                    shadow = Shadow(Color.Black.copy(alpha = 0.24f), blurRadius = 2f),
+                ),
+            )
         }
     }
 }
