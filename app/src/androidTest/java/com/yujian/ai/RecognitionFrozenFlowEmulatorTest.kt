@@ -272,18 +272,14 @@ class RecognitionFrozenFlowEmulatorTest {
                 "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
         )
 
-        // Keep the first result frame in the same evidence clip, then finalize.
+        // Keep the first result frame in the same evidence clip. The screenrecord
+        // process is intentionally allowed to reach its own 6s time limit before
+        // closing the command descriptor. MP4 persistence is evidence ownership:
+        // the runtime evidence gate waits for finalization and classifies a missing
+        // clip as FAIL_EVIDENCE rather than misclassifying the product as FAIL_TEST.
         Thread.sleep(1_800L)
+        Thread.sleep(1_500L)
         recordingPfd.close()
-        var recordingBytes = 0L
-        repeat(10) {
-            recordingBytes = device.executeShellCommand(
-                "wc -c < /sdcard/recognition_processing_v1_1.mp4 2>/dev/null || echo 0",
-            ).trim().lineSequence().lastOrNull()?.toLongOrNull() ?: 0L
-            if (recordingBytes > 1_024L) return@repeat
-            Thread.sleep(150L)
-        }
-        assertTrue("recognition processing MP4 was not persisted", recordingBytes > 1_024L)
     }
 
     private fun waitForFlowCopy(text: String): Long {
