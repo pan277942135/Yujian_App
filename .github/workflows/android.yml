@@ -177,7 +177,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          python3 -m pip install --user Pillow
+          # Ubuntu 24.04 marks its system Python as externally managed
+          # (PEP 668). Pillow is an evidence-only user dependency; keep the
+          # runner image untouched and opt in explicitly to the user install.
+          python3 -m pip install --user --break-system-packages Pillow
+          python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
 
       - name: Prepare GCP self-hosted Android runtime
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
