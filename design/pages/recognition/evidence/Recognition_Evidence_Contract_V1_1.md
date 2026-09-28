@@ -63,3 +63,37 @@ Required sequence:
 - `FAIL_ARTIFACT`: APK/assets/package problem.
 
 Work must repair the matching layer. It must not weaken a Frozen contract to turn the gate green.
+
+
+## Final visual fidelity evidence
+
+The final Recognition closure additionally requires:
+
+- `10_level_a_contour.png` — real catch fixture + detector bbox + alpha subject fixture, rendered through the production contour extraction path;
+- `11_reduce_motion_low_performance.png` — Reduce Motion + low-performance runtime degradation;
+- `recognition_production_flow_trace.txt` — real `FishRecognitionPipeline` progress, real bbox, classifier result, visual-controller timestamps;
+- `recognition_visual_parity.json` — nine-state Frozen-vs-runtime ROI/overlay structure metrics;
+- `recognition_visual_parity_contact_sheet.png` — Frozen / runtime / blend review sheet.
+
+### Frozen visual parity rule
+
+Pixel identity is explicitly **not** required because runtime photography and Android system bars can differ.
+
+The gate compares all nine states using UI-dominant normalized ROIs and includes:
+- coarse edge/layout structure;
+- luminance/tone projection;
+- frozen palette occupancy;
+- UI centroid/placement;
+- OUTLINE / CLASSIFYING fish-focus presence.
+
+The verifier is `scripts/verify_recognition_visual_parity_v1_1.py`.
+
+A parity mismatch is `FAIL_TEST`, not `FAIL_EVIDENCE`: evidence exists, but the product rendering is outside the Frozen visual contract.
+
+## Real production-flow gate
+
+The final production-flow evidence runs without `phaseOverride` and executes:
+
+`real catch photo → FishRecognitionPipeline detector → real bbox → classifier → RecognitionVisualStateController → result`.
+
+A deterministic alpha subject fixture may be used to exercise Level A contour rendering, but it may not substitute detector/classifier state or prediction.
