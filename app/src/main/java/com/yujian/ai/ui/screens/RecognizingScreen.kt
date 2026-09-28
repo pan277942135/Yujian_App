@@ -127,16 +127,27 @@ fun RecognitionProcessingScene(
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
     LaunchedEffect(image?.imageId, phaseOverride) {
-        while (isActive && phaseOverride == null && !delivered) {
-            visualNowMs = SystemClock.uptimeMillis()
-            val nextVisualPhase = controller.current(visualNowMs)
-            if (nextVisualPhase != visualPhase) {
-                visualPhase = nextVisualPhase
+        try {
+            while (isActive && phaseOverride == null && !delivered) {
+                visualNowMs = SystemClock.uptimeMillis()
+                val nextVisualPhase = controller.current(visualNowMs)
+                if (nextVisualPhase != visualPhase) {
+                    Log.i(LOG_TAG, "visual phase $visualPhase -> $nextVisualPhase real=$realPhase")
+                    visualPhase = nextVisualPhase
+                }
+                if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true) {
+                    delivered = true
+                    Log.i(LOG_TAG, "delivering RESULT ready=true")
+                    onFinished(requireNotNull(finishedResult))
+                }
+                delay(16L)
             }
-            if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true) {
-                delivered = true; onFinished(requireNotNull(finishedResult))
-            }
-            delay(16L)
+        } finally {
+            Log.i(
+                LOG_TAG,
+                "visual loop ended active=$isActive delivered=$delivered override=$phaseOverride " +
+                    "visual=$visualPhase real=$realPhase finishedReady=${finishedResult?.ready}",
+            )
         }
     }
 
