@@ -1,23 +1,25 @@
 package com.yujian.ai.ai
 
 /**
- * The single runtime source for the recognition processing timeline.
+ * Compatibility representation of the frozen Recognition Processing V1.1 timeline.
  *
- * The values mirror app/src/main/assets/identify/animation/identify_timeline.json.
- * Keeping the schedule in a small, platform-neutral object makes the Compose
- * layer deterministic and keeps instrumentation tests independent of a clock.
+ * Product presentation is driven by RecognitionVisualStateController. These cumulative
+ * boundaries exist only for packaged contract assets and tests; they MUST mirror the
+ * V1.1 Design Closure and must never become a second timing authority.
  */
 object RecognitionRuntimeContract {
-    const val CONTRACT_VERSION = "RECOGNITION_RUNTIME_v1"
-    const val CAPTURED_END_MS = 800L
-    const val DETECTING_END_MS = 1_500L
-    const val OUTLINE_END_MS = 2_300L
-    const val RESULT_START_MS = 3_000L
+    const val CONTRACT_VERSION = "RECOGNITION_RUNTIME_v1_1"
+
+    // Cumulative boundaries for 350 / 600 / 600 / 1250 ms.
+    const val CAPTURED_END_MS = 350L
+    const val DETECTING_END_MS = 950L
+    const val OUTLINE_END_MS = 1_550L
+    const val RESULT_START_MS = 2_800L
 
     val timeline: List<RecognitionTimelineStep> = listOf(
-        RecognitionTimelineStep(RecognitionPhase.CAPTURED, 0L, "照片已准备好"),
-        RecognitionTimelineStep(RecognitionPhase.DETECTING, CAPTURED_END_MS, "正在寻找鱼体"),
-        RecognitionTimelineStep(RecognitionPhase.OUTLINE, DETECTING_END_MS, "鱼体轮廓出现"),
+        RecognitionTimelineStep(RecognitionPhase.CAPTURED, 0L, "正在准备识别"),
+        RecognitionTimelineStep(RecognitionPhase.DETECTING, CAPTURED_END_MS, "正在理解这张照片"),
+        RecognitionTimelineStep(RecognitionPhase.OUTLINE, DETECTING_END_MS, "已定位到鱼体"),
         RecognitionTimelineStep(RecognitionPhase.CLASSIFYING, OUTLINE_END_MS, "正在认识这条鱼"),
         RecognitionTimelineStep(RecognitionPhase.RESULT, RESULT_START_MS, "认识完成"),
     )
