@@ -26,7 +26,12 @@ import androidx.compose.ui.unit.sp
 import com.yujian.ai.ai.RecognitionPhase
 
 @Composable
-fun RecognitionStatusOverlay(phase: RecognitionPhase, modifier: Modifier = Modifier, resolveProgress: Float = 0f) {
+fun RecognitionStatusOverlay(
+    phase: RecognitionPhase,
+    modifier: Modifier = Modifier,
+    resolveProgress: Float = 0f,
+    reduceMotion: Boolean = false,
+) {
     // RESULT is a routing state only. Never expose a fifth processing card.
     if (phase == RecognitionPhase.RESULT) return
     val copy = when (phase) {
@@ -48,10 +53,20 @@ fun RecognitionStatusOverlay(phase: RecognitionPhase, modifier: Modifier = Modif
         horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(if (light) 40.dp else 54.dp)) {
-            CircularProgressIndicator(
-                modifier = Modifier.matchParentSize(), color = Color(0xFFFFE7AE),
-                trackColor = Color(0x668A979B), strokeWidth = if (light) 3.dp else 4.dp,
-            )
+            if (reduceMotion) {
+                Box(
+                    Modifier.matchParentSize().border(
+                        width = if (light) 3.dp else 4.dp,
+                        color = Color(0xFFFFE7AE),
+                        shape = CircleShape,
+                    ),
+                )
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier.matchParentSize(), color = Color(0xFFFFE7AE),
+                    trackColor = Color(0x668A979B), strokeWidth = if (light) 3.dp else 4.dp,
+                )
+            }
             Box(Modifier.size(if (light) 9.dp else 12.dp).clip(CircleShape).background(Color(0xFFFFE7AE)))
         }
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
