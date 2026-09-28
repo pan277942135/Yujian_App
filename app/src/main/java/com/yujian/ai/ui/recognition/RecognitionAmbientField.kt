@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -167,26 +168,49 @@ private fun DrawScope.rememberAmbientPaths(size: Size, filaments: List<Filament>
 private fun DrawScope.drawEdgeBloom(alpha: Float) {
     if (alpha <= 0f) return
 
-    // Local corner/edge bloom only. Never tint the whole image.
-    drawCircle(
-        AiBlueCore.copy(alpha = (alpha * .16f).coerceAtMost(.12f)),
-        radius = size.minDimension * .34f,
-        center = Offset(size.width * 1.02f, size.height * .20f),
+    fun glow(center: Offset, radius: Float, color: Color, strength: Float, maxAlpha: Float) {
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    color.copy(alpha = (alpha * strength).coerceAtMost(maxAlpha)),
+                    color.copy(alpha = 0f),
+                ),
+                center = center,
+                radius = radius,
+            ),
+            radius = radius,
+            center = center,
+        )
+    }
+
+    // Soft local edge light, never a flat translucent disk or a full-frame wash.
+    glow(
+        center = Offset(size.width * 1.02f, size.height * .18f),
+        radius = size.minDimension * .31f,
+        color = AiBlueCore,
+        strength = .22f,
+        maxAlpha = .15f,
     )
-    drawCircle(
-        AiGoldCore.copy(alpha = (alpha * .14f).coerceAtMost(.11f)),
-        radius = size.minDimension * .30f,
-        center = Offset(-size.width * .02f, size.height * .14f),
+    glow(
+        center = Offset(-size.width * .02f, size.height * .13f),
+        radius = size.minDimension * .28f,
+        color = AiGoldCore,
+        strength = .20f,
+        maxAlpha = .14f,
     )
-    drawCircle(
-        AiBlueCore.copy(alpha = (alpha * .12f).coerceAtMost(.09f)),
-        radius = size.minDimension * .30f,
-        center = Offset(-size.width * .03f, size.height * .78f),
+    glow(
+        center = Offset(-size.width * .03f, size.height * .82f),
+        radius = size.minDimension * .29f,
+        color = AiBlueCore,
+        strength = .18f,
+        maxAlpha = .12f,
     )
-    drawCircle(
-        AiGoldCore.copy(alpha = (alpha * .10f).coerceAtMost(.08f)),
-        radius = size.minDimension * .34f,
-        center = Offset(size.width * 1.03f, size.height * .82f),
+    glow(
+        center = Offset(size.width * 1.03f, size.height * .84f),
+        radius = size.minDimension * .31f,
+        color = AiGoldCore,
+        strength = .17f,
+        maxAlpha = .11f,
     )
 }
 
@@ -203,28 +227,48 @@ private fun DrawScope.drawPrimaryFilament(
     val visible = length * (.18f + ((filament.offset * 100).toInt() % 18) / 100f)
     val effect = PathEffect.dashPathEffect(floatArrayOf(visible, length - visible), -phase * length)
 
-    fun stroke(width: Dp) = Stroke(
+    fun stroke(width: Dp, pathEffect: PathEffect? = null) = Stroke(
         width = width.toPx(),
         cap = StrokeCap.Round,
         join = StrokeJoin.Round,
-        pathEffect = effect,
+        pathEffect = pathEffect,
     )
 
     val perf = if (lowPerformance) .80f else 1f
+
+    // Continuous low-energy skeleton: guarantees the field is perceptible at
+    // every animation phase without turning the broken paths into a closed ring.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .10f * perf).coerceAtMost(.08f)),
-        style = stroke(10.dp),
+        filament.color.copy(alpha = (alpha * .07f * perf).coerceAtMost(.05f)),
+        style = stroke(8.dp),
     )
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .28f).coerceAtMost(.22f)),
-        style = stroke(4.dp),
+        filament.color.copy(alpha = (alpha * .18f).coerceAtMost(.14f)),
+        style = stroke(2.6.dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * 1.08f).coerceAtMost(.58f)),
-        style = stroke(filament.width),
+        filament.hot.copy(alpha = (alpha * .36f).coerceAtMost(.25f)),
+        style = stroke((filament.width.value * .78f).dp),
+    )
+
+    // Moving hot segment rides on the continuous skeleton.
+    drawPath(
+        path,
+        filament.color.copy(alpha = (alpha * .14f * perf).coerceAtMost(.10f)),
+        style = stroke(9.dp, effect),
+    )
+    drawPath(
+        path,
+        filament.color.copy(alpha = (alpha * .36f).coerceAtMost(.27f)),
+        style = stroke(3.6.dp, effect),
+    )
+    drawPath(
+        path,
+        filament.hot.copy(alpha = (alpha * 1.30f).coerceAtMost(.72f)),
+        style = stroke(filament.width, effect),
     )
 }
 
@@ -240,22 +284,32 @@ private fun DrawScope.drawSecondaryFilament(
     val visible = length * (.20f + ((filament.offset * 100).toInt() % 12) / 100f)
     val effect = PathEffect.dashPathEffect(floatArrayOf(visible, length - visible), -phase * length)
 
-    fun stroke(width: Dp) = Stroke(
+    fun stroke(width: Dp, pathEffect: PathEffect? = null) = Stroke(
         width = width.toPx(),
         cap = StrokeCap.Round,
         join = StrokeJoin.Round,
-        pathEffect = effect,
+        pathEffect = pathEffect,
     )
 
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .20f).coerceAtMost(.10f)),
-        style = stroke(2.4.dp),
+        filament.color.copy(alpha = (alpha * .16f).coerceAtMost(.08f)),
+        style = stroke(1.8.dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * .90f).coerceAtMost(.34f)),
-        style = stroke(filament.width),
+        filament.hot.copy(alpha = (alpha * .42f).coerceAtMost(.16f)),
+        style = stroke((filament.width.value * .72f).dp),
+    )
+    drawPath(
+        path,
+        filament.color.copy(alpha = (alpha * .28f).coerceAtMost(.13f)),
+        style = stroke(2.5.dp, effect),
+    )
+    drawPath(
+        path,
+        filament.hot.copy(alpha = (alpha * 1.05f).coerceAtMost(.40f)),
+        style = stroke(filament.width, effect),
     )
 }
 
@@ -301,7 +355,9 @@ private fun DrawScope.drawParticles(clock: Long, intensity: FieldIntensity, lowP
 
 private fun activeMultiplier(index: Int, clock: Long, base: Float): Float {
     val wave = ((sin((clock / 10_000f + index * .19f) * 2f * PI) + 1.0) / 2.0).toFloat()
-    return base * if (wave > .27f) (.65f + wave * .35f) else .10f
+    // Never let a whole perimeter path disappear at a particular clock phase.
+    // Motion is expressed by the hot dash; the underlying energy field remains.
+    return base * (.62f + wave * .38f)
 }
 
 private val ENERGY_NODES = listOf(
