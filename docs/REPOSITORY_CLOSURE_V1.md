@@ -24,9 +24,21 @@ Historical Git branches are retained as history/checkpoints because branch delet
 
 Binary legacy assets are not bulk-deleted unless reference analysis proves them unused. This closure prefers safe authority retirement over risky asset deletion.
 
-## Required validation
+## Main validation after PR #47
 
-Before merging this closure:
+- main SHA: `94a99f9a7c848e4bb124c5c454dcf42b3236f74b`
+- Android CI run: `36386342604`
+- Empty Home V2 Design Assets run: `36386342595`
+- Build: PASS
+- Recognition API28: PASS
+- Empty Home API28: PASS
+- Recognition gate artifact: `10954627213`
+- Empty Home gate artifact: `10955156190`
+- QA APK artifact: `10955001312`
+
+## Required validation for this closure PR
+
+Before merging Repository Closure V1:
 
 1. hosted Build / Unit / lint PASS;
 2. Recognition contract verifier PASS;
