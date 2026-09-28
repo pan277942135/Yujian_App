@@ -94,3 +94,18 @@ Final acceptance:
 - lower Frozen visual/timing thresholds merely to get green CI;
 - replace runtime screenshots/video with design source images;
 - classify missing video as product PASS.
+
+
+## G. Final visual-fidelity closure
+
+Final Recognition closure additionally PASSes only when:
+- all nine runtime screenshots pass the ROI/overlay Frozen parity verifier;
+- the parity verifier compares runtime output against repository Frozen PNGs, not against other runtime frames;
+- a real catch fixture is processed by the production `FishRecognitionPipeline` without `phaseOverride`;
+- the resulting detector bbox is recorded in evidence;
+- Level A contour is visibly produced from an alpha subject through the production contour extraction path;
+- Reduce Motion removes nonessential continuous travel while preserving state/copy/fish focus;
+- low-performance mode reduces ambient work and may degrade contour A→B without changing recognition semantics;
+- the production-flow trace reaches CAPTURED → DETECTING → OUTLINE → CLASSIFYING → RESULT in order.
+
+Do not weaken ROI thresholds merely to obtain a green gate. If parity fails, inspect the generated Frozen/runtime/blend contact sheet and fix the rendering layer.
