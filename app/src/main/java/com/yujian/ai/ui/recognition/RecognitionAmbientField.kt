@@ -143,10 +143,10 @@ private fun ambientClock(override: Long?, reduceMotion: Boolean): Long {
  * OUTLINE gives visual priority to the real fish, CLASSIFYING slows down.
  */
 private fun intensityFor(phase: RecognitionPhase) = when (phase) {
-    RecognitionPhase.CAPTURED -> FieldIntensity(.70f, .72f, .34f, .24f, 1.00f)
-    RecognitionPhase.DETECTING -> FieldIntensity(.64f, .78f, .30f, .26f, .92f)
-    RecognitionPhase.OUTLINE -> FieldIntensity(.50f, .56f, .20f, .17f, .78f)
-    RecognitionPhase.CLASSIFYING -> FieldIntensity(.34f, .42f, .12f, .10f, .52f)
+    RecognitionPhase.CAPTURED -> FieldIntensity(.34f, .88f, .52f, .42f, 1.00f)
+    RecognitionPhase.DETECTING -> FieldIntensity(.30f, .82f, .42f, .38f, .92f)
+    RecognitionPhase.OUTLINE -> FieldIntensity(.24f, .60f, .26f, .26f, .78f)
+    RecognitionPhase.CLASSIFYING -> FieldIntensity(.16f, .42f, .14f, .16f, .52f)
     else -> FieldIntensity(0f, 0f, 0f, 0f, 0f)
 }
 
@@ -168,11 +168,11 @@ private fun DrawScope.rememberAmbientPaths(size: Size, filaments: List<Filament>
 private fun DrawScope.drawEdgeBloom(alpha: Float) {
     if (alpha <= 0f) return
 
-    fun glow(center: Offset, radius: Float, color: Color, strength: Float, maxAlpha: Float) {
+    fun glow(center: Offset, radius: Float, color: Color, strength: Float) {
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    color.copy(alpha = (alpha * strength).coerceAtMost(maxAlpha)),
+                    color.copy(alpha = (alpha * strength).coerceAtMost(.035f)),
                     color.copy(alpha = 0f),
                 ),
                 center = center,
@@ -183,35 +183,12 @@ private fun DrawScope.drawEdgeBloom(alpha: Float) {
         )
     }
 
-    // Soft local edge light, never a flat translucent disk or a full-frame wash.
-    glow(
-        center = Offset(size.width * 1.02f, size.height * .18f),
-        radius = size.minDimension * .31f,
-        color = AiBlueCore,
-        strength = .22f,
-        maxAlpha = .15f,
-    )
-    glow(
-        center = Offset(-size.width * .02f, size.height * .13f),
-        radius = size.minDimension * .28f,
-        color = AiGoldCore,
-        strength = .20f,
-        maxAlpha = .14f,
-    )
-    glow(
-        center = Offset(-size.width * .03f, size.height * .82f),
-        radius = size.minDimension * .29f,
-        color = AiBlueCore,
-        strength = .18f,
-        maxAlpha = .12f,
-    )
-    glow(
-        center = Offset(size.width * 1.03f, size.height * .84f),
-        radius = size.minDimension * .31f,
-        color = AiGoldCore,
-        strength = .17f,
-        maxAlpha = .11f,
-    )
+    // V1.2 final calibration: bloom is only a tiny local emission behind the
+    // perimeter paths. Strong AI presence comes from line energy, not a photo wash.
+    glow(Offset(size.width * 1.01f, size.height * .15f), size.minDimension * .18f, AiBlueCore, .10f)
+    glow(Offset(-size.width * .01f, size.height * .12f), size.minDimension * .16f, AiGoldCore, .10f)
+    glow(Offset(-size.width * .02f, size.height * .86f), size.minDimension * .17f, AiBlueCore, .09f)
+    glow(Offset(size.width * 1.02f, size.height * .86f), size.minDimension * .18f, AiGoldCore, .09f)
 }
 
 private fun DrawScope.drawPrimaryFilament(
@@ -240,34 +217,34 @@ private fun DrawScope.drawPrimaryFilament(
     // every animation phase without turning the broken paths into a closed ring.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .07f * perf).coerceAtMost(.05f)),
-        style = stroke(8.dp),
+        filament.color.copy(alpha = (alpha * .12f * perf).coerceAtMost(.09f)),
+        style = stroke(7.dp),
     )
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .18f).coerceAtMost(.14f)),
-        style = stroke(2.6.dp),
+        filament.color.copy(alpha = (alpha * .30f).coerceAtMost(.24f)),
+        style = stroke(3.dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * .36f).coerceAtMost(.25f)),
+        filament.hot.copy(alpha = (alpha * .58f).coerceAtMost(.44f)),
         style = stroke((filament.width.value * .78f).dp),
     )
 
     // Moving hot segment rides on the continuous skeleton.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .14f * perf).coerceAtMost(.10f)),
-        style = stroke(9.dp, effect),
+        filament.color.copy(alpha = (alpha * .22f * perf).coerceAtMost(.16f)),
+        style = stroke(8.dp, effect),
     )
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .36f).coerceAtMost(.27f)),
-        style = stroke(3.6.dp, effect),
+        filament.color.copy(alpha = (alpha * .56f).coerceAtMost(.40f)),
+        style = stroke(3.8.dp, effect),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * 1.30f).coerceAtMost(.72f)),
+        filament.hot.copy(alpha = (alpha * 1.60f).coerceAtMost(.90f)),
         style = stroke(filament.width, effect),
     )
 }
@@ -293,22 +270,22 @@ private fun DrawScope.drawSecondaryFilament(
 
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .16f).coerceAtMost(.08f)),
+        filament.color.copy(alpha = (alpha * .28f).coerceAtMost(.12f)),
         style = stroke(1.8.dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * .42f).coerceAtMost(.16f)),
+        filament.hot.copy(alpha = (alpha * .62f).coerceAtMost(.22f)),
         style = stroke((filament.width.value * .72f).dp),
     )
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .28f).coerceAtMost(.13f)),
+        filament.color.copy(alpha = (alpha * .46f).coerceAtMost(.19f)),
         style = stroke(2.5.dp, effect),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * 1.05f).coerceAtMost(.40f)),
+        filament.hot.copy(alpha = (alpha * 1.35f).coerceAtMost(.52f)),
         style = stroke(filament.width, effect),
     )
 }
@@ -327,8 +304,8 @@ private fun DrawScope.drawEnergyNodes(
         val base = intensity.primary * fade * pulse
         val center = Offset(node.x * size.width, node.y * size.height)
         val color = if (index % 2 == 0) AiGoldHot else AiBlueHot
-        drawCircle(color.copy(alpha = (base * .08f).coerceAtMost(.065f)), 12.dp.toPx(), center)
-        drawCircle(color.copy(alpha = (base * .34f).coerceAtMost(.28f)), 2.2.dp.toPx(), center)
+        drawCircle(color.copy(alpha = (base * .12f).coerceAtMost(.09f)), 11.dp.toPx(), center)
+        drawCircle(color.copy(alpha = (base * .48f).coerceAtMost(.38f)), 2.2.dp.toPx(), center)
     }
 }
 
