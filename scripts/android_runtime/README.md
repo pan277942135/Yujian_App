@@ -28,3 +28,8 @@ The fake-ADB contract suite is runnable without an emulator:
 ```bash
 bash scripts/android_runtime/tests/test_contract.sh
 ```
+
+
+## Normal Home V1
+
+`normal-home-v1` is a required API 28 gate. It launches the production Normal Home with deterministic persisted guest FishRecords, captures 16:9 / 19.5:9 / 20:9 / 21:9 states, compares the canonical 1080×1920 frame with `normal_home_v1.png`, and records the real idle-motion path.
