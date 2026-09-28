@@ -30,7 +30,7 @@ import com.yujian.ai.presentation.presentationSpeciesName
 import com.yujian.ai.presentation.sanitizeOptionalText
 import java.util.Locale
 
-private const val FISH_CARD_ROOT = "home_normal_v1_2/assets/fish_card"
+private const val FISH_CARD_ROOT = "normal_home_runtime_v1/fish_card"
 @Composable
 fun RecentFishCard(
     item: RemoteCatch,

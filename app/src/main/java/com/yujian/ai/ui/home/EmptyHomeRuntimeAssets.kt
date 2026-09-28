@@ -23,10 +23,10 @@ internal data class EmptyHomeRuntimeAssets(
     val line: Bitmap,
     val bobber: Bitmap,
     val ripple: Bitmap,
-    val cameraBase: Bitmap,
-    val cameraGoldRim: Bitmap,
-    val cameraBreathGlow: Bitmap,
-)
+    override val cameraBase: Bitmap,
+    override val cameraGoldRim: Bitmap,
+    override val cameraBreathGlow: Bitmap,
+) : HomeCameraRasterAssets
 
 private fun decodeAsset(context: Context, path: String): Bitmap {
     val options = BitmapFactory.Options().apply {

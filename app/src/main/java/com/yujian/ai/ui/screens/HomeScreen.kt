@@ -61,11 +61,12 @@ import com.yujian.ai.ui.home.HomeEmptyScene
 import com.yujian.ai.ui.home.HomeMotionState
 import com.yujian.ai.ui.home.NormalHomeContent
 import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
+import com.yujian.ai.ui.home.rememberNormalHomeRuntimeAssets
 import com.yujian.ai.ui.home.rememberHomeMotionState
 
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
-    "home_empty_v1_3/assets/background/home_empty_bg_no_bobber.webp"
+    "normal_home_runtime_v1/static/scene_base.webp"
 
 private const val EmptyHomeReferenceWidth = 1080f
 private const val EmptyHomeReferenceHeight = 1920f
@@ -102,6 +103,7 @@ fun HomeScreen(
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val homeMotionState = rememberHomeMotionState()
     val emptyRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = showEmptyState)
+    val normalRuntimeAssets = rememberNormalHomeRuntimeAssets(enabled = !showEmptyState)
 
     DisposableEffect(view) {
         val activity = view.context as? Activity
@@ -174,6 +176,7 @@ fun HomeScreen(
                     onProfileClick = onProfileClick,
                     onCatchClick = onCatchClick,
                     motionState = homeMotionState,
+                    runtimeAssets = normalRuntimeAssets,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

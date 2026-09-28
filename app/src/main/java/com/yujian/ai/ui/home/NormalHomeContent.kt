@@ -48,9 +48,9 @@ import kotlinx.coroutines.launch
 import com.yujian.ai.presentation.PresentationSanitizer
 import kotlin.math.abs
 
-private const val GUEST_AVATAR = "home_normal_v1_2/assets/avatar/guest_avatar.png"
-private const val RecentCardAspectRatio = 0.84f
-private const val RecentCardWidthFraction = 0.69f
+private const val GUEST_AVATAR = "normal_home_runtime_v1/avatar/guest_avatar.png"
+private const val RecentCardAspectRatio = 760f / 640f
+private const val RecentCardWidthFraction = 760f / 1080f
 
 /**
  * Real-data Home state.
@@ -75,6 +75,7 @@ internal fun NormalHomeContent(
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
     motionState: HomeMotionState,
+    runtimeAssets: HomeCameraRasterAssets?,
     modifier: Modifier = Modifier,
 ) {
     val recent = remember(recentCatches) {
@@ -147,6 +148,7 @@ internal fun NormalHomeContent(
             HomeCameraButton(
                 onClick = onIdentify,
                 motionState = motionState,
+                runtimeAssets = runtimeAssets,
             )
         }
     }
