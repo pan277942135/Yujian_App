@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -138,7 +139,8 @@ fun LoginV2Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 7.dp)
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("login_username"),
                 singleLine = true,
                 leadingIcon = {
                     Icon(
@@ -166,7 +168,8 @@ fun LoginV2Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 7.dp)
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("login_password"),
                 singleLine = true,
                 leadingIcon = {
                     Icon(
@@ -215,7 +218,8 @@ fun LoginV2Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("login_submit"),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = LakeTeal,
