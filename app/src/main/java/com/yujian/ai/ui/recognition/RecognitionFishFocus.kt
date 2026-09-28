@@ -86,7 +86,7 @@ fun RecognitionFishFocus(
             style = Stroke(width = 1.2.dp.toPx()),
         )
         if (!lowPerformance && levelAAvailable) {
-            val crop = subjectBox.normalized()
+            val crop = requireNotNull(subjectBox).normalized()
             // Use the upper half of the frozen contour-alpha range
             // so the located fish remains legible on a real phone display
             // without introducing a detector box or HUD treatment.
