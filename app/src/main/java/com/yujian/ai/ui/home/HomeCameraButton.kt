@@ -2,7 +2,9 @@ package com.yujian.ai.ui.home
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.Dp
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -10,16 +12,17 @@ import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 /**
  * Home compatibility entry point.
  *
- * Empty Home, Normal Home, and the camera surface keep their existing
- * navigation callbacks while the visual control is provided by the shared
- * native Core UI V1 capture component. [runtimeAssets] remains in this small
- * adapter only so the V2 scene call site does not change behavior.
+ * Empty Home may pass the Frozen V2 reference-space visual size while shared
+ * callers retain the design-system defaults.
  */
 @Composable
 internal fun HomeCameraButton(
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     motionState: HomeMotionState = rememberHomeMotionState(),
     runtimeAssets: EmptyHomeRuntimeAssets? = null,
+    visualSize: Dp? = null,
+    touchTargetSize: Dp? = null,
 ) {
     val active = emptyHomeMotionActive(
         running = motionState.running,
@@ -38,6 +41,7 @@ internal fun HomeCameraButton(
     val sweep = cameraSweepState(sceneTime)
     YuJianCaptureButton(
         onClick = onClick,
+        modifier = modifier,
         motionEnabled = active,
         rasterAssets = rasterAssets,
         rasterMotion = YuJianCaptureButtonRasterMotion(
@@ -46,5 +50,7 @@ internal fun HomeCameraButton(
             sweepRotationDegrees = sweep.rotationDegrees,
             sweepAlpha = sweep.alpha,
         ),
+        visualSize = visualSize,
+        touchTargetSize = touchTargetSize,
     )
 }

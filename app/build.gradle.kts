@@ -1,3 +1,8 @@
+import java.awt.image.BufferedImage
+import java.security.MessageDigest
+import javax.imageio.ImageIO
+import kotlin.math.sqrt
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -13,6 +18,84 @@ val userApiBaseUrl = providers.gradleProperty("YUJIAN_API_BASE_URL")
     .orElse(providers.environmentVariable("YUJIAN_API_BASE_URL")).orElse(feedbackBaseUrl).get()
 val feedbackIngestKey = providers.gradleProperty("YUJIAN_FEEDBACK_INGEST_KEY")
     .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_INGEST_KEY")).orElse("").get()
+
+val emptyHomeFrozenHeroSource = rootProject.layout.projectDirectory.file(
+    "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+)
+val emptyHomeGeneratedResDir = layout.buildDirectory.dir("generated/emptyHomeFrozenHeroRes")
+
+val generateEmptyHomeFrozenHero by tasks.registering {
+    inputs.file(emptyHomeFrozenHeroSource)
+    outputs.dir(emptyHomeGeneratedResDir)
+
+    doLast {
+        val sourceFile = emptyHomeFrozenHeroSource.asFile
+        require(sourceFile.isFile) { "Missing Empty Home Frozen V2 source: $sourceFile" }
+
+        val sourceSha = MessageDigest.getInstance("SHA-256")
+            .digest(sourceFile.readBytes())
+            .joinToString("") { "%02x".format(it) }
+        require(sourceSha == "ebf96d310678b5fd47149cd8dadf3dd24cb00b2b83253876aa4cf9e89f954b77") {
+            "Empty Home Frozen normalized source SHA mismatch: $sourceSha"
+        }
+
+        val sourceImage = requireNotNull(ImageIO.read(sourceFile)) {
+            "Unable to decode Empty Home Frozen V2 source"
+        }
+        require(sourceImage.width == 1080 && sourceImage.height == 1920) {
+            "Unexpected Empty Home Frozen V2 dimensions: " + sourceImage.width + "x" + sourceImage.height
+        }
+
+        val originX = 75
+        val originY = 240
+        val width = 606
+        val height = 296
+        val output = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+
+        fun distance(r: Int, g: Int, b: Int, tr: Int, tg: Int, tb: Int): Double {
+            val dr = (r - tr).toDouble()
+            val dg = (g - tg).toDouble()
+            val db = (b - tb).toDouble()
+            return sqrt(dr * dr + dg * dg + db * db)
+        }
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val rgb = sourceImage.getRGB(originX + x, originY + y)
+                val r = rgb shr 16 and 0xFF
+                val g = rgb shr 8 and 0xFF
+                val b = rgb and 0xFF
+
+                val navyDistance = distance(r, g, b, 18, 48, 72)
+                val goldDistance = distance(r, g, b, 218, 160, 45)
+                val navyAlpha = ((105.0 - navyDistance) * 4.5).coerceIn(0.0, 255.0)
+                val goldAlpha = ((115.0 - goldDistance) * 4.0).coerceIn(0.0, 255.0)
+
+                val validNavy = r < 115 && g < 135 && b < 150
+                val validGold = r > 120 && g > 70 && b < 125 && (r - b) > 55
+                val alpha = if (validNavy || validGold) {
+                    maxOf(navyAlpha, goldAlpha).toInt()
+                } else {
+                    0
+                }
+
+                val outRgb = if (alpha == 0) {
+                    0
+                } else {
+                    (alpha shl 24) or (r shl 16) or (g shl 8) or b
+                }
+                output.setRGB(x, y, outRgb)
+            }
+        }
+
+        val drawableDir = emptyHomeGeneratedResDir.get().dir("drawable-nodpi").asFile
+        drawableDir.mkdirs()
+        val outputFile = drawableDir.resolve("empty_home_title_v2.png")
+        check(ImageIO.write(output, "png", outputFile)) {
+            "Unable to encode generated Empty Home Frozen Hero"
+        }
+    }
+}
 
 android {
     namespace = "com.yujian.ai"
@@ -41,6 +124,14 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
         jniLibs.useLegacyPackaging = true
+    }
+
+    sourceSets.getByName("main").res.srcDir(emptyHomeGeneratedResDir)
+}
+
+tasks.configureEach {
+    if (name == "preBuild") {
+        dependsOn(generateEmptyHomeFrozenHero)
     }
 }
 
