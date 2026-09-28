@@ -24,6 +24,28 @@ val emptyHomeFrozenHeroSource = rootProject.layout.projectDirectory.file(
 )
 val emptyHomeGeneratedResDir = layout.buildDirectory.dir("generated/emptyHomeFrozenHeroRes")
 
+val accountPrivacyBackgroundSource = rootProject.layout.projectDirectory.file(
+    "design/pages/account_privacy/shared/morning_lake_background.png",
+)
+val accountPrivacyGeneratedResDir = layout.buildDirectory.dir("generated/accountPrivacyRes")
+
+val generateAccountPrivacyBackground by tasks.registering {
+    inputs.file(accountPrivacyBackgroundSource)
+    outputs.dir(accountPrivacyGeneratedResDir)
+
+    doLast {
+        val sourceFile = accountPrivacyBackgroundSource.asFile
+        require(sourceFile.isFile) { "Missing Account Privacy Morning Lake source: $sourceFile" }
+        val image = requireNotNull(ImageIO.read(sourceFile)) { "Unable to decode Account Privacy Morning Lake source" }
+        require(image.width == 1080 && image.height == 1920) {
+            "Unexpected Account Privacy Morning Lake dimensions: " + image.width + "x" + image.height
+        }
+        val drawableDir = accountPrivacyGeneratedResDir.get().dir("drawable-nodpi").asFile
+        drawableDir.mkdirs()
+        sourceFile.copyTo(drawableDir.resolve("account_privacy_morning_lake.png"), overwrite = true)
+    }
+}
+
 val generateEmptyHomeFrozenHero by tasks.registering {
     inputs.file(emptyHomeFrozenHeroSource)
     outputs.dir(emptyHomeGeneratedResDir)
@@ -127,11 +149,13 @@ android {
     }
 
     sourceSets.getByName("main").res.srcDir(emptyHomeGeneratedResDir)
+    sourceSets.getByName("main").res.srcDir(accountPrivacyGeneratedResDir)
 }
 
 tasks.configureEach {
     if (name == "preBuild") {
         dependsOn(generateEmptyHomeFrozenHero)
+        dependsOn(generateAccountPrivacyBackground)
     }
 }
 
