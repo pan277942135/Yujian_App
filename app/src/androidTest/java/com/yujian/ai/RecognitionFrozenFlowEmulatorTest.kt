@@ -232,7 +232,9 @@ class RecognitionFrozenFlowEmulatorTest {
                         onBack = {},
                         recognize = { onProgress ->
                             pipeline.recognize(photo.bitmap) { progress ->
-                                pipelineTrace += "PIPELINE phase=${progress.phase} at=${SystemClock.elapsedRealtime()}"
+                                val entry = "PIPELINE phase=${progress.phase} at=${SystemClock.elapsedRealtime()}"
+                                pipelineTrace += entry
+                                trace(entry)
                                 onProgress(progress)
                             }
                         },
