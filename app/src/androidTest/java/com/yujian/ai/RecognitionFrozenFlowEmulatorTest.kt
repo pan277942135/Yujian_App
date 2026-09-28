@@ -261,24 +261,10 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        var levelACaptured = false
-
-        // Continuous UiDevice.takeScreenshot() interferes with API28 rendering and can
-        // starve the Compose visual clock. The host runtime gate owns MP4 screenrecord.
-        // Instrumentation only captures the one Level A proof frame, then waits on
-        // observable product state without changing the animation scheduler.
-        trace("PRODUCTION_FLOW_WAIT_LEVEL_A")
+        // Production timing must be measured without screenshot I/O. Host ADB owns
+        // continuous video; a separate deterministic test owns the Level A proof frame.
+        trace("PRODUCTION_FLOW_WAIT_COMPLETION")
         try {
-            composeRule.waitUntil(timeoutMillis = 7_000L) {
-                runCatching {
-                    composeRule.onNodeWithTag("recognition-fish-focus-level-a").fetchSemanticsNode()
-                    true
-                }.getOrDefault(false)
-            }
-            capture("10_level_a_contour.png")
-            levelACaptured = true
-            trace("LEVEL_A_CAPTURED")
-
             composeRule.waitUntil(timeoutMillis = 7_000L) {
                 completedResult.get() != null
             }
@@ -293,8 +279,6 @@ class RecognitionFrozenFlowEmulatorTest {
                 "detections=${result.detectorRun.detections.size} failure=${result.failureCode}",
             result.ready,
         )
-        assertTrue("Level A contour was never presented from real bbox + alpha subject fixture", levelACaptured)
-
         val expectedPipeline = listOf(
             RecognitionPhase.CAPTURED,
             RecognitionPhase.DETECTING,
@@ -347,6 +331,55 @@ class RecognitionFrozenFlowEmulatorTest {
             "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
                 "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
                 "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
+        )
+    }
+
+    @Test
+    fun realDetectorBboxAndAnnotatedSubjectRenderLevelAContourEvidence() = kotlinx.coroutines.runBlocking {
+        val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val pipeline = FishRecognitionPipeline(targetContext)
+        val result = try {
+            pipeline.recognize(photo.bitmap)
+        } finally {
+            pipeline.close()
+        }
+        assertTrue(
+            "real catch fixture did not produce classifier-ready detector bbox for Level A proof",
+            result.ready,
+        )
+        val realBox = requireNotNull(result.assessment.primary).box
+        val subject = createAnnotatedSubjectAlphaFixture(photo.bitmap, realBox)
+
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionProcessingScene(
+                    image = photo,
+                    onBack = {},
+                    recognize = { onProgress ->
+                        onProgress(RecognitionProgress(RecognitionPhase.CLASSIFYING, result.assessment))
+                        result
+                    },
+                    generateSubject = { _, _ -> subject },
+                    onFinished = {},
+                    phaseOverride = RecognitionPhase.CLASSIFYING,
+                    visualClockOverrideMs = 3_200L,
+                )
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            runCatching {
+                composeRule.onNodeWithTag("recognition-fish-focus-level-a").fetchSemanticsNode()
+                true
+            }.getOrDefault(false)
+        }
+        composeRule.onNodeWithTag("recognition-fish-focus-level-a").assertIsDisplayed()
+        capture("10_level_a_contour.png")
+        val box = realBox.normalized()
+        trace(
+            "LEVEL_A_REAL_BBOX confidence=${result.assessment.primary?.confidence} " +
+                "x1=${box.x1} y1=${box.y1} x2=${box.x2} y2=${box.y2} " +
+                "subject_area=${subject.maskAreaRatio}",
         )
     }
 
