@@ -98,4 +98,4 @@ The final production-flow evidence runs without `phaseOverride` and executes:
 
 `real catch photo → FishRecognitionPipeline detector → real bbox → classifier → RecognitionVisualStateController → result`.
 
-A deterministic alpha subject fixture may be used to exercise Level A contour rendering, but it may not substitute detector/classifier state or prediction.
+Level A contour evidence must use subject alpha manually annotated against the actual real-catch fixture (or production segmentation output). A generic/generated fish-shape mask is not acceptable. The real detector bbox still defines the crop, and subject alpha may not substitute detector/classifier state or prediction.
