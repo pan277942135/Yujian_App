@@ -1,25 +1,10 @@
 {
-  "contract_version": "RECOGNITION_RUNTIME_v1",
+  "contract_version": "RECOGNITION_RUNTIME_v1_1",
   "timeline_ms": [
-    {
-      "time": 0,
-      "state": "CAPTURED"
-    },
-    {
-      "time": 800,
-      "state": "DETECTING"
-    },
-    {
-      "time": 1500,
-      "state": "OUTLINE"
-    },
-    {
-      "time": 2300,
-      "state": "CLASSIFYING"
-    },
-    {
-      "time": 3000,
-      "state": "RESULT"
-    }
+    {"time": 0, "state": "CAPTURED"},
+    {"time": 350, "state": "DETECTING"},
+    {"time": 950, "state": "OUTLINE"},
+    {"time": 1550, "state": "CLASSIFYING"},
+    {"time": 2800, "state": "RESULT"}
   ]
 }
