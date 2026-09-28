@@ -1,5 +1,10 @@
 # YuJian Recognition AI Ambient Field — Frozen Spec V1
 
+> **V1.1 supersession notice**  
+> This file remains authoritative for AI ambient-field colors, alpha ranges, fixed paths, filament geometry and degradation principles.  
+> Its legacy phase-duration / 900ms compression section is **not** the V1.1 runtime timing authority.  
+> Use `Recognition_Processing_Motion_Spec_V1_1.md` for current timing: 350/600/600/1250ms, nominal 2800ms, resolve fade 200ms.
+
 This checked-in source records the supplied Frozen V1 contract. Numeric values below take precedence over the accompanying engineering infographic.
 
 ## Visual tokens
