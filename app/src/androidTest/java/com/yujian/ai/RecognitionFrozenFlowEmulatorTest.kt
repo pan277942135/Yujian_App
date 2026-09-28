@@ -55,7 +55,6 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Deterministic emulator coverage for the production Recognition composables.
@@ -211,37 +210,31 @@ class RecognitionFrozenFlowEmulatorTest {
             deleteRecursively()
             mkdirs()
         }
-        val captureActive = AtomicBoolean(true)
-        val runtimeVideoCaptureThread = Thread {
-            var frameIndex = 0
-            while (captureActive.get() && frameIndex < 300) {
-                val frame = File(
-                    runtimeVideoFrameDir,
-                    "runtime_frame_${frameIndex.toString().padStart(5, '0')}.png",
-                )
-                val captured = runCatching { device.takeScreenshot(frame) }.getOrDefault(false)
-                if (captured && frame.isFile && frame.length() > 0L) {
-                    frameIndex += 1
-                } else {
-                    frame.delete()
-                }
-                try {
-                    // UiDevice screenshot capture already has non-trivial
-                    // binder overhead. Keep the sampler close to the gate's
-                    // 10fps encode rate without adding another 100ms gap;
-                    // this is evidence collection only and does not alter
-                    // the frozen phase sleeps below.
-                    Thread.sleep(16L)
-                } catch (_: InterruptedException) {
-                    break
-                }
+        var runtimeFrameIndex = 0
+
+        fun captureRuntimeFrame() {
+            if (runtimeFrameIndex >= 300) return
+            val frame = File(
+                runtimeVideoFrameDir,
+                "runtime_frame_${runtimeFrameIndex.toString().padStart(5, '0')}.png",
+            )
+            val captured = runCatching { device.takeScreenshot(frame) }.getOrDefault(false)
+            if (captured && frame.isFile && frame.length() > 0L) {
+                runtimeFrameIndex += 1
+            } else {
+                frame.delete()
             }
-        }.apply {
-            name = "recognition-runtime-video-capture"
-            isDaemon = true
+        }
+
+        fun captureRuntimeFramesFor(durationMs: Long) {
+            val deadlineMs = SystemClock.elapsedRealtime() + durationMs
+            while (SystemClock.elapsedRealtime() < deadlineMs && runtimeFrameIndex < 300) {
+                captureRuntimeFrame()
+                val remainingMs = deadlineMs - SystemClock.elapsedRealtime()
+                if (remainingMs > 0L) Thread.sleep(minOf(16L, remainingMs))
+            }
         }
         trace("RUNTIME_VIDEO_CAPTURE_START")
-        runtimeVideoCaptureThread.start()
 
         try {
             val acceptedAtMs = SystemClock.elapsedRealtime()
@@ -253,19 +246,19 @@ class RecognitionFrozenFlowEmulatorTest {
             // contains continuous ambient animation and therefore never becomes
             // meaningfully idle. Static visibility is already covered by the
             // Frozen-state screenshot test above.
-            Thread.sleep(350L)
+            captureRuntimeFramesFor(350L)
             composeRule.runOnUiThread { phase.value = RecognitionPhase.DETECTING }
             val detectingAtMs = SystemClock.elapsedRealtime()
 
-            Thread.sleep(600L)
+            captureRuntimeFramesFor(600L)
             composeRule.runOnUiThread { phase.value = RecognitionPhase.OUTLINE }
             val outlineAtMs = SystemClock.elapsedRealtime()
 
-            Thread.sleep(600L)
+            captureRuntimeFramesFor(600L)
             composeRule.runOnUiThread { phase.value = RecognitionPhase.CLASSIFYING }
             val classifyingAtMs = SystemClock.elapsedRealtime()
 
-            Thread.sleep(1_250L)
+            captureRuntimeFramesFor(1_250L)
             composeRule.runOnUiThread { showResult.value = true }
             val resultAtMs = SystemClock.elapsedRealtime()
 
@@ -304,14 +297,11 @@ class RecognitionFrozenFlowEmulatorTest {
             )
 
             // Keep the first result frame in the same evidence clip. The runtime
-            // frame collector remains active through this dwell so the gate can
-            // encode the real instrumentation-visible result frame.
-            Thread.sleep(1_800L)
-            Thread.sleep(1_500L)
+            // sampler remains active through this dwell so the gate can encode
+            // the real instrumentation-visible result frame.
+            captureRuntimeFramesFor(1_800L)
+            captureRuntimeFramesFor(1_500L)
         } finally {
-            captureActive.set(false)
-            runtimeVideoCaptureThread.interrupt()
-            runtimeVideoCaptureThread.join(3_000L)
             trace("RUNTIME_VIDEO_CAPTURE_STOP")
         }
     }
