@@ -243,8 +243,9 @@ def main() -> None:
 
         state_score = sum(item["combined"] for item in roi_results) / len(roi_results)
         state_minimum = STATE_THRESHOLDS[kind]
-        min_floor = min(item["minimum"] for item in roi_results) - 0.08
-        passed = state_score >= state_minimum and min(item["combined"] for item in roi_results) >= min_floor
+        # Every ROI has its own frozen minimum. A strong header must never hide
+        # a weak status/content overlay behind the state average.
+        passed = state_score >= state_minimum and all(item["pass"] for item in roi_results)
 
         focus = None
         if runtime_name in {"03_fish_highlight.png", "04_fish_identifying.png"}:
