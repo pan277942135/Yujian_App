@@ -261,57 +261,29 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        val runtimeVideoFrameDir = File(evidenceDir, "runtime-video-frames").apply {
-            deleteRecursively()
-            mkdirs()
-        }
-        var runtimeFrameIndex = 0
-        var resultSeenAtMs = Long.MIN_VALUE
         var levelACaptured = false
 
-        fun captureRuntimeFrame() {
-            if (runtimeFrameIndex >= 300) return
-            val frame = File(
-                runtimeVideoFrameDir,
-                "runtime_frame_${runtimeFrameIndex.toString().padStart(5, '0')}.png",
-            )
-            val captured = runCatching { device.takeScreenshot(frame) }.getOrDefault(false)
-            if (captured && frame.isFile && frame.length() > 0L) runtimeFrameIndex += 1 else frame.delete()
-        }
-
-        trace("RUNTIME_VIDEO_CAPTURE_START")
+        // Continuous UiDevice.takeScreenshot() interferes with API28 rendering and can
+        // starve the Compose visual clock. The host runtime gate owns MP4 screenrecord.
+        // Instrumentation only captures the one Level A proof frame, then waits on
+        // observable product state without changing the animation scheduler.
+        trace("PRODUCTION_FLOW_WAIT_LEVEL_A")
         try {
-            val hardDeadline = SystemClock.elapsedRealtime() + 15_000L
-            while (SystemClock.elapsedRealtime() < hardDeadline && runtimeFrameIndex < 300) {
-                captureRuntimeFrame()
-
-                if (!levelACaptured) {
-                    val levelAVisible = runCatching {
-                        composeRule.onNodeWithTag("recognition-fish-focus-level-a").fetchSemanticsNode()
-                        true
-                    }.getOrDefault(false)
-                    if (levelAVisible) {
-                        capture("10_level_a_contour.png")
-                        levelACaptured = true
-                    }
-                }
-
-                if (completedResult.get() != null && resultSeenAtMs == Long.MIN_VALUE) {
-                    resultSeenAtMs = SystemClock.elapsedRealtime()
-                }
-                if (resultSeenAtMs != Long.MIN_VALUE &&
-                    SystemClock.elapsedRealtime() - resultSeenAtMs >= 3_300L
-                ) {
-                    break
-                }
-                // Evidence is encoded at 10 fps. Capturing screenshots at ~60 fps
-                // monopolizes API28 emulator rendering long enough to starve the
-                // main-thread visual controller coroutine. Sample at the evidence
-                // contract rate so the product animation clock can advance normally.
-                Thread.sleep(100L)
+            composeRule.waitUntil(timeoutMillis = 7_000L) {
+                runCatching {
+                    composeRule.onNodeWithTag("recognition-fish-focus-level-a").fetchSemanticsNode()
+                    true
+                }.getOrDefault(false)
             }
+            capture("10_level_a_contour.png")
+            levelACaptured = true
+            trace("LEVEL_A_CAPTURED")
+
+            composeRule.waitUntil(timeoutMillis = 7_000L) {
+                completedResult.get() != null
+            }
+            trace("PRODUCTION_FLOW_COMPLETED")
         } finally {
-            trace("RUNTIME_VIDEO_CAPTURE_STOP")
             pipeline.close()
         }
 
