@@ -132,7 +132,7 @@ jobs:
   android-runtime:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     needs: build
-    runs-on: [self-hosted, Linux, X64, yujian-android, api28]
+    runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 60
     strategy:
       fail-fast: false
