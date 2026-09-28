@@ -22,20 +22,20 @@ normal_home_launch_app() {
   "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
   "$YUJIAN_ADB_BIN" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
 
-  local attempt resumed dump
+  local attempt resumed pid
   for attempt in $(seq 1 20); do
     resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
-    "$YUJIAN_ADB_BIN" shell uiautomator dump /sdcard/normal_home_window.xml >/dev/null 2>&1 || true
-    dump="$("$YUJIAN_ADB_BIN" shell cat /sdcard/normal_home_window.xml 2>/dev/null || true)"
-    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s recent_visible=%s\n' \
-      "$attempt" "$resumed" "$([[ "$dump" == *"最近鱼获"* ]] && echo 1 || echo 0)"
-    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* && "$dump" == *"最近鱼获"* ]]; then
-      sleep 1
+    pid="$("$YUJIAN_ADB_BIN" shell pidof "$YUJIAN_APP_PACKAGE" 2>/dev/null | tr -d '\r' || true)"
+    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s pid=%s\n' "$attempt" "$resumed" "$pid"
+    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* && "$pid" =~ [0-9] ]]; then
+      # UIAutomator's Compose bridge is unreliable and can hang on API 28.
+      # The frozen ROI parity check below is the visual/content authority.
+      sleep 5
       return 0
     fi
     sleep 1
   done
-  echo 'NORMAL_HOME_CONTENT_NOT_READY' >&2
+  echo 'NORMAL_HOME_ACTIVITY_NOT_READY' >&2
   "$YUJIAN_ADB_BIN" exec-out screencap -p > "$YUJIAN_EVIDENCE_DIR/normal-home-v1/content_not_ready.png" || true
   return 1
 }
