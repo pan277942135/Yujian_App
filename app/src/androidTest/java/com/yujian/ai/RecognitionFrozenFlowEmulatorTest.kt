@@ -611,9 +611,13 @@ class RecognitionFrozenFlowEmulatorTest {
         ) return source
         val halfWidth = source.width / 2
         val halfHeight = source.height / 2
-        if (!isBlackPadding(source, halfWidth, 0, source.width, source.height) ||
-            !isBlackPadding(source, 0, halfHeight, source.width, source.height)
-        ) return source
+        // On the first API28 frame the unused upper-right quadrant can still
+        // contain stale launcher pixels while the entire lower half is black.
+        // A black lower half is the stable doubled-backing-buffer signature;
+        // the Recognition surface itself always fills the real viewport.
+        if (!isBlackPadding(source, 0, halfHeight, source.width, source.height)) {
+            return source
+        }
         return Bitmap.createBitmap(source, 0, 0, halfWidth, halfHeight)
     }
 
