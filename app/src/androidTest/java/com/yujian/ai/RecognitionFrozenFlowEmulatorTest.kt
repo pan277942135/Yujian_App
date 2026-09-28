@@ -55,6 +55,7 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Deterministic emulator coverage for the production Recognition composables.
@@ -205,71 +206,108 @@ class RecognitionFrozenFlowEmulatorTest {
         }
 
         composeRule.onNodeWithContentDescription("已选择的鱼获照片").assertIsDisplayed()
-
-        val acceptedAtMs = SystemClock.elapsedRealtime()
-        composeRule.runOnUiThread {
-            started.value = true
-            phase.value = RecognitionPhase.CAPTURED
+        val runtimeVideoFrameDir = File(evidenceDir, "runtime-video-frames").apply {
+            deleteRecursively()
+            mkdirs()
         }
-        // Do not call waitForIdle here: the production scene intentionally
-        // contains continuous ambient animation and therefore never becomes
-        // meaningfully idle. Static visibility is already covered by the
-        // Frozen-state screenshot test above.
-        Thread.sleep(350L)
-        composeRule.runOnUiThread { phase.value = RecognitionPhase.DETECTING }
-        val detectingAtMs = SystemClock.elapsedRealtime()
+        val captureActive = AtomicBoolean(true)
+        val runtimeVideoCaptureThread = Thread {
+            var frameIndex = 0
+            while (captureActive.get() && frameIndex < 300) {
+                val frame = File(
+                    runtimeVideoFrameDir,
+                    "runtime_frame_${frameIndex.toString().padStart(5, '0')}.png",
+                )
+                val captured = runCatching { device.takeScreenshot(frame) }.getOrDefault(false)
+                if (captured && frame.isFile && frame.length() > 0L) {
+                    frameIndex += 1
+                } else {
+                    frame.delete()
+                }
+                try {
+                    Thread.sleep(100L)
+                } catch (_: InterruptedException) {
+                    break
+                }
+            }
+        }.apply {
+            name = "recognition-runtime-video-capture"
+            isDaemon = true
+        }
+        trace("RUNTIME_VIDEO_CAPTURE_START")
+        runtimeVideoCaptureThread.start()
 
-        Thread.sleep(600L)
-        composeRule.runOnUiThread { phase.value = RecognitionPhase.OUTLINE }
-        val outlineAtMs = SystemClock.elapsedRealtime()
+        try {
+            val acceptedAtMs = SystemClock.elapsedRealtime()
+            composeRule.runOnUiThread {
+                started.value = true
+                phase.value = RecognitionPhase.CAPTURED
+            }
+            // Do not call waitForIdle here: the production scene intentionally
+            // contains continuous ambient animation and therefore never becomes
+            // meaningfully idle. Static visibility is already covered by the
+            // Frozen-state screenshot test above.
+            Thread.sleep(350L)
+            composeRule.runOnUiThread { phase.value = RecognitionPhase.DETECTING }
+            val detectingAtMs = SystemClock.elapsedRealtime()
 
-        Thread.sleep(600L)
-        composeRule.runOnUiThread { phase.value = RecognitionPhase.CLASSIFYING }
-        val classifyingAtMs = SystemClock.elapsedRealtime()
+            Thread.sleep(600L)
+            composeRule.runOnUiThread { phase.value = RecognitionPhase.OUTLINE }
+            val outlineAtMs = SystemClock.elapsedRealtime()
 
-        Thread.sleep(1_250L)
-        composeRule.runOnUiThread { showResult.value = true }
-        val resultAtMs = SystemClock.elapsedRealtime()
+            Thread.sleep(600L)
+            composeRule.runOnUiThread { phase.value = RecognitionPhase.CLASSIFYING }
+            val classifyingAtMs = SystemClock.elapsedRealtime()
 
-        val capturedMs = detectingAtMs - acceptedAtMs
-        val detectingMs = outlineAtMs - detectingAtMs
-        val outlineMs = classifyingAtMs - outlineAtMs
-        val classifyingMs = resultAtMs - classifyingAtMs
-        val totalMs = resultAtMs - acceptedAtMs
-        val fishFocusStableMs =
-            classifyingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+            Thread.sleep(1_250L)
+            composeRule.runOnUiThread { showResult.value = true }
+            val resultAtMs = SystemClock.elapsedRealtime()
 
-        // The pure controller test freezes the exact millisecond contract.
-        // Runtime rendering is allowed only bounded scheduler overhead.
-        assertTrue(
-            "processing visual flow was outside runtime bound: ${totalMs}ms",
-            totalMs in 2_500L..3_500L,
-        )
-        assertTrue(
-            "final fish focus was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= 1_000L,
-        )
+            val capturedMs = detectingAtMs - acceptedAtMs
+            val detectingMs = outlineAtMs - detectingAtMs
+            val outlineMs = classifyingAtMs - outlineAtMs
+            val classifyingMs = resultAtMs - classifyingAtMs
+            val totalMs = resultAtMs - acceptedAtMs
+            val fishFocusStableMs =
+                classifyingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
 
-        File(evidenceDir, "recognition_processing_timing.txt").writeText(
-            "Contract: CAPTURED=350ms DETECTING=600ms OUTLINE=600ms CLASSIFYING=1250ms TOTAL=2800ms\n" +
-                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
-                "Runtime DETECTING duration: ${detectingMs}ms\n" +
-                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
-                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
-                "Runtime TOTAL duration: ${totalMs}ms\n" +
-                "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
-        )
-        trace(
-            "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
-                "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
-                "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
-        )
+            // The pure controller test freezes the exact millisecond contract.
+            // Runtime rendering is allowed only bounded scheduler overhead.
+            assertTrue(
+                "processing visual flow was outside runtime bound: ${totalMs}ms",
+                totalMs in 2_500L..3_500L,
+            )
+            assertTrue(
+                "final fish focus was too short: ${fishFocusStableMs}ms",
+                fishFocusStableMs >= 1_000L,
+            )
 
-        // Keep the first result frame in the same evidence clip. The runtime gate
-        // owns a host-side screenrecord, so this dwell preserves the frozen result
-        // frame without coupling the test process to recorder finalization.
-        Thread.sleep(1_800L)
-        Thread.sleep(1_500L)
+            File(evidenceDir, "recognition_processing_timing.txt").writeText(
+                "Contract: CAPTURED=350ms DETECTING=600ms OUTLINE=600ms CLASSIFYING=1250ms TOTAL=2800ms\n" +
+                    "Runtime CAPTURED duration: ${capturedMs}ms\n" +
+                    "Runtime DETECTING duration: ${detectingMs}ms\n" +
+                    "Runtime OUTLINE duration: ${outlineMs}ms\n" +
+                    "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
+                    "Runtime TOTAL duration: ${totalMs}ms\n" +
+                    "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
+            )
+            trace(
+                "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
+                    "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
+                    "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
+            )
+
+            // Keep the first result frame in the same evidence clip. The runtime
+            // frame collector remains active through this dwell so the gate can
+            // encode the real instrumentation-visible result frame.
+            Thread.sleep(1_800L)
+            Thread.sleep(1_500L)
+        } finally {
+            captureActive.set(false)
+            runtimeVideoCaptureThread.interrupt()
+            runtimeVideoCaptureThread.join(3_000L)
+            trace("RUNTIME_VIDEO_CAPTURE_STOP")
+        }
     }
 
     private fun waitForFlowCopy(text: String): Long {

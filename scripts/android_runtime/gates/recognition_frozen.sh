@@ -4,62 +4,13 @@ gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest'
 }
 
-# API 28's screenrecord surface can expose a blank composition for an
-# instrumentation-hosted Compose window even while screencap sees the real
-# runtime pixels. Capture those real device frames during instrumentation and
-# encode them into the required MP4 during evidence finalization.
-YUJIAN_RECOGNITION_CAPTURE_DIR="$YUJIAN_EVIDENCE_DIR/.recognition-runtime-frames"
-YUJIAN_RECOGNITION_CAPTURE_PID=""
-YUJIAN_RECOGNITION_CAPTURE_LOG="$YUJIAN_EVIDENCE_DIR/recognition_screen_capture.log"
+# Instrumentation owns the screenshot permission for the Compose test Activity.
+# The test stores its real runtime frames in this app-cache subdirectory; this
+# gate pulls and encodes them after instrumentation has finalized the files.
+YUJIAN_RECOGNITION_RUNTIME_FRAME_SOURCE="cache/recognition-evidence/runtime-video-frames"
+YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR="$YUJIAN_EVIDENCE_DIR/recognition-video-frames"
 YUJIAN_RECOGNITION_CAPTURE_FRAME_RATE=10
 YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v1_1.mp4"
-
-gate_prepare_instrumentation() {
-  if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
-    return 0
-  fi
-
-  mkdir -p "$YUJIAN_EVIDENCE_DIR"
-  mkdir -p "$YUJIAN_RECOGNITION_CAPTURE_DIR"
-  rm -f "$YUJIAN_RECOGNITION_CAPTURE_DIR"/frame-*.png \
-    "$YUJIAN_RECOGNITION_CAPTURE_DIR"/.frame-*.png
-  : > "$YUJIAN_RECOGNITION_CAPTURE_LOG"
-  printf 'CAPTURE_FRAME_RATE=%s\n' "$YUJIAN_RECOGNITION_CAPTURE_FRAME_RATE" \
-    >> "$YUJIAN_RECOGNITION_CAPTURE_LOG"
-  (
-    local index=0 frame_path temporary_path
-    while (( index < 300 )); do
-      frame_path="$YUJIAN_RECOGNITION_CAPTURE_DIR/frame-$(printf '%05d' "$index").png"
-      temporary_path="$YUJIAN_RECOGNITION_CAPTURE_DIR/.frame-$(printf '%05d' "$index").png"
-      if timeout 3s "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$temporary_path" \
-        2>> "$YUJIAN_RECOGNITION_CAPTURE_LOG" && [[ -s "$temporary_path" ]]; then
-        mv "$temporary_path" "$frame_path"
-        index=$((index + 1))
-      else
-        rm -f "$temporary_path"
-      fi
-      sleep 0.1
-    done
-  ) >> "$YUJIAN_RECOGNITION_CAPTURE_LOG" 2>&1 &
-  YUJIAN_RECOGNITION_CAPTURE_PID=$!
-  printf 'CAPTURE_PID=%s\n' "$YUJIAN_RECOGNITION_CAPTURE_PID" \
-    >> "$YUJIAN_RECOGNITION_CAPTURE_LOG"
-}
-
-gate_finalize_instrumentation() {
-  if [[ -z "$YUJIAN_RECOGNITION_CAPTURE_PID" ]]; then
-    return 0
-  fi
-
-  if kill -0 "$YUJIAN_RECOGNITION_CAPTURE_PID" 2>/dev/null; then
-    kill "$YUJIAN_RECOGNITION_CAPTURE_PID" 2>/dev/null || true
-  fi
-  wait "$YUJIAN_RECOGNITION_CAPTURE_PID" 2>/dev/null || true
-  local frame_count
-  frame_count="$(find "$YUJIAN_RECOGNITION_CAPTURE_DIR" -maxdepth 1 -type f -name 'frame-*.png' | wc -l | tr -d '[:space:]')"
-  printf 'CAPTURE_FINALIZED=1\nCAPTURE_FRAME_COUNT=%s\n' "$frame_count" \
-    >> "$YUJIAN_RECOGNITION_CAPTURE_LOG"
-}
 
 gate_collect_evidence() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/ui_rework_v1/recognition"
@@ -91,17 +42,39 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_processing_timing.txt"
   fi
 
+  local pulled_frames=0
   if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" == "1" ]]; then
-    local frame_count
-    frame_count="$(find "$YUJIAN_RECOGNITION_CAPTURE_DIR" -maxdepth 1 -type f -name 'frame-*.png' | wc -l | tr -d '[:space:]')"
-    if [[ "$frame_count" =~ ^[0-9]+$ ]] && (( frame_count >= 2 )); then
+    mkdir -p "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR"
+    rm -f "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR"/frame-*.png
+    local missing_streak=0 index frame_name frame_path
+    for index in $(seq 0 299); do
+      frame_name="runtime_frame_$(printf '%05d' "$index").png"
+      frame_path="$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR/frame-$(printf '%05d' "$index").png"
+      "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+        "$YUJIAN_RECOGNITION_RUNTIME_FRAME_SOURCE/$frame_name" \
+        > "$frame_path" 2>/dev/null || true
+      if [[ -s "$frame_path" ]]; then
+        pulled_frames=$((pulled_frames + 1))
+        missing_streak=0
+      else
+        rm -f "$frame_path"
+        if (( pulled_frames > 0 )); then
+          missing_streak=$((missing_streak + 1))
+          if (( missing_streak >= 2 )); then
+            break
+          fi
+        fi
+      fi
+    done
+
+    if (( pulled_frames >= 2 )); then
       ffmpeg -loglevel error -y \
         -framerate "$YUJIAN_RECOGNITION_CAPTURE_FRAME_RATE" \
-        -i "$YUJIAN_RECOGNITION_CAPTURE_DIR/frame-%05d.png" \
+        -i "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR/frame-%05d.png" \
         -vf 'scale=320:640:flags=lanczos' \
         -c:v libx264 -preset veryfast -pix_fmt yuv420p \
         "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" \
-        >> "$YUJIAN_RECOGNITION_CAPTURE_LOG" 2>&1 || true
+        > "$YUJIAN_EVIDENCE_DIR/recognition_video_encode.log" 2>&1 || true
     fi
   else
     # Contract tests use a fake adb and exercise classification, not video
@@ -122,7 +95,7 @@ gate_collect_evidence() {
     fi
   fi
   if [[ ! -s "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" ]]; then
-    printf 'RECORDING_EVIDENCE_NOT_CREATED\n' >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+    printf 'RUNTIME_FRAME_COUNT=%s\n' "$pulled_frames" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
     rm -f "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME"
   fi
 
