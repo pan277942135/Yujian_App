@@ -26,7 +26,9 @@ gate_collect_evidence() {
     06_result_medium.png \
     07_result_low.png \
     08_error_no_fish.png \
-    09_error_image_quality.png
+    09_error_image_quality.png \
+    10_level_a_contour.png \
+    11_reduce_motion_low_performance.png
   do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat "cache/recognition-evidence/${name}" \
       > "$output_dir/$name" 2>/dev/null || true
@@ -40,6 +42,13 @@ gate_collect_evidence() {
     > "$output_dir/recognition_processing_timing.txt" 2>/dev/null || true
   if [[ ! -s "$output_dir/recognition_processing_timing.txt" ]]; then
     rm -f "$output_dir/recognition_processing_timing.txt"
+  fi
+
+  "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+    "cache/recognition-evidence/recognition_production_flow_trace.txt" \
+    > "$output_dir/recognition_production_flow_trace.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_production_flow_trace.txt" ]]; then
+    rm -f "$output_dir/recognition_production_flow_trace.txt"
   fi
 
   local pulled_frames=0
@@ -230,6 +239,16 @@ PY
     fi
   fi
 
+  local parity_rc=0
+  python3 scripts/verify_recognition_visual_parity_v1_1.py \
+    --runtime-dir "$output_dir" \
+    --reference-dir "design/pages/recognition/design" \
+    --output-dir "$output_dir" || parity_rc=$?
+  if (( parity_rc != 0 )); then
+    runtime_set_failure "TEST" "RECOGNITION_VISUAL_PARITY_FAILED"
+    return "$EXIT_FAIL_TEST"
+  fi
+
   local missing=0
   for name in \
     01_capture_transition.png \
@@ -241,8 +260,13 @@ PY
     07_result_low.png \
     08_error_no_fish.png \
     09_error_image_quality.png \
+    10_level_a_contour.png \
+    11_reduce_motion_low_performance.png \
     recognition_processing_timing.txt \
-    recognition_processing_v1_1.mp4
+    recognition_production_flow_trace.txt \
+    recognition_processing_v1_1.mp4 \
+    recognition_visual_parity.json \
+    recognition_visual_parity_contact_sheet.png
   do
     if [[ ! -s "$output_dir/$name" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
