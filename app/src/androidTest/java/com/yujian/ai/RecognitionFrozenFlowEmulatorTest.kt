@@ -204,7 +204,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         onBack = {},
                         recognize = { onProgress ->
                             pipeline.recognize(photo.bitmap) { progress ->
-                                pipelineTrace += "PIPELINE phase=\${progress.phase} at=\${SystemClock.elapsedRealtime()}"
+                                pipelineTrace += "PIPELINE phase=${progress.phase} at=${SystemClock.elapsedRealtime()}"
                                 onProgress(progress)
                             }
                         },
@@ -218,7 +218,7 @@ class RecognitionFrozenFlowEmulatorTest {
                             completed.value = resultValue
                         },
                         onFailure = { error ->
-                            pipelineTrace += "FAILURE \${error::class.java.simpleName}: \${error.message}"
+                            pipelineTrace += "FAILURE ${error::class.java.simpleName}: ${error.message}"
                         },
                         onVisualPhasePresented = { phase, atMs ->
                             visualTimes.putIfAbsent(phase, atMs)
@@ -240,7 +240,7 @@ class RecognitionFrozenFlowEmulatorTest {
             if (runtimeFrameIndex >= 300) return
             val frame = File(
                 runtimeVideoFrameDir,
-                "runtime_frame_\${runtimeFrameIndex.toString().padStart(5, '0')}.png",
+                "runtime_frame_${runtimeFrameIndex.toString().padStart(5, '0')}.png",
             )
             val captured = runCatching { device.takeScreenshot(frame) }.getOrDefault(false)
             if (captured && frame.isFile && frame.length() > 0L) runtimeFrameIndex += 1 else frame.delete()
@@ -280,8 +280,8 @@ class RecognitionFrozenFlowEmulatorTest {
 
         val result = requireNotNull(completed.value) { "production Recognition flow did not complete" }
         assertTrue(
-            "real production fixture did not reach classifier-ready result: status=\${result.status} " +
-                "detections=\${result.detectorRun.detections.size} failure=\${result.failureCode}",
+            "real production fixture did not reach classifier-ready result: status=${result.status} " +
+                "detections=${result.detectorRun.detections.size} failure=${result.failureCode}",
             result.ready,
         )
         assertTrue("Level A contour was never presented from real bbox + alpha subject fixture", levelACaptured)
@@ -294,7 +294,7 @@ class RecognitionFrozenFlowEmulatorTest {
             RecognitionPhase.RESULT,
         )
         val actualPipeline = pipelineTrace.mapNotNull { line ->
-            expectedPipeline.firstOrNull { line.contains("phase=\$it") }
+            expectedPipeline.firstOrNull { line.contains("phase=$it") }
         }
         assertEquals(expectedPipeline, actualPipeline.distinct())
 
@@ -311,33 +311,33 @@ class RecognitionFrozenFlowEmulatorTest {
         val totalMs = finishedAtMs - capturedAt
         val fishFocusStableMs = classifyingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
 
-        assertTrue("processing visual flow was outside runtime bound: \${totalMs}ms", totalMs in 2_500L..3_500L)
-        assertTrue("final fish focus was too short: \${fishFocusStableMs}ms", fishFocusStableMs >= 1_000L)
+        assertTrue("processing visual flow was outside runtime bound: ${totalMs}ms", totalMs in 2_500L..3_500L)
+        assertTrue("final fish focus was too short: ${fishFocusStableMs}ms", fishFocusStableMs >= 1_000L)
 
         val primary = requireNotNull(result.assessment.primary)
         val box = primary.box.normalized()
         val subject = requireNotNull(subjectEvidence.value) { "subject alpha evidence was not generated" }
         File(evidenceDir, "recognition_processing_timing.txt").writeText(
             "Contract: CAPTURED=350ms DETECTING=600ms OUTLINE=600ms CLASSIFYING=1250ms TOTAL=2800ms\n" +
-                "Runtime CAPTURED duration: \${capturedMs}ms\n" +
-                "Runtime DETECTING duration: \${detectingMs}ms\n" +
-                "Runtime OUTLINE duration: \${outlineMs}ms\n" +
-                "Runtime CLASSIFYING duration: \${classifyingMs}ms\n" +
-                "Runtime TOTAL duration: \${totalMs}ms\n" +
-                "Runtime FINAL FISH FOCUS STABLE duration: \${fishFocusStableMs}ms\n",
+                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
+                "Runtime DETECTING duration: ${detectingMs}ms\n" +
+                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
+                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
+                "Runtime TOTAL duration: ${totalMs}ms\n" +
+                "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
         )
         File(evidenceDir, "recognition_production_flow_trace.txt").writeText(
             pipelineTrace.joinToString("\n") + "\n" +
-                "REAL_BBOX confidence=\${primary.confidence} x1=\${box.x1} y1=\${box.y1} x2=\${box.x2} y2=\${box.y2}\n" +
-                "SUBJECT_ALPHA status=\${subject.status} size=\${subject.width}x\${subject.height} " +
-                "mask_area=\${subject.maskAreaRatio}\n" +
-                "RESULT species=\${result.prediction?.top1?.speciesKey} confidence=\${result.prediction?.top1?.confidence}\n" +
-                visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=\$phase at=\$at" } + "\n",
+                "REAL_BBOX confidence=${primary.confidence} x1=${box.x1} y1=${box.y1} x2=${box.x2} y2=${box.y2}\n" +
+                "SUBJECT_ALPHA status=${subject.status} size=${subject.width}x${subject.height} " +
+                "mask_area=${subject.maskAreaRatio}\n" +
+                "RESULT species=${result.prediction?.top1?.speciesKey} confidence=${result.prediction?.top1?.confidence}\n" +
+                visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=$phase at=$at" } + "\n",
         )
         trace(
-            "TIMING_CAPTURED_MS=\$capturedMs TIMING_DETECTING_MS=\$detectingMs " +
-                "TIMING_OUTLINE_MS=\$outlineMs TIMING_CLASSIFYING_MS=\$classifyingMs " +
-                "TIMING_TOTAL_MS=\$totalMs TIMING_FISH_FOCUS_STABLE_MS=\$fishFocusStableMs",
+            "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
+                "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
+                "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
         )
     }
 
@@ -384,7 +384,7 @@ class RecognitionFrozenFlowEmulatorTest {
         first.delete()
         second.delete()
 
-        assertTrue("Reduce Motion still produced continuous visual travel: diffRatio=\$diffRatio", diffRatio <= 0.01f)
+        assertTrue("Reduce Motion still produced continuous visual travel: diffRatio=$diffRatio", diffRatio <= 0.01f)
         capture("11_reduce_motion_low_performance.png")
     }
 
