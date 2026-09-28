@@ -198,17 +198,57 @@ jobs:
           test -e /dev/kvm
 
           adb=/opt/android-sdk/platform-tools/adb
+          emulator=/opt/android-sdk/emulator/emulator
           preflight_log="evidence/runtime/${{ matrix.gate }}/infra/workflow_preflight.log"
+          emulator_log="evidence/runtime/${{ matrix.gate }}/infra/emulator.log"
           mkdir -p "$(dirname "$preflight_log")"
           : > "$preflight_log"
-          printf 'ADB_BIN=%s\nAPI_LEVEL=%s\n' "$adb" "${{ matrix.api_level }}" | tee -a "$preflight_log"
+          : > "$emulator_log"
+          printf 'ADB_BIN=%s\nEMULATOR_BIN=%s\nAPI_LEVEL=%s\n' \
+            "$adb" "$emulator" "${{ matrix.api_level }}" | tee -a "$preflight_log"
+
+          test -x "$emulator"
+          "$emulator" -version 2>&1 | head -n 2 | tee -a "$preflight_log" || true
+          avd_list="$("$emulator" -list-avds 2>&1)" || {
+            printf '%s\n' "$avd_list" | tee -a "$preflight_log"
+            echo 'ANDROID_AVD_LIST_FAILED' | tee -a "$preflight_log"
+            exit 1
+          }
+          printf 'AVAILABLE_AVDS_BEGIN\n%s\nAVAILABLE_AVDS_END\n' \
+            "$avd_list" | tee -a "$preflight_log"
+          avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+          if [[ -z "$avd_name" ]]; then
+            avd_name="$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}')"
+          fi
+          if [[ -z "$avd_name" ]]; then
+            echo 'ANDROID_AVD_NOT_FOUND' | tee -a "$preflight_log"
+            exit 1
+          fi
+          printf 'SELECTED_AVD=%s\nEMULATOR_OPTIONS=%s\n' \
+            "$avd_name" "${{ matrix.emulator_options }}" | tee -a "$preflight_log"
 
           "$adb" start-server >> "$preflight_log" 2>&1
+          emulator_started=0
+          if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
+            if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
+              read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
+              nohup "$emulator" -avd "$avd_name" -no-snapshot \
+                "${emulator_options[@]}" > "$emulator_log" 2>&1 &
+              emulator_pid=$!
+              emulator_started=1
+              printf 'EMULATOR_STARTED pid=%s\n' "$emulator_pid" | tee -a "$preflight_log"
+            else
+              echo 'EMULATOR_PROCESS_ALREADY_PRESENT' | tee -a "$preflight_log"
+            fi
+          else
+            echo 'ADB_DEVICE_ALREADY_PRESENT' | tee -a "$preflight_log"
+          fi
+
           restart_count=0
           wait_ok=0
           for wait_attempt in 1 2; do
             printf 'WAIT_FOR_DEVICE attempt=%s\n' "$wait_attempt" | tee -a "$preflight_log"
-            if timeout 20s "$adb" wait-for-device >> "$preflight_log" 2>&1; then
+            if timeout 90s "$adb" wait-for-device >> "$preflight_log" 2>&1; then
               wait_ok=1
               break
             fi
@@ -222,6 +262,10 @@ jobs:
 
           if (( wait_ok != 1 )); then
             "$adb" devices -l >> "$preflight_log" 2>&1 || true
+            if (( emulator_started == 1 )); then
+              kill -0 "$emulator_pid" 2>/dev/null || echo 'EMULATOR_PROCESS_EXITED=1' | tee -a "$preflight_log"
+              tail -n 80 "$emulator_log" | tee -a "$preflight_log"
+            fi
             echo 'ADB_WAIT_FOR_DEVICE_FAILED' | tee -a "$preflight_log"
             exit 1
           fi
