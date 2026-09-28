@@ -1,12 +1,8 @@
 package com.yujian.ai
 
 import android.content.Context
-import android.content.Intent
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.catches.GuestCatchRepository
 import kotlinx.coroutines.runBlocking
@@ -16,7 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
-/** Seeds deterministic local guest data for the main-branch visual evidence job. */
+/** Seeds deterministic local guest data only; the shell runtime gate owns app launch/evidence. */
 @RunWith(AndroidJUnit4::class)
 class HomeVisualEvidenceSeedTest {
     private val context: Context
@@ -68,28 +64,10 @@ class HomeVisualEvidenceSeedTest {
             "Guest visual seed was not persisted",
             preferences.edit().putString(GUEST_RECORDS_KEY, serializedRecords).commit(),
         )
-        assertNormalHomeIsVisible()
-    }
-
-    private fun assertNormalHomeIsVisible() {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val device = UiDevice.getInstance(instrumentation)
-        device.executeShellCommand("am force-stop $APP_PACKAGE")
-        val launchIntent = context.packageManager.getLaunchIntentForPackage(APP_PACKAGE)
-            ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            ?: error("Unable to resolve the YuJian launcher activity")
-        context.startActivity(launchIntent)
-
-        assertTrue(
-            "Seeded fish records did not resolve to Normal Home",
-            device.wait(Until.hasObject(By.text("最近鱼获")), NORMAL_HOME_SETTLE_MILLIS),
-        )
     }
 
     private companion object {
-        const val APP_PACKAGE = "com.yujian.ai.uiv2"
         const val GUEST_ARCHIVE_PREFERENCES = "yujian_guest_archive"
         const val GUEST_RECORDS_KEY = "records"
-        const val NORMAL_HOME_SETTLE_MILLIS = 8_000L
     }
 }

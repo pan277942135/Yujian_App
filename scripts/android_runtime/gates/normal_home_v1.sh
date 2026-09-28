@@ -11,7 +11,7 @@ normal_home_run_seed() {
     -e class "com.yujian.ai.HomeVisualEvidenceSeedTest#$method" \
     "$YUJIAN_INSTRUMENTATION_TARGET" > "$log" 2>&1
   local rc=$?
-  if (( rc != 0 )) || grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process .* (crashed|has died)' "$log"; then
+  if (( rc != 0 )) || grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process (crashed|has died)|Process .* (crashed|has died)|shortMsg=Process crashed' "$log"; then
     cat "$log" >&2
     return 1
   fi
@@ -22,17 +22,21 @@ normal_home_launch_app() {
   "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
   "$YUJIAN_ADB_BIN" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
 
-  local attempt resumed
+  local attempt resumed dump
   for attempt in $(seq 1 20); do
     resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
-    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
-    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* ]]; then
-      sleep 2
+    "$YUJIAN_ADB_BIN" shell uiautomator dump /sdcard/normal_home_window.xml >/dev/null 2>&1 || true
+    dump="$("$YUJIAN_ADB_BIN" shell cat /sdcard/normal_home_window.xml 2>/dev/null || true)"
+    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s recent_visible=%s\n' \
+      "$attempt" "$resumed" "$([[ "$dump" == *"最近鱼获"* ]] && echo 1 || echo 0)"
+    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* && "$dump" == *"最近鱼获"* ]]; then
+      sleep 1
       return 0
     fi
     sleep 1
   done
-  echo 'NORMAL_HOME_ACTIVITY_NOT_RESUMED' >&2
+  echo 'NORMAL_HOME_CONTENT_NOT_READY' >&2
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$YUJIAN_EVIDENCE_DIR/normal-home-v1/content_not_ready.png" || true
   return 1
 }
 
