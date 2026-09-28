@@ -48,15 +48,15 @@ import kotlinx.coroutines.launch
 import com.yujian.ai.presentation.PresentationSanitizer
 import kotlin.math.abs
 
-private const val GUEST_AVATAR = "home_normal_v1_2/assets/avatar/guest_avatar.png"
+private const val GUEST_AVATAR = "home_normal_v1/assets/avatar/guest_avatar.png"
 private const val RecentCardAspectRatio = 0.84f
-private const val RecentCardWidthFraction = 0.69f
+private const val RecentCardWidthFraction = 0.74f
 
 /**
  * Real-data Home state.
  *
- * The lake scene and capture action remain owned by HomeScreen and the Empty
- * Home runtime. This content layer only maps saved RemoteCatch records into
+ * The page-specific lake treatment is owned by HomeScreen. The capture action
+ * reuses the shared Home capture component. This content layer maps saved RemoteCatch records into
  * the Normal Home hierarchy: identity, secondary statistics, and the recent
  * catch focus pager.
  */
@@ -75,6 +75,7 @@ internal fun NormalHomeContent(
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
     motionState: HomeMotionState,
+    runtimeAssets: EmptyHomeRuntimeAssets?,
     modifier: Modifier = Modifier,
 ) {
     val recent = remember(recentCatches) {
@@ -86,7 +87,7 @@ internal fun NormalHomeContent(
         // tall phones while avoiding vertical clipping on compact displays.
         val cardWidth = minOf(
             maxWidth * RecentCardWidthFraction,
-            maxHeight * 0.47f * RecentCardAspectRatio,
+            maxHeight * 0.49f * RecentCardAspectRatio,
         )
         val cardHeight = cardWidth / RecentCardAspectRatio
         val pagerSidePadding = (maxWidth - cardWidth) / 2
@@ -105,18 +106,9 @@ internal fun NormalHomeContent(
                 onProfileClick = onProfileClick,
             )
 
-            Spacer(Modifier.height(YuJianSpacing.lg))
+            Spacer(Modifier.height(YuJianSpacing.md))
 
-            HomeStats(
-                statistics = statistics,
-                catches = recent,
-                onSpeciesClick = onSpeciesClick,
-                onCatchesClick = onCatchesClick,
-                onRecordDaysClick = onRecordDaysClick,
-            )
-
-            Spacer(Modifier.height(YuJianSpacing.lg))
-
+            // Frozen Core UI V1: real catch media outranks statistics.
             RecentCatchSectionHeader(onCatchesClick = onCatchesClick)
 
             Spacer(Modifier.height(YuJianSpacing.xs))
@@ -134,6 +126,16 @@ internal fun NormalHomeContent(
 
             Spacer(Modifier.height(YuJianSpacing.md))
 
+            HomeStats(
+                statistics = statistics,
+                catches = recent,
+                onSpeciesClick = onSpeciesClick,
+                onCatchesClick = onCatchesClick,
+                onRecordDaysClick = onRecordDaysClick,
+            )
+
+            Spacer(Modifier.height(YuJianSpacing.md))
+
             Text(
                 text = "记录下一条鱼",
                 style = YuJianTypography.body.copy(
@@ -147,6 +149,7 @@ internal fun NormalHomeContent(
             HomeCameraButton(
                 onClick = onIdentify,
                 motionState = motionState,
+                runtimeAssets = runtimeAssets,
             )
         }
     }
