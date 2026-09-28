@@ -304,7 +304,11 @@ class RecognitionFrozenFlowEmulatorTest {
                 ) {
                     break
                 }
-                Thread.sleep(16L)
+                // Evidence is encoded at 10 fps. Capturing screenshots at ~60 fps
+                // monopolizes API28 emulator rendering long enough to starve the
+                // main-thread visual controller coroutine. Sample at the evidence
+                // contract rate so the product animation clock can advance normally.
+                Thread.sleep(100L)
             }
         } finally {
             trace("RUNTIME_VIDEO_CAPTURE_STOP")
