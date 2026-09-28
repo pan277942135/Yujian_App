@@ -1,6 +1,7 @@
 import java.awt.image.BufferedImage
 import java.security.MessageDigest
 import javax.imageio.ImageIO
+import kotlin.math.sqrt
 
 plugins {
     id("com.android.application")
@@ -55,7 +56,7 @@ val generateEmptyHomeFrozenHero by tasks.registering {
             val dr = (r - tr).toDouble()
             val dg = (g - tg).toDouble()
             val db = (b - tb).toDouble()
-            return kotlin.math.sqrt(dr * dr + dg * dg + db * db)
+            return sqrt(dr * dr + dg * dg + db * db)
         }
 
         for (y in 0 until height) {
