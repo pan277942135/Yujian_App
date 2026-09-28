@@ -4,13 +4,55 @@ gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest'
 }
 
-# Instrumentation owns the screenshot permission for the Compose test Activity.
-# The test stores its real runtime frames in this app-cache subdirectory; this
-# gate pulls and encodes them after instrumentation has finalized the files.
-YUJIAN_RECOGNITION_RUNTIME_FRAME_SOURCE="cache/recognition-evidence/runtime-video-frames"
-YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR="$YUJIAN_EVIDENCE_DIR/recognition-video-frames"
-YUJIAN_RECOGNITION_CAPTURE_FRAME_RATE=10
+# Video evidence is captured outside instrumentation so observation cannot
+# perturb Compose timing on API28. Instrumentation owns only semantic/timing
+# assertions and single proof screenshots.
+YUJIAN_RECOGNITION_DEVICE_RECORDING="/sdcard/recognition_processing_runtime_host.mp4"
 YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v1_1.mp4"
+
+gate_before_instrumentation() {
+  if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
+    return 0
+  fi
+  "${YUJIAN_ADB_BIN}" shell "rm -f '${YUJIAN_RECOGNITION_DEVICE_RECORDING}'" >/dev/null 2>&1 || true
+  "${YUJIAN_ADB_BIN}" shell \
+    "screenrecord --size 320x640 --bit-rate 4000000 --time-limit 45 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
+    >/dev/null 2>&1 || true
+  sleep 0.5
+}
+
+gate_after_instrumentation() {
+  if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
+    return 0
+  fi
+  local pids pid
+  pids="$("${YUJIAN_ADB_BIN}" shell "pidof screenrecord 2>/dev/null || true" 2>/dev/null | tr -d '\r')"
+  for pid in $pids; do
+    "${YUJIAN_ADB_BIN}" shell kill -2 "$pid" >/dev/null 2>&1 || true
+  done
+
+  # SIGINT lets screenrecord finalize MP4 metadata. Wait for a non-trivial,
+  # stable file before evidence collection pulls it to the host.
+  local previous=0 stable=0 size=0 attempt
+  for attempt in $(seq 1 24); do
+    size="$("${YUJIAN_ADB_BIN}" shell \
+      "wc -c < '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' 2>/dev/null || echo 0" \
+      2>/dev/null | tr -d '\r' | tail -n 1)"
+    if [[ "$size" =~ ^[0-9]+$ ]] && (( size > 1024 )); then
+      if [[ "$size" == "$previous" ]]; then
+        stable=$((stable + 1))
+        if (( stable >= 2 )); then
+          break
+        fi
+      else
+        stable=0
+      fi
+      previous="$size"
+    fi
+    sleep 0.25
+  done
+  return 0
+}
 
 gate_collect_evidence() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/ui_rework_v1/recognition"
@@ -26,7 +68,9 @@ gate_collect_evidence() {
     06_result_medium.png \
     07_result_low.png \
     08_error_no_fish.png \
-    09_error_image_quality.png
+    09_error_image_quality.png \
+    10_level_a_contour.png \
+    11_reduce_motion_low_performance.png
   do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat "cache/recognition-evidence/${name}" \
       > "$output_dir/$name" 2>/dev/null || true
@@ -42,70 +86,29 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_processing_timing.txt"
   fi
 
-  local pulled_frames=0
-  if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" == "1" ]]; then
-    mkdir -p "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR"
-    rm -f "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR"/frame-*.png
-    local missing_streak=0 index frame_name frame_path png_signature
-    for index in $(seq 0 299); do
-      frame_name="runtime_frame_$(printf '%05d' "$index").png"
-      frame_path="$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR/frame-$(printf '%05d' "$index").png"
-      "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-        "$YUJIAN_RECOGNITION_RUNTIME_FRAME_SOURCE/$frame_name" \
-        > "$frame_path" 2>/dev/null || true
-      if [[ -s "$frame_path" ]]; then
-        # adb exec-out/run-as can surface a missing-file diagnostic through
-        # the captured stream. Never let non-empty error text enter ffmpeg as
-        # if it were a PNG; the instrumentation names frames contiguously, so
-        # the first invalid frame terminates the sequence.
-        png_signature="$(head -c 8 "$frame_path" | od -An -t x1 | tr -d '[:space:]')"
-        if [[ "$png_signature" == "89504e470d0a1a0a" ]]; then
-          pulled_frames=$((pulled_frames + 1))
-          missing_streak=0
-        else
-          rm -f "$frame_path"
-          break
-        fi
-      else
-        rm -f "$frame_path"
-        if (( pulled_frames > 0 )); then
-          missing_streak=$((missing_streak + 1))
-          if (( missing_streak >= 2 )); then
-            break
-          fi
-        fi
-      fi
-    done
+  "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+    "cache/recognition-evidence/recognition_production_flow_trace.txt" \
+    > "$output_dir/recognition_production_flow_trace.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_production_flow_trace.txt" ]]; then
+    rm -f "$output_dir/recognition_production_flow_trace.txt"
+  fi
 
-    if (( pulled_frames >= 2 )); then
-      ffmpeg -loglevel error -y \
-        -framerate "$YUJIAN_RECOGNITION_CAPTURE_FRAME_RATE" \
-        -i "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR/frame-%05d.png" \
-        -vf 'scale=320:640:flags=lanczos' \
-        -c:v libx264 -preset veryfast -pix_fmt yuv420p \
-        "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" \
-        > "$YUJIAN_EVIDENCE_DIR/recognition_video_encode.log" 2>&1 || true
-    fi
-  else
-    # Contract tests use a fake adb and exercise classification, not video
-    # encoding. Keep their deterministic evidence fixture available.
-    local recording_bytes=0 attempt
-    for attempt in $(seq 1 20); do
-      recording_bytes="$(${YUJIAN_ADB_BIN} shell \
-        "wc -c < /sdcard/recognition_processing_runtime_host.mp4 2>/dev/null || echo 0" \
-        2>/dev/null | tr -d '\r' | tail -n 1)"
-      if [[ "$recording_bytes" =~ ^[0-9]+$ ]] && (( recording_bytes > 1024 )); then
-        break
-      fi
-      sleep 0.25
-    done
+  local recording_bytes=0 attempt
+  for attempt in $(seq 1 20); do
+    recording_bytes="$("${YUJIAN_ADB_BIN}" shell \
+      "wc -c < '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' 2>/dev/null || echo 0" \
+      2>/dev/null | tr -d '\r' | tail -n 1)"
     if [[ "$recording_bytes" =~ ^[0-9]+$ ]] && (( recording_bytes > 1024 )); then
-      "${YUJIAN_ADB_BIN}" pull /sdcard/recognition_processing_runtime_host.mp4 \
-        "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" >/dev/null 2>&1 || true
+      break
     fi
+    sleep 0.25
+  done
+  if [[ "$recording_bytes" =~ ^[0-9]+$ ]] && (( recording_bytes > 1024 )); then
+    "${YUJIAN_ADB_BIN}" pull "$YUJIAN_RECOGNITION_DEVICE_RECORDING" \
+      "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" >/dev/null 2>&1 || true
   fi
   if [[ ! -s "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" ]]; then
-    printf 'RUNTIME_FRAME_COUNT=%s\n' "$pulled_frames" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+    printf 'HOST_RECORDING_BYTES=%s\n' "$recording_bytes" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
     rm -f "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME"
   fi
 
@@ -230,6 +233,16 @@ PY
     fi
   fi
 
+  local parity_rc=0
+  python3 scripts/verify_recognition_visual_parity_v1_1.py \
+    --runtime-dir "$output_dir" \
+    --reference-dir "design/pages/recognition/design" \
+    --output-dir "$output_dir" || parity_rc=$?
+  if (( parity_rc != 0 )); then
+    runtime_set_failure "TEST" "RECOGNITION_VISUAL_PARITY_FAILED"
+    return "$EXIT_FAIL_TEST"
+  fi
+
   local missing=0
   for name in \
     01_capture_transition.png \
@@ -241,8 +254,13 @@ PY
     07_result_low.png \
     08_error_no_fish.png \
     09_error_image_quality.png \
+    10_level_a_contour.png \
+    11_reduce_motion_low_performance.png \
     recognition_processing_timing.txt \
-    recognition_processing_v1_1.mp4
+    recognition_production_flow_trace.txt \
+    recognition_processing_v1_1.mp4 \
+    recognition_visual_parity.json \
+    recognition_visual_parity_contact_sheet.png
   do
     if [[ ! -s "$output_dir/$name" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"

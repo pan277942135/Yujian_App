@@ -125,8 +125,17 @@ if (( install_rc != EXIT_PASS )); then
 fi
 YUJIAN_INSTALL_STATUS="PASS"
 
+if declare -F gate_before_instrumentation >/dev/null 2>&1; then
+  gate_before_instrumentation || true
+fi
+
 android_runtime_run_instrumentation "$test_classes"
 instrumentation_rc=$?
+
+if declare -F gate_after_instrumentation >/dev/null 2>&1; then
+  gate_after_instrumentation || true
+fi
+
 if (( instrumentation_rc != EXIT_PASS )); then
   YUJIAN_INSTRUMENTATION_STATUS="FAIL"
   if (( instrumentation_rc == EXIT_BLOCKED_INFRA )); then

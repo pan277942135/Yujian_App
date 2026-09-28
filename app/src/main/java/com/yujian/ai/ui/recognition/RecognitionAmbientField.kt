@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.RecognitionPhase
@@ -48,12 +49,16 @@ fun RecognitionAmbientField(
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
     lowPerformance: Boolean = false,
+    reduceMotion: Boolean = false,
     resolveProgress: Float = 0f,
 ) {
-    val clock = ambientClock(visualClockMs)
+    val clock = ambientClock(visualClockMs, reduceMotion)
     val intensity = remember(phase) { intensityFor(phase) }
     val fade = 1f - resolveProgress.coerceIn(0f, 1f)
-    Canvas(modifier.fillMaxSize()) {
+    val evidenceTag = "recognition-ambient-" +
+        (if (reduceMotion) "reduced-motion" else "motion") + "-" +
+        (if (lowPerformance) "low-performance" else "normal-performance")
+    Canvas(modifier.fillMaxSize().testTag(evidenceTag)) {
         val paths = rememberAmbientPaths(size)
         drawEdgeBloom(intensity.edge * fade)
         FILAMENTS.forEachIndexed { index, filament ->
@@ -66,10 +71,11 @@ fun RecognitionAmbientField(
 }
 
 @Composable
-private fun ambientClock(override: Long?): Long {
+private fun ambientClock(override: Long?, reduceMotion: Boolean): Long {
     // Screenshot/test mode is deliberately still: do not install an infinite
     // transition that keeps Compose's idler busy while a fixed clock is used.
     if (override != null) return override
+    if (reduceMotion) return 0L
     val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "ambient-field")
     val fraction by transition.animateFloat(
         initialValue = 0f,
