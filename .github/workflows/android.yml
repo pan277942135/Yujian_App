@@ -2,7 +2,11 @@ name: Android CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'fix/**'
+      - 'feature/**'
+      - 'refactor/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -126,6 +130,7 @@ jobs:
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     needs: build
     runs-on: [self-hosted, Linux, X64, yujian-android, api28]
     timeout-minutes: 60
