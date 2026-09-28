@@ -1,5 +1,5 @@
 {
-  "contract_version": "RECOGNITION_RUNTIME_v1",
+  "contract_version": "RECOGNITION_RUNTIME_v1_1",
   "states": [
     "CAPTURED",
     "DETECTING",

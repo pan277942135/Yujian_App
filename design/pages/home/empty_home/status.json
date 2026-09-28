@@ -8,9 +8,12 @@
   "shared_contracts": "PASS",
   "source_sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
   "verified_ci": {
-    "android_ci_run_id": 35965640545,
-    "design_assets_run_id": 35965640520,
-    "implementation_head_sha": "29ac676a2f636fa697cae960d64d0d24e239fb0e",
-    "tested_merge_sha": "4c47fd5123a9f7dc0fa37d3d2d81e8973200c596"
+    "android_ci_run_id": 36386342604,
+    "design_assets_run_id": 36386342595,
+    "implementation_main_sha": "94a99f9a7c848e4bb124c5c454dcf42b3236f74b",
+    "runtime_gate_artifact_id": 10955156190,
+    "runtime_gate": "empty-home-v2",
+    "api_level": 28,
+    "classification": "PASS"
   }
 }
