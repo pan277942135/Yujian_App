@@ -38,8 +38,9 @@ run_case() {
   printf 'fake-apk' > "$tmp/app-debug.apk"
   printf 'fake-test-apk' > "$tmp/app-debug-androidTest.apk"
   set +e
-  FAKE_ADB_MODE="$mode" \
+    FAKE_ADB_MODE="$mode" \
     FAKE_ADB_RESTART_LOG="$tmp/restarts" \
+    YUJIAN_CAPTURE_RECOGNITION_VIDEO=0 \
     YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
     ADB="$FAKE_ADB" \
     YUJIAN_WAIT_ATTEMPTS=1 \
