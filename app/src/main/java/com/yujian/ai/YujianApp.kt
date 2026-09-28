@@ -60,7 +60,7 @@ import com.yujian.ai.ui.screens.FishGuideHomeScreen
 import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
 import com.yujian.ai.ui.screens.HomeScreen
 import com.yujian.ai.ui.screens.IdentifyScreen
-import com.yujian.ai.ui.screens.LoginScreen
+import com.yujian.ai.ui.auth.LoginV2Screen
 import com.yujian.ai.ui.screens.MyScreen
 import com.yujian.ai.ui.screens.AccountMyScreen
 import com.yujian.ai.ui.screens.AccountLoginScreen
@@ -266,7 +266,15 @@ fun YujianApp() {
             // Empty vs Normal from the active local/remote fish archive.
             NavHost(nav, startDestination = "home") {
                 composable("login") {
-                    LoginScreen(
+                    LaunchedEffect(Unit) {
+                        nav.navigate("auth/login") {
+                            popUpTo("login") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+                composable("auth/login") {
+                    LoginV2Screen(
                         loading = authLoading,
                         error = authError,
                         onLogin = { username, password ->
@@ -279,7 +287,10 @@ fun YujianApp() {
                                         session = loggedIn
                                         adoptGuestArchive(loggedIn)
                                         authLoading = false
-                                        nav.navigate("home") { popUpTo("login") { inclusive = true } }
+                                        nav.navigate("home") {
+                                            popUpTo("auth/login") { inclusive = true }
+                                            launchSingleTop = true
+                                        }
                                     }
                                     .onFailure { error ->
                                         authLoading = false
@@ -293,6 +304,7 @@ fun YujianApp() {
                                 comingSoon = ComingSoonKind.FORGOT_PASSWORD
                             }
                         },
+                        onBack = { nav.popBackStack() },
                     )
                 }
                 composable("register") {
@@ -339,11 +351,11 @@ fun YujianApp() {
                         showEmptyState = emptyHome,
                         onIdentify = { nav.navigate("identify") },
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
-                        onLoginClick = { nav.navigate("login") { launchSingleTop = true } },
+                        onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
                         onRecordDaysClick = { },
-                        onProfileClick = { if (active == null) nav.navigate("login") else nav.navigate("my") },
+                        onProfileClick = { if (active == null) nav.navigate("auth/login") else nav.navigate("my") },
                         onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
                     )
                 }
@@ -609,7 +621,7 @@ fun YujianApp() {
                 composable("my") {
                     val active = session
                     if (active == null) {
-                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("my") { inclusive = true } } }
+                        LaunchedEffect(Unit) { nav.navigate("auth/login") { popUpTo("my") { inclusive = true } } }
                     } else {
                         AccountMyScreen(
                             profile = active,
@@ -640,7 +652,7 @@ fun YujianApp() {
                 composable("edit_profile") {
                     val active = session
                     if (active == null) {
-                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("edit_profile") { inclusive = true } } }
+                        LaunchedEffect(Unit) { nav.navigate("auth/login") { popUpTo("edit_profile") { inclusive = true } } }
                     } else {
                         EditProfileScreen(
                             profile = active,
@@ -653,7 +665,7 @@ fun YujianApp() {
                 composable("account_login") {
                     val active = session
                     if (active == null) {
-                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("account_login") { inclusive = true } } }
+                        LaunchedEffect(Unit) { nav.navigate("auth/login") { popUpTo("account_login") { inclusive = true } } }
                     } else {
                         AccountLoginScreen(
                             profile = active,
@@ -667,7 +679,7 @@ fun YujianApp() {
                 composable("change_password") {
                     val active = session
                     if (active == null) {
-                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("change_password") { inclusive = true } } }
+                        LaunchedEffect(Unit) { nav.navigate("auth/login") { popUpTo("change_password") { inclusive = true } } }
                     } else {
                         ChangePasswordScreen(
                             authRepository = authRepository,
@@ -679,7 +691,7 @@ fun YujianApp() {
                 composable("data_privacy") {
                     val active = session
                     if (active == null) {
-                        LaunchedEffect(Unit) { nav.navigate("login") { popUpTo("data_privacy") { inclusive = true } } }
+                        LaunchedEffect(Unit) { nav.navigate("auth/login") { popUpTo("data_privacy") { inclusive = true } } }
                     } else {
                         DataPrivacyScreen(
                             authRepository = authRepository,
@@ -713,7 +725,7 @@ fun YujianApp() {
                 GuestRegistrationDialog(
                     onRegister = {
                         guestRegistrationPromptVisible = false
-                        nav.navigate("login") { launchSingleTop = true }
+                        nav.navigate("auth/login") { launchSingleTop = true }
                     },
                     onLater = { guestRegistrationPromptVisible = false },
                 )
