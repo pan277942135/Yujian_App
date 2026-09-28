@@ -33,9 +33,26 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_processing_timing.txt"
   fi
 
-  "${YUJIAN_ADB_BIN}" pull /sdcard/recognition_processing_v1_1.mp4 \
-    "$output_dir/recognition_processing_v1_1.mp4" >/dev/null 2>&1 || true
+  # API 28 may finalize screenrecord a short time after instrumentation
+  # returns. Wait here, in the evidence phase, so missing video is classified
+  # as FAIL_EVIDENCE rather than FAIL_TEST.
+  local recording_bytes=0 attempt
+  for attempt in $(seq 1 20); do
+    recording_bytes="$("${YUJIAN_ADB_BIN}" shell \
+      "wc -c < /sdcard/recognition_processing_v1_1.mp4 2>/dev/null || echo 0" \
+      2>/dev/null | tr -d '\r' | tail -n 1)"
+    if [[ "$recording_bytes" =~ ^[0-9]+$ ]] && (( recording_bytes > 1024 )); then
+      break
+    fi
+    sleep 0.25
+  done
+
+  if [[ "$recording_bytes" =~ ^[0-9]+$ ]] && (( recording_bytes > 1024 )); then
+    "${YUJIAN_ADB_BIN}" pull /sdcard/recognition_processing_v1_1.mp4 \
+      "$output_dir/recognition_processing_v1_1.mp4" >/dev/null 2>&1 || true
+  fi
   if [[ ! -s "$output_dir/recognition_processing_v1_1.mp4" ]]; then
+    printf 'RECORDING_BYTES=%s\n' "$recording_bytes" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
     rm -f "$output_dir/recognition_processing_v1_1.mp4"
   fi
 
