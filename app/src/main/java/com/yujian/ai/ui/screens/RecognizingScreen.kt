@@ -123,7 +123,10 @@ fun RecognitionProcessingScene(
         }
     }
 
-    LaunchedEffect(realPhase, image?.imageId) {
+    // The visual clock must remain stable while the real detector/classifier advances.
+    // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
+    // progress callback can cancel the presentation before it reaches RESULT.
+    LaunchedEffect(image?.imageId, phaseOverride) {
         while (isActive && phaseOverride == null && !delivered) {
             visualNowMs = SystemClock.uptimeMillis()
             val nextVisualPhase = controller.current(visualNowMs)
