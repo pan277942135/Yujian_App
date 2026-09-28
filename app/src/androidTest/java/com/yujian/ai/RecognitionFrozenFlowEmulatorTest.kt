@@ -2,7 +2,10 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
 import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -64,6 +67,7 @@ import org.junit.Test
 import java.io.File
 import java.util.Collections
 import java.util.LinkedHashMap
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -74,6 +78,29 @@ import kotlinx.coroutines.withContext
 class RecognitionFrozenFlowEmulatorTest {
     private companion object {
         const val FROZEN_GATE_LOG_TAG = "RecognitionFrozenGate"
+
+        // Manual ground-truth annotation in source-photo pixel coordinates.
+        // Clockwise from the mouth around the actual carp silhouette.
+        val REAL_FISH_SUBJECT_POLYGON = listOf(
+            184f to 273f, 210f to 276f, 233f to 285f, 248f to 300f, 257f to 320f,
+            273f to 340f, 286f to 366f, 293f to 397f, 304f to 430f, 313f to 466f,
+            320f to 510f, 328f to 560f, 335f to 612f, 343f to 670f, 348f to 708f,
+            361f to 720f, 374f to 742f, 383f to 775f, 391f to 806f, 388f to 827f,
+            377f to 838f, 356f to 835f, 336f to 824f, 329f to 860f, 320f to 900f,
+            310f to 936f, 302f to 962f, 308f to 974f, 329f to 991f, 346f to 1014f,
+            351f to 1037f, 345f to 1057f, 329f to 1067f, 307f to 1064f, 286f to 1051f,
+            278f to 1090f, 270f to 1130f, 263f to 1165f, 277f to 1181f, 293f to 1200f,
+            309f to 1225f, 321f to 1250f, 325f to 1276f, 322f to 1295f, 310f to 1309f,
+            291f to 1311f, 270f to 1303f, 251f to 1292f, 232f to 1284f, 213f to 1290f,
+            192f to 1307f, 171f to 1318f, 153f to 1317f, 140f to 1306f, 134f to 1290f,
+            135f to 1265f, 141f to 1238f, 144f to 1210f, 142f to 1180f, 134f to 1150f,
+            130f to 1110f, 127f to 1070f, 124f to 1025f, 121f to 975f, 117f to 930f,
+            113f to 885f, 101f to 875f, 80f to 874f, 62f to 866f, 53f to 851f,
+            51f to 832f, 56f to 808f, 67f to 780f, 80f to 752f, 96f to 727f,
+            113f to 710f, 116f to 670f, 118f to 625f, 119f to 580f, 120f to 535f,
+            121f to 495f, 122f to 460f, 127f to 430f, 133f to 398f, 137f to 367f,
+            142f to 344f, 151f to 326f, 161f to 314f, 170f to 307f, 174f to 293f,
+        )
 
         @JvmStatic
         @BeforeClass
@@ -183,6 +210,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
         val pipeline = FishRecognitionPipeline(targetContext)
         val completed = mutableStateOf<ProductionRecognitionResult?>(null)
+        val completedResult = AtomicReference<ProductionRecognitionResult?>(null)
         val pipelineTrace = Collections.synchronizedList(mutableListOf<String>())
         val visualTimes = Collections.synchronizedMap(LinkedHashMap<RecognitionPhase, Long>())
         val subjectEvidence = mutableStateOf<FishSubjectResult?>(null)
@@ -210,18 +238,21 @@ class RecognitionFrozenFlowEmulatorTest {
                         },
                         generateSubject = { selected, box ->
                             withContext(Dispatchers.Default) {
-                                createSubjectAlphaFixture(selected.bitmap, box).also { subjectEvidence.value = it }
+                                createAnnotatedSubjectAlphaFixture(selected.bitmap, box).also { subjectEvidence.value = it }
                             }
                         },
                         onFinished = { resultValue ->
                             finishedAtMs = SystemClock.elapsedRealtime()
+                            completedResult.set(resultValue)
                             completed.value = resultValue
+                            trace("PRODUCTION_FLOW_FINISHED ready=${resultValue.ready} status=${resultValue.status}")
                         },
                         onFailure = { error ->
                             pipelineTrace += "FAILURE ${error::class.java.simpleName}: ${error.message}"
                         },
                         onVisualPhasePresented = { phase, atMs ->
                             visualTimes.putIfAbsent(phase, atMs)
+                            trace("VISUAL_PRESENTED phase=$phase at=$atMs")
                         },
                     )
                 }
@@ -263,7 +294,7 @@ class RecognitionFrozenFlowEmulatorTest {
                     }
                 }
 
-                if (completed.value != null && resultSeenAtMs == Long.MIN_VALUE) {
+                if (completedResult.get() != null && resultSeenAtMs == Long.MIN_VALUE) {
                     resultSeenAtMs = SystemClock.elapsedRealtime()
                 }
                 if (resultSeenAtMs != Long.MIN_VALUE &&
@@ -278,7 +309,7 @@ class RecognitionFrozenFlowEmulatorTest {
             pipeline.close()
         }
 
-        val result = requireNotNull(completed.value) { "production Recognition flow did not complete" }
+        val result = requireNotNull(completedResult.get()) { "production Recognition flow did not complete" }
         assertTrue(
             "real production fixture did not reach classifier-ready result: status=${result.status} " +
                 "detections=${result.detectorRun.detections.size} failure=${result.failureCode}",
@@ -343,7 +374,7 @@ class RecognitionFrozenFlowEmulatorTest {
 
     @Test
     fun reduceMotionAndLowPerformanceKeepRecognitionSemanticStateStable() {
-        val subject = createSubjectAlphaFixture(photo.bitmap, requireNotNull(high.assessment.primary).box)
+        val subject = createAnnotatedSubjectAlphaFixture(photo.bitmap, requireNotNull(high.assessment.primary).box)
         composeRule.setContent {
             YujianTheme {
                 RecognitionProcessingScene(
@@ -388,7 +419,21 @@ class RecognitionFrozenFlowEmulatorTest {
         capture("11_reduce_motion_low_performance.png")
     }
 
-    private fun createSubjectAlphaFixture(source: Bitmap, detectorBox: NormalizedFishBox): FishSubjectResult {
+    /**
+     * Ground-truth alpha fixture manually annotated against recognition_real_catch_fixture.jpg.
+     *
+     * The polygon follows the actual fish silhouette in the 1152x1536 source photo,
+     * including the pectoral/pelvic fins and tail. The real detector bbox still decides
+     * the crop; this annotation supplies only subject alpha so Level A exercises the
+     * same production contour extraction path without fabricating detector/classifier state.
+     */
+    private fun createAnnotatedSubjectAlphaFixture(
+        source: Bitmap,
+        detectorBox: NormalizedFishBox,
+    ): FishSubjectResult {
+        require(source.width == 1152 && source.height == 1536) {
+            "annotated subject mask authority requires 1152x1536 fixture, got ${source.width}x${source.height}"
+        }
         val expanded = detectorBox.expand(.12f)
         val pixels = FishDetectionQualityGate.cropBoxPixels(expanded, source.width, source.height)
         val roi = Bitmap.createBitmap(
@@ -400,36 +445,49 @@ class RecognitionFrozenFlowEmulatorTest {
         )
         val width = roi.width
         val height = roi.height
-        val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val colors = IntArray(width * height)
-        var foreground = 0
-        for (y in 0 until height) {
-            val ny = (y / (height - 1f).coerceAtLeast(1f) - .5f) * 2f
-            for (x in 0 until width) {
-                val nx = (x / (width - 1f).coerceAtLeast(1f) - .5f) * 2f
-                val taperedBody = (nx * nx) / (.92f * .92f) + (ny * ny) / (.52f * .52f) <= 1f
-                val tail = nx < -.58f && nx > -.98f &&
-                    kotlin.math.abs(ny) <= (.42f * (nx + .98f) / .40f)
-                val foregroundPixel = taperedBody || tail
-                val sourcePixel = roi.getPixel(x, y)
-                val alpha = if (foregroundPixel) 255 else 0
-                if (alpha > 0) foreground += 1
-                colors[y * width + x] = Color.argb(
-                    alpha,
-                    Color.red(sourcePixel),
-                    Color.green(sourcePixel),
-                    Color.blue(sourcePixel),
-                )
-            }
+
+        val mask = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(mask)
+        val path = Path()
+        REAL_FISH_SUBJECT_POLYGON.forEachIndexed { index, point ->
+            val x = point.first - pixels[0]
+            val y = point.second - pixels[1]
+            if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
-        output.setPixels(colors, 0, width, 0, 0, width, height)
+        path.close()
+        canvas.drawPath(
+            path,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                style = Paint.Style.FILL
+            },
+        )
+
+        val roiPixels = IntArray(width * height)
+        val maskPixels = IntArray(width * height)
+        roi.getPixels(roiPixels, 0, width, 0, 0, width, height)
+        mask.getPixels(maskPixels, 0, width, 0, 0, width, height)
+        var foreground = 0
+        val subjectPixels = IntArray(width * height) { index ->
+            val alpha = Color.alpha(maskPixels[index])
+            if (alpha >= 36) foreground += 1
+            val pixel = roiPixels[index]
+            Color.argb(alpha, Color.red(pixel), Color.green(pixel), Color.blue(pixel))
+        }
+        val output = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        output.setPixels(subjectPixels, 0, width, 0, 0, width, height)
+
         val file = File(evidenceDir, "real_subject_alpha_fixture.png")
         file.outputStream().use { stream ->
             check(output.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         output.recycle()
+        mask.recycle()
         roi.recycle()
+
         val total = width * height
+        val area = foreground.toFloat() / total.coerceAtLeast(1)
+        assertTrue("annotated subject alpha is unexpectedly small: area=$area", area in .12f..0.65f)
         return FishSubjectResult(
             status = SubjectStatus.READY,
             bitmapPath = file.absolutePath,
@@ -439,7 +497,7 @@ class RecognitionFrozenFlowEmulatorTest {
             roiHeight = height,
             maskSize = total,
             expectedMaskSize = total,
-            maskAreaRatio = foreground.toFloat() / total.coerceAtLeast(1),
+            maskAreaRatio = area,
             quality = FishSubjectQuality.GOOD,
         )
     }
