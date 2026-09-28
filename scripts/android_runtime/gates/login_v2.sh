@@ -45,7 +45,43 @@ runtime_path = Path(sys.argv[2])
 out_dir = Path(sys.argv[3])
 
 reference = Image.open(reference_path).convert("RGB")
-runtime = Image.open(runtime_path).convert("RGB")
+runtime_raw = Image.open(runtime_path).convert("RGB")
+
+# API 28's UiAutomation screenshot may expose the emulator's physical backing
+# buffer (for example 640x1280) while the Activity renders into the logical
+# app surface in the upper-left quadrant (for example 320x640). Detect and
+# normalize that surface before visual comparison instead of treating the
+# unused black backing buffer as product pixels.
+def active_surface(image: Image.Image) -> Image.Image:
+    pixels = image.load()
+    xs = []
+    ys = []
+    for y in range(image.height):
+        for x in range(image.width):
+            r, g, b = pixels[x, y]
+            if max(r, g, b) > 12:
+                xs.append(x)
+                ys.append(y)
+    if not xs:
+        raise SystemExit("LOGIN_V2_ACTIVE_SURFACE_EMPTY")
+    left, top, right, bottom = min(xs), min(ys), max(xs) + 1, max(ys) + 1
+    # Status/navigation bars belong to the app frame. For the known API28
+    # double-buffer case, the detected content occupies approximately the
+    # upper-left half in each dimension; snap to that logical surface.
+    if image.width >= 2 * right - 8 and image.height >= 2 * bottom - 8:
+        right = image.width // 2
+        bottom = image.height // 2
+        left = 0
+        top = 0
+    surface = image.crop((left, top, right, bottom))
+    if surface.width < 200 or surface.height < 400:
+        raise SystemExit(
+            f"LOGIN_V2_ACTIVE_SURFACE_INVALID size={surface.width}x{surface.height}"
+        )
+    return surface
+
+runtime = active_surface(runtime_raw)
+runtime.save(out_dir / "login_v2_idle_normalized.png")
 reference_scaled = reference.resize(runtime.size, Image.Resampling.LANCZOS)
 
 def mae(a, b):
@@ -78,6 +114,7 @@ report = {
     "status": status,
     "reference": str(reference_path),
     "runtime": str(runtime_path),
+    "runtime_raw_size": list(runtime_raw.size),
     "runtime_size": list(runtime.size),
     "metrics_mae": metrics,
     "thresholds": thresholds,
