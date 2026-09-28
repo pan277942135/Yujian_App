@@ -23,3 +23,15 @@ Show when one or more valid FishRecords exist.
 
 ## Data
 Displayed statistics and catch content must come from real record data; frozen visual values are examples, not hardcoded product data.
+
+## Runtime Closure V1
+
+- Branch: `fix/normal-home-visual-closure-v1`
+- Page-specific runtime root: `app/src/main/assets/home_normal_v1/`
+- Legacy Normal Home runtime references to `home_empty_v1_3` and `home_normal_v1_2`: removed.
+- Shared capture control remains `HomeCameraButton` / `YuJianPrimaryCaptureButton`; no second camera implementation is introduced.
+- Frozen hierarchy enforced in runtime: real recent-catch Hero before secondary statistics.
+- Required API 28 gate: `normal-home-v1`.
+- Evidence contract: single/multiple real Guest FishRecords; 16:9 / 19.5:9 / 20:9 / 21:9 screenshots; Frozen/runtime structural comparison; 10-second idle-motion recording.
+
+The canonical Frozen PNG remains read-only visual authority. Runtime evidence may use dynamic real catch media and therefore validates structural ROI/layout/overlay parity rather than raw pixel equality.
