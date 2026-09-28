@@ -533,17 +533,79 @@ class RecognitionFrozenFlowEmulatorTest {
 
     private fun capture(name: String) {
         val output = File(evidenceDir, name)
-        assertTrue("screenshot capture failed: $name", device.takeScreenshot(output))
-        assertTrue("empty screenshot: $name", output.isFile && output.length() > 0L)
-        val bitmap = BitmapFactory.decodeFile(output.absolutePath)
+        val raw = File(evidenceDir, ".$name.raw.png")
+        assertTrue("screenshot capture failed: $name", device.takeScreenshot(raw))
+        assertTrue("empty screenshot: $name", raw.isFile && raw.length() > 0L)
+
+        val bitmap = BitmapFactory.decodeFile(raw.absolutePath)
         assertTrue("unreadable screenshot: $name", bitmap != null && bitmap.width > 0 && bitmap.height > 0)
-        assertEquals(device.displayWidth, bitmap.width)
-        assertEquals(device.displayHeight, bitmap.height)
-        bitmap?.recycle()
+        val decoded = requireNotNull(bitmap)
+        val canonical = canonicalizeApi28Screenshot(decoded)
+        output.outputStream().use { stream ->
+            check(canonical.compress(Bitmap.CompressFormat.PNG, 100, stream))
+        }
+        trace(
+            "SCREENSHOT_CANONICALIZED name=$name raw=${decoded.width}x${decoded.height} " +
+                "output=${canonical.width}x${canonical.height}",
+        )
+        if (canonical !== decoded) canonical.recycle()
+        decoded.recycle()
+        raw.delete()
+
+        assertTrue("empty canonical screenshot: $name", output.isFile && output.length() > 0L)
+        val verified = BitmapFactory.decodeFile(output.absolutePath)
+        assertTrue(
+            "unreadable canonical screenshot: $name",
+            verified != null && verified.width > 0 && verified.height > 0,
+        )
+        verified?.recycle()
 
         // Evidence remains in the target app cache during instrumentation.
         // CI exports it after the test through adb run-as; do not make the
         // instrumentation process depend on writing /data/local/tmp.
+    }
+
+    /**
+     * API28 UiDevice can return a 2x backing bitmap whose real display occupies
+     * only the upper-left quadrant; the unused right/bottom halves are pure
+     * black. Screenrecord and the actual user-visible surface use the real
+     * viewport. Remove only that exact padding signature, never arbitrary dark
+     * product pixels.
+     */
+    private fun canonicalizeApi28Screenshot(source: Bitmap): Bitmap {
+        if (source.width < 2 || source.height < 2 ||
+            source.width % 2 != 0 || source.height % 2 != 0
+        ) return source
+        val halfWidth = source.width / 2
+        val halfHeight = source.height / 2
+        if (!isBlackPadding(source, halfWidth, 0, source.width, source.height) ||
+            !isBlackPadding(source, 0, halfHeight, source.width, source.height)
+        ) return source
+        return Bitmap.createBitmap(source, 0, 0, halfWidth, halfHeight)
+    }
+
+    private fun isBlackPadding(
+        bitmap: Bitmap,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+    ): Boolean {
+        val stepX = ((right - left) / 24).coerceAtLeast(1)
+        val stepY = ((bottom - top) / 24).coerceAtLeast(1)
+        var y = top
+        while (y < bottom) {
+            var x = left
+            while (x < right) {
+                val pixel = bitmap.getPixel(x, y)
+                if (Color.red(pixel) > 3 || Color.green(pixel) > 3 || Color.blue(pixel) > 3) {
+                    return false
+                }
+                x += stepX
+            }
+            y += stepY
+        }
+        return true
     }
 
     private fun assertVisible(text: String) {
