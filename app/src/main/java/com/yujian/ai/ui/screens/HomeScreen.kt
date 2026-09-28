@@ -69,10 +69,10 @@ private const val HomeBackground =
 
 private const val EmptyHomeReferenceWidth = 1080f
 private const val EmptyHomeReferenceHeight = 1920f
-private const val EmptyHomeHeroX = 50f
-private const val EmptyHomeHeroY = 224f
-private const val EmptyHomeHeroWidth = 620f
-private const val EmptyHomeHeroHeight = 310f
+private const val EmptyHomeHeroX = 75f
+private const val EmptyHomeHeroY = 240f
+private const val EmptyHomeHeroWidth = 606f
+private const val EmptyHomeHeroHeight = 296f
 private const val EmptyHomePromptY = 1430f
 private const val EmptyHomeCameraX = 436f
 private const val EmptyHomeCameraY = 1500f
@@ -290,7 +290,7 @@ private fun EmptyHomeContent(
         }
 
         Image(
-            painter = painterResource(R.drawable.empty_home_title),
+            painter = painterResource(R.drawable.empty_home_title_v2),
             contentDescription = "现在，轮到你记录第一条鱼",
             modifier = Modifier
                 .offset(
