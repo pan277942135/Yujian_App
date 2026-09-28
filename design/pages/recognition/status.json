@@ -9,6 +9,15 @@
   "runtime_contract": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
   "acceptance_contract": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
   "evidence_contract": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md",
-  "api28_runtime_gate": "PENDING",
-  "design_closure": "V1.1"
+  "api28_runtime_gate": "PASS",
+  "design_closure": "V1.1",
+  "verified_ci": {
+    "android_ci_run_id": 36386342604,
+    "implementation_main_sha": "94a99f9a7c848e4bb124c5c454dcf42b3236f74b",
+    "runtime_gate_artifact_id": 10954627213,
+    "qa_apk_artifact_id": 10955001312,
+    "runtime_gate": "recognition-frozen",
+    "api_level": 28,
+    "classification": "PASS"
+  }
 }
