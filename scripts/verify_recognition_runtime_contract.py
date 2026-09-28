@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
-"""Validate the packaged recognition timeline and terminal routing contract."""
+"""Validate the packaged Recognition Processing V1.1 compatibility contract."""
 
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 TIMELINE = ROOT / "app/src/main/assets/identify/animation/identify_timeline.json"
 STATE_MACHINE = ROOT / "app/src/main/assets/identify/state_machine/identify_state_machine.json"
-VERSION = "RECOGNITION_RUNTIME_v1"
+VERSION = "RECOGNITION_RUNTIME_v1_1"
 EXPECTED = [
     (0, "CAPTURED"),
-    (800, "DETECTING"),
-    (1500, "OUTLINE"),
-    (2300, "CLASSIFYING"),
-    (3000, "RESULT"),
+    (350, "DETECTING"),
+    (950, "OUTLINE"),
+    (1550, "CLASSIFYING"),
+    (2800, "RESULT"),
 ]
 
 
@@ -32,7 +31,7 @@ def main() -> None:
     assert set(flow["CLASSIFYING"]) == {"SUCCESS", "CONFIRM", "UNKNOWN"}
     for terminal in ("SUCCESS", "CONFIRM", "UNKNOWN", "NO_FISH", "TOO_FAR"):
         assert flow[terminal] == [], terminal
-    print("recognition runtime contract: OK")
+    print("recognition runtime compatibility contract v1.1: OK")
 
 
 if __name__ == "__main__":
