@@ -1,13 +1,13 @@
 package com.yujian.ai.ui.designsystem.components
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material3.Icon
@@ -16,14 +16,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.haptic.YuJianHaptic
@@ -54,8 +55,11 @@ data class YuJianCaptureButtonRasterMotion(
 )
 
 /**
- * Native Core UI V1 capture control. The touch target is 64 dp while the
- * visible white core remains 56 dp, matching the frozen component contract.
+ * Native Core UI V1 capture control.
+ *
+ * Defaults remain density-based for shared callers. Empty Home may supply a
+ * reference-space visual/touch size so its raster master lands on the exact
+ * Frozen V2 bbox without changing other capture-button call sites.
  */
 @Composable
 fun YuJianCaptureButton(
@@ -66,6 +70,8 @@ fun YuJianCaptureButton(
     motionEnabled: Boolean = true,
     rasterAssets: YuJianCaptureButtonRasterAssets? = null,
     rasterMotion: YuJianCaptureButtonRasterMotion? = null,
+    visualSize: Dp? = null,
+    touchTargetSize: Dp? = null,
 ) {
     val haptic = rememberYuJianHaptic()
     val transition = rememberYuJianInfiniteTransition(label = "YuJianCaptureButton")
@@ -84,10 +90,13 @@ fun YuJianCaptureButton(
     val sweepAlpha = sin(rimProgress * PI.toFloat()).coerceAtLeast(0f)
     val visualScale = if (motionEnabled) rasterMotion?.breathScale ?: breathingScale else 1f
     val visibleSweepAlpha = if (motionEnabled) rasterMotion?.sweepAlpha ?: sweepAlpha else 0f
+    val resolvedVisualSize = visualSize
+        ?: if (rasterAssets != null) RasterCaptureVisualSize else CaptureVisualSize
+    val resolvedTouchTarget = touchTargetSize ?: YuJianSpacing.minimumTouchTarget
 
     Box(
         modifier = modifier
-            .size(YuJianSpacing.minimumTouchTarget)
+            .size(resolvedTouchTarget)
             .semantics {
                 this.contentDescription = contentDescription
                 role = Role.Button
@@ -100,14 +109,12 @@ fun YuJianCaptureButton(
     ) {
         Box(
             modifier = Modifier
-                .size(if (rasterAssets != null) RasterCaptureVisualSize else CaptureVisualSize)
+                .size(resolvedVisualSize)
                 .graphicsLayer {
                     scaleX = visualScale
                     scaleY = visualScale
                     alpha = if (enabled) 1f else 0.48f
                 }
-                // Keep the control legible over the lake without the heavy
-                // Material-FAB shadow that conflicts with the frozen visual.
                 .shadow(1.dp, CircleShape, clip = false),
             contentAlignment = Alignment.Center,
         ) {
