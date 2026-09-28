@@ -173,8 +173,9 @@ class RecognitionFrozenFlowEmulatorTest {
         // Exact 2.8s controller semantics are covered by
         // RecognitionVisualStateControllerTest. This emulator test owns the
         // complementary responsibility: prove that the production processing
-        // composable can visibly present the frozen sequence and persist a
-        // real MP4 without coupling wall-clock timing to Compose's test clock.
+        // composable can visibly present the frozen sequence and provide a
+        // real runtime frame sequence without coupling wall-clock timing to
+        // Compose's test clock. The gate encodes these frames into the MP4.
         val started = mutableStateOf(false)
         val phase = mutableStateOf(RecognitionPhase.CAPTURED)
         val showResult = mutableStateOf(false)
@@ -225,7 +226,12 @@ class RecognitionFrozenFlowEmulatorTest {
                     frame.delete()
                 }
                 try {
-                    Thread.sleep(100L)
+                    // UiDevice screenshot capture already has non-trivial
+                    // binder overhead. Keep the sampler close to the gate's
+                    // 10fps encode rate without adding another 100ms gap;
+                    // this is evidence collection only and does not alter
+                    // the frozen phase sleeps below.
+                    Thread.sleep(16L)
                 } catch (_: InterruptedException) {
                     break
                 }

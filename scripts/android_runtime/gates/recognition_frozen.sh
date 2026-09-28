@@ -46,7 +46,7 @@ gate_collect_evidence() {
   if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" == "1" ]]; then
     mkdir -p "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR"
     rm -f "$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR"/frame-*.png
-    local missing_streak=0 index frame_name frame_path
+    local missing_streak=0 index frame_name frame_path png_signature
     for index in $(seq 0 299); do
       frame_name="runtime_frame_$(printf '%05d' "$index").png"
       frame_path="$YUJIAN_RECOGNITION_RUNTIME_FRAME_DIR/frame-$(printf '%05d' "$index").png"
@@ -54,8 +54,18 @@ gate_collect_evidence() {
         "$YUJIAN_RECOGNITION_RUNTIME_FRAME_SOURCE/$frame_name" \
         > "$frame_path" 2>/dev/null || true
       if [[ -s "$frame_path" ]]; then
-        pulled_frames=$((pulled_frames + 1))
-        missing_streak=0
+        # adb exec-out/run-as can surface a missing-file diagnostic through
+        # the captured stream. Never let non-empty error text enter ffmpeg as
+        # if it were a PNG; the instrumentation names frames contiguously, so
+        # the first invalid frame terminates the sequence.
+        png_signature="$(head -c 8 "$frame_path" | od -An -t x1 | tr -d '[:space:]')"
+        if [[ "$png_signature" == "89504e470d0a1a0a" ]]; then
+          pulled_frames=$((pulled_frames + 1))
+          missing_streak=0
+        else
+          rm -f "$frame_path"
+          break
+        fi
       else
         rm -f "$frame_path"
         if (( pulled_frames > 0 )); then
