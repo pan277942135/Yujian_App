@@ -40,6 +40,7 @@ run_case() {
   set +e
   FAKE_ADB_MODE="$mode" \
     FAKE_ADB_RESTART_LOG="$tmp/restarts" \
+    YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
     ADB="$FAKE_ADB" \
     YUJIAN_WAIT_ATTEMPTS=1 \
     YUJIAN_PREFLIGHT_ATTEMPTS=1 \

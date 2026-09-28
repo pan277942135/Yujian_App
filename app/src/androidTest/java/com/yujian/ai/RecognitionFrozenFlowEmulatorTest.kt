@@ -69,9 +69,6 @@ class RecognitionFrozenFlowEmulatorTest {
         fun clearFrozenEvidenceOnce() {
             val instrumentation = InstrumentationRegistry.getInstrumentation()
             File(instrumentation.targetContext.cacheDir, "recognition-evidence").deleteRecursively()
-            UiDevice.getInstance(instrumentation).executeShellCommand(
-                "rm -f /sdcard/recognition_processing_v1_1.mp4",
-            )
         }
     }
 
@@ -208,10 +205,6 @@ class RecognitionFrozenFlowEmulatorTest {
         }
 
         composeRule.onNodeWithContentDescription("已选择的鱼获照片").assertIsDisplayed()
-        device.executeShellCommand("rm -f /sdcard/recognition_processing_v1_1.mp4")
-        val recordingPfd = InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("screenrecord --time-limit 6 /sdcard/recognition_processing_v1_1.mp4")
-        Thread.sleep(250L)
 
         val acceptedAtMs = SystemClock.elapsedRealtime()
         composeRule.runOnUiThread {
@@ -272,14 +265,11 @@ class RecognitionFrozenFlowEmulatorTest {
                 "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
         )
 
-        // Keep the first result frame in the same evidence clip. The screenrecord
-        // process is intentionally allowed to reach its own 6s time limit before
-        // closing the command descriptor. MP4 persistence is evidence ownership:
-        // the runtime evidence gate waits for finalization and classifies a missing
-        // clip as FAIL_EVIDENCE rather than misclassifying the product as FAIL_TEST.
+        // Keep the first result frame in the same evidence clip. The runtime gate
+        // owns a host-side screenrecord, so this dwell preserves the frozen result
+        // frame without coupling the test process to recorder finalization.
         Thread.sleep(1_800L)
         Thread.sleep(1_500L)
-        recordingPfd.close()
     }
 
     private fun waitForFlowCopy(text: String): Long {

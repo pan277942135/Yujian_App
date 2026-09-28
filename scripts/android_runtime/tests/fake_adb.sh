@@ -100,6 +100,14 @@ case "$1" in
       printf 'Filesystem Size Used Avail Use%% Mounted on\n/dev/fake 1G 100M 900M 10%% /data\n'
       exit 0
     fi
+    if [[ "$command_line" == *'wc -c < /sdcard/recognition_processing_runtime_host.mp4'* ]]; then
+      if [[ "$MODE" == "missing-evidence" ]]; then
+        printf '0\n'
+      else
+        printf '4096\n'
+      fi
+      exit 0
+    fi
     if [[ "$command_line" == *'pm path com.yujian.ai.uiv2.test'* || "$command_line" == *'pm path com.yujian.ai.uiv2'* ]]; then
       printf 'package:/data/app/fake/base.apk\n'
       exit 0

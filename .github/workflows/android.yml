@@ -178,7 +178,7 @@ jobs:
           ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'empty-home-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
