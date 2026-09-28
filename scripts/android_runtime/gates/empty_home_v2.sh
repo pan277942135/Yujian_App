@@ -8,7 +8,8 @@ gate_collect_evidence() {
   local home_dir="$YUJIAN_EVIDENCE_DIR/home-evidence"
   mkdir -p "$home_dir"
 
-  if ! (
+  local evidence_command_rc=0
+  (
     set -euo pipefail
 
     # Emulator runner disables animations for deterministic instrumentation.
@@ -91,16 +92,27 @@ PY
     sleep 4
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_4s.png"
 
+    # The frozen parity layout uses a 1080x1920 logical wm size on the
+    # 320x640 API 28 emulator. API 28 screenrecord otherwise keeps the
+    # physical encoder size but projects the logical surface's upper half.
+    # Capture after returning to the physical display size, then restore the
+    # frozen logical size for the remaining evidence.
+    "${YUJIAN_ADB_BIN}" shell wm size reset
+    sleep 1
+    "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_recording_reference.png"
+
     "${YUJIAN_ADB_BIN}" shell rm -f /sdcard/full_runtime_15s.mp4
     # API 28's recorder can inherit the logical wm-size projection and encode
     # only the upper portion of the portrait surface when the physical runner
     # display is 320x640. Pin the evidence stream to the runner's physical
     # surface so the MP4 contains the same full frame as screencap.
-    "${YUJIAN_ADB_BIN}" shell screenrecord --size 320x640 --time-limit 15 --verbose /sdcard/full_runtime_15s.mp4 > "$home_dir/screenrecord.log" 2>&1
+    "${YUJIAN_ADB_BIN}" shell wm size > "$home_dir/screenrecord.log" 2>&1
+    "${YUJIAN_ADB_BIN}" shell screenrecord --size 320x640 --time-limit 15 --verbose /sdcard/full_runtime_15s.mp4 >> "$home_dir/screenrecord.log" 2>&1
     "${YUJIAN_ADB_BIN}" pull /sdcard/full_runtime_15s.mp4 "$home_dir/full_runtime_15s.mp4" >/dev/null
     cp "$home_dir/full_runtime_15s.mp4" "$home_dir/Empty_Home_V2_Parity_Runtime.mp4"
+    "${YUJIAN_ADB_BIN}" shell wm size 1080x1920
 
-    python3 - "$home_dir/full_runtime_15s.mp4" "$home_dir/runtime_4s.png" <<'PY'
+    python3 - "$home_dir/full_runtime_15s.mp4" "$home_dir/runtime_recording_reference.png" <<'PY'
 from __future__ import annotations
 
 import json
@@ -198,7 +210,9 @@ PY
       exit 1
     fi
     cp "$YUJIAN_REPO_ROOT/design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png" "$home_dir/static_reference.png"
-  ); then
+  )
+  evidence_command_rc=$?
+  if (( evidence_command_rc != 0 )); then
     runtime_set_failure "EVIDENCE" "EMPTY_HOME_V2_EVIDENCE_COMMAND_FAILED"
     return "$EXIT_FAIL_EVIDENCE"
   fi
