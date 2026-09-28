@@ -65,7 +65,7 @@ import com.yujian.ai.ui.home.rememberHomeMotionState
 
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
-    "home_empty_v1_3/assets/background/home_empty_bg_no_bobber.webp"
+    "home_normal_v1/assets/background/normal_home_bg.webp"
 
 private const val EmptyHomeReferenceWidth = 1080f
 private const val EmptyHomeReferenceHeight = 1920f
@@ -101,7 +101,7 @@ fun HomeScreen(
     val view = LocalView.current
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val homeMotionState = rememberHomeMotionState()
-    val emptyRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = showEmptyState)
+    val sharedHomeRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = true)
 
     DisposableEffect(view) {
         val activity = view.context as? Activity
@@ -128,7 +128,7 @@ fun HomeScreen(
             HomeEmptyScene(
                 modifier = Modifier.fillMaxSize(),
                 motionState = homeMotionState,
-                runtimeAssets = emptyRuntimeAssets,
+                runtimeAssets = sharedHomeRuntimeAssets,
             )
             EmptyHomeContent(
                 modifier = Modifier.fillMaxSize(),
@@ -142,7 +142,7 @@ fun HomeScreen(
                 onLoginClick = onLoginClick,
                 onProfileClick = onProfileClick,
                 motionState = homeMotionState,
-                runtimeAssets = emptyRuntimeAssets,
+                runtimeAssets = sharedHomeRuntimeAssets,
             )
         } else {
             AssetImage(
@@ -174,6 +174,7 @@ fun HomeScreen(
                     onProfileClick = onProfileClick,
                     onCatchClick = onCatchClick,
                     motionState = homeMotionState,
+                    runtimeAssets = sharedHomeRuntimeAssets,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
