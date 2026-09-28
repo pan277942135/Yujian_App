@@ -90,6 +90,8 @@ The verifier is `scripts/verify_recognition_visual_parity_v1_1.py`.
 
 A parity mismatch is `FAIL_TEST`, not `FAIL_EVIDENCE`: evidence exists, but the product rendering is outside the Frozen visual contract.
 
+Parity thresholds belong to the verifier contract and must not be relaxed in response to a failing runtime frame; fix the rendering or explicitly revise the Frozen contract.
+
 ## Real production-flow gate
 
 The final production-flow evidence runs without `phaseOverride` and executes:
