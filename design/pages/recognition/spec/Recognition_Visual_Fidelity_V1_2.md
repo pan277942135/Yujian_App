@@ -72,14 +72,14 @@ Forbidden:
 
 ## V1.2 implementation calibration
 
-Ambient perceptual curve:
+Ambient perceptual curve (final line-led calibration; edge bloom intentionally stays low so the photo is never washed out):
 
 | Phase | Edge | Primary | Secondary | Particles | Speed |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| CAPTURED | 0.70 | 0.72 | 0.34 | 0.24 | 1.00 |
-| DETECTING | 0.64 | 0.78 | 0.30 | 0.26 | 0.92 |
-| OUTLINE | 0.50 | 0.56 | 0.20 | 0.17 | 0.78 |
-| CLASSIFYING | 0.34 | 0.42 | 0.12 | 0.10 | 0.52 |
+| CAPTURED | 0.34 | 0.88 | 0.52 | 0.42 | 1.00 |
+| DETECTING | 0.30 | 0.82 | 0.42 | 0.38 | 0.92 |
+| OUTLINE | 0.24 | 0.60 | 0.26 | 0.26 | 0.78 |
+| CLASSIFYING | 0.16 | 0.42 | 0.14 | 0.16 | 0.52 |
 
 Level A contour:
 
