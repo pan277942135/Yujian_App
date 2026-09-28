@@ -22,14 +22,21 @@ Core alpha is `0.20–0.46`; hot points `<=0.50`; mid bloom `0.05–0.10`; outer
 
 ## Runtime presentation
 
-| Real phase | Minimum | Edge / Filament / Particles | Fish focus |
-| --- | ---: | --- | --- |
-| CAPTURED | 220ms | .20 / .15 / .05 | off |
-| DETECTING | 320ms | .30 / .35 / .20 | off |
-| OUTLINE | 350ms | .22 / .24 / .12 | halo + contour |
-| CLASSIFYING | 250ms | .18 / .20 / .08 | .90, breathing |
+The historical V1 phase durations and 900ms fast-result compression are retired and intentionally
+removed from the active contract to prevent automated tooling from treating them as valid values.
 
-The controller preserves phase order and never delays inference. After a real result it compresses remaining presentation time, bounded by `MAX_POST_RESULT_HOLD_MS = 900`.
+Current runtime timing authority:
+`Recognition_Processing_Motion_Spec_V1_1.md`
+
+Active V1.1 presentation:
+- CAPTURED 350ms
+- DETECTING 600ms
+- OUTLINE 600ms
+- CLASSIFYING 1250ms
+- nominal total 2800ms
+- resolve fade 200ms
+
+The real pipeline still gates visual advancement; presentation never invents a later semantic phase.
 
 ## Fixed paths and motion
 
