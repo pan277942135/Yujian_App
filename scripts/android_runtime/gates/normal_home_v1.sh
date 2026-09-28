@@ -41,7 +41,23 @@ gate_collect_evidence() {
     "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 || true
     "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 || true
     "$YUJIAN_ADB_BIN" shell wm size reset
-    sleep 1
+    "$YUJIAN_ADB_BIN" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
+
+    normal_resumed=0
+    for attempt in $(seq 1 20); do
+      resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
+      printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
+      if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* ]]; then
+        normal_resumed=1
+        break
+      fi
+      sleep 1
+    done
+    if (( normal_resumed != 1 )); then
+      echo "NORMAL_HOME_ACTIVITY_NOT_RESUMED" >&2
+      exit 1
+    fi
+    sleep 2
     "$YUJIAN_ADB_BIN" exec-out screencap -p > "$out/motion_start.png"
     "$YUJIAN_ADB_BIN" shell rm -f /sdcard/normal_home_motion_10s.mp4
     "$YUJIAN_ADB_BIN" shell screenrecord --size 320x640 --time-limit 10 /sdcard/normal_home_motion_10s.mp4
