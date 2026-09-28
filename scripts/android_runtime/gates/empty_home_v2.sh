@@ -92,9 +92,85 @@ PY
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_4s.png"
 
     "${YUJIAN_ADB_BIN}" shell rm -f /sdcard/full_runtime_15s.mp4
-    "${YUJIAN_ADB_BIN}" shell screenrecord --time-limit 15 /sdcard/full_runtime_15s.mp4
+    # API 28's recorder can inherit the logical wm-size projection and encode
+    # only the upper portion of the portrait surface when the physical runner
+    # display is 320x640. Pin the evidence stream to the runner's physical
+    # surface so the MP4 contains the same full frame as screencap.
+    "${YUJIAN_ADB_BIN}" shell screenrecord --size 320x640 --time-limit 15 --verbose /sdcard/full_runtime_15s.mp4 > "$home_dir/screenrecord.log" 2>&1
     "${YUJIAN_ADB_BIN}" pull /sdcard/full_runtime_15s.mp4 "$home_dir/full_runtime_15s.mp4" >/dev/null
     cp "$home_dir/full_runtime_15s.mp4" "$home_dir/Empty_Home_V2_Parity_Runtime.mp4"
+
+    python3 - "$home_dir/full_runtime_15s.mp4" "$home_dir/runtime_4s.png" <<'PY'
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from PIL import Image, ImageChops, ImageStat
+
+video_path = Path(sys.argv[1])
+reference_path = Path(sys.argv[2])
+probe = subprocess.run(
+    ["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(video_path)],
+    check=True,
+    capture_output=True,
+    text=True,
+)
+metadata = json.loads(probe.stdout)
+video_stream = next(stream for stream in metadata["streams"] if stream.get("codec_type") == "video")
+duration = float(metadata["format"]["duration"])
+width = int(video_stream["width"])
+height = int(video_stream["height"])
+if duration < 14.5:
+    raise SystemExit(f"EMPTY_HOME_RUNTIME_VIDEO_TOO_SHORT duration={duration:.3f}")
+
+with tempfile.TemporaryDirectory() as temp_dir:
+    frame_path = Path(temp_dir) / "frame.png"
+    subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-y", "-ss", "0.5", "-i", str(video_path), "-frames:v", "1", str(frame_path)],
+        check=True,
+    )
+    frame = Image.open(frame_path).convert("RGB")
+reference = Image.open(reference_path).convert("RGB")
+frame = frame.resize(reference.size, Image.Resampling.LANCZOS)
+
+def crop(image: Image.Image, x: float, y: float, width: float, height: float) -> Image.Image:
+    return image.crop((
+        int(image.width * x),
+        int(image.height * y),
+        int(image.width * (x + width)),
+        int(image.height * (y + height)),
+    ))
+
+def mae(left: Image.Image, right: Image.Image) -> float:
+    diff = ImageChops.difference(left, right)
+    return sum(ImageStat.Stat(diff).mean) / 3.0
+
+camera_reference = crop(reference, 0.31, 0.69, 0.39, 0.27)
+camera_frame = crop(frame, 0.31, 0.69, 0.39, 0.27)
+bobber_reference = crop(reference, 0.324, 0.484, 1 / 3, 0.22)
+bobber_frame = crop(frame, 0.324, 0.484, 1 / 3, 0.22)
+camera_mae = mae(camera_reference, camera_frame)
+bobber_mae = mae(bobber_reference, bobber_frame)
+camera_pixels = list(camera_frame.getdata())
+bright_fraction = sum(1 for r, g, b in camera_pixels if r > 210 and g > 210 and b > 210) / len(camera_pixels)
+
+print(
+    "EMPTY_HOME_RUNTIME_VIDEO_VALID "
+    f"duration={duration:.3f} dimensions={width}x{height} "
+    f"camera_mae={camera_mae:.3f} bobber_mae={bobber_mae:.3f} "
+    f"camera_bright_fraction={bright_fraction:.4f}"
+)
+if camera_mae > 30 or bobber_mae > 20 or bright_fraction < 0.005:
+    raise SystemExit(
+        "EMPTY_HOME_RUNTIME_VIDEO_FRAME_INVALID "
+        f"camera_mae={camera_mae:.3f} bobber_mae={bobber_mae:.3f} "
+        f"camera_bright_fraction={bright_fraction:.4f}"
+    )
+PY
 
     ffmpeg -y -ss 0.5 -i "$home_dir/full_runtime_15s.mp4" -frames:v 1 -vf 'crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69' "$home_dir/02_camera_button_closeup.png"
     ffmpeg -y -ss 0.5 -i "$home_dir/full_runtime_15s.mp4" -frames:v 1 -vf 'crop=iw/3:ih*0.22:iw*0.324:ih*0.484' "$home_dir/03_bobber_water_contact.png"
