@@ -1,15 +1,16 @@
 package com.yujian.ai.ui.recognition
 
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -21,6 +22,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.RecognitionPhase
+import android.os.SystemClock
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -121,20 +125,20 @@ fun RecognitionAmbientField(
 private fun ambientClock(override: Long?, reduceMotion: Boolean): Long {
     if (override != null) return override
     if (reduceMotion) return 0L
-    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "ambient-field")
-    val fraction by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            animation = androidx.compose.animation.core.tween(
-                durationMillis = 10_000,
-                easing = androidx.compose.animation.core.LinearEasing,
-            ),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Restart,
-        ),
-        label = "ambient-clock",
-    )
-    return (fraction * 10_000f).toLong()
+
+    // The field is intentionally sampled at 30 fps. On API28, a 60 fps
+    // recomposition loop plus multi-pass path rendering can starve the visual
+    // state controller. 30 fps remains visually fluid for slow 5–10 second
+    // filament travel while preserving the frozen phase timing contract.
+    val startedAt = remember { SystemClock.uptimeMillis() }
+    var nowMs by remember { mutableLongStateOf(startedAt) }
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            nowMs = SystemClock.uptimeMillis()
+            delay(33L)
+        }
+    }
+    return (nowMs - startedAt).coerceAtLeast(0L) % 10_000L
 }
 
 /**
@@ -168,27 +172,28 @@ private fun DrawScope.rememberAmbientPaths(size: Size, filaments: List<Filament>
 private fun DrawScope.drawEdgeBloom(alpha: Float) {
     if (alpha <= 0f) return
 
-    fun glow(center: Offset, radius: Float, color: Color, strength: Float) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    color.copy(alpha = (alpha * strength).coerceAtMost(.035f)),
-                    color.copy(alpha = 0f),
-                ),
-                center = center,
-                radius = radius,
-            ),
-            radius = radius,
-            center = center,
-        )
-    }
-
-    // V1.2 final calibration: bloom is only a tiny local emission behind the
-    // perimeter paths. Strong AI presence comes from line energy, not a photo wash.
-    glow(Offset(size.width * 1.01f, size.height * .15f), size.minDimension * .18f, AiBlueCore, .10f)
-    glow(Offset(-size.width * .01f, size.height * .12f), size.minDimension * .16f, AiGoldCore, .10f)
-    glow(Offset(-size.width * .02f, size.height * .86f), size.minDimension * .17f, AiBlueCore, .09f)
-    glow(Offset(size.width * 1.02f, size.height * .86f), size.minDimension * .18f, AiGoldCore, .09f)
+    // Cheap local emissions only. The line field provides the readable energy;
+    // these circles stay very low-alpha so the photo never receives a full wash.
+    drawCircle(
+        AiBlueCore.copy(alpha = (alpha * .030f).coerceAtMost(.012f)),
+        radius = size.minDimension * .18f,
+        center = Offset(size.width * 1.01f, size.height * .15f),
+    )
+    drawCircle(
+        AiGoldCore.copy(alpha = (alpha * .030f).coerceAtMost(.012f)),
+        radius = size.minDimension * .16f,
+        center = Offset(-size.width * .01f, size.height * .12f),
+    )
+    drawCircle(
+        AiBlueCore.copy(alpha = (alpha * .026f).coerceAtMost(.010f)),
+        radius = size.minDimension * .17f,
+        center = Offset(-size.width * .02f, size.height * .86f),
+    )
+    drawCircle(
+        AiGoldCore.copy(alpha = (alpha * .026f).coerceAtMost(.010f)),
+        radius = size.minDimension * .18f,
+        center = Offset(size.width * 1.02f, size.height * .86f),
+    )
 }
 
 private fun DrawScope.drawPrimaryFilament(
@@ -213,34 +218,22 @@ private fun DrawScope.drawPrimaryFilament(
 
     val perf = if (lowPerformance) .80f else 1f
 
-    // Continuous low-energy skeleton: guarantees the field is perceptible at
-    // every animation phase without turning the broken paths into a closed ring.
+    // Two-pass skeleton + two-pass moving hot segment. This preserves the
+    // bright V1.2 appearance with one third fewer path draws on API28.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .12f * perf).coerceAtMost(.09f)),
-        style = stroke(7.dp),
+        filament.color.copy(alpha = (alpha * .34f * perf).coerceAtMost(.26f)),
+        style = stroke(3.2.dp),
     )
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .30f).coerceAtMost(.24f)),
-        style = stroke(3.dp),
+        filament.hot.copy(alpha = (alpha * .62f).coerceAtMost(.46f)),
+        style = stroke((filament.width.value * .82f).dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * .58f).coerceAtMost(.44f)),
-        style = stroke((filament.width.value * .78f).dp),
-    )
-
-    // Moving hot segment rides on the continuous skeleton.
-    drawPath(
-        path,
-        filament.color.copy(alpha = (alpha * .22f * perf).coerceAtMost(.16f)),
-        style = stroke(8.dp, effect),
-    )
-    drawPath(
-        path,
-        filament.color.copy(alpha = (alpha * .56f).coerceAtMost(.40f)),
-        style = stroke(3.8.dp, effect),
+        filament.color.copy(alpha = (alpha * .62f * perf).coerceAtMost(.44f)),
+        style = stroke(4.2.dp, effect),
     )
     drawPath(
         path,
@@ -268,20 +261,11 @@ private fun DrawScope.drawSecondaryFilament(
         pathEffect = pathEffect,
     )
 
+    // Hairlines use one persistent strand plus one moving hot strand.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .28f).coerceAtMost(.12f)),
-        style = stroke(1.8.dp),
-    )
-    drawPath(
-        path,
-        filament.hot.copy(alpha = (alpha * .62f).coerceAtMost(.22f)),
-        style = stroke((filament.width.value * .72f).dp),
-    )
-    drawPath(
-        path,
-        filament.color.copy(alpha = (alpha * .46f).coerceAtMost(.19f)),
-        style = stroke(2.5.dp, effect),
+        filament.color.copy(alpha = (alpha * .42f).coerceAtMost(.16f)),
+        style = stroke(1.45.dp),
     )
     drawPath(
         path,
