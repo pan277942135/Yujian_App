@@ -75,7 +75,7 @@ fun HomeStats(
             Modifier
                 .width(1.dp)
                 .height(YuJianSpacing.xl)
-                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
+                .background(YuJianColors.MistBlueGray.copy(alpha = 0.20f)),
         )
         HomeStat(Modifier.weight(1f), values.catchCount.toString(), "鱼获", onCatchesClick)
         Box(
@@ -98,11 +98,11 @@ private fun HomeStat(modifier: Modifier, value: String, label: String, onClick: 
     ) {
         Text(
             text = value,
-            style = YuJianTypography.dataNumber.copy(color = YuJianColors.TextPrimary),
+            style = YuJianTypography.dataNumber.copy(color = YuJianColors.TextPrimary.copy(alpha = 0.88f)),
         )
         Text(
             text = label,
-            style = YuJianTypography.caption.copy(color = YuJianColors.TextPrimary.copy(alpha = 0.78f)),
+            style = YuJianTypography.caption.copy(color = YuJianColors.TextPrimary.copy(alpha = 0.64f)),
         )
     }
 }
