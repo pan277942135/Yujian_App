@@ -18,6 +18,24 @@ normal_home_run_seed() {
   grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \([0-9]+ test' "$log"
 }
 
+normal_home_launch_app() {
+  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
+  "$YUJIAN_ADB_BIN" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
+
+  local attempt resumed
+  for attempt in $(seq 1 20); do
+    resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
+    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
+    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* ]]; then
+      sleep 2
+      return 0
+    fi
+    sleep 1
+  done
+  echo 'NORMAL_HOME_ACTIVITY_NOT_RESUMED' >&2
+  return 1
+}
+
 gate_collect_evidence() {
   local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
   mkdir -p "$out"
@@ -30,17 +48,17 @@ gate_collect_evidence() {
 
     "$YUJIAN_ADB_BIN" shell wm size 1080x1920
     normal_home_run_seed seedSingleGuestCatch "$out/seed_single.log"
-    sleep 2
+    normal_home_launch_app
     "$YUJIAN_ADB_BIN" exec-out screencap -p > "$out/normal_home_frozen_geometry.png"
 
     "$YUJIAN_ADB_BIN" shell wm size 1080x2340
     normal_home_run_seed seedSingleGuestCatch "$out/seed_single_19_5_9.log"
-    sleep 2
+    normal_home_launch_app
     "$YUJIAN_ADB_BIN" exec-out screencap -p > "$out/normal_home_single_19_5_9.png"
 
     "$YUJIAN_ADB_BIN" shell wm size 1080x2400
     normal_home_run_seed seedMultipleGuestCatches "$out/seed_multiple_20_9.log"
-    sleep 2
+    normal_home_launch_app
     "$YUJIAN_ADB_BIN" exec-out screencap -p > "$out/normal_home_multiple_20_9.png"
 
     "$YUJIAN_ADB_BIN" shell wm size 1080x2520

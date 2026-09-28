@@ -144,15 +144,15 @@ jobs:
       max-parallel: 1
       matrix:
         include:
+          - gate: normal-home-v1
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           - gate: recognition-frozen
             api_level: 28
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           - gate: empty-home-v2
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          - gate: normal-home-v1
             api_level: 28
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
