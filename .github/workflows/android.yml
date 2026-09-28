@@ -127,10 +127,11 @@ jobs:
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, yujian-android, api28]
     timeout-minutes: 60
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - gate: recognition-frozen
@@ -173,26 +174,29 @@ jobs:
           sudo apt-get install -y ffmpeg
           python3 -m pip install --user Pillow
 
-      - name: Enable KVM for runtime parity
-        if: ${{ matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true }}
+      - name: Prepare GCP self-hosted Android runtime
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          test -e /dev/kvm
+          /opt/android-sdk/platform-tools/adb start-server
+          /opt/android-sdk/platform-tools/adb wait-for-device
+          test "$(/opt/android-sdk/platform-tools/adb get-state)" = "device"
+          test "$(/opt/android-sdk/platform-tools/adb shell getprop sys.boot_completed | tr -d '\r')" = "1"
+          test "$(/opt/android-sdk/platform-tools/adb shell getprop ro.build.version.sdk | tr -d '\r')" = "${{ matrix.api_level }}"
+          /opt/android-sdk/platform-tools/adb devices -l
 
       - name: Run unified Android Runtime Harness
         id: runtime_gate
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api_level }}
-          arch: x86_64
-          target: default
-          disable-animations: true
-          emulator-options: ${{ matrix.emulator_options }}
-          script: |
-            bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
 
       - name: Materialize runtime status when emulator action fails before Harness startup
         if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
