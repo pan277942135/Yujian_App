@@ -2,21 +2,24 @@ name: Android CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'fix/**'
+      - 'feature/**'
+      - 'refactor/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
-      run_frozen_emulator_gate:
-        description: Run the deterministic Frozen Recognition emulator gate
-        required: false
-        default: true
-        type: boolean
-      run_legacy_runtime_parity:
-        description: Run the historical runtime-parity diagnostics
+      run_runtime_parity:
+        description: Run the heavy Empty Home and Design System parity evidence gate
         required: false
         default: false
         type: boolean
+
+concurrency:
+  group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -35,11 +38,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify Empty Home runtime asset contract
+      - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_empty_home_runtime_assets.py
           python3 scripts/verify_empty_home_runtime_v2.py
-          python3 scripts/verify_recognition_runtime_contract.py
+          python3 scripts/verify_recognition_design_closure_v1_1.py
           python3 scripts/verify_recognition_runtime_contract.py
 
       - name: Bootstrap verified recognition assets
@@ -72,7 +75,7 @@ jobs:
       - name: Assemble debug APK
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug --stacktrace --no-daemon --max-workers=2
 
-      - name: Compile Android runtime smoke test
+      - name: Compile Android runtime test APK
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
 
       - name: Verify packaged launcher icon in APK
@@ -83,6 +86,25 @@ jobs:
 
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
+
+      # Build Once contract: the two files below are the only APK pair any
+      # Android Runtime job is allowed to install.
+      - name: Stage frozen runtime APK pair
+        run: |
+          mkdir -p build/runtime-apks
+          cp app/build/outputs/apk/debug/app-debug.apk build/runtime-apks/app-debug.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk build/runtime-apks/app-debug-androidTest.apk
+          (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk > SHA256SUMS)
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+
+      - name: Upload frozen runtime APK pair
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ github.sha }}
+          path: build/runtime-apks
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Prepare YuJian debug APK
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
@@ -95,7 +117,6 @@ jobs:
           echo "filename=${filename}" >> "$GITHUB_OUTPUT"
 
       - name: Upload installable debug APK
-        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: YuJian-debug-${{ github.sha }}
@@ -104,7 +125,6 @@ jobs:
           retention-days: 7
 
       - name: Upload Recognition Visual V1.1 QA APK
-        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.recognition_qa_apk.outputs.filename }}
@@ -112,268 +132,220 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  emulator-data-sanitization:
-    # Deterministic production-route data hygiene gate. Run in cloud so local
-    # Work machines do not need a pre-provisioned AVD.
-    if: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
+  # One job, one Harness, and one frozen APK pair.  The optional parity row is
+  # part of this same matrix so it cannot grow a second ADB/install path.
+  android-runtime:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+    runs-on: [self-hosted, yujian-android, api28]
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - gate: recognition-frozen
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          - gate: empty-home-v2
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          - gate: runtime-parity
+            api_level: 28
+            required: false
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
 
     steps:
       - name: Checkout
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         uses: actions/checkout@v4
 
-      - name: Bootstrap verified recognition assets
-        run: python3 scripts/bootstrap_android_recognition_assets.py
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Download frozen runtime APK pair
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: '17'
+          name: YuJian-runtime-apks-${{ github.sha }}
+          path: build/runtime-apks
 
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Assemble APKs for emulator gate
-        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
-
-      - name: Run presentation sanitization emulator gate
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          arch: x86_64
-          target: default
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: |
-            set +e
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PresentationSanitizationRuntimeTest --stacktrace
-            gate_status=$?
-            mkdir -p evidence/ui_rework_v1/data_sanitization
-            adb pull /sdcard/Android/data/com.yujian.ai.uiv2/files/evidence/ui_rework_v1/data_sanitization/. evidence/ui_rework_v1/data_sanitization/ || true
-            exit $gate_status
-
-      - name: Upload presentation sanitization evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ui-data-sanitization-emulator-evidence-${{ github.sha }}
-          path: evidence/ui_rework_v1/data_sanitization
-          if-no-files-found: warn
-          retention-days: 14
-
-  emulator-frozen-flow:
-    # Deterministic Recognition gate: run automatically for PR updates and
-    # remain manually runnable through workflow_dispatch.
-    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.run_frozen_emulator_gate == true) }}
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Bootstrap verified recognition assets
-        run: python3 scripts/bootstrap_android_recognition_assets.py
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Assemble APKs for emulator gate
-        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
-
-      - name: Run deterministic Frozen Recognition emulator gate
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 28
-          arch: x86_64
-          target: default
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          script: |
-            bash scripts/run_recognition_frozen_emulator_gate.sh
-
-      - name: Upload Frozen Recognition emulator evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: recognition-frozen-flow-emulator-evidence-${{ github.sha }}
-          path: evidence/ui_rework_v1/recognition
-          if-no-files-found: warn
-          retention-days: 14
-
-  runtime-parity:
-    # Keep legacy delivery CI light, but make the Empty Home V2 parity branch
-    # run its real emulator/evidence gate before it is merged.
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_legacy_runtime_parity == true }}
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Verify Empty Home runtime asset contract
+      - name: Verify exact frozen APK pair
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
-          python3 scripts/verify_empty_home_runtime_assets.py
-          python3 scripts/verify_empty_home_runtime_v2.py
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
 
-      - name: Install runtime evidence image dependency
-        run: python3 -m pip install --user Pillow
-
-      - name: Bootstrap verified recognition assets
-        run: python3 scripts/bootstrap_android_recognition_assets.py
-
-      - name: Verify production TFLite model
-        run: python3 scripts/verify_production_model.py
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Install FFmpeg for runtime evidence clips
+      - name: Install runtime parity dependencies
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
+          # Ubuntu 24.04 marks its system Python as externally managed
+          # (PEP 668). Pillow is an evidence-only user dependency; keep the
+          # runner image untouched and opt in explicitly to the user install.
+          python3 -m pip install --user --break-system-packages Pillow
+          python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
 
-      - name: Enable KVM access
+      - name: Prepare GCP self-hosted Android runtime
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          set -euo pipefail
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          test -e /dev/kvm
 
-      - name: Run classifier, detector, and pipeline trace parity on Android 9
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 28
-          arch: x86_64
-          target: default
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: |
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.InferenceParityTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.DetectorGoldenParityTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.PipelineTraceTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.FishDetectionQualityGateTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionRuntimeAssetContractTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.RecognitionVisualRuntimeTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.EmptyHomeV2RuntimeContractTest --stacktrace
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.ui.designsystem.DesignSystemComponentPreviewTest --stacktrace
-            if [ "$GITHUB_EVENT_NAME" != "push" ] && [ "$GITHUB_EVENT_NAME" != "pull_request" ] && [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then exit 0; fi
-            mkdir -p build/designsystem-evidence
-            DESIGNSYSTEM_CAPTURE_SETTLE_SECONDS=5 bash scripts/capture_designsystem_runtime_evidence.sh app/build/outputs/apk/debug/app-debug.apk build/designsystem-evidence
-            mkdir -p build/home-evidence
-            adb install -r app/build/outputs/apk/debug/app-debug.apk
+          adb=/opt/android-sdk/platform-tools/adb
+          emulator=/opt/android-sdk/emulator/emulator
+          preflight_log="evidence/runtime/${{ matrix.gate }}/infra/workflow_preflight.log"
+          emulator_log="evidence/runtime/${{ matrix.gate }}/infra/emulator.log"
+          mkdir -p "$(dirname "$preflight_log")"
+          : > "$preflight_log"
+          : > "$emulator_log"
+          printf 'ADB_BIN=%s\nEMULATOR_BIN=%s\nAPI_LEVEL=%s\n' \
+            "$adb" "$emulator" "${{ matrix.api_level }}" | tee -a "$preflight_log"
 
-            # The emulator action disables animations for deterministic legacy
-            # parity tests. Empty Home has its own reduce-motion contract, so
-            # restore the normal animator scales before visual evidence.
-            adb shell settings put global animator_duration_scale 1.0 || true
-            adb shell settings put global transition_animation_scale 1.0 || true
-            adb shell settings put global window_animation_scale 1.0 || true
+          test -x "$emulator"
+          "$emulator" -version 2>&1 | head -n 2 | tee -a "$preflight_log" || true
+          avd_list="$("$emulator" -list-avds 2>&1)" || {
+            printf '%s\n' "$avd_list" | tee -a "$preflight_log"
+            echo 'ANDROID_AVD_LIST_FAILED' | tee -a "$preflight_log"
+            exit 1
+          }
+          printf 'AVAILABLE_AVDS_BEGIN\n%s\nAVAILABLE_AVDS_END\n' \
+            "$avd_list" | tee -a "$preflight_log"
+          avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+          if [[ -z "$avd_name" ]]; then
+            avd_name="$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}')"
+          fi
+          if [[ -z "$avd_name" ]]; then
+            echo 'ANDROID_AVD_NOT_FOUND' | tee -a "$preflight_log"
+            exit 1
+          fi
+          printf 'SELECTED_AVD=%s\nEMULATOR_OPTIONS=%s\n' \
+            "$avd_name" "${{ matrix.emulator_options }}" | tee -a "$preflight_log"
 
-            adb shell pm clear com.yujian.ai.uiv2
-            adb shell wm size 1080x1920
-            adb logcat -c
-            adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
-            sleep 5
-            if ! adb shell pidof com.yujian.ai.uiv2 | grep -q '[0-9]'; then echo 'EMPTY_HOME_APP_NOT_RUNNING'; adb logcat -d -b all -v threadtime | tail -n 400; exit 1; fi
-            adb exec-out screencap -p > build/home-evidence/runtime_static.png
-            cp build/home-evidence/runtime_static.png build/home-evidence/01_empty_home_static.png
-            sleep 4
-            adb exec-out screencap -p > build/home-evidence/runtime_4s.png
-            adb shell screenrecord --time-limit 15 /sdcard/full_runtime_15s.mp4
-            adb pull /sdcard/full_runtime_15s.mp4 build/home-evidence/full_runtime_15s.mp4
-            cp build/home-evidence/full_runtime_15s.mp4 build/home-evidence/Empty_Home_V2_Parity_Runtime.mp4
-            # Evidence frames are derived from the real Android screenrecord;
-            # no frozen design image is used as a runtime substitute.
-            ffmpeg -y -ss 0.5 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 -vf "crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69" build/home-evidence/02_camera_button_closeup.png
-            ffmpeg -y -ss 0.5 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 -vf "crop=iw/3:ih*0.22:iw*0.324:ih*0.484" build/home-evidence/03_bobber_water_contact.png
-            ffmpeg -y -ss 0.2 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 -vf "crop=iw/3:ih*0.22:iw*0.324:ih*0.484" build/home-evidence/04_ripple_visible.png
-            ffmpeg -y -ss 2.5 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 build/home-evidence/05_gold_rim_sweep_before.png
-            ffmpeg -y -ss 3.7 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 build/home-evidence/06_gold_rim_sweep_peak.png
-            ffmpeg -y -ss 5.0 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 build/home-evidence/07_gold_rim_sweep_after.png
-            ffmpeg -y -ss 1.0 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 -vf "crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69" build/home-evidence/08_camera_breath_min.png
-            ffmpeg -y -ss 3.5 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 -vf "crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69" build/home-evidence/09_camera_breath_max.png
-            ffmpeg -y -ss 2.4 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 build/home-evidence/10_sun_particle_frame.png
-            ffmpeg -y -ss 0.2 -i build/home-evidence/full_runtime_15s.mp4 -frames:v 1 build/home-evidence/11_cloud_start.png
-            sleep 50
-            adb exec-out screencap -p > build/home-evidence/12_cloud_later.png
-            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -t 10 -c copy build/home-evidence/environment_motion.mp4
-            # Android's screenrecord output resolution is device-dependent. Keep
-            # evidence crops in normalized reference-space proportions instead
-            # of assuming a 1080x1920 recording.
-            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -vf "crop=iw/3:ih*0.22:iw*0.324:ih*0.484" -an build/home-evidence/bobber_ripple_crop.mp4
-            ffmpeg -y -i build/home-evidence/full_runtime_15s.mp4 -vf "crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69" -an build/home-evidence/camera_motion.mp4
-            python3 scripts/build_empty_home_runtime_evidence.py --evidence-dir build/home-evidence --build-sha "$GITHUB_SHA"
-            cp design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png build/home-evidence/static_reference.png
-
-            # The guest-record seeding assertions are Normal Home diagnostics,
-            # not Empty Home parity. They currently crash on API 28 and must
-            # not discard the independent Empty Home runtime evidence above.
-            if [ "$GITHUB_HEAD_REF" != "fix/empty-home-v2-parity" ]; then
-              gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.HomeVisualEvidenceSeedTest#seedSingleGuestCatch --stacktrace
-              adb install -r app/build/outputs/apk/debug/app-debug.apk
-              adb shell wm size 1080x2340
-              adb shell am force-stop com.yujian.ai.uiv2
-              adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
-              sleep 5
-              adb exec-out screencap -p > build/home-evidence/home-normal-guest-one-19-5-9.png
-
-              gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.yujian.ai.HomeVisualEvidenceSeedTest#seedMultipleGuestCatches --stacktrace
-              adb install -r app/build/outputs/apk/debug/app-debug.apk
-              adb shell wm size 1080x2400
-              adb shell am force-stop com.yujian.ai.uiv2
-              adb shell monkey -p com.yujian.ai.uiv2 -c android.intent.category.LAUNCHER 1
-              sleep 5
-              adb exec-out screencap -p > build/home-evidence/home-normal-guest-multiple-20-9.png
-
-              adb shell wm size 1080x2520
-              sleep 3
-              adb exec-out screencap -p > build/home-evidence/home-normal-guest-multiple-21-9.png
-
-              adb shell wm size 1080x2400
-              sleep 3
-              adb shell screenrecord --time-limit 10 /sdcard/home-normal-motion.mp4
-              adb pull /sdcard/home-normal-motion.mp4 build/home-evidence/home-normal-motion-10s.mp4
+          "$adb" start-server >> "$preflight_log" 2>&1
+          emulator_started=0
+          if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
+            if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
+              read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
+              nohup "$emulator" -avd "$avd_name" -no-snapshot \
+                "${emulator_options[@]}" > "$emulator_log" 2>&1 &
+              emulator_pid=$!
+              emulator_started=1
+              printf 'EMULATOR_STARTED pid=%s\n' "$emulator_pid" | tee -a "$preflight_log"
+            else
+              echo 'EMULATOR_PROCESS_ALREADY_PRESENT' | tee -a "$preflight_log"
             fi
+          else
+            echo 'ADB_DEVICE_ALREADY_PRESENT' | tee -a "$preflight_log"
+          fi
 
+          restart_count=0
+          wait_ok=0
+          for wait_attempt in 1 2; do
+            printf 'WAIT_FOR_DEVICE attempt=%s\n' "$wait_attempt" | tee -a "$preflight_log"
+            if timeout 90s "$adb" wait-for-device >> "$preflight_log" 2>&1; then
+              wait_ok=1
+              break
+            fi
+            if (( restart_count == 0 )); then
+              restart_count=1
+              printf 'ADB_RESTART_ONCE reason=WAIT_FOR_DEVICE_TIMEOUT\n' | tee -a "$preflight_log"
+              "$adb" kill-server >> "$preflight_log" 2>&1 || true
+              "$adb" start-server >> "$preflight_log" 2>&1
+            fi
+          done
 
-      - name: Upload Home visual evidence
-        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+          if (( wait_ok != 1 )); then
+            "$adb" devices -l >> "$preflight_log" 2>&1 || true
+            if (( emulator_started == 1 )); then
+              kill -0 "$emulator_pid" 2>/dev/null || echo 'EMULATOR_PROCESS_EXITED=1' | tee -a "$preflight_log"
+              tail -n 80 "$emulator_log" | tee -a "$preflight_log"
+            fi
+            echo 'ADB_WAIT_FOR_DEVICE_FAILED' | tee -a "$preflight_log"
+            exit 1
+          fi
+
+          ready=0
+          for readiness_attempt in $(seq 1 30); do
+            state="$("$adb" get-state 2>&1 | tr -d '\r' | head -n 1 || true)"
+            boot="$("$adb" shell getprop sys.boot_completed 2>&1 | tr -d '\r' | head -n 1 || true)"
+            sdk="$("$adb" shell getprop ro.build.version.sdk 2>&1 | tr -d '\r' | head -n 1 || true)"
+            printf 'READINESS attempt=%s state=%s boot_completed=%s sdk=%s\n' \
+              "$readiness_attempt" "$state" "$boot" "$sdk" | tee -a "$preflight_log"
+            if [[ "$state" == "device" && "$boot" == "1" && "$sdk" == "${{ matrix.api_level }}" ]]; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          # Required diagnostics are captured before any APK installation.
+          "$adb" shell getprop sys.boot_completed | tr -d '\r' | tee -a "$preflight_log"
+          "$adb" devices -l | tee -a "$preflight_log"
+          "$adb" shell df -h /data | tee -a "$preflight_log"
+          package_log="${preflight_log}.packages"
+          "$adb" shell pm list packages > "$package_log" 2>&1 || true
+          head -n 20 "$package_log" | tee -a "$preflight_log"
+
+          if (( ready != 1 )); then
+            echo 'ADB_DEVICE_NOT_FULLY_READY' | tee -a "$preflight_log"
+            exit 1
+          fi
+
+      - name: Run unified Android Runtime Harness
+        id: runtime_gate
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        continue-on-error: true
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
+
+      - name: Materialize runtime status when emulator action fails before Harness startup
+        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        run: |
+          result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
+          if [[ ! -s "$result" ]]; then
+            mkdir -p "$(dirname "$result")"
+            python3 scripts/android_runtime/result.py \
+              --output "$result" \
+              --gate "${{ matrix.gate }}" \
+              --api-level "${{ matrix.api_level }}" \
+              --build-sha "$GITHUB_SHA" \
+              --adb-state unknown \
+              --boot-completed unknown \
+              --data-free-kb "" \
+              --preflight FAIL \
+              --install NOT_RUN \
+              --instrumentation NOT_RUN \
+              --evidence NOT_RUN \
+              --classification BLOCKED_INFRA \
+              --failure-phase EMULATOR_RUNNER \
+              --failure-reason EMULATOR_RUNNER_FAILED_BEFORE_HARNESS \
+              --summary-file "${GITHUB_STEP_SUMMARY:-}"
+          fi
+
+      - name: Upload runtime gate status and diagnostics
+        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-home-visual-evidence-${{ github.sha }}
-          path: build/home-evidence
+          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}
+          path: evidence/runtime/${{ matrix.gate }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
 
-      - name: Upload YuJian Design System runtime evidence
-        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-        uses: actions/upload-artifact@v4
-        with:
-          name: YuJian-designsystem-runtime-evidence-${{ github.sha }}
-          path: build/designsystem-evidence
-          if-no-files-found: error
-          retention-days: 7
+      - name: Enforce runtime gate classification
+        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        run: |
+          result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
+          classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["classification"])' "$result")"
+          if [[ "${{ steps.runtime_gate.outcome }}" != "success" || "$classification" != "PASS" ]]; then
+            echo "Runtime gate failed: classification=$classification action_outcome=${{ steps.runtime_gate.outcome }}"
+            exit 1
+          fi

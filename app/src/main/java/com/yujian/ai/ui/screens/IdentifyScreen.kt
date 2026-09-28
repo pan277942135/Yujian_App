@@ -131,13 +131,18 @@ fun IdentifyScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent(),
     ) { uri ->
-        if (uri == null || loading) return@rememberLauncherForActivityResult
+        if (uri == null) {
+            loading = false
+            return@rememberLauncherForActivityResult
+        }
         scope.launch {
-            loading = true
             error = null
             runCatching {
-            RecognitionImageStore.normalize(context, uri, "gallery")
+                RecognitionImageStore.normalize(context, uri, "gallery")
             }.onSuccess { selected ->
+                // Commit the new normalized bitmap before navigation. The
+                // camera/previous selection must never leak into the first
+                // Recognition frame.
                 handoffImage = selected
                 onImageReady(selected)
             }.onFailure {
@@ -148,7 +153,11 @@ fun IdentifyScreen(
     }
 
     fun openGallery() {
-        if (!loading) galleryLauncher.launch("image/*")
+        if (!loading) {
+            loading = true
+            error = null
+            galleryLauncher.launch("image/*")
+        }
     }
 
     fun capture() {
@@ -201,14 +210,19 @@ fun IdentifyScreen(
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        val displayedPhoto = handoffImage ?: image
-        if (displayedPhoto != null && (loading || handoffImage != null)) {
+        val displayedPhoto = handoffImage
+        if (displayedPhoto != null) {
             Image(
                 bitmap = displayedPhoto.bitmap.asImageBitmap(),
                 contentDescription = "刚拍下的鱼获",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit,
             )
+        } else if (loading) {
+            // A neutral handoff frame prevents a stale CameraX frame or the
+            // previous SelectedImage from flashing while the new gallery
+            // image is normalized.
+            Box(Modifier.fillMaxSize().background(Color.Black))
         } else if (hasCameraPermission) {
             AndroidView(
                 factory = { context ->
@@ -223,7 +237,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null) {
+        if (handoffImage == null && !loading) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -243,7 +257,7 @@ fun IdentifyScreen(
             }
         }
 
-        if (handoffImage == null && !hasCameraPermission && !autoOpenGallery) {
+        if (handoffImage == null && !loading && !hasCameraPermission && !autoOpenGallery) {
             Button(
                 onClick = {
                     permissionRequested = true
@@ -253,7 +267,7 @@ fun IdentifyScreen(
             ) { Text("开启相机") }
         }
 
-        error?.takeIf { handoffImage == null }?.let {
+        error?.takeIf { handoffImage == null && !loading }?.let {
             Text(
                 text = it,
                 color = Color.White,
@@ -263,7 +277,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null) Row(
+        if (handoffImage == null && !loading) Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = safeInsets.calculateBottomPadding() + 18.dp),

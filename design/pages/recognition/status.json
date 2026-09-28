@@ -1,0 +1,14 @@
+{
+  "feature": "recognition_flow_v1_1",
+  "scope": "android_only",
+  "design_frozen": true,
+  "frozen_reference_count": 9,
+  "reference_manifest": "design/pages/recognition/design/reference_manifest.json",
+  "processing_visual_spec": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+  "processing_motion_spec": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
+  "runtime_contract": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
+  "acceptance_contract": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
+  "evidence_contract": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md",
+  "api28_runtime_gate": "PENDING",
+  "design_closure": "V1.1"
+}

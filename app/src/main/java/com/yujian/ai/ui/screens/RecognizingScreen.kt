@@ -69,6 +69,7 @@ fun RecognitionProcessingScene(
     generateSubject: (suspend (SelectedImage, NormalizedFishBox) -> FishSubjectResult)? = null,
     onFinished: (ProductionRecognitionResult) -> Unit, onFailure: (Throwable) -> Unit = {},
     phaseOverride: RecognitionPhase? = null, visualClockOverrideMs: Long? = null,
+    onVisualPhasePresented: (RecognitionPhase, Long) -> Unit = { _, _ -> },
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -118,11 +119,23 @@ fun RecognitionProcessingScene(
     LaunchedEffect(realPhase, image?.imageId) {
         while (isActive && phaseOverride == null && !delivered) {
             visualNowMs = SystemClock.uptimeMillis()
-            visualPhase = controller.current(visualNowMs)
+            val nextVisualPhase = controller.current(visualNowMs)
+            if (nextVisualPhase != visualPhase) {
+                visualPhase = nextVisualPhase
+            }
             if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true) {
                 delivered = true; onFinished(requireNotNull(finishedResult))
             }
             delay(16L)
+        }
+    }
+
+    LaunchedEffect(visualPhase, image?.imageId, phaseOverride) {
+        if (phaseOverride == null) {
+            // Observe what Compose actually presents, independently from the
+            // fast detector/classifier callback cadence. Tests use this
+            // read-only hook for timing; production behavior is unchanged.
+            onVisualPhasePresented(visualPhase, SystemClock.elapsedRealtime())
         }
     }
 
