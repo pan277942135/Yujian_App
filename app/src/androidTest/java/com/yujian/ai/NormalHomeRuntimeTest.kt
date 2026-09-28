@@ -79,7 +79,10 @@ class NormalHomeRuntimeTest {
     }
 
     private fun launchAndWait() {
-        device.executeShellCommand("am force-stop $APP_PACKAGE")
+        // Never force-stop the target package from inside instrumentation: on API 28
+        // that can kill the test runner itself. CLEAR_TASK recreates the product
+        // Activity and therefore re-reads the persisted guest archive safely.
+        device.pressHome()
         val launchIntent = context.packageManager.getLaunchIntentForPackage(APP_PACKAGE)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             ?: error("Unable to resolve YuJian launcher activity")
