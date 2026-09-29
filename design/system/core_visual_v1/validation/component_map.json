@@ -23,7 +23,10 @@
         "motion.empty_home.camera_gold_rim_sweep",
         "motion.empty_home.camera_breathing"
       ],
-      "runtime_notes": "Use a native Compose circular control with a vector camera glyph. Keep the white core, thin MorningGold rim, and restrained highlight; do not substitute a screenshot crop. The visual target is about 56 dp with at least a 64 dp touch target."
+      "runtime_notes": "The frozen visual authority is capture_button_main_v1.png. Runtime implementation may be native/hybrid only if it reproduces this asset visually; gold-rim sweep and breath glow remain motion-support layers, not static button layers.",
+      "design_authority_asset": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "design_authority_sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
+      "design_authority_version": "Primary Capture Button V1"
     },
     {
       "component_id": "YuJianCatchHeroCard",
