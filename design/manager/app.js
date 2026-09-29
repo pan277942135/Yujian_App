@@ -22,6 +22,8 @@ const CATEGORY_LABELS = { foundation: "基础系统", component: "公共组件" 
 
 let pageRegistry = null;
 let sharedRegistry = null;
+let backgroundContract = null;
+let backgroundUsage = null;
 let selectedKey = null;
 
 const el = id => document.getElementById(id);
@@ -82,12 +84,27 @@ function renderLists() {
 
   el("sharedList").innerHTML = shared.map(item => {
     const key = "shared/" + item.id;
-    return '<button class="module-item shared-item' + (selectedKey === key ? " active" : "") +
+    const parent =
+      '<button class="module-item shared-item' + (selectedKey === key ? " active" : "") +
       '" data-kind="shared" data-id="' + esc(item.id) + '">' +
       '<div class="module-name"><span>' + esc(item.display_name) + '</span>' +
       statusBadge(item.overall) + '</div>' +
       '<div class="module-path">' + esc(CATEGORY_LABELS[item.category] || item.category) +
       ' · ' + esc(item.current_version) + '</div></button>';
+
+    if (item.id !== "background_system_v1") return parent;
+
+    const children = (item.variants || []).map(v => {
+      const variantKey = "shared/" + item.id + "/" + v.id;
+      return '<button class="shared-subitem' + (selectedKey === variantKey ? " active" : "") +
+        '" data-kind="background-variant" data-id="' + esc(v.id) + '">' +
+        '<span class="subitem-code">' + esc(v.id) + '</span>' +
+        '<span class="subitem-name">' + esc(v.name) + '</span>' +
+        statusBadge(v.status || item.overall) +
+        '</button>';
+    }).join("");
+
+    return parent + '<div class="shared-sublist">' + children + '</div>';
   }).join("") || '<div class="preview-empty compact">没有匹配的公共系统</div>';
 
   el("pageList").innerHTML = pages.map(feature => {
@@ -104,6 +121,10 @@ function renderLists() {
       if (btn.dataset.kind === "shared") selectShared(btn.dataset.id);
       else selectPage(btn.dataset.id);
     });
+  });
+
+  document.querySelectorAll(".shared-subitem[data-kind='background-variant']").forEach(btn => {
+    btn.addEventListener("click", () => selectShared("background_system_v1", btn.dataset.id));
   });
 }
 
@@ -169,11 +190,150 @@ function backgroundVariantPreview(item, variant) {
   return "";
 }
 
-function selectShared(id) {
+function percentValue(value, signed = false) {
+  const n = Number(value);
+  const pct = Math.round(n * 100);
+  return (signed && pct > 0 ? "+" : "") + pct + "%";
+}
+
+function formatContractValue(key, value) {
+  if (Array.isArray(value) && value.length === 2) {
+    const signed = key === "luminance_delta";
+    if (
+      key.includes("alpha") ||
+      key.includes("relative") ||
+      key.includes("salience") ||
+      key === "luminance_delta"
+    ) {
+      return percentValue(value[0], signed) + " ～ " + percentValue(value[1], signed);
+    }
+    return String(value[0]) + " ～ " + String(value[1]);
+  }
+  if (typeof value === "boolean") return value ? "是" : "否";
+  const aliases = {
+    morning_lake: "Morning Lake / 清晨湖景",
+    runtime_photo: "用户实时照片",
+    solid: "纯色",
+    current_user_photo: "用户当前照片",
+    crop: "Crop / 居中裁切",
+    none: "禁止",
+    transient_missing_background: "瞬时缺少背景",
+    load_failure: "背景加载失败",
+    error_fallback: "异常兜底"
+  };
+  return aliases[value] || String(value);
+}
+
+const PARAMETER_LABELS = {
+  family: "背景家族",
+  mist_white_veil_alpha: "雾白覆盖",
+  saturation_relative: "相对饱和度",
+  contrast_relative: "相对对比度",
+  luminance_delta: "亮度偏移",
+  global_blur: "全局模糊",
+  target_salience_vs_home: "相对首页存在感",
+  source: "背景来源",
+  opaque: "原图不透明",
+  content_scale: "图片填充",
+  processing_tint: "原图染色",
+  fallback: "无照片兜底",
+  light: "浅色兜底",
+  dark_capture: "深色拍摄兜底",
+  permanent_page_background: "允许长期作为页面背景"
+};
+
+function backgroundVariantPages(variantId) {
+  const mapped = Object.entries(backgroundUsage?.mappings || {})
+    .filter(([, variant]) => variant === variantId)
+    .map(([pageId]) => pageRegistry.features.find(f => f.id === pageId))
+    .filter(Boolean);
+
+  if (mapped.length) return mapped.map(page => ({
+    type: "page",
+    id: page.id,
+    label: page.display_name || page.id
+  }));
+
+  const contractUse = backgroundContract?.variants?.[variantId]?.use || [];
+  const scenarioNames = {
+    transient_missing_background: "瞬时缺少背景",
+    load_failure: "背景加载失败",
+    error_fallback: "异常兜底"
+  };
+  return contractUse.map(id => {
+    const page = pageRegistry.features.find(f => f.id === id);
+    return page
+      ? { type: "page", id: page.id, label: page.display_name || page.id }
+      : { type: "scenario", id, label: scenarioNames[id] || id };
+  });
+}
+
+function renderBackgroundVariantWorkspace(item, variantId) {
+  const panel = el("backgroundVariantPanel");
+  if (item.id !== "background_system_v1" || !variantId) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  const variant = (item.variants || []).find(v => v.id === variantId);
+  const contract = backgroundContract?.variants?.[variantId];
+  if (!variant || !contract) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  el("backgroundVariantTitle").textContent = variant.id + " · " + variant.name;
+  el("backgroundVariantStatus").innerHTML = statusBadge(variant.status || item.overall);
+  el("backgroundVariantPreview").innerHTML = backgroundVariantPreview(item, variant) ||
+    '<div class="preview-empty">暂无可视化预览。</div>';
+
+  const parameterEntries = Object.entries(contract).filter(([key]) => key !== "use");
+  el("backgroundParameterGrid").innerHTML = parameterEntries.map(([key,value]) =>
+    '<div class="parameter-row">' +
+      '<div class="parameter-label">' + esc(PARAMETER_LABELS[key] || key) + '</div>' +
+      '<div class="parameter-value">' + esc(formatContractValue(key, value)) + '</div>' +
+    '</div>'
+  ).join("");
+
+  const usage = backgroundVariantPages(variantId);
+  el("backgroundUsageMap").innerHTML = usage.map(entry =>
+    entry.type === "page"
+      ? '<button class="usage-row background-page-link" data-page-id="' + esc(entry.id) + '">' +
+          '<span>' + esc(entry.label) + '</span><span class="usage-variant">' + esc(variantId) + '</span></button>'
+      : '<div class="usage-row static"><span>' + esc(entry.label) + '</span>' +
+          '<span class="usage-variant">场景</span></div>'
+  ).join("") || '<div class="preview-empty compact">尚未映射页面或场景。</div>';
+
+  const authorityPaths = [
+    variant.authority_path,
+    item.contract_path,
+    item.usage_map_path
+  ].filter((value,index,array) => value && array.indexOf(value) === index);
+
+  if (["BG_ENV_HERO","BG_CONTENT","BG_DATA"].includes(variantId) && item.master?.path) {
+    authorityPaths.unshift(item.master.path);
+  }
+
+  el("backgroundVariantAuthority").innerHTML = authorityPaths.map(path =>
+    '<a class="authority-row" href="' + esc(repoHref(path)) +
+    '" target="_blank" rel="noreferrer">' + esc(path) + '</a>'
+  ).join("");
+
+  document.querySelectorAll(".background-page-link[data-page-id]").forEach(btn =>
+    btn.addEventListener("click", () => selectPage(btn.dataset.pageId))
+  );
+}
+
+function selectShared(id, variantId = null) {
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
-  selectedKey = "shared/" + id;
-  history.replaceState(null, "", "#shared/" + encodeURIComponent(id));
+  selectedKey = "shared/" + id + (variantId ? "/" + variantId : "");
+  history.replaceState(
+    null,
+    "",
+    "#shared/" + encodeURIComponent(id) + (variantId ? "/" + encodeURIComponent(variantId) : "")
+  );
   renderLists();
   hideAllDetails();
   el("sharedDetail").classList.remove("hidden");
@@ -205,15 +365,26 @@ function selectShared(id) {
 
   el("sharedPreview").innerHTML = previewHtml(item.preview, item.display_name, item.preview_note);
 
-  el("variantGrid").innerHTML = (item.variants || []).map(v =>
-    '<div class="variant-card">' +
-    backgroundVariantPreview(item, v) +
-    '<div class="variant-id">' + esc(v.id) + '</div>' +
-    '<div class="variant-name">' + esc(v.name) + '</div>' +
-    '<div class="variant-usage">' + esc(v.usage || "") + '</div>' +
-    (v.note ? '<div class="variant-note">' + esc(v.note) + '</div>' : '') +
-    '</div>'
-  ).join("") || '<div class="preview-empty">尚未登记变体。</div>';
+  el("variantGrid").innerHTML = (item.variants || []).map(v => {
+    const selectable = item.id === "background_system_v1";
+    const active = selectable && variantId === v.id ? " selected" : "";
+    const tag = selectable ? "button" : "div";
+    const attrs = selectable ? ' type="button" data-bg-variant="' + esc(v.id) + '"' : "";
+    return '<' + tag + ' class="variant-card' + (selectable ? " variant-selectable" : "") + active + '"' + attrs + '>' +
+      backgroundVariantPreview(item, v) +
+      '<div class="variant-id">' + esc(v.id) + '</div>' +
+      '<div class="variant-name">' + esc(v.name) + '</div>' +
+      '<div class="variant-usage">' + esc(v.usage || "") + '</div>' +
+      '<div class="variant-card-status">' + statusBadge(v.status || item.overall) + '</div>' +
+      (v.note ? '<div class="variant-note">' + esc(v.note) + '</div>' : '') +
+      '</' + tag + '>';
+  }).join("") || '<div class="preview-empty">尚未登记变体。</div>';
+
+  document.querySelectorAll(".variant-selectable[data-bg-variant]").forEach(btn =>
+    btn.addEventListener("click", () => selectShared("background_system_v1", btn.dataset.bgVariant))
+  );
+
+  renderBackgroundVariantWorkspace(item, variantId);
 
   el("sharedAuthorities").innerHTML = (item.authority_paths || []).map(path =>
     '<a class="authority-row" href="' + esc(repoHref(path)) +
@@ -329,8 +500,14 @@ function selectPage(id) {
 function selectFromHash() {
   const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
   if (raw.startsWith("shared/")) {
-    const id = raw.slice("shared/".length);
-    if (sharedRegistry.items.some(x => x.id === id)) return selectShared(id);
+    const parts = raw.split("/");
+    const id = parts[1];
+    const variantId = parts[2] || null;
+    const item = sharedRegistry.items.find(x => x.id === id);
+    if (item) {
+      const validVariant = !variantId || (item.variants || []).some(v => v.id === variantId);
+      if (validVariant) return selectShared(id, variantId);
+    }
   }
   if (raw.startsWith("page/")) {
     const id = raw.slice("page/".length);
@@ -348,6 +525,19 @@ async function init() {
     if (!pageResponse.ok || !sharedResponse.ok) throw new Error("Registry HTTP error");
     pageRegistry = await pageResponse.json();
     sharedRegistry = await sharedResponse.json();
+
+    const backgroundItem = sharedRegistry.items.find(x => x.id === "background_system_v1");
+    if (backgroundItem?.contract_path && backgroundItem?.usage_map_path) {
+      const [contractResponse, usageResponse] = await Promise.all([
+        fetch(repoHref(backgroundItem.contract_path), { cache:"no-store" }),
+        fetch(repoHref(backgroundItem.usage_map_path), { cache:"no-store" })
+      ]);
+      if (!contractResponse.ok || !usageResponse.ok) {
+        throw new Error("Background contract HTTP error");
+      }
+      backgroundContract = await contractResponse.json();
+      backgroundUsage = await usageResponse.json();
+    }
   } catch (error) {
     document.body.innerHTML =
       '<div style="padding:40px;font-family:system-ui"><h2>设计管理无法读取注册表</h2>' +
