@@ -228,6 +228,40 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
         scenario_index = feature.get("scenario_index")
         _check_path(errors, f"{feature_id}.scenario_index", scenario_index)
 
+        hifi_views = feature.get("hifi_views", [])
+        if hifi_views is not None and not isinstance(hifi_views, list):
+            errors.append(f"{feature_id}: hifi_views must be a list")
+        elif isinstance(hifi_views, list):
+            hifi_ids: set[str] = set()
+            for view in hifi_views:
+                if not isinstance(view, dict):
+                    errors.append(f"{feature_id}: hifi view must be an object")
+                    continue
+                view_id = view.get("id")
+                if not isinstance(view_id, str) or not view_id:
+                    errors.append(f"{feature_id}: hifi view id is invalid")
+                    continue
+                if view_id in hifi_ids:
+                    errors.append(f"{feature_id}: duplicate hifi view id {view_id}")
+                hifi_ids.add(view_id)
+                if view.get("status") not in VALID_STATUSES:
+                    errors.append(
+                        f"{feature_id}/{view_id}: invalid hifi status {view.get('status')!r}"
+                    )
+                _check_path(
+                    errors,
+                    f"{feature_id}/{view_id}.authority",
+                    view.get("authority"),
+                )
+                _check_path(
+                    errors,
+                    f"{feature_id}/{view_id}.image",
+                    view.get("image"),
+                )
+                scenario_ids = view.get("scenario_ids", [])
+                if not isinstance(scenario_ids, list):
+                    errors.append(f"{feature_id}/{view_id}: scenario_ids must be a list")
+
         scenarios = feature.get("scenario_pages", [])
         if scenarios is not None and not isinstance(scenarios, list):
             errors.append(f"{feature_id}: scenario_pages must be a list")
