@@ -2,7 +2,7 @@
   "feature": "home_empty_v2",
   "platform": "android",
   "source": "real APK run on GitHub Actions Android emulator",
-  "artifact_name_pattern": "YuJian-home-visual-evidence-<commit-sha>",
+  "artifact_name_pattern": "runtime-gate-empty-home-v2-<commit-sha>",
   "required_files": [
     "static_reference.png",
     "runtime_static.png",
@@ -16,18 +16,25 @@
     "visual_parity_report.json"
   ],
   "runtime_evidence": "PASS",
-  "verified_run": {
+  "latest_registered_runtime_gate": {
+    "android_ci_run_id": 36386342604,
+    "implementation_main_sha": "94a99f9a7c848e4bb124c5c454dcf42b3236f74b",
+    "workflow_url": "https://github.com/pan277942135/Yujian_App/actions/runs/36386342604",
+    "conclusion": "success",
+    "api_level": 28,
+    "classification": "PASS",
+    "artifact_id": 10955156190,
+    "artifact_digest": "sha256:9edd3391deb6a11c8a9afb2f7a1248a79fe9d322ebd5c9f693d0a17dc57f683a"
+  },
+  "previous_full_visual_parity_baseline": {
     "android_ci_run_id": 35965640545,
     "implementation_head_sha": "29ac676a2f636fa697cae960d64d0d24e239fb0e",
     "tested_merge_sha": "4c47fd5123a9f7dc0fa37d3d2d81e8973200c596",
-    "workflow_url": "https://github.com/pan277942135/Yujian_App/actions/runs/35965640545",
     "artifact_id": 10793778050,
-    "artifact_digest": "sha256:3f7f98c2bc9270700e994818dab97794a92f128bbbdb345a5a859d8690c6047d"
-  },
-  "visual_parity": {
-    "status": "PASS",
+    "artifact_digest": "sha256:3f7f98c2bc9270700e994818dab97794a92f128bbbdb345a5a859d8690c6047d",
     "mean_absolute_rgb_error": 32.9584,
-    "threshold": 40.0
+    "threshold": 40,
+    "status": "PASS"
   },
   "notes": "Large MP4 evidence is deliberately stored as a GitHub Actions artifact, not committed to Git history."
 }
