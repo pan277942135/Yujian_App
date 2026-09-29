@@ -31,11 +31,17 @@ Frozen date: **2026-09-29**
 
 ## Current Authority
 
-- `Action_Button_Spec_V1_1.md`
-- `visual_contract.json`
-- `motion_contract.json`
-- `usage_map.json`
-- `manifest.json`
+1. **Frozen Visual Reference** — final static appearance and composition:
+   - `visual/Action_Button_V1_1_Frozen_Visual.svg`
+   - 1600 × 1680
+   - SHA-256 `44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c`
+2. **Numeric / behavior contracts**:
+   - `Action_Button_Spec_V1_1.md`
+   - `visual_contract.json`
+   - `motion_contract.json`
+   - `usage_map.json`
+   - `manifest.json`
+   - `visual/reference_manifest.json`
 
 Historical authority:
 
