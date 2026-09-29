@@ -151,6 +151,43 @@ A visual freeze must identify:
 
 Static screenshots are never sufficient authority for interaction semantics.
 
+## 8.1 High-fidelity output and archive rule
+
+High-fidelity visual authority follows these rules:
+
+### Major pages
+
+A major page must be generated and archived as one complete **9:16 App page per image**.
+
+Required:
+
+- no device frame;
+- no poster title or design-description copy;
+- no multi-page collage;
+- use the approved Background / Component Authority;
+- page copy, states, quantities, tags, spacing and interaction entry points must be implementation-accurate;
+- a major page enters Design Manager only after visual confirmation;
+- do not generate a multi-page board first and crop one panel into a major-page authority later.
+
+### Secondary pages and states
+
+Related secondary states may share one reference with **2–4 accurate panels** when this improves review efficiency.
+
+Every panel must still contain the complete real UI state: correct background, components, copy, data, spacing, state and interaction entry points.
+
+Acceptance rule:
+
+> If any panel is cropped out by itself, development must still be able to use it as the high-fidelity authority for that state.
+
+### Archive model
+
+- Major page → standalone high-fidelity reference.
+- Secondary state → accurate multi-state reference permitted.
+- Text / behavior specification → independent authority.
+- A batch enters Design Manager after its page/state references are confirmed.
+
+Interaction-only specifications must not pretend to be App-page screenshots.
+
 ## 9. Motion contract
 
 Every intentional animation must define:
