@@ -1,7 +1,7 @@
 {
   "component": "icon_action",
   "version": "V1",
-  "status": "ACTIVE_CLOSURE",
+  "status": "FROZEN",
   "pressed": {
     "properties": [
       "color",
