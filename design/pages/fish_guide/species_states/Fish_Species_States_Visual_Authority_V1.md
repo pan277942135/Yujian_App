@@ -6,17 +6,16 @@ Scope: **Fish Guide · 03 · 鱼种状态**
 
 ## Current source UI
 
-Persistent design asset:
+Canonical repository asset:
 
 - Source name: `a_clean_high_resolution_ui_ux_design_spec_poster_i.png`
-- Canonical design-library name: `Fish_Species_States_V1.png`
-- Library path: `/YuJian_App/design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png`
-- Library file id: `libfile_362ed70bc5848191ab115f370bc764da`
+- Repository name: `Fish_Species_States_V1.png`
+- Path: `design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png`
 - Dimensions: **1024 × 1536**
 - Size: **2,244,852 bytes**
 - SHA-256: `181e1c51a830a42680df70c19673a3df9d8261eb35f9654104f412576a11a55d`
 
-This is the current visual reference for the **03 · 鱼种状态** state-flow board.
+This repository PNG is the current visual reference for the **03 · 鱼种状态** state-flow board and is rendered directly in Design Manager.
 
 ## What this visual freezes
 
