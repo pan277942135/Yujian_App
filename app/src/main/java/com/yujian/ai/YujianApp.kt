@@ -61,6 +61,7 @@ import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
 import com.yujian.ai.ui.screens.HomeScreen
 import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.auth.LoginV2Screen
+import com.yujian.ai.ui.auth.RegisterV2Screen
 import com.yujian.ai.ui.screens.MyScreen
 import com.yujian.ai.ui.screens.AccountMyScreen
 import com.yujian.ai.ui.screens.AccountLoginScreen
@@ -75,7 +76,6 @@ import com.yujian.ai.ui.screens.LegalDocumentScreen
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognizingScreen
-import com.yujian.ai.ui.screens.RegisterScreen
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
 import com.yujian.ai.ui.components.GuestRegistrationDialog
@@ -308,7 +308,7 @@ fun YujianApp() {
                     )
                 }
                 composable("register") {
-                    RegisterScreen(
+                    RegisterV2Screen(
                         loading = authLoading,
                         error = authError,
                         onRegister = { username, password, nickname ->
