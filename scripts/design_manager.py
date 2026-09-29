@@ -292,6 +292,35 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
                             f"{feature_id}/{view_id}/{child_id}.secondary_authority",
                             child.get("secondary_authority"),
                         )
+
+                        authority_type = child.get("authority_type")
+                        if authority_type not in {None, "visual", "behavior"}:
+                            errors.append(
+                                f"{feature_id}/{view_id}/{child_id}: invalid authority_type {authority_type!r}"
+                            )
+
+                        visual_authority = child.get("visual_authority")
+                        behavior_authority = child.get("behavior_authority")
+                        _check_path(
+                            errors,
+                            f"{feature_id}/{view_id}/{child_id}.visual_authority",
+                            visual_authority,
+                        )
+                        _check_path(
+                            errors,
+                            f"{feature_id}/{view_id}/{child_id}.behavior_authority",
+                            behavior_authority,
+                        )
+
+                        if authority_type == "visual" and not visual_authority:
+                            errors.append(
+                                f"{feature_id}/{view_id}/{child_id}: visual child requires visual_authority"
+                            )
+                        if authority_type == "behavior" and visual_authority:
+                            errors.append(
+                                f"{feature_id}/{view_id}/{child_id}: behavior child must not declare visual_authority"
+                            )
+
                         child_scenarios = child.get("scenario_ids", [])
                         if not isinstance(child_scenarios, list):
                             errors.append(
