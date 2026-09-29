@@ -600,7 +600,7 @@
       "id": "top_navigation_v1",
       "display_name": "顶部导航",
       "category": "component",
-      "overall": "PARTIAL",
+      "overall": "FROZEN",
       "current_version": "V1",
       "authority_paths": [
         "design/system/core_visual_v1/components/Navigation.md",
@@ -622,7 +622,17 @@
         "design/system/components/top_navigation/back_title/visual/reference_manifest.json",
         "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
         "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
-        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg"
+        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/back_title_actions/README.md",
+        "design/system/components/top_navigation/back_title_actions/Back_Title_Actions_Spec_V1.md",
+        "design/system/components/top_navigation/back_title_actions/visual_contract.json",
+        "design/system/components/top_navigation/back_title_actions/usage_map.json",
+        "design/system/components/top_navigation/back_title_actions/manifest.json",
+        "design/system/components/top_navigation/back_title_actions/visual/reference_manifest.json",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg"
       ],
       "variants": [
         {
@@ -741,12 +751,73 @@
           "id": "BACK_TITLE_ACTIONS",
           "name": "03 · 返回 + 标题 + 工具动作",
           "usage": "鱼获详情等需要 1–2 个页面级工具动作的二级页面",
-          "note": "工具动作使用 Icon Action V1 / UTILITY，视觉权重必须低于标题；超过上限应进入 More。",
-          "status": "PARTIAL",
-          "authority_path": "design/system/core_visual_v1/components/Navigation.md"
+          "note": "二级页 + 工具动作：56dp min；8dp outer；Back=44/22；标题20sp/Medium；Utility=44dp target / 20–22dp glyph；动作间距8dp；最多2个可见 Utility；3+ 时 1个最高优先级 + More。",
+          "status": "FROZEN",
+          "authority_path": "design/system/components/top_navigation/back_title_actions/Back_Title_Actions_Spec_V1.md",
+          "authority_paths": [
+            "design/system/components/top_navigation/back_title_actions/Back_Title_Actions_Spec_V1.md",
+            "design/system/components/top_navigation/back_title_actions/visual_contract.json",
+            "design/system/components/top_navigation/back_title_actions/usage_map.json",
+            "design/system/components/top_navigation/back_title_actions/manifest.json",
+            "design/system/components/top_navigation/back_title_actions/visual/reference_manifest.json",
+            "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+            "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+            "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+            "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg"
+          ],
+          "visual_authority_set": [
+            {
+              "id": "01_BASE_GEOMETRY",
+              "title": "01 · 基础几何",
+              "path": "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+              "width": 1320,
+              "height": 680,
+              "bytes": 2495,
+              "sha256": "0b25c822fafe68d0fd0c4669afc86252b673bdbd9ed41c1a446c88ec05240a22",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            },
+            {
+              "id": "02_ACTION_COUNT_OVERFLOW",
+              "title": "02 · 动作数量 / Overflow",
+              "path": "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+              "width": 1320,
+              "height": 820,
+              "bytes": 4132,
+              "sha256": "7510d1225ccb69f890e54d847bb2ccdb8d9a42b71144bca490c2846f1bed4e3c",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            },
+            {
+              "id": "03_REAL_USAGE",
+              "title": "03 · 鱼获详情真实使用",
+              "path": "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+              "width": 1320,
+              "height": 820,
+              "bytes": 2922,
+              "sha256": "dc51192c7fea712642b9f760faed4dd5b3f09601cbc080869cb16d7f82a388c8",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            },
+            {
+              "id": "04_LONG_TITLE_SMALL_SCREEN",
+              "title": "04 · 长标题 / 小屏",
+              "path": "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg",
+              "width": 1320,
+              "height": 760,
+              "bytes": 3601,
+              "sha256": "bb70e090065bf512c067d43442a533bb6629596f0eec18980c52bad27dc7770d",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            }
+          ]
         }
       ],
-      "note": "Top Navigation V1：TITLE_ONLY、BACK_TITLE 已冻结；BACK_TITLE_ACTIONS 待细化。3 个组合通过左侧子菜单直达独立工作区。",
+      "note": "Top Navigation V1 已整体冻结：TITLE_ONLY、BACK_TITLE、BACK_TITLE_ACTIONS 三个组合均有独立 Frozen Spec 与 Visual Authority；左侧子菜单直达工作区。",
       "navigation_mode": "submenu_direct",
       "show_variant_index": false
     },
