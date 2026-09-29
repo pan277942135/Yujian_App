@@ -1919,7 +1919,7 @@
     {
       "id": "profile_edit_v1",
       "owner_path": "design/pages/account_privacy/My/Edit_Profile",
-      "overall": "RUNTIME_ONLY",
+      "overall": "PARTIAL",
       "modalities": {
         "behavior": {
           "status": "RUNTIME_ONLY",
@@ -1958,12 +1958,13 @@
       "design_versions": [
         {
           "version": "V1",
-          "status": "MISSING",
+          "status": "PARTIAL",
           "current": true,
-          "note": "运行时已存在，但尚未归档独立的冻结设计包。"
+          "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
+          "note": "Design Manager 二级目录结构已建立；01–06 子页待逐项补齐并冻结。"
         }
       ],
-      "design_overall": "MISSING",
+      "design_overall": "PARTIAL",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -1976,6 +1977,106 @@
         },
         {
           "id": "spacing_radius_v1"
+        }
+      ],
+      "note": "编辑资料 V1 已建立正式二级设计目录；当前仅冻结目录边界，具体高保真、状态与交互合同待逐页设计。Runtime 已存在，不等于设计已冻结。",
+      "hifi_views": [
+        {
+          "id": "01_profile_home",
+          "title": "01 · 编辑资料首页",
+          "status": "PARTIAL",
+          "authority_type": "visual",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
+          "summary": "编辑资料主页面入口；当前仅建立页面结构，完整高保真与参数待设计。",
+          "menu_points": [
+            "完整页面高保真",
+            "当前头像",
+            "账号（只读）",
+            "昵称",
+            "保存修改"
+          ]
+        },
+        {
+          "id": "02_avatar_edit",
+          "title": "02 · 头像修改",
+          "status": "PARTIAL",
+          "authority_type": "visual",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/README.md",
+          "summary": "头像选择、裁切与上传反馈的完整设计入口。",
+          "menu_points": [
+            "当前头像",
+            "从相册选择",
+            "拍照",
+            "裁切 / 缩放",
+            "上传中",
+            "上传成功",
+            "上传失败"
+          ]
+        },
+        {
+          "id": "03_nickname_edit",
+          "title": "03 · 昵称编辑",
+          "status": "PARTIAL",
+          "authority_type": "visual",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
+          "summary": "昵称输入与校验状态的独立设计入口。",
+          "menu_points": [
+            "Default",
+            "Focus",
+            "Filled",
+            "Error",
+            "字数边界",
+            "保存后状态"
+          ]
+        },
+        {
+          "id": "04_save_feedback",
+          "title": "04 · 保存与反馈",
+          "status": "PARTIAL",
+          "authority_type": "visual",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/04_Save_Feedback/README.md",
+          "summary": "资料修改前后、保存中及结果反馈状态的设计入口。",
+          "menu_points": [
+            "未修改",
+            "有修改",
+            "Saving",
+            "Success",
+            "Failure",
+            "重试"
+          ]
+        },
+        {
+          "id": "05_edge_states",
+          "title": "05 · 异常与边界状态",
+          "status": "PARTIAL",
+          "authority_type": "behavior",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/05_Edge_States/README.md",
+          "summary": "头像、网络、昵称、Session 与服务异常的边界处理入口。",
+          "menu_points": [
+            "头像读取失败",
+            "图片格式 / 大小异常",
+            "网络失败",
+            "昵称非法",
+            "Session 失效",
+            "服务异常"
+          ]
+        },
+        {
+          "id": "06_interaction_adaptation",
+          "title": "06 · 交互与适配规范",
+          "status": "PARTIAL",
+          "authority_type": "behavior",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/06_Interaction_Adaptation/README.md",
+          "summary": "键盘、滚动、小屏、返回、未保存修改与无障碍适配入口。",
+          "menu_points": [
+            "键盘 / IME",
+            "页面滚动",
+            "小屏处理",
+            "返回规则",
+            "未保存修改",
+            "Safe Area",
+            "Accessibility"
+          ]
         }
       ]
     },
