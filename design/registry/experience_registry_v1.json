@@ -501,7 +501,9 @@
         {
           "id": "spacing_radius_v1"
         }
-      ]
+      ],
+      "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
+      "note": "当前视觉 V2 已冻结，页面模型保持“时间记忆档案”。设计收口仍缺：5 维筛选完整权威、Timeline Scroll 合同、Growth Mark 多标签优先级，以及 BG_DATA 在有内容页面上的最终视觉验收。"
     },
     {
       "id": "fish_guide_v2",
