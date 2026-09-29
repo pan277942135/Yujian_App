@@ -16,6 +16,12 @@ Status: **FROZEN**
 - **01 · Fish Guide Home / 鱼鉴首页**  
   design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md
 
+- **01A · Fish Guide UNLIT / 未点亮状态 — State Spec V1**  
+  design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md
+
+- **01A · Fish Guide UNLIT / Frozen PNG**  
+  design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png
+
 - **02 · Species Detail / 鱼种详情 — Page Contract V1**  
   design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md
 
@@ -84,6 +90,19 @@ FishGuideCard should present:
 - restrained archive metadata.
 
 Unlit species remain visible, readable, browsable, and tappable. Unlit is a personal encounter state, not a disabled or permission state.
+
+### 01A · 未点亮状态
+
+Design Manager exposes UNLIT as a direct second-level workspace under 鱼鉴.
+
+- Visual Authority: `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
+- State Authority: `design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md`
+- Trigger: successfully saved FishRecord count for the catalog species = 0
+- Interaction: browseable, tappable, Species Detail accessible
+- Component model: same FishGuideCard family as LIT
+- Forbidden: large lock, disabled treatment, `???`, rarity / level / game-card semantics
+
+The PNG remains supplemental to the Core UI 6/6 reference count; promotion in Design Manager does not create a second card family.
 
 
 ## Top Navigation
