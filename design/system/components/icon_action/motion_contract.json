@@ -1,0 +1,32 @@
+{
+  "component": "icon_action",
+  "version": "V1",
+  "status": "ACTIVE_CLOSURE",
+  "pressed": {
+    "properties": [
+      "color",
+      "alpha",
+      "support_surface"
+    ],
+    "duration_ms": 90,
+    "scale": false,
+    "rotation": false,
+    "bounce": false
+  },
+  "idle_animation": "none",
+  "loading": "N/A",
+  "card_flip": {
+    "icon_self_rotation": false,
+    "content_motion_owned_by": "FishRecordDetail / B-side behavior contract"
+  },
+  "reduce_motion": {
+    "spatial_motion": false,
+    "color_alpha_feedback": true
+  },
+  "haptic": {
+    "component_level": "none"
+  },
+  "sound": {
+    "enabled": false
+  }
+}
