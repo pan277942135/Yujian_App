@@ -2479,3 +2479,12 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
   display:grid;
   gap:14px;
 }
+
+.subsub-group-label{
+  margin:7px 6px 3px;
+  font-size:7px;
+  font-weight:850;
+  letter-spacing:.08em;
+  color:#91a29e;
+  text-transform:uppercase;
+}
