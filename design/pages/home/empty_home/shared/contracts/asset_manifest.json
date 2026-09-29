@@ -142,7 +142,11 @@
       "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
       "source": "Empty_Home_Final_Design_V2",
       "version": "2.1",
-      "width": 208
+      "width": 208,
+      "canonical_shared_asset": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "canonical_shared_sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
+      "design_authority": "Primary Capture Button V1",
+      "note": "Legacy runtime/source alias is byte-identical to the frozen shared canonical asset."
     },
     {
       "alpha": true,
@@ -154,11 +158,12 @@
       "platforms": [
         "android"
       ],
-      "role": "runtime_dynamic",
+      "role": "runtime_motion_mask",
       "sha256": "9cbee62354d015dfe3d003de2bdc43b3336a621635f88d4bde36fe10c7e7a43d",
       "source": "Empty_Home_Final_Design_V2",
       "version": "2.0",
-      "width": 208
+      "width": 208,
+      "note": "Gold rim sweep mask only; not part of the static canonical button image."
     },
     {
       "alpha": true,
@@ -170,11 +175,12 @@
       "platforms": [
         "android"
       ],
-      "role": "runtime_dynamic",
+      "role": "runtime_motion_support",
       "sha256": "de989d9c4021220198370b535e8e4c8c3fbba2db53547771fc52d6cdbc0ac00e",
       "source": "Empty_Home_Final_Design_V2",
       "version": "2.0",
-      "width": 208
+      "width": 208,
+      "note": "Breathing support layer only; not part of the static canonical button image."
     }
   ],
   "design_version": "Empty_Home_Final_Design_V2"
