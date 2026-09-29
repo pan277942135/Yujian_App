@@ -1,0 +1,35 @@
+{
+  "component": "YuJian Primary Capture Button",
+  "version": "V1",
+  "status": "FROZEN",
+  "frozen_date": "2026-09-29",
+  "canonical_asset": {
+    "filename": "capture_button_main_v1.png",
+    "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+    "width": 208,
+    "height": 208,
+    "mode": "RGBA",
+    "bytes": 39099,
+    "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
+    "source_visual": "Empty Home V2.2",
+    "source_alias": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+    "byte_identical_to_source_alias": true
+  },
+  "supporting_assets": [
+    {
+      "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+      "role": "motion_gold_rim_sweep_mask",
+      "static_authority": false
+    },
+    {
+      "path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
+      "role": "motion_breath_glow",
+      "static_authority": false
+    }
+  ],
+  "contracts": [
+    "design/system/components/primary_capture_button/visual_contract.json",
+    "design/system/components/primary_capture_button/motion_contract.json",
+    "design/system/components/primary_capture_button/haptic_contract.json"
+  ]
+}
