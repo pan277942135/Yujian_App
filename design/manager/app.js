@@ -270,9 +270,10 @@ function renderLists() {
       );
       const stateChildren = childItems.filter(child => child.menu_group === "state");
       const specChildren = childItems.filter(child => child.menu_group === "spec");
+      const referenceChildren = childItems.filter(child => child.menu_group === "visual_reference");
       const behaviorChildren = childItems.filter(child =>
         child.authority_type === "behavior" &&
-        !["state","spec"].includes(child.menu_group)
+        !["state","spec","visual_reference"].includes(child.menu_group)
       );
       const nested = [
         visualChildren.length
@@ -283,6 +284,9 @@ function renderLists() {
           : "",
         specChildren.length
           ? '<div class="subsub-group-label">字段规范</div>' + specChildren.map(renderNestedChild).join("")
+          : "",
+        referenceChildren.length
+          ? '<div class="subsub-group-label">视觉参考集</div>' + referenceChildren.map(renderNestedChild).join("")
           : "",
         behaviorChildren.length
           ? '<div class="subsub-group-label">交互规范</div>' + behaviorChildren.map(renderNestedChild).join("")
@@ -2327,6 +2331,10 @@ function recognitionEvidenceGroupCanvas(child) {
 }
 
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "menu_placeholder") {
+    return '<div class="authority-index"><div class="authority-index-intro"><strong>' +
+      esc(child.title) + '</strong><span>当前只建立菜单；视觉规范尚未制定。</span></div></div>';
+  }
   if (child.render_mode === "recognition_evidence_group") return recognitionEvidenceGroupCanvas(child);
   if (child.render_mode === "recognition_semantic_invariants") return recognitionSemanticInvariantsCanvas(child);
   if (child.render_mode === "recognition_layer_degradation") return recognitionLayerDegradationCanvas(child);

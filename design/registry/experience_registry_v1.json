@@ -574,26 +574,29 @@
         },
         {
           "id": "layer_component_ownership",
-          "title": "03 · Layer & Component Ownership",
+          "title": "03 · 图层与组件归属",
           "status": "ACTIVE_CLOSURE",
           "authority_type": "visual",
           "render_mode": "recognition_layer_system",
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "Recognition Processing 的组件归属已进入可交付阶段：AI Edge Field V1 已冻结 Static Shape 与 Rendering Contract。视觉定义“长什么样”，Rendering Contract 定义“必须怎样绘制才能还原”。Motion/Accessibility 继续由 04/05 管理。",
+          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 已有 01 · 静态形状、02 · 渲染规范；现新增 03 · 视觉参考集菜单，后续逐项制定 R01–R06 视觉规范。",
           "menu_points": [
-            "User Photo 始终是视觉底座与主体",
-            "AI Edge Field V1 是独立跨状态视觉组件，不属于某一张 Processing UI",
-            "AI Edge Field Static Shape = 4 个断开的能量岛 + 明确 Quiet Gaps，禁止闭环",
-            "Fish Halo / Contour 属于 Fish Focus，不属于 AI Edge Field",
-            "Status Overlay 位于高 Z-order，但必须低视觉权重",
-            "Component Ownership 与 Z-order 分开管理"
+            "AI 边缘光场 V1 · 01 · 静态形状",
+            "AI 边缘光场 V1 · 02 · 渲染规范",
+            "AI 边缘光场 V1 · 03 · 视觉参考集",
+            "R01 · 主视觉细节",
+            "R02 · 能量岛拆解",
+            "R03 · 四岛构图",
+            "R04 · 光场与鱼体聚焦",
+            "R05 · 强度校准",
+            "R06 · 失败边界"
           ],
           "components": [
             {
               "id": "ai_edge_field_v1",
-              "name": "AI Edge Field V1",
+              "name": "AI 边缘光场 V1",
               "status": "ACTIVE_CLOSURE",
               "ownership": "Recognition Processing / shared across all three Processing states",
               "scope": [
@@ -609,8 +612,8 @@
                 "Status Overlay",
                 "Result UI"
               ],
-              "current_step": "02 · Rendering Contract",
-              "current_step_status": "FROZEN",
+              "current_step": "03 · 视觉参考集",
+              "current_step_status": "CANDIDATE",
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
               "completed_steps": [
@@ -622,8 +625,8 @@
           "children": [
             {
               "id": "ai_edge_field_v1_static_shape",
-              "code": "AI EDGE FIELD V1 · 01",
-              "title": "AI Edge Field V1 · Static Shape",
+              "code": "AI 边缘光场 V1 · 01",
+              "title": "01 · 静态形状",
               "status": "FROZEN",
               "authority_type": "visual",
               "render_mode": "recognition_ai_edge_field_static",
@@ -988,8 +991,8 @@
             },
             {
               "id": "ai_edge_field_v1_rendering_contract",
-              "code": "AI EDGE FIELD V1 · 02",
-              "title": "AI Edge Field V1 · Rendering Contract",
+              "code": "AI 边缘光场 V1 · 02",
+              "title": "02 · 渲染规范",
               "status": "FROZEN",
               "authority_type": "behavior",
               "render_mode": "recognition_ai_edge_field_rendering",
@@ -1151,6 +1154,66 @@
                   "把 Fish Halo/Contour 绘进 AI Edge Field Renderer"
                 ]
               }
+            },
+            {
+              "id": "ai_edge_field_ref_r01",
+              "code": "AI 边缘光场 V1 · 03 · R01",
+              "title": "R01 · 主视觉细节",
+              "status": "CANDIDATE",
+              "authority_type": "visual",
+              "menu_group": "visual_reference",
+              "render_mode": "menu_placeholder",
+              "summary": "确定整体视觉质感与代表性主画面。"
+            },
+            {
+              "id": "ai_edge_field_ref_r02",
+              "code": "AI 边缘光场 V1 · 03 · R02",
+              "title": "R02 · 能量岛拆解",
+              "status": "CANDIDATE",
+              "authority_type": "visual",
+              "menu_group": "visual_reference",
+              "render_mode": "menu_placeholder",
+              "summary": "说明单个能量岛的视觉组成与层次。"
+            },
+            {
+              "id": "ai_edge_field_ref_r03",
+              "code": "AI 边缘光场 V1 · 03 · R03",
+              "title": "R03 · 四岛构图",
+              "status": "CANDIDATE",
+              "authority_type": "visual",
+              "menu_group": "visual_reference",
+              "render_mode": "menu_placeholder",
+              "summary": "确定四个能量岛的整体位置、主次与留白关系。"
+            },
+            {
+              "id": "ai_edge_field_ref_r04",
+              "code": "AI 边缘光场 V1 · 03 · R04",
+              "title": "R04 · 光场与鱼体聚焦",
+              "status": "CANDIDATE",
+              "authority_type": "visual",
+              "menu_group": "visual_reference",
+              "render_mode": "menu_placeholder",
+              "summary": "说明识别到鱼体后，外围光场与鱼体聚焦的视觉关系。"
+            },
+            {
+              "id": "ai_edge_field_ref_r05",
+              "code": "AI 边缘光场 V1 · 03 · R05",
+              "title": "R05 · 强度校准",
+              "status": "CANDIDATE",
+              "authority_type": "visual",
+              "menu_group": "visual_reference",
+              "render_mode": "menu_placeholder",
+              "summary": "建立强、中、弱视觉强度的对照范围。"
+            },
+            {
+              "id": "ai_edge_field_ref_r06",
+              "code": "AI 边缘光场 V1 · 03 · R06",
+              "title": "R06 · 失败边界",
+              "status": "CANDIDATE",
+              "authority_type": "visual",
+              "menu_group": "visual_reference",
+              "render_mode": "menu_placeholder",
+              "summary": "收录明显错误的视觉方向，作为禁止参考。"
             }
           ]
         },
