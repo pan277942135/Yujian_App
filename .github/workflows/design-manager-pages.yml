@@ -61,7 +61,7 @@ jobs:
 
   deploy:
     environment:
-      name: github-pages
+      name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
