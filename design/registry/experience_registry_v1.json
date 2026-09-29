@@ -1160,17 +1160,357 @@
           "status": "FROZEN",
           "authority_type": "behavior",
           "render_mode": "recognition_motion",
-          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
-          "secondary_authority": "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
+          "secondary_authority": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
           "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
-          "summary": "State Motion、连续 Ambient Motion 与 Resolve Transition 的当前冻结合同。",
+          "summary": "三步 Recognition Motion 已重新冻结。AI Edge Field 不在 State 切换时重启动画；SegmentOffset 连续、StateStrength 只改变视觉权重、ResolveStrength 统一完成结果前退场。",
           "menu_points": [
-            "AI Field 是连续场，不允许每次 State 切换全部重启",
-            "State 切换只改变 alpha / emphasis / fish focus / copy",
-            "OUTLINE 为视觉峰值；CLASSIFYING 进入稳定分析",
-            "RESULT_READY 后执行 200ms Resolve，再进入 Result",
-            "350 / 600 / 600 / 1250ms 为当前 V1.1 timing authority",
-            "旧 900ms compression 规则已被 V1.1 supersede"
+            "图片识别中：StateStrength 1.00；Segment Speed 1.00×；AI Edge Field 是最明显的 Processing 阶段",
+            "已定位到鱼体：StateStrength 0.58；Segment Speed 0.62×；视觉中心从边缘光场转向鱼体",
+            "鱼种识别中：StateStrength 0.36；Segment Speed 0.42×；外围仅保留低幅 AI 工作感",
+            "所有 State 切换保持 SegmentOffset 连续；禁止归零、跳位、重启 10s Loop",
+            "RESOLVE 200ms：冻结 SegmentOffset，ResolveStrength=(1-p)^2 从 1→0",
+            "Companion / Micro Hairline 不拥有独立时钟；只跟随本岛 Primary 的 offset 并保持固定小幅 lead/lag",
+            "精确最低节奏：900ms / 600ms / 1250ms + 200ms Resolve；慢处理允许停留当前状态"
+          ],
+          "motion_model": {
+            "state_timing": [
+              {
+                "state": "图片识别中",
+                "minimum_ms": 900,
+                "state_strength": 1,
+                "segment_speed": 1,
+                "transition_in_ms": 420,
+                "note": "前 420ms 完成光场自然建立；不是独立 CAPTURED 状态。"
+              },
+              {
+                "state": "已定位到鱼体",
+                "minimum_ms": 600,
+                "state_strength": 0.58,
+                "segment_speed": 0.62,
+                "strength_transition_ms": 260,
+                "speed_transition_ms": 260,
+                "note": "OUTLINE / Fish Focus 成为视觉中心；边缘光场明显降权但不断流。"
+              },
+              {
+                "state": "鱼种识别中",
+                "minimum_ms": 1250,
+                "state_strength": 0.36,
+                "segment_speed": 0.42,
+                "strength_transition_ms": 280,
+                "speed_transition_ms": 280,
+                "note": "保持稳定分析感；外围光场慢且弱。"
+              }
+            ],
+            "segment_offset": {
+              "base_cycle_ms": 10000,
+              "reset_on_state_change": false,
+              "formula": "offset_i(t) = fract(seed_i + integral(speed(state(t)) / 10000 dt))",
+              "easing_between_speeds": "cubic-bezier(0.22, 1, 0.36, 1)",
+              "primary_seeds": [
+                {
+                  "island": "B_UR",
+                  "path": "B1",
+                  "seed": 0,
+                  "direction": "path-forward"
+                },
+                {
+                  "island": "G_UL",
+                  "path": "G1",
+                  "seed": 0.12,
+                  "direction": "path-forward"
+                },
+                {
+                  "island": "B_LR",
+                  "path": "B3",
+                  "seed": 0.47,
+                  "direction": "path-forward"
+                },
+                {
+                  "island": "G_LL",
+                  "path": "G3",
+                  "seed": 0.64,
+                  "direction": "path-forward"
+                }
+              ],
+              "visible_segment_ratio": [
+                {
+                  "island": "B_UR",
+                  "ratio": 0.3
+                },
+                {
+                  "island": "G_UL",
+                  "ratio": 0.26
+                },
+                {
+                  "island": "G_LL",
+                  "ratio": 0.22
+                },
+                {
+                  "island": "B_LR",
+                  "ratio": 0.2
+                }
+              ],
+              "rule": "4 条 Primary 轨迹方向由各自 Bézier 定义，不构成统一顺/逆时针环流。"
+            },
+            "hairline_follow": {
+              "independent_clock": false,
+              "companion_rule": "Companion 使用同一个 Primary normalized t，叠加固定 path-local lead/lag；不独立循环。",
+              "companion_phase_delta": [
+                {
+                  "island": "B_UR",
+                  "delta": -0.055
+                },
+                {
+                  "island": "G_UL",
+                  "delta": 0.065
+                },
+                {
+                  "island": "B_LR",
+                  "delta": -0.06
+                },
+                {
+                  "island": "G_LL",
+                  "delta": 0.05
+                }
+              ],
+              "micro_rule": "B_UR Micro 使用 Primary t + 0.085；只作为短纹理，不产生第二个运动焦点。",
+              "rule": "Hairline motion 必须看起来是 Primary 的局部余韵，而不是第二套路径动画。"
+            },
+            "state_strength": {
+              "entry": {
+                "start": 0,
+                "target": 1,
+                "duration_ms": 420,
+                "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+                "staging": [
+                  {
+                    "range_ms": "0–180",
+                    "layer": "Receiving Light",
+                    "behavior": "先建立局部柔光"
+                  },
+                  {
+                    "range_ms": "80–320",
+                    "layer": "Primary Bloom/Mid/Core",
+                    "behavior": "主光带逐步可感知"
+                  },
+                  {
+                    "range_ms": "180–420",
+                    "layer": "Hairline/Node/Particle",
+                    "behavior": "最后补充细节，禁止同时闪现"
+                  }
+                ]
+              },
+              "state_targets": {
+                "image_recognizing": 1,
+                "fish_located": 0.58,
+                "species_recognizing": 0.36
+              },
+              "transition_rule": "只插值 StateStrength；不改变 Static Shape，不重新实例化 Island，不重置 SegmentOffset。"
+            },
+            "resolve_strength": {
+              "duration_ms": 200,
+              "segment_behavior": "freeze_current_offset",
+              "progress": "p = elapsed / 200ms",
+              "formula": "ResolveStrength = (1 - p)^2",
+              "start": 1,
+              "end": 0,
+              "applies_to": [
+                "Receiving Light",
+                "Outer Bloom",
+                "Mid Glow",
+                "Primary Core",
+                "Hairline",
+                "Hot Node",
+                "Particles"
+              ],
+              "rule": "所有 AI Edge Field 层共用同一 ResolveStrength；禁止某些 Glow 或 Particle 晚退造成残影。"
+            },
+            "continuous_motion_rules": [
+              "State 变化不重启 10s base clock",
+              "State 变化不瞬间改变 SegmentOffset",
+              "Speed 与 StateStrength 分开插值",
+              "Segment 在 Resolve 开始时冻结位置，只做 alpha 退场",
+              "Primary 是唯一自主连续运动；Hairline 从 Primary 派生",
+              "Node 附着当前 Primary luminous segment，不独立沿屏幕巡航",
+              "Particle 可有低幅局部漂移，但不得形成第二运动层级"
+            ]
+          },
+          "children": [
+            {
+              "id": "ai_edge_field_v1_motion_contract",
+              "code": "AI EDGE FIELD V1 · MOTION",
+              "title": "AI Edge Field V1 · Motion Contract",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_ai_edge_field_motion",
+              "authority": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
+              "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Motion_Contract.json",
+              "summary": "冻结 SegmentOffset / StateStrength / ResolveStrength 三个运动输入。状态切换连续、不重启；Fish Focus 出现后 Edge Field 明显降权；Resolve 200ms 冻结位置并统一淡出。",
+              "motion_model": {
+                "state_timing": [
+                  {
+                    "state": "图片识别中",
+                    "minimum_ms": 900,
+                    "state_strength": 1,
+                    "segment_speed": 1,
+                    "transition_in_ms": 420,
+                    "note": "前 420ms 完成光场自然建立；不是独立 CAPTURED 状态。"
+                  },
+                  {
+                    "state": "已定位到鱼体",
+                    "minimum_ms": 600,
+                    "state_strength": 0.58,
+                    "segment_speed": 0.62,
+                    "strength_transition_ms": 260,
+                    "speed_transition_ms": 260,
+                    "note": "OUTLINE / Fish Focus 成为视觉中心；边缘光场明显降权但不断流。"
+                  },
+                  {
+                    "state": "鱼种识别中",
+                    "minimum_ms": 1250,
+                    "state_strength": 0.36,
+                    "segment_speed": 0.42,
+                    "strength_transition_ms": 280,
+                    "speed_transition_ms": 280,
+                    "note": "保持稳定分析感；外围光场慢且弱。"
+                  }
+                ],
+                "segment_offset": {
+                  "base_cycle_ms": 10000,
+                  "reset_on_state_change": false,
+                  "formula": "offset_i(t) = fract(seed_i + integral(speed(state(t)) / 10000 dt))",
+                  "easing_between_speeds": "cubic-bezier(0.22, 1, 0.36, 1)",
+                  "primary_seeds": [
+                    {
+                      "island": "B_UR",
+                      "path": "B1",
+                      "seed": 0,
+                      "direction": "path-forward"
+                    },
+                    {
+                      "island": "G_UL",
+                      "path": "G1",
+                      "seed": 0.12,
+                      "direction": "path-forward"
+                    },
+                    {
+                      "island": "B_LR",
+                      "path": "B3",
+                      "seed": 0.47,
+                      "direction": "path-forward"
+                    },
+                    {
+                      "island": "G_LL",
+                      "path": "G3",
+                      "seed": 0.64,
+                      "direction": "path-forward"
+                    }
+                  ],
+                  "visible_segment_ratio": [
+                    {
+                      "island": "B_UR",
+                      "ratio": 0.3
+                    },
+                    {
+                      "island": "G_UL",
+                      "ratio": 0.26
+                    },
+                    {
+                      "island": "G_LL",
+                      "ratio": 0.22
+                    },
+                    {
+                      "island": "B_LR",
+                      "ratio": 0.2
+                    }
+                  ],
+                  "rule": "4 条 Primary 轨迹方向由各自 Bézier 定义，不构成统一顺/逆时针环流。"
+                },
+                "hairline_follow": {
+                  "independent_clock": false,
+                  "companion_rule": "Companion 使用同一个 Primary normalized t，叠加固定 path-local lead/lag；不独立循环。",
+                  "companion_phase_delta": [
+                    {
+                      "island": "B_UR",
+                      "delta": -0.055
+                    },
+                    {
+                      "island": "G_UL",
+                      "delta": 0.065
+                    },
+                    {
+                      "island": "B_LR",
+                      "delta": -0.06
+                    },
+                    {
+                      "island": "G_LL",
+                      "delta": 0.05
+                    }
+                  ],
+                  "micro_rule": "B_UR Micro 使用 Primary t + 0.085；只作为短纹理，不产生第二个运动焦点。",
+                  "rule": "Hairline motion 必须看起来是 Primary 的局部余韵，而不是第二套路径动画。"
+                },
+                "state_strength": {
+                  "entry": {
+                    "start": 0,
+                    "target": 1,
+                    "duration_ms": 420,
+                    "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+                    "staging": [
+                      {
+                        "range_ms": "0–180",
+                        "layer": "Receiving Light",
+                        "behavior": "先建立局部柔光"
+                      },
+                      {
+                        "range_ms": "80–320",
+                        "layer": "Primary Bloom/Mid/Core",
+                        "behavior": "主光带逐步可感知"
+                      },
+                      {
+                        "range_ms": "180–420",
+                        "layer": "Hairline/Node/Particle",
+                        "behavior": "最后补充细节，禁止同时闪现"
+                      }
+                    ]
+                  },
+                  "state_targets": {
+                    "image_recognizing": 1,
+                    "fish_located": 0.58,
+                    "species_recognizing": 0.36
+                  },
+                  "transition_rule": "只插值 StateStrength；不改变 Static Shape，不重新实例化 Island，不重置 SegmentOffset。"
+                },
+                "resolve_strength": {
+                  "duration_ms": 200,
+                  "segment_behavior": "freeze_current_offset",
+                  "progress": "p = elapsed / 200ms",
+                  "formula": "ResolveStrength = (1 - p)^2",
+                  "start": 1,
+                  "end": 0,
+                  "applies_to": [
+                    "Receiving Light",
+                    "Outer Bloom",
+                    "Mid Glow",
+                    "Primary Core",
+                    "Hairline",
+                    "Hot Node",
+                    "Particles"
+                  ],
+                  "rule": "所有 AI Edge Field 层共用同一 ResolveStrength；禁止某些 Glow 或 Particle 晚退造成残影。"
+                },
+                "continuous_motion_rules": [
+                  "State 变化不重启 10s base clock",
+                  "State 变化不瞬间改变 SegmentOffset",
+                  "Speed 与 StateStrength 分开插值",
+                  "Segment 在 Resolve 开始时冻结位置，只做 alpha 退场",
+                  "Primary 是唯一自主连续运动；Hairline 从 Primary 派生",
+                  "Node 附着当前 Primary luminous segment，不独立沿屏幕巡航",
+                  "Particle 可有低幅局部漂移，但不得形成第二运动层级"
+                ]
+              }
+            }
           ]
         },
         {

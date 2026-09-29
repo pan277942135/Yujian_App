@@ -1965,9 +1965,67 @@ function recognitionAiEdgeFieldRenderingCanvas(child) {
   '</div>';
 }
 
+
+function recognitionAiEdgeFieldMotionCanvas(child) {
+  const m = child.motion_model || {};
+  const states = m.state_timing || [];
+  const segment = m.segment_offset || {};
+  const strength = m.state_strength || {};
+  const resolve = m.resolve_strength || {};
+  const rules = m.continuous_motion_rules || [];
+
+  const stateGrid =
+    '<div class="authority-index-grid">' +
+      states.map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(item.state) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+          '<div class="authority-kind">MOTION TARGET</div>' +
+          '<p>Minimum · ' + esc(item.minimum_ms + "ms") + '</p>' +
+          '<p>StateStrength · ' + esc(item.state_strength) + '</p>' +
+          '<p>Segment Speed · ' + esc(item.segment_speed + "×") + '</p>' +
+          '<p>' + esc(item.note || "") + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const seedGrid =
+    '<div class="authority-index-grid">' +
+      (segment.primary_seeds || []).map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(item.island + " · " + item.path) + '</strong></div>' +
+          '<div class="authority-kind">SEGMENT OFFSET SEED</div>' +
+          '<p>Seed · ' + esc(item.seed) + '</p><p>Direction · ' + esc(item.direction) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Motion Identity</strong><span>SegmentOffset 决定位置 · StateStrength 决定权重 · ResolveStrength 决定退场。三者不得合并成一个 progress。</span></div>' +
+    '<div class="recognition-section-title">3-State Motion Targets</div>' + stateGrid +
+    '<div class="recognition-section-title">SegmentOffset</div>' +
+      '<div class="recognition-state-card"><p><b>Base Cycle</b> · ' + esc(segment.base_cycle_ms + "ms") + '</p>' +
+      '<p><b>Formula</b> · <code>' + esc(segment.formula || "") + '</code></p>' +
+      '<p><b>Reset on State</b> · ' + esc(String(segment.reset_on_state_change)) + '</p></div>' +
+      seedGrid +
+    '<div class="recognition-section-title">StateStrength Entry</div>' +
+      '<div class="recognition-state-card"><p><b>0 → 1</b> · ' + esc(strength.entry?.duration_ms + "ms") + '</p>' +
+      (strength.entry?.staging || []).map(x=>'<p><b>'+esc(x.range_ms)+'</b> · '+esc(x.layer)+' · '+esc(x.behavior)+'</p>').join("") +
+      '</div>' +
+    '<div class="recognition-section-title">ResolveStrength</div>' +
+      '<div class="recognition-state-card"><p><b>Duration</b> · ' + esc(resolve.duration_ms + "ms") + '</p>' +
+      '<p><b>Segment</b> · ' + esc(resolve.segment_behavior || "") + '</p>' +
+      '<p><code>' + esc(resolve.formula || "") + '</code></p></div>' +
+    '<div class="recognition-section-title">Continuity Rules</div>' +
+      '<div class="authority-index-grid">' +
+        rules.map((rule,index)=>'<article class="authority-index-card"><div class="authority-index-head"><strong>'+esc(String(index+1).padStart(2,"0"))+'</strong></div><div class="authority-kind">FROZEN RULE</div><p>'+esc(rule)+'</p></article>').join("") +
+      '</div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
   if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_rendering") return recognitionAiEdgeFieldRenderingCanvas(child);
+  if (child.render_mode === "recognition_ai_edge_field_motion") return recognitionAiEdgeFieldMotionCanvas(child);
 
   const visual = child.image || child.visual_authority || null;
   if (child.render_mode === "repo_image" && visual && isImage(visual)) {
