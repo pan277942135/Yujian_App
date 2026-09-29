@@ -1367,6 +1367,189 @@
         {
           "id": "spacing_radius_v1"
         }
+      ],
+      "note": "Fish Guide Design Manager IA V1 已建立：父级“鱼鉴”承担 00 Overview；左侧新增 01–09 + 99 一级规范菜单。当前只整理菜单、Authority 入口与规范边界，不新增或生成任何高保真资产。",
+      "navigation_model": "fish_guide_spec_menu_v1",
+      "design_manager_view_rules": {
+        "overview": "parent page = 00 Overview; show page-level authority only",
+        "spec_menu": "01–09 + 99 are specification workspaces; do not infer missing visual authority",
+        "rule": "Menu structure does not create new frozen design authority. Existing frozen images remain the only visual authority until explicitly replaced."
+      },
+      "hifi_views": [
+        {
+          "id": "home",
+          "title": "01 · 鱼鉴首页",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "image": "design/system/core_visual_v1/reference/fish_guide_v2.png",
+          "authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
+          "summary": "鱼鉴主页面规范入口。当前 Frozen Visual Authority 继续使用 fish_guide_v2.png；本次只建立菜单，不改视觉。",
+          "authority_type": "visual",
+          "menu_points": [
+            "Frozen Visual Authority",
+            "Layout",
+            "Species Carousel",
+            "Locked / Unlocked State",
+            "Discovery Progress",
+            "Catch Count",
+            "Interaction",
+            "Edge Cases",
+            "Runtime Acceptance"
+          ]
+        },
+        {
+          "id": "species_detail",
+          "title": "02 · 鱼种详情",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority": "design/pages/fish_guide/README.md",
+          "summary": "鱼种详情及 5 张知识卡的规范入口。当前只登记结构，后续逐项建立正式 Authority。",
+          "authority_type": "group",
+          "menu_points": [
+            "Overview",
+            "Frozen Visual Authority",
+            "Navigation",
+            "Card Carousel · Hero / Recognition / Ecology / Equipment / Techniques",
+            "Card Layout",
+            "Swipe Behaviour",
+            "Adjacent Card Preview",
+            "Card Indicator",
+            "Species Summary",
+            "My Catch Summary",
+            "Runtime Acceptance"
+          ]
+        },
+        {
+          "id": "species_states",
+          "title": "03 · 鱼种状态",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+          "secondary_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
+          "summary": "鱼种收藏状态规范入口。已存在主页面与未点亮补充参考，但完整状态合同尚未独立冻结。",
+          "authority_type": "group",
+          "menu_points": [
+            "Unlocked",
+            "Locked / Unlit",
+            "Never Caught",
+            "Caught Once",
+            "Caught Multiple Times",
+            "Data Missing / Fallback"
+          ]
+        },
+        {
+          "id": "species_navigation",
+          "title": "04 · 鱼种导航",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority": "design/pages/fish_guide/README.md",
+          "summary": "鱼鉴首页、鱼种详情、我的鱼获之间的导航与返回恢复规则入口。",
+          "authority_type": "behavior",
+          "menu_points": [
+            "Fish Guide → Species Detail",
+            "Previous / Next Species",
+            "Back Behaviour",
+            "Carousel Position Restore",
+            "Deep Link",
+            "My Catches Linkage"
+          ]
+        },
+        {
+          "id": "content_contract",
+          "title": "05 · 内容合同",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority": "design/pages/fish_guide/README.md",
+          "summary": "鱼种字段、知识卡内容与缺失数据处理的内容合同入口。",
+          "authority_type": "behavior",
+          "menu_points": [
+            "Species Name",
+            "Scientific / Alias Data",
+            "Recognition Features",
+            "Ecology",
+            "Equipment",
+            "Techniques",
+            "Catch Statistics",
+            "Missing Content Rules"
+          ]
+        },
+        {
+          "id": "assets",
+          "title": "06 · 资产",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json",
+          "summary": "鱼种主图、黑金知识卡、点亮/未点亮处理与资产命名映射入口。",
+          "authority_type": "visual",
+          "menu_points": [
+            "Species Hero Assets",
+            "Black Gold Card Assets",
+            "Card Asset Mapping",
+            "Locked Treatment",
+            "Asset Naming Contract"
+          ]
+        },
+        {
+          "id": "motion_interaction",
+          "title": "07 · 动效与交互",
+          "status": "MISSING",
+          "render_mode": "authority_index",
+          "authority": null,
+          "summary": "鱼种 Carousel、知识卡滑动、进入转场、点亮反馈与 Reduce Motion 的待建规范入口。",
+          "authority_type": "behavior",
+          "menu_points": [
+            "Species Carousel",
+            "Detail Card Swipe",
+            "Entry Transition",
+            "Unlock Feedback",
+            "Reduce Motion"
+          ]
+        },
+        {
+          "id": "responsive",
+          "title": "08 · 响应式",
+          "status": "MISSING",
+          "render_mode": "authority_index",
+          "authority": null,
+          "summary": "标准 Android、小屏、长文本与字体缩放处理的待建规范入口。",
+          "authority_type": "behavior",
+          "menu_points": [
+            "Standard Android",
+            "Small Screen",
+            "Long Text",
+            "Font Scale"
+          ]
+        },
+        {
+          "id": "evidence",
+          "title": "09 · 验收证据",
+          "status": "MISSING",
+          "render_mode": "authority_index",
+          "authority": null,
+          "summary": "Frozen vs Runtime、模拟器、真机与验收清单的待建证据入口。",
+          "authority_type": "behavior",
+          "menu_points": [
+            "Frozen vs Runtime",
+            "Emulator",
+            "Physical Device",
+            "Acceptance Checklist"
+          ]
+        },
+        {
+          "id": "archive",
+          "title": "99 · Archive",
+          "status": "DEPRECATED",
+          "render_mode": "authority_index",
+          "authority": "design/pages/fish_guide/README.md",
+          "summary": "旧列表、旧分页、旧搜索概念及被替代视觉的归档入口；不得覆盖当前 Frozen Authority。",
+          "authority_type": "group",
+          "menu_points": [
+            "Deprecated List View",
+            "Old Pagination",
+            "Old Search Concepts",
+            "Superseded Visuals"
+          ]
+        }
       ]
     },
     {
