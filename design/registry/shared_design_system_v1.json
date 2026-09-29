@@ -366,5 +366,18 @@
       ],
       "note": "页面应优先使用共享间距与圆角 token，不因单页适配而生成新的任意值。"
     }
+  ],
+  "navigation_groups": [
+    {
+      "id": "button_spec",
+      "display_name": "按钮规范",
+      "category": "component_group",
+      "status": "FROZEN",
+      "item_ids": [
+        "primary_capture_button_v1",
+        "action_button_v1"
+      ],
+      "note": "导航分组，不创建新的设计 Authority；两个子组件继续独立版本化和冻结。"
+    }
   ]
 }
