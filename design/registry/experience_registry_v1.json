@@ -330,7 +330,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "Recognition Processing 已建立 6 个直接子菜单。01 · State Timeline 已重整为纯产品/设计规范：4 个 Processing State + 1 个 Resolve Transition + Result/Issue/Back 出口；不在本层评价 Android、Runtime 或 CI。",
+      "note": "Recognition Processing 已建立 6 个直接子菜单。State Timeline 当前采用三步产品模型：图片识别中 → 已定位到鱼体 → 鱼种识别中；02 · Visual States 已同步将原 4 张 Processing UI 按 3 个状态重新归组。当前仅更新设计管理与产品规范，不涉及实现。",
       "display_name": "识别过程",
       "design_versions": [
         {
@@ -361,87 +361,94 @@
           "status": "ACTIVE_CLOSURE",
           "authority_type": "behavior",
           "render_mode": "recognition_timeline",
-          "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_2.md",
+          "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md",
           "secondary_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
           "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
-          "summary": "纯产品/设计状态规范：识别过程固定为 4 个可视 Processing State；RESOLVE 是转场，Result / Issue / Back 是出口。当前只定义体验关系，不评价实现。",
+          "summary": "纯产品/设计状态规范：Processing 由 4 步简化为 3 步——图片识别中 → 已定位到鱼体 → 鱼种识别中；RESOLVE 仍是转场，Result / Issue / Back 是出口。",
           "menu_points": [
-            "Processing 只包含 CAPTURED / DETECTING / OUTLINE / CLASSIFYING 四个可视状态",
-            "RESOLVE 是 200ms 收尾转场，不是第五个 Processing State",
-            "High / Medium / Low 属于识别结果页，不属于识别过程",
-            "No Fish / Image Quality / Technical Failure 属于异常出口，不增加处理中状态",
-            "任何处理中状态都允许用户主动返回；Back ≠ Failure",
-            "快处理保留完整叙事；慢处理停留当前状态，不制造虚假进度"
+            "Processing 只包含 3 个用户可感知状态：图片识别中 / 已定位到鱼体 / 鱼种识别中",
+            "原 CAPTURED + DETECTING 合并为“图片识别中”，减少一次没有明显用户价值的文案切换",
+            "“已定位到鱼体”保留为识别过程唯一明确的 AI Moment",
+            "“鱼种识别中”负责鱼体特征分析语义，不提前透露鱼种结果",
+            "RESOLVE 是结果前收尾转场，不是第四个 Processing State",
+            "High / Medium / Low、No Fish / Image Quality / Technical Failure、Back 均属于 Processing 之外的出口"
           ],
           "timeline_model": {
-            "rule": "识别过程只表达用户此刻应该理解的 AI 阶段；状态可以停留，但不能为了显得更快而跳过语义阶段或制造虚假进度。",
+            "rule": "识别过程只保留用户能明确感知差异的三段语义：先理解图片，再确认鱼体，最后判断鱼种。避免为了“显得有进度”增加无明显认知差异的中间状态。",
             "entry": {
               "title": "ENTRY · 照片进入识别",
               "sources": [
                 "相机拍摄",
                 "相册选择"
               ],
-              "rule": "无论来源，进入识别过程后使用同一套状态关系。"
+              "rule": "无论来源，进入识别过程后使用同一套三段状态关系。"
             },
             "processing_states": [
               {
-                "phase": "CAPTURED",
-                "duration": "约 350ms",
-                "user_meaning": "照片已被接收，识别即将开始。",
-                "allowed": "显示原始照片与轻量 AI 场建立。",
-                "forbidden": "不得暗示已经找到鱼、不得出现鱼体锁定。"
+                "phase": "IMAGE_RECOGNIZING",
+                "display_name": "图片识别中",
+                "duration": "时序在 04 · Motion & Transition 冻结",
+                "user_meaning": "AI 正在理解这张照片，并寻找这次鱼获的线索。",
+                "allowed": "原始照片立即可见；外围 AI 场建立并持续；保持整图理解感。",
+                "forbidden": "不得出现鱼体锁定、Contour/Halo、具体鱼种、置信度或候选结果。",
+                "legacy_mapping": [
+                  "CAPTURED",
+                  "DETECTING"
+                ]
               },
               {
-                "phase": "DETECTING",
-                "duration": "至少约 600ms",
-                "user_meaning": "AI 正在理解整张照片并寻找这次鱼获的线索。",
-                "allowed": "保持整图理解感；AI 场可继续。",
-                "forbidden": "尚未确认鱼体前，不得提前出现鱼体高亮或“已定位”语义。"
+                "phase": "FISH_LOCATED",
+                "display_name": "已定位到鱼体",
+                "duration": "时序在 04 · Motion & Transition 冻结",
+                "user_meaning": "AI 已经找到照片中的鱼，分析焦点从整张照片转向鱼体。",
+                "allowed": "鱼体 Halo / Contour / Highlight 成为核心 AI Moment；外围 AI 光场开始降权。",
+                "forbidden": "不得回退成整图搜索语义；不得提前显示具体鱼种结果。",
+                "legacy_mapping": [
+                  "OUTLINE"
+                ]
               },
               {
-                "phase": "OUTLINE",
-                "duration": "至少约 600ms",
-                "user_meaning": "AI 已确认鱼体，开始围绕这条鱼展开分析。",
-                "allowed": "进入鱼体高亮 / Contour / Halo 的核心 AI Moment。",
-                "forbidden": "不得回退成整图搜索语义；不得显示鱼种结果。"
-              },
-              {
-                "phase": "CLASSIFYING",
-                "duration": "至少约 1250ms",
-                "user_meaning": "AI 正在分析鱼体特征并判断鱼种。",
-                "allowed": "鱼体焦点保持稳定，等待识别结论。",
-                "forbidden": "结果正式出现前，不提前显示具体鱼种、置信度或候选。"
+                "phase": "SPECIES_RECOGNIZING",
+                "display_name": "鱼种识别中",
+                "duration": "时序在 04 · Motion & Transition 冻结",
+                "user_meaning": "AI 正在分析鱼体特征，判断它是什么鱼。",
+                "allowed": "鱼体焦点保持稳定；进入克制、稳定的分析状态。",
+                "forbidden": "结果正式出现前，不显示具体鱼种、置信度、候选鱼种或假百分比。",
+                "legacy_mapping": [
+                  "CLASSIFYING"
+                ]
               }
             ],
             "transition": {
               "id": "RESOLVE",
-              "duration": "200ms",
-              "user_meaning": "AI 分析完成，视觉从识别态自然释放到结果页。",
-              "rule": "只做收尾，不出现新的标题、卡片或第五个处理中状态。"
+              "display_name": "结果转场",
+              "duration": "约 200ms；精确时序归 04 · Motion & Transition",
+              "user_meaning": "AI 分析完成，识别视觉自然退场，把视觉中心交给结果页。",
+              "rule": "只做收尾，不新增标题、状态卡或第四个处理中状态。"
             },
             "exits": [
               {
-                "source": "CLASSIFYING → RESOLVE",
+                "source": "鱼种识别中 → RESOLVE",
                 "target": "Result · High",
                 "meaning": "结论清晰"
               },
               {
-                "source": "CLASSIFYING → RESOLVE",
+                "source": "鱼种识别中 → RESOLVE",
                 "target": "Result · Medium",
                 "meaning": "需要用户确认候选"
               },
               {
-                "source": "CLASSIFYING → RESOLVE",
+                "source": "鱼种识别中 → RESOLVE",
                 "target": "Result · Low",
                 "meaning": "无法可靠确认鱼种"
               },
               {
-                "source": "DETECTING",
+                "source": "图片识别中",
                 "target": "Issue · No Fish",
-                "meaning": "未确认到可识别鱼体"
+                "meaning": "没有找到可识别鱼体"
               },
               {
-                "source": "DETECTING",
+                "source": "图片识别中",
                 "target": "Issue · Image Quality",
                 "meaning": "图片条件不足以继续可靠识别"
               },
@@ -459,31 +466,30 @@
             "pacing_rules": [
               {
                 "title": "正常节奏",
-                "detail": "CAPTURED → DETECTING → OUTLINE → CLASSIFYING → RESOLVE → Result。"
+                "detail": "图片识别中 → 已定位到鱼体 → 鱼种识别中 → RESOLVE → Result。"
               },
               {
                 "title": "处理很快",
-                "detail": "仍保持四个核心状态的完整叙事，不从 CAPTURED 直接跳到结果。"
+                "detail": "仍保留三段有意义的用户叙事，尤其保留“已定位到鱼体”的 AI Moment。"
               },
               {
                 "title": "处理较慢",
-                "detail": "停留在当前真实语义阶段；可以延长，但不自动推进、不显示百分比、不制造假的下一阶段。"
+                "detail": "停留在当前语义阶段；不自动轮播文案、不显示假百分比、不制造假的下一阶段。"
               },
               {
                 "title": "异常出现",
-                "detail": "在异常被确认的阶段直接离开 Processing，进入对应 Issue；不为了补齐动画而继续播放后续状态。"
+                "detail": "在异常被确认的阶段直接离开 Processing，进入对应 Issue；不为了补齐三步而继续播放。"
               },
               {
                 "title": "用户返回",
-                "detail": "用户可以随时离开 Processing；返回不是识别失败，也不需要经过 Resolve。"
+                "detail": "用户可随时退出；Back 不是 Failure，也不需要经过 RESOLVE。"
               }
             ],
             "ownership": {
               "processing": [
-                "CAPTURED",
-                "DETECTING",
-                "OUTLINE",
-                "CLASSIFYING"
+                "图片识别中",
+                "已定位到鱼体",
+                "鱼种识别中"
               ],
               "transition": [
                 "RESOLVE"
@@ -505,48 +511,65 @@
         {
           "id": "visual_states",
           "title": "02 · Visual States",
-          "status": "FROZEN",
+          "status": "ACTIVE_CLOSURE",
           "authority_type": "visual",
           "render_mode": "recognition_visual_states",
           "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
           "visual_authority_manifest": "design/pages/recognition/design/reference_manifest.json",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
-          "summary": "已将此前上传并冻结的 4 张识别过程 UI 直接挂入本工作区；不重新生成、不复制资产。",
+          "summary": "现有 4 张历史 Frozen Processing UI 不删除：原 01 + 02 归并为新的第一状态“图片识别中”的早/晚参考帧；03、04 分别对应“已定位到鱼体”“鱼种识别中”。三步状态的最终视觉 Authority 后续再冻结。",
           "visual_states": [
             {
-              "id": "captured",
-              "code": "CAPTURED",
-              "title": "01 · Capture Transition",
-              "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
-              "note": "真实照片进入；AI 场开始建立；禁止提前出现鱼体焦点。"
+              "id": "image_recognizing",
+              "code": "01",
+              "display_name": "图片识别中",
+              "title": "01 · 图片识别中",
+              "sources": [
+                {
+                  "label": "Early · 原 Capture Transition",
+                  "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png"
+                },
+                {
+                  "label": "Late · 原 AI Understanding",
+                  "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
+                }
+              ],
+              "note": "原 CAPTURED + DETECTING 合并为同一产品状态。两张旧 UI 只作为该状态的早/晚视觉参考，不再代表两个独立用户步骤。"
             },
             {
-              "id": "detecting",
-              "code": "DETECTING",
-              "title": "02 · AI Understanding",
-              "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
-              "note": "理解整张照片；外围 AI Field 可读，但仍不得鱼焦。"
+              "id": "fish_located",
+              "code": "02",
+              "display_name": "已定位到鱼体",
+              "title": "02 · 已定位到鱼体",
+              "sources": [
+                {
+                  "label": "Frozen source · Fish Highlight",
+                  "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
+                }
+              ],
+              "note": "识别过程的核心 AI Moment；鱼体 Halo / Contour 成为视觉中心。"
             },
             {
-              "id": "outline",
-              "code": "OUTLINE",
-              "title": "03 · Fish Highlight",
-              "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
-              "note": "Fish Halo + Contour 成为核心 AI Moment；外围光场降权。"
-            },
-            {
-              "id": "classifying",
-              "code": "CLASSIFYING",
-              "title": "04 · Fish Identifying",
-              "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
-              "note": "Contour 稳定、Halo 轻呼吸；AI Field 持续但不抢鱼体。"
+              "id": "species_recognizing",
+              "code": "03",
+              "display_name": "鱼种识别中",
+              "title": "03 · 鱼种识别中",
+              "sources": [
+                {
+                  "label": "Frozen source · Fish Identifying",
+                  "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
+                }
+              ],
+              "note": "鱼体焦点保持稳定，进入鱼种分析阶段；不提前泄露结果。"
             }
           ],
           "menu_points": [
-            "4 张 Processing Frozen Keyframe = 本页核心 Visual Authority",
-            "05–07 Result High/Medium/Low 不属于 Processing",
-            "08–09 No Fish/Image Quality 不属于 Processing",
-            "图片文件保持原路径，Design Manager 只迁移引用关系"
+            "3 个产品状态，继续复用原有 4 张 UI 资产作为视觉参考",
+            "原 01 + 02 两张图被归并到“图片识别中”，不再视为两个 Processing State",
+            "03_Fish_Highlight_Frozen.png → 已定位到鱼体",
+            "04_Fish_Identifying_Frozen.png → 鱼种识别中",
+            "05–07 Result High/Medium/Low 仍属于 Result",
+            "08–09 No Fish/Image Quality 仍属于 Issue"
           ]
         },
         {

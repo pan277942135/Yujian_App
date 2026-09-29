@@ -1600,11 +1600,8 @@ function recognitionStateTimelineCanvas(view) {
 
   const flowItems = [
     ["ENTRY", "Camera / Gallery"],
-    ["CAPTURED", "照片已接收"],
-    ["DETECTING", "理解整张照片"],
-    ["OUTLINE", "已找到鱼体"],
-    ["CLASSIFYING", "分析鱼体特征"],
-    ["RESOLVE", "200ms 转场"],
+    ...states.map(state => [state.display_name || state.phase, state.user_meaning || ""]),
+    [transition.display_name || transition.id || "RESOLVE", "转场"],
     ["RESULT", "High / Medium / Low"]
   ];
 
@@ -1621,9 +1618,9 @@ function recognitionStateTimelineCanvas(view) {
 
   const stateCards =
     '<div class="recognition-state-grid">' +
-      states.map(state =>
+      states.map((state,index) =>
         '<article class="recognition-state-card">' +
-          '<div class="recognition-state-head"><strong>' + esc(state.phase) + '</strong><span>' + esc(state.duration) + '</span></div>' +
+          '<div class="recognition-state-head"><strong>' + esc(String(index + 1).padStart(2,"0") + " · " + (state.display_name || state.phase)) + '</strong><span>' + esc(state.duration || "") + '</span></div>' +
           '<p><b>用户理解</b> · ' + esc(state.user_meaning) + '</p>' +
           '<p><b>允许</b> · ' + esc(state.allowed) + '</p>' +
           '<p><b>禁止</b> · ' + esc(state.forbidden) + '</p>' +
@@ -1633,7 +1630,7 @@ function recognitionStateTimelineCanvas(view) {
 
   const transitionCard =
     '<section class="recognition-resolve-card">' +
-      '<div><span>TRANSITION · NOT A PROCESSING STATE</span><strong>RESOLVE · ' + esc(transition.duration || "200ms") + '</strong></div>' +
+      '<div><span>TRANSITION · NOT A PROCESSING STATE</span><strong>' + esc(transition.display_name || transition.id || "RESOLVE") + '</strong></div>' +
       '<p><b>用户理解</b> · ' + esc(transition.user_meaning || "") + '</p>' +
       '<p>' + esc(transition.rule || "") + '</p>' +
     '</section>';
@@ -1670,7 +1667,7 @@ function recognitionStateTimelineCanvas(view) {
   return '<div class="recognition-timeline-review">' +
     '<div class="recognition-rule"><strong>核心规则</strong><span>' + esc(model.rule || "") + '</span></div>' +
     flow +
-    '<div class="recognition-section-title">4 个 Processing States</div>' + stateCards +
+    '<div class="recognition-section-title">' + esc(states.length + " 个 Processing States") + '</div>' + stateCards +
     transitionCard +
     '<div class="recognition-section-title">Exit Relationship</div>' + exitCards +
     '<div class="recognition-section-title">Fast / Normal / Slow Rules</div>' + pacingCards +
@@ -1679,35 +1676,41 @@ function recognitionStateTimelineCanvas(view) {
 }
 function recognitionVisualStatesCanvas(view) {
   const states = view.visual_states || [];
-  const board = '<div class="hifi-board four">' +
-    states.map(state =>
-      '<div class="hifi-original">' +
-        '<div class="hifi-phone-label">' + esc(state.code + ' · ' + state.title.replace(/^\\d+\\s*·\\s*/, '')) + '</div>' +
-        '<a href="' + esc(repoHref(state.path)) + '" target="_blank" rel="noreferrer">' +
-          '<img src="' + esc(repoHref(state.path)) + '" alt="' + esc(state.title) + '">' +
-        '</a>' +
-        '<div class="hifi-original-caption">' + esc(state.note || '') + '</div>' +
-      '</div>'
-    ).join("") +
-  '</div>';
 
-  const migration = '<div class="authority-index">' +
-    '<div class="authority-index-intro"><strong>Existing Frozen UI · 已迁入</strong>' +
-      '<span>复用原始仓库 PNG；不重新生成、不改 SHA、不把 Result / Error UI 混入 Processing。</span></div>' +
+  const cards = states.map(state => {
+    const sources = state.sources || (state.path ? [{label:state.title,path:state.path}] : []);
+    return '<section class="recognition-visual-state-group">' +
+      '<div class="recognition-visual-state-head"><span>' + esc(state.code || "") + '</span><strong>' + esc(state.display_name || state.title) + '</strong></div>' +
+      '<div class="hifi-board ' + (sources.length > 1 ? 'two' : 'one') + '">' +
+        sources.map(source =>
+          '<div class="hifi-original">' +
+            '<div class="hifi-phone-label">' + esc(source.label || state.display_name || state.title) + '</div>' +
+            '<a href="' + esc(repoHref(source.path)) + '" target="_blank" rel="noreferrer">' +
+              '<img src="' + esc(repoHref(source.path)) + '" alt="' + esc(source.label || state.title) + '">' +
+            '</a>' +
+          '</div>'
+        ).join("") +
+      '</div>' +
+      '<div class="hifi-original-caption">' + esc(state.note || "") + '</div>' +
+    '</section>';
+  }).join("");
+
+  const mapping = '<div class="authority-index">' +
+    '<div class="authority-index-intro"><strong>Existing Frozen UI · 重新归组</strong>' +
+      '<span>原始 PNG 不删除、不复制。产品状态从四步变三步后，01 + 02 被视为“图片识别中”的早/晚参考帧。</span></div>' +
     '<div class="authority-index-grid">' +
       states.map(state =>
         '<article class="authority-index-card">' +
-          '<div class="authority-index-head"><strong>' + esc(state.code) + '</strong>' + statusBadge("FROZEN") + '</div>' +
-          '<div class="authority-kind">FROZEN KEYFRAME</div>' +
-          '<p>' + esc(state.path) + '</p>' +
+          '<div class="authority-index-head"><strong>' + esc((state.code || "") + " · " + (state.display_name || state.title)) + '</strong>' + statusBadge("ACTIVE_CLOSURE") + '</div>' +
+          '<div class="authority-kind">3-STATE MAPPING</div>' +
+          '<p>' + esc((state.sources || []).map(x=>x.path).join(" + ")) + '</p>' +
         '</article>'
       ).join("") +
     '</div>' +
   '</div>';
 
-  return board + migration;
+  return '<div class="recognition-visual-state-list">' + cards + '</div>' + mapping;
 }
-
 function genericSpecHifiCanvas(feature, view) {
   if (view.render_mode === "recognition_timeline") return recognitionStateTimelineCanvas(view);
   if (view.render_mode === "recognition_visual_states") return recognitionVisualStatesCanvas(view);
