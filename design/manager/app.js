@@ -1320,10 +1320,28 @@ function genericSpecHifiCanvas(feature, view) {
     (view.render_mode === "repo_image" ? currentVersion(feature)?.visual_authority : null);
 
   if (view.render_mode === "repo_image" && visual && isImage(visual)) {
+    const specIndex = points.length
+      ? '<div class="authority-index">' +
+          '<div class="authority-index-intro"><strong>正式规范覆盖</strong>' +
+            '<span>' + esc(view.summary || "本层已建立正式规范。") + '</span></div>' +
+          '<div class="authority-index-grid">' +
+            points.map((point, index) =>
+              '<article class="authority-index-card">' +
+                '<div class="authority-index-head"><strong>' +
+                  esc(String(index + 1).padStart(2, "0") + " · " + point) +
+                '</strong></div>' +
+                '<div class="authority-kind">FROZEN SPEC</div>' +
+              '</article>'
+            ).join("") +
+          '</div>' +
+        '</div>'
+      : '';
+
     return '<div class="hifi-original">' +
       '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
       '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(view.title) + '"></a>' +
-      '<div class="hifi-original-caption">当前 Frozen Visual Authority · 本层未生成新视觉资产</div></div>';
+      '<div class="hifi-original-caption">当前 Frozen Visual Authority · 本层未生成新视觉资产</div></div>' +
+      specIndex;
   }
 
   return '<div class="authority-index">' +
@@ -1379,7 +1397,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     '<button class="hifi-scenario-chip" data-scene-id="'+esc(scene.id)+'">'+esc(scene.title)+'</button>'
   ).join("") || '<span class="preview-empty compact">无附加场景映射</span>';
 
-  el("hifiViewAuthorities").innerHTML=[child?.visual_authority,child?.behavior_authority,child?.authority,child?.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
+  el("hifiViewAuthorities").innerHTML=[child?.visual_authority,child?.behavior_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
     '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
   ).join("");
 
