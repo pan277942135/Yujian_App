@@ -483,84 +483,115 @@
       "id": "icon_action_v1",
       "display_name": "图标操作",
       "category": "component",
-      "overall": "ACTIVE_CLOSURE",
-      "current_version": "V1 Candidate",
+      "overall": "FROZEN",
+      "current_version": "V1",
       "authority_paths": [
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/reference_manifest.json",
         "design/system/components/icon_action/README.md",
         "design/system/components/icon_action/Icon_Action_Spec_V1.md",
         "design/system/components/icon_action/manifest.json",
         "design/system/components/icon_action/visual_contract.json",
         "design/system/components/icon_action/motion_contract.json",
-        "design/system/components/icon_action/usage_map.json",
-        "design/system/components/icon_action/visual/candidate/01_Families.svg",
-        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
-        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
-        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
-        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
-        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg"
+        "design/system/components/icon_action/usage_map.json"
       ],
-      "preview": "design/system/components/icon_action/visual/candidate/01_Families.svg",
+      "preview": "design/system/components/icon_action/visual/authority/01_Families.svg",
       "preview_type": "icon_action_system",
       "variants": [
         {
           "id": "NAVIGATION",
           "name": "导航动作",
           "usage": "返回 / 关闭",
-          "status": "CANDIDATE"
+          "status": "FROZEN"
         },
         {
           "id": "UTILITY",
           "name": "工具动作",
           "usage": "翻面 / 分享 / 鱼鉴 / 搜索 / 筛选 / 更多 / 编辑",
-          "status": "CANDIDATE"
+          "status": "FROZEN"
         },
         {
           "id": "CONTEXT",
           "name": "上下文动作",
           "usage": "清空 / 密码可见 / 语音 / 添加媒体",
-          "status": "CANDIDATE"
+          "status": "FROZEN"
         }
       ],
-      "candidate_visual_set": [
+      "note": "V1 FROZEN：NAVIGATION / UTILITY / CONTEXT 三大家族；44dp 点击区；默认透明容器；复杂媒体允许 36dp Mist 支撑面；Loading=N/A。",
+      "preview_note": "Icon Action V1 已冻结：Navigation / Utility / Context；B-side card_flip 为 Utility / ON_MEDIA，图标本身不随卡片翻转。",
+      "frozen_visual_authority_set": [
         {
           "id": "01_FAMILIES",
           "title": "01 · 三大家族",
-          "path": "design/system/components/icon_action/visual/candidate/01_Families.svg",
-          "status": "CANDIDATE"
+          "path": "design/system/components/icon_action/visual/authority/01_Families.svg",
+          "width": 1320,
+          "height": 600,
+          "bytes": 3306,
+          "sha256": "4417417743c83aa1eee64bdc4d556c930100aa0c48976407b293483e946d193f",
+          "status": "FROZEN",
+          "version": "V1"
         },
         {
           "id": "02_NAVIGATION_STATES",
           "title": "02 · Navigation 四态",
-          "path": "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
-          "status": "CANDIDATE"
+          "path": "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+          "width": 1320,
+          "height": 590,
+          "bytes": 2707,
+          "sha256": "cccb91ab86ef67c07fd607b370b5032006f0ad6dbe7f6fe0690b9c2ff08bd2eb",
+          "status": "FROZEN",
+          "version": "V1"
         },
         {
           "id": "03_UTILITY_LIBRARY",
           "title": "03 · Utility 图标库",
-          "path": "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
-          "status": "CANDIDATE"
+          "path": "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+          "width": 1320,
+          "height": 650,
+          "bytes": 3942,
+          "sha256": "b8d6c7da213c092504d02e6de47317c448747b238ad30a744c80c19dc591fb8c",
+          "status": "FROZEN",
+          "version": "V1"
         },
         {
           "id": "04_UTILITY_STATES",
           "title": "04 · Utility 四态",
-          "path": "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
-          "status": "CANDIDATE"
+          "path": "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+          "width": 1320,
+          "height": 590,
+          "bytes": 3270,
+          "sha256": "fe01cf1ff86252a4d8bb3c809acd834db8f3c499b403351bceea2c139e1877c0",
+          "status": "FROZEN",
+          "version": "V1"
         },
         {
           "id": "05_CONTEXT_LIBRARY",
           "title": "05 · Context 图标库",
-          "path": "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
-          "status": "CANDIDATE"
+          "path": "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+          "width": 1320,
+          "height": 590,
+          "bytes": 2807,
+          "sha256": "96a345bf96ad1c8222354c06d937c9c395175494cac2e65de8375c5b25fd8348",
+          "status": "FROZEN",
+          "version": "V1"
         },
         {
           "id": "06_REAL_USAGE",
           "title": "06 · 真实场景落位",
-          "path": "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
-          "status": "CANDIDATE"
+          "path": "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+          "width": 1320,
+          "height": 820,
+          "bytes": 4126,
+          "sha256": "acfe607f69dccf541561ec166fff1675520682e0aaaa90063d500b8dca782e50",
+          "status": "FROZEN",
+          "version": "V1"
         }
-      ],
-      "note": "V1 Candidate：44dp 点击区；Navigation 22dp，Utility 20–22dp，Context 18–20dp；默认透明容器；复杂媒体背景才允许 36dp Mist 支撑面。",
-      "preview_note": "待审视：三大家族边界、B-side card_flip 图标、默认无底 vs ON_MEDIA Mist 支撑面。"
+      ]
     },
     {
       "id": "top_navigation_v1",
@@ -684,14 +715,14 @@
       "id": "button_spec",
       "display_name": "按钮规范",
       "category": "component_group",
-      "status": "ACTIVE_CLOSURE",
+      "status": "FROZEN",
       "item_ids": [
         "primary_capture_button_v1",
         "action_button_v1",
         "text_action_v1",
         "icon_action_v1"
       ],
-      "note": "按钮规范导航分组；主拍摄、主/次操作、Text Action 已冻结；Icon Action V1 正在视觉收口。"
+      "note": "按钮规范导航分组；主拍摄按钮、主/次操作按钮、Text Action、Icon Action 均已冻结。各子组件独立版本化。"
     }
   ],
   "navigation_order": [
