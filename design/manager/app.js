@@ -282,12 +282,18 @@ function renderLists() {
     btn.addEventListener("click", () => {
       const kind = btn.dataset.kind;
       if (kind === "shared-group-toggle") {
-        toggleLevelOneState(btn.dataset.navId);
+        const isExpanded = btn.getAttribute("aria-expanded") === "true";
+        if (isExpanded) expandedLevelOne.delete(btn.dataset.navId);
+        else expandedLevelOne.add(btn.dataset.navId);
         renderLists();
         return;
       }
 
-      if (btn.dataset.navId) toggleLevelOneState(btn.dataset.navId);
+      if (btn.dataset.navId) {
+        const isExpanded = btn.getAttribute("aria-expanded") === "true";
+        if (isExpanded) expandedLevelOne.delete(btn.dataset.navId);
+        else expandedLevelOne.add(btn.dataset.navId);
+      }
 
       if (kind === "shared") selectShared(btn.dataset.id);
       else if (kind === "page") selectPage(btn.dataset.id);
