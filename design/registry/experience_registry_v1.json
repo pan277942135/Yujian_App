@@ -1359,11 +1359,8 @@
         {
           "id": "background_system_v1",
           "variant": "BG_DATA",
-          "master": "Morning_Lake_Master_V1"
-        },
-        {
-          "id": "top_navigation_v1",
-          "variant": "search_filter"
+          "master": "Morning_Lake_Master_V1",
+          "note": "Fish Guide Home V1 使用无太阳 Morning_Lake_Master_V1 / BG_DATA；不得恢复独立湖景。"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -1376,7 +1373,7 @@
           "id": "spacing_radius_v1"
         }
       ],
-      "note": "Fish Guide Design Manager IA V1 已建立：父级“鱼鉴”承担 00 Overview；左侧新增 01–09 + 99 一级规范菜单。当前只整理菜单、Authority 入口与规范边界，不新增或生成任何高保真资产。",
+      "note": "Fish Guide V2：01 · 鱼鉴首页正式规范已于 2026-09-29 FROZEN。首页 V1 不含 Search；核心为低权重点亮进度 + 中央 Species Carousel + 左右邻卡预览 + LIT/UNLIT 自然收藏状态。其余 02–09 继续逐项建立规范。",
       "navigation_model": "fish_guide_spec_menu_v1",
       "design_manager_view_rules": {
         "overview": "parent page = 00 Overview; show page-level authority only",
@@ -1390,20 +1387,27 @@
           "status": "FROZEN",
           "render_mode": "repo_image",
           "image": "design/system/core_visual_v1/reference/fish_guide_v2.png",
-          "authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
-          "summary": "鱼鉴主页面规范入口。当前 Frozen Visual Authority 继续使用 fish_guide_v2.png；本次只建立菜单，不改视觉。",
+          "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
+          "summary": "Fish Guide Home V1 已正式冻结：Natural Collection / Personal Field Guide；V1 不含 Search；中央 Species Carousel、左右邻卡预览、低权重点亮进度、saved FishRecord 记录次数、LIT/UNLIT 可浏览可点击。",
           "authority_type": "visual",
           "menu_points": [
+            "Page Role / Information Architecture",
             "Frozen Visual Authority",
-            "Layout",
+            "BG_DATA Background Contract",
+            "Discovery Progress · 已点亮 N / T 种",
             "Species Carousel",
-            "Locked / Unlocked State",
-            "Discovery Progress",
-            "Catch Count",
-            "Interaction",
-            "Edge Cases",
-            "Runtime Acceptance"
-          ]
+            "FishGuideCard Contract",
+            "LIT / UNLIT States",
+            "Species Catch Count",
+            "Navigation / Return Restore",
+            "Visual Hierarchy",
+            "Responsive / Accessibility Guardrails",
+            "Asset Contract",
+            "Acceptance Gate"
+          ],
+          "secondary_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+          "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
+          "freeze_date": "2026-09-29"
         },
         {
           "id": "species_detail",
@@ -1558,7 +1562,98 @@
             "Superseded Visuals"
           ]
         }
-      ]
+      ],
+      "design_audit": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
+      "design_sections": [
+        {
+          "id": "home_v1",
+          "title": "01 · 鱼鉴首页 V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
+          "summary": "首页是个人自然鱼鉴浏览器，不是百科列表或游戏收藏页。V1 只承担浏览鱼种、查看点亮进度、切换鱼种并进入详情。",
+          "points": [
+            "V1 不含 Search / Filter；旧搜索入口归档为 Future scale feature",
+            "背景固定 Morning_Lake_Master_V1 / BG_DATA，无太阳",
+            "中心 1 张主鱼种卡 + 左右邻卡露出，横向 Carousel",
+            "已点亮 N / T 种为低权重发现进度，不做大金色 KPI",
+            "LIT / UNLIT 均可浏览、点击并进入详情；UNLIT 不是 disabled",
+            "Species Catch Count 仅统计成功保存的 FishRecord",
+            "禁止 Grid / 瀑布流 / 传统列表 / 鱼形分页器 / 稀有度 / 星级 / 大锁",
+            "从 Species Detail 返回后恢复原鱼种与 Carousel 位置"
+          ]
+        }
+      ],
+      "freeze_review": {
+        "state": "IN_REVIEW",
+        "title": "鱼鉴 V2 · 设计冻结检查",
+        "note": "01 · 鱼鉴首页 V1 已冻结；当前 Fish Guide 总模块仍为 PARTIAL，因为 02–09 尚未全部建立正式规范与 Runtime Evidence。",
+        "items": [
+          {
+            "id": "FGH-FREEZE-01",
+            "title": "页面角色",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Fish Guide Home = Natural Collection / Personal Field Guide；发现、观察、档案优先，禁止游戏收藏语义。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGH-FREEZE-02",
+            "title": "V1 信息架构",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "标题 → 已点亮 N/T → 轻量进度 → Species Carousel → 记录次数。V1 不含 Search / Filter。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGH-FREEZE-03",
+            "title": "背景",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "固定使用 Morning_Lake_Master_V1 / BG_DATA：saturation 0.79、contrast 0.78、brightness 1.06、mist 0.30；无太阳。",
+            "authority": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
+          },
+          {
+            "id": "FGH-FREEZE-04",
+            "title": "Species Carousel",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "中心主卡 + 左右邻卡露出；横向滑动并稳定居中。禁止全宽单卡无提示、Grid、列表、瀑布流与鱼形分页器。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGH-FREEZE-05",
+            "title": "LIT / UNLIT",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "UNLIT 是个人遇见状态，不是权限状态；仍可见、可读、可浏览、可点击。禁止黑白 disabled、大锁、??? 与游戏锁卡。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGH-FREEZE-06",
+            "title": "点亮与记录次数数据语义",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "点亮数按至少 1 条成功保存 FishRecord 的 distinct catalog species；Species Catch Count 只统计保存后的 FishRecord，不统计识别次数或照片数。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGH-FREEZE-07",
+            "title": "返回恢复",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "进入 Species Detail 后返回，恢复原 active species 与 Carousel 位置，不重置到第一条。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGH-FREEZE-08",
+            "title": "Runtime Evidence",
+            "status": "PENDING_CONFIRMATION",
+            "blocking": false,
+            "decision": "设计合同不重开；Runtime parity、模拟器与真机证据后续归入 09 · 验收证据。",
+            "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          }
+        ]
+      }
     },
     {
       "id": "account_privacy_v1",
