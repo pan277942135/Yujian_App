@@ -24,3 +24,11 @@ Status: **PARTIAL — structure established**
 - 昵称
 
 未单独确认前，不新增手机号、邮箱、性别、生日、地区、签名等字段。
+
+
+## Top Navigation
+
+- Default edit-profile navigation uses **Top Navigation V1 / BACK_TITLE / FROZEN**.
+- Back → Icon Action V1 / NAVIGATION.
+- Title follows 20sp / Medium / 26sp, 56dp min height, 8dp outer padding, 8dp Back-title gap.
+- Save / confirm remains page content unless a future frozen revision explicitly upgrades the page to BACK_TITLE_ACTIONS.
