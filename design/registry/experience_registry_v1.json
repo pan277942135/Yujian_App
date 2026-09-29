@@ -579,6 +579,14 @@
             "blocking": true,
             "decision": "已恢复默认 Timeline、单日 1–5 / 6–10 / >10、Search、Filter、三类 Empty 与 Growth Mark 场景。>10 条进入当天鱼获详情；Search / Filter Empty 仍保留底部全局 Camera Button。",
             "authority": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md"
+          },
+          {
+            "id": "MC-FREEZE-TL-HIFI",
+            "title": "Timeline Scroll V1 高保真视觉",
+            "status": "PENDING_CONFIRMATION",
+            "blocking": true,
+            "decision": "行为合同保持 FROZEN；历史 Timeline 规范板仅作结构/行为参考。最终视觉需按 no-sun BG_DATA、当前 Row Card、Month Sticky、6–10 展开态与 >10 当天详情重新收口。",
+            "authority": "design/pages/fish_records/list/My_Catches_Timeline_Hifi_Audit_V1.md"
           }
         ]
       },
@@ -618,15 +626,15 @@
           "title": "Timeline Scroll V1",
           "status": "FROZEN",
           "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
-          "summary": "月份章节 + 日期节点 + 当天鱼获集合；newest-first，月份吸顶，日期随内容滚动。",
+          "summary": "Timeline 行为合同已冻结；当前高保真视觉正在收口：no-sun BG_DATA、Month Sticky、6–10 展开态与 >10 当天详情。",
           "points": [
-            "默认定位最新鱼获",
-            "Month Header Sticky；Day Header 不长期吸顶",
-            "单日 1–5 条全部展开",
-            "6–10 条默认 5 条 +「查看另外 N 条」",
-            ">10 条默认 5 条 +「查看全部 N 条鱼获」→ 进入当天鱼获详情",
-            "搜索 / 筛选后仍保持 Timeline 分组",
-            "初始最近 3 个月，向下滚动加载更早月份"
+            "默认 newest-first；Month Header Sticky；Day 随内容滚动",
+            "日期摘要：地点 · N条鱼获 · M种鱼；搜索/筛选后重算",
+            "1–5 条全部展开",
+            "6–10 条默认5条 → 原位展开 → 可收起",
+            ">10 条默认5条 → 当天鱼获详情",
+            "列表图片使用真实现场照片，最终 Row Card 对齐 1:1 / 82dp / 14dp",
+            "最终高保真必须使用 Morning_Lake_Master_V1 / BG_DATA（无太阳）"
           ]
         },
         {
@@ -1029,17 +1037,19 @@
         {
           "id": "timeline",
           "title": "Timeline Scroll V1",
-          "status": "FROZEN",
+          "status": "ACTIVE_CLOSURE",
           "render_mode": "timeline_board",
           "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
           "source_reference": "鱼获时间轴滚动规范展示板.png",
-          "summary": "高保真场景板：1–5 条全展开；6–10 条默认5条后原位展开；>10 条默认5条后进入当天鱼获详情。",
+          "summary": "交互规则已冻结；视觉正在按当前 My Catches V2 与 no-sun BG_DATA 收口。需补 Month Sticky、6–10 展开态与 >10 当天详情正式高保真。",
           "scenario_ids": [
             "timeline_default",
             "day_1_5",
             "day_6_10",
             "day_gt10"
-          ]
+          ],
+          "audit": "design/pages/fish_records/list/My_Catches_Timeline_Hifi_Audit_V1.md",
+          "source_role": "historical_behavior_and_layout_reference_not_current_visual_authority"
         },
         {
           "id": "filter",
