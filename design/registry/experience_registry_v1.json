@@ -1480,7 +1480,7 @@
           "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
-      "note": "Fish Guide V2：01 · 鱼鉴首页 V1 已 FROZEN；02 · 鱼种详情当前页面级 Visual Authority 已登记为「精致白条钓法卡界面.png」，页面构图冻结，但 5 张黑金知识卡内部内容/视觉暂不审。其余 03–09 继续逐项建立规范。",
+      "note": "Fish Guide V2：01 · 鱼鉴首页 V1 已 FROZEN；02 · 鱼种详情 Page Contract V1 + Visual Authority 已完成页面级 FROZEN。02 的 5 张黑金卡内部内容/视觉仍保持 PARTIAL，后续单独审。03–09 继续逐项建立规范。",
       "navigation_model": "fish_guide_spec_menu_v1",
       "design_manager_view_rules": {
         "overview": "parent page = 00 Overview; show page-level authority only",
@@ -1521,21 +1521,27 @@
         {
           "id": "species_detail",
           "title": "02 · 鱼种详情",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "repo_image",
-          "authority": "design/pages/fish_guide/species_detail/Species_Detail_Visual_Authority_V1.md",
-          "summary": "02 · 鱼种详情页面级 Visual Authority 已冻结并落库。Design Manager 直接展示仓库内原始 PNG；5 张黑金知识卡内部内容和视觉仍暂不审。",
+          "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md",
+          "summary": "02 · 鱼种详情页面级规范已完整冻结：Back + Species Header + 5 位有限 Carousel + NN/05 + 我的{鱼种}。禁止 Auto Flip、autoplay、循环；首次进入 01/05；My Species 只使用真实 FishRecord。5 张黑金卡内部内容/视觉仍单独保持 PARTIAL。",
           "authority_type": "group",
           "menu_points": [
+            "Page Contract V1 · FROZEN",
             "Current Page Visual Authority · FROZEN",
-            "Species Header",
-            "Knowledge Card Carousel Placement",
-            "Adjacent Card Preview",
+            "Top Navigation / Species Header",
+            "5-slot Knowledge Card Carousel",
+            "No Auto Flip / No Autoplay / No Loop",
+            "Adjacent Card Preview / Fit",
             "NN / 05 Page Indicator",
-            "我的白条 · Catch Count + 2 Recent Catch Previews",
-            "Navigation / Interaction · TO SPEC",
-            "Five Black-Gold Cards · INTERNAL VISUAL/CONTENT TO REVIEW",
-            "Runtime Acceptance · TO REVIEW"
+            "我的{鱼种} · Catch Count",
+            "2 Recent Real FishRecord Previews",
+            "My Catches / FishRecordDetail Navigation",
+            "Back-stack State Restore",
+            "Vertical Scroll / Responsive / Accessibility",
+            "Loading & Edge States → 03 · 鱼种状态",
+            "Five Black-Gold Cards · INTERNAL CONTENT/VISUAL PARTIAL",
+            "Runtime Evidence → 09 · 验收证据"
           ],
           "visual_status": "FROZEN",
           "visual_authority_source": {
@@ -1561,11 +1567,34 @@
             "five-card internal content",
             "five-card internal visual system",
             "star/rating semantics",
-            "final card naming"
+            "final card naming",
+            "individual card diagrams / copy / imagery"
           ],
           "freeze_date": "2026-09-29",
           "image": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png",
-          "visual_authority": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png"
+          "visual_authority": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png",
+          "page_contract_status": "FROZEN",
+          "secondary_authority": "design/pages/fish_guide/species_detail/Species_Detail_Visual_Authority_V1.md",
+          "page_contract": {
+            "version": "V1",
+            "status": "FROZEN",
+            "spec": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md",
+            "card_positions": 5,
+            "first_entry_index": 0,
+            "page_indicator": "NN / 05",
+            "auto_flip": false,
+            "autoplay": false,
+            "circular_loop": false,
+            "crop_card_artwork": false,
+            "initial_entry": "01 / 05",
+            "restore_on_back_stack_return": true,
+            "persist_card_index_as_global_preference": false,
+            "my_species_preview_max": 2,
+            "my_species_media": "REAL_FISH_RECORD_ONLY",
+            "my_species_header_action": "OPEN_MY_CATCHES_WITH_SPECIES_FILTER",
+            "preview_action": "OPEN_SELECTED_FISH_RECORD_DETAIL",
+            "card_internal_contract_status": "PARTIAL"
+          }
         },
         {
           "id": "species_states",
@@ -1735,12 +1764,35 @@
             "五张黑金卡内部内容/视觉本轮不审，不因整页 Authority 自动视为独立 FROZEN",
             "旧鱼种详情探索稿降级为 historical reference"
           ]
+        },
+        {
+          "id": "species_detail_page_v1",
+          "title": "02 · 鱼种详情 · Page Contract V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md",
+          "summary": "页面级结构、交互、My Species、导航恢复、响应式与验收边界均已冻结；5 张黑金卡内部设计不在本轮冻结范围。",
+          "points": [
+            "Back + Species Header；V1 不加 Search / Share / overflow",
+            "固定 5 个 Knowledge Card positions；首次冷启动进入 01/05",
+            "主卡居中、左右邻卡提示；卡面 Fit，禁止 crop / stretch",
+            "Auto Flip=NO；Autoplay=NO；Timed rotation=NO；Circular loop=NO",
+            "唯一页码反馈为 NN / 05，不再增加点阵分页器",
+            "我的{鱼种}显示 saved FishRecord 总数，最多 2 张最近真实现场照片",
+            "Header / count / chevron → My Catches(species filter=current species)",
+            "真实鱼获预览 → 对应 FishRecordDetail",
+            "从 My Catches / FishRecordDetail 返回恢复 species、card index、可行时恢复 scroll",
+            "从 Species Detail 返回 Fish Guide 恢复首页原 active species / carousel position",
+            "短屏允许整页纵向滚动；禁止嵌套纵向滚动",
+            "Reduce Motion 下仅降低 settle motion，不改变语义",
+            "Loading / missing / 0 record / 1 record 等视觉状态交由 03 · 鱼种状态",
+            "5 张黑金卡内部 copy / visual / rating / naming 继续 PARTIAL"
+          ]
         }
       ],
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "鱼鉴 V2 · 设计冻结检查",
-        "note": "01 · 鱼鉴首页 V1 已冻结；当前 Fish Guide 总模块仍为 PARTIAL，因为 02–09 尚未全部建立正式规范与 Runtime Evidence。",
+        "note": "01 · 鱼鉴首页与 02 · 鱼种详情页面级规范均已冻结；02 的 5 张黑金卡内部系统以及 03–09 仍待后续规范。",
         "items": [
           {
             "id": "FGH-FREEZE-01",
@@ -1805,6 +1857,70 @@
             "blocking": false,
             "decision": "设计合同不重开；Runtime parity、模拟器与真机证据后续归入 09 · 验收证据。",
             "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-01",
+            "title": "页面信息架构",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Back → Species Header → 5-card Carousel → NN/05 → 我的{鱼种}；V1 不增加 Search / Share / Ranking / tabs。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-02",
+            "title": "Carousel 行为",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "固定 5 位、有限 Carousel；用户主动 Swipe + Snap。Auto Flip / autoplay / timed rotation / circular loop 全部禁止。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-03",
+            "title": "卡面适配",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Active card 完整显示，Fit；禁止 crop / stretch。标准宽度保持中心主卡绝对主导与左右邻卡可感知。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-04",
+            "title": "进入与恢复",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "冷进入默认 01/05；仍在 back stack 时返回恢复 centered card index；不把 card index 持久化为全局物种偏好。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-05",
+            "title": "我的鱼种",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "N次记录只统计成功保存且最终鱼种匹配的 FishRecord；最多展示最近 2 张真实 FishRecord 现场照片，禁止 B-side / Guide artwork / AI replacement。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-06",
+            "title": "跨页导航",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "我的{鱼种} header/count/chevron → species-filtered My Catches；预览图 → 对应 FishRecordDetail；返回恢复 Species Detail 状态。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-07",
+            "title": "黑金五卡边界",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "本轮只冻结 5 个 page positions 与容器交互；五张黑金卡内部内容、视觉、星级与最终命名仍为 PARTIAL。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGD-FREEZE-08",
+            "title": "Runtime Evidence",
+            "status": "PENDING_CONFIRMATION",
+            "blocking": false,
+            "decision": "页面级设计不重开；Runtime visual/interaction evidence 后续归入 09 · 验收证据。",
+            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
           }
         ]
       }
