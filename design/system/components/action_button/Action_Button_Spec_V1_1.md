@@ -131,6 +131,10 @@ Use for recovery, fallback or intentionally lower-priority alternatives.
 
 Same disabled surface family as SECONDARY_STRONG.
 
+### Loading
+
+**N/A.** SECONDARY_MUTED does not own a loading state. For `重新拍摄`, activation transitions directly into the target capture/navigation flow; any waiting state is owned by the destination page. Do not show an inline spinner inside SECONDARY_MUTED.
+
 ## 6. Pairing ratios
 
 Paired buttons are **not always 50 / 50**.
@@ -224,3 +228,17 @@ Business success/error feedback belongs to page/event contracts.
 - visible decorative gradients;
 - loading text that changes button width;
 - using Primary Capture Button visual language for ordinary actions.
+
+
+## 13. Frozen Visual Authority Set
+
+The complete V1.1 static UI authority is the following six-reference set. Each reference is independently usable by development and QA.
+
+1. `visual/authority/01_Base_Visual.svg` — PRIMARY / SECONDARY_STRONG / SECONDARY_MUTED.
+2. `visual/authority/02_Single_Buttons.svg` — 登录 / 注册并登录 full-width single-button usage.
+3. `visual/authority/03_Paired_Buttons.svg` — 44/56 confirmed-result pair and 58/42 low-confidence pair.
+4. `visual/authority/04_PRIMARY_Five_States.svg` — Normal / Pressed / Loading / Disabled / Focus.
+5. `visual/authority/05_SECONDARY_STRONG_Five_States.svg` — Normal / Pressed / Loading / Disabled / Focus.
+6. `visual/authority/06_SECONDARY_MUTED_States.svg` — Normal / Pressed / Disabled / Focus; Loading = N/A.
+
+The historical `visual/Action_Button_V1_1_Frozen_Visual.svg` is retained as an overview only and does not supersede this six-reference authority set.
