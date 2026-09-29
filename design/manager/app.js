@@ -294,6 +294,27 @@ function layeredCapturePreviewHtml(item) {
 }
 
 function actionButtonPreviewHtml(item) {
+  const frozenRef = item.frozen_visual_reference || null;
+  const frozenBlock = frozenRef && frozenRef.path
+    ? '<section class="action-frozen-authority">' +
+        '<div class="action-frozen-head">' +
+          '<div><span>FROZEN VISUAL REFERENCE</span><strong>静态视觉 Authority</strong></div>' +
+          '<div class="action-frozen-meta">' +
+            esc(frozenRef.width) + '×' + esc(frozenRef.height) + ' · ' +
+            esc(frozenRef.format || "SVG") + ' · SHA-256 ' +
+            esc(String(frozenRef.sha256 || "").slice(0,12)) + '…' +
+          '</div>' +
+        '</div>' +
+        '<a class="action-frozen-image" href="' + esc(repoHref(frozenRef.path)) +
+          '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(frozenRef.path)) +
+          '" alt="Action Button V1.1 Frozen Visual Reference">' +
+        '</a>' +
+        '<div class="action-frozen-note">这张静态图负责最终视觉与组合构图；下方 Live Preview 仅用于交互、状态与响应式审视。</div>' +
+      '</section>' +
+      '<div class="action-live-divider"><span>LIVE PREVIEW · SUPPLEMENTAL</span></div>'
+    : '';
+
   const demo = (label, variant, state = "normal", extra = "") => {
     const cls =
       variant === "PRIMARY" ? "action-primary" :
@@ -307,7 +328,7 @@ function actionButtonPreviewHtml(item) {
       content + '</button>';
   };
 
-  return '<div class="action-preview-shell action-v11">' +
+  return frozenBlock + '<div class="action-preview-shell action-v11">' +
     '<div class="action-preview-title-row">' +
       '<div><div class="action-preview-kicker">ACTION BUTTON SYSTEM</div>' +
       '<div class="action-preview-title">Primary / Secondary Action Button V1.1</div></div>' +
