@@ -60,6 +60,10 @@ def main() -> int:
         fail(errors, "runtime manifest does not name Frozen V2")
     if runtime.get("reference_canvas") != [1080, 1920]:
         fail(errors, "runtime reference canvas must be [1080, 1920]")
+    if runtime.get("visual_revision") != "V2.2":
+        fail(errors, "runtime visual revision must be V2.2")
+    if runtime.get("approved_visual_sha256") != "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec":
+        fail(errors, "runtime approved visual SHA mismatch")
     for relative_path, expected_sha in runtime.get("sha256", {}).items():
         candidate = RUNTIME / relative_path
         if not candidate.is_file() or digest(candidate) != expected_sha:
@@ -70,6 +74,25 @@ def main() -> int:
         fail(errors, "single-ripple/no-baked-ripple rule failed")
     if anchors["ripple"]["center_reference_px"] != anchors["bobber"]["water_contact_reference_px"]:
         fail(errors, "ripple center must equal bobber water contact")
+    if anchors["bobber"]["water_contact_reference_px"] != [560, 1320]:
+        fail(errors, "V2.2 bobber water contact mismatch")
+    if anchors["rod"]["tip_reference_px"] != [335, 1180]:
+        fail(errors, "V2.2 rod tip mismatch")
+    line = anchors.get("line", {})
+    if line.get("start_reference_px") != [335, 1180]:
+        fail(errors, "V2.2 fishing line must start at rod tip")
+    if line.get("control_points_reference_px") != [[390, 1265], [470, 1352]]:
+        fail(errors, "V2.2 fishing line slack control points mismatch")
+    if line.get("end_reference_px") != [560, 1328]:
+        fail(errors, "V2.2 fishing line must terminate below the bobber water seam")
+    cta = anchors.get("cta", {})
+    if (
+        cta.get("prompt_top_reference_px"),
+        cta.get("camera_top_reference_px"),
+        cta.get("camera_size_reference_px"),
+        cta.get("album_top_reference_px"),
+    ) != (1448, 1537, 220, 1780):
+        fail(errors, "V2.2 CTA layout/spacing contract mismatch")
     bobber = motion.get("bobber", {})
     if (bobber.get("axis"), bobber.get("range_reference_px"), bobber.get("duration_ms"), bobber.get("rotation_deg"), bobber.get("scale_animation")) != ("y", 3, 4600, 0, False):
         fail(errors, "bobber Motion V2 contract failed")
@@ -90,6 +113,11 @@ def main() -> int:
         fail(errors, "camera breath max scale exceeds V2")
     if source["frozen_input"]["sha256"] != digest(FEATURE / "source/frozen/Empty_Home_Final_Design_V2.png"):
         fail(errors, "frozen source SHA256 mismatch")
+    visual_revision = source.get("active_visual_revision", {})
+    if visual_revision.get("revision") != "V2.2" or visual_revision.get("status") != "APPROVED_FROZEN":
+        fail(errors, "V2.2 approved visual revision metadata missing")
+    if visual_revision.get("sha256") != "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec":
+        fail(errors, "V2.2 approved visual source SHA mismatch")
     if production.get("status") != "PASS":
         fail(errors, "asset production/static recompose gate is not PASS")
     for asset in asset_manifest.get("assets", []):
@@ -100,6 +128,7 @@ def main() -> int:
     report.update({
         "status": "PASS" if not errors else "FAIL",
         "design_version": runtime.get("design_version"),
+        "visual_revision": runtime.get("visual_revision"),
         "reference_canvas": runtime.get("reference_canvas"),
         "asset_count": len(asset_manifest.get("assets", [])),
         "runtime_file_count": len([path for path in RUNTIME.rglob("*") if path.is_file()]),

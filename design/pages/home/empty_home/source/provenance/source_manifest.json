@@ -24,5 +24,24 @@
     ],
     "path": "source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
     "sha256": "ebf96d310678b5fd47149cd8dadf3dd24cb00b2b83253876aa4cf9e89f954b77"
+  },
+  "active_visual_revision": {
+    "revision": "V2.2",
+    "status": "APPROVED_FROZEN",
+    "received_filename": "晨雾湖畔_静待第一条鱼.png",
+    "original_dimensions": [
+      941,
+      1672
+    ],
+    "sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+    "authority_scope": [
+      "capture_button_size_and_vertical_spacing",
+      "rod_position",
+      "slack_fishing_line_geometry",
+      "bobber_forward_position",
+      "ripple_water_contact_position"
+    ],
+    "base_scene_authority": "source/frozen/Empty_Home_Final_Design_V2.png",
+    "note": "V2.2 is a frozen visual delta over V2; unchanged scene pixels and all non-listed behavior remain under V2 authority."
   }
 }

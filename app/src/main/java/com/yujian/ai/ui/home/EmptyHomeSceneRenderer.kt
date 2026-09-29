@@ -14,8 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.ContentScale
 import com.yujian.ai.ui.components.AssetImage
@@ -123,8 +126,8 @@ private fun DrawScope.drawRuntimeOverlays(
 
     drawReferenceBitmap(
         bitmap = assets.rod,
-        x = 0f,
-        y = 950f,
+        x = EMPTY_HOME_V2_ROD_X,
+        y = EMPTY_HOME_V2_ROD_Y,
         width = assets.rod.width.toFloat(),
         height = assets.rod.height.toFloat(),
         alpha = 1f,
@@ -132,17 +135,7 @@ private fun DrawScope.drawRuntimeOverlays(
         paint = paint,
         destination = destination,
     )
-    drawReferenceBitmap(
-        bitmap = assets.line,
-        x = 400f,
-        y = 950f,
-        width = assets.line.width.toFloat(),
-        height = assets.line.height.toFloat(),
-        alpha = 1f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-    )
+    drawFrozenFishingLine(transform)
 
     // Local atmosphere only: no glass surface, hard vignette, or CTA plate.
     drawRect(
@@ -194,6 +187,36 @@ private fun DrawScope.drawRuntimeOverlays(
         transform = transform,
         paint = paint,
         destination = destination,
+    )
+}
+
+private fun DrawScope.drawFrozenFishingLine(
+    transform: ReferenceSceneTransform,
+) {
+    fun sx(value: Float): Float = transform.offsetX + value * transform.scale
+    fun sy(value: Float): Float = transform.offsetY + value * transform.scale
+
+    val linePath = Path().apply {
+        moveTo(sx(EMPTY_HOME_V2_ROD_TIP_X), sy(EMPTY_HOME_V2_ROD_TIP_Y))
+        cubicTo(
+            sx(EMPTY_HOME_V2_LINE_C1_X),
+            sy(EMPTY_HOME_V2_LINE_C1_Y),
+            sx(EMPTY_HOME_V2_LINE_C2_X),
+            sy(EMPTY_HOME_V2_LINE_C2_Y),
+            sx(EMPTY_HOME_V2_LINE_END_X),
+            sy(EMPTY_HOME_V2_LINE_END_Y),
+        )
+    }
+
+    drawPath(
+        path = linePath,
+        color = YuJianColors.DeepInk.copy(alpha = 0.12f),
+        style = Stroke(width = 2.25f * transform.scale, cap = StrokeCap.Round),
+    )
+    drawPath(
+        path = linePath,
+        color = Color.White.copy(alpha = 0.64f),
+        style = Stroke(width = 1.15f * transform.scale, cap = StrokeCap.Round),
     )
 }
 
