@@ -35,9 +35,10 @@
           "authority": "design/pages/home/empty_home/haptic/Empty_Home_Haptic_Spec_V1.md"
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null,
-          "note": "No canonical feature sound contract. Default governance prohibits autoplay."
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/sound/Empty_Home_Sound_Spec_V1.md",
+          "contract": "design/pages/home/empty_home/shared/contracts/sound_contract.json",
+          "note": "Current authority explicitly freezes no automatic or interaction audio. lake_morning.mp3 remains packaged/deferred and disabled."
         },
         "runtime": {
           "status": "FROZEN",
@@ -45,10 +46,11 @@
         },
         "evidence": {
           "status": "FROZEN",
-          "authority": "design/pages/home/empty_home/status.json"
+          "authority": "design/pages/home/empty_home/evidence/manifest.json"
         }
       },
-      "note": "V2 canonical visual remains authority; latest V3 document is an active fidelity-closure contract and does not supersede V2."
+      "note": "V2 canonical visual remains authority; V3 is an active fidelity-closure contract. Sound is explicitly frozen as no-playback. A superseding visual requires a new canonical binary/manifest.",
+      "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md"
     },
     {
       "id": "home_normal_v1",
