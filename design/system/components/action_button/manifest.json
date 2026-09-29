@@ -17,6 +17,8 @@
     }
   ],
   "authority": [
+    "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+    "design/system/components/action_button/visual/reference_manifest.json",
     "design/system/components/action_button/Action_Button_Spec_V1_1.md",
     "design/system/components/action_button/visual_contract.json",
     "design/system/components/action_button/motion_contract.json",
@@ -40,5 +42,15 @@
     "继续记录记忆",
     "手动选择",
     "重新拍摄"
-  ]
+  ],
+  "visual_reference": {
+    "path": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+    "width": 1600,
+    "height": 1680,
+    "format": "SVG",
+    "bytes": 8133,
+    "sha256": "44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c",
+    "status": "FROZEN",
+    "version": "V1.1"
+  }
 }
