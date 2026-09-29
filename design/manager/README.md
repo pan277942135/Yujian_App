@@ -1,6 +1,19 @@
-# YuJian Experience Manager
+# YuJian Design Manager
 
-A small, zero-dependency repository tool for managing YuJian experience authority.
+A small, zero-dependency design-governance tool for YuJian / 渔见.
+
+The V1 scope is intentionally limited to **design management**:
+
+- Behavior
+- Visual
+- Motion
+- Haptic
+- Sound
+- Assets
+- Design versions
+- Authority / freeze state
+
+Runtime, Evidence and Work handoff are deliberately outside the V1 UI.
 
 ## Source of truth
 
@@ -8,53 +21,76 @@ The manager reads:
 
 `design/registry/experience_registry_v1.json`
 
-It does not replace feature-local Behavior / Visual / Motion / Haptic / Sound / Runtime / Evidence contracts.
+Feature-local specs and manifests remain the actual authority. The registry is the cross-feature index.
 
-## Commands
+## Open the manager
+
+From the repository root:
 
 ```bash
-python3 scripts/experience_manager.py validate
-python3 scripts/experience_manager.py summary
-python3 scripts/experience_manager.py build
+python3 scripts/design_manager.py serve
 ```
 
-### validate
+Then open:
 
-Fails only on governance integrity problems:
+`http://127.0.0.1:8765/design/manager/`
 
-- malformed registry;
-- duplicate feature IDs;
-- unknown status values;
-- missing required modality entries;
-- a FROZEN modality with no authority;
-- a registered authority path that does not exist.
+No Node, Vite, database or package installation is required.
 
-Known product/design gaps such as MISSING, PARTIAL or ACTIVE_CLOSURE remain visible work and do not
-make the registry invalid.
+## Validate
 
-### summary
+```bash
+python3 scripts/design_manager.py validate
+```
 
-Prints the current feature × modality matrix and active gaps in Markdown.
+Validation checks:
 
-### build
+- Design Manager metadata;
+- one display name and one current design version per module;
+- design-only modality completeness;
+- allowed status values;
+- every FROZEN modality has an Authority;
+- every registered Authority / Contract path exists;
+- version visual/spec Authority paths exist.
 
-Generates two review surfaces:
+Known design gaps such as MISSING, PARTIAL and ACTIVE_CLOSURE do not fail the tool. They are managed work.
 
-- `design/registry/EXPERIENCE_STATUS.md` — convenient GitHub-readable matrix;
-- `design/manager/index.html` — searchable/filterable local dashboard.
+## Summary
 
-The generated files are views, not source of truth.
+```bash
+python3 scripts/design_manager.py summary
+```
 
-## CI
+Prints the design-only matrix:
 
-`.github/workflows/experience-governance.yml` validates the registry and builds/uploads the generated
-views as a GitHub Actions artifact whenever design governance changes.
+`Behavior / Visual / Motion / Haptic / Sound / Assets`.
 
-## Recommended daily workflow
+## UI
 
-1. Update/freeze a feature contract.
-2. Update `experience_registry_v1.json`.
-3. Run `python3 scripts/experience_manager.py validate`.
-4. Run `python3 scripts/experience_manager.py summary`.
-5. Run `python3 scripts/experience_manager.py build` when a local visual dashboard is useful.
-6. Commit the contracts + registry. Generated views do not need to be committed.
+The manager currently provides:
+
+1. module list + search + status filter;
+2. current design version and design overall state;
+3. direct Visual Authority preview when the Authority is an image;
+4. six design-modality cards with Authority links;
+5. design version history, including Current and Candidate versions.
+
+## Current Empty Home example
+
+The first complete sample is Empty Home:
+
+- V2: FROZEN and current canonical authority;
+- V3: CANDIDATE / active visual-fidelity closure;
+- V3 does not become current until a superseding canonical PNG/manifest is registered.
+
+## Editing rule
+
+Do not edit UI state as a second source of truth.
+
+Update:
+
+1. feature-local specs/assets/manifests;
+2. `design/registry/experience_registry_v1.json`;
+3. run `python3 scripts/design_manager.py validate`.
+
+The browser UI is a read-only view of repository authority in V1.
