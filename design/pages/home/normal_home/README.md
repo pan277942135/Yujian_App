@@ -23,3 +23,9 @@ Show when one or more valid FishRecords exist.
 
 ## Data
 Displayed statistics and catch content must come from real record data; frozen visual values are examples, not hardcoded product data.
+
+
+## Text Action
+
+- Recent catches `全部` uses shared Text Action V1 / NORMAL / ON_MEDIA.
+- Trailing chevron is a separate 14dp icon.
