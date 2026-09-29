@@ -1,8 +1,60 @@
 {
   "component": "primary_capture_button",
-  "core": "solid white",
-  "design_version": "V2",
-  "diameter_reference_px": 208,
-  "icon": "deep blue grey",
-  "rim": "fine gold"
+  "component_version": "V1",
+  "visual_revision": "V2.2",
+  "status": "FROZEN",
+  "reference_canvas": [
+    1080,
+    1920
+  ],
+  "diameter_reference_px": 220,
+  "visual": {
+    "core": "solid white / soft glass-supported white",
+    "rim": "fine warm-gold rim",
+    "icon": "deep lake blue-grey camera glyph",
+    "depth": "light restrained depth; no heavy floating shadow",
+    "clarity": "high enough to read immediately against lake background"
+  },
+  "layers": [
+    {
+      "id": "breath_glow",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
+      "role": "behind_button",
+      "required_for_static_preview": false,
+      "required_for_motion_preview": true
+    },
+    {
+      "id": "button_base",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+      "role": "main_visual",
+      "required_for_static_preview": true
+    },
+    {
+      "id": "gold_rim",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+      "role": "foreground_rim",
+      "required_for_static_preview": true
+    }
+  ],
+  "layout_authority": {
+    "empty_home_v2_2": {
+      "camera_bbox": {
+        "x": 430,
+        "y": 1537,
+        "w": 220,
+        "h": 220
+      },
+      "prompt_to_camera_clear_gap_min_px": 25,
+      "camera_to_album_clear_gap_min_px": 23,
+      "horizontal_alignment": "center"
+    }
+  },
+  "prohibited": [
+    "previewing only the base layer as the complete button",
+    "blue filled circle",
+    "thick gold ring",
+    "heavy drop shadow",
+    "neon glow",
+    "shrinking the camera glyph relative to the approved V2.2 treatment"
+  ]
 }
