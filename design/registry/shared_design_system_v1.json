@@ -480,6 +480,89 @@
       ]
     },
     {
+      "id": "icon_action_v1",
+      "display_name": "图标操作",
+      "category": "component",
+      "overall": "ACTIVE_CLOSURE",
+      "current_version": "V1 Candidate",
+      "authority_paths": [
+        "design/system/components/icon_action/README.md",
+        "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+        "design/system/components/icon_action/manifest.json",
+        "design/system/components/icon_action/visual_contract.json",
+        "design/system/components/icon_action/motion_contract.json",
+        "design/system/components/icon_action/usage_map.json",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg"
+      ],
+      "preview": "design/system/components/icon_action/visual/candidate/01_Families.svg",
+      "preview_type": "icon_action_system",
+      "variants": [
+        {
+          "id": "NAVIGATION",
+          "name": "导航动作",
+          "usage": "返回 / 关闭",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "UTILITY",
+          "name": "工具动作",
+          "usage": "翻面 / 分享 / 鱼鉴 / 搜索 / 筛选 / 更多 / 编辑",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "CONTEXT",
+          "name": "上下文动作",
+          "usage": "清空 / 密码可见 / 语音 / 添加媒体",
+          "status": "CANDIDATE"
+        }
+      ],
+      "candidate_visual_set": [
+        {
+          "id": "01_FAMILIES",
+          "title": "01 · 三大家族",
+          "path": "design/system/components/icon_action/visual/candidate/01_Families.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "02_NAVIGATION_STATES",
+          "title": "02 · Navigation 四态",
+          "path": "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "03_UTILITY_LIBRARY",
+          "title": "03 · Utility 图标库",
+          "path": "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "04_UTILITY_STATES",
+          "title": "04 · Utility 四态",
+          "path": "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "05_CONTEXT_LIBRARY",
+          "title": "05 · Context 图标库",
+          "path": "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "06_REAL_USAGE",
+          "title": "06 · 真实场景落位",
+          "path": "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+          "status": "CANDIDATE"
+        }
+      ],
+      "note": "V1 Candidate：44dp 点击区；Navigation 22dp，Utility 20–22dp，Context 18–20dp；默认透明容器；复杂媒体背景才允许 36dp Mist 支撑面。",
+      "preview_note": "待审视：三大家族边界、B-side card_flip 图标、默认无底 vs ON_MEDIA Mist 支撑面。"
+    },
+    {
       "id": "top_navigation_v1",
       "display_name": "顶部导航",
       "category": "component",
@@ -601,13 +684,14 @@
       "id": "button_spec",
       "display_name": "按钮规范",
       "category": "component_group",
-      "status": "FROZEN",
+      "status": "ACTIVE_CLOSURE",
       "item_ids": [
         "primary_capture_button_v1",
         "action_button_v1",
-        "text_action_v1"
+        "text_action_v1",
+        "icon_action_v1"
       ],
-      "note": "按钮规范导航分组；主拍摄按钮、主/次操作按钮、Text Action 均已冻结。各子组件独立版本化。"
+      "note": "按钮规范导航分组；主拍摄、主/次操作、Text Action 已冻结；Icon Action V1 正在视觉收口。"
     }
   ],
   "navigation_order": [
