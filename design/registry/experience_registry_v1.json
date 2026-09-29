@@ -1870,7 +1870,7 @@
           "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
-      "note": "Fish Guide V2：01 · 鱼鉴首页 V1 已 FROZEN；02 · 鱼种详情 Page Contract V1 + Visual Authority 已完成页面级 FROZEN。02 的 5 张黑金卡内部内容/视觉仍保持 PARTIAL，后续单独审。03–09 继续逐项建立规范。",
+      "note": "Fish Guide V2：01 · 鱼鉴首页、02 · 鱼种详情页面级、03 · 鱼种状态 V1 均已 FROZEN。02 的 5 张黑金卡内部内容/视觉仍保持 PARTIAL；04–09 继续逐项建立规范。",
       "navigation_model": "fish_guide_spec_menu_v1",
       "design_manager_view_rules": {
         "overview": "parent page = 00 Overview; show page-level authority only",
@@ -1989,20 +1989,61 @@
         {
           "id": "species_states",
           "title": "03 · 鱼种状态",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
-          "secondary_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
-          "summary": "鱼种收藏状态规范入口。已存在主页面与未点亮补充参考，但完整状态合同尚未独立冻结。",
+          "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md",
+          "secondary_authority": "design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md",
+          "summary": "03 · 鱼种状态 V1 已冻结：以 Encounter / Catch Count / Knowledge / Media / Runtime / Catalog Consistency 六轴定义状态。UNLIT 不是锁定；0/1/2/3+ 记录、缺卡、缺图、离线/错误与返回恢复均有确定规则。01/02 的冻结页面 Authority 始终优先于状态流程图中的缩略页面。",
           "authority_type": "group",
           "menu_points": [
-            "Unlocked",
-            "Locked / Unlit",
-            "Never Caught",
-            "Caught Once",
-            "Caught Multiple Times",
-            "Data Missing / Fallback"
-          ]
+            "State Model · 6 Axes",
+            "Encounter State · UNLIT / LIT",
+            "Catch Count · 0 / 1 / 2 / 3+",
+            "Knowledge Content · Complete / Partial / Unavailable",
+            "Media · Species / Knowledge Card / FishRecord Preview Missing",
+            "Runtime · Loading / Offline Cache / Offline No Cache / Error",
+            "Catalog Consistency · Unknown / Inactive / Orphan FishRecord",
+            "Cross-state Precedence",
+            "State Matrix",
+            "Navigation / State Restore",
+            "Accessibility / Reduce Motion",
+            "Authority Boundary · 01/02 Win",
+            "Acceptance Gate",
+            "Runtime Evidence → 09 · 验收证据"
+          ],
+          "visual_status": "FROZEN",
+          "state_contract_status": "FROZEN",
+          "visual_authority_source": {
+            "kind": "library_png",
+            "name": "Fish_Species_States_V1.png",
+            "source_name": "a_clean_high_resolution_ui_ux_design_spec_poster_i.png",
+            "library_path": "/YuJian_App/design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png",
+            "library_file_id": "libfile_362ed70bc5848191ab115f370bc764da",
+            "width": 1024,
+            "height": 1536,
+            "size_bytes": 2244852,
+            "sha256": "181e1c51a830a42680df70c19673a3df9d8261eb35f9654104f412576a11a55d"
+          },
+          "state_contract": {
+            "version": "V1",
+            "status": "FROZEN",
+            "spec": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md",
+            "encounter_source_of_truth": "SUCCESSFULLY_SAVED_FISH_RECORD_COUNT",
+            "unlit_is_access_control": false,
+            "unlit_detail_access": true,
+            "catch_preview_max": 2,
+            "catch_preview_media": "REAL_FISH_RECORD_ONLY",
+            "fixed_knowledge_slots": 5,
+            "partial_knowledge_preserves_slot_index": true,
+            "fabricate_missing_knowledge": false,
+            "fabricate_missing_media": false,
+            "offline_cache_browseable": true,
+            "parent_page_authority_precedence": [
+              "01 · 鱼鉴首页",
+              "02 · 鱼种详情"
+            ]
+          },
+          "freeze_date": "2026-09-29"
         },
         {
           "id": "species_navigation",
@@ -2177,12 +2218,34 @@
             "Loading / missing / 0 record / 1 record 等视觉状态交由 03 · 鱼种状态",
             "5 张黑金卡内部 copy / visual / rating / naming 继续 PARTIAL"
           ]
+        },
+        {
+          "id": "species_states_v1",
+          "title": "03 · 鱼种状态 V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md",
+          "secondary_authority": "design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md",
+          "summary": "统一定义不同数据状态下鱼鉴首页、鱼种详情与我的{鱼种}的表现；状态变化不得重写 01/02 的基础页面结构。",
+          "points": [
+            "Encounter 只由成功保存且 finalSpecies 匹配的 FishRecord 数量派生；不独立持久化 isLit",
+            "UNLIT=0 条记录，仍可见、可读、可点击、可进入详情；禁止 disabled / 大锁 / ???",
+            "LIT=≥1 条成功保存记录；不是游戏解锁语义",
+            "我的{鱼种}：0 条不造假图；1 条单图；2 条双图；3+ 仍仅展示最近 2 张但总数完整",
+            "Knowledge Complete / Partial / Unavailable；Partial 必须保留固定 5 个 positional slots 和 NN/05",
+            "缺失知识卡禁止复制邻卡、禁止复制其他鱼种、禁止自动 AI 补卡",
+            "Species / Card / FishRecord media 缺失只影响媒体区域，不改变真实记录数和 Encounter State",
+            "Loading 不提前闪烁 LIT/UNLIT；Offline+Cache 继续浏览；Offline No Cache 不造假内容",
+            "Unknown / Inactive species 不静默映射到其他鱼种，不进入当前 N/T",
+            "跨状态优先级：Catalog identity → Runtime → Knowledge/Media → Encounter/Count",
+            "03 流程图中的缩略页面只表达状态差异；若与 01/02 页面 Authority 冲突，以 01/02 为准",
+            "五张黑金卡内部内容/视觉仍不属于 03 冻结范围"
+          ]
         }
       ],
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "鱼鉴 V2 · 设计冻结检查",
-        "note": "01 · 鱼鉴首页与 02 · 鱼种详情页面级规范均已冻结；02 的 5 张黑金卡内部系统以及 03–09 仍待后续规范。",
+        "note": "01 · 鱼鉴首页、02 · 鱼种详情页面级、03 · 鱼种状态均已冻结；02 的五张黑金卡内部系统与 04–09 仍待后续规范。",
         "items": [
           {
             "id": "FGH-FREEZE-01",
@@ -2311,6 +2374,70 @@
             "blocking": false,
             "decision": "页面级设计不重开；Runtime visual/interaction evidence 后续归入 09 · 验收证据。",
             "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-01",
+            "title": "Encounter 定义",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "UNLIT/LIT 由 successfully saved FishRecord count 派生；UNLIT=0，LIT>=1；不独立持久化 isLit。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-02",
+            "title": "未点亮交互",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "UNLIT 仍可浏览、点击、进入详情；禁止 disabled、大锁、??? 与先解锁后查看。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-03",
+            "title": "记录数状态",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "0/1/2/3+ 有确定显示规则；最多 2 张最近真实 FishRecord 预览，绝不为对称伪造图片。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-04",
+            "title": "知识缺失",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "固定 5 个 positional slots；缺失卡保留 index 并显示官方 unavailable treatment；禁止复制/自动生成替代知识。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-05",
+            "title": "媒体缺失",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "媒体异常不改变事实状态/总数；Species、knowledge card、FishRecord preview 各自局部 fallback，禁止跨来源替代。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-06",
+            "title": "Runtime / Offline",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Loading 保持骨架不闪状态；Offline+Cache 可浏览；Offline No Cache 保持页面身份且不造假内容；错误隔离到最小区域。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-07",
+            "title": "Authority 边界",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "03 只冻结状态 delta / fallback；流程图缩略页面与 01/02 冲突时以 01/02 Frozen Authority 为准。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md"
+          },
+          {
+            "id": "FGS-FREEZE-08",
+            "title": "Runtime Evidence",
+            "status": "PENDING_CONFIRMATION",
+            "blocking": false,
+            "decision": "03 设计状态合同不重开；运行时证据归 09 · 验收证据。",
+            "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
           }
         ]
       }
