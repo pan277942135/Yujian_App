@@ -2043,7 +2043,13 @@
               "02 · 鱼种详情"
             ]
           },
-          "freeze_date": "2026-09-29"
+          "freeze_date": "2026-09-29",
+          "visual_authority_note": "03 · 鱼种状态完整高保真流程规范图已上传至设计资产库并冻结为状态流程 Visual Authority；流程图中的缩略页面只表达状态差异，01/02 Frozen Authority 仍是实际页面外壳权威。",
+          "deferred_scope": [
+            "five-card internal content / visual system",
+            "deep-link policy owned by 04 · 鱼种导航",
+            "runtime evidence owned by 09 · 验收证据"
+          ]
         },
         {
           "id": "species_navigation",
