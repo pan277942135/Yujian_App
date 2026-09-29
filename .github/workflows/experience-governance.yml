@@ -1,17 +1,17 @@
-name: Experience Governance
+name: Design Governance
 
 on:
   push:
     branches: [main]
     paths:
       - "design/**"
-      - "scripts/experience_manager.py"
+      - "scripts/design_manager.py"
       - ".github/workflows/experience-governance.yml"
   pull_request:
     branches: [main]
     paths:
       - "design/**"
-      - "scripts/experience_manager.py"
+      - "scripts/design_manager.py"
       - ".github/workflows/experience-governance.yml"
   workflow_dispatch:
 
@@ -26,21 +26,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate experience registry
-        run: python3 scripts/experience_manager.py validate
+      - name: Compile Design Manager
+        run: python3 -m py_compile scripts/design_manager.py
 
-      - name: Print experience summary
-        run: python3 scripts/experience_manager.py summary
+      - name: Validate design registry
+        run: python3 scripts/design_manager.py validate
 
-      - name: Build management views
-        run: python3 scripts/experience_manager.py build
+      - name: Print design summary
+        run: python3 scripts/design_manager.py summary
 
-      - name: Upload experience manager
+      - name: Upload Design Manager
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-Experience-Manager-${{ github.sha }}
+          name: YuJian-Design-Manager-${{ github.sha }}
           path: |
-            design/registry/EXPERIENCE_STATUS.md
-            design/manager/index.html
+            design/manager/
+            design/registry/experience_registry_v1.json
           if-no-files-found: error
           retention-days: 14
