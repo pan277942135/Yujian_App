@@ -1006,7 +1006,115 @@
           }
         }
       ],
-      "scenario_index": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md"
+      "scenario_index": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md",
+      "hifi_views": [
+        {
+          "id": "main",
+          "title": "主页面高保真",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "image": "design/system/core_visual_v1/reference/my_catches_v2.png",
+          "authority": "design/system/core_visual_v1/reference/my_catches_v2.png",
+          "source_reference": "湖畔晨曦中的鱼获日志(1).png",
+          "summary": "当前 My Catches V2 主页面视觉权威。时间轴、搜索、筛选入口、真实鱼获照片、Growth Mark 与底部主拍摄入口的整体关系以此为准。",
+          "scenario_ids": [
+            "timeline_default",
+            "day_1_5"
+          ]
+        },
+        {
+          "id": "timeline",
+          "title": "Timeline Scroll V1",
+          "status": "FROZEN",
+          "render_mode": "timeline_board",
+          "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
+          "source_reference": "鱼获时间轴滚动规范展示板.png",
+          "summary": "高保真场景板：默认时间线、月份吸顶、日期节点，以及一天 1–5 / 6–10 / >10 条鱼获的展开规则。",
+          "scenario_ids": [
+            "timeline_default",
+            "day_1_5",
+            "day_6_10",
+            "day_gt10"
+          ]
+        },
+        {
+          "id": "filter",
+          "title": "5维筛选 V1",
+          "status": "FROZEN",
+          "render_mode": "filter_board",
+          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+          "source_reference": "我的鱼获过滤器 V1 产品规格海报.png",
+          "summary": "高保真场景板：默认页、一级五维 Filter Sheet、二级鱼种选择器、筛选结果与大规模选项处理。",
+          "scenario_ids": [
+            "filter_sheet",
+            "filter_results",
+            "filter_empty"
+          ]
+        },
+        {
+          "id": "empty",
+          "title": "Empty States V1",
+          "status": "FROZEN",
+          "render_mode": "empty_board",
+          "authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
+          "source_reference": "我的鱼获空状态规范图.png",
+          "summary": "高保真场景板：Archive Empty / Filter Empty / Search Empty 三类状态的视觉和恢复动作。",
+          "scenario_ids": [
+            "archive_empty",
+            "filter_empty",
+            "search_empty"
+          ]
+        },
+        {
+          "id": "growth",
+          "title": "Growth Mark V1",
+          "status": "FROZEN",
+          "render_mode": "growth_board",
+          "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
+          "source_reference": "与自然相遇：Growth Mark V1 设计稿.png",
+          "summary": "高保真场景板：四类记录印记、优先级、单卡落位，以及最长+最重合并显示。",
+          "scenario_ids": [
+            "growth_mark_examples"
+          ]
+        },
+        {
+          "id": "search",
+          "title": "搜索交互 V1",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "search_board",
+          "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+          "summary": "Focused / 有结果 / 无结果三态。Search Empty 已有历史高保真；Focused 与有结果状态以当前冻结结构补齐后再最终冻结。",
+          "scenario_ids": [
+            "search_focus",
+            "search_results",
+            "search_empty"
+          ]
+        },
+        {
+          "id": "system",
+          "title": "加载 / 异常",
+          "status": "PARTIAL",
+          "render_mode": "system_board",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+          "summary": "加载与加载失败已有 Runtime 基础状态，但尚缺独立历史高保真稿，暂不误标冻结。",
+          "scenario_ids": [
+            "loading_error"
+          ]
+        }
+      ],
+      "hifi_source_inventory": {
+        "recovered": [
+          "湖畔晨曦中的鱼获日志(1).png",
+          "鱼获时间轴滚动规范展示板.png",
+          "我的鱼获过滤器 V1 产品规格海报.png",
+          "我的鱼获空状态规范图.png",
+          "与自然相遇：Growth Mark V1 设计稿.png"
+        ],
+        "historical_only": [
+          "我的鱼获界面方案对比海报.png"
+        ],
+        "note": "历史高保真源稿已重新定位。旧方案对比海报只作为探索历史，不再作为当前视觉 Authority。"
+      }
     },
     {
       "id": "fish_guide_v2",
