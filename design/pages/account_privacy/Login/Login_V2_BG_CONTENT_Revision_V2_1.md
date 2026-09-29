@@ -61,9 +61,7 @@ No new authentication field may be introduced by visual implementation.
 - Content area: predominantly white / MistWhite
 - Input surface: white, restrained, not floating directly on the lake image
 - Input radius reference: **18dp**
-- Main action height reference: **56dp**
-- Main action radius reference: **28dp**
-- Main action color direction: deep Lake Teal, approximately `#0F7A78`
+- Main action uses shared `Action Button V1 / PRIMARY`: **56dp height / 28dp radius / #0F7A78 fill / white label**.
 - Primary text: DeepLake
 - Secondary text: muted lake blue-gray
 - No strong gradient, glow or heavy shadow
@@ -89,6 +87,7 @@ Frozen rules:
 - Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
 - Color + Typography V1
 - Spacing + Radius V1
+- Primary / Secondary Action Button V1: `PRIMARY` for `登录`
 
 BG_CONTENT remains the shared content-background family, but Login uses the frozen **top-lake → white-content** composition instead of exposing the lake over the whole form.
 
