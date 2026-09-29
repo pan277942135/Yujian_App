@@ -397,7 +397,7 @@ function actionButtonPreviewHtml(item) {
 }
 
 function textActionPreviewHtml(item) {
-  const refs = item.candidate_visual_set || [];
+  const refs = item.frozen_visual_authority_set || item.candidate_visual_set || [];
   const cards = refs.map(ref =>
     '<article class="text-action-ref-card">' +
       '<div class="text-action-ref-head"><strong>' + esc(ref.title || ref.id) + '</strong>' +
@@ -410,11 +410,11 @@ function textActionPreviewHtml(item) {
 
   return '<div class="text-action-preview">' +
     '<div class="text-action-review-banner">' +
-      '<div><span>TEXT ACTION V1</span><strong>Candidate · 待视觉确认</strong></div>' +
-      '<p>重点审视：忘记密码？是否降为 MUTED；Chevron 是否统一为独立图标；ON_MEDIA 反白是否合适。</p>' +
+      '<div><span>TEXT ACTION V1</span><strong>FROZEN · V1</strong></div>' +
+      '<p>已冻结：忘记密码？=MUTED；Chevron=独立 14dp 图标；ON_MEDIA 使用反白文字与轻阴影。</p>' +
     '</div>' +
     '<div class="text-action-ref-grid">' + cards + '</div>' +
-    '<div class="preview-note">当前状态 ACTIVE_CLOSURE。确认后再提升为 FROZEN，并同步 Login / Register / Recognition Result / Normal Home / FishRecordDetail 页面 Authority。</div>' +
+    '<div class="preview-note">当前状态 FROZEN。六份静态 UI Authority 与页面映射已同步；Live/页面实现不得私自改色或把 Chevron 写进文案。</div>' +
   '</div>';
 }
 
