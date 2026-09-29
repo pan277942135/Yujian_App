@@ -293,7 +293,7 @@
         },
         {
           "id": "top_navigation_v1",
-          "variant": "back_with_title"
+          "variant": "BACK_TITLE"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -371,7 +371,7 @@
         },
         {
           "id": "top_navigation_v1",
-          "variant": "back_with_title"
+          "variant": "BACK_TITLE_ACTIONS"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -516,7 +516,7 @@
         },
         {
           "id": "top_navigation_v1",
-          "variant": "search_filter"
+          "variant": "TITLE_ONLY"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -1404,6 +1404,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "TITLE_ONLY",
+          "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
       "note": "Fish Guide V2：01 · 鱼鉴首页正式规范已于 2026-09-29 FROZEN。首页 V1 不含 Search；核心为低权重点亮进度 + 中央 Species Carousel + 左右邻卡预览 + LIT/UNLIT 自然收藏状态。其余 02–09 继续逐项建立规范。",
