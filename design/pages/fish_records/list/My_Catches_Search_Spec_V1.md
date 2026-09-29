@@ -357,6 +357,20 @@ B5 是交互状态图 / 规则板，不制造新的产品页面。
 
 ## 20. Freeze statement
 
-Search V1 的产品与交互规范自本文件起冻结。
+Search V1 于 **2026-09-29** 完成整批冻结。
 
-视觉 Authority 以 Design Manager 中 B1–B5 的最新无边框高保真子视图为准；在用户完成视觉确认前，其视觉状态保持 `ACTIVE_CLOSURE`。
+最终状态：
+
+- B1 · 最近搜索 / 空输入：**FROZEN**
+- B2 · 搜索有结果：**FROZEN**
+- B3 · 搜索无结果：**FROZEN**
+- B4 · Search + Filter：**FROZEN**
+- B5 · 交互与返回规则：**FROZEN**
+
+Authority：
+
+- 产品 / 交互：本文件；
+- B1–B4 视觉：Design Manager 中对应的无设备外框 9:16 App Canvas；
+- B5：本文件中的状态 / 返回 / Recent Search 行为合同。
+
+此前带手机边框或被标记为探索稿的生成图不进入 Authority。
