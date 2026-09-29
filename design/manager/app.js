@@ -2145,7 +2145,58 @@ function recognitionQualityLevelsCanvas(child) {
   '</div>';
 }
 
+
+function recognitionReduceMotionCanvas(child) {
+  const r = child.reduce_motion || {};
+  const behaviors = r.behaviors || [];
+  const values = r.static_values || {};
+  const states = r.state_semantics || [];
+  const forbidden = r.forbidden || [];
+
+  const behaviorGrid =
+    '<div class="authority-index-grid">' +
+      behaviors.map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(item.target) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+          '<div class="authority-kind">REDUCE MOTION · ' + esc(item.reduce_motion) + '</div>' +
+          '<p><b>Normal</b> · ' + esc(item.normal) + '</p>' +
+          '<p>' + esc(item.rule) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const stateGrid =
+    '<div class="authority-index-grid">' +
+      states.map((item,index) =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+          '<div class="authority-kind">STATE SEMANTICS</div><p>' + esc(item) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Reduce Motion Identity</strong><span>' + esc(r.identity || "") + '</span></div>' +
+    '<div class="recognition-section-title">5 Motion Overrides</div>' + behaviorGrid +
+    '<div class="recognition-section-title">Static Fish Focus</div>' +
+      '<div class="recognition-state-card"><p><b>Reveal</b> · ' + esc(values.fish_focus?.reveal_ms + "ms alpha only") + '</p>' +
+      '<p><b>Halo</b> · ' + esc(values.fish_focus?.halo_alpha) + '</p>' +
+      '<p><b>Contour</b> · ' + esc(values.fish_focus?.contour_core_alpha) + '</p>' +
+      '<p><b>Breathing</b> · ' + esc(String(values.fish_focus?.breathing)) + '</p></div>' +
+    '<div class="recognition-section-title">State Semantics</div>' + stateGrid +
+    '<div class="recognition-section-title">Quality × Reduce Motion</div>' +
+      '<div class="recognition-state-card"><p>' + esc(r.quality_interaction?.order || "") + '</p>' +
+      (r.quality_interaction?.examples || []).map(x=>'<p>• '+esc(x)+'</p>').join("") +
+      '<p><b>Rule</b> · ' + esc(r.quality_interaction?.rule || "") + '</p></div>' +
+    '<div class="recognition-section-title">Forbidden</div>' +
+      '<div class="authority-index-grid">' +
+        forbidden.map((item,index)=>'<article class="authority-index-card"><div class="authority-index-head"><strong>'+esc(String(index+1).padStart(2,"0"))+'</strong></div><div class="authority-kind">FAIL CONDITION</div><p>'+esc(item)+'</p></article>').join("") +
+      '</div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_reduce_motion") return recognitionReduceMotionCanvas(child);
   if (child.render_mode === "recognition_quality_levels") return recognitionQualityLevelsCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_rendering") return recognitionAiEdgeFieldRenderingCanvas(child);

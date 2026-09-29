@@ -1521,13 +1521,13 @@
           "render_mode": "recognition_degradation",
           "authority": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
-          "summary": "Recognition Degradation 只允许降低视觉复杂度，不允许改变产品状态、AI Edge Field 身份、Fish Focus 语义或结果语义。01 · Quality Levels 已冻结 FULL / BALANCED / LITE 三档。",
+          "summary": "Recognition Degradation 只允许降低视觉复杂度或运动负担，不改变产品状态、AI Edge Field 身份、Fish Focus 语义或结果语义。01 · Quality Levels 与 02 · Reduce Motion 已冻结。",
           "menu_points": [
-            "01 · Quality Levels · FULL / BALANCED / LITE 三档复杂度预算",
-            "02 · Reduce Motion · 待冻结",
+            "01 · Quality Levels · FROZEN · FULL / BALANCED / LITE",
+            "02 · Reduce Motion · FROZEN · 停止持续位移/呼吸，保留必要 Fade 与静态识别语义",
             "03 · Layer Degradation Order · 待冻结",
             "04 · Semantic Invariants · 待冻结",
-            "降级只减视觉成本，不改变三步 Recognition 状态或 Result 语义"
+            "Quality Level 与 Reduce Motion 正交，可任意组合"
           ],
           "children": [
             {
@@ -1622,6 +1622,108 @@
                   "hysteresis": "具体自动升降档阈值属于平台实现，不在设计规范中冻结。",
                   "recovery": "恢复高档时按细节层逐步恢复，不得闪现全部粒子/Hairline。"
                 }
+              }
+            },
+            {
+              "id": "reduce_motion",
+              "code": "05 · 02",
+              "title": "02 · Reduce Motion",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_reduce_motion",
+              "authority": "design/pages/recognition/processing/accessibility/Recognition_Reduce_Motion_V1.md",
+              "contract": "design/pages/recognition/processing/contracts/Recognition_Reduce_Motion_V1.json",
+              "summary": "Reduce Motion 不删除 Recognition 视觉身份。开启后冻结 SegmentOffset、停止 Hairline/Node/Particle 的持续运动、取消 Fish Focus breathing；状态变化与 Result handoff 只保留短 Alpha Fade。",
+              "reduce_motion": {
+                "identity": "Preserve semantics and static visual identity; remove continuous peripheral motion.",
+                "activation": {
+                  "before_entry": "使用各 Primary frozen seed 作为静态 SegmentOffset；从第一帧开始不启动 continuous clock。",
+                  "during_processing": "冻结当前 frame 的 SegmentOffset；禁止跳回 seed、禁止重新实例化视觉层。",
+                  "disable_during_processing": "从当前 frozen offset 继续 clock；使用 220ms ease-in 恢复 speed，禁止突然开始移动。"
+                },
+                "behaviors": [
+                  {
+                    "target": "SegmentOffset",
+                    "normal": "10s continuous path travel with state speed multipliers",
+                    "reduce_motion": "FROZEN",
+                    "rule": "进入页面前已开启 → 使用 frozen seed；处理中开启 → freeze current offset；跨状态保持同一 frozen offset。"
+                  },
+                  {
+                    "target": "Hairline",
+                    "normal": "Derived from Primary t with Companion / Micro lead-lag",
+                    "reduce_motion": "STATIC",
+                    "rule": "仍服从当前 Quality Level 的显示数量，但不再位移、漂移或周期出现/消失；保持相对 Primary 的冻结几何。"
+                  },
+                  {
+                    "target": "Particle",
+                    "normal": "Sparse local drift around deterministic anchors",
+                    "reduce_motion": "OFF",
+                    "rule": "所有持续漂移粒子关闭；不得改成闪烁粒子作为替代。"
+                  },
+                  {
+                    "target": "Fish Focus breathing",
+                    "normal": "CLASSIFYING halo / contour slow breathing",
+                    "reduce_motion": "OFF",
+                    "rule": "OUTLINE 时只执行一次 180ms alpha Fade In；之后保持固定 Halo/Contour alpha，CLASSIFYING 不周期呼吸。"
+                  },
+                  {
+                    "target": "Resolve",
+                    "normal": "200ms freeze-position + ResolveStrength fade",
+                    "reduce_motion": "KEEP 200ms FADE",
+                    "rule": "保持 200ms ResolveStrength=(1-p)^2；所有位置已经静止，只做 opacity fade，禁止 scale/slide/zoom。"
+                  }
+                ],
+                "static_values": {
+                  "fish_focus": {
+                    "halo_alpha": 0.15,
+                    "contour_core_alpha": 0.39,
+                    "reveal_ms": 180,
+                    "reveal_easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+                    "breathing": false
+                  },
+                  "edge_field_entry": {
+                    "duration_ms": 180,
+                    "behavior": "整套静态 Edge Field 仅做一次 alpha fade-in；取消正常模式 420ms 分层 staged entrance。",
+                    "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+                  },
+                  "state_strength_transition": {
+                    "duration_ms": 180,
+                    "behavior": "状态变化仍允许 StateStrength 通过 alpha 插值变化；无位置运动。",
+                    "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+                  },
+                  "hot_node": {
+                    "positional_motion": false,
+                    "breathing": false,
+                    "visibility": "遵循 Quality Level；若存在则保持静态亮度，不周期 pulse"
+                  }
+                },
+                "quality_interaction": {
+                  "order": "Apply QualityLevel layer enable/disable first, then apply ReduceMotion behavior overrides.",
+                  "examples": [
+                    "FULL + Reduce Motion = 完整静态 Hairline/Node，Particles OFF，Segment frozen",
+                    "BALANCED + Reduce Motion = BALANCED 层级保持，所有持续 motion OFF",
+                    "LITE + Reduce Motion = 四岛静态基础光场，无 Hairline/Particle/Node"
+                  ],
+                  "rule": "Reduce Motion 不是 LITE；不得通过强制切换 QualityLevel=LITE 来实现。"
+                },
+                "state_semantics": [
+                  "图片识别中：静态 Edge Field 为主要 AI 视觉语言",
+                  "已定位到鱼体：StateStrength 仍降到 0.58，Fish Focus 一次 Fade In 后静态保持",
+                  "鱼种识别中：StateStrength 仍降到 0.36，Fish Focus 不 breathing",
+                  "RESOLVE：200ms 统一 Fade Out"
+                ],
+                "forbidden": [
+                  "Reduce Motion = hide all AI Edge Field",
+                  "Reduce Motion = force LITE quality",
+                  "state transition changes SegmentOffset",
+                  "replace travel with blinking / flashing",
+                  "replace breathing with scale pulse",
+                  "Particle remains moving",
+                  "Fish Focus keeps 1900ms breathing",
+                  "Result transition uses zoom / slide",
+                  "activation mid-session jumps geometry",
+                  "disable Reduce Motion resumes with sudden full-speed motion"
+                ]
               }
             }
           ]

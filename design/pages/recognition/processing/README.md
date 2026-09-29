@@ -44,3 +44,6 @@ Static identity: four disconnected edge-energy islands with mandatory quiet gaps
 
 - `accessibility/Recognition_Quality_Levels_V1.md` — FULL / BALANCED / LITE visual complexity authority
 - `contracts/Recognition_Quality_Levels_V1.json` — machine-readable quality profile contract
+
+- `accessibility/Recognition_Reduce_Motion_V1.md` — Reduce Motion behavior authority
+- `contracts/Recognition_Reduce_Motion_V1.json` — machine-readable accessibility motion contract
