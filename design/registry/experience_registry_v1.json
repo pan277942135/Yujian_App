@@ -2288,12 +2288,12 @@
           "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
-      "note": "Fish Guide V2：01 · 鱼鉴首页、02 · 鱼种详情页面级、03 · 鱼种状态 V1 均已 FROZEN。02 的 5 张黑金卡内部内容/视觉仍保持 PARTIAL；04–09 继续逐项建立规范。",
+      "note": "Fish Guide V2：01 · 鱼鉴首页、01A · 未点亮状态、02 · 鱼种详情页面级、03 · 鱼种状态 V1 均已 FROZEN。01A 直接使用既有 fish_guide_unlit_state.png 作为状态 Visual Authority；02 的 5 张黑金卡内部内容/视觉仍保持 PARTIAL；04–09 继续逐项建立规范。",
       "navigation_model": "fish_guide_spec_menu_v1",
       "design_manager_view_rules": {
         "overview": "parent page = 00 Overview; show page-level authority only",
-        "spec_menu": "01–09 + 99 are specification workspaces; do not infer missing visual authority",
-        "rule": "Menu structure does not create new frozen design authority. Existing frozen images remain the only visual authority until explicitly replaced."
+        "spec_menu": "01 / 01A / 02–09 + 99 are specification workspaces; do not infer missing visual authority",
+        "rule": "01A is a first-class UNLIT state workspace but remains a state variant of the same FishGuideCard system. Menu structure does not create a second card family or alter the Core UI 6/6 freeze count."
       },
       "hifi_views": [
         {
@@ -2324,6 +2324,58 @@
           ],
           "secondary_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
           "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
+          "freeze_date": "2026-09-29"
+        },
+        {
+          "id": "unlit_state",
+          "title": "01A · 未点亮状态",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "image": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+          "authority": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
+          "secondary_authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
+          "summary": "UNLIT 状态已提升为鱼鉴二级菜单的独立工作区并正式冻结。Visual Authority 直接使用既有 fish_guide_unlit_state.png；UNLIT=0 条成功保存 FishRecord，仍可见、可读、可浏览、可点击并进入详情。它只是同一 FishGuideCard 的状态变体，不是第二套卡片系统。",
+          "authority_type": "visual",
+          "menu_points": [
+            "State Meaning · Personal Encounter, Not Access Control",
+            "Trigger · saved FishRecord Count = 0",
+            "Frozen Visual Authority · fish_guide_unlit_state.png",
+            "Same FishGuideCard Geometry as LIT",
+            "Restrained Desaturation / Soft Mist / Light Glass",
+            "Species Identity Remains Readable",
+            "Browsable / Tappable / Species Detail Accessible",
+            "Species Catch Count = 0",
+            "No Auto Flip / No Species Autoplay",
+            "No Lock / Disabled / ??? / Rarity / Level Semantics",
+            "Zero Catch Detail Linkage",
+            "Accessibility / Reduce Motion",
+            "Authority Boundary · 01 Home Shell Wins",
+            "Acceptance Gate"
+          ],
+          "visual_authority_source": {
+            "kind": "repo_png",
+            "path": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+            "source_name": "雾山湖畔的未点亮鱼鉴.png",
+            "width": 941,
+            "height": 1672,
+            "size_bytes": 2063258,
+            "sha256": "68a3b83884f9fe0fd9a0b3a7325e75f9b22d8b734860063a9e16fc60d725bc62"
+          },
+          "state_contract": {
+            "version": "V1",
+            "status": "FROZEN",
+            "spec": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
+            "encounter_state": "UNLIT",
+            "saved_fish_record_count": 0,
+            "browseable": true,
+            "tappable": true,
+            "species_detail_access": true,
+            "auto_flip": false,
+            "species_autoplay": false,
+            "access_control": false,
+            "card_family": "FishGuideCard"
+          },
           "freeze_date": "2026-09-29"
         },
         {
@@ -2641,6 +2693,26 @@
             "Species Catch Count 仅统计成功保存的 FishRecord",
             "禁止 Grid / 瀑布流 / 传统列表 / 鱼形分页器 / 稀有度 / 星级 / 大锁",
             "从 Species Detail 返回后恢复原鱼种与 Carousel 位置"
+          ]
+        },
+        {
+          "id": "unlit_state_v1",
+          "title": "01A · 未点亮状态 V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
+          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+          "summary": "将既有未点亮高保真图提升为 Design Manager 二级菜单的直接状态 Authority；冻结 UNLIT 的数据语义、视觉 delta、交互与禁止项，不改变 01 首页基础结构。",
+          "points": [
+            "UNLIT=当前 catalog species 的 successfully saved FishRecord count = 0",
+            "直接 Visual Authority：supplemental/fish_guide_unlit_state.png；941×1672；SHA-256 68a3b838…",
+            "仍使用同一 FishGuideCard 结构；不得创建独立 Locked Card family",
+            "轻去饱和/柔雾/浅玻璃降权，但鱼种身份和鱼体必须可读",
+            "UNLIT 仍可滑动、点击并正常进入 Species Detail",
+            "禁止大锁、disabled、黑白禁用、???、稀有度、等级、传说光效",
+            "Species Catch Count=0；不把识别次数/照片数作为点亮依据",
+            "01 首页 shell / carousel geometry 冲突时，以 01 Frozen Authority 为准",
+            "进入详情后 0 FishRecord 区域服从 02A · 无我的鱼获记录",
+            "Runtime parity 后续归 09 · 验收证据"
           ]
         },
         {
