@@ -303,8 +303,7 @@
         },
         {
           "id": "action_button_v1",
-          "variant": "MIXED",
-          "note": "保存本次鱼获=PRIMARY；继续记录记忆/手动选择=SECONDARY_STRONG；重新拍摄=SECONDARY_MUTED。"
+          "note": "页面引用完整 Action Button V1；保存本次鱼获=PRIMARY，继续记录记忆/手动选择=SECONDARY_STRONG，重新拍摄=SECONDARY_MUTED。"
         }
       ]
     },
