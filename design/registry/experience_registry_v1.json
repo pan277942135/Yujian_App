@@ -386,6 +386,10 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：Hero 编辑=NORMAL/ON_MEDIA + separate chevron。"
+        },
+        {
+          "id": "icon_action_v1",
+          "note": "Icon Action V1：TopBar Back=NAVIGATION；Fish Guide/Share=UTILITY/ON_LIGHT；B-side card_flip=UTILITY/ON_MEDIA，仅 B-side 已存在时显示。"
         }
       ]
     },
@@ -523,6 +527,10 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "icon_action_v1",
+          "note": "Icon Action V1：独立 Filter trigger=UTILITY/ON_LIGHT；Search Field 内不可点击放大镜仅为 decoration，不属于 Icon Action。"
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
@@ -1618,6 +1626,10 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "icon_action_v1",
+          "note": "Icon Action V1：设置页 Back=NAVIGATION；输入框 Clear/Visibility=CONTEXT/ON_LIGHT。"
         }
       ]
     },
@@ -1706,6 +1718,10 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：创建账号=STRONG/LIGHT；忘记密码？=MUTED/LIGHT。"
+        },
+        {
+          "id": "icon_action_v1",
+          "note": "Icon Action V1：密码可见性=CONTEXT/ON_LIGHT；若提供字段清空动作则使用 Clear/CONTEXT。"
         }
       ],
       "note": "Login V2.1 设计已冻结：顶部无文字的无太阳 Morning Lake、下部大面积白底、紧凑表单、页面最底部低存在感水草。Runtime/Evidence 是否一致单独验证。",
@@ -1790,6 +1806,10 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：去登录=STRONG/LIGHT。"
+        },
+        {
+          "id": "icon_action_v1",
+          "note": "Icon Action V1：密码可见性=CONTEXT/ON_LIGHT；若提供字段清空动作则使用 Clear/CONTEXT。"
         }
       ],
       "frozen_manifest": "design/pages/account_privacy/Register/frozen/manifest.json"
