@@ -2552,3 +2552,47 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 @media(max-width:760px){
   .bg-master-grid{grid-template-columns:1fr}
 }
+
+
+/* Level-one collapsible navigation */
+.nav-parent{
+  position:relative;
+}
+.nav-parent .module-name{
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  column-gap:6px;
+}
+.nav-caret{
+  display:inline-grid;
+  place-items:center;
+  width:14px;
+  height:14px;
+  flex:0 0 14px;
+  color:#7b908c;
+  font-size:15px;
+  line-height:1;
+  transform:rotate(0deg);
+  transition:transform 140ms ease;
+  transform-origin:center;
+}
+.nav-caret.expanded{
+  transform:rotate(90deg);
+}
+.nav-children.collapsed{
+  display:none;
+}
+.nav-children.expanded{
+  display:grid;
+}
+.shared-group-header.nav-parent{
+  cursor:pointer;
+}
+.shared-group-header.nav-parent:hover{
+  background:#f7faf9;
+  border-color:#d5e4df;
+}
+.shared-group-header.active-branch{
+  border-color:#bfd1cb;
+  background:#fbfdfc;
+}
