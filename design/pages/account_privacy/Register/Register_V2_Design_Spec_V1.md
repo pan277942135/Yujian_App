@@ -102,6 +102,7 @@ Rules are identical to Login:
 - Color + Typography V1
 - Spacing + Radius V1
 - Primary / Secondary Action Button V1.1: `PRIMARY` for `注册并登录`
+- Text Action V1: `去登录` = STRONG
 
 ## 8. Motion / haptic / sound
 
