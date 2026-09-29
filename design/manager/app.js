@@ -1313,6 +1313,44 @@ function myCatchesHifiCanvas(feature, view) {
   return '<div class="preview-empty">该高保真子页面尚未建立。</div>';
 }
 
+
+function genericSpecHifiCanvas(feature, view) {
+  const points = view.menu_points || [];
+  const visual = view.image || view.visual_authority ||
+    (view.render_mode === "repo_image" ? currentVersion(feature)?.visual_authority : null);
+
+  if (view.render_mode === "repo_image" && visual && isImage(visual)) {
+    return '<div class="hifi-original">' +
+      '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
+      '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(view.title) + '"></a>' +
+      '<div class="hifi-original-caption">当前 Frozen Visual Authority · 本层未生成新视觉资产</div></div>';
+  }
+
+  return '<div class="authority-index">' +
+    '<div class="authority-index-intro"><strong>' + esc(view.title) + '</strong>' +
+      '<span>' + esc(view.summary || "规范菜单已建立，Authority 待逐项补齐。") + '</span></div>' +
+    (points.length
+      ? '<div class="authority-index-grid">' +
+          points.map((point, index) =>
+            '<article class="authority-index-card">' +
+              '<div class="authority-index-head"><strong>' +
+                esc(String(index + 1).padStart(2, "0") + " · " + point) +
+              '</strong></div>' +
+              '<div class="authority-kind">SPEC MENU</div>' +
+            '</article>'
+          ).join("") +
+        '</div>'
+      : '<div class="preview-empty">规范子项尚未登记。</div>') +
+  '</div>';
+}
+
+function genericSpecChildCanvas(child) {
+  return '<div class="authority-index">' +
+    '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
+      '<span>' + esc(child.summary || "规范入口已建立，Authority 待补齐。") + '</span></div>' +
+  '</div>';
+}
+
 function renderHifiView(feature, hifiId, hifiChildId = null) {
   const panel=el("hifiViewPanel");
   if(!hifiId){ panel.classList.add("hidden"); return; }
@@ -1331,7 +1369,9 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     el("hifiViewSummary").textContent=summary;
     el("hifiViewSummary").classList.remove("hidden");
   } else el("hifiViewSummary").classList.add("hidden");
-  el("hifiViewCanvas").innerHTML=child ? myCatchesSearchChildCanvas(child) : myCatchesHifiCanvas(feature,view);
+  el("hifiViewCanvas").innerHTML = child
+    ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child))
+    : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
 
   const sceneIds=child?.scenario_ids || view.scenario_ids || [];
   const scenes=sceneIds.map(id=>(feature.scenario_pages||[]).find(x=>x.id===id)).filter(Boolean);
