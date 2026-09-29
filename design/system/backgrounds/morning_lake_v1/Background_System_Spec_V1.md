@@ -1,186 +1,232 @@
-# 渔见背景系统 V1
+# 渔见背景系统 V1 · Frozen Spec
 
-Status: **ACTIVE CLOSURE**
-Visual world: **Morning Lake**
-Reference canvas: **1080 × 1920**
+Status: **FROZEN**
+Version: **V1**
+Visual family: **Morning Lake**
+Frozen date: **2026-09-29**
 
-## 1. 核心原则
-
-渔见不是“每页一张湖景”。
-
-所有非拍摄型页面共享一个清晨湖面世界：
+## 1. 系统结构
 
 ```
-Morning Lake Master
-       │
-       ├── BG_ENV_HERO
-       ├── BG_CONTENT
-       └── BG_DATA
+Morning Lake Background System V1
+│
+├── Morning_Lake_Sunrise_Hero_V1
+│   └── Empty Home only
+│
+├── Morning_Lake_Master_V1
+│   ├── BG_ENV_HERO → Normal Home
+│   ├── BG_CONTENT  → Recognition Result / FishRecordDetail / Login / Account
+│   └── BG_DATA     → My Catches / Fish Guide
+│
+├── BG_CAPTURE
+│   └── current user photo
+│
+└── BG_SOLID_FALLBACK
+    └── solid fallback colors
 ```
 
-Recognition Processing 使用 `BG_CAPTURE`，异常状态使用 `BG_SOLID_FALLBACK`。
+## 2. 视觉家族约束
 
-## 2. Morning Lake Master
+Morning Lake 必须保持：
 
-视觉语义：
+- 清晨，而非黄昏
+- 湖面淡灰蓝绿
+- 远山与自然植被
+- 薄雾与柔和空气透视
+- 安静、自然、克制、纪录片感
 
-- 清晨，而非黄昏；
-- 湖面偏淡灰蓝绿；
-- 远山低对比；
-- 薄雾；
-- 光线柔和；
-- 暖金只能作为稀疏晨光，不形成橙黄色主色；
-- 自然、安静、克制、纪录片感。
+### Sunrise Hero 例外
 
-禁止：
+Empty Home 可以拥有：
 
-- 旅游海报式阳光；
-- 强 HDR；
-- 高饱和青蓝湖水；
-- 橙红晚霞；
-- 夜景 HUD；
-- 页面之间出现不同地貌 / 不同湖世界；
-- 为了“好看”给内容页增加更抢眼的太阳或山体。
+- 明确太阳
+- 更强晨光
+- 更明显暖金反射
+
+但它仍属于 Morning Lake family。
+
+### 非空首页页面禁止
+
+- 强太阳视觉中心
+- 大面积暖橙 wash
+- 旅游海报式晨曦
+- 强 HDR
+- 高饱和青蓝湖水
+- 不同地貌 / 不同湖世界
+- 页面自行重新生成背景
 
 ## 3. BG_ENV_HERO
 
-用途：
+### Empty Home
 
-- 空首页
-- 有数据首页
+Master:
 
-环境参与叙事，是品牌世界本身。
+`Morning_Lake_Sunrise_Hero_V1`
 
 Treatment:
 
-- base master visibility: 100%
-- mist veil: 0–4%
-- saturation relative to master: 96–100%
-- contrast relative to master: 96–100%
-- luminance shift: ±2%
-- global blur: prohibited
-- dark overlay: prohibited by default
-- warm-gold ambience: only existing master light; no new orange wash
+- MistWhite veil: 2%
+- Saturation: 98%
+- Contrast: 98%
+- Brightness: 100%
+- Global Blur: OFF
 
-页面允许叠加独立的环境动效，例如 cloud / sun beam，但这些不是 Background Master 的一部分。
+The sun is part of the source master. Do not add another sun layer through background treatment.
+
+### Normal Home
+
+Master:
+
+`Morning_Lake_Master_V1`
+
+Treatment:
+
+- MistWhite veil: 2%
+- Saturation: 98%
+- Contrast: 98%
+- Brightness: 100%
+- Global Blur: OFF
+
+Goal:
+
+Environment remains present, while catch content becomes the first information focus.
 
 ## 4. BG_CONTENT
 
-用途：
+Master:
 
-- 识别结果
-- 鱼获详情
-- Account / Login / Form
-- 其他内容型详情页
+`Morning_Lake_Master_V1`
 
-目标：仍能感知“同一个湖”，但视觉注意力优先给内容。
+Pages:
 
-Treatment target:
+- Recognition Result
+- FishRecordDetail
+- Login
+- Account / Privacy
+- Register / Profile / Agreement when a lake background is used
 
-- base master visibility: 100%
-- MistWhite veil: 12–18%
-- saturation relative to master: 88–94%
-- contrast relative to master: 86–92%
-- luminance: +2% to +5%
-- no additional landscape object
-- no global hard blur
-- card region may receive local readability veil from GLASS system
+Frozen treatment:
 
-Background salience target: **Home 的约 70–80%**。
+- MistWhite veil: **15%**
+- Saturation: **91%**
+- Contrast: **89%**
+- Brightness: **103%**
+- Global Blur: **OFF**
+- Target environmental salience vs BG_ENV_HERO: **75%**
+
+Goal:
+
+Same lake world remains recognizable, but page content clearly outranks the background.
 
 ## 5. BG_DATA
 
-用途：
+Master:
 
-- 我的鱼获
-- 鱼鉴
-- 高密度列表 / 档案页面
+`Morning_Lake_Master_V1`
 
-目标：保留品牌世界，但背景退到第三层。
+Pages:
 
-Treatment target:
+- My Catches
+- Fish Guide
+- other dense archive/data pages
 
-- base master visibility: 100%
-- MistWhite veil: 26–34%
-- saturation relative to master: 74–84%
-- contrast relative to master: 74–82%
-- luminance: +4% to +8%
-- mountain detail: visible only as soft structure
-- lake texture: low salience
-- no decorative sun emphasis
+Frozen treatment:
 
-Background salience target: **Home 的约 40–55%**。
+- MistWhite veil: **30%**
+- Saturation: **79%**
+- Contrast: **78%**
+- Brightness: **106%**
+- Global Blur: **OFF**
+- Target environmental salience vs BG_ENV_HERO: **48%**
+
+Goal:
+
+Retain brand world and spatial atmosphere while allowing rapid scanning of dense content.
 
 ## 6. BG_CAPTURE
 
-用途：
+Source:
 
-- 拍照
-- 识别过程
-- 与真实照片直接关联的全屏 AI 处理
+current user photo
 
-Authority:
+Frozen behavior:
 
-- 用户当前照片 = background
-- ContentScale.Crop
-- opaque
-- no processing tint on original-photo layer
-- AI light field / contour / halo are overlays, not background
+- opaque: true
+- ContentScale: Crop
+- original photo tint: none
+- no Morning Lake image beneath or above the photo
+- AI ambient field / contour / halo are overlay layers, not background treatment
 
-Fallback when photo is not available:
+Photo unavailable fallback:
 
-- deep teal-gray `#102D35`
+`#102D35`
 
 ## 7. BG_SOLID_FALLBACK
 
-只用于没有正常背景输入的瞬时 / 异常状态。
+Frozen colors:
 
-Light content fallback:
+- Light content fallback: `#F7FAFB`
+- Dark capture fallback: `#102D35`
 
-- `LakeWhite #F7FAFB`
+Rules:
 
-Dark capture fallback:
+- fallback is transient
+- cannot become a permanent page background
+- cannot create a third visual world
 
-- `#102D35`
+## 8. 允许修改的维度
 
-禁止把 fallback 当正式页面背景长期使用。
+For BG_ENV_HERO / BG_CONTENT / BG_DATA, V1 only permits:
 
-## 8. 页面前景与背景边界
+1. MistWhite veil
+2. saturation
+3. contrast
+4. brightness
 
-Background 系统不包含：
+Frozen:
 
-- Empty Home rod / line / bobber / ripple
-- catch photo / fish photo
-- Hero
-- glass card
-- navigation
-- button
-- copy
-- account avatar
-- recognition AI overlay
+- source composition
+- mountains
+- shoreline
+- sky
+- lake
+- vegetation
+- camera viewpoint
+- crop policy
+- Global Blur = OFF
 
-这些都属于 page/component layer。
+Any other visual change requires V2 or an approved revision.
 
-## 9. 迁移规则
+## 9. 已批准视觉验证
 
-Legacy 页面在迁移期间允许保留旧背景资产，但必须在 Design Manager 中明确标记为 migration gap。
+Authority evidence:
 
-禁止：
+`validation/Morning_Lake_Content_Adaptation_Approved_V1.png`
 
-- 从 frozen screenshot 裁一个新背景；
-- 页面自行新生成另一套 lake image；
-- 页面复制 Morning Lake Master 后局部重画并继续称为同一版本。
+Review coverage:
 
-需要改变环境世界时，升级 Background System 版本。
+- Normal Home
+- Recognition Result
+- FishRecordDetail
+- Login
+- My Catches
+- Fish Guide
+
+Result: **PASS / APPROVED**
+
+Empty Home Sunrise Hero remains separately governed by the approved Empty Home visual authority.
 
 ## 10. Freeze Gate
 
-V1 可从 ACTIVE_CLOSURE 升为 FROZEN 的条件：
+- [x] Two canonical masters archived
+- [x] Native dimensions recorded
+- [x] SHA-256 recorded
+- [x] Five background types mapped
+- [x] Three lake treatment presets fixed to exact values
+- [x] BG_CAPTURE fixed
+- [x] BG_SOLID_FALLBACK fixed
+- [x] Cross-page content review approved
+- [x] Design Manager mapping complete
+- [x] No third lake-world authority permitted
 
-1. Morning Lake Master hash / dimensions / provenance registered;
-2. BG_ENV_HERO reviewed on Empty + Normal Home;
-3. BG_CONTENT reviewed on FishRecordDetail + Account/Login;
-4. BG_DATA reviewed on My Catches + Fish Guide;
-5. Recognition BG_CAPTURE unaffected;
-6. no page introduces an unrelated lake world;
-7. Design Manager usage map is complete.
+**Background System V1 = FROZEN.**
