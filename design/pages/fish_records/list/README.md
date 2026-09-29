@@ -32,3 +32,13 @@ Each record opens FishRecordDetail(recordId).
 - Standalone Filter trigger → Icon Action V1 / UTILITY / ON_LIGHT.
 - A Search Field leading magnifier is decoration when it is not independently tappable and must not be implemented as Icon Action.
 - Filter pills/chips remain Selection Controls, not Icon Action.
+
+
+## Top Navigation
+
+- Root header uses **Top Navigation V1 / TITLE_ONLY / FROZEN**.
+- Title copy: `我的鱼获`.
+- Typography: 28sp / Medium / 34sp, DeepLakeBlue.
+- Search / Filter stay below Top Navigation.
+- The legacy runtime subtitle `按时间留存每一次真实鱼获` is page content, not part of TITLE_ONLY.
+- Legacy 29sp/Bold title styling must not override the shared component authority.
