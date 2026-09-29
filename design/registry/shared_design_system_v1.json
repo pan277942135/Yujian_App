@@ -102,7 +102,7 @@
           "authority_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
         }
       ],
-      "note": "V1 已定稿：Empty Home 使用 Morning_Lake_Sunrise_Hero_V1；其余湖景页面使用 Morning_Lake_Master_V1。三档湖景只通过雾化、饱和度、对比度、亮度区分。",
+      "note": "V1 已冻结：父级仅展示系统总览与两张 Canonical Master；BG_ENV_HERO / BG_CONTENT / BG_DATA / BG_CAPTURE / BG_SOLID_FALLBACK 统一通过左侧子菜单直达各自工作区，不在右侧重复生成 Variant 子页面。",
       "master": {
         "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
         "width": 941,
@@ -132,7 +132,10 @@
           "usage": "空首页 only"
         }
       ],
-      "validation_reference": "design/system/backgrounds/morning_lake_v1/validation/Morning_Lake_Content_Adaptation_Approved_V1.png"
+      "validation_reference": "design/system/backgrounds/morning_lake_v1/validation/Morning_Lake_Content_Adaptation_Approved_V1.png",
+      "navigation_mode": "submenu_direct",
+      "overview_mode": "masters_only",
+      "show_variant_index": false
     },
     {
       "id": "primary_capture_button_v1",
