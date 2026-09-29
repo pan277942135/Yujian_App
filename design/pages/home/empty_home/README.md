@@ -33,3 +33,8 @@ gallery flow.
 ## Motion
 
 Use the Empty Home values in `design/system/core_visual_v1/tokens/motion_tokens.json` exactly.
+
+
+## Frozen Visual Revision V2.2
+
+The active Empty Home visual delta is documented in `spec/Empty_Home_Frozen_Visual_Revision_V2_2.md`. It freezes the approved capture-button spacing/clarity and rod-line-bobber-water-contact geometry while retaining V2 as the base scene authority.

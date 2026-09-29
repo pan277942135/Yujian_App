@@ -47,15 +47,15 @@
   "design_version": "Empty_Home_Final_Design_V2",
   "ripple": {
     "alpha_from": 0.3,
-    "alpha_to": 0.0,
+    "alpha_to": 0,
     "center_reference_px": [
-      530,
-      1168
+      560,
+      1320
     ],
     "count": 1,
     "duration_ms": 3200,
     "loop": true,
-    "scale_from": 1.0,
+    "scale_from": 1,
     "scale_to": 1.22,
     "z_order": "ripple_below_bobber"
   },
@@ -66,5 +66,6 @@
       6,
       12
     ]
-  }
+  },
+  "visual_revision": "V2.2"
 }
