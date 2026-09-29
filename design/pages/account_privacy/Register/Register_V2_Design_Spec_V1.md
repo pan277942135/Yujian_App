@@ -1,87 +1,120 @@
-# Register V2 Design Spec V1
+# Register V2 · Frozen Design Spec
 
-Status: **ACTIVE_CLOSURE**
-Feature: **Auth / Register**
+Status: **FROZEN**  
+Scope: **Design only**  
+Page title: **创建账号**
 
-## 1. Product role
+## 1. Frozen visual authority
 
-Create a YuJian account without leaving the same visual world as Login.
+- Frozen preview: `design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp`
+- Approved source size: **941 × 1672**
+- Approved source SHA-256: `9f28450a96c4149c190fe3bef47897a6c069b8221f14c4b54e95479f745d7585`
+- Design Manager preview derivative: **520 × 924 WebP**
+- Preview SHA-256: `e86db2acedd7aea537b2e14a7e3fe766b673f95181566760db5dd3012d2f19e7`
 
-Business semantics remain:
+The frozen preview is the authority for **layout, hierarchy, form treatment, white-space distribution and footer decoration**.
 
-- username: 3–32 chars, letters / numbers / underscore / hyphen
-- password: 6–72 chars
-- nickname: required, 1–20 chars
-- successful registration continues to login/session creation
-- back CTA returns to Login
+For landscape pixels, `Morning_Lake_Master_V1 / BG_CONTENT` remains the shared background authority.
 
-## 2. Shared background
+## 2. Relationship to Login
 
-Register uses the same shared background as Login:
+Register V2 is the sibling page of Login V2.1.
 
-- System: `Morning Lake Background System V1`
-- Master: **Morning_Lake_Master_V1**
-- Master: **no sun**
-- Variant: **BG_CONTENT**
-- MistWhite veil: **15% nominal**
-- saturation: **92% nominal**
-- effective contrast: **about 89–92%**
-- luminance: **about +3%**
-- blur: **none**
+It must reuse the same:
 
-Register must not create or own another lake background.
+- no-sun Morning Lake world;
+- top-lake → white-content transition;
+- title typography;
+- field style;
+- button language;
+- spacing rhythm;
+- footer grass treatment.
 
-## 3. Page hierarchy
+It is not a separately styled registration flow.
 
-Top brand block:
+## 3. Page composition
 
-- 渔见
-- 拍照收藏每次渔获
+1. **Top environmental zone** — no-sun Morning Lake; may be equal to or slightly shorter than Login because Register has one additional field.
+2. **Main content zone** — predominantly white / MistWhite.
+3. **Bottom footer decoration** — low-salience waterside grass at the absolute page bottom.
 
-Content block:
+The environmental zone contains **no “渔见” and no slogan**.
 
-- 创建账号
-- 用一个账号，留住你的钓鱼轨迹
-- 账号
-- 密码
-- 昵称
-- 注册并登录
-- 已有账号？去登录
+## 4. Content hierarchy
 
-## 4. Form treatment
+Frozen order:
 
-Use the same auth family rules as Login V2:
+1. 创建账号
+2. 用一个账号，留住你的钓鱼轨迹
+3. 账号
+4. 3–32 位字母、数字、_ 或 -
+5. 密码
+6. 至少 6 位 / visibility toggle
+7. 昵称
+8. 请输入昵称
+9. 注册并登录
+10. 已有账号？去登录
 
-- 24dp horizontal page padding reference
-- 18dp input radius
-- translucent light input surface
-- DeepLake labels and primary text
-- muted lake-gray helper/placeholder text
-- teal primary action
-- 56dp primary button height
-- 28dp button radius
-- no large opaque white card wrapping the whole form
+Frozen business fields are exactly:
 
-Register may scroll vertically on smaller screens while the background remains fixed.
+- account
+- password
+- nickname
 
-## 5. Error/loading
+Do **not** add:
 
-- loading: replace button label with compact progress indicator
-- error: compact inline error text; do not create a new full-screen error state
-- invalid form: primary CTA remains disabled
+- phone number
+- verification code
+- confirm password
 
-## 6. Shared-system references
+unless the product contract is separately revised.
 
-- Background System / `BG_CONTENT`
-- Mist Glass Surface
-- Color + Typography
-- Spacing + Radius
+## 5. Form treatment
 
-## 7. Freeze gate
+Same Auth family as Login:
 
-Register V2 remains ACTIVE_CLOSURE until:
+- 18dp input radius reference;
+- 56dp primary action height reference;
+- 28dp primary action radius reference;
+- deep Lake Teal primary action;
+- DeepLake primary text;
+- muted lake blue-gray secondary text;
+- large clean white content area;
+- no whole-form glass card;
+- no strong glow / gradient / decorative effects.
 
-1. canonical high-fidelity screenshot is archived;
-2. SHA / provenance is registered;
-3. Login / Register visual family is reviewed together;
-4. no legacy `AuthLayout` warm-card visual remains in the production route.
+Register may use slightly tighter vertical spacing than Login to accommodate the third field.
+
+## 6. Footer grass
+
+Footer grass is a **page foreground decoration**, not a background asset.
+
+Rules are identical to Login:
+
+- absolute bottom anchoring;
+- approximately 8–10% visual height;
+- subdued contrast;
+- no obstruction of “已有账号？去登录”;
+- rocks remain secondary;
+- never bake grass into `Morning_Lake_Master_V1`.
+
+## 7. Shared design systems
+
+- Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
+- Color + Typography V1
+- Spacing + Radius V1
+
+## 8. Motion / haptic / sound
+
+Frozen design decision:
+
+- no automatic environmental motion;
+- no automatic haptic;
+- no sound;
+- only normal input/button/loading state feedback.
+
+## 9. Scope boundary
+
+This is a **design freeze only**.
+
+It does not assert runtime implementation or runtime evidence parity.
