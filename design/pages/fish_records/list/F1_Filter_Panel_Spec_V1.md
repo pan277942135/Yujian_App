@@ -3,7 +3,7 @@
 Status: **FROZEN**  
 Freeze date: **2026-09-29**  
 Owner: **My Catches / 我的鱼获**  
-Visual Authority: `design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen.jpg`
+Visual Authority: `design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.jpg`
 
 ## 1. 产品定位
 

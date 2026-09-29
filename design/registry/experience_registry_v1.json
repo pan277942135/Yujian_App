@@ -2099,8 +2099,8 @@
               "title": "F1 · 筛选面板",
               "status": "FROZEN",
               "render_mode": "frozen_image",
-              "authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen.jpg",
-              "visual_authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen.jpg",
+              "authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.jpg",
+              "visual_authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.jpg",
               "behavior_authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md",
               "authority_type": "visual",
               "freeze_date": "2026-09-29",
@@ -2109,9 +2109,9 @@
                 "width": 360,
                 "height": 640
               },
-              "visual_authority_bytes": 41283,
+              "visual_authority_bytes": 10350,
               "visual_authority_sha256": "73428eecf75357cad9513374721bbb82ece40ccac2167ae054a75ebc24b404a2",
-              "source_high_fidelity_png": "F1 Filter Panel · approved generated UI"
+              "source_high_fidelity_png": "F1 Filter Panel · approved UI · cache-busted authority"
             },
             {
               "id": "f2_species",
