@@ -215,3 +215,20 @@ Remaining design review blocker:
 - final whole-page review after background approval.
 
 Runtime differences remain development-handoff items and do not invalidate the recovered design authority.
+
+
+---
+
+## 12. High-fidelity source reconciliation
+
+The prior high-fidelity design boards were recovered and reviewed against the text specs.
+
+Corrections applied:
+1. Growth Mark first-event semantics = first record **of a species** (`首条草鱼` etc.), not the user's first catch overall.
+2. Day groups with 6–10 catches expand inline after the first 5; day groups with >10 catches route to a dedicated day-detail view after the first 5.
+3. Search Focused includes a visible Cancel action.
+4. The persistent shared Camera Button remains visible in Archive Empty, Search Empty and Filter Empty; it is not the recovery CTA for search/filter.
+5. Historical exploratory comparison boards remain non-authoritative.
+
+Current Design Manager navigation is organized by high-fidelity view:
+Main / Timeline / Filter / Empty States / Growth Mark / Search / System states.
