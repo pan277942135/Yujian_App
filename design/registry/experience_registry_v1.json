@@ -1644,8 +1644,8 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
-          "note": "冻结图负责页面构图与 UI；湖景像素仍以 Morning_Lake_Master_V1 / BG_CONTENT 为高优先级共享 Authority。"
+          "authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+          "note": "Login V2.1 最终高保真图为唯一页面 Visual Authority；实现继续复用公共 Morning Lake / BG_CONTENT 与原生 UI。"
         },
         "motion": {
           "status": "FROZEN",
@@ -1689,11 +1689,12 @@
           "version": "V2.1",
           "status": "FROZEN",
           "current": true,
-          "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
+          "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
           "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
-          "source_sha256": "98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157",
-          "preview_sha256": "f73fbce097f4e9d6617a13c31b5dbe5e80a7407b56b9f7f85301a6d12eba1f6a",
-          "note": "V2.1 + Text Action V1 refinement：创建账号=STRONG；忘记密码？=MUTED。"
+          "source_sha256": "2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c",
+          "note": "最终冻结高保真：顶部无品牌字/Slogan；无太阳晨雾湖景自然过渡到白色表单区；表单收紧；底部保留 V2 水草 Footer Decoration。",
+          "source_filename": "160939.png",
+          "source_dimensions": "864x1536"
         }
       ],
       "design_overall": "FROZEN",
@@ -1724,7 +1725,7 @@
           "note": "Icon Action V1：密码可见性=CONTEXT/ON_LIGHT；若提供字段清空动作则使用 Clear/CONTEXT。"
         }
       ],
-      "note": "Login V2.1 设计已冻结：顶部无文字的无太阳 Morning Lake、下部大面积白底、紧凑表单、页面最底部低存在感水草。Runtime/Evidence 是否一致单独验证。",
+      "note": "Login V2.1 设计已冻结；最终 Visual Authority 为用户确认的 160939 高保真图。Runtime/Evidence 单独验证。",
       "frozen_manifest": "design/pages/account_privacy/Login/frozen/manifest.json"
     },
     {
@@ -1738,8 +1739,8 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.svg",
-          "note": "冻结图负责页面构图与 UI；湖景像素仍以 Morning_Lake_Master_V1 / BG_CONTENT 为高优先级共享 Authority。"
+          "authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+          "note": "Register V2 最终高保真图为唯一页面 Visual Authority；实现继续复用公共 Morning Lake / BG_CONTENT 与原生 UI。"
         },
         "motion": {
           "status": "FROZEN",
@@ -1770,18 +1771,19 @@
           "note": "页面冻结预览 + 公共 Morning Lake 背景 + 页面底部水草装饰语义已归档。"
         }
       },
-      "note": "Register V2 设计已冻结，并与 Login V2.1 组成统一 Auth Family。Runtime 当前状态不作为本次设计冻结结论。",
+      "note": "Register V2 设计已冻结；最终 Visual Authority 为用户确认的 160938 高保真图。Runtime/Evidence 单独验证。",
       "display_name": "注册 · 创建账号",
       "design_versions": [
         {
           "version": "V2",
           "status": "FROZEN",
           "current": true,
-          "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.svg",
+          "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
           "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
-          "source_sha256": "9f28450a96c4149c190fe3bef47897a6c069b8221f14c4b54e95479f745d7585",
-          "preview_sha256": "e86db2acedd7aea537b2e14a7e3fe766b673f95181566760db5dd3012d2f19e7",
-          "note": "当前冻结：与 Login 同一风格；仅账号/密码/昵称 3 个字段；不增加手机号、验证码、确认密码。"
+          "source_sha256": "14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35",
+          "note": "最终冻结高保真：与 Login 同一 Auth Family；账号/密码/昵称 3 字段；顶部无品牌字/Slogan；底部保留 V2 水草。",
+          "source_filename": "160938.png",
+          "source_dimensions": "864x1536"
         }
       ],
       "design_overall": "FROZEN",
