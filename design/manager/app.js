@@ -95,7 +95,7 @@ function navCaret(expanded) {
 
 function renderSharedNavItem(item) {
   const key = "shared/" + item.id;
-  const hasChildren = item.id === "background_system_v1" && (item.variants || []).length > 0;
+  const hasChildren = item.navigation_mode === "submenu_direct" && (item.variants || []).length > 0;
   const navId = "shared:" + item.id;
   const selectedDescendant = hasChildren && !!selectedKey && selectedKey.startsWith(key + "/");
   const expanded = hasChildren && isLevelOneExpanded(navId, selectedDescendant);
@@ -118,7 +118,8 @@ function renderSharedNavItem(item) {
   const children = (item.variants || []).map(v => {
     const variantKey = "shared/" + item.id + "/" + v.id;
     return '<button class="shared-subitem' + (selectedKey === variantKey ? " active" : "") +
-      '" data-kind="background-variant" data-id="' + esc(v.id) + '">' +
+      '" data-kind="shared-variant" data-parent-id="' + esc(item.id) +
+      '" data-id="' + esc(v.id) + '">' +
       '<span class="subitem-code">' + esc(v.id) + '</span>' +
       '<span class="subitem-name">' + esc(v.name) + '</span>' +
       statusBadge(v.status || item.overall) +
@@ -310,10 +311,11 @@ function renderLists() {
     });
   });
 
-  document.querySelectorAll(".shared-subitem[data-kind='background-variant']").forEach(btn => {
+  document.querySelectorAll(".shared-subitem[data-kind='shared-variant']").forEach(btn => {
     btn.addEventListener("click", () => {
-      expandedLevelOne.add("shared:background_system_v1");
-      selectShared("background_system_v1", btn.dataset.id);
+      const parentId = btn.dataset.parentId;
+      expandedLevelOne.add("shared:" + parentId);
+      selectShared(parentId, btn.dataset.id);
     });
   });
 
@@ -554,6 +556,9 @@ function sharedPreviewHtml(item) {
   if (item.id === "background_system_v1") {
     return backgroundSystemOverviewHtml(item);
   }
+  if (item.id === "top_navigation_v1") {
+    return topNavigationOverviewHtml(item);
+  }
   if (item.preview_type === "layered_component" && item.id === "primary_capture_button_v1") {
     return layeredCapturePreviewHtml(item);
   }
@@ -781,15 +786,109 @@ function renderBackgroundVariantWorkspace(item, variantId) {
   );
 }
 
+function topNavigationOverviewHtml(item) {
+  return '<div class="top-nav-overview">' +
+    '<div class="bg-system-intro">' +
+      '<strong>Top Navigation V1</strong>' +
+      '<span>顶部导航只负责布局组合，不重复定义 Icon Action。当前拆成 3 个直接子菜单。</span>' +
+    '</div>' +
+    '<div class="direct-variant-rules">' +
+      '<div class="direct-rule-card"><b>01 · 标题</b><span>Root 页面；无 Back；Search / Filter 不属于顶部导航。</span></div>' +
+      '<div class="direct-rule-card"><b>02 · 返回 + 标题</b><span>二级页面；Back 使用 Icon Action V1 / NAVIGATION。</span></div>' +
+      '<div class="direct-rule-card"><b>03 · 返回 + 标题 + 工具动作</b><span>二级页面 + 1–2 个 Utility；超出后进入 More。</span></div>' +
+    '</div>' +
+    '<div class="preview-note">旧 search_filter Variant 已移除；我的鱼获 Search/Filter 与鱼鉴 Search 均不再作为 Top Navigation 结构。</div>' +
+  '</div>';
+}
+
+function directSharedVariantPages(sharedId, variantId) {
+  return pageRegistry.features.filter(page =>
+    (page.shared_system_refs || []).some(ref =>
+      ref.id === sharedId && ref.variant === variantId
+    )
+  );
+}
+
+function renderSharedDirectVariantWorkspace(item, variantId) {
+  const panel = el("sharedDirectVariantPanel");
+  const isDirectNonBackground =
+    item.navigation_mode === "submenu_direct" &&
+    item.id !== "background_system_v1" &&
+    !!variantId;
+
+  if (!isDirectNonBackground) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  const variant = (item.variants || []).find(v => v.id === variantId);
+  if (!variant) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  el("sharedDirectVariantEyebrow").textContent = item.display_name + " · 子菜单";
+  el("sharedDirectVariantTitle").textContent = variant.name;
+  el("sharedDirectVariantStatus").innerHTML = statusBadge(variant.status || item.overall);
+
+  const summary = variant.usage || variant.note || "";
+  if (summary) {
+    el("sharedDirectVariantSummary").textContent = summary;
+    el("sharedDirectVariantSummary").classList.remove("hidden");
+  } else {
+    el("sharedDirectVariantSummary").classList.add("hidden");
+  }
+
+  const rules = [];
+  if (variant.note) rules.push(variant.note);
+  if (variant.id === "TITLE_ONLY") {
+    rules.push("无 Back；页面标题为顶部主要视觉。");
+    rules.push("Search / Filter 归页面内容区或输入/工具系统。");
+  } else if (variant.id === "BACK_TITLE") {
+    rules.push("Back → Icon Action V1 / NAVIGATION。");
+    rules.push("标题视觉权重高于返回图标。");
+  } else if (variant.id === "BACK_TITLE_ACTIONS") {
+    rules.push("Back → Icon Action V1 / NAVIGATION。");
+    rules.push("右侧动作 → Icon Action V1 / UTILITY。");
+    rules.push("直接展示 1–2 个 Utility；未来超出上限进入 More。");
+  }
+
+  el("sharedDirectVariantRules").innerHTML = rules.map(rule =>
+    '<div class="direct-rule-card">' + esc(rule) + '</div>'
+  ).join("") || '<div class="preview-empty compact">暂无补充规则。</div>';
+
+  const usage = directSharedVariantPages(item.id, variant.id);
+  el("sharedDirectVariantUsage").innerHTML = usage.map(page =>
+    '<button class="usage-row direct-variant-page-link" data-page-id="' + esc(page.id) + '">' +
+      '<span>' + esc(page.display_name || page.id) + '</span>' +
+      '<span class="usage-variant">' + esc(variant.id) + '</span></button>'
+  ).join("") || '<div class="preview-empty compact">尚未映射页面。</div>';
+
+  const authorityPaths = [
+    variant.authority_path,
+    ...(item.authority_paths || [])
+  ].filter((value,index,array) => value && array.indexOf(value) === index);
+
+  el("sharedDirectVariantAuthority").innerHTML = authorityPaths.map(path =>
+    '<a class="authority-row" href="' + esc(repoHref(path)) +
+    '" target="_blank" rel="noreferrer">' + esc(path) + '</a>'
+  ).join("");
+
+  document.querySelectorAll(".direct-variant-page-link[data-page-id]").forEach(btn =>
+    btn.addEventListener("click", () => selectPage(btn.dataset.pageId))
+  );
+}
+
 function selectShared(id, variantId = null) {
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
 
   const isBackground = item.id === "background_system_v1";
-  const selectedVariant = isBackground && variantId
+  const selectedVariant = variantId
     ? (item.variants || []).find(v => v.id === variantId)
     : null;
-  const directVariantMode = isBackground && item.navigation_mode === "submenu_direct";
+  const directVariantMode = item.navigation_mode === "submenu_direct";
 
   selectedKey = "shared/" + id + (variantId ? "/" + variantId : "");
   history.replaceState(
@@ -802,7 +901,7 @@ function selectShared(id, variantId = null) {
   el("sharedDetail").classList.remove("hidden");
 
   el("pageEyebrow").textContent = selectedVariant
-    ? "渔见 · 公共设计系统 · 背景系统"
+    ? "渔见 · 公共设计系统 · " + item.display_name
     : "渔见 · 公共设计系统";
   el("pageTitle").textContent = selectedVariant
     ? (selectedVariant.id + " · " + selectedVariant.name)
@@ -837,7 +936,7 @@ function selectShared(id, variantId = null) {
 
   el("sharedPreview").innerHTML = sharedPreviewHtml(item);
 
-  // Background System uses the sidebar variants as the only child-entry surface.
+  // submenu_direct items use the sidebar as the only child-entry surface.
   // The old right-side Variant card index is intentionally suppressed.
   const overviewHero = el("sharedOverviewHero");
   const variantPanel = el("sharedVariantPanel");
@@ -872,6 +971,7 @@ function selectShared(id, variantId = null) {
   }
 
   renderBackgroundVariantWorkspace(item, variantId);
+  renderSharedDirectVariantWorkspace(item, variantId);
 
   el("sharedAuthorities").innerHTML = (item.authority_paths || []).map(path =>
     '<a class="authority-row" href="' + esc(repoHref(path)) +
