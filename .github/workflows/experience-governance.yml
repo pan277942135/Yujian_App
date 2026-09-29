@@ -1,0 +1,46 @@
+name: Experience Governance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "design/**"
+      - "scripts/experience_manager.py"
+      - ".github/workflows/experience-governance.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "design/**"
+      - "scripts/experience_manager.py"
+      - ".github/workflows/experience-governance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate experience registry
+        run: python3 scripts/experience_manager.py validate
+
+      - name: Print experience summary
+        run: python3 scripts/experience_manager.py summary
+
+      - name: Build management views
+        run: python3 scripts/experience_manager.py build
+
+      - name: Upload experience manager
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Experience-Manager-${{ github.sha }}
+          path: |
+            design/registry/EXPERIENCE_STATUS.md
+            design/manager/index.html
+          if-no-files-found: error
+          retention-days: 14
