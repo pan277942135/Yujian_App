@@ -1569,6 +1569,26 @@ function genericSpecHifiCanvas(feature, view) {
   const points = view.menu_points || [];
   const visual = view.image || view.visual_authority ||
     (view.render_mode === "repo_image" ? currentVersion(feature)?.visual_authority : null);
+  const source = view.visual_authority_source || null;
+  const sourceCard = source
+    ? '<div class="authority-index">' +
+        '<div class="authority-index-intro"><strong>Current Visual Authority</strong>' +
+          '<span>页面级视觉已冻结；原始源图按文件指纹登记。5 张黑金卡内部内容 / 视觉不在本轮冻结范围。</span></div>' +
+        '<div class="authority-index-grid">' +
+          '<article class="authority-index-card">' +
+            '<div class="authority-index-head"><strong>' + esc(source.name || "Source PNG") + '</strong>' +
+              statusBadge(view.visual_status || "FROZEN") + '</div>' +
+            '<div class="authority-kind">SOURCE PNG · ' + esc(source.width || "—") + '×' + esc(source.height || "—") + '</div>' +
+            '<p>SHA-256 · ' + esc(source.sha256 || "—") + '</p>' +
+          '</article>' +
+          '<article class="authority-index-card">' +
+            '<div class="authority-index-head"><strong>5 张黑金卡</strong>' + statusBadge("PARTIAL") + '</div>' +
+            '<div class="authority-kind">DEFERRED REVIEW</div>' +
+            '<p>本轮不审内容、不审卡内视觉、不判断星级/命名；后续单独建立 Card System Authority。</p>' +
+          '</article>' +
+        '</div>' +
+      '</div>'
+    : '';
 
   if (view.render_mode === "repo_image" && visual && isImage(visual)) {
     const specIndex = points.length
@@ -1595,7 +1615,7 @@ function genericSpecHifiCanvas(feature, view) {
       specIndex;
   }
 
-  return '<div class="authority-index">' +
+  return sourceCard + '<div class="authority-index">' +
     '<div class="authority-index-intro"><strong>' + esc(view.title) + '</strong>' +
       '<span>' + esc(view.summary || "规范菜单已建立，Authority 待逐项补齐。") + '</span></div>' +
     (points.length
