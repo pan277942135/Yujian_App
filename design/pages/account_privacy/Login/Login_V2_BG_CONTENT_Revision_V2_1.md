@@ -6,16 +6,15 @@ Page title: **欢迎回来**
 
 ## 1. Frozen visual authority
 
-- Frozen preview: `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg`
-- Approved source size: **941 × 1672**
-- Approved source SHA-256: `98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157`
-- Design Manager preview: **SVG 941 × 1672**, referencing the frozen shared Morning Lake master.
-- Preview SHA-256: `f73fbce097f4e9d6617a13c31b5dbe5e80a7407b56b9f7f85301a6d12eba1f6a`
+- Final visual authority: `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png`
+- Approved source attachment: `160939.png`
+- Approved canvas: **864 × 1536 (9:16)**
+- Approved source SHA-256: `2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c`
+- Design Manager preview mode: **direct authority image**, no SVG/HTML reconstruction.
 
-The frozen preview is the authority for **layout, hierarchy, field/button treatment, white-space distribution and footer decoration**.
+The final high-fidelity image is the page-level visual authority for **composition, hierarchy, background treatment, typography placement, field/button treatment, white-space distribution and footer decoration**.
 
-For landscape pixels, the shared background system has higher precedence:
-`Morning_Lake_Master_V1 / BG_CONTENT`.
+Implementation continues to reuse the shared `Morning_Lake_Master_V1 / BG_CONTENT` system where applicable, but the rendered result must visually match this frozen authority. The shared background system does not override the approved final page image.
 
 ## 2. Page composition
 
