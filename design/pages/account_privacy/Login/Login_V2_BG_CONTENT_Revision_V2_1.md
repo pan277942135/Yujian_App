@@ -90,6 +90,7 @@ Frozen rules:
 - Spacing + Radius V1
 - Primary / Secondary Action Button V1.1: `PRIMARY` for `登录`
 - Text Action V1: `创建账号` = STRONG; `忘记密码？` = MUTED
+- Icon Action V1: password visibility = CONTEXT / ON_LIGHT
 
 BG_CONTENT remains the shared content-background family, but Login uses the frozen **top-lake → white-content** composition instead of exposing the lake over the whole form.
 
