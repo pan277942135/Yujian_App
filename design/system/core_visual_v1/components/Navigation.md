@@ -1,6 +1,6 @@
 # TopNavigation V1
 
-Status: **PARTIAL**  
+Status: **FROZEN**  
 Current structure: **3 direct submenus**
 
 ```text
@@ -97,22 +97,56 @@ Runtime notes:
 - Account PageScaffold legacy `20sp / Bold + 58dp / 10dp` is not authority.
 - Both should converge to the frozen BACK_TITLE contract during runtime closure.
 
-## 03 · BACK_TITLE_ACTIONS
+## 03 · BACK_TITLE_ACTIONS — FROZEN
 
-Use when a second-level page also needs page-level utilities.
+Frozen authority:
 
-Current primary example:
+- `design/system/components/top_navigation/back_title_actions/Back_Title_Actions_Spec_V1.md`
+- `design/system/components/top_navigation/back_title_actions/visual_contract.json`
+- `design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg`
+- `design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg`
+- `design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg`
+- `design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg`
 
-- 鱼获详情 → Back + title + Fish Guide / Share
+Frozen consumer:
 
-Rules:
+- 鱼获详情
 
-- Back → `Icon Action V1 / NAVIGATION`;
-- right-side actions → `Icon Action V1 / UTILITY`;
-- utility actions remain visually below title;
-- target design supports **1–2 direct utility actions**;
-- if future requirements exceed the direct-action limit, collapse excess actions into `More`;
-- B-side card flip is contextual to the B-side surface and does not automatically become a Top Navigation action.
+Core rules:
+
+- min content height **56dp**;
+- outer horizontal padding **8dp**;
+- Back = **44×44dp / 22dp glyph**;
+- Back → title gap **8dp**;
+- title = **20sp / Medium 500 / 26sp line-height**;
+- title → Utility group gap **≥8dp**;
+- Utility target = **44×44dp**, glyph **20–22dp**;
+- Utility gap = **8dp**;
+- maximum **2 visible Utility slots**;
+- 0 Utility → use `BACK_TITLE`;
+- 1 Utility → one direct action;
+- 2 Utilities → both direct;
+- 3+ candidates → one highest-priority direct action + `More`;
+- title uses remaining width and ellipsizes;
+- current V1 tone is `ON_LIGHT`.
+
+FishRecordDetail frozen order:
+
+```text
+←  鱼获详情                         鱼鉴   分享
+```
+
+Explicit exclusions:
+
+- Hero 编辑 remains Text Action / ON_MEDIA;
+- B-side Flip remains local Icon Action / UTILITY / ON_MEDIA;
+- Add Media remains a content/context action;
+- none of these are promoted into Top Navigation.
+
+Runtime note:
+
+- current shared `YuJianTopBar` still uses 64dp height and the 28sp pageTitle token;
+- runtime closure must align this variant to the frozen secondary-page 56dp / 20sp geometry without changing the design authority.
 
 ## Removed legacy variant
 
@@ -132,4 +166,4 @@ Reason:
 
 ## Current completion
 
-`TITLE_ONLY` and `BACK_TITLE` are now FROZEN. `BACK_TITLE_ACTIONS` still requires detailed visual closure before the parent Top Navigation V1 can become FROZEN.
+`TITLE_ONLY`, `BACK_TITLE`, and `BACK_TITLE_ACTIONS` are all FROZEN. Top Navigation V1 is therefore fully FROZEN.
