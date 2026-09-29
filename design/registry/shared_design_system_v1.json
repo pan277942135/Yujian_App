@@ -366,6 +366,89 @@
       ]
     },
     {
+      "id": "text_action_v1",
+      "display_name": "文字操作",
+      "category": "component",
+      "overall": "ACTIVE_CLOSURE",
+      "current_version": "V1 Candidate",
+      "authority_paths": [
+        "design/system/components/text_action/README.md",
+        "design/system/components/text_action/Text_Action_Spec_V1.md",
+        "design/system/components/text_action/manifest.json",
+        "design/system/components/text_action/visual_contract.json",
+        "design/system/components/text_action/motion_contract.json",
+        "design/system/components/text_action/usage_map.json",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "preview": "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+      "preview_type": "text_action_system",
+      "variants": [
+        {
+          "id": "STRONG",
+          "name": "强文字操作",
+          "usage": "创建账号 / 去登录",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "NORMAL",
+          "name": "普通文字操作",
+          "usage": "修改鱼种 / 全部 / 编辑",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "MUTED",
+          "name": "弱文字操作",
+          "usage": "忘记密码？",
+          "status": "CANDIDATE"
+        }
+      ],
+      "candidate_visual_set": [
+        {
+          "id": "01_SEMANTIC_ROLES",
+          "title": "01 · 三档语义",
+          "path": "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "02_REAL_USAGE",
+          "title": "02 · 真实页面用法",
+          "path": "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "03_STRONG_STATES",
+          "title": "03 · STRONG 四态",
+          "path": "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "04_NORMAL_STATES",
+          "title": "04 · NORMAL 四态",
+          "path": "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "05_MUTED_STATES",
+          "title": "05 · MUTED 四态",
+          "path": "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+          "status": "CANDIDATE"
+        },
+        {
+          "id": "06_ON_MEDIA_STATES",
+          "title": "06 · ON_MEDIA 四态",
+          "path": "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg",
+          "status": "CANDIDATE"
+        }
+      ],
+      "note": "V1 Candidate：STRONG/NORMAL/MUTED；44dp 最小点击区；Chevron 独立 14dp；Loading=N/A。待确认 Login 忘记密码？是否降为 MUTED 后再冻结。",
+      "preview_note": "候选 UI 尚未冻结；重点审视忘记密码？降权、三档文字层级、Chevron 与 ON_MEDIA 反白表现。"
+    },
+    {
       "id": "top_navigation_v1",
       "display_name": "顶部导航",
       "category": "component",
@@ -487,12 +570,13 @@
       "id": "button_spec",
       "display_name": "按钮规范",
       "category": "component_group",
-      "status": "FROZEN",
+      "status": "ACTIVE_CLOSURE",
       "item_ids": [
         "primary_capture_button_v1",
-        "action_button_v1"
+        "action_button_v1",
+        "text_action_v1"
       ],
-      "note": "导航分组，不创建新的设计 Authority；两个子组件继续独立版本化和冻结。"
+      "note": "按钮规范导航分组；主拍摄按钮与主/次操作按钮已冻结，Text Action V1 正在视觉收口。各子组件独立版本化。"
     }
   ],
   "navigation_order": [
