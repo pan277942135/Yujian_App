@@ -1072,7 +1072,8 @@
           "scenario_ids": [
             "timeline_default",
             "day_1_5"
-          ]
+          ],
+          "authority_type": "visual"
         },
         {
           "id": "timeline",
@@ -1089,7 +1090,8 @@
             "day_gt10"
           ],
           "audit": "design/pages/fish_records/list/My_Catches_Timeline_Hifi_Audit_V1.md",
-          "source_role": "historical_behavior_and_layout_reference_not_current_visual_authority"
+          "source_role": "historical_behavior_and_layout_reference_not_current_visual_authority",
+          "authority_type": "visual"
         },
         {
           "id": "filter",
@@ -1103,7 +1105,8 @@
             "filter_sheet",
             "filter_results",
             "filter_empty"
-          ]
+          ],
+          "authority_type": "visual"
         },
         {
           "id": "empty",
@@ -1117,7 +1120,8 @@
             "archive_empty",
             "filter_empty",
             "search_empty"
-          ]
+          ],
+          "authority_type": "visual"
         },
         {
           "id": "growth",
@@ -1129,13 +1133,14 @@
           "summary": "高保真场景板：首条某鱼种、数量里程碑、同鱼种最长/最重及单卡优先级。",
           "scenario_ids": [
             "growth_mark_examples"
-          ]
+          ],
+          "authority_type": "visual"
         },
         {
           "id": "search",
           "title": "搜索交互 V1",
           "status": "FROZEN",
-          "render_mode": "search_overview",
+          "render_mode": "authority_index",
           "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
           "summary": "Search V1 已整批冻结：B1 最近搜索 / B2 搜索有结果 / B3 搜索无结果 / B4 Search + Filter / B5 交互与返回规则。视觉 Authority 为 Design Manager 无设备外框 9:16 App Canvas；B5 为行为规范页。",
           "scenario_ids": [
@@ -1148,52 +1153,58 @@
               "id": "b1_recent",
               "title": "B1 · 最近搜索 / 空输入",
               "status": "FROZEN",
-              "render_mode": "search_state",
+              "render_mode": "frozen_image",
               "state": "recent",
-              "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
               "scenario_ids": [
                 "search_focus"
               ],
               "summary": "进入 Search Mode，Search Bar Focused + 取消；query 为空时显示最近搜索，Timeline 仍保留在同一页面。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design_manager_borderless_app_canvas"
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
+              "authority_type": "visual",
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
             },
             {
               "id": "b2_results",
               "title": "B2 · 搜索有结果",
               "status": "FROZEN",
-              "render_mode": "search_state",
+              "render_mode": "frozen_image",
               "state": "results",
-              "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
               "scenario_ids": [
                 "search_results"
               ],
               "summary": "输入「草鱼」后的结果态：轻量结果摘要 + 原 Timeline 分组；无新 Search Results 页面。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design_manager_borderless_app_canvas"
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
+              "authority_type": "visual",
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
             },
             {
               "id": "b3_empty",
               "title": "B3 · 搜索无结果",
               "status": "FROZEN",
-              "render_mode": "search_state",
+              "render_mode": "frozen_image",
               "state": "empty",
-              "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
               "secondary_authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
               "scenario_ids": [
                 "search_empty"
               ],
               "summary": "无结果时只保留 query / × / 取消 / 清除搜索 / Camera Button；不显示推荐搜索标签墙。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design_manager_borderless_app_canvas"
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
+              "authority_type": "visual",
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
             },
             {
               "id": "b4_search_filter",
               "title": "B4 · Search + Filter",
               "status": "FROZEN",
-              "render_mode": "search_state",
+              "render_mode": "frozen_image",
               "state": "search_filter",
-              "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg",
               "secondary_authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
               "scenario_ids": [
                 "search_results",
@@ -1201,13 +1212,15 @@
               ],
               "summary": "SearchMatch AND FilterMatch；Search Bar 下只显示一行低权重 Filter Summary，点击可回原 Filter Sheet。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design_manager_borderless_app_canvas"
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg",
+              "authority_type": "visual",
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
             },
             {
               "id": "b5_interaction",
               "title": "B5 · 交互与返回规则",
               "status": "FROZEN",
-              "render_mode": "search_rules",
+              "render_mode": "behavior_spec",
               "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
               "scenario_ids": [
                 "search_focus",
@@ -1216,7 +1229,8 @@
               ],
               "summary": "× / 取消 / Back / 点击结果 / 返回恢复 / Recent Search 写入等状态规则，不制造新页面。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "behavior_spec"
+              "visual_authority": null,
+              "authority_type": "behavior"
             }
           ],
           "rejected_exploration": {
@@ -1245,7 +1259,9 @@
             "b3": "Search Empty 保留 query / × / 取消 / 清除搜索 / 全局 Camera Button；无推荐搜索墙。",
             "b4": "SearchMatch AND FilterMatch；Filter Summary 为单行低权重上下文，可返回 Filter Sheet。",
             "b5": "× 只清 query；取消退出 Search；Back 先收键盘再退出；详情返回恢复 query / filter / scroll；Recent Search 只写有效搜索。"
-          }
+          },
+          "authority_type": "group",
+          "visual_authority_manifest": "design/pages/fish_records/list/frozen/search_v1/manifest.json"
         },
         {
           "id": "system",
@@ -1256,7 +1272,8 @@
           "summary": "加载与加载失败已有 Runtime 基础状态，但尚缺独立历史高保真稿，暂不误标冻结。",
           "scenario_ids": [
             "loading_error"
-          ]
+          ],
+          "authority_type": "visual"
         }
       ],
       "hifi_source_inventory": {
@@ -1271,6 +1288,14 @@
           "我的鱼获界面方案对比海报.png"
         ],
         "note": "历史高保真源稿已重新定位。旧方案对比海报只作为探索历史，不再作为当前视觉 Authority。"
+      },
+      "navigation_model": "overview_authority_layers_v2",
+      "design_manager_view_rules": {
+        "overview": "show_page_overview_and_page_level_authority",
+        "visual_child": "show_only_selected_visual_authority_and_local_contract",
+        "behavior_child": "show_only_selected_behavior_contract",
+        "scenario": "show_only_selected_scenario_authority",
+        "rule": "Do not stack parent page preview, child visual preview, and page-level governance panels in the same detail view."
       }
     },
     {
