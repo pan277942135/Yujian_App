@@ -109,11 +109,23 @@ function renderLists() {
 
   el("pageList").innerHTML = pages.map(feature => {
     const key = "page/" + feature.id;
-    return '<button class="module-item' + (selectedKey === key ? " active" : "") +
+    const parent = '<button class="module-item' + (selectedKey === key ? " active" : "") +
       '" data-kind="page" data-id="' + esc(feature.id) + '">' +
       '<div class="module-name"><span>' + esc(feature.display_name || feature.id) + '</span>' +
       statusBadge(feature.design_overall) + '</div>' +
       '<div class="module-path">' + esc(feature.owner_path) + '</div></button>';
+
+    const children = (feature.scenario_pages || []).map(scene => {
+      const sceneKey = "page/" + feature.id + "/" + scene.id;
+      return '<button class="page-subitem' + (selectedKey === sceneKey ? " active" : "") +
+        '" data-kind="page-scenario" data-page-id="' + esc(feature.id) +
+        '" data-scene-id="' + esc(scene.id) + '">' +
+        '<span class="subitem-name">' + esc(scene.title) + '</span>' +
+        statusBadge(scene.status || "PARTIAL") +
+      '</button>';
+    }).join("");
+
+    return parent + (children ? '<div class="page-sublist">' + children + '</div>' : '');
   }).join("") || '<div class="preview-empty compact">没有匹配的页面</div>';
 
   document.querySelectorAll(".module-item[data-kind]").forEach(btn => {
@@ -125,6 +137,10 @@ function renderLists() {
 
   document.querySelectorAll(".shared-subitem[data-kind='background-variant']").forEach(btn => {
     btn.addEventListener("click", () => selectShared("background_system_v1", btn.dataset.id));
+  });
+
+  document.querySelectorAll(".page-subitem[data-kind='page-scenario']").forEach(btn => {
+    btn.addEventListener("click", () => selectPage(btn.dataset.pageId, btn.dataset.sceneId));
   });
 }
 
@@ -608,6 +624,112 @@ function freezeStatusBadge(status) {
   return '<span class="freeze-status ' + css + '">' + esc(label) + '</span>';
 }
 
+function myCatchesScenarioPreviewHtml(feature, scene) {
+  const bgSystem = sharedRegistry.items.find(x => x.id === "background_system_v1");
+  const bgVariant = (bgSystem?.variants || []).find(v => v.id === "BG_DATA");
+  const treatment = bgVariant?.preview_treatment || {};
+  const source = (bgVariant?.preview_sources || [])[0]?.path || bgSystem?.master?.path;
+  const filter = [
+    "saturate(" + Math.round((treatment.saturation ?? 1) * 100) + "%)",
+    "contrast(" + Math.round((treatment.contrast ?? 1) * 100) + "%)",
+    "brightness(" + Math.round((treatment.brightness ?? 1) * 100) + "%)"
+  ].join(" ");
+
+  const p = scene.preview || {};
+  const recordCard = (record, idx) =>
+    '<div class="mc-record">' +
+      '<div class="mc-thumb">鱼获' + (idx + 1) + '</div>' +
+      '<div class="mc-record-body"><strong>' + esc(record.species || "草鱼") + '</strong>' +
+      '<span>' + esc(record.meta || "42 cm · 1.3 kg") + '</span>' +
+      '<span>' + esc(record.location || "千岛湖") + '</span></div>' +
+      (record.mark ? '<span class="mc-mark">' + esc(record.mark) + '</span>' : '') +
+      '<span class="mc-chevron">›</span>' +
+    '</div>';
+
+  let body = '';
+  if (p.mode === "timeline" || p.mode === "search_results") {
+    const records = p.records || [];
+    body =
+      '<div class="mc-month">' + esc(p.month || "2026年9月") + '</div>' +
+      '<div class="mc-day"><b>' + esc(p.day || "9月28日") + '</b><span>' + esc(p.day_summary || "") + '</span></div>' +
+      records.map(recordCard).join("");
+  } else if (p.mode === "timeline_overflow") {
+    const records = Array.from({length:p.visible_count || 5}, (_,i)=>({
+      species:["草鱼","鲤鱼","白条","翘嘴鲌","鳜鱼"][i%5],
+      meta:["52 cm · 2.3 kg","41 cm · 1.6 kg","18 cm · 0.2 kg","37 cm · 0.9 kg","29 cm · 0.7 kg"][i%5],
+      location:"千岛湖"
+    }));
+    body =
+      '<div class="mc-month">' + esc(p.month || "2026年9月") + '</div>' +
+      '<div class="mc-day"><b>' + esc(p.day || "9月28日") + '</b><span>' + esc(p.day_summary || "") + '</span></div>' +
+      records.map(recordCard).join("") +
+      '<div class="mc-expand">' + esc(p.action || "查看更多") + '⌄</div>';
+  } else if (p.mode === "search_focus") {
+    body='<div class="mc-search focused"><span>⌕</span><span class="mc-placeholder">' + esc(p.placeholder || "") + '</span><span class="cursor"></span></div>' +
+      '<div class="mc-filter-row"><span>筛选</span><span>鱼种</span><span>地点</span><span>时间</span></div>' +
+      '<div class="mc-ghost">Timeline 保持在页面中</div>';
+  } else if (p.mode === "filter_sheet") {
+    body='<div class="mc-ghost">原 Timeline</div><div class="mc-sheet">' +
+      '<div class="mc-sheet-title">筛选</div>' +
+      (p.dimensions||[]).map(d=>'<div class="mc-dim"><span>'+esc(d.label)+'</span><b>'+esc(d.value||"全部")+'</b><i>›</i></div>').join("") +
+      '<div class="mc-sheet-actions"><span>清除全部</span><strong>完成</strong></div></div>';
+  } else if (p.mode === "filter_results") {
+    body='<div class="mc-filter-row active">' + (p.chips||[]).map(x=>'<span>'+esc(x)+' ×</span>').join("") + '</div>' +
+      '<div class="mc-summary">' + esc(String(p.result_count||0)) + ' 次鱼获</div>' +
+      '<div class="mc-month">' + esc(p.month||"2026年9月") + '</div><div class="mc-day"><b>' + esc(p.day||"9月28日") + '</b></div>' +
+      recordCard({species:"草鱼",meta:"52 cm · 2.3 kg",location:"千岛湖"},0);
+  } else if (p.mode === "search_empty" || p.mode === "filter_empty" || p.mode === "archive_empty") {
+    const query = p.query ? '<div class="mc-search focused"><span>⌕</span><b>'+esc(p.query)+'</b><span>×</span></div>' : '';
+    const chips = p.chips ? '<div class="mc-filter-row active">' + p.chips.map(x=>'<span>'+esc(x)+' ×</span>').join("") + '</div>' : '';
+    body=query+chips+'<div class="mc-empty"><strong>'+esc(p.title||"")+'</strong><span>'+esc(p.subtitle||"")+'</span>' +
+      '<button>'+esc(p.primary||"")+'</button>' + (p.secondary?'<a>'+esc(p.secondary)+'</a>':'') + '</div>';
+  } else if (p.mode === "growth_marks") {
+    body=(p.examples||[]).map((x,i)=>recordCard({species:x.species,meta:"42 cm · 1.3 kg",location:"千岛湖",mark:x.mark},i)).join("");
+  } else if (p.mode === "loading_error") {
+    body='<div class="mc-state-card">◌ 正在整理你的时间档案…</div>' +
+      '<div class="mc-state-card"><strong>鱼获档案暂时无法加载</strong><span>请稍后重试</span><button>重新加载</button></div>';
+  }
+
+  const searchTop = (p.mode === "search_results")
+    ? '<div class="mc-search focused"><span>⌕</span><b>'+esc(p.query||"")+'</b><span>×</span></div>'
+    : (!["search_focus","search_empty"].includes(p.mode)
+      ? '<div class="mc-search"><span>⌕</span><span class="mc-placeholder">搜索鱼种、地点或日期</span></div>' : '');
+
+  return '<div class="mc-preview-phone">' +
+    (source ? '<img class="mc-bg" src="'+esc(repoHref(source))+'" style="filter:'+esc(filter)+'" alt="BG_DATA">' : '') +
+    '<span class="mc-mist" style="opacity:'+Number(treatment.mist_alpha||0)+'"></span>' +
+    '<div class="mc-content"><div class="mc-title">我的鱼获</div><div class="mc-subtitle">按时间留存每一次真实鱼获</div>' +
+    searchTop + body + '</div><div class="mc-bg-badge">BG_DATA</div></div>';
+}
+
+function renderScenario(feature, scenarioId) {
+  const panel = el("scenarioPanel");
+  if (!scenarioId) {
+    panel.classList.add("hidden");
+    return;
+  }
+  const scene=(feature.scenario_pages||[]).find(x=>x.id===scenarioId);
+  if(!scene){
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  el("scenarioTitle").textContent=scene.title;
+  el("scenarioStatus").innerHTML=statusBadge(scene.status||"PARTIAL");
+  if(scene.summary){
+    el("scenarioSummary").textContent=scene.summary;
+    el("scenarioSummary").classList.remove("hidden");
+  } else el("scenarioSummary").classList.add("hidden");
+  el("scenarioPreview").innerHTML=myCatchesScenarioPreviewHtml(feature,scene);
+  el("scenarioRules").innerHTML=(scene.rules||[]).map((rule,i)=>
+    '<div class="scenario-rule"><span>'+String(i+1).padStart(2,"0")+'</span><p>'+esc(rule)+'</p></div>'
+  ).join("");
+  const paths=[scene.authority,scene.secondary_authority].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  el("scenarioAuthorities").innerHTML=paths.map(path=>
+    '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
+  ).join("");
+}
+
 function renderDesignSections(feature) {
   const panel = el("designSectionsPanel");
   const sections = feature.design_sections || [];
@@ -704,18 +826,19 @@ function renderVersions(feature) {
   }).join("") || '<div class="preview-empty">尚未建立版本历史。</div>';
 }
 
-function selectPage(id) {
+function selectPage(id, scenarioId = null) {
   const feature = pageRegistry.features.find(f => f.id === id);
   if (!feature) return;
-  selectedKey = "page/" + id;
-  history.replaceState(null, "", "#page/" + encodeURIComponent(id));
+  const scene = scenarioId ? (feature.scenario_pages || []).find(x => x.id === scenarioId) : null;
+  selectedKey = "page/" + id + (scene ? "/" + scene.id : "");
+  history.replaceState(null, "", "#page/" + encodeURIComponent(id) + (scene ? "/" + encodeURIComponent(scene.id) : ""));
   renderLists();
   hideAllDetails();
   el("pageDetail").classList.remove("hidden");
 
-  el("pageEyebrow").textContent = "渔见 · 页面模块";
-  el("pageTitle").textContent = feature.display_name || feature.id;
-  el("pageStatus").innerHTML = statusBadge(feature.design_overall);
+  el("pageEyebrow").textContent = scene ? "渔见 · 场景子页面" : "渔见 · 页面模块";
+  el("pageTitle").textContent = scene ? (feature.display_name + " · " + scene.title) : (feature.display_name || feature.id);
+  el("pageStatus").innerHTML = statusBadge(scene?.status || feature.design_overall);
   el("moduleName").textContent = feature.display_name || feature.id;
   el("overallBadge").innerHTML = statusBadge(feature.design_overall);
 
@@ -735,6 +858,7 @@ function selectPage(id) {
     el("moduleNote").classList.remove("hidden");
   } else el("moduleNote").classList.add("hidden");
 
+  renderScenario(feature, scene?.id || null);
   renderDesignSections(feature);
   renderFreezeReview(feature);
   renderPagePreview(feature);
@@ -756,8 +880,14 @@ function selectFromHash() {
     }
   }
   if (raw.startsWith("page/")) {
-    const id = raw.slice("page/".length);
-    if (pageRegistry.features.some(x => x.id === id)) return selectPage(id);
+    const parts = raw.split("/");
+    const id = parts[1];
+    const scenarioId = parts[2] || null;
+    const feature = pageRegistry.features.find(x => x.id === id);
+    if (feature) {
+      const validScene = !scenarioId || (feature.scenario_pages || []).some(x => x.id === scenarioId);
+      if (validScene) return selectPage(id, scenarioId);
+    }
   }
   selectShared(sharedRegistry.items[0]?.id);
 }
