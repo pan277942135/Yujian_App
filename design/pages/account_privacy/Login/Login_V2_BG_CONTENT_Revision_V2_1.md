@@ -1,72 +1,108 @@
-# Login V2 · BG_CONTENT Visual Revision V2.1
+# Login V2.1 · Frozen Design Spec
 
-Status: **ACTIVE_CLOSURE**
-Scope: **Design authority delta**
+Status: **FROZEN**  
+Scope: **Design only**  
+Page title: **欢迎回来**
 
-## 1. Objective
+## 1. Frozen visual authority
 
-Login no longer owns an independent lake-world background.
+- Frozen preview: `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp`
+- Approved source size: **941 × 1672**
+- Approved source SHA-256: `98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157`
+- Design Manager preview derivative: **520 × 924 WebP**
+- Preview SHA-256: `244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338`
 
-It inherits the shared YuJian background system:
+The frozen preview is the authority for **layout, hierarchy, field/button treatment, white-space distribution and footer decoration**.
 
-- System: `Morning Lake Background System V1`
-- Master: **Morning_Lake_Master_V1**
-- Master characteristic: **no sun / restrained cool morning lake**
-- Variant: **BG_CONTENT**
+For landscape pixels, the shared background system has higher precedence:
+`Morning_Lake_Master_V1 / BG_CONTENT`.
 
-The existing `00_Login.png` remains a structural/layout reference only. Its legacy background is superseded by this revision.
+## 2. Page composition
 
-## 2. Background treatment
+The page is frozen as three visual zones:
 
-Target:
+1. **Top environmental zone** — no-sun Morning Lake, approximately 32–35% of the page.
+2. **Main content zone** — large MistWhite / white field, carrying title, form and actions.
+3. **Bottom footer decoration** — low-salience waterside grass, anchored to the absolute page bottom.
 
-- MistWhite veil: **15% nominal** within the BG_CONTENT 12–18% range
-- saturation: **92% nominal**
-- effective contrast: **about 89–92%**
-- luminance: **about +3%**
-- blur: **none**
-- scene redesign: **prohibited**
+The lake fades naturally into the white content field. Do not place a separate glass card around the whole form.
 
-The page must not use `account_privacy_morning_lake` as an independent visual world.
+## 3. Top-zone rule
 
-## 3. Layout retained
+The top environmental zone contains **no text**.
 
-Retain the current Login V2 hierarchy:
+Explicitly prohibited:
 
-1. 渔见
-2. 拍照收藏每次渔获
-3. 欢迎回来
-4. 继续记录你的每一次渔获
-5. 账号
-6. 密码
-7. 忘记密码
+- “渔见”
+- “拍照收藏每次渔获”
+- any replacement slogan
+- any decorative headline over the lake
+
+The first textual focal point is the page title **“欢迎回来”**.
+
+## 4. Content hierarchy
+
+Frozen order:
+
+1. 欢迎回来
+2. 继续记录你的每一次渔获
+3. 账号
+4. 账号输入框 / 请输入账号
+5. 密码
+6. 密码输入框 / 请输入密码 / visibility toggle
+7. 忘记密码？
 8. 登录
-9. 创建账号
+9. 还没有账号？创建账号
 
-Do not add new product states or change authentication semantics.
+No new authentication field may be introduced by visual implementation.
 
-## 4. Surface rules
+## 5. Form treatment
 
-- field surface: MistWhite / white translucent surface
-- field radius: 18dp reference
-- main button: shared teal primary action, 56dp height reference
-- primary text: DeepLake
-- secondary text: LakeGray / muted blue-gray
-- background remains visible but must not compete with form controls
+- Content area: predominantly white / MistWhite
+- Input surface: white, restrained, not floating directly on the lake image
+- Input radius reference: **18dp**
+- Main action height reference: **56dp**
+- Main action radius reference: **28dp**
+- Main action color direction: deep Lake Teal, approximately `#0F7A78`
+- Primary text: DeepLake
+- Secondary text: muted lake blue-gray
+- No strong gradient, glow or heavy shadow
 
-## 5. Shared-system references
+The form cadence is intentionally tighter than the earlier exploratory version.
 
-- Background System / `BG_CONTENT`
-- Mist Glass Surface
-- Color + Typography
-- Spacing + Radius
+## 6. Footer grass
 
-## 6. Freeze gate
+Footer grass is **page-owned foreground decoration**, not part of the background master.
 
-V2.1 becomes FROZEN only after:
+Frozen rules:
 
-1. no-sun Morning Lake background is visible in runtime/design evidence;
-2. old Account Privacy background is absent;
-3. form hierarchy remains unchanged;
-4. Login and Register appear as one auth family;
-5. updated canonical screenshot is archived and hashed.
+- anchored to the absolute bottom edge;
+- approximately 8–10% visual height;
+- low contrast / low salience;
+- left/right natural growth is preferred;
+- rocks must remain visually subordinate;
+- must not obstruct footer text or CTA;
+- must never be baked into `Morning_Lake_Master_V1`.
+
+## 7. Shared design systems
+
+- Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
+- Color + Typography V1
+- Spacing + Radius V1
+
+BG_CONTENT remains the shared content-background family, but Login uses the frozen **top-lake → white-content** composition instead of exposing the lake over the whole form.
+
+## 8. Motion / haptic / sound
+
+Frozen design decision:
+
+- no automatic environmental motion;
+- no automatic haptic;
+- no sound;
+- only standard control-state feedback and loading indication are permitted.
+
+## 9. Scope boundary
+
+This freeze updates **design authority only**.
+
+It does not claim Android runtime parity, emulator evidence or APK closure. Runtime implementation must be validated separately against this frozen design.
