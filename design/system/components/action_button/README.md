@@ -1,6 +1,7 @@
-# YuJian Primary / Secondary Action Button V1
+# YuJian Primary / Secondary Action Button
 
 Status: **FROZEN**  
+Current version: **V1.1**  
 Scope: **Shared Design System**  
 Frozen date: **2026-09-29**
 
@@ -8,7 +9,7 @@ Frozen date: **2026-09-29**
 
 统一渔见普通业务动作按钮，不包含品牌级主拍摄按钮。
 
-本系统覆盖：
+覆盖：
 
 - 登录
 - 注册并登录
@@ -17,21 +18,28 @@ Frozen date: **2026-09-29**
 - 手动选择
 - 重新拍摄
 
-## Variants
+## Current variants
 
 1. `PRIMARY`
 2. `SECONDARY_STRONG`
 3. `SECONDARY_MUTED`
 
-Primary Capture Button 独立管理，不继承本系统的形态。
+## Version history
 
-## Authority
+- **V1** — semantic hierarchy / geometry baseline; historical frozen version.
+- **V1.1** — current visual refinement; adds restrained surface depth, finalized state treatment and asymmetric paired-button ratios.
 
-- `Action_Button_Spec_V1.md`
+## Current Authority
+
+- `Action_Button_Spec_V1_1.md`
 - `visual_contract.json`
 - `motion_contract.json`
 - `usage_map.json`
 - `manifest.json`
+
+Historical authority:
+
+- `Action_Button_Spec_V1.md`
 
 ## Core rule
 
@@ -44,4 +52,4 @@ Gold 继续保留给：
 - 重要时刻；
 - 有意义的记录。
 
-页面可以决定按钮文案、布局位置与业务事件，但不得重新定义颜色、圆角、状态与层级。
+页面可以决定按钮文案、布局位置与业务事件，但不得重新定义颜色、圆角、状态、层级或已冻结的双按钮比例。
