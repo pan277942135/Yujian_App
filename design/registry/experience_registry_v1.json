@@ -1388,7 +1388,7 @@
           "render_mode": "repo_image",
           "image": "design/system/core_visual_v1/reference/fish_guide_v2.png",
           "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
-          "summary": "Fish Guide Home V1 已正式冻结：Natural Collection / Personal Field Guide；V1 不含 Search；中央 Species Carousel、左右邻卡预览、低权重点亮进度、saved FishRecord 记录次数、LIT/UNLIT 可浏览可点击。",
+          "summary": "Fish Guide Home V1 已正式冻结：Natural Collection / Personal Field Guide；V1 不含 Search；FishGuideCard 单面浏览、禁止 Auto Flip 与 Species autoplay；仅首次符合条件进入时允许一次低幅 Carousel Discover Hint，Reduce Motion 关闭；其余均由用户主动滑动。",
           "authority_type": "visual",
           "menu_points": [
             "Page Role / Information Architecture",
@@ -1396,6 +1396,8 @@
             "BG_DATA Background Contract",
             "Discovery Progress · 已点亮 N / T 种",
             "Species Carousel",
+            "Single-face Card / No Auto Flip",
+            "First-entry Carousel Discover Hint",
             "FishGuideCard Contract",
             "LIT / UNLIT States",
             "Species Catch Count",
@@ -1575,6 +1577,9 @@
             "V1 不含 Search / Filter；旧搜索入口归档为 Future scale feature",
             "背景固定 Morning_Lake_Master_V1 / BG_DATA，无太阳",
             "中心 1 张主鱼种卡 + 左右邻卡露出，横向 Carousel",
+            "FishGuideCard 为单面浏览卡，禁止 Auto Flip",
+            "首页禁止自动切换 / 自动轮播 Species",
+            "首次符合条件进入时允许一次低幅 Carousel Discover Hint；不切换 active species；Reduce Motion 关闭",
             "已点亮 N / T 种为低权重发现进度，不做大金色 KPI",
             "LIT / UNLIT 均可浏览、点击并进入详情；UNLIT 不是 disabled",
             "Species Catch Count 仅统计成功保存的 FishRecord",
@@ -1617,7 +1622,7 @@
             "title": "Species Carousel",
             "status": "CONFIRMED",
             "blocking": true,
-            "decision": "中心主卡 + 左右邻卡露出；横向滑动并稳定居中。禁止全宽单卡无提示、Grid、列表、瀑布流与鱼形分页器。",
+            "decision": "中心主卡 + 左右邻卡露出；横向滑动并稳定居中。FishGuideCard 单面浏览，禁止 Auto Flip 与 Species autoplay。首次符合条件进入时仅允许一次低幅 Discover Hint，结束后回正且不改变 active species；Reduce Motion 下关闭。",
             "authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md"
           },
           {
