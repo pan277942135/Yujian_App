@@ -192,3 +192,26 @@ Before declaring the complete page experience FROZEN, close:
 - BG_DATA populated-page visual acceptance.
 
 Motion / Haptic / Sound remain separate design-system gaps tracked by Design Manager.
+
+
+---
+
+## 11. 2026-09-29 authority recovery update
+
+The following previously discussed / frozen design decisions have now been restored as explicit repository authority:
+
+- `My_Catches_List_Image_Spec_V1.md`
+- `My_Catches_Filter_Spec_V1.md`
+- `My_Catches_Timeline_Scroll_Spec_V1.md`
+- `My_Catches_Growth_Mark_Spec_V1.md`
+
+Therefore:
+- MC-DESIGN-01 is resolved at design-authority level;
+- MC-DESIGN-02 is resolved at design-authority level;
+- MC-DESIGN-03 is resolved at design-authority level.
+
+Remaining design review blocker:
+- BG_DATA populated-page visual acceptance;
+- final whole-page review after background approval.
+
+Runtime differences remain development-handoff items and do not invalidate the recovered design authority.
