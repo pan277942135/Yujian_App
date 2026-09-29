@@ -181,6 +181,76 @@
       ]
     },
     {
+      "id": "action_button_v1",
+      "display_name": "主 / 次操作按钮",
+      "category": "component",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/components/action_button/README.md",
+        "design/system/components/action_button/Action_Button_Spec_V1.md",
+        "design/system/components/action_button/manifest.json",
+        "design/system/components/action_button/visual_contract.json",
+        "design/system/components/action_button/motion_contract.json",
+        "design/system/components/action_button/usage_map.json"
+      ],
+      "preview": null,
+      "preview_type": "action_button_system",
+      "variants": [
+        {
+          "id": "PRIMARY",
+          "name": "主操作",
+          "usage": "登录 / 注册并登录 / 保存本次鱼获",
+          "status": "FROZEN"
+        },
+        {
+          "id": "SECONDARY_STRONG",
+          "name": "强次操作",
+          "usage": "继续记录记忆 / 手动选择",
+          "status": "FROZEN"
+        },
+        {
+          "id": "SECONDARY_MUTED",
+          "name": "弱次操作",
+          "usage": "重新拍摄",
+          "status": "FROZEN"
+        }
+      ],
+      "usage_examples": [
+        {
+          "copy": "登录",
+          "variant": "PRIMARY",
+          "page": "登录"
+        },
+        {
+          "copy": "注册并登录",
+          "variant": "PRIMARY",
+          "page": "注册"
+        },
+        {
+          "copy": "保存本次鱼获",
+          "variant": "PRIMARY",
+          "page": "识别结果"
+        },
+        {
+          "copy": "继续记录记忆",
+          "variant": "SECONDARY_STRONG",
+          "page": "识别结果"
+        },
+        {
+          "copy": "手动选择",
+          "variant": "SECONDARY_STRONG",
+          "page": "识别结果 · 低置信"
+        },
+        {
+          "copy": "重新拍摄",
+          "variant": "SECONDARY_MUTED",
+          "page": "识别结果 · 低置信"
+        }
+      ],
+      "note": "V1 已冻结：56dp 高 / 28dp 圆角；普通业务 Primary 使用 Deep Lake Teal，不使用金色；Recognition Result 双 CTA 使用同一体系。"
+    },
+    {
       "id": "top_navigation_v1",
       "display_name": "顶部导航",
       "category": "component",
