@@ -11,18 +11,51 @@ Status: **FROZEN**
 - System authority: YuJian Core Visual System V1
 - Verification: reference_manifest.json and verify_core_ui_v1_references.py
 
+## Formal specifications
+
+- **01 · Fish Guide Home / 鱼鉴首页**  
+  design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md
+
 ## Concept
+
 A personal natural fish guide built from the user's real catches.
 
+Fish Guide should communicate:
+
+- discovery;
+- observation;
+- personal archive;
+- natural field-guide knowledge.
+
+Avoid:
+
+- unlock-game semantics;
+- rarity;
+- level;
+- achievement HUD;
+- collectible-card hierarchy.
+
+## Fish Guide Home V1
+
 Keep:
-- title/search
-- recorded species count / progress
-- central species carousel
-- adjacent previews
-- record count
+
+- page title;
+- low-weight `已点亮 N / T 种` progress;
+- central Species Carousel;
+- adjacent species-card previews;
+- saved-record count as archive metadata.
+
+Do **not** include Search in Fish Guide Home V1.
+
+Search belonged to earlier exploration and is now a future scale feature. It must not be restored from legacy drafts.
 
 ## Visual semantics
-Prefer discovery / observation / archive.
-Avoid unlock / rarity / level / game-card semantics.
 
-FishGuideCard should present a realistic biological subject, restrained progress and archive metadata.
+FishGuideCard should present:
+
+- realistic biological subject;
+- species identity;
+- natural / field-guide tone;
+- restrained archive metadata.
+
+Unlit species remain visible, readable, browsable, and tappable. Unlit is a personal encounter state, not a disabled or permission state.
