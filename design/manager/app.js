@@ -147,6 +147,42 @@ function previewHtml(path, alt, note) {
     (note ? '<div class="preview-note">' + esc(note) + '</div>' : '');
 }
 
+function layeredCapturePreviewHtml(item) {
+  const layers = item.preview_layers || [];
+  const byRole = Object.fromEntries(layers.map(layer => [layer.role, layer.path]));
+  if (!byRole.base || !byRole.rim) {
+    return '<div class="preview-empty">主拍摄按钮预览层不完整。</div>';
+  }
+
+  const stack = (withGlow) =>
+    '<div class="capture-preview-stack">' +
+      (withGlow && byRole.glow
+        ? '<img class="capture-layer capture-glow" src="' + esc(repoHref(byRole.glow)) + '" alt="">'
+        : '') +
+      '<img class="capture-layer capture-base" src="' + esc(repoHref(byRole.base)) + '" alt="主拍摄按钮主体">' +
+      '<img class="capture-layer capture-rim" src="' + esc(repoHref(byRole.rim)) + '" alt="暖金细边">' +
+    '</div>';
+
+  return '<div class="capture-preview-grid">' +
+    '<div class="capture-preview-card">' +
+      '<div class="capture-preview-label">静态态 · Base + Gold Rim</div>' +
+      stack(false) +
+    '</div>' +
+    '<div class="capture-preview-card">' +
+      '<div class="capture-preview-label">呼吸态 · Glow + Base + Gold Rim</div>' +
+      stack(true) +
+    '</div>' +
+  '</div>' +
+  (item.preview_note ? '<div class="preview-note">' + esc(item.preview_note) + '</div>' : '');
+}
+
+function sharedPreviewHtml(item) {
+  if (item.preview_type === "layered_component" && item.id === "primary_capture_button_v1") {
+    return layeredCapturePreviewHtml(item);
+  }
+  return previewHtml(item.preview, item.display_name, item.preview_note);
+}
+
 function pagesUsing(sharedId) {
   return pageRegistry.features.filter(f =>
     (f.shared_system_refs || []).some(ref => ref.id === sharedId)
@@ -400,7 +436,7 @@ function selectShared(id, variantId = null) {
     el("sharedNote").classList.remove("hidden");
   } else el("sharedNote").classList.add("hidden");
 
-  el("sharedPreview").innerHTML = previewHtml(item.preview, item.display_name, item.preview_note);
+  el("sharedPreview").innerHTML = sharedPreviewHtml(item);
 
   el("variantGrid").innerHTML = (item.variants || []).map(v => {
     const selectable = item.id === "background_system_v1";
