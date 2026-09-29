@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "status": "ACTIVE_CLOSURE",
+  "master": {
+    "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "width": 1080,
+    "height": 1920,
+    "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22",
+    "provenance": "Exact binary reuse of Empty Home clean scene master; local cleanup removed only UI, rod, line, bobber and ripple regions; no scene redesign."
+  },
+  "variants": {
+    "BG_ENV_HERO": {
+      "family": "morning_lake",
+      "use": [
+        "home_empty_v2",
+        "home_normal_v1"
+      ],
+      "mist_white_veil_alpha": [
+        0,
+        0.04
+      ],
+      "saturation_relative": [
+        0.96,
+        1
+      ],
+      "contrast_relative": [
+        0.96,
+        1
+      ],
+      "luminance_delta": [
+        -0.02,
+        0.02
+      ],
+      "global_blur": false
+    },
+    "BG_CONTENT": {
+      "family": "morning_lake",
+      "use": [
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "account_privacy_v1",
+        "auth_login_v2",
+        "auth_register_v2",
+        "profile_edit_v1",
+        "user_agreement_v1"
+      ],
+      "mist_white_veil_alpha": [
+        0.12,
+        0.18
+      ],
+      "saturation_relative": [
+        0.88,
+        0.94
+      ],
+      "contrast_relative": [
+        0.86,
+        0.92
+      ],
+      "luminance_delta": [
+        0.02,
+        0.05
+      ],
+      "global_blur": false,
+      "target_salience_vs_home": [
+        0.7,
+        0.8
+      ]
+    },
+    "BG_DATA": {
+      "family": "morning_lake",
+      "use": [
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "mist_white_veil_alpha": [
+        0.26,
+        0.34
+      ],
+      "saturation_relative": [
+        0.74,
+        0.84
+      ],
+      "contrast_relative": [
+        0.74,
+        0.82
+      ],
+      "luminance_delta": [
+        0.04,
+        0.08
+      ],
+      "global_blur": false,
+      "target_salience_vs_home": [
+        0.4,
+        0.55
+      ]
+    },
+    "BG_CAPTURE": {
+      "family": "runtime_photo",
+      "use": [
+        "recognition_flow_v1_2"
+      ],
+      "source": "current_user_photo",
+      "opaque": true,
+      "content_scale": "crop",
+      "processing_tint": "none",
+      "fallback": "#102D35"
+    },
+    "BG_SOLID_FALLBACK": {
+      "family": "solid",
+      "use": [
+        "transient_missing_background",
+        "load_failure",
+        "error_fallback"
+      ],
+      "light": "#F7FAFB",
+      "dark_capture": "#102D35",
+      "permanent_page_background": false
+    }
+  },
+  "prohibitions": [
+    "page-specific unrelated lake worlds",
+    "sunset/orange-red wash",
+    "night HUD background",
+    "strong HDR",
+    "screenshot-cropped production background",
+    "baked UI or page foreground in Morning Lake Master"
+  ]
+}
