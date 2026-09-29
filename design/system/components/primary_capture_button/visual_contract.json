@@ -1,60 +1,58 @@
 {
   "component": "primary_capture_button",
   "component_version": "V1",
-  "visual_revision": "V2.2",
   "status": "FROZEN",
-  "reference_canvas": [
-    1080,
-    1920
-  ],
-  "diameter_reference_px": 220,
-  "visual": {
-    "core": "solid white / soft glass-supported white",
-    "rim": "fine warm-gold rim",
-    "icon": "deep lake blue-grey camera glyph",
-    "depth": "light restrained depth; no heavy floating shadow",
-    "clarity": "high enough to read immediately against lake background"
+  "frozen_date": "2026-09-29",
+  "source_visual_revision": "Empty Home V2.2",
+  "canonical_asset": {
+    "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+    "width": 208,
+    "height": 208,
+    "mode": "RGBA",
+    "bytes": 39099,
+    "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
+    "provenance": "Exact binary promotion of the approved transparent capture button asset used by Empty Home V2.2; no redraw, regeneration or recompression."
   },
-  "layers": [
+  "rendered_size": {
+    "reference_canvas": [
+      1080,
+      1920
+    ],
+    "empty_home_v2_2_bbox": {
+      "x": 430,
+      "y": 1537,
+      "w": 220,
+      "h": 220
+    },
+    "rule": "Scale the canonical 208×208 asset to the page size token; do not raster-redesign it."
+  },
+  "visual": {
+    "core": "white solid / soft glass-supported disc",
+    "rim": "fine warm-gold static rim already baked into the canonical asset",
+    "icon": "deep lake blue-grey camera glyph",
+    "depth": "restrained edge depth; no heavy floating shadow",
+    "background": "transparent outside the circular component"
+  },
+  "supporting_motion_assets": [
+    {
+      "id": "gold_rim_sweep_mask",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+      "role": "animated sweep highlight only; not part of the static canonical image"
+    },
     {
       "id": "breath_glow",
       "path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
-      "role": "behind_button",
-      "required_for_static_preview": false,
-      "required_for_motion_preview": true
-    },
-    {
-      "id": "button_base",
-      "path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
-      "role": "main_visual",
-      "required_for_static_preview": true
-    },
-    {
-      "id": "gold_rim",
-      "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
-      "role": "foreground_rim",
-      "required_for_static_preview": true
+      "role": "animated breathing support only; not part of the static canonical image"
     }
   ],
-  "layout_authority": {
-    "empty_home_v2_2": {
-      "camera_bbox": {
-        "x": 430,
-        "y": 1537,
-        "w": 220,
-        "h": 220
-      },
-      "prompt_to_camera_clear_gap_min_px": 25,
-      "camera_to_album_clear_gap_min_px": 23,
-      "horizontal_alignment": "center"
-    }
-  },
   "prohibited": [
-    "previewing only the base layer as the complete button",
+    "redrawing or regenerating the canonical button",
+    "compositing the gold-rim sweep mask as a permanent second rim",
+    "baking page background into the button asset",
     "blue filled circle",
     "thick gold ring",
     "heavy drop shadow",
     "neon glow",
-    "shrinking the camera glyph relative to the approved V2.2 treatment"
+    "changing the camera glyph proportions without a new component version"
   ]
 }
