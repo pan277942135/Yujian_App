@@ -59,3 +59,13 @@ FishGuideCard should present:
 - restrained archive metadata.
 
 Unlit species remain visible, readable, browsable, and tappable. Unlit is a personal encounter state, not a disabled or permission state.
+
+
+## Top Navigation
+
+- Fish Guide Home uses **Top Navigation V1 / TITLE_ONLY / FROZEN**.
+- Title copy: `鱼鉴`.
+- Typography: 28sp / Medium / 34sp, DeepLakeBlue.
+- No Back / Utility action.
+- Search is not part of Fish Guide Home V1 and must not be restored into the top navigation.
+- Progress begins below Top Navigation as page content.
