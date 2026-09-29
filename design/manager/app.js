@@ -1589,6 +1589,90 @@ function myCatchesHifiCanvas(feature, view) {
 
 
 
+
+function recognitionStateTimelineCanvas(view) {
+  const model = view.timeline_model || {};
+  const states = model.processing_states || [];
+  const findings = view.review_findings || [];
+  const terminals = model.terminal_routes || [];
+  const resolve = model.transition_substate || {};
+
+  const realLane = [
+    ["PHOTO", "照片进入"],
+    ["DETECTING", "真实 detector"],
+    ["OUTLINE", "真实 bbox"],
+    ["CLASSIFYING", "classifier"],
+    ["RESULT", "prediction ready"]
+  ];
+
+  const visualLane = [
+    ["CAPTURED", "≥350ms"],
+    ["DETECTING", "≥600ms"],
+    ["OUTLINE", "≥600ms"],
+    ["CLASSIFYING", "≥1250ms*"],
+    ["RESOLVE", "200ms"],
+    ["ROUTE", "Result"]
+  ];
+
+  const lane = (title, items, tone) =>
+    '<section class="recognition-timeline-lane ' + tone + '">' +
+      '<div class="recognition-lane-title">' + esc(title) + '</div>' +
+      '<div class="recognition-lane-flow">' +
+        items.map((item, index) =>
+          '<div class="recognition-state-node">' +
+            '<strong>' + esc(item[0]) + '</strong><span>' + esc(item[1]) + '</span>' +
+          '</div>' + (index < items.length - 1 ? '<div class="recognition-arrow">→</div>' : '')
+        ).join("") +
+      '</div>' +
+    '</section>';
+
+  const stateTable =
+    '<div class="recognition-state-grid">' +
+      states.map(state =>
+        '<article class="recognition-state-card">' +
+          '<div class="recognition-state-head"><strong>' + esc(state.phase) + '</strong>' +
+            '<span>' + esc("≥" + state.minimum_ms + "ms") + '</span></div>' +
+          '<p><b>Real gate</b> · ' + esc(state.real_gate) + '</p>' +
+          '<p><b>Visual claim</b> · ' + esc(state.visual_claim) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const resolveCard =
+    '<section class="recognition-resolve-card">' +
+      '<div><span>P0 · RESOLVE CONTRACT</span><strong>慢结果也必须完整收尾</strong></div>' +
+      '<code>resolveStart = max(CLASSIFYING + 1050ms, RESULT_READY)\nroute = resolveStart + 200ms</code>' +
+      '<p>' + esc(resolve.note || "") + '</p>' +
+    '</section>';
+
+  const branchGrid =
+    '<div class="recognition-branch-grid">' +
+      terminals.map(route =>
+        '<article><strong>' + esc(route.source) + '</strong><span>→ ' + esc(route.target) + '</span>' +
+          '<p>' + esc(route.pacing) + '</p></article>'
+      ).join("") +
+    '</div>';
+
+  const findingGrid =
+    '<div class="recognition-finding-grid">' +
+      findings.map(item =>
+        '<article class="recognition-finding ' + esc(String(item.severity || "").toLowerCase()) + '">' +
+          '<div><span>' + esc(item.severity) + '</span><strong>' + esc(item.title) + '</strong></div>' +
+          '<p>' + esc(item.detail) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>核心规则</strong><span>' + esc(model.rule || "") + '</span></div>' +
+    lane("REAL PIPELINE · 语义真相", realLane, "real") +
+    lane("PRESENTED VISUAL · 用户看到", visualLane, "visual") +
+    stateTable + resolveCard +
+    '<div class="recognition-section-title">Terminal Branches</div>' + branchGrid +
+    '<div class="recognition-section-title">Review Findings</div>' + findingGrid +
+  '</div>';
+}
+
 function recognitionVisualStatesCanvas(view) {
   const states = view.visual_states || [];
   const board = '<div class="hifi-board four">' +
@@ -1621,6 +1705,7 @@ function recognitionVisualStatesCanvas(view) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "recognition_timeline") return recognitionStateTimelineCanvas(view);
   if (view.render_mode === "recognition_visual_states") return recognitionVisualStatesCanvas(view);
   const points = view.menu_points || [];
   const visual = view.image || view.visual_authority ||

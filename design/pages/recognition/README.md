@@ -77,6 +77,7 @@ Their dimensions and SHA-256 values are frozen in `design/reference_manifest.jso
 ## Acceptance
 
 - `runtime/Recognition_Runtime_Contract_V1_1.md`
+- `spec/Recognition_State_Timeline_Review_V1_2.md` — current dual-lane State Timeline review / closure authority
 - `evidence/Recognition_Evidence_Contract_V1_1.md`
 - `spec/Recognition_Acceptance_Criteria_V1_1.md`
 
