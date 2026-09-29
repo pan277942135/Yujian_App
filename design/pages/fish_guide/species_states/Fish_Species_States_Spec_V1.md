@@ -139,14 +139,21 @@ savedCount = 0
 EncounterState = UNLIT
 ```
 
+State semantics are owned here by 03, while the concrete Species Detail zero-record UI is frozen under 02:
+
+- `design/pages/fish_guide/species_detail/Species_Detail_Zero_Catch_State_V1.md`
+- `design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png`
+
 My Species:
 
 - title remains `我的{speciesName}`;
-- copy: `还没有记录` or equivalent frozen zero-state copy;
+- factual count is `0次记录`;
+- no chevron and no My Catches header navigation at zero;
+- copy is `还没有记录`;
+- the only action is Text Action `去记录鱼获 >`;
 - no fake catch thumbnail;
 - no B-side image;
-- no generated placeholder fish pretending to be a catch;
-- detailed visual treatment is governed by the 03 visual state reference.
+- no generated placeholder fish pretending to be a catch.
 
 ## 3.2 1 record
 
