@@ -38,7 +38,7 @@
           "status": "FROZEN",
           "authority": "design/pages/home/empty_home/sound/Empty_Home_Sound_Spec_V1.md",
           "contract": "design/pages/home/empty_home/shared/contracts/sound_contract.json",
-          "note": "Current authority explicitly freezes no automatic or interaction audio. lake_morning.mp3 remains packaged/deferred and disabled."
+          "note": "当前权威明确冻结为无自动音效、无交互音效；lake_morning.mp3 仅为已打包 / 延后启用资产，不代表允许播放。"
         },
         "runtime": {
           "status": "FROZEN",
@@ -53,16 +53,16 @@
           "authority": "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
         }
       },
-      "note": "Design authority is V2 base + approved V2.2 delta freeze. Runtime/evidence revalidation is tracked separately and does not change design freeze state.",
+      "note": "当前设计权威为 V2 基础稿 + 已批准的 V2.2 增量冻结。Runtime / Evidence 的重新验证单独跟踪，不影响设计冻结状态。",
       "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md",
-      "display_name": "Empty Home",
+      "display_name": "空首页",
       "design_versions": [
         {
           "version": "V2",
           "status": "FROZEN",
           "current": false,
           "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
-          "note": "Base scene authority retained for all pixels/behavior not changed by V2.2."
+          "note": "基础场景权威；V2.2 未明确修改的像素与行为继续以 V2 为准。"
         },
         {
           "version": "V2.2",
@@ -71,14 +71,14 @@
           "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
           "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
           "source_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
-          "note": "Approved delta freeze over V2: capture CTA clarity/spacing and rod-line-bobber-water-contact geometry."
+          "note": "已批准的 V2 增量冻结：相机 CTA 清晰度与间距，以及鱼竿—鱼线—鱼漂—水面接触关系。"
         },
         {
           "version": "V3",
           "status": "DEPRECATED",
           "current": false,
           "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Final_Visual_Fidelity_V3.md",
-          "note": "Historical closure document; not current authority after the approved V2.2 delta freeze."
+          "note": "历史视觉收口文档；V2.2 获批后不再作为当前设计权威。"
         }
       ],
       "design_overall": "FROZEN"
@@ -121,7 +121,7 @@
           "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
       },
-      "display_name": "Normal Home",
+      "display_name": "有数据首页",
       "design_versions": [
         {
           "version": "V1",
@@ -152,12 +152,12 @@
         "haptic": {
           "status": "MISSING",
           "authority": null,
-          "note": "No recognition haptic contract is registered."
+          "note": "尚未登记识别流程的震动合同。"
         },
         "sound": {
           "status": "MISSING",
           "authority": null,
-          "note": "No recognition sound contract is registered."
+          "note": "尚未登记识别流程的声音合同。"
         },
         "runtime": {
           "status": "ACTIVE_CLOSURE",
@@ -173,7 +173,7 @@
         }
       },
       "note": "Nine frozen state references are archived. Runtime visual fidelity is newer than the original V1.1 package status.",
-      "display_name": "Recognition Processing",
+      "display_name": "识别过程",
       "design_versions": [
         {
           "version": "V1.2",
@@ -223,7 +223,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "display_name": "Recognition Result",
+      "display_name": "识别结果",
       "design_versions": [
         {
           "version": "V1",
@@ -272,7 +272,7 @@
           "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
       },
-      "display_name": "FishRecordDetail",
+      "display_name": "鱼获详情",
       "design_versions": [
         {
           "version": "V2",
@@ -321,15 +321,15 @@
           "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
       },
-      "note": "Needs a dedicated feature package for B-side generation success, first auto-flip and later manual flip semantics.",
-      "display_name": "Fish Memory / B-side",
+      "note": "目前只有补充视觉参考；B 面成功态、首次自动翻面与后续手动翻面仍需独立设计包。",
+      "display_name": "鱼获记忆 / B 面",
       "design_versions": [
         {
           "version": "V1",
           "status": "PARTIAL",
           "current": true,
           "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
-          "note": "Supplemental reference only; dedicated package is incomplete."
+          "note": "仅为补充参考，独立设计包尚未完成。"
         }
       ],
       "design_overall": "PARTIAL"
@@ -372,7 +372,7 @@
           "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
       },
-      "display_name": "My Catches",
+      "display_name": "我的鱼获",
       "design_versions": [
         {
           "version": "V2",
@@ -422,7 +422,7 @@
         }
       },
       "supplemental_visual": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
-      "display_name": "Fish Guide",
+      "display_name": "鱼鉴",
       "design_versions": [
         {
           "version": "V2",
@@ -471,15 +471,15 @@
           "authority": "design/pages/account_privacy/manifest.json"
         }
       },
-      "note": "Frozen UI package contains 22 UI references plus shared morning-lake background; some flows are intentionally not in MVP runtime.",
-      "display_name": "Account & Privacy",
+      "note": "冻结 UI 包包含 22 个界面参考和共用清晨湖景背景；部分流程按 MVP 范围暂不进入运行时。",
+      "display_name": "账号与隐私",
       "design_versions": [
         {
           "version": "V1",
           "status": "FROZEN",
           "current": true,
           "visual_authority": "design/pages/account_privacy/manifest.json",
-          "note": "Frozen UI package; some flows intentionally not in MVP runtime."
+          "note": "已冻结 UI 包；部分流程按 MVP 范围暂不进入运行时。"
         }
       ],
       "design_overall": "PARTIAL"
@@ -522,7 +522,7 @@
           "authority": "design/pages/account_privacy/manifest.json"
         }
       },
-      "display_name": "Login",
+      "display_name": "登录",
       "design_versions": [
         {
           "version": "V2",
@@ -571,14 +571,14 @@
           "authority": null
         }
       },
-      "note": "A dedicated frozen Register V2 visual/package is not archived on main.",
-      "display_name": "Register",
+      "note": "仓库中尚未归档独立的 Register V2 冻结视觉稿 / 设计包。",
+      "display_name": "注册",
       "design_versions": [
         {
           "version": "V2",
           "status": "MISSING",
           "current": true,
-          "note": "Dedicated frozen Register V2 visual is not archived."
+          "note": "尚未归档独立的 Register V2 冻结视觉稿。"
         }
       ],
       "design_overall": "PARTIAL"
@@ -621,13 +621,13 @@
           "authority": null
         }
       },
-      "display_name": "Edit Profile",
+      "display_name": "编辑资料",
       "design_versions": [
         {
           "version": "V1",
           "status": "MISSING",
           "current": true,
-          "note": "Runtime exists; no independent frozen design package archived."
+          "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
       "design_overall": "MISSING"
@@ -670,13 +670,13 @@
           "authority": null
         }
       },
-      "display_name": "User Agreement",
+      "display_name": "用户协议",
       "design_versions": [
         {
           "version": "V1",
           "status": "MISSING",
           "current": true,
-          "note": "Runtime exists; no independent frozen design package archived."
+          "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
       "design_overall": "MISSING"
@@ -693,6 +693,6 @@
       "sound",
       "assets"
     ],
-    "note": "Runtime, evidence and Work handoff are intentionally outside the Design Manager V1 UI."
+    "note": "V1 仅管理设计：行为、视觉、动效、震动、声音、资产与版本。Runtime、Evidence 与 Work 交接暂不进入设计管理页面。"
   }
 }
