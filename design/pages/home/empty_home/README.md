@@ -1,7 +1,14 @@
 # Empty Home V2
 
 Role: **Brand / Environment Baseline**
-Status: **FROZEN**
+Status: **FROZEN V2 + ACTIVE VISUAL FIDELITY CLOSURE**
+
+## Experience audit
+
+Start here for Work / frontend handoff:
+
+- `EXPERIENCE_AUDIT_V1.md`
+- Governance: `design/governance/YuJian_Experience_Source_of_Truth_V1.md`
 
 ## Frozen visual references
 
@@ -14,6 +21,9 @@ Status: **FROZEN**
 `intermediate` retains reproducible layer masters and validation; `shared/contracts` is the
 Android traceability contract; Android-only runtime derivatives live under
 `app/src/main/assets/empty_home_runtime_v2`.
+
+The V3 visual-fidelity document is an active runtime-closure contract and does not replace the
+canonical V2 PNG unless a new frozen binary/version is explicitly registered.
 
 ## Product state and navigation
 
@@ -32,4 +42,31 @@ gallery flow.
 
 ## Motion
 
-Use the Empty Home values in `design/system/core_visual_v1/tokens/motion_tokens.json` exactly.
+Authority:
+
+- `motion/Empty_Home_Motion_Spec_V2.md`
+- `shared/contracts/motion_contract.json`
+
+## Haptic
+
+Authority:
+
+- `haptic/Empty_Home_Haptic_Spec_V1.md`
+- `shared/contracts/haptic_contract.json`
+
+## Sound
+
+Authority:
+
+- `sound/Empty_Home_Sound_Spec_V1.md`
+- `shared/contracts/sound_contract.json`
+
+Current product decision: no automatic or interaction audio. The packaged `lake_morning.mp3`
+resource is deferred and does not authorize runtime playback.
+
+## Runtime and evidence
+
+- Runtime mapping: `shared/contracts/runtime_manifest.json`
+- Acceptance: `spec/Acceptance_Criteria_V2.md`
+- Evidence: `evidence/manifest.json`
+- Machine-readable feature status: `status.json`
