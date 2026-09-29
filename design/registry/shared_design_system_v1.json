@@ -185,10 +185,10 @@
       "display_name": "主 / 次操作按钮",
       "category": "component",
       "overall": "FROZEN",
-      "current_version": "V1",
+      "current_version": "V1.1",
       "authority_paths": [
         "design/system/components/action_button/README.md",
-        "design/system/components/action_button/Action_Button_Spec_V1.md",
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
         "design/system/components/action_button/manifest.json",
         "design/system/components/action_button/visual_contract.json",
         "design/system/components/action_button/motion_contract.json",
@@ -248,7 +248,18 @@
           "page": "识别结果 · 低置信"
         }
       ],
-      "note": "V1 已冻结：56dp 高 / 28dp 圆角；普通业务 Primary 使用 Deep Lake Teal，不使用金色；Recognition Result 双 CTA 使用同一体系。"
+      "note": "V1.1 已冻结：56dp / 28dp；Primary 为 Deep Lake Teal；Secondary Strong/Muted 完成雾白层级精修；Recognition 双按钮冻结为 44/56 与 58/42。",
+      "revisions": [
+        {
+          "version": "V1",
+          "status": "SUPERSEDED_FOR_CURRENT_VISUAL"
+        },
+        {
+          "version": "V1.1",
+          "status": "FROZEN",
+          "current": true
+        }
+      ]
     },
     {
       "id": "top_navigation_v1",
