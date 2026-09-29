@@ -669,6 +669,13 @@ function hifiSearchBar(value="", focused=false) {
   '</div>';
 }
 
+function hifiSearchModeBar(value="") {
+  return '<div class="hifi-search-mode">' +
+    hifiSearchBar(value,true) +
+    '<button>取消</button>' +
+  '</div>';
+}
+
 function hifiHeader() {
   return '<div class="hifi-page-header"><span class="hifi-back">‹</span><strong>我的鱼获</strong><span class="hifi-tools">⌕　▽</span></div>' +
     '<div class="hifi-archive-summary">38 次鱼获 · 12 种鱼 · 7 记录天数</div>';
@@ -702,6 +709,23 @@ function hifiTimelineContent(opts={}) {
   '</div>';
 }
 
+function hifiDayDetailContent(total=12) {
+  const rows=[
+    ["草鱼","42.6 cm · 1.28 kg","第100条"],
+    ["鲫鱼","28.3 cm · 0.52 kg",""],
+    ["黄骨鱼","24.1 cm · 0.32 kg","首条黄骨鱼"],
+    ["翘嘴鲌","32.7 cm · 0.68 kg","最长"],
+    ["鳜鱼","31.2 cm · 0.74 kg",""],
+    ["鲤鱼","39.1 cm · 1.12 kg",""]
+  ];
+  return '<div class="hifi-page-content day-detail">' +
+    '<div class="hifi-page-header"><span class="hifi-back">‹</span><strong>9月23日</strong><span></span></div>' +
+    '<div class="hifi-archive-summary">千岛湖 · ' + total + '条鱼获 · 当天详情</div>' +
+    '<div class="hifi-day-detail-note">当天全部鱼获</div>' +
+    '<div class="hifi-day-detail-list">' + rows.map(x=>hifiRow(...x)).join("") + '</div>' +
+  '</div>';
+}
+
 function hifiFilterSheet(level2=false) {
   if(level2) {
     return '<div class="hifi-sheet full">' +
@@ -729,16 +753,16 @@ function hifiFilterSheet(level2=false) {
 function hifiEmptyContent(kind) {
   const cfg={
     archive:["还没有鱼获记录","拍下第一条鱼，开始你的鱼获时间线","记录第一条鱼",""],
-    filter:["没有找到符合条件的鱼获","试试调整筛选条件","修改筛选","清除筛选"],
+    filter:["没有找到符合条件的鱼获","试试调整筛选条件","清除筛选","修改筛选"],
     search:["没有找到相关鱼获","你可以搜索：鱼种、地点、日期","清除搜索",""]
   }[kind];
-  const top = kind==="search" ? hifiSearchBar("鳄鱼",true) : hifiSearchBar();
+  const top = kind==="search" ? hifiSearchModeBar("鳄鱼") : hifiSearchBar();
   const filter = kind==="filter" ? '<div class="hifi-filter-pills active"><span>青鱼 ×</span><span>近7天 ×</span><span>千岛湖 ×</span></div>' : '';
   return '<div class="hifi-page-content">' + hifiHeader() + top + filter +
     '<div class="hifi-month">2026年9月</div>' +
     '<div class="hifi-empty-state"><strong>'+cfg[0]+'</strong><p>'+cfg[1]+'</p><button>'+cfg[2]+'</button>' +
     (cfg[3]?'<a>'+cfg[3]+'</a>':'') + '</div>' +
-    (kind==="archive"?'<div class="hifi-camera-button">▣</div>':'') +
+    '<div class="hifi-camera-button">▣</div>' +
   '</div>';
 }
 
@@ -752,10 +776,11 @@ function myCatchesHifiCanvas(feature, view) {
   }
 
   if(view.render_mode==="timeline_board") {
-    return '<div class="hifi-board three">' +
+    return '<div class="hifi-board four">' +
       bgDataPhone(hifiTimelineContent({count:3,total:3}),"1–5 条 · 全部展开") +
-      bgDataPhone(hifiTimelineContent({count:5,total:8,action:"查看另外 3 条"}),"6–10 条 · 默认 5 条") +
-      bgDataPhone(hifiTimelineContent({count:5,total:12,action:"查看全部"}),">10 条 · 查看全部") +
+      bgDataPhone(hifiTimelineContent({count:5,total:8,action:"查看另外 3 条鱼获"}),"6–10 条 · 原位展开") +
+      bgDataPhone(hifiTimelineContent({count:5,total:12,action:"查看全部 12 条鱼获"}),">10 条 · 主 Timeline") +
+      bgDataPhone(hifiDayDetailContent(12),">10 条 · 点击后的当天详情") +
     '</div>';
   }
 
@@ -781,17 +806,24 @@ function myCatchesHifiCanvas(feature, view) {
       '<div class="hifi-growth-examples">' +
         '<div class="hifi-growth-intro"><b>Growth Mark V1</b><span>轻量个人记录印记，不做游戏化 Badge。</span></div>' +
         hifiRow("草鱼","42.6 cm · 1.28 kg","第100条") +
-        hifiRow("鲫鱼","28.3 cm · 0.52 kg","第一次记录") +
+        hifiRow("鲫鱼","28.3 cm · 0.52 kg","首条鲫鱼") +
         hifiRow("青鱼","61.2 cm · 3.84 kg","最长 · 最重") +
-        '<div class="hifi-priority"><b>显示优先级</b><span>数量里程碑　›　首次记录　›　尺寸纪录</span></div>' +
+        '<div class="hifi-priority"><b>显示优先级</b><span>数量里程碑　›　首条某鱼种　›　尺寸纪录</span></div>' +
       '</div></div>';
   }
 
   if(view.render_mode==="search_board") {
-    const focus='<div class="hifi-page-content">'+hifiHeader()+hifiSearchBar("",true)+'<div class="hifi-search-hint">键盘打开 · Timeline 不跳页</div>'+hifiTimelineContent({count:2,total:2}).replace('<div class="hifi-page-content">','').replace('</div>','')+'</div>';
-    const results='<div class="hifi-page-content">'+hifiHeader()+hifiSearchBar("草鱼",true)+'<div class="hifi-result-count">2 次鱼获</div><div class="hifi-month">2026年9月</div><div class="hifi-day-rows">'+hifiRow("草鱼","42.6 cm · 1.28 kg","最长记录")+hifiRow("草鱼","37.8 cm · 0.96 kg","")+'</div></div>';
+    const focus='<div class="hifi-page-content search-mode">'+hifiSearchModeBar("")+
+      '<div class="hifi-search-hint">键盘打开 · 右侧取消 · 页面仍是我的鱼获</div>'+
+      '<div class="hifi-title-under-search">我的鱼获</div>'+
+      '<div class="hifi-month">2026年9月</div>'+
+      '<div class="hifi-day-rows">'+hifiRow("草鱼","42.6 cm · 1.28 kg","最长")+hifiRow("鲫鱼","28.3 cm · 0.52 kg","")+'</div></div>';
+    const results='<div class="hifi-page-content search-mode">'+hifiSearchModeBar("草鱼")+
+      '<div class="hifi-title-under-search">我的鱼获</div>'+
+      '<div class="hifi-result-count">2 次鱼获</div><div class="hifi-month">2026年9月</div>'+
+      '<div class="hifi-day-rows">'+hifiRow("草鱼","42.6 cm · 1.28 kg","最长")+hifiRow("草鱼","37.8 cm · 0.96 kg","")+'</div></div>';
     return '<div class="hifi-board three">' +
-      bgDataPhone(focus,"Focused") +
+      bgDataPhone(focus,"点击搜索 / Focused") +
       bgDataPhone(results,"搜索有结果") +
       bgDataPhone(hifiEmptyContent("search"),"搜索无结果") +
     '</div>';
