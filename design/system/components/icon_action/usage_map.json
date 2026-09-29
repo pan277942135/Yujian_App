@@ -1,6 +1,6 @@
 {
-  "version": "1.0-candidate",
-  "status": "ACTIVE_CLOSURE",
+  "version": "1.0",
+  "status": "FROZEN",
   "mappings": [
     {
       "surface": "shared_top_bar",
