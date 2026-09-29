@@ -192,9 +192,45 @@ function layeredCapturePreviewHtml(item) {
   (item.preview_note ? '<div class="preview-note">' + esc(item.preview_note) + '</div>' : '');
 }
 
+function actionButtonPreviewHtml(item) {
+  const examples = item.usage_examples || [];
+  const demo = (label, variant) => {
+    const cls =
+      variant === "PRIMARY" ? "action-primary" :
+      variant === "SECONDARY_STRONG" ? "action-secondary-strong" :
+      "action-secondary-muted";
+    return '<button type="button" class="action-demo ' + cls + '">' + esc(label) + '</button>';
+  };
+
+  return '<div class="action-preview-shell">' +
+    '<div class="action-preview-title">Primary / Secondary Action Button V1</div>' +
+    '<div class="action-preview-variants">' +
+      '<div class="action-preview-card"><span>PRIMARY</span>' + demo("登录", "PRIMARY") + '</div>' +
+      '<div class="action-preview-card"><span>SECONDARY_STRONG</span>' + demo("继续记录记忆", "SECONDARY_STRONG") + '</div>' +
+      '<div class="action-preview-card"><span>SECONDARY_MUTED</span>' + demo("重新拍摄", "SECONDARY_MUTED") + '</div>' +
+    '</div>' +
+    '<div class="action-preview-pairs">' +
+      '<div class="action-pair-block"><b>识别结果 · 正常保存</b><div class="action-pair">' +
+        demo("继续记录记忆","SECONDARY_STRONG") + demo("保存本次鱼获","PRIMARY") +
+      '</div></div>' +
+      '<div class="action-pair-block"><b>识别结果 · 低置信</b><div class="action-pair">' +
+        demo("手动选择","SECONDARY_STRONG") + demo("重新拍摄","SECONDARY_MUTED") +
+      '</div></div>' +
+    '</div>' +
+    '<div class="action-usage-grid">' +
+      examples.map(x => '<div><strong>' + esc(x.copy) + '</strong><span>' +
+        esc(x.variant) + ' · ' + esc(x.page) + '</span></div>').join("") +
+    '</div>' +
+    '<div class="preview-note">冻结基准：56dp 高 / 28dp 圆角；普通业务 Primary 使用 Deep Lake Teal，不使用金色。</div>' +
+  '</div>';
+}
+
 function sharedPreviewHtml(item) {
   if (item.preview_type === "layered_component" && item.id === "primary_capture_button_v1") {
     return layeredCapturePreviewHtml(item);
+  }
+  if (item.preview_type === "action_button_system" && item.id === "action_button_v1") {
+    return actionButtonPreviewHtml(item);
   }
   return previewHtml(item.preview, item.display_name, item.preview_note);
 }
