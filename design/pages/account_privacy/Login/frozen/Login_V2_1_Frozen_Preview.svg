@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="941" height="1672" viewBox="0 0 941 1672">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="1"/>
+    </linearGradient>
+    <linearGradient id="grassFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#78945E" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#566E45" stop-opacity=".32"/>
+    </linearGradient>
+  </defs>
+  <rect width="941" height="1672" fill="#FAFCFB"/>
+  <image href="../../../../system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" x="0" y="0" width="941" height="620" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="0" y="430" width="941" height="420" fill="url(#fade)"/>
+  <rect x="0" y="710" width="941" height="962" fill="#FBFCFB"/>
+  <g font-family="Noto Sans SC, PingFang SC, Microsoft YaHei, sans-serif">
+    <text x="76" y="790" fill="#153A57" font-size="62" font-weight="700">欢迎回来</text>
+    <text x="76" y="846" fill="#72849B" font-size="30">继续记录你的每一次渔获</text>
+
+    <text x="76" y="938" fill="#173A57" font-size="26" font-weight="600">账号</text>
+    <rect x="76" y="962" width="789" height="90" rx="18" fill="#FFFFFF" stroke="#CBD8E2" stroke-width="2"/>
+    <circle cx="123" cy="1007" r="13" fill="none" stroke="#8795A7" stroke-width="3"/>
+    <path d="M102 1032 Q123 1016 144 1032" fill="none" stroke="#8795A7" stroke-width="3" stroke-linecap="round"/>
+    <text x="168" y="1019" fill="#A3ADBA" font-size="27">请输入账号</text>
+
+    <text x="76" y="1120" fill="#173A57" font-size="26" font-weight="600">密码</text>
+    <rect x="76" y="1144" width="789" height="90" rx="18" fill="#FFFFFF" stroke="#CBD8E2" stroke-width="2"/>
+    <rect x="111" y="1181" width="28" height="27" rx="5" fill="none" stroke="#8795A7" stroke-width="3"/>
+    <path d="M117 1181 v-7 q0-13 8-13 q8 0 8 13 v7" fill="none" stroke="#8795A7" stroke-width="3"/>
+    <text x="168" y="1201" fill="#A3ADBA" font-size="27">请输入密码</text>
+    <path d="M813 1174 Q836 1204 857 1174 Q836 1152 813 1174Z" fill="none" stroke="#8795A7" stroke-width="3"/>
+    <path d="M811 1156 L859 1204" stroke="#8795A7" stroke-width="3"/>
+
+    <text x="715" y="1285" fill="#168B88" font-size="24" font-weight="600">忘记密码？</text>
+    <rect x="76" y="1320" width="789" height="92" rx="46" fill="#0F7A78"/>
+    <text x="470.5" y="1379" text-anchor="middle" fill="#FFFFFF" font-size="30" font-weight="600">登录</text>
+    <text x="330" y="1475" fill="#7D8998" font-size="25">还没有账号？</text>
+    <text x="515" y="1475" fill="#168B88" font-size="25" font-weight="600">创建账号</text>
+  </g>
+
+  <g stroke="url(#grassFade)" stroke-width="6" stroke-linecap="round" fill="none" opacity=".68">
+    <path d="M15 1668 Q40 1585 65 1518"/>
+    <path d="M34 1668 Q72 1600 96 1546"/>
+    <path d="M82 1668 Q105 1605 122 1563"/>
+    <path d="M132 1668 Q148 1615 172 1579"/>
+    <path d="M926 1668 Q900 1588 876 1522"/>
+    <path d="M905 1668 Q866 1600 842 1548"/>
+    <path d="M858 1668 Q835 1610 817 1566"/>
+    <path d="M810 1668 Q790 1622 766 1587"/>
+  </g>
+  <ellipse cx="470" cy="1660" rx="250" ry="24" fill="#DDE9E7" opacity=".4"/>
+</svg>
