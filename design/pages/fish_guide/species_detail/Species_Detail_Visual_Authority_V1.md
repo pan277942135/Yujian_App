@@ -13,7 +13,11 @@ Source file:
 - Size: **1,894,997 bytes**
 - SHA-256: `27b1af4eb8f163da51a1a02b100710aaca66cff66ea38335bc7f8e6628b457ef`
 
-This uploaded PNG is the current page-level visual authority for **02 · 鱼种详情**.
+Canonical repository asset:
+
+- `design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png`
+
+This repository PNG is the current page-level visual authority for **02 · 鱼种详情**.
 
 ## Frozen page-level scope
 
