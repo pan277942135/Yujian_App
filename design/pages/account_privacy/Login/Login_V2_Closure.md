@@ -13,7 +13,7 @@ The legacy route `login` is compatibility-only during migration and must not rem
 ## Frozen visual authority
 
 1. `design/pages/account_privacy/Login/00_Login.png`
-2. `design/pages/account_privacy/shared/morning_lake_background.png`
+2. `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` + `BG_CONTENT`
 3. `design/pages/account_privacy/spec/VISUAL_TOKENS.md`
 4. `design/pages/account_privacy/spec/COPY_AND_BEHAVIOR.md`
 5. `design/pages/account_privacy/spec/FLOW_SPEC.md`
@@ -119,3 +119,12 @@ When:
 - evidence PASS;
 
 STOP modifying implementation, merge, run main validation, and produce the QA APK.
+
+
+## Background authority revision
+
+Current background authority is:
+
+`design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md`
+
+The legacy Account Privacy morning-lake asset is no longer a Login design authority.
