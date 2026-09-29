@@ -1,13 +1,30 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "status": "PASS",
   "policy": "A shared bitmap exists only when an independent high-quality source is already present. Frozen page screenshots are not cropped into production assets.",
-  "real_shared_asset_count": 0,
-  "assets": [],
+  "real_shared_asset_count": 1,
+  "assets": [
+    {
+      "asset_id": "Morning_Lake_Master_V1",
+      "category": "environment",
+      "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "width": 1080,
+      "height": 1920,
+      "format": "PNG RGB",
+      "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22",
+      "source": "Empty Home clean scene master",
+      "usage": [
+        "BG_ENV_HERO",
+        "BG_CONTENT",
+        "BG_DATA"
+      ],
+      "status": "SHARED_MASTER_ACTIVE_CLOSURE"
+    }
+  ],
   "category_decisions": [
     {
       "category": "environment",
-      "decision": "NO_BITMAP_REQUIRED",
+      "decision": "SHARED_MASTER_AVAILABLE",
       "source_screens": [
         "empty_home_v2",
         "normal_home_v1",
@@ -16,8 +33,8 @@
         "my_catches_v2",
         "fish_guide_v2"
       ],
-      "reason": "The pages share a morning-lake world but do not expose one independent, reusable background layer. Reusing a screenshot would import page-specific text, layout, and composition.",
-      "implementation": "Use page-specific environment treatment guided by the frozen reference and the BG_ENV_HERO, BG_CONTENT, and BG_DATA system rules."
+      "reason": "A clean 1080×1920 Morning Lake scene master now exists. It was produced by removing only UI, rod, line, bobber and ripple regions from the frozen Empty Home scene, with no scene redesign.",
+      "implementation": "Use Morning_Lake_Master_V1 with BG_ENV_HERO, BG_CONTENT or BG_DATA treatment. Do not crop frozen page screenshots into new backgrounds."
     },
     {
       "category": "camera",
