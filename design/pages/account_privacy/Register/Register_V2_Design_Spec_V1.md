@@ -101,7 +101,7 @@ Rules are identical to Login:
 - Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
 - Color + Typography V1
 - Spacing + Radius V1
-- Primary / Secondary Action Button V1: `PRIMARY` for `注册并登录`
+- Primary / Secondary Action Button V1.1: `PRIMARY` for `注册并登录`
 
 ## 8. Motion / haptic / sound
 
