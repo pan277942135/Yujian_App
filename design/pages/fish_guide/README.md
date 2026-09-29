@@ -25,6 +25,12 @@ Status: **FROZEN**
 - **02 · Species Detail / Frozen PNG**  
   design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png
 
+- **02 · Species Detail / Zero Catch State V1**  
+  design/pages/fish_guide/species_detail/Species_Detail_Zero_Catch_State_V1.md
+
+- **02 · Species Detail / Zero Catch Frozen PNG**  
+  design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png
+
 - **03 · Fish Species States / 鱼种状态 — State Spec V1**  
   design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md
 
