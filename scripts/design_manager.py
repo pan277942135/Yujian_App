@@ -262,6 +262,42 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
                 if not isinstance(scenario_ids, list):
                     errors.append(f"{feature_id}/{view_id}: scenario_ids must be a list")
 
+                children = view.get("children", [])
+                if children is not None and not isinstance(children, list):
+                    errors.append(f"{feature_id}/{view_id}: children must be a list")
+                elif isinstance(children, list):
+                    child_ids: set[str] = set()
+                    for child in children:
+                        if not isinstance(child, dict):
+                            errors.append(f"{feature_id}/{view_id}: child hifi view must be an object")
+                            continue
+                        child_id = child.get("id")
+                        if not isinstance(child_id, str) or not child_id:
+                            errors.append(f"{feature_id}/{view_id}: child hifi id is invalid")
+                            continue
+                        if child_id in child_ids:
+                            errors.append(f"{feature_id}/{view_id}: duplicate child hifi id {child_id}")
+                        child_ids.add(child_id)
+                        if child.get("status") not in VALID_STATUSES:
+                            errors.append(
+                                f"{feature_id}/{view_id}/{child_id}: invalid child hifi status {child.get('status')!r}"
+                            )
+                        _check_path(
+                            errors,
+                            f"{feature_id}/{view_id}/{child_id}.authority",
+                            child.get("authority"),
+                        )
+                        _check_path(
+                            errors,
+                            f"{feature_id}/{view_id}/{child_id}.secondary_authority",
+                            child.get("secondary_authority"),
+                        )
+                        child_scenarios = child.get("scenario_ids", [])
+                        if not isinstance(child_scenarios, list):
+                            errors.append(
+                                f"{feature_id}/{view_id}/{child_id}: scenario_ids must be a list"
+                            )
+
         scenarios = feature.get("scenario_pages", [])
         if scenarios is not None and not isinstance(scenarios, list):
             errors.append(f"{feature_id}: scenario_pages must be a list")
