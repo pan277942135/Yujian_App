@@ -161,33 +161,23 @@ fun HomeScreen(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
             )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = safeInsets.calculateTopPadding() + 16.dp,
-                        bottom = safeInsets.calculateBottomPadding() + 28.dp,
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                NormalHomeContent(
-                    statistics = statistics,
-                    recentCatches = recentCatches,
-                    resolveImageUrl = resolveImageUrl,
-                    accessToken = accessToken,
-                    isLoggedIn = isLoggedIn,
-                    avatarUrl = avatarUrl,
-                    onIdentify = onIdentify,
-                    onSpeciesClick = onSpeciesClick,
-                    onCatchesClick = onCatchesClick,
-                    onRecordDaysClick = onRecordDaysClick,
-                    onProfileClick = onProfileClick,
-                    onCatchClick = onCatchClick,
-                    motionState = homeMotionState,
-                    runtimeAssets = normalRuntimeAssets,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+            NormalHomeContent(
+                statistics = statistics,
+                recentCatches = recentCatches,
+                resolveImageUrl = resolveImageUrl,
+                accessToken = accessToken,
+                isLoggedIn = isLoggedIn,
+                avatarUrl = avatarUrl,
+                onIdentify = onIdentify,
+                onSpeciesClick = onSpeciesClick,
+                onCatchesClick = onCatchesClick,
+                onRecordDaysClick = onRecordDaysClick,
+                onProfileClick = onProfileClick,
+                onCatchClick = onCatchClick,
+                motionState = homeMotionState,
+                runtimeAssets = normalRuntimeAssets,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
