@@ -30,7 +30,7 @@ Entry points:
 - species
 - length · weight · location
 - no time in the current V2 visual
-- low-weight 编辑 >
+- low-weight 编辑 + trailing chevron
 
 ## Memory actions
 - 添加照片/视频
@@ -38,3 +38,9 @@ Entry points:
 - 录制视频
 
 When entered from “保存并记录记忆”, scroll/focus to Memory without creating a separate enrichment page.
+
+
+## Text Action
+
+- Hero `编辑` uses shared Text Action V1 / NORMAL / ON_MEDIA.
+- Trailing chevron is a separate 14dp icon; `>` / `›` is not part of the localized copy.
