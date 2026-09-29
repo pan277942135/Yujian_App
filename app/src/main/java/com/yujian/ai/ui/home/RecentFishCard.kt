@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
@@ -76,7 +77,7 @@ internal fun RecentFishCard(
             )
             RemoteImage(
                 url = imageUrl,
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier.fillMaxSize(),
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
                 contentScale = ContentScale.Fit,
                 authToken = accessToken,
@@ -101,23 +102,35 @@ internal fun RecentFishCard(
                 contentScale = ContentScale.FillBounds,
             )
             Column(
-                Modifier.align(Alignment.BottomStart).padding(horizontal = 24.dp, vertical = 22.dp),
+                Modifier.align(Alignment.BottomStart).padding(horizontal = 12.dp, vertical = 12.dp),
             ) {
                 Text(
                     text = presentationSpeciesName(item.speciesName),
-                    style = YuJianTypography.sectionTitle.copy(color = YuJianColors.OnDark),
+                    style = YuJianTypography.sectionTitle.copy(
+                        color = YuJianColors.OnDark,
+                        fontSize = 32.sp,
+                        lineHeight = 38.sp,
+                    ),
                 )
                 displayMeasurement(item)?.let { value ->
                     Text(
                         text = value,
-                        style = YuJianTypography.body.copy(color = YuJianColors.OnDark.copy(alpha = 0.94f)),
+                        style = YuJianTypography.body.copy(
+                            color = YuJianColors.OnDark.copy(alpha = 0.94f),
+                            fontSize = 22.sp,
+                            lineHeight = 28.sp,
+                        ),
                         modifier = Modifier.padding(top = 5.dp),
                     )
                 }
                 formatCatchMeta(item)?.let { value ->
                     Text(
                         text = value,
-                        style = YuJianTypography.caption.copy(color = YuJianColors.OnDark.copy(alpha = 0.88f)),
+                        style = YuJianTypography.caption.copy(
+                            color = YuJianColors.OnDark.copy(alpha = 0.88f),
+                            fontSize = 16.sp,
+                            lineHeight = 22.sp,
+                        ),
                         modifier = Modifier.padding(top = 5.dp),
                     )
                 }
