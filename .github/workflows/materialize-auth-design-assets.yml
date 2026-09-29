@@ -19,28 +19,48 @@ jobs:
           ref: chore/design-experience-governance-v1
           fetch-depth: 0
 
-      - name: Rebuild exact PNG authorities
+      - name: Rebuild uploaded sources and convert to PNG
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p design/pages/account_privacy/Login/frozen
           mkdir -p design/pages/account_privacy/Register/frozen
 
-          cat .auth_assets/login/login_* | base64 -d > design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png
-          cat .auth_assets/register/register_* | base64 -d > design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png
+          cat .auth_assets/login_*.b64 | base64 -d > /tmp/login_source
+          cat .auth_assets/register_*.b64 | base64 -d > /tmp/register_source
 
-          test "$(sha256sum design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png | awk '{print $1}')" = "c9323f11a9d935f8e98b95276a73930b549b20262eddb5a57968a10835c7486e"
-          test "$(sha256sum design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png | awk '{print $1}')" = "d96f5d2d1df254336031ca68f67bc63b680f73d0924b82fc96ebe22abb13d0fe"
+          test "$(sha256sum /tmp/login_source | awk '{print $1}')" = "2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c"
+          test "$(sha256sum /tmp/register_source | awk '{print $1}')" = "14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35"
+
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+from PIL import Image
+pairs = [
+    ("/tmp/login_source", "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png"),
+    ("/tmp/register_source", "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png"),
+]
+for src, dst in pairs:
+    im = Image.open(src).convert("RGB")
+    assert im.size == (864, 1536), (src, im.size)
+    im.save(dst, "PNG", optimize=True, compress_level=9)
+PY
+
+          {
+            echo "Login source SHA-256: 2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c"
+            echo "Register source SHA-256: 14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35"
+            sha256sum design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png
+            sha256sum design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png
+          } > design/pages/account_privacy/auth_frozen_visual_sha256.txt
 
           rm -rf .auth_assets
           rm -f .github/workflows/materialize-auth-design-assets.yml
 
-      - name: Commit exact PNG authorities
+      - name: Commit final PNG authorities
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "feat(design): archive exact Login and Register frozen PNG authorities"
+          git commit -m "feat(design): archive final Login and Register PNG authorities"
           git push origin HEAD:chore/design-experience-governance-v1
