@@ -250,12 +250,14 @@ function renderLists() {
 
       const renderNestedChild = child => {
         const childKey = viewKey + "/" + child.id;
+        const childCode = child.code || child.id.toUpperCase().replace("_"," · ");
+        const childName = child.title.replace(/^[A-Z]\d+\s*·\s*/, "");
         return '<button class="page-subsubitem' + (selectedKey === childKey ? " active" : "") +
           '" data-kind="page-hifi-child" data-page-id="' + esc(feature.id) +
           '" data-hifi-id="' + esc(view.id) +
           '" data-hifi-child-id="' + esc(child.id) + '">' +
-          '<span class="subsub-code">' + esc(child.id.toUpperCase().replace("_"," · ")) + '</span>' +
-          '<span class="subsub-name">' + esc(child.title.replace(/^B\d+\s*·\s*/, "")) + '</span>' +
+          '<span class="subsub-code">' + esc(childCode) + '</span>' +
+          '<span class="subsub-name">' + esc(childName) + '</span>' +
           '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : "视觉") + '</span>' +
           statusBadge(child.status || view.status || "PARTIAL") +
         '</button>';
@@ -1537,6 +1539,23 @@ function myCatchesHifiCanvas(feature, view) {
         hifiRow("青鱼","61.2 cm · 3.84 kg","最长 · 最重") +
         '<div class="hifi-priority"><b>显示优先级</b><span>数量里程碑　›　首条某鱼种　›　尺寸纪录</span></div>' +
       '</div></div>';
+  }
+
+  if(view.render_mode==="submenu_index") {
+    const children=view.children||[];
+    return '<div class="authority-index">' +
+      '<div class="authority-index-intro"><strong>' + esc(view.title) + ' · 子菜单骨架</strong>' +
+        '<span>当前只建立 F1–F8 导航结构；页面内容、高保真与 Authority 将逐项补齐。</span></div>' +
+      '<div class="authority-index-grid">' +
+        children.map(child =>
+          '<article class="authority-index-card">' +
+            '<div class="authority-index-head"><strong>' + esc((child.code || "") + " · " + child.title.replace(/^[A-Z]\\d+\\s*·\\s*/, "")) + '</strong>' +
+              statusBadge(child.status || "MISSING") + '</div>' +
+            '<div class="authority-kind">CONTENT PENDING</div>' +
+          '</article>'
+        ).join("") +
+      '</div>' +
+    '</div>';
   }
 
   if(view.render_mode==="search_overview") {
