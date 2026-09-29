@@ -10,7 +10,7 @@ Page title: **欢迎回来**
 - Approved source size: **941 × 1672**
 - Approved source SHA-256: `98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157`
 - Design Manager preview: **SVG 941 × 1672**, referencing the frozen shared Morning Lake master.
-- Preview SHA-256: `244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338`
+- Preview SHA-256: `f73fbce097f4e9d6617a13c31b5dbe5e80a7407b56b9f7f85301a6d12eba1f6a`
 
 The frozen preview is the authority for **layout, hierarchy, field/button treatment, white-space distribution and footer decoration**.
 
@@ -64,6 +64,7 @@ No new authentication field may be introduced by visual implementation.
 - Main action uses shared `Action Button V1 / PRIMARY`: **56dp height / 28dp radius / #0F7A78 fill / white label**.
 - Primary text: DeepLake
 - Secondary text: muted lake blue-gray
+- `忘记密码？` uses Text Action V1 / MUTED (`#748897`, 13sp/500 reference); `创建账号` uses STRONG.
 - No strong gradient, glow or heavy shadow
 
 The form cadence is intentionally tighter than the earlier exploratory version.
@@ -88,6 +89,7 @@ Frozen rules:
 - Color + Typography V1
 - Spacing + Radius V1
 - Primary / Secondary Action Button V1.1: `PRIMARY` for `登录`
+- Text Action V1: `创建账号` = STRONG; `忘记密码？` = MUTED
 
 BG_CONTENT remains the shared content-background family, but Login uses the frozen **top-lake → white-content** composition instead of exposing the lake over the whole form.
 
