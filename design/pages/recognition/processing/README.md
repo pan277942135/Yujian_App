@@ -36,8 +36,11 @@ Current frozen step:
 - `contracts/AI_Edge_Field_V1_Static_Shape_Contract.json`
 - `contracts/AI_Edge_Field_V1_Rendering_Contract.json`
 
-Static identity: four disconnected edge-energy islands with mandatory quiet gaps. Motion is intentionally deferred to `04 · Motion & Transition`.
+Static identity: four disconnected edge-energy islands with mandatory quiet gaps. Motion is frozen under `04 · Motion & Transition`; quality degradation is frozen independently under `05 · Degradation & Accessibility`.
 
 - `motion/Recognition_Processing_Motion_Spec_V1_2.md` — current 3-state Processing Motion authority
 - `motion/AI_Edge_Field_V1_Motion_Contract.md` — SegmentOffset / StateStrength / ResolveStrength authority
 - `contracts/AI_Edge_Field_V1_Motion_Contract.json` — machine-readable motion contract
+
+- `accessibility/Recognition_Quality_Levels_V1.md` — FULL / BALANCED / LITE visual complexity authority
+- `contracts/Recognition_Quality_Levels_V1.json` — machine-readable quality profile contract

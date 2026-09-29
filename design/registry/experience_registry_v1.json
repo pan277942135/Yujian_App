@@ -1516,19 +1516,114 @@
         {
           "id": "degradation_accessibility",
           "title": "05 · Degradation & Accessibility",
-          "status": "PARTIAL",
+          "status": "ACTIVE_CLOSURE",
           "authority_type": "behavior",
           "render_mode": "recognition_degradation",
           "authority": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
-          "summary": "Reduce Motion、Low Performance 与 Fish Focus A/B/C fallback 集中管理；只允许视觉降级，不允许改变识别语义。",
+          "summary": "Recognition Degradation 只允许降低视觉复杂度，不允许改变产品状态、AI Edge Field 身份、Fish Focus 语义或结果语义。01 · Quality Levels 已冻结 FULL / BALANCED / LITE 三档。",
           "menu_points": [
-            "Reduce Motion：停止非必要 travel / breathing，保留状态语义与必要 fade",
-            "Low Performance：粒子减少、Glow 降低；不得修改 Pipeline/Copy/Result",
-            "Fish Focus A：Mask + Contour + Halo",
-            "Fish Focus B：BBox + Halo",
-            "Fish Focus C：BBox center + Halo",
-            "任何降级都不得改变 detector / classifier / confidence / quality semantics"
+            "01 · Quality Levels · FULL / BALANCED / LITE 三档复杂度预算",
+            "02 · Reduce Motion · 待冻结",
+            "03 · Layer Degradation Order · 待冻结",
+            "04 · Semantic Invariants · 待冻结",
+            "降级只减视觉成本，不改变三步 Recognition 状态或 Result 语义"
+          ],
+          "children": [
+            {
+              "id": "quality_levels",
+              "code": "05 · 01",
+              "title": "01 · Quality Levels",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_quality_levels",
+              "authority": "design/pages/recognition/processing/accessibility/Recognition_Quality_Levels_V1.md",
+              "contract": "design/pages/recognition/processing/contracts/Recognition_Quality_Levels_V1.json",
+              "summary": "FULL / BALANCED / LITE 不是三套视觉，而是同一 AI Edge Field 的三档复杂度预算。四个 Primary Energy Islands、Quiet Gaps、主次权重、StateStrength 与 SegmentOffset 语义在三档中保持一致。",
+              "quality_levels": {
+                "rule": "复杂度从高到低只删除次级细节；不得重排四岛、不得改变 Quiet Gap、不得把 LITE 变成另一种视觉。",
+                "invariants": [
+                  "4 Primary Energy Islands 始终存在",
+                  "B_UR > G_UL > G_LL > B_LR 的主次关系不变",
+                  "Quiet Gaps 完全不变",
+                  "Primary path geometry / Core width 不变",
+                  "StateStrength / SegmentOffset / ResolveStrength 合同不变",
+                  "Photo 始终是视觉主体",
+                  "三步 Recognition 产品状态不变"
+                ],
+                "profiles": [
+                  {
+                    "id": "FULL",
+                    "intent": "完整高保真光场",
+                    "receiving_light": "100%",
+                    "primary_core": "100%",
+                    "mid_glow": "100%",
+                    "outer_bloom": "100%",
+                    "companion_hairline": "4/4 islands",
+                    "micro_hairline": "B_UR ON",
+                    "secondary_fragments": "允许，仍受 Quiet Gap 约束",
+                    "hot_nodes": "B_UR 主节点 + 最多 1 个弱次节点",
+                    "particles": "8 anchors · 同时强可见 ≤3",
+                    "quality_multiplier": "1.00",
+                    "note": "完整呈现所有已冻结光学层，但仍必须保持自然、克制。"
+                  },
+                  {
+                    "id": "BALANCED",
+                    "intent": "保留高保真身份，删除高频细节",
+                    "receiving_light": "85%",
+                    "primary_core": "100%",
+                    "mid_glow": "90%",
+                    "outer_bloom": "75%",
+                    "companion_hairline": "仅 B_UR + G_UL",
+                    "micro_hairline": "OFF",
+                    "secondary_fragments": "OFF",
+                    "hot_nodes": "仅 B_UR 1 个",
+                    "particles": "4 anchors · 同时强可见 ≤2",
+                    "quality_multiplier": "0.92",
+                    "note": "视觉主结构几乎不变，优先移除 Micro / Secondary Fragment / 下方 Hairline。"
+                  },
+                  {
+                    "id": "LITE",
+                    "intent": "最小但仍具品牌身份的 Edge Field",
+                    "receiving_light": "70%",
+                    "primary_core": "100%",
+                    "mid_glow": "80%",
+                    "outer_bloom": "50%",
+                    "companion_hairline": "OFF",
+                    "micro_hairline": "OFF",
+                    "secondary_fragments": "OFF",
+                    "hot_nodes": "OFF",
+                    "particles": "OFF",
+                    "quality_multiplier": "0.82",
+                    "note": "只保留 Local Receiving Light + 四岛 Primary composite band；不允许退化成单根 Core 线。"
+                  }
+                ],
+                "degradation_priority": [
+                  "Micro Hairline",
+                  "Secondary Fragments",
+                  "Lower-island Companion Hairlines",
+                  "Particles 8→4→0",
+                  "Secondary Hot Node",
+                  "All Companion Hairlines",
+                  "Outer Bloom strength",
+                  "Receiving Light strength"
+                ],
+                "never_remove": [
+                  "Original Photo",
+                  "4 Primary Energy Islands",
+                  "Primary Core",
+                  "Primary Mid Glow",
+                  "基础 Local Receiving Light",
+                  "Mandatory Quiet Gaps"
+                ],
+                "quality_switch": {
+                  "visual_transition": "Quality level change itself is not a user-facing animation event.",
+                  "continuity": "切档时保持当前 SegmentOffset；不得重启 Motion Clock。",
+                  "hysteresis": "具体自动升降档阈值属于平台实现，不在设计规范中冻结。",
+                  "recovery": "恢复高档时按细节层逐步恢复，不得闪现全部粒子/Hairline。"
+                }
+              }
+            }
           ]
         },
         {

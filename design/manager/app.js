@@ -2100,7 +2100,53 @@ function recognitionAiEdgeFieldMotionCanvas(child) {
   '</div>';
 }
 
+
+function recognitionQualityLevelsCanvas(child) {
+  const q = child.quality_levels || {};
+  const profiles = q.profiles || [];
+  const invariants = q.invariants || [];
+  const neverRemove = q.never_remove || [];
+  const priority = q.degradation_priority || [];
+
+  const profileGrid =
+    '<div class="recognition-state-grid">' +
+      profiles.map(profile =>
+        '<article class="recognition-state-card">' +
+          '<div class="recognition-state-head"><strong>' + esc(profile.id) + '</strong><span>' + esc(profile.intent) + '</span></div>' +
+          '<p><b>Receiving Light</b> · ' + esc(profile.receiving_light) + '</p>' +
+          '<p><b>Primary Core</b> · ' + esc(profile.primary_core) + '</p>' +
+          '<p><b>Mid / Outer</b> · ' + esc(profile.mid_glow + " / " + profile.outer_bloom) + '</p>' +
+          '<p><b>Companion</b> · ' + esc(profile.companion_hairline) + '</p>' +
+          '<p><b>Micro</b> · ' + esc(profile.micro_hairline) + '</p>' +
+          '<p><b>Node</b> · ' + esc(profile.hot_nodes) + '</p>' +
+          '<p><b>Particles</b> · ' + esc(profile.particles) + '</p>' +
+          '<p>' + esc(profile.note || "") + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const itemGrid = (items, kind) =>
+    '<div class="authority-index-grid">' +
+      items.map((item,index) =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+          '<div class="authority-kind">' + esc(kind) + '</div>' +
+          '<p>' + esc(item) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Quality Rule</strong><span>' + esc(q.rule || "") + '</span></div>' +
+    '<div class="recognition-section-title">FULL / BALANCED / LITE</div>' + profileGrid +
+    '<div class="recognition-section-title">Cross-level Invariants</div>' + itemGrid(invariants,"MUST NOT CHANGE") +
+    '<div class="recognition-section-title">Degradation Priority</div>' + itemGrid(priority,"REMOVE / REDUCE IN ORDER") +
+    '<div class="recognition-section-title">Identity Floor</div>' + itemGrid(neverRemove,"NEVER REMOVE") +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_quality_levels") return recognitionQualityLevelsCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_rendering") return recognitionAiEdgeFieldRenderingCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_motion") return recognitionAiEdgeFieldMotionCanvas(child);
