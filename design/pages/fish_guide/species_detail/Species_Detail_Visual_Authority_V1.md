@@ -19,6 +19,12 @@ Canonical repository asset:
 
 This repository PNG is the current page-level visual authority for **02 · 鱼种详情**.
 
+Page-level product / interaction authority:
+
+- `design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md`
+
+The visual authority and the Page Contract together define the frozen **page-level** Species Detail experience.
+
 ## Frozen page-level scope
 
 The authority freezes the current page composition and hierarchy:
@@ -50,9 +56,10 @@ Those items remain **PARTIAL / TO REVIEW** and will be handled as a separate Car
 ## Authority relationship
 
 - Page-level Visual Authority: **FROZEN**
-- Species Detail overall specification: **PARTIAL**
+- Page-level Product / Interaction Contract: **FROZEN**
+- Species Detail page-level experience: **FROZEN**
 - Five-card internal visual/content system: **PARTIAL**
-- Runtime parity/evidence: **not evaluated in this authority registration**
+- Runtime parity/evidence: **PENDING under 09 · 验收证据**
 
 Older Fish Guide detail explorations, including earlier white-glass/lake-card versions, are historical references only and must not override this authority.
 
