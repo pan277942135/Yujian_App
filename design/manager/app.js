@@ -185,7 +185,7 @@ function renderLists() {
     .filter(item => matchesSearch(item) && matchesStatus(item.overall));
 
   const groupHtml = groups.map(group => renderSharedGroup(group, allShared)).filter(Boolean);
-  const pages = pageRegistry.features.filter(x => matchesSearch(x) && matchesStatus(x.design_overall));
+  const pages = pageRegistry.features.filter(x => x.navigation_hidden !== true).filter(x => matchesSearch(x) && matchesStatus(x.design_overall));
 
   el("sharedCount").textContent = ungroupedShared.length + groupHtml.length;
   el("pageCount").textContent = pages.length;
@@ -263,11 +263,26 @@ function renderLists() {
         '</button>';
       };
 
-      const visualChildren=(view.children || []).filter(child => child.authority_type !== "behavior");
-      const behaviorChildren=(view.children || []).filter(child => child.authority_type === "behavior");
+      const childItems = view.children || [];
+      const visualChildren = childItems.filter(child =>
+        child.menu_group === "visual" ||
+        (!child.menu_group && child.authority_type !== "behavior")
+      );
+      const stateChildren = childItems.filter(child => child.menu_group === "state");
+      const specChildren = childItems.filter(child => child.menu_group === "spec");
+      const behaviorChildren = childItems.filter(child =>
+        child.authority_type === "behavior" &&
+        !["state","spec"].includes(child.menu_group)
+      );
       const nested = [
         visualChildren.length
           ? '<div class="subsub-group-label">高保真页面</div>' + visualChildren.map(renderNestedChild).join("")
+          : "",
+        stateChildren.length
+          ? '<div class="subsub-group-label">页面状态</div>' + stateChildren.map(renderNestedChild).join("")
+          : "",
+        specChildren.length
+          ? '<div class="subsub-group-label">字段规范</div>' + specChildren.map(renderNestedChild).join("")
           : "",
         behaviorChildren.length
           ? '<div class="subsub-group-label">交互规范</div>' + behaviorChildren.map(renderNestedChild).join("")
