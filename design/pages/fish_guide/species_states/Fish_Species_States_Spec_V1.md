@@ -19,8 +19,11 @@ Scope: **Fish Guide · 03 · 鱼种状态 / Fish Species States**
 2. **State semantics / fallback authority**
    - `design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md`
 3. **03 visual flow reference**
-   - current Fish Species States V1 high-fidelity flow poster
-4. Shared Design System contracts
+   - `design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md`
+   - source UI: `Fish_Species_States_V1.png`
+4. **UNLIT supporting visual**
+   - `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
+5. Shared Design System contracts
 
 If a miniature page shown inside the 03 flow poster conflicts with 01/02 frozen page layout, **01/02 always wins**.  
 03 only owns the **state delta and fallback treatment**.
@@ -436,7 +439,185 @@ Examples:
 
 ---
 
-# 12. Acceptance Gate
+# 12. Canonical copy contract
+
+State copy is intentionally short. A state message must describe the current condition, not shame the user or introduce game semantics.
+
+| Situation | Primary copy | Secondary / action |
+|---|---|---|
+| UNLIT / 0 records | `还没有记录` | no unlock language |
+| Missing knowledge slot | `内容暂不可用` | `该卡片资料正在完善` |
+| All knowledge unavailable | `鱼种资料暂不可用` | keep Back and My Species when available |
+| Loading | no factual copy required | skeleton only |
+| Offline + cache | cached content | optional low-weight `离线内容` |
+| Offline no cache | `当前无法加载鱼种资料` | `检查网络后重试` |
+| Retriable region error | `暂时无法加载` | `重试` |
+| Unknown species ID | `该鱼种资料暂不可用` | Back |
+
+Forbidden copy:
+
+- `未解锁`
+- `捕获后解锁`
+- `解锁图鉴`
+- `稀有` / `传奇` state language
+- `???`
+- fabricated catch-count copy.
+
+---
+
+# 13. State transition contract
+
+State changes are driven by committed data changes, not animation timers.
+
+## 13.1 Save first qualifying FishRecord
+
+When a save transaction succeeds and the saved record's final species maps to the current species:
+
+```
+0 → 1
+UNLIT → LIT
+```
+
+Rules:
+
+- count changes only after save success;
+- Home progress `N / T` increments only if this species was previously UNLIT;
+- My Species becomes the 1-record state;
+- no celebratory unlock screen;
+- no confetti;
+- no automatic navigation;
+- no automatic haptic is required.
+
+Any transition animation is owned by **07 · 动效与交互** and must remain restrained.
+
+## 13.2 Save additional record
+
+```
+N → N + 1
+LIT remains LIT
+```
+
+- total count updates;
+- recent preview ordering recomputes;
+- only the latest two qualifying preview slots are shown.
+
+## 13.3 Delete a FishRecord
+
+After a deletion is committed:
+
+- decrement the canonical saved count;
+- recompute preview ordering;
+- when `1 → 0`, the species returns to **UNLIT**;
+- Fish Guide progress `N / T` decrements accordingly;
+- do not permanently preserve a historical `isLit=true` flag in V1.
+
+## 13.4 Correct a saved FishRecord species
+
+If a saved FishRecord's final species changes from A → B:
+
+1. remove the record from species A's canonical count;
+2. add it to species B's canonical count;
+3. recompute EncounterState for both A and B;
+4. recompute Fish Guide lit-progress `N / T` only after the correction is persisted.
+
+This may produce:
+
+```
+A: LIT → UNLIT
+B: UNLIT → LIT
+```
+
+No state is updated from an unsaved candidate selection.
+
+## 13.5 Catalog activation change
+
+When an active catalog species becomes inactive:
+
+- remove it from active total `T`;
+- recompute `N` against the active catalog only;
+- preserve historical FishRecords;
+- do not delete user records just because the species is inactive.
+
+When a species becomes active, it joins `T`; its LIT status is derived from qualifying saved historical records that map to that stable species ID.
+
+---
+
+# 14. Visual fallback contract
+
+## 14.1 UNLIT visual
+
+Supporting visual reference:
+
+`design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
+
+Invariants:
+
+- lighter / softer / lower-emphasis than LIT;
+- species identity remains readable;
+- fish remains recognizable;
+- card remains visibly interactive;
+- no dark disabled overlay;
+- no large lock glyph;
+- no opacity so low that biological identification becomes difficult.
+
+The exact base page composition remains owned by 01.
+
+## 14.2 Missing knowledge slot
+
+Keep:
+
+- the same card container footprint;
+- the same carousel position;
+- the same external `NN / 05` index.
+
+Replace only the missing card content region with the approved neutral unavailable treatment.
+
+Do not collapse the carousel from five slots to four.
+
+## 14.3 Missing real-catch preview
+
+Keep the preview slot only when it corresponds to a real FishRecord.
+
+The placeholder communicates **media unavailable**, not “no record”.
+
+This distinction is required:
+
+```
+0 records
+≠
+1 real record whose photo failed
+```
+
+## 14.4 Error isolation
+
+Failure should be isolated to the smallest factual region:
+
+- artwork failure → artwork region;
+- one knowledge-card failure → that card slot;
+- FishRecord image failure → that preview;
+- knowledge API failure → knowledge region;
+- unresolved species identity → page-level unavailable state.
+
+---
+
+# 15. Data / analytics invariants
+
+The following values must be derived from the same stable species ID mapping:
+
+- Fish Guide active total `T`;
+- lit count `N`;
+- per-species saved count;
+- My Species count;
+- preview query;
+- LIT / UNLIT state.
+
+Do not derive one surface from model labels and another from user-corrected final species.
+
+For V1, the user's **persisted final species** on the saved FishRecord is authoritative for personal collection state.
+
+---
+
+# 16. Acceptance Gate
 
 - [x] Encounter is derived from successfully saved FishRecord count.
 - [x] UNLIT remains visible, readable, tappable, and detail-accessible.
