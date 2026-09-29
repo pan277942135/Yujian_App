@@ -85,7 +85,9 @@
       "shared_system_refs": [
         {
           "id": "background_system_v1",
-          "variant": "BG_ENV_HERO"
+          "variant": "BG_ENV_HERO",
+          "master": "Morning_Lake_Sunrise_Hero_V1",
+          "note": "空首页使用有太阳专用 Sunrise Hero 母版。"
         },
         {
           "id": "primary_capture_button_v1",
@@ -150,7 +152,9 @@
       "shared_system_refs": [
         {
           "id": "background_system_v1",
-          "variant": "BG_ENV_HERO"
+          "variant": "BG_ENV_HERO",
+          "master": "Morning_Lake_Master_V1",
+          "note": "有数据首页使用无太阳公共母版。"
         },
         {
           "id": "primary_capture_button_v1",
@@ -280,7 +284,8 @@
       "shared_system_refs": [
         {
           "id": "background_system_v1",
-          "variant": "BG_CONTENT"
+          "variant": "BG_CONTENT",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "top_navigation_v1",
@@ -349,7 +354,8 @@
       "shared_system_refs": [
         {
           "id": "background_system_v1",
-          "variant": "BG_CONTENT"
+          "variant": "BG_CONTENT",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "top_navigation_v1",
@@ -481,7 +487,8 @@
       "shared_system_refs": [
         {
           "id": "background_system_v1",
-          "variant": "BG_DATA"
+          "variant": "BG_DATA",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "primary_capture_button_v1",
@@ -557,7 +564,8 @@
       "shared_system_refs": [
         {
           "id": "background_system_v1",
-          "variant": "BG_DATA"
+          "variant": "BG_DATA",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "top_navigation_v1",
@@ -629,7 +637,8 @@
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "目标统一到公共背景系统；当前仍有独立 morning_lake_background 资产，待后续设计收口。"
+          "note": "设计侧背景权威已统一到无太阳 Morning_Lake_Master_V1 / BG_CONTENT；legacy account_privacy 背景不再是设计 Authority。",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -705,7 +714,8 @@
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "统一使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT；旧 account_privacy_morning_lake 不再作为设计权威。"
+          "note": "Login 使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT。",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -775,7 +785,8 @@
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "统一使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT。"
+          "note": "Register 使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT。",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "color_typography_v1"
@@ -837,7 +848,8 @@
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "目标背景引用；独立冻结设计包仍缺失。"
+          "note": "目标背景引用；独立冻结设计包仍缺失。",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "color_typography_v1"
@@ -899,7 +911,8 @@
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "目标背景引用；独立冻结设计包仍缺失。"
+          "note": "目标背景引用；独立冻结设计包仍缺失。",
+          "master": "Morning_Lake_Master_V1"
         },
         {
           "id": "color_typography_v1"
