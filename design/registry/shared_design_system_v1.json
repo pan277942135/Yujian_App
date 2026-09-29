@@ -28,7 +28,9 @@
             "contrast": 0.98,
             "brightness": 1,
             "mist_alpha": 0.02
-          }
+          },
+          "status": "ACTIVE_CLOSURE",
+          "authority_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
         },
         {
           "id": "BG_CONTENT",
@@ -40,7 +42,9 @@
             "contrast": 0.89,
             "brightness": 1.03,
             "mist_alpha": 0.15
-          }
+          },
+          "status": "ACTIVE_CLOSURE",
+          "authority_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
         },
         {
           "id": "BG_DATA",
@@ -52,21 +56,27 @@
             "contrast": 0.78,
             "brightness": 1.06,
             "mist_alpha": 0.3
-          }
+          },
+          "status": "ACTIVE_CLOSURE",
+          "authority_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
         },
         {
           "id": "BG_CAPTURE",
           "name": "拍摄背景",
           "usage": "识别过程",
           "note": "使用用户当前照片，不使用湖景背景。",
-          "preview_mode": "dynamic_photo"
+          "preview_mode": "dynamic_photo",
+          "status": "FROZEN",
+          "authority_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
         },
         {
           "id": "BG_SOLID_FALLBACK",
           "name": "纯色兜底背景",
           "usage": "加载失败 / 无图 / 异常",
           "note": "深湖蓝灰兜底，不形成新的视觉世界。",
-          "preview_mode": "solid_fallback"
+          "preview_mode": "solid_fallback",
+          "status": "PARTIAL",
+          "authority_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
         }
       ],
       "note": "Morning Lake Master V1 已建立并登记来源；BG_ENV_HERO / BG_CONTENT / BG_DATA 的参数化规则已完成。当前仍需跨页面视觉验收，因此状态为收口中。",
@@ -76,7 +86,9 @@
         "height": 1920,
         "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22",
         "source": "Empty Home clean scene master"
-      }
+      },
+      "contract_path": "design/system/backgrounds/morning_lake_v1/treatment_contract.json",
+      "usage_map_path": "design/system/backgrounds/morning_lake_v1/usage_map.json"
     },
     {
       "id": "primary_capture_button_v1",
