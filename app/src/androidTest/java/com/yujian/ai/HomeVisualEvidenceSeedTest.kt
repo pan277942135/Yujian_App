@@ -33,8 +33,8 @@ class HomeVisualEvidenceSeedTest {
         File(context.filesDir, "guest_catches").deleteRecursively()
 
         val source = File(context.cacheDir, "visual-seed.jpg")
-        InstrumentationRegistry.getInstrumentation().context.assets
-            .open("golden_yellow_catfish_224.jpg").use { input ->
+        context.assets
+            .open("home_normal/fish_record/sample_recent_catch.jpg").use { input ->
             source.outputStream().use { output -> input.copyTo(output) }
         }
         val repository = GuestCatchRepository(context)
@@ -44,7 +44,11 @@ class HomeVisualEvidenceSeedTest {
                     source,
                     CatchSaveDraft(
                         speciesId = "visual_species_$index",
-                        speciesName = if (index == 0) "黄骨鱼" else "草鱼",
+                        speciesName = when (index) {
+                            0 -> "草鱼"
+                            1 -> "鲤鱼"
+                            else -> "鲫鱼"
+                        },
                         confidence = 0.92f,
                         modelVersion = "MODEL_M1_v0.6",
                     ),
