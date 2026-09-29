@@ -201,7 +201,7 @@ function renderLists() {
           statusBadge(view.status || "PARTIAL") +
         '</button>';
 
-      const nested = (view.children || []).map(child => {
+      const renderNestedChild = child => {
         const childKey = viewKey + "/" + child.id;
         return '<button class="page-subsubitem' + (selectedKey === childKey ? " active" : "") +
           '" data-kind="page-hifi-child" data-page-id="' + esc(feature.id) +
@@ -212,7 +212,18 @@ function renderLists() {
           '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : "视觉") + '</span>' +
           statusBadge(child.status || view.status || "PARTIAL") +
         '</button>';
-      }).join("");
+      };
+
+      const visualChildren=(view.children || []).filter(child => child.authority_type !== "behavior");
+      const behaviorChildren=(view.children || []).filter(child => child.authority_type === "behavior");
+      const nested = [
+        visualChildren.length
+          ? '<div class="subsub-group-label">高保真页面</div>' + visualChildren.map(renderNestedChild).join("")
+          : "",
+        behaviorChildren.length
+          ? '<div class="subsub-group-label">交互规范</div>' + behaviorChildren.map(renderNestedChild).join("")
+          : ""
+      ].join("");
 
       return parentView + (nested ? '<div class="page-subsublist">' + nested + '</div>' : '');
     }).join("");
