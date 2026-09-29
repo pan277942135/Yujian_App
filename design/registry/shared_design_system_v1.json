@@ -187,6 +187,8 @@
       "overall": "FROZEN",
       "current_version": "V1.1",
       "authority_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/reference_manifest.json",
         "design/system/components/action_button/README.md",
         "design/system/components/action_button/Action_Button_Spec_V1_1.md",
         "design/system/components/action_button/manifest.json",
@@ -194,7 +196,7 @@
         "design/system/components/action_button/motion_contract.json",
         "design/system/components/action_button/usage_map.json"
       ],
-      "preview": null,
+      "preview": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
       "preview_type": "action_button_system",
       "variants": [
         {
@@ -259,7 +261,18 @@
           "status": "FROZEN",
           "current": true
         }
-      ]
+      ],
+      "frozen_visual_reference": {
+        "path": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "width": 1600,
+        "height": 1680,
+        "format": "SVG",
+        "bytes": 8133,
+        "sha256": "44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c",
+        "status": "FROZEN",
+        "version": "V1.1"
+      },
+      "preview_note": "上方静态 Frozen Visual Reference 为最终视觉 Authority；下方 HTML/CSS 预览仅用于交互与状态审视。"
     },
     {
       "id": "top_navigation_v1",
