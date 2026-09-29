@@ -9,8 +9,9 @@
     "format": "SVG",
     "bytes": 8133,
     "sha256": "44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c",
-    "status": "FROZEN",
-    "version": "V1.1"
+    "status": "OVERVIEW_ONLY",
+    "version": "V1.1",
+    "role": "overview_only"
   },
   "covers": [
     "PRIMARY",
@@ -24,5 +25,116 @@
     "Disabled",
     "Focus"
   ],
-  "note": "Static visual authority. Interactive Design Manager preview is supplemental and must not supersede this reference."
+  "note": "The six-reference visual_authority_set is the complete static UI authority. The older single visual_reference is overview-only. Interactive Design Manager preview is supplemental.",
+  "visual_authority_set": [
+    {
+      "id": "01_BASE_VISUAL",
+      "path": "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+      "width": 1400,
+      "height": 560,
+      "bytes": 2836,
+      "sha256": "55eb238fb0b471c449b11382fb1ae3c91ed289a8d0b43d989175a8be6d25ee7b",
+      "covers": [
+        "PRIMARY",
+        "SECONDARY_STRONG",
+        "SECONDARY_MUTED"
+      ],
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1.1"
+    },
+    {
+      "id": "02_SINGLE_BUTTONS",
+      "path": "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+      "width": 1400,
+      "height": 700,
+      "bytes": 2305,
+      "sha256": "c32492dbd3bf6c26dfb3fbac9c7a4823a8a6800bc3fad4f5c8c95fa2a3e2cc4c",
+      "covers": [
+        "登录",
+        "注册并登录"
+      ],
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1.1"
+    },
+    {
+      "id": "03_PAIRED_BUTTONS",
+      "path": "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+      "width": 1400,
+      "height": 760,
+      "bytes": 2889,
+      "sha256": "a470e254f95a802171dc23fd1683dfe22e778c3ea518d5dfdc45f4746163f9a0",
+      "covers": [
+        "继续记录记忆 + 保存本次鱼获 44/56",
+        "手动选择 + 重新拍摄 58/42"
+      ],
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1.1"
+    },
+    {
+      "id": "04_PRIMARY_FIVE_STATES",
+      "path": "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+      "width": 1400,
+      "height": 580,
+      "bytes": 3218,
+      "sha256": "b2923ad413bfd212dcb803a51718c0de86440db74a392d2a72fb46f161acb3e6",
+      "covers": [
+        "PRIMARY Normal",
+        "PRIMARY Pressed",
+        "PRIMARY Loading",
+        "PRIMARY Disabled",
+        "PRIMARY Focus"
+      ],
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1.1"
+    },
+    {
+      "id": "05_SECONDARY_STRONG_FIVE_STATES",
+      "path": "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+      "width": 1400,
+      "height": 580,
+      "bytes": 3473,
+      "sha256": "a7cea50a7d2e228c0a30027acadb5eec32b725c98d5457372c40f738e5de497e",
+      "covers": [
+        "SECONDARY_STRONG Normal",
+        "SECONDARY_STRONG Pressed",
+        "SECONDARY_STRONG Loading",
+        "SECONDARY_STRONG Disabled",
+        "SECONDARY_STRONG Focus"
+      ],
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1.1"
+    },
+    {
+      "id": "06_SECONDARY_MUTED_STATES",
+      "path": "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+      "width": 1400,
+      "height": 640,
+      "bytes": 3164,
+      "sha256": "b64af503aa4795a1b9afa6a6330ff113df6399ac7511e4bedcea116da89795ba",
+      "covers": [
+        "SECONDARY_MUTED Normal",
+        "SECONDARY_MUTED Pressed",
+        "SECONDARY_MUTED Disabled",
+        "SECONDARY_MUTED Focus",
+        "SECONDARY_MUTED Loading = N/A"
+      ],
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1.1"
+    }
+  ],
+  "coverage": {
+    "base_visual": true,
+    "single_buttons": true,
+    "paired_buttons": true,
+    "primary_five_states": true,
+    "secondary_strong_five_states": true,
+    "secondary_muted_four_states": true,
+    "secondary_muted_loading": "N/A"
+  }
 }
