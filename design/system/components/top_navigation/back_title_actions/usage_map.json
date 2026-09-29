@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "variant": "BACK_TITLE_ACTIONS",
+  "mappings": [
+    {
+      "page": "fish_record_detail_v2",
+      "title": "鱼获详情",
+      "background": "BG_CONTENT",
+      "tone": "ON_LIGHT",
+      "actions": [
+        {
+          "id": "fish_guide",
+          "family": "UTILITY",
+          "order": 1
+        },
+        {
+          "id": "share",
+          "family": "UTILITY",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "page": "fish_record_detail_v2",
+      "action": "hero_edit",
+      "reason": "Text Action inside Hero"
+    },
+    {
+      "page": "fish_record_detail_v2",
+      "action": "card_flip",
+      "reason": "B-side local Utility / ON_MEDIA"
+    },
+    {
+      "page": "fish_record_detail_v2",
+      "action": "add_media",
+      "reason": "content/context action"
+    }
+  ],
+  "overflow_rule": "3+ candidate page-level utilities => highest-priority direct action + More"
+}
