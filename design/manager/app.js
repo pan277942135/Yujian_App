@@ -75,37 +75,88 @@ function matchesStatus(status) {
   return !selected || selected === status;
 }
 
+function renderSharedNavItem(item) {
+  const key = "shared/" + item.id;
+  const parent =
+    '<button class="module-item shared-item' + (selectedKey === key ? " active" : "") +
+    '" data-kind="shared" data-id="' + esc(item.id) + '">' +
+    '<div class="module-name"><span>' + esc(item.display_name) + '</span>' +
+    statusBadge(item.overall) + '</div>' +
+    '<div class="module-path">' + esc(CATEGORY_LABELS[item.category] || item.category) +
+    ' · ' + esc(item.current_version) + '</div></button>';
+
+  if (item.id !== "background_system_v1") return parent;
+
+  const children = (item.variants || []).map(v => {
+    const variantKey = "shared/" + item.id + "/" + v.id;
+    return '<button class="shared-subitem' + (selectedKey === variantKey ? " active" : "") +
+      '" data-kind="background-variant" data-id="' + esc(v.id) + '">' +
+      '<span class="subitem-code">' + esc(v.id) + '</span>' +
+      '<span class="subitem-name">' + esc(v.name) + '</span>' +
+      statusBadge(v.status || item.overall) +
+      '</button>';
+  }).join("");
+
+  return parent + '<div class="shared-sublist">' + children + '</div>';
+}
+
+function renderSharedGroup(group, allItems) {
+  const groupMatches = matchesSearch(group);
+  const children = (group.item_ids || [])
+    .map(id => allItems.find(item => item.id === id))
+    .filter(Boolean)
+    .filter(item => matchesStatus(item.overall))
+    .filter(item => groupMatches || matchesSearch(item));
+
+  if (!children.length) return "";
+
+  const groupStatus = group.status || (
+    children.every(item => item.overall === "FROZEN") ? "FROZEN" : "PARTIAL"
+  );
+
+  return '<div class="shared-nav-group">' +
+    '<div class="module-item shared-group-header">' +
+      '<div class="module-name"><span>' + esc(group.display_name) + '</span>' +
+      statusBadge(groupStatus) + '</div>' +
+      '<div class="module-path">公共组件组 · ' + children.length + ' 项</div>' +
+    '</div>' +
+    '<div class="shared-sublist button-spec-sublist">' +
+      children.map(item => {
+        const key = "shared/" + item.id;
+        return '<button class="shared-subitem shared-component-subitem' +
+          (selectedKey === key ? " active" : "") +
+          '" data-kind="shared-component" data-id="' + esc(item.id) + '">' +
+          '<span class="subitem-code">' + esc(item.current_version || "V1") + '</span>' +
+          '<span class="subitem-name">' + esc(item.display_name) + '</span>' +
+          statusBadge(item.overall) +
+          '</button>';
+      }).join("") +
+    '</div>' +
+  '</div>';
+}
+
 function renderLists() {
-  const shared = sharedRegistry.items.filter(x => matchesSearch(x) && matchesStatus(x.overall));
+  const allShared = sharedRegistry.items || [];
+  const groups = sharedRegistry.navigation_groups || [];
+  const groupedIds = new Set(groups.flatMap(group => group.item_ids || []));
+
+  const ungroupedShared = allShared
+    .filter(item => !groupedIds.has(item.id))
+    .filter(item => matchesSearch(item) && matchesStatus(item.overall));
+
+  const groupHtml = groups.map(group => renderSharedGroup(group, allShared)).filter(Boolean);
   const pages = pageRegistry.features.filter(x => matchesSearch(x) && matchesStatus(x.design_overall));
 
-  el("sharedCount").textContent = shared.length;
+  el("sharedCount").textContent = ungroupedShared.length + groupHtml.length;
   el("pageCount").textContent = pages.length;
 
-  el("sharedList").innerHTML = shared.map(item => {
-    const key = "shared/" + item.id;
-    const parent =
-      '<button class="module-item shared-item' + (selectedKey === key ? " active" : "") +
-      '" data-kind="shared" data-id="' + esc(item.id) + '">' +
-      '<div class="module-name"><span>' + esc(item.display_name) + '</span>' +
-      statusBadge(item.overall) + '</div>' +
-      '<div class="module-path">' + esc(CATEGORY_LABELS[item.category] || item.category) +
-      ' · ' + esc(item.current_version) + '</div></button>';
+  const sharedHtml = [
+    ...ungroupedShared.map(renderSharedNavItem),
+    ...groupHtml
+  ].join("");
 
-    if (item.id !== "background_system_v1") return parent;
-
-    const children = (item.variants || []).map(v => {
-      const variantKey = "shared/" + item.id + "/" + v.id;
-      return '<button class="shared-subitem' + (selectedKey === variantKey ? " active" : "") +
-        '" data-kind="background-variant" data-id="' + esc(v.id) + '">' +
-        '<span class="subitem-code">' + esc(v.id) + '</span>' +
-        '<span class="subitem-name">' + esc(v.name) + '</span>' +
-        statusBadge(v.status || item.overall) +
-        '</button>';
-    }).join("");
-
-    return parent + '<div class="shared-sublist">' + children + '</div>';
-  }).join("") || '<div class="preview-empty compact">没有匹配的公共系统</div>';
+  el("sharedList").innerHTML =
+    sharedHtml || '<div class="preview-empty compact">没有匹配的公共系统</div>';
 
   el("pageList").innerHTML = pages.map(feature => {
     const key = "page/" + feature.id;
@@ -149,6 +200,10 @@ function renderLists() {
       if (btn.dataset.kind === "shared") selectShared(btn.dataset.id);
       else selectPage(btn.dataset.id);
     });
+  });
+
+  document.querySelectorAll(".shared-subitem[data-kind='shared-component']").forEach(btn => {
+    btn.addEventListener("click", () => selectShared(btn.dataset.id));
   });
 
   document.querySelectorAll(".shared-subitem[data-kind='background-variant']").forEach(btn => {
