@@ -1,0 +1,28 @@
+{
+  "component": "YuJian Primary / Secondary Action Button",
+  "version": "V1.1",
+  "status": "FROZEN",
+  "visual_reference": {
+    "path": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+    "width": 1600,
+    "height": 1680,
+    "format": "SVG",
+    "bytes": 8133,
+    "sha256": "44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c",
+    "status": "FROZEN",
+    "version": "V1.1"
+  },
+  "covers": [
+    "PRIMARY",
+    "SECONDARY_STRONG",
+    "SECONDARY_MUTED",
+    "confirmed pair 44/56",
+    "low-confidence pair 58/42",
+    "Normal",
+    "Pressed",
+    "Loading",
+    "Disabled",
+    "Focus"
+  ],
+  "note": "Static visual authority. Interactive Design Manager preview is supplemental and must not supersede this reference."
+}
