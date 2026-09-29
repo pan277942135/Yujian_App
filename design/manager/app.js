@@ -793,6 +793,25 @@ function authLivePreviewHtml(feature) {
   '</div>';
 }
 
+function setPanelHidden(id, hidden) {
+  const node = el(id);
+  if (!node) return;
+  node.classList.toggle("hidden", !!hidden);
+}
+
+function applyPageDetailMode(mode) {
+  const overview = mode === "overview";
+  const hifi = mode === "visual" || mode === "behavior" || mode === "hifi-index";
+  const scenario = mode === "scenario";
+
+  setPanelHidden("pageOverviewHero", !overview);
+  setPanelHidden("hifiViewPanel", !hifi);
+  setPanelHidden("scenarioPanel", !scenario);
+
+  ["designSectionsPanel","freezeReviewPanel","sharedRefsPanel","modalitiesPanel","versionsPanel"]
+    .forEach(id => setPanelHidden(id, !overview));
+}
+
 function renderPagePreview(feature) {
   if (feature.live_preview?.type === "auth_page") {
     el("visualPreview").innerHTML = authLivePreviewHtml(feature);
@@ -1143,27 +1162,44 @@ function hifiSearchRulesBoard() {
 }
 
 function myCatchesSearchChildCanvas(child) {
-  if (!child) return '<div class="preview-empty">请选择 B1–B5 子状态。</div>';
+  if (!child) return '<div class="preview-empty">请选择 Search V1 子项。</div>';
+
+  if (child.render_mode === "frozen_image" && child.visual_authority) {
+    return '<div class="frozen-authority-view">' +
+      '<a href="' + esc(repoHref(child.visual_authority)) + '" target="_blank" rel="noreferrer">' +
+        '<img src="' + esc(repoHref(child.visual_authority)) + '" alt="' + esc(child.title) + '">' +
+      '</a>' +
+      '<div class="frozen-authority-caption">FROZEN VISUAL AUTHORITY · 1080×1920 · 无设备外框</div>' +
+    '</div>';
+  }
+
+  if (child.render_mode === "behavior_spec" || child.authority_type === "behavior") {
+    return hifiSearchRulesBoard();
+  }
+
   if (child.render_mode === "search_state") {
     return '<div class="search-state-stage">' +
       bgDataScreen(hifiSearchStateContent(child.state), child.title) +
     '</div>';
   }
-  if (child.render_mode === "search_rules") {
-    return hifiSearchRulesBoard();
-  }
-  return '<div class="preview-empty">该 Search 子状态尚未建立。</div>';
+
+  return '<div class="preview-empty">该子项尚未建立 Authority。</div>';
 }
 
 function myCatchesSearchOverview(view) {
-  const states=(view.children||[]).filter(x=>x.render_mode==="search_state");
-  return '<div class="search-overview">' +
-    '<div class="search-overview-note"><strong>Search V1 已冻结规范</strong>' +
-      '<span>选择左侧 B1–B5 查看独立高保真；B1–B4 使用无手机边框的 9:16 App Canvas。</span></div>' +
-    '<div class="search-overview-grid">' +
-      states.map(child=>'<div class="search-overview-item">' +
-        bgDataScreen(hifiSearchStateContent(child.state), child.title) +
-      '</div>').join("") +
+  const children=view.children||[];
+  return '<div class="authority-index">' +
+    '<div class="authority-index-intro"><strong>Search V1 · Authority Index</strong>' +
+      '<span>B1–B4 为冻结视觉 Authority；B5 为行为合同。选择左侧二级菜单查看对应 Authority。</span></div>' +
+    '<div class="authority-index-grid">' +
+      children.map(child =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(child.title) + '</strong>' +
+            statusBadge(child.status || "PARTIAL") + '</div>' +
+          '<div class="authority-kind">' + esc(child.authority_type === "behavior" ? "BEHAVIOR CONTRACT" : "VISUAL AUTHORITY") + '</div>' +
+          '<p>' + esc(child.summary || "") + '</p>' +
+        '</article>'
+      ).join("") +
     '</div>' +
   '</div>';
 }
@@ -1250,6 +1286,10 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   if(!view){ panel.classList.add("hidden"); return; }
   const child=hifiChildId ? (view.children||[]).find(x=>x.id===hifiChildId) : null;
   panel.classList.remove("hidden");
+  const authorityType = child?.authority_type || view.authority_type || "visual";
+  el("hifiViewEyebrow").textContent =
+    authorityType === "behavior" ? "交互规范" :
+    child ? "冻结高保真 Authority" : "高保真 / Authority 索引";
   el("hifiViewTitle").textContent=child ? child.title : view.title;
   el("hifiViewStatus").innerHTML=statusBadge(child?.status || view.status || "PARTIAL");
   const summary=child?.summary || view.summary;
@@ -1265,12 +1305,15 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     '<button class="hifi-scenario-chip" data-scene-id="'+esc(scene.id)+'">'+esc(scene.title)+'</button>'
   ).join("") || '<span class="preview-empty compact">无附加场景映射</span>';
 
-  el("hifiViewAuthorities").innerHTML=[child?.authority,child?.secondary_authority,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
+  el("hifiViewAuthorities").innerHTML=[child?.visual_authority,child?.behavior_authority,child?.authority,child?.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
     '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
   ).join("");
 
-  if(child && view.rejected_exploration){
-    el("hifiViewSource").textContent="注意：2026-09-29 三张带手机边框 Search 探索图已排除，不属于 Authority。当前画布为按 Search V1 冻结规范重建的无边框 App Canvas。";
+  if(child && child.render_mode === "frozen_image"){
+    el("hifiViewSource").textContent="本子页面只显示自身冻结视觉 Authority；父页面主视觉与旧动态预览均不在此层渲染。";
+    el("hifiViewSource").classList.remove("hidden");
+  } else if(child && child.authority_type === "behavior"){
+    el("hifiViewSource").textContent="本子项为 Behavior Contract，不渲染 App 高保真页面。";
     el("hifiViewSource").classList.remove("hidden");
   } else if(view.source_reference){
     el("hifiViewSource").textContent="历史高保真源稿：" + view.source_reference + "；当前 Design Manager 视图按最新冻结规范重新审视呈现。";
@@ -1505,7 +1548,16 @@ function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null) {
   hideAllDetails();
   el("pageDetail").classList.remove("hidden");
 
-  el("pageEyebrow").textContent = hifiChild ? "渔见 · 高保真二级子页面" : (hifi ? "渔见 · 高保真子页面" : (scene ? "渔见 · 场景 Authority" : "渔见 · 页面模块"));
+  const detailMode = hifiChild
+    ? ((hifiChild.authority_type === "behavior" || hifiChild.render_mode === "behavior_spec") ? "behavior" : "visual")
+    : hifi ? "hifi-index"
+    : scene ? "scenario"
+    : "overview";
+  applyPageDetailMode(detailMode);
+
+  el("pageEyebrow").textContent = hifiChild
+    ? (detailMode === "behavior" ? "渔见 · 行为 Authority" : "渔见 · 视觉 Authority")
+    : (hifi ? "渔见 · Authority 索引" : (scene ? "渔见 · 场景 Authority" : "渔见 · 页面总览"));
   el("pageTitle").textContent = hifiChild ? (feature.display_name + " · " + hifi.title + " · " + hifiChild.title) :
     (hifi ? (feature.display_name + " · " + hifi.title) : (scene ? (feature.display_name + " · " + scene.title) : (feature.display_name || feature.id)));
   el("pageStatus").innerHTML = statusBadge(hifiChild?.status || hifi?.status || scene?.status || feature.design_overall);
