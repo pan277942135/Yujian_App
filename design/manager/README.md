@@ -1,96 +1,94 @@
-# YuJian Design Manager
+# 渔见设计管理
 
-A small, zero-dependency design-governance tool for YuJian / 渔见.
+这是一个轻量、零依赖的渔见设计治理工具。
 
-The V1 scope is intentionally limited to **design management**:
+V1 只管理设计侧内容：
 
-- Behavior
-- Visual
-- Motion
-- Haptic
-- Sound
-- Assets
-- Design versions
-- Authority / freeze state
+- 行为
+- 视觉
+- 动效
+- 震动
+- 声音
+- 资产
+- 设计版本
+- 权威来源与冻结状态
 
-Runtime, Evidence and Work handoff are deliberately outside the V1 UI.
+Runtime、Evidence 和 Work 交接暂不进入 V1 页面。
 
-## Source of truth
+## 数据来源
 
-The manager reads:
+设计管理读取：
 
 `design/registry/experience_registry_v1.json`
 
-Feature-local specs and manifests remain the actual authority. The registry is the cross-feature index.
+各模块自己的规范与 manifest 仍然是真正的设计权威；Registry 只是跨模块索引。
 
-## Open the manager
+## 本地打开
 
-From the repository root:
+在仓库根目录执行：
 
 ```bash
 python3 scripts/design_manager.py serve
 ```
 
-Then open:
+然后打开：
 
 `http://127.0.0.1:8765/design/manager/`
 
-No Node, Vite, database or package installation is required.
+不需要 Node、Vite、数据库，也不需要安装额外依赖。
 
-## Validate
+## 校验
 
 ```bash
 python3 scripts/design_manager.py validate
 ```
 
-Validation checks:
+校验内容包括：
 
-- Design Manager metadata;
-- one display name and one current design version per module;
-- design-only modality completeness;
-- allowed status values;
-- every FROZEN modality has an Authority;
-- every registered Authority / Contract path exists;
-- version visual/spec Authority paths exist.
+- Design Manager 元数据；
+- 每个模块只有一个展示名称和一个当前设计版本；
+- 六个设计维度是否完整；
+- 状态值是否合法；
+- 所有已冻结维度是否存在权威来源；
+- 所有登记的权威来源 / 合同路径是否真实存在；
+- 版本视觉 / 规范权威路径是否真实存在。
 
-Known design gaps such as MISSING, PARTIAL and ACTIVE_CLOSURE do not fail the tool. They are managed work.
+`缺失`、`部分完成`、`收口中` 属于被管理的设计缺口，不会导致工具本身校验失败。
 
-## Summary
+## 汇总
 
 ```bash
 python3 scripts/design_manager.py summary
 ```
 
-Prints the design-only matrix:
+输出设计侧矩阵：
 
-`Behavior / Visual / Motion / Haptic / Sound / Assets`.
+`行为 / 视觉 / 动效 / 震动 / 声音 / 资产`。
 
-## UI
+## 当前页面能力
 
-The manager currently provides:
+1. 模块列表、搜索和状态筛选；
+2. 当前设计版本和整体设计状态；
+3. 当前视觉权威直接预览；
+4. 六个设计维度及其权威来源；
+5. 设计版本历史，包括当前版本、候选版本和废弃版本。
 
-1. module list + search + status filter;
-2. current design version and design overall state;
-3. direct Visual Authority preview when the Authority is an image;
-4. six design-modality cards with Authority links;
-5. design version history, including Current and Candidate versions.
+## Empty Home 样板
 
-## Current Empty Home example
+当前 Empty Home 的设计权威关系为：
 
-The first complete sample is Empty Home:
+- V2：已冻结基础视觉；
+- V2.2：已冻结，当前版本；
+- 历史 V3 收口文档：已废弃，不再作为当前权威。
 
-- V2: FROZEN and current canonical authority;
-- V3: CANDIDATE / active visual-fidelity closure;
-- V3 does not become current until a superseding canonical PNG/manifest is registered.
+## 编辑规则
 
-## Editing rule
+不要把页面展示状态当成第二份 Source of Truth。
 
-Do not edit UI state as a second source of truth.
+正式更新流程：
 
-Update:
+1. 修改模块自己的规范 / 资产 / manifest；
+2. 更新 `design/registry/experience_registry_v1.json`；
+3. 执行 `python3 scripts/design_manager.py validate`。
 
-1. feature-local specs/assets/manifests;
-2. `design/registry/experience_registry_v1.json`;
-3. run `python3 scripts/design_manager.py validate`.
-
-The browser UI is a read-only view of repository authority in V1.
+V1 浏览器页面为只读视图。
