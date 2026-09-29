@@ -1,0 +1,75 @@
+{
+  "component": "text_action",
+  "version": "V1",
+  "status": "ACTIVE_CLOSURE",
+  "candidate": true,
+  "geometry": {
+    "min_touch_width_dp": 44,
+    "min_touch_height_dp": 44,
+    "min_horizontal_hit_padding_dp": 8,
+    "trailing_chevron_dp": 14,
+    "chevron_gap_dp": 4,
+    "single_line": true
+  },
+  "typography": {
+    "STRONG": {
+      "size_sp": 13,
+      "weight": 600
+    },
+    "NORMAL": {
+      "size_sp": 14,
+      "weight": 500
+    },
+    "MUTED": {
+      "size_sp": 13,
+      "weight": 500
+    }
+  },
+  "tones": {
+    "LIGHT": {
+      "STRONG": {
+        "normal": "#168B88",
+        "pressed": "#117F7C"
+      },
+      "NORMAL": {
+        "normal": "#0F7A78",
+        "pressed": "#0C6D6B"
+      },
+      "MUTED": {
+        "normal": "#748897",
+        "pressed": "#657D8A"
+      },
+      "disabled": "#A0ADAF"
+    },
+    "ON_MEDIA": {
+      "normal": "rgba(247,250,251,0.94)",
+      "chevron": "rgba(247,250,251,0.82)",
+      "pressed": "rgba(247,250,251,0.72)",
+      "disabled": "rgba(247,250,251,0.38)",
+      "shadow": "0 1dp 3dp rgba(11,45,75,0.24)"
+    }
+  },
+  "chevron": {
+    "separate_icon": true,
+    "embedded_ascii_prohibited": true,
+    "size_dp": 14,
+    "gap_dp": 4
+  },
+  "states": [
+    "Normal",
+    "Pressed",
+    "Disabled",
+    "Focus"
+  ],
+  "loading": {
+    "supported": false,
+    "state": "N/A"
+  },
+  "focus": {
+    "outline": "2dp #0F7A78",
+    "external_gap_dp": 2,
+    "target": "44dp minimum touch target"
+  },
+  "underline_default": false,
+  "gold": false
+}
