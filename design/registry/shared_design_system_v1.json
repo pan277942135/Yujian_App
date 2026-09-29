@@ -139,27 +139,45 @@
       "display_name": "主拍摄按钮",
       "category": "component",
       "overall": "FROZEN",
-      "current_version": "V1",
+      "current_version": "V2.2",
       "authority_paths": [
         "design/system/components/primary_capture_button/README.md",
         "design/system/components/primary_capture_button/visual_contract.json",
         "design/system/components/primary_capture_button/motion_contract.json",
         "design/system/components/primary_capture_button/haptic_contract.json"
       ],
-      "preview": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+      "preview": null,
       "variants": [
         {
           "id": "home_primary_capture",
           "name": "首页主拍摄",
-          "usage": "空首页 / 有数据首页"
+          "usage": "空首页 / 有数据首页",
+          "status": "FROZEN"
         },
         {
           "id": "archive_primary_capture",
           "name": "档案页主拍摄",
-          "usage": "我的鱼获"
+          "usage": "我的鱼获",
+          "status": "FROZEN"
         }
       ],
-      "note": "白色实体核心、细金边、深湖蓝灰相机图标；页面决定位置和触发行为，不重设计按钮本体。"
+      "note": "V2.2 冻结：白色主体、暖金细边、深湖蓝灰相机图标、轻深度；静态预览至少合成 base + rim，动效预览增加 breath glow。",
+      "preview_type": "layered_component",
+      "preview_layers": [
+        {
+          "path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
+          "role": "glow"
+        },
+        {
+          "path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+          "role": "base"
+        },
+        {
+          "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+          "role": "rim"
+        }
+      ],
+      "preview_note": "Design Manager 必须按三层资产合成按钮；单独 capture_button_base.png 不是完整按钮样式。"
     },
     {
       "id": "top_navigation_v1",
