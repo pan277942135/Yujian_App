@@ -1,0 +1,33 @@
+{
+  "version": "V2",
+  "status": "FROZEN",
+  "page_id": "auth_register_v2",
+  "display_name": "注册 · 创建账号",
+  "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp",
+  "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+  "approved_source": {
+    "dimensions": [
+      941,
+      1672
+    ],
+    "sha256": "9f28450a96c4149c190fe3bef47897a6c069b8221f14c4b54e95479f745d7585"
+  },
+  "preview_derivative": {
+    "dimensions": [
+      520,
+      924
+    ],
+    "format": "webp",
+    "sha256": "e86db2acedd7aea537b2e14a7e3fe766b673f95181566760db5dd3012d2f19e7"
+  },
+  "shared_background": {
+    "master": "Morning_Lake_Master_V1",
+    "variant": "BG_CONTENT",
+    "precedence": "shared background pixels override generated scenic details in the frozen preview"
+  },
+  "footer_decoration": {
+    "type": "waterside_grass",
+    "ownership": "page_foreground",
+    "part_of_background_master": false
+  }
+}
