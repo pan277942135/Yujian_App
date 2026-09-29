@@ -7,6 +7,7 @@ import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.catches.GuestCatchRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.json.JSONArray
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,9 +65,16 @@ class HomeVisualEvidenceSeedTest {
         assertEquals(count, records.size)
         val serializedRecords = preferences.getString(GUEST_RECORDS_KEY, null)
         assertTrue(serializedRecords != null)
+        val visualRecords = JSONArray(serializedRecords)
+        for (index in 0 until visualRecords.length()) {
+            visualRecords.getJSONObject(index)
+                .put("length_cm", 42.6 + index)
+                .put("weight_kg", 1.28 + index * 0.12)
+                .put("location", if (index == 0) "浙江 · 千岛湖" else "清晨湖畔")
+        }
         assertTrue(
             "Guest visual seed was not persisted",
-            preferences.edit().putString(GUEST_RECORDS_KEY, serializedRecords).commit(),
+            preferences.edit().putString(GUEST_RECORDS_KEY, visualRecords.toString()).commit(),
         )
     }
 
