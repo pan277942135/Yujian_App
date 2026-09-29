@@ -13,41 +13,113 @@
         <div class="brand-mark">渔见</div>
         <div>
           <h1>设计管理</h1>
-          <p>设计资产、版本与体验规范</p>
+          <p>公共设计系统 + 页面模块</p>
         </div>
       </div>
 
       <div class="filters">
-        <input id="searchInput" type="search" placeholder="搜索模块…" aria-label="搜索模块">
+        <input id="searchInput" type="search" placeholder="搜索设计系统或页面…" aria-label="搜索">
         <select id="statusFilter" aria-label="按状态筛选">
           <option value="">全部状态</option>
         </select>
       </div>
 
       <div id="summary" class="summary"></div>
-      <nav id="moduleList" class="module-list" aria-label="模块列表"></nav>
+
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <span>公共设计系统</span>
+          <span id="sharedCount" class="nav-count"></span>
+        </div>
+        <nav id="sharedList" class="module-list" aria-label="公共设计系统"></nav>
+      </div>
+
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <span>页面模块</span>
+          <span id="pageCount" class="nav-count"></span>
+        </div>
+        <nav id="pageList" class="module-list" aria-label="页面模块"></nav>
+      </div>
     </aside>
 
     <main class="content">
       <header class="topbar">
         <div>
-          <div class="eyebrow">渔见 · 设计权威管理</div>
+          <div id="pageEyebrow" class="eyebrow">渔见 · 设计权威管理</div>
           <h2 id="pageTitle">设计管理</h2>
         </div>
         <div id="pageStatus"></div>
       </header>
 
       <section id="emptyState" class="empty-state">
-        <h3>选择一个模块</h3>
-        <p>查看当前设计版本、视觉、动效、震动、声音、资产与权威来源。</p>
+        <h3>选择公共设计系统或页面模块</h3>
+        <p>公共元素先冻结，页面通过引用形成统一的产品视觉语言。</p>
       </section>
 
-      <section id="detail" class="detail hidden">
+      <section id="sharedDetail" class="detail hidden">
         <div class="hero-grid">
           <article class="panel overview-panel">
             <div class="panel-head">
               <div>
-                <div class="eyebrow">当前设计权威</div>
+                <div class="eyebrow">公共设计系统</div>
+                <h3 id="sharedName"></h3>
+              </div>
+              <div id="sharedStatus"></div>
+            </div>
+            <div id="sharedMeta" class="meta-grid"></div>
+            <div id="sharedNote" class="note hidden"></div>
+          </article>
+
+          <article class="panel preview-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">设计预览</div>
+                <h3>公共元素参考</h3>
+              </div>
+            </div>
+            <div id="sharedPreview" class="visual-preview"></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">系统变体</div>
+              <h3>允许的公共形态</h3>
+            </div>
+          </div>
+          <div id="variantGrid" class="variant-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">权威与使用范围</div>
+              <h3>权威来源 / 引用页面</h3>
+            </div>
+          </div>
+          <div class="authority-usage-grid">
+            <div>
+              <div class="subheading">权威来源</div>
+              <div id="sharedAuthorities" class="authority-list"></div>
+            </div>
+            <div>
+              <div class="subheading">正在引用的页面</div>
+              <div id="sharedUsage" class="usage-list"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="pageDetail" class="detail hidden">
+        <div class="hero-grid">
+          <article class="panel overview-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">页面设计权威</div>
                 <h3 id="moduleName"></h3>
               </div>
               <div id="overallBadge"></div>
@@ -70,7 +142,17 @@
         <article class="panel">
           <div class="panel-head">
             <div>
-              <div class="eyebrow">设计维度</div>
+              <div class="eyebrow">公共设计引用</div>
+              <h3>本页面使用的公共元素</h3>
+            </div>
+          </div>
+          <div id="sharedRefGrid" class="shared-ref-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">页面设计维度</div>
               <h3>设计完整度</h3>
             </div>
           </div>
@@ -81,7 +163,7 @@
           <div class="panel-head">
             <div>
               <div class="eyebrow">版本历史</div>
-              <h3>版本与冻结关系</h3>
+              <h3>页面版本与冻结关系</h3>
             </div>
           </div>
           <div id="versionTimeline" class="version-timeline"></div>
