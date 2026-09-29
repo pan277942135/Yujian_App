@@ -43,6 +43,12 @@ Status: **FROZEN**
 - **03 · Fish Species States / Visual Authority V1**  
   design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md
 
+- **07 · Motion & Interaction / 动效与交互 — Spec V1**  
+  design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md
+
+- **07 · Motion & Interaction / Frozen Contract V1**  
+  design/pages/fish_guide/motion/motion_contract.json
+
 > Species Detail page-level layout and interaction are FROZEN. The internal content / visual system of the five black-gold knowledge cards remains PARTIAL and is intentionally reviewed separately.
 >
 > Species States V1 freezes state semantics and fallback behavior. The 03 state-flow board does not override the frozen base page shells from 01 / 02.
@@ -158,3 +164,26 @@ Key frozen rules:
 - partial knowledge preserves all five positional slots and the NN/05 index;
 - missing content/media is never silently replaced with fabricated data;
 - 01 / 02 frozen page authorities always override miniature page-shell differences in the 03 flow board.
+
+
+## Motion & Interaction V1
+
+Status: **FROZEN**
+
+Fish Guide motion follows **alive, not animated** and remains user-driven by default.
+
+Frozen interaction rules:
+
+- Home Species Carousel: direct horizontal manipulation; centered settle; no autoplay or loop.
+- Centered species card tap opens Species Detail; adjacent-card tap only centers that species first.
+- First-entry Discover Hint runs once only: 600 ms delay, 14 dp nudge, 180 ms out + 260 ms return; it never changes selected species.
+- Species Detail knowledge carousel remains finite 01–05, user-driven, no Auto Flip / autoplay / timed rotation / loop.
+- NN / 05 and accessibility selection update only after settle.
+- UNLIT→LIT motion occurs only after committed FishRecord data and only when the affected surface is currently visible.
+- No confetti, unlock burst, every-snap haptic, unlock sound, page-entry sound, or automatic ambient audio.
+- Reduce Motion disables Discover Hint and reduces required programmatic transitions to immediate or ≤120 ms while retaining direct user drag.
+
+Authority:
+
+- `design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md`
+- `design/pages/fish_guide/motion/motion_contract.json`
