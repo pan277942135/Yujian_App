@@ -132,6 +132,43 @@ function pagesUsing(sharedId) {
   );
 }
 
+function backgroundVariantPreview(item, variant) {
+  if (item.id !== "background_system_v1") return "";
+
+  if (variant.preview_treatment && item.master?.path) {
+    const t = variant.preview_treatment;
+    const filter = [
+      "saturate(" + Math.round((t.saturation ?? 1) * 100) + "%)",
+      "contrast(" + Math.round((t.contrast ?? 1) * 100) + "%)",
+      "brightness(" + Math.round((t.brightness ?? 1) * 100) + "%)"
+    ].join(" ");
+
+    return '<div class="bg-variant-preview">' +
+      '<img src="' + esc(repoHref(item.master.path)) + '" alt="' + esc(variant.name) +
+      '" style="filter:' + esc(filter) + '">' +
+      '<span class="bg-mist" style="opacity:' + Number(t.mist_alpha || 0) + '"></span>' +
+      '</div>' +
+      '<div class="bg-preview-caption">同一母版 · 雾化 ' +
+      Math.round(Number(t.mist_alpha || 0) * 100) + '% · 饱和度 ' +
+      Math.round(Number(t.saturation || 1) * 100) + '% · 对比度 ' +
+      Math.round(Number(t.contrast || 1) * 100) + '%</div>';
+  }
+
+  if (variant.preview_mode === "dynamic_photo") {
+    return '<div class="bg-mode-preview dynamic-photo-preview">' +
+      '<div class="dynamic-photo-icon">照片</div><div>用户当前照片作为背景</div></div>';
+  }
+
+  if (variant.preview_mode === "solid_fallback") {
+    return '<div class="bg-mode-preview fallback-preview">' +
+      '<span style="background:#F7FAFB"></span>' +
+      '<span style="background:#102D35"></span></div>' +
+      '<div class="bg-preview-caption">浅色内容兜底 / 深色拍摄兜底</div>';
+  }
+
+  return "";
+}
+
 function selectShared(id) {
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
@@ -146,12 +183,17 @@ function selectShared(id) {
   el("pageStatus").innerHTML = statusBadge(item.overall);
   el("sharedName").textContent = item.display_name;
   el("sharedStatus").innerHTML = statusBadge(item.overall);
-  el("sharedMeta").innerHTML = [
+  const sharedMetaRows = [
     ["系统 ID", item.id],
     ["类型", CATEGORY_LABELS[item.category] || item.category],
     ["当前版本", item.current_version],
     ["使用页面", pagesUsing(item.id).length + " 个"]
-  ].map(([label,value]) =>
+  ];
+  if (item.master) {
+    sharedMetaRows.push(["母版尺寸", item.master.width + " × " + item.master.height]);
+    sharedMetaRows.push(["母版 SHA", String(item.master.sha256 || "—").slice(0, 16) + "…"]);
+  }
+  el("sharedMeta").innerHTML = sharedMetaRows.map(([label,value]) =>
     '<div class="meta-card"><div class="meta-label">' + esc(label) +
     '</div><div class="meta-value">' + esc(value) + '</div></div>'
   ).join("");
@@ -164,7 +206,9 @@ function selectShared(id) {
   el("sharedPreview").innerHTML = previewHtml(item.preview, item.display_name, item.preview_note);
 
   el("variantGrid").innerHTML = (item.variants || []).map(v =>
-    '<div class="variant-card"><div class="variant-id">' + esc(v.id) + '</div>' +
+    '<div class="variant-card">' +
+    backgroundVariantPreview(item, v) +
+    '<div class="variant-id">' + esc(v.id) + '</div>' +
     '<div class="variant-name">' + esc(v.name) + '</div>' +
     '<div class="variant-usage">' + esc(v.usage || "") + '</div>' +
     (v.note ? '<div class="variant-note">' + esc(v.note) + '</div>' : '') +
