@@ -45,3 +45,9 @@ Current paired order:
 `重新拍摄` is intentionally lower priority and must not become PRIMARY.
 
 The FishRecord must exist before entering memory-media operations.
+
+
+## Text Action
+
+- `修改鱼种` uses shared Text Action V1 / NORMAL / LIGHT.
+- Chevron is a separate 14dp icon; it is not part of the localized text string.
