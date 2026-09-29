@@ -57,21 +57,45 @@ Runtime note:
 
 - My Catches legacy `29sp / Bold + subtitle` is not shared-component authority and should be aligned during runtime closure.
 
-## 02 · BACK_TITLE
+## 02 · BACK_TITLE — FROZEN
 
-Use for second-level pages such as:
+Frozen authority:
+
+- `design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md`
+- `design/system/components/top_navigation/back_title/visual_contract.json`
+- `design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg`
+- `design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg`
+- `design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg`
+
+Frozen consumers include:
 
 - 识别结果
-- 账号与登录
-- 修改密码
-- 数据与隐私
-- 隐私政策 / legal documents
+- 账号与隐私 family
+- 编辑资料
+- 独立设置 / 法律文档页
 
-Rules:
+Core rules:
 
-- Back uses `Icon Action V1 / NAVIGATION`;
-- title remains dominant over navigation affordance;
-- Back and title are one layout composition, not two page-specific implementations.
+- secondary-page composition is **left aligned after Back**;
+- min content height **56dp**, using `heightIn(min=56dp)`;
+- outer horizontal padding **8dp**;
+- Back target **44×44dp** / glyph **22dp**;
+- Back → title gap **8dp**;
+- title = **20sp / Medium 500 / 26sp line-height**;
+- title color = **DeepLakeBlue #0B2D4B**;
+- one line + Ellipsis;
+- no trailing fake-balance spacer;
+- transparent background;
+- no divider;
+- host page owns safe-area inset;
+- accessibility text may grow the bar vertically;
+- Back states come from `Icon Action V1 / NAVIGATION`.
+
+Runtime notes:
+
+- Recognition Result legacy `25sp / Bold + centered title + text-glyph Back` is not authority.
+- Account PageScaffold legacy `20sp / Bold + 58dp / 10dp` is not authority.
+- Both should converge to the frozen BACK_TITLE contract during runtime closure.
 
 ## 03 · BACK_TITLE_ACTIONS
 
@@ -108,4 +132,4 @@ Reason:
 
 ## Current completion
 
-`TITLE_ONLY` is now FROZEN. `BACK_TITLE` and `BACK_TITLE_ACTIONS` still require detailed visual closure before the parent Top Navigation V1 can become FROZEN.
+`TITLE_ONLY` and `BACK_TITLE` are now FROZEN. `BACK_TITLE_ACTIONS` still requires detailed visual closure before the parent Top Navigation V1 can become FROZEN.
