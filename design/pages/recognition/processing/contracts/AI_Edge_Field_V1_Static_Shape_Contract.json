@@ -150,5 +150,38 @@
     "uniform_energy_nodes",
     "confetti_particles",
     "effect_stronger_than_photo"
-  ]
+  ],
+  "stroke_system": {
+    "composite_layers": {
+      "outer_bloom": {
+        "width_dp": 10,
+        "role": "weak atmospheric diffusion"
+      },
+      "mid_glow": {
+        "width_dp": 4,
+        "role": "soft luminous body"
+      },
+      "core": {
+        "width_dp": "per_path",
+        "role": "hot path identity"
+      }
+    },
+    "core_width_dp": {
+      "G1": 1.1,
+      "B1": 1.2,
+      "B2": 1,
+      "B3": 1.2,
+      "B4": 0.8,
+      "G2": 0.9,
+      "G3": 1.2
+    },
+    "rules": [
+      "same_path_centerline_for_all_layers",
+      "core_width_is_path_specific",
+      "no_global_equal_width_normalization",
+      "outer_mid_are_glow_layers_not_parallel_filaments",
+      "secondary_weight_lower_than_primary",
+      "bloom_must_not_equalize_apparent_thickness"
+    ]
+  }
 }

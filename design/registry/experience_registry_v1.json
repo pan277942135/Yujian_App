@@ -627,7 +627,7 @@
               "secondary_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
-              "summary": "静态拓扑已冻结：AI 光场不是边框，而是四个互不连接的边缘能量岛。旧 Frozen UI 仅作为感知参考；几何/留白/主次关系以本 Static Shape Spec 为准。",
+              "summary": "静态拓扑已冻结：AI 光场由四个互不连接的边缘能量岛构成；每条能量丝采用 Outer 10dp + Mid 4dp + 路径独立 Core 宽度的复合光带，不是单根等宽细线。",
               "static_shape": {
                 "identity": "四个断开的边缘能量岛；整体必须读成局部能量现象，而不是环、框、轨道或 HUD。",
                 "primary_islands": [
@@ -746,7 +746,76 @@
                   "全屏蓝金染色",
                   "Secondary Hairline 连接成第二层边框",
                   "能量节点像装饰灯泡均匀排布"
-                ]
+                ],
+                "stroke_system": {
+                  "identity": "每条能量丝都是多层复合光带，不是单根等宽线。",
+                  "composite_layers": [
+                    {
+                      "layer": "OUTER_BLOOM",
+                      "width": "10dp",
+                      "alpha_role": "最弱",
+                      "purpose": "形成空气感与能量扩散，不承担路径轮廓本身"
+                    },
+                    {
+                      "layer": "MID_GLOW",
+                      "width": "4dp",
+                      "alpha_role": "弱",
+                      "purpose": "建立可见光带厚度与柔和发光边缘"
+                    },
+                    {
+                      "layer": "CORE",
+                      "width": "per-path",
+                      "alpha_role": "主轮廓",
+                      "purpose": "定义每条路径自身的细亮核心"
+                    }
+                  ],
+                  "primary_core_widths": [
+                    {
+                      "path": "G1",
+                      "width_dp": 1.1,
+                      "role": "左上金色主光丝"
+                    },
+                    {
+                      "path": "B1",
+                      "width_dp": 1.2,
+                      "role": "右上蓝色主光丝"
+                    },
+                    {
+                      "path": "B3",
+                      "width_dp": 1.2,
+                      "role": "右下蓝色主光丝"
+                    },
+                    {
+                      "path": "G3",
+                      "width_dp": 1.2,
+                      "role": "左下金色主光丝"
+                    }
+                  ],
+                  "secondary_core_widths": [
+                    {
+                      "path": "B2",
+                      "width_dp": 1,
+                      "role": "右侧中段 Secondary Fragment"
+                    },
+                    {
+                      "path": "G2",
+                      "width_dp": 0.9,
+                      "role": "左侧中段 Secondary Fragment"
+                    },
+                    {
+                      "path": "B4",
+                      "width_dp": 0.8,
+                      "role": "底部 Secondary Fragment"
+                    }
+                  ],
+                  "rules": [
+                    "Core 宽度按路径冻结，不得全部归一成同一宽度。",
+                    "Outer / Mid 是同一条路径的发光层，不得被理解成额外平行光丝。",
+                    "视觉上必须读成有厚度、有层次的光带，而不是单像素发光线。",
+                    "Secondary Fragment 即使 Core 更细，也仍可保留 Mid / Outer，但整体视觉权重必须明显低于 Primary。",
+                    "不得因为叠加 Bloom 使所有路径最终看起来一样粗。"
+                  ]
+                }
               }
             }
           ]

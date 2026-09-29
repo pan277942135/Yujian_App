@@ -175,7 +175,49 @@ Primary filament centerlines belong to the outer edge band.
 
 The component should feel attached to the **edge atmosphere**, not laid on top of the subject.
 
-## 7. Internal visual hierarchy
+## 7. Composite stroke system
+
+AI Edge Field is **not** made of single hairline strokes.
+
+Each visible filament is a layered energy band composed from the same path geometry:
+
+| Layer | Width | Role |
+| --- | ---: | --- |
+| Outer Bloom | 10dp | broadest, weakest atmospheric diffusion |
+| Mid Glow | 4dp | soft luminous body |
+| Core | per-path | thin hot center that preserves path identity |
+
+The three layers belong to **one filament**, not three parallel filaments.
+
+### Per-path Core widths
+
+Primary islands:
+
+| Path | Core width | Role |
+| --- | ---: | --- |
+| G1 | 1.1dp | upper-left gold primary |
+| B1 | 1.2dp | upper-right blue primary |
+| B3 | 1.2dp | lower-right blue primary |
+| G3 | 1.2dp | lower-left gold primary |
+
+Secondary fragments:
+
+| Path | Core width | Role |
+| --- | ---: | --- |
+| B2 | 1.0dp | right-mid secondary fragment |
+| G2 | 0.9dp | left-mid secondary fragment |
+| B4 | 0.8dp | bottom secondary fragment |
+
+Frozen rules:
+
+- Core width is path-specific and must not be normalized to one universal width.
+- Outer / Mid / Core share the same path centerline.
+- Outer Bloom and Mid Glow are glow layers, not additional neighboring strands.
+- Secondary fragments may retain the same composite-layer structure, but their overall visual weight remains substantially below Primary islands.
+- Bloom stacking must not make every path appear equally thick.
+- A representative still should read as **layered luminous energy bands with subtle thickness variation**, not seven identical glowing strings.
+
+## 8. Internal visual hierarchy
 
 Normalize Primary Filament = 1.00.
 
@@ -193,7 +235,7 @@ The important rule is:
 
 > no secondary layer may become visually stronger than the primary filament structure.
 
-## 8. Color ownership
+## 9. Color ownership
 
 Primary color distribution is asymmetric but stable:
 
@@ -204,7 +246,7 @@ Secondary fragments may mix subtly, but the frame must not become a repeated blu
 
 The purpose is to create a calm directional field, not decorative RGB edging.
 
-## 9. Asymmetry contract
+## 10. Asymmetry contract
 
 Static Shape must remain intentionally irregular.
 
@@ -223,7 +265,7 @@ Forbidden:
 - evenly spaced energy nodes;
 - repeated decorative rhythm.
 
-## 10. Hard failures
+## 11. Hard failures
 
 Any of the following is an automatic Static Shape failure:
 
@@ -238,7 +280,7 @@ Any of the following is an automatic Static Shape failure:
 9. particles reading as confetti;
 10. AI effect visually stronger than the captured photograph.
 
-## 11. Existing visual references
+## 12. Existing visual references
 
 Perceptual reference:
 
@@ -251,7 +293,7 @@ Engineering infographic:
 
 These images help communicate visual feeling, but **this Static Shape Spec is the topology authority** whenever older reference images can be interpreted as a continuous perimeter.
 
-## 12. Existing path identity
+## 13. Existing path identity
 
 The existing normalized Bézier families remain useful geometry seeds:
 
@@ -272,7 +314,7 @@ This is the key V1 clarification:
 
 > all seven paths are not equal persistent primary strokes.
 
-## 13. Acceptance question
+## 14. Acceptance question
 
 Freeze a representative frame and ask only one question:
 
@@ -280,7 +322,7 @@ Freeze a representative frame and ask only one question:
 
 If the answer is “it looks like a frame, ring, orbit, scanner, or decorated border,” the Static Shape fails.
 
-## 14. What is not frozen here
+## 15. What is not frozen here
 
 Deferred to **04 · Motion & Transition**:
 
