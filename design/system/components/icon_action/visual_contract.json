@@ -1,0 +1,78 @@
+{
+  "component": "icon_action",
+  "version": "V1",
+  "status": "ACTIVE_CLOSURE",
+  "candidate": true,
+  "families": {
+    "NAVIGATION": {
+      "glyph_dp": 22,
+      "examples": [
+        "back",
+        "close"
+      ]
+    },
+    "UTILITY": {
+      "glyph_dp": [
+        20,
+        22
+      ],
+      "examples": [
+        "card_flip",
+        "share",
+        "fish_guide",
+        "search",
+        "filter",
+        "more",
+        "edit"
+      ]
+    },
+    "CONTEXT": {
+      "glyph_dp": [
+        18,
+        20
+      ],
+      "examples": [
+        "clear",
+        "visibility",
+        "voice",
+        "add_media"
+      ]
+    }
+  },
+  "geometry": {
+    "min_touch_target_dp": 44,
+    "default_container": "transparent",
+    "on_media_support_disc": {
+      "enabled_when_needed": true,
+      "diameter_dp": 36,
+      "fill": "rgba(8,25,38,0.16)",
+      "edge": "1dp rgba(255,255,255,0.18)"
+    }
+  },
+  "tones": {
+    "ON_LIGHT": {
+      "normal": "rgba(11,45,75,0.88)",
+      "pressed": "#0F7A78",
+      "disabled": "rgba(116,136,151,0.38)"
+    },
+    "ON_MEDIA": {
+      "normal": "rgba(247,250,251,0.94)",
+      "pressed": "rgba(247,250,251,0.78)",
+      "disabled": "rgba(247,250,251,0.38)"
+    }
+  },
+  "states": [
+    "Normal",
+    "Pressed",
+    "Disabled",
+    "Focus"
+  ],
+  "loading": "N/A",
+  "focus": {
+    "outline": "2dp #0F7A78",
+    "external_gap_dp": 2,
+    "target_dp": 44
+  },
+  "gold": false,
+  "press_scale": false
+}
