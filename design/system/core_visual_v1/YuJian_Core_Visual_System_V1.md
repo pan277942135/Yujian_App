@@ -40,26 +40,53 @@ Canonical shared background authority:
 
 `design/system/backgrounds/morning_lake_v1/`
 
-All non-capture lake pages share **Morning Lake Master V1**. Pages select a treatment variant instead of owning a separate lake world.
+YuJian uses one Morning Lake visual family with **two frozen source masters**:
+
+- `Morning_Lake_Sunrise_Hero_V1` — sunrise / sun visible / **Empty Home only**
+- `Morning_Lake_Master_V1` — no-sun misty lake / default source for every other lake page
+
+Pages do not own independent lake-world backgrounds.
 
 ### BG_ENV_HERO
-Use: Empty Home / Normal Home. Environment participates in the story.
+
+- Empty Home → Sunrise Hero master
+- Normal Home → no-sun Morning Lake master
+
+Both use the same frozen hero treatment level; only the source master differs.
 
 ### BG_CONTENT
-Use: Recognition Result / FishRecordDetail / Account / Form pages. Same master, reduced salience.
+
+Use: Recognition Result / FishRecordDetail / Login / Account / Form pages.
+
+Source: no-sun Morning Lake master.
 
 ### BG_DATA
-Use: My Catches / Fish Guide. Same master, reduced further for dense content.
+
+Use: My Catches / Fish Guide and other dense archive pages.
+
+Source: no-sun Morning Lake master.
 
 ### BG_CAPTURE
-Use: Recognition Processing. The current user photo is the background; Morning Lake is not rendered.
+
+Use: Recognition Processing.
+
+The current user photo is the background; Morning Lake is not rendered.
 
 ### BG_SOLID_FALLBACK
+
 Use only for missing-image / load-failure / transient error states.
 
-Exact treatment ranges, provenance and usage mapping are governed by the Morning Lake Background System V1.
+Exact frozen parameters, source-master mapping, hashes and page usage are governed by the Morning Lake Background System V1.
 
-Forbidden: neon, night HUD, strong HDR, orange-red sunset treatment, tourism-poster sunlight, page-by-page unrelated lake worlds.
+Forbidden:
+
+- page-by-page unrelated lake worlds
+- adding a sun to non-Empty-Home pages
+- neon / night HUD
+- strong HDR
+- orange-red sunset treatment outside the Sunrise Hero source
+- screenshot-derived replacement backgrounds
+- global blur
 
 ## 4. Color
 See `tokens/color_tokens.json`.
