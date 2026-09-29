@@ -16,7 +16,7 @@
     {
       "id": "home_empty_v2",
       "owner_path": "design/pages/home/empty_home",
-      "overall": "ACTIVE_CLOSURE",
+      "overall": "FROZEN",
       "modalities": {
         "behavior": {
           "status": "FROZEN",
@@ -24,7 +24,8 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/system/core_visual_v1/reference/empty_home_v2.png"
+          "authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
+          "note": "Authority = V2 base PNG + V2.2 approved delta contract. V3 historical closure is DEPRECATED."
         },
         "motion": {
           "status": "FROZEN",
@@ -42,18 +43,20 @@
         },
         "runtime": {
           "status": "FROZEN",
-          "authority": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json"
+          "authority": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
+          "note": "API28 required runtime gate PASS on main 38ba0e5c02731b99dcea825f88d4da9b48e11b81."
         },
         "evidence": {
           "status": "FROZEN",
-          "authority": "design/pages/home/empty_home/evidence/manifest.json"
+          "authority": "design/pages/home/empty_home/evidence/manifest.json",
+          "note": "Latest V2.2 revalidation PASS: Android CI 36514649405 / artifact 11011440570."
         },
         "assets": {
           "status": "FROZEN",
           "authority": "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
         }
       },
-      "note": "当前设计权威为 V2 基础稿 + 已批准的 V2.2 增量冻结。Runtime / Evidence 的重新验证单独跟踪，不影响设计冻结状态。",
+      "note": "Empty Home Spec Closure V1 已完成：Home 仅有一个产品表面，Empty / Normal 由有效 FishRecord 数量决定；组件归属、Layer/Z-order 与 V2.2 Runtime Evidence 已闭环。当前设计与 Android Runtime/Evidence 均为 PASS，正式标记 EMPTY HOME · FROZEN。",
       "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md",
       "display_name": "空首页",
       "design_versions": [
@@ -99,7 +102,122 @@
         {
           "id": "spacing_radius_v1"
         }
-      ]
+      ],
+      "closure": {
+        "status": "FROZEN",
+        "marker": "EMPTY HOME · FROZEN",
+        "authority": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md",
+        "closed_on": "2026-09-29",
+        "state_relationship": "CONFIRMED",
+        "component_ownership": "CONFIRMED",
+        "layer_z_order": "CONFIRMED",
+        "runtime_evidence": "PASS"
+      },
+      "runtime_evidence": {
+        "status": "PASS",
+        "implementation_main_sha": "38ba0e5c02731b99dcea825f88d4da9b48e11b81",
+        "android_ci_run_id": 36514649405,
+        "runtime_job_id": 109235222108,
+        "runtime_gate": "empty-home-v2",
+        "api_level": 28,
+        "artifact_id": 11011440570,
+        "artifact_digest": "sha256:a63234258d02fd0487e01f49e78d9299f14971419be49f76cac04f5bad97969a",
+        "validation_model": "V2 base/unchanged regions use pixel parity; V2.2 CTA and fishing-composition deltas use frozen geometry plus real-runtime visibility/variance."
+      },
+      "design_sections": [
+        {
+          "id": "EH-C1",
+          "title": "State Relationship",
+          "status": "FROZEN",
+          "summary": "Empty Home 与 Normal Home 是同一个 HomeScreen 的两个内容状态，不是两套首页。",
+          "points": [
+            "EMPTY：有效 FishRecord 数量 = 0。",
+            "NORMAL：有效 FishRecord 数量 ≥ 1。",
+            "登录/游客状态与 Empty/Normal 状态正交，不能用于选择首页形态。",
+            "拍摄、相册、账号入口继续复用生产回调；禁止复制第二套 Home / Camera / Picker 流程。"
+          ],
+          "authority": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md"
+        },
+        {
+          "id": "EH-C2",
+          "title": "Component Ownership",
+          "status": "FROZEN",
+          "summary": "公共系统与 Empty Home 私有构图边界已冻结，公共组件升级不得反向破坏页面私有视觉。",
+          "points": [
+            "Shared：BG_ENV_HERO / Morning_Lake_Sunrise_Hero_V1。",
+            "Shared：Primary Capture Button / home_primary_capture。",
+            "Shared：Color & Typography、Spacing & Radius。",
+            "Page-owned：品牌头部构图、Hero Copy 与金色收笔、鱼竿/鱼线/鱼漂/水面接触/波纹。",
+            "品牌头部不是通用 TopNavigation；登录/相册复用既有行为回调，但页面落位属于 Empty Home 合同。"
+          ],
+          "authority": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md"
+        },
+        {
+          "id": "EH-C3",
+          "title": "Layer / Z-order",
+          "status": "FROZEN",
+          "summary": "视觉遮挡顺序与水面接触关系已明确，逻辑层不要求全部拆成独立位图资产。",
+          "points": [
+            "鱼线从 rod tip (335,1180) 起，终点 (560,1328) 必须落在 water contact (560,1320) 之后/之下。",
+            "水面接触层遮挡鱼漂水下部分；禁止完整鱼漂贴在水面。",
+            "Ripple 位于水面效果层、露出鱼漂下方；只允许 1 组。",
+            "Native UI 与 Camera CTA 位于环境/钓鱼层之上；Camera CTA 为最高可操作焦点。"
+          ],
+          "authority": "design/pages/home/empty_home/shared/contracts/layer_contract.json"
+        },
+        {
+          "id": "EH-C4",
+          "title": "Design Manager Runtime Evidence",
+          "status": "FROZEN",
+          "summary": "V2.2 已在当前 main 的 API 28 required runtime gate 重新验证通过。",
+          "points": [
+            "Main SHA：38ba0e5c02731b99dcea825f88d4da9b48e11b81。",
+            "Android CI：36514649405；empty-home-v2 job：109235222108；API 28；PASS。",
+            "Artifact：11011440570；digest sha256:a63234258d02fd0487e01f49e78d9299f14971419be49f76cac04f5bad97969a。",
+            "验证模型：V2 未改区域像素 parity + V2.2 CTA/钓鱼构图 frozen contract + real runtime visibility/variance。"
+          ],
+          "authority": "design/pages/home/empty_home/evidence/manifest.json"
+        }
+      ],
+      "freeze_review": {
+        "title": "EMPTY HOME · FROZEN",
+        "state": "CONFIRMED",
+        "note": "Empty Home Spec Closure V1 已完成。后续只允许 Runtime parity / defect 修复；任何视觉或交互重设计必须新开 authority version。",
+        "items": [
+          {
+            "id": "EH-FREEZE-01",
+            "title": "State Relationship",
+            "status": "CONFIRMED",
+            "decision": "HomeScreen 单一产品表面；0 条有效鱼获进入 Empty，≥1 条进入 Normal；Session/Auth 不参与状态选择。",
+            "blocking": true,
+            "authority": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md"
+          },
+          {
+            "id": "EH-FREEZE-02",
+            "title": "Component Ownership",
+            "status": "CONFIRMED",
+            "decision": "Shared 与 Page-owned 边界冻结；品牌头部不误归类为 TopNavigation，钓鱼场景构图属于 Empty Home 私有合同。",
+            "blocking": true,
+            "authority": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md"
+          },
+          {
+            "id": "EH-FREEZE-03",
+            "title": "Layer / Z-order",
+            "status": "CONFIRMED",
+            "decision": "水面遮挡、鱼漂上下水体关系、Ripple、鱼线连接与 CTA 顶层关系均已冻结。",
+            "blocking": true,
+            "authority": "design/pages/home/empty_home/shared/contracts/layer_contract.json"
+          },
+          {
+            "id": "EH-FREEZE-04",
+            "title": "Runtime Evidence",
+            "status": "CONFIRMED",
+            "decision": "当前 main / API28 required gate 已 PASS，V2.2 差异区采用 contract evidence，避免旧 V2 像素误判。",
+            "blocking": true,
+            "authority": "design/pages/home/empty_home/evidence/manifest.json"
+          }
+        ]
+      }
     },
     {
       "id": "home_normal_v1",

@@ -1,128 +1,135 @@
 # Empty Home V2 — Experience Audit V1
 
-Audit status: **COMPLETE WITH ONE ACTIVE VISUAL CLOSURE**
+Audit status: **COMPLETE / FROZEN**  
+Closure marker: **`EMPTY HOME · FROZEN`**  
 Governance: `design/governance/YuJian_Experience_Source_of_Truth_V1.md`
 
 ## 1. Executive result
 
-Empty Home is the first YuJian reference module for full-experience governance.
+Empty Home has complete repository authority for Behavior, Visual, Motion, Haptic, Sound policy, Assets, Android Runtime and Runtime Evidence.
 
-Its Behavior, frozen Visual V2, Motion, Haptic, Sound policy, Assets, Android Runtime mapping and
-runtime Evidence all have repository authority.
+The current visual authority is **V2 base + V2.2 approved delta**. The previous V3 fidelity-closure document is deprecated and is not current authority.
 
-The only active closure is visual-fidelity work governed by
-`spec/Empty_Home_Final_Visual_Fidelity_V3.md`. That document does not supersede the canonical
-V2 frozen PNG. A future visual authority change requires a new canonical binary + manifest/hash.
+`spec/Empty_Home_Spec_Closure_V1.md` closes the final four governance gaps:
+
+- State Relationship
+- Component Ownership
+- Layer / Z-order
+- Design Manager Runtime Evidence
+
+There are no open design items.
 
 ## 2. Modality matrix
 
 | Modality | Status | Authority | Audit result |
 | --- | --- | --- | --- |
-| Behavior | FROZEN | `spec/Empty_Home_Feature_Spec_V2.md` | EMPTY derives from no fish records; existing capture/album/account callbacks reused. |
-| Visual | FROZEN | `design/system/core_visual_v1/reference/empty_home_v2.png` | Canonical V2 binary and SHA-256 registered. V3 is closure-only, not a replacement binary. |
-| Motion | FROZEN | `motion/Empty_Home_Motion_Spec_V2.md` + `shared/contracts/motion_contract.json` | Bobber/ripple/cloud/sun/camera motion numerically defined; Reduce Motion defined. |
-| Haptic | FROZEN | `haptic/Empty_Home_Haptic_Spec_V1.md` + `shared/contracts/haptic_contract.json` | Camera light impact; album platform light click; no entry/idle/environment haptics. |
-| Sound | FROZEN | `sound/Empty_Home_Sound_Spec_V1.md` + `shared/contracts/sound_contract.json` | Explicit no-playback contract. Packaged lake audio is deferred and does not authorize playback. |
-| Assets | FROZEN | `shared/contracts/asset_manifest.json` + `runtime_manifest.json` | Source/runtime derivative split and hashes are registered. |
-| Runtime | FROZEN baseline | `shared/contracts/runtime_manifest.json` + Android Home implementation | API28 runtime gate passed on main at the recorded baseline. |
-| Evidence | FROZEN baseline | `evidence/manifest.json` + `status.json` | Latest registered runtime-gate run is indexed; large video evidence remains an Actions artifact. |
+| Behavior | FROZEN | `spec/Empty_Home_Feature_Spec_V2.md` + Closure V1 | Empty derives only from valid FishRecord count; existing capture/album/account callbacks are reused. |
+| Visual | FROZEN | V2 base + V2.2 delta | V2 remains base pixel authority; V2.2 owns approved CTA and fishing-composition deltas. |
+| Motion | FROZEN | `motion/Empty_Home_Motion_Spec_V2.md` | Bobber/ripple/cloud/sun/camera motion and Reduce Motion are defined. |
+| Haptic | FROZEN | `haptic/Empty_Home_Haptic_Spec_V1.md` | No automatic entry/environment haptic; user actions follow frozen semantics. |
+| Sound | FROZEN | sound contract | No automatic or interaction playback. |
+| Assets | FROZEN | asset/runtime manifests | Source/runtime split and hashes are registered. |
+| Runtime | FROZEN / PASS | runtime manifest + production implementation | Required API28 gate passed at current main authority. |
+| Evidence | FROZEN / PASS | `evidence/manifest.json` | V2.2 required runtime evidence is registered and passing. |
 
-## 3. Frozen visual authority
+## 3. Visual authority
 
-Canonical:
+Base:
 
-`design/system/core_visual_v1/reference/empty_home_v2.png`
+- `design/system/core_visual_v1/reference/empty_home_v2.png`
+- SHA-256: `30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b`
 
-SHA-256:
+Approved delta:
 
-`30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b`
+- `spec/Empty_Home_Frozen_Visual_Revision_V2_2.md`
+- approved source SHA-256: `3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec`
 
-Immutable page source:
+V2.2 supersedes V2 only for capture CTA clarity/spacing and rod-line-bobber-water-contact composition. The historical V3 document is **DEPRECATED**.
 
-`source/frozen/Empty_Home_Final_Design_V2.png`
+## 4. State Relationship
 
-The current `Empty_Home_Final_Visual_Fidelity_V3.md` is an **ACTIVE_CLOSURE contract**.
-It may refine runtime fidelity against V2 but does not create a new frozen visual source by itself.
+Empty Home and Normal Home are two content states of a single HomeScreen.
 
-## 4. Interaction contract
+- 0 valid FishRecords → Empty
+- ≥1 valid FishRecord → Normal
+- authentication/session state is orthogonal
+- first save / last deletion changes state through the same authoritative record collection
+- no duplicate Home, camera, picker or navigation flow is allowed
 
-- Empty Home is selected only when valid FishRecords are empty.
-- Session/login state does not select Empty vs Normal Home.
-- Camera uses the existing identify path.
-- Album uses the existing picker path.
-- Account/login uses the existing account path.
-- No duplicate CameraX, picker or Home flow is permitted.
+## 5. Component Ownership
 
-## 5. Motion contract
+Shared system authority:
 
-Frozen values include:
+- Background System V1 / BG_ENV_HERO
+- Empty-specific Sunrise Hero master selection
+- Primary Capture Button / home_primary_capture
+- Color & Typography
+- Spacing & Radius
+- existing production callbacks
 
-- Bobber: Y only, ±3 reference px, 4600 ms.
-- Ripple: exactly one, 1.00→1.22, alpha 0.30→0, 3200 ms.
-- Cloud: about 0.2 reference px/s.
-- Sun particles: 4.8 s, 6–12 particles, alpha ≤0.18.
-- Camera breath: ~5000 ms, scale ≤1.015.
-- Camera gold rim: first ~3000 ms, ~1400 ms duration, ~9000 ms interval.
-- Environmental phases are intentionally non-synchronous.
-- Reduce Motion stops environmental looping while preserving the static scene.
+Empty Home owns its brand-header composition, Hero composition and fishing/water-contact composition.
 
-## 6. Haptic contract
+The brand header is not TopNavigation V1.
 
-- Camera tap: Android light-impact equivalent, 20 ms semantic hint.
-- Album tap: platform light-click convention.
-- Page entry: none.
-- Idle/bobber/ripple/environment animation: none.
+## 6. Layer / Z-order
 
-No automatic haptic is permitted merely because the page appears or its atmosphere animates.
+Machine-readable authority: `shared/contracts/layer_contract.json`.
 
-## 7. Sound contract
+Critical frozen rules:
 
-Current Empty Home V2 is intentionally silent.
+- water surface occludes the submerged bobber;
+- ripple remains a single water-surface effect below the exposed bobber;
+- line begins at rod tip and finishes behind/below the bobber contact;
+- the complete bobber must not be rendered as a sticker above the water;
+- native UI and Camera CTA remain above environment layers.
 
-`lake_morning.mp3` exists as a deferred packaged resource but is disabled and is not current sound
-authority. Runtime must not play it until a future version explicitly freezes settings and playback rules.
+## 7. Motion / Haptic / Sound
 
-## 8. Evidence baseline
+Motion remains numerically frozen by Motion V2. Reduce Motion stops nonessential looping while preserving semantics.
 
-Latest indexed Android CI runtime gate:
+No automatic haptic occurs on page entry or idle environmental motion.
 
-- run: `36386342604`
-- main SHA: `94a99f9a7c848e4bb124c5c454dcf42b3236f74b`
-- result: `success`
-- Empty Home runtime artifact: `10955156190`
-- artifact digest: `sha256:9edd3391deb6a11c8a9afb2f7a1248a79fe9d322ebd5c9f693d0a17dc57f683a`
-- API: 28
-- runtime classification: PASS
+Empty Home remains silent; packaged lake audio does not authorize playback.
 
-The evidence manifest also preserves the prior full visual-parity baseline for traceability.
+## 8. Runtime Evidence
 
-## 9. Open closure
+Latest required pass:
 
-### EH-OPEN-01 — visual authority after V2
+- Android CI run: `36514649405`
+- main SHA: `38ba0e5c02731b99dcea825f88d4da9b48e11b81`
+- empty-home-v2 runtime job: `109235222108`
+- API: `28`
+- result: **PASS**
+- artifact: `11011440570`
+- artifact digest: `sha256:a63234258d02fd0487e01f49e78d9299f14971419be49f76cac04f5bad97969a`
 
-Repository state currently contains a V3 visual-fidelity closure document but no superseding canonical
-V3 frozen PNG/manifest entry.
+V2.2 evidence uses a hybrid model: valid V2 pixel parity for unchanged areas and frozen geometry/runtime evidence for approved V2.2 delta regions.
 
-Therefore:
+## 9. Closure result
 
-- V2 remains the only canonical pixel authority.
-- Any newer approved visual adjustment must be archived as a new canonical visual version before
-  Work or frontend treats it as source of truth.
-- A screenshot/chat approval alone must not supersede V2.
+| Closure item | Result |
+| --- | --- |
+| State Relationship | CONFIRMED |
+| Component Ownership | CONFIRMED |
+| Layer / Z-order | CONFIRMED |
+| Runtime Evidence | PASS |
+
+**Blocking open items: 0**
+
+# `EMPTY HOME · FROZEN`
 
 ## 10. Work / frontend handoff
 
-A Work task implementing Empty Home must begin from this order:
+Implementation work must begin from:
 
-1. this audit;
-2. Feature Spec V2;
-3. canonical V2 frozen visual + Visual Spec;
-4. Motion V2;
-5. Haptic V1;
-6. Sound V1;
-7. runtime/asset contracts;
-8. Acceptance Criteria V2;
-9. evidence manifest;
-10. V3 active-closure document only for unresolved fidelity correction.
+1. `spec/Empty_Home_Spec_Closure_V1.md`
+2. Feature Spec V2
+3. V2 base visual
+4. V2.2 delta contract
+5. layer contract
+6. Motion / Haptic / Sound contracts
+7. runtime and asset manifests
+8. Acceptance Criteria
+9. evidence manifest
 
-No implementation task may redesign a modality that is already FROZEN.
+Existing frozen modalities must not be redesigned during runtime parity work.

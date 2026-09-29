@@ -1,6 +1,7 @@
 {
-  "design_version": "Empty_Home_Final_Design_V2",
-  "order": [
+  "design_version": "Empty_Home_V2_BASE_PLUS_V2_2_DELTA",
+  "authority_model": "V2_BASE_PLUS_V2_2_DELTA",
+  "implementation_order": [
     "scene_base",
     "cloud_atmosphere",
     "sun_ambient",
@@ -10,10 +11,46 @@
     "bobber",
     "native_ui"
   ],
+  "semantic_z_order_bottom_to_top": [
+    "scene_base",
+    "cloud_atmosphere",
+    "sun_ambient",
+    "rod",
+    "fishing_line",
+    "bobber_underwater",
+    "water_surface_contact",
+    "ripple_reflection",
+    "bobber_above_water",
+    "foreground_scene_occlusion",
+    "native_content_ui",
+    "camera_cta"
+  ],
   "rules": {
+    "semantic_layers_may_be_baked_into_assets": true,
+    "foreground_scene_occlusion_may_be_baked_into_scene_base": true,
     "native_ui_is_baked": false,
-    "ripple_below_bobber": true,
+    "water_surface_occludes_bobber_underwater": true,
+    "ripple_below_bobber_above_water": true,
     "ripple_count": 1,
-    "scene_base_has_baked_ripple": false
+    "scene_base_has_baked_ripple": false,
+    "line_start_reference_px": [
+      335,
+      1180
+    ],
+    "line_end_reference_px": [
+      560,
+      1328
+    ],
+    "bobber_water_contact_reference_px": [
+      560,
+      1320
+    ],
+    "line_endpoint_tucks_below_contact": true,
+    "camera_cta_is_topmost_actionable_layer": true
+  },
+  "authority": {
+    "base_visual": "design/system/core_visual_v1/reference/empty_home_v2.png",
+    "approved_delta": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
+    "closure": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md"
   }
 }

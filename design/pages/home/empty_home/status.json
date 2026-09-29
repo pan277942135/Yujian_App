@@ -12,8 +12,8 @@
   "motion_contract": "PASS",
   "haptic_contract": "PASS",
   "sound_contract": "PASS_NO_PLAYBACK",
-  "android_runtime": "PENDING_REVALIDATION",
-  "android_evidence": "PENDING_REVALIDATION",
+  "android_runtime": "PASS",
+  "android_evidence": "PASS",
   "source_sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
   "previous_verified_ci": {
     "android_ci_run_id": 36386342604,
@@ -24,5 +24,18 @@
     "api_level": 28,
     "classification": "PASS"
   },
-  "design_open_items": []
+  "design_open_items": [],
+  "closure_marker": "EMPTY HOME · FROZEN",
+  "spec_closure": "PASS",
+  "verified_ci": {
+    "android_ci_run_id": 36514649405,
+    "design_assets_run_id": 36514649373,
+    "implementation_main_sha": "38ba0e5c02731b99dcea825f88d4da9b48e11b81",
+    "runtime_job_id": 109235222108,
+    "runtime_gate_artifact_id": 11011440570,
+    "runtime_gate_artifact_digest": "sha256:a63234258d02fd0487e01f49e78d9299f14971419be49f76cac04f5bad97969a",
+    "runtime_gate": "empty-home-v2",
+    "api_level": 28,
+    "classification": "PASS"
+  }
 }
