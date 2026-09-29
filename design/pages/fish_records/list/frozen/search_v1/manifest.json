@@ -1,0 +1,30 @@
+{
+  "version": "Search_V1",
+  "status": "FROZEN",
+  "freeze_date": "2026-09-29",
+  "visual_authorities": [
+    {
+      "id": "B1",
+      "path": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
+      "type": "visual"
+    },
+    {
+      "id": "B2",
+      "path": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
+      "type": "visual"
+    },
+    {
+      "id": "B3",
+      "path": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
+      "type": "visual"
+    },
+    {
+      "id": "B4",
+      "path": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg",
+      "type": "visual"
+    }
+  ],
+  "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+  "b5_type": "behavior_contract",
+  "note": "B1–B4 为静态冻结视觉 Authority；B5 为行为规范，不渲染为 App 页面。"
+}
