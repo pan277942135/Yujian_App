@@ -341,8 +341,12 @@ function renderBackgroundVariantWorkspace(item, variantId) {
     item.usage_map_path
   ].filter((value,index,array) => value && array.indexOf(value) === index);
 
-  if (["BG_ENV_HERO","BG_CONTENT","BG_DATA"].includes(variantId) && item.master?.path) {
-    authorityPaths.unshift(item.master.path);
+  if (["BG_ENV_HERO","BG_CONTENT","BG_DATA"].includes(variantId)) {
+    const sourcePaths = (variant.preview_sources || []).map(source => source.path).filter(Boolean);
+    if (!sourcePaths.length && item.master?.path) sourcePaths.push(item.master.path);
+    for (const path of sourcePaths.reverse()) {
+      if (!authorityPaths.includes(path)) authorityPaths.unshift(path);
+    }
   }
 
   el("backgroundVariantAuthority").innerHTML = authorityPaths.map(path =>
