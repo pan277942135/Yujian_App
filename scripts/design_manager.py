@@ -225,6 +225,40 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
             if current_count != 1:
                 errors.append(f"{feature_id}: exactly one design version must be current; found {current_count}")
 
+        scenario_index = feature.get("scenario_index")
+        _check_path(errors, f"{feature_id}.scenario_index", scenario_index)
+
+        scenarios = feature.get("scenario_pages", [])
+        if scenarios is not None and not isinstance(scenarios, list):
+            errors.append(f"{feature_id}: scenario_pages must be a list")
+        elif isinstance(scenarios, list):
+            scenario_ids: set[str] = set()
+            for scenario in scenarios:
+                if not isinstance(scenario, dict):
+                    errors.append(f"{feature_id}: scenario page must be an object")
+                    continue
+                scenario_id = scenario.get("id")
+                if not isinstance(scenario_id, str) or not scenario_id:
+                    errors.append(f"{feature_id}: scenario id is invalid")
+                    continue
+                if scenario_id in scenario_ids:
+                    errors.append(f"{feature_id}: duplicate scenario id {scenario_id}")
+                scenario_ids.add(scenario_id)
+                if scenario.get("status") not in VALID_STATUSES:
+                    errors.append(
+                        f"{feature_id}/{scenario_id}: invalid scenario status {scenario.get('status')!r}"
+                    )
+                _check_path(
+                    errors,
+                    f"{feature_id}/{scenario_id}.authority",
+                    scenario.get("authority"),
+                )
+                _check_path(
+                    errors,
+                    f"{feature_id}/{scenario_id}.secondary_authority",
+                    scenario.get("secondary_authority"),
+                )
+
         refs = feature.get("shared_system_refs")
         if not isinstance(refs, list):
             errors.append(f"{feature_id}: shared_system_refs must be a list")
