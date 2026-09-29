@@ -46,4 +46,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "fix(design): finalize auth visual authorities as true PNG"
-          git push origin HEAD:chore/design-experience-governance-v1
+          for attempt in 1 2 3 4 5; do
+            git fetch origin chore/design-experience-governance-v1
+            git rebase origin/chore/design-experience-governance-v1
+            if git push origin HEAD:chore/design-experience-governance-v1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
