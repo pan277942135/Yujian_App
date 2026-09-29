@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "status": "ACTIVE",
+  "mappings": {
+    "home_empty_v2": "BG_ENV_HERO",
+    "home_normal_v1": "BG_ENV_HERO",
+    "recognition_flow_v1_2": "BG_CAPTURE",
+    "recognition_result_v1": "BG_CONTENT",
+    "fish_record_detail_v2": "BG_CONTENT",
+    "my_catches_v2": "BG_DATA",
+    "fish_guide_v2": "BG_DATA",
+    "account_privacy_v1": "BG_CONTENT",
+    "auth_login_v2": "BG_CONTENT",
+    "auth_register_v2": "BG_CONTENT",
+    "profile_edit_v1": "BG_CONTENT",
+    "user_agreement_v1": "BG_CONTENT"
+  },
+  "inherited_context": {
+    "fish_memory_bside_v1": "fish_record_detail_v2"
+  },
+  "known_migration_gaps": [
+    {
+      "id": "BG-GAP-01",
+      "pages": [
+        "account_privacy_v1",
+        "auth_login_v2"
+      ],
+      "issue": "Account & Privacy currently owns a separate morning_lake_background asset.",
+      "target": "Migrate visual authority to Morning Lake Master V1 / BG_CONTENT after visual review."
+    }
+  ]
+}
