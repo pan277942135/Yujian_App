@@ -3,29 +3,30 @@
   "status": "FROZEN",
   "page_id": "auth_login_v2",
   "display_name": "登录 · 欢迎回来",
-  "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
+  "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
   "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
   "approved_source": {
+    "filename": "160939.png",
     "dimensions": [
-      941,
-      1672
+      864,
+      1536
     ],
-    "sha256": "98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157"
-  },
-  "preview_derivative": {
-    "format": "svg",
-    "width": 941,
-    "height": 1672,
-    "note": "Static Design Manager preview referencing Morning_Lake_Master_V1; replaces invalid WebP derivative."
+    "sha256": "2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c",
+    "role": "final approved high-fidelity visual source"
   },
   "shared_background": {
     "master": "Morning_Lake_Master_V1",
     "variant": "BG_CONTENT",
-    "precedence": "shared background pixels override generated scenic details in the frozen preview"
+    "precedence": "implementation source system; rendered result must visually match the final frozen authority"
   },
   "footer_decoration": {
     "type": "waterside_grass",
     "ownership": "page_foreground",
     "part_of_background_master": false
+  },
+  "design_manager_preview": {
+    "path": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+    "mode": "direct_visual_authority",
+    "note": "Design Manager displays the frozen authority itself; no SVG/HTML reconstruction."
   }
 }
