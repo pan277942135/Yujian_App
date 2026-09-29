@@ -3,7 +3,7 @@
   "status": "FROZEN",
   "page_id": "auth_login_v2",
   "display_name": "登录 · 欢迎回来",
-  "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp",
+  "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
   "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
   "approved_source": {
     "dimensions": [
@@ -13,12 +13,10 @@
     "sha256": "98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157"
   },
   "preview_derivative": {
-    "dimensions": [
-      520,
-      924
-    ],
-    "format": "webp",
-    "sha256": "244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338"
+    "format": "svg",
+    "width": 941,
+    "height": 1672,
+    "note": "Static Design Manager preview referencing Morning_Lake_Master_V1; replaces invalid WebP derivative."
   },
   "shared_background": {
     "master": "Morning_Lake_Master_V1",
