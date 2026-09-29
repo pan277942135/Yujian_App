@@ -1281,7 +1281,7 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp",
+          "authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
           "note": "冻结图负责页面构图与 UI；湖景像素仍以 Morning_Lake_Master_V1 / BG_CONTENT 为高优先级共享 Authority。"
         },
         "motion": {
@@ -1326,7 +1326,7 @@
           "version": "V2.1",
           "status": "FROZEN",
           "current": true,
-          "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp",
+          "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
           "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
           "source_sha256": "98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157",
           "preview_sha256": "244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338",
@@ -1362,7 +1362,7 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp",
+          "authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.svg",
           "note": "冻结图负责页面构图与 UI；湖景像素仍以 Morning_Lake_Master_V1 / BG_CONTENT 为高优先级共享 Authority。"
         },
         "motion": {
@@ -1401,7 +1401,7 @@
           "version": "V2",
           "status": "FROZEN",
           "current": true,
-          "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp",
+          "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.svg",
           "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
           "source_sha256": "9f28450a96c4149c190fe3bef47897a6c069b8221f14c4b54e95479f745d7585",
           "preview_sha256": "e86db2acedd7aea537b2e14a7e3fe766b673f95181566760db5dd3012d2f19e7",
