@@ -15,12 +15,14 @@ Authority order:
    `design/system/core_visual_v1/reference/fish_guide_v2.png`
 2. **Home Product / Behavior Authority**  
    `design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md`
-3. **Unlit State Supplemental Visual Reference**  
+3. **UNLIT State Visual Authority / 01A · 未点亮状态**  
    `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
-4. **Shared visual system contracts**  
+4. **UNLIT State Product / Behavior Authority**  
+   `design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md`
+5. **Shared visual system contracts**  
    Background / glass / color / typography / spacing / radius registries.
 
-The supplemental unlit image does not replace the main frozen page reference.  
+The UNLIT image is promoted to a directly inspectable **01A · 未点亮状态** Design Manager workspace, but it remains a state delta of the same FishGuideCard system and does not replace the main frozen page shell.  
 Runtime evidence never replaces design authority.
 
 ---
@@ -210,6 +212,14 @@ Presentation:
 
 ### 7.2 UNLIT / 未点亮
 
+Dedicated second-level Design Manager authority:
+
+- Menu: **01A · 未点亮状态**
+- Visual: `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
+- State spec: `design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md`
+
+The dedicated 01A workspace freezes the UNLIT state delta only. The base Fish Guide Home shell, carousel geometry, and hierarchy remain owned by **01 · 鱼鉴首页**.
+
 Condition:
 
 - species exists in the active catalog;
@@ -388,6 +398,8 @@ Fish Guide Home passes design acceptance only when all are true:
 - [x] Discovery progress uses `已点亮 N / T 种` and stays low-weight.
 - [x] Species Catch Count is based on saved FishRecord entries.
 - [x] LIT / UNLIT are encounter states, not permission states.
+- [x] UNLIT is exposed as a direct **01A · 未点亮状态** Design Manager second-level workspace.
+- [x] 01A directly previews the existing frozen `fish_guide_unlit_state.png`; no replacement visual is generated.
 - [x] UNLIT remains visible, readable, browsable, and tappable.
 - [x] No rarity / level / achievement / large-lock game semantics.
 - [x] Return from Species Detail preserves carousel position.
