@@ -379,5 +379,13 @@
       ],
       "note": "导航分组，不创建新的设计 Authority；两个子组件继续独立版本化和冻结。"
     }
+  ],
+  "navigation_order": [
+    "background_system_v1",
+    "group:button_spec",
+    "top_navigation_v1",
+    "mist_glass_surface_v1",
+    "color_typography_v1",
+    "spacing_radius_v1"
   ]
 }
