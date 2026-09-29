@@ -25,6 +25,7 @@ let sharedRegistry = null;
 let backgroundContract = null;
 let backgroundUsage = null;
 let selectedKey = null;
+let expandedLevelOne = new Set();
 
 const el = id => document.getElementById(id);
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
@@ -75,17 +76,44 @@ function matchesStatus(status) {
   return !selected || selected === status;
 }
 
+function navSearchActive() {
+  return !!el("searchInput").value.trim();
+}
+
+function isLevelOneExpanded(navId, selectedDescendant = false) {
+  return expandedLevelOne.has(navId) || selectedDescendant || navSearchActive();
+}
+
+function toggleLevelOneState(navId) {
+  if (expandedLevelOne.has(navId)) expandedLevelOne.delete(navId);
+  else expandedLevelOne.add(navId);
+}
+
+function navCaret(expanded) {
+  return '<span class="nav-caret' + (expanded ? ' expanded' : '') + '" aria-hidden="true">›</span>';
+}
+
 function renderSharedNavItem(item) {
   const key = "shared/" + item.id;
+  const hasChildren = item.id === "background_system_v1" && (item.variants || []).length > 0;
+  const navId = "shared:" + item.id;
+  const selectedDescendant = hasChildren && !!selectedKey && selectedKey.startsWith(key + "/");
+  const expanded = hasChildren && isLevelOneExpanded(navId, selectedDescendant);
+
   const parent =
-    '<button class="module-item shared-item' + (selectedKey === key ? " active" : "") +
-    '" data-kind="shared" data-id="' + esc(item.id) + '">' +
-    '<div class="module-name"><span>' + esc(item.display_name) + '</span>' +
-    statusBadge(item.overall) + '</div>' +
+    '<button class="module-item shared-item' + (hasChildren ? ' nav-parent' : '') +
+    (selectedKey === key ? " active" : "") +
+    '" data-kind="shared" data-id="' + esc(item.id) + '"' +
+    (hasChildren ? ' data-nav-id="' + esc(navId) + '" aria-expanded="' + String(expanded) + '"' : '') + '>' +
+    '<div class="module-name">' +
+      (hasChildren ? navCaret(expanded) : '') +
+      '<span>' + esc(item.display_name) + '</span>' +
+      statusBadge(item.overall) +
+    '</div>' +
     '<div class="module-path">' + esc(CATEGORY_LABELS[item.category] || item.category) +
     ' · ' + esc(item.current_version) + '</div></button>';
 
-  if (item.id !== "background_system_v1") return parent;
+  if (!hasChildren) return parent;
 
   const children = (item.variants || []).map(v => {
     const variantKey = "shared/" + item.id + "/" + v.id;
@@ -97,7 +125,8 @@ function renderSharedNavItem(item) {
       '</button>';
   }).join("");
 
-  return parent + '<div class="shared-sublist">' + children + '</div>';
+  return parent + '<div class="shared-sublist nav-children' + (expanded ? ' expanded' : ' collapsed') + '">' +
+    children + '</div>';
 }
 
 function renderSharedGroup(group, allItems) {
@@ -113,14 +142,23 @@ function renderSharedGroup(group, allItems) {
   const groupStatus = group.status || (
     children.every(item => item.overall === "FROZEN") ? "FROZEN" : "PARTIAL"
   );
+  const navId = "group:" + group.id;
+  const selectedDescendant = children.some(item => {
+    const key = "shared/" + item.id;
+    return selectedKey === key || (!!selectedKey && selectedKey.startsWith(key + "/"));
+  });
+  const expanded = isLevelOneExpanded(navId, selectedDescendant);
 
   return '<div class="shared-nav-group">' +
-    '<div class="module-item shared-group-header">' +
-      '<div class="module-name"><span>' + esc(group.display_name) + '</span>' +
-      statusBadge(groupStatus) + '</div>' +
+    '<button class="module-item shared-group-header nav-parent' + (selectedDescendant ? ' active-branch' : '') +
+      '" data-kind="shared-group-toggle" data-nav-id="' + esc(navId) +
+      '" aria-expanded="' + String(expanded) + '">' +
+      '<div class="module-name">' + navCaret(expanded) +
+        '<span>' + esc(group.display_name) + '</span>' +
+        statusBadge(groupStatus) + '</div>' +
       '<div class="module-path">公共组件组 · ' + children.length + ' 项</div>' +
-    '</div>' +
-    '<div class="shared-sublist button-spec-sublist">' +
+    '</button>' +
+    '<div class="shared-sublist button-spec-sublist nav-children' + (expanded ? ' expanded' : ' collapsed') + '">' +
       children.map(item => {
         const key = "shared/" + item.id;
         return '<button class="shared-subitem shared-component-subitem' +
@@ -184,9 +222,16 @@ function renderLists() {
 
   el("pageList").innerHTML = pages.map(feature => {
     const key = "page/" + feature.id;
-    const parent = '<button class="module-item' + (selectedKey === key ? " active" : "") +
-      '" data-kind="page" data-id="' + esc(feature.id) + '">' +
-      '<div class="module-name"><span>' + esc(feature.display_name || feature.id) + '</span>' +
+    const hasChildren = (feature.hifi_views || []).length > 0;
+    const navId = "page:" + feature.id;
+    const selectedDescendant = hasChildren && !!selectedKey && selectedKey.startsWith(key + "/");
+    const expanded = hasChildren && isLevelOneExpanded(navId, selectedDescendant);
+    const parent = '<button class="module-item' + (hasChildren ? ' nav-parent' : '') +
+      (selectedKey === key ? " active" : "") +
+      '" data-kind="page" data-id="' + esc(feature.id) + '"' +
+      (hasChildren ? ' data-nav-id="' + esc(navId) + '" aria-expanded="' + String(expanded) + '"' : '') + '>' +
+      '<div class="module-name">' + (hasChildren ? navCaret(expanded) : '') +
+      '<span>' + esc(feature.display_name || feature.id) + '</span>' +
       statusBadge(feature.design_overall) + '</div>' +
       '<div class="module-path">' + esc(feature.owner_path) + '</div></button>';
 
@@ -228,32 +273,56 @@ function renderLists() {
       return parentView + (nested ? '<div class="page-subsublist">' + nested + '</div>' : '');
     }).join("");
 
-    return parent + (children ? '<div class="page-sublist">' + children + '</div>' : '');
+    return parent + (children
+      ? '<div class="page-sublist nav-children' + (expanded ? ' expanded' : ' collapsed') + '">' + children + '</div>'
+      : '');
   }).join("") || '<div class="preview-empty compact">没有匹配的页面</div>';
 
   document.querySelectorAll(".module-item[data-kind]").forEach(btn => {
     btn.addEventListener("click", () => {
-      if (btn.dataset.kind === "shared") selectShared(btn.dataset.id);
-      else selectPage(btn.dataset.id);
+      const kind = btn.dataset.kind;
+      if (kind === "shared-group-toggle") {
+        toggleLevelOneState(btn.dataset.navId);
+        renderLists();
+        return;
+      }
+
+      if (btn.dataset.navId) toggleLevelOneState(btn.dataset.navId);
+
+      if (kind === "shared") selectShared(btn.dataset.id);
+      else if (kind === "page") selectPage(btn.dataset.id);
     });
   });
 
   document.querySelectorAll(".shared-subitem[data-kind='shared-component']").forEach(btn => {
-    btn.addEventListener("click", () => selectShared(btn.dataset.id));
+    btn.addEventListener("click", () => {
+      const group = (sharedRegistry.navigation_groups || []).find(g =>
+        (g.item_ids || []).includes(btn.dataset.id)
+      );
+      if (group) expandedLevelOne.add("group:" + group.id);
+      selectShared(btn.dataset.id);
+    });
   });
 
   document.querySelectorAll(".shared-subitem[data-kind='background-variant']").forEach(btn => {
-    btn.addEventListener("click", () => selectShared("background_system_v1", btn.dataset.id));
+    btn.addEventListener("click", () => {
+      expandedLevelOne.add("shared:background_system_v1");
+      selectShared("background_system_v1", btn.dataset.id);
+    });
   });
 
   document.querySelectorAll(".page-subitem[data-kind='page-hifi']").forEach(btn => {
-    btn.addEventListener("click", () => selectPage(btn.dataset.pageId, null, btn.dataset.hifiId, null));
+    btn.addEventListener("click", () => {
+      expandedLevelOne.add("page:" + btn.dataset.pageId);
+      selectPage(btn.dataset.pageId, null, btn.dataset.hifiId, null);
+    });
   });
 
   document.querySelectorAll(".page-subsubitem[data-kind='page-hifi-child']").forEach(btn => {
-    btn.addEventListener("click", () =>
-      selectPage(btn.dataset.pageId, null, btn.dataset.hifiId, btn.dataset.hifiChildId)
-    );
+    btn.addEventListener("click", () => {
+      expandedLevelOne.add("page:" + btn.dataset.pageId);
+      selectPage(btn.dataset.pageId, null, btn.dataset.hifiId, btn.dataset.hifiChildId);
+    });
   });
 }
 
