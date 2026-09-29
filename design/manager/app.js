@@ -117,10 +117,11 @@ function renderSharedNavItem(item) {
 
   const children = (item.variants || []).map(v => {
     const variantKey = "shared/" + item.id + "/" + v.id;
+    const showCode = item.id === "background_system_v1";
     return '<button class="shared-subitem' + (selectedKey === variantKey ? " active" : "") +
       '" data-kind="shared-variant" data-parent-id="' + esc(item.id) +
       '" data-id="' + esc(v.id) + '">' +
-      '<span class="subitem-code">' + esc(v.id) + '</span>' +
+      (showCode ? '<span class="subitem-code">' + esc(v.id) + '</span>' : '') +
       '<span class="subitem-name">' + esc(v.name) + '</span>' +
       statusBadge(v.status || item.overall) +
       '</button>';
