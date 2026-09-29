@@ -23,10 +23,10 @@
         "motion.empty_home.camera_gold_rim_sweep",
         "motion.empty_home.camera_breathing"
       ],
-      "runtime_notes": "The frozen visual authority is capture_button_main_v1.png. Runtime implementation may be native/hybrid only if it reproduces this asset visually; gold-rim sweep and breath glow remain motion-support layers, not static button layers.",
+      "runtime_notes": "Frozen visual authority is capture_button_main_v1.png V1.1 extracted from the user-approved screenshot. Runtime/native implementations must visually reproduce this exact button; legacy V1.0 asset is superseded.",
       "design_authority_asset": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
-      "design_authority_sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
-      "design_authority_version": "Primary Capture Button V1"
+      "design_authority_sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "design_authority_version": "Primary Capture Button V1.1"
     },
     {
       "component_id": "YuJianCatchHeroCard",
