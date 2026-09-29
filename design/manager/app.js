@@ -294,35 +294,74 @@ function layeredCapturePreviewHtml(item) {
 }
 
 function actionButtonPreviewHtml(item) {
-  const examples = item.usage_examples || [];
-  const demo = (label, variant) => {
+  const demo = (label, variant, state = "normal", extra = "") => {
     const cls =
       variant === "PRIMARY" ? "action-primary" :
       variant === "SECONDARY_STRONG" ? "action-secondary-strong" :
       "action-secondary-muted";
-    return '<button type="button" class="action-demo ' + cls + '">' + esc(label) + '</button>';
+    const stateCls = state === "normal" ? "" : " action-state-" + state;
+    const content = state === "loading"
+      ? '<span class="action-spinner" aria-hidden="true"></span>'
+      : esc(label);
+    return '<button type="button" class="action-demo ' + cls + stateCls + ' ' + extra + '">' +
+      content + '</button>';
   };
 
-  return '<div class="action-preview-shell">' +
-    '<div class="action-preview-title">Primary / Secondary Action Button V1</div>' +
-    '<div class="action-preview-variants">' +
-      '<div class="action-preview-card"><span>PRIMARY</span>' + demo("登录", "PRIMARY") + '</div>' +
-      '<div class="action-preview-card"><span>SECONDARY_STRONG</span>' + demo("继续记录记忆", "SECONDARY_STRONG") + '</div>' +
-      '<div class="action-preview-card"><span>SECONDARY_MUTED</span>' + demo("重新拍摄", "SECONDARY_MUTED") + '</div>' +
+  return '<div class="action-preview-shell action-v11">' +
+    '<div class="action-preview-title-row">' +
+      '<div><div class="action-preview-kicker">ACTION BUTTON SYSTEM</div>' +
+      '<div class="action-preview-title">Primary / Secondary Action Button V1.1</div></div>' +
+      '<span class="action-version-pill">FROZEN · V1.1</span>' +
     '</div>' +
-    '<div class="action-preview-pairs">' +
-      '<div class="action-pair-block"><b>识别结果 · 正常保存</b><div class="action-pair">' +
-        demo("继续记录记忆","SECONDARY_STRONG") + demo("保存本次鱼获","PRIMARY") +
-      '</div></div>' +
-      '<div class="action-pair-block"><b>识别结果 · 低置信</b><div class="action-pair">' +
-        demo("手动选择","SECONDARY_STRONG") + demo("重新拍摄","SECONDARY_MUTED") +
-      '</div></div>' +
-    '</div>' +
-    '<div class="action-usage-grid">' +
-      examples.map(x => '<div><strong>' + esc(x.copy) + '</strong><span>' +
-        esc(x.variant) + ' · ' + esc(x.page) + '</span></div>').join("") +
-    '</div>' +
-    '<div class="preview-note">冻结基准：56dp 高 / 28dp 圆角；普通业务 Primary 使用 Deep Lake Teal，不使用金色。</div>' +
+
+    '<section class="action-preview-section">' +
+      '<div class="action-section-head"><strong>01 · 三档视觉</strong><span>56dp · R28 · Semibold 600</span></div>' +
+      '<div class="action-preview-variants">' +
+        '<div class="action-preview-card"><span>PRIMARY</span>' + demo("保存本次鱼获","PRIMARY") +
+          '<small>Deep Lake Teal · restrained surface depth</small></div>' +
+        '<div class="action-preview-card"><span>SECONDARY_STRONG</span>' + demo("继续记录记忆","SECONDARY_STRONG") +
+          '<small>Mist / Lake White · teal light border</small></div>' +
+        '<div class="action-preview-card"><span>SECONDARY_MUTED</span>' + demo("重新拍摄","SECONDARY_MUTED") +
+          '<small>Recovery / fallback · deliberately quiet</small></div>' +
+      '</div>' +
+    '</section>' +
+
+    '<section class="action-preview-section">' +
+      '<div class="action-section-head"><strong>02 · 单按钮实际场景</strong><span>页面左右 24dp · Fill available width</span></div>' +
+      '<div class="action-single-scenes">' +
+        '<div class="action-scene-card"><b>Login</b>' + demo("登录","PRIMARY","normal","action-full") + '</div>' +
+        '<div class="action-scene-card"><b>Register</b>' + demo("注册并登录","PRIMARY","normal","action-full") + '</div>' +
+      '</div>' +
+    '</section>' +
+
+    '<section class="action-preview-section">' +
+      '<div class="action-section-head"><strong>03 · 双按钮实际组合</strong><span>Gap 12dp · 非固定 50/50</span></div>' +
+      '<div class="action-preview-pairs">' +
+        '<div class="action-pair-block"><b>识别结果 · 正常保存</b><span class="action-ratio-label">44 / 56</span>' +
+          '<div class="action-pair action-pair-44-56">' +
+            '<div>' + demo("继续记录记忆","SECONDARY_STRONG") + '</div>' +
+            '<div>' + demo("保存本次鱼获","PRIMARY") + '</div>' +
+          '</div></div>' +
+        '<div class="action-pair-block"><b>识别结果 · 低置信</b><span class="action-ratio-label">58 / 42</span>' +
+          '<div class="action-pair action-pair-58-42">' +
+            '<div>' + demo("手动选择","SECONDARY_STRONG") + '</div>' +
+            '<div>' + demo("重新拍摄","SECONDARY_MUTED") + '</div>' +
+          '</div></div>' +
+      '</div>' +
+    '</section>' +
+
+    '<section class="action-preview-section">' +
+      '<div class="action-section-head"><strong>04 · 状态</strong><span>Normal / Pressed / Loading / Disabled / Focus</span></div>' +
+      '<div class="action-state-grid">' +
+        '<div class="action-state-card"><span>Normal</span>' + demo("保存本次鱼获","PRIMARY") + '</div>' +
+        '<div class="action-state-card"><span>Pressed</span>' + demo("保存本次鱼获","PRIMARY","pressed") + '</div>' +
+        '<div class="action-state-card"><span>Loading</span>' + demo("","PRIMARY","loading") + '</div>' +
+        '<div class="action-state-card"><span>Disabled</span>' + demo("保存本次鱼获","PRIMARY","disabled") + '</div>' +
+        '<div class="action-state-card"><span>Focus</span>' + demo("保存本次鱼获","PRIMARY","focus") + '</div>' +
+      '</div>' +
+    '</section>' +
+
+    '<div class="preview-note">普通业务 Primary 不使用金色；Reduce Motion 关闭 scale，仅保留按压颜色/表面反馈。主拍摄按钮继续独立管理。</div>' +
   '</div>';
 }
 
