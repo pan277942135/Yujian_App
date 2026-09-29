@@ -728,7 +728,33 @@
           "id": "spacing_radius_v1"
         }
       ],
-      "note": "Login V2.1 已切换到无太阳 Morning_Lake_Master_V1 / BG_CONTENT；结构与登录业务语义不变。"
+      "note": "Login V2.1 已切换到无太阳 Morning_Lake_Master_V1 / BG_CONTENT；结构与登录业务语义不变。",
+      "live_preview": {
+        "type": "auth_page",
+        "background_variant": "BG_CONTENT",
+        "eyebrow": "渔见",
+        "brand_subtitle": "拍照收藏每次渔获",
+        "title": "欢迎回来",
+        "subtitle": "继续记录你的每一次渔获",
+        "fields": [
+          {
+            "label": "账号",
+            "placeholder": "请输入账号",
+            "icon": "user"
+          },
+          {
+            "label": "密码",
+            "placeholder": "请输入密码",
+            "icon": "lock",
+            "secure": true
+          }
+        ],
+        "secondary_action": "忘记密码？",
+        "primary_action": "登录",
+        "footer_prefix": "还没有账号？",
+        "footer_action": "创建账号",
+        "note": "Design Manager 实时设计预览；最终冻结仍以通过 Visual Gate 的 Canonical Screenshot 为准。"
+      }
     },
     {
       "id": "auth_register_v2",
@@ -794,7 +820,37 @@
         {
           "id": "spacing_radius_v1"
         }
-      ]
+      ],
+      "live_preview": {
+        "type": "auth_page",
+        "background_variant": "BG_CONTENT",
+        "eyebrow": "渔见",
+        "brand_subtitle": "拍照收藏每次渔获",
+        "title": "创建账号",
+        "subtitle": "用一个账号，留住你的钓鱼轨迹",
+        "fields": [
+          {
+            "label": "账号",
+            "placeholder": "3–32 位字母、数字、_ 或 -",
+            "icon": "user"
+          },
+          {
+            "label": "密码",
+            "placeholder": "至少 6 位",
+            "icon": "lock",
+            "secure": true
+          },
+          {
+            "label": "昵称",
+            "placeholder": "1–20 个字符",
+            "icon": "user"
+          }
+        ],
+        "primary_action": "注册并登录",
+        "footer_prefix": "已有账号？",
+        "footer_action": "去登录",
+        "note": "Design Manager 实时设计预览；最终冻结仍以通过 Visual Gate 的 Canonical Screenshot 为准。"
+      }
     },
     {
       "id": "profile_edit_v1",
