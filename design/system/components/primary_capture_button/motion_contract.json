@@ -1,11 +1,45 @@
 {
+  "component": "primary_capture_button",
+  "version": "V1",
+  "status": "FROZEN",
+  "static_asset": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
   "breath": {
+    "enabled": true,
+    "trigger": "idle",
+    "property": "scale",
+    "min_scale": 1,
+    "max_scale": 1.015,
     "duration_ms": 5000,
-    "max_scale": 1.015
+    "easing": "ease_in_out",
+    "repeat": "infinite",
+    "reverse": true,
+    "overlay_asset": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
+    "overlay_role": "motion_support_only"
   },
-  "gold_rim": {
-    "duration_ms": 1400,
+  "gold_rim_sweep": {
+    "enabled": true,
+    "trigger": "idle_interval",
     "first_delay_ms": 3000,
-    "repeat_interval_ms": 9000
-  }
+    "duration_ms": 1400,
+    "repeat_interval_ms": 9000,
+    "easing": "ease_in_out",
+    "overlay_asset": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+    "overlay_role": "animated_sweep_mask_only",
+    "static_composite": false
+  },
+  "pressed": {
+    "behavior": "platform/native press feedback",
+    "visual_rule": "do not replace or redraw the frozen canonical asset"
+  },
+  "reduce_motion": {
+    "enabled": true,
+    "breath": false,
+    "gold_rim_sweep": false,
+    "static_asset_remains": true
+  },
+  "prohibitions": [
+    "do not bake breath_glow into the static canonical image",
+    "do not render gold_rim_sweep mask as a permanent second rim",
+    "do not change 5000/1.015 or 3000/1400/9000 timing without a new component revision"
+  ]
 }
