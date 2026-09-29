@@ -1,0 +1,18 @@
+{
+  "component": "YuJian Icon Action",
+  "current_version": "V1 Candidate",
+  "status": "ACTIVE_CLOSURE",
+  "date": "2026-09-29",
+  "authority": [
+    "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+    "design/system/components/icon_action/visual_contract.json",
+    "design/system/components/icon_action/motion_contract.json",
+    "design/system/components/icon_action/usage_map.json"
+  ],
+  "candidate_visuals": [],
+  "freeze_blockers": [
+    "Review Navigation/Utility/Context family separation.",
+    "Review transparent-default versus optional ON_MEDIA Mist support disc.",
+    "Review dedicated card_flip glyph for B-side manual flip."
+  ]
+}
