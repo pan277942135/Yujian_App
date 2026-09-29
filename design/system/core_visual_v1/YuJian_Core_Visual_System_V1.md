@@ -35,14 +35,29 @@ Normal Home at 1080 × 1920); their exact dimensions are authoritative in
 reference/reference_manifest.json and must not be normalized by resizing or re-exporting.
 
 ## 3. Background
+
+Canonical shared background authority:
+
+`design/system/backgrounds/morning_lake_v1/`
+
+All non-capture lake pages share **Morning Lake Master V1**. Pages select a treatment variant instead of owning a separate lake world.
+
 ### BG_ENV_HERO
-Use: Empty Home / Normal Home. Environment participates in the story: morning sky, distant mountain, thin mist, lake, restrained warm-gold light.
+Use: Empty Home / Normal Home. Environment participates in the story.
 
 ### BG_CONTENT
-Use: Recognition Result / FishRecordDetail. Same visual world, with background salience reduced to ~70–80% of Home.
+Use: Recognition Result / FishRecordDetail / Account / Form pages. Same master, reduced salience.
 
 ### BG_DATA
-Use: My Catches / Fish Guide. Same visual world, reduced further to protect dense content.
+Use: My Catches / Fish Guide. Same master, reduced further for dense content.
+
+### BG_CAPTURE
+Use: Recognition Processing. The current user photo is the background; Morning Lake is not rendered.
+
+### BG_SOLID_FALLBACK
+Use only for missing-image / load-failure / transient error states.
+
+Exact treatment ranges, provenance and usage mapping are governed by the Morning Lake Background System V1.
 
 Forbidden: neon, night HUD, strong HDR, orange-red sunset treatment, tourism-poster sunlight, page-by-page unrelated lake worlds.
 
@@ -104,6 +119,7 @@ See `cross_page_rules.md`.
 ## 14. Visual authority
 When a page-level design conflicts with the global atmosphere:
 1. Frozen page behavior remains authoritative for information architecture.
-2. Empty Home + Normal Home remain authoritative for YuJian atmosphere.
-3. Shared tokens/components remain authoritative for implementation consistency.
-4. Any true product conflict must be escalated rather than silently resolved in code.
+2. Morning Lake Background System V1 is authoritative for the shared environmental world.
+3. Empty Home + Normal Home remain reference pages for hero-level atmosphere.
+4. Shared tokens/components remain authoritative for implementation consistency.
+5. Any true product conflict must be escalated rather than silently resolved in code.
