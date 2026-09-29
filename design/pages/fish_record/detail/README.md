@@ -44,3 +44,11 @@ When entered from “保存并记录记忆”, scroll/focus to Memory without cr
 
 - Hero `编辑` uses shared Text Action V1 / NORMAL / ON_MEDIA.
 - Trailing chevron is a separate 14dp icon; `>` / `›` is not part of the localized copy.
+
+
+## Icon Action
+
+- Top navigation Back → Icon Action V1 / NAVIGATION / ON_LIGHT.
+- Fish Guide and Share → Icon Action V1 / UTILITY / ON_LIGHT.
+- B-side manual flip → Icon Action V1 / UTILITY / ON_MEDIA; only visible when B-side exists.
+- Card flip motion belongs to the card/content; the flip icon itself does not rotate.
