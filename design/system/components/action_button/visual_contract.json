@@ -1,0 +1,98 @@
+{
+  "component": "action_button",
+  "version": "V1",
+  "status": "FROZEN",
+  "frozen_date": "2026-09-29",
+  "geometry": {
+    "height_dp": 56,
+    "radius_dp": 28,
+    "horizontal_padding_min_dp": 24,
+    "paired_gap_dp": 12,
+    "label_sp": 16,
+    "label_weight": "medium_semibold",
+    "optional_icon_dp": [
+      18,
+      20
+    ],
+    "icon_label_gap_dp": 8
+  },
+  "variants": {
+    "PRIMARY": {
+      "semantic_priority": 1,
+      "normal": {
+        "fill": "#0F7A78",
+        "label": "#FFFFFF",
+        "border": "none",
+        "shadow": "none"
+      },
+      "pressed": {
+        "fill": "#0C6D6B",
+        "scale": 0.985
+      },
+      "disabled": {
+        "fill": "#D9E4E3",
+        "label": "#91A5A6"
+      },
+      "loading": {
+        "indicator_dp": 18,
+        "label_visible": false,
+        "dimensions_stable": true
+      }
+    },
+    "SECONDARY_STRONG": {
+      "semantic_priority": 2,
+      "normal": {
+        "fill": "#F4F8F7",
+        "label": "#0B2D4B",
+        "border": "1dp rgba(15,122,120,0.28)",
+        "shadow": "none"
+      },
+      "pressed": {
+        "fill": "#EAF3F1",
+        "scale": 0.985
+      },
+      "disabled": {
+        "fill": "#F2F5F5",
+        "label": "#A0ADAF",
+        "border": "#E3E9E9"
+      }
+    },
+    "SECONDARY_MUTED": {
+      "semantic_priority": 3,
+      "normal": {
+        "fill": "rgba(247,250,251,0.72)",
+        "label": "#748897",
+        "border": "1dp rgba(116,136,151,0.24)",
+        "shadow": "none"
+      },
+      "pressed": {
+        "fill": "rgba(247,250,251,0.92)",
+        "scale": 0.985
+      },
+      "disabled": {
+        "fill": "#F2F5F5",
+        "label": "#A0ADAF",
+        "border": "#E3E9E9"
+      }
+    }
+  },
+  "accessibility_focus": {
+    "outline": "2dp #0F7A78",
+    "external_gap_dp": 2,
+    "gold": false
+  },
+  "pairing": {
+    "equal_height": true,
+    "equal_width_default": true,
+    "max_primary_per_group": 1
+  },
+  "prohibitions": [
+    "gold fill for ordinary actions",
+    "multiple primary actions in one action group",
+    "page-specific height or radius",
+    "heavy shadow",
+    "glow",
+    "gradient",
+    "capture-button visual language on ordinary actions"
+  ]
+}
