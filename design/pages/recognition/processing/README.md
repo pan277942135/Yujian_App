@@ -50,3 +50,8 @@ Static identity: four disconnected edge-energy islands with mandatory quiet gaps
 
 - `accessibility/Recognition_Layer_Degradation_Order_V1.md` — global Edge Field / Fish Focus degradation order authority
 - `contracts/Recognition_Layer_Degradation_Order_V1.json` — machine-readable D0→D4 degradation ladder
+
+- `accessibility/Recognition_Semantic_Invariants_V1.md` — immutable product/visual/motion semantics under degradation
+- `accessibility/Recognition_Degradation_Accessibility_V1.md` — parent frozen authority for 05 · Degradation & Accessibility
+- `contracts/Recognition_Semantic_Invariants_V1.json` — machine-readable semantic invariants
+- `contracts/Recognition_Degradation_Accessibility_V1.json` — parent machine-readable accessibility contract

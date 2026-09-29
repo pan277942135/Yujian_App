@@ -2246,7 +2246,38 @@ function recognitionLayerDegradationCanvas(child) {
   '</div>';
 }
 
+
+function recognitionSemanticInvariantsCanvas(child) {
+  const s = child.semantic_invariants || {};
+  const groups = s.groups || [];
+  const immutable = s.immutable_relationships || [];
+  const allowed = s.allowed_to_change || [];
+  const never = s.never_change || [];
+
+  const groupGrid = '<div class="recognition-state-grid">' +
+    groups.map(group => '<article class="recognition-state-card">' +
+      '<div class="recognition-state-head"><strong>' + esc(group.title) + '</strong><span>' + esc(group.id) + '</span></div>' +
+      (group.items || []).map(item=>'<p>• ' + esc(item) + '</p>').join("") +
+    '</article>').join("") + '</div>';
+
+  const itemGrid = (items, kind) => '<div class="authority-index-grid">' +
+    items.map((item,index)=>'<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+      '<div class="authority-kind">' + esc(kind) + '</div><p>' + esc(item) + '</p></article>').join("") + '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Semantic Boundary</strong><span>' + esc(s.principle || "") + '</span></div>' +
+    '<div class="recognition-section-title">Frozen Invariant Groups</div>' + groupGrid +
+    '<div class="recognition-section-title">Immutable Relationships</div>' + itemGrid(immutable,"RELATIONSHIP") +
+    '<div class="recognition-section-title">Allowed to Change</div>' + itemGrid(allowed,"LEGAL VARIATION") +
+    '<div class="recognition-section-title">Never Change</div>' + itemGrid(never,"HARD INVARIANT") +
+    '<div class="recognition-section-title">Cross-mode Acceptance</div>' +
+      '<div class="recognition-state-card"><p>' + esc(s.acceptance_question || "") + '</p></div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_semantic_invariants") return recognitionSemanticInvariantsCanvas(child);
   if (child.render_mode === "recognition_layer_degradation") return recognitionLayerDegradationCanvas(child);
   if (child.render_mode === "recognition_reduce_motion") return recognitionReduceMotionCanvas(child);
   if (child.render_mode === "recognition_quality_levels") return recognitionQualityLevelsCanvas(child);

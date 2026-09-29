@@ -1516,18 +1516,18 @@
         {
           "id": "degradation_accessibility",
           "title": "05 · Degradation & Accessibility",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "authority_type": "behavior",
           "render_mode": "recognition_degradation",
-          "authority": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
-          "secondary_authority": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
-          "summary": "Recognition Degradation 已冻结 Quality Levels、Reduce Motion 与全局 Layer Degradation Order。性能降级优先牺牲环境/边缘细节，Edge Field 降至 LITE 后才允许 Fish Focus A→B→C。",
+          "authority": "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
+          "secondary_authority": "design/pages/recognition/processing/contracts/Recognition_Degradation_Accessibility_V1.json",
+          "summary": "05 · Degradation & Accessibility 已完整冻结：Quality Levels、Reduce Motion、D0→D4 Layer Degradation Order 与 Semantic Invariants 共同定义跨平台降级边界。任何降级只能改变表达成本，不能改变 Recognition 含义。",
           "menu_points": [
             "01 · Quality Levels · FROZEN · FULL / BALANCED / LITE",
             "02 · Reduce Motion · FROZEN · 停止持续位移/呼吸，保留静态语义",
-            "03 · Layer Degradation Order · FROZEN · D0→D4 全局降级阶梯",
-            "04 · Semantic Invariants · 待冻结",
-            "Fish Focus 语义优先级高于外围 Edge Field 细节"
+            "03 · Layer Degradation Order · FROZEN · D0→D4",
+            "04 · Semantic Invariants · FROZEN · 产品/视觉/运动/结果语义不可漂移",
+            "05 · Degradation & Accessibility · FROZEN"
           ],
           "children": [
             {
@@ -1830,6 +1830,100 @@
                     "D4 + Reduce Motion = LITE static Edge Field + Fish Focus C static"
                   ]
                 }
+              }
+            },
+            {
+              "id": "semantic_invariants",
+              "code": "05 · 04",
+              "title": "04 · Semantic Invariants",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_semantic_invariants",
+              "authority": "design/pages/recognition/processing/accessibility/Recognition_Semantic_Invariants_V1.md",
+              "contract": "design/pages/recognition/processing/contracts/Recognition_Semantic_Invariants_V1.json",
+              "summary": "Quality Level、Reduce Motion、D0→D4 只能改变视觉复杂度和运动表达；Recognition 的产品语义、视觉身份、真实定位来源、结果语义与必要状态关系全部保持不变。",
+              "semantic_invariants": {
+                "principle": "Degradation may change expression cost, never recognition meaning.",
+                "groups": [
+                  {
+                    "id": "PRODUCT_SEMANTICS",
+                    "title": "Product Semantics",
+                    "items": [
+                      "Processing 始终保持三步：图片识别中 → 已定位到鱼体 → 鱼种识别中",
+                      "RESOLVE 只负责 Result handoff，不是第四个 Processing state",
+                      "Result High / Medium / Low 的 confidence 语义不因视觉降级改变",
+                      "No Fish / Image Quality / Technical Failure 的 Issue 路由语义不因视觉降级改变",
+                      "User Back 始终是退出当前 Processing，不得被解释为 Failure",
+                      "降级不得制造 fake progress、额外 loading state 或替代文案"
+                    ]
+                  },
+                  {
+                    "id": "VISUAL_IDENTITY",
+                    "title": "Visual Identity",
+                    "items": [
+                      "Original Photo 始终是视觉底座和第一主体",
+                      "AI Edge Field 始终保持 4 Primary Energy Islands",
+                      "Mandatory Quiet Gaps 始终存在，禁止降级后连成框",
+                      "B_UR > G_UL > G_LL > B_LR 的主次关系不变",
+                      "Fish Focus 只在真实鱼体被定位后出现",
+                      "Fish Focus A/B/C 的空间来源始终是真实 detector bbox",
+                      "Status / Back 始终高 Z-order 但低视觉权重"
+                    ]
+                  },
+                  {
+                    "id": "MOTION_SEMANTICS",
+                    "title": "Motion Semantics",
+                    "items": [
+                      "SegmentOffset 的语义始终是局部 luminous segment 在既定 Path 上的位置",
+                      "StateStrength 的语义始终是当前 Processing state 的 Edge Field 视觉权重",
+                      "ResolveStrength 的语义始终是 Result handoff 的统一退场强度",
+                      "Quality 切换不得重启 Motion Clock 或改变当前 SegmentOffset",
+                      "Reduce Motion 只停止持续运动，不改变状态顺序、StateStrength target 或 Resolve 语义",
+                      "Fish Focus breathing 是可移除的表现，不是识别状态本身"
+                    ]
+                  },
+                  {
+                    "id": "DEGRADATION_BOUNDARIES",
+                    "title": "Degradation Boundaries",
+                    "items": [
+                      "FULL / BALANCED / LITE 是复杂度预算，不是不同视觉主题",
+                      "D0→D4 是固定降级顺序，不是新的用户可见状态",
+                      "Edge Field 必须先 FULL→BALANCED→LITE，之后才允许 Fish Focus A→B→C",
+                      "D4 是最低设计允许层级，不得继续退化成纯照片 + spinner",
+                      "Reduce Motion 与 Quality / D-level 正交，不得互相替代",
+                      "性能降级不得修改 detector / crop / classifier / confidence / quality semantics",
+                      "任何平台都只能在冻结合同内选择档位，不能自行发明第五套视觉"
+                    ]
+                  }
+                ],
+                "immutable_relationships": [
+                  "Photo > AI Edge Field in global visual priority",
+                  "Before fish located: Edge Field is primary AI cue; Fish Focus OFF",
+                  "After fish located: Fish Focus becomes primary AI cue; Edge Field yields",
+                  "Result semantics > visual fidelity",
+                  "Accessibility preference > decorative continuous motion"
+                ],
+                "allowed_to_change": [
+                  "Hairline / Node / Particle visibility according to Quality Level",
+                  "Glow / Receiving Light strength within frozen profile",
+                  "Fish Focus A/B/C fidelity according to D-level",
+                  "continuous motion behavior under Reduce Motion",
+                  "platform-specific renderer implementation",
+                  "platform-owned performance trigger thresholds"
+                ],
+                "never_change": [
+                  "three-state product meaning",
+                  "real-result gating",
+                  "confidence semantics",
+                  "issue semantics",
+                  "photo dominance",
+                  "four-island topology",
+                  "quiet gaps",
+                  "real bbox focus source",
+                  "result routing",
+                  "back behavior"
+                ],
+                "acceptance_question": "If a user compares FULL normal-motion with D4 + Reduce Motion, do both screens still communicate the same Recognition state and the same AI meaning? If not, degradation has crossed the semantic boundary."
               }
             }
           ]
