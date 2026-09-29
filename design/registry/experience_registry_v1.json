@@ -300,6 +300,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "action_button_v1",
+          "variant": "MIXED",
+          "note": "保存本次鱼获=PRIMARY；继续记录记忆/手动选择=SECONDARY_STRONG；重新拍摄=SECONDARY_MUTED。"
         }
       ]
     },
@@ -1346,6 +1351,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "action_button_v1",
+          "variant": "PRIMARY",
+          "note": "登录使用 Action Button V1 / PRIMARY。"
         }
       ],
       "note": "Login V2.1 设计已冻结：顶部无文字的无太阳 Morning Lake、下部大面积白底、紧凑表单、页面最底部低存在感水草。Runtime/Evidence 是否一致单独验证。",
@@ -1421,6 +1431,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "action_button_v1",
+          "variant": "PRIMARY",
+          "note": "注册并登录使用 Action Button V1 / PRIMARY。"
         }
       ],
       "frozen_manifest": "design/pages/account_privacy/Register/frozen/manifest.json"
