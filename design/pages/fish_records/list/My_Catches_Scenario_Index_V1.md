@@ -35,3 +35,23 @@ All scenario pages inherit:
 - FishRecordRowCard
 - shared typography / spacing
 - chronological archive identity
+
+
+## 2026-09-29 recovered high-fidelity review
+
+Recovered prior high-fidelity sources:
+- 主页面：`湖畔晨曦中的鱼获日志(1).png`
+- Timeline：`鱼获时间轴滚动规范展示板.png`
+- Filter：`我的鱼获过滤器 V1 产品规格海报.png`
+- Empty：`我的鱼获空状态规范图.png`
+- Growth Mark：`与自然相遇：Growth Mark V1 设计稿.png`
+
+Reconciled decisions:
+- Growth Mark “首次” = **首条某鱼种**，不是用户第一条总鱼获；
+- 6–10 条 = 主 Timeline 默认 5 条，可原位展开；
+- >10 条 = 主 Timeline 默认 5 条，进入当天鱼获详情；
+- Search Focused 保留 `取消`；
+- Archive / Search / Filter Empty 都保留底部全局 Camera Button；
+- Search / Filter 的恢复 CTA 与 Camera Button 语义分层。
+
+Design Manager 左侧子菜单按高保真稿组织，细场景继续作为 Authority 映射。
