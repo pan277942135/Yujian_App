@@ -1711,7 +1711,85 @@ function recognitionVisualStatesCanvas(view) {
 
   return '<div class="recognition-visual-state-list">' + cards + '</div>' + mapping;
 }
+function fishGuideMotionCanvas(view) {
+  const m = view.motion_system || {};
+  const home = m.home_carousel || {};
+  const hint = m.discover_hint || {};
+  const detail = m.detail_carousel || {};
+  const gesture = m.gesture || {};
+  const nav = m.navigation || {};
+  const state = m.state_transition || {};
+  const reduce = m.reduce_motion || {};
+
+  const metric = (label, value) =>
+    '<div class="direct-rule-card"><b>' + esc(label) + '</b><span>' + esc(value || "—") + '</span></div>';
+
+  const section = (title, kicker, rows) =>
+    '<section class="authority-index">' +
+      '<div class="authority-index-intro"><strong>' + esc(title) + '</strong><span>' + esc(kicker) + '</span></div>' +
+      '<div class="direct-variant-rules">' + rows.join("") + '</div>' +
+    '</section>';
+
+  return '<div class="fish-guide-motion-spec">' +
+    '<div class="text-action-review-banner">' +
+      '<div><span>FISH GUIDE · MOTION & INTERACTION V1</span><strong>FROZEN · USER-DRIVEN</strong></div>' +
+      '<p>' + esc(m.principle || "Alive, not animated · User-driven by default") + '</p>' +
+    '</div>' +
+    section("01 · Home Species Carousel", "直接操控；中心卡是唯一 settled selection。", [
+      metric("Active", home.active),
+      metric("Adjacent", home.adjacent),
+      metric("Settle", home.settle),
+      metric("中心卡 Tap", home.centered_tap),
+      metric("邻卡 Tap", home.adjacent_tap),
+      metric("Selection", home.selection)
+    ]) +
+    section("02 · First-entry Discover Hint", "只教一次横向浏览，不自动切换鱼种。", [
+      metric("Frequency", hint.frequency),
+      metric("Delay", hint.delay),
+      metric("Nudge", hint.nudge),
+      metric("Timing", hint.timing),
+      metric("Selection Change", hint.selection_change),
+      metric("Cancel", hint.cancel),
+      metric("Reduce Motion", hint.reduce_motion)
+    ]) +
+    section("03 · Species Detail · 5-card Carousel", "有限 01–05；完全用户驱动。", [
+      metric("Slots", detail.slots),
+      metric("Settle", detail.settle),
+      metric("Auto Flip", detail.auto_flip),
+      metric("Autoplay", detail.autoplay),
+      metric("Loop", detail.loop),
+      metric("Indicator", detail.indicator),
+      metric("Adjacent Tap", detail.adjacent_tap)
+    ]) +
+    section("04 · Gesture & Navigation", "纵向页面滚动与横向卡片滑动必须稳定共存。", [
+      metric("Touch Slop", gesture.touch_slop),
+      metric("Horizontal Lock", gesture.horizontal_lock),
+      metric("Axis Switch", gesture.switch_axis_after_lock),
+      metric("Card Press", nav.card_press),
+      metric("Forward", nav.forward),
+      metric("Back", nav.back),
+      metric("Haptic", nav.haptic)
+    ]) +
+    section("05 · Committed Data State", "只对真实已提交的数据变化做克制反馈。", [
+      metric("UNLIT → LIT", state.unlit_to_lit),
+      metric("LIT → UNLIT", state.lit_to_unlit),
+      metric("Additional Catch", state.additional_catch),
+      metric("Offscreen Replay", state.offscreen_replay),
+      metric("Celebration", state.celebration)
+    ]) +
+    section("06 · Reduce Motion", "减少运动，不改变信息与导航。", [
+      metric("Discover Hint", reduce.discover_hint),
+      metric("Direct Drag", reduce.direct_drag),
+      metric("Settle", reduce.settle),
+      metric("Navigation", reduce.navigation),
+      metric("State", reduce.state)
+    ]) +
+    '<div class="preview-note">禁止：Auto Flip / autoplay / circular loop / continuous glow / confetti / unlock sound / every-snap haptic。Runtime timing 与真机手势证据后续归 09 · 验收证据。</div>' +
+  '</div>';
+}
+
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "fish_guide_motion") return fishGuideMotionCanvas(view);
   if (view.render_mode === "recognition_timeline") return recognitionStateTimelineCanvas(view);
   if (view.render_mode === "recognition_visual_states") return recognitionVisualStatesCanvas(view);
   const points = view.menu_points || [];
