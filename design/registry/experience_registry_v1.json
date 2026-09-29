@@ -1280,21 +1280,24 @@
           "authority": "design/pages/account_privacy/Login/Login_V2_Closure.md"
         },
         "visual": {
-          "status": "ACTIVE_CLOSURE",
-          "authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
-          "note": "00_Login.png 仅保留布局参考；背景由公共 BG_CONTENT 覆盖。"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp",
+          "note": "冻结图负责页面构图与 UI；湖景像素仍以 Morning_Lake_Master_V1 / BG_CONTENT 为高优先级共享 Authority。"
         },
         "motion": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+          "note": "无自动环境动效，仅允许标准控件/Loading 状态反馈。"
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+          "note": "无自动 Haptic。"
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+          "note": "无声音。"
         },
         "runtime": {
           "status": "FROZEN",
@@ -1305,39 +1308,38 @@
           "authority": "app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt"
         },
         "assets": {
-          "status": "PARTIAL",
-          "authority": "design/system/backgrounds/morning_lake_v1/manifest.json",
-          "note": "背景资产已统一到 Morning Lake V1；Login 独立冻结截图待更新。"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/frozen/manifest.json",
+          "note": "页面冻结预览 + 公共 Morning Lake 背景 + 页面底部水草装饰语义已归档。"
         }
       },
-      "display_name": "登录",
+      "display_name": "登录 · 欢迎回来",
       "design_versions": [
         {
           "version": "V2",
           "status": "FROZEN",
           "current": false,
           "visual_authority": "design/pages/account_privacy/Login/00_Login.png",
-          "note": "原 Login V2 冻结布局；其中 legacy Account Privacy 背景已被 V2.1 覆盖。"
+          "note": "历史 V2 布局参考；V2.1 冻结后不再是当前视觉 Authority。"
         },
         {
           "version": "V2.1",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "current": true,
+          "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp",
           "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
-          "note": "保持 Login V2 信息层级，背景统一为无太阳 Morning_Lake_Master_V1 / BG_CONTENT；待更新 Canonical Screenshot 后冻结。"
+          "source_sha256": "98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157",
+          "preview_sha256": "244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338",
+          "note": "当前冻结：顶部不放渔见/Slogan；湖景稍短；标题收小；表单收紧；底部水草作为独立 Footer Decoration。"
         }
       ],
-      "design_overall": "ACTIVE_CLOSURE",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "Login 使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT。",
+          "note": "无太阳 Morning_Lake_Master_V1；仅顶部环境区使用，向下自然过渡为大面积白底。",
           "master": "Morning_Lake_Master_V1"
-        },
-        {
-          "id": "mist_glass_surface_v1",
-          "variant": "GLASS_A"
         },
         {
           "id": "color_typography_v1"
@@ -1346,58 +1348,37 @@
           "id": "spacing_radius_v1"
         }
       ],
-      "note": "Login V2.1 已切换到无太阳 Morning_Lake_Master_V1 / BG_CONTENT；结构与登录业务语义不变。",
-      "live_preview": {
-        "type": "auth_page",
-        "background_variant": "BG_CONTENT",
-        "eyebrow": "渔见",
-        "brand_subtitle": "拍照收藏每次渔获",
-        "title": "欢迎回来",
-        "subtitle": "继续记录你的每一次渔获",
-        "fields": [
-          {
-            "label": "账号",
-            "placeholder": "请输入账号",
-            "icon": "user"
-          },
-          {
-            "label": "密码",
-            "placeholder": "请输入密码",
-            "icon": "lock",
-            "secure": true
-          }
-        ],
-        "secondary_action": "忘记密码？",
-        "primary_action": "登录",
-        "footer_prefix": "还没有账号？",
-        "footer_action": "创建账号",
-        "note": "Design Manager 实时设计预览；最终冻结仍以通过 Visual Gate 的 Canonical Screenshot 为准。"
-      }
+      "note": "Login V2.1 设计已冻结：顶部无文字的无太阳 Morning Lake、下部大面积白底、紧凑表单、页面最底部低存在感水草。Runtime/Evidence 是否一致单独验证。",
+      "frozen_manifest": "design/pages/account_privacy/Login/frozen/manifest.json"
     },
     {
       "id": "auth_register_v2",
       "owner_path": "design/pages/account_privacy/Register",
-      "overall": "RUNTIME_ONLY",
+      "overall": "PARTIAL",
       "modalities": {
         "behavior": {
           "status": "FROZEN",
           "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
         },
         "visual": {
-          "status": "ACTIVE_CLOSURE",
-          "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp",
+          "note": "冻结图负责页面构图与 UI；湖景像素仍以 Morning_Lake_Master_V1 / BG_CONTENT 为高优先级共享 Authority。"
         },
         "motion": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+          "note": "无自动环境动效，仅允许标准控件/Loading 状态反馈。"
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+          "note": "无自动 Haptic。"
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+          "note": "无声音。"
         },
         "runtime": {
           "status": "RUNTIME_ONLY",
@@ -1408,28 +1389,31 @@
           "authority": null
         },
         "assets": {
-          "status": "PARTIAL",
-          "authority": "design/system/backgrounds/morning_lake_v1/manifest.json",
-          "note": "公共背景资产已明确；Register 自身冻结视觉资产待归档。"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/frozen/manifest.json",
+          "note": "页面冻结预览 + 公共 Morning Lake 背景 + 页面底部水草装饰语义已归档。"
         }
       },
-      "note": "Register V2 已建立独立设计包并统一 BG_CONTENT；仍缺正式高保真 Canonical Screenshot。",
-      "display_name": "注册",
+      "note": "Register V2 设计已冻结，并与 Login V2.1 组成统一 Auth Family。Runtime 当前状态不作为本次设计冻结结论。",
+      "display_name": "注册 · 创建账号",
       "design_versions": [
         {
           "version": "V2",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "current": true,
+          "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp",
           "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
-          "note": "与 Login V2.1 同一 Auth 视觉家族；待 Canonical Screenshot / SHA 归档后冻结。"
+          "source_sha256": "9f28450a96c4149c190fe3bef47897a6c069b8221f14c4b54e95479f745d7585",
+          "preview_sha256": "e86db2acedd7aea537b2e14a7e3fe766b673f95181566760db5dd3012d2f19e7",
+          "note": "当前冻结：与 Login 同一风格；仅账号/密码/昵称 3 个字段；不增加手机号、验证码、确认密码。"
         }
       ],
-      "design_overall": "ACTIVE_CLOSURE",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "Register 使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT。",
+          "note": "无太阳 Morning_Lake_Master_V1；顶部环境区向下自然过渡到大面积白底。",
           "master": "Morning_Lake_Master_V1"
         },
         {
@@ -1439,36 +1423,7 @@
           "id": "spacing_radius_v1"
         }
       ],
-      "live_preview": {
-        "type": "auth_page",
-        "background_variant": "BG_CONTENT",
-        "eyebrow": "渔见",
-        "brand_subtitle": "拍照收藏每次渔获",
-        "title": "创建账号",
-        "subtitle": "用一个账号，留住你的钓鱼轨迹",
-        "fields": [
-          {
-            "label": "账号",
-            "placeholder": "3–32 位字母、数字、_ 或 -",
-            "icon": "user"
-          },
-          {
-            "label": "密码",
-            "placeholder": "至少 6 位",
-            "icon": "lock",
-            "secure": true
-          },
-          {
-            "label": "昵称",
-            "placeholder": "1–20 个字符",
-            "icon": "user"
-          }
-        ],
-        "primary_action": "注册并登录",
-        "footer_prefix": "已有账号？",
-        "footer_action": "去登录",
-        "note": "Design Manager 实时设计预览；最终冻结仍以通过 Visual Gate 的 Canonical Screenshot 为准。"
-      }
+      "frozen_manifest": "design/pages/account_privacy/Register/frozen/manifest.json"
     },
     {
       "id": "profile_edit_v1",
