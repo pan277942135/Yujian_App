@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.home
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -8,6 +9,12 @@ import androidx.compose.ui.unit.Dp
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
+
+internal interface HomeCameraRasterAssets {
+    val cameraBase: Bitmap
+    val cameraGoldRim: Bitmap
+    val cameraBreathGlow: Bitmap
+}
 
 /**
  * Home compatibility entry point.
@@ -20,7 +27,7 @@ internal fun HomeCameraButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     motionState: HomeMotionState = rememberHomeMotionState(),
-    runtimeAssets: EmptyHomeRuntimeAssets? = null,
+    runtimeAssets: HomeCameraRasterAssets? = null,
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
 ) {

@@ -41,6 +41,7 @@ jobs:
       - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_empty_home_runtime_v2.py
+          python3 scripts/verify_normal_home_runtime_v1.py
           python3 scripts/verify_recognition_design_closure_v1_1.py
           python3 scripts/verify_recognition_runtime_contract.py
 
@@ -143,6 +144,10 @@ jobs:
       max-parallel: 1
       matrix:
         include:
+          - gate: normal-home-v1
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           - gate: recognition-frozen
             api_level: 28
             required: true
@@ -181,7 +186,7 @@ jobs:
           ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'login-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
