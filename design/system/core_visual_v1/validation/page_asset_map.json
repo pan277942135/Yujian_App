@@ -1,7 +1,7 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "status": "PASS",
-  "policy": "Pages share one Morning Lake Master where a lake environment is required. Page references continue to govern layout, foreground and content; the selected background treatment variant governs environmental salience.",
+  "policy": "Morning Lake V1 uses a dual-master policy: Empty Home uses the Sunrise Hero source; every other lake page uses the no-sun master. Background variants control salience only.",
   "pages": [
     {
       "page_id": "empty_home_v2",
@@ -11,7 +11,7 @@
           "asset": "morning_lake_environment_and_foreground",
           "classification": "SHARED_SYSTEM",
           "implementation": "BG_ENV_HERO",
-          "reason": "Use the shared Morning Lake Master V1 with BG_ENV_HERO; page-specific foreground/layout remains separate."
+          "reason": "Use the frozen Sunrise Hero master with BG_ENV_HERO; page-specific rod/line/bobber/ripple and UI remain separate."
         },
         {
           "asset": "bobber_ripple",
@@ -22,8 +22,9 @@
       ],
       "background_system": {
         "system": "Morning_Lake_Background_System_V1",
-        "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-        "variant": "BG_ENV_HERO"
+        "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Sunrise_Hero_V1.png",
+        "variant": "BG_ENV_HERO",
+        "status": "FROZEN"
       }
     },
     {
@@ -34,7 +35,7 @@
           "asset": "home_morning_lake_treatment",
           "classification": "SHARED_SYSTEM",
           "implementation": "BG_ENV_HERO",
-          "reason": "Use the shared Morning Lake Master V1 with BG_ENV_HERO; page-specific foreground/layout remains separate."
+          "reason": "Use the frozen no-sun Morning Lake master with BG_ENV_HERO; page-specific foreground/layout remains separate."
         },
         {
           "asset": "recent_catch_photo",
@@ -52,7 +53,8 @@
       "background_system": {
         "system": "Morning_Lake_Background_System_V1",
         "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-        "variant": "BG_ENV_HERO"
+        "variant": "BG_ENV_HERO",
+        "status": "FROZEN"
       }
     },
     {
@@ -69,13 +71,14 @@
           "asset": "reduced_background_treatment",
           "classification": "SHARED_SYSTEM",
           "implementation": "BG_CONTENT",
-          "reason": "Use the shared Morning Lake Master V1 with BG_CONTENT; page-specific foreground/layout remains separate."
+          "reason": "Use the frozen no-sun Morning Lake master with BG_CONTENT; page-specific foreground/layout remains separate."
         }
       ],
       "background_system": {
         "system": "Morning_Lake_Background_System_V1",
         "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-        "variant": "BG_CONTENT"
+        "variant": "BG_CONTENT",
+        "status": "FROZEN"
       }
     },
     {
@@ -98,13 +101,14 @@
           "asset": "detail_background_treatment",
           "classification": "SHARED_SYSTEM",
           "implementation": "BG_CONTENT",
-          "reason": "Use the shared Morning Lake Master V1 with BG_CONTENT; page-specific foreground/layout remains separate."
+          "reason": "Use the frozen no-sun Morning Lake master with BG_CONTENT; page-specific foreground/layout remains separate."
         }
       ],
       "background_system": {
         "system": "Morning_Lake_Background_System_V1",
         "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-        "variant": "BG_CONTENT"
+        "variant": "BG_CONTENT",
+        "status": "FROZEN"
       }
     },
     {
@@ -127,13 +131,14 @@
           "asset": "low_salience_data_background",
           "classification": "SHARED_SYSTEM",
           "implementation": "BG_DATA",
-          "reason": "Use the shared Morning Lake Master V1 with BG_DATA; page-specific foreground/layout remains separate."
+          "reason": "Use the frozen no-sun Morning Lake master with BG_DATA; page-specific foreground/layout remains separate."
         }
       ],
       "background_system": {
         "system": "Morning_Lake_Background_System_V1",
         "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-        "variant": "BG_DATA"
+        "variant": "BG_DATA",
+        "status": "FROZEN"
       }
     },
     {
@@ -156,13 +161,14 @@
           "asset": "guide_background_treatment",
           "classification": "SHARED_SYSTEM",
           "implementation": "BG_DATA",
-          "reason": "Use the shared Morning Lake Master V1 with BG_DATA; page-specific foreground/layout remains separate."
+          "reason": "Use the frozen no-sun Morning Lake master with BG_DATA; page-specific foreground/layout remains separate."
         }
       ],
       "background_system": {
         "system": "Morning_Lake_Background_System_V1",
         "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-        "variant": "BG_DATA"
+        "variant": "BG_DATA",
+        "status": "FROZEN"
       }
     }
   ]
