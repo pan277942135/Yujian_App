@@ -1,0 +1,49 @@
+name: Materialize Edit Profile Frozen Authority
+
+on:
+  push:
+    branches:
+      - chore/design-experience-governance-v1
+    paths:
+      - '.edit_profile_asset/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chore/design-experience-governance-v1
+          fetch-depth: 0
+
+      - name: Rebuild frozen WebP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen
+          cat .edit_profile_asset/chunk_*.b64 | base64 -d > design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp
+          test "$(sha256sum design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp | awk '{print $1}')" = "791a6b873878341e84ac48cc47861789b20dfee904effd071af5427111bbaf96"
+          file design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp
+          rm -rf .edit_profile_asset
+          rm -f .github/workflows/materialize-edit-profile-frozen.yml
+
+      - name: Commit frozen authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(design): archive Edit Profile home frozen visual authority"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin chore/design-experience-governance-v1
+            git rebase origin/chore/design-experience-governance-v1
+            if git push origin HEAD:chore/design-experience-governance-v1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
