@@ -187,7 +187,12 @@
       "overall": "FROZEN",
       "current_version": "V1.1",
       "authority_paths": [
-        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
         "design/system/components/action_button/visual/reference_manifest.json",
         "design/system/components/action_button/README.md",
         "design/system/components/action_button/Action_Button_Spec_V1_1.md",
@@ -196,7 +201,7 @@
         "design/system/components/action_button/motion_contract.json",
         "design/system/components/action_button/usage_map.json"
       ],
-      "preview": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+      "preview": "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
       "preview_type": "action_button_system",
       "variants": [
         {
@@ -250,7 +255,7 @@
           "page": "识别结果 · 低置信"
         }
       ],
-      "note": "V1.1 已冻结：56dp / 28dp；Primary 为 Deep Lake Teal；Secondary Strong/Muted 完成雾白层级精修；Recognition 双按钮冻结为 44/56 与 58/42。",
+      "note": "V1.1 完整冻结：三档基础视觉、Login/Register 单按钮、两组双按钮、PRIMARY 五态、SECONDARY_STRONG 五态、SECONDARY_MUTED 四态；Muted Loading=N/A。",
       "revisions": [
         {
           "version": "V1",
@@ -262,17 +267,103 @@
           "current": true
         }
       ],
-      "frozen_visual_reference": {
-        "path": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
-        "width": 1600,
-        "height": 1680,
-        "format": "SVG",
-        "bytes": 8133,
-        "sha256": "44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c",
-        "status": "FROZEN",
-        "version": "V1.1"
-      },
-      "preview_note": "上方静态 Frozen Visual Reference 为最终视觉 Authority；下方 HTML/CSS 预览仅用于交互与状态审视。"
+      "preview_note": "V1.1 完整静态 UI Authority 为 01–06 六份 SVG；旧综合图仅 Overview；下方 Live Preview 仅用于交互与响应式审视。",
+      "frozen_visual_authority_set": [
+        {
+          "id": "01_BASE_VISUAL",
+          "path": "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+          "width": 1400,
+          "height": 560,
+          "bytes": 2836,
+          "sha256": "55eb238fb0b471c449b11382fb1ae3c91ed289a8d0b43d989175a8be6d25ee7b",
+          "covers": [
+            "PRIMARY",
+            "SECONDARY_STRONG",
+            "SECONDARY_MUTED"
+          ],
+          "status": "FROZEN",
+          "version": "V1.1"
+        },
+        {
+          "id": "02_SINGLE_BUTTONS",
+          "path": "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+          "width": 1400,
+          "height": 700,
+          "bytes": 2305,
+          "sha256": "c32492dbd3bf6c26dfb3fbac9c7a4823a8a6800bc3fad4f5c8c95fa2a3e2cc4c",
+          "covers": [
+            "登录",
+            "注册并登录"
+          ],
+          "status": "FROZEN",
+          "version": "V1.1"
+        },
+        {
+          "id": "03_PAIRED_BUTTONS",
+          "path": "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+          "width": 1400,
+          "height": 760,
+          "bytes": 2889,
+          "sha256": "a470e254f95a802171dc23fd1683dfe22e778c3ea518d5dfdc45f4746163f9a0",
+          "covers": [
+            "继续记录记忆 + 保存本次鱼获 44/56",
+            "手动选择 + 重新拍摄 58/42"
+          ],
+          "status": "FROZEN",
+          "version": "V1.1"
+        },
+        {
+          "id": "04_PRIMARY_FIVE_STATES",
+          "path": "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+          "width": 1400,
+          "height": 580,
+          "bytes": 3218,
+          "sha256": "b2923ad413bfd212dcb803a51718c0de86440db74a392d2a72fb46f161acb3e6",
+          "covers": [
+            "PRIMARY Normal",
+            "PRIMARY Pressed",
+            "PRIMARY Loading",
+            "PRIMARY Disabled",
+            "PRIMARY Focus"
+          ],
+          "status": "FROZEN",
+          "version": "V1.1"
+        },
+        {
+          "id": "05_SECONDARY_STRONG_FIVE_STATES",
+          "path": "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+          "width": 1400,
+          "height": 580,
+          "bytes": 3473,
+          "sha256": "a7cea50a7d2e228c0a30027acadb5eec32b725c98d5457372c40f738e5de497e",
+          "covers": [
+            "SECONDARY_STRONG Normal",
+            "SECONDARY_STRONG Pressed",
+            "SECONDARY_STRONG Loading",
+            "SECONDARY_STRONG Disabled",
+            "SECONDARY_STRONG Focus"
+          ],
+          "status": "FROZEN",
+          "version": "V1.1"
+        },
+        {
+          "id": "06_SECONDARY_MUTED_STATES",
+          "path": "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+          "width": 1400,
+          "height": 640,
+          "bytes": 3164,
+          "sha256": "b64af503aa4795a1b9afa6a6330ff113df6399ac7511e4bedcea116da89795ba",
+          "covers": [
+            "SECONDARY_MUTED Normal",
+            "SECONDARY_MUTED Pressed",
+            "SECONDARY_MUTED Disabled",
+            "SECONDARY_MUTED Focus",
+            "SECONDARY_MUTED Loading = N/A"
+          ],
+          "status": "FROZEN",
+          "version": "V1.1"
+        }
+      ]
     },
     {
       "id": "top_navigation_v1",
