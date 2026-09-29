@@ -103,6 +103,7 @@ Rules are identical to Login:
 - Spacing + Radius V1
 - Primary / Secondary Action Button V1.1: `PRIMARY` for `注册并登录`
 - Text Action V1: `去登录` = STRONG
+- Icon Action V1: password visibility = CONTEXT / ON_LIGHT
 
 ## 8. Motion / haptic / sound
 
