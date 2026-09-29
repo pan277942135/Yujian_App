@@ -12,13 +12,15 @@ The legacy route `login` is compatibility-only during migration and must not rem
 
 ## Frozen visual authority
 
-1. `design/pages/account_privacy/Login/00_Login.png`
-2. `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` + `BG_CONTENT`
-3. `design/pages/account_privacy/spec/VISUAL_TOKENS.md`
-4. `design/pages/account_privacy/spec/COPY_AND_BEHAVIOR.md`
-5. `design/pages/account_privacy/spec/FLOW_SPEC.md`
+Current frozen design authority:
 
-The Frozen PNG controls final appearance. Markdown controls tokens and behavior.
+1. `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp`
+2. `design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md`
+3. `design/pages/account_privacy/Login/frozen/manifest.json`
+4. `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` + `BG_CONTENT`
+
+Precedence rule: the frozen Login image governs layout/UI composition; shared Morning Lake governs landscape pixels.
+
 
 ## Scope
 
@@ -128,3 +130,7 @@ Current background authority is:
 `design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md`
 
 The legacy Account Privacy morning-lake asset is no longer a Login design authority.
+
+## V2.1 design freeze update
+
+Login V2.1 design is FROZEN. Top lake area contains no “渔见” or slogan; the main form sits on a large white/MistWhite field; footer grass is page-owned decoration at the absolute bottom. This document does not claim new runtime parity.
