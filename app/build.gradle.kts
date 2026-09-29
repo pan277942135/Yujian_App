@@ -24,25 +24,34 @@ val emptyHomeFrozenHeroSource = rootProject.layout.projectDirectory.file(
 )
 val emptyHomeGeneratedResDir = layout.buildDirectory.dir("generated/emptyHomeFrozenHeroRes")
 
-val accountPrivacyBackgroundSource = rootProject.layout.projectDirectory.file(
-    "design/pages/account_privacy/shared/morning_lake_background.png",
+val sharedMorningLakeBackgroundSource = rootProject.layout.projectDirectory.file(
+    "design/pages/home/empty_home/shared/assets/background/scene_base_master.png",
 )
-val accountPrivacyGeneratedResDir = layout.buildDirectory.dir("generated/accountPrivacyRes")
+val sharedMorningLakeGeneratedResDir = layout.buildDirectory.dir("generated/sharedMorningLakeRes")
 
-val generateAccountPrivacyBackground by tasks.registering {
-    inputs.file(accountPrivacyBackgroundSource)
-    outputs.dir(accountPrivacyGeneratedResDir)
+val generateSharedMorningLakeBackground by tasks.registering {
+    inputs.file(sharedMorningLakeBackgroundSource)
+    outputs.dir(sharedMorningLakeGeneratedResDir)
 
     doLast {
-        val sourceFile = accountPrivacyBackgroundSource.asFile
-        require(sourceFile.isFile) { "Missing Account Privacy Morning Lake source: $sourceFile" }
-        val image = requireNotNull(ImageIO.read(sourceFile)) { "Unable to decode Account Privacy Morning Lake source" }
-        require(image.width == 1080 && image.height == 1920) {
-            "Unexpected Account Privacy Morning Lake dimensions: " + image.width + "x" + image.height
+        val sourceFile = sharedMorningLakeBackgroundSource.asFile
+        require(sourceFile.isFile) { "Missing shared Morning Lake V1 source: $sourceFile" }
+
+        val sourceSha = MessageDigest.getInstance("SHA-256")
+            .digest(sourceFile.readBytes())
+            .joinToString("") { "%02x".format(it) }
+        require(sourceSha == "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22") {
+            "Morning Lake V1 source SHA mismatch: $sourceSha"
         }
-        val drawableDir = accountPrivacyGeneratedResDir.get().dir("drawable-nodpi").asFile
+
+        val image = requireNotNull(ImageIO.read(sourceFile)) { "Unable to decode shared Morning Lake V1 source" }
+        require(image.width == 1080 && image.height == 1920) {
+            "Unexpected shared Morning Lake V1 dimensions: " + image.width + "x" + image.height
+        }
+
+        val drawableDir = sharedMorningLakeGeneratedResDir.get().dir("drawable-nodpi").asFile
         drawableDir.mkdirs()
-        sourceFile.copyTo(drawableDir.resolve("account_privacy_morning_lake.png"), overwrite = true)
+        sourceFile.copyTo(drawableDir.resolve("yujian_morning_lake_master_v1.png"), overwrite = true)
     }
 }
 
@@ -149,13 +158,13 @@ android {
     }
 
     sourceSets.getByName("main").res.srcDir(emptyHomeGeneratedResDir)
-    sourceSets.getByName("main").res.srcDir(accountPrivacyGeneratedResDir)
+    sourceSets.getByName("main").res.srcDir(sharedMorningLakeGeneratedResDir)
 }
 
 tasks.configureEach {
     if (name == "preBuild") {
         dependsOn(generateEmptyHomeFrozenHero)
-        dependsOn(generateAccountPrivacyBackground)
+        dependsOn(generateSharedMorningLakeBackground)
     }
 }
 
