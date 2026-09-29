@@ -209,6 +209,7 @@ function renderLists() {
           '" data-hifi-child-id="' + esc(child.id) + '">' +
           '<span class="subsub-code">' + esc(child.id.toUpperCase().replace("_"," · ")) + '</span>' +
           '<span class="subsub-name">' + esc(child.title.replace(/^B\d+\s*·\s*/, "")) + '</span>' +
+          '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : "视觉") + '</span>' +
           statusBadge(child.status || view.status || "PARTIAL") +
         '</button>';
       }).join("");
@@ -1588,6 +1589,10 @@ function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null) {
   renderSharedRefs(feature);
   renderModalities(feature);
   renderVersions(feature);
+
+  // Renderers above may reveal their own panels. Re-apply the selected layer
+  // after rendering so parent-page governance never leaks into child Authority views.
+  applyPageDetailMode(detailMode);
 }
 
 function selectFromHash() {
