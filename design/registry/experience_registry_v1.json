@@ -510,11 +510,11 @@
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
-      "note": "我的鱼获 V2 保持“时间记忆档案”模型。列表图片、5维筛选、Timeline Scroll、Growth Mark 已恢复为正式冻结设计 Authority；当前主要待确认项为 BG_DATA 在有内容页面上的最终视觉效果与整体页面复核。",
+      "note": "我的鱼获 V2 保持“时间记忆档案”模型。列表图片、5维筛选、Timeline Scroll、Growth Mark、搜索与三类 Empty State 已恢复为正式设计 Authority，并拆为可独立审阅的场景子页面；当前主要待确认项为 BG_DATA 有内容视觉与整体页面复核。",
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "我的鱼获 V2 · 设计冻结检查",
-        "note": "页面核心结构、取图、5维筛选、Timeline Scroll、Growth Mark 已有冻结 Authority。当前主要设计阻塞只剩 BG_DATA 有内容页视觉确认和最终整体复核。",
+        "note": "核心页面结构与主要交互场景均已恢复成冻结 Authority；加载/异常高保真为非阻塞补充。当前主要设计阻塞只剩 BG_DATA 有内容视觉确认和最终整体复核。",
         "items": [
           {
             "id": "MC-FREEZE-01",
@@ -571,6 +571,14 @@
             "blocking": false,
             "decision": "设计继续引用共享 YuJianPrimaryCaptureButton / archive_primary_capture。当前非空列表 Runtime 缺入口属于后续开发交接，不阻塞设计冻结。",
             "authority": "design/pages/fish_records/list/README.md"
+          },
+          {
+            "id": "MC-FREEZE-SCENES",
+            "title": "场景子页面",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "已冻结默认 Timeline、单日 1–5 / 6–10 / >10、搜索 Focused / Results / Empty、Filter Sheet / Results / Empty、Archive Empty 与 Growth Mark 场景。加载/异常高保真仍为非阻塞补充项。",
+            "authority": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md"
           }
         ]
       },
@@ -637,7 +645,368 @@
             "无图标、无阴影、无 glow、无动效"
           ]
         }
-      ]
+      ],
+      "scenario_pages": [
+        {
+          "id": "timeline_default",
+          "title": "默认时间线",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md",
+          "type": "timeline",
+          "summary": "正常有内容状态：月份 → 日期 → 当天鱼获，newest-first。",
+          "rules": [
+            "月份 Header 吸顶",
+            "日期随内容滚动",
+            "鱼获卡使用真实现场照片",
+            "BG_DATA 作为统一背景"
+          ],
+          "preview": {
+            "mode": "timeline",
+            "month": "2026年9月",
+            "day": "9月28日",
+            "day_summary": "千岛湖 · 3条鱼获",
+            "records": [
+              {
+                "species": "草鱼",
+                "meta": "52 cm · 2.3 kg",
+                "location": "千岛湖",
+                "mark": "最长记录"
+              },
+              {
+                "species": "鲤鱼",
+                "meta": "41 cm · 1.6 kg",
+                "location": "千岛湖"
+              },
+              {
+                "species": "白条",
+                "meta": "18 cm · 0.2 kg",
+                "location": "千岛湖"
+              }
+            ]
+          }
+        },
+        {
+          "id": "day_1_5",
+          "title": "单日 1–5 条",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
+          "type": "timeline",
+          "summary": "少量鱼获直接完整展开，不显示折叠控制。",
+          "rules": [
+            "1–5 条全部展示",
+            "不显示“查看更多”",
+            "卡片顺序 newest-first"
+          ],
+          "preview": {
+            "mode": "timeline",
+            "month": "2026年9月",
+            "day": "9月28日",
+            "day_summary": "3条鱼获",
+            "records": [
+              {
+                "species": "草鱼",
+                "meta": "52 cm · 2.3 kg",
+                "location": "千岛湖"
+              },
+              {
+                "species": "鲤鱼",
+                "meta": "41 cm · 1.6 kg",
+                "location": "千岛湖"
+              },
+              {
+                "species": "白条",
+                "meta": "18 cm · 0.2 kg",
+                "location": "千岛湖"
+              }
+            ]
+          }
+        },
+        {
+          "id": "day_6_10",
+          "title": "单日 6–10 条",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
+          "type": "timeline",
+          "summary": "默认只展示最新 5 条，之后以轻量行展开剩余记录。",
+          "rules": [
+            "默认展示 5 条",
+            "显示「查看另外 N 条」",
+            "原日期组内部展开",
+            "展开后显示「收起」",
+            "不跳新页面"
+          ],
+          "preview": {
+            "mode": "timeline_overflow",
+            "month": "2026年9月",
+            "day": "9月28日",
+            "day_summary": "千岛湖 · 8条鱼获",
+            "record_count": 8,
+            "visible_count": 5,
+            "action": "查看另外 3 条"
+          }
+        },
+        {
+          "id": "day_gt10",
+          "title": "单日 >10 条",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
+          "type": "timeline",
+          "summary": "高密度单日记录仍留在原日期组，默认 5 条后显示「查看全部」。",
+          "rules": [
+            "默认展示 5 条",
+            "显示「查看全部」",
+            "点击后原位展开全部",
+            "展开后显示「收起」",
+            "不创建“当天鱼获”新页面"
+          ],
+          "preview": {
+            "mode": "timeline_overflow",
+            "month": "2026年9月",
+            "day": "9月28日",
+            "day_summary": "12条鱼获",
+            "record_count": 12,
+            "visible_count": 5,
+            "action": "查看全部"
+          }
+        },
+        {
+          "id": "search_focus",
+          "title": "点击搜索 / Focused",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+          "type": "search",
+          "summary": "搜索框原位进入焦点状态，不跳全屏搜索页。",
+          "rules": [
+            "键盘打开",
+            "Header / Filter / Timeline 框架保留",
+            "输入即时过滤",
+            "有输入时右侧显示 ×",
+            "不额外出现取消按钮"
+          ],
+          "preview": {
+            "mode": "search_focus",
+            "query": "",
+            "placeholder": "搜索鱼种、地点或日期"
+          }
+        },
+        {
+          "id": "search_results",
+          "title": "搜索有结果",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+          "type": "search",
+          "summary": "搜索结果仍保持月份与日期结构，不变成普通列表。",
+          "rules": [
+            "SearchMatch AND FilterMatch",
+            "隐藏空日期与空月份",
+            "日期摘要按可见记录重算",
+            "清除搜索不清筛选"
+          ],
+          "preview": {
+            "mode": "search_results",
+            "query": "草鱼",
+            "result_count": 2,
+            "month": "2026年9月",
+            "day": "9月28日",
+            "records": [
+              {
+                "species": "草鱼",
+                "meta": "52 cm · 2.3 kg",
+                "location": "千岛湖",
+                "mark": "最长记录"
+              },
+              {
+                "species": "草鱼",
+                "meta": "47 cm · 1.9 kg",
+                "location": "千岛湖"
+              }
+            ]
+          }
+        },
+        {
+          "id": "search_empty",
+          "title": "搜索无结果",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
+          "secondary_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+          "type": "empty",
+          "summary": "保留 query 与筛选状态，只提供清除搜索。",
+          "rules": [
+            "文案：没有找到相关鱼获",
+            "辅助：你可以搜索：鱼种、地点、日期",
+            "动作：清除搜索",
+            "禁止重新拍摄 / 记录第一条鱼"
+          ],
+          "preview": {
+            "mode": "search_empty",
+            "query": "鳄鱼",
+            "title": "没有找到相关鱼获",
+            "subtitle": "你可以搜索：鱼种、地点、日期",
+            "primary": "清除搜索"
+          }
+        },
+        {
+          "id": "filter_sheet",
+          "title": "点击筛选 / 五维 Sheet",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+          "type": "filter",
+          "summary": "点击筛选后打开 Bottom Sheet；首层固定五维摘要，再进入二级选择器。",
+          "rules": [
+            "鱼种 / 时间 / 地点 / 特殊记录 / 尺寸",
+            "二级选择器完成后回首层",
+            "Sheet 内滚动不影响 Timeline",
+            "完成后原页即时更新"
+          ],
+          "preview": {
+            "mode": "filter_sheet",
+            "dimensions": [
+              {
+                "label": "鱼种",
+                "value": "草鱼、鲤鱼"
+              },
+              {
+                "label": "时间",
+                "value": "今年"
+              },
+              {
+                "label": "地点",
+                "value": "千岛湖"
+              },
+              {
+                "label": "特殊记录",
+                "value": "最重记录"
+              },
+              {
+                "label": "尺寸",
+                "value": "长度 ≥ 40cm"
+              }
+            ]
+          }
+        },
+        {
+          "id": "filter_results",
+          "title": "筛选有结果",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+          "type": "filter",
+          "summary": "筛选生效后页面仍是时间档案，顶部显示紧凑已选摘要。",
+          "rules": [
+            "同维度 OR / 不同维度 AND",
+            "保留 Timeline",
+            "支持单项移除",
+            "支持清除全部"
+          ],
+          "preview": {
+            "mode": "filter_results",
+            "chips": [
+              "草鱼 2",
+              "今年",
+              "千岛湖"
+            ],
+            "result_count": 3,
+            "month": "2026年9月",
+            "day": "9月28日"
+          }
+        },
+        {
+          "id": "filter_empty",
+          "title": "筛选无结果",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
+          "secondary_authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+          "type": "empty",
+          "summary": "保留筛选摘要并提供修改与清除两级恢复动作。",
+          "rules": [
+            "文案：没有找到符合条件的鱼获",
+            "辅助：试试调整筛选条件",
+            "主操作：修改筛选",
+            "次操作：清除筛选"
+          ],
+          "preview": {
+            "mode": "filter_empty",
+            "chips": [
+              "青鱼",
+              "近7天",
+              "千岛湖"
+            ],
+            "title": "没有找到符合条件的鱼获",
+            "subtitle": "试试调整筛选条件",
+            "primary": "修改筛选",
+            "secondary": "清除筛选"
+          }
+        },
+        {
+          "id": "archive_empty",
+          "title": "空档案 / 无记录",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
+          "type": "empty",
+          "summary": "用户从未保存过 FishRecord；保留页面世界并把首次记录作为唯一主行动。",
+          "rules": [
+            "文案：还没有鱼获记录",
+            "辅助：拍下第一条鱼，开始你的鱼获时间线",
+            "行动：记录第一条鱼",
+            "底部保留主拍摄按钮",
+            "不使用“暂无数据”"
+          ],
+          "preview": {
+            "mode": "archive_empty",
+            "title": "还没有鱼获记录",
+            "subtitle": "拍下第一条鱼，开始你的鱼获时间线",
+            "primary": "记录第一条鱼"
+          }
+        },
+        {
+          "id": "growth_mark_examples",
+          "title": "Growth Mark 示例",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
+          "type": "growth",
+          "summary": "验证四类记录印记在 Row Card 中的弱权重落位与优先级。",
+          "rules": [
+            "单卡最多 1 个",
+            "数量里程碑 > 首次记录 > 尺寸纪录",
+            "最长+最重合并",
+            "无 icon / shadow / glow / animation"
+          ],
+          "preview": {
+            "mode": "growth_marks",
+            "examples": [
+              {
+                "species": "草鱼",
+                "mark": "第100条"
+              },
+              {
+                "species": "鲤鱼",
+                "mark": "第一次记录"
+              },
+              {
+                "species": "青鱼",
+                "mark": "最长 · 最重"
+              }
+            ]
+          }
+        },
+        {
+          "id": "loading_error",
+          "title": "加载 / 加载失败",
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+          "type": "system",
+          "summary": "Runtime 已存在基础状态，但高保真设计 Authority 尚未独立冻结。",
+          "rules": [
+            "Loading：正在整理你的时间档案…",
+            "Error：鱼获档案暂时无法加载",
+            "动作：重新加载",
+            "保持 BG_DATA 与页面框架"
+          ],
+          "preview": {
+            "mode": "loading_error"
+          }
+        }
+      ],
+      "scenario_index": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md"
     },
     {
       "id": "fish_guide_v2",
