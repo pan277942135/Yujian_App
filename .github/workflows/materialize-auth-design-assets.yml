@@ -25,12 +25,8 @@ jobs:
         run: |
           set -euo pipefail
           required=(
-            login_01 login_02 login_03 login_04 login_05
-            login_06 login_07 login_08 login_09 login_10
-            login_11 login_12 login_13 login_14 login_15
-            register_01 register_02 register_03 register_04 register_05
-            register_06 register_07 register_08 register_09 register_10
-            register_11 register_12 register_13 register_14 register_15
+            login_00 login_01 login_02 login_03 login_04 login_05
+            register_00 register_01 register_02 register_03 register_04 register_05
           )
           for n in "${required[@]}"; do
             if [[ ! -f ".auth_assets/${n}.b64" ]]; then
