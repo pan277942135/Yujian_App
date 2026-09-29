@@ -37,6 +37,27 @@ Design Manager V1 采用两层结构：
 └── 间距与圆角
 ```
 
+## 顶部导航结构
+
+顶部导航采用 **父级总览 + 3 个直接子菜单**：
+
+```text
+顶部导航
+├── 01 · 标题
+├── 02 · 返回 + 标题
+└── 03 · 返回 + 标题 + 工具动作
+```
+
+规则：
+
+- 一级「顶部导航」默认收起；
+- 点击父级只显示 Top Navigation 总览；
+- 点击子菜单直接进入对应组合工作区；
+- 右侧不重复生成 Variant 卡片索引；
+- 旧 `search_filter` Variant 已移除；
+- Search / Filter 属于页面内容工具或输入系统，不再作为 Top Navigation 结构；
+- 子菜单内部 ID 保留为 `TITLE_ONLY / BACK_TITLE / BACK_TITLE_ACTIONS`，UI 仅显示中文编号名称。
+
 ## 一级菜单折叠规则
 
 Design Manager 左侧导航的一级菜单统一支持折叠，并且**默认收起**。
