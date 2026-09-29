@@ -150,10 +150,34 @@ function renderLists() {
   el("sharedCount").textContent = ungroupedShared.length + groupHtml.length;
   el("pageCount").textContent = pages.length;
 
-  const sharedHtml = [
-    ...ungroupedShared.map(renderSharedNavItem),
-    ...groupHtml
-  ].join("");
+  const ungroupedById = new Map(ungroupedShared.map(item => [item.id, item]));
+  const groupById = new Map(groups.map(group => [group.id, group]));
+  const navigationOrder = sharedRegistry.navigation_order || [
+    ...ungroupedShared.map(item => item.id),
+    ...groups.map(group => "group:" + group.id)
+  ];
+
+  const orderedParts = navigationOrder.map(entry => {
+    if (entry.startsWith("group:")) {
+      const group = groupById.get(entry.slice("group:".length));
+      return group ? renderSharedGroup(group, allShared) : "";
+    }
+    const item = ungroupedById.get(entry);
+    return item ? renderSharedNavItem(item) : "";
+  }).filter(Boolean);
+
+  const orderedKeys = new Set(navigationOrder);
+  const extras = [
+    ...ungroupedShared
+      .filter(item => !orderedKeys.has(item.id))
+      .map(renderSharedNavItem),
+    ...groups
+      .filter(group => !orderedKeys.has("group:" + group.id))
+      .map(group => renderSharedGroup(group, allShared))
+      .filter(Boolean)
+  ];
+
+  const sharedHtml = [...orderedParts, ...extras].join("");
 
   el("sharedList").innerHTML =
     sharedHtml || '<div class="preview-empty compact">没有匹配的公共系统</div>';
