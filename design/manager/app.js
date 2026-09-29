@@ -396,12 +396,37 @@ function actionButtonPreviewHtml(item) {
   '</div>';
 }
 
+function textActionPreviewHtml(item) {
+  const refs = item.candidate_visual_set || [];
+  const cards = refs.map(ref =>
+    '<article class="text-action-ref-card">' +
+      '<div class="text-action-ref-head"><strong>' + esc(ref.title || ref.id) + '</strong>' +
+      statusBadge(ref.status || "CANDIDATE") + '</div>' +
+      '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
+        '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.title || ref.id) + '">' +
+      '</a>' +
+    '</article>'
+  ).join("");
+
+  return '<div class="text-action-preview">' +
+    '<div class="text-action-review-banner">' +
+      '<div><span>TEXT ACTION V1</span><strong>Candidate · 待视觉确认</strong></div>' +
+      '<p>重点审视：忘记密码？是否降为 MUTED；Chevron 是否统一为独立图标；ON_MEDIA 反白是否合适。</p>' +
+    '</div>' +
+    '<div class="text-action-ref-grid">' + cards + '</div>' +
+    '<div class="preview-note">当前状态 ACTIVE_CLOSURE。确认后再提升为 FROZEN，并同步 Login / Register / Recognition Result / Normal Home / FishRecordDetail 页面 Authority。</div>' +
+  '</div>';
+}
+
 function sharedPreviewHtml(item) {
   if (item.preview_type === "layered_component" && item.id === "primary_capture_button_v1") {
     return layeredCapturePreviewHtml(item);
   }
   if (item.preview_type === "action_button_system" && item.id === "action_button_v1") {
     return actionButtonPreviewHtml(item);
+  }
+  if (item.preview_type === "text_action_system" && item.id === "text_action_v1") {
+    return textActionPreviewHtml(item);
   }
   return previewHtml(item.preview, item.display_name, item.preview_note);
 }
