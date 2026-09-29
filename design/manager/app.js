@@ -1726,6 +1726,38 @@ function recognitionVisualStatesCanvas(view) {
 
   return '<div class="recognition-visual-state-list">' + cards + '</div>' + mapping;
 }
+
+function recognitionRuntimeEvidenceCanvas(view) {
+  const m = view.evidence_model || {};
+  const groups = m.groups || [];
+  const checks = m.frozen_checks || [];
+  const gate = m.final_gate || {};
+
+  const groupGrid = '<div class="recognition-state-grid">' +
+    groups.map(group => '<article class="recognition-state-card">' +
+      '<div class="recognition-state-head"><strong>' + esc(group.code + " · " + group.title) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+      '<p><b>Requirement</b> · ' + esc(group.requirement) + '</p>' +
+      '<p><b>Artifacts</b> · ' + esc((group.artifacts || []).join(" · ")) + '</p>' +
+      '<p><b>Acceptance</b> · ' + esc(group.acceptance) + '</p>' +
+    '</article>').join("") + '</div>';
+
+  const checkGrid = '<div class="authority-index-grid">' +
+    checks.map((item,index) => '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+      '<div class="authority-kind">FROZEN RUNTIME CHECK</div><p>' + esc(item) + '</p></article>').join("") + '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Evidence Rule</strong><span>' + esc(m.principle || "") + '</span></div>' +
+    '<div class="recognition-section-title">5 Evidence Groups</div>' + groupGrid +
+    '<div class="recognition-section-title">Cross-contract Runtime Checks</div>' + checkGrid +
+    '<div class="recognition-section-title">Final Gate</div>' +
+      '<div class="recognition-state-card"><p><b>Classification</b> · ' + esc(gate.classification_file || "") + ' == ' + esc(gate.pass_value || "") + '</p>' +
+      '<p><b>Build PASS sufficient</b> · ' + esc(String(gate.build_pass_is_sufficient)) + '</p>' +
+      '<p>FAIL_EVIDENCE · ' + esc(gate.missing_required_artifact || "") + '</p>' +
+      '<p>FAIL_TEST · ' + esc(gate.wrong_runtime_behavior || "") + '</p></div>' +
+  '</div>';
+}
+
 function fishGuideMotionCanvas(view) {
   const m = view.motion_system || {};
   const home = m.home_carousel || {};
@@ -1807,6 +1839,7 @@ function genericSpecHifiCanvas(feature, view) {
   if (view.render_mode === "fish_guide_motion") return fishGuideMotionCanvas(view);
   if (view.render_mode === "recognition_timeline") return recognitionStateTimelineCanvas(view);
   if (view.render_mode === "recognition_visual_states") return recognitionVisualStatesCanvas(view);
+  if (view.render_mode === "recognition_runtime_evidence") return recognitionRuntimeEvidenceCanvas(view);
   const points = view.menu_points || [];
   const visual = view.image || view.visual_authority ||
     (view.render_mode === "repo_image" ? currentVersion(feature)?.visual_authority : null);
@@ -2276,7 +2309,25 @@ function recognitionSemanticInvariantsCanvas(child) {
   '</div>';
 }
 
+
+function recognitionEvidenceGroupCanvas(child) {
+  const g = child.evidence_group || {};
+  const artifacts = g.artifacts || [];
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>' + esc(g.code + " · " + g.title) + '</strong><span>' + esc(g.requirement || "") + '</span></div>' +
+    '<div class="recognition-section-title">Required Artifacts</div>' +
+      '<div class="authority-index-grid">' +
+        artifacts.map((item,index)=>'<article class="authority-index-card"><div class="authority-index-head"><strong>' +
+          esc(String(index+1).padStart(2,"0")) + '</strong></div><div class="authority-kind">REQUIRED EVIDENCE</div><p>' +
+          esc(item) + '</p></article>').join("") +
+      '</div>' +
+    '<div class="recognition-section-title">Acceptance</div>' +
+      '<div class="recognition-state-card"><p>' + esc(g.acceptance || "") + '</p></div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_evidence_group") return recognitionEvidenceGroupCanvas(child);
   if (child.render_mode === "recognition_semantic_invariants") return recognitionSemanticInvariantsCanvas(child);
   if (child.render_mode === "recognition_layer_degradation") return recognitionLayerDegradationCanvas(child);
   if (child.render_mode === "recognition_reduce_motion") return recognitionReduceMotionCanvas(child);

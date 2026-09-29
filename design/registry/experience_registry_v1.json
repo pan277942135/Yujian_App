@@ -1931,19 +1931,257 @@
         {
           "id": "runtime_evidence",
           "title": "06 · Runtime Evidence",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "authority_type": "behavior",
-          "render_mode": "recognition_evidence",
-          "authority": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md",
-          "secondary_authority": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md",
-          "summary": "集中展示真机/模拟器关键帧、timing、MP4、Level A contour 与最终 gate；Build PASS 不能替代 Runtime Evidence。",
+          "render_mode": "recognition_runtime_evidence",
+          "authority": "design/pages/recognition/evidence/Recognition_Runtime_Evidence_V1_2.md",
+          "secondary_authority": "design/pages/recognition/evidence/Recognition_Runtime_Evidence_Contract_V1_2.json",
+          "summary": "06 · Runtime Evidence 规范已冻结。它定义最终 Runtime 必须提交哪些 Keyframe、MP4、Timing、Quality/Reduce Motion/D0–D4、真实 Pipeline 与 Gate 证据；Build PASS 不能替代 Runtime Evidence。",
           "menu_points": [
-            "4 个 Processing Keyframe 必须有真实 runtime 对照",
-            "完整 Acceptance 仍要求 9 个 Frozen-state PNG",
-            "必须输出 recognition_processing_timing.txt",
-            "必须输出 recognition_processing_v1_1.mp4",
-            "必须验证真实鱼照片 Level A contour 稳定可见",
-            "最终以 runtime_gate_result.json.classification == PASS 为准"
+            "01 · Visual Keyframes & Parity · FROZEN",
+            "02 · Motion & Timing · FROZEN",
+            "03 · Accessibility & Degradation · FROZEN",
+            "04 · Production Semantics · FROZEN",
+            "05 · Final Gate & Failure Taxonomy · FROZEN",
+            "06 冻结的是 Evidence Contract；不等于当前 Runtime 已 PASS"
+          ],
+          "evidence_model": {
+            "principle": "Every frozen design contract must have a runtime proof. Build PASS is not visual acceptance.",
+            "groups": [
+              {
+                "id": "VISUAL",
+                "code": "01",
+                "title": "Visual Keyframes & Parity",
+                "requirement": "真实 Runtime 截图；不得用设计源图或伪造截图替代。",
+                "artifacts": [
+                  "01_image_recognizing_early.png",
+                  "02_image_recognizing_late.png",
+                  "03_fish_located.png",
+                  "04_species_recognizing.png",
+                  "05_result_high.png",
+                  "06_result_medium.png",
+                  "07_result_low.png",
+                  "08_issue_no_fish.png",
+                  "09_issue_image_quality.png",
+                  "10_issue_technical_failure.png",
+                  "recognition_visual_parity_v1_2.json",
+                  "recognition_visual_parity_contact_sheet_v1_2.png"
+                ],
+                "acceptance": "01/02 是“图片识别中”的 Early/Late keyframe；03=已定位到鱼体；04=鱼种识别中。05–10 验证 downstream Result/Issue。"
+              },
+              {
+                "id": "MOTION",
+                "code": "02",
+                "title": "Motion & Timing",
+                "requirement": "证明 SegmentOffset 连续、StateStrength 正确、Resolve 统一退场，而不是只证明页面能跳转。",
+                "artifacts": [
+                  "recognition_processing_v1_2.mp4",
+                  "recognition_processing_timing_v1_2.txt",
+                  "recognition_motion_trace_v1_2.json"
+                ],
+                "acceptance": "最低节奏 900 / 600 / 1250ms，Resolve 200ms；状态切换无 clock reset、无 segment jump；慢处理停留当前真实状态。"
+              },
+              {
+                "id": "ACCESSIBILITY",
+                "code": "03",
+                "title": "Accessibility & Degradation",
+                "requirement": "同一照片/同一 bbox/固定 visual clock 对比，证明降级只减表达成本。",
+                "artifacts": [
+                  "quality_full.png",
+                  "quality_balanced.png",
+                  "quality_lite.png",
+                  "reduce_motion_static.png",
+                  "degradation_d0_d4_contact_sheet.png",
+                  "recognition_accessibility_trace_v1_2.json"
+                ],
+                "acceptance": "FULL/BALANCED/LITE 保持四岛与 Quiet Gaps；Reduce Motion 冻结运动但保留语义；D0→D4 按冻结顺序，D4 不低于 LITE + Fish Focus C。"
+              },
+              {
+                "id": "PRODUCTION",
+                "code": "04",
+                "title": "Production Semantics",
+                "requirement": "必须走真实 Production Pipeline；detector bbox / classifier result / visual mapping 可追溯。",
+                "artifacts": [
+                  "recognition_production_flow_trace_v1_2.json",
+                  "level_a_real_contour.png",
+                  "fish_focus_bbox_mapping.json"
+                ],
+                "acceptance": "禁止 phaseOverride 作为最终 Production 证据；Fish Focus A/B/C 都来自真实 bbox；视觉层不得改变 detector/classifier/confidence/result。"
+              },
+              {
+                "id": "FINAL_GATE",
+                "code": "05",
+                "title": "Final Gate & Failure Taxonomy",
+                "requirement": "所有证据存在、有效且合同检查通过后，才允许 Runtime Gate PASS。",
+                "artifacts": [
+                  "runtime_evidence_manifest_v1_2.json",
+                  "runtime_gate_result_v1_2.json"
+                ],
+                "acceptance": "最终唯一闭环条件：runtime_gate_result_v1_2.json.classification == PASS，并且 manifest 无 missing/invalid required artifact。"
+              }
+            ],
+            "keyframe_mapping": [
+              {
+                "runtime": "01_image_recognizing_early.png",
+                "product_state": "图片识别中",
+                "historical_reference": "01_Capture_Transition_Frozen.png",
+                "role": "early"
+              },
+              {
+                "runtime": "02_image_recognizing_late.png",
+                "product_state": "图片识别中",
+                "historical_reference": "02_AI_Understanding_Frozen.png",
+                "role": "late"
+              },
+              {
+                "runtime": "03_fish_located.png",
+                "product_state": "已定位到鱼体",
+                "historical_reference": "03_Fish_Highlight_Frozen.png",
+                "role": "primary"
+              },
+              {
+                "runtime": "04_species_recognizing.png",
+                "product_state": "鱼种识别中",
+                "historical_reference": "04_Fish_Identifying_Frozen.png",
+                "role": "primary"
+              }
+            ],
+            "frozen_checks": [
+              "Photo remains dominant; no global tint / HUD / scanner frame",
+              "AI Edge Field preserves 4 islands + Quiet Gaps and never reads as a closed border",
+              "B_UR remains the dominant island",
+              "Fish Focus appears only after real fish location",
+              "Fish Focus is spatially anchored to the real detector bbox",
+              "State Timeline is three Processing states; RESOLVE is not a fourth state",
+              "Quality / Reduce Motion / D-level do not alter Result or confidence semantics"
+            ],
+            "final_gate": {
+              "classification_file": "runtime_gate_result_v1_2.json",
+              "pass_value": "PASS",
+              "build_pass_is_sufficient": false,
+              "missing_required_artifact": "FAIL_EVIDENCE",
+              "wrong_runtime_behavior": "FAIL_TEST",
+              "runner_transport_problem": "BLOCKED_INFRA",
+              "apk_asset_problem": "FAIL_ARTIFACT"
+            }
+          },
+          "children": [
+            {
+              "id": "runtime_visual_parity",
+              "code": "06 · 01",
+              "title": "01 · Visual Keyframes & Parity",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_evidence_group",
+              "summary": "4 个 Processing runtime keyframes + Result/Issue 状态 + Frozen-vs-Runtime contact sheet。旧 01/02 只作为“图片识别中”Early/Late 参考。",
+              "evidence_group": {
+                "id": "VISUAL",
+                "code": "01",
+                "title": "Visual Keyframes & Parity",
+                "requirement": "真实 Runtime 截图；不得用设计源图或伪造截图替代。",
+                "artifacts": [
+                  "01_image_recognizing_early.png",
+                  "02_image_recognizing_late.png",
+                  "03_fish_located.png",
+                  "04_species_recognizing.png",
+                  "05_result_high.png",
+                  "06_result_medium.png",
+                  "07_result_low.png",
+                  "08_issue_no_fish.png",
+                  "09_issue_image_quality.png",
+                  "10_issue_technical_failure.png",
+                  "recognition_visual_parity_v1_2.json",
+                  "recognition_visual_parity_contact_sheet_v1_2.png"
+                ],
+                "acceptance": "01/02 是“图片识别中”的 Early/Late keyframe；03=已定位到鱼体；04=鱼种识别中。05–10 验证 downstream Result/Issue。"
+              }
+            },
+            {
+              "id": "runtime_motion_timing",
+              "code": "06 · 02",
+              "title": "02 · Motion & Timing",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_evidence_group",
+              "summary": "MP4 + timing + motion trace 必须证明连续 clock、无 Segment jump、StateStrength 与 200ms Resolve。",
+              "evidence_group": {
+                "id": "MOTION",
+                "code": "02",
+                "title": "Motion & Timing",
+                "requirement": "证明 SegmentOffset 连续、StateStrength 正确、Resolve 统一退场，而不是只证明页面能跳转。",
+                "artifacts": [
+                  "recognition_processing_v1_2.mp4",
+                  "recognition_processing_timing_v1_2.txt",
+                  "recognition_motion_trace_v1_2.json"
+                ],
+                "acceptance": "最低节奏 900 / 600 / 1250ms，Resolve 200ms；状态切换无 clock reset、无 segment jump；慢处理停留当前真实状态。"
+              }
+            },
+            {
+              "id": "runtime_accessibility_degradation",
+              "code": "06 · 03",
+              "title": "03 · Accessibility & Degradation",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_evidence_group",
+              "summary": "固定照片/固定 bbox/固定 visual clock 下验证 FULL/BALANCED/LITE、Reduce Motion 与 D0→D4。",
+              "evidence_group": {
+                "id": "ACCESSIBILITY",
+                "code": "03",
+                "title": "Accessibility & Degradation",
+                "requirement": "同一照片/同一 bbox/固定 visual clock 对比，证明降级只减表达成本。",
+                "artifacts": [
+                  "quality_full.png",
+                  "quality_balanced.png",
+                  "quality_lite.png",
+                  "reduce_motion_static.png",
+                  "degradation_d0_d4_contact_sheet.png",
+                  "recognition_accessibility_trace_v1_2.json"
+                ],
+                "acceptance": "FULL/BALANCED/LITE 保持四岛与 Quiet Gaps；Reduce Motion 冻结运动但保留语义；D0→D4 按冻结顺序，D4 不低于 LITE + Fish Focus C。"
+              }
+            },
+            {
+              "id": "runtime_production_semantics",
+              "code": "06 · 04",
+              "title": "04 · Production Semantics",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_evidence_group",
+              "summary": "真实 FishRecognitionPipeline、真实 bbox、真实 classifier result；测试 override 不能替代最终 Production 证据。",
+              "evidence_group": {
+                "id": "PRODUCTION",
+                "code": "04",
+                "title": "Production Semantics",
+                "requirement": "必须走真实 Production Pipeline；detector bbox / classifier result / visual mapping 可追溯。",
+                "artifacts": [
+                  "recognition_production_flow_trace_v1_2.json",
+                  "level_a_real_contour.png",
+                  "fish_focus_bbox_mapping.json"
+                ],
+                "acceptance": "禁止 phaseOverride 作为最终 Production 证据；Fish Focus A/B/C 都来自真实 bbox；视觉层不得改变 detector/classifier/confidence/result。"
+              }
+            },
+            {
+              "id": "runtime_final_gate",
+              "code": "06 · 05",
+              "title": "05 · Final Gate & Failure Taxonomy",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_evidence_group",
+              "summary": "Evidence manifest 完整且最终 runtime_gate_result_v1_2.json.classification == PASS 才能关闭 Runtime。",
+              "evidence_group": {
+                "id": "FINAL_GATE",
+                "code": "05",
+                "title": "Final Gate & Failure Taxonomy",
+                "requirement": "所有证据存在、有效且合同检查通过后，才允许 Runtime Gate PASS。",
+                "artifacts": [
+                  "runtime_evidence_manifest_v1_2.json",
+                  "runtime_gate_result_v1_2.json"
+                ],
+                "acceptance": "最终唯一闭环条件：runtime_gate_result_v1_2.json.classification == PASS，并且 manifest 无 missing/invalid required artifact。"
+              }
+            }
           ]
         }
       ],
