@@ -1105,17 +1105,84 @@
         {
           "id": "filter",
           "title": "5维筛选 V1",
-          "status": "FROZEN",
-          "render_mode": "filter_board",
-          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
-          "source_reference": "我的鱼获过滤器 V1 产品规格海报.png",
-          "summary": "高保真场景板：默认页、一级五维 Filter Sheet、二级鱼种选择器、筛选结果与大规模选项处理。",
-          "scenario_ids": [
-            "filter_sheet",
-            "filter_results",
-            "filter_empty"
-          ],
-          "authority_type": "visual"
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "submenu_index",
+          "authority": null,
+          "source_reference": null,
+          "summary": "5维筛选 V1 已建立 F1–F8 子菜单骨架；当前仅建立信息架构与导航入口，页面内容、高保真与正式 Authority 待逐项补齐。",
+          "scenario_ids": [],
+          "authority_type": "group",
+          "historical_reference": {
+            "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+            "source_reference": "我的鱼获过滤器 V1 产品规格海报.png",
+            "role": "historical_reference_pending_revalidation"
+          },
+          "children": [
+            {
+              "id": "f1_filter_sheet",
+              "code": "F1",
+              "title": "F1 · 筛选 Sheet",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f2_species",
+              "code": "F2",
+              "title": "F2 · 鱼种选择",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f3_time",
+              "code": "F3",
+              "title": "F3 · 时间选择",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f4_location",
+              "code": "F4",
+              "title": "F4 · 地点选择",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f5_special_record",
+              "code": "F5",
+              "title": "F5 · 特殊记录",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f6_size",
+              "code": "F6",
+              "title": "F6 · 尺寸筛选",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f7_results",
+              "code": "F7",
+              "title": "F7 · 筛选有结果",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            },
+            {
+              "id": "f8_empty",
+              "code": "F8",
+              "title": "F8 · 筛选无结果",
+              "status": "MISSING",
+              "render_mode": "placeholder",
+              "authority_type": "visual"
+            }
+          ]
         },
         {
           "id": "empty",
