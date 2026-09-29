@@ -115,13 +115,13 @@ function renderLists() {
       statusBadge(feature.design_overall) + '</div>' +
       '<div class="module-path">' + esc(feature.owner_path) + '</div></button>';
 
-    const children = (feature.scenario_pages || []).map(scene => {
-      const sceneKey = "page/" + feature.id + "/" + scene.id;
-      return '<button class="page-subitem' + (selectedKey === sceneKey ? " active" : "") +
-        '" data-kind="page-scenario" data-page-id="' + esc(feature.id) +
-        '" data-scene-id="' + esc(scene.id) + '">' +
-        '<span class="subitem-name">' + esc(scene.title) + '</span>' +
-        statusBadge(scene.status || "PARTIAL") +
+    const children = (feature.hifi_views || []).map(view => {
+      const viewKey = "page/" + feature.id + "/hifi/" + view.id;
+      return '<button class="page-subitem' + (selectedKey === viewKey ? " active" : "") +
+        '" data-kind="page-hifi" data-page-id="' + esc(feature.id) +
+        '" data-hifi-id="' + esc(view.id) + '">' +
+        '<span class="subitem-name">' + esc(view.title) + '</span>' +
+        statusBadge(view.status || "PARTIAL") +
       '</button>';
     }).join("");
 
@@ -139,8 +139,8 @@ function renderLists() {
     btn.addEventListener("click", () => selectShared("background_system_v1", btn.dataset.id));
   });
 
-  document.querySelectorAll(".page-subitem[data-kind='page-scenario']").forEach(btn => {
-    btn.addEventListener("click", () => selectPage(btn.dataset.pageId, btn.dataset.sceneId));
+  document.querySelectorAll(".page-subitem[data-kind='page-hifi']").forEach(btn => {
+    btn.addEventListener("click", () => selectPage(btn.dataset.pageId, null, btn.dataset.hifiId));
   });
 }
 
@@ -624,6 +624,222 @@ function freezeStatusBadge(status) {
   return '<span class="freeze-status ' + css + '">' + esc(label) + '</span>';
 }
 
+
+function myCatchesAuthorityImage(feature) {
+  const version = currentVersion(feature);
+  return version?.visual_authority || feature.modalities?.visual?.authority || "";
+}
+
+function hifiBasePhone(feature, overlay = "", label = "") {
+  const image = myCatchesAuthorityImage(feature);
+  return '<div class="hifi-phone-wrap">' +
+    (label ? '<div class="hifi-phone-label">' + esc(label) + '</div>' : '') +
+    '<div class="hifi-phone">' +
+      (image ? '<img class="hifi-phone-shot" src="' + esc(repoHref(image)) + '" alt="我的鱼获高保真">' : '') +
+      overlay +
+    '</div>' +
+  '</div>';
+}
+
+function bgDataPhone(inner, label = "") {
+  const bgSystem = sharedRegistry.items.find(x => x.id === "background_system_v1");
+  const bgVariant = (bgSystem?.variants || []).find(v => v.id === "BG_DATA");
+  const t = bgVariant?.preview_treatment || {};
+  const source = (bgVariant?.preview_sources || [])[0]?.path || bgSystem?.master?.path;
+  const filter = [
+    "saturate(" + Math.round((t.saturation ?? 1) * 100) + "%)",
+    "contrast(" + Math.round((t.contrast ?? 1) * 100) + "%)",
+    "brightness(" + Math.round((t.brightness ?? 1) * 100) + "%)"
+  ].join(" ");
+  return '<div class="hifi-phone-wrap">' +
+    (label ? '<div class="hifi-phone-label">' + esc(label) + '</div>' : '') +
+    '<div class="hifi-phone">' +
+      (source ? '<img class="hifi-bg" src="' + esc(repoHref(source)) + '" style="filter:' + esc(filter) + '" alt="BG_DATA">' : '') +
+      '<span class="hifi-mist" style="opacity:' + Number(t.mist_alpha || 0) + '"></span>' +
+      inner +
+    '</div>' +
+  '</div>';
+}
+
+function hifiSearchBar(value="", focused=false) {
+  return '<div class="hifi-search' + (focused ? " focused" : "") + '">' +
+    '<span class="hifi-search-icon">⌕</span>' +
+    '<span class="' + (value ? "value" : "placeholder") + '">' + esc(value || "搜索鱼种、地点或日期") + '</span>' +
+    (value ? '<span class="hifi-clear">×</span>' : '') +
+  '</div>';
+}
+
+function hifiHeader() {
+  return '<div class="hifi-page-header"><span class="hifi-back">‹</span><strong>我的鱼获</strong><span class="hifi-tools">⌕　▽</span></div>' +
+    '<div class="hifi-archive-summary">38 次鱼获 · 12 种鱼 · 7 记录天数</div>';
+}
+
+function hifiRow(species, meta, mark="") {
+  return '<div class="hifi-row">' +
+    '<div class="hifi-fish-thumb"><span></span></div>' +
+    '<div class="hifi-row-copy"><strong>' + esc(species) + '</strong><span>' + esc(meta) + '</span></div>' +
+    (mark ? '<div class="hifi-mark">' + esc(mark) + '</div>' : '') +
+    '<div class="hifi-row-chevron">›</div>' +
+  '</div>';
+}
+
+function hifiTimelineContent(opts={}) {
+  const count=opts.count || 3;
+  const rows=[
+    ["草鱼","42.6 cm · 1.28 kg",opts.mark || "最长记录"],
+    ["鲫鱼","28.3 cm · 0.52 kg",""],
+    ["黄骨鱼","24.1 cm · 0.32 kg",""],
+    ["翘嘴鲌","32.7 cm · 0.68 kg",""],
+    ["鳜鱼","31.2 cm · 0.74 kg",""]
+  ].slice(0,Math.min(count,5)).map(x=>hifiRow(...x)).join("");
+  return '<div class="hifi-page-content">' + hifiHeader() +
+    hifiSearchBar() +
+    '<div class="hifi-filter-pills"><span>鱼种</span><span>时间</span><span>地点</span><span>特殊记录</span></div>' +
+    '<div class="hifi-month">2026年9月</div>' +
+    '<div class="hifi-day-head"><b>23</b><span>SEP<br>周三</span><i></i><p>千岛湖 · ' + esc(String(opts.total || count)) + '条鱼获 · ' + esc(String(Math.min(opts.total || count,5))) + '种鱼</p></div>' +
+    '<div class="hifi-day-rows">' + rows + '</div>' +
+    (opts.action ? '<div class="hifi-expand-action">' + esc(opts.action) + '⌄</div>' : '') +
+  '</div>';
+}
+
+function hifiFilterSheet(level2=false) {
+  if(level2) {
+    return '<div class="hifi-sheet full">' +
+      '<div class="hifi-sheet-handle"></div><div class="hifi-sheet-title"><span>‹</span><b>选择鱼种</b><em>完成 (3)</em></div>' +
+      hifiSearchBar("",false) +
+      '<div class="hifi-recent"><b>最近选择</b><span>草鱼</span><span>鲫鱼</span><span>黄骨鱼</span></div>' +
+      '<div class="hifi-option-title">全部鱼种（支持多选）</div>' +
+      ["草鱼","鲫鱼","鲤鱼","鳊鱼","黄骨鱼","翘嘴鲌","鳜鱼"].map((x,i)=>'<div class="hifi-option"><i class="'+(i<3?"checked":"")+'"></i><span>'+x+'</span><b>›</b></div>').join("") +
+    '</div>';
+  }
+  const dims=[
+    ["鱼种","草鱼、鲫鱼"],
+    ["时间","今年"],
+    ["地点","千岛湖"],
+    ["特殊记录","第100条、最重"],
+    ["尺寸","长度 ≥ 40cm"]
+  ];
+  return '<div class="hifi-sheet">' +
+    '<div class="hifi-sheet-handle"></div><div class="hifi-sheet-title"><b>筛选</b><em>清除全部</em></div>' +
+    dims.map(x=>'<div class="hifi-dimension"><strong>'+x[0]+'</strong><span>'+x[1]+'</span><b>›</b></div>').join("") +
+    '<div class="hifi-sheet-footer"><button class="secondary">重置</button><button>查看 12 条鱼获</button></div>' +
+  '</div>';
+}
+
+function hifiEmptyContent(kind) {
+  const cfg={
+    archive:["还没有鱼获记录","拍下第一条鱼，开始你的鱼获时间线","记录第一条鱼",""],
+    filter:["没有找到符合条件的鱼获","试试调整筛选条件","修改筛选","清除筛选"],
+    search:["没有找到相关鱼获","你可以搜索：鱼种、地点、日期","清除搜索",""]
+  }[kind];
+  const top = kind==="search" ? hifiSearchBar("鳄鱼",true) : hifiSearchBar();
+  const filter = kind==="filter" ? '<div class="hifi-filter-pills active"><span>青鱼 ×</span><span>近7天 ×</span><span>千岛湖 ×</span></div>' : '';
+  return '<div class="hifi-page-content">' + hifiHeader() + top + filter +
+    '<div class="hifi-month">2026年9月</div>' +
+    '<div class="hifi-empty-state"><strong>'+cfg[0]+'</strong><p>'+cfg[1]+'</p><button>'+cfg[2]+'</button>' +
+    (cfg[3]?'<a>'+cfg[3]+'</a>':'') + '</div>' +
+    (kind==="archive"?'<div class="hifi-camera-button">▣</div>':'') +
+  '</div>';
+}
+
+function myCatchesHifiCanvas(feature, view) {
+  const authorityImage=myCatchesAuthorityImage(feature);
+  if(view.render_mode==="repo_image") {
+    return '<div class="hifi-original">' +
+      '<a href="' + esc(repoHref(authorityImage)) + '" target="_blank" rel="noreferrer">' +
+      '<img src="' + esc(repoHref(authorityImage)) + '" alt="我的鱼获主页面高保真"></a>' +
+      '<div class="hifi-original-caption">当前 GitHub Frozen Visual Authority · 点击查看原图</div></div>';
+  }
+
+  if(view.render_mode==="timeline_board") {
+    return '<div class="hifi-board three">' +
+      bgDataPhone(hifiTimelineContent({count:3,total:3}),"1–5 条 · 全部展开") +
+      bgDataPhone(hifiTimelineContent({count:5,total:8,action:"查看另外 3 条"}),"6–10 条 · 默认 5 条") +
+      bgDataPhone(hifiTimelineContent({count:5,total:12,action:"查看全部"}),">10 条 · 查看全部") +
+    '</div>';
+  }
+
+  if(view.render_mode==="filter_board") {
+    return '<div class="hifi-board three">' +
+      hifiBasePhone(feature,"","默认时间线") +
+      hifiBasePhone(feature,hifiFilterSheet(false),"一级 · 五维 Filter Sheet") +
+      hifiBasePhone(feature,hifiFilterSheet(true),"二级 · 鱼种选择器") +
+    '</div>';
+  }
+
+  if(view.render_mode==="empty_board") {
+    return '<div class="hifi-board three">' +
+      bgDataPhone(hifiEmptyContent("archive"),"Archive Empty") +
+      bgDataPhone(hifiEmptyContent("filter"),"Filter Empty") +
+      bgDataPhone(hifiEmptyContent("search"),"Search Empty") +
+    '</div>';
+  }
+
+  if(view.render_mode==="growth_board") {
+    return '<div class="hifi-growth-layout">' +
+      hifiBasePhone(feature,"","列表真实落位") +
+      '<div class="hifi-growth-examples">' +
+        '<div class="hifi-growth-intro"><b>Growth Mark V1</b><span>轻量个人记录印记，不做游戏化 Badge。</span></div>' +
+        hifiRow("草鱼","42.6 cm · 1.28 kg","第100条") +
+        hifiRow("鲫鱼","28.3 cm · 0.52 kg","第一次记录") +
+        hifiRow("青鱼","61.2 cm · 3.84 kg","最长 · 最重") +
+        '<div class="hifi-priority"><b>显示优先级</b><span>数量里程碑　›　首次记录　›　尺寸纪录</span></div>' +
+      '</div></div>';
+  }
+
+  if(view.render_mode==="search_board") {
+    const focus='<div class="hifi-page-content">'+hifiHeader()+hifiSearchBar("",true)+'<div class="hifi-search-hint">键盘打开 · Timeline 不跳页</div>'+hifiTimelineContent({count:2,total:2}).replace('<div class="hifi-page-content">','').replace('</div>','')+'</div>';
+    const results='<div class="hifi-page-content">'+hifiHeader()+hifiSearchBar("草鱼",true)+'<div class="hifi-result-count">2 次鱼获</div><div class="hifi-month">2026年9月</div><div class="hifi-day-rows">'+hifiRow("草鱼","42.6 cm · 1.28 kg","最长记录")+hifiRow("草鱼","37.8 cm · 0.96 kg","")+'</div></div>';
+    return '<div class="hifi-board three">' +
+      bgDataPhone(focus,"Focused") +
+      bgDataPhone(results,"搜索有结果") +
+      bgDataPhone(hifiEmptyContent("search"),"搜索无结果") +
+    '</div>';
+  }
+
+  if(view.render_mode==="system_board") {
+    const loading='<div class="hifi-page-content">'+hifiHeader()+hifiSearchBar()+'<div class="hifi-state-card"><i class="spinner"></i><b>正在整理你的时间档案…</b></div></div>';
+    const error='<div class="hifi-page-content">'+hifiHeader()+hifiSearchBar()+'<div class="hifi-state-card error"><b>鱼获档案暂时无法加载</b><p>请稍后重试</p><button>重新加载</button></div></div>';
+    return '<div class="hifi-board two">' + bgDataPhone(loading,"加载中") + bgDataPhone(error,"加载失败") + '</div>';
+  }
+  return '<div class="preview-empty">该高保真子页面尚未建立。</div>';
+}
+
+function renderHifiView(feature, hifiId) {
+  const panel=el("hifiViewPanel");
+  if(!hifiId){ panel.classList.add("hidden"); return; }
+  const view=(feature.hifi_views||[]).find(x=>x.id===hifiId);
+  if(!view){ panel.classList.add("hidden"); return; }
+  panel.classList.remove("hidden");
+  el("hifiViewTitle").textContent=view.title;
+  el("hifiViewStatus").innerHTML=statusBadge(view.status||"PARTIAL");
+  if(view.summary){
+    el("hifiViewSummary").textContent=view.summary;
+    el("hifiViewSummary").classList.remove("hidden");
+  } else el("hifiViewSummary").classList.add("hidden");
+  el("hifiViewCanvas").innerHTML=myCatchesHifiCanvas(feature,view);
+
+  const scenes=(view.scenario_ids||[]).map(id=>(feature.scenario_pages||[]).find(x=>x.id===id)).filter(Boolean);
+  el("hifiViewScenarios").innerHTML=scenes.map(scene=>
+    '<button class="hifi-scenario-chip" data-scene-id="'+esc(scene.id)+'">'+esc(scene.title)+'</button>'
+  ).join("") || '<span class="preview-empty compact">无附加场景映射</span>';
+
+  el("hifiViewAuthorities").innerHTML=[view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
+    '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
+  ).join("");
+
+  if(view.source_reference){
+    el("hifiViewSource").textContent="历史高保真源稿：" + view.source_reference + "；当前 Design Manager 视图按最新冻结规范重新审视呈现。";
+    el("hifiViewSource").classList.remove("hidden");
+  } else {
+    el("hifiViewSource").classList.add("hidden");
+  }
+
+  document.querySelectorAll(".hifi-scenario-chip[data-scene-id]").forEach(btn=>
+    btn.addEventListener("click",()=>selectPage(feature.id,btn.dataset.sceneId,null))
+  );
+}
+
 function myCatchesScenarioPreviewHtml(feature, scene) {
   const bgSystem = sharedRegistry.items.find(x => x.id === "background_system_v1");
   const bgVariant = (bgSystem?.variants || []).find(v => v.id === "BG_DATA");
@@ -826,19 +1042,24 @@ function renderVersions(feature) {
   }).join("") || '<div class="preview-empty">尚未建立版本历史。</div>';
 }
 
-function selectPage(id, scenarioId = null) {
+function selectPage(id, scenarioId = null, hifiId = null) {
   const feature = pageRegistry.features.find(f => f.id === id);
   if (!feature) return;
   const scene = scenarioId ? (feature.scenario_pages || []).find(x => x.id === scenarioId) : null;
-  selectedKey = "page/" + id + (scene ? "/" + scene.id : "");
-  history.replaceState(null, "", "#page/" + encodeURIComponent(id) + (scene ? "/" + encodeURIComponent(scene.id) : ""));
+  const hifi = hifiId ? (feature.hifi_views || []).find(x => x.id === hifiId) : null;
+  selectedKey = "page/" + id + (hifi ? "/hifi/" + hifi.id : (scene ? "/scenario/" + scene.id : ""));
+  history.replaceState(
+    null, "",
+    "#page/" + encodeURIComponent(id) +
+      (hifi ? "/hifi/" + encodeURIComponent(hifi.id) : (scene ? "/scenario/" + encodeURIComponent(scene.id) : ""))
+  );
   renderLists();
   hideAllDetails();
   el("pageDetail").classList.remove("hidden");
 
-  el("pageEyebrow").textContent = scene ? "渔见 · 场景子页面" : "渔见 · 页面模块";
-  el("pageTitle").textContent = scene ? (feature.display_name + " · " + scene.title) : (feature.display_name || feature.id);
-  el("pageStatus").innerHTML = statusBadge(scene?.status || feature.design_overall);
+  el("pageEyebrow").textContent = hifi ? "渔见 · 高保真子页面" : (scene ? "渔见 · 场景 Authority" : "渔见 · 页面模块");
+  el("pageTitle").textContent = hifi ? (feature.display_name + " · " + hifi.title) : (scene ? (feature.display_name + " · " + scene.title) : (feature.display_name || feature.id));
+  el("pageStatus").innerHTML = statusBadge(hifi?.status || scene?.status || feature.design_overall);
   el("moduleName").textContent = feature.display_name || feature.id;
   el("overallBadge").innerHTML = statusBadge(feature.design_overall);
 
@@ -858,6 +1079,7 @@ function selectPage(id, scenarioId = null) {
     el("moduleNote").classList.remove("hidden");
   } else el("moduleNote").classList.add("hidden");
 
+  renderHifiView(feature, hifi?.id || null);
   renderScenario(feature, scene?.id || null);
   renderDesignSections(feature);
   renderFreezeReview(feature);
@@ -882,11 +1104,17 @@ function selectFromHash() {
   if (raw.startsWith("page/")) {
     const parts = raw.split("/");
     const id = parts[1];
-    const scenarioId = parts[2] || null;
     const feature = pageRegistry.features.find(x => x.id === id);
     if (feature) {
-      const validScene = !scenarioId || (feature.scenario_pages || []).some(x => x.id === scenarioId);
-      if (validScene) return selectPage(id, scenarioId);
+      if (parts[2] === "hifi" && parts[3]) {
+        const hifiId=parts[3];
+        if ((feature.hifi_views || []).some(x=>x.id===hifiId)) return selectPage(id,null,hifiId);
+      }
+      if (parts[2] === "scenario" && parts[3]) {
+        const scenarioId=parts[3];
+        if ((feature.scenario_pages || []).some(x=>x.id===scenarioId)) return selectPage(id,scenarioId,null);
+      }
+      if (!parts[2]) return selectPage(id);
     }
   }
   selectShared(sharedRegistry.items[0]?.id);
