@@ -119,7 +119,7 @@ function renderLists() {
       const viewKey = "page/" + feature.id + "/hifi/" + view.id;
       const parentView =
         '<button class="page-subitem' +
-          ((selectedKey === viewKey || selectedKey.startsWith(viewKey + "/")) ? " active" : "") +
+          ((selectedKey === viewKey || (selectedKey && selectedKey.startsWith(viewKey + "/"))) ? " active" : "") +
           '" data-kind="page-hifi" data-page-id="' + esc(feature.id) +
           '" data-hifi-id="' + esc(view.id) + '">' +
           '<span class="subitem-name">' + esc(view.title) + '</span>' +
