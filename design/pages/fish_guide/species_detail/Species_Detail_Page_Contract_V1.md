@@ -244,23 +244,33 @@ Media semantics:
 - do not use AI-generated replacement imagery;
 - never fabricate a second preview when only one qualifying record exists.
 
-Detailed zero/one-record visual treatment belongs to **03 · 鱼种状态**, but this page contract forbids fake catch imagery.
+The **0-record Species Detail visual treatment** is frozen as a dedicated substate under **02 · 鱼种详情**:
+
+- `design/pages/fish_guide/species_detail/Species_Detail_Zero_Catch_State_V1.md`
+- `design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png`
+
+One-record / multi-record semantics remain consistent with **03 · 鱼种状态**, while the zero-record UI itself is owned by 02.
 
 ### 7.3 Navigation behavior
 
-Header row:
+When `savedCount >= 1`:
 
 `我的{speciesName}    N 次记录  >`
 
-Tapping the section header / count / chevron opens:
+- header / count / chevron opens `My Catches → species filter = current species`;
+- each real FishRecord preview opens its selected `FishRecordDetail`.
 
-`My Catches → species filter = current species`
+When `savedCount = 0`:
 
-Each visible real-catch preview is independently tappable:
+`我的{speciesName}    0 次记录`
 
-`preview → FishRecordDetail(selected FishRecord)`
+- no chevron;
+- header/count are not tappable;
+- no preview tiles are rendered;
+- the only action is shared Text Action `去记录鱼获 >`;
+- that action opens the normal Recognition Capture entry without species preselection.
 
-Returning from either destination restores the Species Detail state:
+Returning from My Catches / FishRecordDetail / Recognition preserves the Species Detail state when the screen remains in the navigation stack:
 
 - same species;
 - same centered knowledge-card index;
@@ -438,8 +448,9 @@ Species Detail page-level design is accepted only when all are true:
 - [x] First cold entry opens at 01 / 05.
 - [x] `NN / 05` is the only page indicator.
 - [x] My Species shows saved FishRecord count semantics.
-- [x] My Species previews use up to two recent real FishRecord photos only.
-- [x] Preview taps can open the selected FishRecord; header/count/chevron opens species-filtered My Catches.
+- [x] Zero Catch is a frozen 02 substate: `0次记录`, no chevron, no preview tiles, `还没有记录` + Text Action `去记录鱼获 >`.
+- [x] At savedCount >=1, My Species previews use up to two recent real FishRecord photos only.
+- [x] At savedCount >=1, preview taps can open the selected FishRecord; header/count/chevron opens species-filtered My Catches.
 - [x] Back to Fish Guide restores the originating species carousel position.
 - [x] Round trips through My Catches / FishRecordDetail restore Species Detail card state.
 - [x] Five black-gold card internal content/visual design remains explicitly outside this freeze.
