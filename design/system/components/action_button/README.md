@@ -31,10 +31,15 @@ Frozen date: **2026-09-29**
 
 ## Current Authority
 
-1. **Frozen Visual Reference** — final static appearance and composition:
-   - `visual/Action_Button_V1_1_Frozen_Visual.svg`
-   - 1600 × 1680
-   - SHA-256 `44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c`
+1. **Frozen Visual Authority Set** — six independently usable UI references under `visual/authority/`:
+   - `01_Base_Visual.svg`
+   - `02_Single_Buttons.svg`
+   - `03_Paired_Buttons.svg`
+   - `04_PRIMARY_Five_States.svg`
+   - `05_SECONDARY_STRONG_Five_States.svg`
+   - `06_SECONDARY_MUTED_States.svg`
+
+   The previous `visual/Action_Button_V1_1_Frozen_Visual.svg` is retained as **overview only**.
 2. **Numeric / behavior contracts**:
    - `Action_Button_Spec_V1_1.md`
    - `visual_contract.json`
