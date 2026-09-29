@@ -52,3 +52,33 @@ When entered from “保存并记录记忆”, scroll/focus to Memory without cr
 - Fish Guide and Share → Icon Action V1 / UTILITY / ON_LIGHT.
 - B-side manual flip → Icon Action V1 / UTILITY / ON_MEDIA; only visible when B-side exists.
 - Card flip motion belongs to the card/content; the flip icon itself does not rotate.
+
+
+## Top Navigation
+
+FishRecordDetail uses **Top Navigation V1 / BACK_TITLE_ACTIONS / FROZEN**.
+
+Frozen layout:
+
+```text
+←  鱼获详情                         鱼鉴   分享
+```
+
+- min content height: 56dp;
+- outer padding: 8dp;
+- Back: Icon Action V1 / NAVIGATION / 44dp target / 22dp glyph;
+- title: 20sp / Medium / 26sp / DeepLakeBlue;
+- Fish Guide: Icon Action V1 / UTILITY / ON_LIGHT;
+- Share: Icon Action V1 / UTILITY / ON_LIGHT;
+- Utility target: 44dp;
+- Utility gap: 8dp;
+- maximum visible Utility slots: 2.
+
+Boundary:
+
+- Hero `编辑` stays Text Action V1 / NORMAL / ON_MEDIA;
+- B-side manual Flip stays local Icon Action V1 / UTILITY / ON_MEDIA;
+- Add Media stays in the content/context layer;
+- none of these are Top Navigation actions.
+
+Current Runtime `YuJianTopBar` is not yet pixel-aligned with the frozen secondary-page typography/height; runtime parity is a separate closure task.
