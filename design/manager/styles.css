@@ -1439,3 +1439,110 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 @media(max-width:650px){
   .hifi-board.four{grid-template-columns:1fr}
 }
+
+
+.action-preview-shell{
+  width:100%;
+  padding:18px;
+  display:grid;
+  gap:18px;
+  background:linear-gradient(180deg,#fbfdfc,#f4f8f7);
+}
+.action-preview-title{
+  font-size:12px;
+  font-weight:850;
+  color:#18343a;
+}
+.action-preview-variants{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.action-preview-card{
+  border:1px solid #e2ebe8;
+  border-radius:14px;
+  background:#fff;
+  padding:14px;
+  display:grid;
+  gap:10px;
+}
+.action-preview-card>span{
+  font-size:9px;
+  font-weight:850;
+  color:#71868b;
+  letter-spacing:.03em;
+}
+.action-demo{
+  height:56px;
+  border-radius:28px;
+  padding:0 24px;
+  font-size:14px;
+  font-weight:700;
+  border:0;
+  white-space:nowrap;
+}
+.action-primary{
+  background:#0F7A78;
+  color:#fff;
+}
+.action-secondary-strong{
+  background:#F4F8F7;
+  color:#0B2D4B;
+  border:1px solid rgba(15,122,120,.28);
+}
+.action-secondary-muted{
+  background:rgba(247,250,251,.72);
+  color:#748897;
+  border:1px solid rgba(116,136,151,.24);
+}
+.action-preview-pairs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.action-pair-block{
+  border:1px solid #e2ebe8;
+  border-radius:14px;
+  background:#fff;
+  padding:14px;
+  display:grid;
+  gap:10px;
+}
+.action-pair-block>b{
+  font-size:10px;
+  color:#526a70;
+}
+.action-pair{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.action-pair .action-demo{
+  min-width:0;
+  padding:0 12px;
+  font-size:12px;
+}
+.action-usage-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.action-usage-grid>div{
+  padding:10px 11px;
+  border:1px solid #e7eeec;
+  border-radius:11px;
+  background:rgba(255,255,255,.8);
+  display:grid;
+  gap:3px;
+}
+.action-usage-grid strong{
+  font-size:11px;
+  color:#18343a;
+}
+.action-usage-grid span{
+  font-size:9px;
+  color:#71868b;
+}
+@media(max-width:900px){
+  .action-preview-variants,.action-preview-pairs,.action-usage-grid{grid-template-columns:1fr}
+}
