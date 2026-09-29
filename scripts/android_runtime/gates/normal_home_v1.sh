@@ -29,9 +29,57 @@ normal_home_launch_app() {
     printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s pid=%s\n' "$attempt" "$resumed" "$pid"
     if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* && "$pid" =~ [0-9] ]]; then
       # UIAutomator's Compose bridge is unreliable and can hang on API 28.
-      # The frozen ROI parity check below is the visual/content authority.
-      sleep 5
-      return 0
+      # Wait on real rendered pixels instead. Normal Home intentionally loads
+      # its scene/card/photo assets asynchronously, so an Activity-resumed
+      # signal alone is not sufficient evidence that the production frame is
+      # ready for a frozen-parity capture.
+      local candidate="$YUJIAN_EVIDENCE_DIR/normal-home-v1/render_readiness.png"
+      local render_attempt
+      for render_attempt in $(seq 1 20); do
+        "$YUJIAN_ADB_BIN" exec-out screencap -p > "$candidate"
+        if python3 - "$candidate" <<'PY'
+from PIL import Image, ImageStat
+import sys
+
+image = Image.open(sys.argv[1]).convert("RGB")
+if image.width < 200 or image.height < 400:
+    raise SystemExit("NORMAL_HOME_FRAME_INVALID")
+
+def crop(x, y, w, h):
+    return image.crop((
+        int(image.width * x),
+        int(image.height * y),
+        int(image.width * (x + w)),
+        int(image.height * (y + h)),
+    ))
+
+# The lake scene must be decoded, and the upper half of the catch card must
+# contain the real seeded photo rather than the transparent/error placeholder.
+background = crop(0.04, 0.16, 0.92, 0.18)
+card_photo = crop(0.18, 0.33, 0.64, 0.28)
+bg_stat = ImageStat.Stat(background)
+card_stat = ImageStat.Stat(card_photo)
+bg_spread = sum(bg_stat.stddev) / 3.0
+card_spread = sum(card_stat.stddev) / 3.0
+bg_mean = sum(bg_stat.mean) / 3.0
+card_mean = sum(card_stat.mean) / 3.0
+print(
+    "NORMAL_HOME_RENDER_READINESS "
+    f"bg_mean={bg_mean:.2f} bg_spread={bg_spread:.2f} "
+    f"card_mean={card_mean:.2f} card_spread={card_spread:.2f}"
+)
+if bg_spread < 18.0 or card_spread < 18.0 or card_mean > 242.0:
+    raise SystemExit("NORMAL_HOME_RENDER_NOT_SETTLED")
+PY
+        then
+          printf 'NORMAL_HOME_RENDER_READY attempt=%s\n' "$render_attempt"
+          return 0
+        fi
+        printf 'NORMAL_HOME_RENDER_SETTLE attempt=%s\n' "$render_attempt"
+        sleep 1
+      done
+      echo 'NORMAL_HOME_RENDER_NOT_READY' >&2
+      return 1
     fi
     sleep 1
   done
