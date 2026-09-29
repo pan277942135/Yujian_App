@@ -139,7 +139,7 @@
       "display_name": "主拍摄按钮",
       "category": "component",
       "overall": "FROZEN",
-      "current_version": "V1",
+      "current_version": "V1.1",
       "authority_paths": [
         "design/system/components/primary_capture_button/README.md",
         "design/system/components/primary_capture_button/manifest.json",
@@ -164,8 +164,21 @@
           "asset": "capture_button_main_v1.png"
         }
       ],
-      "note": "Primary Capture Button V1 已正式冻结；页面不得复制后私改或重新生成。",
-      "preview_note": "正式冻结公共按钮：208×208 RGBA，静态金边已包含在 Canonical PNG 中；扫光 mask 与呼吸 glow 仅用于动效。"
+      "note": "V1.0 旧公共按钮已废弃；当前唯一视觉 Authority 为 capture_button_main_v1.png V1.1。",
+      "preview_note": "V1.1 正式冻结：来自用户确认截图的按钮视觉；白色玻璃主体 + 灰银承托环 + 细亮暖金边 + 深湖蓝灰相机图标。",
+      "revisions": [
+        {
+          "version": "V1.0",
+          "status": "DEPRECATED",
+          "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d"
+        },
+        {
+          "version": "V1.1",
+          "status": "FROZEN",
+          "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+          "current": true
+        }
+      ]
     },
     {
       "id": "top_navigation_v1",
