@@ -1,0 +1,56 @@
+name: Materialize Auth Final Visual Authorities
+
+on:
+  push:
+    branches:
+      - chore/design-experience-governance-v1
+    paths:
+      - '.auth_assets/**'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chore/design-experience-governance-v1
+          fetch-depth: 0
+
+      - name: Check asset chunks
+        id: ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in login register; do
+            for n in 01 02 03 04 05 06; do
+              test -f ".auth_assets/${p}_${n}.b64" || { echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0; }
+            done
+          done
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Materialize exact uploaded images
+        if: steps.ready.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p design/pages/account_privacy/Login/frozen
+          mkdir -p design/pages/account_privacy/Register/frozen
+          cat .auth_assets/login_*.b64 | base64 -d > design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png
+          cat .auth_assets/register_*.b64 | base64 -d > design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png
+          test "$(sha256sum design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png | awk '{print $1}')" = "2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c"
+          test "$(sha256sum design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png | awk '{print $1}')" = "14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35"
+          rm -rf .auth_assets
+
+      - name: Commit authorities
+        if: steps.ready.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat(design): archive final Login and Register visual authorities"
+          git push origin HEAD:chore/design-experience-governance-v1
