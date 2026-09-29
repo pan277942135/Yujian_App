@@ -26,7 +26,7 @@ Do not add media-gallery complexity to this screen.
 
 ## CTA contract
 
-Shared authority: `design/system/components/action_button/Action_Button_Spec_V1.md`
+Shared authority: `design/system/components/action_button/Action_Button_Spec_V1_1.md`
 
 ### Normal / confirmed result
 - `保存本次鱼获` → **PRIMARY** → create FishRecord → Normal Home
