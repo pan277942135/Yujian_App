@@ -405,3 +405,102 @@ Deferred to a later visual asset step:
 - dedicated AI Edge Field Static Master image, if a new standalone visual master is produced.
 
 The topology defined in this document is already frozen and must govern that future visual master.
+
+
+## HarmonyOS official-reference adoption
+
+Official HarmonyOS UI Design Kit describes a UI light-field family that includes **edge flowing light, background flowing light, and luminous receiving-light effects**. HarmonyOS' current immersive-light design language also emphasizes simulated light propagation/reflection, transparency, layering, and restrained motion.
+
+AI Edge Field V1 does **not** copy HarmonyOS component styling. It absorbs the following higher-level optical rules.
+
+### Adopted rule A · Light field before line
+
+The viewer should first perceive a **local light field**, and only then notice the bright Primary Core and Hairline detail.
+
+Fail:
+
+> “I see several glowing wires around the photo.”
+
+Pass:
+
+> “The edge of the photograph is locally illuminated; inside that light field are finer energy traces.”
+
+### Adopted rule B · Local receiving light
+
+Each Energy Island owns a subtle receiving-light zone on the underlying photo.
+
+- depth: approximately 8–18% from the nearest edge;
+- very soft falloff;
+- low intensity;
+- local only;
+- must preserve skin tone, fish color, water/sky color and scene contrast.
+
+No full-frame blue/gold wash is allowed.
+
+### Adopted rule C · One dominant light moment
+
+The Static Master does not make all four islands equally bright.
+
+Frozen peak hierarchy:
+
+| Island | Relative peak |
+| --- | ---: |
+| B_UR | 1.00 |
+| G_UL | 0.72–0.82 |
+| G_LL | 0.58–0.68 |
+| B_LR | 0.48–0.60 |
+
+B_UR is the only dominant light field.
+
+### Adopted rule D · Soft physical layering
+
+Each island should read as an optical stack:
+
+1. Local Receiving Light
+2. Outer Bloom
+3. Mid Glow
+4. Primary Core
+5. Hairline detail
+
+The stack should feel soft and spatial, not like a digital outline.
+
+### Adopted rule E · Point-light as accent
+
+A light node is a local peak inside the energy field, not a decorative bulb.
+
+- B_UR: one main Hot Node permitted;
+- whole screen: at most one additional weak secondary node;
+- nodes must not be evenly spaced.
+
+### Adopted rule F · Content remains dominant
+
+The captured fishing photo remains the main visual surface.
+
+The light field must enhance Recognition atmosphere without replacing the photo's natural color, contrast or subject readability.
+
+### HarmonyOS concepts intentionally NOT adopted
+
+- full-background flowing light across the entire photograph;
+- closed component-border illumination;
+- symmetric dual-edge treatment;
+- press-response material effects.
+
+Those behaviors make sense for system components but conflict with YuJian Recognition's documentary-photo priority.
+
+## Static Master optical stack
+
+From broadest / softest to finest / hottest:
+
+| Layer | Frozen role |
+| --- | --- |
+| Local Receiving Light | 8–18% edge depth, very soft, very low intensity |
+| Outer Bloom | 10dp atmospheric diffusion |
+| Mid Glow | 4dp luminous body |
+| Primary Core | path-specific 0.8–1.2dp hot ridge |
+| Hairline | 0.35–0.65dp local high-frequency detail |
+
+Perceptual acceptance:
+
+> First read = local edge illumination and directional energy.  
+> Second read = Primary Core / Hairline detail.
+

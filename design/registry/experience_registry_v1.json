@@ -627,7 +627,7 @@
               "secondary_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
-              "summary": "Static Shape 已冻结：4 个断开的能量岛；每岛固定 1 Primary + 1 Companion Hairline，仅右上 B_UR 允许额外 1 条 Micro Hairline。伴随线更短、更细、更暗且非平行，禁止双轨/电路感。",
+              "summary": "Static Shape 已融合 HarmonyOS 官方光场原则：保留 4 Energy Islands + Primary/Hairline 的渔见身份，但加入“光场先于线、局部受光、唯一主光场、柔和物理层级、热点克制”的视觉规则。",
               "static_shape": {
                 "identity": "四个断开的边缘能量岛；整体必须读成局部能量现象，而不是环、框、轨道或 HUD。",
                 "primary_islands": [
@@ -878,6 +878,107 @@
                     "Hairline 不能跨 Quiet Gap 去连接相邻能量岛。",
                     "Hairline 不得独立延伸成新的第五个能量岛。"
                   ]
+                },
+                "harmony_reference_adoption": {
+                  "reference_type": "Official HarmonyOS UI Design Kit / immersive light-sense principles",
+                  "adopted": [
+                    {
+                      "id": "LIGHT_FIELD_BEFORE_LINE",
+                      "rule": "先读成局部光场，再读到光带与 Hairline；禁止第一眼只看到几根发光线。"
+                    },
+                    {
+                      "id": "LOCAL_RECEIVING_LIGHT",
+                      "rule": "每个 Energy Island 都必须包含低强度受光区，让照片边缘像被光照亮；受光只局部存在，不做全屏染色。"
+                    },
+                    {
+                      "id": "ONE_DOMINANT_LIGHT_MOMENT",
+                      "rule": "Static Master 中 B_UR 为唯一最高亮度主岛；其余三岛作为支持层，不四角等亮。"
+                    },
+                    {
+                      "id": "SOFT_PHYSICAL_LAYERING",
+                      "rule": "Core / Glow / Bloom / Receiving Light 必须形成柔和层级，避免纯描边、纯霓虹、锐利电子 HUD 感。"
+                    },
+                    {
+                      "id": "POINT_LIGHT_AS_ACCENT",
+                      "rule": "热点只作为局部能量峰值，不均匀排布。B_UR 允许 1 个主 Hot Node，其余全屏最多再出现 1 个弱节点。"
+                    },
+                    {
+                      "id": "CONTENT_REMAINS_DOMINANT",
+                      "rule": "AI 光场必须服务照片主体；照片对比、肤色、鱼体与环境不可被蓝金光整体覆盖。"
+                    }
+                  ],
+                  "explicitly_not_adopted": [
+                    "Background flowing light across the full photo",
+                    "Closed dual-edge frame treatment",
+                    "Symmetric component-border lighting",
+                    "Material press-response behavior"
+                  ]
+                },
+                "optical_stack": {
+                  "identity": "每个岛从照片内侧到边缘形成 Receiving Light → Outer Bloom → Mid Glow → Core → Hairline 的局部光学层级。",
+                  "layers": [
+                    {
+                      "layer": "LOCAL_RECEIVING_LIGHT",
+                      "depth": "约 8–18% edge depth",
+                      "weight": "0.10–0.18",
+                      "role": "照片边缘受光；最宽、最软、最弱"
+                    },
+                    {
+                      "layer": "OUTER_BLOOM",
+                      "width": "10dp",
+                      "weight": "弱",
+                      "role": "能量空气扩散"
+                    },
+                    {
+                      "layer": "MID_GLOW",
+                      "width": "4dp",
+                      "weight": "中弱",
+                      "role": "定义发光带实体感"
+                    },
+                    {
+                      "layer": "PRIMARY_CORE",
+                      "width": "0.8–1.2dp per path",
+                      "weight": "主",
+                      "role": "主光带亮脊"
+                    },
+                    {
+                      "layer": "HAIRLINE",
+                      "width": "0.35–0.65dp",
+                      "weight": "辅",
+                      "role": "局部细节与高频纹理"
+                    }
+                  ],
+                  "perceptual_rule": "第一眼看到局部柔和光场与亮度流向；第二眼才看到细 Core / Hairline。"
+                },
+                "static_master_balance": {
+                  "dominant_island": "B_UR",
+                  "hierarchy": [
+                    {
+                      "island": "B_UR",
+                      "relative_peak": "1.00",
+                      "role": "唯一主光场"
+                    },
+                    {
+                      "island": "G_UL",
+                      "relative_peak": "0.72–0.82",
+                      "role": "暖色平衡"
+                    },
+                    {
+                      "island": "G_LL",
+                      "relative_peak": "0.58–0.68",
+                      "role": "低位暖色承托"
+                    },
+                    {
+                      "island": "B_LR",
+                      "relative_peak": "0.48–0.60",
+                      "role": "最弱冷色收尾"
+                    }
+                  ],
+                  "hot_nodes": {
+                    "B_UR": 1,
+                    "global_secondary_max": 1,
+                    "rule": "节点不是灯泡阵列；必须依附于主光带的局部峰值。"
+                  }
                 }
               }
             }
