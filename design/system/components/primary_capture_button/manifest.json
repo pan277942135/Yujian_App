@@ -1,6 +1,6 @@
 {
   "component": "YuJian Primary Capture Button",
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN",
   "frozen_date": "2026-09-29",
   "canonical_asset": {
@@ -9,11 +9,21 @@
     "width": 208,
     "height": 208,
     "mode": "RGBA",
-    "bytes": 39099,
-    "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
-    "source_visual": "Empty Home V2.2",
-    "source_alias": "design/system/components/primary_capture_button/assets/capture_button_base.png",
-    "byte_identical_to_source_alias": true
+    "bytes": 58154,
+    "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+    "source_visual": "用户确认的《渔见湖畔鱼获记录界面.png》",
+    "source_canvas": [
+      941,
+      1672
+    ],
+    "source_crop": {
+      "x": 382,
+      "y": 1346,
+      "w": 174,
+      "h": 174
+    },
+    "extraction": "Extracted from the user-approved screenshot, lake background removed outside the circular button, normalized to 208×208. No button redesign.",
+    "supersedes_sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d"
   },
   "supporting_assets": [
     {
@@ -31,5 +41,19 @@
     "design/system/components/primary_capture_button/visual_contract.json",
     "design/system/components/primary_capture_button/motion_contract.json",
     "design/system/components/primary_capture_button/haptic_contract.json"
+  ],
+  "revision_history": [
+    {
+      "version": "V1.0",
+      "status": "SUPERSEDED",
+      "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
+      "reason": "Old repository asset did not match the user-approved gold rim / glass-ring visual."
+    },
+    {
+      "version": "V1.1",
+      "status": "FROZEN",
+      "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "reason": "Replaced with the visual extracted from the user-approved screenshot."
+    }
   ]
 }
