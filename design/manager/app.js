@@ -431,11 +431,11 @@ function textActionPreviewHtml(item) {
 }
 
 function iconActionPreviewHtml(item) {
-  const refs = item.candidate_visual_set || [];
+  const refs = item.frozen_visual_authority_set || item.candidate_visual_set || [];
   return '<div class="icon-action-preview">' +
     '<div class="text-action-review-banner">' +
-      '<div><span>ICON ACTION V1</span><strong>Candidate · 待视觉确认</strong></div>' +
-      '<p>重点审视：Navigation / Utility / Context 边界；B-side Card Flip 图标；默认透明容器与 ON_MEDIA Mist 支撑面的关系。</p>' +
+      '<div><span>ICON ACTION V1</span><strong>FROZEN · V1</strong></div>' +
+      '<p>已冻结：Navigation / Utility / Context 三大家族；B-side Card Flip=UTILITY/ON_MEDIA；默认透明容器，复杂媒体按需使用 36dp Mist 支撑面。</p>' +
     '</div>' +
     '<div class="text-action-ref-grid">' +
       refs.map(ref => '<article class="text-action-ref-card">' +
@@ -445,7 +445,7 @@ function iconActionPreviewHtml(item) {
           '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.title || ref.id) + '">' +
         '</a></article>').join("") +
     '</div>' +
-    '<div class="preview-note">当前为 ACTIVE_CLOSURE。确认后再提升为 Frozen Authority，并回写 Top Navigation / FishRecordDetail / My Catches / Auth 等页面引用。</div>' +
+    '<div class="preview-note">当前状态 FROZEN。六份静态组件 Authority 与消费页面映射已同步；不得把装饰图标、Text Action Chevron 或主拍摄按钮误归为 Icon Action。</div>' +
   '</div>';
 }
 
