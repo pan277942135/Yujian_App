@@ -1,30 +1,44 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "status": "PASS",
-  "policy": "A shared bitmap exists only when an independent high-quality source is already present. Frozen page screenshots are not cropped into production assets.",
-  "real_shared_asset_count": 1,
+  "policy": "Morning Lake V1 owns two canonical source masters. Page screenshots are not cropped into production backgrounds.",
+  "real_shared_asset_count": 2,
   "assets": [
     {
       "asset_id": "Morning_Lake_Master_V1",
       "category": "environment",
       "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-      "width": 1080,
-      "height": 1920,
+      "width": 941,
+      "height": 1672,
       "format": "PNG RGB",
-      "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22",
-      "source": "Empty Home clean scene master",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "source": "晨雾山湖与远山.png",
       "usage": [
-        "BG_ENV_HERO",
+        "BG_ENV_HERO_normal_home",
         "BG_CONTENT",
         "BG_DATA"
       ],
-      "status": "SHARED_MASTER_ACTIVE_CLOSURE"
+      "status": "FROZEN"
+    },
+    {
+      "asset_id": "Morning_Lake_Sunrise_Hero_V1",
+      "category": "environment",
+      "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Sunrise_Hero_V1.png",
+      "width": 941,
+      "height": 1672,
+      "format": "PNG RGB",
+      "sha256": "28313d84c8cf3fb9db52196874e9c4d55483c99ff61cf579cac3ecc69af6cc50",
+      "source": "晨曦映照的静谧山湖.png",
+      "usage": [
+        "BG_ENV_HERO_empty_home_only"
+      ],
+      "status": "FROZEN"
     }
   ],
   "category_decisions": [
     {
       "category": "environment",
-      "decision": "SHARED_MASTER_AVAILABLE",
+      "decision": "DUAL_SHARED_MASTERS_FROZEN",
       "source_screens": [
         "empty_home_v2",
         "normal_home_v1",
@@ -33,8 +47,8 @@
         "my_catches_v2",
         "fish_guide_v2"
       ],
-      "reason": "A clean 1080×1920 Morning Lake scene master now exists. It was produced by removing only UI, rod, line, bobber and ripple regions from the frozen Empty Home scene, with no scene redesign.",
-      "implementation": "Use Morning_Lake_Master_V1 with BG_ENV_HERO, BG_CONTENT or BG_DATA treatment. Do not crop frozen page screenshots into new backgrounds."
+      "reason": "Empty Home has one approved Sunrise Hero master; all other lake pages use the no-sun Morning Lake master. Both are frozen within one Morning Lake visual family.",
+      "implementation": "Use the page-to-master mapping from Morning Lake Background System V1. Only mist, saturation, contrast and brightness presets may differentiate BG_ENV_HERO, BG_CONTENT and BG_DATA."
     },
     {
       "category": "camera",
