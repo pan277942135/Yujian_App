@@ -2739,13 +2739,14 @@
       "overall": "PARTIAL",
       "modalities": {
         "behavior": {
-          "status": "RUNTIME_ONLY",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
+          "note": "02 Avatar Change 与 03 Nickname Edit 已有 Frozen Development Contract；04–06 仍待冻结。"
         },
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 · 编辑资料首页视觉已 FROZEN；头像修改、昵称状态、保存反馈等子页仍待冻结。"
+          "note": "01–03 视觉已 FROZEN；04–06 仍待逐页设计与冻结。"
         },
         "motion": {
           "status": "MISSING",
@@ -2769,8 +2770,8 @@
         },
         "assets": {
           "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/manifest.json",
-          "note": "01 首页 Frozen visual asset 已归档；其余编辑资料资产待补。"
+          "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
+          "note": "01–03 Frozen visual assets 已归档；04–06 仍待补齐。"
         }
       },
       "display_name": "编辑资料",
@@ -2780,7 +2781,7 @@
           "status": "PARTIAL",
           "current": true,
           "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 · 编辑资料首页、02 · 头像修改已 FROZEN；03–06 仍为 PARTIAL。"
+          "note": "01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑已 FROZEN；04–06 仍为 PARTIAL。"
         }
       ],
       "design_overall": "PARTIAL",
@@ -2804,14 +2805,14 @@
         },
         {
           "id": "action_button_v1",
-          "note": "02 · 头像修改：使用此头像/保存修改/重试等动作复用 Action Button V1。"
+          "note": "02 头像修改与 03 昵称编辑的主操作、保存、重试统一复用 Action Button V1。"
         },
         {
           "id": "icon_action_v1",
-          "note": "02 · 头像修改：Camera/Photo source 等图标动作复用 Icon Action V1。"
+          "note": "02 头像来源动作复用 Icon Action V1；03 昵称 Clear 使用 CONTEXT / ON_LIGHT。"
         }
       ],
-      "note": "编辑资料 V1：01 · 编辑资料首页、02 · 头像修改已 FROZEN；03–06 仍为 PARTIAL。Runtime 已存在，不等于剩余设计已冻结。",
+      "note": "编辑资料 V1：01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑已 FROZEN；04–06 仍为 PARTIAL。Runtime 已存在，不等于剩余设计已冻结。",
       "hifi_views": [
         {
           "id": "01_profile_home",
@@ -2853,10 +2854,10 @@
         {
           "id": "03_nickname_edit",
           "title": "03 · 昵称编辑",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority_type": "visual",
           "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
-          "summary": "昵称输入与校验状态的独立设计入口。",
+          "summary": "昵称编辑 V1 已冻结：Default / Focus / Filled / Empty-Whitespace Error / Over-limit Error / 1–20 字符边界 / Clear / Save eligibility / Server-success synchronization。",
           "menu_points": [
             "Default",
             "Focus",
@@ -2864,7 +2865,10 @@
             "Error",
             "字数边界",
             "保存后状态"
-          ]
+          ],
+          "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+          "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
+          "render_mode": "repo_image"
         },
         {
           "id": "04_save_feedback",
