@@ -651,8 +651,9 @@
           "authority": "design/pages/account_privacy/Login/Login_V2_Closure.md"
         },
         "visual": {
-          "status": "FROZEN",
-          "authority": "design/pages/account_privacy/Login/00_Login.png"
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+          "note": "00_Login.png 仅保留布局参考；背景由公共 BG_CONTENT 覆盖。"
         },
         "motion": {
           "status": "MISSING",
@@ -676,7 +677,8 @@
         },
         "assets": {
           "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/manifest.json"
+          "authority": "design/system/backgrounds/morning_lake_v1/manifest.json",
+          "note": "背景资产已统一到 Morning Lake V1；Login 独立冻结截图待更新。"
         }
       },
       "display_name": "登录",
@@ -684,16 +686,24 @@
         {
           "version": "V2",
           "status": "FROZEN",
+          "current": false,
+          "visual_authority": "design/pages/account_privacy/Login/00_Login.png",
+          "note": "原 Login V2 冻结布局；其中 legacy Account Privacy 背景已被 V2.1 覆盖。"
+        },
+        {
+          "version": "V2.1",
+          "status": "ACTIVE_CLOSURE",
           "current": true,
-          "visual_authority": "design/pages/account_privacy/Login/00_Login.png"
+          "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+          "note": "保持 Login V2 信息层级，背景统一为无太阳 Morning_Lake_Master_V1 / BG_CONTENT；待更新 Canonical Screenshot 后冻结。"
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "ACTIVE_CLOSURE",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "目标统一到公共背景系统；当前登录页仍使用 account_privacy_morning_lake。"
+          "note": "统一使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT；旧 account_privacy_morning_lake 不再作为设计权威。"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -705,7 +715,8 @@
         {
           "id": "spacing_radius_v1"
         }
-      ]
+      ],
+      "note": "Login V2.1 已切换到无太阳 Morning_Lake_Master_V1 / BG_CONTENT；结构与登录业务语义不变。"
     },
     {
       "id": "auth_register_v2",
@@ -713,12 +724,12 @@
       "overall": "RUNTIME_ONLY",
       "modalities": {
         "behavior": {
-          "status": "PARTIAL",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AuthScreens.kt"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
         },
         "visual": {
-          "status": "MISSING",
-          "authority": null
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
         },
         "motion": {
           "status": "MISSING",
@@ -741,26 +752,28 @@
           "authority": null
         },
         "assets": {
-          "status": "MISSING",
-          "authority": null
+          "status": "PARTIAL",
+          "authority": "design/system/backgrounds/morning_lake_v1/manifest.json",
+          "note": "公共背景资产已明确；Register 自身冻结视觉资产待归档。"
         }
       },
-      "note": "仓库中尚未归档独立的 Register V2 冻结视觉稿 / 设计包。",
+      "note": "Register V2 已建立独立设计包并统一 BG_CONTENT；仍缺正式高保真 Canonical Screenshot。",
       "display_name": "注册",
       "design_versions": [
         {
           "version": "V2",
-          "status": "MISSING",
+          "status": "ACTIVE_CLOSURE",
           "current": true,
-          "note": "尚未归档独立的 Register V2 冻结视觉稿。"
+          "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+          "note": "与 Login V2.1 同一 Auth 视觉家族；待 Canonical Screenshot / SHA 归档后冻结。"
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "ACTIVE_CLOSURE",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "设计缺失时的目标背景引用，不代表当前视觉已冻结。"
+          "note": "统一使用无太阳 Morning_Lake_Master_V1 / BG_CONTENT。"
         },
         {
           "id": "color_typography_v1"
