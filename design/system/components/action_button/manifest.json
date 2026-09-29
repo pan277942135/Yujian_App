@@ -1,0 +1,31 @@
+{
+  "component": "YuJian Primary / Secondary Action Button",
+  "version": "V1",
+  "status": "FROZEN",
+  "frozen_date": "2026-09-29",
+  "authority": [
+    "design/system/components/action_button/Action_Button_Spec_V1.md",
+    "design/system/components/action_button/visual_contract.json",
+    "design/system/components/action_button/motion_contract.json",
+    "design/system/components/action_button/usage_map.json"
+  ],
+  "source_authorities": [
+    "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+    "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+    "design/pages/recognition/result/README.md",
+    "design/system/core_visual_v1/reference/recognition_result_v1.png"
+  ],
+  "frozen_variants": [
+    "PRIMARY",
+    "SECONDARY_STRONG",
+    "SECONDARY_MUTED"
+  ],
+  "frozen_copies": [
+    "登录",
+    "注册并登录",
+    "保存本次鱼获",
+    "继续记录记忆",
+    "手动选择",
+    "重新拍摄"
+  ]
+}
