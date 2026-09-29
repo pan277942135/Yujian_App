@@ -29,6 +29,9 @@ jobs:
       - name: Compile Design Manager
         run: python3 -m py_compile scripts/design_manager.py
 
+      - name: Check Design Manager JavaScript
+        run: node --check design/manager/app.js
+
       - name: Validate design registry
         run: python3 scripts/design_manager.py validate
 
