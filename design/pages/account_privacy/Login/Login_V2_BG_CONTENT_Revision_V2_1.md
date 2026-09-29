@@ -87,7 +87,7 @@ Frozen rules:
 - Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
 - Color + Typography V1
 - Spacing + Radius V1
-- Primary / Secondary Action Button V1: `PRIMARY` for `登录`
+- Primary / Secondary Action Button V1.1: `PRIMARY` for `登录`
 
 BG_CONTENT remains the shared content-background family, but Login uses the frozen **top-lake → white-content** composition instead of exposing the lake over the whole form.
 
