@@ -1,0 +1,17 @@
+{
+  "component": "YuJian Text Action",
+  "current_version": "V1 Candidate",
+  "status": "ACTIVE_CLOSURE",
+  "date": "2026-09-29",
+  "authority": [
+    "design/system/components/text_action/Text_Action_Spec_V1.md",
+    "design/system/components/text_action/visual_contract.json",
+    "design/system/components/text_action/motion_contract.json",
+    "design/system/components/text_action/usage_map.json"
+  ],
+  "candidate_visuals": [],
+  "freeze_blockers": [
+    "Review and approve semantic/visual downgrade of Login 忘记密码？ from accent teal to MUTED.",
+    "Promote candidate visual references to FROZEN and update page authorities only after approval."
+  ]
+}
