@@ -2634,3 +2634,53 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 @media(max-width:900px){
   .top-nav-overview .direct-variant-rules{grid-template-columns:1fr}
 }
+
+
+.direct-variant-visual-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin:8px 0 16px;
+}
+.direct-variant-visual-card{
+  min-width:0;
+  overflow:hidden;
+  border:1px solid #dfe9e6;
+  border-radius:12px;
+  background:#fff;
+}
+.direct-variant-visual-head{
+  padding:9px 10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  border-bottom:1px solid #edf2f0;
+}
+.direct-variant-visual-head strong{
+  font-size:9px;
+  color:#28474d;
+}
+.direct-variant-visual-head span{
+  font-size:7px;
+  color:#829598;
+}
+.direct-variant-visual-card a{
+  display:block;
+  padding:8px;
+  background:#f7faf9;
+}
+.direct-variant-visual-card img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:460px;
+  object-fit:contain;
+  margin:0 auto;
+  border-radius:9px;
+  border:1px solid #edf2f0;
+  background:#F7FAFB;
+}
+@media(max-width:900px){
+  .direct-variant-visual-grid{grid-template-columns:1fr}
+}
