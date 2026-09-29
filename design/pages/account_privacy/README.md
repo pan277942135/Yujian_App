@@ -73,3 +73,31 @@ Only one active export job per user in V1.
 Recommended state machine:
 ACTIVE → DELETION_PENDING → DELETED
 All active sessions should be invalidated when deletion is accepted.
+
+
+## Top Navigation
+
+Account & Privacy second-level screens use **Top Navigation V1 / BACK_TITLE / FROZEN**.
+
+Representative titles:
+
+- 我的
+- 账号与登录
+- 修改密码
+- 数据与隐私
+- 关于渔见
+- 隐私政策
+- 用户协议
+
+Shared contract:
+
+- 56dp minimum top-bar content height;
+- 8dp horizontal outer padding;
+- 44dp Icon Action Back target;
+- 8dp Back-title gap;
+- 20sp / Medium / 26sp title;
+- left aligned after Back;
+- no centered fake spacer;
+- no whole-bar glass surface or divider.
+
+The current Runtime `PageScaffold` 20sp/Bold / 58dp / 10dp implementation is a legacy approximation, not the frozen shared authority.
