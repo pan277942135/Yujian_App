@@ -40,3 +40,12 @@ Status: **PARTIAL — 01 FROZEN / 02–06 in design**
 - Default edit-profile navigation uses **Top Navigation V1 / BACK_TITLE / FROZEN**.
 - Back → Icon Action V1 / NAVIGATION.
 - Save / confirm remains page content unless a future frozen revision explicitly upgrades the page to BACK_TITLE_ACTIONS.
+
+## 当前冻结进度
+
+- `01 · 编辑资料首页`：FROZEN
+- `02 · 头像修改`：FROZEN
+- `03 · 昵称编辑`：PARTIAL
+- `04 · 保存与反馈`：PARTIAL
+- `05 · 异常与边界状态`：PARTIAL
+- `06 · 交互与适配规范`：PARTIAL
