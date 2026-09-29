@@ -85,9 +85,9 @@
       ],
       "implementation": "HYBRID",
       "variants": [
-        "back_with_title",
-        "title_with_utility_actions",
-        "search_filter"
+        "TITLE_ONLY",
+        "BACK_TITLE",
+        "BACK_TITLE_ACTIONS"
       ],
       "token_dependencies": [
         "color.DeepLakeBlue",
@@ -96,7 +96,7 @@
         "spacing.SP_2",
         "spacing.SP_3"
       ],
-      "runtime_notes": "Use native layout and a single rounded-outline vector icon family for back, search, filter, share, edit, chevron, location, length, and weight. Utility actions remain lower contrast than the title and hero."
+      "runtime_notes": "TopNavigation defines layout composition only. TITLE_ONLY is for root pages; BACK_TITLE adds Icon Action V1/NAVIGATION; BACK_TITLE_ACTIONS allows 1–2 Icon Action V1/UTILITY actions. Search/Filter are not a TopNavigation variant and belong to page content tools or input systems."
     },
     {
       "component_id": "FishRecordRowCard",
