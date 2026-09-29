@@ -575,20 +575,180 @@
         {
           "id": "layer_component_ownership",
           "title": "03 · Layer & Component Ownership",
-          "status": "PARTIAL",
+          "status": "ACTIVE_CLOSURE",
           "authority_type": "visual",
           "render_mode": "recognition_layer_system",
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "整理 User Photo、Ambient Field、Fish Focus、Status Overlay 与系统 UI 的归属和视觉层级；现有 Authority 先移入，后续逐项审视。",
+          "summary": "识别视觉层按独立组件治理。AI Edge Field V1 已登记为跨三状态共用组件；当前先冻结 Static Shape，Motion/State Strength 后续在 04 · Motion & Transition 继续。",
           "menu_points": [
             "User Photo 始终是视觉底座与主体",
-            "Edge Ambient Bloom / Blue Filaments / Gold Filaments / Sparse Particles 属于 AI Ambient Field",
-            "Fish Halo / Contour 属于 Fish Focus",
+            "AI Edge Field V1 是独立跨状态视觉组件，不属于某一张 Processing UI",
+            "AI Edge Field Static Shape = 4 个断开的能量岛 + 明确 Quiet Gaps，禁止闭环",
+            "Fish Halo / Contour 属于 Fish Focus，不属于 AI Edge Field",
             "Status Overlay 位于高 Z-order，但必须低视觉权重",
-            "Navigation / System UI 不参与 AI 视觉叙事",
-            "Component Ownership 与 Z-order 分开管理，禁止把层级高误解为视觉权重高"
+            "Component Ownership 与 Z-order 分开管理"
+          ],
+          "components": [
+            {
+              "id": "ai_edge_field_v1",
+              "name": "AI Edge Field V1",
+              "status": "ACTIVE_CLOSURE",
+              "ownership": "Recognition Processing / shared across all three Processing states",
+              "scope": [
+                "Edge Ambient Bloom",
+                "Primary Filaments",
+                "Secondary Hairlines",
+                "Energy Nodes",
+                "Sparse Particles"
+              ],
+              "excludes": [
+                "Fish Halo",
+                "Fish Contour",
+                "Status Overlay",
+                "Result UI"
+              ],
+              "current_step": "01 · Static Shape",
+              "current_step_status": "FROZEN",
+              "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
+              "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json"
+            }
+          ],
+          "children": [
+            {
+              "id": "ai_edge_field_v1_static_shape",
+              "code": "AI EDGE FIELD V1 · 01",
+              "title": "AI Edge Field V1 · Static Shape",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "render_mode": "recognition_ai_edge_field_static",
+              "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+              "secondary_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+              "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
+              "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
+              "summary": "静态拓扑已冻结：AI 光场不是边框，而是四个互不连接的边缘能量岛。旧 Frozen UI 仅作为感知参考；几何/留白/主次关系以本 Static Shape Spec 为准。",
+              "static_shape": {
+                "identity": "四个断开的边缘能量岛；整体必须读成局部能量现象，而不是环、框、轨道或 HUD。",
+                "primary_islands": [
+                  {
+                    "id": "G_UL",
+                    "color": "GOLD",
+                    "name": "左上金色岛",
+                    "anchor": "top-left",
+                    "source_paths": [
+                      "G1"
+                    ],
+                    "zone": "top x=0.00–0.30 / left y=0.00–0.24",
+                    "weight": "PRIMARY"
+                  },
+                  {
+                    "id": "B_UR",
+                    "color": "BLUE",
+                    "name": "右上蓝色岛",
+                    "anchor": "top-right",
+                    "source_paths": [
+                      "B1"
+                    ],
+                    "zone": "top x=0.72–1.00 / right y=0.00–0.42",
+                    "weight": "PRIMARY"
+                  },
+                  {
+                    "id": "B_LR",
+                    "color": "BLUE",
+                    "name": "右下蓝色岛",
+                    "anchor": "lower-right",
+                    "source_paths": [
+                      "B3"
+                    ],
+                    "zone": "right y=0.62–1.00 / bottom x=0.64–1.00",
+                    "weight": "PRIMARY"
+                  },
+                  {
+                    "id": "G_LL",
+                    "color": "GOLD",
+                    "name": "左下金色岛",
+                    "anchor": "lower-left",
+                    "source_paths": [
+                      "G3"
+                    ],
+                    "zone": "left y=0.70–1.00 / bottom x=0.00–0.38",
+                    "weight": "PRIMARY"
+                  }
+                ],
+                "secondary_fragments": [
+                  {
+                    "id": "B_RM",
+                    "source_paths": [
+                      "B2"
+                    ],
+                    "zone": "right y=0.22–0.70",
+                    "rule": "只允许短碎片 / hairline echo；不得把 B_UR 与 B_LR 连成连续右边框。"
+                  },
+                  {
+                    "id": "G_LM",
+                    "source_paths": [
+                      "G2"
+                    ],
+                    "zone": "left y=0.28–0.76",
+                    "rule": "只允许极弱断续响应；不得把 G_UL 与 G_LL 连成连续左边框。"
+                  },
+                  {
+                    "id": "B_BOTTOM",
+                    "source_paths": [
+                      "B4"
+                    ],
+                    "zone": "bottom x=0.22–0.68",
+                    "rule": "只能偶发短片段；不得填满底部中央 Quiet Gap。"
+                  }
+                ],
+                "quiet_gaps": [
+                  {
+                    "id": "Q_TOP",
+                    "zone": "top x=0.32–0.68",
+                    "rule": "必须保持明显无主光丝区"
+                  },
+                  {
+                    "id": "Q_LEFT",
+                    "zone": "left y=0.38–0.62",
+                    "rule": "不得形成连续左边框"
+                  },
+                  {
+                    "id": "Q_RIGHT",
+                    "zone": "right y=0.46–0.58",
+                    "rule": "不得形成连续右边框"
+                  },
+                  {
+                    "id": "Q_BOTTOM",
+                    "zone": "bottom x=0.40–0.62",
+                    "rule": "必须保持明显底部中央断口"
+                  }
+                ],
+                "edge_band": {
+                  "core_rule": "主光丝中心线应停留在距最近屏幕边缘约 0–12% 的外缘带内。",
+                  "bloom_rule": "低 alpha bloom 可扩散到约 18% 深度，但不得形成全屏染色。",
+                  "center_safe_area": "画面中央主体区必须保持干净；AI Edge Field 不得穿越鱼体或主要内容中心。"
+                },
+                "hierarchy": {
+                  "primary_filament": "1.00",
+                  "secondary_hairline": "≤0.35",
+                  "energy_node": "≤0.30",
+                  "sparse_particle": "≤0.20",
+                  "edge_bloom": "≤0.25",
+                  "rule": "任何 Secondary / Node / Particle / Bloom 都不得单独成为视觉主角。"
+                },
+                "hard_forbidden": [
+                  "四边连续闭合",
+                  "椭圆轨道感",
+                  "矩形/圆角矩形描边感",
+                  "四角等亮或左右镜像对称",
+                  "主光丝穿过画面中央",
+                  "全屏蓝金染色",
+                  "Secondary Hairline 连接成第二层边框",
+                  "能量节点像装饰灯泡均匀排布"
+                ]
+              }
+            }
           ]
         },
         {

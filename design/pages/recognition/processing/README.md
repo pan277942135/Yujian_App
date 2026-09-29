@@ -24,3 +24,14 @@ Work must validate through:
 `../evidence/Recognition_Evidence_Contract_V1_1.md`
 and
 `../spec/Recognition_Acceptance_Criteria_V1_1.md`.
+
+
+## AI Edge Field V1
+
+Independent Recognition Processing visual component.
+
+Current frozen step:
+- `components/AI_Edge_Field_V1_Static_Shape_Spec.md`
+- `contracts/AI_Edge_Field_V1_Static_Shape_Contract.json`
+
+Static identity: four disconnected edge-energy islands with mandatory quiet gaps. Motion is intentionally deferred to `04 · Motion & Transition`.

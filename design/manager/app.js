@@ -1789,7 +1789,85 @@ function genericSpecHifiCanvas(feature, view) {
   '</div>';
 }
 
+
+function recognitionAiEdgeFieldStaticCanvas(child) {
+  const shape = child.static_shape || {};
+  const islands = shape.primary_islands || [];
+  const gaps = shape.quiet_gaps || [];
+  const fragments = shape.secondary_fragments || [];
+  const hierarchy = shape.hierarchy || {};
+  const forbidden = shape.hard_forbidden || [];
+
+  const islandGrid =
+    '<div class="authority-index-grid">' +
+      islands.map(island =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(island.id + " · " + island.name) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+          '<div class="authority-kind">' + esc(island.color + " · " + island.weight) + '</div>' +
+          '<p>' + esc(island.zone) + '</p>' +
+          '<p>Source · ' + esc((island.source_paths || []).join(" / ")) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const gapGrid =
+    '<div class="authority-index-grid">' +
+      gaps.map(gap =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(gap.id) + '</strong></div>' +
+          '<div class="authority-kind">MANDATORY QUIET GAP</div>' +
+          '<p>' + esc(gap.zone) + '</p><p>' + esc(gap.rule) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const fragmentGrid =
+    '<div class="authority-index-grid">' +
+      fragments.map(fragment =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(fragment.id) + '</strong></div>' +
+          '<div class="authority-kind">SECONDARY ONLY</div>' +
+          '<p>' + esc(fragment.zone) + '</p><p>' + esc(fragment.rule) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const hierarchyRows = [
+    ["Primary Filament", hierarchy.primary_filament],
+    ["Secondary Hairline", hierarchy.secondary_hairline],
+    ["Energy Node", hierarchy.energy_node],
+    ["Edge Bloom", hierarchy.edge_bloom],
+    ["Sparse Particle", hierarchy.sparse_particle]
+  ].filter(x=>x[1]);
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Static Identity</strong><span>' + esc(shape.identity || "") + '</span></div>' +
+    '<div class="recognition-section-title">4 Primary Energy Islands</div>' + islandGrid +
+    '<div class="recognition-section-title">Mandatory Quiet Gaps</div>' + gapGrid +
+    '<div class="recognition-section-title">Secondary Fragments</div>' + fragmentGrid +
+    '<div class="recognition-section-title">Edge Band</div>' +
+      '<div class="recognition-state-card"><p><b>Core</b> · ' + esc(shape.edge_band?.core_rule || "") + '</p>' +
+      '<p><b>Bloom</b> · ' + esc(shape.edge_band?.bloom_rule || "") + '</p>' +
+      '<p><b>Center</b> · ' + esc(shape.edge_band?.center_safe_area || "") + '</p></div>' +
+    '<div class="recognition-section-title">Visual Hierarchy</div>' +
+      '<div class="authority-index-grid">' +
+        hierarchyRows.map(row =>
+          '<article class="authority-index-card"><div class="authority-index-head"><strong>' + esc(row[0]) + '</strong></div>' +
+          '<div class="authority-kind">MAX RELATIVE WEIGHT</div><p>' + esc(row[1]) + '</p></article>'
+        ).join("") +
+      '</div>' +
+    '<div class="recognition-section-title">Hard Forbidden</div>' +
+      '<div class="authority-index-grid">' +
+        forbidden.map((item,index) =>
+          '<article class="authority-index-card"><div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+          '<div class="authority-kind">FAIL CONDITION</div><p>' + esc(item) + '</p></article>'
+        ).join("") +
+      '</div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
   return '<div class="authority-index">' +
     '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
       '<span>' + esc(child.summary || "规范入口已建立，Authority 待补齐。") + '</span></div>' +

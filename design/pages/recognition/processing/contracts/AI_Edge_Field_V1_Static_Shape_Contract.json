@@ -1,0 +1,154 @@
+{
+  "component": "AI_EDGE_FIELD_V1",
+  "version": "1.0",
+  "status": "FROZEN_STATIC_SHAPE",
+  "scope": "static_topology_only",
+  "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
+  "perceptual_references": [
+    "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+    "design/pages/recognition/design/01_Capture_Transition_Frozen.png"
+  ],
+  "primary_islands": [
+    {
+      "id": "G_UL",
+      "family": "gold",
+      "path": "G1",
+      "zones": {
+        "top_x": [
+          0,
+          0.3
+        ],
+        "left_y": [
+          0,
+          0.24
+        ]
+      }
+    },
+    {
+      "id": "B_UR",
+      "family": "blue",
+      "path": "B1",
+      "zones": {
+        "top_x": [
+          0.72,
+          1
+        ],
+        "right_y": [
+          0,
+          0.42
+        ]
+      }
+    },
+    {
+      "id": "B_LR",
+      "family": "blue",
+      "path": "B3",
+      "zones": {
+        "right_y": [
+          0.62,
+          1
+        ],
+        "bottom_x": [
+          0.64,
+          1
+        ]
+      }
+    },
+    {
+      "id": "G_LL",
+      "family": "gold",
+      "path": "G3",
+      "zones": {
+        "left_y": [
+          0.7,
+          1
+        ],
+        "bottom_x": [
+          0,
+          0.38
+        ]
+      }
+    }
+  ],
+  "secondary_fragments": [
+    {
+      "path": "B2",
+      "role": "secondary_only",
+      "must_not_connect": [
+        "B_UR",
+        "B_LR"
+      ]
+    },
+    {
+      "path": "G2",
+      "role": "secondary_only",
+      "must_not_connect": [
+        "G_UL",
+        "G_LL"
+      ]
+    },
+    {
+      "path": "B4",
+      "role": "secondary_only",
+      "must_not_fill_gap": "Q_BOTTOM"
+    }
+  ],
+  "quiet_gaps": [
+    {
+      "id": "Q_TOP",
+      "edge": "top",
+      "range": [
+        0.32,
+        0.68
+      ]
+    },
+    {
+      "id": "Q_LEFT",
+      "edge": "left",
+      "range": [
+        0.38,
+        0.62
+      ]
+    },
+    {
+      "id": "Q_RIGHT",
+      "edge": "right",
+      "range": [
+        0.46,
+        0.58
+      ]
+    },
+    {
+      "id": "Q_BOTTOM",
+      "edge": "bottom",
+      "range": [
+        0.4,
+        0.62
+      ]
+    }
+  ],
+  "edge_depth": {
+    "primary_centerline_nearest_edge_max_ratio": 0.12,
+    "bloom_soft_extent_max_ratio": 0.18,
+    "center_subject_safe_area": true
+  },
+  "relative_visual_weight_max": {
+    "primary_filament": 1,
+    "secondary_hairline": 0.35,
+    "energy_node": 0.3,
+    "edge_bloom": 0.25,
+    "sparse_particle": 0.2
+  },
+  "hard_forbidden": [
+    "closed_frame",
+    "closed_ellipse_or_orbit",
+    "continuous_edge_border",
+    "center_crossing_primary_filament",
+    "four_equal_corners",
+    "full_frame_color_wash",
+    "secondary_border_reconstruction",
+    "uniform_energy_nodes",
+    "confetti_particles",
+    "effect_stronger_than_photo"
+  ]
+}
