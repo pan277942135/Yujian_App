@@ -1,6 +1,6 @@
 {
-  "version": "1.0-candidate",
-  "status": "ACTIVE_CLOSURE",
+  "version": "1.0",
+  "status": "FROZEN",
   "mappings": [
     {
       "page": "auth_login_v2",
@@ -21,8 +21,7 @@
       "copy": "忘记密码？",
       "variant": "MUTED",
       "tone": "LIGHT",
-      "chevron": false,
-      "authority_conflict": "Existing Login V2.1 frozen preview currently uses teal accent; candidate proposes muted treatment."
+      "chevron": false
     },
     {
       "page": "recognition_result_v1",
