@@ -1,12 +1,23 @@
 # Register V2
 
-Status: **ACTIVE_CLOSURE**
+Status: **FROZEN (design)**
 
-Current design authority:
+Current authority:
 
-- `Register_V2_Design_Spec_V1.md`
-- Shared Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
+- Frozen visual: `design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp`
+- Frozen spec: `design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md`
+- Frozen manifest: `design/pages/account_privacy/Register/frozen/manifest.json`
+- Shared background: `Morning_Lake_Master_V1 / BG_CONTENT`
 
-Register V2 is designed as the visual sibling of Login V2. It does not own a page-specific lake background.
+Register V2 is the visual sibling of Login V2.1.
 
-A canonical frozen screenshot is still required before the page can be marked FROZEN.
+Frozen composition:
+
+- no text over the top Morning Lake scene;
+- no “渔见” / slogan block;
+- large white/MistWhite content area;
+- exactly 3 business fields: account, password, nickname;
+- deep Lake Teal primary CTA;
+- low-salience waterside grass anchored to the page bottom as a page-owned foreground decoration.
+
+The design freeze does not imply Android runtime parity or runtime evidence closure.
