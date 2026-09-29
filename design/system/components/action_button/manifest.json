@@ -1,10 +1,23 @@
 {
   "component": "YuJian Primary / Secondary Action Button",
-  "version": "V1",
+  "current_version": "V1.1",
   "status": "FROZEN",
   "frozen_date": "2026-09-29",
+  "revisions": [
+    {
+      "version": "V1",
+      "status": "SUPERSEDED_FOR_CURRENT_VISUAL",
+      "authority": "design/system/components/action_button/Action_Button_Spec_V1.md"
+    },
+    {
+      "version": "V1.1",
+      "status": "FROZEN",
+      "current": true,
+      "authority": "design/system/components/action_button/Action_Button_Spec_V1_1.md"
+    }
+  ],
   "authority": [
-    "design/system/components/action_button/Action_Button_Spec_V1.md",
+    "design/system/components/action_button/Action_Button_Spec_V1_1.md",
     "design/system/components/action_button/visual_contract.json",
     "design/system/components/action_button/motion_contract.json",
     "design/system/components/action_button/usage_map.json"
