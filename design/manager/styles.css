@@ -2007,3 +2007,29 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 @media(max-width:620px){
   .search-rules-grid{grid-template-columns:1fr}
 }
+
+
+.shared-nav-group{
+  display:grid;
+  gap:4px;
+}
+.shared-group-header{
+  cursor:default;
+  background:rgba(244,248,247,.78);
+  border-color:#dfe9e6;
+}
+.shared-group-header:hover{
+  background:rgba(244,248,247,.78);
+  border-color:#dfe9e6;
+  transform:none;
+}
+.button-spec-sublist{
+  margin-top:0;
+  margin-bottom:10px;
+}
+.shared-component-subitem{
+  min-height:48px;
+}
+.shared-component-subitem .subitem-name{
+  font-size:11px;
+}
