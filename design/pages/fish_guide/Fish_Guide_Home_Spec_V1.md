@@ -142,7 +142,12 @@ The homepage uses a horizontal, centered **Species Carousel**:
 - movement snaps to a stable centered species card;
 - tapping the centered species card enters that species' detail;
 - returning from Species Detail restores the previously selected species and carousel position;
-- unlit species remain browsable and tappable.
+- unlit species remain browsable and tappable;
+- **FishGuideCard is a single-face browsing card and does not support Auto Flip**;
+- **Fish Guide Home must not automatically switch or autoplay Species**;
+- on the user's first eligible entry, the carousel may play **one low-amplitude Carousel Discover Hint** to communicate horizontal browsing;
+- after that one hint, species changes are entirely user-driven;
+- **Reduce Motion disables the Carousel Discover Hint**.
 
 ### 5.3 Forbidden layout regressions
 
@@ -319,6 +324,12 @@ Home-level invariants:
 - card state must not be communicated by color alone;
 - Unlit must remain legible;
 - swipe is not the only route into the active card: the card is tappable;
+- **no Auto Flip**;
+- **no automatic Species rotation / autoplay**;
+- the only allowed automatic discovery motion is a **single low-amplitude Carousel Discover Hint on first eligible entry**;
+- the hint must not change the active species or leave the carousel on another item;
+- after the hint, carousel movement is fully user-driven;
+- **Reduce Motion disables the hint entirely**;
 - Reduce Motion must not change information hierarchy or state semantics;
 - no automatic haptic or sound is required by this homepage spec.
 
@@ -380,6 +391,9 @@ Fish Guide Home passes design acceptance only when all are true:
 - [x] UNLIT remains visible, readable, browsable, and tappable.
 - [x] No rarity / level / achievement / large-lock game semantics.
 - [x] Return from Species Detail preserves carousel position.
+- [x] FishGuideCard is single-face; Auto Flip is forbidden.
+- [x] Fish Guide Home does not autoplay or automatically switch Species.
+- [x] A single first-entry low-amplitude Carousel Discover Hint is allowed; Reduce Motion disables it.
 - [ ] Runtime parity evidence is attached under **09 · 验收证据**.
 
 The final unchecked item is an implementation/evidence gate and does not reopen the frozen homepage design contract.
