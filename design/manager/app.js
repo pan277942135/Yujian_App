@@ -156,7 +156,7 @@ function pagesUsing(sharedId) {
 function backgroundVariantPreview(item, variant) {
   if (item.id !== "background_system_v1") return "";
 
-  if (variant.preview_treatment && item.master?.path) {
+  if (variant.preview_treatment) {
     const t = variant.preview_treatment;
     const filter = [
       "saturate(" + Math.round((t.saturation ?? 1) * 100) + "%)",
@@ -164,15 +164,30 @@ function backgroundVariantPreview(item, variant) {
       "brightness(" + Math.round((t.brightness ?? 1) * 100) + "%)"
     ].join(" ");
 
-    return '<div class="bg-variant-preview">' +
-      '<img src="' + esc(repoHref(item.master.path)) + '" alt="' + esc(variant.name) +
-      '" style="filter:' + esc(filter) + '">' +
-      '<span class="bg-mist" style="opacity:' + Number(t.mist_alpha || 0) + '"></span>' +
-      '</div>' +
-      '<div class="bg-preview-caption">同一母版 · 雾化 ' +
-      Math.round(Number(t.mist_alpha || 0) * 100) + '% · 饱和度 ' +
-      Math.round(Number(t.saturation || 1) * 100) + '% · 对比度 ' +
-      Math.round(Number(t.contrast || 1) * 100) + '%</div>';
+    const sources = (variant.preview_sources && variant.preview_sources.length)
+      ? variant.preview_sources
+      : (item.master?.path ? [{ label: "公共母版", path: item.master.path }] : []);
+
+    if (sources.length) {
+      const cards = sources.map(source =>
+        '<div class="bg-source-preview-card">' +
+          '<div class="bg-source-label">' + esc(source.label || "母版") + '</div>' +
+          '<div class="bg-variant-preview">' +
+            '<img src="' + esc(repoHref(source.path)) + '" alt="' + esc(variant.name) +
+            '" style="filter:' + esc(filter) + '">' +
+            '<span class="bg-mist" style="opacity:' + Number(t.mist_alpha || 0) + '"></span>' +
+          '</div>' +
+        '</div>'
+      ).join("");
+
+      return '<div class="bg-source-preview-grid' + (sources.length > 1 ? " dual" : "") + '">' +
+        cards + '</div>' +
+        '<div class="bg-preview-caption">冻结参数 · 雾化 ' +
+        Math.round(Number(t.mist_alpha || 0) * 100) + '% · 饱和度 ' +
+        Math.round(Number(t.saturation || 1) * 100) + '% · 对比度 ' +
+        Math.round(Number(t.contrast || 1) * 100) + '% · 亮度 ' +
+        Math.round(Number(t.brightness || 1) * 100) + '%</div>';
+    }
   }
 
   if (variant.preview_mode === "dynamic_photo") {
@@ -197,19 +212,30 @@ function percentValue(value, signed = false) {
 }
 
 function formatContractValue(key, value) {
+  const percentKeys = new Set([
+    "mist_white_veil_alpha",
+    "saturation_relative",
+    "contrast_relative",
+    "brightness_relative",
+    "target_salience_vs_home"
+  ]);
+
+  if (percentKeys.has(key) && typeof value === "number") {
+    return Math.round(value * 100) + "%";
+  }
+
   if (Array.isArray(value) && value.length === 2) {
-    const signed = key === "luminance_delta";
-    if (
-      key.includes("alpha") ||
-      key.includes("relative") ||
-      key.includes("salience") ||
-      key === "luminance_delta"
-    ) {
-      return percentValue(value[0], signed) + " ～ " + percentValue(value[1], signed);
-    }
     return String(value[0]) + " ～ " + String(value[1]);
   }
+
   if (typeof value === "boolean") return value ? "是" : "否";
+
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .map(([k,v]) => k + " → " + v)
+      .join("；");
+  }
+
   const aliases = {
     morning_lake: "Morning Lake / 清晨湖景",
     runtime_photo: "用户实时照片",
@@ -217,6 +243,7 @@ function formatContractValue(key, value) {
     current_user_photo: "用户当前照片",
     crop: "Crop / 居中裁切",
     none: "禁止",
+    FROZEN: "已冻结",
     transient_missing_background: "瞬时缺少背景",
     load_failure: "背景加载失败",
     error_fallback: "异常兜底"
@@ -226,12 +253,15 @@ function formatContractValue(key, value) {
 
 const PARAMETER_LABELS = {
   family: "背景家族",
+  status: "状态",
+  default_master: "默认母版",
+  source_overrides: "页面母版例外",
   mist_white_veil_alpha: "雾白覆盖",
   saturation_relative: "相对饱和度",
   contrast_relative: "相对对比度",
-  luminance_delta: "亮度偏移",
+  brightness_relative: "相对亮度",
   global_blur: "全局模糊",
-  target_salience_vs_home: "相对首页存在感",
+  target_salience_vs_home: "相对 Hero 存在感",
   source: "背景来源",
   opaque: "原图不透明",
   content_scale: "图片填充",
@@ -350,8 +380,11 @@ function selectShared(id, variantId = null) {
     ["使用页面", pagesUsing(item.id).length + " 个"]
   ];
   if (item.master) {
-    sharedMetaRows.push(["母版尺寸", item.master.width + " × " + item.master.height]);
-    sharedMetaRows.push(["母版 SHA", String(item.master.sha256 || "—").slice(0, 16) + "…"]);
+    sharedMetaRows.push(["默认母版尺寸", item.master.width + " × " + item.master.height]);
+    sharedMetaRows.push(["默认母版 SHA", String(item.master.sha256 || "—").slice(0, 16) + "…"]);
+  }
+  if (item.masters?.length) {
+    sharedMetaRows.push(["Canonical Masters", item.masters.length + " 张"]);
   }
   el("sharedMeta").innerHTML = sharedMetaRows.map(([label,value]) =>
     '<div class="meta-card"><div class="meta-label">' + esc(label) +
@@ -418,6 +451,7 @@ function renderSharedRefs(feature) {
       '<div class="shared-ref-head"><strong>' + esc(item.display_name) + '</strong>' +
       statusBadge(item.overall) + '</div>' +
       '<div class="shared-ref-variant">' + esc(ref.variant || "默认规则") + '</div>' +
+      (ref.master ? '<div class="shared-ref-master">母版：' + esc(ref.master) + '</div>' : '') +
       (ref.note ? '<div class="shared-ref-note">' + esc(ref.note) + '</div>' : '') +
       '</button>';
   }).join("") || '<div class="preview-empty">本页面尚未登记公共设计引用。</div>';
