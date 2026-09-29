@@ -88,6 +88,27 @@ def validate_shared(data: dict) -> tuple[list[str], dict[str, dict]]:
 
         _check_path(errors, f"{item_id}.preview", item.get("preview"))
 
+        masters = item.get("masters")
+        if masters is not None:
+            if not isinstance(masters, list) or not masters:
+                errors.append(f"{item_id}: masters must be a non-empty list when present")
+            else:
+                master_ids: set[str] = set()
+                for master in masters:
+                    if not isinstance(master, dict):
+                        errors.append(f"{item_id}: each master must be an object")
+                        continue
+                    master_id = master.get("id")
+                    if not isinstance(master_id, str) or not master_id:
+                        errors.append(f"{item_id}: master id is invalid")
+                    elif master_id in master_ids:
+                        errors.append(f"{item_id}: duplicate master {master_id}")
+                    else:
+                        master_ids.add(master_id)
+                    _check_path(errors, f"{item_id}/{master_id or '?'}.path", master.get("path"))
+
+        _check_path(errors, f"{item_id}.validation_reference", item.get("validation_reference"))
+
         variants = item.get("variants")
         if not isinstance(variants, list) or not variants:
             errors.append(f"{item_id}: variants must be a non-empty list")
@@ -104,6 +125,15 @@ def validate_shared(data: dict) -> tuple[list[str], dict[str, dict]]:
                 errors.append(f"{item_id}: duplicate variant {variant_id}")
             else:
                 variant_ids.add(variant_id)
+            for source in variant.get("preview_sources", []) or []:
+                if not isinstance(source, dict):
+                    errors.append(f"{item_id}/{variant_id or '?'}: preview source must be an object")
+                    continue
+                _check_path(
+                    errors,
+                    f"{item_id}/{variant_id or '?'}.preview_source",
+                    source.get("path"),
+                )
 
     return errors, by_id
 
@@ -219,6 +249,12 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
                 allowed = {v.get("id") for v in shared_item.get("variants", [])}
                 if variant not in allowed:
                     errors.append(f"{feature_id}: unknown variant {shared_id}/{variant}")
+
+            master = ref.get("master")
+            if master is not None:
+                allowed_masters = {m.get("id") for m in shared_item.get("masters", [])}
+                if master not in allowed_masters:
+                    errors.append(f"{feature_id}: unknown master {shared_id}/{master}")
 
     return errors
 
