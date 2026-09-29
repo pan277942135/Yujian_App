@@ -1593,86 +1593,90 @@ function myCatchesHifiCanvas(feature, view) {
 function recognitionStateTimelineCanvas(view) {
   const model = view.timeline_model || {};
   const states = model.processing_states || [];
-  const findings = view.review_findings || [];
-  const terminals = model.terminal_routes || [];
-  const resolve = model.transition_substate || {};
+  const exits = model.exits || [];
+  const pacing = model.pacing_rules || [];
+  const transition = model.transition || {};
+  const ownership = model.ownership || {};
 
-  const realLane = [
-    ["PHOTO", "照片进入"],
-    ["DETECTING", "真实 detector"],
-    ["OUTLINE", "真实 bbox"],
-    ["CLASSIFYING", "classifier"],
-    ["RESULT", "prediction ready"]
+  const flowItems = [
+    ["ENTRY", "Camera / Gallery"],
+    ["CAPTURED", "照片已接收"],
+    ["DETECTING", "理解整张照片"],
+    ["OUTLINE", "已找到鱼体"],
+    ["CLASSIFYING", "分析鱼体特征"],
+    ["RESOLVE", "200ms 转场"],
+    ["RESULT", "High / Medium / Low"]
   ];
 
-  const visualLane = [
-    ["CAPTURED", "≥350ms"],
-    ["DETECTING", "≥600ms"],
-    ["OUTLINE", "≥600ms"],
-    ["CLASSIFYING", "≥1250ms*"],
-    ["RESOLVE", "200ms"],
-    ["ROUTE", "Result"]
-  ];
-
-  const lane = (title, items, tone) =>
-    '<section class="recognition-timeline-lane ' + tone + '">' +
-      '<div class="recognition-lane-title">' + esc(title) + '</div>' +
+  const flow =
+    '<section class="recognition-timeline-lane visual">' +
+      '<div class="recognition-lane-title">PRODUCT STATE FLOW · 产品体验关系</div>' +
       '<div class="recognition-lane-flow">' +
-        items.map((item, index) =>
-          '<div class="recognition-state-node">' +
-            '<strong>' + esc(item[0]) + '</strong><span>' + esc(item[1]) + '</span>' +
-          '</div>' + (index < items.length - 1 ? '<div class="recognition-arrow">→</div>' : '')
+        flowItems.map((item,index) =>
+          '<div class="recognition-state-node"><strong>' + esc(item[0]) + '</strong><span>' + esc(item[1]) + '</span></div>' +
+          (index < flowItems.length - 1 ? '<div class="recognition-arrow">→</div>' : '')
         ).join("") +
       '</div>' +
     '</section>';
 
-  const stateTable =
+  const stateCards =
     '<div class="recognition-state-grid">' +
       states.map(state =>
         '<article class="recognition-state-card">' +
-          '<div class="recognition-state-head"><strong>' + esc(state.phase) + '</strong>' +
-            '<span>' + esc("≥" + state.minimum_ms + "ms") + '</span></div>' +
-          '<p><b>Real gate</b> · ' + esc(state.real_gate) + '</p>' +
-          '<p><b>Visual claim</b> · ' + esc(state.visual_claim) + '</p>' +
+          '<div class="recognition-state-head"><strong>' + esc(state.phase) + '</strong><span>' + esc(state.duration) + '</span></div>' +
+          '<p><b>用户理解</b> · ' + esc(state.user_meaning) + '</p>' +
+          '<p><b>允许</b> · ' + esc(state.allowed) + '</p>' +
+          '<p><b>禁止</b> · ' + esc(state.forbidden) + '</p>' +
         '</article>'
       ).join("") +
     '</div>';
 
-  const resolveCard =
+  const transitionCard =
     '<section class="recognition-resolve-card">' +
-      '<div><span>P0 · RESOLVE CONTRACT</span><strong>慢结果也必须完整收尾</strong></div>' +
-      '<code>resolveStart = max(CLASSIFYING + 1050ms, RESULT_READY)\nroute = resolveStart + 200ms</code>' +
-      '<p>' + esc(resolve.note || "") + '</p>' +
+      '<div><span>TRANSITION · NOT A PROCESSING STATE</span><strong>RESOLVE · ' + esc(transition.duration || "200ms") + '</strong></div>' +
+      '<p><b>用户理解</b> · ' + esc(transition.user_meaning || "") + '</p>' +
+      '<p>' + esc(transition.rule || "") + '</p>' +
     '</section>';
 
-  const branchGrid =
+  const exitCards =
     '<div class="recognition-branch-grid">' +
-      terminals.map(route =>
-        '<article><strong>' + esc(route.source) + '</strong><span>→ ' + esc(route.target) + '</span>' +
-          '<p>' + esc(route.pacing) + '</p></article>'
+      exits.map(exit =>
+        '<article><strong>' + esc(exit.source) + '</strong><span>→ ' + esc(exit.target) + '</span><p>' + esc(exit.meaning) + '</p></article>'
       ).join("") +
     '</div>';
 
-  const findingGrid =
+  const pacingCards =
     '<div class="recognition-finding-grid">' +
-      findings.map(item =>
-        '<article class="recognition-finding ' + esc(String(item.severity || "").toLowerCase()) + '">' +
-          '<div><span>' + esc(item.severity) + '</span><strong>' + esc(item.title) + '</strong></div>' +
-          '<p>' + esc(item.detail) + '</p>' +
-        '</article>'
+      pacing.map(item =>
+        '<article class="recognition-finding note"><div><span>RULE</span><strong>' + esc(item.title) + '</strong></div><p>' + esc(item.detail) + '</p></article>'
+      ).join("") +
+    '</div>';
+
+  const ownershipCards = [
+    ["PROCESSING", (ownership.processing || []).join(" · ")],
+    ["TRANSITION", (ownership.transition || []).join(" · ")],
+    ["DOWNSTREAM", (ownership.downstream || []).join(" · ")],
+    ["EXIT", (ownership.exit || []).join(" · ")]
+  ];
+
+  const ownershipGrid =
+    '<div class="authority-index-grid">' +
+      ownershipCards.map(item =>
+        '<article class="authority-index-card"><div class="authority-index-head"><strong>' + esc(item[0]) + '</strong></div>' +
+        '<div class="authority-kind">STATE OWNERSHIP</div><p>' + esc(item[1]) + '</p></article>'
       ).join("") +
     '</div>';
 
   return '<div class="recognition-timeline-review">' +
     '<div class="recognition-rule"><strong>核心规则</strong><span>' + esc(model.rule || "") + '</span></div>' +
-    lane("REAL PIPELINE · 语义真相", realLane, "real") +
-    lane("PRESENTED VISUAL · 用户看到", visualLane, "visual") +
-    stateTable + resolveCard +
-    '<div class="recognition-section-title">Terminal Branches</div>' + branchGrid +
-    '<div class="recognition-section-title">Review Findings</div>' + findingGrid +
+    flow +
+    '<div class="recognition-section-title">4 个 Processing States</div>' + stateCards +
+    transitionCard +
+    '<div class="recognition-section-title">Exit Relationship</div>' + exitCards +
+    '<div class="recognition-section-title">Fast / Normal / Slow Rules</div>' + pacingCards +
+    '<div class="recognition-section-title">State Ownership</div>' + ownershipGrid +
   '</div>';
 }
-
 function recognitionVisualStatesCanvas(view) {
   const states = view.visual_states || [];
   const board = '<div class="hifi-board four">' +

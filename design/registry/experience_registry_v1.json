@@ -330,7 +330,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "Recognition Processing 的 6 子菜单已建立。State Timeline 已完成双轨审视；4 个主处理状态保持不变，当前 P0 是慢结果场景缺少稳定的 200ms Resolve，未闭环前不得标记 Recognition Processing 全局 FROZEN。",
+      "note": "Recognition Processing 已建立 6 个直接子菜单。01 · State Timeline 已重整为纯产品/设计规范：4 个 Processing State + 1 个 Resolve Transition + Result/Issue/Back 出口；不在本层评价 Android、Runtime 或 CI。",
       "display_name": "识别过程",
       "design_versions": [
         {
@@ -361,145 +361,145 @@
           "status": "ACTIVE_CLOSURE",
           "authority_type": "behavior",
           "render_mode": "recognition_timeline",
-          "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Review_V1_2.md",
-          "secondary_authority": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
+          "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_2.md",
+          "secondary_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
           "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
-          "summary": "双轨状态模型已完成审视：Real Pipeline 是语义源，Presented Visual 只允许滞后、不允许领先。当前唯一 P0 待闭环：慢结果场景也必须完整保留 200ms Resolve。",
+          "summary": "纯产品/设计状态规范：识别过程固定为 4 个可视 Processing State；RESOLVE 是转场，Result / Issue / Back 是出口。当前只定义体验关系，不评价实现。",
           "menu_points": [
-            "CAPTURED · 350ms · 已接收真实照片",
-            "DETECTING · 600ms · 真实检测/理解照片",
-            "OUTLINE · 600ms · 鱼体定位完成，进入 AI Moment",
-            "CLASSIFYING · 1250ms · 真实分类阶段",
-            "RESULT_READY → 200ms Resolve → Result",
-            "Pipeline 决定语义状态；Frozen Duration 约束视觉最小叙事节奏"
+            "Processing 只包含 CAPTURED / DETECTING / OUTLINE / CLASSIFYING 四个可视状态",
+            "RESOLVE 是 200ms 收尾转场，不是第五个 Processing State",
+            "High / Medium / Low 属于识别结果页，不属于识别过程",
+            "No Fish / Image Quality / Technical Failure 属于异常出口，不增加处理中状态",
+            "任何处理中状态都允许用户主动返回；Back ≠ Failure",
+            "快处理保留完整叙事；慢处理停留当前状态，不制造虚假进度"
           ],
           "timeline_model": {
-            "rule": "Presented Visual may lag Real Pipeline, but must never lead it.",
+            "rule": "识别过程只表达用户此刻应该理解的 AI 阶段；状态可以停留，但不能为了显得更快而跳过语义阶段或制造虚假进度。",
+            "entry": {
+              "title": "ENTRY · 照片进入识别",
+              "sources": [
+                "相机拍摄",
+                "相册选择"
+              ],
+              "rule": "无论来源，进入识别过程后使用同一套状态关系。"
+            },
             "processing_states": [
               {
                 "phase": "CAPTURED",
-                "minimum_ms": 350,
-                "real_gate": "photo accepted",
-                "visual_claim": "照片已进入 Recognition；不声称找到鱼"
+                "duration": "约 350ms",
+                "user_meaning": "照片已被接收，识别即将开始。",
+                "allowed": "显示原始照片与轻量 AI 场建立。",
+                "forbidden": "不得暗示已经找到鱼、不得出现鱼体锁定。"
               },
               {
                 "phase": "DETECTING",
-                "minimum_ms": 600,
-                "real_gate": "detector started",
-                "visual_claim": "理解整张照片；fish focus OFF"
+                "duration": "至少约 600ms",
+                "user_meaning": "AI 正在理解整张照片并寻找这次鱼获的线索。",
+                "allowed": "保持整图理解感；AI 场可继续。",
+                "forbidden": "尚未确认鱼体前，不得提前出现鱼体高亮或“已定位”语义。"
               },
               {
                 "phase": "OUTLINE",
-                "minimum_ms": 600,
-                "real_gate": "real classifier-eligible primary bbox exists",
-                "visual_claim": "可以明确声称已定位到鱼体"
+                "duration": "至少约 600ms",
+                "user_meaning": "AI 已确认鱼体，开始围绕这条鱼展开分析。",
+                "allowed": "进入鱼体高亮 / Contour / Halo 的核心 AI Moment。",
+                "forbidden": "不得回退成整图搜索语义；不得显示鱼种结果。"
               },
               {
                 "phase": "CLASSIFYING",
-                "minimum_ms": 1250,
-                "real_gate": "classification started",
-                "visual_claim": "分析真实 bbox 对应鱼体特征"
+                "duration": "至少约 1250ms",
+                "user_meaning": "AI 正在分析鱼体特征并判断鱼种。",
+                "allowed": "鱼体焦点保持稳定，等待识别结论。",
+                "forbidden": "结果正式出现前，不提前显示具体鱼种、置信度或候选。"
               }
             ],
-            "transition_substate": {
+            "transition": {
               "id": "RESOLVE",
-              "semantic_phase": "CLASSIFYING",
-              "duration_ms": 200,
-              "route_only": true,
-              "start_rule": "max(CLASSIFYING entered + 1050ms, real RESULT ready time)",
-              "end_rule": "after 200ms fade, route to Result",
-              "note": "RESOLVE 不是新的 RecognitionPhase；只是 CLASSIFYING 内部的 presentation substate。"
+              "duration": "200ms",
+              "user_meaning": "AI 分析完成，视觉从识别态自然释放到结果页。",
+              "rule": "只做收尾，不出现新的标题、卡片或第五个处理中状态。"
             },
-            "terminal_routes": [
+            "exits": [
               {
-                "source": "RESULT / SUCCESS",
-                "target": "Result High",
-                "pacing": "after Resolve"
+                "source": "CLASSIFYING → RESOLVE",
+                "target": "Result · High",
+                "meaning": "结论清晰"
               },
               {
-                "source": "RESULT / CONFIRM",
-                "target": "Result Medium",
-                "pacing": "after Resolve"
+                "source": "CLASSIFYING → RESOLVE",
+                "target": "Result · Medium",
+                "meaning": "需要用户确认候选"
               },
               {
-                "source": "RESULT / UNKNOWN",
-                "target": "Result Low",
-                "pacing": "after Resolve"
+                "source": "CLASSIFYING → RESOLVE",
+                "target": "Result · Low",
+                "meaning": "无法可靠确认鱼种"
               },
               {
-                "source": "DETECTING → NO_FISH",
-                "target": "Recognition Issue · No Fish",
-                "pacing": "immediate terminal route"
+                "source": "DETECTING",
+                "target": "Issue · No Fish",
+                "meaning": "未确认到可识别鱼体"
               },
               {
-                "source": "DETECTING → TOO_FAR",
-                "target": "Recognition Issue · Image Quality",
-                "pacing": "immediate terminal route"
+                "source": "DETECTING",
+                "target": "Issue · Image Quality",
+                "meaning": "图片条件不足以继续可靠识别"
               },
               {
-                "source": "INVALID_CROP / CLASSIFIER_FAILED / runtime exception",
-                "target": "Recognition Issue · Technical Failure",
-                "pacing": "immediate terminal route"
+                "source": "任意 Processing State",
+                "target": "Issue · Technical Failure",
+                "meaning": "识别流程无法继续"
               },
               {
-                "source": "User Back",
-                "target": "previous surface",
-                "pacing": "immediate cancel/exit; no issue route"
+                "source": "任意 Processing State",
+                "target": "Previous Surface",
+                "meaning": "用户主动返回，不视为失败"
               }
-            ]
-          },
-          "review_findings": [
-            {
-              "severity": "PASS",
-              "title": "真实 Pipeline 是唯一语义源",
-              "detail": "StateMachine / Pipeline 真实发出 DETECTING、OUTLINE、CLASSIFYING、RESULT/FAILURE；Visual Controller 只做最短可感知时长。"
-            },
-            {
-              "severity": "PASS",
-              "title": "OUTLINE 有真实 bbox Gate",
-              "detail": "DetectionFinished(OUTLINE) 仅在 classifier-eligible assessment 后发生，因此“已定位到鱼体”有真实依据。"
-            },
-            {
-              "severity": "PASS",
-              "title": "快结果不会跳状态",
-              "detail": "真实 RESULT 可提前完成，但视觉仍串行呈现 CAPTURED → DETECTING → OUTLINE → CLASSIFYING。"
-            },
-            {
-              "severity": "PASS",
-              "title": "慢 Detector / Classifier 不伪造未来状态",
-              "detail": "真实 Pipeline 未达到下一阶段时，Presented Visual 停留在当前阶段并允许延长。"
-            },
-            {
-              "severity": "P0",
-              "title": "慢结果的 Resolve 可能消失",
-              "detail": "若 RESULT 在 CLASSIFYING 已超过 1250ms 后才到达，现实现可立即路由 RESULT，无法保证最后 200ms 收尾。"
-            },
-            {
-              "severity": "CLARIFY",
-              "title": "FAILURE 不应作为第五张 Processing 卡",
-              "detail": "正常产品路径直接进入 Issue；FAILURE copy 应定义为 fallback-only，而不是必须展示的处理中状态。"
-            },
-            {
-              "severity": "NOTE",
-              "title": "RESULT 是 route-only",
-              "detail": "Processing 页面不存在 RESULT 状态卡；High / Medium / Low 属于结果页。"
-            },
-            {
-              "severity": "NOTE",
-              "title": "User Back 是取消分支",
-              "detail": "返回不等待最短时长，不进入 FAILURE/Issue，也不得在后台继续投递结果。"
-            }
-          ],
-          "closure_gate": {
-            "status": "BLOCKED",
-            "blocking_items": [
-              "统一快/慢结果 Resolve：结果到达后都必须完成 200ms Resolve，再进入 Result。",
-              "明确 FAILURE copy 为 fallback-only，正常失败路径直接进入对应 Issue 页面。"
             ],
-            "non_blocking_cleanup": [
-              "Production pipeline SUCCESS 路径存在重复 RESULT progress callback，可后续清理但不影响状态语义。",
-              "MAX_POST_RESULT_HOLD_MS 当前主要是兼容常量，不应再被 Design Manager 当作独立行为规则。"
-            ]
+            "pacing_rules": [
+              {
+                "title": "正常节奏",
+                "detail": "CAPTURED → DETECTING → OUTLINE → CLASSIFYING → RESOLVE → Result。"
+              },
+              {
+                "title": "处理很快",
+                "detail": "仍保持四个核心状态的完整叙事，不从 CAPTURED 直接跳到结果。"
+              },
+              {
+                "title": "处理较慢",
+                "detail": "停留在当前真实语义阶段；可以延长，但不自动推进、不显示百分比、不制造假的下一阶段。"
+              },
+              {
+                "title": "异常出现",
+                "detail": "在异常被确认的阶段直接离开 Processing，进入对应 Issue；不为了补齐动画而继续播放后续状态。"
+              },
+              {
+                "title": "用户返回",
+                "detail": "用户可以随时离开 Processing；返回不是识别失败，也不需要经过 Resolve。"
+              }
+            ],
+            "ownership": {
+              "processing": [
+                "CAPTURED",
+                "DETECTING",
+                "OUTLINE",
+                "CLASSIFYING"
+              ],
+              "transition": [
+                "RESOLVE"
+              ],
+              "downstream": [
+                "Result High",
+                "Result Medium",
+                "Result Low",
+                "No Fish",
+                "Image Quality",
+                "Technical Failure"
+              ],
+              "exit": [
+                "User Back"
+              ]
+            }
           }
         },
         {
