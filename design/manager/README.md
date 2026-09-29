@@ -37,6 +37,27 @@ Design Manager V1 采用两层结构：
 └── 间距与圆角
 ```
 
+## 背景系统导航结构
+
+背景系统采用 **父级总览 + 子菜单直达工作区**，不在右侧重复生成一套 Variant 子页面。
+
+```text
+背景系统
+├── BG_ENV_HERO
+├── BG_CONTENT
+├── BG_DATA
+├── BG_CAPTURE
+└── BG_SOLID_FALLBACK
+```
+
+交互规则：
+
+- 点击「背景系统」：只显示系统总览、两张 Canonical Master、全局 Authority 与使用范围；
+- 点击任一 BG 子菜单：右侧直接进入该背景类型工作区；
+- 子菜单工作区只显示该类型的预览、参数合同、使用页面/场景和 Authority；
+- 不再显示重复的「5 种背景类型」卡片索引；
+- 子菜单页不混入父级总览和全局 Authority/Usage。
+
 ## 当前公共系统状态
 
 背景系统 V1 已 **冻结**：
