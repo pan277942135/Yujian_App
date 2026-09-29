@@ -330,7 +330,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "Nine frozen state references are archived. Runtime visual fidelity is newer than the original V1.1 package status.",
+      "note": "识别过程按动态页面治理拆为 6 个直接子菜单。既有 4 张 Processing Frozen UI 已迁入 Design Manager 的 Visual States 工作区；05–09 Result/Error Frozen UI 保持归属识别结果/异常状态，不混入 Processing。",
       "display_name": "识别过程",
       "design_versions": [
         {
@@ -353,7 +353,151 @@
         {
           "id": "spacing_radius_v1"
         }
-      ]
+      ],
+      "hifi_views": [
+        {
+          "id": "state_timeline",
+          "title": "01 · State Timeline",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "render_mode": "recognition_timeline",
+          "authority": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
+          "secondary_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
+          "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
+          "summary": "真实 Pipeline → Visual State 的时间与状态关系。禁止用固定时间片假轮播替代真实识别进度。",
+          "menu_points": [
+            "CAPTURED · 350ms · 已接收真实照片",
+            "DETECTING · 600ms · 真实检测/理解照片",
+            "OUTLINE · 600ms · 鱼体定位完成，进入 AI Moment",
+            "CLASSIFYING · 1250ms · 真实分类阶段",
+            "RESULT_READY → 200ms Resolve → Result",
+            "Pipeline 决定语义状态；Frozen Duration 约束视觉最小叙事节奏"
+          ]
+        },
+        {
+          "id": "visual_states",
+          "title": "02 · Visual States",
+          "status": "FROZEN",
+          "authority_type": "visual",
+          "render_mode": "recognition_visual_states",
+          "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+          "visual_authority_manifest": "design/pages/recognition/design/reference_manifest.json",
+          "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+          "summary": "已将此前上传并冻结的 4 张识别过程 UI 直接挂入本工作区；不重新生成、不复制资产。",
+          "visual_states": [
+            {
+              "id": "captured",
+              "code": "CAPTURED",
+              "title": "01 · Capture Transition",
+              "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+              "note": "真实照片进入；AI 场开始建立；禁止提前出现鱼体焦点。"
+            },
+            {
+              "id": "detecting",
+              "code": "DETECTING",
+              "title": "02 · AI Understanding",
+              "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+              "note": "理解整张照片；外围 AI Field 可读，但仍不得鱼焦。"
+            },
+            {
+              "id": "outline",
+              "code": "OUTLINE",
+              "title": "03 · Fish Highlight",
+              "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+              "note": "Fish Halo + Contour 成为核心 AI Moment；外围光场降权。"
+            },
+            {
+              "id": "classifying",
+              "code": "CLASSIFYING",
+              "title": "04 · Fish Identifying",
+              "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+              "note": "Contour 稳定、Halo 轻呼吸；AI Field 持续但不抢鱼体。"
+            }
+          ],
+          "menu_points": [
+            "4 张 Processing Frozen Keyframe = 本页核心 Visual Authority",
+            "05–07 Result High/Medium/Low 不属于 Processing",
+            "08–09 No Fish/Image Quality 不属于 Processing",
+            "图片文件保持原路径，Design Manager 只迁移引用关系"
+          ]
+        },
+        {
+          "id": "layer_component_ownership",
+          "title": "03 · Layer & Component Ownership",
+          "status": "PARTIAL",
+          "authority_type": "visual",
+          "render_mode": "recognition_layer_system",
+          "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
+          "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+          "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
+          "summary": "整理 User Photo、Ambient Field、Fish Focus、Status Overlay 与系统 UI 的归属和视觉层级；现有 Authority 先移入，后续逐项审视。",
+          "menu_points": [
+            "User Photo 始终是视觉底座与主体",
+            "Edge Ambient Bloom / Blue Filaments / Gold Filaments / Sparse Particles 属于 AI Ambient Field",
+            "Fish Halo / Contour 属于 Fish Focus",
+            "Status Overlay 位于高 Z-order，但必须低视觉权重",
+            "Navigation / System UI 不参与 AI 视觉叙事",
+            "Component Ownership 与 Z-order 分开管理，禁止把层级高误解为视觉权重高"
+          ]
+        },
+        {
+          "id": "motion_transition",
+          "title": "04 · Motion & Transition",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "render_mode": "recognition_motion",
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
+          "secondary_authority": "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+          "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
+          "summary": "State Motion、连续 Ambient Motion 与 Resolve Transition 的当前冻结合同。",
+          "menu_points": [
+            "AI Field 是连续场，不允许每次 State 切换全部重启",
+            "State 切换只改变 alpha / emphasis / fish focus / copy",
+            "OUTLINE 为视觉峰值；CLASSIFYING 进入稳定分析",
+            "RESULT_READY 后执行 200ms Resolve，再进入 Result",
+            "350 / 600 / 600 / 1250ms 为当前 V1.1 timing authority",
+            "旧 900ms compression 规则已被 V1.1 supersede"
+          ]
+        },
+        {
+          "id": "degradation_accessibility",
+          "title": "05 · Degradation & Accessibility",
+          "status": "PARTIAL",
+          "authority_type": "behavior",
+          "render_mode": "recognition_degradation",
+          "authority": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+          "secondary_authority": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
+          "summary": "Reduce Motion、Low Performance 与 Fish Focus A/B/C fallback 集中管理；只允许视觉降级，不允许改变识别语义。",
+          "menu_points": [
+            "Reduce Motion：停止非必要 travel / breathing，保留状态语义与必要 fade",
+            "Low Performance：粒子减少、Glow 降低；不得修改 Pipeline/Copy/Result",
+            "Fish Focus A：Mask + Contour + Halo",
+            "Fish Focus B：BBox + Halo",
+            "Fish Focus C：BBox center + Halo",
+            "任何降级都不得改变 detector / classifier / confidence / quality semantics"
+          ]
+        },
+        {
+          "id": "runtime_evidence",
+          "title": "06 · Runtime Evidence",
+          "status": "ACTIVE_CLOSURE",
+          "authority_type": "behavior",
+          "render_mode": "recognition_evidence",
+          "authority": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md",
+          "secondary_authority": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md",
+          "summary": "集中展示真机/模拟器关键帧、timing、MP4、Level A contour 与最终 gate；Build PASS 不能替代 Runtime Evidence。",
+          "menu_points": [
+            "4 个 Processing Keyframe 必须有真实 runtime 对照",
+            "完整 Acceptance 仍要求 9 个 Frozen-state PNG",
+            "必须输出 recognition_processing_timing.txt",
+            "必须输出 recognition_processing_v1_1.mp4",
+            "必须验证真实鱼照片 Level A contour 稳定可见",
+            "最终以 runtime_gate_result.json.classification == PASS 为准"
+          ]
+        }
+      ],
+      "navigation_mode": "submenu_direct",
+      "show_hifi_child_index": false
     },
     {
       "id": "recognition_result_v1",

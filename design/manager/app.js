@@ -1588,7 +1588,40 @@ function myCatchesHifiCanvas(feature, view) {
 }
 
 
+
+function recognitionVisualStatesCanvas(view) {
+  const states = view.visual_states || [];
+  const board = '<div class="hifi-board four">' +
+    states.map(state =>
+      '<div class="hifi-original">' +
+        '<div class="hifi-phone-label">' + esc(state.code + ' · ' + state.title.replace(/^\\d+\\s*·\\s*/, '')) + '</div>' +
+        '<a href="' + esc(repoHref(state.path)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(state.path)) + '" alt="' + esc(state.title) + '">' +
+        '</a>' +
+        '<div class="hifi-original-caption">' + esc(state.note || '') + '</div>' +
+      '</div>'
+    ).join("") +
+  '</div>';
+
+  const migration = '<div class="authority-index">' +
+    '<div class="authority-index-intro"><strong>Existing Frozen UI · 已迁入</strong>' +
+      '<span>复用原始仓库 PNG；不重新生成、不改 SHA、不把 Result / Error UI 混入 Processing。</span></div>' +
+    '<div class="authority-index-grid">' +
+      states.map(state =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(state.code) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+          '<div class="authority-kind">FROZEN KEYFRAME</div>' +
+          '<p>' + esc(state.path) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>' +
+  '</div>';
+
+  return board + migration;
+}
+
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "recognition_visual_states") return recognitionVisualStatesCanvas(view);
   const points = view.menu_points || [];
   const visual = view.image || view.visual_authority ||
     (view.render_mode === "repo_image" ? currentVersion(feature)?.visual_authority : null);

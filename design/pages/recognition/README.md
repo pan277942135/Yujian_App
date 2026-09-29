@@ -5,6 +5,30 @@ Status: **FROZEN FOR ANDROID IMPLEMENTATION AND ACCEPTANCE**
 Purpose:
 Freeze Recognition Flow V1.1 design, runtime and evidence source of truth for Work and Android implementation.
 
+## Design Manager
+
+Recognition Processing 在 Design Manager 中固定为 **6 个直接子菜单**：
+
+```text
+识别过程
+├── 01 · State Timeline
+├── 02 · Visual States
+├── 03 · Layer & Component Ownership
+├── 04 · Motion & Transition
+├── 05 · Degradation & Accessibility
+└── 06 · Runtime Evidence
+```
+
+迁移规则：
+
+- `01_Capture_Transition_Frozen.png` → Visual States / CAPTURED
+- `02_AI_Understanding_Frozen.png` → Visual States / DETECTING
+- `03_Fish_Highlight_Frozen.png` → Visual States / OUTLINE
+- `04_Fish_Identifying_Frozen.png` → Visual States / CLASSIFYING
+- 原文件不移动、不复制；只在 Design Manager 中迁移展示与 Authority 引用。
+- `05_Result_High_Frozen.png` ～ `09_Error_Image_Quality_Frozen.png` 属于 Result / Error，不并入 Processing。
+- Engineering Spec 继续作为 Timeline / Layer / Motion 的辅助视觉 Authority。
+
 ## Work entry point
 
 Start here:
