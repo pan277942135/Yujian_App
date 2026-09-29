@@ -608,6 +608,35 @@ function freezeStatusBadge(status) {
   return '<span class="freeze-status ' + css + '">' + esc(label) + '</span>';
 }
 
+function renderDesignSections(feature) {
+  const panel = el("designSectionsPanel");
+  const sections = feature.design_sections || [];
+  if (!sections.length) {
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  el("designSectionsGrid").innerHTML = sections.map(section => {
+    const authority = section.authority
+      ? '<a class="design-section-authority" href="' + esc(repoHref(section.authority)) +
+        '" target="_blank" rel="noreferrer">打开完整规范</a>'
+      : '';
+    const points = (section.points || []).map(point =>
+      '<li>' + esc(point) + '</li>'
+    ).join("");
+    return '<article class="design-section-card">' +
+      '<div class="design-section-head">' +
+        '<div><div class="design-section-id">' + esc(section.id || "") + '</div>' +
+        '<h4>' + esc(section.title || "") + '</h4></div>' +
+        statusBadge(section.status || "PARTIAL") +
+      '</div>' +
+      '<p class="design-section-summary">' + esc(section.summary || "") + '</p>' +
+      (points ? '<ul class="design-section-points">' + points + '</ul>' : '') +
+      authority +
+    '</article>';
+  }).join("");
+}
+
 function renderFreezeReview(feature) {
   const panel = el("freezeReviewPanel");
   const review = feature.freeze_review;
@@ -706,6 +735,7 @@ function selectPage(id) {
     el("moduleNote").classList.remove("hidden");
   } else el("moduleNote").classList.add("hidden");
 
+  renderDesignSections(feature);
   renderFreezeReview(feature);
   renderPagePreview(feature);
   renderSharedRefs(feature);
