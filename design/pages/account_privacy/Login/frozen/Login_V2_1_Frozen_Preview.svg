@@ -32,7 +32,7 @@
     <path d="M813 1174 Q836 1204 857 1174 Q836 1152 813 1174Z" fill="none" stroke="#8795A7" stroke-width="3"/>
     <path d="M811 1156 L859 1204" stroke="#8795A7" stroke-width="3"/>
 
-    <text x="715" y="1285" fill="#168B88" font-size="24" font-weight="600">忘记密码？</text>
+    <text x="715" y="1285" fill="#748897" font-size="24" font-weight="500">忘记密码？</text>
     <rect x="76" y="1320" width="789" height="92" rx="46" fill="#0F7A78"/>
     <text x="470.5" y="1379" text-anchor="middle" fill="#FFFFFF" font-size="30" font-weight="600">登录</text>
     <text x="330" y="1475" fill="#7D8998" font-size="25">还没有账号？</text>
