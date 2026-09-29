@@ -124,5 +124,17 @@
     "visible decorative gradient",
     "loading copy that changes width",
     "capture-button visual language on ordinary actions"
-  ]
+  ],
+  "visual_authority": {
+    "path": "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+    "width": 1600,
+    "height": 1680,
+    "format": "SVG",
+    "bytes": 8133,
+    "sha256": "44314b37a9fdddb0b1113b04541d1a22f799569dddff9740e5fc0b71d4f88e1c",
+    "status": "FROZEN",
+    "version": "V1.1",
+    "role": "final_static_appearance_and_composition",
+    "precedence": "Frozen Visual Reference wins for final appearance; JSON/Markdown wins for exact numeric values when raster/vector display scaling differs."
+  }
 }
