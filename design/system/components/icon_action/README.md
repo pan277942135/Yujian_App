@@ -1,7 +1,7 @@
 # YuJian Icon Action V1
 
-Status: **ACTIVE_CLOSURE**  
-Current version: **V1 Candidate**  
+Status: **FROZEN**  
+Current version: **V1**  
 Scope: **Shared Design System**
 
 ## Families
@@ -30,11 +30,15 @@ Not Icon Action:
 - No press scale or bounce.
 - Card Flip triggers content flip; the icon itself stays visually stable.
 
-## Candidate visual references
+## Frozen visual authority
 
-- `visual/candidate/01_Families.svg`
-- `visual/candidate/02_NAVIGATION_States.svg`
-- `visual/candidate/03_UTILITY_Library.svg`
-- `visual/candidate/04_UTILITY_States.svg`
-- `visual/candidate/05_CONTEXT_Library.svg`
-- `visual/candidate/06_Real_Usage.svg`
+- `visual/authority/01_Families.svg`
+- `visual/authority/02_NAVIGATION_States.svg`
+- `visual/authority/03_UTILITY_Library.svg`
+- `visual/authority/04_UTILITY_States.svg`
+- `visual/authority/05_CONTEXT_Library.svg`
+- `visual/authority/06_Real_Usage.svg`
+
+## Freeze decision
+
+Icon Action V1 is frozen with three independent families: NAVIGATION, UTILITY and CONTEXT. The six SVG references under `visual/authority/` are the complete component-level visual authority set.
