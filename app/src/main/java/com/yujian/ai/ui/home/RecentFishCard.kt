@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -37,13 +38,21 @@ fun RecentFishCard(
     imageUrl: String?,
     accessToken: String,
     onClick: () -> Unit,
+    runtimeAssets: NormalHomeRuntimeAssets? = null,
 ) {
     Box(
         Modifier
             .fillMaxSize()
             .clickable(onClick = onClick),
     ) {
-        AssetImage(
+        runtimeAssets?.fishCardShadow?.let { shadow ->
+            Image(
+                bitmap = shadow.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().alpha(0.48f),
+                contentScale = ContentScale.FillBounds,
+            )
+        } ?: AssetImage(
             "$FISH_CARD_ROOT/fish_card_shadow.png",
             Modifier.fillMaxSize().alpha(0.48f),
             contentDescription = null,
@@ -78,7 +87,14 @@ fun RecentFishCard(
                     modifier = Modifier.size(44.dp),
                 )
             }
-            AssetImage(
+            runtimeAssets?.fishCardGradient?.let { gradient ->
+                Image(
+                    bitmap = gradient.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds,
+                )
+            } ?: AssetImage(
                 "$FISH_CARD_ROOT/fish_card_gradient.png",
                 Modifier.fillMaxSize(),
                 contentDescription = null,
@@ -107,7 +123,14 @@ fun RecentFishCard(
                 }
             }
         }
-        AssetImage(
+        runtimeAssets?.fishCardOutline?.let { outline ->
+            Image(
+                bitmap = outline.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().alpha(0.72f),
+                contentScale = ContentScale.FillBounds,
+            )
+        } ?: AssetImage(
             "$FISH_CARD_ROOT/fish_card_outline.png",
             Modifier.fillMaxSize().alpha(0.72f),
             contentDescription = null,
