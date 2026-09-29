@@ -73,11 +73,11 @@ private const val EmptyHomeHeroX = 75f
 private const val EmptyHomeHeroY = 240f
 private const val EmptyHomeHeroWidth = 606f
 private const val EmptyHomeHeroHeight = 296f
-private const val EmptyHomePromptY = 1430f
-private const val EmptyHomeCameraX = 436f
-private const val EmptyHomeCameraY = 1500f
-private const val EmptyHomeCameraSize = 208f
-private const val EmptyHomeAlbumY = 1725f
+private const val EmptyHomePromptY = 1448f
+private const val EmptyHomeCameraX = 430f
+private const val EmptyHomeCameraY = 1537f
+private const val EmptyHomeCameraSize = 220f
+private const val EmptyHomeAlbumY = 1780f
 
 @Composable
 fun HomeScreen(

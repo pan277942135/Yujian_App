@@ -1,5 +1,5 @@
 {
-  "asset_revision": "HOME_EMPTY_ASSETS_V2.1",
+  "asset_revision": "HOME_EMPTY_ASSETS_V2.2",
   "asset_root": "empty_home_runtime_v2",
   "camera": [
     "camera/camera_button_base.png",
@@ -43,5 +43,7 @@
   },
   "static": [
     "static/scene_base.webp"
-  ]
+  ],
+  "visual_revision": "V2.2",
+  "approved_visual_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec"
 }

@@ -20,6 +20,8 @@ class EmptyHomeV2RuntimeContractTest {
         val runtime = assets.open("$root/config/runtime_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
 
         assertEquals("Empty_Home_Final_Design_V2", runtime.getString("design_version"))
+        assertEquals("V2.2", runtime.getString("visual_revision"))
+        assertEquals("3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec", runtime.getString("approved_visual_sha256"))
         assertEquals(1080, runtime.getJSONArray("reference_canvas").getInt(0))
         assertEquals(1920, runtime.getJSONArray("reference_canvas").getInt(1))
         val bobber = motion.getJSONObject("bobber")
@@ -38,6 +40,10 @@ class EmptyHomeV2RuntimeContractTest {
             anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString(),
             anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString(),
         )
+        assertEquals("[560,1320]", anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString())
+        assertEquals("[335,1180]", anchors.getJSONObject("line").getJSONArray("start_reference_px").toString())
+        assertEquals("[560,1328]", anchors.getJSONObject("line").getJSONArray("end_reference_px").toString())
+        assertEquals(220, anchors.getJSONObject("cta").getInt("camera_size_reference_px"))
 
         assets.open("$root/camera/camera_button_base.png").use { stream ->
             val base = requireNotNull(BitmapFactory.decodeStream(stream))

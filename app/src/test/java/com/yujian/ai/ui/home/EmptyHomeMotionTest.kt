@@ -34,8 +34,22 @@ class EmptyHomeMotionTest {
         assertEquals(1.11f, rippleScale(3.2f / 2f), 0.0001f)
         assertEquals(0.30f, rippleAlpha(0f), 0.0001f)
         assertEquals(0f, rippleAlpha(3.2f - 0.0001f), 0.0001f)
-        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, 530f, 0.0001f)
-        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, 1168f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, 560f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, 1320f, 0.0001f)
+    }
+
+    @Test
+    fun fishingLineUsesFrozenSlackGeometry() {
+        assertEquals(335f, EMPTY_HOME_V2_ROD_TIP_X, 0.0001f)
+        assertEquals(1180f, EMPTY_HOME_V2_ROD_TIP_Y, 0.0001f)
+        assertEquals(390f, EMPTY_HOME_V2_LINE_C1_X, 0.0001f)
+        assertEquals(1265f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
+        assertEquals(470f, EMPTY_HOME_V2_LINE_C2_X, 0.0001f)
+        assertEquals(1352f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
+        assertEquals(560f, EMPTY_HOME_V2_LINE_END_X, 0.0001f)
+        assertEquals(1328f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
+        assertTrue(EMPTY_HOME_V2_LINE_END_Y > EMPTY_HOME_V2_WATER_CONTACT_Y)
+        assertTrue(EMPTY_HOME_V2_LINE_C2_Y > EMPTY_HOME_V2_LINE_END_Y)
     }
 
     @Test
