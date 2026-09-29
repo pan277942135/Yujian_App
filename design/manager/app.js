@@ -419,6 +419,25 @@ function textActionPreviewHtml(item) {
   '</div>';
 }
 
+function iconActionPreviewHtml(item) {
+  const refs = item.candidate_visual_set || [];
+  return '<div class="icon-action-preview">' +
+    '<div class="text-action-review-banner">' +
+      '<div><span>ICON ACTION V1</span><strong>Candidate · 待视觉确认</strong></div>' +
+      '<p>重点审视：Navigation / Utility / Context 边界；B-side Card Flip 图标；默认透明容器与 ON_MEDIA Mist 支撑面的关系。</p>' +
+    '</div>' +
+    '<div class="text-action-ref-grid">' +
+      refs.map(ref => '<article class="text-action-ref-card">' +
+        '<div class="text-action-ref-head"><strong>' + esc(ref.title || ref.id) + '</strong>' +
+        statusBadge(ref.status || "CANDIDATE") + '</div>' +
+        '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.title || ref.id) + '">' +
+        '</a></article>').join("") +
+    '</div>' +
+    '<div class="preview-note">当前为 ACTIVE_CLOSURE。确认后再提升为 Frozen Authority，并回写 Top Navigation / FishRecordDetail / My Catches / Auth 等页面引用。</div>' +
+  '</div>';
+}
+
 function sharedPreviewHtml(item) {
   if (item.preview_type === "layered_component" && item.id === "primary_capture_button_v1") {
     return layeredCapturePreviewHtml(item);
@@ -428,6 +447,9 @@ function sharedPreviewHtml(item) {
   }
   if (item.preview_type === "text_action_system" && item.id === "text_action_v1") {
     return textActionPreviewHtml(item);
+  }
+  if (item.preview_type === "icon_action_system" && item.id === "icon_action_v1") {
+    return iconActionPreviewHtml(item);
   }
   return previewHtml(item.preview, item.display_name, item.preview_note);
 }
