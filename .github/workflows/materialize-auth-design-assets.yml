@@ -26,9 +26,11 @@ jobs:
           set -euo pipefail
           required=(
             login_01 login_02 login_03 login_04 login_05
+            login_06 login_07 login_08 login_09 login_10
+            login_11 login_12 login_13 login_14 login_15
             register_01 register_02 register_03 register_04 register_05
-            states_01 states_02 states_03
-            interaction_01 interaction_02 interaction_03 interaction_04
+            register_06 register_07 register_08 register_09 register_10
+            register_11 register_12 register_13 register_14 register_15
           )
           for n in "${required[@]}"; do
             if [[ ! -f ".auth_assets/${n}.b64" ]]; then
@@ -49,8 +51,6 @@ jobs:
 
           cat .auth_assets/login_*.b64 | base64 -d > /tmp/login_source
           cat .auth_assets/register_*.b64 | base64 -d > /tmp/register_source
-          cat .auth_assets/states_*.b64 | base64 -d > design/pages/account_privacy/shared/auth_v1/Auth_Form_States_V1.webp
-          cat .auth_assets/interaction_*.b64 | base64 -d > design/pages/account_privacy/shared/auth_v1/Auth_Interaction_Layout_Contract_V1.webp
 
           python3 -m pip install --quiet pillow
           python3 - <<'PY'
