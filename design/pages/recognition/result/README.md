@@ -25,7 +25,23 @@ Contains:
 Do not add media-gallery complexity to this screen.
 
 ## CTA contract
-- 保存鱼获 → create FishRecord → Normal Home
-- 保存并记录记忆 → create FishRecord first → FishRecordDetail(recordId, initialSection=MEMORY)
+
+Shared authority: `design/system/components/action_button/Action_Button_Spec_V1.md`
+
+### Normal / confirmed result
+- `保存本次鱼获` → **PRIMARY** → create FishRecord → Normal Home
+- `继续记录记忆` → **SECONDARY_STRONG** → create FishRecord first → FishRecordDetail(recordId, initialSection=MEMORY)
+
+Current paired order:
+`[继续记录记忆] [保存本次鱼获]`
+
+### Low-confidence correction
+- `手动选择` → **SECONDARY_STRONG**
+- `重新拍摄` → **SECONDARY_MUTED**
+
+Current paired order:
+`[手动选择] [重新拍摄]`
+
+`重新拍摄` is intentionally lower priority and must not become PRIMARY.
 
 The FishRecord must exist before entering memory-media operations.
