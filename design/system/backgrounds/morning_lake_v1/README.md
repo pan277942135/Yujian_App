@@ -1,84 +1,135 @@
 # 渔见 Morning Lake Background System V1
 
-Status: **ACTIVE CLOSURE**
+Status: **FROZEN**
 Version: **V1**
-Scope: **Shared background authority**
+Scope: **Shared Background Authority**
+Frozen date: **2026-09-29**
 
-## 目标
+## 1. 设计结论
 
-统一渔见 APP 的环境基底。所有湖景页面属于同一个清晨湖面世界，不再由页面各自拥有一套独立背景。
+渔见背景系统采用：
 
-公共背景系统只负责：
+**同一个 Morning Lake 视觉家族 + 两张 Canonical Master + 五种背景类型。**
 
-- 环境世界；
-- 背景强度；
-- 内容可读性处理；
-- 背景兜底。
+两张母版承担不同职责：
 
-页面仍负责：
+1. **Morning_Lake_Sunrise_Hero_V1**
+   - 有太阳 / 暖金晨光
+   - **仅空首页使用**
+   - 负责品牌首次体验与“开始一次出钓”的 Hero 时刻
 
-- 页面布局；
-- 页面内容；
-- 用户照片；
-- 鱼获 Hero；
-- 页面专属前景物体；
-- 页面专属动效。
+2. **Morning_Lake_Master_V1**
+   - 无太阳 / 冷灰蓝晨雾山湖
+   - 除空首页之外的湖景页面统一使用
+   - BG_ENV_HERO / BG_CONTENT / BG_DATA 只通过雾化、饱和度、对比度、亮度区分
 
-## 母版
+不得再为单个页面另造第三套湖景世界。
 
-Canonical candidate asset:
+## 2. Canonical Masters
+
+### Morning_Lake_Master_V1
+
+Path:
 
 `assets/Morning_Lake_Master_V1.png`
 
-- Canvas: 1080 × 1920
-- Format: PNG RGB
-- SHA-256: `48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22`
-- Binary provenance: exact reuse of Empty Home `scene_base_master.png`
-- Source authority: `Empty_Home_Final_Design_V2`
-- Production rule: only UI / rod / line / bobber / ripple regions were cleaned; **no scene redesign**
+- Source filename: `晨雾山湖与远山.png`
+- Dimensions: 941 × 1672
+- Mode: RGB
+- SHA-256: `5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`
+- Role: default shared lake master
+- Used by: Normal Home, Recognition Result, FishRecordDetail, Login / Account, My Catches, Fish Guide and other lake-content pages
 
-The master is the common environmental source. It contains no page UI and no Empty Home fishing foreground.
+### Morning_Lake_Sunrise_Hero_V1
 
-## 变体
+Path:
 
-- `BG_ENV_HERO` — 空首页 / 有数据首页
-- `BG_CONTENT` — 识别结果 / 鱼获详情 / Account / Form
-- `BG_DATA` — 我的鱼获 / 鱼鉴 / 高密度信息页
-- `BG_CAPTURE` — 识别过程，使用用户当前照片
-- `BG_SOLID_FALLBACK` — 无图 / 加载失败 / 异常兜底
+`assets/Morning_Lake_Sunrise_Hero_V1.png`
 
-Detailed treatment authority:
+- Source filename: `晨曦映照的静谧山湖.png`
+- Dimensions: 941 × 1672
+- Mode: RGB
+- SHA-256: `28313d84c8cf3fb9db52196874e9c4d55483c99ff61cf579cac3ecc69af6cc50`
+- Role: Empty Home hero-only master
+- Used by: **Empty Home only**
 
-`Background_System_Spec_V1.md`
+## 3. 五种背景类型
+
+- `BG_ENV_HERO`
+  - Empty Home → Sunrise Hero Master
+  - Normal Home → Morning Lake Master
+- `BG_CONTENT`
+  - Morning Lake Master
+  - Recognition Result / FishRecordDetail / Login / Account / Form
+- `BG_DATA`
+  - Morning Lake Master
+  - My Catches / Fish Guide / dense archive pages
+- `BG_CAPTURE`
+  - current user photo
+  - Recognition Processing
+- `BG_SOLID_FALLBACK`
+  - solid color only
+  - missing background / load failure / transient error
+
+## 4. 数值权威
+
+唯一参数权威：
+
 `treatment_contract.json`
 
-## 不属于 Background Master 的内容
+BG_ENV_HERO / BG_CONTENT / BG_DATA 只允许改变：
 
-以下内容禁止烘焙进 Morning Lake Master：
+- Mist / 雾白覆盖
+- Saturation / 饱和度
+- Contrast / 对比度
+- Brightness / 亮度
 
-- 鱼竿
-- 鱼线
-- 鱼漂
-- 水波
-- 用户鱼获照片
-- 卡片
-- Logo / 文案
-- 导航
-- 按钮
-- 页面级渐变遮罩
-- AI 光场 / contour / halo
+Global Blur is frozen to **OFF**.
 
-## Authority rule
+不得通过重新生成山、湖、天空、太阳、岸线、树木或前景来制造背景层级。
 
-1. Morning Lake Master V1 controls the shared environmental world.
-2. The selected BG variant controls environmental salience.
-3. Page frozen references control layout, information hierarchy and page-specific foreground.
-4. If a legacy page contains a different lake-world asset, it is a migration gap, not a new background authority.
-5. Recognition Processing is explicitly outside lake-background rendering and uses `BG_CAPTURE`.
+## 5. 已批准跨页面视觉验证
 
-## 当前状态
+Approved review board:
 
-The source master is provenance-locked and reusable.
+`validation/Morning_Lake_Content_Adaptation_Approved_V1.png`
 
-The **system remains ACTIVE_CLOSURE** until the three lake treatment variants are visually reviewed across:
-Empty Home, Normal Home, FishRecordDetail, My Catches, Fish Guide and Account/Login.
+- Dimensions: 992 × 1586
+- SHA-256: `911ab26ad1c53fb2d10c7e225ad8bfffeb959246be2fef29abf80cf979801cce`
+- Review result: **APPROVED**
+- Covers:
+  - Normal Home / BG_ENV_HERO
+  - Recognition Result / BG_CONTENT
+  - FishRecordDetail / BG_CONTENT
+  - Login / BG_CONTENT
+  - My Catches / BG_DATA
+  - Fish Guide / BG_DATA
+
+Important:
+
+**The board is visual-review evidence. Its displayed percentages are explanatory labels, not engineering parameter authority.**
+Exact frozen values come only from `treatment_contract.json`.
+
+## 6. 页面前景不属于背景系统
+
+Background System 不包含：
+
+- Empty Home rod / line / bobber / ripple
+- user catch photos
+- fish Hero
+- glass card
+- navigation
+- button
+- copy
+- account avatar
+- Recognition AI field / contour / halo
+
+## 7. Authority Rule
+
+1. This package is the shared background authority.
+2. Page-level UI cannot create a new lake-world asset.
+3. Empty Home may use only the Sunrise Hero master exception.
+4. All other lake pages use Morning_Lake_Master_V1.
+5. Page frozen references remain authoritative for page layout and page-specific foreground.
+6. BG_CAPTURE and BG_SOLID_FALLBACK are non-lake background types.
+7. Any future change to either master or a frozen treatment creates a new Background System version/revision.
