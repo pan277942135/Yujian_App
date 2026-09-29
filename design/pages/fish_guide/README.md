@@ -16,6 +16,17 @@ Status: **FROZEN**
 - **01 · Fish Guide Home / 鱼鉴首页**  
   design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md
 
+- **02 · Species Detail / 鱼种详情 — Page Contract V1**  
+  design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md
+
+- **02 · Species Detail / 鱼种详情 — Visual Authority V1**  
+  design/pages/fish_guide/species_detail/Species_Detail_Visual_Authority_V1.md
+
+- **02 · Species Detail / Frozen PNG**  
+  design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png
+
+> Species Detail page-level layout and interaction are FROZEN. The internal content / visual system of the five black-gold knowledge cards remains PARTIAL and is intentionally reviewed separately.
+
 ## Concept
 
 A personal natural fish guide built from the user's real catches.
@@ -69,3 +80,27 @@ Unlit species remain visible, readable, browsable, and tappable. Unlit is a pers
 - No Back / Utility action.
 - Search is not part of Fish Guide Home V1 and must not be restored into the top navigation.
 - Progress begins below Top Navigation as page content.
+
+## Species Detail Page V1
+
+Frozen page-level structure:
+
+- Back;
+- species name + one lightweight descriptor line;
+- finite 5-position Knowledge Card Carousel;
+- one centered active card with adjacent-card previews;
+- `NN / 05` indicator;
+- `我的{鱼种}` with saved FishRecord count and up to two recent real-catch previews.
+
+Frozen interaction:
+
+- Auto Flip: **NO**;
+- autoplay / timed switching: **NO**;
+- circular loop: **NO**;
+- cold entry: **01 / 05**;
+- active-card artwork: **Fit / no crop / no stretch**;
+- My Species header → My Catches filtered to the current species;
+- real-catch preview → selected FishRecordDetail;
+- back-stack round trips restore the current species/detail state.
+
+The five black-gold cards' internal copy, imagery, rating semantics and final naming remain outside this page-level freeze.
