@@ -36,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
@@ -173,6 +174,8 @@ internal fun NormalHomeContent(
                 text = "记录下一条鱼",
                 style = YuJianTypography.body.copy(
                     color = YuJianColors.OnDark.copy(alpha = 0.92f),
+                    fontSize = 20.sp,
+                    lineHeight = 28.sp,
                     shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
                 ),
             )
@@ -211,6 +214,8 @@ private fun NormalHomeHeader(
             text = "渔见",
             style = YuJianTypography.brand.copy(
                 color = YuJianColors.TextPrimary.copy(alpha = 0.94f),
+                fontSize = 32.sp,
+                lineHeight = 40.sp,
             ),
         )
         if (isLoggedIn) {
@@ -265,7 +270,11 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
     ) {
         Text(
             text = "最近鱼获",
-            style = YuJianTypography.sectionTitle.copy(color = YuJianColors.OnDark),
+            style = YuJianTypography.sectionTitle.copy(
+                color = YuJianColors.OnDark,
+                fontSize = 24.sp,
+                lineHeight = 30.sp,
+            ),
         )
         Row(
             modifier = Modifier
@@ -276,7 +285,11 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
         ) {
             Text(
                 text = "全部",
-                style = YuJianTypography.body.copy(color = YuJianColors.OnDark),
+                style = YuJianTypography.body.copy(
+                    color = YuJianColors.OnDark,
+                    fontSize = 18.sp,
+                    lineHeight = 24.sp,
+                ),
             )
             Image(
                 painter = painterResource(R.drawable.all_chevron_v12),
