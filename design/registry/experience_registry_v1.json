@@ -2013,10 +2013,10 @@
           "id": "species_states",
           "title": "03 · 鱼种状态",
           "status": "FROZEN",
-          "render_mode": "authority_index",
+          "render_mode": "repo_image",
           "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md",
           "secondary_authority": "design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md",
-          "summary": "03 · 鱼种状态 V1 已冻结：以 Encounter / Catch Count / Knowledge / Media / Runtime / Catalog Consistency 六轴定义状态。UNLIT 不是锁定；0/1/2/3+ 记录、缺卡、缺图、离线/错误与返回恢复均有确定规则。01/02 的冻结页面 Authority 始终优先于状态流程图中的缩略页面。",
+          "summary": "03 · 鱼种状态 V1 已冻结。Design Manager 直接展示仓库内高保真流程规范图；状态语义以 Fish_Species_States_Spec_V1.md 为实现 Authority，01/02 Frozen Authority 始终优先于流程图中的缩略页面。",
           "authority_type": "group",
           "menu_points": [
             "State Model · 6 Axes",
@@ -2037,11 +2037,10 @@
           "visual_status": "FROZEN",
           "state_contract_status": "FROZEN",
           "visual_authority_source": {
-            "kind": "library_png",
+            "kind": "repo_png",
             "name": "Fish_Species_States_V1.png",
             "source_name": "a_clean_high_resolution_ui_ux_design_spec_poster_i.png",
-            "library_path": "/YuJian_App/design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png",
-            "library_file_id": "libfile_362ed70bc5848191ab115f370bc764da",
+            "path": "design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png",
             "width": 1024,
             "height": 1536,
             "size_bytes": 2244852,
@@ -2067,12 +2066,14 @@
             ]
           },
           "freeze_date": "2026-09-29",
-          "visual_authority_note": "03 · 鱼种状态完整高保真流程规范图已上传至设计资产库并冻结为状态流程 Visual Authority；流程图中的缩略页面只表达状态差异，01/02 Frozen Authority 仍是实际页面外壳权威。",
+          "visual_authority_note": "高保真流程规范图已真正写入 GitHub frozen 资产目录并由 Design Manager 直接预览；流程图用于表达状态差异，01/02 的 Frozen 页面 Authority 仍是实际页面外壳权威。",
           "deferred_scope": [
             "five-card internal content / visual system",
             "deep-link policy owned by 04 · 鱼种导航",
             "runtime evidence owned by 09 · 验收证据"
-          ]
+          ],
+          "image": "design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png",
+          "visual_authority": "design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png"
         },
         {
           "id": "species_navigation",
