@@ -1342,7 +1342,7 @@
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
-      "note": "My Catches V2：Search V1（B1–B5）已于 2026-09-29 整批 FROZEN 并提交 Design Manager。后续集中处理 Timeline / Filter / Empty / Growth Mark 等批次后再继续批量冻结。",
+      "note": "My Catches V2：Search V1 已冻结；Filter V1 已完成 F1 顶部筛选面板冻结。当前 V1 维度为鱼种 / 时间 / 尺寸 / 特殊记录，地点暂不支持；后续继续 F2–F7。",
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "我的鱼获 V2 · 设计冻结检查",
@@ -1374,11 +1374,11 @@
           },
           {
             "id": "MC-FREEZE-03",
-            "title": "5 维筛选系统",
+            "title": "筛选 V1",
             "status": "CONFIRMED",
             "blocking": true,
-            "decision": "已恢复并冻结五维筛选：鱼种 / 时间 / 地点 / 特殊记录 / 尺寸；同维度 OR、不同维度 AND。当前 Runtime 仅实现 3 维属于后续开发差异。",
-            "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md"
+            "decision": "F1 已冻结为顶部内联筛选面板；正式顺序为鱼种 / 时间 / 尺寸 / 特殊记录。地点暂不支持。F2–F7 继续逐项收口。",
+            "authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md"
           },
           {
             "id": "MC-FREEZE-04",
@@ -1448,17 +1448,18 @@
         },
         {
           "id": "filter_v1",
-          "title": "五维筛选",
-          "status": "FROZEN",
-          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
-          "summary": "鱼种 / 时间 / 地点 / 特殊记录 / 尺寸五维；同维度 OR，不同维度 AND。",
+          "title": "筛选 V1",
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md",
+          "summary": "F1 顶部内联筛选面板已冻结；V1 当前支持鱼种 / 时间 / 尺寸 / 特殊记录四类筛选，地点暂不支持。",
           "points": [
-            "鱼种：多选；50+ 时使用二级选择器，支持搜索 / 最近 / 全部",
-            "时间：单选快捷范围 + 自定义日期范围",
-            "地点：多选；支持搜索 / 最近 / 全部",
-            "特殊记录：首条某鱼种 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
-            "尺寸：长度范围 + 重量范围",
-            "筛选完成后仍保留月份 → 日期 → 鱼获的 Timeline 结构"
+            "F1：顶部内联展开；条件点击后 Timeline 即时刷新",
+            "鱼种：快捷项 + 更多；多选，同维度 OR",
+            "时间：不限 / 本月 / 近3个月 / 今年 / 自定义；单选",
+            "尺寸：长度 / 重量快捷范围 + 自定义最小/最大值",
+            "特殊记录：不限 / 首条 / 最长 / 最重 / 里程碑；多选",
+            "不同维度 AND；Search + Filter = SearchMatch AND FilterMatch",
+            "地点暂不进入 V1"
           ]
         },
         {
@@ -1714,39 +1715,36 @@
         },
         {
           "id": "filter_sheet",
-          "title": "点击筛选 / 五维 Sheet",
+          "title": "点击筛选 / 顶部筛选面板",
           "status": "FROZEN",
-          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+          "authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md",
           "type": "filter",
-          "summary": "点击筛选后打开 Bottom Sheet；首层固定五维摘要，再进入二级选择器。",
+          "summary": "点击右上 Filter Action 后在当前页面顶部向下展开 F1；高频条件直接选择，Timeline 即时刷新。",
           "rules": [
-            "鱼种 / 时间 / 地点 / 特殊记录 / 尺寸",
-            "二级选择器完成后回首层",
-            "Sheet 内滚动不影响 Timeline",
-            "完成后原页即时更新"
+            "顶部内联展开，不使用 Bottom Sheet",
+            "顺序：鱼种 / 时间 / 尺寸 / 特殊记录",
+            "地点暂不支持",
+            "高频条件直接点选，复杂条件进入 F2–F5",
+            "无 Apply CTA；筛选即时生效"
           ],
           "preview": {
-            "mode": "filter_sheet",
+            "mode": "filter_panel",
             "dimensions": [
               {
                 "label": "鱼种",
-                "value": "草鱼、鲤鱼"
+                "value": "不限 / 草鱼 / 鲫鱼 / 鲤鱼 / 更多"
               },
               {
                 "label": "时间",
-                "value": "今年"
-              },
-              {
-                "label": "地点",
-                "value": "千岛湖"
-              },
-              {
-                "label": "特殊记录",
-                "value": "最重记录"
+                "value": "不限 / 本月 / 近3个月 / 今年 / 自定义"
               },
               {
                 "label": "尺寸",
-                "value": "长度 ≥ 40cm"
+                "value": "长度/重量快捷范围 + 自定义"
+              },
+              {
+                "label": "特殊记录",
+                "value": "不限 / 首条 / 最长 / 最重 / 里程碑"
               }
             ]
           }
@@ -1911,12 +1909,12 @@
         },
         {
           "id": "filter",
-          "title": "5维筛选 V1",
+          "title": "筛选 V1",
           "status": "ACTIVE_CLOSURE",
           "render_mode": "submenu_index",
           "authority": null,
           "source_reference": null,
-          "summary": "5维筛选 V1 已建立 F1–F8 子菜单骨架；当前仅建立信息架构与导航入口，页面内容、高保真与正式 Authority 待逐项补齐。",
+          "summary": "筛选 V1 采用顶部内联筛选模型。F1 已冻结；V1 正式维度为鱼种 / 时间 / 尺寸 / 特殊记录，地点暂不支持。F2–F7 后续逐项补齐。",
           "scenario_ids": [],
           "authority_type": "group",
           "historical_reference": {
@@ -1926,12 +1924,24 @@
           },
           "children": [
             {
-              "id": "f1_filter_sheet",
+              "id": "f1_filter_panel",
               "code": "F1",
-              "title": "F1 · 筛选 Sheet",
-              "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "title": "F1 · 筛选面板",
+              "status": "FROZEN",
+              "render_mode": "frozen_image",
+              "authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen.jpg",
+              "visual_authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen.jpg",
+              "behavior_authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md",
+              "authority_type": "visual",
+              "freeze_date": "2026-09-29",
+              "summary": "顶部内联筛选面板：鱼种 → 时间 → 尺寸 → 特殊记录。高频条件直接点选并即时刷新 Timeline；地点暂不进入 V1。",
+              "visual_authority_dimensions": {
+                "width": 360,
+                "height": 640
+              },
+              "visual_authority_bytes": 41283,
+              "visual_authority_sha256": "73428eecf75357cad9513374721bbb82ece40ccac2167ae054a75ebc24b404a2",
+              "source_high_fidelity_png": "F1 Filter Panel · approved generated UI"
             },
             {
               "id": "f2_species",
@@ -1950,9 +1960,9 @@
               "authority_type": "visual"
             },
             {
-              "id": "f4_location",
+              "id": "f4_size",
               "code": "F4",
-              "title": "F4 · 地点选择",
+              "title": "F4 · 尺寸筛选",
               "status": "MISSING",
               "render_mode": "placeholder",
               "authority_type": "visual"
@@ -1966,25 +1976,17 @@
               "authority_type": "visual"
             },
             {
-              "id": "f6_size",
+              "id": "f6_results",
               "code": "F6",
-              "title": "F6 · 尺寸筛选",
+              "title": "F6 · 筛选有结果",
               "status": "MISSING",
               "render_mode": "placeholder",
               "authority_type": "visual"
             },
             {
-              "id": "f7_results",
+              "id": "f7_empty",
               "code": "F7",
-              "title": "F7 · 筛选有结果",
-              "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
-            },
-            {
-              "id": "f8_empty",
-              "code": "F8",
-              "title": "F8 · 筛选无结果",
+              "title": "F7 · 筛选无结果",
               "status": "MISSING",
               "render_mode": "placeholder",
               "authority_type": "visual"
