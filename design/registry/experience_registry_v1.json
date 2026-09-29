@@ -47,10 +47,32 @@
         "evidence": {
           "status": "FROZEN",
           "authority": "design/pages/home/empty_home/evidence/manifest.json"
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
         }
       },
       "note": "V2 canonical visual remains authority; V3 is an active fidelity-closure contract. Sound is explicitly frozen as no-playback. A superseding visual requires a new canonical binary/manifest.",
-      "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md"
+      "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md",
+      "display_name": "Empty Home",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
+          "note": "Current canonical visual authority."
+        },
+        {
+          "version": "V3",
+          "status": "CANDIDATE",
+          "current": false,
+          "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Final_Visual_Fidelity_V3.md",
+          "note": "Active visual-fidelity candidate; no superseding canonical PNG/manifest registered yet."
+        }
+      ],
+      "design_overall": "ACTIVE_CLOSURE"
     },
     {
       "id": "home_normal_v1",
@@ -84,8 +106,22 @@
         "evidence": {
           "status": "PARTIAL",
           "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
-      }
+      },
+      "display_name": "Normal Home",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "recognition_flow_v1_2",
@@ -121,9 +157,24 @@
         "evidence": {
           "status": "ACTIVE_CLOSURE",
           "authority": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md"
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "Nine frozen state references are archived. Runtime visual fidelity is newer than the original V1.1 package status."
+      "note": "Nine frozen state references are archived. Runtime visual fidelity is newer than the original V1.1 package status.",
+      "display_name": "Recognition Processing",
+      "design_versions": [
+        {
+          "version": "V1.2",
+          "status": "ACTIVE_CLOSURE",
+          "current": true,
+          "spec_authority": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md",
+          "note": "Nine frozen state references remain archived under the Recognition package."
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "recognition_result_v1",
@@ -157,8 +208,22 @@
         "evidence": {
           "status": "FROZEN",
           "authority": "design/pages/recognition/status.json"
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/pages/recognition/design/reference_manifest.json"
         }
-      }
+      },
+      "display_name": "Recognition Result",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/recognition_result_v1.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "fish_record_detail_v2",
@@ -192,8 +257,22 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
-      }
+      },
+      "display_name": "FishRecordDetail",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "fish_memory_bside_v1",
@@ -227,9 +306,24 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
       },
-      "note": "Needs a dedicated feature package for B-side generation success, first auto-flip and later manual flip semantics."
+      "note": "Needs a dedicated feature package for B-side generation success, first auto-flip and later manual flip semantics.",
+      "display_name": "Fish Memory / B-side",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "PARTIAL",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
+          "note": "Supplemental reference only; dedicated package is incomplete."
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "my_catches_v2",
@@ -263,8 +357,22 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
-      }
+      },
+      "display_name": "My Catches",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/my_catches_v2.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "fish_guide_v2",
@@ -298,9 +406,23 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
         }
       },
-      "supplemental_visual": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png"
+      "supplemental_visual": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+      "display_name": "Fish Guide",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "account_privacy_v1",
@@ -334,9 +456,24 @@
         "evidence": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/qa/QA_REPORT.md"
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/manifest.json"
         }
       },
-      "note": "Frozen UI package contains 22 UI references plus shared morning-lake background; some flows are intentionally not in MVP runtime."
+      "note": "Frozen UI package contains 22 UI references plus shared morning-lake background; some flows are intentionally not in MVP runtime.",
+      "display_name": "Account & Privacy",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/pages/account_privacy/manifest.json",
+          "note": "Frozen UI package; some flows intentionally not in MVP runtime."
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "auth_login_v2",
@@ -370,8 +507,22 @@
         "evidence": {
           "status": "PARTIAL",
           "authority": "app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt"
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/manifest.json"
         }
-      }
+      },
+      "display_name": "Login",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/pages/account_privacy/Login/00_Login.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "auth_register_v2",
@@ -405,9 +556,23 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "MISSING",
+          "authority": null
         }
       },
-      "note": "A dedicated frozen Register V2 visual/package is not archived on main."
+      "note": "A dedicated frozen Register V2 visual/package is not archived on main.",
+      "display_name": "Register",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "MISSING",
+          "current": true,
+          "note": "Dedicated frozen Register V2 visual is not archived."
+        }
+      ],
+      "design_overall": "PARTIAL"
     },
     {
       "id": "profile_edit_v1",
@@ -441,8 +606,22 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "MISSING",
+          "authority": null
         }
-      }
+      },
+      "display_name": "Edit Profile",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "MISSING",
+          "current": true,
+          "note": "Runtime exists; no independent frozen design package archived."
+        }
+      ],
+      "design_overall": "MISSING"
     },
     {
       "id": "user_agreement_v1",
@@ -476,8 +655,35 @@
         "evidence": {
           "status": "MISSING",
           "authority": null
+        },
+        "assets": {
+          "status": "MISSING",
+          "authority": null
         }
-      }
+      },
+      "display_name": "User Agreement",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "MISSING",
+          "current": true,
+          "note": "Runtime exists; no independent frozen design package archived."
+        }
+      ],
+      "design_overall": "MISSING"
     }
-  ]
+  ],
+  "design_manager": {
+    "version": "1.0",
+    "scope": "design_only",
+    "modalities": [
+      "behavior",
+      "visual",
+      "motion",
+      "haptic",
+      "sound",
+      "assets"
+    ],
+    "note": "Runtime, evidence and Work handoff are intentionally outside the Design Manager V1 UI."
+  }
 }
