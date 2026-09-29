@@ -1739,7 +1739,7 @@
     }
   ],
   "design_manager": {
-    "version": "1.0",
+    "version": "2.0",
     "scope": "design_only",
     "modalities": [
       "behavior",
@@ -1749,11 +1749,12 @@
       "sound",
       "assets"
     ],
-    "note": "V1 仅管理设计：行为、视觉、动效、震动、声音、资产与版本。Runtime、Evidence 与 Work 交接暂不进入设计管理页面。",
+    "note": "V2 将页面总览、视觉 Authority、行为 Authority 分层；选中子 Authority 时不再叠加父页面视觉预览和页级治理面板。",
     "shared_registry": "design/registry/shared_design_system_v1.json",
     "structure": [
       "shared_design_system",
       "page_modules"
-    ]
+    ],
+    "authority_model": "design/manager/DESIGN_MANAGER_AUTHORITY_MODEL_V2.md"
   }
 }
