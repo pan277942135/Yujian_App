@@ -1899,6 +1899,32 @@ function recognitionAiEdgeFieldStaticCanvas(child) {
 
 function genericSpecChildCanvas(child) {
   if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
+
+  const visual = child.image || child.visual_authority || null;
+  if (child.render_mode === "repo_image" && visual && isImage(visual)) {
+    const points = child.menu_points || [];
+    return '<div class="hifi-original">' +
+      '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
+      '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(child.title) + '"></a>' +
+      '<div class="hifi-original-caption">当前子状态 Frozen Visual Authority · 直接引用仓库原始 PNG</div></div>' +
+      '<div class="authority-index">' +
+        '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
+          '<span>' + esc(child.summary || "本子状态已建立正式规范。") + '</span></div>' +
+        (points.length
+          ? '<div class="authority-index-grid">' +
+              points.map((point, index) =>
+                '<article class="authority-index-card">' +
+                  '<div class="authority-index-head"><strong>' +
+                    esc(String(index + 1).padStart(2, "0") + " · " + point) +
+                  '</strong></div>' +
+                  '<div class="authority-kind">FROZEN SPEC</div>' +
+                '</article>'
+              ).join("") +
+            '</div>'
+          : '') +
+      '</div>';
+  }
+
   return '<div class="authority-index">' +
     '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
       '<span>' + esc(child.summary || "规范入口已建立，Authority 待补齐。") + '</span></div>' +
