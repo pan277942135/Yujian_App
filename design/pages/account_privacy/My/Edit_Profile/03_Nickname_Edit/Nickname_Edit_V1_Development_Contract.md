@@ -2,7 +2,8 @@
 
 Status: **FROZEN**  
 Scope: `编辑资料 → 03 · 昵称编辑`  
-Visual Authority: `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp`
+Visual Authority: `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp`  
+Machine Contract: `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json`
 
 ## 1. Product contract
 
@@ -326,3 +327,14 @@ Before Android closure capture:
 - My / Home synchronization after server success.
 
 This contract is the development authority for Nickname Edit V1.
+
+## 20. Authority precedence
+
+For implementation conflicts, use this order:
+
+1. backend API contract;
+2. machine contract;
+3. this development / behavior contract;
+4. visual authority for layout and visual-state depiction.
+
+The approved first visual board remains the Frozen Visual Authority. Any illustrative copy inside the image that conflicts with the backend or machine contract MUST NOT override the 1–20-character validation contract.

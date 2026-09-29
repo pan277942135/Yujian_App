@@ -8,8 +8,8 @@
     1491,
     1055
   ],
-  "visual_authority_sha256": "29bf3a189eaaba5bada3efba0a999a83ab07e7a348300383c99b124dbdd5fdec",
-  "source_generation_png_sha256": "918b3e112ec5ce443932491459c608634827b61faec0a2d3196bae888555151c",
+  "visual_authority_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+  "source_generation_png_sha256": "5d96c4654abe9899042f29f33987bc49eb21d4b1c427963bda1a0a3fef23d55e",
   "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
   "readme_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
   "backend_authority": {
@@ -30,8 +30,11 @@
     "Success / failure draft semantics"
   ],
   "notes": [
-    "The corrected frozen visual supersedes the earlier generated board that incorrectly stated a 2-character minimum.",
-    "Backend contract is authoritative for nickname validation.",
+    "Frozen Visual Authority restored to the first product-approved Nickname Edit V1 board.",
+    "A later regenerated correction board is superseded and is not an Authority.",
+    "Validation semantics are authoritative in backend + machine + development contracts: trimmed nickname length 1–20.",
     "03 is frozen; 04–06 remain independent design work."
-  ]
+  ],
+  "source_filename": "昵称编辑流程与交互规范.png",
+  "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json"
 }

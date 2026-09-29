@@ -2276,7 +2276,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     '<button class="hifi-scenario-chip" data-scene-id="'+esc(scene.id)+'">'+esc(scene.title)+'</button>'
   ).join("") || '<span class="preview-empty compact">无附加场景映射</span>';
 
-  el("hifiViewAuthorities").innerHTML=[child?.visual_authority,child?.behavior_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
+  el("hifiViewAuthorities").innerHTML=[child?.visual_authority,child?.behavior_authority,child?.machine_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.behavior_authority,view.machine_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
     '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
   ).join("");
 

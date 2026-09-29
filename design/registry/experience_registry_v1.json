@@ -4543,7 +4543,7 @@
           "status": "PARTIAL",
           "current": true,
           "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑已 FROZEN；04–06 仍为 PARTIAL。"
+          "note": "01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑已 FROZEN；03 Visual Authority 已恢复为第一张产品定稿图；04–06 仍为 PARTIAL。"
         }
       ],
       "design_overall": "PARTIAL",
@@ -4619,7 +4619,7 @@
           "status": "FROZEN",
           "authority_type": "visual",
           "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
-          "summary": "昵称编辑 V1 已冻结：Default / Focus / Filled / Empty-Whitespace Error / Over-limit Error / 1–20 字符边界 / Clear / Save eligibility / Server-success synchronization。",
+          "summary": "昵称编辑 V1 已冻结并恢复第一张产品定稿 Visual Authority；视觉负责布局/状态呈现，真实校验由 Machine/Development/Backend Contract 冻结为 trim 后 1–20 字符。",
           "menu_points": [
             "Default",
             "Focus",
@@ -4630,7 +4630,8 @@
           ],
           "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
           "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
-          "render_mode": "repo_image"
+          "render_mode": "repo_image",
+          "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json"
         },
         {
           "id": "04_save_feedback",
