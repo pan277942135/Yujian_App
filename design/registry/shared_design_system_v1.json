@@ -1,0 +1,196 @@
+{
+  "version": "1.0",
+  "status": "ACTIVE",
+  "note": "公共设计系统定义跨页面复用的设计基础与组件。页面只能引用或显式声明例外，不应复制后私自修改。",
+  "items": [
+    {
+      "id": "background_system_v1",
+      "display_name": "背景系统",
+      "category": "foundation",
+      "overall": "PARTIAL",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/YuJian_Core_Visual_System_V1.md",
+        "design/system/core_visual_v1/validation/shared_asset_manifest.json"
+      ],
+      "preview": "design/system/core_visual_v1/reference/empty_home_v2.png",
+      "preview_note": "当前预览仅用于表达清晨湖景世界，不是独立 Background Master。",
+      "variants": [
+        {
+          "id": "BG_ENV_HERO",
+          "name": "品牌环境背景",
+          "usage": "空首页 / 有数据首页",
+          "note": "环境参与叙事，背景存在感最高。"
+        },
+        {
+          "id": "BG_CONTENT",
+          "name": "内容背景",
+          "usage": "识别结果 / 鱼获详情 / 表单内容页",
+          "note": "同一视觉世界，背景存在感降至 Home 的约 70–80%。"
+        },
+        {
+          "id": "BG_DATA",
+          "name": "数据背景",
+          "usage": "我的鱼获 / 鱼鉴 / 高密度信息页",
+          "note": "进一步降低环境存在感，保护信息阅读。"
+        },
+        {
+          "id": "BG_CAPTURE",
+          "name": "拍摄背景",
+          "usage": "识别过程",
+          "note": "使用用户当前照片，不使用湖景背景。"
+        },
+        {
+          "id": "BG_SOLID_FALLBACK",
+          "name": "纯色兜底背景",
+          "usage": "加载失败 / 无图 / 异常",
+          "note": "深湖蓝灰兜底，不形成新的视觉世界。"
+        }
+      ],
+      "note": "背景等级规则已经存在，但仓库尚未形成一个独立、可复用的 Morning Lake Background Master，因此当前整体状态为部分完成。"
+    },
+    {
+      "id": "primary_capture_button_v1",
+      "display_name": "主拍摄按钮",
+      "category": "component",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/components/primary_capture_button/README.md",
+        "design/system/components/primary_capture_button/visual_contract.json",
+        "design/system/components/primary_capture_button/motion_contract.json",
+        "design/system/components/primary_capture_button/haptic_contract.json"
+      ],
+      "preview": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+      "variants": [
+        {
+          "id": "home_primary_capture",
+          "name": "首页主拍摄",
+          "usage": "空首页 / 有数据首页"
+        },
+        {
+          "id": "archive_primary_capture",
+          "name": "档案页主拍摄",
+          "usage": "我的鱼获"
+        }
+      ],
+      "note": "白色实体核心、细金边、深湖蓝灰相机图标；页面决定位置和触发行为，不重设计按钮本体。"
+    },
+    {
+      "id": "top_navigation_v1",
+      "display_name": "顶部导航",
+      "category": "component",
+      "overall": "PARTIAL",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/components/Navigation.md",
+        "design/system/core_visual_v1/validation/component_map.json"
+      ],
+      "variants": [
+        {
+          "id": "back_with_title",
+          "name": "返回 + 标题",
+          "usage": "详情 / 识别结果"
+        },
+        {
+          "id": "title_with_utility_actions",
+          "name": "标题 + 工具操作",
+          "usage": "编辑 / 分享等"
+        },
+        {
+          "id": "search_filter",
+          "name": "搜索 / 筛选",
+          "usage": "档案 / 鱼鉴"
+        }
+      ],
+      "note": "视觉与层级规则已明确，但尚未独立成完整组件包，因此暂记部分完成。"
+    },
+    {
+      "id": "mist_glass_surface_v1",
+      "display_name": "雾面玻璃",
+      "category": "foundation",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/tokens/glass_tokens.json",
+        "design/system/core_visual_v1/validation/component_map.json"
+      ],
+      "variants": [
+        {
+          "id": "GLASS_A",
+          "name": "主内容玻璃",
+          "usage": "主要内容 / 识别信息 / 记忆主卡"
+        },
+        {
+          "id": "GLASS_B",
+          "name": "次级玻璃",
+          "usage": "故事 / 次级统计"
+        },
+        {
+          "id": "GLASS_C",
+          "name": "叠层 / Pill",
+          "usage": "Hero 元数据保护 / 轻量标签"
+        }
+      ],
+      "note": "玻璃只用于可读性与层次，不允许成为视觉特效主体。"
+    },
+    {
+      "id": "color_typography_v1",
+      "display_name": "颜色与字体",
+      "category": "foundation",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "design/system/core_visual_v1/tokens/typography_tokens.json"
+      ],
+      "variants": [
+        {
+          "id": "COLOR",
+          "name": "颜色体系",
+          "usage": "DeepLakeBlue / LakeBlue / Mist / Gold"
+        },
+        {
+          "id": "BRAND",
+          "name": "品牌字体角色",
+          "usage": "Logo / 情绪性主文案"
+        },
+        {
+          "id": "DISPLAY",
+          "name": "展示字体角色",
+          "usage": "页面标题 / 鱼种标题 / Section"
+        },
+        {
+          "id": "UI",
+          "name": "UI 字体角色",
+          "usage": "数据 / 元信息 / 控件"
+        }
+      ],
+      "note": "金色只用于品牌、重要时刻和有意义的记录，普通导航与普通编辑不得滥用。"
+    },
+    {
+      "id": "spacing_radius_v1",
+      "display_name": "间距与圆角",
+      "category": "foundation",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/tokens/spacing_tokens.json",
+        "design/system/core_visual_v1/tokens/radius_tokens.json"
+      ],
+      "variants": [
+        {
+          "id": "SPACING",
+          "name": "间距阶梯",
+          "usage": "页面边距 / 卡片间距 / 内容节奏"
+        },
+        {
+          "id": "RADIUS",
+          "name": "圆角阶梯",
+          "usage": "按钮 / 卡片 / 玻璃 / 圆形控件"
+        }
+      ],
+      "note": "页面应优先使用共享间距与圆角 token，不因单页适配而生成新的任意值。"
+    }
+  ]
+}
