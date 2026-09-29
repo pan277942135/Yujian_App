@@ -2079,8 +2079,9 @@
           "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
         },
         "visual": {
-          "status": "MISSING",
-          "authority": null
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
+          "note": "01 · 编辑资料首页视觉已 FROZEN；头像修改、昵称状态、保存反馈等子页仍待冻结。"
         },
         "motion": {
           "status": "MISSING",
@@ -2103,18 +2104,19 @@
           "authority": null
         },
         "assets": {
-          "status": "MISSING",
-          "authority": null
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/manifest.json",
+          "note": "01 首页 Frozen visual asset 已归档；其余编辑资料资产待补。"
         }
       },
       "display_name": "编辑资料",
       "design_versions": [
         {
-          "version": "V1",
+          "version": "V1.1",
           "status": "PARTIAL",
           "current": true,
           "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "Design Manager 二级目录结构已建立；01–06 子页待逐项补齐并冻结。"
+          "note": "01 · 编辑资料首页已 FROZEN；02–06 仍为 PARTIAL。"
         }
       ],
       "design_overall": "PARTIAL",
@@ -2122,7 +2124,7 @@
         {
           "id": "background_system_v1",
           "variant": "BG_CONTENT",
-          "note": "目标背景引用；独立冻结设计包仍缺失。",
+          "note": "01 · 编辑资料首页已冻结使用无太阳 BG_CONTENT；其余子页后续逐页确认。",
           "master": "Morning_Lake_Master_V1"
         },
         {
@@ -2137,22 +2139,24 @@
           "note": "Top Navigation V1 / BACK_TITLE / FROZEN：编辑资料及其二级编辑页默认使用返回+标题；若未来增加 page-level utility，再显式升级到 BACK_TITLE_ACTIONS。"
         }
       ],
-      "note": "编辑资料 V1 已建立正式二级设计目录；当前仅冻结目录边界，具体高保真、状态与交互合同待逐页设计。Runtime 已存在，不等于设计已冻结。",
+      "note": "编辑资料 V1：01 · 编辑资料首页已冻结；02–06 仍为 PARTIAL。Runtime 已存在，不等于剩余设计已冻结。",
       "hifi_views": [
         {
           "id": "01_profile_home",
           "title": "01 · 编辑资料首页",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority_type": "visual",
           "authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
-          "summary": "编辑资料主页面入口；当前仅建立页面结构，完整高保真与参数待设计。",
+          "summary": "已冻结的编辑资料默认首页：无太阳 BG_CONTENT、当前头像、账号只读、昵称 x/20、未修改时保存按钮 Disabled。",
           "menu_points": [
             "完整页面高保真",
             "当前头像",
             "账号（只读）",
             "昵称",
             "保存修改"
-          ]
+          ],
+          "visual_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp",
+          "render_mode": "repo_image"
         },
         {
           "id": "02_avatar_edit",
