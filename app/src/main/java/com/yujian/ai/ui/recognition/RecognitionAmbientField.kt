@@ -149,8 +149,8 @@ private fun ambientClock(override: Long?, reduceMotion: Boolean): Long {
 private fun intensityFor(phase: RecognitionPhase) = when (phase) {
     RecognitionPhase.CAPTURED -> FieldIntensity(.34f, .88f, .52f, .42f, 1.00f)
     RecognitionPhase.DETECTING -> FieldIntensity(.30f, .82f, .42f, .38f, .92f)
-    RecognitionPhase.OUTLINE -> FieldIntensity(.24f, .60f, .26f, .26f, .78f)
-    RecognitionPhase.CLASSIFYING -> FieldIntensity(.16f, .42f, .14f, .16f, .52f)
+    RecognitionPhase.OUTLINE -> FieldIntensity(.18f, .34f, .22f, .22f, .70f)
+    RecognitionPhase.CLASSIFYING -> FieldIntensity(.12f, .22f, .12f, .14f, .46f)
     else -> FieldIntensity(0f, 0f, 0f, 0f, 0f)
 }
 
@@ -206,7 +206,7 @@ private fun DrawScope.drawPrimaryFilament(
 ) {
     val phase = ((clock / 10_000f * speed + filament.offset) % 1f + 1f) % 1f
     val length = size.maxDimension * 1.7f
-    val visible = length * (.18f + ((filament.offset * 100).toInt() % 18) / 100f)
+    val visible = length * (.11f + ((filament.offset * 100).toInt() % 8) / 100f)
     val effect = PathEffect.dashPathEffect(floatArrayOf(visible, length - visible), -phase * length)
 
     fun stroke(width: Dp, pathEffect: PathEffect? = null) = Stroke(
@@ -218,26 +218,22 @@ private fun DrawScope.drawPrimaryFilament(
 
     val perf = if (lowPerformance) .80f else 1f
 
-    // Two-pass skeleton + two-pass moving hot segment. This preserves the
-    // bright V1.2 appearance with one third fewer path draws on API28.
+    // A very faint, broken skeleton plus two short travelling segments. The
+    // prior continuous hot pass visually joined these paths into one orbital
+    // ring; there is intentionally no full-length hot stroke now.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .34f * perf).coerceAtMost(.26f)),
-        style = stroke(3.2.dp),
+        filament.color.copy(alpha = (alpha * .11f * perf).coerceAtMost(.075f)),
+        style = stroke(1.45.dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * .62f).coerceAtMost(.46f)),
-        style = stroke((filament.width.value * .82f).dp),
-    )
-    drawPath(
-        path,
-        filament.color.copy(alpha = (alpha * .62f * perf).coerceAtMost(.44f)),
+        filament.color.copy(alpha = (alpha * .46f * perf).coerceAtMost(.28f)),
         style = stroke(4.2.dp, effect),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * 1.60f).coerceAtMost(.90f)),
+        filament.hot.copy(alpha = (alpha * 1.22f).coerceAtMost(.68f)),
         style = stroke(filament.width, effect),
     )
 }
@@ -251,7 +247,7 @@ private fun DrawScope.drawSecondaryFilament(
 ) {
     val phase = ((clock / 10_000f * speed + filament.offset) % 1f + 1f) % 1f
     val length = size.maxDimension * 1.8f
-    val visible = length * (.20f + ((filament.offset * 100).toInt() % 12) / 100f)
+    val visible = length * (.09f + ((filament.offset * 100).toInt() % 7) / 100f)
     val effect = PathEffect.dashPathEffect(floatArrayOf(visible, length - visible), -phase * length)
 
     fun stroke(width: Dp, pathEffect: PathEffect? = null) = Stroke(
@@ -261,15 +257,16 @@ private fun DrawScope.drawSecondaryFilament(
         pathEffect = pathEffect,
     )
 
-    // Hairlines use one persistent strand plus one moving hot strand.
+    // Secondary filaments remain short and dim so they add texture without
+    // reconstructing a closed perimeter.
     drawPath(
         path,
-        filament.color.copy(alpha = (alpha * .42f).coerceAtMost(.16f)),
-        style = stroke(1.45.dp),
+        filament.color.copy(alpha = (alpha * .14f).coerceAtMost(.045f)),
+        style = stroke(.8.dp),
     )
     drawPath(
         path,
-        filament.hot.copy(alpha = (alpha * 1.35f).coerceAtMost(.52f)),
+        filament.hot.copy(alpha = (alpha * .98f).coerceAtMost(.34f)),
         style = stroke(filament.width, effect),
     )
 }

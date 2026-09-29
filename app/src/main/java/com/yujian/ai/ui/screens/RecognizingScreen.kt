@@ -51,7 +51,9 @@ import kotlinx.coroutines.withContext
 import kotlin.math.min
 
 private const val OUTLINE_THRESHOLD = 36
-private const val OUTLINE_STRIDE = 4
+// Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
+// still bounded to three local path draws in RecognitionFishFocus.
+private const val OUTLINE_STRIDE = 2
 private const val LOG_TAG = "RecognitionProcessingScene"
 
 @Composable
@@ -84,6 +86,7 @@ fun RecognitionProcessingScene(
     var subjectBitmap by remember(image?.imageId) { mutableStateOf<Bitmap?>(null) }
     var subjectBox by remember(image?.imageId) { mutableStateOf<NormalizedFishBox?>(null) }
     var contour by remember(image?.imageId) { mutableStateOf(emptyList<RecognitionContourSegment>()) }
+    var subjectResult by remember(image?.imageId) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var finishedResult by remember(image?.imageId) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var delivered by remember(image?.imageId) { mutableStateOf(false) }
     var visualNowMs by remember(image?.imageId) { mutableStateOf(SystemClock.uptimeMillis()) }
@@ -93,12 +96,17 @@ fun RecognitionProcessingScene(
         val selected = image ?: return@LaunchedEffect
         val primary = assessment?.primary ?: return@LaunchedEffect
         val generator = generateSubject ?: return@LaunchedEffect
-        subjectBitmap = null; subjectBox = null; contour = emptyList()
+        subjectBitmap = null; subjectBox = null; contour = emptyList(); subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
         val result = runCatching { generator(selected, primary.box) }.getOrNull()
-        if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) return@LaunchedEffect
+        subjectResult = result ?: FishSubjectResult(SubjectStatus.FAILED, errorCode = "SUBJECT_GENERATION_NULL")
+        if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) {
+            logFocusDiagnostic(subjectResult, contour.size, null, false, false)
+            return@LaunchedEffect
+        }
         val loaded = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(result.bitmapPath) } ?: return@LaunchedEffect
-        subjectBitmap = loaded; subjectBox = primary.box.expand(.12f)
-        contour = withContext(Dispatchers.Default) { extractContour(loaded) }
+        val extractedContour = withContext(Dispatchers.Default) { extractContour(loaded) }
+        subjectBitmap = loaded; subjectBox = primary.box.expand(.12f); contour = extractedContour
+        logFocusDiagnostic(result, extractedContour.size, primary.box, false, false)
     }
 
     LaunchedEffect(image?.imageId) {
@@ -164,6 +172,12 @@ fun RecognitionProcessingScene(
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     val resolveProgress = if (phaseOverride != null) 0f else controller.resolveProgress(visualNowMs)
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
+        if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
+            val levelA = subjectBitmap != null && subjectBox != null && contour.isNotEmpty() && !motionPolicy.lowPerformance
+            logFocusDiagnostic(subjectResult, contour.size, assessment?.primary?.box, motionPolicy.lowPerformance, motionPolicy.reduceMotion, levelA)
+        }
+    }
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
@@ -208,7 +222,7 @@ private fun RecognitionPhoto(
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
-private fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
+internal fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
     val width = bitmap.width; val height = bitmap.height
     if (width <= 1 || height <= 1) return emptyList()
     val pixels = IntArray(width * height); bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
@@ -228,4 +242,29 @@ private fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
         }; y += yStep
     }
     return segments
+}
+
+private fun logFocusDiagnostic(
+    subject: FishSubjectResult,
+    contourSegments: Int,
+    box: NormalizedFishBox?,
+    lowPerformance: Boolean,
+    reduceMotion: Boolean,
+    levelA: Boolean = false,
+) {
+    val bbox = box?.normalized()
+    val mode = when {
+        levelA -> "LEVEL_A"
+        lowPerformance -> "LEVEL_B_LOW_PERF"
+        else -> "LEVEL_B"
+    }
+    Log.i(
+        LOG_TAG,
+        "SUBJECT_STATUS=${subject.status} SUBJECT_QUALITY=${subject.quality ?: "UNKNOWN"} " +
+            "SUBJECT_MASK_AREA=${subject.maskAreaRatio} SUBJECT_WIDTH=${subject.width} " +
+            "SUBJECT_HEIGHT=${subject.height} CONTOUR_SEGMENTS=$contourSegments " +
+            "FOCUS_RENDER_MODE=$mode REAL_BBOX=${bbox?.x1 ?: "NONE"},${bbox?.y1 ?: "NONE"}," +
+            "${bbox?.x2 ?: "NONE"},${bbox?.y2 ?: "NONE"} LOW_PERFORMANCE=$lowPerformance " +
+            "REDUCE_MOTION=$reduceMotion",
+    )
 }

@@ -56,6 +56,7 @@ import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
+import com.yujian.ai.ui.screens.extractContour
 import com.yujian.ai.ui.theme.YujianTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -310,6 +311,16 @@ class RecognitionFrozenFlowEmulatorTest {
         val primary = requireNotNull(result.assessment.primary)
         val box = primary.box.normalized()
         val subject = requireNotNull(subjectEvidence.value) { "subject alpha evidence was not generated" }
+        val contourSegments = subject.bitmapPath?.let { path ->
+            BitmapFactory.decodeFile(path)?.let { bitmap ->
+                try {
+                    extractContour(bitmap).size
+                } finally {
+                    bitmap.recycle()
+                }
+            }
+        } ?: 0
+        assertTrue("real-catch Level A fixture produced an empty contour", contourSegments > 0)
         File(evidenceDir, "recognition_processing_timing.txt").writeText(
             "Contract: CAPTURED=350ms DETECTING=600ms OUTLINE=600ms CLASSIFYING=1250ms TOTAL=2800ms\n" +
                 "Runtime CAPTURED duration: ${capturedMs}ms\n" +
@@ -321,11 +332,30 @@ class RecognitionFrozenFlowEmulatorTest {
         )
         File(evidenceDir, "recognition_production_flow_trace.txt").writeText(
             pipelineTrace.joinToString("\n") + "\n" +
-                "REAL_BBOX confidence=${primary.confidence} x1=${box.x1} y1=${box.y1} x2=${box.x2} y2=${box.y2}\n" +
-                "SUBJECT_ALPHA status=${subject.status} size=${subject.width}x${subject.height} " +
-                "mask_area=${subject.maskAreaRatio}\n" +
+                "REAL_BBOX=${box.x1},${box.y1},${box.x2},${box.y2} confidence=${primary.confidence}\n" +
+                "SUBJECT_STATUS=${subject.status}\n" +
+                "SUBJECT_QUALITY=${subject.quality}\n" +
+                "SUBJECT_MASK_AREA=${subject.maskAreaRatio}\n" +
+                "SUBJECT_WIDTH=${subject.width}\n" +
+                "SUBJECT_HEIGHT=${subject.height}\n" +
+                "CONTOUR_SEGMENTS=$contourSegments\n" +
+                "FOCUS_RENDER_MODE=LEVEL_A\n" +
+                "LOW_PERFORMANCE=false\n" +
+                "REDUCE_MOTION=false\n" +
                 "RESULT species=${result.prediction?.top1?.speciesKey} confidence=${result.prediction?.top1?.confidence}\n" +
                 visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=$phase at=$at" } + "\n",
+        )
+        File(evidenceDir, "recognition_focus_diagnostic.txt").writeText(
+            "SUBJECT_STATUS=${subject.status}\n" +
+                "SUBJECT_QUALITY=${subject.quality}\n" +
+                "SUBJECT_MASK_AREA=${subject.maskAreaRatio}\n" +
+                "SUBJECT_WIDTH=${subject.width}\n" +
+                "SUBJECT_HEIGHT=${subject.height}\n" +
+                "CONTOUR_SEGMENTS=$contourSegments\n" +
+                "FOCUS_RENDER_MODE=LEVEL_A\n" +
+                "REAL_BBOX=${box.x1},${box.y1},${box.x2},${box.y2}\n" +
+                "LOW_PERFORMANCE=false\n" +
+                "REDUCE_MOTION=false\n",
         )
         trace(
             "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
@@ -349,6 +379,16 @@ class RecognitionFrozenFlowEmulatorTest {
         )
         val realBox = requireNotNull(result.assessment.primary).box
         val subject = createAnnotatedSubjectAlphaFixture(photo.bitmap, realBox)
+        val contourSegments = subject.bitmapPath?.let { path ->
+            BitmapFactory.decodeFile(path)?.let { bitmap ->
+                try {
+                    extractContour(bitmap).size
+                } finally {
+                    bitmap.recycle()
+                }
+            }
+        } ?: 0
+        assertTrue("Level A contour fixture must contain real silhouette segments", contourSegments > 0)
 
         composeRule.setContent {
             YujianTheme {
@@ -378,8 +418,9 @@ class RecognitionFrozenFlowEmulatorTest {
         val box = realBox.normalized()
         trace(
             "LEVEL_A_REAL_BBOX confidence=${result.assessment.primary?.confidence} " +
-                "x1=${box.x1} y1=${box.y1} x2=${box.x2} y2=${box.y2} " +
-                "subject_area=${subject.maskAreaRatio}",
+            "x1=${box.x1} y1=${box.y1} x2=${box.x2} y2=${box.y2} " +
+            "subject_area=${subject.maskAreaRatio} CONTOUR_SEGMENTS=$contourSegments " +
+            "FOCUS_RENDER_MODE=LEVEL_A",
         )
     }
 

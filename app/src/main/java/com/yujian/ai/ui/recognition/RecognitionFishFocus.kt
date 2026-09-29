@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
@@ -86,7 +87,9 @@ fun RecognitionFishFocus(
             reveal
         }
 
-        val fallbackHaloStrength = if (levelAAvailable && !lowPerformance) .12f else .20f
+        // A usable subject contour is the visual authority. Keep only a small
+        // local locating cue behind it, never an ellipse the eye can read first.
+        val fallbackHaloStrength = if (levelAAvailable && !lowPerformance) .08f else .20f
         val haloStrength = fallbackHaloStrength * pulse * fade
 
         // A restrained bbox-derived local bloom supports the real contour but
@@ -108,7 +111,7 @@ fun RecognitionFishFocus(
         // Level B / structural perimeter. It remains visible enough to show that
         // a fish was located even when subject alpha is unavailable.
         val perimeterAlpha = if (levelAAvailable && !lowPerformance) {
-            .12f * pulse * fade
+            .08f * pulse * fade
         } else {
             .32f * pulse * fade
         }
@@ -127,6 +130,10 @@ fun RecognitionFishFocus(
                 else -> 0f
             }
 
+            // Building one local path turns three passes into three draw calls,
+            // rather than three calls per mask edge. This makes the detailed
+            // real contour practical on API28 without adding a global effect.
+            val realContour = Path()
             contour.forEach { segment ->
                 val start = transform.mapNormalized(
                     crop.x1 + segment.startX * crop.width,
@@ -136,33 +143,26 @@ fun RecognitionFishFocus(
                     crop.x1 + segment.endX * crop.width,
                     crop.y1 + segment.endY * crop.height,
                 )
-                val from = Offset(start.x, start.y)
-                val to = Offset(end.x, end.y)
-
-                // Three-pass contour: broad local bloom + mid glow + thin hot core.
-                // The broad pass is deliberately low-alpha so the photo texture remains dominant.
-                drawLine(
-                    color = Color(0xFFFFD887).copy(alpha = (contourStrength * .18f * fade).coerceAtMost(.18f)),
-                    start = from,
-                    end = to,
-                    strokeWidth = 11.dp.toPx(),
-                    cap = StrokeCap.Round,
-                )
-                drawLine(
-                    color = Color(0xFFFFDE9B).copy(alpha = (contourStrength * .40f * fade).coerceAtMost(.38f)),
-                    start = from,
-                    end = to,
-                    strokeWidth = 4.dp.toPx(),
-                    cap = StrokeCap.Round,
-                )
-                drawLine(
-                    color = Color(0xFFFFE7AE).copy(alpha = (contourStrength * .96f * fade).coerceAtMost(.90f)),
-                    start = from,
-                    end = to,
-                    strokeWidth = 1.55.dp.toPx(),
-                    cap = StrokeCap.Round,
-                )
+                realContour.moveTo(start.x, start.y)
+                realContour.lineTo(end.x, end.y)
             }
+            // Three restrained, local passes: 9dp outer bloom, 3.6dp mid glow,
+            // and a 1.65dp hot core. The interior is never filled or tinted.
+            drawPath(
+                realContour,
+                Color(0xFFFFD887).copy(alpha = (contourStrength * .17f * fade).coerceAtMost(.17f)),
+                style = Stroke(9.dp.toPx(), cap = StrokeCap.Round),
+            )
+            drawPath(
+                realContour,
+                Color(0xFFFFDE9B).copy(alpha = (contourStrength * .46f * fade).coerceAtMost(.44f)),
+                style = Stroke(3.6.dp.toPx(), cap = StrokeCap.Round),
+            )
+            drawPath(
+                realContour,
+                Color(0xFFFFE7AE).copy(alpha = (contourStrength * 1.0f * fade).coerceAtMost(.94f)),
+                style = Stroke(1.65.dp.toPx(), cap = StrokeCap.Round),
+            )
         }
     }
 }

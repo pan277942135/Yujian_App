@@ -58,6 +58,26 @@ case "$1" in
     if [[ "$MODE" == "missing-evidence" ]]; then
       exit 0
     fi
+    command_line="$*"
+    # Feed the parity harness valid frozen PNGs, while leaving the real gate to
+    # pull its screenshots from instrumentation. This fake only tests harness
+    # classification, not image rendering.
+    fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"
+    if [[ "$command_line" =~ cache/recognition-evidence/([0-9][0-9]_[a-z_]+\.png) ]]; then
+      name="${BASH_REMATCH[1]}"
+      case "$name" in
+        01_capture_transition.png) cat "$fixture_root/01_Capture_Transition_Frozen.png" ;;
+        02_ai_understanding.png) cat "$fixture_root/02_AI_Understanding_Frozen.png" ;;
+        03_fish_highlight.png|10_level_a_contour.png) cat "$fixture_root/03_Fish_Highlight_Frozen.png" ;;
+        04_fish_identifying.png|11_reduce_motion_low_performance.png) cat "$fixture_root/04_Fish_Identifying_Frozen.png" ;;
+        05_result_high.png) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+        06_result_medium.png) cat "$fixture_root/06_Result_Medium_Frozen.png" ;;
+        07_result_low.png) cat "$fixture_root/07_Result_Low_Frozen.png" ;;
+        08_error_no_fish.png) cat "$fixture_root/08_Error_No_Fish_Frozen.png" ;;
+        09_error_image_quality.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
+      esac
+      exit 0
+    fi
     printf 'fake-evidence\n'
     exit 0
     ;;
@@ -100,7 +120,7 @@ case "$1" in
       printf 'Filesystem Size Used Avail Use%% Mounted on\n/dev/fake 1G 100M 900M 10%% /data\n'
       exit 0
     fi
-    if [[ "$command_line" == *'wc -c < /sdcard/recognition_processing_runtime_host.mp4'* ]]; then
+    if [[ "$command_line" == *'wc -c'*'recognition_processing_runtime_host.mp4'* ]]; then
       if [[ "$MODE" == "missing-evidence" ]]; then
         printf '0\n'
       else
