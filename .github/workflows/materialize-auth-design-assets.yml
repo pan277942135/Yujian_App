@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for n in $(seq -w 1 15); do
+          for n in $(seq -w 1 6); do
             test -f ".auth_assets/login_${n}.b64" || { echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0; }
           done
           echo "ready=true" >> "$GITHUB_OUTPUT"
