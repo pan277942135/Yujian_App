@@ -8,6 +8,8 @@
 - Android reuses HomeScreen/HomeState and existing callbacks. EMPTY derives from empty fish records.
 - Ripple count is exactly one and its centre equals bobber water contact.
 - Motion, camera haptic, semantics and Reduce Motion match Motion V2 and Haptic V1 contracts.
+- Sound behavior matches Sound V1: no automatic or interaction audio; a packaged deferred audio
+  resource must not be played without a future explicitly frozen sound-contract version.
 - Android build, unit tests, instrumentation tests, V2 asset verifier and real runtime evidence pass.
 - Runtime evidence includes static, 4-second, anchor overlay, three motion captures, full 15-second
   capture, runtime debug JSON and visual parity report. Large MP4 files are Actions artifacts.
