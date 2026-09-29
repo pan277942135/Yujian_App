@@ -1,7 +1,7 @@
-# Text Action V1 · Candidate Spec
+# Text Action V1 · Frozen Spec
 
-Status: **ACTIVE_CLOSURE**
-Version: **V1 Candidate**
+Status: **FROZEN**
+Version: **V1**
 Date: **2026-09-29**
 
 ## 1. Scope
@@ -18,11 +18,11 @@ STRONG > NORMAL > MUTED
 
 ### STRONG
 Use when an action changes the current flow or destination but should remain below the page Primary CTA.
-Candidate examples: 创建账号 / 去登录.
+Frozen examples: 创建账号 / 去登录.
 
 ### NORMAL
 Use for local edit / drill-in / view-all actions.
-Candidate examples: 修改鱼种 / 全部 / 编辑.
+Frozen examples: 修改鱼种 / 全部 / 编辑.
 
 ### MUTED
 Use for auxiliary or fallback actions that should be discoverable but visually quieter.
@@ -117,7 +117,7 @@ Accessibility Focus:
 - Haptic: none at component level.
 - Sound: none.
 
-## 9. Candidate real-page mapping
+## 9. Frozen real-page mapping
 
 | Page | Copy | Variant | Tone | Chevron |
 |---|---|---|---|---|
@@ -128,11 +128,9 @@ Accessibility Focus:
 | Normal Home | 全部 | NORMAL | ON_MEDIA | yes |
 | FishRecordDetail | 编辑 | NORMAL | ON_MEDIA | yes |
 
-## 10. Known authority conflict before freeze
+## 10. Approved Login refinement
 
-Existing Login V2.1 Frozen Preview uses teal accent for 忘记密码？.
-Candidate V1 intentionally proposes MUTED blue-gray for this action because password recovery is lower priority than Login Primary CTA and 创建账号 flow switch.
-Do not revise Login V2.1 frozen visual until this candidate is approved.
+Login `忘记密码？` is frozen as MUTED blue-gray. `创建账号` remains STRONG teal. The Login frozen preview is revised to reflect this hierarchy.
 
 ## 11. Prohibited
 
@@ -144,3 +142,13 @@ Do not revise Login V2.1 frozen visual until this candidate is approved.
 - using Text Action for destructive confirmation;
 - using Text Action when a Primary/Secondary Action Button is semantically required;
 - page-specific arbitrary colors without a documented tone exception.
+
+
+## 12. Frozen Visual Authority
+
+1. `design/system/components/text_action/visual/authority/01_Semantic_Roles.svg` — 01 · 三档语义; SHA-256 `8c72cc23c866dd68a4f57eb92cd07c36094d6ae8a47dd0c3e05c8a10ba729e83`.
+2. `design/system/components/text_action/visual/authority/02_Real_Usage.svg` — 02 · 真实页面用法; SHA-256 `92388f65ffba4c1a775d71682b2ef377104aa02083de57577f19f271ba9870ce`.
+3. `design/system/components/text_action/visual/authority/03_STRONG_States.svg` — 03 · STRONG 四态; SHA-256 `6921805a7160ac1a2a0fad7260693db5aa673975b656b5a4137f528ee29074e6`.
+4. `design/system/components/text_action/visual/authority/04_NORMAL_States.svg` — 04 · NORMAL 四态; SHA-256 `ba97b4b637c60e63969b6469d0dd9eefd183ad09db4cf795dd5d8ff1ffbd20e5`.
+5. `design/system/components/text_action/visual/authority/05_MUTED_States.svg` — 05 · MUTED 四态; SHA-256 `4e304bf589bcc7b2386dadddb27ba9cc48e747bd2b6f74be52cfd8ad7d68bcdb`.
+6. `design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg` — 06 · ON_MEDIA 四态; SHA-256 `f6b5d1e345dd97c5440a7fc3fd67a241b891f09285ce5e01034c00e8070b5dd7`.
