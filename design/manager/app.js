@@ -40,7 +40,7 @@ function statusBadge(status) {
 }
 
 function repoHref(path) { return path ? "../../" + path : "#"; }
-function isImage(path) { return !!path && /\.(png|jpe?g|webp|gif)$/i.test(path); }
+function isImage(path) { return !!path && /\.(png|jpe?g|webp|gif|svg)$/i.test(path); }
 
 function currentVersion(feature) {
   return (feature.design_versions || []).find(v => v.current) ||
