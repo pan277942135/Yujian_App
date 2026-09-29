@@ -6,10 +6,10 @@ Page title: **欢迎回来**
 
 ## 1. Frozen visual authority
 
-- Frozen preview: `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp`
+- Frozen preview: `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg`
 - Approved source size: **941 × 1672**
 - Approved source SHA-256: `98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157`
-- Design Manager preview derivative: **520 × 924 WebP**
+- Design Manager preview: **SVG 941 × 1672**, referencing the frozen shared Morning Lake master.
 - Preview SHA-256: `244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338`
 
 The frozen preview is the authority for **layout, hierarchy, field/button treatment, white-space distribution and footer decoration**.
