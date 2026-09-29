@@ -14,7 +14,7 @@ The legacy route `login` is compatibility-only during migration and must not rem
 
 Current frozen design authority:
 
-1. `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.webp`
+1. `design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg`
 2. `design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md`
 3. `design/pages/account_privacy/Login/frozen/manifest.json`
 4. `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` + `BG_CONTENT`
