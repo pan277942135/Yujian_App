@@ -1450,11 +1450,15 @@ function myCatchesSearchChildCanvas(child) {
   if (!child) return '<div class="preview-empty">请选择 Search V1 子项。</div>';
 
   if (child.render_mode === "frozen_image" && child.visual_authority) {
+    const dims = child.visual_authority_dimensions || {};
+    const dimensionText = dims.width && dims.height ? (dims.width + "×" + dims.height) : "尺寸已登记";
+    const sourceText = child.source_high_fidelity_png ? (" · Source: " + child.source_high_fidelity_png) : "";
     return '<div class="frozen-authority-view">' +
       '<a href="' + esc(repoHref(child.visual_authority)) + '" target="_blank" rel="noreferrer">' +
         '<img src="' + esc(repoHref(child.visual_authority)) + '" alt="' + esc(child.title) + '">' +
       '</a>' +
-      '<div class="frozen-authority-caption">FROZEN VISUAL AUTHORITY · 1080×1920 · 无设备外框</div>' +
+      '<div class="frozen-authority-caption">FROZEN VISUAL AUTHORITY · ' + esc(dimensionText) +
+        ' · 无设备外框' + esc(sourceText) + '</div>' +
     '</div>';
   }
 
