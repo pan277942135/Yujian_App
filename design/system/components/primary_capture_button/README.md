@@ -1,119 +1,89 @@
 # 渔见主拍摄按钮
 
-Status: **FROZEN**
-Component: **YuJianPrimaryCaptureButton**
-Component version: **V1**
-Frozen visual revision: **V2.2**
+Status: **FROZEN**  
+Component: **YuJianPrimaryCaptureButton**  
+Current version: **V1.1**  
 Frozen date: **2026-09-29**
 
-## 1. 定稿结论
+## 1. 最终视觉 Authority
 
-用户于 2026-09-29 再次确认当前 Empty Home 截图中的拍照按钮为正式公共样式。
+用户明确指定《渔见湖畔鱼获记录界面.png》中的拍照按钮为正式公共样式。
 
-仓库中现有独立资产：
+Canonical asset:
 
-`assets/capture_button_base.png`
+`design/system/components/primary_capture_button/assets/capture_button_main_v1.png`
 
-与该批准样式一致，因此**不重新绘制、不重新导出、不重新压缩**，直接提升为跨页面公共静态视觉 Authority。
+- 208 × 208
+- PNG RGBA
+- transparent background
+- 58,154 bytes
+- SHA-256: `501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327`
+- Source canvas: 941 × 1672
+- Source crop: `x=382, y=1346, w=174, h=174`
+- Processing: only remove the lake background outside the circular button and normalize to 208 × 208
+- **No button redesign**
 
-## 2. 唯一静态按钮母版
+## 2. V1.1 与旧版关系
 
-Canonical static asset:
+V1.0 旧资产：
 
-`design/system/components/primary_capture_button/assets/capture_button_base.png`
+`capture_button_base.png`
 
-Frozen properties:
+SHA-256:
 
-- Size: **208 × 208 px**
-- Format: **PNG RGBA**
-- Alpha: **true**
-- SHA-256: `2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d`
-- Source: `Empty_Home_Final_Design_V2`
-- Role: **shared static visual master**
+`2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d`
 
-视觉组成已经包含在这张静态母版中：
+已经 **SUPERSEDED**，不得再作为设计 Authority。
 
-- 白色实体圆形核心；
-- 完整的暖金细边；
+原因：
+
+- 旧版金边更暗、更偏橄榄金；
+- 外圈玻璃 / 灰银承托层不足；
+- 与用户确认截图中的按钮不一致。
+
+V1.1 以截图中的视觉为准：
+
+- 白色玻璃主体；
+- 外围灰银 / 玻璃承托环；
+- 更细、更亮的暖金高光环；
 - 深湖蓝灰相机图标；
-- 当前批准的图标比例；
-- 轻微、克制的深度与高光。
+- 轻微内层高光和深度。
 
-页面不得重新拼装这些静态视觉元素。
+## 3. 页面引用
 
-## 3. 动效叠加层
-
-以下两张不是第二套按钮样式：
-
-### Gold Rim Sweep
-
-`assets/capture_button_gold_rim.png`
-
-- 208 × 208 RGBA
-- SHA-256: `9cbee62354d015dfe3d003de2bdc43b3336a621635f88d4bde36fe10c7e7a43d`
-- Role: **motion overlay only**
-- 只用于间歇金边扫光
-
-### Breath Glow
-
-`assets/capture_button_breath_glow.png`
-
-- 208 × 208 RGBA
-- SHA-256: `de989d9c4021220198370b535e8e4c8c3fbba2db53547771fc52d6cdbc0ac00e`
-- Role: **motion overlay only**
-- 只用于轻呼吸 / 承托
-
-静态设计预览和静态 Runtime 必须以 `capture_button_base.png` 单独成立。
-
-## 4. 允许的页面变体
-
-### home_primary_capture
-
-用于：
+同一个 Canonical Asset 用于：
 
 - 空首页
 - 有数据首页
+- 我的鱼获拍摄入口
 
-按钮视觉完全相同，页面只能决定：
+页面只能改变：
 
 - 页面位置；
-- 是否展示；
+- 尺寸 token；
+- 是否显示；
 - 点击业务行为。
 
-### archive_primary_capture
+不得复制 PNG 后私自改金边、图标、白色核心或玻璃环。
 
-用于：
-
-- 我的鱼获
-
-仍使用同一静态按钮母版，不允许重新设计按钮。页面只允许调整布局落位。
-
-## 5. Empty Home V2.2 参考落位
-
-Reference canvas: `1080 × 1920`
-
-- camera bbox: `x=430, y=1537, w=220, h=220`
-- horizontal alignment: center
-- prompt → camera clear gap: `≥25 px`
-- camera → album clear gap: `≥23 px`
-
-注意：208 × 208 是资产本身尺寸；220 × 220 是 Empty Home 冻结参考画布中的显示 bbox，两者不是冲突。
-
-## 6. Motion
+## 4. Motion
 
 Authority:
 
 `motion_contract.json`
 
+当前时序保持冻结：
+
 - breathing: 5000 ms
-- max scale: ≤ 1.015
+- max scale: 1.015
 - gold rim sweep first delay: ≈ 3000 ms
 - sweep duration: ≈ 1400 ms
 - repeat interval: ≈ 9000 ms
+- Reduce Motion: 关闭呼吸与扫光，保持 V1.1 静态按钮
 
-Motion 不得改变按钮静态身份。
+Supporting overlays remain motion-only and are not static visual authority.
 
-## 7. Haptic
+## 5. Haptic
 
 Authority:
 
@@ -122,19 +92,3 @@ Authority:
 - camera tap: light impact
 - no page-entry haptic
 - no idle haptic
-
-## 8. 禁止项
-
-禁止：
-
-- 页面重新画一颗“类似”的按钮；
-- 蓝色实心圆；
-- 粗金环；
-- 霓虹边；
-- 重阴影；
-- 缩小或替换相机 glyph；
-- 把 sweep / glow 烘焙成另一张长期静态按钮；
-- 从页面截图再次裁按钮作为新的正式资产；
-- 页面私自修改白色核心、金边或图标颜色。
-
-任何真正的视觉变化必须升级公共组件版本 / revision。
