@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ai.RecognitionRuntimeContract
 
 /**
  * Presentation controller for the frozen three-state Recognition story.
@@ -79,6 +80,11 @@ class RecognitionVisualStateController(
             ).coerceIn(0f, 1f)
     }
 
+    fun isResolveActive(nowMs: Long): Boolean =
+        presented == RecognitionPhase.CLASSIFYING &&
+            actual == RecognitionPhase.RESULT &&
+            phaseElapsedMs(nowMs) >= minimum(RecognitionPhase.CLASSIFYING)
+
     private fun canAdvance(nowMs: Long): Boolean {
         val target = next(presented)
         if (target == presented) return false
@@ -123,11 +129,16 @@ class RecognitionVisualStateController(
          * Retained as a compatibility constant for callers that still expose
          * the former V1.1 bound. The current nominal fast story is 2950ms.
          */
-        const val MAX_POST_RESULT_HOLD_MS = 2_950L
-        const val RESOLVE_FADE_MS = 200L
-        const val IMAGE_RECOGNIZING_MIN_MS = 900L
-        const val FISH_LOCATED_MIN_MS = 600L
-        const val SPECIES_RECOGNIZING_MIN_MS = 1_250L
+        const val MAX_POST_RESULT_HOLD_MS = RecognitionRuntimeContract.RESULT_START_MS
+        const val RESOLVE_FADE_MS =
+            RecognitionRuntimeContract.RESULT_START_MS - RecognitionRuntimeContract.RESOLVE_START_MS
+        const val IMAGE_RECOGNIZING_MIN_MS = RecognitionRuntimeContract.FISH_LOCATED_START_MS
+        const val FISH_LOCATED_MIN_MS =
+            RecognitionRuntimeContract.SPECIES_RECOGNIZING_START_MS -
+                RecognitionRuntimeContract.FISH_LOCATED_START_MS
+        const val SPECIES_RECOGNIZING_MIN_MS =
+            RecognitionRuntimeContract.RESOLVE_START_MS -
+                RecognitionRuntimeContract.SPECIES_RECOGNIZING_START_MS
 
         private const val UNSET = Long.MIN_VALUE
 

@@ -96,6 +96,11 @@ finish_gate() {
     android_runtime_collect_diagnostics
   fi
   android_runtime_write_result
+  if [[ "$YUJIAN_GATE" == "recognition-frozen" ]]; then
+    mkdir -p "$YUJIAN_EVIDENCE_DIR/recognition_v1_2"
+    cp "$YUJIAN_RESULT_PATH" \
+      "$YUJIAN_EVIDENCE_DIR/recognition_v1_2/runtime_gate_result_v1_2.json"
+  fi
   return "$exit_code"
 }
 

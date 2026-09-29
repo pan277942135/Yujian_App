@@ -5,52 +5,60 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RecognitionVisualStateControllerTest {
-    @Test fun fastResultRetainsAllFrozenStagesUntil2800ms() {
-        val controller = RecognitionVisualStateController(); controller.reset(0)
+    @Test
+    fun fastResultKeepsThreeProductBeatsAndResolveUntil2950ms() {
+        val controller = RecognitionVisualStateController().also { it.reset(0) }
         controller.onPipelinePhase(RecognitionPhase.RESULT, 10)
-        assertEquals(RecognitionPhase.CAPTURED, controller.current(349))
-        assertEquals(RecognitionPhase.DETECTING, controller.current(350))
-        assertEquals(RecognitionPhase.OUTLINE, controller.current(950))
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(1_550))
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(2_799))
-        assertEquals(RecognitionPhase.RESULT, controller.current(2_800))
+
+        assertEquals(RecognitionPhase.CAPTURED, controller.current(899))
+        assertEquals(RecognitionPhase.OUTLINE, controller.current(900))
+        assertEquals(RecognitionPhase.OUTLINE, controller.current(1_499))
+        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(1_500))
+        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(2_949))
+        assertEquals(RecognitionPhase.RESULT, controller.current(2_950))
     }
 
-    @Test fun holdsEachStageForV11FrozenMinimum() {
-        val controller = RecognitionVisualStateController(); controller.reset(0)
-        controller.onPipelinePhase(RecognitionPhase.DETECTING, 1)
-        assertEquals(RecognitionPhase.CAPTURED, controller.current(349))
-        assertEquals(RecognitionPhase.DETECTING, controller.current(350))
-        controller.onPipelinePhase(RecognitionPhase.OUTLINE, 221)
-        assertEquals(RecognitionPhase.DETECTING, controller.current(949))
-        assertEquals(RecognitionPhase.OUTLINE, controller.current(950))
-        controller.onPipelinePhase(RecognitionPhase.CLASSIFYING, 951)
-        assertEquals(RecognitionPhase.OUTLINE, controller.current(1_549))
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(1_550))
-    }
-
-    @Test fun finalFishFocusIsStableForAtLeastOneSecondBeforeResolve() {
-        val controller = RecognitionVisualStateController(); controller.reset(0)
+    @Test
+    fun resolveIsTheFinal200msOfSpeciesRecognition() {
+        val controller = RecognitionVisualStateController().also { it.reset(0) }
         controller.onPipelinePhase(RecognitionPhase.RESULT, 1)
-        controller.current(350); controller.current(950); controller.current(1_550)
-        assertEquals(0f, controller.resolveProgress(2_600))
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(2_600))
-        assertEquals(.75f, controller.resolveProgress(2_750))
+        controller.current(900)
+        controller.current(1_500)
+
+        assertEquals(false, controller.isResolveActive(2_749))
+        assertEquals(true, controller.isResolveActive(2_750))
+        assertEquals(0f, controller.resolveProgress(2_749))
+        assertEquals(0f, controller.resolveProgress(2_750))
+        assertEquals(.25f, controller.resolveProgress(2_800))
+        assertEquals(1f, controller.resolveProgress(2_950))
     }
 
-    @Test fun slowDetectorCannotInventOutline() {
-        val controller = RecognitionVisualStateController(); controller.reset(0)
+    @Test
+    fun capturedAndDetectingShareOneVisibleStateUntilRealFishLocation() {
+        val controller = RecognitionVisualStateController().also { it.reset(0) }
         controller.onPipelinePhase(RecognitionPhase.DETECTING, 1)
-        assertEquals(RecognitionPhase.DETECTING, controller.current(350))
-        assertEquals(RecognitionPhase.DETECTING, controller.current(5_000))
+
+        assertEquals(RecognitionPhase.CAPTURED, controller.current(900))
+        assertEquals(RecognitionPhase.CAPTURED, controller.current(5_000))
         controller.onPipelinePhase(RecognitionPhase.OUTLINE, 5_001)
         assertEquals(RecognitionPhase.OUTLINE, controller.current(5_001))
     }
 
-    @Test fun slowClassifierStaysClassifyingUntilRealResult() {
-        val controller = RecognitionVisualStateController(); controller.reset(0)
+    @Test
+    fun slowClassifierRemainsInCurrentTruthfulProductState() {
+        val controller = RecognitionVisualStateController().also { it.reset(0) }
         controller.onPipelinePhase(RecognitionPhase.CLASSIFYING, 1)
-        controller.current(350); controller.current(950); controller.current(1_550)
+
+        controller.current(900)
+        controller.current(1_500)
         assertEquals(RecognitionPhase.CLASSIFYING, controller.current(10_000))
+    }
+
+    @Test
+    fun failureExitsProcessingImmediately() {
+        val controller = RecognitionVisualStateController().also { it.reset(0) }
+        controller.onPipelinePhase(RecognitionPhase.FAILURE, 25)
+
+        assertEquals(RecognitionPhase.FAILURE, controller.current(25))
     }
 }

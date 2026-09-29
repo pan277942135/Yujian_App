@@ -51,8 +51,7 @@ fun RecognitionFishFocus(
     resolveProgress: Float = 0f,
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
-    focusLevel: RecognitionFishFocusLevel =
-        if (lowPerformance) RecognitionFishFocusLevel.B else RecognitionFishFocusLevel.A,
+    focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
 ) {
     val active =
         phase == RecognitionPhase.OUTLINE ||
@@ -113,7 +112,8 @@ fun RecognitionFishFocus(
         val wave =
             if (
                 phase == RecognitionPhase.CLASSIFYING &&
-                !reduceMotion
+                !reduceMotion &&
+                resolveProgress <= 0f
             ) {
                 val t =
                     ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) /

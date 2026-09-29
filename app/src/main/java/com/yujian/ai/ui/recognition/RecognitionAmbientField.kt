@@ -97,11 +97,25 @@ private data class MotionTarget(
 
 private data class MotionFrame(
     val cycleOffset: Float,
+    val segmentSpeed: Float,
     val stateStrength: Float,
     val resolveStrength: Float,
+    val detailMotionTimeMs: Long,
     val receivingEntry: Float,
     val primaryEntry: Float,
     val detailEntry: Float,
+)
+
+data class RecognitionMotionTraceSample(
+    val uptimeMs: Long,
+    val phase: RecognitionPhase,
+    val segmentOffset: Float,
+    val segmentSpeed: Float,
+    val stateStrength: Float,
+    val resolveStrength: Float,
+    val detailMotionTimeMs: Long,
+    val reduceMotion: Boolean,
+    val qualityLevel: RecognitionQualityLevel,
 )
 
 private class EdgeFieldMotionAccumulator {
@@ -111,6 +125,7 @@ private class EdgeFieldMotionAccumulator {
     private var entryStartedAtMs = 0L
     private var cycleOffset = 0f
     private var resolving = false
+    private var resolveStartedAtMs = 0L
     private var reduceMotion = false
 
     private var speedFrom = 1f
@@ -127,6 +142,7 @@ private class EdgeFieldMotionAccumulator {
         nowMs: Long,
         phase: RecognitionPhase,
         reduceMotionNow: Boolean,
+        resolveActive: Boolean,
         resolveProgress: Float,
     ): MotionFrame {
         val nextStage = productStage(phase)
@@ -187,9 +203,10 @@ private class EdgeFieldMotionAccumulator {
             }
         }
 
-        if (resolveProgress > 0f && !resolving) {
+        if (resolveActive && !resolving) {
             advance(nowMs)
             resolving = true
+            resolveStartedAtMs = nowMs
             speedFrom = 0f
             speedTo = 0f
             speedTransitionAtMs = nowMs
@@ -215,8 +232,10 @@ private class EdgeFieldMotionAccumulator {
 
         return MotionFrame(
             cycleOffset = cycleOffset,
+            segmentSpeed = speedAt(nowMs),
             stateStrength = strengthAt(nowMs),
             resolveStrength = (1f - resolveProgress.coerceIn(0f, 1f)).let { it * it },
+            detailMotionTimeMs = if (resolving) resolveStartedAtMs else nowMs,
             receivingEntry = receivingEntry,
             primaryEntry = primaryEntry,
             detailEntry = detailEntry,
@@ -262,8 +281,10 @@ fun RecognitionAmbientField(
     lowPerformance: Boolean = false,
     reduceMotion: Boolean = false,
     resolveProgress: Float = 0f,
+    resolveActive: Boolean = resolveProgress > 0f,
     qualityLevel: RecognitionQualityLevel =
         if (lowPerformance) RecognitionQualityLevel.LITE else RecognitionQualityLevel.FULL,
+    onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
 ) {
     val nowMs = ambientNowMs(visualClockMs)
     val accumulator = remember { EdgeFieldMotionAccumulator() }
@@ -273,6 +294,7 @@ fun RecognitionAmbientField(
             visualClockMs,
             phase,
             reduceMotion,
+            resolveActive,
             resolveProgress,
         )
     } else {
@@ -280,11 +302,29 @@ fun RecognitionAmbientField(
             nowMs,
             phase,
             reduceMotion,
+            resolveActive,
             resolveProgress,
         )
     }
 
     val quality = qualityProfile(qualityLevel)
+    if (onMotionFrame != null) {
+        LaunchedEffect(nowMs, phase, frame, reduceMotion, qualityLevel, onMotionFrame) {
+            onMotionFrame(
+                RecognitionMotionTraceSample(
+                    uptimeMs = nowMs,
+                    phase = phase,
+                    segmentOffset = frame.cycleOffset,
+                    segmentSpeed = frame.segmentSpeed,
+                    stateStrength = frame.stateStrength,
+                    resolveStrength = frame.resolveStrength,
+                    detailMotionTimeMs = frame.detailMotionTimeMs,
+                    reduceMotion = reduceMotion,
+                    qualityLevel = qualityLevel,
+                ),
+            )
+        }
+    }
     val evidenceTag =
         "recognition-ambient-" +
             (if (reduceMotion) "reduced-motion" else "motion") + "-" +
@@ -388,7 +428,7 @@ fun RecognitionAmbientField(
 
         if (quality.nodeCount > 0) {
             drawEnergyNodes(
-                nowMs = nowMs,
+                nowMs = frame.detailMotionTimeMs,
                 frame = frame,
                 quality = quality,
                 reduceMotion = reduceMotion,
@@ -397,7 +437,7 @@ fun RecognitionAmbientField(
 
         if (quality.particleCount > 0 && !reduceMotion) {
             drawParticles(
-                nowMs = nowMs,
+                nowMs = frame.detailMotionTimeMs,
                 count = quality.particleCount,
                 frame = frame,
                 quality = quality,
@@ -424,6 +464,7 @@ private fun deterministicFrame(
     clockMs: Long,
     phase: RecognitionPhase,
     reduceMotion: Boolean,
+    resolveActive: Boolean,
     resolveProgress: Float,
 ): MotionFrame {
     val stage = productStage(phase)
@@ -444,8 +485,14 @@ private fun deterministicFrame(
 
     return MotionFrame(
         cycleOffset = offset,
+        segmentSpeed = if (reduceMotion || resolveActive) 0f else target.speed,
         stateStrength = target.strength,
         resolveStrength = resolve,
+        detailMotionTimeMs = if (resolveActive) {
+            (clockMs - (resolveProgress.coerceIn(0f, 1f) * 200f).toLong()).coerceAtLeast(0L)
+        } else {
+            clockMs
+        },
         receivingEntry = 1f,
         primaryEntry = 1f,
         detailEntry = if (reduceMotion) 1f else 1f,

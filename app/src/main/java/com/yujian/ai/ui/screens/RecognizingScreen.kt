@@ -37,11 +37,13 @@ import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
+import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
+import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
@@ -80,6 +82,8 @@ fun RecognitionProcessingScene(
     phaseOverride: RecognitionPhase? = null, visualClockOverrideMs: Long? = null,
     onVisualPhasePresented: (RecognitionPhase, Long) -> Unit = { _, _ -> },
     motionPolicyOverride: RecognitionMotionPolicy? = null,
+    onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
+    onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -172,6 +176,7 @@ fun RecognitionProcessingScene(
     val rendered = phaseOverride ?: visualPhase
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     val resolveProgress = if (phaseOverride != null) 0f else controller.resolveProgress(visualNowMs)
+    val resolveActive = phaseOverride == null && controller.isResolveActive(visualNowMs)
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
@@ -190,7 +195,8 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockOverrideMs, phaseElapsedMs, resolveProgress, motionPolicy, Modifier.fillMaxSize(),
+            visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
+            onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(top = 18.dp, start = 12.dp)) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
@@ -214,10 +220,17 @@ fun RecognitionProcessingScene(
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
-    phaseElapsedMs: Long, resolveProgress: Float, motionPolicy: RecognitionMotionPolicy, modifier: Modifier,
+    phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
+    onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
+    onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
     val transform = calculateRecognitionImageTransform(with(density) { maxWidth.toPx() }, with(density) { maxHeight.toPx() }, bitmap.width, bitmap.height)
+    if (onFishFocusTransform != null) {
+        LaunchedEffect(transform, onFishFocusTransform) {
+            onFishFocusTransform(transform)
+        }
+    }
     // The captured image is opaque on the first Recognition frame; only visual overlays animate.
     Image(bitmap.asImageBitmap(), "正在识别的鱼获照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
     RecognitionAmbientField(
@@ -225,7 +238,9 @@ private fun RecognitionPhoto(
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
         resolveProgress = resolveProgress,
+        resolveActive = resolveActive,
         qualityLevel = motionPolicy.qualityLevel,
+        onMotionFrame = onMotionFrame,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),

@@ -1,37 +1,28 @@
 {
-  "contract_version": "RECOGNITION_RUNTIME_v1_1",
+  "contract_version": "RECOGNITION_PRESENTATION_v1_3",
   "states": [
-    "CAPTURED",
-    "DETECTING",
-    "OUTLINE",
-    "CLASSIFYING",
-    "SUCCESS",
-    "CONFIRM",
-    "UNKNOWN",
-    "NO_FISH",
-    "TOO_FAR"
+    "IMAGE_RECOGNIZING",
+    "FISH_LOCATED",
+    "SPECIES_RECOGNIZING",
+    "RESOLVE",
+    "RESULT_HIGH",
+    "RESULT_MEDIUM",
+    "RESULT_LOW",
+    "ISSUE_NO_FISH",
+    "ISSUE_IMAGE_QUALITY",
+    "ISSUE_TECHNICAL_FAILURE"
   ],
+  "production_pipeline": ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING", "RESULT", "FAILURE"],
   "flow": {
-    "CAPTURED": [
-      "DETECTING"
-    ],
-    "DETECTING": [
-      "OUTLINE",
-      "NO_FISH",
-      "TOO_FAR"
-    ],
-    "OUTLINE": [
-      "CLASSIFYING"
-    ],
-    "CLASSIFYING": [
-      "SUCCESS",
-      "CONFIRM",
-      "UNKNOWN"
-    ],
-    "SUCCESS": [],
-    "CONFIRM": [],
-    "UNKNOWN": [],
-    "NO_FISH": [],
-    "TOO_FAR": []
+    "IMAGE_RECOGNIZING": ["FISH_LOCATED", "ISSUE_NO_FISH", "ISSUE_IMAGE_QUALITY", "ISSUE_TECHNICAL_FAILURE"],
+    "FISH_LOCATED": ["SPECIES_RECOGNIZING", "ISSUE_TECHNICAL_FAILURE"],
+    "SPECIES_RECOGNIZING": ["RESOLVE", "ISSUE_TECHNICAL_FAILURE"],
+    "RESOLVE": ["RESULT_HIGH", "RESULT_MEDIUM", "RESULT_LOW"],
+    "RESULT_HIGH": [],
+    "RESULT_MEDIUM": [],
+    "RESULT_LOW": [],
+    "ISSUE_NO_FISH": [],
+    "ISSUE_IMAGE_QUALITY": [],
+    "ISSUE_TECHNICAL_FAILURE": []
   }
 }
