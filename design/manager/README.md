@@ -39,8 +39,16 @@ Design Manager V1 采用两层结构：
 
 ## 当前公共系统状态
 
-背景系统当前为 **部分完成**：BG_ENV_HERO / BG_CONTENT / BG_DATA / BG_CAPTURE /
-BG_SOLID_FALLBACK 的规则已经存在，但尚未形成一个独立、可复用的 Morning Lake Background Master。
+背景系统 V1 已 **冻结**：
+
+- Morning_Lake_Sunrise_Hero_V1：仅空首页；
+- Morning_Lake_Master_V1：其余湖景页面统一母版；
+- BG_ENV_HERO / BG_CONTENT / BG_DATA：只通过雾化、饱和度、对比度、亮度区分；
+- BG_CAPTURE：用户当前照片；
+- BG_SOLID_FALLBACK：固定浅色 / 深色兜底。
+
+跨页面有内容验证板已归档到：
+`design/system/backgrounds/morning_lake_v1/validation/Morning_Lake_Content_Adaptation_Approved_V1.png`。
 
 主拍摄按钮已经拥有独立视觉、动效和震动合同，可作为公共组件管理。
 
