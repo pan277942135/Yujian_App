@@ -2596,3 +2596,41 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
   border-color:#bfd1cb;
   background:#fbfdfc;
 }
+
+
+/* Direct shared-variant workspace */
+.direct-variant-rules{
+  display:grid;
+  gap:8px;
+}
+.direct-rule-card{
+  padding:10px 12px;
+  border:1px solid #dfe9e6;
+  border-radius:10px;
+  background:#fbfdfc;
+  color:#536b70;
+  font-size:9px;
+  line-height:1.55;
+}
+.direct-rule-card b{
+  display:block;
+  margin-bottom:3px;
+  color:#18343a;
+  font-size:10px;
+}
+.direct-rule-card span{
+  color:#6f8387;
+}
+.direct-variant-authority-heading{
+  margin-top:16px;
+}
+.top-nav-overview{
+  display:grid;
+  gap:14px;
+}
+.top-nav-overview .direct-variant-rules{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+@media(max-width:900px){
+  .top-nav-overview .direct-variant-rules{grid-template-columns:1fr}
+}
