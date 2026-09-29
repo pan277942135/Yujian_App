@@ -510,11 +510,11 @@
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
-      "note": "当前视觉 V2 已冻结，页面模型保持“时间记忆档案”。设计收口仍缺：5 维筛选完整权威、Timeline Scroll 合同、Growth Mark 多标签优先级，以及 BG_DATA 在有内容页面上的最终视觉验收。",
+      "note": "我的鱼获 V2 保持“时间记忆档案”模型。列表图片、5维筛选、Timeline Scroll、Growth Mark 已恢复为正式冻结设计 Authority；当前主要待确认项为 BG_DATA 在有内容页面上的最终视觉效果与整体页面复核。",
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "我的鱼获 V2 · 设计冻结检查",
-        "note": "按 Design Manager 中的冻结检查逐项确认。只冻结设计 Authority，不把 Runtime / Evidence 当成本阶段阻塞项。",
+        "note": "页面核心结构、取图、5维筛选、Timeline Scroll、Growth Mark 已有冻结 Authority。当前主要设计阻塞只剩 BG_DATA 有内容页视觉确认和最终整体复核。",
         "items": [
           {
             "id": "MC-FREEZE-01",
@@ -523,6 +523,14 @@
             "blocking": true,
             "decision": "保持“时间记忆档案”模型，不改造成数据 Dashboard。信息层级：标题 → 搜索 → 筛选 → 档案摘要 → 月份 → 日期/地点 → 鱼获卡 → Growth Mark → 拍摄入口。",
             "authority": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md"
+          },
+          {
+            "id": "MC-FREEZE-IMG",
+            "title": "列表图片取图规则",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "列表主图固定使用 FishRecord 原始现场照片；不使用 B-side、cutout、鱼鉴图或生成图替代。1:1 Row Card 缩略图保持真实现场语义。",
+            "authority": "design/pages/fish_records/list/My_Catches_List_Image_Spec_V1.md"
           },
           {
             "id": "MC-FREEZE-02",
@@ -535,26 +543,26 @@
           {
             "id": "MC-FREEZE-03",
             "title": "5 维筛选系统",
-            "status": "PENDING_SPEC",
+            "status": "CONFIRMED",
             "blocking": true,
-            "decision": "当前仓库仅冻结鱼种 / 地点 / 时间三类实现；完整 5 维筛选、50+ 鱼种和大量地点的选择规则仍需补齐设计 Authority。",
-            "authority": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md"
+            "decision": "已恢复并冻结五维筛选：鱼种 / 时间 / 地点 / 特殊记录 / 尺寸；同维度 OR、不同维度 AND。当前 Runtime 仅实现 3 维属于后续开发差异。",
+            "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md"
           },
           {
             "id": "MC-FREEZE-04",
             "title": "Timeline Scroll V1",
-            "status": "PENDING_SPEC",
+            "status": "CONFIRMED",
             "blocking": true,
-            "decision": "需冻结月份/日期是否吸顶、跨月滚动、长列表、搜索筛选后的滚动恢复等规则。",
-            "authority": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md"
+            "decision": "Timeline Scroll V1 已恢复并冻结：newest-first、Month Sticky、Day 随内容滚动、单日 1–5 全展开、6–10 默认5条、>10 查看全部、最近3个月渐进加载。",
+            "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md"
           },
           {
             "id": "MC-FREEZE-05",
             "title": "Growth Mark V1",
-            "status": "PENDING_SPEC",
+            "status": "CONFIRMED",
             "blocking": true,
-            "decision": "语义已确定为最长、最大、首条鱼种、首次地点；仍需冻结多标签优先级、最大显示数量、溢出和窄屏规则。",
-            "authority": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md"
+            "decision": "Growth Mark V1 已恢复并冻结：首次记录 / 数量里程碑 / 同鱼种最重 / 同鱼种最长；列表最多1个，里程碑 > 首次 > 尺寸，最长+最重可合并。",
+            "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md"
           },
           {
             "id": "MC-FREEZE-06",
@@ -565,7 +573,71 @@
             "authority": "design/pages/fish_records/list/README.md"
           }
         ]
-      }
+      },
+      "design_sections": [
+        {
+          "id": "list_image",
+          "title": "列表图片",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_List_Image_Spec_V1.md",
+          "summary": "列表始终使用该 FishRecord 的原始现场鱼获照片，不使用 B-side、透明鱼体、鱼鉴物种图或生成卡作为主图。",
+          "points": [
+            "主来源：RemoteCatch.imageUrl / 原始识别保存照片",
+            "1:1 缩略图；V2 当前目标 82dp × 82dp，圆角 14dp",
+            "ContentScale.Crop；有可靠鱼体定位时优先保留完整鱼头/鱼尾和适量现场环境",
+            "B-side SUCCESS 不替换列表封面",
+            "记忆区后续新增照片 / 视频不自动替换列表封面",
+            "加载失败只显示 SoftWater + 中性占位，不猜鱼种、不用生成图替代"
+          ]
+        },
+        {
+          "id": "filter_v1",
+          "title": "五维筛选",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
+          "summary": "鱼种 / 时间 / 地点 / 特殊记录 / 尺寸五维；同维度 OR，不同维度 AND。",
+          "points": [
+            "鱼种：多选；50+ 时使用二级选择器，支持搜索 / 最近 / 全部",
+            "时间：单选快捷范围 + 自定义日期范围",
+            "地点：多选；支持搜索 / 最近 / 全部",
+            "特殊记录：首次记录 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
+            "尺寸：长度范围 + 重量范围",
+            "筛选完成后仍保留月份 → 日期 → 鱼获的 Timeline 结构"
+          ]
+        },
+        {
+          "id": "timeline_v1",
+          "title": "Timeline Scroll V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
+          "summary": "月份章节 + 日期节点 + 当天鱼获集合；newest-first，月份吸顶，日期随内容滚动。",
+          "points": [
+            "默认定位最新鱼获",
+            "Month Header Sticky；Day Header 不长期吸顶",
+            "单日 1–5 条全部展开",
+            "6–10 条默认 5 条 +「查看另外 N 条」",
+            ">10 条默认 5 条 +「查看全部」",
+            "搜索 / 筛选后仍保持 Timeline 分组",
+            "初始最近 3 个月，向下滚动加载更早月份"
+          ]
+        },
+        {
+          "id": "growth_mark_v1",
+          "title": "Growth Mark V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
+          "summary": "低权重个人记录印记，不做游戏化 Achievement Badge。",
+          "points": [
+            "V1 仅四类：首次记录 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
+            "数量里程碑：第10 / 50 / 100 / 500 / 1000 条",
+            "列表单卡最多显示 1 个",
+            "优先级：数量里程碑 > 首次记录 > 尺寸纪录",
+            "同一条同时最长+最重 →「最长 · 最重」",
+            "位置：卡片右上信息区、Chevron 左侧；22–24dp / 11–12sp",
+            "无图标、无阴影、无 glow、无动效"
+          ]
+        }
+      ]
     },
     {
       "id": "fish_guide_v2",
