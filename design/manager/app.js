@@ -555,6 +555,73 @@ function renderModalities(feature) {
   }).join("");
 }
 
+const FREEZE_STATUS_LABELS = {
+  CONFIRMED: "已确认",
+  PENDING_CONFIRMATION: "待确认",
+  PENDING_SPEC: "待补规范",
+  IN_REVIEW: "审阅中"
+};
+
+function freezeStatusBadge(status) {
+  const label = FREEZE_STATUS_LABELS[status] || status || "待确认";
+  const css =
+    status === "CONFIRMED" ? "freeze-confirmed" :
+    status === "PENDING_SPEC" ? "freeze-pending-spec" :
+    status === "PENDING_CONFIRMATION" ? "freeze-pending-confirmation" :
+    "freeze-in-review";
+  return '<span class="freeze-status ' + css + '">' + esc(label) + '</span>';
+}
+
+function renderFreezeReview(feature) {
+  const panel = el("freezeReviewPanel");
+  const review = feature.freeze_review;
+  if (!review) {
+    panel.classList.add("hidden");
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  el("freezeReviewTitle").textContent = review.title || "设计冻结检查";
+  el("freezeReviewState").innerHTML = freezeStatusBadge(review.state || "IN_REVIEW");
+
+  if (review.note) {
+    el("freezeReviewNote").textContent = review.note;
+    el("freezeReviewNote").classList.remove("hidden");
+  } else {
+    el("freezeReviewNote").classList.add("hidden");
+  }
+
+  const items = review.items || [];
+  const blockingPending = items.filter(item =>
+    item.blocking && item.status !== "CONFIRMED"
+  ).length;
+
+  el("freezeChecklist").innerHTML =
+    '<div class="freeze-summary">' +
+      '<div><strong>' + items.filter(x => x.status === "CONFIRMED").length + '</strong><span>已确认</span></div>' +
+      '<div><strong>' + blockingPending + '</strong><span>冻结阻塞项</span></div>' +
+      '<div><strong>' + items.length + '</strong><span>总检查项</span></div>' +
+    '</div>' +
+    items.map(item => {
+      const authority = item.authority
+        ? '<a class="freeze-authority" href="' + esc(repoHref(item.authority)) +
+          '" target="_blank" rel="noreferrer">查看 Authority</a>'
+        : '';
+      return '<article class="freeze-item">' +
+        '<div class="freeze-item-head">' +
+          '<div><div class="freeze-item-id">' + esc(item.id) + '</div>' +
+          '<h4>' + esc(item.title) + '</h4></div>' +
+          freezeStatusBadge(item.status) +
+        '</div>' +
+        '<p>' + esc(item.decision || "") + '</p>' +
+        '<div class="freeze-item-foot">' +
+          '<span class="freeze-blocking">' + (item.blocking ? "阻塞冻结" : "非阻塞 / 后续交接") + '</span>' +
+          authority +
+        '</div>' +
+      '</article>';
+    }).join("");
+}
+
 function renderVersions(feature) {
   const versions = feature.design_versions || [];
   el("versionTimeline").innerHTML = versions.map(v => {
@@ -603,6 +670,7 @@ function selectPage(id) {
     el("moduleNote").classList.remove("hidden");
   } else el("moduleNote").classList.add("hidden");
 
+  renderFreezeReview(feature);
   renderPagePreview(feature);
   renderSharedRefs(feature);
   renderModalities(feature);
