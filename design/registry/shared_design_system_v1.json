@@ -613,7 +613,16 @@
         "design/system/components/top_navigation/title_only/visual/reference_manifest.json",
         "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg",
         "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg",
-        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg"
+        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/back_title/README.md",
+        "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
+        "design/system/components/top_navigation/back_title/visual_contract.json",
+        "design/system/components/top_navigation/back_title/usage_map.json",
+        "design/system/components/top_navigation/back_title/manifest.json",
+        "design/system/components/top_navigation/back_title/visual/reference_manifest.json",
+        "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg"
       ],
       "variants": [
         {
@@ -676,9 +685,57 @@
           "id": "BACK_TITLE",
           "name": "02 · 返回 + 标题",
           "usage": "识别结果、账号与隐私、设置/法律文档等二级页面",
-          "note": "Back 使用 Icon Action V1 / NAVIGATION；标题保持页面视觉中心。",
-          "status": "PARTIAL",
-          "authority_path": "design/system/core_visual_v1/components/Navigation.md"
+          "note": "二级页统一左排：56dp min height；8dp outer padding；Back=44dp target/22dp glyph；Back-title gap=8dp；标题20sp/Medium/26sp；单行 Ellipsis；不允许居中假平衡 spacer。",
+          "status": "FROZEN",
+          "authority_path": "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
+          "authority_paths": [
+            "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
+            "design/system/components/top_navigation/back_title/visual_contract.json",
+            "design/system/components/top_navigation/back_title/usage_map.json",
+            "design/system/components/top_navigation/back_title/manifest.json",
+            "design/system/components/top_navigation/back_title/visual/reference_manifest.json",
+            "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+            "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+            "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg"
+          ],
+          "visual_authority_set": [
+            {
+              "id": "01_BASE_GEOMETRY",
+              "title": "01 · 基础几何",
+              "path": "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+              "width": 1320,
+              "height": 650,
+              "bytes": 1918,
+              "sha256": "a84b3e810b49618a319a645ce8280968ddd7d44a6b14931b8c0ba0977a8a3c02",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            },
+            {
+              "id": "02_REAL_USAGE",
+              "title": "02 · 真实使用",
+              "path": "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+              "width": 1320,
+              "height": 830,
+              "bytes": 3278,
+              "sha256": "3199103cbb88405bd0510b8ea424b8babcbd7587b09cb32d9d901483a0a89a0d",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            },
+            {
+              "id": "03_LONG_TITLE_SMALL_SCREEN",
+              "title": "03 · 长标题 / 小屏",
+              "path": "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg",
+              "width": 1320,
+              "height": 720,
+              "bytes": 2457,
+              "sha256": "69ac904e216a8bd3ca00fb0e92f03541810bb32dc0434041c4580b72be8fa16c",
+              "format": "SVG",
+              "status": "FROZEN",
+              "version": "V1"
+            }
+          ]
         },
         {
           "id": "BACK_TITLE_ACTIONS",
@@ -689,7 +746,7 @@
           "authority_path": "design/system/core_visual_v1/components/Navigation.md"
         }
       ],
-      "note": "Top Navigation V1：TITLE_ONLY 已冻结；BACK_TITLE / BACK_TITLE_ACTIONS 待细化。一级只显示总览，3 个组合通过左侧子菜单直达独立工作区。",
+      "note": "Top Navigation V1：TITLE_ONLY、BACK_TITLE 已冻结；BACK_TITLE_ACTIONS 待细化。3 个组合通过左侧子菜单直达独立工作区。",
       "navigation_mode": "submenu_direct",
       "show_variant_index": false
     },
