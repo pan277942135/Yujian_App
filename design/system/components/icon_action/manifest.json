@@ -7,9 +7,46 @@
     "design/system/components/icon_action/Icon_Action_Spec_V1.md",
     "design/system/components/icon_action/visual_contract.json",
     "design/system/components/icon_action/motion_contract.json",
-    "design/system/components/icon_action/usage_map.json"
+    "design/system/components/icon_action/usage_map.json",
+    "design/system/components/icon_action/visual/candidate/01_Families.svg",
+    "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+    "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+    "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+    "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+    "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg"
   ],
-  "candidate_visuals": [],
+  "candidate_visuals": [
+    {
+      "id": "01",
+      "path": "design/system/components/icon_action/visual/candidate/01_Families.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "02",
+      "path": "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "03",
+      "path": "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "04",
+      "path": "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "05",
+      "path": "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "06",
+      "path": "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+      "status": "CANDIDATE"
+    }
+  ],
   "freeze_blockers": [
     "Review Navigation/Utility/Context family separation.",
     "Review transparent-default versus optional ON_MEDIA Mist support disc.",
