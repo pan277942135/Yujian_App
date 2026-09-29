@@ -1,7 +1,7 @@
-# Icon Action V1 · Candidate Spec
+# Icon Action V1 · Frozen Spec
 
-Status: **ACTIVE_CLOSURE**
-Version: **V1 Candidate**
+Status: **FROZEN**
+Version: **V1**
 Date: **2026-09-29**
 
 ## 1. Shared geometry
@@ -43,7 +43,7 @@ Rules:
 
 Purpose: page-level tools that do not define the page's primary business action.
 
-Candidate library:
+Frozen library:
 - `card_flip` — A/B side manual flip.
 - Share.
 - Fish Guide / knowledge.
@@ -117,7 +117,7 @@ Loading: **N/A** for generic Icon Action.
 - Haptic: none at component level.
 - Sound: none.
 
-## 9. Candidate page mapping
+## 9. Frozen page mapping
 
 | Page / area | Action | Family | Tone |
 |---|---|---|---|
@@ -138,3 +138,12 @@ Loading: **N/A** for generic Icon Action.
 - Filter chips are Selection Controls.
 - Primary Capture Button is its own branded component.
 - Decorative location / length / weight icons are not actions.
+
+## 11. Frozen Visual Authority
+
+1. `design/system/components/icon_action/visual/authority/01_Families.svg` — 01 · 三大家族; SHA-256 `4417417743c83aa1eee64bdc4d556c930100aa0c48976407b293483e946d193f`.
+2. `design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg` — 02 · Navigation 四态; SHA-256 `cccb91ab86ef67c07fd607b370b5032006f0ad6dbe7f6fe0690b9c2ff08bd2eb`.
+3. `design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg` — 03 · Utility 图标库; SHA-256 `b8d6c7da213c092504d02e6de47317c448747b238ad30a744c80c19dc591fb8c`.
+4. `design/system/components/icon_action/visual/authority/04_UTILITY_States.svg` — 04 · Utility 四态; SHA-256 `fe01cf1ff86252a4d8bb3c809acd834db8f3c499b403351bceea2c139e1877c0`.
+5. `design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg` — 05 · Context 图标库; SHA-256 `96a345bf96ad1c8222354c06d937c9c395175494cac2e65de8375c5b25fd8348`.
+6. `design/system/components/icon_action/visual/authority/06_Real_Usage.svg` — 06 · 真实场景落位; SHA-256 `acfe607f69dccf541561ec166fff1675520682e0aaaa90063d500b8dca782e50`.
