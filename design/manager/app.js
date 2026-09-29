@@ -1796,6 +1796,7 @@ function recognitionAiEdgeFieldStaticCanvas(child) {
   const gaps = shape.quiet_gaps || [];
   const fragments = shape.secondary_fragments || [];
   const hierarchy = shape.hierarchy || {};
+  const internal = shape.island_internal_structure || {};
   const forbidden = shape.hard_forbidden || [];
 
   const islandGrid =
@@ -1832,6 +1833,34 @@ function recognitionAiEdgeFieldStaticCanvas(child) {
       ).join("") +
     '</div>';
 
+  const internalGrid =
+    '<div class="authority-index-grid">' +
+      (internal.island_composition || []).map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(item.island) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+          '<div class="authority-kind">ISLAND INTERNAL STRUCTURE · ' + esc(item.emphasis || "") + '</div>' +
+          '<p>' + esc(item.composition) + '</p>' +
+          (item.note ? '<p>' + esc(item.note) + '</p>' : '') +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const hairlineCard =
+    '<div class="recognition-state-grid">' +
+      '<article class="recognition-state-card"><div class="recognition-state-head"><strong>Companion Hairline</strong><span>EVERY ISLAND</span></div>' +
+        '<p><b>Core</b> · ' + esc(internal.companion_hairline?.core_width_dp || "") + 'dp</p>' +
+        '<p><b>Local Glow</b> · ' + esc(internal.companion_hairline?.local_glow_width_dp || "") + 'dp · no Outer Bloom</p>' +
+        '<p><b>Length</b> · ' + esc(internal.companion_hairline?.visible_length || "") + '</p>' +
+        '<p><b>Offset</b> · ' + esc(internal.companion_hairline?.centerline_offset_dp || "") + 'dp · variable</p>' +
+      '</article>' +
+      '<article class="recognition-state-card"><div class="recognition-state-head"><strong>Micro Hairline</strong><span>B_UR ONLY</span></div>' +
+        '<p><b>Core</b> · ' + esc(internal.micro_hairline?.core_width_dp || "") + 'dp</p>' +
+        '<p><b>Local Glow</b> · ' + esc(internal.micro_hairline?.local_glow_width_dp || "") + 'dp · no Outer Bloom</p>' +
+        '<p><b>Length</b> · ' + esc(internal.micro_hairline?.visible_length || "") + '</p>' +
+        '<p><b>Offset</b> · ' + esc(internal.micro_hairline?.centerline_offset_dp || "") + 'dp · variable</p>' +
+      '</article>' +
+    '</div>';
+
   const hierarchyRows = [
     ["Primary Filament", hierarchy.primary_filament],
     ["Secondary Hairline", hierarchy.secondary_hairline],
@@ -1844,6 +1873,8 @@ function recognitionAiEdgeFieldStaticCanvas(child) {
     '<div class="recognition-rule"><strong>Static Identity</strong><span>' + esc(shape.identity || "") + '</span></div>' +
     '<div class="recognition-section-title">4 Primary Energy Islands</div>' + islandGrid +
     '<div class="recognition-section-title">Mandatory Quiet Gaps</div>' + gapGrid +
+    '<div class="recognition-section-title">Island Internal Structure</div>' + internalGrid +
+    hairlineCard +
     '<div class="recognition-section-title">Secondary Fragments</div>' + fragmentGrid +
     '<div class="recognition-section-title">Edge Band</div>' +
       '<div class="recognition-state-card"><p><b>Core</b> · ' + esc(shape.edge_band?.core_rule || "") + '</p>' +

@@ -217,7 +217,73 @@ Frozen rules:
 - Bloom stacking must not make every path appear equally thick.
 - A representative still should read as **layered luminous energy bands with subtle thickness variation**, not seven identical glowing strings.
 
-## 8. Internal visual hierarchy
+## 8. Energy-island internal structure
+
+Each Primary Energy Island is **not** a single isolated filament.
+
+The frozen structure is:
+
+> **1 Primary Energy Band + 1 Companion Hairline**
+
+Only the upper-right blue island `B_UR` may add one extra **Micro Hairline**.
+
+This gives the AI field layered visual intelligence without turning every island into the same repeated template.
+
+### Per-island composition
+
+| Island | Frozen composition | Emphasis |
+| --- | --- | --- |
+| G_UL | 1 Primary + 1 Companion Hairline | medium |
+| B_UR | 1 Primary + 1 Companion Hairline + 1 Micro Hairline | highest |
+| B_LR | 1 Primary + 1 Companion Hairline | medium-low |
+| G_LL | 1 Primary + 1 Companion Hairline | medium |
+
+`B_UR` is the only island allowed to contain two companion traces. This asymmetry is intentional.
+
+### Companion Hairline contract
+
+A Companion Hairline is a **local echo** of the Primary, not a second Primary.
+
+- Core width: **0.50–0.65dp**
+- Local Glow: **1.8–2.4dp**
+- Outer Bloom: **none**
+- Visual weight: **0.22–0.35 × local Primary**
+- Visible length: **25%–55%** of the local Primary island span
+- Centerline separation: **4–10dp**, variable along the curve
+
+Geometry rules:
+
+- start and end points must be offset from the Primary;
+- Companion and Primary must not begin and end together;
+- the Hairline follows the same broad directional flow but has a slightly different local curvature;
+- separation must vary — constant parallel spacing is forbidden;
+- a Hairline should usually stay on one local side of the Primary rather than repeatedly crossing it.
+
+### B_UR Micro Hairline
+
+Only `B_UR` may contain one additional Micro Hairline:
+
+- Core width: **0.35–0.50dp**
+- Local Glow: **1.2–1.8dp**
+- Outer Bloom: **none**
+- Visual weight: **0.12–0.22 × local Primary**
+- Visible length: **15%–32%** of the local Primary island span
+- Centerline separation: **7–14dp**, variable
+
+It must be noticeably shorter and quieter than the Companion Hairline.
+
+### Hard composition rules
+
+- Primary is always the only dominant line inside an island.
+- Hairlines must be shorter, thinner and dimmer.
+- Hairlines never use the Primary's 10dp Outer Bloom.
+- Constant parallel spacing is forbidden; no railway / double-track appearance.
+- The four islands must not have identical internal complexity.
+- No island except B_UR may display two Hairlines.
+- A Hairline may not cross a mandatory Quiet Gap to connect two islands.
+- A Hairline may not become a new fifth Energy Island.
+
+## 9. Internal visual hierarchy
 
 Normalize Primary Filament = 1.00.
 
@@ -235,7 +301,7 @@ The important rule is:
 
 > no secondary layer may become visually stronger than the primary filament structure.
 
-## 9. Color ownership
+## 10. Color ownership
 
 Primary color distribution is asymmetric but stable:
 
@@ -246,7 +312,7 @@ Secondary fragments may mix subtly, but the frame must not become a repeated blu
 
 The purpose is to create a calm directional field, not decorative RGB edging.
 
-## 10. Asymmetry contract
+## 11. Asymmetry contract
 
 Static Shape must remain intentionally irregular.
 
@@ -265,7 +331,7 @@ Forbidden:
 - evenly spaced energy nodes;
 - repeated decorative rhythm.
 
-## 11. Hard failures
+## 12. Hard failures
 
 Any of the following is an automatic Static Shape failure:
 
@@ -280,7 +346,7 @@ Any of the following is an automatic Static Shape failure:
 9. particles reading as confetti;
 10. AI effect visually stronger than the captured photograph.
 
-## 12. Existing visual references
+## 13. Existing visual references
 
 Perceptual reference:
 
@@ -293,7 +359,7 @@ Engineering infographic:
 
 These images help communicate visual feeling, but **this Static Shape Spec is the topology authority** whenever older reference images can be interpreted as a continuous perimeter.
 
-## 13. Existing path identity
+## 14. Existing path identity
 
 The existing normalized Bézier families remain useful geometry seeds:
 
@@ -314,7 +380,7 @@ This is the key V1 clarification:
 
 > all seven paths are not equal persistent primary strokes.
 
-## 14. Acceptance question
+## 15. Acceptance question
 
 Freeze a representative frame and ask only one question:
 
@@ -322,7 +388,7 @@ Freeze a representative frame and ask only one question:
 
 If the answer is “it looks like a frame, ring, orbit, scanner, or decorated border,” the Static Shape fails.
 
-## 15. What is not frozen here
+## 16. What is not frozen here
 
 Deferred to **04 · Motion & Transition**:
 

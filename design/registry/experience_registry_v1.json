@@ -627,7 +627,7 @@
               "secondary_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
-              "summary": "静态拓扑已冻结：AI 光场由四个互不连接的边缘能量岛构成；每条能量丝采用 Outer 10dp + Mid 4dp + 路径独立 Core 宽度的复合光带，不是单根等宽细线。",
+              "summary": "Static Shape 已冻结：4 个断开的能量岛；每岛固定 1 Primary + 1 Companion Hairline，仅右上 B_UR 允许额外 1 条 Micro Hairline。伴随线更短、更细、更暗且非平行，禁止双轨/电路感。",
               "static_shape": {
                 "identity": "四个断开的边缘能量岛；整体必须读成局部能量现象，而不是环、框、轨道或 HUD。",
                 "primary_islands": [
@@ -814,6 +814,69 @@
                     "视觉上必须读成有厚度、有层次的光带，而不是单像素发光线。",
                     "Secondary Fragment 即使 Core 更细，也仍可保留 Mid / Outer，但整体视觉权重必须明显低于 Primary。",
                     "不得因为叠加 Bloom 使所有路径最终看起来一样粗。"
+                  ]
+                },
+                "island_internal_structure": {
+                  "identity": "每个能量岛由 1 条 Primary Energy Band + 1 条 Companion Hairline 构成；仅 B_UR 允许额外 1 条 Micro Hairline。Hairline 是局部回声，不是第二条平行主光带。",
+                  "island_composition": [
+                    {
+                      "island": "G_UL",
+                      "composition": "1 Primary + 1 Companion Hairline",
+                      "hairline_count": 1,
+                      "emphasis": "MEDIUM"
+                    },
+                    {
+                      "island": "B_UR",
+                      "composition": "1 Primary + 1 Companion Hairline + 1 Micro Hairline",
+                      "hairline_count": 2,
+                      "emphasis": "HIGHEST",
+                      "note": "四岛中唯一允许 2 条伴随 Hairline 的主岛；承担最清晰的 AI Edge Field 识别签名。"
+                    },
+                    {
+                      "island": "B_LR",
+                      "composition": "1 Primary + 1 Companion Hairline",
+                      "hairline_count": 1,
+                      "emphasis": "MEDIUM_LOW"
+                    },
+                    {
+                      "island": "G_LL",
+                      "composition": "1 Primary + 1 Companion Hairline",
+                      "hairline_count": 1,
+                      "emphasis": "MEDIUM"
+                    }
+                  ],
+                  "companion_hairline": {
+                    "core_width_dp": "0.50–0.65",
+                    "local_glow_width_dp": "1.8–2.4",
+                    "outer_bloom": "NONE",
+                    "visual_weight": "0.22–0.35 of local Primary",
+                    "visible_length": "25%–55% of local Primary island span",
+                    "centerline_offset_dp": "4–10, variable",
+                    "endpoint_rule": "起点和终点必须与 Primary 错开；禁止同起同止",
+                    "curvature_rule": "跟随 Primary 大方向，但局部曲率必须有轻微漂移，禁止固定平行间距",
+                    "side_rule": "优先位于 Primary 的局部内侧或外侧之一；同一 Hairline 不得频繁跨越 Primary"
+                  },
+                  "micro_hairline": {
+                    "allowed_islands": [
+                      "B_UR"
+                    ],
+                    "core_width_dp": "0.35–0.50",
+                    "local_glow_width_dp": "1.2–1.8",
+                    "outer_bloom": "NONE",
+                    "visual_weight": "0.12–0.22 of local Primary",
+                    "visible_length": "15%–32% of local Primary island span",
+                    "centerline_offset_dp": "7–14, variable",
+                    "rule": "只提供短促的第三层纹理；不得与 Companion Hairline 同长度、同起点或同亮度。"
+                  },
+                  "rules": [
+                    "Primary 永远是岛内唯一主路径。",
+                    "Companion Hairline 必须明显更短、更细、更暗。",
+                    "Hairline 不使用 10dp Outer Bloom；只保留细 Core + 很窄 Local Glow。",
+                    "Hairline 与 Primary 的距离必须变化，禁止双轨铁路感。",
+                    "四个岛内部复杂度不得完全相同。",
+                    "除 B_UR 外，其余岛禁止同时出现两条 Hairline。",
+                    "Hairline 不能跨 Quiet Gap 去连接相邻能量岛。",
+                    "Hairline 不得独立延伸成新的第五个能量岛。"
                   ]
                 }
               }
