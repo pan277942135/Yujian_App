@@ -51,3 +51,13 @@ The FishRecord must exist before entering memory-media operations.
 
 - `修改鱼种` uses shared Text Action V1 / NORMAL / LIGHT.
 - Chevron is a separate 14dp icon; it is not part of the localized text string.
+
+
+## Top Navigation
+
+- Uses **Top Navigation V1 / BACK_TITLE / FROZEN**.
+- Title: `识别结果`.
+- Layout: 56dp min height / 8dp outer padding / 44dp Back target / 8dp Back-title gap.
+- Title: 20sp / Medium / 26sp / DeepLakeBlue.
+- Back uses Icon Action V1 / NAVIGATION.
+- Legacy centered `25sp / Bold` title and text glyph `‹` are not authority and must be removed during runtime closure.
