@@ -25,7 +25,15 @@ Status: **FROZEN**
 - **02 · Species Detail / Frozen PNG**  
   design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png
 
+- **03 · Fish Species States / 鱼种状态 — State Spec V1**  
+  design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md
+
+- **03 · Fish Species States / Visual Authority V1**  
+  design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md
+
 > Species Detail page-level layout and interaction are FROZEN. The internal content / visual system of the five black-gold knowledge cards remains PARTIAL and is intentionally reviewed separately.
+>
+> Species States V1 freezes state semantics and fallback behavior. The 03 state-flow board does not override the frozen base page shells from 01 / 02.
 
 ## Concept
 
@@ -104,3 +112,24 @@ Frozen interaction:
 - back-stack round trips restore the current species/detail state.
 
 The five black-gold cards' internal copy, imagery, rating semantics and final naming remain outside this page-level freeze.
+
+## Fish Species States V1
+
+State contract axes:
+
+- Encounter: UNLIT / LIT;
+- Catch Count: 0 / 1 / 2 / 3+;
+- Knowledge Content: Complete / Partial / Unavailable;
+- Media: species / knowledge-card / FishRecord preview availability;
+- Runtime: Loading / Offline with cache / Offline without cache / Error;
+- Catalog Consistency: Unknown / Inactive / Orphan FishRecord.
+
+Key frozen rules:
+
+- UNLIT is an encounter state, not access control;
+- LIT is derived from successfully saved FishRecord count;
+- 0 / 1 / 2 / 3+ record display is deterministic;
+- My Species uses real FishRecord media only and shows at most two recent previews;
+- partial knowledge preserves all five positional slots and the NN/05 index;
+- missing content/media is never silently replaced with fabricated data;
+- 01 / 02 frozen page authorities always override miniature page-shell differences in the 03 flow board.
