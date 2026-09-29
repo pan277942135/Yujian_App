@@ -2740,16 +2740,20 @@
           "authority": "design/system/core_visual_v1/reference/fish_guide_v2.png"
         },
         "motion": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
+          "contract": "design/pages/fish_guide/motion/motion_contract.json",
+          "note": "07 · 动效与交互 V1 已冻结：用户驱动 Carousel、一次性 Discover Hint、有限 5 卡滑动、低幅页面转场、真实数据提交后的 LIT/UNLIT 过渡与 Reduce Motion。"
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
+          "note": "Fish Guide V1 明确冻结为无自定义 Carousel snap haptic、无 Discover Hint haptic、无 UNLIT→LIT 自动 haptic。"
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
+          "note": "Fish Guide V1 明确冻结为无 unlock sound、无 page-entry sound、无自动 ambient audio。"
         },
         "runtime": {
           "status": "PARTIAL",
@@ -2798,7 +2802,7 @@
           "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
-      "note": "Fish Guide V2：01 · 鱼鉴首页、01A · 未点亮状态、02 · 鱼种详情页面级、03 · 鱼种状态 V1 均已 FROZEN。01A 直接使用既有 fish_guide_unlit_state.png 作为状态 Visual Authority；02 的 5 张黑金卡内部内容/视觉仍保持 PARTIAL；04–09 继续逐项建立规范。",
+      "note": "Fish Guide V2：01 · 鱼鉴首页、01A · 未点亮状态、02 · 鱼种详情页面级、03 · 鱼种状态、07 · 动效与交互 V1 均已 FROZEN。07 坚持 user-driven / alive-not-animated：无 Auto Flip、无 autoplay、无循环特效；04–06、08–09 继续逐项建立规范。",
       "navigation_model": "fish_guide_spec_menu_v1",
       "design_manager_view_rules": {
         "overview": "parent page = 00 Overview; show page-level authority only",
@@ -3124,18 +3128,98 @@
         {
           "id": "motion_interaction",
           "title": "07 · 动效与交互",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority": null,
-          "summary": "鱼种 Carousel、知识卡滑动、进入转场、点亮反馈与 Reduce Motion 的待建规范入口。",
+          "status": "FROZEN",
+          "render_mode": "fish_guide_motion",
+          "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
+          "summary": "07 · 动效与交互 V1 已冻结。只保留 5 类必要运动：Home Species Carousel、一次性 Discover Hint、Species Detail 5 卡滑动、页面/按压反馈、真实数据提交后的状态过渡。用户驱动优先；无 Auto Flip、无 autoplay、无循环光效、无自定义震动/声音。",
           "authority_type": "behavior",
           "menu_points": [
-            "Species Carousel",
-            "Detail Card Swipe",
-            "Entry Transition",
-            "Unlock Feedback",
-            "Reduce Motion"
-          ]
+            "Motion Principle · Alive, Not Animated",
+            "Home Species Carousel · Direct Manipulation",
+            "Active / Adjacent Emphasis · 1.00 vs 0.94",
+            "Carousel Settle · 220–320ms / No Bounce",
+            "Centered Tap → Detail / Adjacent Tap → Center Only",
+            "First-entry Discover Hint · Once Only",
+            "Discover Hint · 600ms + 14dp + 180/260ms",
+            "Species Detail 5-card Carousel · Finite / User-driven",
+            "NN / 05 Updates After Settle",
+            "Horizontal / Vertical Gesture Arbitration",
+            "Home → Detail · 220ms",
+            "Back Restore · 200ms",
+            "UNLIT → LIT · 420ms Mist Lift",
+            "LIT → UNLIT · 260ms Crossfade",
+            "Loading / Error · Static + Short Crossfade",
+            "No Custom Haptic / No Sound",
+            "Reduce Motion · Hint Off / ≤120ms",
+            "Interruptibility / User Input Wins",
+            "Accessibility · Announce After Settle",
+            "Performance Guardrails",
+            "Acceptance Gate"
+          ],
+          "secondary_authority": "design/pages/fish_guide/motion/motion_contract.json",
+          "motion_system": {
+            "principle": "Alive, not animated · User-driven by default",
+            "families": [
+              "Home Species Carousel",
+              "First-entry Carousel Discover Hint",
+              "Species Detail Knowledge Carousel",
+              "Navigation / Press Feedback",
+              "Committed Data State Transition"
+            ],
+            "home_carousel": {
+              "active": "scale 1.00 · alpha 1.00",
+              "adjacent": "scale 0.94 · alpha 0.58",
+              "settle": "220–320ms · no visible bounce · overshoot ≤2dp",
+              "centered_tap": "Open Species Detail",
+              "adjacent_tap": "Center only",
+              "selection": "Update after settle"
+            },
+            "discover_hint": {
+              "frequency": "Once per local user/profile",
+              "delay": "600ms",
+              "nudge": "14dp toward logical next",
+              "timing": "180ms out + 260ms return",
+              "selection_change": "No",
+              "cancel": "Any user input",
+              "reduce_motion": "Disabled"
+            },
+            "detail_carousel": {
+              "slots": "01–05 finite",
+              "settle": "220–300ms · no visible bounce",
+              "autoplay": "No",
+              "auto_flip": "No",
+              "loop": "No",
+              "indicator": "NN / 05 updates after settle",
+              "adjacent_tap": "Center only"
+            },
+            "gesture": {
+              "touch_slop": "Platform",
+              "horizontal_lock": "abs(dx) ≥ 1.2 × abs(dy)",
+              "switch_axis_after_lock": "No"
+            },
+            "navigation": {
+              "card_press": "1.00 → 0.985 · 70ms",
+              "forward": "220ms · alpha 0.94→1 · +12dp X→0",
+              "back": "200ms · restore Home selection",
+              "haptic": "None"
+            },
+            "state_transition": {
+              "unlit_to_lit": "420ms mist lift · metadata 180ms after 180ms · progress 300ms",
+              "lit_to_unlit": "260ms crossfade · progress 240ms",
+              "additional_catch": "count 160ms · preview 180ms",
+              "offscreen_replay": "No",
+              "celebration": "No confetti / no gold burst / no auto-navigation"
+            },
+            "reduce_motion": {
+              "discover_hint": "Off",
+              "direct_drag": "Retained",
+              "settle": "Immediate or ≤120ms",
+              "navigation": "Crossfade only ≤120ms",
+              "state": "Crossfade only ≤120ms"
+            },
+            "haptic_sound": "No custom haptic or sound choreography"
+          },
+          "freeze_date": "2026-09-29"
         },
         {
           "id": "responsive",
@@ -3303,12 +3387,34 @@
             "图片中的 04/05 仅为母版状态示例，Zero Catch 可发生在任意知识卡 index",
             "首次 qualifying FishRecord 保存成功后转入 1-record 状态"
           ]
+        },
+        {
+          "id": "motion_interaction_v1",
+          "title": "07 · 动效与交互 V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
+          "secondary_authority": "design/pages/fish_guide/motion/motion_contract.json",
+          "summary": "冻结 Fish Guide 的必要运动与手势边界。所有自动运动都必须有明确用户价值；除一次性 Discover Hint 与当前可见真实状态变化外，浏览完全由用户驱动。",
+          "points": [
+            "Home Carousel：active 1.00/1.00，adjacent 0.94/0.58；settle 220–320ms，无明显 bounce",
+            "中心卡 Tap→Species Detail；邻卡 Tap→仅居中，避免误跳转",
+            "Discover Hint 仅一次：稳定后 600ms，向 next 轻移 14dp，180ms 出 + 260ms 回；不改变 selection",
+            "用户在 Hint 前/中发生交互即取消并视为已学会，不再重复提示",
+            "Species Detail：固定 5 位有限 Carousel；220–300ms settle；NN/05 仅 settled 后更新",
+            "纵横手势：platform touch slop；abs(dx)≥1.2×abs(dy) 锁横向，否则纵向；锁定后不切轴",
+            "Home→Detail 220ms；Back 200ms；无 shared-element 强制要求，无背景 parallax",
+            "UNLIT→LIT 仅在当前可见时执行 420ms mist lift；离屏变化不补播",
+            "无 confetti / gold burst / unlock screen / 自动导航 / 自定义 haptic / sound",
+            "Reduce Motion：Hint 关闭；必要 settle/转场≤120ms；用户直接拖动保留",
+            "Accessibility 只在 settled/factual state 后播报，不在 drag 帧中反复播报",
+            "Runtime evidence 后续归 09 · 验收证据"
+          ]
         }
       ],
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "鱼鉴 V2 · 设计冻结检查",
-        "note": "01 · 鱼鉴首页、02 · 鱼种详情页面级、03 · 鱼种状态均已冻结；02 的五张黑金卡内部系统与 04–09 仍待后续规范。",
+        "note": "01 · 鱼鉴首页、01A · 未点亮状态、02 · 鱼种详情页面级、03 · 鱼种状态、07 · 动效与交互均已冻结；02 的五张黑金卡内部系统与 04–06、08–09 仍待后续规范。",
         "items": [
           {
             "id": "FGH-FREEZE-01",
@@ -3501,6 +3607,62 @@
             "blocking": false,
             "decision": "03 设计状态合同不重开；运行时证据归 09 · 验收证据。",
             "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-01",
+            "title": "用户驱动原则",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Fish Guide 浏览默认完全 user-driven；禁止 Species autoplay、Knowledge autoplay、Auto Flip、timed rotation 与循环动效。",
+            "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-02",
+            "title": "Home Carousel 交互",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "中心卡 Tap 进入详情；邻卡 Tap 只先居中。Selection 与辅助功能播报只在 settled 后更新。",
+            "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-03",
+            "title": "Discover Hint",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "仅首次符合条件出现一次：600ms delay + 14dp nudge + 180/260ms；不改变 active species；用户交互立即取消；Reduce Motion 关闭。",
+            "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-04",
+            "title": "Knowledge Carousel",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "固定 01–05、有限 Carousel；220–300ms settle；无 loop/autoplay/flip；NN/05 settled 后更新；纵横手势有明确锁轴规则。",
+            "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-05",
+            "title": "真实状态变化",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "UNLIT→LIT 仅在真实 FishRecord 提交成功且当前可见时执行 420ms mist lift；离屏不补播；无庆祝、自动导航、haptic 或 sound。",
+            "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-06",
+            "title": "Reduce Motion / Accessibility",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Reduce Motion 关闭 Discover Hint，将必要 settle/transition 压缩至≤120ms；直接用户拖动保留；语义仅在 settled factual state 后更新。",
+            "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+          },
+          {
+            "id": "FGM-FREEZE-07",
+            "title": "Runtime Evidence",
+            "status": "PENDING_CONFIRMATION",
+            "blocking": false,
+            "decision": "Motion/Interaction 设计合同已冻结；模拟器/真机 interaction timing 与 parity 后续进入 09 · 验收证据。",
+            "authority": "design/pages/fish_guide/motion/motion_contract.json"
           }
         ]
       }
