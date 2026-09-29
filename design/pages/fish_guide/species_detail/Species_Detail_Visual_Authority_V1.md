@@ -68,3 +68,18 @@ Older Fish Guide detail explorations, including earlier white-glass/lake-card ve
 If the five-card system is later refined, the page-level layout above remains authoritative unless the Species Detail page authority is explicitly re-frozen with a newer full-page visual.
 
 This registration does not approve, reject, or modify any individual black-gold card.
+
+
+## Registered substates
+
+### Zero Catch / 无我的鱼获记录
+
+- Spec: `design/pages/fish_guide/species_detail/Species_Detail_Zero_Catch_State_V1.md`
+- Visual: `design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png`
+- Trigger: `savedCount = 0`
+
+Authority boundary:
+
+- this substate freezes only the bottom `我的{鱼种}` zero-record treatment;
+- the parent Species Detail Frozen Visual Authority remains authoritative for the upper page;
+- any pixel difference above My Species in the zero-catch PNG does not replace the parent authority.
