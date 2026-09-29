@@ -581,17 +581,17 @@
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 的静态形状、渲染规范已冻结；R01–R06 视觉参考生成规范已全部建立，等待逐项生成与视觉确认后冻结。",
+          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 的静态形状、渲染规范以及 R01–R06 视觉参考生成规范均已冻结；最终视觉参考图仍待补充，因此本父级保持 ACTIVE_CLOSURE。",
           "menu_points": [
-            "AI 边缘光场 V1 · 01 · 静态形状",
-            "AI 边缘光场 V1 · 02 · 渲染规范",
-            "AI 边缘光场 V1 · 03 · 视觉参考集",
-            "R01 · 主视觉细节",
-            "R02 · 能量岛拆解",
-            "R03 · 四岛构图",
-            "R04 · 光场与鱼体聚焦",
-            "R05 · 强度校准",
-            "R06 · 失败边界"
+            "AI 边缘光场 V1 · 01 · 静态形状 · FROZEN",
+            "AI 边缘光场 V1 · 02 · 渲染规范 · FROZEN",
+            "AI 边缘光场 V1 · 03 · 视觉参考集 · R01–R06 生成规范 FROZEN",
+            "R01 · 主视觉细节 · 规范 FROZEN / 视觉图待补",
+            "R02 · 能量岛拆解 · 规范 FROZEN / 视觉图待补",
+            "R03 · 四岛构图 · 规范 FROZEN / 视觉图待补",
+            "R04 · 光场与鱼体聚焦 · 规范 FROZEN / 视觉图待补",
+            "R05 · 强度校准 · 规范 FROZEN / 视觉图待补",
+            "R06 · 失败边界 · 规范 FROZEN / 视觉图待补"
           ],
           "components": [
             {
@@ -613,12 +613,13 @@
                 "Result UI"
               ],
               "current_step": "03 · 视觉参考集",
-              "current_step_status": "CANDIDATE",
+              "current_step_status": "FROZEN",
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
               "completed_steps": [
-                "01 · Static Shape · FROZEN",
-                "02 · Rendering Contract · FROZEN"
+                "01 · 静态形状 · FROZEN",
+                "02 · 渲染规范 · FROZEN",
+                "03 · 视觉参考集 · R01–R06 生成规范 FROZEN / 视觉图待补"
               ]
             }
           ],
@@ -1159,11 +1160,11 @@
               "id": "ai_edge_field_ref_r01",
               "code": "AI 边缘光场 V1 · 03 · R01",
               "title": "R01 · 主视觉细节",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "主视觉细节生成规范已建立：用于确定 AI 边缘光场整体质感、能量感与视觉上限；当前尚未生成并确认最终视觉 Authority。",
+              "summary": "主视觉细节生成规范已建立：用于确定 AI 边缘光场整体质感、能量感与视觉上限；最终视觉图仍待补充；本条目的生成规范现已冻结。",
               "authority": "design/pages/recognition/processing/references/R01_主视觉细节_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "确定 AI 边缘光场整体视觉质感与代表性主画面，不定义 Runtime 实现。",
@@ -1202,17 +1203,19 @@
                   "让 AI 光效压过真实照片"
                 ],
                 "closure": "生成后只判断整体视觉语言是否成立；未确认前不得作为 Runtime 像素级 Authority。"
-              }
+              },
+              "spec_status": "FROZEN",
+              "visual_authority_status": "PENDING"
             },
             {
               "id": "ai_edge_field_ref_r02",
               "code": "AI 边缘光场 V1 · 03 · R02",
               "title": "R02 · 能量岛拆解",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于把单个主能量岛的视觉层次拆清楚：局部受光、外层光晕、中层发光、核心亮线、伴随细线、热点与稀疏粒子；只解释视觉构成，不定义实现。",
+              "summary": "用于把单个主能量岛的视觉层次拆清楚：局部受光、外层光晕、中层发光、核心亮线、伴随细线、热点与稀疏粒子；只解释视觉构成，不定义实现。 生成规范已冻结；最终视觉图仍待补充。",
               "authority": "design/pages/recognition/processing/references/R02_能量岛拆解_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "把单个能量岛内部的视觉结构讲清楚，让人一眼看懂它不是“发光线 + 模糊”，而是局部受光与多层光学结构。",
@@ -1247,17 +1250,19 @@
                   "把光场解释成单根霓虹线"
                 ],
                 "closure": "R02 只冻结视觉组成关系；视觉图未确认前，不作为最终视觉 Authority。"
-              }
+              },
+              "spec_status": "FROZEN",
+              "visual_authority_status": "PENDING"
             },
             {
               "id": "ai_edge_field_ref_r03",
               "code": "AI 边缘光场 V1 · 03 · R03",
               "title": "R03 · 四岛构图",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于确定四个能量岛在完整画面中的位置、主次、长度与留白关系；重点看拓扑，不看细节特效。",
+              "summary": "用于确定四个能量岛在完整画面中的位置、主次、长度与留白关系；重点看拓扑，不看细节特效。 生成规范已冻结；最终视觉图仍待补充。",
               "authority": "design/pages/recognition/processing/references/R03_四岛构图_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "把四个能量岛的整体构图关系定死，确保任何完整画面都不会读成边框、轨道或四角装饰。",
@@ -1294,17 +1299,19 @@
                   "用更多路径解决构图不平衡"
                 ],
                 "closure": "R03 只判断整体拓扑与构图；细节光学质量由 R01/R02 负责。"
-              }
+              },
+              "spec_status": "FROZEN",
+              "visual_authority_status": "PENDING"
             },
             {
               "id": "ai_edge_field_ref_r04",
               "code": "AI 边缘光场 V1 · 03 · R04",
               "title": "R04 · 光场与鱼体聚焦",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于确定鱼体被定位后，外围 AI 光场与 Fish Focus 的视觉权重如何交接；重点是“谁是主角”。",
+              "summary": "用于确定鱼体被定位后，外围 AI 光场与 Fish Focus 的视觉权重如何交接；重点是“谁是主角”。 生成规范已冻结；最终视觉图仍待补充。",
               "authority": "design/pages/recognition/processing/references/R04_光场与鱼体聚焦_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "明确从全图理解到鱼体分析时，视觉中心如何从 AI 边缘光场转移到鱼体聚焦，而不是两个效果同时抢注意力。",
@@ -1337,17 +1344,19 @@
                   "把状态差异做成完全不同的两套视觉"
                 ],
                 "closure": "R04 只冻结视觉主次交接关系；具体运动时长仍以已冻结的动效规范为准。"
-              }
+              },
+              "spec_status": "FROZEN",
+              "visual_authority_status": "PENDING"
             },
             {
               "id": "ai_edge_field_ref_r05",
               "code": "AI 边缘光场 V1 · 03 · R05",
               "title": "R05 · 强度校准",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于用同一画面建立强、中、弱三档视觉强度对照，后续不再靠“再亮一点/再弱一点”主观描述。",
+              "summary": "用于用同一画面建立强、中、弱三档视觉强度对照，后续不再靠“再亮一点/再弱一点”主观描述。 生成规范已冻结；最终视觉图仍待补充。",
               "authority": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "建立 AI 边缘光场的视觉强度参照区间，明确上限、目标值与最低可接受值。",
@@ -1381,17 +1390,19 @@
                   "用曝光整体提高或降低替代光场强度变化"
                 ],
                 "closure": "R05 先建立视觉参照区间；其中哪一档成为最终目标值，需要后续视觉确认后再冻结。"
-              }
+              },
+              "spec_status": "FROZEN",
+              "visual_authority_status": "PENDING"
             },
             {
               "id": "ai_edge_field_ref_r06",
               "code": "AI 边缘光场 V1 · 03 · R06",
               "title": "R06 · 失败边界",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于收录典型错误视觉方向，帮助设计、开发与验收快速判断是否越界；只定义反例，不提供实现方案。",
+              "summary": "用于收录典型错误视觉方向，帮助设计、开发与验收快速判断是否越界；只定义反例，不提供实现方案。 生成规范已冻结；最终视觉图仍待补充。",
               "authority": "design/pages/recognition/processing/references/R06_失败边界_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "建立清晰的视觉红线，让任何人不看参数也能识别“这已经不是渔见 AI 边缘光场”。",
@@ -1424,7 +1435,9 @@
                   "把 Fish Focus 错误混进只针对 Edge Field 的案例里，除非明确标注"
                 ],
                 "closure": "R06 是禁止方向参考；即使后续生成并确认，也不会成为正向视觉 Authority。"
-              }
+              },
+              "spec_status": "FROZEN",
+              "visual_authority_status": "PENDING"
             }
           ]
         },
