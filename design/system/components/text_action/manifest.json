@@ -7,9 +7,46 @@
     "design/system/components/text_action/Text_Action_Spec_V1.md",
     "design/system/components/text_action/visual_contract.json",
     "design/system/components/text_action/motion_contract.json",
-    "design/system/components/text_action/usage_map.json"
+    "design/system/components/text_action/usage_map.json",
+    "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+    "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+    "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+    "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+    "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+    "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
   ],
-  "candidate_visuals": [],
+  "candidate_visuals": [
+    {
+      "id": "01",
+      "path": "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "02",
+      "path": "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "03",
+      "path": "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "04",
+      "path": "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "05",
+      "path": "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+      "status": "CANDIDATE"
+    },
+    {
+      "id": "06",
+      "path": "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg",
+      "status": "CANDIDATE"
+    }
+  ],
   "freeze_blockers": [
     "Review and approve semantic/visual downgrade of Login 忘记密码？ from accent teal to MUTED.",
     "Promote candidate visual references to FROZEN and update page authorities only after approval."
