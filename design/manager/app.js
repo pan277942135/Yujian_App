@@ -859,6 +859,24 @@ function renderSharedDirectVariantWorkspace(item, variantId) {
     '<div class="direct-rule-card">' + esc(rule) + '</div>'
   ).join("") || '<div class="preview-empty compact">暂无补充规则。</div>';
 
+  const visualRefs = variant.visual_authority_set || [];
+  const visualWrap = el("sharedDirectVariantVisualWrap");
+  if (visualRefs.length) {
+    visualWrap.classList.remove("hidden");
+    el("sharedDirectVariantVisual").innerHTML = visualRefs.map(ref =>
+      '<article class="direct-variant-visual-card">' +
+        '<div class="direct-variant-visual-head"><strong>' + esc(ref.title || ref.id) + '</strong>' +
+          '<span>SHA ' + esc(String(ref.sha256 || "").slice(0,10)) + '…</span></div>' +
+        '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.title || ref.id) + '">' +
+        '</a>' +
+      '</article>'
+    ).join("");
+  } else {
+    visualWrap.classList.add("hidden");
+    el("sharedDirectVariantVisual").innerHTML = "";
+  }
+
   const usage = directSharedVariantPages(item.id, variant.id);
   el("sharedDirectVariantUsage").innerHTML = usage.map(page =>
     '<button class="usage-row direct-variant-page-link" data-page-id="' + esc(page.id) + '">' +
