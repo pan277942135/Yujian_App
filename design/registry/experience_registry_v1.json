@@ -617,7 +617,7 @@
             "title": "Search V1 规范与高保真",
             "status": "CONFIRMED",
             "blocking": true,
-            "decision": "Search V1 整批 FROZEN：B1 最近搜索、B2 搜索有结果、B3 搜索无结果、B4 Search + Filter、B5 交互与返回规则。视觉以 Design Manager 无设备外框 9:16 App Canvas 为 Authority；B5 以 Search V1 规范为行为 Authority。",
+            "decision": "Search V1 整批 FROZEN：B1–B4 直接使用已确认高保真 PNG 作为 Visual Authority；B5 使用 Search V1 行为规范。SVG 重建稿已移除。",
             "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
           }
         ]
@@ -1150,7 +1150,7 @@
           "status": "FROZEN",
           "render_mode": "authority_index",
           "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
-          "summary": "Search V1 已整批冻结：B1 最近搜索 / B2 搜索有结果 / B3 搜索无结果 / B4 Search + Filter / B5 交互与返回规则。视觉 Authority 为 Design Manager 无设备外框 9:16 App Canvas；B5 为行为规范页。",
+          "summary": "Search V1 已整批冻结：B1–B4 直接引用已确认高保真 PNG 作为 Visual Authority；B5 为行为规范，不渲染为 App 页面。",
           "scenario_ids": [
             "search_focus",
             "search_results",
@@ -1163,15 +1163,22 @@
               "status": "FROZEN",
               "render_mode": "frozen_image",
               "state": "recent",
-              "authority": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.png",
               "scenario_ids": [
                 "search_focus"
               ],
               "summary": "进入 Search Mode，Search Bar Focused + 取消；query 为空时显示最近搜索，Timeline 仍保留在同一页面。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.png",
               "authority_type": "visual",
-              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "visual_authority_sha256": "a96561edda602c62b0c5cf9a400d33951e49714ca6b7fbb3b4823a1c1e29ca40",
+              "visual_authority_dimensions": {
+                "width": 1080,
+                "height": 1920
+              },
+              "visual_authority_bytes": 1832393,
+              "source_high_fidelity_png": "My_Catches_Search_B1_Recent_Hifi_Final.png"
             },
             {
               "id": "b2_results",
@@ -1179,15 +1186,22 @@
               "status": "FROZEN",
               "render_mode": "frozen_image",
               "state": "results",
-              "authority": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.png",
               "scenario_ids": [
                 "search_results"
               ],
               "summary": "输入「草鱼」后的结果态：轻量结果摘要 + 原 Timeline 分组；无新 Search Results 页面。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.png",
               "authority_type": "visual",
-              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "visual_authority_sha256": "1cc1082aff43768aa756227db971d68b5ead79d4541ec0924da319726efcf159",
+              "visual_authority_dimensions": {
+                "width": 665,
+                "height": 1182
+              },
+              "visual_authority_bytes": 951739,
+              "source_high_fidelity_png": "My_Catches_Search_B2_Results_Hifi_v2.png"
             },
             {
               "id": "b3_empty",
@@ -1195,16 +1209,23 @@
               "status": "FROZEN",
               "render_mode": "frozen_image",
               "state": "empty",
-              "authority": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.png",
               "secondary_authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
               "scenario_ids": [
                 "search_empty"
               ],
               "summary": "无结果时只保留 query / × / 取消 / 清除搜索 / Camera Button；不显示推荐搜索标签墙。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.png",
               "authority_type": "visual",
-              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "visual_authority_sha256": "c4a39f42f5117228e8b38b965e3edb122b388c83d0068051b1296fb6dccc580a",
+              "visual_authority_dimensions": {
+                "width": 1080,
+                "height": 1920
+              },
+              "visual_authority_bytes": 1858807,
+              "source_high_fidelity_png": "My_Catches_Search_B3_Empty_Hifi_Final.png"
             },
             {
               "id": "b4_search_filter",
@@ -1212,7 +1233,7 @@
               "status": "FROZEN",
               "render_mode": "frozen_image",
               "state": "search_filter",
-              "authority": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg",
+              "authority": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.png",
               "secondary_authority": "design/pages/fish_records/list/My_Catches_Filter_Spec_V1.md",
               "scenario_ids": [
                 "search_results",
@@ -1220,9 +1241,16 @@
               ],
               "summary": "SearchMatch AND FilterMatch；Search Bar 下只显示一行低权重 Filter Summary，点击可回原 Filter Sheet。",
               "freeze_date": "2026-09-29",
-              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg",
+              "visual_authority": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.png",
               "authority_type": "visual",
-              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md"
+              "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+              "visual_authority_sha256": "f0b67a72fae2e07c981e63deb758808d12771154a6b5ee5b0f25b6f0202c6e9e",
+              "visual_authority_dimensions": {
+                "width": 1080,
+                "height": 1920
+              },
+              "visual_authority_bytes": 1729822,
+              "source_high_fidelity_png": "My_Catches_Search_B4_Search_Filter_Hifi_Final.png"
             },
             {
               "id": "b5_interaction",
@@ -1249,10 +1277,15 @@
               "B3 错误出现推荐搜索标签",
               "Search Header / 层级未完全遵守冻结规范",
               "部分卡片与 Growth Mark 沿用旧稿"
-            ]
+            ],
+            "svg_reconstruction": {
+              "date": "2026-09-29",
+              "status": "DEPRECATED",
+              "note": "Design Manager 重构阶段生成的 B1–B4 SVG 重建稿已移除，不属于 Visual Authority。正式 Authority 直接使用已确认高保真 PNG。"
+            }
           },
           "freeze_date": "2026-09-29",
-          "visual_authority": "design_manager",
+          "visual_authority": "design/pages/fish_records/list/frozen/search_v1/manifest.json",
           "visual_authority_route": "#page/my_catches_v2/hifi/search",
           "freeze_scope": [
             "B1 · 最近搜索 / 空输入",

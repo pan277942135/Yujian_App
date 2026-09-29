@@ -2,29 +2,60 @@
   "version": "Search_V1",
   "status": "FROZEN",
   "freeze_date": "2026-09-29",
+  "authority_policy": "confirmed_high_fidelity_png",
   "visual_authorities": [
     {
       "id": "B1",
-      "path": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
-      "type": "visual"
+      "path": "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.png",
+      "type": "visual",
+      "format": "PNG",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 1832393,
+      "sha256": "a96561edda602c62b0c5cf9a400d33951e49714ca6b7fbb3b4823a1c1e29ca40",
+      "source_high_fidelity_png": "My_Catches_Search_B1_Recent_Hifi_Final.png"
     },
     {
       "id": "B2",
-      "path": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
-      "type": "visual"
+      "path": "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.png",
+      "type": "visual",
+      "format": "PNG",
+      "width": 665,
+      "height": 1182,
+      "bytes": 951739,
+      "sha256": "1cc1082aff43768aa756227db971d68b5ead79d4541ec0924da319726efcf159",
+      "source_high_fidelity_png": "My_Catches_Search_B2_Results_Hifi_v2.png"
     },
     {
       "id": "B3",
-      "path": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
-      "type": "visual"
+      "path": "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.png",
+      "type": "visual",
+      "format": "PNG",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 1858807,
+      "sha256": "c4a39f42f5117228e8b38b965e3edb122b388c83d0068051b1296fb6dccc580a",
+      "source_high_fidelity_png": "My_Catches_Search_B3_Empty_Hifi_Final.png"
     },
     {
       "id": "B4",
-      "path": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg",
-      "type": "visual"
+      "path": "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.png",
+      "type": "visual",
+      "format": "PNG",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 1729822,
+      "sha256": "f0b67a72fae2e07c981e63deb758808d12771154a6b5ee5b0f25b6f0202c6e9e",
+      "source_high_fidelity_png": "My_Catches_Search_B4_Search_Filter_Hifi_Final.png"
     }
   ],
   "behavior_authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
   "b5_type": "behavior_contract",
-  "note": "B1–B4 为静态冻结视觉 Authority；B5 为行为规范，不渲染为 App 页面。"
+  "deprecated_authorities": [
+    "design/pages/fish_records/list/frozen/search_v1/B1_Recent_Search_Frozen.svg",
+    "design/pages/fish_records/list/frozen/search_v1/B2_Search_Results_Frozen.svg",
+    "design/pages/fish_records/list/frozen/search_v1/B3_Search_Empty_Frozen.svg",
+    "design/pages/fish_records/list/frozen/search_v1/B4_Search_Filter_Frozen.svg"
+  ],
+  "note": "B1–B4 直接归档已确认高保真 PNG；Design Manager 不得以 SVG 或动态 HTML 重建稿替代 Frozen Visual Authority。B5 为行为规范。"
 }

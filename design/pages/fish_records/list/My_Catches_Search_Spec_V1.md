@@ -370,7 +370,7 @@ Search V1 于 **2026-09-29** 完成整批冻结。
 Authority：
 
 - 产品 / 交互：本文件；
-- B1–B4 视觉：Design Manager 中对应的无设备外框 9:16 App Canvas；
+- B1–B4 视觉：`design/pages/fish_records/list/frozen/search_v1/` 中对应的已确认高保真 PNG；
 - B5：本文件中的状态 / 返回 / Recent Search 行为合同。
 
-此前带手机边框或被标记为探索稿的生成图不进入 Authority。
+此前带手机边框、探索稿以及 Design Manager 重构阶段生成的 SVG 重建稿均不进入 Authority。Design Manager 只展示上述冻结 PNG，不重新绘制页面。
