@@ -1472,8 +1472,8 @@
           "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Preview.svg",
           "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
           "source_sha256": "98eda20d23f7f6565776eb48e84bb171828c4b66ca3a6658285c5329825d9157",
-          "preview_sha256": "244765242b5fd5cc594375545af2c1c81cbfb287b8ecf34ca36b2af7a9219338",
-          "note": "当前冻结：顶部不放渔见/Slogan；湖景稍短；标题收小；表单收紧；底部水草作为独立 Footer Decoration。"
+          "preview_sha256": "f73fbce097f4e9d6617a13c31b5dbe5e80a7407b56b9f7f85301a6d12eba1f6a",
+          "note": "V2.1 + Text Action V1 refinement：创建账号=STRONG；忘记密码？=MUTED。"
         }
       ],
       "design_overall": "FROZEN",
