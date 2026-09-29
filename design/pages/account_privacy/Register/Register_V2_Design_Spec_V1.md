@@ -74,9 +74,7 @@ unless the product contract is separately revised.
 Same Auth family as Login:
 
 - 18dp input radius reference;
-- 56dp primary action height reference;
-- 28dp primary action radius reference;
-- deep Lake Teal primary action;
+- shared `Action Button V1 / PRIMARY` for `注册并登录`: **56dp height / 28dp radius / #0F7A78 fill / white label**;
 - DeepLake primary text;
 - muted lake blue-gray secondary text;
 - large clean white content area;
@@ -103,6 +101,7 @@ Rules are identical to Login:
 - Background System: `Morning_Lake_Master_V1 / BG_CONTENT`
 - Color + Typography V1
 - Spacing + Radius V1
+- Primary / Secondary Action Button V1: `PRIMARY` for `注册并登录`
 
 ## 8. Motion / haptic / sound
 
