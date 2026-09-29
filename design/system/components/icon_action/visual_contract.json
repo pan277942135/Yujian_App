@@ -1,8 +1,8 @@
 {
   "component": "icon_action",
   "version": "V1",
-  "status": "ACTIVE_CLOSURE",
-  "candidate": true,
+  "status": "FROZEN",
+  "candidate": false,
   "families": {
     "NAVIGATION": {
       "glyph_dp": 22,
@@ -74,5 +74,80 @@
     "target_dp": 44
   },
   "gold": false,
-  "press_scale": false
+  "press_scale": false,
+  "frozen_date": "2026-09-29",
+  "visual_authority_set": [
+    {
+      "id": "01_FAMILIES",
+      "title": "01 · 三大家族",
+      "path": "design/system/components/icon_action/visual/authority/01_Families.svg",
+      "width": 1320,
+      "height": 600,
+      "bytes": 3306,
+      "sha256": "4417417743c83aa1eee64bdc4d556c930100aa0c48976407b293483e946d193f",
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1"
+    },
+    {
+      "id": "02_NAVIGATION_STATES",
+      "title": "02 · Navigation 四态",
+      "path": "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+      "width": 1320,
+      "height": 590,
+      "bytes": 2707,
+      "sha256": "cccb91ab86ef67c07fd607b370b5032006f0ad6dbe7f6fe0690b9c2ff08bd2eb",
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1"
+    },
+    {
+      "id": "03_UTILITY_LIBRARY",
+      "title": "03 · Utility 图标库",
+      "path": "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+      "width": 1320,
+      "height": 650,
+      "bytes": 3942,
+      "sha256": "b8d6c7da213c092504d02e6de47317c448747b238ad30a744c80c19dc591fb8c",
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1"
+    },
+    {
+      "id": "04_UTILITY_STATES",
+      "title": "04 · Utility 四态",
+      "path": "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+      "width": 1320,
+      "height": 590,
+      "bytes": 3270,
+      "sha256": "fe01cf1ff86252a4d8bb3c809acd834db8f3c499b403351bceea2c139e1877c0",
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1"
+    },
+    {
+      "id": "05_CONTEXT_LIBRARY",
+      "title": "05 · Context 图标库",
+      "path": "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+      "width": 1320,
+      "height": 590,
+      "bytes": 2807,
+      "sha256": "96a345bf96ad1c8222354c06d937c9c395175494cac2e65de8375c5b25fd8348",
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1"
+    },
+    {
+      "id": "06_REAL_USAGE",
+      "title": "06 · 真实场景落位",
+      "path": "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+      "width": 1320,
+      "height": 820,
+      "bytes": 4126,
+      "sha256": "acfe607f69dccf541561ec166fff1675520682e0aaaa90063d500b8dca782e50",
+      "format": "SVG",
+      "status": "FROZEN",
+      "version": "V1"
+    }
+  ]
 }
