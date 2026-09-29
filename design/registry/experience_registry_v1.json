@@ -81,7 +81,23 @@
           "note": "历史视觉收口文档；V2.2 获批后不再作为当前设计权威。"
         }
       ],
-      "design_overall": "FROZEN"
+      "design_overall": "FROZEN",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_ENV_HERO"
+        },
+        {
+          "id": "primary_capture_button_v1",
+          "variant": "home_primary_capture"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "home_normal_v1",
@@ -130,7 +146,23 @@
           "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_ENV_HERO"
+        },
+        {
+          "id": "primary_capture_button_v1",
+          "variant": "home_primary_capture"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "recognition_flow_v1_2",
@@ -183,7 +215,19 @@
           "note": "Nine frozen state references remain archived under the Recognition package."
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CAPTURE"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "recognition_result_v1",
@@ -232,7 +276,27 @@
           "visual_authority": "design/system/core_visual_v1/reference/recognition_result_v1.png"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "back_with_title"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "fish_record_detail_v2",
@@ -281,7 +345,27 @@
           "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "back_with_title"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "fish_memory_bside_v1",
@@ -332,7 +416,19 @@
           "note": "仅为补充参考，独立设计包尚未完成。"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "my_catches_v2",
@@ -381,7 +477,31 @@
           "visual_authority": "design/system/core_visual_v1/reference/my_catches_v2.png"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_DATA"
+        },
+        {
+          "id": "primary_capture_button_v1",
+          "variant": "archive_primary_capture"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "search_filter"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "fish_guide_v2",
@@ -431,7 +551,27 @@
           "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_DATA"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "search_filter"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "account_privacy_v1",
@@ -482,7 +622,24 @@
           "note": "已冻结 UI 包；部分流程按 MVP 范围暂不进入运行时。"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT",
+          "note": "目标统一到公共背景系统；当前仍有独立 morning_lake_background 资产，待后续设计收口。"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "auth_login_v2",
@@ -531,7 +688,24 @@
           "visual_authority": "design/pages/account_privacy/Login/00_Login.png"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT",
+          "note": "目标统一到公共背景系统；当前登录页仍使用 account_privacy_morning_lake。"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "auth_register_v2",
@@ -581,7 +755,20 @@
           "note": "尚未归档独立的 Register V2 冻结视觉稿。"
         }
       ],
-      "design_overall": "PARTIAL"
+      "design_overall": "PARTIAL",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT",
+          "note": "设计缺失时的目标背景引用，不代表当前视觉已冻结。"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "profile_edit_v1",
@@ -630,7 +817,20 @@
           "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
-      "design_overall": "MISSING"
+      "design_overall": "MISSING",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT",
+          "note": "目标背景引用；独立冻结设计包仍缺失。"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     },
     {
       "id": "user_agreement_v1",
@@ -679,7 +879,20 @@
           "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
-      "design_overall": "MISSING"
+      "design_overall": "MISSING",
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_CONTENT",
+          "note": "目标背景引用；独立冻结设计包仍缺失。"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        }
+      ]
     }
   ],
   "design_manager": {
@@ -693,6 +906,11 @@
       "sound",
       "assets"
     ],
-    "note": "V1 仅管理设计：行为、视觉、动效、震动、声音、资产与版本。Runtime、Evidence 与 Work 交接暂不进入设计管理页面。"
+    "note": "V1 仅管理设计：行为、视觉、动效、震动、声音、资产与版本。Runtime、Evidence 与 Work 交接暂不进入设计管理页面。",
+    "shared_registry": "design/registry/shared_design_system_v1.json",
+    "structure": [
+      "shared_design_system",
+      "page_modules"
+    ]
   }
 }
