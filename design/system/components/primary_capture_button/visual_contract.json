@@ -9,14 +9,16 @@
     1920
   ],
   "canonical_static_asset": {
-    "path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+    "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
     "width": 208,
     "height": 208,
     "format": "PNG RGBA",
     "alpha": true,
     "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
     "source": "Empty_Home_Final_Design_V2",
-    "role": "shared_static_visual_master"
+    "role": "frozen_shared_static_visual_master",
+    "source_alias": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+    "byte_identical_to_source_alias": true
   },
   "visual": {
     "core": "solid white",
