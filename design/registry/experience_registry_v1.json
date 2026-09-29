@@ -581,7 +581,7 @@
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "识别视觉层按独立组件治理。AI Edge Field V1 已登记为跨三状态共用组件；当前先冻结 Static Shape，Motion/State Strength 后续在 04 · Motion & Transition 继续。",
+          "summary": "Recognition Processing 的组件归属已进入可交付阶段：AI Edge Field V1 已冻结 Static Shape 与 Rendering Contract。视觉定义“长什么样”，Rendering Contract 定义“必须怎样绘制才能还原”。Motion/Accessibility 继续由 04/05 管理。",
           "menu_points": [
             "User Photo 始终是视觉底座与主体",
             "AI Edge Field V1 是独立跨状态视觉组件，不属于某一张 Processing UI",
@@ -609,10 +609,14 @@
                 "Status Overlay",
                 "Result UI"
               ],
-              "current_step": "01 · Static Shape",
+              "current_step": "02 · Rendering Contract",
               "current_step_status": "FROZEN",
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
-              "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json"
+              "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
+              "completed_steps": [
+                "01 · Static Shape · FROZEN",
+                "02 · Rendering Contract · FROZEN"
+              ]
             }
           ],
           "children": [
@@ -980,6 +984,172 @@
                     "rule": "节点不是灯泡阵列；必须依附于主光带的局部峰值。"
                   }
                 }
+              }
+            },
+            {
+              "id": "ai_edge_field_v1_rendering_contract",
+              "code": "AI EDGE FIELD V1 · 02",
+              "title": "AI Edge Field V1 · Rendering Contract",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_ai_edge_field_rendering",
+              "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Rendering_Contract.md",
+              "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Rendering_Contract.json",
+              "summary": "实现合同已冻结：AI Edge Field 必须作为单一 Photo Overlay Renderer 分层绘制；共享 normalized Path/Token，平台仅替换 Renderer。禁止贴图式特效、全路径常亮、等宽七线齐跑。",
+              "rendering_contract": {
+                "architecture": {
+                  "renderer": "Single full-photo overlay renderer",
+                  "coordinate_space": "Normalized photo viewport 0..1 after the production crop/scale is resolved",
+                  "z_order": [
+                    "Original Photo",
+                    "AI Edge Field",
+                    "Fish Focus",
+                    "Status Overlay / Back",
+                    "System UI"
+                  ],
+                  "rule": "AI Edge Field 的全部视觉层在同一个 overlay coordinate space 内完成；不要拆成四角独立 UI 控件。"
+                },
+                "shared_data": [
+                  "4 Primary Island paths: G1 / B1 / B3 / G3",
+                  "Secondary fragment seeds: B2 / G2 / B4",
+                  "Quiet Gap ranges",
+                  "Per-path Core widths",
+                  "Companion / Micro Hairline geometry",
+                  "Color / alpha tokens",
+                  "Island balance multipliers",
+                  "Particle / node anchors"
+                ],
+                "draw_order": [
+                  {
+                    "order": 1,
+                    "layer": "LOCAL_RECEIVING_LIGHT",
+                    "implementation": "每岛 1 个局部柔光 mask/gradient，沿 Primary 的内侧展开；约 8–18% edge depth。",
+                    "must_not": "不得做全屏 tint；不得用四个高亮圆直接贴在角落。"
+                  },
+                  {
+                    "order": 2,
+                    "layer": "PRIMARY_OUTER_BLOOM",
+                    "implementation": "仅对当前可见 Primary 段沿同一中心 Path 绘制 10dp 低 alpha bloom。",
+                    "must_not": "不得绘制完整四边 path skeleton。"
+                  },
+                  {
+                    "order": 3,
+                    "layer": "PRIMARY_MID_GLOW",
+                    "implementation": "同一 Primary 段叠加 4dp 中弱 glow。",
+                    "must_not": "不得偏移成第二条平行线。"
+                  },
+                  {
+                    "order": 4,
+                    "layer": "PRIMARY_CORE",
+                    "implementation": "同一中心 Path 上绘制 per-path Core：B1/B3/G3=1.2dp，G1=1.1dp；secondary seeds 保持各自 1.0/0.9/0.8dp。",
+                    "must_not": "不得把全部 Core 统一成同宽。"
+                  },
+                  {
+                    "order": 5,
+                    "layer": "HAIRLINE_ECHO",
+                    "implementation": "每岛绘制短 Companion；仅 B_UR 可加 Micro。只用细 Core + local glow，无 10dp Outer Bloom。",
+                    "must_not": "不得与 Primary 同起同止、固定平行或跨 Quiet Gap。"
+                  },
+                  {
+                    "order": 6,
+                    "layer": "HOT_NODE",
+                    "implementation": "依附 Primary 当前亮段的局部峰值；B_UR 最多 1 个主节点，全屏最多再 1 个弱节点。",
+                    "must_not": "不得均匀排灯泡。"
+                  },
+                  {
+                    "order": 7,
+                    "layer": "SPARSE_PARTICLES",
+                    "implementation": "使用固定 anchor 集合，由 alpha/clock 决定少量同时可见；只做环境纹理。",
+                    "must_not": "不得 8 个粒子同时等亮，不得像星空/彩纸。"
+                  }
+                ],
+                "primary_segment": {
+                  "geometry": "Primary 使用完整 Bézier 作为轨迹数据，但每一帧只绘制其中一个局部 luminous segment。",
+                  "visible_ratio": "0.18–0.35 of its own path length",
+                  "persistent_full_path": "FORBIDDEN",
+                  "optional_skeleton": "若为调试/极弱底丝，仅限岛内且视觉权重必须低于 0.10 Primary；正式视觉默认不依赖完整 skeleton。",
+                  "reason": "这是避免闭合边框/轨道感的关键实现约束。"
+                },
+                "optical_formula": {
+                  "formula": "FinalLayerAlpha = BaseLayerAlpha × IslandWeight × StateStrength × ResolveStrength × QualityStrength",
+                  "base_ranges": {
+                    "primary_core": "0.20–0.46; local hot peak ≤0.50",
+                    "mid_glow": "0.05–0.10",
+                    "outer_bloom": "0.025–0.055",
+                    "receiving_light": "0.03–0.07",
+                    "hairline": "relative 0.22–0.35 of local Primary"
+                  },
+                  "island_weights": {
+                    "B_UR": "1.00",
+                    "G_UL": "0.72–0.82",
+                    "G_LL": "0.58–0.68",
+                    "B_LR": "0.48–0.60"
+                  },
+                  "rule": "不要在各层分别手调到肉眼一样亮；统一通过乘法链控制整体强弱。"
+                },
+                "state_inputs": [
+                  {
+                    "input": "StateStrength",
+                    "owner": "04 · Motion & Transition",
+                    "behavior": "图片识别中最高；已定位到鱼体下降；鱼种识别中进一步下降。Rendering Contract 只消费该值，不自行决定时序。"
+                  },
+                  {
+                    "input": "Clock / SegmentOffset",
+                    "owner": "04 · Motion & Transition",
+                    "behavior": "只改变 luminous segment 的路径位置，不改变 Static Shape 拓扑。"
+                  },
+                  {
+                    "input": "ResolveStrength",
+                    "owner": "04 · Motion & Transition",
+                    "behavior": "结果转场时统一衰减整个 Edge Field。"
+                  },
+                  {
+                    "input": "QualityLevel",
+                    "owner": "05 · Degradation & Accessibility",
+                    "behavior": "只能减少 Hairline/Particle/Bloom 复杂度，不允许改变 4-island identity。"
+                  },
+                  {
+                    "input": "ReduceMotion",
+                    "owner": "05 · Degradation & Accessibility",
+                    "behavior": "停止 travel 后仍保留静态 Energy Island；不把 Edge Field 整体删除。"
+                  }
+                ],
+                "platform_mapping": [
+                  {
+                    "platform": "Android",
+                    "renderer": "Compose Canvas / DrawScope / Path",
+                    "shared": "geometry + tokens + draw order"
+                  },
+                  {
+                    "platform": "iOS",
+                    "renderer": "SwiftUI Canvas / CGPath",
+                    "shared": "geometry + tokens + draw order"
+                  },
+                  {
+                    "platform": "HarmonyOS",
+                    "renderer": "ArkUI Canvas / Path / drawing effects",
+                    "shared": "geometry + tokens + draw order"
+                  }
+                ],
+                "debug_acceptance": [
+                  "Debug 可显示 Island / Path ID，但 Release 禁止显示任何调试几何。",
+                  "固定同一照片 + 固定 clock 截图，三端应保持 Energy Island 位置、Quiet Gap、主次亮度和层级一致。",
+                  "关闭 Hairline / Particle 后，Primary + Receiving Light 仍必须能独立成立；否则说明基础光场实现错误。",
+                  "关闭 Receiving Light 后若仍看起来像霓虹线框，说明 Core/Glow 太强或全路径被错误常亮。",
+                  "将全部 luminous segment offset 固定后，画面仍不得出现四边闭环。"
+                ],
+                "hard_failures": [
+                  "用一张完整特效 PNG/GIF 覆盖照片",
+                  "四个角分别用独立 Widget/Composable 拼接，导致坐标与照片 crop 不一致",
+                  "完整 7 条 Path 同时常亮",
+                  "四条边存在持续 skeleton",
+                  "Primary / Hairline 固定平行",
+                  "Glow 与 Core 不共中心 Path",
+                  "所有岛等亮",
+                  "全屏 tint / blur",
+                  "Particle/Node 数量成为主要视觉",
+                  "把 Fish Halo/Contour 绘进 AI Edge Field Renderer"
+                ]
               }
             }
           ]

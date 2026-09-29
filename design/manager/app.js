@@ -1897,8 +1897,77 @@ function recognitionAiEdgeFieldStaticCanvas(child) {
   '</div>';
 }
 
+
+function recognitionAiEdgeFieldRenderingCanvas(child) {
+  const c = child.rendering_contract || {};
+  const architecture = c.architecture || {};
+  const order = c.draw_order || [];
+  const formula = c.optical_formula || {};
+  const stateInputs = c.state_inputs || [];
+  const platform = c.platform_mapping || [];
+  const failures = c.hard_failures || [];
+
+  const drawGrid =
+    '<div class="authority-index-grid">' +
+      order.map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(String(item.order).padStart(2,"0") + " · " + item.layer) + '</strong></div>' +
+          '<div class="authority-kind">MANDATORY DRAW ORDER</div>' +
+          '<p>' + esc(item.implementation) + '</p><p><b>禁止</b> · ' + esc(item.must_not) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const inputGrid =
+    '<div class="authority-index-grid">' +
+      stateInputs.map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(item.input) + '</strong></div>' +
+          '<div class="authority-kind">OWNER · ' + esc(item.owner) + '</div>' +
+          '<p>' + esc(item.behavior) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  const platformGrid =
+    '<div class="authority-index-grid">' +
+      platform.map(item =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(item.platform) + '</strong></div>' +
+          '<div class="authority-kind">PLATFORM RENDERER</div>' +
+          '<p>' + esc(item.renderer) + '</p><p>Shared · ' + esc(item.shared) + '</p>' +
+        '</article>'
+      ).join("") +
+    '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Renderer Architecture</strong><span>' +
+      esc(architecture.renderer || "") + ' · ' + esc(architecture.coordinate_space || "") + '</span></div>' +
+    '<div class="recognition-section-title">Z-order</div>' +
+      '<div class="recognition-state-card"><p>' + esc((architecture.z_order || []).join(" → ")) + '</p><p>' + esc(architecture.rule || "") + '</p></div>' +
+    '<div class="recognition-section-title">Mandatory Draw Order</div>' + drawGrid +
+    '<div class="recognition-section-title">Critical Segment Rule</div>' +
+      '<div class="recognition-state-card"><p><b>Visible</b> · ' + esc(c.primary_segment?.visible_ratio || "") + '</p>' +
+      '<p><b>Full Path</b> · ' + esc(c.primary_segment?.persistent_full_path || "") + '</p>' +
+      '<p>' + esc(c.primary_segment?.reason || "") + '</p></div>' +
+    '<div class="recognition-section-title">Unified Alpha Chain</div>' +
+      '<div class="recognition-state-card"><p><code>' + esc(formula.formula || "") + '</code></p>' +
+      '<p>' + esc(formula.rule || "") + '</p></div>' +
+    '<div class="recognition-section-title">External Inputs</div>' + inputGrid +
+    '<div class="recognition-section-title">Cross-platform Renderer</div>' + platformGrid +
+    '<div class="recognition-section-title">Hard Failures</div>' +
+      '<div class="authority-index-grid">' +
+        failures.map((item,index) =>
+          '<article class="authority-index-card"><div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+          '<div class="authority-kind">IMPLEMENTATION FAIL</div><p>' + esc(item) + '</p></article>'
+        ).join("") +
+      '</div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
   if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
+  if (child.render_mode === "recognition_ai_edge_field_rendering") return recognitionAiEdgeFieldRenderingCanvas(child);
 
   const visual = child.image || child.visual_authority || null;
   if (child.render_mode === "repo_image" && visual && isImage(visual)) {

@@ -32,6 +32,8 @@ Independent Recognition Processing visual component.
 
 Current frozen step:
 - `components/AI_Edge_Field_V1_Static_Shape_Spec.md`
+- `components/AI_Edge_Field_V1_Rendering_Contract.md`
 - `contracts/AI_Edge_Field_V1_Static_Shape_Contract.json`
+- `contracts/AI_Edge_Field_V1_Rendering_Contract.json`
 
 Static identity: four disconnected edge-energy islands with mandatory quiet gaps. Motion is intentionally deferred to `04 · Motion & Transition`.
