@@ -8,10 +8,11 @@ on:
     paths:
       - "design/**"
       - ".github/workflows/design-manager-pages.yml"
+      - ".auth_assets/**"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -25,6 +26,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Materialize frozen Auth visual authorities
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d .auth_assets ]]; then
+            mkdir -p design/pages/account_privacy/Login/frozen
+            mkdir -p design/pages/account_privacy/Register/frozen
+            cat .auth_assets/login_*.b64 | base64 -d > design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png
+            cat .auth_assets/register_*.b64 | base64 -d > design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png
+
+            test "$(sha256sum design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png | awk '{print $1}')" = "2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c"
+            test "$(sha256sum design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png | awk '{print $1}')" = "14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35"
+
+            rm -rf .auth_assets
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            if ! git diff --cached --quiet; then
+              git commit -m "feat(design): archive final Auth visual authorities"
+              git push origin HEAD:chore/design-experience-governance-v1
+            fi
+          fi
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
