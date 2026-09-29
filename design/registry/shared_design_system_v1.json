@@ -139,45 +139,33 @@
       "display_name": "主拍摄按钮",
       "category": "component",
       "overall": "FROZEN",
-      "current_version": "V2.2",
+      "current_version": "V1",
       "authority_paths": [
         "design/system/components/primary_capture_button/README.md",
+        "design/system/components/primary_capture_button/manifest.json",
         "design/system/components/primary_capture_button/visual_contract.json",
         "design/system/components/primary_capture_button/motion_contract.json",
         "design/system/components/primary_capture_button/haptic_contract.json"
       ],
-      "preview": null,
+      "preview": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
       "variants": [
         {
           "id": "home_primary_capture",
           "name": "首页主拍摄",
           "usage": "空首页 / 有数据首页",
-          "status": "FROZEN"
+          "status": "FROZEN",
+          "asset": "capture_button_main_v1.png"
         },
         {
           "id": "archive_primary_capture",
           "name": "档案页主拍摄",
           "usage": "我的鱼获",
-          "status": "FROZEN"
+          "status": "FROZEN",
+          "asset": "capture_button_main_v1.png"
         }
       ],
-      "note": "V2.2 冻结：白色主体、暖金细边、深湖蓝灰相机图标、轻深度；静态预览至少合成 base + rim，动效预览增加 breath glow。",
-      "preview_type": "layered_component",
-      "preview_layers": [
-        {
-          "path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
-          "role": "glow"
-        },
-        {
-          "path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
-          "role": "base"
-        },
-        {
-          "path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
-          "role": "rim"
-        }
-      ],
-      "preview_note": "Design Manager 必须按三层资产合成按钮；单独 capture_button_base.png 不是完整按钮样式。"
+      "note": "Primary Capture Button V1 已正式冻结；页面不得复制后私改或重新生成。",
+      "preview_note": "正式冻结公共按钮：208×208 RGBA，静态金边已包含在 Canonical PNG 中；扫光 mask 与呼吸 glow 仅用于动效。"
     },
     {
       "id": "top_navigation_v1",
