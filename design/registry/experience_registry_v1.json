@@ -372,7 +372,8 @@
         },
         {
           "id": "top_navigation_v1",
-          "variant": "BACK_TITLE_ACTIONS"
+          "variant": "BACK_TITLE_ACTIONS",
+          "note": "Top Navigation V1 / BACK_TITLE_ACTIONS / FROZEN：鱼获详情=Back + 20sp/Medium title + 鱼鉴/分享两枚 UTILITY/ON_LIGHT；44dp targets；最多2个可见 Utility；B-side Flip 保持页面内部 ON_MEDIA。"
         },
         {
           "id": "mist_glass_surface_v1",
