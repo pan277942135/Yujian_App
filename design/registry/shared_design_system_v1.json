@@ -608,22 +608,33 @@
       ],
       "variants": [
         {
-          "id": "back_with_title",
-          "name": "返回 + 标题",
-          "usage": "详情 / 识别结果"
+          "id": "TITLE_ONLY",
+          "name": "01 · 标题",
+          "usage": "一级 / Root 页面：我的鱼获、鱼鉴等",
+          "note": "仅显示页面标题；Search / Filter 不属于 Top Navigation。",
+          "status": "PARTIAL",
+          "authority_path": "design/system/core_visual_v1/components/Navigation.md"
         },
         {
-          "id": "title_with_utility_actions",
-          "name": "标题 + 工具操作",
-          "usage": "编辑 / 分享等"
+          "id": "BACK_TITLE",
+          "name": "02 · 返回 + 标题",
+          "usage": "识别结果、账号与隐私、设置/法律文档等二级页面",
+          "note": "Back 使用 Icon Action V1 / NAVIGATION；标题保持页面视觉中心。",
+          "status": "PARTIAL",
+          "authority_path": "design/system/core_visual_v1/components/Navigation.md"
         },
         {
-          "id": "search_filter",
-          "name": "搜索 / 筛选",
-          "usage": "档案 / 鱼鉴"
+          "id": "BACK_TITLE_ACTIONS",
+          "name": "03 · 返回 + 标题 + 工具动作",
+          "usage": "鱼获详情等需要 1–2 个页面级工具动作的二级页面",
+          "note": "工具动作使用 Icon Action V1 / UTILITY，视觉权重必须低于标题；超过上限应进入 More。",
+          "status": "PARTIAL",
+          "authority_path": "design/system/core_visual_v1/components/Navigation.md"
         }
       ],
-      "note": "视觉与层级规则已明确，但尚未独立成完整组件包，因此暂记部分完成。"
+      "note": "V1 正在完整组件化：一级只显示总览；TITLE_ONLY / BACK_TITLE / BACK_TITLE_ACTIONS 通过左侧子菜单直达独立工作区。旧 search_filter Variant 已移除；Search / Filter 归页面内容工具或输入组件管理。",
+      "navigation_mode": "submenu_direct",
+      "show_variant_index": false
     },
     {
       "id": "mist_glass_surface_v1",
