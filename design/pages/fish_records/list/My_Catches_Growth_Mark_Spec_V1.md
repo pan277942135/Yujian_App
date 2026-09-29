@@ -3,159 +3,131 @@
 Status: **FROZEN**
 Page: `my_catches_v2`
 Role: **低权重个人记录印记**
+Recovered visual source: **与自然相遇：Growth Mark V1 设计稿.png**
 
-## 1. 设计原则
+## 1. 定义
 
-Growth Mark 是“这条记录为什么值得记住”的轻量提示。
+Growth Mark 自动标记一条鱼获在个人钓鱼记录中的特殊意义。
 
-它不是：
-- Achievement Badge
-- 游戏成就
-- 奖杯
-- 皇冠
-- 星级
-- 积分
-- 稀有度
-- 等级系统
+它不是 Achievement Badge，不建立等级、积分、奖杯或稀有度系统。
 
 视觉优先级必须低于：
-**真实鱼获照片 / 鱼种 / 核心记录信息**
+**真实鱼获照片 / 鱼种 / 核心记录信息**。
 
 ## 2. V1 只支持四类
 
-### A. 首次记录
+### A. 首条某鱼种
+语义：该用户第一次正式记录这个鱼种。
 
-语义：
-用户的第一条正式 FishRecord。
+动态 Label：
+- `首条草鱼`
+- `首条鲤鱼`
+- `首条鳜鱼`
 
-Label:
-`第一次记录`
-
-不是“首次某地点”。
+数据属性：基于该鱼种历史，可随记录删除后重新计算。
 
 ### B. 数量里程碑
+基于全部正式 FishRecord 的历史顺序。
 
-按全部正式 FishRecord 的时间顺序永久计算。
+V1 thresholds:
+- 第10条
+- 第50条
+- 第100条
+- 第500条
+- 第1000条
 
-Thresholds:
-- 第 10 条
-- 第 50 条
-- 第 100 条
-- 第 500 条
-- 第 1000 条
+Label：
+`第100条`
 
-Labels:
-- `第10条`
-- `第50条`
-- `第100条`
-- `第500条`
-- `第1000条`
+一旦形成历史里程碑，正常情况下保持永久语义。
 
-禁止：
-`达成100条！`
-等庆功式文案。
+### C. 同鱼种最长
+在**同一鱼种**的有效长度记录中计算。
 
-### C. 同鱼种最重
+Label：
+`最长`
 
-在同一鱼种的有效重量记录中计算。
+### D. 同鱼种最重
+在**同一鱼种**的有效重量记录中计算。
 
-Label:
-`最重记录`
+Label：
+`最重`
 
-“最大记录”不再作为 V1 规范文案。
+## 3. 不属于 Growth Mark V1
 
-### D. 同鱼种最长
+以下不进入鱼获卡 Growth Mark：
+- 新地点 / 首次地点
+- 单日最多
+- 月度 / 年度复杂统计
+- 天气
+- 装备
+- 饵料
+- “新鱼种”之外的成就化扩展
 
-在同一鱼种的有效长度记录中计算。
+## 4. 列表显示数量
 
-Label:
-`最长记录`
-
-## 3. 最长 + 最重合并
-
-同一条记录同时为该鱼种最长和最重时：
-
-`最长 · 最重`
-
-不同时占两枚标签。
-
-## 4. Timeline 单卡显示数量
-
-列表单张 FishRecordRowCard：
+FishRecordRowCard：
 **最多显示 1 个 Growth Mark。**
 
-Priority:
+Priority：
 
-`数量里程碑 > 首次记录 > 尺寸纪录`
+`数量里程碑 > 首条某鱼种 > 尺寸纪录`
 
 尺寸纪录内部：
-- 若同时最长 + 最重 → 合并
-- 若只命中一个 → 显示对应记录
+- 同时最长 + 最重 → `最长 · 最重`
+- 只命中一个 → `最长` 或 `最重`
 
-FishRecordDetail 可展示该条记录全部有效 Growth Mark。
+FishRecordDetail 可以展示该记录全部有效 Growth Mark。
 
 ## 5. 位置
 
-列表位置：
-
-**卡片右上信息区，Chevron 左侧**
-
-规则：
-- 不压照片
-- 不独占整行
-- 不放在照片左上角
-- 不放大到标题同等级
-- 不改变卡片高度来强调标签
-
-## 6. 尺寸与字体
+列表：
+- 卡片右上信息区；
+- Chevron 左侧；
+- 不压照片；
+- 不独占整行；
+- 不改变卡片高度。
 
 Target:
-- mark height: **22–24dp**
-- type: **11–12sp**
+- 22–24dp height
+- 11–12sp
 - compact horizontal padding
-- no icon
-- no shadow
-- no glow
-- no animation
 
-可使用极短、极细的淡金竖线作为“记录印记”提示。
+## 6. 视觉
 
-## 7. 颜色语义
+- 数量里程碑：restrained Morning Gold
+- 首条某鱼种：muted gray-green
+- 尺寸纪录：muted blue-gray
 
-- 数量里程碑： restrained Morning Gold
-- 首次记录： muted gray-green
-- 尺寸纪录： muted blue-gray
+默认：
+- 无强 icon
+- 无阴影
+- 无 glow
+- 无动画
+- 不做游戏化徽章
 
-颜色只用于弱区分，不形成 Badge 等级。
+## 7. 搜索 / 筛选
 
-## 8. 搜索 / 筛选
+自由搜索可匹配可读 Growth Mark 文案，例如：
+- 首条草鱼
+- 最长
+- 最重
+- 第100条
 
-Growth Mark V1 四类均进入：
-**特殊记录**筛选维度。
+Filter V1 的“特殊记录”维度固定支持：
+- 首条某鱼种
+- 数量里程碑
+- 同鱼种最长
+- 同鱼种最重
 
-筛选语义基于记录真实属性，而不是基于列表当下显示的唯一标签。
+筛选依据真实记录属性，不依赖当前列表只展示的那一个 Mark。
 
-## 9. 稳定性
+## 8. Runtime handoff
 
-记录一旦获得“第一次记录 / 第N条”类历史语义，应保持稳定。
+当前 Runtime 的：
+- `FirstSpecies`：语义方向正确，保留并对齐文案；
+- `FirstLocation`：不属于 V1，应从列表 Growth Mark 移除；
+- global `Longest / Heaviest`：应改为**同鱼种**计算；
+- 尚缺 `CountMilestone`。
 
-尺寸纪录属于基于当前档案计算的相对记录：
-后续出现更长 / 更重的同鱼种记录时，纪录标签可迁移到新记录。
-
-## 10. Current runtime divergence
-
-当前 Android 代码仍使用：
-- FirstSpecies
-- FirstLocation
-- global Longest
-- global Heaviest
-
-这与冻结 Growth Mark V1 不一致。
-
-未来开发应调整为：
-- FirstRecord
-- CountMilestone
-- SpeciesHeaviest
-- SpeciesLongest
-
-这是 Runtime handoff gap，不修改本设计 Authority。
+这些属于开发交接差异，不改变本设计 Authority。
