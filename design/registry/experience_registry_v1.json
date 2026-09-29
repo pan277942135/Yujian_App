@@ -581,7 +581,7 @@
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 已有 01 · 静态形状、02 · 渲染规范；现新增 03 · 视觉参考集菜单，后续逐项制定 R01–R06 视觉规范。",
+          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 的静态形状、渲染规范已冻结；R01–R06 视觉参考生成规范已全部建立，等待逐项生成与视觉确认后冻结。",
           "menu_points": [
             "AI 边缘光场 V1 · 01 · 静态形状",
             "AI 边缘光场 V1 · 02 · 渲染规范",
@@ -1208,51 +1208,223 @@
               "id": "ai_edge_field_ref_r02",
               "code": "AI 边缘光场 V1 · 03 · R02",
               "title": "R02 · 能量岛拆解",
-              "status": "CANDIDATE",
+              "status": "ACTIVE_CLOSURE",
               "authority_type": "visual",
               "menu_group": "visual_reference",
-              "render_mode": "menu_placeholder",
-              "summary": "说明单个能量岛的视觉组成与层次。"
+              "render_mode": "recognition_visual_reference_spec",
+              "summary": "用于把单个主能量岛的视觉层次拆清楚：局部受光、外层光晕、中层发光、核心亮线、伴随细线、热点与稀疏粒子；只解释视觉构成，不定义实现。",
+              "authority": "design/pages/recognition/processing/references/R02_能量岛拆解_生成规范_V1.md",
+              "generation_spec": {
+                "purpose": "把单个能量岛内部的视觉结构讲清楚，让人一眼看懂它不是“发光线 + 模糊”，而是局部受光与多层光学结构。",
+                "format": "建议横向或方形单张规范图；左侧完整岛效果，中间局部放大，右侧视觉层次拆解；不出现代码、平台 API 或实现参数。",
+                "composition": [
+                  "默认以右上蓝色主岛作为拆解对象",
+                  "必须同时保留真实照片环境作为受光背景",
+                  "拆解顺序从照片环境到能量细节，而不是从线条开始",
+                  "完整效果与拆解后的各层必须能对应回同一个局部"
+                ],
+                "visual_focus": [
+                  "第一层：局部受光，说明照片边缘真的被照亮",
+                  "第二层：外层光晕，形成空气中的能量扩散",
+                  "第三层：中层发光，形成能量带主体",
+                  "第四层：核心亮线，保持细、亮、干净",
+                  "第五层：伴随细线与微细线，提供高频纹理但不成为第二主线",
+                  "第六层：热点与稀疏粒子，只作为局部峰值与环境细节"
+                ],
+                "must_keep": [
+                  "右上蓝色主岛仍是一个完整局部现象，而不是拆成多个独立装饰物",
+                  "核心亮线不能脱离光晕单独成立",
+                  "伴随细线必须短于、弱于主能量带",
+                  "热点必须依附于主能量带局部峰值",
+                  "照片环境始终参与光学效果"
+                ],
+                "forbidden": [
+                  "做成技术爆炸图或工程剖面图",
+                  "把各层画成平行彩色条",
+                  "把热点画成独立圆球",
+                  "把粒子画成星空",
+                  "让拆解图比完整效果更像 HUD",
+                  "把光场解释成单根霓虹线"
+                ],
+                "closure": "R02 只冻结视觉组成关系；视觉图未确认前，不作为最终视觉 Authority。"
+              }
             },
             {
               "id": "ai_edge_field_ref_r03",
               "code": "AI 边缘光场 V1 · 03 · R03",
               "title": "R03 · 四岛构图",
-              "status": "CANDIDATE",
+              "status": "ACTIVE_CLOSURE",
               "authority_type": "visual",
               "menu_group": "visual_reference",
-              "render_mode": "menu_placeholder",
-              "summary": "确定四个能量岛的整体位置、主次与留白关系。"
+              "render_mode": "recognition_visual_reference_spec",
+              "summary": "用于确定四个能量岛在完整画面中的位置、主次、长度与留白关系；重点看拓扑，不看细节特效。",
+              "authority": "design/pages/recognition/processing/references/R03_四岛构图_生成规范_V1.md",
+              "generation_spec": {
+                "purpose": "把四个能量岛的整体构图关系定死，确保任何完整画面都不会读成边框、轨道或四角装饰。",
+                "format": "9:16 单张完整照片构图图；降低粒子、热点与 Fish Focus 干扰；只突出四岛与 Quiet Gap 的整体关系。",
+                "composition": [
+                  "左上金色、右上蓝色、左下金色、右下蓝色四岛全部出现",
+                  "右上蓝色为唯一主岛",
+                  "左上金色为第二支点",
+                  "左下金色负责低位承托",
+                  "右下蓝色最弱",
+                  "顶部、左右中段、底部中央四个 Quiet Gap 必须一眼可见"
+                ],
+                "visual_focus": [
+                  "看四岛是否彼此独立",
+                  "看四岛是否有明显主次",
+                  "看中央照片是否有足够大且干净的阅读区",
+                  "看蓝右 / 金左是否形成自然平衡",
+                  "看整体是否仍是照片，而不是外围框架"
+                ],
+                "must_keep": [
+                  "四岛数量固定为四个",
+                  "四岛大致所在区域固定",
+                  "B_UR > G_UL > G_LL > B_LR 的层级固定",
+                  "Quiet Gap 是设计的一部分，不能被次级碎片填满",
+                  "中央区域不得被主路径穿越"
+                ],
+                "forbidden": [
+                  "四边连续闭合",
+                  "四角等亮",
+                  "左右镜像",
+                  "上下镜像",
+                  "椭圆环绕",
+                  "底部或左右边被次级碎片补成完整边",
+                  "用更多路径解决构图不平衡"
+                ],
+                "closure": "R03 只判断整体拓扑与构图；细节光学质量由 R01/R02 负责。"
+              }
             },
             {
               "id": "ai_edge_field_ref_r04",
               "code": "AI 边缘光场 V1 · 03 · R04",
               "title": "R04 · 光场与鱼体聚焦",
-              "status": "CANDIDATE",
+              "status": "ACTIVE_CLOSURE",
               "authority_type": "visual",
               "menu_group": "visual_reference",
-              "render_mode": "menu_placeholder",
-              "summary": "说明识别到鱼体后，外围光场与鱼体聚焦的视觉关系。"
+              "render_mode": "recognition_visual_reference_spec",
+              "summary": "用于确定鱼体被定位后，外围 AI 光场与 Fish Focus 的视觉权重如何交接；重点是“谁是主角”。",
+              "authority": "design/pages/recognition/processing/references/R04_光场与鱼体聚焦_生成规范_V1.md",
+              "generation_spec": {
+                "purpose": "明确从全图理解到鱼体分析时，视觉中心如何从 AI 边缘光场转移到鱼体聚焦，而不是两个效果同时抢注意力。",
+                "format": "一张规范图内放两个并列状态：已定位到鱼体 / 鱼种识别中；使用同一照片、同一鱼体位置，便于比较权重变化。",
+                "composition": [
+                  "状态 A：已定位到鱼体，Fish Focus 开始成为主视觉中心，Edge Field 明显降权但仍存在",
+                  "状态 B：鱼种识别中，Fish Focus 稳定占主导，Edge Field 进一步成为环境支持",
+                  "两个状态使用同一照片、同一 bbox、同一鱼体位置",
+                  "外围光场不能消失，也不能继续与鱼体抢主视觉"
+                ],
+                "visual_focus": [
+                  "已定位到鱼体时，用户第一眼应该明确看到“鱼被找到了”",
+                  "鱼种识别中时，Fish Focus 应稳定、安静，不继续扩大或制造新的注意力事件",
+                  "Edge Field 的存在感需要随状态下降",
+                  "鱼体内部保持真实照片，不做整体染色"
+                ],
+                "must_keep": [
+                  "Fish Focus 只在真实鱼体被定位后出现",
+                  "Fish Focus 与真实鱼体位置严格一致",
+                  "Edge Field 四岛拓扑不因 Fish Focus 出现而改变",
+                  "照片仍为底座",
+                  "状态变化体现视觉权重转移，不是新增特效"
+                ],
+                "forbidden": [
+                  "Fish Focus 出现前就强调鱼体",
+                  "鱼体被定位后 Edge Field 仍维持最强视觉权重",
+                  "鱼体和四岛同时高亮到互相竞争",
+                  "用矩形检测框代替 Fish Focus",
+                  "鱼体整体变成发光剪影",
+                  "把状态差异做成完全不同的两套视觉"
+                ],
+                "closure": "R04 只冻结视觉主次交接关系；具体运动时长仍以已冻结的动效规范为准。"
+              }
             },
             {
               "id": "ai_edge_field_ref_r05",
               "code": "AI 边缘光场 V1 · 03 · R05",
               "title": "R05 · 强度校准",
-              "status": "CANDIDATE",
+              "status": "ACTIVE_CLOSURE",
               "authority_type": "visual",
               "menu_group": "visual_reference",
-              "render_mode": "menu_placeholder",
-              "summary": "建立强、中、弱视觉强度的对照范围。"
+              "render_mode": "recognition_visual_reference_spec",
+              "summary": "用于用同一画面建立强、中、弱三档视觉强度对照，后续不再靠“再亮一点/再弱一点”主观描述。",
+              "authority": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
+              "generation_spec": {
+                "purpose": "建立 AI 边缘光场的视觉强度参照区间，明确上限、目标值与最低可接受值。",
+                "format": "同一照片、同一四岛几何、同一构图，横向或纵向并列三版：强表现 / 目标 / 最低可接受；只改强度，不改结构。",
+                "composition": [
+                  "强表现：用于确认视觉上限，受光、Bloom、Hairline、Node、Particle 都更明显",
+                  "目标：用于后续最终产品视觉的候选基准",
+                  "最低可接受：仍能明确看出 AI 边缘光场身份，但再弱就会失去存在感",
+                  "三版必须严格复用同一照片与同一几何"
+                ],
+                "visual_focus": [
+                  "比较局部受光强弱",
+                  "比较 Bloom 与 Core 的相对关系",
+                  "比较 Hairline / Node / Particle 的可见度",
+                  "比较 AI 存在感与照片主导权之间的平衡",
+                  "找到“看得见”与“不过度”的目标区间"
+                ],
+                "must_keep": [
+                  "三版四岛位置完全一致",
+                  "三版 Quiet Gap 完全一致",
+                  "三版主次关系一致",
+                  "只改变视觉强度与细节显著度",
+                  "最低可接受版仍必须读成同一个 AI 边缘光场系统"
+                ],
+                "forbidden": [
+                  "三版改不同路径",
+                  "三版改变岛数量",
+                  "强版通过增加额外光线来变强",
+                  "弱版通过删除主岛来变弱",
+                  "把强度校准做成 FULL/BALANCED/LITE 的运行时实现说明",
+                  "用曝光整体提高或降低替代光场强度变化"
+                ],
+                "closure": "R05 先建立视觉参照区间；其中哪一档成为最终目标值，需要后续视觉确认后再冻结。"
+              }
             },
             {
               "id": "ai_edge_field_ref_r06",
               "code": "AI 边缘光场 V1 · 03 · R06",
               "title": "R06 · 失败边界",
-              "status": "CANDIDATE",
+              "status": "ACTIVE_CLOSURE",
               "authority_type": "visual",
               "menu_group": "visual_reference",
-              "render_mode": "menu_placeholder",
-              "summary": "收录明显错误的视觉方向，作为禁止参考。"
+              "render_mode": "recognition_visual_reference_spec",
+              "summary": "用于收录典型错误视觉方向，帮助设计、开发与验收快速判断是否越界；只定义反例，不提供实现方案。",
+              "authority": "design/pages/recognition/processing/references/R06_失败边界_生成规范_V1.md",
+              "generation_spec": {
+                "purpose": "建立清晰的视觉红线，让任何人不看参数也能识别“这已经不是渔见 AI 边缘光场”。",
+                "format": "一张反例规范图，建议 6 个局部案例并列；每个案例只表达一个错误，不混合多个错误。",
+                "composition": [
+                  "F01 · 闭合霓虹边框",
+                  "F02 · 雷电 / 魔法能量",
+                  "F03 · HUD / 扫描器",
+                  "F04 · 平行铁路式 Hairline",
+                  "F05 · 四角等亮 / 对称",
+                  "F06 · 过弱 / 几乎不可见"
+                ],
+                "visual_focus": [
+                  "每个反例必须一眼看懂哪里错",
+                  "反例只用于建立边界，不追求好看",
+                  "要覆盖“过强、过科技、过规则、过对称、过弱”五类常见问题",
+                  "必须让 QA 能据此快速判定是否需要返工"
+                ],
+                "must_keep": [
+                  "每个反例仍基于真实照片场景，方便直接比较",
+                  "错误点要单一明确",
+                  "反例标签只描述问题，不给实现建议",
+                  "至少包含一个‘过弱到失去 AI 存在感’的反例"
+                ],
+                "forbidden": [
+                  "把失败案例做成新的视觉创意方向",
+                  "在同一案例里同时塞多个错误导致无法判断",
+                  "用纯文字替代视觉反例",
+                  "把运行时性能问题当视觉失败边界",
+                  "把 Fish Focus 错误混进只针对 Edge Field 的案例里，除非明确标注"
+                ],
+                "closure": "R06 是禁止方向参考；即使后续生成并确认，也不会成为正向视觉 Authority。"
+              }
             }
           ]
         },
