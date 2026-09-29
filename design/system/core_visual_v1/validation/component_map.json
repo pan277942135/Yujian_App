@@ -96,14 +96,15 @@
         "spacing.SP_2",
         "spacing.SP_3"
       ],
-      "runtime_notes": "TopNavigation defines layout composition only. TITLE_ONLY is FROZEN at 28sp/Medium, 16dp horizontal padding, min 64dp and transparent surface. BACK_TITLE and BACK_TITLE_ACTIONS remain PARTIAL. Search/Filter are not TopNavigation variants.",
+      "runtime_notes": "TopNavigation defines layout composition only. TITLE_ONLY is FROZEN at 28sp/Medium, 16dp horizontal padding and min 64dp. BACK_TITLE is FROZEN at 20sp/Medium, 56dp min height, 8dp outer padding, 44dp Icon Action Back and 8dp gap. BACK_TITLE_ACTIONS remains PARTIAL. Search/Filter are not TopNavigation variants.",
       "variant_status": {
         "TITLE_ONLY": "FROZEN",
-        "BACK_TITLE": "PARTIAL",
+        "BACK_TITLE": "FROZEN",
         "BACK_TITLE_ACTIONS": "PARTIAL"
       },
       "variant_authority": {
-        "TITLE_ONLY": "design/system/components/top_navigation/title_only/Title_Only_Spec_V1.md"
+        "TITLE_ONLY": "design/system/components/top_navigation/title_only/Title_Only_Spec_V1.md",
+        "BACK_TITLE": "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md"
       }
     },
     {
