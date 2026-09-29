@@ -436,7 +436,81 @@ function selectShared(id, variantId = null) {
   );
 }
 
+function authLivePreviewHtml(feature) {
+  const model = feature.live_preview;
+  if (!model || model.type !== "auth_page") return "";
+
+  const bgSystem = sharedRegistry.items.find(x => x.id === "background_system_v1");
+  const bgVariant = (bgSystem?.variants || []).find(v => v.id === model.background_variant);
+  const treatment = bgVariant?.preview_treatment || {};
+  const source = (bgVariant?.preview_sources || [])[0]?.path || bgSystem?.master?.path;
+
+  if (!source) return "";
+
+  const filter = [
+    "saturate(" + Math.round((treatment.saturation ?? 1) * 100) + "%)",
+    "contrast(" + Math.round((treatment.contrast ?? 1) * 100) + "%)",
+    "brightness(" + Math.round((treatment.brightness ?? 1) * 100) + "%)"
+  ].join(" ");
+
+  const fields = (model.fields || []).map(field =>
+    '<div class="auth-preview-field-group">' +
+      '<div class="auth-preview-label">' + esc(field.label) + '</div>' +
+      '<div class="auth-preview-field">' +
+        '<span class="auth-preview-icon">' + (field.icon === "lock" ? "●" : "○") + '</span>' +
+        '<span class="auth-preview-placeholder">' + esc(field.placeholder) + '</span>' +
+        (field.secure ? '<span class="auth-preview-eye">◌</span>' : '') +
+      '</div>' +
+    '</div>'
+  ).join("");
+
+  const secondary = model.secondary_action
+    ? '<div class="auth-preview-secondary">' + esc(model.secondary_action) + '</div>'
+    : '';
+
+  const authority = feature.modalities?.visual?.authority;
+  const authorityLink = authority
+    ? '<a class="auth-preview-authority" href="' + esc(repoHref(authority)) +
+      '" target="_blank" rel="noreferrer">当前设计 Authority · ' + esc(authority) + '</a>'
+    : '';
+
+  return '<div class="auth-live-preview-shell">' +
+    '<div class="auth-live-preview-phone">' +
+      '<img class="auth-preview-bg" src="' + esc(repoHref(source)) +
+      '" alt="' + esc(feature.display_name || feature.id) + ' background" style="filter:' + esc(filter) + '">' +
+      '<span class="auth-preview-mist" style="opacity:' + Number(treatment.mist_alpha || 0) + '"></span>' +
+      '<div class="auth-preview-content">' +
+        '<div class="auth-preview-brand">' + esc(model.eyebrow || "渔见") + '</div>' +
+        '<div class="auth-preview-brand-subtitle">' + esc(model.brand_subtitle || "") + '</div>' +
+        '<div class="auth-preview-spacer"></div>' +
+        '<div class="auth-preview-title">' + esc(model.title || "") + '</div>' +
+        '<div class="auth-preview-subtitle">' + esc(model.subtitle || "") + '</div>' +
+        '<div class="auth-preview-fields">' + fields + '</div>' +
+        secondary +
+        '<div class="auth-preview-primary">' + esc(model.primary_action || "") + '</div>' +
+        '<div class="auth-preview-footer"><span>' + esc(model.footer_prefix || "") +
+          '</span><strong>' + esc(model.footer_action || "") + '</strong></div>' +
+      '</div>' +
+      '<div class="auth-preview-badge">' + esc(model.background_variant || "") + '</div>' +
+    '</div>' +
+    '<div class="auth-live-preview-meta">' +
+      '<div><b>实时设计预览</b> · 使用无太阳 Morning Lake + ' + esc(model.background_variant || "") + '</div>' +
+      '<div>雾化 ' + Math.round(Number(treatment.mist_alpha || 0) * 100) +
+      '% · 饱和度 ' + Math.round(Number(treatment.saturation || 1) * 100) +
+      '% · 对比度 ' + Math.round(Number(treatment.contrast || 1) * 100) +
+      '% · 亮度 ' + Math.round(Number(treatment.brightness || 1) * 100) + '%</div>' +
+      (model.note ? '<div class="auth-live-preview-note">' + esc(model.note) + '</div>' : '') +
+      authorityLink +
+    '</div>' +
+  '</div>';
+}
+
 function renderPagePreview(feature) {
+  if (feature.live_preview?.type === "auth_page") {
+    el("visualPreview").innerHTML = authLivePreviewHtml(feature);
+    return;
+  }
+
   const version = currentVersion(feature);
   const visual = version?.visual_authority || feature.modalities?.visual?.authority;
   el("visualPreview").innerHTML = previewHtml(visual, feature.display_name || feature.id);
