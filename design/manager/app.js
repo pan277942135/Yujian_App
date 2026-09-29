@@ -1718,19 +1718,27 @@ function genericSpecHifiCanvas(feature, view) {
   const sourceCard = source
     ? '<div class="authority-index">' +
         '<div class="authority-index-intro"><strong>Current Visual Authority</strong>' +
-          '<span>页面级视觉已冻结；原始源图按文件指纹登记。5 张黑金卡内部内容 / 视觉不在本轮冻结范围。</span></div>' +
+          '<span>' + esc(view.visual_authority_note || "当前视觉 Authority 已登记并按文件指纹治理。") + '</span></div>' +
         '<div class="authority-index-grid">' +
           '<article class="authority-index-card">' +
-            '<div class="authority-index-head"><strong>' + esc(source.name || "Source PNG") + '</strong>' +
+            '<div class="authority-index-head"><strong>' + esc(source.name || source.source_name || "Visual Source") + '</strong>' +
               statusBadge(view.visual_status || "FROZEN") + '</div>' +
-            '<div class="authority-kind">SOURCE PNG · ' + esc(source.width || "—") + '×' + esc(source.height || "—") + '</div>' +
+            '<div class="authority-kind">' +
+              esc((source.kind || "SOURCE").replaceAll("_", " ").toUpperCase()) +
+              ' · ' + esc(source.width || "—") + '×' + esc(source.height || "—") +
+            '</div>' +
+            ((source.path || source.library_path)
+              ? '<p>' + esc(source.path || source.library_path) + '</p>'
+              : '') +
             '<p>SHA-256 · ' + esc(source.sha256 || "—") + '</p>' +
           '</article>' +
-          '<article class="authority-index-card">' +
-            '<div class="authority-index-head"><strong>5 张黑金卡</strong>' + statusBadge("PARTIAL") + '</div>' +
-            '<div class="authority-kind">DEFERRED REVIEW</div>' +
-            '<p>本轮不审内容、不审卡内视觉、不判断星级/命名；后续单独建立 Card System Authority。</p>' +
-          '</article>' +
+          ((view.deferred_scope || []).length
+            ? '<article class="authority-index-card">' +
+                '<div class="authority-index-head"><strong>Deferred Scope</strong>' + statusBadge("PARTIAL") + '</div>' +
+                '<div class="authority-kind">SEPARATE REVIEW</div>' +
+                '<p>' + esc((view.deferred_scope || []).join(" · ")) + '</p>' +
+              '</article>'
+            : '') +
         '</div>' +
       '</div>'
     : '';
