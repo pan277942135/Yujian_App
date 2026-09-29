@@ -2330,7 +2330,31 @@ function recognitionEvidenceGroupCanvas(child) {
   '</div>';
 }
 
+
+function recognitionVisualReferenceSpecCanvas(child) {
+  const s = child.generation_spec || {};
+  const grid = (items, kind) =>
+    '<div class="authority-index-grid">' +
+      (items || []).map((item,index) =>
+        '<article class="authority-index-card">' +
+          '<div class="authority-index-head"><strong>' + esc(String(index+1).padStart(2,"0")) + '</strong></div>' +
+          '<div class="authority-kind">' + esc(kind) + '</div><p>' + esc(item) + '</p></article>'
+      ).join("") +
+    '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>生成目的</strong><span>' + esc(s.purpose || "") + '</span></div>' +
+    '<div class="recognition-section-title">画面形式</div><div class="recognition-state-card"><p>' + esc(s.format || "") + '</p></div>' +
+    '<div class="recognition-section-title">构图要求</div>' + grid(s.composition,"构图") +
+    '<div class="recognition-section-title">视觉重点</div>' + grid(s.visual_focus,"视觉重点") +
+    '<div class="recognition-section-title">必须保持</div>' + grid(s.must_keep,"不可变化") +
+    '<div class="recognition-section-title">禁止方向</div>' + grid(s.forbidden,"禁止") +
+    '<div class="recognition-section-title">当前状态</div><div class="recognition-state-card"><p>' + esc(s.closure || "") + '</p></div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_visual_reference_spec") return recognitionVisualReferenceSpecCanvas(child);
   if (child.render_mode === "menu_placeholder") {
     return '<div class="authority-index"><div class="authority-index-intro"><strong>' +
       esc(child.title) + '</strong><span>当前只建立菜单；视觉规范尚未制定。</span></div></div>';

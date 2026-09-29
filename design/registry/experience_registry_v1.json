@@ -1159,11 +1159,50 @@
               "id": "ai_edge_field_ref_r01",
               "code": "AI 边缘光场 V1 · 03 · R01",
               "title": "R01 · 主视觉细节",
-              "status": "CANDIDATE",
+              "status": "ACTIVE_CLOSURE",
               "authority_type": "visual",
               "menu_group": "visual_reference",
-              "render_mode": "menu_placeholder",
-              "summary": "确定整体视觉质感与代表性主画面。"
+              "render_mode": "recognition_visual_reference_spec",
+              "summary": "主视觉细节生成规范已建立：用于确定 AI 边缘光场整体质感、能量感与视觉上限；当前尚未生成并确认最终视觉 Authority。",
+              "authority": "design/pages/recognition/processing/references/R01_主视觉细节_生成规范_V1.md",
+              "generation_spec": {
+                "purpose": "确定 AI 边缘光场整体视觉质感与代表性主画面，不定义 Runtime 实现。",
+                "format": "9:16 单张完整真实钓鱼照片；无设备外框；不叠加技术标注。",
+                "composition": [
+                  "保持真实钓鱼照片为第一视觉主体",
+                  "四个能量岛全部出现且彼此断开",
+                  "右上蓝色岛为唯一主能量区",
+                  "左上金色岛为第二视觉支点",
+                  "左下金色岛负责低位承托",
+                  "右下蓝色岛最弱，负责冷色收尾",
+                  "四个 Quiet Gap 必须清晰可感知"
+                ],
+                "visual_focus": [
+                  "局部受光必须先于发光线被感知",
+                  "能量带必须有 Outer Bloom / Mid Glow / Core 的层次",
+                  "Hairline / Hot Node / Sparse Particle 可以比最终产品更明显",
+                  "整体允许偏强，优先确认 AI 存在感与光学层次"
+                ],
+                "must_keep": [
+                  "四岛拓扑不变",
+                  "Quiet Gap 不变",
+                  "蓝右 / 金左基本关系不变",
+                  "B_UR 主岛身份不变",
+                  "中央真实照片主阅读区保持干净"
+                ],
+                "forbidden": [
+                  "完整四边发光框",
+                  "椭圆轨道",
+                  "HUD / 扫描器",
+                  "雷电 / 激光 / 电路板",
+                  "四角等亮",
+                  "满屏粒子",
+                  "全屏蓝金染色",
+                  "粗霓虹 Core",
+                  "让 AI 光效压过真实照片"
+                ],
+                "closure": "生成后只判断整体视觉语言是否成立；未确认前不得作为 Runtime 像素级 Authority。"
+              }
             },
             {
               "id": "ai_edge_field_ref_r02",
