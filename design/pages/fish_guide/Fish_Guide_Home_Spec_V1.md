@@ -351,9 +351,13 @@ Primary page visual:
 
 `design/system/core_visual_v1/reference/fish_guide_v2.png`
 
-Unlit supplemental reference:
+UNLIT state visual authority (Core UI supplemental reference):
 
 `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
+
+Design Manager route:
+
+`鱼鉴 → 01A · 未点亮状态`
 
 Shared background:
 
