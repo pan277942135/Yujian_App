@@ -449,7 +449,36 @@ function iconActionPreviewHtml(item) {
   '</div>';
 }
 
+function backgroundSystemOverviewHtml(item) {
+  const masters = item.masters || [];
+  const cards = masters.map(master =>
+    '<article class="bg-master-card">' +
+      '<div class="bg-source-label">' + esc(master.name || master.id) + '</div>' +
+      '<a href="' + esc(repoHref(master.path)) + '" target="_blank" rel="noreferrer">' +
+        '<img src="' + esc(repoHref(master.path)) + '" alt="' + esc(master.name || master.id) + '">' +
+      '</a>' +
+      '<div class="bg-master-meta">' +
+        '<strong>' + esc(master.id) + '</strong>' +
+        '<span>' + esc(master.usage || "") + '</span>' +
+        '<span>' + esc(String(master.width || "")) + ' × ' + esc(String(master.height || "")) + '</span>' +
+      '</div>' +
+    '</article>'
+  ).join("");
+
+  return '<div class="bg-system-overview">' +
+    '<div class="bg-system-intro">' +
+      '<strong>Morning Lake Background System V1</strong>' +
+      '<span>两张 Canonical Master；5 种背景类型统一从左侧子菜单进入独立工作区。</span>' +
+    '</div>' +
+    '<div class="bg-master-grid">' + cards + '</div>' +
+    '<div class="preview-note">父级只负责系统总览与母版。BG_ENV_HERO / BG_CONTENT / BG_DATA / BG_CAPTURE / BG_SOLID_FALLBACK 不在这里重复生成子页面。</div>' +
+  '</div>';
+}
+
 function sharedPreviewHtml(item) {
+  if (item.id === "background_system_v1") {
+    return backgroundSystemOverviewHtml(item);
+  }
   if (item.preview_type === "layered_component" && item.id === "primary_capture_button_v1") {
     return layeredCapturePreviewHtml(item);
   }
@@ -680,6 +709,13 @@ function renderBackgroundVariantWorkspace(item, variantId) {
 function selectShared(id, variantId = null) {
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
+
+  const isBackground = item.id === "background_system_v1";
+  const selectedVariant = isBackground && variantId
+    ? (item.variants || []).find(v => v.id === variantId)
+    : null;
+  const directVariantMode = isBackground && item.navigation_mode === "submenu_direct";
+
   selectedKey = "shared/" + id + (variantId ? "/" + variantId : "");
   history.replaceState(
     null,
@@ -690,11 +726,17 @@ function selectShared(id, variantId = null) {
   hideAllDetails();
   el("sharedDetail").classList.remove("hidden");
 
-  el("pageEyebrow").textContent = "渔见 · 公共设计系统";
-  el("pageTitle").textContent = item.display_name;
-  el("pageStatus").innerHTML = statusBadge(item.overall);
+  el("pageEyebrow").textContent = selectedVariant
+    ? "渔见 · 公共设计系统 · 背景系统"
+    : "渔见 · 公共设计系统";
+  el("pageTitle").textContent = selectedVariant
+    ? (selectedVariant.id + " · " + selectedVariant.name)
+    : item.display_name;
+  el("pageStatus").innerHTML = statusBadge(selectedVariant?.status || item.overall);
+
   el("sharedName").textContent = item.display_name;
   el("sharedStatus").innerHTML = statusBadge(item.overall);
+
   const sharedMetaRows = [
     ["系统 ID", item.id],
     ["类型", CATEGORY_LABELS[item.category] || item.category],
@@ -720,24 +762,39 @@ function selectShared(id, variantId = null) {
 
   el("sharedPreview").innerHTML = sharedPreviewHtml(item);
 
-  el("variantGrid").innerHTML = (item.variants || []).map(v => {
-    const selectable = item.id === "background_system_v1";
-    const active = selectable && variantId === v.id ? " selected" : "";
-    const tag = selectable ? "button" : "div";
-    const attrs = selectable ? ' type="button" data-bg-variant="' + esc(v.id) + '"' : "";
-    return '<' + tag + ' class="variant-card' + (selectable ? " variant-selectable" : "") + active + '"' + attrs + '>' +
-      backgroundVariantPreview(item, v) +
-      '<div class="variant-id">' + esc(v.id) + '</div>' +
-      '<div class="variant-name">' + esc(v.name) + '</div>' +
-      '<div class="variant-usage">' + esc(v.usage || "") + '</div>' +
-      '<div class="variant-card-status">' + statusBadge(v.status || item.overall) + '</div>' +
-      (v.note ? '<div class="variant-note">' + esc(v.note) + '</div>' : '') +
-      '</' + tag + '>';
-  }).join("") || '<div class="preview-empty">尚未登记变体。</div>';
+  // Background System uses the sidebar variants as the only child-entry surface.
+  // The old right-side Variant card index is intentionally suppressed.
+  const overviewHero = el("sharedOverviewHero");
+  const variantPanel = el("sharedVariantPanel");
+  const authorityPanel = el("sharedAuthorityPanel");
 
-  document.querySelectorAll(".variant-selectable[data-bg-variant]").forEach(btn =>
-    btn.addEventListener("click", () => selectShared("background_system_v1", btn.dataset.bgVariant))
-  );
+  if (directVariantMode) {
+    variantPanel.classList.add("hidden");
+    el("variantGrid").innerHTML = "";
+
+    if (selectedVariant) {
+      overviewHero.classList.add("hidden");
+      authorityPanel.classList.add("hidden");
+    } else {
+      overviewHero.classList.remove("hidden");
+      authorityPanel.classList.remove("hidden");
+    }
+  } else {
+    overviewHero.classList.remove("hidden");
+    variantPanel.classList.remove("hidden");
+    authorityPanel.classList.remove("hidden");
+
+    el("variantGrid").innerHTML = (item.variants || []).map(v =>
+      '<div class="variant-card">' +
+        backgroundVariantPreview(item, v) +
+        '<div class="variant-id">' + esc(v.id) + '</div>' +
+        '<div class="variant-name">' + esc(v.name) + '</div>' +
+        '<div class="variant-usage">' + esc(v.usage || "") + '</div>' +
+        '<div class="variant-card-status">' + statusBadge(v.status || item.overall) + '</div>' +
+        (v.note ? '<div class="variant-note">' + esc(v.note) + '</div>' : '') +
+      '</div>'
+    ).join("") || '<div class="preview-empty">尚未登记变体。</div>';
+  }
 
   renderBackgroundVariantWorkspace(item, variantId);
 
