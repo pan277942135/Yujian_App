@@ -33,17 +33,7 @@ jobs:
           test "$(sha256sum /tmp/register_source | awk '{print $1}')" = "14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35"
 
           python3 -m pip install --quiet pillow
-          python3 - <<'PY'
-from PIL import Image
-pairs = [
-    ("/tmp/login_source", "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png"),
-    ("/tmp/register_source", "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png"),
-]
-for src, dst in pairs:
-    im = Image.open(src).convert("RGB")
-    assert im.size == (864, 1536), (src, im.size)
-    im.save(dst, "PNG", optimize=True, compress_level=9)
-PY
+          python3 -c "from PIL import Image; pairs=[('/tmp/login_source','design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png'),('/tmp/register_source','design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png')]; [(lambda im,dst: (im.size==(864,1536) or (_ for _ in ()).throw(AssertionError(im.size)), im.convert('RGB').save(dst,'PNG',optimize=True,compress_level=9)))(Image.open(src),dst) for src,dst in pairs]"
 
           {
             echo "Login source SHA-256: 2d338ae93153339f96d8d06759f4676ca9ee9df83a071375ed537683b6ce114c"
