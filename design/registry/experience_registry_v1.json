@@ -2349,7 +2349,8 @@
             "Vertical Scroll / Responsive / Accessibility",
             "Loading & Edge States → 03 · 鱼种状态",
             "Five Black-Gold Cards · INTERNAL CONTENT/VISUAL PARTIAL",
-            "Runtime Evidence → 09 · 验收证据"
+            "Runtime Evidence → 09 · 验收证据",
+            "Zero Catch State V1 · 0 次记录"
           ],
           "visual_status": "FROZEN",
           "visual_authority_source": {
@@ -2402,7 +2403,43 @@
             "my_species_header_action": "OPEN_MY_CATCHES_WITH_SPECIES_FILTER",
             "preview_action": "OPEN_SELECTED_FISH_RECORD_DETAIL",
             "card_internal_contract_status": "PARTIAL"
-          }
+          },
+          "children": [
+            {
+              "id": "zero_catch",
+              "title": "02A · 无我的鱼获记录",
+              "status": "FROZEN",
+              "render_mode": "repo_image",
+              "authority_type": "visual",
+              "authority": "design/pages/fish_guide/species_detail/Species_Detail_Zero_Catch_State_V1.md",
+              "visual_authority": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png",
+              "image": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png",
+              "summary": "savedCount=0 时的 Species Detail 子状态。只替换底部“我的{鱼种}”区域：0次记录、无 chevron、无图片槽、仅保留“还没有记录”与 Text Action“去记录鱼获 >”；上半页继续服从 02 Frozen Authority。",
+              "menu_points": [
+                "Trigger · savedCount = 0",
+                "Parent Species Detail Authority Wins",
+                "我的{鱼种} + 0次记录",
+                "No Chevron / Header Not Tappable",
+                "No Preview Tiles / No Placeholder Image",
+                "Copy · 还没有记录",
+                "Text Action · 去记录鱼获 >",
+                "Open Normal Recognition Capture",
+                "No Species Preselection",
+                "Transition 0 → 1",
+                "Acceptance Gate"
+              ],
+              "visual_authority_source": {
+                "kind": "repo_png",
+                "path": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png",
+                "source_name": "白条钓法卡_湖畔清晨指南.png",
+                "width": 941,
+                "height": 1672,
+                "size_bytes": 1815753,
+                "sha256": "bd3d4b0cee6c34e3c275cc55bc88730f26dadbb4f390230ed06931ae0347b2b4"
+              },
+              "freeze_date": "2026-09-29"
+            }
+          ]
         },
         {
           "id": "species_states",
@@ -2641,7 +2678,8 @@
             "短屏允许整页纵向滚动；禁止嵌套纵向滚动",
             "Reduce Motion 下仅降低 settle motion，不改变语义",
             "Loading / missing / 0 record / 1 record 等视觉状态交由 03 · 鱼种状态",
-            "5 张黑金卡内部 copy / visual / rating / naming 继续 PARTIAL"
+            "5 张黑金卡内部 copy / visual / rating / naming 继续 PARTIAL",
+            "Zero Catch：savedCount=0 时不显示 chevron / 预览图；显示“还没有记录” + Text Action“去记录鱼获 >”，进入正常 Recognition Capture，不预选鱼种"
           ]
         },
         {
@@ -2664,6 +2702,24 @@
             "跨状态优先级：Catalog identity → Runtime → Knowledge/Media → Encounter/Count",
             "03 流程图中的缩略页面只表达状态差异；若与 01/02 页面 Authority 冲突，以 01/02 为准",
             "五张黑金卡内部内容/视觉仍不属于 03 冻结范围"
+          ]
+        },
+        {
+          "id": "species_detail_zero_catch_v1",
+          "title": "02 · 鱼种详情 · Zero Catch V1",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/species_detail/Species_Detail_Zero_Catch_State_V1.md",
+          "visual_authority": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Zero_Catch_V1.png",
+          "summary": "鱼种详情下的 0 FishRecord 子状态，只改变 My Species 区域，不重开页面上半部设计。",
+          "points": [
+            "savedCount=0 触发；等价 Encounter=UNLIT",
+            "我的{鱼种} + 0次记录；无 chevron，Header/count 不可点击",
+            "删除 2 个鱼获预览槽，不放任何假图或占位鱼",
+            "只保留“还没有记录”",
+            "唯一动作：Text Action“去记录鱼获 >”",
+            "动作进入正常 Recognition Capture，不预选当前鱼种",
+            "图片中的 04/05 仅为母版状态示例，Zero Catch 可发生在任意知识卡 index",
+            "首次 qualifying FishRecord 保存成功后转入 1-record 状态"
           ]
         }
       ],
