@@ -294,23 +294,33 @@ function layeredCapturePreviewHtml(item) {
 }
 
 function actionButtonPreviewHtml(item) {
-  const frozenRef = item.frozen_visual_reference || null;
-  const frozenBlock = frozenRef && frozenRef.path
-    ? '<section class="action-frozen-authority">' +
+  const frozenSet = item.frozen_visual_authority_set || [];
+  const frozenBlock = frozenSet.length
+    ? '<section class="action-frozen-authority action-authority-set">' +
         '<div class="action-frozen-head">' +
-          '<div><span>FROZEN VISUAL REFERENCE</span><strong>静态视觉 Authority</strong></div>' +
-          '<div class="action-frozen-meta">' +
-            esc(frozenRef.width) + '×' + esc(frozenRef.height) + ' · ' +
-            esc(frozenRef.format || "SVG") + ' · SHA-256 ' +
-            esc(String(frozenRef.sha256 || "").slice(0,12)) + '…' +
-          '</div>' +
+          '<div><span>FROZEN VISUAL AUTHORITY SET</span><strong>01–06 · 完整静态 UI Authority</strong></div>' +
+          '<div class="action-frozen-meta">V1.1 · ' + frozenSet.length + ' references · all SHA-256 registered</div>' +
         '</div>' +
-        '<a class="action-frozen-image" href="' + esc(repoHref(frozenRef.path)) +
-          '" target="_blank" rel="noreferrer">' +
-          '<img src="' + esc(repoHref(frozenRef.path)) +
-          '" alt="Action Button V1.1 Frozen Visual Reference">' +
-        '</a>' +
-        '<div class="action-frozen-note">这张静态图负责最终视觉与组合构图；下方 Live Preview 仅用于交互、状态与响应式审视。</div>' +
+        '<div class="action-authority-grid">' +
+          frozenSet.map((ref,index) =>
+            '<article class="action-authority-card">' +
+              '<div class="action-authority-card-head">' +
+                '<strong>' + esc(ref.id || String(index + 1).padStart(2,"0")) + '</strong>' +
+                '<span>' + esc(ref.width) + '×' + esc(ref.height) + ' · SHA ' +
+                  esc(String(ref.sha256 || "").slice(0,10)) + '…</span>' +
+              '</div>' +
+              '<a class="action-frozen-image" href="' + esc(repoHref(ref.path)) +
+                '" target="_blank" rel="noreferrer">' +
+                '<img src="' + esc(repoHref(ref.path)) +
+                '" alt="' + esc(ref.id || "Action Button Authority") + '">' +
+              '</a>' +
+              '<div class="action-authority-coverage">' +
+                (ref.covers || []).map(x => '<span>' + esc(x) + '</span>').join("") +
+              '</div>' +
+            '</article>'
+          ).join("") +
+        '</div>' +
+        '<div class="action-frozen-note">01–06 六份静态图共同组成最终 UI Authority。任意状态均可独立用于开发和 QA；旧综合图仅保留为 Overview。</div>' +
       '</section>' +
       '<div class="action-live-divider"><span>LIVE PREVIEW · SUPPLEMENTAL</span></div>'
     : '';
@@ -382,7 +392,7 @@ function actionButtonPreviewHtml(item) {
       '</div>' +
     '</section>' +
 
-    '<div class="preview-note">普通业务 Primary 不使用金色；Reduce Motion 关闭 scale，仅保留按压颜色/表面反馈。主拍摄按钮继续独立管理。</div>' +
+    '<div class="preview-note">普通业务 Primary 不使用金色；Reduce Motion 关闭 scale，仅保留按压颜色/表面反馈。SECONDARY_MUTED Loading = N/A；主拍摄按钮继续独立管理。</div>' +
   '</div>';
 }
 
