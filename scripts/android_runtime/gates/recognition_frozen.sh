@@ -93,6 +93,13 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_production_flow_trace.txt"
   fi
 
+  "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+    "cache/recognition-evidence/recognition_focus_diagnostic.txt" \
+    > "$output_dir/recognition_focus_diagnostic.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_focus_diagnostic.txt" ]]; then
+    rm -f "$output_dir/recognition_focus_diagnostic.txt"
+  fi
+
   local recording_bytes=0 attempt
   for attempt in $(seq 1 20); do
     recording_bytes="$("${YUJIAN_ADB_BIN}" shell \
@@ -258,6 +265,7 @@ PY
     11_reduce_motion_low_performance.png \
     recognition_processing_timing.txt \
     recognition_production_flow_trace.txt \
+    recognition_focus_diagnostic.txt \
     recognition_processing_v1_1.mp4 \
     recognition_visual_parity.json \
     recognition_visual_parity_contact_sheet.png
