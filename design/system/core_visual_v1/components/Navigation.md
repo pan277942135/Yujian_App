@@ -22,19 +22,40 @@ Top Navigation only governs:
 
 It does **not** redefine Icon Action visuals.
 
-## 01 · TITLE_ONLY
+## 01 · TITLE_ONLY — FROZEN
 
-Use for root-level pages such as:
+Frozen authority:
+
+- `design/system/components/top_navigation/title_only/Title_Only_Spec_V1.md`
+- `design/system/components/top_navigation/title_only/visual_contract.json`
+- `design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg`
+- `design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg`
+- `design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg`
+
+Frozen consumers:
 
 - 我的鱼获
 - 鱼鉴
 
-Rules:
+Core rules:
 
 - no Back;
-- page title is the primary top-bar visual;
-- Search / Filter do not become Top Navigation variants;
-- page-specific Search / Filter live in page content or input/tool systems.
+- no Utility action;
+- transparent background;
+- host owns safe-area inset;
+- min content height **64dp**, using `heightIn(min=64dp)`;
+- horizontal padding **16dp**;
+- title = **28sp / Medium 500 / 34sp line-height**;
+- color = **DeepLakeBlue #0B2D4B**;
+- left aligned;
+- one line + Ellipsis at normal font scale;
+- small screen keeps 28sp and truncates rather than shrinking;
+- accessibility font scaling may increase component height;
+- subtitle / Search / Filter / progress belong below Top Navigation.
+
+Runtime note:
+
+- My Catches legacy `29sp / Bold + subtitle` is not shared-component authority and should be aligned during runtime closure.
 
 ## 02 · BACK_TITLE
 
@@ -87,4 +108,4 @@ Reason:
 
 ## Current completion
 
-The information architecture and semantic split are now authoritative, but detailed visual geometry / truncation / small-screen / state reference boards still need closure before Top Navigation V1 can be marked FROZEN.
+`TITLE_ONLY` is now FROZEN. `BACK_TITLE` and `BACK_TITLE_ACTIONS` still require detailed visual closure before the parent Top Navigation V1 can become FROZEN.
