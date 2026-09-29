@@ -47,3 +47,6 @@ Static identity: four disconnected edge-energy islands with mandatory quiet gaps
 
 - `accessibility/Recognition_Reduce_Motion_V1.md` — Reduce Motion behavior authority
 - `contracts/Recognition_Reduce_Motion_V1.json` — machine-readable accessibility motion contract
+
+- `accessibility/Recognition_Layer_Degradation_Order_V1.md` — global Edge Field / Fish Focus degradation order authority
+- `contracts/Recognition_Layer_Degradation_Order_V1.json` — machine-readable D0→D4 degradation ladder

@@ -1521,13 +1521,13 @@
           "render_mode": "recognition_degradation",
           "authority": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
-          "summary": "Recognition Degradation 只允许降低视觉复杂度或运动负担，不改变产品状态、AI Edge Field 身份、Fish Focus 语义或结果语义。01 · Quality Levels 与 02 · Reduce Motion 已冻结。",
+          "summary": "Recognition Degradation 已冻结 Quality Levels、Reduce Motion 与全局 Layer Degradation Order。性能降级优先牺牲环境/边缘细节，Edge Field 降至 LITE 后才允许 Fish Focus A→B→C。",
           "menu_points": [
             "01 · Quality Levels · FROZEN · FULL / BALANCED / LITE",
-            "02 · Reduce Motion · FROZEN · 停止持续位移/呼吸，保留必要 Fade 与静态识别语义",
-            "03 · Layer Degradation Order · 待冻结",
+            "02 · Reduce Motion · FROZEN · 停止持续位移/呼吸，保留静态语义",
+            "03 · Layer Degradation Order · FROZEN · D0→D4 全局降级阶梯",
             "04 · Semantic Invariants · 待冻结",
-            "Quality Level 与 Reduce Motion 正交，可任意组合"
+            "Fish Focus 语义优先级高于外围 Edge Field 细节"
           ],
           "children": [
             {
@@ -1724,6 +1724,112 @@
                   "activation mid-session jumps geometry",
                   "disable Reduce Motion resumes with sudden full-speed motion"
                 ]
+              }
+            },
+            {
+              "id": "layer_degradation_order",
+              "code": "05 · 03",
+              "title": "03 · Layer Degradation Order",
+              "status": "FROZEN",
+              "authority_type": "behavior",
+              "render_mode": "recognition_layer_degradation",
+              "authority": "design/pages/recognition/processing/accessibility/Recognition_Layer_Degradation_Order_V1.md",
+              "contract": "design/pages/recognition/processing/contracts/Recognition_Layer_Degradation_Order_V1.json",
+              "summary": "全局降级顺序：先 FULL→BALANCED→LITE 降低 AI Edge Field 成本，再 Fish Focus A→B→C。Photo、Status/Back、四岛身份、Quiet Gaps 与 Recognition 语义不可因性能降级移除。",
+              "degradation_order": {
+                "principle": "Preserve semantic focus before ambient decoration.",
+                "ladder": [
+                  {
+                    "level": "D0",
+                    "edge_field": "FULL",
+                    "fish_focus": "A",
+                    "description": "完整高保真：完整 Edge Field + 真实 subject contour + halo。",
+                    "allowed_changes": "None"
+                  },
+                  {
+                    "level": "D1",
+                    "edge_field": "BALANCED",
+                    "fish_focus": "A",
+                    "description": "先移除外围高频细节；Fish Focus 仍保留真实 contour。",
+                    "allowed_changes": "按 Quality Levels 删除 Micro / Secondary Fragment / 部分 Hairline / Particle / secondary node"
+                  },
+                  {
+                    "level": "D2",
+                    "edge_field": "LITE",
+                    "fish_focus": "A",
+                    "description": "Edge Field 到达品牌身份底线；Fish Focus A 仍优先保留。",
+                    "allowed_changes": "只保留四岛基础复合光场；Fish Focus 不降级"
+                  },
+                  {
+                    "level": "D3",
+                    "edge_field": "LITE",
+                    "fish_focus": "B",
+                    "description": "Edge Field 已为 LITE 后才允许 A→B。",
+                    "allowed_changes": "移除 subject contour；保留 real-bbox halo + restrained perimeter；禁止矩形框"
+                  },
+                  {
+                    "level": "D4",
+                    "edge_field": "LITE",
+                    "fish_focus": "C",
+                    "description": "最低视觉复杂度，仍表达 AI 已定位到鱼体。",
+                    "allowed_changes": "保留 real-bbox center-biased halo；contour/perimeter OFF"
+                  }
+                ],
+                "fish_focus_levels": [
+                  {
+                    "level": "A",
+                    "visual": "real bbox + subject contour + halo",
+                    "semantic_strength": "highest",
+                    "rule": "默认目标，只要可承受就优先保留"
+                  },
+                  {
+                    "level": "B",
+                    "visual": "real bbox-derived halo + restrained perimeter, no contour",
+                    "semantic_strength": "preserved",
+                    "rule": "禁止 detector rectangle；仍围绕真实鱼体"
+                  },
+                  {
+                    "level": "C",
+                    "visual": "real bbox center-biased halo only",
+                    "semantic_strength": "minimum acceptable",
+                    "rule": "仅明确性能降级时使用；仍由真实 bbox 定位"
+                  }
+                ],
+                "never_degrade": [
+                  "Original Photo",
+                  "Status copy / Back action",
+                  "3-state Recognition semantics",
+                  "Result routing / confidence semantics",
+                  "4 Primary Energy Islands",
+                  "Mandatory Quiet Gaps",
+                  "Primary Core + Mid Glow + basic Receiving Light",
+                  "Fish Focus starts only after real fish location",
+                  "Fish Focus source remains real detector bbox"
+                ],
+                "ordering_rules": [
+                  "不得在 Edge Field=FULL/BALANCED 时优先把 Fish Focus 降到 B/C",
+                  "不得通过移除某个 Primary Island 获得性能",
+                  "不得通过隐藏 Fish Focus 替代 A→B→C",
+                  "D3/D4 只降低 Fish Focus visual fidelity，不改变 detector/classifier/confidence",
+                  "降级不重启 SegmentOffset 或 Processing state",
+                  "恢复按 D4→D3→D2→D1→D0 反向逐级恢复，禁止一帧闪回全部细节",
+                  "帧时、Thermal、RAM/GPU 阈值属于平台实现，不在设计规范冻结"
+                ],
+                "floor": {
+                  "level": "D4",
+                  "rule": "D4 是最低允许视觉层级；不得继续退化成纯照片 + Loading。",
+                  "edge_field_floor": "LITE identity floor",
+                  "fish_focus_floor": "C center-biased halo from real bbox"
+                },
+                "reduce_motion_relation": {
+                  "independent": true,
+                  "application_order": "Select D-level → apply Edge Field Quality → apply Fish Focus A/B/C → apply Reduce Motion override.",
+                  "examples": [
+                    "D0 + Reduce Motion = FULL static Edge Field + Fish Focus A static",
+                    "D2 + Reduce Motion = LITE static Edge Field + Fish Focus A static",
+                    "D4 + Reduce Motion = LITE static Edge Field + Fish Focus C static"
+                  ]
+                }
               }
             }
           ]

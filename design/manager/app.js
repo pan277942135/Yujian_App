@@ -2210,7 +2210,44 @@ function recognitionReduceMotionCanvas(child) {
   '</div>';
 }
 
+
+function recognitionLayerDegradationCanvas(child) {
+  const d = child.degradation_order || {};
+  const ladder = d.ladder || [];
+  const focus = d.fish_focus_levels || [];
+  const rules = d.ordering_rules || [];
+  const never = d.never_degrade || [];
+
+  const ladderGrid = '<div class="recognition-state-grid">' +
+    ladder.map(item => '<article class="recognition-state-card">' +
+      '<div class="recognition-state-head"><strong>' + esc(item.level) + '</strong><span>Edge ' + esc(item.edge_field) + ' · Focus ' + esc(item.fish_focus) + '</span></div>' +
+      '<p>' + esc(item.description) + '</p><p><b>Allowed</b> · ' + esc(item.allowed_changes) + '</p></article>').join("") + '</div>';
+
+  const focusGrid = '<div class="authority-index-grid">' +
+    focus.map(item => '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>Fish Focus ' + esc(item.level) + '</strong></div>' +
+      '<div class="authority-kind">SEMANTIC STRENGTH · ' + esc(item.semantic_strength) + '</div>' +
+      '<p>' + esc(item.visual) + '</p><p>' + esc(item.rule) + '</p></article>').join("") + '</div>';
+
+  const itemGrid = (items, kind) => '<div class="authority-index-grid">' +
+    items.map((item,index) => '<article class="authority-index-card"><div class="authority-index-head"><strong>' +
+      esc(String(index+1).padStart(2,"0")) + '</strong></div><div class="authority-kind">' +
+      esc(kind) + '</div><p>' + esc(item) + '</p></article>').join("") + '</div>';
+
+  return '<div class="recognition-timeline-review">' +
+    '<div class="recognition-rule"><strong>Global Degradation Principle</strong><span>' + esc(d.principle || "") + '</span></div>' +
+    '<div class="recognition-section-title">D0 → D4 Global Ladder</div>' + ladderGrid +
+    '<div class="recognition-section-title">Fish Focus A / B / C</div>' + focusGrid +
+    '<div class="recognition-section-title">Never Degrade</div>' + itemGrid(never,"SEMANTIC / VISUAL FLOOR") +
+    '<div class="recognition-section-title">Ordering Rules</div>' + itemGrid(rules,"FROZEN ORDER") +
+    '<div class="recognition-section-title">Design Floor</div><div class="recognition-state-card"><p><b>' +
+      esc(d.floor?.level || "") + '</b> · ' + esc(d.floor?.rule || "") + '</p><p>Edge · ' +
+      esc(d.floor?.edge_field_floor || "") + '</p><p>Focus · ' + esc(d.floor?.fish_focus_floor || "") + '</p></div>' +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child) {
+  if (child.render_mode === "recognition_layer_degradation") return recognitionLayerDegradationCanvas(child);
   if (child.render_mode === "recognition_reduce_motion") return recognitionReduceMotionCanvas(child);
   if (child.render_mode === "recognition_quality_levels") return recognitionQualityLevelsCanvas(child);
   if (child.render_mode === "recognition_ai_edge_field_static") return recognitionAiEdgeFieldStaticCanvas(child);
