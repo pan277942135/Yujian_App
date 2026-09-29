@@ -33,7 +33,7 @@ import java.util.Locale
 
 private const val FISH_CARD_ROOT = "normal_home_runtime_v1/fish_card"
 @Composable
-fun RecentFishCard(
+internal fun RecentFishCard(
     item: RemoteCatch,
     imageUrl: String?,
     accessToken: String,
