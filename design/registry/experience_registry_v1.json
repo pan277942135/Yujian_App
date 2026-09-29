@@ -53,26 +53,35 @@
           "authority": "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
         }
       },
-      "note": "V2 canonical visual remains authority; V3 is an active fidelity-closure contract. Sound is explicitly frozen as no-playback. A superseding visual requires a new canonical binary/manifest.",
+      "note": "Design authority is V2 base + approved V2.2 delta freeze. Runtime/evidence revalidation is tracked separately and does not change design freeze state.",
       "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md",
       "display_name": "Empty Home",
       "design_versions": [
         {
           "version": "V2",
           "status": "FROZEN",
+          "current": false,
+          "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
+          "note": "Base scene authority retained for all pixels/behavior not changed by V2.2."
+        },
+        {
+          "version": "V2.2",
+          "status": "FROZEN",
           "current": true,
           "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
-          "note": "Current canonical visual authority."
+          "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
+          "source_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+          "note": "Approved delta freeze over V2: capture CTA clarity/spacing and rod-line-bobber-water-contact geometry."
         },
         {
           "version": "V3",
-          "status": "CANDIDATE",
+          "status": "DEPRECATED",
           "current": false,
           "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Final_Visual_Fidelity_V3.md",
-          "note": "Active visual-fidelity candidate; no superseding canonical PNG/manifest registered yet."
+          "note": "Historical closure document; not current authority after the approved V2.2 delta freeze."
         }
       ],
-      "design_overall": "ACTIVE_CLOSURE"
+      "design_overall": "FROZEN"
     },
     {
       "id": "home_normal_v1",
