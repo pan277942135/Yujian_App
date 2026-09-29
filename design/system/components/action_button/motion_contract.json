@@ -1,0 +1,34 @@
+{
+  "component": "action_button",
+  "version": "V1",
+  "status": "FROZEN",
+  "idle_animation": "none",
+  "pressed": {
+    "property": "scale",
+    "from": 1,
+    "to": 0.985,
+    "press_in_ms": 90,
+    "release_ms": 120,
+    "easing": "ease_out",
+    "spring_overshoot": false
+  },
+  "loading": {
+    "animation": "standard_progress_indicator",
+    "indicator_dp": 18,
+    "button_size_changes": false,
+    "repeated_tap": false
+  },
+  "reduce_motion": {
+    "scale_transform": false,
+    "pressed_color_feedback": true,
+    "loading_indicator": true
+  },
+  "haptic": {
+    "automatic": false,
+    "component_tap_haptic": "none",
+    "note": "Business success/error haptics are owned by page/event contracts."
+  },
+  "sound": {
+    "enabled": false
+  }
+}
