@@ -16,6 +16,11 @@ import kotlinx.coroutines.withContext
 private const val NORMAL_HOME_RUNTIME_ROOT = "normal_home_runtime_v1"
 
 internal data class NormalHomeRuntimeAssets(
+    val sceneBase: Bitmap,
+    val guestAvatar: Bitmap,
+    val fishCardGradient: Bitmap,
+    val fishCardOutline: Bitmap,
+    val fishCardShadow: Bitmap,
     override val cameraBase: Bitmap,
     override val cameraGoldRim: Bitmap,
     override val cameraBreathGlow: Bitmap,
@@ -34,6 +39,11 @@ private fun decodeNormalHomeAsset(context: Context, path: String): Bitmap {
 
 private fun loadNormalHomeRuntimeAssets(context: Context): NormalHomeRuntimeAssets =
     NormalHomeRuntimeAssets(
+        sceneBase = decodeNormalHomeAsset(context, "static/scene_base.webp"),
+        guestAvatar = decodeNormalHomeAsset(context, "avatar/guest_avatar.png"),
+        fishCardGradient = decodeNormalHomeAsset(context, "fish_card/fish_card_gradient.png"),
+        fishCardOutline = decodeNormalHomeAsset(context, "fish_card/fish_card_outline.png"),
+        fishCardShadow = decodeNormalHomeAsset(context, "fish_card/fish_card_shadow.png"),
         cameraBase = decodeNormalHomeAsset(context, "camera/camera_button_base.png"),
         cameraGoldRim = decodeNormalHomeAsset(context, "camera/camera_gold_rim_mask.png"),
         cameraBreathGlow = decodeNormalHomeAsset(context, "camera/camera_breath_glow.png"),
