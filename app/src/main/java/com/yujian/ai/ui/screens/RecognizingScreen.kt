@@ -40,6 +40,7 @@ import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
+import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
@@ -174,8 +175,16 @@ fun RecognitionProcessingScene(
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
-            val levelA = subjectBitmap != null && subjectBox != null && contour.isNotEmpty() && !motionPolicy.lowPerformance
-            logFocusDiagnostic(subjectResult, contour.size, assessment?.primary?.box, motionPolicy.lowPerformance, motionPolicy.reduceMotion, levelA)
+            val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
+            logFocusDiagnostic(
+                subject = subjectResult,
+                contourSegments = contour.size,
+                box = assessment?.primary?.box,
+                lowPerformance = motionPolicy.lowPerformance,
+                reduceMotion = motionPolicy.reduceMotion,
+                focusLevel = motionPolicy.fishFocusLevel,
+                levelAAvailable = levelAAvailable,
+            )
         }
     }
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
@@ -188,7 +197,13 @@ fun RecognitionProcessingScene(
         }
         RecognitionStatusOverlay(
             rendered,
-            Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = if (rendered == RecognitionPhase.DETECTING) 84.dp else 34.dp),
+            Modifier.align(Alignment.BottomCenter).padding(
+                horizontal = 24.dp,
+                vertical = if (
+                    rendered == RecognitionPhase.CAPTURED ||
+                    rendered == RecognitionPhase.DETECTING
+                ) 84.dp else 34.dp,
+            ),
             resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
         )
@@ -210,12 +225,14 @@ private fun RecognitionPhoto(
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
         resolveProgress = resolveProgress,
+        qualityLevel = motionPolicy.qualityLevel,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
         visualClockOverrideMs, phaseElapsedMs, resolveProgress,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
+        focusLevel = motionPolicy.fishFocusLevel,
     )
 }
 
@@ -250,12 +267,14 @@ private fun logFocusDiagnostic(
     box: NormalizedFishBox?,
     lowPerformance: Boolean,
     reduceMotion: Boolean,
-    levelA: Boolean = false,
+    focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
+    levelAAvailable: Boolean = false,
 ) {
     val bbox = box?.normalized()
     val mode = when {
-        levelA -> "LEVEL_A"
-        lowPerformance -> "LEVEL_B_LOW_PERF"
+        focusLevel == RecognitionFishFocusLevel.C -> "LEVEL_C"
+        focusLevel == RecognitionFishFocusLevel.B -> "LEVEL_B"
+        levelAAvailable -> "LEVEL_A"
         else -> "LEVEL_B"
     }
     Log.i(
@@ -263,7 +282,8 @@ private fun logFocusDiagnostic(
         "SUBJECT_STATUS=${subject.status} SUBJECT_QUALITY=${subject.quality ?: "UNKNOWN"} " +
             "SUBJECT_MASK_AREA=${subject.maskAreaRatio} SUBJECT_WIDTH=${subject.width} " +
             "SUBJECT_HEIGHT=${subject.height} CONTOUR_SEGMENTS=$contourSegments " +
-            "FOCUS_RENDER_MODE=$mode REAL_BBOX=${bbox?.x1 ?: "NONE"},${bbox?.y1 ?: "NONE"}," +
+            "FOCUS_RENDER_MODE=$mode FOCUS_LEVEL_REQUESTED=${focusLevel.name} " +
+            "REAL_BBOX=${bbox?.x1 ?: "NONE"},${bbox?.y1 ?: "NONE"}," +
             "${bbox?.x2 ?: "NONE"},${bbox?.y2 ?: "NONE"} LOW_PERFORMANCE=$lowPerformance " +
             "REDUCE_MOTION=$reduceMotion",
     )
