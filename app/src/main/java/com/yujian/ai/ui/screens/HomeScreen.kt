@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -147,7 +148,14 @@ fun HomeScreen(
                 runtimeAssets = emptyRuntimeAssets,
             )
         } else {
-            AssetImage(
+            normalRuntimeAssets?.sceneBase?.let { scene ->
+                Image(
+                    bitmap = scene.asImageBitmap(),
+                    modifier = Modifier.fillMaxSize(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                )
+            } ?: AssetImage(
                 HomeBackground,
                 Modifier.fillMaxSize(),
                 contentDescription = null,
