@@ -510,7 +510,7 @@
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
-      "note": "我的鱼获 V2 保持“时间记忆档案”模型。列表图片、5维筛选、Timeline Scroll、Growth Mark、搜索与三类 Empty State 已恢复为正式设计 Authority，并拆为可独立审阅的场景子页面；当前主要待确认项为 BG_DATA 有内容视觉与整体页面复核。",
+      "note": "我的鱼获 V2 已按历史高保真重新校对：主页面、Timeline、5维筛选、Empty States、Growth Mark 已有冻结 Authority；搜索 Focused/结果与加载异常继续收口。当前背景仍待 BG_DATA 最终视觉确认。",
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "我的鱼获 V2 · 设计冻结检查",
@@ -561,7 +561,7 @@
             "title": "Growth Mark V1",
             "status": "CONFIRMED",
             "blocking": true,
-            "decision": "Growth Mark V1 已恢复并冻结：首次记录 / 数量里程碑 / 同鱼种最重 / 同鱼种最长；列表最多1个，里程碑 > 首次 > 尺寸，最长+最重可合并。",
+            "decision": "Growth Mark V1 已按历史高保真恢复：首条某鱼种 / 数量里程碑 / 同鱼种最重 / 同鱼种最长；列表最多1个，里程碑 > 首条某鱼种 > 尺寸纪录，最长+最重可合并。",
             "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md"
           },
           {
@@ -577,7 +577,7 @@
             "title": "场景子页面",
             "status": "CONFIRMED",
             "blocking": true,
-            "decision": "已冻结默认 Timeline、单日 1–5 / 6–10 / >10、搜索 Focused / Results / Empty、Filter Sheet / Results / Empty、Archive Empty 与 Growth Mark 场景。加载/异常高保真仍为非阻塞补充项。",
+            "decision": "已恢复默认 Timeline、单日 1–5 / 6–10 / >10、Search、Filter、三类 Empty 与 Growth Mark 场景。>10 条进入当天鱼获详情；Search / Filter Empty 仍保留底部全局 Camera Button。",
             "authority": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md"
           }
         ]
@@ -608,7 +608,7 @@
             "鱼种：多选；50+ 时使用二级选择器，支持搜索 / 最近 / 全部",
             "时间：单选快捷范围 + 自定义日期范围",
             "地点：多选；支持搜索 / 最近 / 全部",
-            "特殊记录：首次记录 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
+            "特殊记录：首条某鱼种 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
             "尺寸：长度范围 + 重量范围",
             "筛选完成后仍保留月份 → 日期 → 鱼获的 Timeline 结构"
           ]
@@ -624,7 +624,7 @@
             "Month Header Sticky；Day Header 不长期吸顶",
             "单日 1–5 条全部展开",
             "6–10 条默认 5 条 +「查看另外 N 条」",
-            ">10 条默认 5 条 +「查看全部」",
+            ">10 条默认 5 条 +「查看全部 N 条鱼获」→ 进入当天鱼获详情",
             "搜索 / 筛选后仍保持 Timeline 分组",
             "初始最近 3 个月，向下滚动加载更早月份"
           ]
@@ -634,15 +634,15 @@
           "title": "Growth Mark V1",
           "status": "FROZEN",
           "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
-          "summary": "低权重个人记录印记，不做游戏化 Achievement Badge。",
+          "summary": "低权重个人记录印记：首条某鱼种 / 数量里程碑 / 同鱼种最重 / 同鱼种最长，不做游戏化 Achievement Badge。",
           "points": [
-            "V1 仅四类：首次记录 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
+            "V1 仅四类：首条某鱼种 / 数量里程碑 / 同鱼种最重 / 同鱼种最长",
             "数量里程碑：第10 / 50 / 100 / 500 / 1000 条",
             "列表单卡最多显示 1 个",
-            "优先级：数量里程碑 > 首次记录 > 尺寸纪录",
+            "优先级：数量里程碑 > 首条某鱼种 > 尺寸纪录",
             "同一条同时最长+最重 →「最长 · 最重」",
             "位置：卡片右上信息区、Chevron 左侧；22–24dp / 11–12sp",
-            "无图标、无阴影、无 glow、无动效"
+            "无强 icon、无阴影、无 glow、无动效"
           ]
         }
       ],
@@ -729,11 +729,11 @@
           "type": "timeline",
           "summary": "默认只展示最新 5 条，之后以轻量行展开剩余记录。",
           "rules": [
-            "默认展示 5 条",
-            "显示「查看另外 N 条」",
-            "原日期组内部展开",
-            "展开后显示「收起」",
-            "不跳新页面"
+            "默认展示最新 5 条",
+            "显示「查看另外 N 条鱼获」",
+            "点击后在当前日期组原位展开",
+            "展开后可「收起」",
+            "不跳转新页面"
           ],
           "preview": {
             "mode": "timeline_overflow",
@@ -742,7 +742,7 @@
             "day_summary": "千岛湖 · 8条鱼获",
             "record_count": 8,
             "visible_count": 5,
-            "action": "查看另外 3 条"
+            "action": "查看另外 3 条鱼获"
           }
         },
         {
@@ -751,13 +751,13 @@
           "status": "FROZEN",
           "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
           "type": "timeline",
-          "summary": "高密度单日记录仍留在原日期组，默认 5 条后显示「查看全部」。",
+          "summary": "单日记录过多时避免无限拉长主时间轴：默认 5 条，点击后进入当天鱼获详情。",
           "rules": [
-            "默认展示 5 条",
-            "显示「查看全部」",
-            "点击后原位展开全部",
-            "展开后显示「收起」",
-            "不创建“当天鱼获”新页面"
+            "默认展示最新 5 条",
+            "显示「查看全部 N 条鱼获」",
+            "点击进入当天鱼获详情",
+            "详情只展示该日期全部记录",
+            "返回恢复原 Timeline 滚动位置"
           ],
           "preview": {
             "mode": "timeline_overflow",
@@ -766,7 +766,8 @@
             "day_summary": "12条鱼获",
             "record_count": 12,
             "visible_count": 5,
-            "action": "查看全部"
+            "action": "查看全部 12 条鱼获",
+            "destination": "day_detail"
           }
         },
         {
@@ -777,16 +778,17 @@
           "type": "search",
           "summary": "搜索框原位进入焦点状态，不跳全屏搜索页。",
           "rules": [
+            "搜索进入顶部 Focused 模式",
+            "右侧显示「取消」",
+            "有输入时显示 ×",
             "键盘打开",
-            "Header / Filter / Timeline 框架保留",
-            "输入即时过滤",
-            "有输入时右侧显示 ×",
-            "不额外出现取消按钮"
+            "页面身份仍是我的鱼获"
           ],
           "preview": {
             "mode": "search_focus",
             "query": "",
-            "placeholder": "搜索鱼种、地点或日期"
+            "placeholder": "搜索鱼种、地点或日期",
+            "cancel": "取消"
           }
         },
         {
@@ -832,10 +834,11 @@
           "type": "empty",
           "summary": "保留 query 与筛选状态，只提供清除搜索。",
           "rules": [
+            "保留 query / × / 取消",
             "文案：没有找到相关鱼获",
             "辅助：你可以搜索：鱼种、地点、日期",
             "动作：清除搜索",
-            "禁止重新拍摄 / 记录第一条鱼"
+            "底部 Camera Button 始终保留"
           ],
           "preview": {
             "mode": "search_empty",
@@ -920,8 +923,9 @@
           "rules": [
             "文案：没有找到符合条件的鱼获",
             "辅助：试试调整筛选条件",
-            "主操作：修改筛选",
-            "次操作：清除筛选"
+            "主操作：清除筛选",
+            "次操作：修改筛选",
+            "底部 Camera Button 始终保留"
           ],
           "preview": {
             "mode": "filter_empty",
@@ -932,8 +936,8 @@
             ],
             "title": "没有找到符合条件的鱼获",
             "subtitle": "试试调整筛选条件",
-            "primary": "修改筛选",
-            "secondary": "清除筛选"
+            "primary": "清除筛选",
+            "secondary": "修改筛选"
           }
         },
         {
@@ -946,8 +950,8 @@
           "rules": [
             "文案：还没有鱼获记录",
             "辅助：拍下第一条鱼，开始你的鱼获时间线",
-            "行动：记录第一条鱼",
-            "底部保留主拍摄按钮",
+            "底部提示：记录第一条鱼",
+            "Camera Button 为唯一主记录行动",
             "不使用“暂无数据”"
           ],
           "preview": {
@@ -963,12 +967,12 @@
           "status": "FROZEN",
           "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
           "type": "growth",
-          "summary": "验证四类记录印记在 Row Card 中的弱权重落位与优先级。",
+          "summary": "验证首条某鱼种、数量里程碑、同鱼种最长/最重在 Row Card 中的低权重落位。",
           "rules": [
             "单卡最多 1 个",
-            "数量里程碑 > 首次记录 > 尺寸纪录",
-            "最长+最重合并",
-            "无 icon / shadow / glow / animation"
+            "数量里程碑 > 首条某鱼种 > 尺寸纪录",
+            "最长+最重可合并",
+            "FirstLocation 不属于 V1"
           ],
           "preview": {
             "mode": "growth_marks",
@@ -978,8 +982,8 @@
                 "mark": "第100条"
               },
               {
-                "species": "鲤鱼",
-                "mark": "第一次记录"
+                "species": "鲫鱼",
+                "mark": "首条鲫鱼"
               },
               {
                 "species": "青鱼",
@@ -1029,7 +1033,7 @@
           "render_mode": "timeline_board",
           "authority": "design/pages/fish_records/list/My_Catches_Timeline_Scroll_Spec_V1.md",
           "source_reference": "鱼获时间轴滚动规范展示板.png",
-          "summary": "高保真场景板：默认时间线、月份吸顶、日期节点，以及一天 1–5 / 6–10 / >10 条鱼获的展开规则。",
+          "summary": "高保真场景板：1–5 条全展开；6–10 条默认5条后原位展开；>10 条默认5条后进入当天鱼获详情。",
           "scenario_ids": [
             "timeline_default",
             "day_1_5",
@@ -1058,7 +1062,7 @@
           "render_mode": "empty_board",
           "authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
           "source_reference": "我的鱼获空状态规范图.png",
-          "summary": "高保真场景板：Archive Empty / Filter Empty / Search Empty 三类状态的视觉和恢复动作。",
+          "summary": "Archive / Filter / Search 三类 Empty 高保真；三态都保留底部全局 Camera Button，但恢复 CTA 各自不同。",
           "scenario_ids": [
             "archive_empty",
             "filter_empty",
@@ -1072,7 +1076,7 @@
           "render_mode": "growth_board",
           "authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
           "source_reference": "与自然相遇：Growth Mark V1 设计稿.png",
-          "summary": "高保真场景板：四类记录印记、优先级、单卡落位，以及最长+最重合并显示。",
+          "summary": "高保真场景板：首条某鱼种、数量里程碑、同鱼种最长/最重及单卡优先级。",
           "scenario_ids": [
             "growth_mark_examples"
           ]
@@ -1083,7 +1087,7 @@
           "status": "ACTIVE_CLOSURE",
           "render_mode": "search_board",
           "authority": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
-          "summary": "Focused / 有结果 / 无结果三态。Search Empty 已有历史高保真；Focused 与有结果状态以当前冻结结构补齐后再最终冻结。",
+          "summary": "Focused / 有结果 / 无结果三态；Focused 显示「取消」，Search Empty 继续保留底部全局 Camera Button。",
           "scenario_ids": [
             "search_focus",
             "search_results",
