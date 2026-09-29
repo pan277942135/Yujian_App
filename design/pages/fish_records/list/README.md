@@ -25,3 +25,10 @@ This is a memory timeline, not a sports analytics dashboard.
 Meaningful-record annotations such as 最大记录 / 首条草鱼 / 最长记录 remain visually below the fish record itself.
 
 Each record opens FishRecordDetail(recordId).
+
+
+## Icon Action
+
+- Standalone Filter trigger → Icon Action V1 / UTILITY / ON_LIGHT.
+- A Search Field leading magnifier is decoration when it is not independently tappable and must not be implemented as Icon Action.
+- Filter pills/chips remain Selection Controls, not Icon Action.
