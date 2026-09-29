@@ -4,32 +4,25 @@
   "experience_governance_version": "1.0",
   "experience_audit": "EXPERIENCE_AUDIT_V1.md",
   "design_frozen": true,
-  "visual_authority": "V2",
-  "visual_closure": "V3_ACTIVE_CLOSURE",
+  "visual_authority": "V2_BASE_PLUS_V2_2_DELTA",
+  "visual_revision": "V2.2",
+  "visual_revision_source_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
   "asset_production": "PASS",
   "shared_contracts": "PASS",
   "motion_contract": "PASS",
   "haptic_contract": "PASS",
   "sound_contract": "PASS_NO_PLAYBACK",
-  "android_runtime": "PASS_BASELINE",
-  "android_evidence": "PASS_BASELINE",
+  "android_runtime": "PENDING_REVALIDATION",
+  "android_evidence": "PENDING_REVALIDATION",
   "source_sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
-  "verified_ci": {
+  "previous_verified_ci": {
     "android_ci_run_id": 36386342604,
     "design_assets_run_id": 36386342595,
     "implementation_main_sha": "94a99f9a7c848e4bb124c5c454dcf42b3236f74b",
     "runtime_gate_artifact_id": 10955156190,
-    "runtime_gate_artifact_digest": "sha256:9edd3391deb6a11c8a9afb2f7a1248a79fe9d322ebd5c9f693d0a17dc57f683a",
     "runtime_gate": "empty-home-v2",
     "api_level": 28,
     "classification": "PASS"
   },
-  "open_items": [
-    {
-      "id": "EH-OPEN-01",
-      "type": "VISUAL_AUTHORITY",
-      "status": "OPEN",
-      "note": "V3 fidelity closure exists but no superseding canonical V3 frozen PNG/manifest entry is registered; V2 remains canonical."
-    }
-  ]
+  "design_open_items": []
 }
