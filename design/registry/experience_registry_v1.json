@@ -293,7 +293,8 @@
         },
         {
           "id": "top_navigation_v1",
-          "variant": "BACK_TITLE"
+          "variant": "BACK_TITLE",
+          "note": "Top Navigation V1 / BACK_TITLE / FROZEN：Back=Icon Action NAVIGATION；56dp min；20sp/Medium title；左排；旧居中 25sp/Bold 实现需在 runtime closure 对齐。"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -1807,6 +1808,11 @@
         {
           "id": "icon_action_v1",
           "note": "Icon Action V1：设置页 Back=NAVIGATION；输入框 Clear/Visibility=CONTEXT/ON_LIGHT。"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "BACK_TITLE",
+          "note": "Top Navigation V1 / BACK_TITLE / FROZEN：账号与隐私、账号与登录、修改密码、数据与隐私、关于渔见、隐私政策、用户协议统一使用同一二级页结构。"
         }
       ]
     },
@@ -2054,6 +2060,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "BACK_TITLE",
+          "note": "Top Navigation V1 / BACK_TITLE / FROZEN：编辑资料及其二级编辑页默认使用返回+标题；若未来增加 page-level utility，再显式升级到 BACK_TITLE_ACTIONS。"
         }
       ],
       "note": "编辑资料 V1 已建立正式二级设计目录；当前仅冻结目录边界，具体高保真、状态与交互合同待逐页设计。Runtime 已存在，不等于设计已冻结。",
@@ -2217,6 +2228,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "BACK_TITLE",
+          "note": "Top Navigation V1 / BACK_TITLE / FROZEN."
         }
       ]
     }
