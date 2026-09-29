@@ -1411,7 +1411,7 @@
           "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
-      "note": "Fish Guide V2：01 · 鱼鉴首页正式规范已于 2026-09-29 FROZEN。首页 V1 不含 Search；核心为低权重点亮进度 + 中央 Species Carousel + 左右邻卡预览 + LIT/UNLIT 自然收藏状态。其余 02–09 继续逐项建立规范。",
+      "note": "Fish Guide V2：01 · 鱼鉴首页 V1 已 FROZEN；02 · 鱼种详情当前页面级 Visual Authority 已登记为「精致白条钓法卡界面.png」，页面构图冻结，但 5 张黑金知识卡内部内容/视觉暂不审。其余 03–09 继续逐项建立规范。",
       "navigation_model": "fish_guide_spec_menu_v1",
       "design_manager_view_rules": {
         "overview": "parent page = 00 Overview; show page-level authority only",
@@ -1454,22 +1454,46 @@
           "title": "02 · 鱼种详情",
           "status": "PARTIAL",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_guide/README.md",
-          "summary": "鱼种详情及 5 张知识卡的规范入口。当前只登记结构，后续逐项建立正式 Authority。",
+          "authority": "design/pages/fish_guide/species_detail/Species_Detail_Visual_Authority_V1.md",
+          "summary": "02 · 鱼种详情的页面级 Visual Authority 已冻结为「精致白条钓法卡界面.png」。本次只冻结整页构图与层级；5 张黑金知识卡内部内容和视觉暂不审、不独立冻结。",
           "authority_type": "group",
           "menu_points": [
-            "Overview",
-            "Frozen Visual Authority",
-            "Navigation",
-            "Card Carousel · Hero / Recognition / Ecology / Equipment / Techniques",
-            "Card Layout",
-            "Swipe Behaviour",
+            "Current Page Visual Authority · FROZEN",
+            "Species Header",
+            "Knowledge Card Carousel Placement",
             "Adjacent Card Preview",
-            "Card Indicator",
-            "Species Summary",
-            "My Catch Summary",
-            "Runtime Acceptance"
-          ]
+            "NN / 05 Page Indicator",
+            "我的白条 · Catch Count + 2 Recent Catch Previews",
+            "Navigation / Interaction · TO SPEC",
+            "Five Black-Gold Cards · INTERNAL VISUAL/CONTENT TO REVIEW",
+            "Runtime Acceptance · TO REVIEW"
+          ],
+          "visual_status": "FROZEN",
+          "visual_authority_source": {
+            "kind": "uploaded_source_png",
+            "name": "精致白条钓法卡界面.png",
+            "width": 941,
+            "height": 1672,
+            "size_bytes": 1894997,
+            "sha256": "27b1af4eb8f163da51a1a02b100710aaca66cff66ea38335bc7f8e6628b457ef"
+          },
+          "visual_freeze_scope": [
+            "page composition",
+            "species header hierarchy",
+            "carousel placement",
+            "adjacent-card exposure",
+            "page indicator placement",
+            "My Species summary section",
+            "catch-count entry",
+            "two recent catch preview slots"
+          ],
+          "deferred_scope": [
+            "five-card internal content",
+            "five-card internal visual system",
+            "star/rating semantics",
+            "final card naming"
+          ],
+          "freeze_date": "2026-09-29"
         },
         {
           "id": "species_states",
@@ -1623,6 +1647,21 @@
             "Species Catch Count 仅统计成功保存的 FishRecord",
             "禁止 Grid / 瀑布流 / 传统列表 / 鱼形分页器 / 稀有度 / 星级 / 大锁",
             "从 Species Detail 返回后恢复原鱼种与 Carousel 位置"
+          ]
+        },
+        {
+          "id": "species_detail_visual_v1",
+          "title": "02 · 鱼种详情 · 页面级视觉",
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/species_detail/Species_Detail_Visual_Authority_V1.md",
+          "summary": "当前整页高保真已登记为 Visual Authority；只冻结页面构图与层级，5 张黑金卡内部设计显式排除在本轮冻结范围之外。",
+          "points": [
+            "Source：精致白条钓法卡界面.png · 941×1672",
+            "SHA-256：27b1af4eb8f163da51a1a02b100710aaca66cff66ea38335bc7f8e6628b457ef",
+            "冻结 Species Header、Carousel 主卡/邻卡关系、NN/05、我的白条区域",
+            "我的白条保留记录数 + 2 张最近真实鱼获预览的位置关系",
+            "五张黑金卡内部内容/视觉本轮不审，不因整页 Authority 自动视为独立 FROZEN",
+            "旧鱼种详情探索稿降级为 historical reference"
           ]
         }
       ],
