@@ -96,7 +96,15 @@
         "spacing.SP_2",
         "spacing.SP_3"
       ],
-      "runtime_notes": "TopNavigation defines layout composition only. TITLE_ONLY is for root pages; BACK_TITLE adds Icon Action V1/NAVIGATION; BACK_TITLE_ACTIONS allows 1–2 Icon Action V1/UTILITY actions. Search/Filter are not a TopNavigation variant and belong to page content tools or input systems."
+      "runtime_notes": "TopNavigation defines layout composition only. TITLE_ONLY is FROZEN at 28sp/Medium, 16dp horizontal padding, min 64dp and transparent surface. BACK_TITLE and BACK_TITLE_ACTIONS remain PARTIAL. Search/Filter are not TopNavigation variants.",
+      "variant_status": {
+        "TITLE_ONLY": "FROZEN",
+        "BACK_TITLE": "PARTIAL",
+        "BACK_TITLE_ACTIONS": "PARTIAL"
+      },
+      "variant_authority": {
+        "TITLE_ONLY": "design/system/components/top_navigation/title_only/Title_Only_Spec_V1.md"
+      }
     },
     {
       "component_id": "FishRecordRowCard",
