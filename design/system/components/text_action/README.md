@@ -1,7 +1,7 @@
 # YuJian Text Action V1
 
-Status: **ACTIVE_CLOSURE**  
-Current version: **V1 Candidate**  
+Status: **FROZEN**  
+Current version: **V1**  
 Scope: **Shared Design System**
 
 ## Purpose
@@ -11,17 +11,17 @@ Scope: **Shared Design System**
 Text Action 不是普通正文，也不是 Primary / Secondary Action Button。
 它用于轻量导航、局部编辑、流程切换和辅助动作。
 
-## Candidate semantic levels
+## Frozen semantic levels
 
 1. STRONG
 2. NORMAL
 3. MUTED
 
-## Current real usage candidates
+## Frozen real usage
 
 - Login: 创建账号 → STRONG
 - Register: 去登录 → STRONG
-- Login: 忘记密码？ → MUTED **candidate refinement**
+- Login: 忘记密码？ → MUTED
 - Recognition Result: 修改鱼种 + trailing chevron → NORMAL
 - Normal Home / section: 全部 + trailing chevron → NORMAL / ON_MEDIA
 - FishRecordDetail Hero: 编辑 + trailing chevron → NORMAL / ON_MEDIA
@@ -30,17 +30,15 @@ Text Action 不是普通正文，也不是 Primary / Secondary Action Button。
 
 ## Current status
 
-This package is intentionally **not FROZEN yet**.
+V1 is **FROZEN**. The approved refinement lowers Login `忘记密码？` to MUTED and page authority has been revised accordingly.
 
-Reason: the existing Login frozen preview renders 忘记密码？ with the same teal accent family as 创建账号. V1 Candidate proposes lowering it to MUTED. This must be visually approved before page authority is revised.
+## Frozen visual authority
 
-## Candidate visual references
+- visual/authority/01_Semantic_Roles.svg
+- visual/authority/02_Real_Usage.svg
+- visual/authority/03_STRONG_States.svg
+- visual/authority/04_NORMAL_States.svg
+- visual/authority/05_MUTED_States.svg
+- visual/authority/06_ON_MEDIA_States.svg
 
-- visual/candidate/01_Semantic_Roles.svg
-- visual/candidate/02_Real_Usage.svg
-- visual/candidate/03_STRONG_States.svg
-- visual/candidate/04_NORMAL_States.svg
-- visual/candidate/05_MUTED_States.svg
-- visual/candidate/06_ON_MEDIA_States.svg
-
-After approval these references may be promoted to Frozen Authority without redrawing.
+These six references are the complete static visual authority for Text Action V1.
