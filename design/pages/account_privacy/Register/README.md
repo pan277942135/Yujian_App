@@ -4,7 +4,7 @@ Status: **FROZEN (design)**
 
 Current authority:
 
-- Frozen visual: `design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.webp`
+- Frozen visual: `design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Preview.svg`
 - Frozen spec: `design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md`
 - Frozen manifest: `design/pages/account_privacy/Register/frozen/manifest.json`
 - Shared background: `Morning_Lake_Master_V1 / BG_CONTENT`
