@@ -1,7 +1,7 @@
 {
   "component": "primary_capture_button",
-  "component_version": "V1",
-  "visual_revision": "V2.2",
+  "component_version": "V1.1",
+  "visual_revision": "User Approved Capture Button 2026-09-29",
   "status": "FROZEN",
   "frozen_date": "2026-09-29",
   "reference_canvas": [
@@ -14,18 +14,28 @@
     "height": 208,
     "format": "PNG RGBA",
     "alpha": true,
-    "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
-    "source": "Empty_Home_Final_Design_V2",
+    "bytes": 58154,
+    "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+    "source": "渔见湖畔鱼获记录界面.png",
+    "source_canvas": [
+      941,
+      1672
+    ],
+    "source_crop": {
+      "x": 382,
+      "y": 1346,
+      "w": 174,
+      "h": 174
+    },
     "role": "frozen_shared_static_visual_master",
-    "source_alias": "design/system/components/primary_capture_button/assets/capture_button_base.png",
-    "byte_identical_to_source_alias": true
+    "provenance": "Direct visual extraction from the user-approved screenshot; no style redesign."
   },
   "visual": {
-    "core": "solid white",
-    "rim": "complete fine warm-gold rim, already included in canonical static asset",
-    "icon": "deep lake blue-grey camera glyph, already included in canonical static asset",
-    "depth": "light restrained depth / highlight; no heavy floating shadow",
-    "clarity": "immediately readable against Morning Lake backgrounds"
+    "core": "white glass-supported circular core",
+    "rim": "thin bright warm-gold rim with visible silver/grey glass support ring",
+    "icon": "deep lake blue-grey camera glyph",
+    "depth": "restrained inner glass depth and subtle edge shadow",
+    "clarity": "must match the approved screenshot at normal viewing size"
   },
   "motion_overlays": [
     {
@@ -76,13 +86,13 @@
     }
   },
   "prohibited": [
+    "using the superseded V1.0 / old capture_button_base.png as visual authority",
     "re-drawing the static button per page",
     "blue filled circle",
     "thick gold ring",
     "heavy drop shadow",
     "neon glow",
     "shrinking or replacing the approved camera glyph",
-    "baking motion overlays into an alternate long-lived static asset",
-    "cropping a new production button from page screenshots"
+    "baking page background into the canonical asset"
   ]
 }
