@@ -110,3 +110,16 @@ Copy: **CLOSED V1**
 Recovery behavior: **CLOSED V1**
 
 Runtime parity: **NOT PART OF THIS DESIGN REVIEW**
+
+## Hero Media Contract — FROZEN
+
+Low remains a recognition-result state with a detected fish subject, even when species identity is uncertain.
+
+Use **Subject First**:
+- valid fish bbox → safe Smart Crop;
+- unsafe/missing bbox → Subject Safe Fit;
+- preserve fish integrity before fill efficiency;
+- no pending-species semantics are implied by the media contract.
+
+Authority:
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`

@@ -33,6 +33,23 @@ All five remain canonical in `design/pages/recognition/design/`. Menu pages refe
 
 All 3+2 states retain the user's real capture as the context/hero media.
 
+### Hero Media Contract
+
+Dynamic user-photo placement is frozen by:
+
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`
+- `../media/hero_media_contract.json`
+
+Shared rule:
+- outer Hero geometry stays stable across photo ratios;
+- High / Medium / Low = Subject First;
+- valid fish bbox → Smart Crop only when FishSafeRect remains protected;
+- unsafe crop → Safe Fit;
+- No Fish / Image Quality = Evidence Fit, full source preserved;
+- no detector/classifier crop as Hero source;
+- no blurred-photo support fill;
+- no generative expand/outpaint.
+
 ### Result is no longer Processing
 
 After Result:

@@ -77,7 +77,42 @@ PASS only when:
 - compact-height state remains usable
 - system bars/IME do not hide required actions
 
-## I. Save contract
+## I. Hero Media Contract
+
+For High / Medium / Low with a trustworthy bbox:
+
+- display source is the original oriented user photo;
+- fish bbox rectangular coverage = 100%;
+- FishSafeRect rectangular coverage = 100%;
+- FishSafeRect visible coverage after rounded-mask clipping >=98%;
+- FishSafeRect expansion = 14% each horizontal side / 18% each vertical side;
+- minimum visual safety inset = 12dp;
+- a bbox side within 2% of the source edge is treated as SOURCE_CLIPPED and must not be cropped further;
+- unsafe Fill falls back to Subject Safe Fit;
+- no detector/classifier crop is displayed as Hero;
+- no blurred duplicate-photo support fill;
+- no post-entry crop jump.
+
+For No Fish / Image Quality:
+
+- full oriented source image visible = 100%;
+- ContentScale = Fit/Contain;
+- bbox-based crop = prohibited;
+- no blurred duplicate-photo support fill;
+- no AI enhancement/sharpening/outpaint.
+
+For all 3+2 states:
+
+- orientation is correct;
+- no stretch;
+- no generative modification;
+- outer Hero geometry is stable across source ratios.
+
+Frozen machine-readable test matrix:
+
+`../media/hero_media_test_vectors.json`
+
+## J. Save contract
 
 For resolved-species states:
 - duplicate submission is blocked
@@ -86,7 +121,7 @@ For resolved-species states:
 - continue-memory creates FishRecord before memory operations
 - correction feedback is preserved when species changes
 
-## J. Evidence target
+## K. Evidence target
 
 Required implementation evidence should include at minimum:
 - High runtime screenshot
@@ -103,7 +138,7 @@ Required implementation evidence should include at minimum:
 
 Existing Recognition visual parity may continue to validate 05–09, but Result-specific behavioral evidence must not be omitted merely because the full Recognition gate is green.
 
-## K. Prohibited shortcuts
+## L. Prohibited shortcuts
 
 - replacing Frozen PNGs with runtime captures
 - lowering parity thresholds to obtain PASS
@@ -111,3 +146,5 @@ Existing Recognition visual parity may continue to validate 05–09, but Result-
 - changing confidence semantics to make screens easier to test
 - inventing pending-species persistence
 - retaining no-op controls
+- universal CenterCrop for arbitrary user photos
+- blurred source-photo copy as Hero support fill

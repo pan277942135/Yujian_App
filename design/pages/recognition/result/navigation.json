@@ -20,6 +20,7 @@
       "contains": [
         "3+2 状态关系",
         "共用视觉规则",
+        "Hero Media Contract V1",
         "CTA Map",
         "Motion / Adaptive / Accessibility",
         "最终闭环"
@@ -36,6 +37,7 @@
       "page": "design/pages/recognition/result/01_high/README.md",
       "contains": [
         "真实鱼获 Hero",
+        "Hero Media Contract V1",
         "鱼种 + 修改鱼种",
         "轻量鱼获信息",
         "鱼获感言",
@@ -53,6 +55,7 @@
       "page": "design/pages/recognition/result/02_medium/README.md",
       "contains": [
         "真实鱼获 Hero",
+        "Hero Media Contract V1",
         "单行确认文案",
         "候选横排",
         "其他鱼种入口",
@@ -70,6 +73,7 @@
       "page": "design/pages/recognition/result/03_low/README.md",
       "contains": [
         "无法确认是什么鱼",
+        "Hero Media Contract V1",
         "手动选择鱼种",
         "重新拍摄",
         "选择前不展示正常 Metadata / Save"
@@ -86,6 +90,7 @@
       "page": "design/pages/recognition/result/04_no_fish/README.md",
       "contains": [
         "未找到可识别的鱼",
+        "Hero Media Contract V1",
         "重新拍摄",
         "从相册选择",
         "无 FishRecord 创建"
@@ -102,6 +107,7 @@
       "page": "design/pages/recognition/result/05_image_quality/README.md",
       "contains": [
         "照片不够清晰",
+        "Hero Media Contract V1",
         "清晰度/遮挡指导",
         "重新拍摄",
         "从相册选择",
