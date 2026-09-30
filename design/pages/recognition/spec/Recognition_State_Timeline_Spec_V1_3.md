@@ -1,6 +1,6 @@
 # Recognition State Timeline Spec V1.3
 
-Status: **ACTIVE CLOSURE**
+Status: **FROZEN**
 
 Scope: **product / experience design only**.
 
@@ -242,4 +242,4 @@ The target Recognition Processing model is:
 
 No fourth Processing state should be added without an explicit new design decision.
 
-This page remains **ACTIVE_CLOSURE** until the three-state product structure is explicitly frozen.
+This three-state product structure is now **FROZEN**. Any future change to the number, meaning, or ordering of Processing states requires an explicit new design version.
