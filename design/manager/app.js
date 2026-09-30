@@ -226,8 +226,9 @@ function renderLists() {
     const key = "page/" + feature.id;
     const hasChildren = (feature.hifi_views || []).length > 0;
     const navId = "page:" + feature.id;
-    const selectedDescendant = hasChildren && !!selectedKey && selectedKey.startsWith(key + "/");
-    const expanded = hasChildren && isLevelOneExpanded(navId, selectedDescendant);
+    const selectedBranch = hasChildren && !!selectedKey &&
+      (selectedKey === key || selectedKey.startsWith(key + "/"));
+    const expanded = hasChildren && isLevelOneExpanded(navId, selectedBranch);
     const parent = '<button class="module-item' + (hasChildren ? ' nav-parent' : '') +
       (selectedKey === key ? " active" : "") +
       '" data-kind="page" data-id="' + esc(feature.id) + '"' +
