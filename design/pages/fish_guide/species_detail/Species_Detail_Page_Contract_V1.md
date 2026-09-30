@@ -309,7 +309,7 @@ Open the selected record from a preview.
 
 Back returns to the same Species Detail state.
 
-Detailed deep-link policy remains owned by **04 · 鱼种导航**; deep links must not alter this page's visual hierarchy.
+Deep-link and return semantics are owned by this page contract together with **05 · 动效与交互**; there is no standalone Fish Guide navigation menu. Deep links must not alter this page's visual hierarchy.
 
 ---
 
@@ -330,7 +330,7 @@ Rules:
 
 ## 10. Responsive guardrails
 
-Detailed global responsive standards are owned by **08 · 响应式**, but Species Detail freezes these invariants:
+Detailed global responsive standards are owned by **06 · 响应式与无障碍**, but Species Detail freezes these invariants:
 
 - active knowledge card remains the primary page object;
 - left/right card affordance remains perceptible on standard phone widths;
@@ -454,6 +454,6 @@ Species Detail page-level design is accepted only when all are true:
 - [x] Back to Fish Guide restores the originating species carousel position.
 - [x] Round trips through My Catches / FishRecordDetail restore Species Detail card state.
 - [x] Five black-gold card internal content/visual design remains explicitly outside this freeze.
-- [ ] Runtime visual/interaction evidence is attached under **09 · 验收证据**.
+- [ ] Runtime visual/interaction evidence is tracked in Overview / implementation closure without reopening this page contract.
 
 The final unchecked Runtime Evidence item does not reopen the frozen page-level design contract.
