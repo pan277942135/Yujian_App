@@ -1,6 +1,6 @@
 # FishRecordDetail B-side Visual Authority V1
 
-Status: **FROZEN CANDIDATE — binary gate required**  
+Status: **FROZEN SPEC — approved visual bytes fixed; repository binary gate pending**  
 Freeze decision date: **2026-09-30**  
 Design Manager owner: **02 · B 面 · 鱼获记忆**
 
@@ -20,7 +20,7 @@ The approved source is the exact uploaded PNG selected on 2026-09-30.
 - Resize / crop / recompress: **FORBIDDEN**
 - Screenshot reconstruction: **FORBIDDEN**
 
-The visual becomes repository-level **FROZEN** only after the canonical path contains these exact bytes and the SHA-256 gate passes.
+The **specification is frozen now**. The Design Manager visual itself becomes repository-level **FROZEN** only after the canonical path contains these exact approved bytes and the SHA-256 gate passes.
 
 ## 2. A/B relationship
 
