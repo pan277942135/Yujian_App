@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "page_id": "normal_home_v1",
+  "canonical_reference": {
+    "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "classification": "REFERENCE_ONLY"
+  },
+  "runtime_media": [
+    {
+      "id": "recent_catch_photo",
+      "classification": "RUNTIME_MEDIA",
+      "source": "FishRecord"
+    },
+    {
+      "id": "user_avatar",
+      "classification": "RUNTIME_PROFILE_MEDIA",
+      "source": "Account profile"
+    }
+  ],
+  "shared_components": [
+    "YuJianCatchHeroCard/HOME",
+    "YuJianPrimaryCaptureButton"
+  ],
+  "runtime_asset_root": "app/src/main/assets/normal_home_runtime_v1/",
+  "registered_runtime_derivatives": [
+    "static/scene_base.webp",
+    "camera/camera_button_base.png",
+    "camera/camera_gold_rim_mask.png",
+    "camera/camera_breath_glow.png",
+    "avatar/guest_avatar.png",
+    "fish_card/fish_card_gradient.png",
+    "fish_card/fish_card_outline.png",
+    "fish_card/fish_card_shadow.png"
+  ],
+  "background": {
+    "classification": "PAGE_SPECIFIC_REFERENCE",
+    "system_role": "BG_ENV_HERO",
+    "independent_master_registered": false,
+    "policy": "Do not crop the frozen page screenshot into a new reusable background master."
+  },
+  "forbidden": [
+    "hardcoded frozen catch photo",
+    "hardcoded frozen user avatar",
+    "screenshot-derived shared card bitmap",
+    "screenshot-derived Morning Lake master",
+    "page-local fork of shared capture button"
+  ]
+}

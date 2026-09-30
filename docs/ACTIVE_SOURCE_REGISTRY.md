@@ -44,6 +44,46 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
   - do not delete until Normal Home migrates to its own canonical runtime asset root.
   - this path is not Empty Home V2 authority.
 
+## Normal Home
+
+### Active design authority
+
+- Design package closure:
+  `design/pages/home/normal_home/DESIGN_PACKAGE_CLOSURE_V1.md`
+- Frozen visual:
+  `design/system/core_visual_v1/reference/normal_home_v1.png`
+- Frozen SHA-256:
+  `6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377`
+- Feature/behavior/visual/acceptance:
+  `design/pages/home/normal_home/spec/`
+- Motion:
+  `design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md`
+- Haptic:
+  `design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md`
+- Sound:
+  `design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md`
+- Assets:
+  `design/pages/home/normal_home/assets/asset_manifest.json`
+- Authority order:
+  `design/pages/home/normal_home/authority/authority_map.json`
+- Status:
+  `design/pages/home/normal_home/status.json`
+
+### Background authority
+
+Normal Home background is currently governed by the frozen Normal Home reference plus the Core Visual System `BG_ENV_HERO` rules. No independent `Morning_Lake_Master_V1` is registered in the repository, so it is not active authority.
+
+### Runtime traceability
+
+- Android runtime assets:
+  `app/src/main/assets/normal_home_runtime_v1/`
+- Runtime contract test:
+  `NormalHomeRuntimeContractTest`
+- Runtime gate:
+  `normal-home-v1`
+
+Design freeze and runtime evidence status are tracked separately.
+
 ## Recognition Processing
 
 ### Active authority
