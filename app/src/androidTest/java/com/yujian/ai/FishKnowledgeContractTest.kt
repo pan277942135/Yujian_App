@@ -22,6 +22,19 @@ class FishKnowledgeContractTest {
     }
 
     @Test
+    fun species_list_parser_excludes_non_active_catalog_entries() {
+        val items = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
+            """[
+              {"id":"active","name_cn":"白条","status":"active"},
+              {"id":"draft","name_cn":"草稿鱼","status":"DRAFT"},
+              {"id":"retired","name_cn":"停用鱼","status":"INACTIVE"}
+            ]""",
+        )
+
+        assertEquals(listOf("active"), items.map { it.id })
+    }
+
+    @Test
     fun detail_contract_parses_full_asset_package_and_sorts_cards() {
         val repository = FishKnowledgeRepository("https://api.example")
         val detail = repository.parseDetailJson(

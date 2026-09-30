@@ -3,14 +3,17 @@ package com.yujian.ai
 import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.test.platform.app.InstrumentationRegistry
+import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.knowledge.FishGuideItem
 import com.yujian.ai.knowledge.FishKnowledgeCard
 import com.yujian.ai.knowledge.FishKnowledgeCardContent
@@ -149,46 +152,122 @@ class FishGuideRuntimeTest {
                 onSpeciesClick = {},
             )
         }
-        composeRule.onNodeWithText("鱼种档案暂时无法加载").assertIsDisplayed()
+        composeRule.onNodeWithText("当前无法加载鱼种资料").assertIsDisplayed()
         saveScreenshot("fish_guide_error.png")
-        composeRule.onNodeWithText("重试").performClick()
+        composeRule.onNodeWithText("检查网络后重试").performClick()
         composeRule.runOnIdle { assertTrue(retried) }
     }
 
     @Test
     fun speciesDetail_usesNaturalKnowledgeSemanticsAndRealCatchCount() {
-        val fallback = species.first().copy(catches = 3)
         val detail = detailFixture()
-        var openedCatch = false
+        val catches = listOf(
+            catch("catch_1", "grass_carp", "2026-09-22T10:00:00Z"),
+            catch("catch_2", "grass_carp", "2026-09-25T10:00:00Z"),
+            catch("catch_3", "grass_carp", "2026-09-27T10:00:00Z"),
+            catch("other", "crucian_carp", "2026-09-28T10:00:00Z"),
+        )
+        var openedCatchId: String? = null
+        var openedSpeciesFilter: String? = null
         var backed = false
         composeRule.setContent {
             FishSpeciesDetailScreen(
                 detail = detail,
-                fallback = fallback,
+                fallback = null,
+                savedCatches = catches,
                 loading = false,
                 offlinePreview = false,
                 error = null,
                 resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
                 onRetry = {},
                 onBack = { backed = true },
-                onOpenCatch = { openedCatch = true },
+                onRecordCatch = {},
+                onOpenCatch = { openedCatchId = it },
+                onOpenSpeciesCatches = { openedSpeciesFilter = it },
             )
         }
 
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
-        composeRule.onNodeWithText("鱼种主卡").assertExists()
+        composeRule.onNodeWithText("鱼种名片").assertExists()
         composeRule.onNodeWithText("英雄卡").assertDoesNotExist()
         composeRule.onNodeWithText("稀有 2  ·  力量 3  ·  挑战 1").assertDoesNotExist()
+        composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        composeRule.onNodeWithText("排行榜").assertDoesNotExist()
         saveScreenshot("fish_species_detail.png")
+        composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("3次记录").assertIsDisplayed()
 
-        composeRule.onNodeWithText("我的鱼获").performClick()
-        composeRule.onNodeWithText("已记录 3 条该鱼种鱼获").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("我的草鱼，3次记录，打开该鱼种鱼获").performClick()
+        composeRule.runOnIdle { assertEquals("grass_carp", openedSpeciesFilter) }
+        composeRule.onNodeWithContentDescription("打开草鱼鱼获记录，2026-09-27，照片暂不可用").performClick()
+        composeRule.runOnIdle { assertEquals("catch_3", openedCatchId) }
         saveScreenshot("fish_species_detail_catch.png")
-        composeRule.onNodeWithText("查看我的鱼获 · 3").performClick()
-        composeRule.runOnIdle { assertTrue(openedCatch) }
 
         composeRule.onNodeWithContentDescription("返回").performClick()
         composeRule.runOnIdle { assertTrue(backed) }
+    }
+
+    @Test
+    fun speciesDetail_zeroCatch_usesQuietStateAndUnfilteredCaptureEntry() {
+        var openedCapture = false
+        var openedFilteredCatches = false
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detailFixture(),
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = {},
+                onRecordCatch = { openedCapture = true },
+                onOpenCatch = {},
+                onOpenSpeciesCatches = { openedFilteredCatches = true },
+            )
+        }
+
+        composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("0次记录").assertIsDisplayed()
+        composeRule.onNodeWithText("还没有记录").assertIsDisplayed()
+        saveScreenshot("fish_species_detail_zero_catch.png")
+        composeRule.onNodeWithText("去记录鱼获").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertTrue(openedCapture)
+            assertFalse(openedFilteredCatches)
+        }
+    }
+
+    @Test
+    fun speciesDetail_knowledgeCarouselHasFiveFinitePositions() {
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detailFixture(),
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = {},
+                onRecordCatch = {},
+                onOpenCatch = {},
+                onOpenSpeciesCatches = {},
+            )
+        }
+
+        composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        repeat(4) {
+            composeRule.onNodeWithTag("fish_species_knowledge_carousel").performTouchInput { swipeLeft() }
+        }
+        composeRule.onNodeWithText("05 / 05").assertIsDisplayed()
+        composeRule.onNodeWithTag("fish_species_knowledge_carousel").performTouchInput { swipeLeft() }
+        composeRule.onNodeWithText("05 / 05").assertIsDisplayed()
     }
 
     @Test
@@ -198,19 +277,34 @@ class FishGuideRuntimeTest {
             FishSpeciesDetailScreen(
                 detail = null,
                 fallback = null,
+                savedCatches = emptyList(),
                 loading = false,
                 offlinePreview = false,
                 error = "服务暂不可用",
                 resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
                 onRetry = { retried = true },
                 onBack = {},
+                onRecordCatch = {},
                 onOpenCatch = {},
+                onOpenSpeciesCatches = {},
             )
         }
-        composeRule.onNodeWithText("暂时无法读取鱼种详情").assertIsDisplayed()
+        composeRule.onNodeWithText("该鱼种资料暂不可用").assertIsDisplayed()
         composeRule.onNodeWithText("重试").performClick()
         composeRule.runOnIdle { assertTrue(retried) }
     }
+
+    private fun catch(id: String, speciesId: String, date: String) = RemoteCatch(
+        id = id,
+        imageUrl = "",
+        speciesId = speciesId,
+        speciesName = "草鱼",
+        confidence = 0.9f,
+        modelVersion = "test",
+        capturedAt = date,
+        createdAt = date,
+    )
 
     private fun detailFixture(): FishKnowledgeDetail = FishKnowledgeDetail(
         species = FishKnowledgeSpecies(

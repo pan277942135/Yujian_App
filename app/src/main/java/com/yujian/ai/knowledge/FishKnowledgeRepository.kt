@@ -31,8 +31,9 @@ class FishKnowledgeRepository(
                 coverImage = item.optString("cover_image").ifBlank { null },
                 pinyin = item.optString("pinyin").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
                 pinyinInitials = item.optString("pinyin_initials").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
+                catalogStatus = item.optString("status", "ACTIVE").trim().uppercase().ifBlank { "ACTIVE" },
             )
-        }.filter { it.id.isNotBlank() && it.nameCn.isNotBlank() }
+        }.filter { it.id.isNotBlank() && it.nameCn.isNotBlank() && it.catalogStatus == "ACTIVE" }
     }
 
     suspend fun getDetail(speciesId: String): FishKnowledgeDetail = withContext(Dispatchers.IO) {

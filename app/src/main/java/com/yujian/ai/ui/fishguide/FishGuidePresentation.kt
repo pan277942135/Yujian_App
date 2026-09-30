@@ -1,6 +1,37 @@
 package com.yujian.ai.ui.fishguide
 
+import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.knowledge.FishKnowledgeCard
+import com.yujian.ai.knowledge.FishKnowledgeDetail
+
+private val knowledgeCardOrder = listOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL")
+private val knowledgeCardLabels = mapOf(
+    "HERO" to "鱼种名片",
+    "IDENTIFICATION" to "辨识特征",
+    "ECO" to "生态习性",
+    "GEAR" to "装备建议",
+    "SKILL" to "作钓要点",
+)
+
+data class FishGuideKnowledgeFact(
+    val label: String,
+    val value: String,
+)
+
+/** Fixed-position, factual projection for one of the five Species Detail knowledge cards. */
+data class FishGuideKnowledgeCardPresentation(
+    val position: Int,
+    val type: String,
+    val label: String,
+    val title: String,
+    val summary: String?,
+    val subjectImageUrl: String?,
+    val facts: List<FishGuideKnowledgeFact>,
+    val available: Boolean,
+) {
+    val pageLabel: String get() = "${position.toString().padStart(2, '0')} / 05"
+}
 
 /** UI-only projection for the personal natural field guide. */
 data class FishGuidePresentationItem(
@@ -45,3 +76,136 @@ fun List<FishGuideItem>.datasetShape(): FishGuideDatasetShape = when (size) {
 }
 
 fun formatRecordCount(catches: Int): String? = catches.takeIf { it > 0 }?.let { "$it 次记录" }
+
+/** Saved FishRecords are matched by their final stable species ID; name fallback is for legacy rows without an ID. */
+fun savedRecordsForSpecies(species: FishGuideItem, records: List<RemoteCatch>): List<RemoteCatch> =
+    records.asSequence()
+        .filter { it.id.isNotBlank() }
+        .filter { record ->
+            if (record.speciesId.isNotBlank()) {
+                record.speciesId.trim().equals(species.id.trim(), ignoreCase = true)
+            } else {
+                record.speciesName.trim().equals(species.nameCn.trim(), ignoreCase = true)
+            }
+        }
+        .sortedByDescending { it.capturedAt.ifBlank { it.createdAt } }
+        .toList()
+
+fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeCardPresentation> {
+    val activeCards = cards.asSequence()
+        .filter { it.status.equals("ACTIVE", ignoreCase = true) }
+        .filter { it.speciesId.equals(species.id, ignoreCase = true) }
+        .sortedBy { it.sortOrder }
+        .distinctBy { normalizeKnowledgeCardType(it.cardType) }
+        .associateBy { normalizeKnowledgeCardType(it.cardType) }
+
+    return knowledgeCardOrder.mapIndexed { index, type ->
+        val card = activeCards[type]
+        val facts = when (type) {
+            "HERO" -> buildList {
+                species.scientificName.cleanOrNull()?.let { add(FishGuideKnowledgeFact("学名", it)) }
+                species.family.cleanOrNull()?.let { add(FishGuideKnowledgeFact("科", it)) }
+                species.genus.cleanOrNull()?.let { add(FishGuideKnowledgeFact("属", it)) }
+                species.category.cleanOrNull()?.let { add(FishGuideKnowledgeFact("类别", it)) }
+            }
+            "IDENTIFICATION" -> identificationFacts(card)
+            "ECO" -> ecologyFacts(card)
+            "GEAR" -> gearFacts(card)
+            "SKILL" -> skillFacts(card)
+            else -> emptyList()
+        }
+        val summary = when (type) {
+            "HERO" -> species.summary.cleanOrNull()
+                ?: card?.content?.description.cleanOrNull()
+                ?: card?.description.cleanOrNull()
+            else -> card?.content?.description.cleanOrNull()
+                ?: card?.description.cleanOrNull()
+        }
+        val image = if (type == "HERO") species.coverImage.cleanOrNull() else null
+        val title = if (type == "HERO") species.nameCn else knowledgeCardLabels.getValue(type)
+        FishGuideKnowledgeCardPresentation(
+            position = index + 1,
+            type = type,
+            label = knowledgeCardLabels.getValue(type),
+            title = title,
+            summary = summary,
+            subjectImageUrl = image,
+            facts = facts,
+            available = (type == "HERO" && image != null) || facts.isNotEmpty() || summary != null,
+        )
+    }
+}
+
+private fun FishKnowledgeDetail.identificationFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> = buildList {
+    val features = card?.content?.features.orEmpty()
+        .filter { it.title.isNotBlank() || it.text.isNotBlank() }
+        .map { FishGuideKnowledgeFact(it.title.cleanOrNull() ?: "辨识特征", it.text.cleanOrNull() ?: it.title) }
+    if (features.isNotEmpty()) {
+        addAll(features)
+    } else {
+        profile.bodyShape.cleanOrNull()?.let { add(FishGuideKnowledgeFact("体形", it)) }
+        addAll(profile.features.filter(String::isNotBlank)
+            .mapIndexed { index, feature -> FishGuideKnowledgeFact("特征 ${index + 1}", feature) })
+    }
+    val cardSimilar = card?.content?.similar.orEmpty()
+        .filter { it.name.isNotBlank() || it.difference.isNotBlank() }
+        .map { FishGuideKnowledgeFact(it.name.cleanOrNull() ?: "相近鱼种", it.difference.cleanOrNull() ?: it.name) }
+    if (cardSimilar.isNotEmpty()) {
+        addAll(cardSimilar)
+    } else {
+        addAll(similarity.filter { it.similarSpeciesNameCn.isNotBlank() || it.difference.isNotBlank() }
+            .map { FishGuideKnowledgeFact(it.similarSpeciesNameCn.cleanOrNull() ?: "相近鱼种", it.difference.cleanOrNull() ?: it.similarSpeciesNameCn) })
+    }
+}
+
+private fun FishKnowledgeDetail.ecologyFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> {
+    val content = card?.content
+    val ecology = knowledge.ecology
+    val habitat = content?.habitat.orEmpty().ifEmpty { ecology.habitat }.ifEmpty { profile.habitat }
+    val season = content?.season.cleanOrNull() ?: ecology.season.cleanOrNull()
+        ?: profile.season.filter(String::isNotBlank).joinToString("、").cleanOrNull()
+        ?: fishing.season.filter(String::isNotBlank).joinToString("、").cleanOrNull()
+    return buildList {
+        habitat.filter(String::isNotBlank).takeIf { it.isNotEmpty() }?.let { add(FishGuideKnowledgeFact("常见水域", it.joinToString("、"))) }
+        (content?.waterLayer.cleanOrNull() ?: ecology.waterLayer.cleanOrNull() ?: fishing.waterLayer.cleanOrNull())
+            ?.let { add(FishGuideKnowledgeFact("活动水层", it)) }
+        season?.let { add(FishGuideKnowledgeFact("活跃季节", it)) }
+        (content?.behavior.cleanOrNull() ?: ecology.behavior.cleanOrNull())?.let { add(FishGuideKnowledgeFact("活动习性", it)) }
+        (content?.diet.cleanOrNull() ?: ecology.diet.cleanOrNull() ?: profile.food.cleanOrNull())
+            ?.let { add(FishGuideKnowledgeFact("食性", it)) }
+    }
+}
+
+private fun FishKnowledgeDetail.gearFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> {
+    val content = card?.content
+    val gear = knowledge.gear
+    val method = content?.method.cleanOrNull() ?: gear.method.cleanOrNull()
+        ?: fishing.method.filter(String::isNotBlank).joinToString("、").cleanOrNull()
+    val bait = content?.bait.orEmpty().ifEmpty { gear.bait }.ifEmpty { fishing.bait }
+    return buildList {
+        method?.let { add(FishGuideKnowledgeFact("常用钓法", it)) }
+        (content?.rod.cleanOrNull() ?: gear.rod.cleanOrNull())?.let { add(FishGuideKnowledgeFact("鱼竿", it)) }
+        (content?.line.cleanOrNull() ?: gear.line.cleanOrNull())?.let { add(FishGuideKnowledgeFact("线组", it)) }
+        (content?.hook.cleanOrNull() ?: gear.hook.cleanOrNull())?.let { add(FishGuideKnowledgeFact("钩型", it)) }
+        bait.filter(String::isNotBlank).takeIf { it.isNotEmpty() }?.let { add(FishGuideKnowledgeFact("饵料", it.joinToString("、"))) }
+    }
+}
+
+private fun FishKnowledgeDetail.skillFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> {
+    val content = card?.content
+    val skill = knowledge.skill
+    return buildList {
+        (content?.find.cleanOrNull() ?: skill.find.cleanOrNull())?.let { add(FishGuideKnowledgeFact("找鱼", it)) }
+        (content?.attract.cleanOrNull() ?: skill.attract.cleanOrNull())?.let { add(FishGuideKnowledgeFact("诱鱼", it)) }
+        (content?.action.cleanOrNull() ?: skill.action.cleanOrNull())?.let { add(FishGuideKnowledgeFact("应对", it)) }
+        (content?.tip.cleanOrNull() ?: skill.tip.cleanOrNull())?.let { add(FishGuideKnowledgeFact("提醒", it)) }
+    }
+}
+
+private fun normalizeKnowledgeCardType(value: String): String = when (value.trim().uppercase()) {
+    "ECOLOGY" -> "ECO"
+    "FISHING" -> "SKILL"
+    else -> value.trim().uppercase()
+}
+
+private fun String?.cleanOrNull(): String? = this?.trim()?.takeIf(String::isNotEmpty)

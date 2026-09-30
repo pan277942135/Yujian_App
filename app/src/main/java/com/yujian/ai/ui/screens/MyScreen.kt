@@ -124,6 +124,7 @@ fun MyScreen(
     error: String?,
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
+    initialSpeciesFilterId: String? = null,
     onCatch: (String) -> Unit,
     onRetry: () -> Unit,
     onCapture: () -> Unit,
@@ -133,7 +134,13 @@ fun MyScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var searchMode by rememberSaveable { mutableStateOf(false) }
     var filterExpanded by rememberSaveable { mutableStateOf(false) }
-    var filter by remember { mutableStateOf(MyCatchesFilterState()) }
+    var filter by remember(initialSpeciesFilterId) {
+        mutableStateOf(
+            initialSpeciesFilterId?.takeIf(String::isNotBlank)
+                ?.let { MyCatchesFilterState(speciesIds = setOf(it)) }
+                ?: MyCatchesFilterState(),
+        )
+    }
     var expandedDays by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var visibleMonthCount by rememberSaveable { mutableStateOf(3) }
     val context = LocalContext.current

@@ -225,8 +225,7 @@ fun YujianApp() {
                 guideOfflinePreview = false
             }
             .onFailure { error ->
-                guideSpecies = localGuideItems()
-                guideOfflinePreview = true
+                guideOfflinePreview = guideSpecies.isNotEmpty()
                 guideError = error.message ?: "Fish Knowledge API 暂不可用"
             }
         guideLoading = false
@@ -572,7 +571,7 @@ fun YujianApp() {
                             },
                             saving = catchSaving,
                             saveError = catchSaveError,
-                            availableSpecies = guideSpecies,
+                            availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             onSave = { draft, feedback, destination ->
                                 val active = session
@@ -663,9 +662,6 @@ fun YujianApp() {
                     val fallback = guideSpecies
                         .withSavedCatchState(catchesState.catches)
                         .firstOrNull { it.id == key }
-                        ?: localGuideItems()
-                            .withSavedCatchState(catchesState.catches)
-                            .firstOrNull { it.id == key }
                     var detail by remember(key) { mutableStateOf<FishKnowledgeDetail?>(null) }
                     var detailLoading by remember(key) { mutableStateOf(true) }
                     var detailOfflinePreview by remember(key) { mutableStateOf(false) }
@@ -685,13 +681,19 @@ fun YujianApp() {
                     FishSpeciesDetailScreen(
                         detail = detail,
                         fallback = fallback,
+                        savedCatches = catchesState.catches,
                         loading = detailLoading,
                         offlinePreview = detailOfflinePreview,
                         error = detailError,
                         resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
+                        resolveCatchImageUrl = { path ->
+                            if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
+                        },
                         onRetry = { detailRetry++ },
                         onBack = { nav.popBackStack() },
-                        onOpenCatch = { nav.navigate("my_catches") },
+                        onRecordCatch = { nav.navigate("identify") },
+                        onOpenCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
+                        onOpenSpeciesCatches = { speciesId -> nav.navigate("my_catches?speciesId=${Uri.encode(speciesId)}") },
                     )
                 }
                 composable("my") {
@@ -726,12 +728,22 @@ fun YujianApp() {
                         onBack = { nav.popBackStack() },
                     )
                 }
-                composable("my_catches") {
+                composable(
+                    route = "my_catches?speciesId={speciesId}",
+                    arguments = listOf(
+                        navArgument("speciesId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                    ),
+                ) { entry ->
                     val active = session
                     MyScreen(
                         catches = catchesState.catches,
                         loading = catchesState.loading,
                         error = catchesState.error,
+                        initialSpeciesFilterId = entry.arguments?.getString("speciesId"),
                         resolveImageUrl = { path ->
                             if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
                         },
@@ -867,26 +879,16 @@ private fun localGuideItems(): List<FishGuideItem> = DemoData.species.map { fish
     )
 }
 
-private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
-    val local = localGuideItems().associateBy { it.id }
-    return remote.map { item ->
-        val localItem = local[item.id]
-        item.copy(
-            aliases = (localItem?.aliases.orEmpty() + item.aliases).distinct(),
-            category = item.category.ifBlank { localItem?.category.orEmpty() },
-            discovered = false,
-            catches = 0,
-        )
-    }
-}
+private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> =
+    remote.filter { it.catalogStatus == "ACTIVE" }.map { it.copy(discovered = false, catches = 0) }
 
 private fun List<FishGuideItem>.withSavedCatchState(catches: List<RemoteCatch>): List<FishGuideItem> {
-    val bySpeciesId = catches.groupBy { it.speciesId.trim().lowercase() }
-    val bySpeciesName = catches.groupBy { it.speciesName.trim().lowercase() }
     return map { species ->
-        val savedRecords = bySpeciesId[species.id.trim().lowercase()]
-            ?: bySpeciesName[species.nameCn.trim().lowercase()]
-            ?: emptyList()
+        val savedRecords = catches.filter { record ->
+            if (record.id.isBlank()) false
+            else if (record.speciesId.isNotBlank()) record.speciesId.trim().equals(species.id.trim(), ignoreCase = true)
+            else record.speciesName.trim().equals(species.nameCn.trim(), ignoreCase = true)
+        }
         species.copy(
             discovered = savedRecords.isNotEmpty(),
             catches = savedRecords.size,

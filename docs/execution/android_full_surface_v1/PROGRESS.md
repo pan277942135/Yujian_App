@@ -28,8 +28,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 - A GitHub API chunk-encoding error briefly produced intermediate commit `97ab4a702b5aba58d71d2c259a7f46f56e878f94`. Corrected in `009a85fac554dfcb4400cb5c5b59d72228aa89ee`; corrected local/remote tree SHA matched exactly at `edb3fe5a98e84f633aef1a9d7b00ba215b6c611a`. No unrelated work changed; no force-push/history rewrite.
 - Registry contains 13 feature records. Empty Home is frozen; Normal Home design is frozen with runtime/evidence separate; Recognition Processing is in active runtime/evidence closure; Recognition Result is frozen with partial runtime/evidence; Fish Record Detail, B-side, My Catches, Fish Guide, Account & Privacy, Register and Profile Edit include partial items; User Agreement is runtime-only with missing visual authority.
 - Existing Compose routes cover Login/Register, Home, capture/gallery, Recognition Processing/Issue/Result, My Catches, Fish Record Detail, Fish Guide/species detail, Account/Profile/password/privacy, Privacy Policy and User Agreement. Route presence alone is not acceptance.
-- Fish Record Detail route currently wires share/edit/add-media callbacks as no-ops. P09 must follow frozen contracts and existing backend capability.
-- Android workflow matrix has a `fish-guide-v1` row and a gate script, but `run_android_runtime_gate.sh` lacks a dispatch case; reconcile this page-specific wiring in P10.
+- P09 wired supported Fish Record Detail behavior. Edit persistence and supplemental media remain open Product/API Dependencies because the required existing-record endpoints are absent; see the P09 checkpoint.
+- Android workflow matrix has a `fish-guide-v1` row and gate script. P10 reconciles its missing dispatch case in `run_android_runtime_gate.sh` without changing shared runner or workflow infrastructure.
 - Android CI runs are being created but terminate before jobs are scheduled. The GitHub-hosted build and GCP self-hosted API 28 job are not reached; see the single shared blocker entry below. Local tool availability is not the primary cause.
 
 ## Phase ledger
@@ -46,7 +46,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | Shared Android CI orchestration failure prevents Android jobs from being scheduled; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain pinyin coverage gap without retrying shared CI blocker |
 | P08 My Catches | BLOCKED_INFRA | `3a412ed1a3531b8438ff241837a39d2abc40b9e4` | Search, recent searches, F1 filters, BG_DATA, timeline grouping/folding, date detail, empty states and Growth Marks implemented; tests authored; source Actions and static checks pass | Android compile/unit/instrumentation/visual evidence unavailable; timeline high-fi visual closure is active; catches API returns all records without pagination | Continue P09 independently; carry visual/API paging gaps |
 | P09 Fish Record Detail | PUSHED | `bce336955f49532e6ef6061cbabbc145639b88d3` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; PR branch contains the accepted source | Android runtime validation BLOCKED_INFRA — runs #1105, #1106 and #1109 exit before any job; backend dependencies OPEN and tracked separately | Continue P10; carry the shared CI blocker without retry |
-| P10 Fish Guide | NOT_STARTED | — | — | — | — |
+| P10 Fish Guide | IN_PROGRESS | — | Home/detail implementation and targeted tests authored; Core UI and navigation verifiers, P10 static contract checks and shell syntax PASS; source checkpoint pending | Shared Android CI 0-job orchestration blocker; do not retry per phase | Push and verify P10, then continue P11 |
 | P11 Account & Privacy | NOT_STARTED | — | — | — | — |
 | P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
 | P13 Cross-Journey Integration | NOT_STARTED | — | — | — | — |
@@ -333,6 +333,18 @@ Git:
 
 Next:
 - Continue P10 Fish Guide, preserving the single shared Android CI blocker and keeping P09 Product/API Dependencies separate.
+
+## P10 implementation checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P10
+
+Feature: Fish Guide Home, Lit / Unlit, Species Detail, Zero Catch and five Fish Knowledge cards
+
+Status: IN_PROGRESS
+
+P10 implementation is being completed against the frozen Fish Guide Home, Unlit, Species Detail, Zero Catch, content, responsive, accessibility and motion authorities. Final source SHA, GitHub checkpoint and Android infrastructure status will be recorded after the phase push is verified.
 
 ## Shared infrastructure follow-up blocker
 
