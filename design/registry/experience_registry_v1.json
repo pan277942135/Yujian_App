@@ -3032,7 +3032,7 @@
         "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
         "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
       },
-      "note": "FishRecordDetail compact navigation remains 00–05 with no third-level submenu. On 2026-09-30 the Overview behavior authority was frozen: A/B are two surfaces of one FishRecordDetail; B-side lifecycle is NOT_GENERATED / GENERATING / READY / FAILED; first READY reveal auto-flips A→B at most once per FishRecord; subsequent entries default to A and use manual Flip Icon only when READY. Existing A-side Frozen Visual Authority and supplemental B-side reference are unchanged.",
+      "note": "FishRecordDetail 00–05 batch design review completed on 2026-09-30. 00 Overview, 01 A-side, 03 Asset Generation, 04 Editing and 05 Page States are FROZEN. 02 B-side Visual Spec is FROZEN but the exact approved 941×1672 PNG binary is still missing from the canonical repository path, so the repository visual package remains PARTIAL until the SHA-256 gate passes. Current runtime FishMemorySection is not design authority.",
       "hifi_views": [
         {
           "id": "overview",
@@ -3103,57 +3103,134 @@
         {
           "id": "asset_generation",
           "title": "03 · 鱼体资产生成",
-          "status": "MISSING",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "生命周期行为已 FROZEN，视觉场景板仍待设计：NOT_GENERATED、GENERATING、FAILED 及 Retry；成功统一交接 READY，并触发尚未消费时的一次性 first reveal。",
+          "summary": "FROZEN：NOT_GENERATED / GENERATING / FAILED 合并为一个生成场景板；A 面始终可用；禁止伪造百分比/ETA；成功统一交接 READY，并服从首次一次性 A→B reveal。",
           "menu_points": [
-            "Behavior FROZEN · Visual Board Pending",
-            "NOT_GENERATED",
-            "GENERATING",
-            "FAILED → Retry → GENERATING",
+            "NOT_GENERATED · 生成鱼获记忆",
+            "GENERATING · A-side remains usable",
+            "No Fake Percentage / ETA",
+            "FAILED · 原鱼获记录不受影响",
+            "Retry → GENERATING",
             "Success → READY",
-            "READY + first reveal pending → Auto A → B once",
-            "Do not expose Worker / Queue internals as pages"
+            "READY presentation owned by 02",
+            "First READY Reveal · Auto A → B Once",
+            "Reduce Motion / Accessibility"
           ]
         },
         {
           "id": "editing",
           "title": "04 · 信息编辑",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "信息编辑作为一个合并场景工作区，不再拆鱼种、长度/重量、地点、感言等子菜单。设计输出以主编辑场景 + 局部 Sheet/Dialog/危险操作组合表达。",
+          "summary": "FROZEN：信息编辑采用一个合并工作区；基础信息 + 环境与记录统一编辑；Save/Cancel、校验、保存失败保值、未保存退出确认与危险删除边界均已定义。",
           "menu_points": [
+            "Entry · Hero 编辑 >",
             "基础信息 · 鱼种 / 长度 / 重量",
             "环境与记录 · 时间 / 地点 / 天气 / 感言",
-            "Save / Cancel / Return",
-            "Shared Input Components",
-            "Delete / Destructive Confirmation",
-            "Data Persistence"
+            "Save / Cancel / Unsaved Changes",
+            "Validation",
+            "Save Failure Preserves Input",
+            "Delete · Destructive Confirmation",
+            "A/B Same FishRecord Identity"
           ]
         },
         {
           "id": "page_states",
           "title": "05 · 页面状态",
-          "status": "MISSING",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "页面状态统一合并为 State Board，不再建立 Normal、媒体缺失、数据不完整、删除/失效等子菜单。仅当状态显著改变页面结构时才单独形成完整 UI。",
+          "summary": "FROZEN：Loading / Media Missing / Partial Data / Deleted or Invalid / Offline or Network Error / Retry-Fallback 合并为一个 State Board；所有错误优先局部失败，禁止伪造事实数据。",
           "menu_points": [
-            "Loading",
-            "Media Missing",
-            "Partial Data",
+            "Loading · Stable Page Identity",
+            "Media Missing · Neutral Hero Fallback",
+            "Partial Data · Never Fabricate Values",
             "Deleted / Invalid Record",
-            "Offline / Network Error",
-            "Retry / Disabled / Fallback"
+            "Offline with Cache",
+            "Offline / Network Error without Cache",
+            "Fail the Smallest Responsible Region",
+            "Retry / Disabled / Fallback",
+            "Responsive / Accessibility"
           ]
         }
       ],
-      "overview_authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md"
+      "overview_authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
+      "design_freeze": {
+        "status": "FROZEN_WITH_SOURCE_BINARY_GATE",
+        "date": "2026-09-30",
+        "audit": "design/pages/fish_record/detail/FishRecordDetail_Design_Audit_Freeze_V1.md",
+        "blocker": "02 B-side exact canonical PNG source binary",
+        "approved_sha256": "c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b"
+      },
+      "freeze_review": {
+        "state": "DESIGN_FROZEN_WITH_SOURCE_BINARY_GATE",
+        "title": "鱼获详情 V2 · 批量设计冻结检查",
+        "note": "00–05 的产品/场景设计已批量冻结。唯一开放 Gate 是 02 B-side 已批准原 PNG 的 exact binary 落库与 SHA-256 校验；该 Gate 不允许使用相似图、重编码图或截图替代。",
+        "items": [
+          {
+            "id": "FRD-FREEZE-00",
+            "title": "Overview A/B 模型与首次 reveal",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-01",
+            "title": "A 面 · 鱼获记录",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
+          },
+          {
+            "id": "FRD-FREEZE-02",
+            "title": "B 面 · 鱼获记忆规范",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-02B",
+            "title": "B 面批准原 PNG 字节落库",
+            "status": "BLOCKED_SOURCE",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png"
+          },
+          {
+            "id": "FRD-FREEZE-03",
+            "title": "鱼体资产生成三态板",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-04",
+            "title": "信息编辑合并场景",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-05",
+            "title": "页面状态合并场景",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-RUNTIME",
+            "title": "Runtime parity / evidence",
+            "status": "PENDING_IMPLEMENTATION",
+            "blocking": false,
+            "authority": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt"
+          }
+        ]
+      }
     },
     {
       "id": "fish_memory_bside_v1",
