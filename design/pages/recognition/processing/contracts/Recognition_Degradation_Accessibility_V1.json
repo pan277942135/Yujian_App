@@ -1,0 +1,26 @@
+{
+  "system": "RECOGNITION_PROCESSING",
+  "section": "DEGRADATION_ACCESSIBILITY",
+  "version": "1.0",
+  "status": "FROZEN",
+  "authority": "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
+  "children": {
+    "quality_levels": "FROZEN",
+    "reduce_motion": "FROZEN",
+    "layer_degradation_order": "FROZEN",
+    "semantic_invariants": "FROZEN"
+  },
+  "application_order": [
+    "select_D_level",
+    "apply_edge_field_quality_profile",
+    "apply_fish_focus_level",
+    "apply_reduce_motion_override",
+    "verify_semantic_invariants"
+  ],
+  "design_floor": {
+    "degradation_level": "D4",
+    "edge_field": "LITE",
+    "fish_focus": "C",
+    "real_bbox_required": true
+  }
+}

@@ -25,7 +25,7 @@ val emptyHomeFrozenHeroSource = rootProject.layout.projectDirectory.file(
 val emptyHomeGeneratedResDir = layout.buildDirectory.dir("generated/emptyHomeFrozenHeroRes")
 
 val accountPrivacyBackgroundSource = rootProject.layout.projectDirectory.file(
-    "design/pages/account_privacy/shared/morning_lake_background.png",
+    "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
 )
 val accountPrivacyGeneratedResDir = layout.buildDirectory.dir("generated/accountPrivacyRes")
 
@@ -36,8 +36,14 @@ val generateAccountPrivacyBackground by tasks.registering {
     doLast {
         val sourceFile = accountPrivacyBackgroundSource.asFile
         require(sourceFile.isFile) { "Missing Account Privacy Morning Lake source: $sourceFile" }
+        val sourceSha = MessageDigest.getInstance("SHA-256")
+            .digest(sourceFile.readBytes())
+            .joinToString("") { "%02x".format(it) }
+        require(sourceSha == "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7") {
+            "Account Privacy Morning Lake SHA mismatch: $sourceSha"
+        }
         val image = requireNotNull(ImageIO.read(sourceFile)) { "Unable to decode Account Privacy Morning Lake source" }
-        require(image.width == 1080 && image.height == 1920) {
+        require(image.width == 941 && image.height == 1672) {
             "Unexpected Account Privacy Morning Lake dimensions: " + image.width + "x" + image.height
         }
         val drawableDir = accountPrivacyGeneratedResDir.get().dir("drawable-nodpi").asFile

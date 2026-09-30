@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="design-manager-build" content="__DESIGN_MANAGER_BUILD__">
+  <title>渔见设计管理</title>
+  <link rel="stylesheet" href="./styles.css?v=__DESIGN_MANAGER_BUILD__">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">渔见</div>
+        <div>
+          <h1>设计管理</h1>
+          <p>公共设计系统 + 页面模块</p>
+          <div class="build-stamp">Deploy <code>__DESIGN_MANAGER_BUILD_SHORT__</code></div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="搜索设计系统或页面…" aria-label="搜索">
+        <select id="statusFilter" aria-label="按状态筛选">
+          <option value="">全部状态</option>
+        </select>
+      </div>
+
+      <div id="summary" class="summary"></div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <span>公共设计系统</span>
+          <span id="sharedCount" class="nav-count"></span>
+        </div>
+        <nav id="sharedList" class="module-list" aria-label="公共设计系统"></nav>
+      </div>
+
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">
+          <span>页面模块</span>
+          <span id="pageCount" class="nav-count"></span>
+        </div>
+        <nav id="pageList" class="module-list" aria-label="页面模块"></nav>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <div id="pageEyebrow" class="eyebrow">渔见 · 设计权威管理</div>
+          <h2 id="pageTitle">设计管理</h2>
+        </div>
+        <div id="pageStatus"></div>
+      </header>
+
+      <section id="emptyState" class="empty-state">
+        <h3>选择公共设计系统或页面模块</h3>
+        <p>公共元素先冻结，页面通过引用形成统一的产品视觉语言。</p>
+      </section>
+
+      <section id="sharedDetail" class="detail hidden">
+        <div id="sharedOverviewHero" class="hero-grid">
+          <article class="panel overview-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">公共设计系统</div>
+                <h3 id="sharedName"></h3>
+              </div>
+              <div id="sharedStatus"></div>
+            </div>
+            <div id="sharedMeta" class="meta-grid"></div>
+            <div id="sharedNote" class="note hidden"></div>
+          </article>
+
+          <article class="panel preview-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">设计预览</div>
+                <h3>公共元素参考</h3>
+              </div>
+            </div>
+            <div id="sharedPreview" class="visual-preview"></div>
+          </article>
+        </div>
+
+        <article id="sharedDirectVariantPanel" class="panel hidden">
+          <div class="panel-head">
+            <div>
+              <div id="sharedDirectVariantEyebrow" class="eyebrow">组件子菜单</div>
+              <h3 id="sharedDirectVariantTitle">组件子项</h3>
+            </div>
+            <div id="sharedDirectVariantStatus"></div>
+          </div>
+
+          <div id="sharedDirectVariantSummary" class="note hidden"></div>
+
+          <div id="sharedDirectVariantVisualWrap" class="hidden">
+            <div class="subheading">Frozen Visual Authority</div>
+            <div id="sharedDirectVariantVisual" class="direct-variant-visual-grid"></div>
+          </div>
+
+          <div class="authority-usage-grid">
+            <div>
+              <div class="subheading">结构 / 使用规则</div>
+              <div id="sharedDirectVariantRules" class="direct-variant-rules"></div>
+            </div>
+            <div>
+              <div class="subheading">使用页面</div>
+              <div id="sharedDirectVariantUsage" class="usage-list"></div>
+            </div>
+          </div>
+
+          <div class="subheading direct-variant-authority-heading">Authority</div>
+          <div id="sharedDirectVariantAuthority" class="authority-list"></div>
+        </article>
+
+        <article id="backgroundVariantPanel" class="panel hidden">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">背景类型工作区</div>
+              <h3 id="backgroundVariantTitle">背景类型</h3>
+            </div>
+            <div id="backgroundVariantStatus"></div>
+          </div>
+
+          <div class="background-workspace">
+            <div>
+              <div class="subheading">独立预览</div>
+              <div id="backgroundVariantPreview" class="background-large-preview"></div>
+            </div>
+            <div>
+              <div class="subheading">参数合同</div>
+              <div id="backgroundParameterGrid" class="parameter-grid"></div>
+            </div>
+          </div>
+
+          <div class="background-detail-grid">
+            <div>
+              <div class="subheading">使用页面 / 场景</div>
+              <div id="backgroundUsageMap" class="usage-list"></div>
+            </div>
+            <div>
+              <div class="subheading">本类型权威来源</div>
+              <div id="backgroundVariantAuthority" class="authority-list"></div>
+            </div>
+          </div>
+        </article>
+
+        <article id="sharedVariantPanel" class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">系统变体</div>
+              <h3>5 种背景类型</h3>
+            </div>
+          </div>
+          <div id="variantGrid" class="variant-grid"></div>
+        </article>
+
+        <article id="sharedAuthorityPanel" class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">权威与使用范围</div>
+              <h3>权威来源 / 引用页面</h3>
+            </div>
+          </div>
+          <div class="authority-usage-grid">
+            <div>
+              <div class="subheading">权威来源</div>
+              <div id="sharedAuthorities" class="authority-list"></div>
+            </div>
+            <div>
+              <div class="subheading">正在引用的页面</div>
+              <div id="sharedUsage" class="usage-list"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="pageDetail" class="detail hidden">
+        <div id="pageOverviewHero" class="hero-grid">
+          <article class="panel overview-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">页面设计权威</div>
+                <h3 id="moduleName"></h3>
+              </div>
+              <div id="overallBadge"></div>
+            </div>
+            <div id="moduleMeta" class="meta-grid"></div>
+            <div id="moduleNote" class="note hidden"></div>
+          </article>
+
+          <article class="panel preview-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">视觉预览</div>
+                <h3>当前视觉权威</h3>
+              </div>
+            </div>
+            <div id="visualPreview" class="visual-preview"></div>
+          </article>
+        </div>
+
+        <article id="hifiViewPanel" class="panel hidden">
+          <div class="panel-head">
+            <div>
+              <div id="hifiViewEyebrow" class="eyebrow">高保真子页面</div>
+              <h3 id="hifiViewTitle">高保真设计稿</h3>
+            </div>
+            <div id="hifiViewStatus"></div>
+          </div>
+          <div id="hifiViewSummary" class="note hidden"></div>
+          <div id="hifiViewCanvas" class="hifi-view-canvas"></div>
+          <div class="hifi-meta-grid">
+            <div>
+              <div class="subheading">覆盖场景</div>
+              <div id="hifiViewScenarios" class="hifi-scenario-chips"></div>
+            </div>
+            <div>
+              <div class="subheading">设计 Authority</div>
+              <div id="hifiViewAuthorities" class="authority-list"></div>
+              <div id="hifiViewSource" class="hifi-source-note hidden"></div>
+            </div>
+          </div>
+        </article>
+
+        <article id="scenarioPanel" class="panel hidden">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">场景子页面</div>
+              <h3 id="scenarioTitle">场景</h3>
+            </div>
+            <div id="scenarioStatus"></div>
+          </div>
+          <div id="scenarioSummary" class="note hidden"></div>
+          <div class="scenario-workspace">
+            <div>
+              <div class="subheading">场景预览</div>
+              <div id="scenarioPreview" class="scenario-preview"></div>
+            </div>
+            <div>
+              <div class="subheading">冻结规则</div>
+              <div id="scenarioRules" class="scenario-rules"></div>
+              <div class="subheading scenario-authority-heading">Authority</div>
+              <div id="scenarioAuthorities" class="authority-list"></div>
+            </div>
+          </div>
+        </article>
+
+        <article id="designSectionsPanel" class="panel hidden page-overview-only">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">页面设计规范</div>
+              <h3>细化设计 Authority</h3>
+            </div>
+          </div>
+          <div id="designSectionsGrid" class="design-sections-grid"></div>
+        </article>
+
+        <article id="freezeReviewPanel" class="panel hidden page-overview-only">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">设计冻结检查</div>
+              <h3 id="freezeReviewTitle">冻结检查</h3>
+            </div>
+            <div id="freezeReviewState"></div>
+          </div>
+          <div id="freezeReviewNote" class="note hidden"></div>
+          <div id="freezeChecklist" class="freeze-checklist"></div>
+        </article>
+
+        <article id="sharedRefsPanel" class="panel page-overview-only">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">公共设计引用</div>
+              <h3>本页面使用的公共元素</h3>
+            </div>
+          </div>
+          <div id="sharedRefGrid" class="shared-ref-grid"></div>
+        </article>
+
+        <article id="modalitiesPanel" class="panel page-overview-only">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">页面设计维度</div>
+              <h3>设计完整度</h3>
+            </div>
+          </div>
+          <div id="modalityGrid" class="modality-grid"></div>
+        </article>
+
+        <article id="versionsPanel" class="panel page-overview-only">
+          <div class="panel-head">
+            <div>
+              <div class="eyebrow">版本历史</div>
+              <h3>页面版本与冻结关系</h3>
+            </div>
+          </div>
+          <div id="versionTimeline" class="version-timeline"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js?v=__DESIGN_MANAGER_BUILD__"></script>
+</body>
+</html>

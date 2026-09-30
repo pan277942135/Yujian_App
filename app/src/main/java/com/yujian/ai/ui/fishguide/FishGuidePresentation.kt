@@ -22,15 +22,6 @@ fun List<FishGuideItem>.toFishGuidePresentation(
     FishGuidePresentationItem(item, resolveAssetUrl(item.coverImage))
 }
 
-fun List<FishGuideItem>.filterFishGuide(query: String): List<FishGuideItem> {
-    val normalized = query.trim()
-    if (normalized.isBlank()) return this
-    return filter { item ->
-        item.nameCn.contains(normalized, ignoreCase = true) ||
-            item.aliases.any { alias -> alias.contains(normalized, ignoreCase = true) }
-    }
-}
-
 fun List<FishGuideItem>.litCount(): Int = count { it.discovered }
 
 fun List<FishGuideItem>.progressFraction(): Float =
@@ -38,9 +29,6 @@ fun List<FishGuideItem>.progressFraction(): Float =
 
 fun selectionIndex(items: List<FishGuideItem>, selectedId: String?): Int =
     items.indexOfFirst { it.id == selectedId }.takeIf { it >= 0 } ?: 0
-
-fun selectionIdAfterFilter(items: List<FishGuideItem>, selectedId: String?): String? =
-    items.firstOrNull { it.id == selectedId }?.id ?: items.firstOrNull()?.id
 
 enum class FishGuideDatasetShape {
     EMPTY,

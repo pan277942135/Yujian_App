@@ -1,0 +1,193 @@
+{
+  "contract": "recognition_result_visual_acceptance_map",
+  "version": "V1",
+  "status": "FROZEN",
+  "canonical": {
+    "width_dp": 360,
+    "height_dp": 640,
+    "frozen_px": [
+      941,
+      1672
+    ],
+    "runtime_system_chrome": "canonicalize_remove"
+  },
+  "dynamic_masks": [
+    "hero_photo_interior",
+    "dynamic_species_glyphs",
+    "metadata_values",
+    "location_value",
+    "note_text",
+    "candidate_species_artwork"
+  ],
+  "geometry_tolerance_dp": {
+    "nav": 4,
+    "hero": 4,
+    "state_anchor": 6,
+    "metadata_note": 6,
+    "candidate": 3,
+    "cta": 4
+  },
+  "hard_geometry": {
+    "action_height_dp": 56,
+    "action_gap_dp": 12,
+    "high_pair_ratio": [
+      44,
+      56
+    ],
+    "low_pair_ratio": [
+      58,
+      42
+    ],
+    "hero_aspect_ratio_deviation_max": 0.015
+  },
+  "mae_255": {
+    "full_static_shell": 28,
+    "navigation": 22,
+    "hero_frame": 24,
+    "identity_prompt": 26,
+    "metadata_note": 24,
+    "candidate": 24,
+    "recovery": 24,
+    "cta": 20
+  },
+  "roi": {
+    "HIGH": {
+      "NAV": [
+        0,
+        0,
+        360,
+        56
+      ],
+      "HERO_FRAME": [
+        20,
+        64,
+        320,
+        248
+      ],
+      "IDENTITY": [
+        20,
+        328,
+        320,
+        44
+      ],
+      "METADATA": [
+        20,
+        384,
+        320,
+        72
+      ],
+      "NOTE": [
+        20,
+        468,
+        320,
+        80
+      ],
+      "CTA": [
+        24,
+        564,
+        312,
+        56
+      ]
+    },
+    "MEDIUM_UNRESOLVED": {
+      "NAV": [
+        0,
+        0,
+        360,
+        56
+      ],
+      "HERO_FRAME": [
+        20,
+        64,
+        320,
+        248
+      ],
+      "PROMPT": [
+        20,
+        328,
+        320,
+        28
+      ],
+      "CANDIDATES": [
+        20,
+        368,
+        320,
+        112
+      ],
+      "OTHER_SPECIES": [
+        20,
+        488,
+        320,
+        44
+      ]
+    },
+    "LOW": {
+      "NAV": [
+        0,
+        0,
+        360,
+        56
+      ],
+      "HERO_FRAME": [
+        20,
+        64,
+        320,
+        248
+      ],
+      "MESSAGE": [
+        20,
+        328,
+        320,
+        34
+      ],
+      "CTA": [
+        24,
+        378,
+        312,
+        56
+      ]
+    },
+    "RECOVERY": {
+      "NAV": [
+        0,
+        0,
+        360,
+        56
+      ],
+      "HERO_FRAME": [
+        20,
+        64,
+        320,
+        248
+      ],
+      "RECOVERY_PANEL": [
+        20,
+        332,
+        320,
+        128
+      ],
+      "PRIMARY": [
+        24,
+        480,
+        312,
+        56
+      ],
+      "SECONDARY": [
+        24,
+        548,
+        312,
+        56
+      ]
+    }
+  },
+  "classifications": [
+    "PASS",
+    "FAIL_BEHAVIOR",
+    "FAIL_GEOMETRY",
+    "FAIL_COMPONENT",
+    "FAIL_VISUAL",
+    "FAIL_HERO_MEDIA",
+    "FAIL_EVIDENCE",
+    "BLOCKED_INFRA"
+  ]
+}

@@ -1,17 +1,216 @@
 {
   "feature": "Recognition Flow V1",
-  "assets": [
+  "version": "V1.1",
+  "status": "FROZEN",
+  "processing_assets": [
     {
       "name": "RecognitionStatusCard",
-      "status": "FROZEN"
+      "status": "FROZEN",
+      "scope": "PROCESSING"
     },
     {
       "name": "AI_Ring_Indicator",
-      "status": "FROZEN"
+      "status": "FROZEN",
+      "scope": "PROCESSING"
     },
     {
       "name": "Fish_Highlight_Layer",
-      "status": "FROZEN"
+      "status": "FROZEN",
+      "scope": "PROCESSING"
     }
-  ]
+  ],
+  "result": {
+    "design_authority_refs": [
+      {
+        "id": "RR01_HIGH",
+        "path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+        "kind": "REFERENCE_ONLY",
+        "shipping_asset": false
+      },
+      {
+        "id": "RR02_MEDIUM",
+        "path": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+        "kind": "REFERENCE_ONLY",
+        "shipping_asset": false
+      },
+      {
+        "id": "RR03_LOW",
+        "path": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+        "kind": "REFERENCE_ONLY",
+        "shipping_asset": false
+      },
+      {
+        "id": "RR04_NO_FISH",
+        "path": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+        "kind": "REFERENCE_ONLY",
+        "shipping_asset": false
+      },
+      {
+        "id": "RR05_IMAGE_QUALITY",
+        "path": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+        "kind": "REFERENCE_ONLY",
+        "shipping_asset": false
+      }
+    ],
+    "foundations": [
+      {
+        "element": "page_background",
+        "authority": "design/system/backgrounds/morning_lake_v1/treatment_contract.json",
+        "variant": "BG_CONTENT",
+        "asset_policy": "TREATMENT_NOT_SCREENSHOT"
+      },
+      {
+        "element": "fit_support_surface",
+        "authority": "design/system/core_visual_v1/tokens/glass_tokens.json",
+        "variant": "GLASS_A",
+        "asset_policy": "NATIVE_SURFACE"
+      },
+      {
+        "element": "spacing_radius",
+        "authority": [
+          "design/system/core_visual_v1/tokens/spacing_tokens.json",
+          "design/system/core_visual_v1/tokens/radius_tokens.json"
+        ],
+        "asset_policy": "TOKENS"
+      }
+    ],
+    "shared_components": [
+      {
+        "element": "top_navigation",
+        "authority": "design/system/components/top_navigation/back_title/visual_contract.json",
+        "variant": "BACK_TITLE"
+      },
+      {
+        "element": "modify_species",
+        "authority": "design/system/components/text_action/visual_contract.json",
+        "variant": "NORMAL_LIGHT_CHEVRON"
+      },
+      {
+        "element": "other_species",
+        "authority": "design/system/components/text_action/visual_contract.json",
+        "variant": "MUTED_LIGHT_CHEVRON"
+      },
+      {
+        "element": "continue_memory",
+        "authority": "design/system/components/action_button/visual_contract.json",
+        "variant": "SECONDARY_STRONG"
+      },
+      {
+        "element": "save_catch",
+        "authority": "design/system/components/action_button/visual_contract.json",
+        "variant": "PRIMARY"
+      },
+      {
+        "element": "manual_species",
+        "authority": "design/system/components/action_button/visual_contract.json",
+        "variant": "SECONDARY_STRONG"
+      },
+      {
+        "element": "low_retake",
+        "authority": "design/system/components/action_button/visual_contract.json",
+        "variant": "SECONDARY_MUTED"
+      },
+      {
+        "element": "recovery_retake",
+        "authority": "design/system/components/action_button/visual_contract.json",
+        "variant": "PRIMARY"
+      },
+      {
+        "element": "recovery_gallery",
+        "authority": "design/system/components/action_button/visual_contract.json",
+        "variant": "SECONDARY_STRONG"
+      },
+      {
+        "element": "voice",
+        "authority": "design/system/components/icon_action/visual_contract.json",
+        "variant": "CONTEXT"
+      }
+    ],
+    "dynamic_media": [
+      {
+        "name": "RecognitionResultHeroMedia",
+        "status": "FROZEN",
+        "kind": "DYNAMIC_RUNTIME_MEDIA",
+        "display_source": "original_user_photo_after_orientation_normalization",
+        "focal_guidance": "recognition_fish_bbox_when_trustworthy",
+        "contract": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+        "numeric_contract": "design/pages/recognition/result/media/hero_media_contract.json",
+        "shipping_asset": false,
+        "prohibited_replacements": [
+          "detector_crop",
+          "classifier_crop",
+          "fish_guide_artwork",
+          "generated_fish_asset",
+          "blurred_photo_background"
+        ]
+      },
+      {
+        "name": "RecognitionCandidateSpeciesMedia",
+        "status": "FROZEN",
+        "kind": "DYNAMIC_SPECIES_MEDIA",
+        "source_priority": [
+          "fish_knowledge_cover_image",
+          "approved_neutral_system_fish_placeholder"
+        ],
+        "content_scale": "FIT",
+        "shipping_asset": false,
+        "prohibited_replacements": [
+          "another_species_image",
+          "generic_鱼_text_placeholder",
+          "frozen_card_crop"
+        ]
+      }
+    ],
+    "private_components": [
+      {
+        "name": "ResultHeroViewport",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md"
+      },
+      {
+        "name": "ResultSpeciesIdentityRow",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md"
+      },
+      {
+        "name": "ResultMetadataStrip",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md"
+      },
+      {
+        "name": "ResultMetadataField",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md"
+      },
+      {
+        "name": "ResultMemoryNote",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md"
+      },
+      {
+        "name": "ResultCandidateRow",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Candidate_Card_V1.md"
+      },
+      {
+        "name": "ResultCandidateCard",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Candidate_Card_V1.md"
+      },
+      {
+        "name": "ResultRecoveryPanel",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md"
+      },
+      {
+        "name": "ResultInlineError",
+        "authority": "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md"
+      }
+    ],
+    "engineering_contracts": [
+      "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+      "design/pages/recognition/result/engineering/component_map.json",
+      "design/pages/recognition/result/engineering/metadata_input_contract.json",
+      "design/pages/recognition/result/engineering/candidate_card_contract.json",
+      "design/pages/recognition/result/engineering/visual_acceptance_map.json"
+    ],
+    "rules": [
+      "Frozen full-page PNGs are reference-only and never runtime assets.",
+      "Dynamic user/species media remains runtime data.",
+      "Shared components must not be re-created page-locally.",
+      "No new bitmap asset is authorized solely to imitate screenshot pixels."
+    ]
+  }
 }

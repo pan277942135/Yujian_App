@@ -1,0 +1,64 @@
+{
+  "id": "nickname_edit_v1",
+  "version": "1.0",
+  "status": "FROZEN",
+  "scope": "Edit Profile / Nickname only",
+  "visual_authority": {
+    "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+    "approved_source_filename": "昵称编辑流程与交互规范.png",
+    "approved_source_sha256": "5d96c4654abe9899042f29f33987bc49eb21d4b1c427963bda1a0a3fef23d55e",
+    "frozen_webp_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+    "dimensions": [
+      1491,
+      1055
+    ],
+    "note": "Approved first high-fidelity board. It is authoritative for layout and visual state depiction; business validation semantics are governed by backend/machine/development contracts."
+  },
+  "backend_authority": {
+    "repository": "pan277942135/Yujian",
+    "ref": "6d4f087a63120899517065ce3c90a13085f11be0",
+    "path": "app/auth_api.py",
+    "endpoint": "PATCH /api/v1/me/profile"
+  },
+  "normalization": {
+    "trim": true
+  },
+  "length": {
+    "unit": "unicode_code_point",
+    "min": 1,
+    "max": 20
+  },
+  "validation": {
+    "empty_or_whitespace": "invalid",
+    "over_max": "invalid",
+    "additional_character_class_restrictions": false
+  },
+  "errors": {
+    "empty": "昵称不能为空",
+    "over_max": "昵称不能超过 20 个字符",
+    "fallback_save": "保存资料失败，请重试"
+  },
+  "states": [
+    "DEFAULT",
+    "FOCUS",
+    "FILLED_VALID",
+    "ERROR_EMPTY",
+    "ERROR_OVER_LIMIT",
+    "MAX_VALID",
+    "SAVING",
+    "SUCCESS",
+    "FAILURE"
+  ],
+  "save": {
+    "draft_is_local_until_server_success": true,
+    "optimistic_session_update": false,
+    "enabled_when": "not_saving && nickname_valid && (normalized_nickname != server_nickname || pending_avatar)",
+    "failure_retains_draft": true
+  },
+  "authority_precedence": [
+    "backend_authority",
+    "machine_contract",
+    "development_contract",
+    "visual_authority"
+  ]
+}

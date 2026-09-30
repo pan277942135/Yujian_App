@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="640" viewBox="0 0 1400 640"><defs>
+<style>
+.bg{fill:#F7FAFB}.panel{fill:#FFFFFF;stroke:#E2EBE8;stroke-width:2}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#18343A}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#71868B}
+.head{font-size:22px;font-weight:700;fill:#28474D}.meta{font-size:15px;font-weight:600;fill:#7A8F93}
+.tag{font-size:15px;font-weight:800;fill:#71868B;letter-spacing:1px}
+.lab{font-size:28px;font-weight:600;text-anchor:middle;dominant-baseline:middle}
+.small{font-size:15px;font-weight:500;fill:#71868B}.state{font-size:16px;font-weight:800;fill:#71868B;text-anchor:middle}
+.note{font-size:14px;font-weight:500;fill:#61777C}
+</style>
+<filter id="ps" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0B2D4B" flood-opacity=".10"/></filter>
+<filter id="ss" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0B2D4B" flood-opacity=".05"/></filter>
+</defs><rect class="bg" width="1400" height="640"/><text x="64" y="66" class="t title">06 · SECONDARY_MUTED</text><text x="64" y="98" class="t sub">Normal / Pressed / Disabled / Focus · Loading = N/A</text><rect x="90" y="180" width="270" height="280" rx="24" class="panel"/><text x="225" y="224" class="t state">Normal</text><rect x="120" y="275" width="210" height="112" rx="56" fill="#F7FAFB" fill-opacity=".45" stroke="#748897" stroke-opacity=".18" stroke-width="2"/><text x="225" y="331" class="t lab" fill="#748897">重新拍摄</text><rect x="405" y="180" width="270" height="280" rx="24" class="panel"/><text x="540" y="224" class="t state">Pressed</text><rect x="436.575" y="275.84000000000003" width="206.85" height="110.32" rx="55.16" fill="#F7FAFB" fill-opacity=".90" stroke="#748897" stroke-opacity=".18" stroke-width="2"/><text x="540" y="331" class="t lab" fill="#657D8A">重新拍摄</text><rect x="720" y="180" width="270" height="280" rx="24" class="panel"/><text x="855" y="224" class="t state">Disabled</text><rect x="750" y="275" width="210" height="112" rx="56" fill="#F2F5F5" stroke="#E3E9E9" stroke-width="2"/><text x="855" y="331" class="t lab" fill="#A0ADAF">重新拍摄</text><rect x="1035" y="180" width="270" height="280" rx="24" class="panel"/><text x="1170" y="224" class="t state">Focus</text><rect x="1059" y="269" width="222" height="124" rx="62" fill="none" stroke="#0F7A78" stroke-width="4"/><rect x="1065" y="275" width="210" height="112" rx="56" fill="#F7FAFB" fill-opacity=".45" stroke="#748897" stroke-opacity=".18" stroke-width="2"/><text x="1170" y="331" class="t lab" fill="#748897">重新拍摄</text><rect x="90" y="490" width="1215" height="70" rx="18" fill="#EEF4F2" stroke="#D9E6E2" stroke-width="2"/>
+<text x="697.5" y="525" class="t meta" text-anchor="middle">Loading = N/A · 重新拍摄直接进入目标拍摄流程；等待态由目标页面承担</text><line x1="64" y1="586" x2="1336" y2="586" stroke="#DCE7E3" stroke-width="2"/><text x="64" y="616" class="t note">FROZEN · Action Button V1.1</text></svg>

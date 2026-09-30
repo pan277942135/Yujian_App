@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="720" viewBox="0 0 1320 720"><defs>
+<style>
+.bg{fill:#F7FAFB}.card{fill:#FFFFFF;stroke:#DFE9E6;stroke-width:2}.data{fill:#EEF4F3}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#0B2D4B}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#748897}
+.k{font-size:15px;font-weight:800;fill:#748897;letter-spacing:1px}.meta{font-size:14px;font-weight:500;fill:#748897}
+.pageTitle{font-size:28px;font-weight:500;fill:#0B2D4B}.rule{font-size:13px;font-weight:500;fill:#5E747A}
+.note{font-size:14px;font-weight:500;fill:#61777C}
+</style>
+</defs><rect class="bg" width="1320" height="720"/><text x="60" y="66" class="t title">03 · 长标题 / 小屏</text><text x="60" y="98" class="t sub">320dp 保持 28sp；不缩字；Ellipsis；大字体允许高度增长</text><rect x="80" y="150" width="560" height="430" rx="28" class="card"/>
+<text x="115" y="194" class="t k">SMALL SCREEN · 320dp</text>
+<rect x="115" y="235" width="490" height="180" rx="20" fill="#EEF4F3"/>
+<text x="137" y="330" class="t pageTitle">这是一个非常长的页面标…</text>
+<text x="115" y="465" class="t meta">16dp padding preserved · 28sp preserved</text>
+<text x="115" y="494" class="t meta">maxLines = 1 · overflow = Ellipsis</text>
+
+<rect x="680" y="150" width="560" height="430" rx="28" class="card"/>
+<text x="715" y="194" class="t k">ACCESSIBILITY FONT SCALE</text>
+<rect x="715" y="235" width="490" height="220" rx="20" fill="#EEF4F3"/>
+<text x="737" y="350" class="t" style="font-size:36px;font-weight:500;fill:#0B2D4B">我的鱼获</text>
+<text x="715" y="495" class="t meta">heightIn(min = 64dp) · bar grows when text metrics require</text>
+<text x="715" y="524" class="t meta">Never clip CJK glyphs · never manually downscale title</text><line x1="60" y1="668" x2="1260" y2="668" stroke="#DCE7E3" stroke-width="2"/><text x="60" y="698" class="t note">FROZEN · Top Navigation / TITLE_ONLY V1 · Component Visual Reference</text></svg>

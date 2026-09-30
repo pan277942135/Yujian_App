@@ -50,10 +50,28 @@ Their dimensions and SHA-256 values are frozen in `design/reference_manifest.jso
 - `processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png`
 - `processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md` (visual geometry/token source; legacy timing superseded)
 
+## Recognition Result 3+2 source of truth
+
+The Result sub-package closes the existing five Frozen Result / recovery states without redesigning them:
+
+- `result/DESIGN_PACKAGE_CLOSURE_V1.md`
+- `result/spec/Recognition_Result_Feature_Spec_V1.md`
+- `result/spec/Recognition_Result_State_Matrix_V1.md`
+- `result/spec/Recognition_Result_Behavior_Spec_V1.md`
+- `result/spec/Recognition_Result_Visual_Spec_V1.md`
+- `result/motion/Recognition_Result_Motion_Spec_V1.md`
+- `result/spec/Recognition_Result_Acceptance_Criteria_V1.md`
+- `result/authority/authority_map.json`
+- `result/review/Recognition_Result_Runtime_Alignment_Review_V1.md`
+
+State-level Frozen references 05–09 are the final authority for state-specific composition. The Core Visual System `recognition_result_v1.png` remains the shared Result visual-language authority and does not override state-specific Frozen differences.
+
 ## Acceptance
 
 - `runtime/Recognition_Runtime_Contract_V1_1.md`
 - `evidence/Recognition_Evidence_Contract_V1_1.md`
 - `spec/Recognition_Acceptance_Criteria_V1_1.md`
 
-Final runtime acceptance requires API28 `runtime_gate_result.json.classification == PASS`.
+Final full-flow runtime acceptance requires API28 `runtime_gate_result.json.classification == PASS`.
+
+Result Design Package closure and Result Runtime alignment are tracked separately in `result/status.json`.

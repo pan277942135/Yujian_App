@@ -1,0 +1,32 @@
+{
+  "version": "V2",
+  "status": "FROZEN",
+  "page_id": "auth_register_v2",
+  "display_name": "注册 · 创建账号",
+  "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+  "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+  "approved_source": {
+    "filename": "160938.png",
+    "dimensions": [
+      864,
+      1536
+    ],
+    "sha256": "14f63ae6e051f955fbefb020840c24f42e86ced88476f2fb7e0d233733ee4d35",
+    "role": "final approved high-fidelity visual source"
+  },
+  "shared_background": {
+    "master": "Morning_Lake_Master_V1",
+    "variant": "BG_CONTENT",
+    "precedence": "implementation source system; rendered result must visually match the final frozen authority"
+  },
+  "footer_decoration": {
+    "type": "waterside_grass",
+    "ownership": "page_foreground",
+    "part_of_background_master": false
+  },
+  "design_manager_preview": {
+    "path": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+    "mode": "direct_visual_authority",
+    "note": "Design Manager displays the frozen authority itself; no SVG/HTML reconstruction."
+  }
+}

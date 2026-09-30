@@ -721,13 +721,18 @@ fun LegalDocumentScreen(title: String, isPrivacyPolicy: Boolean, onBack: () -> U
 @Composable
 fun ComingSoonSheet(kind: ComingSoonKind, onDismiss: () -> Unit) {
     val body = when (kind) {
-        ComingSoonKind.FORGOT_PASSWORD -> "忘记密码功能将在后续版本开放，敬请期待。"
+        ComingSoonKind.FORGOT_PASSWORD -> "找回密码功能正在完善中。"
         ComingSoonKind.EXPORT_DATA -> "数据导出功能将在后续版本开放，敬请期待。"
         ComingSoonKind.DELETE_ACCOUNT -> "账号注销功能将在后续版本开放，敬请期待。"
     }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("功能正在准备中", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                if (kind == ComingSoonKind.FORGOT_PASSWORD) "忘记密码" else "功能正在准备中",
+                color = DeepInk,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+            )
             Text(body, color = MutedInk, fontSize = 14.sp)
             Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(25.dp), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal)) {
                 Text("知道了")

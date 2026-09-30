@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "page_id": "normal_home_v1",
+  "canonical_reference": "design/system/core_visual_v1/reference/normal_home_v1.png",
+  "width": 1080,
+  "height": 1920,
+  "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "duplication_policy": "DO_NOT_DUPLICATE_BINARY",
+  "verification": "design/system/core_visual_v1/reference/reference_manifest.json",
+  "notes": "This page-level manifest binds Normal Home to the immutable Core UI V1 reference without creating a second binary authority."
+}
