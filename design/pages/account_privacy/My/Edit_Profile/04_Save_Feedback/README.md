@@ -1,16 +1,21 @@
 # 04 · 保存与反馈
 
-Status: **PARTIAL — structure only**
+Status: **FROZEN — consolidated authority**
 
-## 本页覆盖
+Canonical authority:
 
-- 未修改
-- 有修改
+`design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md`
+
+This file is retained as a historical index only.
+
+Frozen coverage:
+- 未修改 / UNCHANGED
+- 有修改 / DIRTY_VALID
+- 非法修改 / DIRTY_INVALID
 - Saving
 - Success
-- Failure
-- 重试
+- Retryable Failure
+- Session Failure
+- Partial Success / truth reconciliation
 
-## 当前状态
-
-已建立资料保存状态机目录；按钮状态、反馈方式、错误恢复和重试规则待后续设计与冻结。
+Do not create a separate Design Manager menu for this file.

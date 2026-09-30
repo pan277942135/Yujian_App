@@ -5465,12 +5465,12 @@
         "behavior": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-          "note": "Active MVP main path and Legal/About page structure are frozen. Package behavior remains PARTIAL because Edit Profile remaining state/interaction closure is still outstanding; final legal copy is governed separately by LEGAL_REVIEW_REQUIRED."
+          "note": "Active MVP main path, Legal/About page structure and Edit Profile state/interaction behavior are frozen. Package behavior remains PARTIAL only because final legal copy is separately review-gated and deferred product flows remain outside MVP."
         },
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "Active MVP main path and Legal/About page shells are FROZEN. Package visual remains PARTIAL only because Nickname integrity and remaining Edit Profile states are outside this closure."
+          "note": "Active MVP main path and Legal/About page shells are FROZEN. Package visual remains PARTIAL because Nickname visual integrity is BLOCKED_INTEGRITY."
         },
         "motion": {
           "status": "MISSING",
@@ -5498,7 +5498,7 @@
           "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
         }
       },
-      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is now frozen: About uses Shared Component Composition; Privacy Policy and User Agreement share Legal Document Shell V1. Final legal copy for Privacy Policy/User Agreement remains LEGAL_REVIEW_REQUIRED and therefore Account & Privacy overall remains PARTIAL. Nickname visual identity remains BLOCKED_INTEGRITY; Edit Profile remaining state/interaction closure is separate.",
+      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is frozen; final legal copy remains LEGAL_REVIEW_REQUIRED. Edit Profile behavior/state/interaction is now fully frozen; the remaining Edit Profile design blocker is Nickname visual integrity. Deferred flows remain explicit.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5768,7 +5768,7 @@
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/README.md",
-          "summary": "My 的 IA/Behavior/Content Structure 已冻结；当前旧 My 图仅为历史参考，新 BG_CONTENT 高保仍待上传。编辑资料首页/头像已有可信 Frozen Authority；Nickname 仍为 BLOCKED_INTEGRITY。",
+          "summary": "My、编辑资料首页、头像修改均已 FROZEN；Edit Profile 的 Save/Edge/Interaction 规则已统一冻结。仅 Nickname Visual Integrity 仍为 BLOCKED_INTEGRITY。",
           "menu_points": [
             "02A · 我的 · FROZEN",
             "02B · 编辑资料首页 · FROZEN",
@@ -6419,26 +6419,29 @@
       "overall": "PARTIAL",
       "modalities": {
         "behavior": {
-          "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01–03 具有既有设计 / Development Contract；Save Feedback、Edge States、Interaction Adaptation 仍为 PARTIAL，已并入 authority index，不作为独立菜单。"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "note": "01–03 dedicated contracts plus Edit_Profile_State_Interaction_Spec_V1 freeze all current Edit Profile state/interaction behavior. Nickname visual integrity remains an independent asset gate."
         },
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 Edit Profile Home、02 Avatar、03 Nickname 为现有 Frozen Visual Authorities；04–06 不含可冻结的独立视觉稿。"
+          "note": "01 Edit Profile Home and 02 Avatar are trusted FROZEN visuals. 03 Nickname visual is BLOCKED_INTEGRITY. 04–06 are behavior/state authorities and intentionally require no standalone visual assets."
         },
         "motion": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "note": "No custom motion required; use platform/shared component transitions only."
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "note": "No custom haptic required for save/validation feedback."
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "note": "No custom sound required."
         },
         "runtime": {
           "status": "RUNTIME_ONLY",
@@ -6451,7 +6454,7 @@
         "assets": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01–03 保留 exact frozen assets；04–06 原有 README 仅为 structure-only，不存在可冻结图像。"
+          "note": "01–02 exact frozen assets are trusted; 03 Nickname asset identity remains BLOCKED_INTEGRITY; 04–06 require no standalone assets."
         }
       },
       "display_name": "编辑资料",
@@ -6461,7 +6464,7 @@
           "status": "PARTIAL",
           "current": true,
           "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑为 FROZEN；04–06 的不完整规则保留 PARTIAL 并并入 authority index。"
+          "note": "01 Home / 02 Avatar visual frozen; 03 Nickname behavior frozen but visual integrity blocked; 04–06 state/edge/interaction fully frozen through unified contract."
         }
       ],
       "design_overall": "PARTIAL",
@@ -6492,7 +6495,7 @@
           "note": "02 头像来源动作复用 Icon Action V1；03 昵称 Clear 使用 CONTEXT / ON_LIGHT。"
         }
       ],
-      "note": "编辑资料 V1：01 · 编辑资料首页、02 · 头像修改为可信 FROZEN；03 · 昵称编辑行为/合同已冻结但 Visual Integrity = BLOCKED_INTEGRITY（仓库二进制 SHA 与 frozen manifest 不一致）；04–06 仍为 PARTIAL。Runtime 已存在，不等于剩余设计已冻结。",
+      "note": "编辑资料 V1：Behavior/State/Interaction 已全部 FROZEN；01 · 编辑资料首页、02 · 头像修改 Visual FROZEN；03 · 昵称编辑 Behavior FROZEN 但 Visual Integrity = BLOCKED_INTEGRITY。04–06 已统一冻结到 Edit_Profile_State_Interaction_Spec_V1.md，不再是独立待设计项。Runtime parity remains separate.",
       "hifi_views": [
         {
           "id": "01_profile_home",
@@ -6554,10 +6557,10 @@
         {
           "id": "04_save_feedback",
           "title": "04 · 保存与反馈",
-          "status": "PARTIAL",
-          "authority_type": "visual",
-          "authority": "design/pages/account_privacy/My/Edit_Profile/04_Save_Feedback/README.md",
-          "summary": "资料修改前后、保存中及结果反馈状态的设计入口。",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "summary": "保存状态机已冻结：UNCHANGED / DIRTY / SAVING / SUCCESS / RETRYABLE FAILURE / SESSION FAILURE / PARTIAL SUCCESS。无需独立高保图。",
           "menu_points": [
             "未修改",
             "有修改",
@@ -6570,10 +6573,10 @@
         {
           "id": "05_edge_states",
           "title": "05 · 异常与边界状态",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority_type": "behavior",
-          "authority": "design/pages/account_privacy/My/Edit_Profile/05_Edge_States/README.md",
-          "summary": "头像、网络、昵称、Session 与服务异常的边界处理入口。",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "summary": "异常与边界策略已冻结：头像读取/拒绝、网络、昵称、Session、部分成功与草稿保留。",
           "menu_points": [
             "头像读取失败",
             "图片格式 / 大小异常",
@@ -6586,10 +6589,10 @@
         {
           "id": "06_interaction_adaptation",
           "title": "06 · 交互与适配规范",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority_type": "behavior",
-          "authority": "design/pages/account_privacy/My/Edit_Profile/06_Interaction_Adaptation/README.md",
-          "summary": "键盘、滚动、小屏、返回、未保存修改与无障碍适配入口。",
+          "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+          "summary": "键盘/IME、单一纵向滚动、小屏、未保存返回确认、Safe Area 与 Accessibility 已冻结。",
           "menu_points": [
             "键盘 / IME",
             "页面滚动",
