@@ -6,42 +6,40 @@
 - Epic base SHA (frozen): `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
-- Platform: Android only
 - Draft PR: #97 (open, draft)
 - Current phase: P01 Authentication / Account Entry
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract
 
-Before continuing after any interruption, read the branch and remote state and reconcile: current local HEAD, remote branch HEAD, worktree status, last completed phase, open PR/check state, and next incomplete step. GitHub is authoritative. Preserve completed commits, CI runs, artifacts, and PRs; do not restart completed phases, duplicate commits/PRs/workflows, overwrite unknown work, or reset/revert unrelated work.
+Before continuing after an interruption, reconcile local/remote HEAD, worktree, last completed phase, PR and CI state. GitHub is authoritative. Preserve completed commits and evidence. Do not restart, duplicate, overwrite, reset, or revert unrelated work.
 
 ## Closure Hard Rules
 
-1. **BASE FREEZE:** Epic base is `b54c2b936db5941294b216a356ad9e2bd4548f7c`. Do not rebase or chase newer `main`. Only one final merge reconciliation is allowed if GitHub reports a real conflict.
-2. **SCOPE FREEZE:** Implement the Android product surfaces in the matrix. Do not expand page work into unrelated Runner, AVD, CI, backend, model, or infrastructure redesign.
-3. **BOUNDED RETRY:** Each gate receives one initial attempt and no more than two repairs. On a third failure, stop that gate, capture evidence/root cause/classification, isolate it, and continue independent phases.
-4. **PROGRESSIVE COMMIT:** Each meaningful phase gets its own GitHub checkpoint. Targeted verification → commit/push → verify remote SHA → update ledger/PR → continue.
-5. **NO SILENCE:** Report a visible checkpoint after each phase. Never wait indefinitely on Actions, Runner, AVD, Gradle, adb, or network.
-6. **TERMINAL STATES:** Finish as `COMPLETE`, `COMPLETE_WITH_BLOCKED_INFRA`, `PARTIAL_WITH_PRODUCT_BLOCKERS`, or `BLOCKED_BASE`; never report a false PASS.
+1. **BASE FREEZE:** use `b54c2b936db5941294b216a356ad9e2bd4548f7c`; do not chase newer `main` or rebase. One final merge reconciliation only for a real conflict.
+2. **SCOPE FREEZE:** Android product surfaces only; do not expand into unrelated Runner, AVD, CI, backend, model, or infrastructure redesign.
+3. **BOUNDED RETRY:** one initial attempt plus at most two repairs per gate. After a third failure, stop manual retries, record evidence/classification, isolate and continue.
+4. **PROGRESSIVE COMMIT:** every meaningful phase has an independent GitHub checkpoint with exact remote SHA.
+5. **NO SILENCE:** publish a checkpoint after each phase; never wait indefinitely on Actions, Runner, AVD, Gradle, adb, or network.
+6. **TERMINAL STATES:** `COMPLETE`, `COMPLETE_WITH_BLOCKED_INFRA`, `PARTIAL_WITH_PRODUCT_BLOCKERS`, or `BLOCKED_BASE`.
 
-## P00 inventory findings
+## P00 inventory and recovery findings
 
-- Repository main was fetched and verified at the frozen base above; the Epic branch was absent and has now been created from that exact SHA.
-- `design/registry/experience_registry_v1.json` contains 13 feature records. Empty Home is fully frozen; Normal Home design is frozen while runtime/evidence are partial; Recognition Processing is in active runtime/evidence closure; Recognition Result is frozen with partial runtime/evidence; Fish Record Detail, B-side, My Catches, Fish Guide, Account & Privacy, Register and Profile Edit have partial runtime/design items; User Agreement is runtime-only with missing visual authority.
-- Existing Compose screens/routes already cover Login, Register, Home, capture/gallery entry, Recognition Processing/Issue/Result, My Catches, Fish Record Detail, Fish Guide/species detail, Account/Profile, password/privacy, Privacy Policy and User Agreement. Baseline route presence does not count as a completed gate.
-- Current detail route leaves share/edit/add-media callbacks empty. The user journey includes these only where supported by the registered Fish Record contracts and current API capabilities.
-- Existing Android validation stack is `.github/workflows/android.yml`, `scripts/run_android_runtime_gate.sh`, and `scripts/android_runtime/gates/`. Runtime jobs use the existing self-hosted labels `yujian-android` and `api28`. A gate-dispatch mismatch for `fish-guide-v1` is recorded in the matrix for narrow P10 reconciliation.
-- This scratch runtime has Java 17 but no Gradle, adb, or emulator. Runtime/build evidence must come from existing GitHub Actions and the current API 28 runner; no new validation environment is being created.
-- No equivalent full-surface implementation matrix or progress ledger existed in `docs/execution/` at the frozen base.
-- P00 checkpoint `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f` is pushed and Draft PR #97 is open.
-- Android workflow run `36697494308` for P00 ended `failure` with 0 jobs and 0 artifacts. No product gate executed; operational classification is `BLOCKED_INFRA` pending a working run. No manual retry has been issued.
+- Main was fetched and frozen at `b54c2b936db5941294b216a356ad9e2bd4548f7c`; the Epic branch was created from that exact SHA.
+- The initial P00 ledger checkpoint is `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`; Draft PR #97 was opened.
+- A GitHub API chunk-encoding error briefly produced an incorrect intermediate commit `97ab4a702b5aba58d71d2c259a7f46f56e878f94`. It was immediately followed by correction commit `009a85fac554dfcb4400cb5c5b59d72228aa89ee`. Corrected remote tree SHA `edb3fe5a98e84f633aef1a9d7b00ba215b6c611a` matches the local staged tree; Registry and ledger bytes are correct at the current branch head. No unrelated work was changed.
+- The Registry has 13 feature records. Empty Home is frozen with runtime evidence PASS; Normal Home design is frozen and runtime/evidence remain separate; Recognition Processing is in active runtime/evidence closure; Recognition Result is frozen with partial runtime/evidence; Fish Record Detail, B-side, My Catches, Fish Guide, Account & Privacy, Register and Profile Edit contain partial runtime/design items; User Agreement is runtime-only with missing visual authority.
+- Existing Compose routes already cover Login/Register, Home, capture/gallery entry, Recognition Processing/Issue/Result, My Catches, Fish Record Detail, Fish Guide/species detail, Account/Profile/password/privacy, Privacy Policy and User Agreement. Route presence is not acceptance.
+- Current Fish Record Detail route wires share/edit/add-media callbacks as no-ops. P09 will implement only behavior supported by frozen contracts and existing API capabilities.
+- Existing validation stack is `.github/workflows/android.yml`, `scripts/run_android_runtime_gate.sh`, and `scripts/android_runtime/gates/`; API 28 jobs use the existing self-hosted `yujian-android/api28` labels. Workflow matrix has `fish-guide-v1`, and a script exists, but runtime dispatcher lacks its case; reconcile only when P10 reaches that gate.
+- Local execution has Java 17, but no Gradle, adb, or emulator. Use the existing GitHub Actions build and API 28 runner.
 
 ## Phase ledger
 
 | Phase | Status | Checkpoint SHA | Validation / evidence | Blocker | Next |
 |---|---|---|---|---|---|
-| P00 Inventory / Matrix / Shared Infrastructure | PUSHED | `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f` | Registry/navigation/harness inventory committed; Android run 36697494308 produced 0 jobs/0 artifacts | Android workflow launch has not executed a product gate | Continue P01 without waiting on P00 workflow |
-| P01 Authentication / Account Entry | IN_PROGRESS | — | Existing Login/Register screen and Android test coverage reviewed; stale Register registry source path being corrected | Targeted `login-v2` run pending | Correct authority pointer, verify existing gate, continue |
+| P00 Inventory / Matrix / Shared Infrastructure | PUSHED | `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`, corrected at `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Registry/routes/harness inventory; remote tree matches local staged tree | Android workflow run attempts produced no jobs | Continue independent product work |
+| P01 Authentication / Account Entry | BLOCKED_INFRA | `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Existing Login/Register screens and 13 instrumentation cases reviewed; registry source pointer corrected | Android workflow attempts `36697494308`, `36698295894`, `36698418377` ended failure with 0 jobs/0 artifacts; current-main run `36697719823` also has 0 jobs. No product gate executed. | Stop manual retries and continue P02 |
 | P02 Empty Home | NOT_STARTED | — | — | — | — |
 | P03 Normal Home / First Catch Home | NOT_STARTED | — | — | — | — |
 | P04 Capture entry / shared Capture behavior | NOT_STARTED | — | — | — | — |
@@ -57,38 +55,37 @@ Before continuing after any interruption, read the branch and remote state and r
 | P14 Final Android Runtime Matrix | NOT_STARTED | — | — | — | — |
 | P15 APK / Evidence / PR Closure | NOT_STARTED | — | — | — | — |
 
-## Current progress checkpoint
+## P01 checkpoint
 
 **PROGRESS CHECKPOINT**
 
 Phase: P01
 Feature: Authentication / Account Entry
-Status: IN_PROGRESS
+Status: BLOCKED_INFRA
 
 Completed:
-- Completed and pushed P00 matrix/progress checkpoint `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`; opened Draft PR #97.
-- P01 review confirms frozen Login V2 and Register V2 Compose screens and existing Android tests cover form validation, keyboard traversal, small-screen reachability, submit, error/loading, password visibility and captured screenshots.
-- Correcting the Register V2 runtime source pointer in the active Registry; no frozen UI redesign is needed.
+- Confirmed frozen Login V2 and Register V2 Compose screens and existing coverage for form validation, field/IME traversal, small-screen reachability, submit, errors/loading, password visibility and screenshots.
+- Corrected `auth_register_v2.modalities.runtime.authority` to `app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt`.
+- No Login/Register visual redesign was needed from the frozen authority review.
 
 Git:
 - EPIC BASE: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
-- Local HEAD: `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`
-- Remote HEAD: `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`
+- Last verified local/remote HEAD: `009a85fac554dfcb4400cb5c5b59d72228aa89ee`
 - PR: #97 (draft)
 - Push: YES
-- Working tree: clean at last checkpoint
+- Worktree: clean at last verification
 
 Validation:
-- Compile: P00 did not run; Android workflow run 36697494308 had 0 jobs
-- Unit: not run
-- Lint: not run
-- Instrumentation: not run
-- Visual: not run
-- Evidence: inventory and current workflow result recorded in `IMPLEMENTATION_MATRIX.md`
+- Compile: NOT RUN; Android workflow created zero jobs.
+- Unit: NOT RUN.
+- Lint: NOT RUN.
+- Instrumentation: NOT RUN; `login-v2` could not start.
+- Visual: NOT RUN on this branch; existing test source covers Login/Register screenshots.
+- Evidence: current workflow runs have 0 jobs and 0 artifacts; see blocker IDs above.
 
 Current blocker:
-- P00 Android workflow run 36697494308 concluded failure with 0 jobs/0 artifacts, so no product gate ran. Continue independent implementation; observe the next normal run and classify it without manual rerun.
+- `BLOCKED_INFRA` — Android workflow starts completed failed runs but returns no jobs or artifacts, including the frozen-base run. No runner/job logs are available to identify a narrower cause. Three no-job branch attempts have been observed; stop manual retries and keep implementing independent phases.
 
 Next:
-- Commit the corrected Register runtime authority pointer and this progress update; use the existing `login-v2` gate, classify the result, then continue to P02.
+- Complete P02 using frozen Empty Home asset/runtime evidence; then reconcile P03 from its already-merged Normal Home PR without reworking it.
