@@ -13,7 +13,9 @@ Scope: **Design Manager organization and design authority indexing only**
 - **Register V2** — `Register/frozen/Register_V2_Frozen_Final.png`; spec: `Register/Register_V2_Design_Spec_V1.md`.
 - **Edit Profile Home V1.1** — `My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp`.
 - **Avatar Change V1** — `My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp`.
-- **Nickname Edit V1** — `My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp` is recorded as FROZEN in the existing spec and registry. Its current repository SHA-256 (`26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`) does **not** match the frozen manifest / README SHA-256 (`5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`). The original binary is preserved unchanged; this identity discrepancy remains open and is not reported as a parity PASS.
+### INTEGRITY BLOCKED
+
+- **Nickname Edit V1** — behavior / machine / development contracts remain frozen, but the current repository WebP SHA-256 (`26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`) does **not** match the declared frozen visual SHA-256 (`5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`). Therefore Visual Authority status is **BLOCKED_INTEGRITY**, not FROZEN. Recover the originally approved byte-identical source; do not regenerate or re-encode it.
 
 Login V2.1 and Register V2 are shown from their canonical PNG paths. `Login/00_Login.png` is labelled **Superseded / Historical** and is not the current Login Authority.
 
@@ -30,6 +32,8 @@ The following exact repository images remain review references, not current Froz
 
 ### MVP DEFERRED DESIGN REFERENCES
 
+Design Manager status for these flows is **DEFERRED**, not PARTIAL. Their design references are preserved, but they are intentionally outside the current MVP.
+
 - **Forgot Password** — the four existing images are future-flow references. Production remains **ENTRY ONLY / COMING SOON** until a verified recovery channel exists.
 - **Export My Data** — five existing state images remain a design reference. Production remains **ENTRY ONLY / COMING SOON**.
 - **Delete Account** — three existing state images remain a design reference. Production remains **ENTRY ONLY / COMING SOON**; no fake destructive flow is implied.
@@ -45,6 +49,7 @@ No replacement artwork, runtime screenshot, or placeholder is used for either pa
 
 - Current shared lake source: `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` with `BG_CONTENT` as appropriate.
 - Shared Top Navigation V1 / `BACK_TITLE`, Color & Typography, Spacing & Radius, Action / Text / Icon components remain linked through `design/registry/shared_design_system_v1.json`.
+- Shared Default Profile Avatar V1: `design/system/components/profile_avatar_v1/default_profile_avatar_contract.json`. Logged-in avatar missing/load failure uses this shared fallback; Guest account entry is a separate semantic state.
 - `shared/morning_lake_background.png` is the legacy package background only; it is not current Background Authority.
 
 ## Design Manager Navigation
