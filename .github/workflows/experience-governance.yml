@@ -1,0 +1,46 @@
+name: Design Governance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "design/**"
+      - "scripts/design_manager.py"
+      - ".github/workflows/experience-governance.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "design/**"
+      - "scripts/design_manager.py"
+      - ".github/workflows/experience-governance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile Design Manager
+        run: python3 -m py_compile scripts/design_manager.py
+
+      - name: Validate design registry
+        run: python3 scripts/design_manager.py validate
+
+      - name: Print design summary
+        run: python3 scripts/design_manager.py summary
+
+      - name: Upload Design Manager
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Design-Manager-${{ github.sha }}
+          path: |
+            design/manager/
+            design/registry/experience_registry_v1.json
+          if-no-files-found: error
+          retention-days: 14

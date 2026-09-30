@@ -1,0 +1,703 @@
+{
+  "version": "1.1",
+  "status": "ACTIVE",
+  "governance": "design/governance/YuJian_Experience_Source_of_Truth_V1.md",
+  "authority_note": "This registry inventories current repository authority. It does not replace feature-local contracts.",
+  "status_vocabulary": [
+    "FROZEN",
+    "ACTIVE_CLOSURE",
+    "PARTIAL",
+    "RUNTIME_ONLY",
+    "DESIGN_ONLY",
+    "MISSING",
+    "DEPRECATED"
+  ],
+  "features": [
+    {
+      "id": "home_empty_v2",
+      "owner_path": "design/pages/home/empty_home",
+      "overall": "ACTIVE_CLOSURE",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/system/core_visual_v1/reference/empty_home_v2.png"
+        },
+        "motion": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/motion/Empty_Home_Motion_Spec_V2.md"
+        },
+        "haptic": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/haptic/Empty_Home_Haptic_Spec_V1.md"
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null,
+          "note": "当前 main 未归档独立 Empty Home Sound Spec；Design Manager 不臆造 Authority。"
+        },
+        "runtime": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json"
+        },
+        "evidence": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/evidence/manifest.json"
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
+        }
+      },
+      "note": "Design authority is V2 base + approved V2.2 delta freeze. Runtime/evidence revalidation is tracked separately and does not change design freeze state.",
+      "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md",
+      "display_name": "空首页",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": false,
+          "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
+          "note": "Base scene authority retained for all pixels/behavior not changed by V2.2."
+        },
+        {
+          "version": "V2.2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
+          "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
+          "source_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+          "note": "Approved delta freeze over V2: capture CTA clarity/spacing and rod-line-bobber-water-contact geometry."
+        },
+        {
+          "version": "V3",
+          "status": "DEPRECATED",
+          "current": false,
+          "spec_authority": "design/pages/home/empty_home/spec/Empty_Home_Final_Visual_Fidelity_V3.md",
+          "note": "Historical closure document; not current authority after the approved V2.2 delta freeze."
+        }
+      ],
+      "design_overall": "FROZEN"
+    },
+    {
+      "id": "home_normal_v1",
+      "owner_path": "design/pages/home/normal_home",
+      "overall": "ACTIVE_CLOSURE",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/normal_home/spec/Behavior_Spec_V1.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
+        },
+        "motion": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md"
+        },
+        "haptic": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md"
+        },
+        "sound": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md"
+        },
+        "runtime": {
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+        },
+        "evidence": {
+          "status": "PARTIAL",
+          "authority": null
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/home/normal_home/assets/asset_manifest.json"
+        }
+      },
+      "display_name": "有数据首页",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
+        }
+      ],
+      "design_overall": "ACTIVE_CLOSURE",
+      "secondary_navigation": "design/pages/home/normal_home/navigation.json",
+      "note": "NH01 当前主页面已冻结；NH02–NH06 作为二级菜单继续补齐。关键内容独立出图，辅助/组件/边界状态按内容合并出图。"
+    },
+    {
+      "id": "recognition_flow_v1_2",
+      "owner_path": "design/pages/recognition",
+      "overall": "ACTIVE_CLOSURE",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/design/reference_manifest.json"
+        },
+        "motion": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md"
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null,
+          "note": "No recognition haptic contract is registered."
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null,
+          "note": "No recognition sound contract is registered."
+        },
+        "runtime": {
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
+        },
+        "evidence": {
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md"
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/design/reference_manifest.json"
+        }
+      },
+      "note": "Nine frozen state references are archived. Runtime visual fidelity is newer than the original V1.1 package status.",
+      "display_name": "识别过程",
+      "design_versions": [
+        {
+          "version": "V1.2",
+          "status": "ACTIVE_CLOSURE",
+          "current": true,
+          "spec_authority": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md",
+          "note": "Nine frozen state references remain archived under the Recognition package."
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "recognition_result_v1",
+      "owner_path": "design/pages/recognition/result",
+      "overall": "FROZEN",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/system/core_visual_v1/reference/recognition_result_v1.png"
+        },
+        "motion": {
+          "status": "PARTIAL",
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md"
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "FROZEN",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
+        },
+        "evidence": {
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/status.json"
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/pages/recognition/design/reference_manifest.json"
+        }
+      },
+      "display_name": "识别结果",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/recognition_result_v1.png"
+        }
+      ],
+      "design_overall": "PARTIAL",
+      "secondary_navigation": "design/pages/recognition/result/navigation.json",
+      "note": "3+2 识别结果已建立 RR00–RR05 二级菜单，五个关键状态直接引用 canonical Frozen PNG。"
+    },
+    {
+      "id": "fish_record_detail_v2",
+      "owner_path": "design/pages/fish_record/detail",
+      "overall": "PARTIAL",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/fish_record/detail/README.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
+        }
+      },
+      "display_name": "鱼获详情",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "fish_memory_bside_v1",
+      "owner_path": "design/system/core_visual_v1/reference/supplemental",
+      "overall": "PARTIAL",
+      "modalities": {
+        "behavior": {
+          "status": "PARTIAL",
+          "authority": "design/pages/fish_record/detail/README.md"
+        },
+        "visual": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemorySection.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
+        }
+      },
+      "note": "Needs a dedicated feature package for B-side generation success, first auto-flip and later manual flip semantics.",
+      "display_name": "鱼获记忆 / B 面",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "PARTIAL",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
+          "note": "Supplemental reference only; dedicated package is incomplete."
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "my_catches_v2",
+      "owner_path": "design/pages/fish_records/list",
+      "overall": "PARTIAL",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/fish_records/list/README.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/system/core_visual_v1/reference/my_catches_v2.png"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
+        }
+      },
+      "display_name": "我的鱼获",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/my_catches_v2.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "fish_guide_v2",
+      "owner_path": "design/pages/fish_guide",
+      "overall": "PARTIAL",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/README.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/system/core_visual_v1/reference/fish_guide_v2.png"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/FishGuideHomeScreen.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
+        }
+      },
+      "supplemental_visual": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+      "display_name": "鱼鉴",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "account_privacy_v1",
+      "owner_path": "design/pages/account_privacy",
+      "overall": "PARTIAL",
+      "modalities": {
+        "behavior": {
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/manifest.json"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+        },
+        "evidence": {
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/qa/QA_REPORT.md"
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/manifest.json"
+        }
+      },
+      "note": "Frozen UI package contains 22 UI references plus shared morning-lake background; some flows are intentionally not in MVP runtime.",
+      "display_name": "账号与隐私",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/pages/account_privacy/manifest.json",
+          "note": "Frozen UI package; some flows intentionally not in MVP runtime."
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "auth_login_v2",
+      "owner_path": "design/pages/account_privacy/Login",
+      "overall": "ACTIVE_CLOSURE",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/Login_V2_Closure.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Login/00_Login.png"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "FROZEN",
+          "authority": "app/src/main/java/com/yujian/ai/ui/auth/LoginV2Screen.kt"
+        },
+        "evidence": {
+          "status": "PARTIAL",
+          "authority": "app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt"
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/manifest.json"
+        }
+      },
+      "display_name": "登录",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/pages/account_privacy/Login/00_Login.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "auth_register_v2",
+      "owner_path": "design/pages/account_privacy/Register",
+      "overall": "RUNTIME_ONLY",
+      "modalities": {
+        "behavior": {
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/README.md"
+        },
+        "visual": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png"
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "RUNTIME_ONLY",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AuthScreens.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/manifest.json"
+        }
+      },
+      "note": "A dedicated frozen Register V2 visual/package is not archived on main.",
+      "display_name": "注册",
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "FROZEN",
+          "current": true,
+          "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png"
+        }
+      ],
+      "design_overall": "PARTIAL"
+    },
+    {
+      "id": "profile_edit_v1",
+      "owner_path": "design/pages/account_privacy/My/Edit_Profile",
+      "overall": "RUNTIME_ONLY",
+      "modalities": {
+        "behavior": {
+          "status": "RUNTIME_ONLY",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+        },
+        "visual": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "RUNTIME_ONLY",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "MISSING",
+          "authority": null
+        }
+      },
+      "display_name": "编辑资料",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "MISSING",
+          "current": true,
+          "note": "Runtime exists; no independent frozen design package archived."
+        }
+      ],
+      "design_overall": "MISSING"
+    },
+    {
+      "id": "user_agreement_v1",
+      "owner_path": "design/pages/account_privacy/User_Agreement",
+      "overall": "RUNTIME_ONLY",
+      "modalities": {
+        "behavior": {
+          "status": "RUNTIME_ONLY",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+        },
+        "visual": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "motion": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "haptic": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "sound": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "runtime": {
+          "status": "RUNTIME_ONLY",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+        },
+        "evidence": {
+          "status": "MISSING",
+          "authority": null
+        },
+        "assets": {
+          "status": "MISSING",
+          "authority": null
+        }
+      },
+      "display_name": "用户协议",
+      "design_versions": [
+        {
+          "version": "V1",
+          "status": "MISSING",
+          "current": true,
+          "note": "Runtime exists; no independent frozen design package archived."
+        }
+      ],
+      "design_overall": "MISSING"
+    }
+  ],
+  "design_manager": {
+    "version": "1.1",
+    "scope": "design_only",
+    "modalities": [
+      "behavior",
+      "visual",
+      "motion",
+      "haptic",
+      "sound",
+      "assets"
+    ],
+    "note": "Design Manager V1.1 renders feature-local navigation.json files as second-level menus. Runtime and evidence remain outside the design-only UI.",
+    "supports_secondary_navigation": true,
+    "routing": "#page/<feature_id>[/<secondary_id>]"
+  }
+}
