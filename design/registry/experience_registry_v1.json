@@ -1212,14 +1212,14 @@
                 941,
                 1672
               ],
-              "visual_authority_scope": "冻结 AI 边缘光场的光学语言、蓝金气质、环境受光、空气光晕、细丝层次、粒子克制与照片优先级。图中的返回键、状态卡和旧状态文案不属于 AI Edge Field Authority；四岛拓扑、Quiet Gap、主次和运动仍以 Static Shape / Rendering / Motion Contract 为结构权威。"
+              "visual_authority_scope": "冻结 AI 边缘光场的光学语言、蓝金气质、环境受光、空气光晕、细丝层次、粒子克制与照片优先级。图中的返回键、状态卡和旧状态文案不属于 AI Edge Field Authority；四岛拓扑、Quiet Gap、主次和运动仍以 Static Shape / Rendering / Motion Contract 为结构权威。",
+              "visual_authority": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
             },
             {
               "id": "ai_edge_field_ref_r02",
               "code": "AI 边缘光场 V1 · 03 · R02",
               "title": "R02 · 能量岛拆解",
               "status": "FROZEN",
-              "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
               "summary": "用于把单个主能量岛的视觉层次拆清楚：局部受光、外层光晕、中层发光、核心亮线、伴随细线、热点与稀疏粒子；只解释视觉构成，不定义实现。 生成规范已冻结；最终视觉图仍待补充。",
@@ -1266,7 +1266,6 @@
               "code": "AI 边缘光场 V1 · 03 · R03",
               "title": "R03 · 四岛构图",
               "status": "FROZEN",
-              "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
               "summary": "用于确定四个能量岛在完整画面中的位置、主次、长度与留白关系；重点看拓扑，不看细节特效。 生成规范已冻结；最终视觉图仍待补充。",
@@ -1315,7 +1314,6 @@
               "code": "AI 边缘光场 V1 · 03 · R04",
               "title": "R04 · 光场与鱼体聚焦",
               "status": "FROZEN",
-              "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
               "summary": "用于确定鱼体被定位后，外围 AI 光场与 Fish Focus 的视觉权重如何交接；重点是“谁是主角”。 生成规范已冻结；最终视觉图仍待补充。",
@@ -1410,14 +1408,15 @@
                   "height": 1672,
                   "scope": "作为 R05 强表现档的既有视觉上限参考，冻结受光、Bloom、Hairline、Node、Particle 的偏强观感；不作为四岛拓扑 Authority，也不代表最终目标档或最低可接受档。"
                 }
-              ]
+              ],
+              "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+              "visual_authority_scope": "当前 visual_authority 指向已冻结的“强表现”参考，仅代表强度上限；R05 整体仍为 PARTIAL，目标档与最低可接受档尚未冻结。"
             },
             {
               "id": "ai_edge_field_ref_r06",
               "code": "AI 边缘光场 V1 · 03 · R06",
               "title": "R06 · 失败边界",
               "status": "FROZEN",
-              "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
               "summary": "用于收录典型错误视觉方向，帮助设计、开发与验收快速判断是否越界；只定义反例，不提供实现方案。 生成规范已冻结；最终视觉图仍待补充。",
