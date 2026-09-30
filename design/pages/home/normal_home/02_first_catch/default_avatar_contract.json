@@ -4,7 +4,7 @@
   "id": "yujian_default_profile_avatar_v1",
   "scope": "NH02 consumer mapping for the Shared Default Profile Avatar V1",
   "owner": "Shared Design System / Default Profile Avatar V1",
-  "design_authority": "design/pages/home/normal_home/02_first_catch/README.md",
+  "design_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
   "android_implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
   "semantics": {
     "logged_in_avatar_available": "REAL_USER_AVATAR",
