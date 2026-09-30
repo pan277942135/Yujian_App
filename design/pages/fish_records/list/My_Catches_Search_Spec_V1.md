@@ -33,22 +33,25 @@ Search 与 Filter 可以组合，但职责不同：
 
 ## 2. 入口与 Header
 
-A 主页面 Header：
+Base page chrome:
 
-`←   我的鱼获   Search   Filter`
+`TopNavigation / TITLE_ONLY → 我的鱼获`
 
-进入 Search Mode 后：
+Search Field and Filter Action live in page content below Top Navigation.
 
-`←  [ 搜索鱼种、地点或日期 ]  取消`
+Entering Search Mode uses a **page-owned focused-search chrome** for the active search state. It is not a second shared TopNavigation variant. The focused search state may visually suppress the normal title row while active, but it never redefines the shared TopNavigation component.
 
-冻结规则：
-- Back 保留；
-- 页面标题暂时让位给 Search Bar；
-- 档案摘要在 Focused 输入阶段隐藏 / 降权；
-- Search Bar 成为 Header 主体；
-- 右侧必须显示 `取消`；
-- 键盘自动打开；
-- Search Focused 时 Filter icon 不继续占据右上主空间，但已有 Filter 条件仍生效。
+Focused state:
+
+`[ 搜索鱼种、地点或日期 ]  取消`
+
+Frozen rules:
+- current query is visible;
+- right side keeps `取消`;
+- keyboard opens automatically;
+- archive summary is hidden / lowered during focused input;
+- active Filter conditions remain in force;
+- no legacy `search_filter` TopNavigation variant is created.
 
 ## 3. Search Bar 视觉合同
 
@@ -248,17 +251,18 @@ Day Summary：
 
 Search 和 Filter 可以同时生效。
 
-例如 Filter：
-- 今年
-- 千岛湖
-- 长度 ≥ 40cm
+例如 Search：
+- 草鱼 千岛湖
 
-Search：
-- 草鱼
+Filter：
+- 今年
+- 长度 ≥ 40cm
 
 最终：
 
-`草鱼 AND 今年 AND 千岛湖 AND 长度≥40cm`
+`草鱼 AND 千岛湖 AND 今年 AND 长度≥40cm`
+
+其中“千岛湖”来自 Search；Location 不属于当前 Filter V1。
 
 Search Bar 下方只显示一行低权重 Filter Summary：
 
