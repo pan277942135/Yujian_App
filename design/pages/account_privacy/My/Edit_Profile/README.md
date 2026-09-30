@@ -8,7 +8,7 @@ Status: **PARTIAL**
 
 - `02B · 编辑资料首页` — **FROZEN**; `01_Profile_Home/README.md` and its frozen image.
 - `02C · 头像修改` — **FROZEN**; `02_Avatar_Edit/README.md` and `Avatar_Change_V1_Development_Contract.md`.
-- `02D · 昵称编辑` — existing spec and registry record **FROZEN**; `03_Nickname_Edit/README.md`, development contract and machine contract.
+- `02D · 昵称编辑` — **BLOCKED_INTEGRITY** for Visual Authority. Behavior / machine / development contracts remain frozen, but the repository WebP fingerprint does not match the declared frozen fingerprint.
 - `04_Save_Feedback/README.md`, `05_Edge_States/README.md`, and `06_Interaction_Adaptation/README.md` remain preserved for history and no longer create independent Design Manager menus.
 
 ## Consolidated State / Interaction Contract
@@ -21,11 +21,11 @@ The current frozen home covers avatar, read-only account, nickname, and the defa
 
 The current frozen contract covers source selection, camera / Photo Picker, square crop and zoom, pending preview, upload during the unified profile save, and success/failure/retry. The exact behavior remains in `02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md`.
 
-### 03 · Nickname Edit
+### 03 · Nickname Edit — BLOCKED_INTEGRITY
 
-The current frozen contract covers Default, Focus, Filled, error and length-boundary states. Trimmed nickname length is 1–20 characters. The development and machine contracts remain authoritative.
+The behavior / machine / development contract remains frozen and covers Default, Focus, Filled, error and length-boundary states. Trimmed nickname length is 1–20 characters. The development and machine contracts remain authoritative.
 
-**Asset identity follow-up:** the repository WebP SHA-256 is `26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`, while the existing frozen manifest and README record `5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`. The file is preserved unchanged; this index does not claim binary parity PASS.
+**Blocking visual integrity gate:** the repository WebP SHA-256 is `26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`, while the existing frozen manifest and README record `5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`. The file is preserved unchanged. Until the originally approved byte-identical source is recovered, the visual must not be presented as FROZEN or parity PASS. Do not regenerate, optimize, convert, or re-encode it.
 
 ### 04 · Save Feedback — PARTIAL
 
