@@ -666,14 +666,19 @@
       "canonical_id": "account_privacy_v1.05a",
       "title": "05A · 关于渔见",
       "menu_location": "账号与隐私 → 05 · 法律与关于 → 05A · 关于渔见",
-      "status": "MISSING",
+      "status": "FROZEN",
       "visual_authority": null,
       "visual_references": [],
-      "source_type": "NO_VISUAL_AUTHORITY",
-      "spec_authority": "design/pages/account_privacy/README.md",
-      "behavior_authority": null,
+      "source_type": "SHARED_COMPONENT_COMPOSITION",
+      "spec_authority": "design/pages/account_privacy/legal/About_YuJian_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/legal/About_YuJian_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "behavior_status": "FROZEN",
+      "visual_status": "FROZEN",
+      "visual_authority_mode": "SHARED_COMPONENT_COMPOSITION",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null
     },
     {
       "id": "05b",
@@ -681,43 +686,73 @@
       "title": "05B · 隐私政策",
       "menu_location": "账号与隐私 → 05 · 法律与关于 → 05B · 隐私政策",
       "status": "PARTIAL",
-      "visual_authority": null,
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
           "label": "Privacy Policy · 历史页面壳参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_LEGAL_SHELL_BASE",
           "format": "PNG",
           "bytes": 1953886,
           "sha256": "cd3a7e367492b89e9a126f7129d024072ce88232483e79ef5ca614fa487bf6af",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGAL REVIEW REQUIRED",
-          "scope": "只复用视觉结构；最终法律正文须来源于批准法务文本。"
+          "role": "FROZEN LEGAL SHELL BASE HI-FI",
+          "scope": "Visual shell only; final legal body remains LEGAL_REVIEW_REQUIRED."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/legal/Privacy_Policy_Content_Draft_V1.md",
+      "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "legal_gate": "Page shell is a reference; final legal body requires approved legal copy."
+      "legal_gate": "Final production legal copy requires legal approval; frozen visual shell does not imply approved legal text.",
+      "behavior_status": "FROZEN",
+      "visual_status": "FROZEN",
+      "content_status": "PARTIAL",
+      "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_SHARED_LEGAL_SHELL",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null
     },
     {
       "id": "05c",
       "canonical_id": "account_privacy_v1.05c",
       "title": "05C · 用户协议",
       "menu_location": "账号与隐私 → 05 · 法律与关于 → 05C · 用户协议",
-      "status": "MISSING",
-      "visual_authority": null,
-      "visual_references": [],
-      "source_type": "NO_VISUAL_AUTHORITY",
-      "spec_authority": "design/pages/account_privacy/README.md",
-      "behavior_authority": null,
+      "status": "PARTIAL",
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+          "label": "Shared Legal Document Shell · Visual Base",
+          "status": "FROZEN",
+          "source_type": "FROZEN_LEGAL_SHELL_BASE",
+          "format": "PNG",
+          "bytes": 1953886,
+          "sha256": "cd3a7e367492b89e9a126f7129d024072ce88232483e79ef5ca614fa487bf6af",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "FROZEN SHARED SHELL BASE · NOT USER AGREEMENT COPY",
+          "scope": "Shared visual shell only; user-agreement text is governed separately and remains LEGAL_REVIEW_REQUIRED."
+        }
+      ],
+      "source_type": "SHARED_LEGAL_SHELL_REUSE",
+      "spec_authority": "design/pages/account_privacy/legal/User_Agreement_Content_Draft_V1.md",
+      "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "behavior_status": "FROZEN",
+      "visual_status": "FROZEN",
+      "content_status": "PARTIAL",
+      "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
+      "visual_authority_mode": "SHARED_LEGAL_SHELL_REUSE",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "legal_gate": "Final production user agreement requires legal approval; content architecture is frozen but final legal wording is not."
     }
   ],
   "historical_background_reference": {
@@ -762,5 +797,14 @@
     "note": "Existing byte-preserved Hi-Fi binaries are frozen as the visual base; current deltas are owned by Active_Path_Visual_Adjustment_Authority_V1.md and Shared Design System. No replacement images are required."
   },
   "active_path_visual_closure_brief": "design/pages/account_privacy/Active_Path_Visual_Closure_Brief_V1.md",
-  "active_path_visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
+  "active_path_visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+  "legal_about_authority_index": "design/pages/account_privacy/legal/README.md",
+  "shared_legal_document_shell": {
+    "id": "legal_document_shell_v1",
+    "status": "FROZEN",
+    "spec": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+    "visual_base": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+    "visual_base_sha256": "cd3a7e367492b89e9a126f7129d024072ce88232483e79ef5ca614fa487bf6af",
+    "rule": "Privacy Policy and User Agreement share this shell; shell freeze is independent from final legal copy approval."
+  }
 }

@@ -66,11 +66,27 @@ They are **not edited or regenerated**. Current deltas such as BG_CONTENT, `账�
 
 `Active_Path_Visual_Adjustment_Authority_V1.md`
 
-### LEGACY / REVIEW REQUIRED
+### LEGAL & ABOUT
 
-Remaining review-required visual work outside the active-path freeze:
+Page design status:
 
-- Privacy Policy shell; legal body copy is not final.
+- **About YuJian** — DESIGN FROZEN via Shared Component Composition; no standalone Hi-Fi is required.
+- **Privacy Policy** — Visual Shell FROZEN using the existing `04_Privacy_Policy.png` + Shared Legal Document Shell.
+- **User Agreement** — Visual Shell FROZEN by reusing the same Shared Legal Document Shell; no duplicate Hi-Fi is required.
+
+Content governance:
+
+- Privacy Policy content architecture = FROZEN
+- User Agreement content architecture = FROZEN
+- Final production Legal Copy for both = **LEGAL_REVIEW_REQUIRED**
+
+Authority index:
+
+`legal/README.md`
+
+Shared legal shell:
+
+`legal/Legal_Document_Shell_Spec_V1.md`
 
 ### MVP DEFERRED DESIGN REFERENCES
 
@@ -80,12 +96,22 @@ Design Manager status for these flows is **DEFERRED**, not PARTIAL. Their design
 - **Export My Data** — five existing state images remain a design reference. Production remains **ENTRY ONLY / COMING SOON**.
 - **Delete Account** — three existing state images remain a design reference. Production remains **ENTRY ONLY / COMING SOON**; no fake destructive flow is implied.
 
-### DESIGN AUTHORITY MISSING
+### LEGAL COPY REVIEW REQUIRED
 
-- **About YuJian** — runtime surface exists; independent Frozen visual is missing.
-- **User Agreement** — runtime surface exists; independent Frozen visual is missing.
+There is no remaining Visual Authority gap for About / Privacy Policy / User Agreement.
 
-No replacement artwork, runtime screenshot, or placeholder is used for either page. Privacy Policy visual structure and final legal text are separate; legal copy awaits legal review.
+However, final production legal text is **not** frozen.
+
+Before Privacy Policy or User Agreement can be marked final Legal Copy FROZEN, approved legal text must provide/confirm:
+
+- operator/legal entity;
+- version/effective date;
+- real contact channel;
+- actual vendor/SDK/data-flow disclosure where required;
+- jurisdiction-specific minors/rights/dispute terms;
+- final liability / governing-law language.
+
+Design does not invent these legal facts.
 
 ## Shared System Dependencies
 
@@ -115,5 +141,6 @@ The parent page is the Overview. It shows package state, current/legacy/deferred
 - Active MVP main-path **IA / Behavior / Content Structure is FROZEN**.
 - Active MVP main-path **Visual is FROZEN via composite authority**.
 - No new active-path Hi-Fi images are required.
-- Overall Account & Privacy design remains **PARTIAL** because Legal/About, Edit Profile state closure, Nickname integrity recovery and active-path visual closure remain outstanding.
+- About / Legal page design is FROZEN; final Privacy Policy / User Agreement Legal Copy remains LEGAL_REVIEW_REQUIRED.
+- Overall Account & Privacy remains **PARTIAL** because final Legal Copy, Edit Profile state closure and Nickname integrity recovery remain outstanding.
 - Runtime status remains separately reported as **PARTIAL**. Design freeze does not imply Android runtime parity.

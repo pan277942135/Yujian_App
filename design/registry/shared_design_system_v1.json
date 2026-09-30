@@ -963,6 +963,30 @@
       "authority_paths": [
         "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
       ]
+    },
+    {
+      "id": "legal_document_shell_v1",
+      "display_name": "法律文档壳",
+      "category": "component",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "navigation_mode": "submenu_direct",
+      "authority_paths": [
+        "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png"
+      ],
+      "variants": [
+        {
+          "id": "LEGAL_DOCUMENT",
+          "name": "法律长文本页",
+          "usage": "隐私政策 / 用户协议",
+          "status": "FROZEN",
+          "authority_path": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+          "visual_base": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+          "note": "Privacy Policy 与 User Agreement 共用同一长文本页面壳；查看页面不等于法律同意。"
+        }
+      ],
+      "notes": "共享法律文档页面壳。页面视觉可冻结，正文 Legal Copy 独立治理；Legal Copy 未审批不得因 Shell Frozen 而标记为最终生效文本。"
     }
   ],
   "navigation_groups": [

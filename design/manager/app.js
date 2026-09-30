@@ -2466,10 +2466,12 @@ function accountPrivacyGalleryCanvas(item) {
       esc(String(index + 1).padStart(2, "0") + " · " + point) +
     '</strong></div><div class="authority-kind">SCOPE / GATE</div></article>'
   ).join("");
-  const governance = (item.behavior_status || item.visual_status)
+  const governance = (item.behavior_status || item.visual_status || item.content_status || item.legal_copy_status)
     ? '<div class="authority-index-head">' +
         (item.behavior_status ? '<span>Behavior / IA&nbsp;' + statusBadge(item.behavior_status) + '</span>' : '') +
         (item.visual_status ? '<span>Visual&nbsp;' + statusBadge(item.visual_status) + '</span>' : '') +
+        (item.content_status ? '<span>Content&nbsp;' + statusBadge(item.content_status) + '</span>' : '') +
+        (item.legal_copy_status ? '<span>Legal Copy&nbsp;<span class="status status-PARTIAL">' + esc(item.legal_copy_status) + '</span></span>' : '') +
       '</div>'
     : "";
   const adjustment = item.visual_adjustment_authority
@@ -2477,10 +2479,13 @@ function accountPrivacyGalleryCanvas(item) {
       '<p>Base Hi-Fi 保持原始二进制；当前差异由 <a href="' + esc(repoHref(item.visual_adjustment_authority)) +
       '" target="_blank" rel="noreferrer">' + esc(item.visual_adjustment_authority) + '</a> 覆盖。</p>'
     : "";
+  const legalGate = item.legal_gate
+    ? '<div class="authority-kind">LEGAL GATE</div><p>' + esc(item.legal_gate) + '</p>'
+    : "";
   return '<div class="authority-index">' +
     '<div class="authority-index-intro"><strong>' + esc(item.title || "Account & Privacy visual references") + '</strong>' +
       '<span>' + esc(item.summary || "Existing repository images are shown with their current review status.") + '</span>' +
-      governance + adjustment + '</div>' +
+      governance + adjustment + legalGate + '</div>' +
     (cards ? '<div class="authority-index-grid">' + cards + '</div>' : '<div class="preview-empty">没有可展示的仓库视觉图。</div>') +
     (points ? '<div class="authority-index-intro"><strong>产品范围与 Gate</strong></div><div class="authority-index-grid">' + points + '</div>' : '') +
   '</div>';
@@ -2549,6 +2554,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
     authorityType === "behavior" ? "交互规范" :
+    child && feature.id === "account_privacy_v1" && child.visual_status === "FROZEN" && child.legal_copy_status ? "冻结视觉 / Legal Copy Gate" :
     child && feature.id === "account_privacy_v1" && child.status !== "FROZEN" ? "视觉参考 / Authority" :
     child ? "冻结高保真 Authority" : "高保真 / Authority 索引";
   el("hifiViewTitle").textContent=child ? child.title : view.title;
@@ -2582,7 +2588,9 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     el("hifiViewSource").textContent="本子项为 Behavior Contract，不渲染 App 高保真页面。";
     el("hifiViewSource").classList.remove("hidden");
   } else if(child && feature.id === "account_privacy_v1" && child.render_mode === "account_privacy_gallery"){
-    el("hifiViewSource").textContent="展示仓库内既有视觉文件及其状态标注；历史参考与 MVP Deferred 不构成当前冻结 Authority，也不代表 Runtime 实现。";
+    el("hifiViewSource").textContent = child.visual_status === "FROZEN"
+      ? "展示当前冻结视觉基底及其复合 Authority；Shared / written Authority 可覆盖旧图中已明确废弃的细节。Legal Copy、Deferred 与 Runtime 状态仍独立治理。"
+      : "展示仓库内既有视觉文件及其状态标注；未标 FROZEN 的历史参考或 MVP Deferred 不构成当前冻结 Authority，也不代表 Runtime 实现。";
     el("hifiViewSource").classList.remove("hidden");
   } else if(view.source_reference){
     el("hifiViewSource").textContent="历史高保真源稿：" + view.source_reference + "；当前 Design Manager 视图按最新冻结规范重新审视呈现。";
