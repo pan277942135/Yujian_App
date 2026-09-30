@@ -1,0 +1,59 @@
+{
+  "menu_id": "recognition_result",
+  "title": "识别结果",
+  "title_en": "Recognition Result",
+  "version": "V1",
+  "level": 1,
+  "status": "DESIGN_FROZEN",
+  "authority": "design/pages/recognition/result/authority/authority_map.json",
+  "items": [
+    {
+      "order": "00",
+      "id": "overview",
+      "title": "Overview / 结果总览",
+      "page": "design/pages/recognition/result/00_overview/README.md",
+      "frozen_reference": null,
+      "review_status": "PENDING_FINAL_CLOSURE"
+    },
+    {
+      "order": "01",
+      "id": "high",
+      "title": "High / 高置信结果",
+      "page": "design/pages/recognition/result/01_high/README.md",
+      "frozen_reference": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "review_status": "REVIEWED_V1"
+    },
+    {
+      "order": "02",
+      "id": "medium",
+      "title": "Medium / 中置信结果",
+      "page": "design/pages/recognition/result/02_medium/README.md",
+      "frozen_reference": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "order": "03",
+      "id": "low",
+      "title": "Low / 低置信结果",
+      "page": "design/pages/recognition/result/03_low/README.md",
+      "frozen_reference": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "order": "04",
+      "id": "no_fish",
+      "title": "No Fish / 未检测到鱼",
+      "page": "design/pages/recognition/result/04_no_fish/README.md",
+      "frozen_reference": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "order": "05",
+      "id": "image_quality",
+      "title": "Image Quality / 图片质量不足",
+      "page": "design/pages/recognition/result/05_image_quality/README.md",
+      "frozen_reference": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+      "review_status": "PENDING_REVIEW"
+    }
+  ]
+}
