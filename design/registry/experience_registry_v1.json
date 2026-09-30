@@ -6158,8 +6158,13 @@
               "visual_authority_mode": "SHARED_COMPONENT_COMPOSITION",
               "visual_authority": null,
               "visual_authority_trusted": true,
-              "render_mode": "account_privacy_gallery",
-              "supporting_visual_references": []
+              "supporting_visual_references": [],
+              "menu_points": [
+                "BG_CONTENT + BACK_TITLE",
+                "品牌信息卡：渔见 / 拍照收藏每次渔获 / Runtime Version",
+                "法律入口：用户协议 / 隐私政策",
+                "No standalone Hi-Fi required"
+              ]
             },
             {
               "id": "05b",
