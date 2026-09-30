@@ -2823,9 +2823,10 @@
       "navigation_model": "recognition_result_3plus2_menu_v1",
       "design_manager_view_rules": {
         "overview": "RR00 = 3+2 Overview / shared rules; no extra Frozen image.",
-        "state_pages": "RR01–RR05 each directly preview one canonical Frozen Hi-Fi reference.",
+        "state_pages": "RR01–RR05 each directly preview one canonical Frozen Hi-Fi reference; RR06 is a separate content-edit Authority index and not a product state.",
         "authority": "05–09 state Frozen PNG > Result package spec > Core Visual recognition_result_v1 > runtime implementation.",
-        "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager."
+        "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager.",
+        "content_edit": "RR06 consolidates links to Species Selector V1 and Metadata Edit Flow V1 visual/specification authorities without changing their individual contracts or the 3+2 state model."
       },
       "hifi_views": [
         {
@@ -2847,33 +2848,7 @@
             "Adaptive / Accessibility",
             "Final Design Closure"
           ],
-          "freeze_date": "2026-09-30",
-          "supporting_visual_references": [
-            {
-              "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
-              "label": "Species Selector V1"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
-              "label": "Species Selector V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/species_selector_contract.json",
-              "label": "Species Selector V1 Contract"
-            },
-            {
-              "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
-              "label": "Metadata Edit Flow V1"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-              "label": "Metadata Edit Flow V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
-              "label": "Metadata Edit Flow V1 Contract"
-            }
-          ]
+          "freeze_date": "2026-09-30"
         },
         {
           "id": "high",
@@ -2896,33 +2871,7 @@
             "Adaptive / IME",
             "Rejected Alternatives"
           ],
-          "freeze_date": "2026-09-30",
-          "supporting_visual_references": [
-            {
-              "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
-              "label": "Species Selector V1"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
-              "label": "Species Selector V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/species_selector_contract.json",
-              "label": "Species Selector V1 Contract"
-            },
-            {
-              "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
-              "label": "Metadata Edit Flow V1"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-              "label": "Metadata Edit Flow V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
-              "label": "Metadata Edit Flow V1 Contract"
-            }
-          ]
+          "freeze_date": "2026-09-30"
         },
         {
           "id": "medium",
@@ -2945,33 +2894,7 @@
             "No Auto Candidate",
             "Adaptive"
           ],
-          "freeze_date": "2026-09-30",
-          "supporting_visual_references": [
-            {
-              "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
-              "label": "Species Selector V1"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
-              "label": "Species Selector V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/species_selector_contract.json",
-              "label": "Species Selector V1 Contract"
-            },
-            {
-              "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
-              "label": "Metadata Edit Flow V1"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-              "label": "Metadata Edit Flow V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
-              "label": "Metadata Edit Flow V1 Contract"
-            }
-          ]
+          "freeze_date": "2026-09-30"
         },
         {
           "id": "low",
@@ -2993,33 +2916,7 @@
             "Manual Recovery → Normal Record Flow",
             "No Pending Species State"
           ],
-          "freeze_date": "2026-09-30",
-          "supporting_visual_references": [
-            {
-              "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
-              "label": "Species Selector V1"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
-              "label": "Species Selector V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/species_selector/species_selector_contract.json",
-              "label": "Species Selector V1 Contract"
-            },
-            {
-              "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
-              "label": "Metadata Edit Flow V1"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-              "label": "Metadata Edit Flow V1 Spec"
-            },
-            {
-              "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
-              "label": "Metadata Edit Flow V1 Contract"
-            }
-          ]
+          "freeze_date": "2026-09-30"
         },
         {
           "id": "no_fish",
@@ -3064,6 +2961,49 @@
             "Shared Recovery Family"
           ],
           "freeze_date": "2026-09-30"
+        },
+        {
+          "id": "content_edit",
+          "code": "RR06",
+          "title": "RR06 · 内容修改",
+          "status": "FROZEN",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/recognition/result/06_content_edit/README.md",
+          "summary": "集中索引两项已冻结的内容修改 Authority：Species Selector V1 负责鱼种选择；Metadata Edit Flow V1 负责长度、重量与地点的轻量修改。两者保留独立规范、契约、视觉源和边界，不新增 Result 状态。",
+          "menu_points": [
+            "Species Selector V1 · 鱼种选择 · FROZEN",
+            "Metadata Edit Flow V1 · 长度 / 重量 / 地点修改 · FROZEN",
+            "Species Selector 只定义选择器交互，不改写 05–09 冻结页面组成",
+            "Metadata Edit 只定义修改覆盖层及键盘 / 地点交互，不授权旧版 Result 页面组成"
+          ],
+          "freeze_date": "2026-09-30",
+          "supporting_visual_references": [
+            {
+              "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+              "label": "Species Selector V1 Frozen Visual"
+            },
+            {
+              "path": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+              "label": "Species Selector V1 Frozen Spec"
+            },
+            {
+              "path": "design/pages/recognition/result/species_selector/species_selector_contract.json",
+              "label": "Species Selector V1 Frozen Contract"
+            },
+            {
+              "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+              "label": "Metadata Edit Flow V1 Frozen Visual"
+            },
+            {
+              "path": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+              "label": "Metadata Edit Flow V1 Frozen Spec"
+            },
+            {
+              "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+              "label": "Metadata Edit Flow V1 Frozen Contract"
+            }
+          ]
         }
       ]
     },

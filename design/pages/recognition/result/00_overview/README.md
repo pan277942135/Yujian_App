@@ -13,7 +13,9 @@ Status: **DESIGN CLOSED V1**
 4. No Fish / 未检测到鱼
 5. Image Quality / 图片质量不足
 
-Technical Failure remains an engineering-safe fallback outside this 3+2 Frozen menu.
+Technical Failure remains an engineering-safe fallback outside this 3+2 product-state menu.
+
+RR06 · 内容修改 is a separate authority index for the already-frozen Species Selector V1 and Metadata Edit Flow V1. It does not add a Result state or change the 3+2 model.
 
 ## Frozen state authority
 
@@ -195,6 +197,8 @@ Runtime alignment remains a separate implementation/acceptance task.
 
 
 ### Metadata modification closure
+
+The Design Manager opens the frozen content-edit authorities from `../06_content_edit/README.md`.
 
 Optional Length / Weight / Location modification is frozen by:
 

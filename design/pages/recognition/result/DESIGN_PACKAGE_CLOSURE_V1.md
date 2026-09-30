@@ -67,6 +67,10 @@ It does not change:
 
 Technical failure is a runtime-safe fallback only and is not promoted into a sixth frozen Result design.
 
+## Content-edit authority index
+
+RR06 · 内容修改 links the already-frozen Species Selector V1 and Metadata Edit Flow V1 visual/specification authorities. The index does not combine their contracts, alter their individual boundaries, or expand the 3+2 product state model. Canonical files remain at their existing paths; see `06_content_edit/README.md`.
+
 ## Explicit authority decisions
 
 1. The five state PNGs 05–09 are the final authority for state-specific composition, hierarchy and visible copy.
