@@ -38,3 +38,21 @@ Entry points:
 - 录制视频
 
 When entered from “保存并记录记忆”, scroll/focus to Memory without creating a separate enrichment page.
+
+## Frozen Overview behavior authority
+
+- Authority: `design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md`
+- Status: **FROZEN**
+- Freeze date: **2026-09-30**
+
+The Overview authority freezes the following product behavior:
+
+- A-side and B-side are two surfaces of the same FishRecordDetail.
+- B-side lifecycle is `NOT_GENERATED → GENERATING → READY / FAILED`.
+- The first READY B-side is automatically revealed **once per FishRecord**.
+- Generation success alone does not consume that reveal; the B-side must actually be presented.
+- After the first reveal, every later detail entry defaults to A-side.
+- Subsequent A ↔ B navigation is manual through the page-internal Flip Icon.
+- Flip Icon is visible only while B-side = `READY`.
+- Reduce Motion may change the transition treatment but not these state semantics.
+
