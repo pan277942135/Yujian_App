@@ -1222,7 +1222,7 @@
               "status": "FROZEN",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于把单个主能量岛的视觉层次拆清楚：局部受光、外层光晕、中层发光、核心亮线、伴随细线、热点与稀疏粒子；只解释视觉构成，不定义实现。 生成规范已冻结；最终视觉图仍待补充。",
+              "summary": "单岛内部光学层级规范已冻结。现有 R02 视觉稿无需重生成；开发与验收必须额外遵守：核心亮线命名与细度、Node 去星芒、B_UR 能量路径保持蓝色系、Particle 稀疏，以及本图不代表四岛整体拓扑。",
               "authority": "design/pages/recognition/processing/references/R02_能量岛拆解_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "把单个能量岛内部的视觉结构讲清楚，让人一眼看懂它不是“发光线 + 模糊”，而是局部受光与多层光学结构。",
@@ -1237,29 +1237,50 @@
                   "第一层：局部受光，说明照片边缘真的被照亮",
                   "第二层：外层光晕，形成空气中的能量扩散",
                   "第三层：中层发光，形成能量带主体",
-                  "第四层：核心亮线，保持细、亮、干净",
-                  "第五层：伴随细线与微细线，提供高频纹理但不成为第二主线",
-                  "第六层：热点与稀疏粒子，只作为局部峰值与环境细节"
+                  "第四层：核心亮线 / Primary Core，必须是最细、最亮、最清晰的精确骨架，不得被理解为粗主光带",
+                  "第五层：1 条 Companion Hairline；仅 B_UR 可再有 1 条很短的 Micro Hairline",
+                  "第六层：Hot Node 只作为局部亮度峰值；Sparse Particle 只作为少量环境细节"
                 ],
                 "must_keep": [
                   "右上蓝色主岛仍是一个完整局部现象，而不是拆成多个独立装饰物",
-                  "核心亮线不能脱离光晕单独成立",
-                  "伴随细线必须短于、弱于主能量带",
-                  "热点必须依附于主能量带局部峰值",
-                  "照片环境始终参与光学效果"
+                  "Primary Core 必须细于 Mid Glow，不能脱离 Bloom 单独成立",
+                  "Companion Hairline 只保留 1 条，短于、弱于 Primary，且不做恒定平行",
+                  "Micro Hairline 只允许 B_UR 出现 1 条短线",
+                  "Hot Node 必须依附于主能量带局部峰值，半径小、无星芒",
+                  "同屏明显可见粒子保持稀疏，建议 3–5 个以内",
+                  "B_UR 的 Primary / Companion / Micro 均保持蓝色系；暖金只允许来自真实照片环境光，不作为独立 Gold Filament",
+                  "照片环境始终参与光学效果",
+                  "本图只解释单岛内部光学层级，不代表四岛整体拓扑"
                 ],
                 "forbidden": [
-                  "做成技术爆炸图或工程剖面图",
-                  "把各层画成平行彩色条",
-                  "把热点画成独立圆球",
-                  "把粒子画成星空",
-                  "让拆解图比完整效果更像 HUD",
-                  "把光场解释成单根霓虹线"
+                  "把 Primary Core 做成粗主光带或霓虹灯管",
+                  "做出雷电式分叉或树枝状能量",
+                  "出现多条 Companion 或铁路式平行 Hairline",
+                  "在非 B_UR 岛上增加 Micro Hairline",
+                  "把 Hot Node 做成星芒、灯泡或独立发光球",
+                  "大量粒子形成星空、火花或满屏漂浮感",
+                  "在 B_UR 内增加独立金色能量路径",
+                  "把 R02 当成四岛位置与 Quiet Gap 的构图 Authority"
                 ],
-                "closure": "R02 只冻结视觉组成关系；视觉图未确认前，不作为最终视觉 Authority。"
+                "closure": "现有 R02 视觉稿不再重生成。开发与验收以本规范文字纠偏为强制条件；单岛内部光学层级由 R02 负责，四岛整体拓扑仍以 Static Shape / R03 为准。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING"
+              "visual_authority_status": "PENDING",
+              "implementation_attention": [
+                "Core 名称与语义统一为“核心亮线 / Primary Core”，不是“主光带”",
+                "Node 只做小型局部峰值：无星芒、无独立光球感",
+                "B_UR 内能量路径全部保持蓝色系，暖金仅来自照片环境",
+                "FULL 即使允许 8 个粒子锚点，同屏明显粒子仍应稀疏",
+                "不得从 R02 视觉稿推导四岛闭环或外围轨道"
+              ],
+              "acceptance_attention": [
+                "第一眼先读到局部光场与环境受光，而不是一根线",
+                "Primary 1 条、Companion 1 条、B_UR Micro 最多 1 条",
+                "无雷电分叉、无铁路式平行线",
+                "Hot Node 不得形成星芒",
+                "粒子不得成为第二视觉主体",
+                "R02 与 Static Shape 冲突时，以 Static Shape 为准"
+              ]
             },
             {
               "id": "ai_edge_field_ref_r03",
@@ -1268,46 +1289,86 @@
               "status": "FROZEN",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于确定四个能量岛在完整画面中的位置、主次、长度与留白关系；重点看拓扑，不看细节特效。 生成规范已冻结；最终视觉图仍待补充。",
+              "summary": "R03 用于冻结四个 Primary Energy Islands 的整体构图：位置、主次、长度、边缘占用与 Quiet Gap。它只回答“岛在哪里、谁更强、哪里必须空”，不负责单岛内部光学细节。",
               "authority": "design/pages/recognition/processing/references/R03_四岛构图_生成规范_V1.md",
               "generation_spec": {
-                "purpose": "把四个能量岛的整体构图关系定死，确保任何完整画面都不会读成边框、轨道或四角装饰。",
-                "format": "9:16 单张完整照片构图图；降低粒子、热点与 Fish Focus 干扰；只突出四岛与 Quiet Gap 的整体关系。",
+                "purpose": "生成一张能够一眼判断四岛拓扑是否成立的完整构图 Authority；重点是四岛位置、主次、断口和中央留白，不追求炫目的局部特效。",
+                "format": "9:16 竖屏，单张完整真实钓鱼照片；优先继承 R01 的清晨/湖面/真实摄影气质。无返回键、无状态卡、无技术标注、无 Fish Focus。",
                 "composition": [
-                  "左上金色、右上蓝色、左下金色、右下蓝色四岛全部出现",
-                  "右上蓝色为唯一主岛",
-                  "左上金色为第二支点",
-                  "左下金色负责低位承托",
-                  "右下蓝色最弱",
-                  "顶部、左右中段、底部中央四个 Quiet Gap 必须一眼可见"
+                  "左上 G_UL：金色局部能量岛，从左上边缘进入后很快回收，不越过顶部中央 Quiet Gap",
+                  "右上 B_UR：蓝色唯一主岛，面积和亮度最大，但仍只占右上边缘局部，不向右侧中段连续下拉",
+                  "左下 G_LL：金色承托岛，从左下边缘向底部左侧舒展，在底部中央前明确断开",
+                  "右下 B_LR：蓝色最弱收尾岛，长度短于主岛，在底部中央前明确断开",
+                  "四个 Quiet Gap 必须比 Secondary Fragment 更先被感知",
+                  "中央人物、鱼体、湖面主体保持干净，四岛不得穿过主体"
                 ],
                 "visual_focus": [
-                  "看四岛是否彼此独立",
-                  "看四岛是否有明显主次",
-                  "看中央照片是否有足够大且干净的阅读区",
-                  "看蓝右 / 金左是否形成自然平衡",
-                  "看整体是否仍是照片，而不是外围框架"
+                  "第一眼看真实钓鱼照片",
+                  "第二眼看到四个断开的蓝金局部能量岛",
+                  "第三眼才感受到柔和 Bloom 与少量 Hairline",
+                  "右上蓝必须是唯一主岛，不能出现第二个同等级亮区",
+                  "蓝右 / 金左形成不对称平衡，而不是镜像"
                 ],
                 "must_keep": [
-                  "四岛数量固定为四个",
-                  "四岛大致所在区域固定",
-                  "B_UR > G_UL > G_LL > B_LR 的层级固定",
-                  "Quiet Gap 是设计的一部分，不能被次级碎片填满",
-                  "中央区域不得被主路径穿越"
+                  "Primary 只允许 G1 / B1 / G3 / B3 四岛",
+                  "B2 / G2 / B4 只能作为很弱的局部 Secondary Fragment，不得读成第五、第六、第七个主岛",
+                  "Q_TOP / Q_LEFT / Q_RIGHT / Q_BOTTOM 四个 Quiet Gap 清晰成立",
+                  "B_UR > G_UL > G_LL > B_LR",
+                  "中央 60–70% 真实照片主阅读区保持干净",
+                  "光学语言继承 R01/R02：环境受光先于线条、Bloom 柔和、Core 细、粒子稀疏"
                 ],
                 "forbidden": [
-                  "四边连续闭合",
+                  "完整四边发光框",
+                  "椭圆、圆环或轨道式包围",
                   "四角等亮",
-                  "左右镜像",
-                  "上下镜像",
-                  "椭圆环绕",
-                  "底部或左右边被次级碎片补成完整边",
-                  "用更多路径解决构图不平衡"
+                  "左右镜像或上下镜像",
+                  "用 Secondary Fragment 填满边缘断口",
+                  "从右上主岛一路连续画到右下岛",
+                  "从左上金岛一路连续画到左下金岛",
+                  "底部两岛连接成完整底边",
+                  "用更多路径或更多粒子制造存在感",
+                  "Fish Focus、HUD、检测框、雷电、激光、电路纹理"
                 ],
-                "closure": "R03 只判断整体拓扑与构图；细节光学质量由 R01/R02 负责。"
+                "closure": "R03 出图后只判断整体拓扑与构图是否成立；单岛内部的 Core/Hairline/Node 细节以 R02 为准，运动以 Motion Contract 为准。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING"
+              "visual_authority_status": "PENDING",
+              "design_spec": {
+                "objective": "让完整 9:16 画面明确读成四个彼此独立的局部 AI 能量岛，而不是一圈发光边框；真实钓鱼照片始终是主体。",
+                "hierarchy": [
+                  "B_UR / 右上蓝：唯一主岛，视觉权重 1.00",
+                  "G_UL / 左上金：第二支点，约 0.72–0.82",
+                  "G_LL / 左下金：低位暖色承托，约 0.58–0.68",
+                  "B_LR / 右下蓝：最弱冷色收尾，约 0.48–0.60"
+                ],
+                "quiet_gaps": [
+                  "Q_TOP：顶部中央 x≈0.32–0.68 保持明显空白",
+                  "Q_LEFT：左侧中段 y≈0.38–0.62 保持明显空白",
+                  "Q_RIGHT：右侧中段 y≈0.46–0.58 保持明显空白",
+                  "Q_BOTTOM：底部中央 x≈0.40–0.62 保持明显空白"
+                ],
+                "composition_rules": [
+                  "四岛必须靠近画面边缘生长，主中心线位于边缘约 0–12% 区域",
+                  "低透明 Receiving Light 可向内扩散约 8–18%，但不得形成全屏染色",
+                  "中央约 60–70% 保持真实照片主阅读区，不允许 Primary 穿过人物或鱼体中心",
+                  "四岛长度、弧度和亮度不对称，避免四角装饰感",
+                  "Secondary Fragment 只能局部辅助，不得填满 Quiet Gap 或把四岛连接"
+                ],
+                "visual_simplification": [
+                  "R03 降低 Hairline、Node、Particle 显著度，让构图先于细节被读到",
+                  "保留 R01/R02 的柔和环境受光与 Bloom 语言，但不展示复杂拆层",
+                  "不加入 Fish Focus、鱼体轮廓、扫描框或状态 UI"
+                ]
+              },
+              "acceptance_attention": [
+                "缩略图尺寸下仍能明确看出是四个断开的局部岛，而不是一圈边框",
+                "右上蓝唯一最强；其余三个有明确递减",
+                "四个 Quiet Gap 都能肉眼识别",
+                "中央照片主体不被光线切割",
+                "没有任何一侧形成从头到尾连续的发光边",
+                "Secondary Fragment 不得把断口补平",
+                "去掉粒子和节点后，四岛构图仍然成立"
+              ]
             },
             {
               "id": "ai_edge_field_ref_r04",
