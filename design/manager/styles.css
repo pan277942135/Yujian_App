@@ -173,6 +173,8 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 .status-ACTIVE_CLOSURE { background: #fff7df; color: #8d6a13; border-color: #f0dfad; }
 .status-PARTIAL { background: #fff0e5; color: #985727; border-color: #f0d6c3; }
 .status-MISSING { background: #fceceb; color: #a24a45; border-color: #f1d0ce; }
+.status-DEFERRED { background: #f2f3f5; color: #68717a; border-color: #dfe3e7; }
+.status-BLOCKED_INTEGRITY { background: #fff0ef; color: #9b3f39; border-color: #edcbc7; }
 .status-RUNTIME_ONLY { background: #edf3fb; color: #466d9d; border-color: #d7e2f1; }
 .status-DESIGN_ONLY { background: #f5effb; color: #7653a2; border-color: #e5d9f1; }
 .status-DEPRECATED { background: #f0f0f0; color: #686868; border-color: #dedede; }
