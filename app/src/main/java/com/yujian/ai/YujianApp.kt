@@ -77,6 +77,7 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.screens.RecognizingScreen
+import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
 import com.yujian.ai.ui.components.GuestRegistrationDialog
@@ -89,15 +90,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.io.File
 
-
-private data class CatchArchiveState(
-    val catches: List<RemoteCatch> = emptyList(),
-    val statistics: CatchStatistics = CatchStatistics(),
-    val loading: Boolean = false,
-    val error: String? = null,
-    val resolved: Boolean = false,
-    val ownerKey: String? = null,
-)
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -238,11 +230,7 @@ fun YujianApp() {
     LaunchedEffect(session?.accessToken, catchReload, guestMigrationPending) {
         val active = session
         val archiveOwnerKey = active?.userId ?: "guest:$guestId"
-        catchesState = if (catchesState.ownerKey == archiveOwnerKey) {
-            catchesState.copy(loading = true, error = null)
-        } else {
-            CatchArchiveState(loading = true, ownerKey = archiveOwnerKey)
-        }
+        catchesState = catchesState.beginLoad(archiveOwnerKey)
         runCatching {
             if (active == null || guestMigrationPending) {
                 val local = guestCatchRepository.listCatches()
@@ -268,7 +256,7 @@ fun YujianApp() {
                 if ((error as? ApiException)?.statusCode == 401) {
                     logoutToHome()
                 } else {
-                    catchesState = catchesState.copy(loading = false, error = error.message ?: "鱼获数据加载失败")
+                    catchesState = catchesState.failLoad(error.message ?: "鱼获数据加载失败")
                 }
             }
     }
@@ -366,11 +354,7 @@ fun YujianApp() {
                     // The Home state is derived only from fish records. Login,
                     // loading, and server statistics never select Empty/Normal.
                     val resolvedHomeState = resolveHomeState(catchesState.catches, catchesState.resolved)
-                    if (resolvedHomeState == null) {
-                        // Keep the launch surface neutral until the archive resolves.
-                        // In particular, an initial loading/error is not an empty archive.
-                        Box(Modifier.fillMaxSize())
-                    } else HomeScreen(
+                    HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
                         recentCatches = catchesState.catches,
@@ -381,6 +365,7 @@ fun YujianApp() {
                         isLoggedIn = active != null,
                         avatarUrl = active?.avatarUrl,
                         showEmptyState = resolvedHomeState == HomeState.EMPTY,
+                        isResolving = resolvedHomeState == null,
                         onIdentify = { nav.navigate("identify") },
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },

@@ -3,9 +3,14 @@ package com.yujian.ai.ui.home
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -52,8 +57,100 @@ class NormalHomeHeroBehaviorTest {
             card.fetchSemanticsNode().boundsInRoot.center.x,
             1.5f,
         )
+        pager.performTouchInput { swipeLeft() }
+        compose.waitForIdle()
+        assertEquals(1, compose.onAllNodesWithTag("normal-home-catch-card-record-42").fetchSemanticsNodes().size)
+        assertEquals(
+            pager.fetchSemanticsNode().boundsInRoot.center.x,
+            card.fetchSemanticsNode().boundsInRoot.center.x,
+            1.5f,
+        )
         card.performClick()
         compose.runOnIdle { assertEquals("record-42", openedId) }
+    }
+
+    @Test
+    fun unresolvedArchiveKeepsNormalEnvironmentStructureWithoutInventingCatchContent() {
+        compose.setContent {
+            NormalHomeContent(
+                statistics = CatchStatistics(),
+                recentCatches = emptyList(),
+                resolveImageUrl = { it },
+                accessToken = "",
+                isLoggedIn = false,
+                avatarUrl = null,
+                onIdentify = {},
+                onSpeciesClick = {},
+                onCatchesClick = {},
+                onProfileClick = {},
+                onCatchClick = {},
+                isResolving = true,
+                motionState = HomeMotionState(),
+                runtimeAssets = null,
+                modifier = Modifier.size(360.dp, 640.dp),
+            )
+        }
+
+        compose.onNodeWithTag("normal-home-resolving-hero").assertIsDisplayed()
+        compose.onNodeWithContentDescription("开始识鱼").assertHasClickAction()
+        compose.onNodeWithText("最近鱼获").assertDoesNotExist()
+        compose.onNodeWithText("记录下一条鱼").assertDoesNotExist()
+        compose.onNodeWithTag("normal-home-catch-pager").assertDoesNotExist()
+        assertEquals(3, compose.onAllNodesWithText("—").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun unavailableCatchMediaKeepsItsRecordAndUsesNeutralFallback() {
+        compose.setContent {
+            NormalHomeContent(
+                statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                recentCatches = listOf(record("offline-image")),
+                resolveImageUrl = { null },
+                accessToken = "",
+                isLoggedIn = false,
+                avatarUrl = null,
+                onIdentify = {},
+                onSpeciesClick = {},
+                onCatchesClick = {},
+                onProfileClick = {},
+                onCatchClick = {},
+                motionState = HomeMotionState(),
+                runtimeAssets = null,
+                modifier = Modifier.size(360.dp, 640.dp),
+            )
+        }
+
+        compose.onNodeWithTag("normal-home-catch-card-offline-image").assertIsDisplayed()
+        compose.onNodeWithTag("normal-home-media-fallback", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithText("草鱼").assertIsDisplayed()
+    }
+
+    @Test
+    fun loggedInDefaultAvatarKeepsProfileButtonSemanticsAndAction() {
+        var profileClicks = 0
+        compose.setContent {
+            NormalHomeContent(
+                statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                recentCatches = listOf(record("profile-fallback")),
+                resolveImageUrl = { null },
+                accessToken = "",
+                isLoggedIn = true,
+                avatarUrl = null,
+                onIdentify = {},
+                onSpeciesClick = {},
+                onCatchesClick = {},
+                onProfileClick = { profileClicks++ },
+                onCatchClick = {},
+                motionState = HomeMotionState(),
+                runtimeAssets = null,
+                modifier = Modifier.size(360.dp, 640.dp),
+            )
+        }
+
+        compose.onNodeWithContentDescription("个人中心")
+            .assertHasClickAction()
+            .performClick()
+        compose.runOnIdle { assertEquals(1, profileClicks) }
     }
 
     @Test

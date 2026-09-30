@@ -91,6 +91,7 @@ fun HomeScreen(
     isLoggedIn: Boolean,
     avatarUrl: String?,
     showEmptyState: Boolean,
+    isResolving: Boolean = false,
     onIdentify: () -> Unit,
     onAlbumClick: () -> Unit,
     onLoginClick: () -> Unit,
@@ -172,9 +173,10 @@ fun HomeScreen(
                 onCatchesClick = onCatchesClick,
                 onProfileClick = onProfileClick,
                 onCatchClick = onCatchClick,
+                isResolving = isResolving,
                 motionState = homeMotionState,
                 runtimeAssets = normalRuntimeAssets,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(safeInsets),
             )
         }
     }

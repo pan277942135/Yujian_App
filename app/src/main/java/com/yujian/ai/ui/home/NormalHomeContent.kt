@@ -3,6 +3,7 @@ package com.yujian.ai.ui.home
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -44,11 +49,13 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.min
 
 private const val GUEST_AVATAR = "normal_home_runtime_v1/avatar/guest_avatar.png"
 private const val NormalHomeReferenceWidth = 1080f
@@ -89,6 +96,7 @@ internal fun NormalHomeContent(
     onCatchesClick: () -> Unit,
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
+    isResolving: Boolean = false,
     motionState: HomeMotionState,
     runtimeAssets: NormalHomeRuntimeAssets?,
     modifier: Modifier = Modifier,
@@ -100,6 +108,8 @@ internal fun NormalHomeContent(
     BoxWithConstraints(modifier = modifier) {
         val referenceScale = maxWidth / NormalHomeReferenceWidth
         fun ref(value: Float): Dp = referenceScale * value
+        val verticalOffset = normalHomeVerticalOffset(referenceScale.value, maxHeight.value).dp
+        fun refY(value: Float): Dp = ref(value) + verticalOffset
 
         val cardWidth = ref(NormalHomeCardWidth)
         val cardHeight = ref(NormalHomeCardHeight)
@@ -107,7 +117,7 @@ internal fun NormalHomeContent(
 
         Box(
             modifier = Modifier
-                .offset(x = ref(NormalHomeHeaderX), y = ref(NormalHomeHeaderY))
+                .offset(x = ref(NormalHomeHeaderX), y = refY(NormalHomeHeaderY))
                 .width(ref(NormalHomeHeaderWidth))
                 .height(ref(NormalHomeHeaderHeight)),
         ) {
@@ -124,7 +134,7 @@ internal fun NormalHomeContent(
 
         Box(
             modifier = Modifier
-                .offset(y = ref(NormalHomeStatsY))
+                .offset(y = refY(NormalHomeStatsY))
                 .fillMaxWidth()
                 .height(ref(NormalHomeStatsHeight)),
             contentAlignment = Alignment.Center,
@@ -134,49 +144,63 @@ internal fun NormalHomeContent(
                 catches = recent,
                 onSpeciesClick = onSpeciesClick,
                 onCatchesClick = onCatchesClick,
+                isResolving = isResolving,
             )
         }
 
-        Box(
-            modifier = Modifier
-                .offset(y = ref(NormalHomeRecentHeaderY))
-                .fillMaxWidth()
-                .height(ref(NormalHomeRecentHeaderHeight)),
-            contentAlignment = Alignment.Center,
-        ) {
-            RecentCatchSectionHeader(onCatchesClick = onCatchesClick)
-        }
-
-        RecentCatchPager(
-            catches = recent,
-            cardWidth = cardWidth,
-            cardHeight = cardHeight,
-            sidePadding = pagerSidePadding,
-            resolveImageUrl = resolveImageUrl,
-            accessToken = accessToken,
-            onCatchClick = onCatchClick,
-            motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
-            runtimeAssets = runtimeAssets,
-            modifier = Modifier.offset(y = ref(NormalHomeCardY)),
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = ref(NormalHomeCtaY))
-                .height(ref(58f))
-                .width(ref(420f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "记录下一条鱼",
-                style = YuJianTypography.body.copy(
-                    color = YuJianColors.OnDark.copy(alpha = 0.92f),
-                    fontSize = 20.sp,
-                    lineHeight = 28.sp,
-                    shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
-                ),
+        if (isResolving) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = refY(NormalHomeCardY))
+                    .width(cardWidth)
+                    .height(cardHeight)
+                    .clip(YuJianRadius.heroCard)
+                    .background(YuJianColors.MistWhite.copy(alpha = 0.24f))
+                    .testTag("normal-home-resolving-hero"),
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .offset(y = refY(NormalHomeRecentHeaderY))
+                    .fillMaxWidth()
+                    .height(ref(NormalHomeRecentHeaderHeight)),
+                contentAlignment = Alignment.Center,
+            ) {
+                RecentCatchSectionHeader(onCatchesClick = onCatchesClick)
+            }
+
+            RecentCatchPager(
+                catches = recent,
+                cardWidth = cardWidth,
+                cardHeight = cardHeight,
+                sidePadding = pagerSidePadding,
+                resolveImageUrl = resolveImageUrl,
+                accessToken = accessToken,
+                onCatchClick = onCatchClick,
+                motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
+                runtimeAssets = runtimeAssets,
+                modifier = Modifier.offset(y = refY(NormalHomeCardY)),
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = refY(NormalHomeCtaY))
+                    .height(ref(58f))
+                    .width(ref(420f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "记录下一条鱼",
+                    style = YuJianTypography.body.copy(
+                        color = YuJianColors.OnDark.copy(alpha = 0.92f),
+                        fontSize = 20.sp,
+                        lineHeight = 28.sp,
+                        shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
+                    ),
+                )
+            }
         }
 
         val cameraSize = ref(NormalHomeCameraSize)
@@ -184,13 +208,20 @@ internal fun NormalHomeContent(
             onClick = onIdentify,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = ref(NormalHomeCameraY)),
+                .offset(y = refY(NormalHomeCameraY)),
             motionState = motionState,
             runtimeAssets = runtimeAssets,
             visualSize = cameraSize,
             touchTargetSize = ref(NormalHomeCameraTouchSize),
         )
     }
+}
+
+/** Applies the single NH05 vertical shift after safe-area insets are removed. */
+internal fun normalHomeVerticalOffset(referenceScale: Float, usableHeight: Float): Float {
+    val referenceHeight = 1920f * referenceScale
+    val excessHeight = (usableHeight - referenceHeight).coerceAtLeast(0f)
+    return min(excessHeight * 0.36f, 180f * referenceScale)
 }
 
 @Composable
@@ -217,21 +248,29 @@ private fun NormalHomeHeader(
             ),
         )
         if (isLoggedIn) {
-            RemoteImage(
-                url = resolveImageUrl(avatarUrl),
-                authToken = accessToken,
+            Box(
                 modifier = Modifier
                     .size(avatarSize)
                     .clip(CircleShape)
+                    .semantics {
+                        contentDescription = "个人中心"
+                        role = Role.Button
+                    }
                     .clickable(onClick = onProfileClick),
-                contentDescription = "个人中心",
-                contentScale = ContentScale.Crop,
             ) {
-                Image(
-                    painter = painterResource(R.drawable.profile_fallback_v13),
-                    contentDescription = null,
+                RemoteImage(
+                    url = resolveImageUrl(avatarUrl),
+                    authToken = accessToken,
                     modifier = Modifier.fillMaxSize(),
-                )
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.profile_fallback_v13),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
             }
         } else {
             runtimeAssets?.guestAvatar?.let { avatar ->
@@ -240,7 +279,7 @@ private fun NormalHomeHeader(
                     modifier = Modifier
                         .size(avatarSize)
                         .clip(CircleShape)
-                        .clickable(onClick = onProfileClick),
+                        .clickable(role = Role.Button, onClick = onProfileClick),
                     contentDescription = "登录或注册",
                     contentScale = ContentScale.Crop,
                 )
@@ -249,7 +288,7 @@ private fun NormalHomeHeader(
                 modifier = Modifier
                     .size(avatarSize)
                     .clip(CircleShape)
-                    .clickable(onClick = onProfileClick),
+                    .clickable(role = Role.Button, onClick = onProfileClick),
                 contentDescription = "登录或注册",
                 contentScale = ContentScale.Crop,
             )

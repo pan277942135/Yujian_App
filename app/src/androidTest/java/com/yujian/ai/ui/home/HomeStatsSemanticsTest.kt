@@ -3,6 +3,7 @@ package com.yujian.ai.ui.home
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.yujian.ai.catches.CatchStatistics
@@ -35,6 +36,24 @@ class HomeStatsSemanticsTest {
             assertEquals(1, speciesClicks)
             assertEquals(1, catchClicks)
         }
+    }
+
+    @Test
+    fun unresolvedStatsUseDashesAndExposeNoArchiveNavigation() {
+        compose.setContent {
+            HomeStats(
+                statistics = CatchStatistics(),
+                catches = emptyList(),
+                onSpeciesClick = {},
+                onCatchesClick = {},
+                isResolving = true,
+            )
+        }
+
+        assertEquals(3, compose.onAllNodesWithText("—").fetchSemanticsNodes().size)
+        compose.onNodeWithText("鱼种").assertHasNoClickAction()
+        compose.onNodeWithText("鱼获").assertHasNoClickAction()
+        compose.onNodeWithText("记录天数").assertHasNoClickAction()
     }
 
     private fun record(id: String) = RemoteCatch(

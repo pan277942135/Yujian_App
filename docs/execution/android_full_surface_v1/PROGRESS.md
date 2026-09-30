@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P03 Normal Home / First Catch Home
+- Current phase: P04 Capture entry / shared Capture behavior
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -38,9 +38,9 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 |---|---|---|---|---|---|
 | P00 Inventory / Matrix / Shared Infrastructure | PUSHED | `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`, correction at `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Inventory committed; final tree exact-match verified | No-job Android workflow launch | Continue independent product work |
 | P01 Authentication / Account Entry | BLOCKED_INFRA | `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Existing Login/Register screens and 13 instrumentation tests; Registry source pointer corrected | Runs `36697494308`, `36698295894`, `36698418377` failed with 0 jobs/0 artifacts; current-main run `36697719823` also had 0 jobs | Stop manual retry; continue |
-| P02 Empty Home | PASS | `41299c653a6face735b0f07d14a2e290126d727c` | Local verifier PASS; prior Android CI run `36514649405` PASS; gate artifact `11011440570` | None for Empty Home | Reconcile existing Normal Home closure |
-| P03 Normal Home / First Catch Home | IN_PROGRESS | — | Existing PR #76 merged; product implementation and most gates already closed | Required 1080×2340 physical capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Record existing terminal evidence; do not rework |
-| P04 Capture entry / shared Capture behavior | NOT_STARTED | — | — | — | — |
+| P02 Empty Home | PASS | `f3210a66e4657b59a2db350cf5952ae0aea68aab` | Local verifier PASS; prior Android CI run `36514649405` PASS; gate artifact `11011440570` | None for Empty Home | Continue P04 |
+| P03 Normal Home / First Catch Home | BLOCKED_INFRA | Pending source checkpoint SHA | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
+| P04 Capture entry / shared Capture behavior | IN_PROGRESS | — | Begin existing-route and capture-contract audit | — | Implement only frozen capture handoff and failure behavior |
 | P05 Recognition Processing | NOT_STARTED | — | — | — | — |
 | P06 Recognition Result | NOT_STARTED | — | — | — | — |
 | P07 Result Editing | NOT_STARTED | — | — | — | — |
@@ -84,3 +84,37 @@ Current blocker:
 
 Next:
 - Reconcile P03 from merged PR #76 and mark its real-size capture gate accurately, then continue P04.
+
+## P03 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P03
+
+Feature: Normal Home / First Catch Home
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Replaced the unresolved archive's blank launch surface with the Normal Home environment, Header, quiet neutral Hero footprint, unresolved `—` statistics and active Capture Button. Recent-catch navigation and the normal CTA stay hidden until archive resolution.
+- Moved archive loading/failure transitions into a small state holder. A refresh for the same owner keeps the resolved records/statistics and a failed refresh keeps that snapshot; switching owners clears it.
+- Applied safe drawing insets before Normal Home sizing and implemented NH05's shared capped vertical shift for all core regions. Hero dimensions remain width-scaled.
+- Kept NH02's one-record layout on a single page with no visible neighbors; added a swipe-stability test. Added local neutral media fallback while retaining the record, species and card geometry.
+- Kept the logged-in default-avatar resource distinct from the Guest avatar and made the Normal Home profile fallback expose the same labeled profile action on image-missing and image-failure paths.
+- Limited Hero species, measurement and time/location text to one line with end ellipsis per NH04.
+- Added unit/instrumentation test coverage for refresh snapshot preservation, NH05 offset calculation, resolving placeholders, single-record pager stability, and unavailable catch media.
+- `python3 scripts/verify_normal_home_runtime_v1.py` returned PASS: independent runtime assets and source wiring are closed.
+
+Evidence boundary:
+- PR #76 merged at `ac2fe3a7bbf6feb172910a980be731cd586483c1`; its build/unit/lint and Normal Home instrumentation results are inherited baseline evidence only.
+- PR #76's real 1080×2340 capture remains BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`, artifact `11076223576` from run `36665569750`). No substitute capture was accepted.
+- The newly added Kotlin unit/instrumentation tests could not run here because Gradle, adb and an emulator are unavailable. Android workflow launches on this branch previously returned 0 jobs/0 artifacts; per bounded retry, no manual retry was made. Current source changes therefore remain unverified by Android execution.
+
+Git:
+- Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
+- Branch: `feature/android-full-surface-runtime-v1`
+- P03 source checkpoint SHA: pending publication
+- PR: #97 (draft)
+
+Next:
+- Continue P04 Capture entry / shared Capture behavior without modifying CI, AVD, runner, backend or model infrastructure.

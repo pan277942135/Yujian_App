@@ -1,18 +1,24 @@
 package com.yujian.ai.ui.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,11 +82,19 @@ internal fun RecentFishCard(
                 contentScale = ContentScale.Fit,
                 authToken = accessToken,
             ) {
-                Image(
-                    painter = painterResource(R.drawable.image_error_v12),
-                    contentDescription = "图片加载失败",
-                    modifier = Modifier.size(44.dp),
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.24f))
+                        .testTag("normal-home-media-fallback"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.image_error_v12),
+                        contentDescription = null,
+                        modifier = Modifier.size(44.dp).alpha(0.55f),
+                    )
+                }
             }
         },
     )
@@ -95,6 +109,8 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
             fontSize = 32.sp,
             lineHeight = 38.sp,
         ),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
     displayMeasurement(item)?.let { value ->
         Text(
@@ -104,6 +120,8 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
                 fontSize = 22.sp,
                 lineHeight = 28.sp,
             ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 5.dp),
         )
     }
@@ -115,6 +133,8 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
             ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 5.dp),
         )
     }
