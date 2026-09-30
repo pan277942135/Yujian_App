@@ -47,7 +47,7 @@ Current Normal Home menu:
 - NH05 响应式与交互 — combined board
 - NH06 背景与环境权威 — authority board / Morning Lake source relationship
 
-The repository now contains `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`. Normal Home page composition remains governed by the Frozen NH01 reference until the NH06 background-authority revision is formally closed.
+Normal Home package V1.1 closes NH06: `Morning_Lake_Master_V1.png` is the background bitmap authority and the Frozen NH01 reference remains composition authority. Runtime uses a byte-identical source copy with centered viewport crop.
 
 ## Recognition Result V1 design package
 

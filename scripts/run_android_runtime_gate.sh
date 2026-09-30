@@ -9,7 +9,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage:
   bash scripts/run_android_runtime_gate.sh \
-    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|fish-guide-v1|runtime-parity \
+    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|runtime-parity \
     --app-apk path/to/app-debug.apk \
     --test-apk path/to/app-debug-androidTest.apk \
     --evidence-dir evidence/runtime/<gate> \
@@ -77,9 +77,6 @@ case "$GATE" in
   login-v2)
     source "$RUNTIME_DIR/gates/login_v2.sh"
     ;;
-  fish-guide-v1)
-    source "$RUNTIME_DIR/gates/fish_guide_v1.sh"
-    ;;
   runtime-parity)
     source "$RUNTIME_DIR/gates/runtime_parity.sh"
     ;;
@@ -99,6 +96,11 @@ finish_gate() {
     android_runtime_collect_diagnostics
   fi
   android_runtime_write_result
+  if [[ "$YUJIAN_GATE" == "recognition-frozen" ]]; then
+    mkdir -p "$YUJIAN_EVIDENCE_DIR/recognition_v1_2"
+    cp "$YUJIAN_RESULT_PATH" \
+      "$YUJIAN_EVIDENCE_DIR/recognition_v1_2/runtime_gate_result_v1_2.json"
+  fi
   return "$exit_code"
 }
 

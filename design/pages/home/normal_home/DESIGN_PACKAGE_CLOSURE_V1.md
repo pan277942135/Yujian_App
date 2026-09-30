@@ -1,5 +1,7 @@
 # Normal Home — Design Package Closure V1
 
+> Historical baseline. Background authority statements in this V1 document are superseded by `DESIGN_PACKAGE_CLOSURE_V1_1.md`. The canonical page image and all non-background design decisions remain in force.
+
 Status: **PASS — DESIGN FROZEN**
 
 ## Purpose
@@ -52,8 +54,7 @@ The closure uses the existing product state and current production behavior as e
 2. Core Visual System V1 remains the cross-page visual-language authority.
 3. Shared components remain shared; page-local forks are forbidden.
 4. Runtime media remains dynamic user data.
-5. No independent Morning Lake bitmap is promoted to authority in this version because no frozen source exists in the repository.
-6. A future background-master system may supersede the background rule only through an explicit Normal Home package revision.
+5. At V1, no independent Morning Lake bitmap had been registered. V1.1 corrects that authority after the repository master was discovered; it does not change the frozen page image.
 
 ## Known runtime/design boundary
 

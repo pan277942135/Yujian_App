@@ -39,7 +39,7 @@ private fun decodeNormalHomeAsset(context: Context, path: String): Bitmap {
 
 private fun loadNormalHomeRuntimeAssets(context: Context): NormalHomeRuntimeAssets =
     NormalHomeRuntimeAssets(
-        sceneBase = decodeNormalHomeAsset(context, "static/scene_base.webp"),
+        sceneBase = decodeNormalHomeAsset(context, "static/scene_base.png"),
         guestAvatar = decodeNormalHomeAsset(context, "avatar/guest_avatar.png"),
         fishCardGradient = decodeNormalHomeAsset(context, "fish_card/fish_card_gradient.png"),
         fishCardOutline = decodeNormalHomeAsset(context, "fish_card/fish_card_outline.png"),

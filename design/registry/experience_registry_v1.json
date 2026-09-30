@@ -350,73 +350,97 @@
           "id": "NH03",
           "code": "NH03",
           "title": "NH03 · 页面状态与异常",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "合并规范图：Home Resolving、Catch Image Unavailable、刷新中保持已解析状态、异常不得误切 Empty Home。",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "authority": "design/pages/home/normal_home/03_page_states/README.md",
+          "summary": "NH03 视觉板已冻结。Unknown ≠ Empty；覆盖 Resolving、Image Unavailable、Refresh Preserves Home、Error ≠ Empty。",
           "menu_points": [
-            "Home Resolving",
+            "Home Resolving → — / — / —",
             "Catch Image Unavailable",
-            "Refresh state preservation",
-            "Error ≠ Empty Home"
-          ]
+            "Refresh preserves resolved Home",
+            "Error preserves stale Home",
+            "Only resolved zero → Empty"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/03_page_states/README.md",
+          "image": "design/pages/home/normal_home/03_page_states/frozen/NH03_Page_States_Exceptions_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/03_page_states/frozen/NH03_Page_States_Exceptions_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_authority_manifest": "design/pages/home/normal_home/03_page_states/frozen/manifest.json",
+          "visual_caption": "NH03 · Page States & Exceptions V1 · Frozen Visual Authority"
         },
         {
           "id": "NH04",
           "code": "NH04",
           "title": "NH04 · 组件状态与内容边界",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "合并规范图：Guest / Logged-in Header、Avatar fallback、Hero 字段缺失组合及长文本边界。",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "authority": "design/pages/home/normal_home/04_component_content_states/README.md",
+          "summary": "NH04 组件板已冻结。覆盖 Real Avatar / Default Avatar / Guest，以及 HOME Hero 字段缺失与长文本边界。",
           "menu_points": [
-            "Guest Header",
-            "Logged-in Header",
-            "Avatar fallback",
-            "完整/缺失字段组合",
-            "长鱼种名",
-            "长地点"
-          ]
+            "Real Avatar / Default Avatar / Guest",
+            "Complete Hero",
+            "Length only / Weight only / No measurements",
+            "No location / No time",
+            "Long species → ellipsis",
+            "Long location → time priority"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/04_component_content_states/README.md",
+          "image": "design/pages/home/normal_home/04_component_content_states/frozen/NH04_Component_Content_States_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/04_component_content_states/frozen/NH04_Component_Content_States_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_authority_manifest": "design/pages/home/normal_home/04_component_content_states/frozen/manifest.json",
+          "visual_caption": "NH04 · Component & Content States V1 · Frozen Visual Authority"
         },
         {
           "id": "NH05",
           "code": "NH05",
           "title": "NH05 · 响应式与交互",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "合并规范图：9:16 / 19.5:9 / 20:9 / 21:9、Pager selected/adjacent/swipe、Single Record、Reduce Motion。",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "authority": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+          "summary": "NH05 响应式与交互板已冻结。1080×1920 为参考；宽度优先，核心构图整体偏移，9:16–21:9 不拉伸 Hero。",
           "menu_points": [
-            "9:16",
-            "19.5:9",
-            "20:9",
-            "21:9",
-            "Pager Interaction",
-            "Single Record",
+            "9:16 / 19.5:9 / 20:9 / 21:9",
+            "Width-first scaling",
+            "Frozen vertical offset rule",
+            "Pager selected / adjacent / swipe",
+            "Single Record has no pager hint",
             "Reduce Motion"
-          ]
+          ],
+          "behavior_authority": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+          "image": "design/pages/home/normal_home/05_responsive_interaction/frozen/NH05_Responsive_Interaction_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/05_responsive_interaction/frozen/NH05_Responsive_Interaction_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_authority_manifest": "design/pages/home/normal_home/05_responsive_interaction/frozen/manifest.json",
+          "visual_caption": "NH05 · Responsive & Interaction V1 · Frozen Visual Authority"
         },
         {
           "id": "NH06",
           "code": "NH06",
           "title": "NH06 · 背景与环境权威",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "render_mode": "repo_image",
           "authority_type": "visual",
-          "image": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-          "visual_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "Background Authority V1.1 待收口。Morning_Lake_Master_V1 是背景母版来源；NH01 Frozen 仍负责完整页面构图与层级，禁止从页面截图反向裁出背景。",
+          "image": "design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png",
+          "authority": "design/pages/home/normal_home/06_background_authority/README.md",
+          "summary": "NH06 工作区 Authority Board 已冻结；Normal Home 继续复用 Morning_Lake_Master_V1 → BG_ENV_HERO。",
           "menu_points": [
-            "Morning_Lake_Master_V1",
-            "BG_ENV_HERO",
+            "Morning_Lake_Master_V1 · 941×1672",
+            "SHA-256 5fba7410…91d7",
+            "BG_ENV_HERO exact treatment",
             "Normal Home crop/adaptation",
-            "NH01 composition boundary",
-            "禁止 screenshot extraction"
-          ]
+            "NH01/NH02 composition boundary",
+            "禁止 screenshot extraction / Sunrise source / regenerated lake"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/06_background_authority/README.md",
+          "visual_status": "FROZEN",
+          "visual_caption": "NH06 · Background & Environment Authority V1 · Frozen Visual Authority",
+          "visual_authority_manifest": "design/pages/home/normal_home/06_background_authority/frozen/manifest.json",
+          "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png"
         }
       ]
     },
@@ -3025,7 +3049,7 @@
         "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
         "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
       },
-      "note": "FishRecordDetail compact navigation remains 00–05 with no third-level submenu. On 2026-09-30 the Overview behavior authority was frozen: A/B are two surfaces of one FishRecordDetail; B-side lifecycle is NOT_GENERATED / GENERATING / READY / FAILED; first READY reveal auto-flips A→B at most once per FishRecord; subsequent entries default to A and use manual Flip Icon only when READY. Existing A-side Frozen Visual Authority and supplemental B-side reference are unchanged.",
+      "note": "FishRecordDetail 00–05 batch design review completed on 2026-09-30. 00 Overview, 01 A-side, 03 Asset Generation, 04 Editing and 05 Page States are FROZEN. 02 B-side Visual Spec is FROZEN but the exact approved 941×1672 PNG binary is still missing from the canonical repository path, so the repository visual package remains PARTIAL until the SHA-256 gate passes. Current runtime FishMemorySection is not design authority.",
       "hifi_views": [
         {
           "id": "overview",
@@ -3096,57 +3120,134 @@
         {
           "id": "asset_generation",
           "title": "03 · 鱼体资产生成",
-          "status": "MISSING",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "生命周期行为已 FROZEN，视觉场景板仍待设计：NOT_GENERATED、GENERATING、FAILED 及 Retry；成功统一交接 READY，并触发尚未消费时的一次性 first reveal。",
+          "summary": "FROZEN：NOT_GENERATED / GENERATING / FAILED 合并为一个生成场景板；A 面始终可用；禁止伪造百分比/ETA；成功统一交接 READY，并服从首次一次性 A→B reveal。",
           "menu_points": [
-            "Behavior FROZEN · Visual Board Pending",
-            "NOT_GENERATED",
-            "GENERATING",
-            "FAILED → Retry → GENERATING",
+            "NOT_GENERATED · 生成鱼获记忆",
+            "GENERATING · A-side remains usable",
+            "No Fake Percentage / ETA",
+            "FAILED · 原鱼获记录不受影响",
+            "Retry → GENERATING",
             "Success → READY",
-            "READY + first reveal pending → Auto A → B once",
-            "Do not expose Worker / Queue internals as pages"
+            "READY presentation owned by 02",
+            "First READY Reveal · Auto A → B Once",
+            "Reduce Motion / Accessibility"
           ]
         },
         {
           "id": "editing",
           "title": "04 · 信息编辑",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "信息编辑作为一个合并场景工作区，不再拆鱼种、长度/重量、地点、感言等子菜单。设计输出以主编辑场景 + 局部 Sheet/Dialog/危险操作组合表达。",
+          "summary": "FROZEN：信息编辑采用一个合并工作区；基础信息 + 环境与记录统一编辑；Save/Cancel、校验、保存失败保值、未保存退出确认与危险删除边界均已定义。",
           "menu_points": [
+            "Entry · Hero 编辑 >",
             "基础信息 · 鱼种 / 长度 / 重量",
             "环境与记录 · 时间 / 地点 / 天气 / 感言",
-            "Save / Cancel / Return",
-            "Shared Input Components",
-            "Delete / Destructive Confirmation",
-            "Data Persistence"
+            "Save / Cancel / Unsaved Changes",
+            "Validation",
+            "Save Failure Preserves Input",
+            "Delete · Destructive Confirmation",
+            "A/B Same FishRecord Identity"
           ]
         },
         {
           "id": "page_states",
           "title": "05 · 页面状态",
-          "status": "MISSING",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "页面状态统一合并为 State Board，不再建立 Normal、媒体缺失、数据不完整、删除/失效等子菜单。仅当状态显著改变页面结构时才单独形成完整 UI。",
+          "summary": "FROZEN：Loading / Media Missing / Partial Data / Deleted or Invalid / Offline or Network Error / Retry-Fallback 合并为一个 State Board；所有错误优先局部失败，禁止伪造事实数据。",
           "menu_points": [
-            "Loading",
-            "Media Missing",
-            "Partial Data",
+            "Loading · Stable Page Identity",
+            "Media Missing · Neutral Hero Fallback",
+            "Partial Data · Never Fabricate Values",
             "Deleted / Invalid Record",
-            "Offline / Network Error",
-            "Retry / Disabled / Fallback"
+            "Offline with Cache",
+            "Offline / Network Error without Cache",
+            "Fail the Smallest Responsible Region",
+            "Retry / Disabled / Fallback",
+            "Responsive / Accessibility"
           ]
         }
       ],
-      "overview_authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md"
+      "overview_authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
+      "design_freeze": {
+        "status": "FROZEN_WITH_SOURCE_BINARY_GATE",
+        "date": "2026-09-30",
+        "audit": "design/pages/fish_record/detail/FishRecordDetail_Design_Audit_Freeze_V1.md",
+        "blocker": "02 B-side exact canonical PNG source binary",
+        "approved_sha256": "c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b"
+      },
+      "freeze_review": {
+        "state": "DESIGN_FROZEN_WITH_SOURCE_BINARY_GATE",
+        "title": "鱼获详情 V2 · 批量设计冻结检查",
+        "note": "00–05 的产品/场景设计已批量冻结。唯一开放 Gate 是 02 B-side 已批准原 PNG 的 exact binary 落库与 SHA-256 校验；该 Gate 不允许使用相似图、重编码图或截图替代。",
+        "items": [
+          {
+            "id": "FRD-FREEZE-00",
+            "title": "Overview A/B 模型与首次 reveal",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-01",
+            "title": "A 面 · 鱼获记录",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
+          },
+          {
+            "id": "FRD-FREEZE-02",
+            "title": "B 面 · 鱼获记忆规范",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-02B",
+            "title": "B 面批准原 PNG 字节落库",
+            "status": "BLOCKED_SOURCE",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png"
+          },
+          {
+            "id": "FRD-FREEZE-03",
+            "title": "鱼体资产生成三态板",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-04",
+            "title": "信息编辑合并场景",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-05",
+            "title": "页面状态合并场景",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "authority": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md"
+          },
+          {
+            "id": "FRD-FREEZE-RUNTIME",
+            "title": "Runtime parity / evidence",
+            "status": "PENDING_IMPLEMENTATION",
+            "blocking": false,
+            "authority": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt"
+          }
+        ]
+      }
     },
     {
       "id": "fish_memory_bside_v1",

@@ -9,7 +9,7 @@ import org.junit.Test
 
 class RecognitionRuntimeAssetContractTest {
     @Test
-    fun packagedTimelineAndStateMachineMatchRuntimeContract() {
+    fun packagedPresentationTimelineAndStateMachineMatchRuntimeContract() {
         val assets = InstrumentationRegistry.getInstrumentation().targetContext.assets
         val timeline = assets.open("identify/animation/identify_timeline.json").bufferedReader().use {
             JSONObject(it.readText())
@@ -24,8 +24,16 @@ class RecognitionRuntimeAssetContractTest {
         assertEquals(RecognitionRuntimeContract.timeline.size, steps.length())
         RecognitionRuntimeContract.timeline.forEachIndexed { index, step ->
             assertEquals(step.startMs.toInt(), steps.getJSONObject(index).getInt("time"))
-            assertEquals(step.phase.name, steps.getJSONObject(index).getString("state"))
+            assertEquals(step.state.name, steps.getJSONObject(index).getString("state"))
+            assertEquals(step.label, steps.getJSONObject(index).getString("label"))
         }
-        assertTrue(stateMachine.getJSONObject("flow").getJSONArray("CLASSIFYING").length() >= 2)
+        val states = stateMachine.getJSONArray("states")
+        assertEquals("IMAGE_RECOGNIZING", states.getString(0))
+        assertEquals("SPECIES_RECOGNIZING", states.getString(2))
+        assertEquals(10, states.length())
+        val flow = stateMachine.getJSONObject("flow")
+        assertEquals(4, flow.getJSONArray("IMAGE_RECOGNIZING").length())
+        assertEquals(3, flow.getJSONArray("RESOLVE").length())
+        assertTrue((0 until states.length()).none { states.getString(it) == "DETECTING" })
     }
 }

@@ -76,14 +76,11 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
 - NH03 — 页面状态与异常 — combined board
 - NH04 — 组件状态与内容边界 — combined board
 - NH05 — 响应式与交互 — combined board
-- NH06 — 背景与环境权威 — authority board
+- NH06 — 背景与环境权威 — authority closure in Normal Home Design Package V1.1
 
 ### Background authority
 
-Repository source now present:
-`design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`
-
-The prior Closure V1 statement that this source did not exist is superseded. Until NH06 / Background Authority V1.1 is formally closed, the Frozen NH01 reference remains the complete page-composition authority. The Morning Lake source must not be reconstructed from a screenshot.
+Normal Home package V1.1: the frozen Normal Home reference remains composition authority; `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` (SHA-256 `5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`) is the background bitmap authority. Runtime asset is a byte-identical copy with centered Android `ContentScale.Crop` only.
 
 ### Runtime traceability
 
