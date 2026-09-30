@@ -2,8 +2,8 @@
   "version": "1.0",
   "status": "FROZEN",
   "id": "yujian_default_profile_avatar_v1",
-  "scope": "Normal Home Header / logged-in avatar fallback",
-  "owner": "NH02 First Catch Home V1",
+  "scope": "NH02 consumer mapping for the Shared Default Profile Avatar V1",
+  "owner": "Shared Design System / Default Profile Avatar V1",
   "design_authority": "design/pages/home/normal_home/02_first_catch/README.md",
   "android_implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
   "semantics": {
@@ -63,7 +63,11 @@
     "automatic Edit Profile prompt"
   ],
   "presentation_ownership": {
-    "NH02": "semantic and fallback authority",
+    "shared_default_profile_avatar_v1": "semantic, visual fallback and cross-page authority",
+    "NH02": "consumer mapping and Home-specific size/placement only",
     "NH04": "multi-state visual comparison only; may not redefine fallback"
-  }
+  },
+  "canonical_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+  "authority_role": "COMPATIBILITY_REFERENCE",
+  "note": "Canonical authority was promoted to Shared Design System. This historical NH02 contract remains for compatibility and must not override the shared contract."
 }
