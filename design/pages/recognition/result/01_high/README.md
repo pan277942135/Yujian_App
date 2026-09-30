@@ -149,3 +149,20 @@ CTA semantics: **CLOSED V1**
 Motion: inherits `../motion/Recognition_Result_Motion_Spec_V1.md`
 
 Runtime parity: **NOT PART OF THIS DESIGN REVIEW**
+
+## Hero Media Contract — FROZEN
+
+High uses **Subject First** media placement.
+
+Authority:
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`
+- `../media/hero_media_contract.json`
+
+Rules:
+- display source = original oriented user photo;
+- use the recognition fish bbox only as focal guidance;
+- FishSafeRect = bbox + 14% horizontal / 18% vertical expansion;
+- Smart Crop Fill is allowed only when subject safety passes;
+- otherwise use Subject Safe Fit;
+- do not crop a source edge further when the fish already touches that edge;
+- no blurred duplicate-photo support background.
