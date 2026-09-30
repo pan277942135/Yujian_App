@@ -3067,13 +3067,11 @@
         {
           "id": "b_side",
           "title": "02 · B 面 · 鱼获记忆",
-          "status": "ACTIVE_CLOSURE",
-          "render_mode": "repo_image",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md",
-          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
-          "image": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
           "authority_type": "visual",
-          "summary": "B 面 READY 高保已由产品确认；正式冻结图必须使用已批准 941×1672 原 PNG。当前仅等待 exact-binary 写入 canonical path 并通过 SHA-256 gate；不得继续使用旧 supplemental fish_memory_reference 作为最终 Authority。",
+          "summary": "B 面 Visual Spec 已冻结，批准原图字节身份已固定；Design Manager 当前不再展示旧 supplemental 图。待 exact PNG 写入 canonical path 并通过 SHA-256 gate 后，02 才切换为 repo_image + FROZEN。",
           "menu_points": [
             "Approved visual · exact original PNG required",
             "Hero: same fish isolated in calm water environment",
@@ -3091,7 +3089,9 @@
             "format": "PNG",
             "bytes": 2095527,
             "sha256": "c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b"
-          }
+          },
+          "spec_status": "FROZEN",
+          "visual_asset_status": "BLOCKED_BINARY_UPLOAD"
         },
         {
           "id": "asset_generation",
