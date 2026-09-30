@@ -3011,30 +3011,30 @@
       ],
       "navigation_model": "fish_record_detail_compact_menu_v2",
       "design_manager_view_rules": {
-        "overview": "00 is the page-level overview and owns flow, A/B relationship, shared dependencies, and interaction boundaries.",
+        "overview": "00 is FROZEN behavior authority for the A/B surface model, B-side lifecycle, one-time first reveal, subsequent default entry, and manual Flip Icon behavior.",
         "menu": "FishRecordDetail exposes only 00–05 as direct Design Manager entries. No third-level submenu is used.",
         "output_principle": "Important pages use standalone UI authority; secondary states, editing variants, exceptions, and edge cases are merged into scenario boards.",
         "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
         "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
       },
-      "note": "FishRecordDetail Design Manager compact menu V2 updated on 2026-09-30. Navigation is reduced to six direct entries (00–05) with no third-level submenu. Existing A-side Frozen Authority and supplemental B-side reference are preserved; unfinished editing, generation, and exception states remain scenario-level workspaces rather than separate navigation nodes.",
+      "note": "FishRecordDetail compact navigation remains 00–05 with no third-level submenu. On 2026-09-30 the Overview behavior authority was frozen: A/B are two surfaces of one FishRecordDetail; B-side lifecycle is NOT_GENERATED / GENERATING / READY / FAILED; first READY reveal auto-flips A→B at most once per FishRecord; subsequent entries default to A and use manual Flip Icon only when READY. Existing A-side Frozen Visual Authority and supplemental B-side reference are unchanged.",
       "hifi_views": [
         {
           "id": "overview",
           "title": "00 · Overview",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
           "authority_type": "behavior",
-          "summary": "鱼获详情是单条 FishRecord 的长期详情目的地。Overview 统一管理 A/B 页面关系、进入路径、翻面规则、共享组件依赖与 Authority 边界；不再为工程合同、资产清单、验收证据或 Archive 建独立菜单。",
+          "summary": "FROZEN：A/B 是同一 FishRecordDetail 的两个页面面；B-side 四态生命周期、首次 READY 后一次性自动 A→B reveal、后续默认 A 面、READY 时手动 Flip Icon A↔B 均已冻结。",
           "menu_points": [
-            "Product Role · Single FishRecord Detail",
-            "A / B Surface Model",
-            "Entry Points",
-            "First Successful B-side Auto Flip",
-            "Subsequent Manual A ↔ B Flip",
-            "Shared Component Dependencies",
-            "Authority / Runtime Boundary"
+            "A / B Surface Model · Same FishRecordDetail",
+            "B-side Lifecycle · NOT_GENERATED / GENERATING / READY / FAILED",
+            "First READY Reveal · Auto A → B Once per FishRecord",
+            "Reveal consumed only after B-side is actually presented",
+            "Subsequent Entry · Default A-side",
+            "READY-only Manual Flip Icon · A ↔ B",
+            "Reduce Motion preserves semantics"
           ]
         },
         {
@@ -3046,13 +3046,13 @@
           "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
           "image": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
           "authority_type": "visual",
-          "summary": "FishRecordDetail A 面核心页面。现有 Core UI V2 PNG 继续作为 Frozen Visual Authority；字段缺失等次要变化不再拆子菜单，统一进入 05 · 页面状态。",
+          "summary": "FishRecordDetail A 面核心页面。现有 Core UI V2 PNG 继续作为 Frozen Visual Authority；B-side=READY 时显示页面内部 Flip Icon，其他生命周期状态隐藏。字段缺失等次要变化统一进入 05 · 页面状态。",
           "menu_points": [
             "Hero / Species",
             "Length / Weight / Location",
             "Catch Note / Memory",
             "Edit Entry",
-            "B-side Flip Entry when available",
+            "Flip Icon visible only when B-side = READY",
             "Frozen Visual Authority"
           ]
         },
@@ -3066,12 +3066,12 @@
           "image": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
           "secondary_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
           "authority_type": "visual",
-          "summary": "B 面核心页面直接展示已生成状态。现有 fish_memory_reference.png 仍为 supplemental visual reference；尚未生成、生成中、失败等生命周期状态统一归入 03 · 鱼体资产生成。",
+          "summary": "B 面核心页面直接展示 READY 状态。现有 fish_memory_reference.png 仍为 supplemental visual reference；首次 READY reveal 自动 A→B 仅发生一次，之后 A↔B 仅通过页面内部 Flip Icon 手动切换。",
           "menu_points": [
-            "Generated Memory Surface",
-            "Real FishRecord Relationship",
-            "Manual Flip Entry",
-            "First-success Auto Flip Relationship",
+            "Generated Memory Surface · READY",
+            "First READY Reveal · Auto A → B Once",
+            "Subsequent Manual Flip · A ↔ B",
+            "Same stable Flip Icon position on both surfaces",
             "Supplemental Visual Reference",
             "Authority Boundary"
           ]
@@ -3081,15 +3081,16 @@
           "title": "03 · 鱼体资产生成",
           "status": "MISSING",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
+          "authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
           "authority_type": "behavior",
-          "summary": "用一张场景合并 UI 管理 B-side 资产生命周期，不再把每个技术状态拆成菜单。设计输出聚合尚未生成、生成中、生成失败及重试/恢复关系。",
+          "summary": "生命周期行为已 FROZEN，视觉场景板仍待设计：NOT_GENERATED、GENERATING、FAILED 及 Retry；成功统一交接 READY，并触发尚未消费时的一次性 first reveal。",
           "menu_points": [
-            "尚未生成 · Empty",
-            "生成中 · Generating",
-            "生成失败 · Failed",
-            "Generate / Retry CTA",
-            "Success → B-side Ready",
+            "Behavior FROZEN · Visual Board Pending",
+            "NOT_GENERATED",
+            "GENERATING",
+            "FAILED → Retry → GENERATING",
+            "Success → READY",
+            "READY + first reveal pending → Auto A → B once",
             "Do not expose Worker / Queue internals as pages"
           ]
         },
@@ -3127,7 +3128,8 @@
             "Retry / Disabled / Fallback"
           ]
         }
-      ]
+      ],
+      "overview_authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md"
     },
     {
       "id": "fish_memory_bside_v1",
