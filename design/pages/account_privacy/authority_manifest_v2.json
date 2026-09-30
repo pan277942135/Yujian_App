@@ -227,7 +227,8 @@
       "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "state_interaction_authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
     },
     {
       "id": "02c",
@@ -256,7 +257,8 @@
       "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "state_interaction_authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
     },
     {
       "id": "02d",
@@ -293,7 +295,8 @@
       "blocking_gate": "Recover originally approved byte-identical visual source; do not regenerate or re-encode.",
       "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
       "visual_authority_status": "BLOCKED_INTEGRITY",
-      "visual_authority_trusted": false
+      "visual_authority_trusted": false,
+      "state_interaction_authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
     },
     {
       "id": "03a",
@@ -806,5 +809,16 @@
     "visual_base": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
     "visual_base_sha256": "cd3a7e367492b89e9a126f7129d024072ce88232483e79ef5ca614fa487bf6af",
     "rule": "Privacy Policy and User Agreement share this shell; shell freeze is independent from final legal copy approval."
+  },
+  "edit_profile_state_interaction": {
+    "status": "FROZEN",
+    "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+    "scope": [
+      "SAVE_FEEDBACK",
+      "EDGE_STATES",
+      "INTERACTION_ADAPTATION"
+    ],
+    "standalone_visual_required": false,
+    "note": "04–06 are frozen behavior/state contracts and do not require separate Design Manager navigation or standalone Hi-Fi assets."
   }
 }
