@@ -113,5 +113,29 @@
     "no_recognition_rerun",
     "no_species_change",
     "no_auto_location_permission"
-  ]
+  ],
+  "visual_authority_binding": {
+    "authority_type": "INTERACTION_VISUAL_AUTHORITY",
+    "visual_authority": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+    "visual_manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json",
+    "scope": [
+      "numeric_bottom_sheet",
+      "location_bottom_sheet",
+      "keyboard_intent",
+      "validation_state",
+      "clear_reedit",
+      "location_search",
+      "current_location",
+      "recent_locations"
+    ],
+    "excluded_scope": [
+      "recognition_result_page_layout",
+      "confidence_badge",
+      "legacy_result_cta",
+      "legacy_metadata_list",
+      "legacy_species_tag",
+      "legacy_gold_action"
+    ],
+    "note": "Adds the frozen visual board binding only; the existing behavior contract remains unchanged."
+  }
 }

@@ -98,6 +98,13 @@ The Frozen PNG owns Hero **container composition**. The Hero Media Contract owns
 - `review/Recognition_Result_Runtime_Alignment_Review_V1.md`
 - `status.json`
 
+## Supplemental interaction authorities
+
+- Species Selector V1: `design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md` · `design/pages/recognition/result/species_selector/species_selector_contract.json` · `design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png`
+- Metadata Edit Flow V1: existing frozen behavior `design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md` / `design/pages/recognition/result/engineering/metadata_edit_flow_contract.json` plus interaction visual `design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png`
+
+RR00–RR03 expose links to both authorities. They do not add RR06/RR07 or change the 3+2 Result navigation. The Metadata Edit board is limited to overlay interactions and does not authorize its legacy Result-page composition.
+
 ## Implementation-ready engineering authority
 
 Work / frontend implementation must read:

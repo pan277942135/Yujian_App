@@ -50,6 +50,42 @@
         "path": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
         "kind": "REFERENCE_ONLY",
         "shipping_asset": false
+      },
+      {
+        "id": "SPECIES_SELECTOR_V1",
+        "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+        "kind": "DESIGN_AUTHORITY_ONLY",
+        "shipping_asset": false,
+        "status": "FROZEN",
+        "manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
+        "spec": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+        "contract": "design/pages/recognition/result/species_selector/species_selector_contract.json"
+      },
+      {
+        "id": "METADATA_EDIT_FLOW_V1",
+        "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+        "kind": "INTERACTION_VISUAL_AUTHORITY",
+        "shipping_asset": false,
+        "status": "FROZEN",
+        "manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json",
+        "spec": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+        "contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+        "authority_scope": [
+          "numeric_bottom_sheet",
+          "location_bottom_sheet",
+          "keyboard_intent",
+          "validation_state",
+          "clear_reedit",
+          "location_search",
+          "current_location",
+          "recent_locations"
+        ],
+        "excluded_scope": [
+          "recognition_result_page_layout",
+          "confidence_badge",
+          "legacy_result_cta",
+          "legacy_metadata_list"
+        ]
       }
     ],
     "foundations": [
