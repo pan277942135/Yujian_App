@@ -556,6 +556,9 @@ class RecognitionFrozenFlowEmulatorTest {
         first.delete()
         second.delete()
 
+        // Restrict the comparison to the four ambient-field edge regions. A
+        // whole-screen ratio is diluted by the photo and affected by unrelated
+        // UI rasterization, while these regions directly test field travel.
         assertTrue("Reduce Motion still produced continuous visual travel: diffRatio=$diffRatio", diffRatio <= 0.01f)
         capture("reduce_motion_static.png")
     }
@@ -738,6 +741,10 @@ class RecognitionFrozenFlowEmulatorTest {
         while (y < height) {
             var x = 0
             while (x < width) {
+                if (!isAmbientFieldEdgeSample(x, y, width, height)) {
+                    x += 4
+                    continue
+                }
                 val a = left.getPixel(x, y)
                 val b = right.getPixel(x, y)
                 val delta =
@@ -752,6 +759,12 @@ class RecognitionFrozenFlowEmulatorTest {
         }
         return changed.toFloat() / sampled.coerceAtLeast(1)
     }
+
+    private fun isAmbientFieldEdgeSample(x: Int, y: Int, width: Int, height: Int): Boolean =
+        (x < width * .32f && y < height * .24f) ||
+            (x > width * .68f && y < height * .45f) ||
+            (x < width * .40f && y > height * .68f) ||
+            (x > width * .60f && y > height * .62f)
 
     private fun createDegradationContactSheet(levels: List<RecognitionDegradationLevel>) {
         val images = levels.map { level ->
