@@ -1,6 +1,8 @@
 package com.yujian.ai
 
+import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -50,6 +52,7 @@ import com.yujian.ai.model.DemoData
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.session.UserSessionManager
+import com.yujian.ai.presentation.presentationSpeciesName
 import com.yujian.ai.privacy.AccountPrivacyCapabilities
 import com.yujian.ai.privacy.PrivacyPromptFrequency
 import com.yujian.ai.privacy.PrivacyPromptFrequencyStore
@@ -95,6 +98,7 @@ import java.io.File
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun YujianApp() {
+    val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -186,9 +190,8 @@ fun YujianApp() {
         scope.launch {
             runCatching { catchRepository.createBsideJob(active.accessToken, record.id) }
                 .onSuccess { generated -> applyBsideStatus(record.id, generated.status, generated.resultUri) }
-                .onFailure { error ->
+                .onFailure {
                     applyBsideStatus(record.id, BsideStatus.FAILED, null)
-                    catchesState = catchesState.copy(error = error.message ?: "渔获卡生成请求失败，请重试")
                 }
         }
     }
@@ -401,13 +404,45 @@ fun YujianApp() {
                         bsideUrlFor = { record -> catchRepository.resolveUrl(record.bsideUri) },
                         accessToken = session?.accessToken.orEmpty(),
                         onBack = { nav.popBackStack() },
+                        onRetry = { catchReload++ },
                         onOpenFishGuide = { record -> nav.navigate("species/${Uri.encode(record.speciesId)}") },
-                        onShare = { },
-                        onEditRecord = { },
-                        onAddMedia = { },
+                        onShare = { record ->
+                            val shareText = buildList {
+                                add("鱼获记录：${presentationSpeciesName(record.speciesName)}")
+                                FishRecordDetailPresentation.measurement(record)?.let { add("尺寸：$it") }
+                                FishRecordDetailPresentation.location(record)?.let { add("地点：$it") }
+                            }.joinToString(separator = "\n")
+                            runCatching {
+                                activityContext.startActivity(
+                                    Intent.createChooser(
+                                        Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_SUBJECT, "分享鱼获")
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                        },
+                                        "分享鱼获",
+                                    ),
+                                )
+                            }.onFailure {
+                                Toast.makeText(activityContext, "暂时无法分享这条鱼获", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onEditRecord = {
+                            Toast.makeText(activityContext, "当前版本暂不支持保存鱼获修改", Toast.LENGTH_SHORT).show()
+                        },
+                        onAddMedia = {
+                            Toast.makeText(activityContext, "当前版本暂不支持为已有鱼获上传照片或视频", Toast.LENGTH_SHORT).show()
+                        },
+                        onContinuePhoto = {
+                            Toast.makeText(activityContext, "当前版本暂不支持将新照片关联到已有鱼获", Toast.LENGTH_SHORT).show()
+                        },
+                        onRecordVideo = {
+                            Toast.makeText(activityContext, "当前版本暂不支持为鱼获保存视频", Toast.LENGTH_SHORT).show()
+                        },
                         onGenerateMemory = if (session != null) {
                             { record -> requestBsideGeneration(record) }
                         } else null,
+                        onRefreshBsideStatus = { id -> refreshBsideStatus(id) },
                     )
                 }
                 composable(

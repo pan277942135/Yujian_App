@@ -1,34 +1,63 @@
 package com.yujian.ai.ui.recorddetail
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.core.tween
+import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.components.YuJianBackTitleActionsTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
-import com.yujian.ai.ui.designsystem.components.YuJianTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianTopBarAction
+import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import com.yujian.ai.ui.screens.BgContentSurface
 import com.yujian.ai.presentation.presentationSpeciesName
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+
+private const val FishRecordDetailPreferences = "fish_record_detail_v1"
 
 @Composable
 fun FishRecordDetailScreen(
@@ -38,80 +67,267 @@ fun FishRecordDetailScreen(
     bsideUrlFor: (RemoteCatch) -> String?,
     accessToken: String,
     onBack: () -> Unit,
+    onRetry: () -> Unit,
     onOpenFishGuide: (RemoteCatch) -> Unit,
     onShare: (RemoteCatch) -> Unit,
     onEditRecord: (RemoteCatch) -> Unit,
     onAddMedia: (RemoteCatch) -> Unit,
+    onContinuePhoto: (RemoteCatch) -> Unit,
+    onRecordVideo: (RemoteCatch) -> Unit,
     onGenerateMemory: ((RemoteCatch) -> Unit)?,
+    onRefreshBsideStatus: suspend (String) -> Boolean,
 ) {
-    when (uiState) {
-        FishRecordDetailUiState.Loading -> DetailMessage("正在打开这条鱼获…", onBack = onBack)
-        FishRecordDetailUiState.Empty -> DetailMessage("没有找到这条鱼获记录", onBack = onBack)
-        is FishRecordDetailUiState.Error -> DetailMessage(uiState.message, onBack = onBack)
-        is FishRecordDetailUiState.Success -> {
-            val record = uiState.record
-            val listState = rememberLazyListState(initialFirstVisibleItemIndex = if (initialSection.equals("memory", true)) 4 else 0)
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = PaddingValues(
-                    start = YuJianSpacing.sm,
-                    end = YuJianSpacing.sm,
-                    top = YuJianSpacing.xs,
-                    bottom = YuJianSpacing.xxl,
-                ),
-                verticalArrangement = Arrangement.spacedBy(YuJianSpacing.sm),
-            ) {
-                item {
-                    YuJianTopBar(
-                        title = "鱼获详情",
-                        onBack = onBack,
-                        actions = {
-                            IconButton(onClick = { onOpenFishGuide(record) }) {
-                                Icon(Icons.Rounded.MenuBook, contentDescription = "鱼鉴")
-                            }
-                            IconButton(onClick = { onShare(record) }) {
-                                Icon(Icons.Rounded.Share, contentDescription = "分享")
-                            }
-                        },
-                    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        BgContentSurface()
+        when (uiState) {
+            FishRecordDetailUiState.Loading -> DetailStateFrame(onBack) {
+                LoadingDetailState()
+            }
+            FishRecordDetailUiState.Empty -> DetailStateFrame(onBack) {
+                DetailMessage(
+                    message = "这条鱼获记录已不可用",
+                    actionLabel = "返回我的鱼获",
+                    onAction = onBack,
+                )
+            }
+            is FishRecordDetailUiState.Error -> DetailStateFrame(onBack) {
+                DetailMessage(
+                    message = "暂时无法打开这条鱼获",
+                    actionLabel = "重新加载",
+                    onAction = onRetry,
+                    secondaryLabel = "返回我的鱼获",
+                    onSecondary = onBack,
+                )
+            }
+            is FishRecordDetailUiState.Success -> {
+                val record = uiState.record
+                val context = LocalContext.current
+                val coroutineScope = rememberCoroutineScope()
+                val lifecycleOwner = LocalLifecycleOwner.current
+                val bsideUrl = bsideUrlFor(record)
+                val listState = rememberLazyListState(
+                    initialFirstVisibleItemIndex = if (initialSection.equals("memory", true)) 3 else 0,
+                )
+                val revealPreferences = remember(context) {
+                    context.getSharedPreferences(FishRecordDetailPreferences, Context.MODE_PRIVATE)
                 }
-                item {
-                    AnimatedVisibility(visible = true, enter = fadeIn(animationSpec = tween(260))) {
+                val revealKey = remember(record.id) { "first_b_reveal_done:${record.id}" }
+                var firstRevealDone by remember(record.id) {
+                    mutableStateOf(revealPreferences.getBoolean(revealKey, false))
+                }
+                var showingBside by remember(record.id) { mutableStateOf(false) }
+                var autoRevealStarted by remember(record.id) { mutableStateOf(false) }
+                var heroVisible by remember(record.id) { mutableStateOf(false) }
+                var pageResumed by remember(record.id, lifecycleOwner) {
+                    mutableStateOf(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+                }
+                var bsideImageLoaded by remember(record.id, bsideUrl) { mutableStateOf(false) }
+                var bsideUnavailable by remember(record.id, bsideUrl) {
+                    mutableStateOf(record.bsideStatus == BsideStatus.READY && bsideUrl.isNullOrBlank())
+                }
+                var bsideReloadToken by remember(record.id) { mutableStateOf(0) }
+
+                DisposableEffect(lifecycleOwner, record.id) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_RESUME -> pageResumed = true
+                            Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> pageResumed = false
+                            else -> Unit
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                }
+
+                LaunchedEffect(listState, record.id) {
+                    snapshotFlow { listState.layoutInfo.visibleItemsInfo.any { it.index == 1 } }
+                        .distinctUntilChanged()
+                        .collect { heroVisible = it }
+                }
+
+                LaunchedEffect(record.id, record.bsideStatus, bsideUrl) {
+                    if (record.bsideStatus != BsideStatus.READY) {
+                        showingBside = false
+                        bsideUnavailable = false
+                        bsideImageLoaded = false
+                    } else if (bsideUrl.isNullOrBlank()) {
+                        showingBside = false
+                        bsideUnavailable = true
+                        bsideImageLoaded = false
+                    } else {
+                        bsideUnavailable = false
+                        bsideImageLoaded = false
+                    }
+                }
+
+                LaunchedEffect(
+                    record.id,
+                    record.bsideStatus,
+                    bsideUrl,
+                    firstRevealDone,
+                    autoRevealStarted,
+                    heroVisible,
+                    pageResumed,
+                    bsideUnavailable,
+                ) {
+                    if (
+                        heroVisible &&
+                        pageResumed &&
+                        !bsideUnavailable &&
+                        FishRecordDetailPresentation.shouldAutoRevealBside(
+                            status = record.bsideStatus,
+                            hasAsset = !bsideUrl.isNullOrBlank(),
+                            firstRevealDone = firstRevealDone,
+                        ) &&
+                        !autoRevealStarted
+                    ) {
+                        // The first A-side frame is presented before this effect changes the Hero.
+                        autoRevealStarted = true
+                        showingBside = true
+                    }
+                }
+
+                LaunchedEffect(record.id, showingBside, bsideImageLoaded, heroVisible, pageResumed, firstRevealDone) {
+                    if (showingBside && bsideImageLoaded && heroVisible && pageResumed && !firstRevealDone) {
+                        withFrameNanos { }
+                        if (showingBside && bsideImageLoaded && heroVisible && pageResumed) {
+                            revealPreferences.edit().putBoolean(revealKey, true).apply()
+                            firstRevealDone = true
+                        }
+                    }
+                }
+
+                LaunchedEffect(record.id, record.bsideStatus, pageResumed) {
+                    if (record.bsideStatus == BsideStatus.GENERATING && pageResumed) {
+                        for (attempt in 0 until 8) {
+                            delay(2_000)
+                            if (onRefreshBsideStatus(record.id)) break
+                        }
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                    contentPadding = PaddingValues(
+                        start = YuJianSpacing.sm,
+                        end = YuJianSpacing.sm,
+                        top = YuJianSpacing.xs,
+                        bottom = YuJianSpacing.xxl,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(YuJianSpacing.sm),
+                ) {
+                    item {
+                        YuJianBackTitleActionsTopBar(
+                            title = "鱼获详情",
+                            onBack = onBack,
+                            actions = listOf(
+                                YuJianTopBarAction(
+                                    icon = Icons.Rounded.MenuBook,
+                                    contentDescription = "鱼鉴",
+                                    onClick = { onOpenFishGuide(record) },
+                                ),
+                                YuJianTopBarAction(
+                                    icon = Icons.Rounded.Share,
+                                    contentDescription = "分享",
+                                    onClick = { onShare(record) },
+                                ),
+                            ),
+                        )
+                    }
+                    item {
                         FishRecordHeroCard(
                             record = record,
                             imageUrl = imageUrlFor(record),
+                            bsideUrl = bsideUrl,
+                            showBside = showingBside && !bsideUnavailable,
+                            canFlip = record.bsideStatus == BsideStatus.READY &&
+                                !bsideUrl.isNullOrBlank() &&
+                                !bsideUnavailable,
+                            bsideReloadToken = bsideReloadToken,
                             accessToken = accessToken,
                             onEdit = { onEditRecord(record) },
+                            onFlip = { showingBside = !showingBside },
+                            onBsideLoadResult = { loaded ->
+                                if (showingBside) {
+                                    if (loaded) {
+                                        bsideImageLoaded = true
+                                    } else {
+                                        bsideImageLoaded = false
+                                        bsideUnavailable = true
+                                        showingBside = false
+                                    }
+                                }
+                            },
+                        )
+                    }
+                    item { AboutCatchSection(record) }
+                    item {
+                        FishMediaPicker(
+                            onAddPhotosOrVideos = { onAddMedia(record) },
+                            onContinuePhoto = { onContinuePhoto(record) },
+                            onRecordVideo = { onRecordVideo(record) },
+                        )
+                    }
+                    item {
+                        FishMemorySection(
+                            record = record,
+                            generationEnabled = onGenerateMemory != null,
+                            bsideUnavailable = bsideUnavailable,
+                            onGenerateMemory = onGenerateMemory?.let { callback -> { callback(record) } },
+                            onRetryBside = {
+                                if (!bsideUrl.isNullOrBlank()) {
+                                    bsideUnavailable = false
+                                    bsideReloadToken += 1
+                                    showingBside = true
+                                }
+                                coroutineScope.launch { onRefreshBsideStatus(record.id) }
+                            },
                         )
                     }
                 }
-                item { AboutCatchSection(record) }
-                item {
-                    Text(
-                        "鱼获记忆",
-                        style = YuJianTypography.sectionTitle,
-                        modifier = Modifier.padding(top = YuJianSpacing.xs),
-                    )
-                }
-                item {
-                    FishMemorySection(
-                        record = record,
-                        bsideUrl = bsideUrlFor(record),
-                        accessToken = accessToken,
-                        onGenerateMemory = onGenerateMemory?.let { callback -> { callback(record) } },
-                    )
-                }
-                item {
-                    FishMediaPicker(
-                        mediaUrls = FishRecordDetailPresentation.mediaUrls(record)
-                            .mapNotNull { imageUrlFor(record) },
-                        accessToken = accessToken,
-                        onAddMedia = { onAddMedia(record) },
-                    )
-                }
             }
         }
+    }
+}
+
+@Composable
+private fun DetailStateFrame(onBack: () -> Unit, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        YuJianBackTitleTopBar(title = "鱼获详情", onBack = onBack)
+        Box(
+            modifier = Modifier.fillMaxSize().padding(horizontal = YuJianSpacing.md),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun LoadingDetailState() {
+    Column(
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(YuJianSpacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(320.dp)
+                .background(YuJianColors.MistBlueGray.copy(alpha = 0.18f), YuJianRadius.heroCard),
+        )
+        YuJianGlassCard(modifier = Modifier.fillMaxWidth()) {
+            Column(verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs)) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(0.42f).height(18.dp)
+                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.24f), YuJianRadius.pill),
+                )
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(14.dp)
+                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.16f), YuJianRadius.pill),
+                )
+            }
+        }
+        Text("正在打开这条鱼获…", style = YuJianTypography.caption, color = YuJianColors.MistBlueGray)
     }
 }
 
@@ -123,16 +339,13 @@ private fun AboutCatchSection(record: RemoteCatch) {
             DetailField("鱼种", presentationSpeciesName(record.speciesName))
             FishRecordDetailPresentation.measurement(record)?.let { DetailField("尺寸", it) }
             FishRecordDetailPresentation.location(record)?.let { DetailField("地点", it) }
-            FishRecordDetailPresentation.capturedAt(record)?.let {
-                Text("记录于 $it", style = YuJianTypography.caption, modifier = Modifier.padding(top = YuJianSpacing.xs))
-            }
         }
     }
 }
 
 @Composable
 private fun DetailField(label: String, value: String) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -142,17 +355,27 @@ private fun DetailField(label: String, value: String) {
 }
 
 @Composable
-private fun DetailMessage(message: String, onBack: () -> Unit, retryLabel: String? = "返回") {
+private fun DetailMessage(
+    message: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
+) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(YuJianSpacing.md),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(YuJianSpacing.sm),
     ) {
-        Text(message, style = YuJianTypography.body)
-        if (retryLabel != null) {
-            Button(onClick = onBack, modifier = Modifier.padding(top = YuJianSpacing.sm)) {
-                Text(retryLabel)
-            }
+        Text(
+            message,
+            style = YuJianTypography.body,
+            color = YuJianColors.DeepInk,
+            textAlign = TextAlign.Center,
+        )
+        Button(onClick = onAction) { Text(actionLabel) }
+        if (secondaryLabel != null && onSecondary != null) {
+            TextButton(onClick = onSecondary) { Text(secondaryLabel) }
         }
     }
 }
