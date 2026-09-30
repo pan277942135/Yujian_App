@@ -9,7 +9,7 @@ Parent authority: **01 · 鱼鉴首页**
 
 This specification promotes the existing UNLIT visual into a directly inspectable Design Manager second-level workspace:
 
-- Design Manager menu: **01A · 未点亮状态**
+- Design Manager route: **01 · 鱼鉴首页 → 01A · 未点亮状态**
 - Visual Authority: `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
 - Visual SHA-256: `68a3b83884f9fe0fd9a0b3a7325e75f9b22d8b734860063a9e16fc60d725bc62`
 - Parent page authority: `design/system/core_visual_v1/reference/fish_guide_v2.png`
@@ -197,7 +197,7 @@ The homepage UNLIT visual must not be reused as the Species Detail page shell.
 
 The Design Manager must expose this state as a direct second-level menu under **鱼鉴**:
 
-`鱼鉴 → 01A · 未点亮状态`
+`鱼鉴 → 01 · 鱼鉴首页 → 01A · 未点亮状态`
 
 The workspace must:
 
@@ -220,6 +220,6 @@ The workspace must:
 - [x] No large lock / disabled / rarity / level / game semantics.
 - [x] Parent Fish Guide Home geometry and carousel rules remain unchanged.
 - [x] Reduce Motion does not change state semantics.
-- [ ] Runtime parity evidence is attached under **09 · 验收证据**.
+- [ ] Runtime parity evidence is tracked in Overview / implementation closure without reopening this state contract.
 
 The final unchecked item is implementation evidence only and does not reopen the frozen UNLIT design contract.

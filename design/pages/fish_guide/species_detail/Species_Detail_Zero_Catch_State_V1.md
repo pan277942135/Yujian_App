@@ -253,6 +253,6 @@ On the next resolved render of Species Detail:
 - [x] Action opens normal Recognition Capture without species preselection.
 - [x] Zero Catch applies at any knowledge-card index; the authority image's `04 / 05` is illustrative.
 - [x] First successful qualifying save transitions naturally to the 1-record state.
-- [ ] Runtime evidence is attached under **09 · 验收证据**.
+- [ ] Runtime evidence is tracked in Overview / implementation closure without reopening this state contract.
 
 The unchecked Runtime Evidence item does not reopen this frozen substate design.

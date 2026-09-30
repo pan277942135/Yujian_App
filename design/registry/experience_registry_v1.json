@@ -4338,7 +4338,7 @@
           "status": "FROZEN",
           "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
           "contract": "design/pages/fish_guide/motion/motion_contract.json",
-          "note": "07 · 动效与交互 V1 已冻结：用户驱动 Carousel、一次性 Discover Hint、有限 5 卡滑动、低幅页面转场、真实数据提交后的 LIT/UNLIT 过渡与 Reduce Motion。"
+          "note": "05 · 动效与交互 V1 已冻结：用户驱动 Carousel、一次性 Discover Hint、有限 5 卡滑动、低幅页面转场、真实数据提交后的 LIT/UNLIT 过渡与 Reduce Motion。"
         },
         "haptic": {
           "status": "FROZEN",
@@ -4359,8 +4359,9 @@
           "authority": null
         },
         "assets": {
-          "status": "PARTIAL",
-          "authority": "design/system/core_visual_v1/reference/reference_manifest.json"
+          "status": "FROZEN",
+          "authority": "design/pages/fish_guide/content/Fish_Guide_Knowledge_Card_Content_Asset_Contract_V1.md",
+          "note": "Species media and five-card asset mapping frozen under 04 · 知识卡内容与资产."
         }
       },
       "supplemental_visual": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
@@ -4373,7 +4374,7 @@
           "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png"
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -4397,12 +4398,14 @@
           "note": "鱼鉴首页使用 Top Navigation V1 / TITLE_ONLY；V1 不在顶部导航恢复 Search。"
         }
       ],
-      "note": "Fish Guide V2：01 · 鱼鉴首页、01A · 未点亮状态、02 · 鱼种详情页面级、03 · 鱼种状态、07 · 动效与交互 V1 均已 FROZEN。07 坚持 user-driven / alive-not-animated：无 Auto Flip、无 autoplay、无循环特效；04–06、08–09 继续逐项建立规范。",
-      "navigation_model": "fish_guide_spec_menu_v1",
+      "note": "Fish Guide V2 DESIGN FROZEN：主菜单收敛为 01–06；01A/02A 作为父页面子状态。原独立鱼种导航、资产、验收证据、Archive 菜单移除；五张知识卡内容/资产与响应式/无障碍已补齐冻结。Runtime / Evidence 继续独立收口，不重新打开设计。",
+      "navigation_model": "fish_guide_compact_menu_v2",
       "design_manager_view_rules": {
-        "overview": "parent page = 00 Overview; show page-level authority only",
-        "spec_menu": "01 / 01A / 02–09 + 99 are specification workspaces; do not infer missing visual authority",
-        "rule": "01A is a first-class UNLIT state workspace but remains a state variant of the same FishGuideCard system. Menu structure does not create a second card family or alter the Core UI 6/6 freeze count."
+        "overview": "00 Overview remains the closure/status surface and does not duplicate specification menus.",
+        "primary_menu": "01 鱼鉴首页 / 02 鱼种详情 / 03 页面状态 / 04 知识卡内容与资产 / 05 动效与交互 / 06 响应式与无障碍.",
+        "nested_states": "01A 未点亮状态 is nested under 01; 02A 无我的鱼获记录 is nested under 02.",
+        "removed_placeholders": "Standalone 鱼种导航、资产、验收证据、Archive menus are removed. Navigation is owned by page+interaction contracts; evidence stays in Overview/runtime closure.",
+        "authority": "Frozen page visual > page contract > 03 state delta > 04 content/asset > 05 motion > 06 responsive > runtime."
       },
       "hifi_views": [
         {
@@ -4423,69 +4426,71 @@
             "Single-face Card / No Auto Flip",
             "First-entry Carousel Discover Hint",
             "FishGuideCard Contract",
-            "LIT / UNLIT States",
             "Species Catch Count",
             "Navigation / Return Restore",
             "Visual Hierarchy",
             "Responsive / Accessibility Guardrails",
             "Asset Contract",
-            "Acceptance Gate"
+            "Acceptance Gate",
+            "UNLIT state → child 01A · 未点亮状态"
           ],
           "secondary_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
           "visual_authority": "design/system/core_visual_v1/reference/fish_guide_v2.png",
-          "freeze_date": "2026-09-29"
-        },
-        {
-          "id": "unlit_state",
-          "title": "01A · 未点亮状态",
-          "status": "FROZEN",
-          "render_mode": "repo_image",
-          "image": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
-          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
-          "authority": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
-          "secondary_authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
-          "summary": "UNLIT 状态已提升为鱼鉴二级菜单的独立工作区并正式冻结。Visual Authority 直接使用既有 fish_guide_unlit_state.png；UNLIT=0 条成功保存 FishRecord，仍可见、可读、可浏览、可点击并进入详情。它只是同一 FishGuideCard 的状态变体，不是第二套卡片系统。",
-          "authority_type": "visual",
-          "menu_points": [
-            "State Meaning · Personal Encounter, Not Access Control",
-            "Trigger · saved FishRecord Count = 0",
-            "Frozen Visual Authority · fish_guide_unlit_state.png",
-            "Same FishGuideCard Geometry as LIT",
-            "Restrained Desaturation / Soft Mist / Light Glass",
-            "Species Identity Remains Readable",
-            "Browsable / Tappable / Species Detail Accessible",
-            "Species Catch Count = 0",
-            "No Auto Flip / No Species Autoplay",
-            "No Lock / Disabled / ??? / Rarity / Level Semantics",
-            "Zero Catch Detail Linkage",
-            "Accessibility / Reduce Motion",
-            "Authority Boundary · 01 Home Shell Wins",
-            "Acceptance Gate"
-          ],
-          "visual_authority_source": {
-            "kind": "repo_png",
-            "path": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
-            "source_name": "雾山湖畔的未点亮鱼鉴.png",
-            "width": 941,
-            "height": 1672,
-            "size_bytes": 2063258,
-            "sha256": "68a3b83884f9fe0fd9a0b3a7325e75f9b22d8b734860063a9e16fc60d725bc62"
-          },
-          "state_contract": {
-            "version": "V1",
-            "status": "FROZEN",
-            "spec": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
-            "encounter_state": "UNLIT",
-            "saved_fish_record_count": 0,
-            "browseable": true,
-            "tappable": true,
-            "species_detail_access": true,
-            "auto_flip": false,
-            "species_autoplay": false,
-            "access_control": false,
-            "card_family": "FishGuideCard"
-          },
-          "freeze_date": "2026-09-29"
+          "freeze_date": "2026-09-29",
+          "children": [
+            {
+              "id": "unlit_state",
+              "title": "01A · 未点亮状态",
+              "status": "FROZEN",
+              "render_mode": "repo_image",
+              "image": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+              "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+              "authority": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
+              "secondary_authority": "design/pages/fish_guide/Fish_Guide_Home_Spec_V1.md",
+              "summary": "UNLIT 状态已提升为鱼鉴二级菜单的独立工作区并正式冻结。Visual Authority 直接使用既有 fish_guide_unlit_state.png；UNLIT=0 条成功保存 FishRecord，仍可见、可读、可浏览、可点击并进入详情。它只是同一 FishGuideCard 的状态变体，不是第二套卡片系统。",
+              "authority_type": "visual",
+              "menu_points": [
+                "State Meaning · Personal Encounter, Not Access Control",
+                "Trigger · saved FishRecord Count = 0",
+                "Frozen Visual Authority · fish_guide_unlit_state.png",
+                "Same FishGuideCard Geometry as LIT",
+                "Restrained Desaturation / Soft Mist / Light Glass",
+                "Species Identity Remains Readable",
+                "Browsable / Tappable / Species Detail Accessible",
+                "Species Catch Count = 0",
+                "No Auto Flip / No Species Autoplay",
+                "No Lock / Disabled / ??? / Rarity / Level Semantics",
+                "Zero Catch Detail Linkage",
+                "Accessibility / Reduce Motion",
+                "Authority Boundary · 01 Home Shell Wins",
+                "Acceptance Gate"
+              ],
+              "visual_authority_source": {
+                "kind": "repo_png",
+                "path": "design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png",
+                "source_name": "雾山湖畔的未点亮鱼鉴.png",
+                "width": 941,
+                "height": 1672,
+                "size_bytes": 2063258,
+                "sha256": "68a3b83884f9fe0fd9a0b3a7325e75f9b22d8b734860063a9e16fc60d725bc62"
+              },
+              "state_contract": {
+                "version": "V1",
+                "status": "FROZEN",
+                "spec": "design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md",
+                "encounter_state": "UNLIT",
+                "saved_fish_record_count": 0,
+                "browseable": true,
+                "tappable": true,
+                "species_detail_access": true,
+                "auto_flip": false,
+                "species_autoplay": false,
+                "access_control": false,
+                "card_family": "FishGuideCard"
+              },
+              "freeze_date": "2026-09-29"
+            }
+          ]
         },
         {
           "id": "species_detail",
@@ -4493,7 +4498,7 @@
           "status": "FROZEN",
           "render_mode": "repo_image",
           "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md",
-          "summary": "02 · 鱼种详情页面级规范已完整冻结：Back + Species Header + 5 位有限 Carousel + NN/05 + 我的{鱼种}。禁止 Auto Flip、autoplay、循环；首次进入 01/05；My Species 只使用真实 FishRecord。5 张黑金卡内部内容/视觉仍单独保持 PARTIAL。",
+          "summary": "02 · 鱼种详情页面级规范已完整冻结：Back + Species Header + 5 位有限 Carousel + NN/05 + 我的{鱼种}。禁止 Auto Flip、autoplay、循环；首次进入 01/05；My Species 只使用真实 FishRecord。5 张黑金卡内部内容与资产规则已由 04 · 知识卡内容与资产冻结。",
           "authority_type": "group",
           "menu_points": [
             "Page Contract V1 · FROZEN",
@@ -4509,8 +4514,8 @@
             "Back-stack State Restore",
             "Vertical Scroll / Responsive / Accessibility",
             "Loading & Edge States → 03 · 鱼种状态",
-            "Five Black-Gold Cards · INTERNAL CONTENT/VISUAL PARTIAL",
-            "Runtime Evidence → 09 · 验收证据",
+            "Five Knowledge Cards · content/asset contract → 04 · FROZEN",
+            "Runtime evidence → Overview / implementation closure",
             "Zero Catch State V1 · 0 次记录"
           ],
           "visual_status": "FROZEN",
@@ -4534,11 +4539,8 @@
             "two recent catch preview slots"
           ],
           "deferred_scope": [
-            "five-card internal content",
-            "five-card internal visual system",
-            "star/rating semantics",
-            "final card naming",
-            "individual card diagrams / copy / imagery"
+            "runtime implementation parity",
+            "runtime evidence"
           ],
           "freeze_date": "2026-09-29",
           "image": "design/pages/fish_guide/species_detail/frozen/Fish_Species_Detail_Baitiao_V1.png",
@@ -4563,7 +4565,7 @@
             "my_species_media": "REAL_FISH_RECORD_ONLY",
             "my_species_header_action": "OPEN_MY_CATCHES_WITH_SPECIES_FILTER",
             "preview_action": "OPEN_SELECTED_FISH_RECORD_DETAIL",
-            "card_internal_contract_status": "PARTIAL"
+            "card_internal_contract_status": "FROZEN"
           },
           "children": [
             {
@@ -4604,12 +4606,12 @@
         },
         {
           "id": "species_states",
-          "title": "03 · 鱼种状态",
+          "title": "03 · 页面状态",
           "status": "FROZEN",
           "render_mode": "repo_image",
           "authority": "design/pages/fish_guide/species_states/Fish_Species_States_Spec_V1.md",
           "secondary_authority": "design/pages/fish_guide/species_states/Fish_Species_States_Visual_Authority_V1.md",
-          "summary": "03 · 鱼种状态 V1 已冻结。Design Manager 直接展示仓库内高保真流程规范图；状态语义以 Fish_Species_States_Spec_V1.md 为实现 Authority，01/02 Frozen Authority 始终优先于流程图中的缩略页面。",
+          "summary": "03 · 页面状态 V1 已冻结：统一收口 Encounter、0/1/2/3+ 记录、知识缺失、媒体缺失、Loading/Offline/Error 与 Catalog consistency；状态只改变 delta/fallback，不重写 01/02 Frozen 页面外壳。",
           "authority_type": "group",
           "menu_points": [
             "State Model · 6 Axes",
@@ -4625,7 +4627,7 @@
             "Accessibility / Reduce Motion",
             "Authority Boundary · 01/02 Win",
             "Acceptance Gate",
-            "Runtime Evidence → 09 · 验收证据"
+            "Runtime evidence → Overview / implementation closure (not a design menu)"
           ],
           "visual_status": "FROZEN",
           "state_contract_status": "FROZEN",
@@ -4669,64 +4671,36 @@
           "visual_authority": "design/pages/fish_guide/species_states/frozen/Fish_Species_States_V1.png"
         },
         {
-          "id": "species_navigation",
-          "title": "04 · 鱼种导航",
-          "status": "PARTIAL",
+          "id": "knowledge_content_assets",
+          "title": "04 · 知识卡内容与资产",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": "design/pages/fish_guide/README.md",
-          "summary": "鱼鉴首页、鱼种详情、我的鱼获之间的导航与返回恢复规则入口。",
+          "authority": "design/pages/fish_guide/content/Fish_Guide_Knowledge_Card_Content_Asset_Contract_V1.md",
+          "summary": "合并原 05 · 内容合同 与 06 · 资产。固定 5 个知识卡位置与字段映射，定义缺失内容、Species/Knowledge Card 资产来源、Fit 规则和反游戏化边界；结构化知识数据是真实事实 Authority。",
           "authority_type": "behavior",
           "menu_points": [
-            "Fish Guide → Species Detail",
-            "Previous / Next Species",
-            "Back Behaviour",
-            "Carousel Position Restore",
-            "Deep Link",
-            "My Catches Linkage"
-          ]
-        },
-        {
-          "id": "content_contract",
-          "title": "05 · 内容合同",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority": "design/pages/fish_guide/README.md",
-          "summary": "鱼种字段、知识卡内容与缺失数据处理的内容合同入口。",
-          "authority_type": "behavior",
-          "menu_points": [
-            "Species Name",
-            "Scientific / Alias Data",
-            "Recognition Features",
-            "Ecology",
-            "Equipment",
-            "Techniques",
-            "Catch Statistics",
-            "Missing Content Rules"
-          ]
-        },
-        {
-          "id": "assets",
-          "title": "06 · 资产",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority": "design/system/core_visual_v1/reference/reference_manifest.json",
-          "summary": "鱼种主图、黑金知识卡、点亮/未点亮处理与资产命名映射入口。",
-          "authority_type": "visual",
-          "menu_points": [
-            "Species Hero Assets",
-            "Black Gold Card Assets",
-            "Card Asset Mapping",
-            "Locked Treatment",
-            "Asset Naming Contract"
+            "01 / HERO · 鱼种名片",
+            "02 / IDENTIFICATION · 辨识特征",
+            "03 / ECO · 生态习性",
+            "04 / GEAR · 装备建议",
+            "05 / SKILL · 作钓要点",
+            "Fixed slot order / no reordering",
+            "Structured knowledge = factual source of truth",
+            "Missing content keeps slot index",
+            "Species media authority / card asset mapping",
+            "No Recognition crop / FishRecord thumbnail / B-side substitution",
+            "No rarity / power / challenge / ranking / star progression",
+            "Accessibility / text equivalent",
+            "Acceptance Gate"
           ]
         },
         {
           "id": "motion_interaction",
-          "title": "07 · 动效与交互",
+          "title": "05 · 动效与交互",
           "status": "FROZEN",
           "render_mode": "fish_guide_motion",
           "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
-          "summary": "07 · 动效与交互 V1 已冻结。只保留 5 类必要运动：Home Species Carousel、一次性 Discover Hint、Species Detail 5 卡滑动、页面/按压反馈、真实数据提交后的状态过渡。用户驱动优先；无 Auto Flip、无 autoplay、无循环光效、无自定义震动/声音。",
+          "summary": "05 · 动效与交互 V1 已冻结。只保留 5 类必要运动：Home Species Carousel、一次性 Discover Hint、Species Detail 5 卡滑动、页面/按压反馈、真实数据提交后的状态过渡。用户驱动优先；无 Auto Flip、无 autoplay、无循环光效、无自定义震动/声音。",
           "authority_type": "behavior",
           "menu_points": [
             "Motion Principle · Alive, Not Animated",
@@ -4817,48 +4791,26 @@
           "freeze_date": "2026-09-29"
         },
         {
-          "id": "responsive",
-          "title": "08 · 响应式",
-          "status": "MISSING",
+          "id": "responsive_accessibility",
+          "title": "06 · 响应式与无障碍",
+          "status": "FROZEN",
           "render_mode": "authority_index",
-          "authority": null,
-          "summary": "标准 Android、小屏、长文本与字体缩放处理的待建规范入口。",
+          "authority": "design/pages/fish_guide/responsive/Fish_Guide_Responsive_Accessibility_Spec_V1.md",
+          "summary": "关闭原空白 Responsive 占位：定义 portrait 9:16–21:9、Home/Detail 自适应优先级、字体放大、44dp Touch Target、Screen Reader、状态非纯色表达、Insets 与 Reduce Motion linkage。",
           "authority_type": "behavior",
           "menu_points": [
-            "Standard Android",
-            "Small Screen",
-            "Long Text",
-            "Font Scale"
-          ]
-        },
-        {
-          "id": "evidence",
-          "title": "09 · 验收证据",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority": null,
-          "summary": "Frozen vs Runtime、模拟器、真机与验收清单的待建证据入口。",
-          "authority_type": "behavior",
-          "menu_points": [
-            "Frozen vs Runtime",
-            "Emulator",
-            "Physical Device",
-            "Acceptance Checklist"
-          ]
-        },
-        {
-          "id": "archive",
-          "title": "99 · Archive",
-          "status": "DEPRECATED",
-          "render_mode": "authority_index",
-          "authority": "design/pages/fish_guide/README.md",
-          "summary": "旧列表、旧分页、旧搜索概念及被替代视觉的归档入口；不得覆盖当前 Frozen Authority。",
-          "authority_type": "group",
-          "menu_points": [
-            "Deprecated List View",
-            "Old Pagination",
-            "Old Search Concepts",
-            "Superseded Visuals"
+            "Portrait 9:16–21:9",
+            "Frozen PNG ≠ device pixel contract",
+            "Home keeps Carousel / no Grid fallback",
+            "Species Detail keeps one outer vertical scroll",
+            "Knowledge artwork Fit / no stretch",
+            "Large text reflow / no factual clipping",
+            "44dp minimum intended target",
+            "Screen Reader settled-state semantics",
+            "State meaning not color-only",
+            "Dynamic system insets / cutouts",
+            "Reduce Motion linkage → 05",
+            "Acceptance Gate"
           ]
         }
       ],
@@ -5007,9 +4959,9 @@
         }
       ],
       "freeze_review": {
-        "state": "IN_REVIEW",
-        "title": "鱼鉴 V2 · 设计冻结检查",
-        "note": "01 · 鱼鉴首页、01A · 未点亮状态、02 · 鱼种详情页面级、03 · 鱼种状态、07 · 动效与交互均已冻结；02 的五张黑金卡内部系统与 04–06、08–09 仍待后续规范。",
+        "state": "FROZEN",
+        "title": "鱼鉴 V2 · DESIGN FROZEN",
+        "note": "01/02 页面、03 页面状态、04 知识卡内容与资产、05 动效与交互、06 响应式与无障碍均已冻结；Runtime / Evidence 非设计阻塞项。",
         "items": [
           {
             "id": "FGH-FREEZE-01",
@@ -5128,8 +5080,8 @@
             "title": "黑金五卡边界",
             "status": "CONFIRMED",
             "blocking": true,
-            "decision": "本轮只冻结 5 个 page positions 与容器交互；五张黑金卡内部内容、视觉、星级与最终命名仍为 PARTIAL。",
-            "authority": "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+            "decision": "固定 5 个 Knowledge Card positions；卡内 HERO / IDENTIFICATION / ECO / GEAR / SKILL 内容与资产规则由 04 · 知识卡内容与资产冻结，禁止 rarity / ranking / star progression。",
+            "authority": "design/pages/fish_guide/content/Fish_Guide_Knowledge_Card_Content_Asset_Contract_V1.md"
           },
           {
             "id": "FGD-FREEZE-08",
@@ -5258,6 +5210,22 @@
             "blocking": false,
             "decision": "Motion/Interaction 设计合同已冻结；模拟器/真机 interaction timing 与 parity 后续进入 09 · 验收证据。",
             "authority": "design/pages/fish_guide/motion/motion_contract.json"
+          },
+          {
+            "id": "FGC-FREEZE-01",
+            "title": "五张知识卡内容与资产",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "HERO / IDENTIFICATION / ECO / GEAR / SKILL 五位固定；结构化知识为事实 Authority；缺失不造假、不移位；资产来源与映射冻结。",
+            "authority": "design/pages/fish_guide/content/Fish_Guide_Knowledge_Card_Content_Asset_Contract_V1.md"
+          },
+          {
+            "id": "FGR-FREEZE-01",
+            "title": "响应式与无障碍",
+            "status": "CONFIRMED",
+            "blocking": true,
+            "decision": "Portrait 9:16–21:9、字体放大、44dp targets、settled-state semantics、Insets 与 Reduce Motion linkage 已冻结。",
+            "authority": "design/pages/fish_guide/responsive/Fish_Guide_Responsive_Accessibility_Spec_V1.md"
           }
         ]
       }
