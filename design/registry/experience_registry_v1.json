@@ -581,7 +581,7 @@
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 的静态形状、渲染规范及 R01–R06 生成规范均已冻结；R01 主视觉 Authority 已冻结，R05 强表现参考已冻结，R02/R03/R04/R06 及 R05 其余强度档仍待视觉补齐。",
+          "summary": "AI 边缘光场视觉参考采用“现有高保优先复用”策略：R01 已冻结主视觉；R02 使用现有拆解视觉并由文字纠偏；R03 无需新图，使用现有完整状态图+工程图+Static Shape；R04 直接复用 Fish Highlight / Fish Identifying；R05 复用 01/02 并由 Runtime LITE 闭环；R06 只在真实失败案例出现时归档，不为凑图主动生成。",
           "menu_points": [
             "AI 边缘光场 V1 · 01 · 静态形状 · FROZEN",
             "AI 边缘光场 V1 · 02 · 渲染规范 · FROZEN",
@@ -1289,7 +1289,7 @@
               "status": "FROZEN",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "R03 用于冻结四个 Primary Energy Islands 的整体构图：位置、主次、长度、边缘占用与 Quiet Gap。它只回答“岛在哪里、谁更强、哪里必须空”，不负责单岛内部光学细节。",
+              "summary": "R03 不再要求单独生成新图。四岛整体构图由 Static Shape Contract + 现有 02_AI_Understanding_Frozen.png + Ambient Field Engineering Spec 联合支撑；新图只有在开发验收仍存在歧义时才补。",
               "authority": "design/pages/recognition/processing/references/R03_四岛构图_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "生成一张能够一眼判断四岛拓扑是否成立的完整构图 Authority；重点是四岛位置、主次、断口和中央留白，不追求炫目的局部特效。",
@@ -1329,10 +1329,10 @@
                   "用更多路径或更多粒子制造存在感",
                   "Fish Focus、HUD、检测框、雷电、激光、电路纹理"
                 ],
-                "closure": "R03 出图后只判断整体拓扑与构图是否成立；单岛内部的 Core/Hairline/Node 细节以 R02 为准，运动以 Motion Contract 为准。"
+                "closure": "R03 当前无需继续生成新视觉。四岛拓扑以 Static Shape Contract 为结构 Authority，现有完整状态高保和工程图承担视觉辅助；只有实际开发验收出现无法判断的构图歧义时才新增专门 R03 图。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING",
+              "visual_authority_status": "SATISFIED_BY_EXISTING_REFERENCE_SET",
               "design_spec": {
                 "objective": "让完整 9:16 画面明确读成四个彼此独立的局部 AI 能量岛，而不是一圈发光边框；真实钓鱼照片始终是主体。",
                 "hierarchy": [
@@ -1368,6 +1368,20 @@
                 "没有任何一侧形成从头到尾连续的发光边",
                 "Secondary Fragment 不得把断口补平",
                 "去掉粒子和节点后，四岛构图仍然成立"
+              ],
+              "supporting_visual_references": [
+                {
+                  "role": "完整照片中的外围光场构图参考",
+                  "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+                  "status": "FROZEN_SOURCE",
+                  "scope": "用于观察完整照片中 AI Edge Field 与真实主体的空间关系、边缘受光与中央照片主导权；不单独决定四岛拓扑。"
+                },
+                {
+                  "role": "路径与边缘区域工程参考",
+                  "path": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
+                  "status": "FROZEN_SOURCE",
+                  "scope": "用于理解边缘路径区域和历史工程表达；Primary/Secondary/Quiet Gap 发生冲突时，以当前 Static Shape Contract 为准。"
+                }
               ]
             },
             {
@@ -1377,7 +1391,7 @@
               "status": "FROZEN",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于确定鱼体被定位后，外围 AI 光场与 Fish Focus 的视觉权重如何交接；重点是“谁是主角”。 生成规范已冻结；最终视觉图仍待补充。",
+              "summary": "R04 不需要重新生图。03_Fish_Highlight_Frozen.png 与 04_Fish_Identifying_Frozen.png 正好覆盖“已定位到鱼体 / 鱼种识别中”两个状态，直接作为冻结视觉对照。",
               "authority": "design/pages/recognition/processing/references/R04_光场与鱼体聚焦_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "明确从全图理解到鱼体分析时，视觉中心如何从 AI 边缘光场转移到鱼体聚焦，而不是两个效果同时抢注意力。",
@@ -1409,10 +1423,26 @@
                   "鱼体整体变成发光剪影",
                   "把状态差异做成完全不同的两套视觉"
                 ],
-                "closure": "R04 只冻结视觉主次交接关系；具体运动时长仍以已冻结的动效规范为准。"
+                "closure": "R04 已由现有两张 Frozen 高保图闭环，不再生成新图。状态语义按三状态产品模型解释，旧图中的历史文案不改变当前语义。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING"
+              "visual_authority_status": "FROZEN",
+              "authority_type": "visual",
+              "visual_authority": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+              "supporting_visual_references": [
+                {
+                  "role": "状态 A · 已定位到鱼体",
+                  "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+                  "status": "FROZEN",
+                  "scope": "冻结 Fish Focus 首次成为视觉中心、Edge Field 降权后的主次关系。"
+                },
+                {
+                  "role": "状态 B · 鱼种识别中",
+                  "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+                  "status": "FROZEN",
+                  "scope": "冻结 Fish Focus 稳定主导、外围 Edge Field 进一步成为环境支持的关系。"
+                }
+              ]
             },
             {
               "id": "ai_edge_field_ref_r05",
@@ -1422,7 +1452,7 @@
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "R05 强度校准的“强表现”参考已直接复用现有高保真定稿并冻结；目标档与最低可接受档仍待补齐。",
+              "summary": "R05 不再额外生成三联设计图。强表现直接复用 01，目标方向复用 02；最低可接受强度在实现阶段由 LITE Runtime Evidence 闭环，避免为了校准再造一套重复视觉。",
               "authority": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "建立 AI 边缘光场的视觉强度参照区间，明确上限、目标值与最低可接受值。",
@@ -1455,19 +1485,22 @@
                   "把强度校准做成 FULL/BALANCED/LITE 的运行时实现说明",
                   "用曝光整体提高或降低替代光场强度变化"
                 ],
-                "closure": "强表现档已有冻结视觉参考；目标档与最低可接受档仍待补齐，因此 R05 整体视觉 Authority 保持 PARTIAL。"
+                "closure": "设计阶段不再补新的强/中/弱三联图。强表现=01 Frozen；目标方向=02 Frozen Source；最低可接受由真实 Runtime LITE 截图验收。R05 最终在 Runtime Evidence 后闭环。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PARTIAL",
+              "visual_authority_status": "PARTIAL_RUNTIME_CLOSURE",
               "supporting_visual_references": [
                 {
                   "role": "强表现参考",
                   "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
                   "status": "FROZEN",
-                  "sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58",
-                  "width": 941,
-                  "height": 1672,
-                  "scope": "作为 R05 强表现档的既有视觉上限参考，冻结受光、Bloom、Hairline、Node、Particle 的偏强观感；不作为四岛拓扑 Authority，也不代表最终目标档或最低可接受档。"
+                  "scope": "视觉上限：Receiving Light、Bloom、Hairline、Node、Particle 都更明显，但照片仍主导。"
+                },
+                {
+                  "role": "目标强度辅助参考",
+                  "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+                  "status": "FROZEN_SOURCE",
+                  "scope": "用于目标强度方向的既有高保辅助，不单独覆盖当前四岛 Static Shape；最终目标强度以 Runtime parity 调校为准。"
                 }
               ],
               "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
@@ -1480,11 +1513,11 @@
               "status": "FROZEN",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于收录典型错误视觉方向，帮助设计、开发与验收快速判断是否越界；只定义反例，不提供实现方案。 生成规范已冻结；最终视觉图仍待补充。",
+              "summary": "R06 改为失败边界与 QA 红线集合，不再为了凑六张反例主动生成图片。已有被否决候选图或真实 Runtime 失败截图可按 F01–F06 归档；文字边界是验收依据。",
               "authority": "design/pages/recognition/processing/references/R06_失败边界_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "建立清晰的视觉红线，让任何人不看参数也能识别“这已经不是渔见 AI 边缘光场”。",
-                "format": "一张反例规范图，建议 6 个局部案例并列；每个案例只表达一个错误，不混合多个错误。",
+                "format": "不要求重新生成一张六宫格反例图。优先复用已有被否决候选图和实际 Runtime 失败截图；每个案例按 F01–F06 标签归档即可。",
                 "composition": [
                   "F01 · 闭合霓虹边框",
                   "F02 · 雷电 / 魔法能量",
@@ -1500,22 +1533,21 @@
                   "必须让 QA 能据此快速判定是否需要返工"
                 ],
                 "must_keep": [
-                  "每个反例仍基于真实照片场景，方便直接比较",
-                  "错误点要单一明确",
-                  "反例标签只描述问题，不给实现建议",
-                  "至少包含一个‘过弱到失去 AI 存在感’的反例"
+                  "每个失败案例只绑定一个主要失败标签，避免混淆",
+                  "实际 Runtime 失败截图优先于为了说明而重新生成的反例",
+                  "若已有被否决设计候选能说明问题，直接复用，不再重新生图",
+                  "即使没有对应图片，F01–F06 的文字红线仍是强制 QA 判定规则"
                 ],
                 "forbidden": [
-                  "把失败案例做成新的视觉创意方向",
-                  "在同一案例里同时塞多个错误导致无法判断",
-                  "用纯文字替代视觉反例",
-                  "把运行时性能问题当视觉失败边界",
-                  "把 Fish Focus 错误混进只针对 Edge Field 的案例里，除非明确标注"
+                  "为了补齐菜单数量而重新生成无必要的失败图",
+                  "把失败案例误标成正向 Visual Authority",
+                  "把多个失败原因混成一个无法定位问题的案例",
+                  "用失败图反向覆盖 Static Shape / Rendering / Motion 正向合同"
                 ],
-                "closure": "R06 是禁止方向参考；即使后续生成并确认，也不会成为正向视觉 Authority。"
+                "closure": "R06 不要求独立新图才能进入开发。失败边界以 F01–F06 文字规则直接用于 QA；后续将真实开发失败截图或已有被否决候选按需归档。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING"
+              "visual_authority_status": "NEGATIVE_REFERENCE_ON_DEMAND"
             }
           ]
         },
