@@ -1524,12 +1524,12 @@ function myCatchesSearchOverview(view) {
 }
 
 function myCatchesHifiCanvas(feature, view) {
-  const authorityImage=myCatchesAuthorityImage(feature);
+  const authorityImage=view.image || view.visual_authority || myCatchesAuthorityImage(feature);
   if(view.render_mode==="repo_image") {
     return '<div class="hifi-original">' +
       '<a href="' + esc(repoHref(authorityImage)) + '" target="_blank" rel="noreferrer">' +
-      '<img src="' + esc(repoHref(authorityImage)) + '" alt="我的鱼获主页面高保真"></a>' +
-      '<div class="hifi-original-caption">当前 GitHub Frozen Visual Authority · 点击查看原图</div></div>';
+      '<img src="' + esc(repoHref(authorityImage)) + '" alt="' + esc(view.title || "我的鱼获高保真") + '"></a>' +
+      '<div class="hifi-original-caption">Frozen Visual Authority · 点击查看原图</div></div>';
   }
 
   if(view.render_mode==="timeline_board") {
