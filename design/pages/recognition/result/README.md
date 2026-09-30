@@ -72,6 +72,16 @@ Conflict rule:
 
 The Core Visual reference must not override a state-specific difference shown in 05–09.
 
+Dynamic user-photo placement inside the frozen Hero container is governed by:
+
+`design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md`
+
+Numeric authority:
+
+`design/pages/recognition/result/media/hero_media_contract.json`
+
+The Frozen PNG owns Hero **container composition**. The Hero Media Contract owns how arbitrary real user photos are mapped **inside** that container.
+
 ## Package entry points
 
 - `DESIGN_PACKAGE_CLOSURE_V1.md`
@@ -80,6 +90,9 @@ The Core Visual reference must not override a state-specific difference shown in
 - `spec/Recognition_Result_Behavior_Spec_V1.md`
 - `spec/Recognition_Result_Visual_Spec_V1.md`
 - `motion/Recognition_Result_Motion_Spec_V1.md`
+- `media/Recognition_Result_Hero_Media_Contract_V1.md`
+- `media/hero_media_contract.json`
+- `media/hero_media_test_vectors.json`
 - `spec/Recognition_Result_Acceptance_Criteria_V1.md`
 - `authority/authority_map.json`
 - `review/Recognition_Result_Runtime_Alignment_Review_V1.md`

@@ -17,6 +17,7 @@ This closure covers:
 - transition/motion
 - accessibility / compact-height behavior
 - shared-component use
+- variable-aspect-ratio Hero media placement
 - runtime alignment review
 - acceptance criteria
 
@@ -41,6 +42,7 @@ It does not change:
 | Result transition | PASS |
 | Accessibility / compact-height rule | PASS |
 | Shared component rule | PASS |
+| Hero Media Contract V1 | PASS — FROZEN |
 | Acceptance criteria | PASS |
 | Runtime consistency | NEEDS IMPLEMENTATION CLOSURE |
 
@@ -63,10 +65,11 @@ Technical failure is a runtime-safe fallback only and is not promoted into a six
 2. `recognition_result_v1.png` remains the system-level Result visual-language reference.
 3. If the system reference and a state PNG differ, the state PNG wins for that state.
 4. The user's real captured photo is runtime media and must never be replaced by a static design asset.
-5. Result screens do not inherit Processing AI filaments, contour, halo or HUD-like effects.
-6. Shared P0 actions/navigation must be reused; page-private button systems are not authorized.
-7. Low confidence is a recoverable record state, not a forced-failure state.
-8. No Fish and Image Quality are recovery screens and do not create FishRecords.
+5. Dynamic user-photo placement is frozen by `media/Recognition_Result_Hero_Media_Contract_V1.md`; High/Medium/Low use fish-aware subject protection, while No Fish/Image Quality use evidence-preserving Fit.
+6. Result screens do not inherit Processing AI filaments, contour, halo or HUD-like effects.
+7. Shared P0 actions/navigation must be reused; page-private button systems are not authorized.
+8. Low confidence is a recoverable record state, not a forced-failure state.
+9. No Fish and Image Quality are recovery screens and do not create FishRecords.
 
 ## Known implementation boundary
 

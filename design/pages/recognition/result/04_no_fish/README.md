@@ -95,3 +95,17 @@ Copy: **CLOSED V1**
 Recovery actions: **CLOSED V1**
 
 Runtime parity: **NOT PART OF THIS DESIGN REVIEW**
+
+## Hero Media Contract — FROZEN
+
+No Fish uses **Evidence First / EVIDENCE_FIT**.
+
+Rules:
+- show the entire oriented source photo;
+- ignore bbox-based focal crop;
+- preserve the framing that led to the recovery state;
+- do not blur/zoom the source merely to fill the Hero;
+- uncovered Hero area uses shared GLASS_A over BG_CONTENT.
+
+Authority:
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`

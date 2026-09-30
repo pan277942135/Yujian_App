@@ -113,7 +113,24 @@ Keep:
 
 ## P2 — cleanup / consistency
 
-### 8. Result background / layout implementation
+### 8. Hero media adaptation
+
+Closed design:
+- High / Medium / Low require Subject First placement;
+- display source = original oriented user photo;
+- fish bbox guides Smart Crop but is never the display source;
+- unsafe Crop must fall back to Safe Fit;
+- No Fish / Image Quality require Evidence Fit;
+- blurred duplicate-photo support is prohibited.
+
+Authority:
+`design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md`
+
+Action:
+- implement the frozen Hero media decision algorithm;
+- add the frozen test matrix before claiming visual parity.
+
+### 9. Result background / layout implementation
 
 Current runtime:
 - blurred full-screen source image at low opacity is used as background
@@ -122,14 +139,14 @@ Action:
 - compare directly with Frozen/system Result background treatment
 - keep only if parity confirms it; do not treat runtime blur as authority
 
-### 9. Issue page shared controls
+### 10. Issue page shared controls
 
 Current `RecognitionIssueScreen` uses page-private primary/outlined buttons.
 
 Action:
 - migrate to shared P0 components while preserving the five-state visual geometry
 
-### 10. Result-specific acceptance
+### 11. Result-specific acceptance
 
 Current frozen-flow test proves basic five-state routing but does not prove:
 - High dual CTA

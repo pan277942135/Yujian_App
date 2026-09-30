@@ -102,3 +102,17 @@ Recovery actions: **CLOSED V1**
 State distinction from No Fish: **CLOSED V1**
 
 Runtime parity: **NOT PART OF THIS DESIGN REVIEW**
+
+## Hero Media Contract — FROZEN
+
+Image Quality uses **Evidence First / EVIDENCE_FIT**.
+
+Rules:
+- show the entire oriented source photo;
+- preserve blur, occlusion and framing evidence;
+- do not Smart Crop to hide the quality problem;
+- do not apply sharpening, AI enhancement or color grading;
+- uncovered Hero area uses shared GLASS_A over BG_CONTENT.
+
+Authority:
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`

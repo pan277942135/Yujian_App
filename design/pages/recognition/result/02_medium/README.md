@@ -128,3 +128,15 @@ Copy role: **CLOSED V1**
 CTA semantics: **CLOSED V1**
 
 Runtime parity: **NOT PART OF THIS DESIGN REVIEW**
+
+## Hero Media Contract — FROZEN
+
+Medium uses the same **Subject First** Hero policy as High.
+
+The candidate UI must never change or replace Hero media framing.
+
+Authority:
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`
+- `../media/hero_media_contract.json`
+
+The candidate ordering must not cause a different crop from the primary recognition bbox associated with the current Result source.
