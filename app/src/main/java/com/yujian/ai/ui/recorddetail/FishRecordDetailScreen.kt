@@ -19,9 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +44,8 @@ import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleActionsTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
+import com.yujian.ai.ui.designsystem.components.YuJianTextAction
+import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.components.YuJianTopBarAction
 import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
@@ -373,9 +373,13 @@ private fun DetailMessage(
             color = YuJianColors.DeepInk,
             textAlign = TextAlign.Center,
         )
-        Button(onClick = onAction) { Text(actionLabel) }
+        YuJianPrimaryButton(
+            text = actionLabel,
+            onClick = onAction,
+            modifier = Modifier.padding(horizontal = YuJianSpacing.xs),
+        )
         if (secondaryLabel != null && onSecondary != null) {
-            TextButton(onClick = onSecondary) { Text(secondaryLabel) }
+            YuJianTextAction(text = secondaryLabel, onClick = onSecondary)
         }
     }
 }

@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,7 +35,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -47,7 +45,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,24 +64,26 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.designsystem.components.YuJianAchievementAnnotation
+import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
+import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
+import com.yujian.ai.ui.designsystem.components.YuJianBackAction
 import com.yujian.ai.ui.designsystem.components.YuJianFishRecordRowCard
+import com.yujian.ai.ui.designsystem.components.YuJianIconAction
+import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
+import com.yujian.ai.ui.designsystem.components.YuJianTextAction
+import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.mycatches.CatchLengthRange
 import com.yujian.ai.ui.mycatches.CatchTimeRange
@@ -220,14 +219,7 @@ fun MyScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(R.drawable.account_privacy_morning_lake),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            colorFilter = ColorFilter.colorMatrix(BgDataColorMatrix),
-        )
-        Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.30f)))
+        YuJianMorningLakeBackground(YuJianMorningLakeVariant.DATA)
 
         LazyColumn(
             state = listState,
@@ -380,14 +372,7 @@ fun MyCatchesDayDetailScreen(
     val marks = remember(catches) { GrowthMarkResolver.resolve(catches) }
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     Box(Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(R.drawable.account_privacy_morning_lake),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            colorFilter = ColorFilter.colorMatrix(BgDataColorMatrix),
-        )
-        Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.30f)))
+        YuJianMorningLakeBackground(YuJianMorningLakeVariant.DATA)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
@@ -399,10 +384,8 @@ fun MyCatchesDayDetailScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item(key = "day-detail-header") {
-                Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "返回", tint = DeepInk)
-                    }
+                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                    YuJianBackAction(onClick = onBack)
                     Column(Modifier.weight(1f)) {
                         Text(day?.label ?: "鱼获详情", color = DeepInk, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
                         day?.let { Text(it.summary, color = MutedInk, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
@@ -430,18 +413,12 @@ fun MyCatchesDayDetailScreen(
 
 @Composable
 private fun MainHeader(onBack: () -> Unit, filterActive: Boolean, onSearch: () -> Unit, onFilter: () -> Unit) {
-    Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.Rounded.ArrowBack, contentDescription = "返回", tint = DeepInk)
-        }
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        YuJianBackAction(onClick = onBack)
         Text("我的鱼获", color = DeepInk, fontSize = 23.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        IconButton(onClick = onSearch, modifier = Modifier.size(40.dp)) {
-            Icon(Icons.Rounded.Search, contentDescription = "搜索", tint = DeepInk)
-        }
+        YuJianIconAction(icon = Icons.Rounded.Search, contentDescription = "搜索", onClick = onSearch)
         Box {
-            IconButton(onClick = onFilter, modifier = Modifier.size(40.dp)) {
-                Icon(Icons.Rounded.FilterList, contentDescription = "筛选", tint = if (filterActive) WaterTeal else DeepInk)
-            }
+            YuJianIconAction(icon = Icons.Rounded.FilterList, contentDescription = "筛选", onClick = onFilter)
             if (filterActive) Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp).background(WaterTeal, CircleShape))
         }
     }
@@ -456,10 +433,8 @@ private fun SearchHeader(
     onBack: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    Row(Modifier.fillMaxWidth().height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack, modifier = Modifier.size(38.dp)) {
-            Icon(Icons.Rounded.ArrowBack, contentDescription = "返回", tint = DeepInk)
-        }
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+        YuJianBackAction(onClick = onBack)
         SearchField(
             value = query,
             onValueChange = onQueryChange,
@@ -467,9 +442,7 @@ private fun SearchHeader(
             modifier = Modifier.weight(1f),
             focusRequester = focusRequester,
         )
-        TextButton(onClick = onCancel, contentPadding = PaddingValues(horizontal = 7.dp)) {
-            Text("取消", color = WaterTeal, fontSize = 13.sp)
-        }
+        YuJianTextAction(text = "取消", onClick = onCancel)
     }
 }
 
@@ -506,9 +479,12 @@ private fun SearchField(
             )
         }
         if (value.isNotEmpty()) {
-            IconButton(onClick = onClear, modifier = Modifier.size(30.dp)) {
-                Icon(Icons.Rounded.Close, contentDescription = "清除搜索", tint = MutedInk, modifier = Modifier.size(18.dp))
-            }
+            YuJianIconAction(
+                icon = Icons.Rounded.Close,
+                contentDescription = "清除搜索",
+                onClick = onClear,
+                family = YuJianIconActionFamily.CONTEXT,
+            )
         }
     }
 }
@@ -518,8 +494,12 @@ private fun RecentSearches(queries: List<String>, onChoose: (String) -> Unit, on
     Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("最近搜索", color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-            if (queries.isNotEmpty()) TextButton(onClick = onClear, contentPadding = PaddingValues(horizontal = 4.dp)) {
-                Text("清空", color = MutedInk, fontSize = 12.sp)
+            if (queries.isNotEmpty()) {
+                YuJianTextAction(
+                    text = "清空",
+                    onClick = onClear,
+                    role = YuJianTextActionRole.MUTED,
+                )
             }
         }
         if (queries.isEmpty()) {
@@ -876,12 +856,3 @@ private fun filterSummaryText(filter: MyCatchesFilterState): String = buildList 
 }.joinToString(" · ").ifBlank { "不限" }
 
 private fun <T> Set<T>.toggle(value: T): Set<T> = if (value in this) this - value else this + value
-
-private val BgDataColorMatrix = ColorMatrix(
-    floatArrayOf(
-        0.690f, 0.124f, 0.012f, 0f, 29.733f,
-        0.037f, 0.777f, 0.012f, 0f, 29.733f,
-        0.037f, 0.124f, 0.666f, 0f, 29.733f,
-        0f, 0f, 0f, 1f, 0f,
-    ),
-)

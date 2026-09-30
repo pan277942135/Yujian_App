@@ -45,8 +45,6 @@ import androidx.compose.material.icons.rounded.PersonOutline
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -1018,9 +1016,7 @@ fun ComingSoonSheet(kind: ComingSoonKind, onDismiss: () -> Unit) {
                 fontWeight = FontWeight.Bold,
             )
             Text(body, color = MutedInk, fontSize = 14.sp)
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(25.dp), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal)) {
-                Text("知道了")
-            }
+            YuJianPrimaryButton(text = "知道了", onClick = onDismiss)
             Spacer(Modifier.height(8.dp))
         }
     }
@@ -1036,10 +1032,8 @@ fun CorrectionConsentPromptSheet(
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("帮助改善鱼种识别", color = DeepInk, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Text("仅会使用照片中框选出的鱼体部分和你确认的鱼种，用于训练和改进鱼种识别模型。", color = MutedInk, fontSize = 14.sp)
-            Button(onClick = onEnable, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(25.dp), colors = ButtonDefaults.buttonColors(containerColor = WaterTeal)) {
-                Text("允许用于模型改进")
-            }
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("暂不开启", color = WaterTeal) }
+            YuJianPrimaryButton(text = "允许用于模型改进", onClick = onEnable)
+            YuJianTextAction(text = "暂不开启", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(8.dp))
         }
     }

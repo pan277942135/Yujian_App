@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -82,16 +81,11 @@ import androidx.core.content.ContextCompat
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.TextStyle
-import com.yujian.ai.R
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
@@ -105,6 +99,8 @@ import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.components.FishIllustration
 import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
+import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
 import com.yujian.ai.ui.designsystem.components.YuJianActionButtonVariant
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
@@ -477,25 +473,11 @@ fun RecognitionResultScreen(
 
 private enum class ResultEditableField { LENGTH, WEIGHT, LOCATION }
 
-private val BgContentColorMatrix = ColorMatrix(
-    floatArrayOf(
-        0.828f, 0.057f, 0.006f, 0f, 22f,
-        0.017f, 0.867f, 0.006f, 0f, 22f,
-        0.017f, 0.057f, 0.816f, 0f, 22f,
-        0f, 0f, 0f, 1f, 0f,
-    ),
-)
-
 @Composable
 internal fun BgContentSurface() {
-    Image(
-        painter = painterResource(R.drawable.account_privacy_morning_lake),
-        contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop,
-        colorFilter = ColorFilter.colorMatrix(BgContentColorMatrix),
+    YuJianMorningLakeBackground(
+        variant = YuJianMorningLakeVariant.CONTENT,
     )
-    Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.15f)))
 }
 
 @Composable

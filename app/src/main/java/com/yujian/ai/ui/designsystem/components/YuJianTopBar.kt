@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreHoriz
@@ -26,7 +25,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
-import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 
 data class YuJianTopBarAction(
@@ -92,7 +90,6 @@ fun YuJianBackTitleTopBar(
         YuJianBackAction(
             onClick = onBack,
             enabled = backEnabled,
-            modifier = Modifier.size(YuJianSpacing.xxl),
         )
         Spacer(Modifier.width(8.dp))
         Text(
@@ -146,7 +143,6 @@ fun YuJianBackTitleActionsTopBar(
         YuJianBackAction(
             onClick = onBack,
             enabled = backEnabled,
-            modifier = Modifier.size(YuJianSpacing.xxl),
         )
         Spacer(Modifier.width(8.dp))
         Text(
@@ -199,7 +195,7 @@ fun YuJianTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            YuJianBackAction(onClick = onBack, modifier = Modifier.size(YuJianSpacing.xxl))
+            YuJianBackAction(onClick = onBack)
             Spacer(Modifier.width(8.dp))
         }
         Text(
