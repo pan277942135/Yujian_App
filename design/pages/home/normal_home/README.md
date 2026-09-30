@@ -27,7 +27,7 @@ Machine-readable navigation: `navigation.json`
 | ID | 二级菜单 | 出图方式 | 当前状态 |
 | --- | --- | --- | --- |
 | NH01 | 主页面｜多鱼获状态 | 独立高保 | FROZEN — 当前视觉权威 |
-| NH02 | 第一条鱼首页 | 独立高保 | 规范待冻结 / 高保待出 |
+| NH02 | 第一条鱼首页 | 独立高保 | **SPEC FROZEN / 高保待出** |
 | NH03 | 页面状态与异常 | 合并规范图 | 待补 |
 | NH04 | 组件状态与内容边界 | 合并规范图 | 待补 |
 | NH05 | 响应式与交互 | 合并规范图 | 待补 |
@@ -40,8 +40,9 @@ Machine-readable navigation: `navigation.json`
 
 ### NH02｜第一条鱼首页
 
-唯一需要新增的关键首页高保状态：仅有 1 条有效 FishRecord。
-沿用 NH01 全部环境、布局与组件，仅将 Pager 收敛为居中单卡；左右无假邻卡。
+规范已冻结：`02_first_catch/README.md`。
+
+唯一需要新增的关键首页高保状态：仅有 1 条有效 FishRecord。沿用 NH01 全部环境、布局与组件，仅将 Pager 收敛为**同尺寸居中单卡**；左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。当前阶段为 **SPEC FROZEN / HIFI PENDING**。
 
 ### NH03｜页面状态与异常
 
@@ -86,6 +87,7 @@ Real catch media must remain visually above statistics. The page must not drift 
 - Sound: `sound/Normal_Home_Sound_Spec_V1.md`
 - Assets: `assets/asset_manifest.json`
 - Authority order: `authority/authority_map.json`
+- NH02 First Catch spec: `02_first_catch/README.md`
 - Design Manager navigation: `navigation.json`
 - Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`
 - Machine-readable status: `status.json`

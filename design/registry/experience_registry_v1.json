@@ -322,19 +322,21 @@
           "id": "NH02",
           "code": "NH02",
           "title": "NH02 · 第一条鱼首页",
-          "status": "ACTIVE_CLOSURE",
-          "render_mode": "authority_index",
+          "status": "PARTIAL",
+          "render_mode": "behavior_spec",
           "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "仅 1 条有效 FishRecord 的关键首页状态。保持 NH01 环境、统计、最近鱼获、CTA 与 Capture Button；Hero 单卡居中，左右不制造假邻卡。",
+          "authority": "design/pages/home/normal_home/02_first_catch/README.md",
+          "summary": "NH02 规范已冻结，高保待出。仅 1 条有效 FishRecord；保持 NH01 整体结构，中央 HOME Hero 同尺寸居中，左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。",
           "menu_points": [
-            "1 valid FishRecord",
-            "Single Hero centered",
-            "No fake adjacent cards",
-            "通常 1 / 1 / 1",
-            "最近鱼获 / 全部 保持",
-            "记录下一条鱼"
-          ]
+            "1 valid FishRecord → Normal Home",
+            "Same-size centered HOME Hero",
+            "No fake neighbor cards / no pager hint",
+            "Canonical Hi-Fi sample 1 / 1 / 1",
+            "最近鱼获 / 全部 stays",
+            "记录下一条鱼",
+            "No badge / celebration / new Haptic / Sound"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/02_first_catch/README.md"
         },
         {
           "id": "NH03",
