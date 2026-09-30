@@ -3197,7 +3197,7 @@
               "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual",
-              "render_mode": "frozen_image",
+              "render_mode": "repo_image",
               "visual_authority": "design/pages/fish_record/detail/frozen/editing/FishRecordDetail_Editing_V1_Frozen.png",
               "image": "design/pages/fish_record/detail/frozen/editing/FishRecordDetail_Editing_V1_Frozen.png",
               "authority": "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md",
