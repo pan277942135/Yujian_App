@@ -52,12 +52,31 @@ Normal Home uses the shared YuJian **BG_ENV_HERO** visual language:
 - no strong HDR
 - no tourism-poster sunlight
 
-### Background authority resolution (V1.1)
+### Background authority resolution
 
-- Page composition and hierarchy: `design/system/core_visual_v1/reference/normal_home_v1.png`.
-- Background bitmap: `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` (941 × 1672; SHA-256 `5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`).
-- Runtime source is copied byte-for-byte; Android uses centered `ContentScale.Crop` for the viewport. The bitmap is not recolored or reconstructed.
-- A crop or reconstruction from a page screenshot is forbidden.
+The repository-level background system is now frozen and supersedes the earlier Closure V1 absence statement.
+
+Reusable background source:
+
+`design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`
+
+Normal Home mapping:
+
+`home_normal_v1 → BG_ENV_HERO → Morning_Lake_Master_V1`
+
+Numeric treatment authority:
+
+`design/system/backgrounds/morning_lake_v1/treatment_contract.json`
+
+Authority split:
+
+1. Morning_Lake_Master_V1 + Background System V1 own reusable environment source/treatment.
+2. NH01/NH02 Frozen page visuals own complete page composition/appearance.
+3. NH06 documents crop/adaptation and the authority boundary.
+
+Runtime precision (V1.1): the registered `Morning_Lake_Master_V1.png` is copied byte-for-byte into the Normal Home runtime asset root. Android applies centered `ContentScale.Crop` at the viewport only; the source bitmap is not recolored or reconstructed.
+
+A crop or reconstruction from a page screenshot is forbidden. Empty Home's Sunrise Hero master is not a Normal Home source.
 
 ## Hero catch card
 

@@ -1,8 +1,8 @@
 # Normal Home V1
 
 Role: **Home / Catch Baseline**  
-Status: **DESIGN FROZEN — NH01 / NH06 authority closure**  
-Design package: **Closure V1.1 (background authority correction)**
+Status: **DESIGN FROZEN — NH01–NH06 specifications / boards pending**  
+Design package: **Closure V1 + V1.1 runtime/background authority correction**
 
 ## Frozen visual authority
 
@@ -27,11 +27,11 @@ Machine-readable navigation: `navigation.json`
 | ID | 二级菜单 | 出图方式 | 当前状态 |
 | --- | --- | --- | --- |
 | NH01 | 主页面｜多鱼获状态 | 独立高保 | FROZEN — 当前视觉权威 |
-| NH02 | 第一条鱼首页 | 独立高保 | **SPEC FROZEN / HIFI REVIEW** |
-| NH03 | 页面状态与异常 | 合并规范图 | 待补 |
-| NH04 | 组件状态与内容边界 | 合并规范图 | 待补 |
-| NH05 | 响应式与交互 | 合并规范图 | 待补 |
-| NH06 | 背景与环境权威 | Authority 规范图 | FROZEN — Closure V1.1 |
+| NH02 | 第一条鱼首页 | 独立高保 | **FROZEN · SPEC + VISUAL** |
+| NH03 | 页面状态与异常 | 合并规范图 | **SPEC FROZEN / BOARD PENDING** |
+| NH04 | 组件状态与内容边界 | 合并规范图 | **SPEC FROZEN / BOARD PENDING** |
+| NH05 | 响应式与交互 | 合并规范图 | **SPEC FROZEN / BOARD PENDING** |
+| NH06 | 背景与环境权威 | Authority 规范图 | **SPEC FROZEN / AUTHORITY BOARD PENDING** |
 
 ### NH01｜主页面｜多鱼获状态
 
@@ -42,24 +42,31 @@ Machine-readable navigation: `navigation.json`
 
 规范已冻结：`02_first_catch/README.md`。
 
-唯一需要新增的关键首页高保状态：仅有 1 条有效 FishRecord。沿用 NH01 全部环境、布局与组件，仅将 Pager 收敛为**同尺寸居中单卡**；左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。当前阶段为 **SPEC FROZEN / HIFI REVIEW**；高保已进入 Design Manager，待视觉确认后再升级为 Frozen Visual Authority。
+唯一需要新增的关键首页高保状态：仅有 1 条有效 FishRecord。沿用 NH01 全部环境、布局与组件，仅将 Pager 收敛为**同尺寸居中单卡**；左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。NH02 规范与实际生成的高保真 PNG 原图均已冻结；Design Manager 直接展示 Frozen raster Visual Authority，不使用 SVG / 程序化派生图替代。
 
 ### NH03｜页面状态与异常
 
-合并表达 Home Resolving、鱼获图片不可用、刷新/异常状态。
-这些不是新的首页风格，不拆成多张整页高保。
+规范已冻结：`03_page_states/README.md`。
+
+一张 2×2 合并板表达 Resolving、Image Unavailable、Refresh Preserves Home、Error ≠ Empty；不拆成多张整页高保。
 
 ### NH04｜组件状态与内容边界
 
-合并表达 Guest / Logged-in Header、Avatar fallback、Catch Hero 字段缺失及长文本边界。
+规范已冻结：`04_component_content_states/README.md`。
+
+一张组件板合并表达 Real Avatar / Default Avatar / Guest，以及 HOME Hero 缺字段与长文本边界。
 
 ### NH05｜响应式与交互
 
-合并表达 9:16 / 19.5:9 / 20:9 / 21:9，以及 Pager selected / adjacent / swipe、Single Record 和 Reduce Motion。
+规范已冻结：`05_responsive_interaction/README.md`。
+
+一张规范板合并表达 9:16 / 19.5:9 / 20:9 / 21:9，以及 Pager selected / adjacent / swipe、Single Record 和 Reduce Motion。
 
 ### NH06｜背景与环境权威
 
-由 `DESIGN_PACKAGE_CLOSURE_V1_1.md` 收口：Morning Lake Master 是 Normal Home 背景位图 authority；NH01 完整页面仍是页面构图/层级 authority。Runtime 使用源文件字节级副本，Android 仅按屏幕执行居中 `ContentScale.Crop`。禁止从页面截图反向裁出背景母版。
+规范已冻结：`06_background_authority/README.md`。
+
+Normal Home 背景明确冻结为 `Morning_Lake_Master_V1 → BG_ENV_HERO`。NH01/NH02 继续负责完整页面构图；NH06 只负责背景 Source / Treatment / Crop / Authority 边界，禁止从页面截图反向裁出背景母版。
 
 ## Frozen hierarchy
 
@@ -84,8 +91,13 @@ Real catch media must remain visually above statistics. The page must not drift 
 - Assets: `assets/asset_manifest.json`
 - Authority order: `authority/authority_map.json`
 - NH02 First Catch spec: `02_first_catch/README.md`
+- NH03 Page States spec: `03_page_states/README.md`
+- NH04 Component & Content spec: `04_component_content_states/README.md`
+- NH05 Responsive & Interaction spec: `05_responsive_interaction/README.md`
+- NH06 Background Authority spec: `06_background_authority/README.md`
 - Design Manager navigation: `navigation.json`
-- Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`; authority correction: `DESIGN_PACKAGE_CLOSURE_V1_1.md`
+- Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`
+- Runtime/background authority correction: `DESIGN_PACKAGE_CLOSURE_V1_1.md`
 - Machine-readable status: `status.json`
 
 ## Shared components
@@ -96,10 +108,16 @@ Real catch media must remain visually above statistics. The page must not drift 
 
 ## Background authority
 
-Closure V1.1 registers the repository's independent `Morning_Lake_Master_V1` as the Normal Home background bitmap authority. The frozen Normal Home PNG remains the composition and hierarchy authority. Runtime uses a byte-identical copy of the master; Android applies only centered `ContentScale.Crop` to fit the viewport.
+NH06 is now spec-frozen.
 
-No screenshot crop may be promoted into a reusable background master.
+- `Morning_Lake_Master_V1.png` is the **FROZEN reusable Normal Home background source**;
+- Normal Home maps to `BG_ENV_HERO` under Background System V1;
+- `normal_home_v1.png` and NH02 Frozen PNG remain the authorities for complete page composition;
+- the NH06 Authority Board is still pending;
+- runtime copies the registered `Morning_Lake_Master_V1.png` byte-for-byte into the Normal Home runtime asset root;
+- Android applies centered `ContentScale.Crop` at the viewport only; the source bitmap is not recolored or reconstructed;
+- no screenshot crop may be promoted into a reusable background master.
 
 ## Runtime boundary
 
-Runtime closure remains separately documented in `RUNTIME_CLOSURE_V1.md`. NH02–NH05 remain separate Design Manager items; V1.1 closes the background source authority and runtime parity contract without redefining Android implementation, backend, model or worker behavior.
+Runtime closure remains separately documented in `RUNTIME_CLOSURE_V1.md`. `DESIGN_PACKAGE_CLOSURE_V1_1.md` closes the Normal Home background/runtime authority correction only; it does not roll back or redefine the newer NH02–NH06 design-state freezes, backend, model or worker behavior.
