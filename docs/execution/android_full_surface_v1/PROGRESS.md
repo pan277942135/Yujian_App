@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P09 Fish Record Detail
+- Current phase: P10 Fish Guide
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -16,7 +16,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 
 - **BASE FREEZE:** use `b54c2b936db5941294b216a356ad9e2bd4548f7c`; no moving-main chase or rebase; one final conflict-only merge reconciliation.
 - **SCOPE FREEZE:** Android product surfaces only; no unrelated Runner/AVD/CI/backend/model redesign.
-- **BOUNDED RETRY:** one initial attempt + at most two repairs per gate. Three no-job Android workflow attempts have been observed; stop manual retries and continue.
+- **BOUNDED RETRY:** Android CI 0-job orchestration is one shared repository-level blocker. Do not retry it independently per phase; reuse the classification until new evidence shows scheduling has recovered.
 - **PROGRESSIVE COMMIT:** independent GitHub checkpoint for each meaningful phase; record exact remote SHA.
 - **NO SILENCE:** publish phase checkpoints; never wait indefinitely.
 - Terminal states: `COMPLETE`, `COMPLETE_WITH_BLOCKED_INFRA`, `PARTIAL_WITH_PRODUCT_BLOCKERS`, `BLOCKED_BASE`.
@@ -29,8 +29,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 - Registry contains 13 feature records. Empty Home is frozen; Normal Home design is frozen with runtime/evidence separate; Recognition Processing is in active runtime/evidence closure; Recognition Result is frozen with partial runtime/evidence; Fish Record Detail, B-side, My Catches, Fish Guide, Account & Privacy, Register and Profile Edit include partial items; User Agreement is runtime-only with missing visual authority.
 - Existing Compose routes cover Login/Register, Home, capture/gallery, Recognition Processing/Issue/Result, My Catches, Fish Record Detail, Fish Guide/species detail, Account/Profile/password/privacy, Privacy Policy and User Agreement. Route presence alone is not acceptance.
 - Fish Record Detail route currently wires share/edit/add-media callbacks as no-ops. P09 must follow frozen contracts and existing backend capability.
-- Android workflow matrix has a `fish-guide-v1` row and a gate script, but `run_android_runtime_gate.sh` lacks a dispatch case; reconcile narrowly in P10.
-- Local environment has Java 17 but no Gradle, adb or emulator. Use the repository Actions and API 28 runner.
+- Android workflow matrix has a `fish-guide-v1` row and a gate script, but `run_android_runtime_gate.sh` lacks a dispatch case; reconcile this page-specific wiring in P10.
+- Android CI runs are being created but terminate before jobs are scheduled. The GitHub-hosted build and GCP self-hosted API 28 job are not reached; see the single shared blocker entry below. Local tool availability is not the primary cause.
 
 ## Phase ledger
 
@@ -41,11 +41,11 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P02 Empty Home | PASS | `f3210a66e4657b59a2db350cf5952ae0aea68aab` | Local verifier PASS; prior Android CI run `36514649405` PASS; gate artifact `11011440570` | None for Empty Home | Continue P04 |
 | P03 Normal Home / First Catch Home | BLOCKED_INFRA | `2eb538461888e8bcba1a1f027b130709ab498f46` | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
 | P04 Capture entry / shared Capture behavior | BLOCKED_INFRA | `3a4d494308f390cb1f851335f391dab329639a53` | Existing camera/gallery route audited; camera failure containment and image-store tests added | Android instrumentation unavailable in this environment | Continue P05; carry P04 gate into final matrix |
-| P05 Recognition Processing | BLOCKED_INFRA | `f13c71b029fdd03b1cd30f9e2e6a62ee0f9e6745` | Contract verifier PASS; cancellation fix and Back instrumentation authored | No local Gradle/Android runtime; Android test and runtime evidence gate unavailable after bounded no-job attempts | Continue P06 independently |
-| P06 Recognition Result | BLOCKED_INFRA | `bf470596c35f39adccb185be04f3da774f0220a7` | Direct High/Medium/Low/No Fish/Image Quality instrumentation authored; font-scale candidate scrolling added; Recognition design closure verifier PASS | Android compile/instrumentation/visual evidence unavailable after bounded no-job attempts | Continue P07 independently |
-| P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | No local Gradle/compiler/Android runtime after bounded no-job attempts; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain P07 Android gate and pinyin coverage gap |
+| P05 Recognition Processing | BLOCKED_INFRA | `f13c71b029fdd03b1cd30f9e2e6a62ee0f9e6745` | Contract verifier PASS; cancellation fix and Back instrumentation authored | Shared Android CI orchestration failure prevents build/test/runtime jobs from being scheduled | Continue P06 independently; do not retry the shared blocker |
+| P06 Recognition Result | BLOCKED_INFRA | `bf470596c35f39adccb185be04f3da774f0220a7` | Direct High/Medium/Low/No Fish/Image Quality instrumentation authored; font-scale candidate scrolling added; Recognition design closure verifier PASS | Shared Android CI orchestration failure prevents compile/instrumentation/visual evidence jobs from being scheduled | Continue P07 independently; do not retry the shared blocker |
+| P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | Shared Android CI orchestration failure prevents Android jobs from being scheduled; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain pinyin coverage gap without retrying shared CI blocker |
 | P08 My Catches | BLOCKED_INFRA | `3a412ed1a3531b8438ff241837a39d2abc40b9e4` | Search, recent searches, F1 filters, BG_DATA, timeline grouping/folding, date detail, empty states and Growth Marks implemented; tests authored; source Actions and static checks pass | Android compile/unit/instrumentation/visual evidence unavailable; timeline high-fi visual closure is active; catches API returns all records without pagination | Continue P09 independently; carry visual/API paging gaps |
-| P09 Fish Record Detail | BLOCKED_INFRA | `bce336955f49532e6ef6061cbabbc145639b88d3` | A/B Hero, READY-only flip, first-reveal, safe page states, sharing, no-upload-memory actions, and bounded generation polling implemented; detail tests authored | No local Android toolchain and three no-job Android attempts exhausted; editing and supplemental-media APIs are absent; first-reveal field is not server-backed | Continue P10; retain P09 runtime and product capability gaps |
+| P09 Fish Record Detail | PUSHED | `bce336955f49532e6ef6061cbabbc145639b88d3` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; PR branch contains the accepted source | Android runtime validation BLOCKED_INFRA — runs #1105, #1106 and #1109 exit before any job; backend dependencies OPEN and tracked separately | Continue P10; carry the shared CI blocker without retry |
 | P10 Fish Guide | NOT_STARTED | — | — | — | — |
 | P11 Account & Privacy | NOT_STARTED | — | — | — | — |
 | P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
@@ -108,7 +108,7 @@ Completed in this branch:
 Evidence boundary:
 - PR #76 merged at `ac2fe3a7bbf6feb172910a980be731cd586483c1`; its build/unit/lint and Normal Home instrumentation results are inherited baseline evidence only.
 - PR #76's real 1080×2340 capture remains BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`, artifact `11076223576` from run `36665569750`). No substitute capture was accepted.
-- The newly added Kotlin unit/instrumentation tests could not run here because Gradle, adb and an emulator are unavailable. Android workflow launches on this branch previously returned 0 jobs/0 artifacts; per bounded retry, no manual retry was made. Current source changes therefore remain unverified by Android execution.
+- The newly added Kotlin unit/instrumentation tests have no Android execution evidence. GitHub Actions created workflow runs that terminated with 0 jobs/0 artifacts before either Android runner was scheduled; see the shared Android CI blocker below. No phase-specific retry was made.
 
 Git:
 - Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
@@ -137,7 +137,7 @@ Completed in this branch:
 
 Validation boundary:
 - `git diff --check` passes.
-- The new Android instrumentation tests were not executable here: no local Gradle, adb or emulator. The current Android workflow continues to have no job results for this branch; there is no device evidence for capture/permission behavior.
+- The new Android instrumentation tests have no execution evidence because Android CI runs terminate before any job is created; the GitHub-hosted build and API 28 runner are not reached. See the shared Android CI blocker below.
 - P04 is therefore `BLOCKED_INFRA`, not runtime PASS. No AVD, runner, permission-policy or backend changes were made.
 
 Git:
@@ -168,14 +168,14 @@ Completed in this branch:
 
 Validation boundary:
 - The new instrumentation test, Kotlin compile, unit tests and Android lint were not executed: this workspace has no `gradle`/Gradle wrapper, `adb` or emulator.
-- Frozen runtime screenshot/video/timing/motion/accessibility evidence and visual parity require the existing Android gate. The branch has already used its three no-job Android workflow attempts; bounded retry is exhausted, so no manual rerun was started. P05 is therefore BLOCKED_INFRA, not PASS.
+- Frozen runtime screenshot/video/timing/motion/accessibility evidence and visual parity require the existing Android gate. The shared repository-level workflow failure terminates runs before job scheduling; see the single blocker below. P05 is BLOCKED_INFRA, not PASS, and was not retried independently.
 - No runtime screenshots, visual results or APK were fabricated. Existing `recognition-frozen` gate remains enabled.
 
 Git:
 - Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
 - P05 source checkpoint SHA: `f13c71b029fdd03b1cd30f9e2e6a62ee0f9e6745`
-- P05 Actions observation: asset contract and Design Governance succeeded (`36704052070`, `36704052056`); no Android workflow/status was created.
+- P05 source Actions: asset contract and Design Governance succeeded (`36704052070`, `36704052056`). Android job-level results are absent because the workflow terminates before creating jobs; see the shared blocker below.
 - PR: #97 (draft)
 
 Next:
@@ -200,14 +200,14 @@ Completed in this branch:
 
 Validation boundary:
 - Kotlin compile, unit and instrumentation tests have not run because this workspace has no Gradle/Gradle wrapper, adb or emulator.
-- Result runtime screenshots, compact/large-font evidence and visual acceptance ROIs must come from the existing Android gate. No Android workflow job has been created for the current branch; the bounded no-job retry budget remains exhausted. P06 is therefore BLOCKED_INFRA, not PASS.
+- Result runtime screenshots, compact/large-font evidence and visual acceptance ROIs must come from the existing Android gate. GitHub creates the Android workflow run, but it terminates before any job is created; see the shared blocker below. P06 is BLOCKED_INFRA, not PASS, and was not retried independently.
 - Frozen references remain unchanged; no substitute runtime screenshots or parity results were created.
 
 Git:
 - Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
 - P06 source checkpoint SHA: `bf470596c35f39adccb185be04f3da774f0220a7`
-- P06 Actions observation: Empty Home V2 Design Assets (`36705525128`) and Design Governance (`36705524991`) completed successfully; no Android workflow/status was created.
+- P06 source Actions: Empty Home V2 Design Assets (`36705525128`) and Design Governance (`36705524991`) completed successfully. Android job-level results are absent because the workflow terminates before creating jobs; see the shared blocker below.
 - PR: #97 (draft)
 
 Next:
@@ -231,10 +231,10 @@ Completed in this branch:
 - Sanitized save failures to `保存鱼获失败，请重试`; existing committed metadata survives a failed save and duplicate submit remains blocked. Record creation still completes before Memory navigation; consent-gated feedback upload remains after durable save.
 - Added unit/instrumentation coverage for pinyin/alias matching, recent ordering, selector contexts, numeric validation, parser metadata, safe errors and duplicate submit.
 - `scripts/verify_recognition_design_closure_v1_1.py`: PASS (9 frozen references); `scripts/verify_recognition_runtime_contract.py`: PASS; `git diff --check`: PASS.
-- P07 source Actions: Empty Home V2 Design Assets (`36709257181`) and Design Governance (`36709257235`) both completed successfully. No Android workflow/status was created.
+- P07 source Actions: Empty Home V2 Design Assets (`36709257181`) and Design Governance (`36709257235`) both completed successfully. Android job-level results are absent because the workflow terminates before creating jobs; see the shared blocker below.
 
 Validation boundary and remaining gap:
-- Kotlin compile, unit tests, instrumentation and visual/runtime evidence are unavailable: this workspace has no Gradle wrapper, Gradle, Kotlin compiler, adb or emulator. Three no-job Android attempts have already exhausted the bounded retry budget; no manual Android rerun was started. P07 remains BLOCKED_INFRA, not runtime PASS.
+- Kotlin compile, unit tests, instrumentation and visual/runtime evidence remain unavailable because GitHub Actions does not schedule either Android job after creating the workflow run. P07 remains BLOCKED_INFRA, not runtime PASS; this shared blocker was not retried independently.
 - The shipped local catalog has pinyin readings for its nine fish. Other API species still support Chinese-name and returned-alias search; when the API omits `pinyin` and `pinyin_initials`, they cannot be fully pinyin-searched or grouped by formal-name pinyin initial. The parser consumes those optional fields when supplied; full catalog coverage remains a named data dependency.
 - No replacement screenshots or fabricated runtime results were added; frozen design references remain unchanged.
 
@@ -266,10 +266,10 @@ Completed in this branch:
 - Matched Archive, Search and Filter empty-state copy/actions, moved the fixed Camera Button to the shared page overlay, kept original FishRecord image sourcing and SoftWater fallback, and sanitized the loading error copy.
 - Added focused unit coverage for growth-mark thresholds/priority, same-species size records, AND search/date/mark matching, filter combinations, recent search order/cap, valid custom dates and empty-state priority.
 - `git diff --check`: PASS. `scripts/verify_core_ui_v1_references.py`: PASS for all exact core reference images. Morning Lake master SHA matches the frozen contract. Existing Recognition design/runtime contract verifiers also remain PASS.
-- P08 source Actions: Design Governance (`36713272923`) and Empty Home V2 Design Assets (`36713272959`) both completed successfully. No Android workflow/status was created.
+- P08 source Actions: Design Governance (`36713272923`) and Empty Home V2 Design Assets (`36713272959`) both completed successfully. Android job-level results are absent because the workflow terminates before creating jobs; see the shared blocker below.
 
 Validation boundary and remaining gaps:
-- Kotlin compile/unit/instrumentation and device visual evidence were not run: there is no Gradle wrapper, Gradle, Kotlin compiler, adb or emulator in this workspace. The three no-job Android attempts already exhausted the bounded retry budget. Authored My Catches tests therefore remain unexecuted; P08 is BLOCKED_INFRA, not runtime PASS.
+- Kotlin compile/unit/instrumentation and device visual evidence remain unavailable because Android CI runs terminate before the GitHub-hosted build or GCP runner is scheduled. Authored My Catches tests remain unexecuted; P08 is BLOCKED_INFRA, not runtime PASS. The shared blocker was not retried independently.
 - `My_Catches_Timeline_Hifi_Audit_V1.md` remains `ACTIVE_CLOSURE`: populated BG_DATA, real sticky-month state, 6–10 fold states, >10 day-detail visual, and current-vs-legacy board comparison still need device evidence. F2–F7 visuals are pending; the basic functional selectors/dialogs here do not claim those visual approvals.
 - The existing `/api/v1/catches` list call returns one complete array and has no pagination parameter. The page stages older months on scroll in the client but currently downloads all records at once; server-side incremental pagination remains an API capability gap.
 - No screenshot, emulator result or accessibility/visual pass was fabricated. Frozen references remain unchanged.
@@ -304,13 +304,24 @@ Completed in this branch:
 - B-side generation continues on A-side. Status refresh is bounded to eight 2-second checks while the page is resumed; copy exposes no ETA, percentage or infrastructure detail. Request failures remain local to the memory status and do not contaminate the archive error state.
 - Added pure presentation tests for cached-record precedence, sanitized network errors, finite measurements, and first-reveal eligibility. Added Compose instrumentation coverage for the no-upload actions, READY-only Flip visibility, actual-image first reveal, and A-side default on later entry.
 - git diff --check: PASS. scripts/verify_core_ui_v1_references.py: PASS. scripts/verify_design_manager_navigation.py: PASS; root menu remains 00–05.
-- P09 source Actions: Design Governance (36717435230) and Empty Home V2 Design Assets (36717435195) succeeded. No Android workflow/status was created.
+- P09 source Actions: Design Governance (36717435230) and Empty Home V2 Design Assets (36717435195) succeeded. Android CI runs were created for the P09 checkpoints but terminated before creating jobs: #1105 for source `bce336955f49532e6ef6061cbabbc145639b88d3`, #1106, and #1109 for ledger HEAD `26c0bf5fcafb3a7f693a8a4fd88b187e628719f2`.
 - Frozen B-side, edit, and No Uploaded Memory PNG hashes remain exactly c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b, d81495f760840c0411aa693bb8b3b39fc1d65e012387350732047f1272250114, and ca585b85d1c6fec224e402d368e60d122913ca6c0cb6e5cc6750c266d7fb8a93; no frozen design files were modified.
 
-Validation boundary and remaining product gaps:
-- Kotlin compile, JVM tests, Compose instrumentation, APK and visual/runtime evidence were not run: this workspace has no Gradle wrapper, Gradle, Kotlin compiler, adb or emulator. The bounded three no-job Android workflow attempts were already exhausted; no new Android retry was made. P09 is BLOCKED_INFRA, not runtime PASS.
-- CatchRepository has no update-catch endpoint, no supplemental-memory list/upload association, no note/weather fields, and no delete capability. Its image-upload endpoint is for the new-catch flow and was not reused for existing records. The Edit Hero action and three media actions therefore provide truthful local unavailable feedback; save/edit persistence and attached-media display remain product/API blockers.
-- The one-time first-reveal flag is stored in app-local preferences because the backend model has no cross-device field. The memory collection is rendered as the approved zero-item state because the existing catch model/API does not expose attached media.
+P09 terminal state:
+- P09 IMPLEMENTATION: COMPLETE
+- P09 GITHUB CHECKPOINT: PASS
+- P09 STATIC CONTRACT CHECKS: PASS
+- P09 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA
+- P09 BACKEND DEPENDENCIES: OPEN
+
+Android runtime evidence was not produced because the repository Android CI workflow runs but terminates before creating any jobs. The GitHub-hosted build job and GCP self-hosted Android job are never scheduled, so Gradle, APK, adb, emulator, instrumentation and runtime evidence do not execute. This is the shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`, not a P09 product failure. No P09 Android retry was made.
+
+P09 Product/API Dependencies (not infrastructure blockers):
+- No update-existing-catch endpoint; edit persistence remains unavailable.
+- No supplemental media association/list API; supplemental media persistence and populated memory records remain unavailable.
+- No server-side `first_b_reveal_done`; first reveal is device-local and cannot synchronize across devices.
+- No note/weather/delete capability in the existing catch model/API.
+- The new-catch image upload API was not reused for existing records. Current local feedback and the zero-item memory state remain the safe behavior until the required product APIs exist.
 - FishRecordDetail_Design_Audit_Freeze_V1.md contains an older contradictory B-side source-binary note; README, manifest, registry and the exact archived SHA confirm the frozen asset gate. The frozen design authority was not reopened or changed.
 - No screenshot, APK, or emulator result was fabricated.
 
@@ -321,4 +332,14 @@ Git:
 - PR: #97 (draft; not merged)
 
 Next:
-- Continue P10 Fish Guide, preserving P09's Android execution and backend capability blockers for the final matrix.
+- Continue P10 Fish Guide, preserving the single shared Android CI blocker and keeping P09 Product/API Dependencies separate.
+
+## Shared infrastructure follow-up blocker
+
+### Android CI 0-Job Orchestration Closure
+
+- Classification: `BLOCKED_INFRA` / `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`.
+- Root cause: GitHub Actions creates the Android CI workflow run, but the run terminates before any job is created. The GitHub-hosted build job is never scheduled. The GCP self-hosted Android job is never scheduled. Therefore Gradle, APK build, adb, emulator, instrumentation and runtime evidence cannot execute.
+- Known evidence: last confirmed successful Android CI run `#985`; failures began with `#986`. P09 runs `#1105` (source `bce336955f49532e6ef6061cbabbc145639b88d3`), `#1106`, and `#1109` (ledger `26c0bf5fcafb3a7f693a8a4fd88b187e628719f2`) each had 0 jobs and instant failure. The same symptom currently affects `main`.
+- Existing Android CI, GCP self-hosted runner, API 28, `yujian-api28`, and Android Runtime Harness remain the authoritative validation environment; the failure happens before runner scheduling. This follow-up is outside the product Epic and does not authorize rebuilding that environment here.
+- Shared-phase rule: carry this single blocker through P10–P15; do not consume per-phase retries while the same 0-job symptom persists. When orchestration changes, run accumulated targeted gates against the already-pushed exact SHAs / final Epic HEAD.
