@@ -165,6 +165,18 @@ All states:
 - do not hide CTA behind system bars/IME;
 - do not change state semantics based on device height.
 
+### Implementation-ready contracts
+
+- Layout Geometry V1
+- Component Map V1
+- Metadata Input Contract V1
+- Candidate Card V1
+- Visual Acceptance Map V1
+- Hero Media Contract V1
+- Complete Result Asset Manifest
+
+Status: **IMPLEMENTATION READY — Work does not own visual design decisions.**
+
 ## Final design closure
 
 01 High: **CLOSED V1**

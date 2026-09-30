@@ -2,6 +2,21 @@
 
 A design or implementation is conformant only when all applicable criteria pass.
 
+Numeric visual/ROI authority:
+
+`../engineering/Recognition_Result_Visual_Acceptance_Map_V1.md`
+`../engineering/visual_acceptance_map.json`
+
+Layout geometry authority:
+
+`../engineering/Recognition_Result_Layout_Geometry_V1.md`
+
+Component/input/candidate authorities:
+
+`../engineering/Recognition_Result_Component_Map_V1.md`
+`../engineering/Recognition_Result_Metadata_Input_Contract_V1.md`
+`../engineering/Recognition_Result_Candidate_Card_V1.md`
+
 ## A. Authority
 
 - 05–09 Frozen PNGs remain unchanged

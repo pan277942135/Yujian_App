@@ -23,7 +23,8 @@
         "Hero Media Contract V1",
         "CTA Map",
         "Motion / Adaptive / Accessibility",
-        "最终闭环"
+        "最终闭环",
+        "Implementation-ready Engineering Contracts V1"
       ]
     },
     {
@@ -41,7 +42,8 @@
         "鱼种 + 修改鱼种",
         "轻量鱼获信息",
         "鱼获感言",
-        "继续记录记忆 / 保存本次鱼获"
+        "继续记录记忆 / 保存本次鱼获",
+        "Implementation-ready Engineering Contracts V1"
       ]
     },
     {
@@ -59,7 +61,8 @@
         "单行确认文案",
         "候选横排",
         "其他鱼种入口",
-        "确认后复用正常记录流"
+        "确认后复用正常记录流",
+        "Implementation-ready Engineering Contracts V1"
       ]
     },
     {
@@ -76,7 +79,8 @@
         "Hero Media Contract V1",
         "手动选择鱼种",
         "重新拍摄",
-        "选择前不展示正常 Metadata / Save"
+        "选择前不展示正常 Metadata / Save",
+        "Implementation-ready Engineering Contracts V1"
       ]
     },
     {
@@ -93,7 +97,8 @@
         "Hero Media Contract V1",
         "重新拍摄",
         "从相册选择",
-        "无 FishRecord 创建"
+        "无 FishRecord 创建",
+        "Implementation-ready Engineering Contracts V1"
       ]
     },
     {
@@ -111,8 +116,11 @@
         "清晰度/遮挡指导",
         "重新拍摄",
         "从相册选择",
-        "与 No Fish 保持状态区分"
+        "与 No Fish 保持状态区分",
+        "Implementation-ready Engineering Contracts V1"
       ]
     }
-  ]
+  ],
+  "status": "IMPLEMENTATION_READY",
+  "implementation_authority": "design/pages/recognition/result/engineering/README.md"
 }
