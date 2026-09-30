@@ -37,19 +37,20 @@ internal fun resolveHomeStatValues(
     statistics: CatchStatistics,
     catches: List<RemoteCatch>,
 ): HomeStatValues {
-    val localSpeciesCount = catches
+    val validCatches = validHomeRecords(catches)
+    val localSpeciesCount = validCatches
         .map { it.speciesId.ifBlank { it.speciesName } }
         .filter(String::isNotBlank)
         .distinct()
         .size
-    val recordDays = catches
+    val recordDays = validCatches
         .mapNotNull(::catchDayKey)
         .distinct()
         .size
 
     return HomeStatValues(
         speciesCount = statistics.speciesCount.takeIf { it > 0 } ?: localSpeciesCount,
-        catchCount = statistics.totalCatches.takeIf { it > 0 } ?: catches.size,
+        catchCount = statistics.totalCatches.takeIf { it > 0 } ?: validCatches.size,
         recordDays = recordDays,
     )
 }
@@ -60,7 +61,6 @@ fun HomeStats(
     catches: List<RemoteCatch>,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
-    onRecordDaysClick: () -> Unit,
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     Row(
@@ -84,15 +84,14 @@ fun HomeStats(
                 .height(YuJianSpacing.xl)
                 .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
         )
-        HomeStat(Modifier.weight(1f), values.recordDays.toString(), "记录天数", onRecordDaysClick)
+        HomeStat(Modifier.weight(1f), values.recordDays.toString(), "记录天数", onClick = null)
     }
 }
 
 @Composable
-private fun HomeStat(modifier: Modifier, value: String, label: String, onClick: () -> Unit) {
+internal fun HomeStat(modifier: Modifier, value: String, label: String, onClick: (() -> Unit)?) {
     Column(
-        modifier = modifier
-            .clickable(onClick = onClick)
+        modifier = (if (onClick == null) modifier else modifier.clickable(onClick = onClick))
             .padding(vertical = YuJianSpacing.xs),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

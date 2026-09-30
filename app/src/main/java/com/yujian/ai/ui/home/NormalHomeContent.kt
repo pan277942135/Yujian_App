@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -40,7 +41,6 @@ import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.presentation.PresentationSanitizer
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
@@ -87,7 +87,6 @@ internal fun NormalHomeContent(
     onIdentify: () -> Unit,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
-    onRecordDaysClick: () -> Unit,
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
     motionState: HomeMotionState,
@@ -95,7 +94,7 @@ internal fun NormalHomeContent(
     modifier: Modifier = Modifier,
 ) {
     val recent = remember(recentCatches) {
-        recentCatches.sortedByDescending { catchTimestamp(it) ?: Long.MIN_VALUE }
+        orderedHomeRecords(recentCatches)
     }
 
     BoxWithConstraints(modifier = modifier) {
@@ -135,7 +134,6 @@ internal fun NormalHomeContent(
                 catches = recent,
                 onSpeciesClick = onSpeciesClick,
                 onCatchesClick = onCatchesClick,
-                onRecordDaysClick = onRecordDaysClick,
             )
         }
 
@@ -157,7 +155,7 @@ internal fun NormalHomeContent(
             resolveImageUrl = resolveImageUrl,
             accessToken = accessToken,
             onCatchClick = onCatchClick,
-            motionEnabled = motionState.running,
+            motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
             runtimeAssets = runtimeAssets,
             modifier = Modifier.offset(y = ref(NormalHomeCardY)),
         )
@@ -349,7 +347,8 @@ private fun RecentCatchPager(
         state = pagerState,
         modifier = modifier
             .fillMaxWidth()
-            .height(cardHeight),
+            .height(cardHeight)
+            .testTag("normal-home-catch-pager"),
         pageSize = PageSize.Fixed(cardWidth),
         contentPadding = PaddingValues(horizontal = sidePadding),
         pageSpacing = YuJianSpacing.sm,
@@ -374,6 +373,7 @@ private fun RecentCatchPager(
                 imageUrl = resolveImageUrl(item.imageUrl),
                 accessToken = accessToken,
                 onClick = { onCatchClick(item.id) },
+                cardHeight = cardHeight,
                 runtimeAssets = runtimeAssets,
             )
         }
@@ -391,6 +391,3 @@ private fun Modifier.graphicsLayerForPagerCard(
     this.translationY = with(density) { translationY.dp.toPx() }
     this.alpha = alpha
 }
-
-internal fun catchTimestamp(item: RemoteCatch): Long? =
-    PresentationSanitizer.resolveTimestamp(item.capturedAt, item.createdAt).millis

@@ -74,6 +74,8 @@ Authority split:
 2. NH01/NH02 Frozen page visuals own complete page composition/appearance.
 3. NH06 documents crop/adaptation and the authority boundary.
 
+Runtime precision (V1.1): the registered `Morning_Lake_Master_V1.png` is copied byte-for-byte into the Normal Home runtime asset root. Android applies centered `ContentScale.Crop` at the viewport only; the source bitmap is not recolored or reconstructed.
+
 A crop or reconstruction from a page screenshot is forbidden. Empty Home's Sunrise Hero master is not a Normal Home source.
 
 ## Hero catch card

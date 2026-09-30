@@ -1,8 +1,8 @@
 # Normal Home V1
 
 Role: **Home / Catch Baseline**  
-Status: **DESIGN FROZEN — NH01 / expansion in progress**  
-Design package: **Closure V1**
+Status: **DESIGN FROZEN — NH01–NH06 specifications / boards pending**  
+Design package: **Closure V1 + V1.1 runtime/background authority correction**
 
 ## Frozen visual authority
 
@@ -97,6 +97,7 @@ Real catch media must remain visually above statistics. The page must not drift 
 - NH06 Background Authority spec: `06_background_authority/README.md`
 - Design Manager navigation: `navigation.json`
 - Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`
+- Runtime/background authority correction: `DESIGN_PACKAGE_CLOSURE_V1_1.md`
 - Machine-readable status: `status.json`
 
 ## Shared components
@@ -113,8 +114,10 @@ NH06 is now spec-frozen.
 - Normal Home maps to `BG_ENV_HERO` under Background System V1;
 - `normal_home_v1.png` and NH02 Frozen PNG remain the authorities for complete page composition;
 - the NH06 Authority Board is still pending;
+- runtime copies the registered `Morning_Lake_Master_V1.png` byte-for-byte into the Normal Home runtime asset root;
+- Android applies centered `ContentScale.Crop` at the viewport only; the source bitmap is not recolored or reconstructed;
 - no screenshot crop may be promoted into a reusable background master.
 
 ## Runtime boundary
 
-Runtime closure remains separately documented in `RUNTIME_CLOSURE_V1.md`. This Design Manager navigation update does not redefine Android implementation, backend, model or worker behavior.
+Runtime closure remains separately documented in `RUNTIME_CLOSURE_V1.md`. `DESIGN_PACKAGE_CLOSURE_V1_1.md` closes the Normal Home background/runtime authority correction only; it does not roll back or redefine the newer NH02–NH06 design-state freezes, backend, model or worker behavior.
