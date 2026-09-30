@@ -1,51 +1,46 @@
-# 编辑资料 · Design Package V1
+# 编辑资料 · Design Authority Index V2
 
-Status: **PARTIAL — 01 FROZEN / 02–06 in design**
+Status: **PARTIAL**
 
-本目录是「编辑资料」的正式设计管理根目录。
+本目录是编辑资料的 authority index。页面冻结状态逐项计算，不因单页冻结而把整个 Edit Profile package 标为 FROZEN。
 
-## 二级目录
+## 02 · 我的与资料菜单
 
-1. [01 · 编辑资料首页](./01_Profile_Home/README.md) — **FROZEN**
-2. [02 · 头像修改](./02_Avatar_Edit/README.md) — PARTIAL
-3. [03 · 昵称编辑](./03_Nickname_Edit/README.md) — PARTIAL
-4. [04 · 保存与反馈](./04_Save_Feedback/README.md) — PARTIAL
-5. [05 · 异常与边界状态](./05_Edge_States/README.md) — PARTIAL
-6. [06 · 交互与适配规范](./06_Interaction_Adaptation/README.md) — PARTIAL
+- `02B · 编辑资料首页` — **FROZEN**; `01_Profile_Home/README.md` and its frozen image.
+- `02C · 头像修改` — **FROZEN**; `02_Avatar_Edit/README.md` and `Avatar_Change_V1_Development_Contract.md`.
+- `02D · 昵称编辑` — existing spec and registry record **FROZEN**; `03_Nickname_Edit/README.md`, development contract and machine contract.
+- `04_Save_Feedback/README.md`, `05_Edge_States/README.md`, and `06_Interaction_Adaptation/README.md` remain preserved for history and no longer create independent Design Manager menus.
 
-## Scope
+## Consolidated State / Interaction Contract
 
-编辑资料只负责个人资料编辑。账号安全、修改密码、数据与隐私继续归属各自模块。
+### 01 · Edit Profile Home
 
-当前资料边界：
+The current frozen home covers avatar, read-only account, nickname, and the default Save state. Save is Disabled until an edit makes the form dirty. Page layout and defaults remain governed by `01_Profile_Home/README.md`.
 
-- 头像
-- 账号（只读）
-- 昵称
+### 02 · Avatar Change
 
-未单独确认前，不新增手机号、邮箱、性别、生日、地区、签名等字段。
+The current frozen contract covers source selection, camera / Photo Picker, square crop and zoom, pending preview, upload during the unified profile save, and success/failure/retry. The exact behavior remains in `02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md`.
 
-## Current Frozen Authority
+### 03 · Nickname Edit
 
-`01 · 编辑资料首页` 已冻结：
+The current frozen contract covers Default, Focus, Filled, error and length-boundary states. Trimmed nickname length is 1–20 characters. The development and machine contracts remain authoritative.
 
-- Visual: `design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp`
-- Spec: `design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md`
-- Manifest: `design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/manifest.json`
+**Asset identity follow-up:** the repository WebP SHA-256 is `26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`, while the existing frozen manifest and README record `5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`. The file is preserved unchanged; this index does not claim binary parity PASS.
 
-02–06 不因 01 冻结而自动继承 FROZEN 状态。
+### 04 · Save Feedback — PARTIAL
 
-## Top Navigation
+The existing structure-only file lists Unchanged, Dirty, Saving, Success, Failure and Retry. It does not freeze the feedback surface, error copy, or retry rules. Do not infer unresolved behavior.
 
-- Default edit-profile navigation uses **Top Navigation V1 / BACK_TITLE / FROZEN**.
-- Back → Icon Action V1 / NAVIGATION.
-- Save / confirm remains page content unless a future frozen revision explicitly upgrades the page to BACK_TITLE_ACTIONS.
+### 05 · Edge States — PARTIAL
 
-## 当前冻结进度
+The existing structure-only file lists avatar read failure, image format/size errors, network failure, invalid nickname, expired session and service error. Priority, recovery behavior and draft-retention rules remain unresolved.
 
-- `01 · 编辑资料首页`：FROZEN
-- `02 · 头像修改`：FROZEN
-- `03 · 昵称编辑`：PARTIAL
-- `04 · 保存与反馈`：PARTIAL
-- `05 · 异常与边界状态`：PARTIAL
-- `06 · 交互与适配规范`：PARTIAL
+### 06 · Interaction / Adaptation — PARTIAL
+
+The existing structure-only file lists keyboard / IME, scrolling, small screens, Back, unsaved changes, Safe Area and Accessibility. Exact behavior, breakpoints and accessibility parameters remain unresolved.
+
+These three partial areas stay inside this authority index and do not become separate navigation entries. Their source READMEs are retained unchanged for historical traceability.
+
+## Runtime Boundary
+
+Existing runtime/API behavior does not make a design state Frozen. This index does not claim Android runtime parity or completion.

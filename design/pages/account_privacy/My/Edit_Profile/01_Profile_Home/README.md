@@ -1,6 +1,6 @@
 # 01 · 编辑资料首页 · Frozen Design Spec V1.1
 
-Status: **FROZEN**  
+Status: **FROZEN**
 Scope: **Design only / default unchanged state**
 
 ## 1. Frozen Authority
@@ -22,13 +22,12 @@ This page covers only the default Edit Profile home:
 - nickname;
 - Save changes button.
 
-The following remain separate Design Manager views and are **not frozen by this page**:
+The following remain separate page authorities and are **not frozen by this page**:
 
 - 02 · 头像修改;
-- 03 · 昵称编辑;
-- 04 · 保存与反馈;
-- 05 · 异常与边界状态;
-- 06 · 交互与适配规范.
+- 03 · 昵称编辑.
+
+Save Feedback, Edge States, and Interaction / Adaptation are consolidated as PARTIAL sections in `../README.md`; they are not separate Design Manager menus.
 
 ## 3. Top Navigation
 
@@ -100,7 +99,7 @@ Frozen default-state rule:
 - no profile changes → **Disabled**;
 - avatar or nickname becomes dirty → may transition to enabled Primary state.
 
-Saving / Success / Failure / Retry visuals are owned by `04 · 保存与反馈`; this page does not freeze those states.
+Saving / Success / Failure / Retry visuals are listed under the PARTIAL `04 · Save Feedback` section in `../README.md`; this page does not freeze those states.
 
 ## 9. Footer decoration
 

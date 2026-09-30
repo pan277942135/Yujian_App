@@ -1,8 +1,8 @@
 # Nickname Edit V1 · Frozen Development Contract
 
-Status: **FROZEN**  
-Scope: `编辑资料 → 03 · 昵称编辑`  
-Visual Authority: `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp`  
+Status: **FROZEN**
+Scope: `编辑资料 → 03 · 昵称编辑`
+Visual Authority: `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp`
 Machine Contract: `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json`
 
 ## 1. Product contract
@@ -189,7 +189,7 @@ Recommended behavior:
 - if invalid, keep the user on Edit Profile and expose the relevant error;
 - field must remain visible above IME.
 
-Keyboard / viewport adaptation remains governed globally by `06 · 交互与适配规范`.
+Keyboard / viewport adaptation remains PARTIAL in the Interaction / Adaptation section of `design/pages/account_privacy/My/Edit_Profile/README.md`.
 
 ## 11. Clear action
 
@@ -230,7 +230,7 @@ After successful profile response:
 - changed=false if no other pending profile edits remain;
 - Save Changes returns to Disabled.
 
-Feedback is owned by `04 · 保存与反馈`:
+Feedback remains PARTIAL under the Save Feedback section of `design/pages/account_privacy/My/Edit_Profile/README.md`:
 - lightweight `已保存`;
 - no blocking success dialog.
 
@@ -255,7 +255,7 @@ Session expiry uses the global authentication-expired flow.
 A changed valid or invalid nickname draft is an unsaved edit.
 
 Page-level Back behavior and discard confirmation are owned by:
-`06 · 交互与适配规范`.
+the Interaction / Adaptation section in `design/pages/account_privacy/My/Edit_Profile/README.md`.
 
 Nickname Edit itself must not auto-save on Back.
 

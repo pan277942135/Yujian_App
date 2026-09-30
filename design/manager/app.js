@@ -2442,7 +2442,40 @@ function recognitionVisualReferenceSpecCanvas(child) {
   '</div>';
 }
 
-function genericSpecChildCanvas(child) {
+function accountPrivacyGalleryCanvas(item) {
+  const refs = (item.supporting_visual_references || [])
+    .map(ref => typeof ref === "string" ? { path: ref, label: ref } : ref)
+    .filter(ref => ref.path && isImage(ref.path));
+  const cards = refs.map(ref =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' + esc(ref.label || "Visual reference") + '</strong>' +
+        statusBadge(ref.status || "PARTIAL") + '</div>' +
+      '<div class="hifi-original">' +
+        '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.label || "Visual reference") + '" loading="lazy" decoding="async"></a>' +
+        '<div class="hifi-original-caption">' + esc(ref.role || "EXISTING VISUAL REFERENCE") + '</div>' +
+        '<div class="authority-kind">' + esc(ref.path) + '</div>' +
+        (ref.scope ? '<p>' + esc(ref.scope) + '</p>' : '') +
+      '</div>' +
+    '</article>'
+  ).join("");
+  const points = (item.menu_points || []).map((point, index) =>
+    '<article class="authority-index-card"><div class="authority-index-head"><strong>' +
+      esc(String(index + 1).padStart(2, "0") + " · " + point) +
+    '</strong></div><div class="authority-kind">SCOPE / GATE</div></article>'
+  ).join("");
+  return '<div class="authority-index">' +
+    '<div class="authority-index-intro"><strong>' + esc(item.title || "Account & Privacy visual references") + '</strong>' +
+      '<span>' + esc(item.summary || "Existing repository images are shown with their current review status.") + '</span></div>' +
+    (cards ? '<div class="authority-index-grid">' + cards + '</div>' : '<div class="preview-empty">没有可展示的仓库视觉图。</div>') +
+    (points ? '<div class="authority-index-intro"><strong>产品范围与 Gate</strong></div><div class="authority-index-grid">' + points + '</div>' : '') +
+  '</div>';
+}
+
+function genericSpecChildCanvas(child, feature = null) {
+  if (feature?.id === "account_privacy_v1" && child.render_mode === "account_privacy_gallery") {
+    return accountPrivacyGalleryCanvas(child);
+  }
   if (child.render_mode === "recognition_visual_reference_spec") return recognitionVisualReferenceSpecCanvas(child);
   if (child.render_mode === "menu_placeholder") {
     return '<div class="authority-index"><div class="authority-index-intro"><strong>' +
@@ -2498,6 +2531,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
     authorityType === "behavior" ? "交互规范" :
+    child && feature.id === "account_privacy_v1" && child.status !== "FROZEN" ? "视觉参考 / Authority" :
     child ? "冻结高保真 Authority" : "高保真 / Authority 索引";
   el("hifiViewTitle").textContent=child ? child.title : view.title;
   el("hifiViewStatus").innerHTML=statusBadge(child?.status || view.status || "PARTIAL");
@@ -2507,7 +2541,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     el("hifiViewSummary").classList.remove("hidden");
   } else el("hifiViewSummary").classList.add("hidden");
   el("hifiViewCanvas").innerHTML = child
-    ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child))
+    ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
 
   const sceneIds=child?.scenario_ids || view.scenario_ids || [];
@@ -2528,6 +2562,9 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     el("hifiViewSource").classList.remove("hidden");
   } else if(child && child.authority_type === "behavior"){
     el("hifiViewSource").textContent="本子项为 Behavior Contract，不渲染 App 高保真页面。";
+    el("hifiViewSource").classList.remove("hidden");
+  } else if(child && feature.id === "account_privacy_v1" && child.render_mode === "account_privacy_gallery"){
+    el("hifiViewSource").textContent="展示仓库内既有视觉文件及其状态标注；历史参考与 MVP Deferred 不构成当前冻结 Authority，也不代表 Runtime 实现。";
     el("hifiViewSource").classList.remove("hidden");
   } else if(view.source_reference){
     el("hifiViewSource").textContent="历史高保真源稿：" + view.source_reference + "；当前 Design Manager 视图按最新冻结规范重新审视呈现。";
