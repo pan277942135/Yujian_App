@@ -2967,10 +2967,10 @@
           "code": "RR06",
           "title": "RR06 · 内容修改",
           "status": "FROZEN",
-          "render_mode": "authority_index",
+          "render_mode": "authority_gallery",
           "authority_type": "group",
           "authority": "design/pages/recognition/result/06_content_edit/README.md",
-          "summary": "集中索引两项已冻结的内容修改 Authority：Species Selector V1 负责鱼种选择；Metadata Edit Flow V1 负责长度、重量与地点的轻量修改。两者保留独立规范、契约、视觉源和边界，不新增 Result 状态。",
+          "summary": "在 RR06 内直接展示两项已冻结的原始高保真 PNG，并链接各自规范、契约与 manifest。Species Selector V1 与 Metadata Edit Flow V1 保持独立边界，不新增 Result 状态。",
           "menu_points": [
             "Species Selector V1 · 鱼种选择 · FROZEN",
             "Metadata Edit Flow V1 · 长度 / 重量 / 地点修改 · FROZEN",
