@@ -1,8 +1,17 @@
 # NH03 · Page States & Exceptions / 页面状态与异常 · Design Spec V1
 
-Status: **SPEC FROZEN — COMBINED BOARD PENDING**  
+Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home state continuity / failure containment**  
 Output policy: **COMBINED_BOARD**
+
+
+## Frozen visual authority
+
+- Visual authority: `design/pages/home/normal_home/03_page_states/frozen/NH03_Page_States_Exceptions_V1_Frozen.png`
+- Manifest: `design/pages/home/normal_home/03_page_states/frozen/manifest.json`
+- Image: PNG, 1491 × 1055, 1,993,502 bytes, SHA-256 `7c630d5fdb42a78c2f89d6d0e6849ba28759f145d3b5fe17bd227a2b7520add0`
+- Frozen status: `FROZEN — SPEC + VISUAL`
+- The frozen raster PNG cannot be replaced by SVG, HTML/CSS, screenshots, or reconstruction.
 
 ---
 
