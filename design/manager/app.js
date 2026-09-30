@@ -1479,16 +1479,31 @@ function hifiSearchRulesBoard() {
 function myCatchesSearchChildCanvas(child) {
   if (!child) return '<div class="preview-empty">请选择 Search V1 子项。</div>';
 
-  if (child.render_mode === "frozen_image" && child.visual_authority) {
+  const visualPath = child.image || child.visual_authority || null;
+  if (child.render_mode === "frozen_image" && visualPath && isImage(visualPath)) {
     const dims = child.visual_authority_dimensions || {};
     const dimensionText = dims.width && dims.height ? (dims.width + "×" + dims.height) : "尺寸已登记";
     const sourceText = child.source_high_fidelity_png ? (" · Source: " + child.source_high_fidelity_png) : "";
+    const status = child.status || "PARTIAL";
+    const caption = status === "FROZEN" ? "FROZEN VISUAL AUTHORITY" :
+      status === "DESIGN_ONLY" ? (child.visual_role || "DESIGN ONLY · RECOVERED REFERENCE") :
+      status + " VISUAL REFERENCE";
+    const supporting = (child.supporting_visual_references || [])
+      .filter(ref => ref && typeof ref === "object" && ref.path && isImage(ref.path))
+      .map(ref => '<article class="authority-index-card supporting-visual-reference">' +
+        '<div class="authority-index-head"><strong>' + esc(ref.label || "Supplemental Visual Reference") + '</strong></div>' +
+        '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.label || child.title) + '" loading="lazy"></a>' +
+        '<div class="authority-kind">' + esc(ref.role || "SUPPLEMENTAL REFERENCE") + '</div>' +
+        (ref.sha256 ? '<p>SHA-256 · ' + esc(ref.sha256) + '</p>' : '') +
+      '</article>').join("");
     return '<div class="frozen-authority-view">' +
-      '<a href="' + esc(repoHref(child.visual_authority)) + '" target="_blank" rel="noreferrer">' +
-        '<img src="' + esc(repoHref(child.visual_authority)) + '" alt="' + esc(child.title) + '">' +
+      '<a href="' + esc(repoHref(visualPath)) + '" target="_blank" rel="noreferrer">' +
+        '<img src="' + esc(repoHref(visualPath)) + '" alt="' + esc(child.title) + '">' +
       '</a>' +
-      '<div class="frozen-authority-caption">FROZEN VISUAL AUTHORITY · ' + esc(dimensionText) +
+      '<div class="frozen-authority-caption">' + esc(caption) + ' · ' + esc(dimensionText) +
         ' · 无设备外框' + esc(sourceText) + '</div>' +
+      (supporting ? '<div class="authority-index-grid supporting-visual-grid">' + supporting + '</div>' : '') +
     '</div>';
   }
 
@@ -1508,8 +1523,8 @@ function myCatchesSearchChildCanvas(child) {
 function myCatchesSearchOverview(view) {
   const children=view.children||[];
   return '<div class="authority-index">' +
-    '<div class="authority-index-intro"><strong>Search V1 · Authority Index</strong>' +
-      '<span>B1–B4 为冻结视觉 Authority；B5 为行为合同。选择左侧二级菜单查看对应 Authority。</span></div>' +
+    '<div class="authority-index-intro"><strong>' + esc(view.title || "我的鱼获 · 设计总览") + '</strong>' +
+      '<span>每个子项保留自己的状态与来源角色。选择左侧子菜单查看对应设计权威或参考材料。</span></div>' +
     '<div class="authority-index-grid">' +
       children.map(child =>
         '<article class="authority-index-card">' +

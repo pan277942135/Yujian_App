@@ -1,0 +1,20 @@
+{
+  "version": "My_Catches_Filter_V1_F1",
+  "id": "my_catches_filter_f1_v1",
+  "status": "FROZEN",
+  "freeze_date": "2026-09-30",
+  "filename": "F1_Filter_Panel_Frozen_V1.png",
+  "path": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.png",
+  "width": 941,
+  "height": 1672,
+  "bytes": 1531888,
+  "sha256": "c384ee67ad10997807cd9b3313e0e79ef8de9f39e192c34428022906bc58e246",
+  "git_blob_sha": "a70ec511c58c2cf90aba0fd40241e4ce60a52dbf",
+  "source_type": "UPLOADED_HIGH_FIDELITY_PNG",
+  "source_reference": "晨曦湖畔鱼获筛选界面.png",
+  "authority_type": "VISUAL_AUTHORITY",
+  "reencode_allowed": false,
+  "output_policy": "Preserve and publish the exact uploaded PNG bytes. No SVG, HTML/CSS reconstruction, screenshot derivative, or re-encoded substitute may replace this raster authority.",
+  "frozen_spec": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md",
+  "behavior_authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md"
+}

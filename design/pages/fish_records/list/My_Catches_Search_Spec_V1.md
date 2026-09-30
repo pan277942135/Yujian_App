@@ -42,6 +42,7 @@ A 主页面 Header：
 `←  [ 搜索鱼种、地点或日期 ]  取消`
 
 冻结规则：
+- 默认 My Catches 根页面沿用共享 Top Navigation V1 / `TITLE_ONLY`。Focused Search 是同一页面的 Search 状态，不是另一套根级 Top Navigation。
 - Back 保留；
 - 页面标题暂时让位给 Search Bar；
 - 档案摘要在 Focused 输入阶段隐藏 / 降权；
@@ -271,7 +272,7 @@ Search Bar 下方只显示一行低权重 Filter Summary：
 禁止把全部 Filter chips 大面积铺满搜索页。
 
 点击 Filter Summary：
-- 打开原 Filter Sheet；
+- 返回原页面并展开 F1 内联筛选面板；
 - Search query 保留。
 
 ## 13. B5 · 结果详情与返回

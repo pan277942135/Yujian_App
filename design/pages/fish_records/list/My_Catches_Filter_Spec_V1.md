@@ -1,6 +1,7 @@
-# 我的鱼获 · 五维筛选规范 V1
+# 我的鱼获 · 五维筛选规范 V1 · Historical
 
-Status: **FROZEN**
+Status: **HISTORICAL / DEPRECATED AS CURRENT AUTHORITY**
+This earlier five-dimension contract is retained for history only. Current filter behavior is defined by `My_Catches_Filter_Spec_V2.md`; its five dimensions, location row, Bottom Sheet flow, and Apply/Done action are not current V1 behavior.
 Page: `my_catches_v2`
 
 ## 1. 五个冻结维度

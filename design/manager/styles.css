@@ -2402,12 +2402,26 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 }
 .frozen-authority-view img{
   width:min(460px,100%);
-  aspect-ratio:9/16;
+  height:auto;
+  max-height:80vh;
+  aspect-ratio:auto;
   object-fit:contain;
   border-radius:16px;
   border:1px solid #dce7e3;
   background:#eef4f1;
   box-shadow:0 14px 30px rgba(24,52,58,.10);
+}
+.supporting-visual-grid{width:100%;margin-top:8px}
+.supporting-visual-reference img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:64vh;
+  object-fit:contain;
+  margin-top:8px;
+  border:1px solid #dce7e3;
+  border-radius:10px;
+  background:#eef4f1;
 }
 .frozen-authority-caption{
   font-size:9px;
