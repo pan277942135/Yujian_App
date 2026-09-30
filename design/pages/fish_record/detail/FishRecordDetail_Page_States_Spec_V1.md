@@ -40,7 +40,33 @@ If the original catch photo is unavailable but the FishRecord exists:
 If a supplemental photo/video is missing:
 - isolate the failure to that media tile.
 
-## 4. Partial Data
+## 4. Fish Memory media collection
+
+### No Uploaded Memory / 无上传记忆
+
+Condition:
+- the FishRecord exists;
+- primary record data is available;
+- the Fish Memory media collection count is 0.
+
+Visual:
+- use the canonical frozen PNG at `design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_No_Uploaded_Memory_V1_Frozen.png`;
+- preserve A-side page identity, Hero, and factual catch details;
+- show an empty-media state in the Fish Memory section;
+- do not fabricate or imply that any photo/video exists.
+
+Actions:
+- **添加照片/视频**
+- **继续拍照**
+- **录制视频**
+
+Boundary:
+- this is a valid FishRecord with an empty Fish Memory media collection;
+- it is distinct from Media Missing, where media was expected or referenced but is unavailable;
+- it is unrelated to B-side asset-generation lifecycle;
+- B-side may independently be NOT_GENERATED / GENERATING / READY / FAILED.
+
+## 5. Partial Data
 
 FishRecord fields are independently optional.
 
@@ -57,7 +83,7 @@ Examples:
 - no location → show available measurements only;
 - no note → omit note body, do not fabricate copy.
 
-## 5. Deleted / Invalid Record
+## 6. Deleted / Invalid Record
 
 When the target FishRecord no longer exists or is invalid:
 
@@ -68,7 +94,7 @@ When the target FishRecord no longer exists or is invalid:
 - primary action: **返回我的鱼获** when routing context supports it;
 - no generation / edit / share actions.
 
-## 6. Offline / Network Error
+## 7. Offline / Network Error
 
 ### Cached record available
 - render cached factual content;
@@ -81,7 +107,7 @@ When the target FishRecord no longer exists or is invalid:
 - action: **重新加载**
 - Back remains available.
 
-## 7. Local action failure
+## 8. Local action failure
 
 Share / add media / generation / save failures are local failures unless the record itself cannot load.
 
@@ -90,7 +116,7 @@ Principle:
 
 Do not turn a media upload failure into a full FishRecordDetail error page.
 
-## 8. Disabled and fallback rules
+## 9. Disabled and fallback rules
 
 - disabled controls must have a factual reason;
 - unavailable optional features may be hidden rather than disabled if no user action can resolve them;
@@ -98,7 +124,7 @@ Do not turn a media upload failure into a full FishRecordDetail error page.
 - no placeholder can masquerade as real user data;
 - fallback visuals must preserve layout but remain visibly neutral.
 
-## 9. Accessibility / responsive
+## 10. Accessibility / responsive
 
 - loading announcements are non-repetitive;
 - error actions have explicit labels;
@@ -106,12 +132,14 @@ Do not turn a media upload failure into a full FishRecordDetail error page.
 - page remains vertically scrollable on short screens;
 - no nested vertical scrolling for the primary page.
 
-## 10. Acceptance gate
+## 11. Acceptance gate
 
-1. six state families exist in one State Board;
+1. all six existing state families remain under 05, with No Uploaded Memory separately represented;
 2. media failure is localized;
 3. partial data never fabricates values;
 4. cached offline content is preferred over whole-page failure;
 5. invalid record removes unsafe actions;
 6. retry targets the smallest failed region;
-7. page identity and Back behavior remain stable.
+7. No Uploaded Memory means a valid record with a zero-item memory media collection and is distinct from Media Missing;
+8. B-side lifecycle remains independent;
+9. page identity and Back behavior remain stable.
