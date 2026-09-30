@@ -3088,7 +3088,7 @@
       "navigation_model": "fish_record_detail_compact_menu_v2",
       "design_manager_view_rules": {
         "overview": "00 is FROZEN behavior authority for the A/B surface model, B-side lifecycle, one-time first reveal, subsequent default entry, and manual Flip Icon behavior.",
-        "menu": "FishRecordDetail exposes only 00–05 as direct Design Manager entries. No third-level submenu is used.",
+        "menu": "FishRecordDetail exposes only 00–05 as direct Design Manager entries. The No Uploaded Memory visual state is nested under 05 and does not add a root-level submenu.",
         "output_principle": "Important pages use standalone UI authority; secondary states, editing variants, exceptions, and edge cases are merged into scenario boards.",
         "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
         "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
@@ -3198,10 +3198,11 @@
           "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "FROZEN：Loading / Media Missing / Partial Data / Deleted or Invalid / Offline or Network Error / Retry-Fallback 合并为一个 State Board；所有错误优先局部失败，禁止伪造事实数据。",
+          "summary": "FROZEN：Loading / Media Missing / No Uploaded Memory / Partial Data / Deleted or Invalid / Offline or Network Error / Retry-Fallback 合并在 05；无上传记忆表示有效 FishRecord 的 Fish Memory 媒体集合为空，与媒体缺失和 B-side 生命周期独立。",
           "menu_points": [
             "Loading · Stable Page Identity",
             "Media Missing · Neutral Hero Fallback",
+            "No Uploaded Memory · Valid FishRecord + zero Fish Memory media",
             "Partial Data · Never Fabricate Values",
             "Deleted / Invalid Record",
             "Offline with Cache",
@@ -3209,6 +3210,27 @@
             "Fail the Smallest Responsible Region",
             "Retry / Disabled / Fallback",
             "Responsive / Accessibility"
+          ],
+          "children": [
+            {
+              "id": "no_uploaded_memory",
+              "title": "无上传记忆",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "state",
+              "render_mode": "repo_image",
+              "visual_authority": "design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_No_Uploaded_Memory_V1_Frozen.png",
+              "image": "design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_No_Uploaded_Memory_V1_Frozen.png",
+              "authority": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
+              "summary": "FishRecord A 面存在且主要记录信息可用，但鱼获记忆暂无上传照片/视频；这与 Media Missing 及 B-side 生成状态相互独立。",
+              "menu_points": [
+                "Condition · FishRecord exists + primary record data available + Fish Memory media count = 0",
+                "Preserve A-side identity, Hero, and catch facts",
+                "Show empty media collection; do not fabricate media",
+                "Actions · 添加照片/视频 / 继续拍照 / 录制视频",
+                "B-side lifecycle remains independently NOT_GENERATED / GENERATING / READY / FAILED"
+              ]
+            }
           ]
         }
       ],

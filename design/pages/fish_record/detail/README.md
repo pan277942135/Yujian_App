@@ -99,8 +99,16 @@ The 2026-09-30 batch review freezes the remaining compact Design Manager entries
 ### 05 · 页面状态
 - Authority: `FishRecordDetail_Page_States_Spec_V1.md`
 - Status: **FROZEN**
-- One merged State Board: Loading / Media Missing / Partial Data / Deleted or Invalid / Offline or Network Error / Retry and Fallback.
+- One merged State Board: Loading / Media Missing / No Uploaded Memory / Partial Data / Deleted or Invalid / Offline or Network Error / Retry and Fallback.
 - Errors must fail the smallest responsible region.
+
+#### 无上传记忆
+- Visual Authority: `design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_No_Uploaded_Memory_V1_Frozen.png`
+- Source: `千岛湖晨雾中的草鱼记忆.png`
+- Dimensions: **941 × 1672**
+- Bytes: **1,699,366**
+- SHA-256: `ca585b85d1c6fec224e402d368e60d122913ca6c0cb6e5cc6750c266d7fb8a93`
+- Status: **FROZEN**
 
 ## Design freeze audit
 
