@@ -1,46 +1,75 @@
 package com.yujian.ai.ai
 
-/**
- * Compatibility representation of the frozen Recognition Processing V1.1 timeline.
- *
- * Product presentation is driven by RecognitionVisualStateController. These cumulative
- * boundaries exist only for packaged contract assets and tests; they MUST mirror the
- * V1.1 Design Closure and must never become a second timing authority.
- */
+/** User-visible Processing contract. Runtime pipeline phases remain unchanged. */
 object RecognitionRuntimeContract {
-    const val CONTRACT_VERSION = "RECOGNITION_RUNTIME_v1_1"
+    const val CONTRACT_VERSION = "RECOGNITION_PRESENTATION_v1_3"
 
-    // Cumulative boundaries for 350 / 600 / 600 / 1250 ms.
-    const val CAPTURED_END_MS = 350L
-    const val DETECTING_END_MS = 950L
-    const val OUTLINE_END_MS = 1_550L
-    const val RESULT_START_MS = 2_800L
+    const val FISH_LOCATED_START_MS = 900L
+    const val SPECIES_RECOGNIZING_START_MS = 1_500L
+    const val RESOLVE_START_MS = 2_750L
+    const val RESULT_START_MS = 2_950L
 
-    val timeline: List<RecognitionTimelineStep> = listOf(
-        RecognitionTimelineStep(RecognitionPhase.CAPTURED, 0L, "正在准备识别"),
-        RecognitionTimelineStep(RecognitionPhase.DETECTING, CAPTURED_END_MS, "正在理解这张照片"),
-        RecognitionTimelineStep(RecognitionPhase.OUTLINE, DETECTING_END_MS, "已定位到鱼体"),
-        RecognitionTimelineStep(RecognitionPhase.CLASSIFYING, OUTLINE_END_MS, "正在认识这条鱼"),
-        RecognitionTimelineStep(RecognitionPhase.RESULT, RESULT_START_MS, "认识完成"),
+    val timeline: List<RecognitionPresentationStep> = listOf(
+        RecognitionPresentationStep(
+            RecognitionPresentationState.IMAGE_RECOGNIZING,
+            0L,
+            "图片识别中",
+        ),
+        RecognitionPresentationStep(
+            RecognitionPresentationState.FISH_LOCATED,
+            FISH_LOCATED_START_MS,
+            "已定位到鱼体",
+        ),
+        RecognitionPresentationStep(
+            RecognitionPresentationState.SPECIES_RECOGNIZING,
+            SPECIES_RECOGNIZING_START_MS,
+            "鱼种识别中",
+        ),
+        RecognitionPresentationStep(
+            RecognitionPresentationState.RESOLVE,
+            RESOLVE_START_MS,
+            "",
+        ),
+        RecognitionPresentationStep(
+            RecognitionPresentationState.RESULT,
+            RESULT_START_MS,
+            "识别结果",
+        ),
     )
 
     init {
         require(timeline.first().startMs == 0L)
         require(timeline.zipWithNext().all { (current, next) -> current.startMs < next.startMs })
-        require(timeline.last().phase == RecognitionPhase.RESULT)
+        require(
+            timeline.count {
+                it.state == RecognitionPresentationState.IMAGE_RECOGNIZING ||
+                    it.state == RecognitionPresentationState.FISH_LOCATED ||
+                    it.state == RecognitionPresentationState.SPECIES_RECOGNIZING
+            } == 3,
+        )
+        require(timeline.none { it.state.name == "DETECTING" })
     }
 
-    fun phaseAt(elapsedMs: Long): RecognitionPhase {
+    fun stateAt(elapsedMs: Long): RecognitionPresentationState {
         val elapsed = elapsedMs.coerceAtLeast(0L)
-        return timeline.lastOrNull { elapsed >= it.startMs }?.phase ?: RecognitionPhase.CAPTURED
+        return timeline.lastOrNull { elapsed >= it.startMs }?.state
+            ?: RecognitionPresentationState.IMAGE_RECOGNIZING
     }
 
-    fun labelFor(phase: RecognitionPhase): String =
-        timeline.first { it.phase == phase }.label
+    fun labelFor(state: RecognitionPresentationState): String =
+        timeline.first { it.state == state }.label
 }
 
-data class RecognitionTimelineStep(
-    val phase: RecognitionPhase,
+enum class RecognitionPresentationState {
+    IMAGE_RECOGNIZING,
+    FISH_LOCATED,
+    SPECIES_RECOGNIZING,
+    RESOLVE,
+    RESULT,
+}
+
+data class RecognitionPresentationStep(
+    val state: RecognitionPresentationState,
     val startMs: Long,
     val label: String,
 )

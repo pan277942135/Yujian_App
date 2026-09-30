@@ -59,6 +59,6 @@ class RecognitionUiStateTest {
     private fun prediction(topConfidence: Float, secondConfidence: Float): RecognitionPrediction {
         val top = RecognitionCandidate(0, "grass_carp", "草鱼", topConfidence)
         val second = RecognitionCandidate(1, "crucian_carp", "鲫鱼", secondConfidence)
-        return RecognitionPrediction("MODEL_M1_v0.6", "sha", top, listOf(top, second), 1L)
+        return RecognitionPrediction("fixture-model", "sha", top, listOf(top, second), 1L)
     }
 }
