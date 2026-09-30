@@ -95,47 +95,60 @@ Design freeze and runtime evidence status are tracked separately.
 
 ## Recognition Processing
 
-### Active authority
+### Current design authority — V1.2
 
-- Work entry point:
-  `design/pages/recognition/Recognition_Design_Closure_V1_1.md`
-- Nine Frozen Hi-Fi references:
-  `design/pages/recognition/design/`
-- Reference hashes:
+- Design closure:
+  `design/pages/recognition/Recognition_Design_Closure_V1_2.md`
+- State Timeline:
+  `design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md`
+- Three-state visual Keyframe Set:
+  `design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json`
+- Frozen binary hashes:
   `design/pages/recognition/design/reference_manifest.json`
 - Visual:
   `design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md`
 - Motion/timing:
-  `design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md`
-- Runtime semantics:
-  `design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md`
-- Acceptance:
-  `design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md`
-- Evidence:
-  `design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md`
-- Machine-readable contract:
-  `design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json`
-- Production presentation:
-  `RecognitionVisualStateController`
-- Runtime gate:
-  `recognition-frozen`
+  `design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md`
+- AI Edge Field motion:
+  `design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md`
+- Degradation / Accessibility:
+  `design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md`
+- Haptic:
+  `design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md` — NONE
+- Sound:
+  `design/pages/recognition/processing/sound/Recognition_Processing_Sound_Spec_V1.md` — NONE
+- Machine-readable design contract:
+  `design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_2.json`
+- Runtime Evidence requirements:
+  `design/pages/recognition/evidence/Recognition_Runtime_Evidence_V1_2.md`
 
-### Active timing
+### Current product state model
 
-- CAPTURED 350ms
-- DETECTING 600ms
-- OUTLINE 600ms
-- CLASSIFYING 1250ms
-- nominal total 2800ms
-- final resolve fade 200ms
-- API28 runtime acceptance 2500–3500ms
-- final fish-focus stable >=1000ms
+```text
+图片识别中
+→ 已定位到鱼体
+→ 鱼种识别中
+→ RESOLVE
+→ Result
+```
 
-### Compatibility contract
+Frozen minimum visual beats:
 
-`RecognitionRuntimeContract` and packaged `identify/animation/identify_timeline.json` are compatibility/test representations only. They must mirror V1.1 cumulative boundaries and must not define an independent timeline.
+- 图片识别中 ≥ 900ms
+- 已定位到鱼体 ≥ 600ms
+- 鱼种识别中 ≥ 1250ms
+- RESOLVE = 200ms
 
-Historical `RECOGNITION_RUNTIME_v1` 800/1500/2300/3000 boundaries are retired.
+`CAPTURED / DETECTING / OUTLINE / CLASSIFYING` remain historical/runtime compatibility labels only. They do not define the current product-state timeline.
+
+### Closure boundary
+
+- Design: **FROZEN**
+- Runtime: **ACTIVE_CLOSURE**
+- Evidence: **ACTIVE_CLOSURE**
+
+Historical V1.1 contracts and verifier remain repository history/compatibility. They must not override current V1.2 design authority.
+
 
 ## Recognition Result 3+2
 
