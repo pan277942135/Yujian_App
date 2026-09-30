@@ -37,9 +37,12 @@
         "左右无假邻卡 / 无 Pager 暗示",
         "Canonical Hi-Fi 统计样例 1 / 1 / 1",
         "保留 最近鱼获 / 全部 / 记录下一条鱼 / Capture Button",
+        "已登录无头像或头像加载失败 → YuJian Default Profile Avatar V1",
+        "默认头像 ≠ Guest 头像；点击行为与真实头像一致",
         "无第一条鱼 Badge / 庆祝 / 新增 Haptic / Sound"
       ],
-      "authority": "design/pages/home/normal_home/02_first_catch/README.md"
+      "authority": "design/pages/home/normal_home/02_first_catch/README.md",
+      "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json"
     },
     {
       "order": 3,

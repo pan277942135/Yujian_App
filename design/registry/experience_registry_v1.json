@@ -326,7 +326,7 @@
           "render_mode": "behavior_spec",
           "authority_type": "behavior",
           "authority": "design/pages/home/normal_home/02_first_catch/README.md",
-          "summary": "NH02 规范已冻结，高保待出。仅 1 条有效 FishRecord；保持 NH01 整体结构，中央 HOME Hero 同尺寸居中，左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。",
+          "summary": "NH02 规范已冻结，高保待出。仅 1 条有效 FishRecord；保持 NH01 整体结构，中央 HOME Hero 同尺寸居中，左右无假邻卡、无 Pager 暗示。已登录无头像/头像加载失败统一使用 YuJian Default Profile Avatar V1；Guest 为独立语义。",
           "menu_points": [
             "1 valid FishRecord → Normal Home",
             "Same-size centered HOME Hero",
@@ -334,9 +334,12 @@
             "Canonical Hi-Fi sample 1 / 1 / 1",
             "最近鱼获 / 全部 stays",
             "记录下一条鱼",
+            "Logged-in no-avatar → Default Profile Avatar V1",
+            "Default Avatar ≠ Guest",
             "No badge / celebration / new Haptic / Sound"
           ],
-          "behavior_authority": "design/pages/home/normal_home/02_first_catch/README.md"
+          "behavior_authority": "design/pages/home/normal_home/02_first_catch/README.md",
+          "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json"
         },
         {
           "id": "NH03",

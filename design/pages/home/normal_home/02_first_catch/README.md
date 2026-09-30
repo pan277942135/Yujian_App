@@ -174,7 +174,79 @@ The first catch does not add:
 - save-success status
 - new account prompts
 
-Guest / logged-in variants are documented together under **NH04**, not expanded into additional NH02 page variants.
+### 7.1 Logged-in avatar state — FROZEN
+
+NH02 freezes the identity semantics for the Home header:
+
+| Account state | Header avatar |
+| --- | --- |
+| Logged in + valid avatar media | user's real avatar |
+| **Logged in + no avatar set** | **YuJian Default Profile Avatar V1** |
+| **Logged in + avatar load failure** | **YuJian Default Profile Avatar V1** |
+| Guest / not logged in | Guest account entry; **not** the default profile avatar |
+
+Default avatar and Guest avatar are different semantic states and must not be conflated.
+
+### 7.2 Default Profile Avatar V1 — FROZEN
+
+Design contract:
+
+`design/pages/home/normal_home/02_first_catch/default_avatar_contract.json`
+
+Current Android implementation reference:
+
+`app/src/main/res/drawable/profile_fallback_v13.xml`
+
+The design contract is authoritative; the Android drawable is an implementation reference.
+
+Visual language:
+
+- circular profile placeholder;
+- same display diameter and click target as the real Home avatar;
+- translucent Mist White circular surface;
+- subtle white border;
+- Deep Blue-Gray head-and-shoulders line icon;
+- no text label;
+- no initials;
+- no random color;
+- no generated face;
+- no fish / brand logo used as a person substitute.
+
+At the 1080 × 1920 Normal Home reference canvas, the Header avatar visual diameter remains approximately **92 reference px**, matching NH01.
+
+The vector source uses a 96 × 96 viewport. Its frozen optical structure is:
+
+- outer disc center: (48, 48), radius 43;
+- outer fill: `#6BFFFFFF`;
+- outer stroke: `#9EFFFFFF`, width 2;
+- person line color: `#30485A`;
+- person line width: 4;
+- round line cap on shoulder contour.
+
+### 7.3 Interaction
+
+For a logged-in user, the default avatar is not a disabled placeholder.
+
+It has exactly the same account-entry behavior as a real avatar:
+
+> tap → My / Profile
+
+Avatar fallback itself must not trigger:
+
+- toast;
+- “请设置头像” prompt;
+- red dot;
+- onboarding badge;
+- automatic navigation to Edit Profile.
+
+### 7.4 NH02 Hi-Fi rule
+
+The canonical NH02 Hi-Fi may show a real user avatar as the standard logged-in sample.
+
+It does **not** need a second full-page NH02 image for the no-avatar case.
+
+The no-avatar / real-avatar / Guest visual comparison belongs to **NH04 · 组件状态与内容边界**, but NH04 may only illustrate these already-frozen semantics; it may not redefine the fallback.
+
 
 ---
 
@@ -454,7 +526,7 @@ NH02 deliberately does not absorb every Normal Home edge state.
 | Loading / unresolved Home | NH03 |
 | Catch image unavailable | NH03 |
 | Refresh / error preservation | NH03 |
-| Guest / Logged-in Header variants | NH04 |
+| Header visual comparison: real avatar / default avatar / Guest | NH04 — presentation board only; fallback semantics frozen in NH02 |
 | Missing measurement fields | NH04 |
 | Long species / location text | NH04 |
 | Taller aspect ratios | NH05 |
@@ -480,7 +552,9 @@ The future Frozen image must:
 7. retain `最近鱼获 / 全部`;
 8. retain `记录下一条鱼`;
 9. retain shared Capture Button;
-10. not add first-catch badge, reward, onboarding, or celebration.
+10. not add first-catch badge, reward, onboarding, or celebration;
+11. when representing a logged-in user without avatar media, use **YuJian Default Profile Avatar V1**;
+12. never substitute the Guest avatar for the logged-in default-avatar state.
 
 ### Comparison discipline
 
@@ -521,6 +595,14 @@ NH02 spec is satisfied when all statements below are true.
 - [ ] 最近鱼获 / 全部 remains
 - [ ] CTA is 记录下一条鱼
 
+### Header identity
+
+- [ ] logged-in + avatar uses real avatar
+- [ ] logged-in + no avatar uses YuJian Default Profile Avatar V1
+- [ ] logged-in avatar load failure falls back to the same default avatar
+- [ ] Guest account entry is visually/semantically distinct from the logged-in default avatar
+- [ ] default avatar taps into My / Profile exactly like the real avatar
+
 ### Interaction
 
 - [ ] Hero opens the only FishRecord
@@ -554,5 +636,10 @@ The following NH02 decisions are frozen in V1:
 10. No first-catch badge / celebration / achievement layer.
 11. No new Haptic or Sound.
 12. NH03–NH06 own edge cases rather than multiplying NH02 variants.
+13. Logged-in users without avatar media use YuJian Default Profile Avatar V1.
+14. Avatar load failure uses the same default avatar.
+15. Guest avatar/account entry is not the logged-in default avatar.
+16. The default avatar keeps the same Home header geometry and account-entry interaction as a real avatar.
+17. NH04 may illustrate avatar states but may not redefine the fallback semantics frozen here.
 
 Any change to these decisions requires a versioned NH02 spec revision.
