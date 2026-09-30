@@ -4,6 +4,12 @@ Status: **FROZEN**
 Page: `my_catches_v2`
 Recovered visual source: **我的鱼获空状态规范图.png**
 
+Frozen Visual Authority: `design/pages/fish_records/list/frozen/empty_states_v1/My_Catches_Empty_States_V1_Frozen.png`
+
+SHA-256: `5258ca2f2683ec56c33c872fe80c06cc878b83ab473577dc47edc22052746ac8`
+
+The frozen PNG is the visual authority for this Design Manager view. Do not substitute an SVG, HTML/CSS recreation, screenshot, or re-encoded image.
+
 三类状态共享同一 My Catches 页面框架与全局 Camera Button：
 
 1. Archive Empty

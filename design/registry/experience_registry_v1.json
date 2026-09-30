@@ -4032,8 +4032,12 @@
           "id": "empty",
           "title": "Empty States V1",
           "status": "FROZEN",
-          "render_mode": "empty_board",
+          "render_mode": "repo_image",
           "authority": "design/pages/fish_records/list/My_Catches_Empty_States_Spec_V1.md",
+          "image": "design/pages/fish_records/list/frozen/empty_states_v1/My_Catches_Empty_States_V1_Frozen.png",
+          "visual_authority": "design/pages/fish_records/list/frozen/empty_states_v1/My_Catches_Empty_States_V1_Frozen.png",
+          "visual_authority_manifest": "design/pages/fish_records/list/frozen/empty_states_v1/manifest.json",
+          "visual_status": "FROZEN",
           "source_reference": "我的鱼获空状态规范图.png",
           "summary": "Archive / Filter / Search 三类 Empty 高保真；三态都保留底部全局 Camera Button，但恢复 CTA 各自不同。",
           "scenario_ids": [
