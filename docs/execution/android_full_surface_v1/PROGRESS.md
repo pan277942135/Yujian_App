@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P08 My Catches
+- Current phase: P09 Fish Record Detail
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -44,8 +44,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P05 Recognition Processing | BLOCKED_INFRA | `f13c71b029fdd03b1cd30f9e2e6a62ee0f9e6745` | Contract verifier PASS; cancellation fix and Back instrumentation authored | No local Gradle/Android runtime; Android test and runtime evidence gate unavailable after bounded no-job attempts | Continue P06 independently |
 | P06 Recognition Result | BLOCKED_INFRA | `bf470596c35f39adccb185be04f3da774f0220a7` | Direct High/Medium/Low/No Fish/Image Quality instrumentation authored; font-scale candidate scrolling added; Recognition design closure verifier PASS | Android compile/instrumentation/visual evidence unavailable after bounded no-job attempts | Continue P07 independently |
 | P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | No local Gradle/compiler/Android runtime after bounded no-job attempts; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain P07 Android gate and pinyin coverage gap |
-| P08 My Catches | IN_PROGRESS | — | Frozen-spec audit complete; implementation underway for search, F1 filters, timeline summaries/folding, Growth Marks and fixed capture action | Android compile/runtime and populated visual evidence unavailable locally | Complete implementation and static checks, then continue P09 |
-| P09 Fish Record Detail | NOT_STARTED | — | — | — | — |
+| P08 My Catches | BLOCKED_INFRA | `3a412ed1a3531b8438ff241837a39d2abc40b9e4` | Search, recent searches, F1 filters, BG_DATA, timeline grouping/folding, date detail, empty states and Growth Marks implemented; tests authored; source Actions and static checks pass | Android compile/unit/instrumentation/visual evidence unavailable; timeline high-fi visual closure is active; catches API returns all records without pagination | Continue P09 independently; carry visual/API paging gaps |
+| P09 Fish Record Detail | IN_PROGRESS | — | Frozen authority audit started; source route/detail and B-side exist, but share/edit/media actions are no-ops pending contract/capability mapping | — | Audit frozen A/B-side, lifecycle, media and edit contracts |
 | P10 Fish Guide | NOT_STARTED | — | — | — | — |
 | P11 Account & Privacy | NOT_STARTED | — | — | — | — |
 | P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
@@ -246,3 +246,39 @@ Git:
 
 Next:
 - Continue P08 My Catches and preserve P07's Android execution blocker and catalog pinyin data dependency in the final matrix.
+
+## P08 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P08
+
+Feature: My Catches timeline, filter, search, empty states and Growth Marks
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Replaced the gradient/list-only surface with the frozen Morning Lake BG_DATA master (`5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`), using the specified saturation, contrast, brightness and 30% white veil without blur.
+- Rebuilt the header and Search Mode in place. Search focuses and opens the keyboard, keeps the current page/filter, searches fish, place, normalized date and all Growth Marks with whitespace AND matching, restores the pre-search scroll position on exit, and retains at most six device-local recent searches with explicit commit/clear behavior.
+- Replaced the old species/place/time bottom sheets with F1's inline Species → Time → Size → Special order. Species and special-record choices are multi-select OR; time is single-select; length and weight settings persist independently and combine with each other and other dimensions using AND. Place remains searchable and is not a filter dimension.
+- Restored month/day grouping and sticky month headers, recomputed day summaries with visible record and species counts, staged three months in the client list and revealed older month groups as the user reached the history boundary, added the 6–10 inline fold and the >10 day-detail route, and preserved list/fold state on detail return.
+- Corrected Growth Marks to the frozen count thresholds, first known chronological species record, and per-species longest/heaviest records. Removed First Location, applied the frozen display priority, capped each Row Card to one compact mark in the upper information area, and retained full marks for search/filter logic.
+- Matched Archive, Search and Filter empty-state copy/actions, moved the fixed Camera Button to the shared page overlay, kept original FishRecord image sourcing and SoftWater fallback, and sanitized the loading error copy.
+- Added focused unit coverage for growth-mark thresholds/priority, same-species size records, AND search/date/mark matching, filter combinations, recent search order/cap, valid custom dates and empty-state priority.
+- `git diff --check`: PASS. `scripts/verify_core_ui_v1_references.py`: PASS for all exact core reference images. Morning Lake master SHA matches the frozen contract. Existing Recognition design/runtime contract verifiers also remain PASS.
+- P08 source Actions: Design Governance (`36713272923`) and Empty Home V2 Design Assets (`36713272959`) both completed successfully. No Android workflow/status was created.
+
+Validation boundary and remaining gaps:
+- Kotlin compile/unit/instrumentation and device visual evidence were not run: there is no Gradle wrapper, Gradle, Kotlin compiler, adb or emulator in this workspace. The three no-job Android attempts already exhausted the bounded retry budget. Authored My Catches tests therefore remain unexecuted; P08 is BLOCKED_INFRA, not runtime PASS.
+- `My_Catches_Timeline_Hifi_Audit_V1.md` remains `ACTIVE_CLOSURE`: populated BG_DATA, real sticky-month state, 6–10 fold states, >10 day-detail visual, and current-vs-legacy board comparison still need device evidence. F2–F7 visuals are pending; the basic functional selectors/dialogs here do not claim those visual approvals.
+- The existing `/api/v1/catches` list call returns one complete array and has no pagination parameter. The page stages older months on scroll in the client but currently downloads all records at once; server-side incremental pagination remains an API capability gap.
+- No screenshot, emulator result or accessibility/visual pass was fabricated. Frozen references remain unchanged.
+
+Git:
+- Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
+- Branch: `feature/android-full-surface-runtime-v1`
+- P08 source checkpoint SHA: `3a412ed1a3531b8438ff241837a39d2abc40b9e4`
+- PR: #97 (draft)
+
+Next:
+- Continue P09 Fish Record Detail and map its frozen A-side/B-side, flip, edit, media and no-upload-memory contracts to supported route/backend behavior.
