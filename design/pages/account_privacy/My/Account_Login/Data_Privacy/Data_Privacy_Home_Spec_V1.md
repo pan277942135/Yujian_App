@@ -1,7 +1,11 @@
 # 数据与隐私 · Home Spec V1
 
 Status: **FROZEN — IA / Behavior / Content Structure**
-Visual status: **ACTIVE_CLOSURE**
+Visual status: **FROZEN — COMPOSITE AUTHORITY**
+
+Visual authority:
+- base Hi-Fi: `design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png`
+- adjustments: `design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
 Page ID: `account_privacy_v1.04a`
 
 ## 1. Purpose
@@ -129,4 +133,4 @@ Failure:
 - current switch semantics
 - current spacing/radius/type
 
-Historical `00_Data_Privacy.png` remains visual reference until a current approved high-fidelity binary is frozen.
+The existing `00_Data_Privacy.png` is the byte-preserved base Hi-Fi and Visual is **FROZEN via composite authority**. Current Deferred treatment for Export/Delete, state labels, BG_CONTENT and shared components are governed by `Active_Path_Visual_Adjustment_Authority_V1.md`. No replacement image is required.
