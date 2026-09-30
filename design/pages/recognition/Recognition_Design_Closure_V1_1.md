@@ -33,6 +33,29 @@ This document is the Work-facing source-of-truth index for Recognition Processin
 6. **Acceptance Criteria V1.1** — PASS/FAIL rules used by Work.
    - `spec/Recognition_Acceptance_Criteria_V1_1.md`
 
+## Recognition Result package
+
+The five state-specific Result/recovery references 05–09 are additionally closed by:
+
+`design/pages/recognition/result/DESIGN_PACKAGE_CLOSURE_V1.md`
+
+Result package responsibilities:
+- 3 result states: High / Medium / Low;
+- 2 recovery states: No Fish / Image Quality;
+- state behavior and CTA semantics;
+- Result-only visual hierarchy;
+- Result transition rules;
+- Result-specific acceptance;
+- Runtime alignment review.
+
+Authority rule for Result:
+
+**05–09 state Frozen PNG > Result package spec > Core Visual System recognition_result_v1 > runtime implementation**
+
+The system-level `recognition_result_v1.png` defines shared Result visual language/base composition. It does not override state-specific differences in 05–09.
+
+`TECHNICAL_FAILURE` remains a runtime-safe generic fallback and is not promoted into the frozen 3+2 Result set.
+
 ## Conflict rules
 
 - Frozen PNG vs prose visual description: **Frozen PNG wins for final appearance**.
@@ -40,6 +63,7 @@ This document is the Work-facing source-of-truth index for Recognition Processin
 - Legacy V1 timing vs V1.1 timing: **V1.1 wins**.
 - Runtime implementation vs frozen contract: **the contract wins; runtime must be corrected**.
 - Evidence capture failures must not be disguised as product PASS and must not be misclassified as product FAIL_TEST.
+- Result system reference vs a 05–09 state difference: **the 05–09 state Frozen reference wins**.
 
 ## Product invariants
 

@@ -2592,34 +2592,37 @@
       "modalities": {
         "behavior": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md"
+          "authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/system/core_visual_v1/reference/recognition_result_v1.png"
+          "authority": "design/pages/recognition/result/authority/authority_map.json"
         },
         "motion": {
-          "status": "PARTIAL",
-          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md"
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md",
+          "note": "Recognition Result V1 不新增自定义 Haptic；仅复用公共 Action / Navigation 反馈。"
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md",
+          "note": "Recognition Result V1 无独立结果音效、无庆祝音效。"
         },
         "runtime": {
-          "status": "FROZEN",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
+          "status": "PARTIAL",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+          "note": "Design Package 已冻结；Runtime parity 单独收口。"
         },
         "evidence": {
-          "status": "FROZEN",
-          "authority": "design/pages/recognition/status.json"
+          "status": "PARTIAL",
+          "authority": "design/pages/recognition/result/review/Recognition_Result_Runtime_Alignment_Review_V1.md"
         },
         "assets": {
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
@@ -2629,10 +2632,10 @@
           "version": "V1",
           "status": "FROZEN",
           "current": true,
-          "visual_authority": "design/system/core_visual_v1/reference/recognition_result_v1.png"
+          "visual_authority": "design/pages/recognition/design/reference_manifest.json"
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -2661,6 +2664,148 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：修改鱼种=NORMAL/LIGHT + separate chevron。"
+        }
+      ],
+      "navigation_model": "recognition_result_3plus2_menu_v1",
+      "design_manager_view_rules": {
+        "overview": "RR00 = 3+2 Overview / shared rules; no extra Frozen image.",
+        "state_pages": "RR01–RR05 each directly preview one canonical Frozen Hi-Fi reference.",
+        "authority": "05–09 state Frozen PNG > Result package spec > Core Visual recognition_result_v1 > runtime implementation.",
+        "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager."
+      },
+      "hifi_views": [
+        {
+          "id": "overview",
+          "code": "RR00",
+          "title": "RR00 · 结果总览",
+          "status": "FROZEN",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/recognition/result/00_overview/README.md",
+          "summary": "Recognition Result V1 的 3+2 总览：High / Medium / Low + No Fish / Image Quality。汇总共用视觉、CTA、Motion、Adaptive、Accessibility 与 Authority；不新增第六张高保图。",
+          "menu_points": [
+            "3+2 State Model",
+            "Frozen Authority 05–09",
+            "BG_CONTENT / Real Capture First",
+            "Result ≠ Processing",
+            "CTA Map",
+            "Motion / Reduce Motion",
+            "Adaptive / Accessibility",
+            "Final Design Closure"
+          ],
+          "freeze_date": "2026-09-30"
+        },
+        {
+          "id": "high",
+          "code": "RR01",
+          "title": "RR01 · 高置信结果",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "image": "design/pages/recognition/design/05_Result_High_Frozen.png",
+          "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
+          "authority": "design/pages/recognition/result/01_high/README.md",
+          "summary": "High V1 已冻结：真实鱼获 Hero；鱼种 + 修改鱼种同行；长度/重量/地点轻量记录；鱼获感言；继续记录记忆 + 保存本次鱼获双 CTA；无“已识别”徽章、无置信百分比。",
+          "menu_points": [
+            "Real Catch Hero",
+            "Species Identity + 修改鱼种",
+            "Lightweight Metadata",
+            "留下本次鱼获感言",
+            "继续记录记忆 / 保存本次鱼获",
+            "Shared Top Navigation",
+            "Adaptive / IME",
+            "Rejected Alternatives"
+          ],
+          "freeze_date": "2026-09-30"
+        },
+        {
+          "id": "medium",
+          "code": "RR02",
+          "title": "RR02 · 中置信结果",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "image": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+          "visual_authority": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+          "authority": "design/pages/recognition/result/02_medium/README.md",
+          "summary": "Medium V1 已冻结：保留真实 Hero；单行“帮我确认一下，这条鱼更像哪一种？”；候选横排；Top-1 只是模型建议，用户显式确认后复用正常记录与双 CTA 流。",
+          "menu_points": [
+            "Real Catch Hero",
+            "One-line Confirmation Prompt",
+            "Horizontal Candidate Row",
+            "Suggested ≠ Confirmed",
+            "都不是？选择其他鱼种",
+            "Post-confirmation Record Flow",
+            "No Auto Candidate",
+            "Adaptive"
+          ],
+          "freeze_date": "2026-09-30"
+        },
+        {
+          "id": "low",
+          "code": "RR03",
+          "title": "RR03 · 低置信结果",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "image": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+          "visual_authority": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+          "authority": "design/pages/recognition/result/03_low/README.md",
+          "summary": "Low V1 已冻结：无法确认是什么鱼；手动选择鱼种 / 重新拍摄。选择鱼种前不展示正常 Metadata / Save，不新增 pending/unknown species 持久化能力。",
+          "menu_points": [
+            "无法确认是什么鱼",
+            "手动选择鱼种",
+            "重新拍摄",
+            "No Metadata Before Resolution",
+            "No Save Before Resolution",
+            "Manual Recovery → Normal Record Flow",
+            "No Pending Species State"
+          ],
+          "freeze_date": "2026-09-30"
+        },
+        {
+          "id": "no_fish",
+          "code": "RR04",
+          "title": "RR04 · 未检测到鱼",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "image": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+          "visual_authority": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+          "authority": "design/pages/recognition/result/04_no_fish/README.md",
+          "summary": "No Fish V1 已冻结：没有找到可识别的鱼；重新拍摄为 Primary，从相册选择为 Secondary；无 FishRecord / Metadata / Save；保持平静恢复语气。",
+          "menu_points": [
+            "没有找到可识别的鱼",
+            "Capture Guidance",
+            "重新拍摄",
+            "从相册选择",
+            "Back = Tertiary",
+            "No FishRecord",
+            "Calm Recovery Visual"
+          ],
+          "freeze_date": "2026-09-30"
+        },
+        {
+          "id": "image_quality",
+          "code": "RR05",
+          "title": "RR05 · 图片质量不足",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "image": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+          "visual_authority": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+          "authority": "design/pages/recognition/result/05_image_quality/README.md",
+          "summary": "Image Quality V1 已冻结：照片不够清晰，无法识别；给出清晰度/遮挡指导；重新拍摄 + 从相册选择；与 No Fish 共用恢复家族但状态语义独立。",
+          "menu_points": [
+            "照片不够清晰，无法识别",
+            "Clear Outline / No Occlusion Guidance",
+            "重新拍摄",
+            "从相册选择",
+            "No Metadata / Save",
+            "Distinct from No Fish",
+            "Shared Recovery Family"
+          ],
+          "freeze_date": "2026-09-30"
         }
       ]
     },
