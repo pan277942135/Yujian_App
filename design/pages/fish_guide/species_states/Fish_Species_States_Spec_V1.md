@@ -334,7 +334,7 @@ A stale/deep-linked species ID that cannot be resolved against the active catalo
 - Back remains available;
 - this species does not increment Fish Guide `N / T`.
 
-Detailed deep-link ownership remains in **04 · 鱼种导航**.
+Detailed deep-link ownership remains in the relevant page contracts; there is no standalone Fish Guide navigation menu.
 
 ## 7.2 INACTIVE_SPECIES
 
@@ -343,7 +343,7 @@ An inactive/retired catalog species:
 - excluded from current active catalog total `T`;
 - existing historical FishRecords remain in My Catches;
 - a stale Species Detail route must not silently redirect to another species;
-- exact historical-detail policy is owned by 04 · 鱼种导航.
+- exact historical-detail policy is owned by the relevant page/navigation contract.
 
 ## 7.3 ORPHAN_FISH_RECORD
 
@@ -495,7 +495,7 @@ Rules:
 - no automatic navigation;
 - no automatic haptic is required.
 
-Any transition animation is owned by **07 · 动效与交互** and must remain restrained.
+Any transition animation is owned by **05 · 动效与交互** and must remain restrained.
 
 ## 13.2 Save additional record
 
@@ -638,6 +638,6 @@ For V1, the user's **persisted final species** on the saved FishRecord is author
 - [x] Unknown/inactive species do not silently map to another species.
 - [x] 01/02 frozen page layouts override miniature layout differences in the 03 poster.
 - [x] Five black-gold card internals remain outside this state freeze.
-- [ ] Runtime evidence is attached under **09 · 验收证据**.
+- [ ] Runtime evidence is tracked in Overview / implementation closure without reopening the frozen state contract.
 
 The final Runtime Evidence item does not reopen the frozen state contract.
