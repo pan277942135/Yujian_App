@@ -6,39 +6,41 @@ import org.junit.Test
 
 class RecognitionRuntimeContractTest {
     @Test
-    fun compatibilityTimelineMatchesFrozenV11Boundaries() {
-        assertEquals("RECOGNITION_RUNTIME_v1_1", RecognitionRuntimeContract.CONTRACT_VERSION)
+    fun presentationContractContainsExactlyThreeProcessingStatesAndResolve() {
+        assertEquals("RECOGNITION_PRESENTATION_v1_3", RecognitionRuntimeContract.CONTRACT_VERSION)
         assertEquals(
             listOf(
-                RecognitionPhase.CAPTURED,
-                RecognitionPhase.DETECTING,
-                RecognitionPhase.OUTLINE,
-                RecognitionPhase.CLASSIFYING,
-                RecognitionPhase.RESULT,
+                RecognitionPresentationState.IMAGE_RECOGNIZING,
+                RecognitionPresentationState.FISH_LOCATED,
+                RecognitionPresentationState.SPECIES_RECOGNIZING,
+                RecognitionPresentationState.RESOLVE,
+                RecognitionPresentationState.RESULT,
             ),
-            RecognitionRuntimeContract.timeline.map { it.phase },
+            RecognitionRuntimeContract.timeline.map { it.state },
         )
-        assertEquals(listOf(0L, 350L, 950L, 1_550L, 2_800L), RecognitionRuntimeContract.timeline.map { it.startMs })
+        assertEquals(
+            listOf(0L, 900L, 1_500L, 2_750L, 2_950L),
+            RecognitionRuntimeContract.timeline.map { it.startMs },
+        )
         assertTrue(RecognitionRuntimeContract.timeline.zipWithNext().all { (a, b) -> a.startMs < b.startMs })
     }
 
     @Test
-    fun phaseAtUsesFrozenV11TimelineAndClampsNegativeTime() {
-        assertEquals(RecognitionPhase.CAPTURED, RecognitionRuntimeContract.phaseAt(-1L))
-        assertEquals(RecognitionPhase.CAPTURED, RecognitionRuntimeContract.phaseAt(349L))
-        assertEquals(RecognitionPhase.DETECTING, RecognitionRuntimeContract.phaseAt(350L))
-        assertEquals(RecognitionPhase.OUTLINE, RecognitionRuntimeContract.phaseAt(950L))
-        assertEquals(RecognitionPhase.CLASSIFYING, RecognitionRuntimeContract.phaseAt(1_550L))
-        assertEquals(RecognitionPhase.RESULT, RecognitionRuntimeContract.phaseAt(2_800L))
-        assertEquals(RecognitionPhase.RESULT, RecognitionRuntimeContract.phaseAt(Long.MAX_VALUE))
+    fun stateAtUsesFrozenPresentationBoundaries() {
+        assertEquals(RecognitionPresentationState.IMAGE_RECOGNIZING, RecognitionRuntimeContract.stateAt(-1L))
+        assertEquals(RecognitionPresentationState.IMAGE_RECOGNIZING, RecognitionRuntimeContract.stateAt(899L))
+        assertEquals(RecognitionPresentationState.FISH_LOCATED, RecognitionRuntimeContract.stateAt(900L))
+        assertEquals(RecognitionPresentationState.SPECIES_RECOGNIZING, RecognitionRuntimeContract.stateAt(1_500L))
+        assertEquals(RecognitionPresentationState.RESOLVE, RecognitionRuntimeContract.stateAt(2_750L))
+        assertEquals(RecognitionPresentationState.RESULT, RecognitionRuntimeContract.stateAt(2_950L))
+        assertEquals(RecognitionPresentationState.RESULT, RecognitionRuntimeContract.stateAt(Long.MAX_VALUE))
     }
 
     @Test
-    fun labelsMirrorCurrentUserFacingProcessingCopy() {
-        assertEquals("正在准备识别", RecognitionRuntimeContract.labelFor(RecognitionPhase.CAPTURED))
-        assertEquals("正在理解这张照片", RecognitionRuntimeContract.labelFor(RecognitionPhase.DETECTING))
-        assertEquals("已定位到鱼体", RecognitionRuntimeContract.labelFor(RecognitionPhase.OUTLINE))
-        assertEquals("正在认识这条鱼", RecognitionRuntimeContract.labelFor(RecognitionPhase.CLASSIFYING))
-        assertEquals("认识完成", RecognitionRuntimeContract.labelFor(RecognitionPhase.RESULT))
+    fun productCopyUsesOnlyTheThreeFrozenProcessingLabels() {
+        assertEquals("图片识别中", RecognitionRuntimeContract.labelFor(RecognitionPresentationState.IMAGE_RECOGNIZING))
+        assertEquals("已定位到鱼体", RecognitionRuntimeContract.labelFor(RecognitionPresentationState.FISH_LOCATED))
+        assertEquals("鱼种识别中", RecognitionRuntimeContract.labelFor(RecognitionPresentationState.SPECIES_RECOGNIZING))
+        assertEquals("", RecognitionRuntimeContract.labelFor(RecognitionPresentationState.RESOLVE))
     }
 }

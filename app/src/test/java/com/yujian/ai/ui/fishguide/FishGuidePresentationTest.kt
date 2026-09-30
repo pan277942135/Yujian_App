@@ -9,7 +9,7 @@ import org.junit.Test
 class FishGuidePresentationTest {
     private val species = listOf(
         FishGuideItem("grass", "草鱼", aliases = listOf("鲩鱼"), discovered = true, catches = 3),
-        FishGuideItem("crucian", "鲫鱼", aliases = listOf("鲫") , discovered = false),
+        FishGuideItem("crucian", "鲫鱼", aliases = listOf("鲫"), discovered = false),
         FishGuideItem("carp", "鲤鱼", discovered = true, catches = 1),
     )
 
@@ -21,17 +21,9 @@ class FishGuidePresentationTest {
     }
 
     @Test
-    fun searchMatchesNameAndAliasAndBlankReturnsAll() {
-        assertEquals(listOf("grass"), species.filterFishGuide("草").map { it.id })
-        assertEquals(listOf("grass"), species.filterFishGuide("鲩").map { it.id })
-        assertEquals(species, species.filterFishGuide(" "))
-    }
-
-    @Test
-    fun selectionIsPreservedWhenPresentAndResetsToFirstWhenFilteredOut() {
-        assertEquals("carp", selectionIdAfterFilter(species, "carp"))
-        assertEquals("grass", selectionIdAfterFilter(species.filterFishGuide("草"), "carp"))
-        assertEquals(0, selectionIndex(species.filterFishGuide("草"), "carp"))
+    fun carouselSelectionKeepsKnownSpeciesAndFallsBackToFirst() {
+        assertEquals(2, selectionIndex(species, "carp"))
+        assertEquals(0, selectionIndex(species, "missing"))
     }
 
     @Test

@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "frozen_date": "2026-09-29",
+  "mappings": {
+    "home_empty_v2": "BG_ENV_HERO",
+    "home_normal_v1": "BG_ENV_HERO",
+    "recognition_flow_v1_2": "BG_CAPTURE",
+    "recognition_result_v1": "BG_CONTENT",
+    "fish_record_detail_v2": "BG_CONTENT",
+    "my_catches_v2": "BG_DATA",
+    "fish_guide_v2": "BG_DATA",
+    "account_privacy_v1": "BG_CONTENT",
+    "auth_login_v2": "BG_CONTENT",
+    "auth_register_v2": "BG_CONTENT",
+    "profile_edit_v1": "BG_CONTENT",
+    "user_agreement_v1": "BG_CONTENT"
+  },
+  "master_by_page": {
+    "home_empty_v2": "Morning_Lake_Sunrise_Hero_V1",
+    "home_normal_v1": "Morning_Lake_Master_V1",
+    "recognition_result_v1": "Morning_Lake_Master_V1",
+    "fish_record_detail_v2": "Morning_Lake_Master_V1",
+    "my_catches_v2": "Morning_Lake_Master_V1",
+    "fish_guide_v2": "Morning_Lake_Master_V1",
+    "account_privacy_v1": "Morning_Lake_Master_V1",
+    "auth_login_v2": "Morning_Lake_Master_V1",
+    "auth_register_v2": "Morning_Lake_Master_V1",
+    "profile_edit_v1": "Morning_Lake_Master_V1",
+    "user_agreement_v1": "Morning_Lake_Master_V1"
+  },
+  "non_lake_sources": {
+    "recognition_flow_v1_2": "current_user_photo",
+    "BG_SOLID_FALLBACK": "color_tokens"
+  },
+  "inherited_context": {
+    "fish_memory_bside_v1": "fish_record_detail_v2"
+  },
+  "design_migration_notes": [
+    {
+      "id": "BG-NOTE-01",
+      "pages": [
+        "account_privacy_v1",
+        "auth_login_v2"
+      ],
+      "note": "Legacy account_privacy_morning_lake asset may remain in repository/runtime until development handoff. It is no longer the design background authority."
+    }
+  ]
+}

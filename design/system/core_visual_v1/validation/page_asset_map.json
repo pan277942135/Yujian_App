@@ -27,9 +27,11 @@
       "asset_decisions": [
         {
           "asset": "home_morning_lake_treatment",
-          "classification": "REFERENCE_ONLY",
-          "implementation": "PAGE_SPECIFIC",
-          "reason": "It belongs to the shared world but is not the same composition as Empty Home."
+          "classification": "REGISTERED_SYSTEM_MASTER",
+          "implementation": "MORNING_LAKE_MASTER_V1_WITH_NORMAL_HOME_VIEWPORT_CROP",
+          "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+          "source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+          "reason": "Normal Home package V1.1 uses the independent master as its bitmap authority while the frozen page reference retains composition authority."
         },
         {
           "asset": "recent_catch_photo",

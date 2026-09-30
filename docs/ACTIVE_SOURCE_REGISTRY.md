@@ -40,9 +40,58 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
   - legacy verifier is removed from active Android CI.
 - `app/src/main/assets/home_empty_v1_3/`
   - status: **COMPATIBILITY — NORMAL HOME ONLY**
-  - still referenced by `HomeScreen` when `showEmptyState == false`;
-  - do not delete until Normal Home migrates to its own canonical runtime asset root.
-  - this path is not Empty Home V2 authority.
+  - historical compatibility path; not Empty Home V2 authority.
+
+## Normal Home
+
+### Active design authority
+
+- Design package closure:
+  `design/pages/home/normal_home/DESIGN_PACKAGE_CLOSURE_V1.md`
+- Design Manager secondary navigation:
+  `design/pages/home/normal_home/navigation.json`
+- Frozen visual / NH01:
+  `design/system/core_visual_v1/reference/normal_home_v1.png`
+- Frozen SHA-256:
+  `6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377`
+- Feature/behavior/visual/acceptance:
+  `design/pages/home/normal_home/spec/`
+- Motion:
+  `design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md`
+- Haptic:
+  `design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md`
+- Sound:
+  `design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md`
+- Assets:
+  `design/pages/home/normal_home/assets/asset_manifest.json`
+- Authority order:
+  `design/pages/home/normal_home/authority/authority_map.json`
+- Status:
+  `design/pages/home/normal_home/status.json`
+
+### Design Manager secondary menu
+
+- NH01 — 主页面｜多鱼获状态 — independent Frozen Hi-Fi
+- NH02 — 第一条鱼首页 — independent Hi-Fi to add
+- NH03 — 页面状态与异常 — combined board
+- NH04 — 组件状态与内容边界 — combined board
+- NH05 — 响应式与交互 — combined board
+- NH06 — 背景与环境权威 — authority closure in Normal Home Design Package V1.1
+
+### Background authority
+
+Normal Home package V1.1: the frozen Normal Home reference remains composition authority; `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` (SHA-256 `5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`) is the background bitmap authority. Runtime asset is a byte-identical copy with centered Android `ContentScale.Crop` only.
+
+### Runtime traceability
+
+- Android runtime assets:
+  `app/src/main/assets/normal_home_runtime_v1/`
+- Runtime contract test:
+  `NormalHomeRuntimeContractTest`
+- Runtime gate:
+  `normal-home-v1`
+
+Design freeze and runtime evidence status are tracked separately.
 
 ## Recognition Processing
 
@@ -88,17 +137,58 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
 
 Historical `RECOGNITION_RUNTIME_v1` 800/1500/2300/3000 boundaries are retired.
 
+## Recognition Result 3+2
+
+### Active design authority
+
+- Design package closure:
+  `design/pages/recognition/result/DESIGN_PACKAGE_CLOSURE_V1.md`
+- Design Manager secondary navigation:
+  `design/pages/recognition/result/navigation.json`
+- State model:
+  `design/pages/recognition/result/spec/Recognition_Result_State_Matrix_V1.md`
+- Feature / behavior / visual:
+  `design/pages/recognition/result/spec/`
+- Motion:
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md`
+- Authority order:
+  `design/pages/recognition/result/authority/authority_map.json`
+- Runtime alignment review:
+  `design/pages/recognition/result/review/Recognition_Result_Runtime_Alignment_Review_V1.md`
+- Status:
+  `design/pages/recognition/result/status.json`
+
+### Design Manager secondary menu
+
+- RR00 — 结果总览 — 3+2 aggregate / overview board
+- RR01 — 高置信结果 — independent Frozen Hi-Fi
+- RR02 — 中置信结果 — independent Frozen Hi-Fi
+- RR03 — 低置信结果 — independent Frozen Hi-Fi
+- RR04 — 未检测到鱼 — independent Frozen Hi-Fi
+- RR05 — 图片质量不足 — independent Frozen Hi-Fi
+
+### State-level visual authority
+
+- `design/pages/recognition/design/05_Result_High_Frozen.png`
+- `design/pages/recognition/design/06_Result_Medium_Frozen.png`
+- `design/pages/recognition/design/07_Result_Low_Frozen.png`
+- `design/pages/recognition/design/08_Error_No_Fish_Frozen.png`
+- `design/pages/recognition/design/09_Error_Image_Quality_Frozen.png`
+
+The generic Core Visual reference `design/system/core_visual_v1/reference/recognition_result_v1.png` remains the shared Result visual-language authority only. State-level 05–09 references win for state-specific differences.
+
+Design freeze and runtime alignment are tracked separately. Current Result design is frozen; Android Runtime alignment remains `NEEDS_CLOSURE` until the Result-specific review is resolved and revalidated.
+
 ## Recognition model
 
 - Detector: `DET_FISH_v0.1`
-- Classifier: `MODEL_M1_v0.6`
-- Published Android classes: 16
+- Classifier production channel: `pan277942135/Yujian@mobile-model-v0.2`
 - Model verifier:
   `scripts/verify_production_model.py`
 - App asset note:
   `app/src/main/assets/MODEL_ASSET_README.md`
 
-Historical MODEL_M1_v0.2 / 9-class PR #2 is closed and must not be revived.
+The mutable production Release is resolved and verified at Android build time; do not restore or permanently pin an older classifier SHA.
 
 ## Runtime harness
 

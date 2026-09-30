@@ -1,52 +1,191 @@
 package com.yujian.ai.ui.designsystem.components
 
+import android.provider.Settings
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 
+enum class YuJianActionButtonVariant {
+    PRIMARY,
+    SECONDARY_STRONG,
+    SECONDARY_MUTED,
+    /** Compatibility tone used by the existing component gallery. */
+    BRAND_GOLD,
+}
+
+/** Compatibility for the original shared button call sites. */
 enum class YuJianPrimaryButtonTone {
     Lake,
     Gold,
 }
 
+/**
+ * Extended existing YuJianPrimaryButton with the frozen Action Button V1.1
+ * variants and runtime states. Auth and other page actions share this one
+ * implementation.
+ */
 @Composable
 fun YuJianPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    tone: YuJianPrimaryButtonTone = YuJianPrimaryButtonTone.Lake,
+    loading: Boolean = false,
+    variant: YuJianActionButtonVariant = YuJianActionButtonVariant.PRIMARY,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    tone: YuJianPrimaryButtonTone? = null,
 ) {
-    val container = when (tone) {
-        YuJianPrimaryButtonTone.Lake -> YuJianColors.LakeBlue
-        YuJianPrimaryButtonTone.Gold -> YuJianColors.MorningGold
+    val resolvedVariant = tone?.let {
+        when (it) {
+            YuJianPrimaryButtonTone.Lake -> YuJianActionButtonVariant.PRIMARY
+            YuJianPrimaryButtonTone.Gold -> YuJianActionButtonVariant.BRAND_GOLD
+        }
+    } ?: variant
+    val context = LocalContext.current
+    val animationsEnabled = remember(context) {
+        runCatching {
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            ) != 0f
+        }.getOrDefault(true)
     }
-    val content = when (tone) {
-        YuJianPrimaryButtonTone.Lake -> YuJianColors.OnDark
-        YuJianPrimaryButtonTone.Gold -> YuJianColors.DeepInk
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    var focused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && animationsEnabled) 0.985f else 1f,
+        animationSpec = tween(durationMillis = if (pressed) 90 else 120),
+        label = "YuJianPrimaryButtonScale",
+    )
+
+    val primary = YuJianColors.ActionPrimary
+    val content = when (resolvedVariant) {
+        YuJianActionButtonVariant.PRIMARY -> Color.White
+        YuJianActionButtonVariant.SECONDARY_STRONG -> YuJianColors.DeepLakeBlue
+        YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.MistBlueGray
+        YuJianActionButtonVariant.BRAND_GOLD -> YuJianColors.DeepLakeBlue
     }
+    val container = when (resolvedVariant) {
+        YuJianActionButtonVariant.PRIMARY ->
+            if (pressed) YuJianColors.ActionPrimaryPressed else primary
+        YuJianActionButtonVariant.SECONDARY_STRONG ->
+            if (pressed) Color(0xFFEAF3F1) else Color(0xE0F7FAFB)
+        YuJianActionButtonVariant.SECONDARY_MUTED ->
+            if (pressed) Color(0xE6F7FAFB) else Color(0x73F7FAFB)
+        YuJianActionButtonVariant.BRAND_GOLD ->
+            if (pressed) Color(0xFFE5C77C) else YuJianColors.MorningGold
+    }
+    val disabledContainer = when (resolvedVariant) {
+        YuJianActionButtonVariant.PRIMARY -> YuJianColors.PrimaryActionDisabledSurface
+        YuJianActionButtonVariant.SECONDARY_STRONG,
+        YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.ActionDisabledSurface
+        YuJianActionButtonVariant.BRAND_GOLD -> YuJianColors.MorningGold.copy(alpha = 0.48f)
+    }
+    val disabledContent = when (resolvedVariant) {
+        YuJianActionButtonVariant.PRIMARY -> YuJianColors.PrimaryActionDisabledContent
+        YuJianActionButtonVariant.SECONDARY_STRONG,
+        YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.ActionDisabledContent
+        YuJianActionButtonVariant.BRAND_GOLD -> YuJianColors.DeepLakeBlue.copy(alpha = 0.56f)
+    }
+    val borderColor = when {
+        focused -> YuJianColors.ActiveAccent
+        !enabled && !loading -> YuJianColors.ActionDisabledBorder
+        resolvedVariant == YuJianActionButtonVariant.PRIMARY -> Color.White.copy(alpha = 0.10f)
+        resolvedVariant == YuJianActionButtonVariant.SECONDARY_STRONG -> primary.copy(alpha = if (pressed) 0.36f else 0.26f)
+        resolvedVariant == YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.MistBlueGray.copy(alpha = 0.18f)
+        else -> YuJianColors.DeepLakeBlue.copy(alpha = 0.10f)
+    }
+    val shape = YuJianRadius.button
+    val shadow = when (resolvedVariant) {
+        YuJianActionButtonVariant.PRIMARY -> if (pressed) 1.4.dp else 2.dp
+        YuJianActionButtonVariant.SECONDARY_STRONG,
+        YuJianActionButtonVariant.BRAND_GOLD -> if (pressed) 0.7.dp else 1.dp
+        YuJianActionButtonVariant.SECONDARY_MUTED -> 0.dp
+    }
+    val interactive = enabled && !loading
+
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(YuJianSpacing.xxl),
-        enabled = enabled,
-        shape = YuJianRadius.button,
+            .height(YuJianSpacing.actionButtonHeight)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(shadow, shape = shape, clip = false)
+            .onFocusChanged { focused = it.isFocused },
+        enabled = interactive,
+        interactionSource = interactionSource,
+        shape = shape,
+        border = BorderStroke(1.dp, borderColor),
+        contentPadding = PaddingValues(horizontal = YuJianSpacing.md),
         colors = ButtonDefaults.buttonColors(
             containerColor = container,
             contentColor = content,
-            disabledContainerColor = container.copy(alpha = 0.48f),
-            disabledContentColor = content.copy(alpha = 0.56f),
+            disabledContainerColor = if (loading) container else disabledContainer,
+            disabledContentColor = if (loading) content else disabledContent,
         ),
     ) {
-        Text(text = text, style = YuJianTypography.buttonText.copy(color = content))
+        Box(contentAlignment = Alignment.Center) {
+            Row(
+                modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (leadingIcon != null) {
+                    leadingIcon()
+                    Spacer(Modifier.width(YuJianSpacing.xs))
+                }
+                Text(
+                    text = text,
+                    style = YuJianTypography.buttonText.copy(
+                        color = content,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                    maxLines = 1,
+                )
+            }
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    color = if (resolvedVariant == YuJianActionButtonVariant.PRIMARY) Color.White else primary,
+                    strokeWidth = 2.dp,
+                )
+            }
+        }
     }
 }

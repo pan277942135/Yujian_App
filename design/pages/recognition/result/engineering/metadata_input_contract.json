@@ -1,0 +1,93 @@
+{
+  "contract": "recognition_result_metadata_input",
+  "version": "V1",
+  "status": "FROZEN",
+  "metadata_strip": {
+    "height_dp": 72,
+    "radius_token": "YuJianRadius.medium",
+    "surface": "GLASS_A_light",
+    "fields": [
+      "length",
+      "weight",
+      "location"
+    ],
+    "dividers_dp": 1
+  },
+  "fields": {
+    "length": {
+      "label": "长度",
+      "empty": "添加",
+      "unit": "cm",
+      "range": [
+        0.1,
+        999.9
+      ],
+      "decimals": 1,
+      "keyboard": "decimal_numeric",
+      "optional": true,
+      "error": "请输入 0.1–999.9 cm 的长度"
+    },
+    "weight": {
+      "label": "重量",
+      "empty": "添加",
+      "unit": "kg",
+      "range": [
+        0.01,
+        999.99
+      ],
+      "decimals": 2,
+      "keyboard": "decimal_numeric",
+      "optional": true,
+      "error": "请输入 0.01–999.99 kg 的重量"
+    },
+    "location": {
+      "label": "地点",
+      "empty": "添加地点",
+      "max_codepoints": 40,
+      "single_line": true,
+      "optional": true,
+      "permission_request": "explicit_use_current_location_only"
+    }
+  },
+  "editor_sheet": {
+    "top_radius_dp": 28,
+    "horizontal_padding_dp": 24,
+    "top_padding_dp": 16,
+    "bottom_padding_dp": 24,
+    "input_min_height_dp": 56,
+    "primary_height_dp": 56
+  },
+  "note": {
+    "label": "留下本次鱼获感言",
+    "placeholder": "记录这一刻的感受…",
+    "height_dp": 80,
+    "focused_max_height_dp": 112,
+    "max_codepoints": 120,
+    "visible_lines": 3,
+    "multiline": true
+  },
+  "voice": {
+    "optional": true,
+    "hide_when_unavailable": true,
+    "component": "icon_action_v1/CONTEXT",
+    "touch_dp": 44,
+    "glyph_dp": [
+      18,
+      20
+    ],
+    "states": [
+      "Idle",
+      "Listening",
+      "Processing",
+      "Error",
+      "Disabled"
+    ]
+  },
+  "invariants": [
+    "metadata_optional",
+    "species_change_preserves_metadata",
+    "save_error_preserves_metadata",
+    "no_noop_voice",
+    "no_auto_location_permission"
+  ]
+}

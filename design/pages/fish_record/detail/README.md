@@ -38,3 +38,39 @@ Entry points:
 - 录制视频
 
 When entered from “保存并记录记忆”, scroll/focus to Memory without creating a separate enrichment page.
+
+## Frozen Overview behavior authority
+
+- Authority: `design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md`
+- Status: **FROZEN**
+- Freeze date: **2026-09-30**
+
+The Overview authority freezes the following product behavior:
+
+- A-side and B-side are two surfaces of the same FishRecordDetail.
+- B-side lifecycle is `NOT_GENERATED → GENERATING → READY / FAILED`.
+- The first READY B-side is automatically revealed **once per FishRecord**.
+- Generation success alone does not consume that reveal; the B-side must actually be presented.
+- After the first reveal, every later detail entry defaults to A-side.
+- Subsequent A ↔ B navigation is manual through the page-internal Flip Icon.
+- Flip Icon is visible only while B-side = `READY`.
+- Reduce Motion may change the transition treatment but not these state semantics.
+
+## B-side visual authority
+
+- Spec: `design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md`
+- Canonical target: `design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png`
+- Approved source: 941 × 1672 PNG / 2,095,527 bytes
+- Approved SHA-256: `c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b`
+- Freeze decision: **APPROVED**
+- Repository binary gate: canonical PNG must match the approved SHA exactly before Design Manager status changes to FROZEN.
+
+B-side visual rules:
+
+- preserve the A-side page shell, navigation, lower cards and FishRecord content;
+- Hero replaces the real person + fish capture scene with the same fish isolated in a calm water environment;
+- keep `草鱼`, `42.6 cm · 1.28 kg · 浙江 · 千岛湖`, and `编辑 >`;
+- add the READY-only page-internal Flip Icon at the Hero top-right;
+- do not add B面 / AI生成 / 数字鱼体 / 鱼体资产 labels;
+- first reveal and subsequent manual flip behavior remain governed by the frozen Overview authority.
+

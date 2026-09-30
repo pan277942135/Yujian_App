@@ -1,0 +1,69 @@
+{
+  "version": "1.1",
+  "status": "FROZEN",
+  "page_id": "normal_home_v1",
+  "canonical_reference": {
+    "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "classification": "REFERENCE_ONLY"
+  },
+  "runtime_media": [
+    {
+      "id": "recent_catch_photo",
+      "classification": "RUNTIME_MEDIA",
+      "source": "FishRecord"
+    },
+    {
+      "id": "user_avatar",
+      "classification": "RUNTIME_PROFILE_MEDIA",
+      "source": "Account profile"
+    },
+    {
+      "id": "default_profile_avatar",
+      "classification": "DESIGN_FROZEN_FALLBACK_RUNTIME_VECTOR",
+      "design_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+      "android_implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
+      "usage": "Logged-in Home account avatar when avatar media is absent or fails to load",
+      "guest_equivalent": false
+    }
+  ],
+  "shared_components": [
+    "YuJianCatchHeroCard/HOME",
+    "YuJianPrimaryCaptureButton"
+  ],
+  "runtime_asset_root": "app/src/main/assets/normal_home_runtime_v1/",
+  "registered_runtime_derivatives": [
+    "static/scene_base.png",
+    "camera/camera_button_base.png",
+    "camera/camera_gold_rim_mask.png",
+    "camera/camera_breath_glow.png",
+    "avatar/guest_avatar.png",
+    "fish_card/fish_card_gradient.png",
+    "fish_card/fish_card_outline.png",
+    "fish_card/fish_card_shadow.png"
+  ],
+  "background": {
+    "classification": "REGISTERED_SYSTEM_MASTER",
+    "system_role": "BG_ENV_HERO",
+    "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+    "dimensions": [
+      941,
+      1672
+    ],
+    "runtime_output": "app/src/main/assets/normal_home_runtime_v1/static/scene_base.png",
+    "runtime_output_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+    "transform_policy": "byte-identical copy; Android ContentScale.Crop performs centered viewport crop without source rewrite",
+    "independent_master_registered": true,
+    "policy": "Frozen page PNG remains composition authority; the Morning Lake master is the background bitmap authority. No screenshot crop or visual reinterpretation."
+  },
+  "forbidden": [
+    "hardcoded frozen catch photo",
+    "hardcoded frozen user avatar",
+    "screenshot-derived shared card bitmap",
+    "screenshot-derived Morning Lake master",
+    "page-local fork of shared capture button",
+    "use guest avatar as logged-in default profile avatar",
+    "use initials/random colors/generated faces as Normal Home default avatar"
+  ]
+}

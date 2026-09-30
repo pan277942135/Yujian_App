@@ -1,0 +1,186 @@
+{
+  "contract": "recognition_result_hero_media",
+  "version": "V1",
+  "status": "FROZEN",
+  "scope": "Recognition Result 3+2 dynamic user-photo placement",
+  "authority": {
+    "markdown": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+    "numeric_authority": true,
+    "frozen_page_references": "design/pages/recognition/design/reference_manifest.json"
+  },
+  "principle_order": [
+    "fish_integrity",
+    "real_catch_context",
+    "stable_hero_composition",
+    "fill_efficiency"
+  ],
+  "display_source": {
+    "source": "original_user_photo_after_orientation_normalization",
+    "prohibited_sources": [
+      "detector_crop",
+      "classifier_crop",
+      "generated_fish_cutout",
+      "fish_guide_artwork",
+      "b_side_asset",
+      "screenshot_replacement"
+    ],
+    "allowed_transforms": [
+      "orientation",
+      "mirror_if_exif_requires",
+      "scale",
+      "translate",
+      "crop",
+      "clip_to_hero_shape"
+    ],
+    "prohibited_transforms": [
+      "generative_expand",
+      "outpaint",
+      "object_removal",
+      "background_replacement",
+      "ai_retouch",
+      "beauty_filter",
+      "photo_color_grading",
+      "synthetic_sharpen",
+      "photo_background_blur",
+      "ken_burns"
+    ]
+  },
+  "state_modes": {
+    "RESULT_HIGH": {
+      "policy": "SUBJECT_FIRST",
+      "bbox_guidance": true,
+      "preferred_mode": "SUBJECT_CROP_FILL",
+      "fallback": "SUBJECT_SAFE_FIT"
+    },
+    "RESULT_MEDIUM": {
+      "policy": "SUBJECT_FIRST",
+      "bbox_guidance": true,
+      "preferred_mode": "SUBJECT_CROP_FILL",
+      "fallback": "SUBJECT_SAFE_FIT"
+    },
+    "RESULT_LOW": {
+      "policy": "SUBJECT_FIRST",
+      "bbox_guidance": true,
+      "preferred_mode": "SUBJECT_CROP_FILL",
+      "fallback": "SUBJECT_SAFE_FIT"
+    },
+    "ERROR_NO_FISH": {
+      "policy": "EVIDENCE_FIRST",
+      "bbox_guidance": false,
+      "mode": "EVIDENCE_FIT"
+    },
+    "ERROR_IMAGE_QUALITY": {
+      "policy": "EVIDENCE_FIRST",
+      "bbox_guidance": false,
+      "mode": "EVIDENCE_FIT"
+    }
+  },
+  "bbox": {
+    "coordinate_space": "oriented_source_top_left",
+    "must_match_source": true,
+    "invalid_fallback": "SUBJECT_SAFE_FIT",
+    "source_edge_threshold_fraction": 0.02
+  },
+  "fish_safe_rect": {
+    "expand_each_side_fraction_of_bbox": {
+      "left": 0.14,
+      "right": 0.14,
+      "top": 0.18,
+      "bottom": 0.18
+    },
+    "clamp_to_source": true
+  },
+  "visual_safety": {
+    "min_rectangular_inset_dp": 12,
+    "rounded_corner_risk_must_be_respected": true,
+    "source_clipped_edge_additional_crop": false
+  },
+  "subject_crop_fill": {
+    "content_scale": "crop",
+    "requirements": [
+      "trustworthy_bbox",
+      "fish_safe_rect_fully_contained",
+      "fish_safe_rect_respects_12dp_inset",
+      "rounded_corner_safety",
+      "source_clipped_edges_preserved"
+    ],
+    "on_failure": "SUBJECT_SAFE_FIT"
+  },
+  "subject_safe_fit": {
+    "content_scale": "fit",
+    "whole_source_visible": true,
+    "support_surface": "GLASS_A over BG_CONTENT",
+    "blurred_photo_support": false
+  },
+  "evidence_fit": {
+    "content_scale": "fit",
+    "whole_source_visible": true,
+    "bbox_ignored": true,
+    "support_surface": "GLASS_A over BG_CONTENT",
+    "blurred_photo_support": false
+  },
+  "decode": {
+    "minimum_target": "physical_rendered_hero_viewport_pixels",
+    "preferred_oversample_factor": 1.25,
+    "do_not_exceed_source_native_for_detail": true,
+    "ai_upscale": false,
+    "overwrite_original": false
+  },
+  "occupancy_guidance": {
+    "metric": "fish_bbox_visible_area_share_of_hero",
+    "preferred": [
+      0.45,
+      0.7
+    ],
+    "acceptable_soft": [
+      0.35,
+      0.8
+    ],
+    "hard_gate": false
+  },
+  "motion": {
+    "processing_to_result_fade_ms": 200,
+    "post_entry_crop_animation": false,
+    "late_bbox_policy": "keep_safe_fit_stable_for_current_page_session"
+  },
+  "hard_acceptance": {
+    "subject_states": {
+      "fish_bbox_rect_coverage": 1,
+      "fish_safe_rect_rect_coverage": 1,
+      "fish_safe_rect_visible_after_mask_min": 0.98,
+      "no_source_clipped_edge_additional_crop": true,
+      "original_photo_display_source": true,
+      "blurred_photo_support": false,
+      "no_post_entry_crop_jump": true
+    },
+    "recovery_states": {
+      "full_oriented_source_coverage": 1,
+      "content_scale": "fit",
+      "bbox_crop": false,
+      "blurred_photo_support": false
+    },
+    "all_states": {
+      "orientation_correct": true,
+      "stretch": false,
+      "generative_modification": false,
+      "stable_outer_hero_geometry": true
+    }
+  },
+  "test_matrix": [
+    "portrait_9_16_centered_bbox",
+    "portrait_9_16_edge_bbox",
+    "landscape_16_9_long_fish",
+    "square_1_1",
+    "extreme_landscape_panorama",
+    "tall_narrow",
+    "bbox_touching_source_edge",
+    "source_already_clips_fish",
+    "invalid_or_missing_bbox_subject_state",
+    "no_fish_wide_scene",
+    "image_quality_blur_or_occlusion",
+    "exif_90_rotation",
+    "mirrored_orientation_metadata",
+    "low_resolution_source",
+    "dark_night_source"
+  ]
+}

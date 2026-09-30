@@ -9,6 +9,10 @@
   "runtime_contract": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
   "acceptance_contract": "design/pages/recognition/spec/Recognition_Acceptance_Criteria_V1_1.md",
   "evidence_contract": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md",
+  "result_package": "design/pages/recognition/result/DESIGN_PACKAGE_CLOSURE_V1.md",
+  "result_state_model": "3+2",
+  "result_design_frozen": true,
+  "result_runtime_alignment": "NEEDS_CLOSURE",
   "api28_runtime_gate": "PASS",
   "design_closure": "V1.1",
   "verified_ci": {

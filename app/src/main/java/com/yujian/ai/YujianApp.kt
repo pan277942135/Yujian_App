@@ -84,6 +84,7 @@ import com.yujian.ai.ui.recorddetail.FishRecordDetailScreen
 import com.yujian.ai.ui.recorddetail.FishRecordDetailRoute
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -93,6 +94,8 @@ private data class CatchArchiveState(
     val statistics: CatchStatistics = CatchStatistics(),
     val loading: Boolean = false,
     val error: String? = null,
+    val resolved: Boolean = false,
+    val ownerKey: String? = null,
 )
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
@@ -233,18 +236,30 @@ fun YujianApp() {
     }
     LaunchedEffect(session?.accessToken, catchReload, guestMigrationPending) {
         val active = session
-        catchesState = catchesState.copy(loading = true, error = null)
+        val archiveOwnerKey = active?.userId ?: "guest:$guestId"
+        catchesState = if (catchesState.ownerKey == archiveOwnerKey) {
+            catchesState.copy(loading = true, error = null)
+        } else {
+            CatchArchiveState(loading = true, ownerKey = archiveOwnerKey)
+        }
         runCatching {
             if (active == null || guestMigrationPending) {
                 val local = guestCatchRepository.listCatches()
                 CatchArchiveState(
                     catches = local,
                     statistics = guestCatchRepository.statistics(local),
+                    resolved = true,
+                    ownerKey = archiveOwnerKey,
                 )
             } else {
+                val records = catchRepository.listCatches(active.accessToken)
+                val statistics = runCatching { catchRepository.statistics(active.accessToken) }
+                    .getOrDefault(CatchStatistics())
                 CatchArchiveState(
-                    catches = catchRepository.listCatches(active.accessToken),
-                    statistics = catchRepository.statistics(active.accessToken),
+                    catches = records,
+                    statistics = statistics,
+                    resolved = true,
+                    ownerKey = archiveOwnerKey,
                 )
             }
         }.onSuccess { catchesState = it }
@@ -278,33 +293,32 @@ fun YujianApp() {
                         loading = authLoading,
                         error = authError,
                         onLogin = { username, password ->
+                            if (authLoading) return@LoginV2Screen
+                            authLoading = true
+                            authError = null
                             scope.launch {
-                                authLoading = true
-                                authError = null
-                                runCatching { authRepository.login(username, password) }
-                                    .onSuccess { loggedIn ->
-                                        sessionManager.save(loggedIn)
-                                        session = loggedIn
-                                        adoptGuestArchive(loggedIn)
-                                        authLoading = false
-                                        nav.navigate("home") {
-                                            popUpTo("auth/login") { inclusive = true }
-                                            launchSingleTop = true
-                                        }
+                                try {
+                                    val loggedIn = authRepository.login(username, password)
+                                    sessionManager.save(loggedIn)
+                                    session = loggedIn
+                                    adoptGuestArchive(loggedIn)
+                                    nav.navigate("home") {
+                                        popUpTo("auth/login") { inclusive = true }
+                                        launchSingleTop = true
                                     }
-                                    .onFailure { error ->
-                                        authLoading = false
-                                        authError = authErrorMessage(error, "登录失败，请稍后重试")
-                                    }
+                                } catch (error: CancellationException) {
+                                    throw error
+                                } catch (error: Exception) {
+                                    authError = authErrorMessage(error, "登录遇到暂未识别的问题，请稍后重试")
+                                } finally {
+                                    authLoading = false
+                                }
                             }
                         },
                         onRegister = { authError = null; nav.navigate("register") },
-                        onForgotPassword = {
-                            if (!AccountPrivacyCapabilities.forgotPasswordEnabled) {
-                                comingSoon = ComingSoonKind.FORGOT_PASSWORD
-                            }
-                        },
+                        onForgotPassword = { comingSoon = ComingSoonKind.FORGOT_PASSWORD },
                         onBack = { nav.popBackStack() },
+                        onFieldEdited = { if (authError != null) authError = null },
                     )
                 }
                 composable("register") {
@@ -312,33 +326,50 @@ fun YujianApp() {
                         loading = authLoading,
                         error = authError,
                         onRegister = { username, password, nickname ->
+                            if (authLoading) return@RegisterV2Screen
+                            authLoading = true
+                            authError = null
                             scope.launch {
-                                authLoading = true
-                                authError = null
-                                runCatching {
+                                var accountCreated = false
+                                try {
                                     authRepository.register(username, password, nickname)
-                                    authRepository.login(username, password)
-                                }.onSuccess { registered ->
+                                    accountCreated = true
+                                    val registered = authRepository.login(username, password)
                                     sessionManager.save(registered)
                                     session = registered
                                     adoptGuestArchive(registered)
+                                    nav.navigate("home") {
+                                        popUpTo("auth/login") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                } catch (error: CancellationException) {
+                                    throw error
+                                } catch (error: Exception) {
+                                    if (accountCreated) {
+                                        authError = "账号已创建，但自动登录未完成：${authErrorMessage(error, "请使用该账号登录")}"
+                                        nav.popBackStack()
+                                    } else {
+                                        authError = authErrorMessage(error, "注册遇到暂未识别的问题，请稍后重试")
+                                    }
+                                } finally {
                                     authLoading = false
-                                    nav.navigate("home") { popUpTo("login") { inclusive = true } }
-                                }.onFailure { error ->
-                                    authLoading = false
-                                    authError = authErrorMessage(error, "注册失败，请稍后重试")
                                 }
                             }
                         },
                         onBackToLogin = { authError = null; nav.popBackStack() },
+                        onFieldEdited = { if (authError != null) authError = null },
                     )
                 }
                 composable("home") {
                     val active = session
                     // The Home state is derived only from fish records. Login,
                     // loading, and server statistics never select Empty/Normal.
-                    val emptyHome = resolveHomeState(catchesState.catches) == HomeState.EMPTY
-                    HomeScreen(
+                    val resolvedHomeState = resolveHomeState(catchesState.catches, catchesState.resolved)
+                    if (resolvedHomeState == null) {
+                        // Keep the launch surface neutral until the archive resolves.
+                        // In particular, an initial loading/error is not an empty archive.
+                        Box(Modifier.fillMaxSize())
+                    } else HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
                         recentCatches = catchesState.catches,
@@ -348,13 +379,12 @@ fun YujianApp() {
                         accessToken = active?.accessToken.orEmpty(),
                         isLoggedIn = active != null,
                         avatarUrl = active?.avatarUrl,
-                        showEmptyState = emptyHome,
+                        showEmptyState = resolvedHomeState == HomeState.EMPTY,
                         onIdentify = { nav.navigate("identify") },
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
-                        onRecordDaysClick = { },
                         onProfileClick = { if (active == null) nav.navigate("auth/login") else nav.navigate("my") },
                         onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
                     )
@@ -487,6 +517,7 @@ fun YujianApp() {
                         RecognitionResultScreen(
                             image = sessionImage,
                             prediction = currentPrediction,
+                            selectableSpecies = guideSpecies,
                             productionResult = productionResult,
                             subjectResult = subjectResult,
                             subjectModelState = subjectModelState,
@@ -578,18 +609,24 @@ fun YujianApp() {
                 }
                 composable("guide") {
                     FishGuideHomeScreen(
-                        species = guideSpecies,
+                        species = guideSpecies.withSavedCatchState(catchesState.catches),
                         loading = guideLoading,
                         offlinePreview = guideOfflinePreview,
                         error = guideError,
                         resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
+                        onBack = { nav.popBackStack() },
                         onRetry = { guideRetry++ },
                         onSpeciesClick = { fish -> nav.navigate("species/${Uri.encode(fish.id)}") },
                     )
                 }
                 composable("species/{key}", arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
                     val key = entry.arguments?.getString("key") ?: "grass_carp"
-                    val fallback = guideSpecies.firstOrNull { it.id == key } ?: localGuideItems().firstOrNull { it.id == key }
+                    val fallback = guideSpecies
+                        .withSavedCatchState(catchesState.catches)
+                        .firstOrNull { it.id == key }
+                        ?: localGuideItems()
+                            .withSavedCatchState(catchesState.catches)
+                            .firstOrNull { it.id == key }
                     var detail by remember(key) { mutableStateOf<FishKnowledgeDetail?>(null) }
                     var detailLoading by remember(key) { mutableStateOf(true) }
                     var detailOfflinePreview by remember(key) { mutableStateOf(false) }
@@ -764,8 +801,8 @@ private fun localGuideItems(): List<FishGuideItem> = DemoData.species.map { fish
         aliases = fish.aliases.split("、").map(String::trim).filter(String::isNotBlank),
         category = fish.category,
         summary = fish.description,
-        discovered = fish.discovered,
-        catches = fish.catches,
+        discovered = false,
+        catches = 0,
     )
 }
 
@@ -776,15 +813,48 @@ private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
         item.copy(
             aliases = localItem?.aliases ?: item.aliases,
             category = item.category.ifBlank { localItem?.category.orEmpty() },
-            discovered = localItem?.discovered ?: false,
-            catches = localItem?.catches ?: 0,
+            discovered = false,
+            catches = 0,
         )
     }
 }
 
-private fun authErrorMessage(error: Throwable, fallback: String): String = when ((error as? ApiException)?.statusCode) {
-    401 -> "账号或密码错误"
-    409 -> "账号已存在"
-    422 -> "账号、密码或昵称格式不符合要求"
-    else -> error.message?.takeIf(String::isNotBlank) ?: fallback
+private fun List<FishGuideItem>.withSavedCatchState(catches: List<RemoteCatch>): List<FishGuideItem> {
+    val bySpeciesId = catches.groupBy { it.speciesId.trim().lowercase() }
+    val bySpeciesName = catches.groupBy { it.speciesName.trim().lowercase() }
+    return map { species ->
+        val savedRecords = bySpeciesId[species.id.trim().lowercase()]
+            ?: bySpeciesName[species.nameCn.trim().lowercase()]
+            ?: emptyList()
+        species.copy(
+            discovered = savedRecords.isNotEmpty(),
+            catches = savedRecords.size,
+        )
+    }
+}
+
+private fun authErrorMessage(error: Throwable, fallback: String): String {
+    val apiError = error as? ApiException
+    return when {
+        apiError?.statusCode == 401 -> "账号或密码错误"
+        apiError?.statusCode == 409 -> "账号已存在"
+        apiError?.statusCode == 400 || apiError?.statusCode == 422 -> "账号、密码或昵称格式不符合要求"
+        apiError?.statusCode == 408 -> "网络响应超时，请检查网络后重试"
+        apiError?.statusCode == 429 -> "请求过于频繁，请稍后重试"
+        apiError != null && apiError.statusCode >= 500 -> "服务暂时不可用，请稍后重试"
+        apiError != null -> "提交的信息暂时无法处理，请检查后重试"
+        error.causes().any {
+            it is java.net.UnknownHostException ||
+                it is java.net.SocketTimeoutException ||
+                it is java.net.ConnectException ||
+                it is java.net.SocketException ||
+                it is javax.net.ssl.SSLException
+        } ->
+            "网络连接失败，请检查网络后重试"
+        else -> fallback
+    }
+}
+
+private fun Throwable.causes(): Sequence<Throwable> = generateSequence(this) { current ->
+    current.cause?.takeUnless { it === current }
 }

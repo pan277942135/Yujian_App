@@ -49,13 +49,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.feedback.FeedbackDraft
+import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.model.DemoData
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -77,6 +78,7 @@ import java.util.Locale
 fun RecognitionResultScreen(
     image: SelectedImage?,
     prediction: RecognitionPrediction,
+    selectableSpecies: List<FishGuideItem> = emptyList(),
     productionResult: ProductionRecognitionResult? = null,
     subjectResult: FishSubjectResult = FishSubjectResult(SubjectStatus.IDLE),
     subjectModelState: SubjectModelState = SubjectModelState(),
@@ -115,10 +117,13 @@ fun RecognitionResultScreen(
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date())
     }
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
-    val species = remember {
-        FishRecognitionEngine.MODEL_LABELS.mapIndexed { index, label ->
-            RecognitionCandidate(index, label.first, label.second, 0f)
+    val species = remember(selectableSpecies) {
+        val source = selectableSpecies.ifEmpty {
+            DemoData.species.map { fish ->
+                FishGuideItem(id = fish.key, nameCn = fish.name, aliases = fish.aliases.split("、"))
+            }
         }
+        source.filter { it.id.isNotBlank() && it.nameCn.isNotBlank() }.distinctBy { it.id }
     }
 
     Box(Modifier.fillMaxSize().background(WarmBackground)) {
@@ -264,9 +269,9 @@ fun RecognitionResultScreen(
         FishSpeciesSelectorDialog(
             species = species,
             selectedKey = selectedKey,
-            onSelect = { candidate ->
-                selectedKey = candidate.speciesKey
-                selectedName = candidate.speciesName
+            onSelect = { fish ->
+                selectedKey = fish.id
+                selectedName = fish.nameCn
                 selectorVisible = false
             },
             onDismiss = { selectorVisible = false },
@@ -414,9 +419,9 @@ private fun DetailRow(label: String, value: String) {
 
 @Composable
 private fun FishSpeciesSelectorDialog(
-    species: List<RecognitionCandidate>,
+    species: List<FishGuideItem>,
     selectedKey: String,
-    onSelect: (RecognitionCandidate) -> Unit,
+    onSelect: (FishGuideItem) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -430,9 +435,9 @@ private fun FishSpeciesSelectorDialog(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (selectedKey == candidate.speciesKey) SoftWater else Color.Transparent,
+                            containerColor = if (selectedKey == candidate.id) SoftWater else Color.Transparent,
                         ),
-                    ) { Text(candidate.speciesName, color = DeepInk) }
+                    ) { Text(candidate.nameCn, color = DeepInk) }
                 }
             }
         },

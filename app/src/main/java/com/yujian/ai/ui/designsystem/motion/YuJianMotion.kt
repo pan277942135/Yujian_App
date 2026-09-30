@@ -21,7 +21,8 @@ import androidx.compose.runtime.Composable
  *
  * This foundation intentionally provides primitives for InfiniteTransition,
  * Animatable, and AnimatedVisibility. Page-wide entrance motion is not used in
- * V1; only capture, glass interaction, and press feedback consume it.
+ * V1; capture, glass interaction, press feedback, and the one-time Fish Guide
+ * discover hint consume these values.
  */
 object YuJianMotion {
     const val CaptureRimSweepFirstDelayMillis = 3_000
@@ -31,6 +32,10 @@ object YuJianMotion {
     const val CaptureBreathingMaxScale = 1.015f
     const val PressFeedbackDurationMillis = 140
     const val GlassInteractionDurationMillis = 180
+    const val CarouselDiscoverHintDelayMillis = 600
+    const val CarouselDiscoverHintOffsetDp = 14f
+    const val CarouselDiscoverHintOutDurationMillis = 180
+    const val CarouselDiscoverHintReturnDurationMillis = 260
 
     val calmEasing = FastOutSlowInEasing
 

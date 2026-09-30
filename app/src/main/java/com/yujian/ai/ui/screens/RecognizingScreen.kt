@@ -37,10 +37,13 @@ import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
+import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
+import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
+import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
@@ -79,6 +82,8 @@ fun RecognitionProcessingScene(
     phaseOverride: RecognitionPhase? = null, visualClockOverrideMs: Long? = null,
     onVisualPhasePresented: (RecognitionPhase, Long) -> Unit = { _, _ -> },
     motionPolicyOverride: RecognitionMotionPolicy? = null,
+    onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
+    onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -143,11 +148,6 @@ fun RecognitionProcessingScene(
                     Log.i(LOG_TAG, "visual phase $visualPhase -> $nextVisualPhase real=$realPhase")
                     visualPhase = nextVisualPhase
                 }
-                if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true) {
-                    delivered = true
-                    Log.i(LOG_TAG, "delivering RESULT ready=true")
-                    onFinished(requireNotNull(finishedResult))
-                }
                 delay(16L)
             }
         } finally {
@@ -162,33 +162,55 @@ fun RecognitionProcessingScene(
     LaunchedEffect(visualPhase, image?.imageId, phaseOverride) {
         if (phaseOverride == null) {
             // Observe what Compose actually presents, independently from the
-            // fast detector/classifier callback cadence. Tests use this
-            // read-only hook for timing; production behavior is unchanged.
-            onVisualPhasePresented(visualPhase, SystemClock.elapsedRealtime())
+            // fast detector/classifier callback cadence. Deliver RESULT only
+            // after the new state reaches Compose presentation.
+            val presentedAtMs = SystemClock.elapsedRealtime()
+            onVisualPhasePresented(visualPhase, presentedAtMs)
+            if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true && !delivered) {
+                delivered = true
+                Log.i(LOG_TAG, "delivering RESULT after presentation")
+                onFinished(requireNotNull(finishedResult))
+            }
         }
     }
 
     val rendered = phaseOverride ?: visualPhase
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     val resolveProgress = if (phaseOverride != null) 0f else controller.resolveProgress(visualNowMs)
+    val resolveActive = phaseOverride == null && controller.isResolveActive(visualNowMs)
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
-            val levelA = subjectBitmap != null && subjectBox != null && contour.isNotEmpty() && !motionPolicy.lowPerformance
-            logFocusDiagnostic(subjectResult, contour.size, assessment?.primary?.box, motionPolicy.lowPerformance, motionPolicy.reduceMotion, levelA)
+            val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
+            logFocusDiagnostic(
+                subject = subjectResult,
+                contourSegments = contour.size,
+                box = assessment?.primary?.box,
+                lowPerformance = motionPolicy.lowPerformance,
+                reduceMotion = motionPolicy.reduceMotion,
+                focusLevel = motionPolicy.fishFocusLevel,
+                levelAAvailable = levelAAvailable,
+            )
         }
     }
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockOverrideMs, phaseElapsedMs, resolveProgress, motionPolicy, Modifier.fillMaxSize(),
+            visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
+            onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(top = 18.dp, start = 12.dp)) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
         }
         RecognitionStatusOverlay(
             rendered,
-            Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = if (rendered == RecognitionPhase.DETECTING) 84.dp else 34.dp),
+            Modifier.align(Alignment.BottomCenter).padding(
+                horizontal = 24.dp,
+                vertical = if (
+                    rendered == RecognitionPhase.CAPTURED ||
+                    rendered == RecognitionPhase.DETECTING
+                ) 84.dp else 34.dp,
+            ),
             resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
         )
@@ -199,10 +221,17 @@ fun RecognitionProcessingScene(
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
-    phaseElapsedMs: Long, resolveProgress: Float, motionPolicy: RecognitionMotionPolicy, modifier: Modifier,
+    phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
+    onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
+    onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
     val transform = calculateRecognitionImageTransform(with(density) { maxWidth.toPx() }, with(density) { maxHeight.toPx() }, bitmap.width, bitmap.height)
+    if (onFishFocusTransform != null) {
+        LaunchedEffect(transform, onFishFocusTransform) {
+            onFishFocusTransform(transform)
+        }
+    }
     // The captured image is opaque on the first Recognition frame; only visual overlays animate.
     Image(bitmap.asImageBitmap(), "正在识别的鱼获照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
     RecognitionAmbientField(
@@ -210,12 +239,16 @@ private fun RecognitionPhoto(
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
         resolveProgress = resolveProgress,
+        resolveActive = resolveActive,
+        qualityLevel = motionPolicy.qualityLevel,
+        onMotionFrame = onMotionFrame,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
         visualClockOverrideMs, phaseElapsedMs, resolveProgress,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
+        focusLevel = motionPolicy.fishFocusLevel,
     )
 }
 
@@ -250,12 +283,14 @@ private fun logFocusDiagnostic(
     box: NormalizedFishBox?,
     lowPerformance: Boolean,
     reduceMotion: Boolean,
-    levelA: Boolean = false,
+    focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
+    levelAAvailable: Boolean = false,
 ) {
     val bbox = box?.normalized()
     val mode = when {
-        levelA -> "LEVEL_A"
-        lowPerformance -> "LEVEL_B_LOW_PERF"
+        focusLevel == RecognitionFishFocusLevel.C -> "LEVEL_C"
+        focusLevel == RecognitionFishFocusLevel.B -> "LEVEL_B"
+        levelAAvailable -> "LEVEL_A"
         else -> "LEVEL_B"
     }
     Log.i(
@@ -263,7 +298,8 @@ private fun logFocusDiagnostic(
         "SUBJECT_STATUS=${subject.status} SUBJECT_QUALITY=${subject.quality ?: "UNKNOWN"} " +
             "SUBJECT_MASK_AREA=${subject.maskAreaRatio} SUBJECT_WIDTH=${subject.width} " +
             "SUBJECT_HEIGHT=${subject.height} CONTOUR_SEGMENTS=$contourSegments " +
-            "FOCUS_RENDER_MODE=$mode REAL_BBOX=${bbox?.x1 ?: "NONE"},${bbox?.y1 ?: "NONE"}," +
+            "FOCUS_RENDER_MODE=$mode FOCUS_LEVEL_REQUESTED=${focusLevel.name} " +
+            "REAL_BBOX=${bbox?.x1 ?: "NONE"},${bbox?.y1 ?: "NONE"}," +
             "${bbox?.x2 ?: "NONE"},${bbox?.y2 ?: "NONE"} LOW_PERFORMANCE=$lowPerformance " +
             "REDUCE_MOTION=$reduceMotion",
     )

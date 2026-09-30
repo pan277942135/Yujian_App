@@ -1,10 +1,12 @@
 package com.yujian.ai.ui.designsystem.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,8 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.Text
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.haptic.rememberYuJianHaptic
@@ -28,6 +35,12 @@ enum class YuJianHeroVariant {
     HOME,
     DETAIL,
 }
+
+data class YuJianHeroDecoration(
+    val shadow: ImageBitmap? = null,
+    val gradient: ImageBitmap? = null,
+    val outline: ImageBitmap? = null,
+)
 
 private val HomeHeroHeight = 220.dp
 private val DetailHeroHeight = 320.dp
@@ -44,32 +57,43 @@ fun YuJianHeroCard(
     metadata: List<String>,
     variant: YuJianHeroVariant,
     modifier: Modifier = Modifier,
+    heightOverride: androidx.compose.ui.unit.Dp? = null,
+    contentInsetHorizontal: Dp = 0.dp,
+    contentInsetVertical: Dp = 0.dp,
+    footerPadding: Dp = YuJianSpacing.md,
     editLabel: String? = if (variant == YuJianHeroVariant.DETAIL) "编辑 >" else null,
     onClick: (() -> Unit)? = null,
+    semanticsTag: String? = null,
+    decoration: YuJianHeroDecoration = YuJianHeroDecoration(),
+    footerContent: (@Composable ColumnScope.() -> Unit)? = null,
     media: @Composable BoxScope.() -> Unit = { YuJianHeroPlaceholder() },
 ) {
     val haptic = rememberYuJianHaptic()
     val interactionModifier = if (onClick != null) {
         Modifier.clickable {
-            haptic.performCardClick()
+            if (variant == YuJianHeroVariant.DETAIL) haptic.performCardClick()
             onClick()
         }
     } else {
         Modifier
     }
-    val height = if (variant == YuJianHeroVariant.HOME) HomeHeroHeight else DetailHeroHeight
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(YuJianRadius.heroCard)
-            .then(interactionModifier),
-    ) {
-        media()
+    val tagModifier = semanticsTag?.let { Modifier.testTag(it) } ?: Modifier
+    val height = heightOverride ?: if (variant == YuJianHeroVariant.HOME) HomeHeroHeight else DetailHeroHeight
+    Box(modifier = modifier.fillMaxWidth().height(height).then(interactionModifier).then(tagModifier)) {
+        decoration.shadow?.let { shadow ->
+            Image(shadow, null, Modifier.fillMaxSize().alpha(0.48f), contentScale = ContentScale.FillBounds)
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
+                .padding(horizontal = contentInsetHorizontal, vertical = contentInsetVertical)
+                .clip(YuJianRadius.heroCard),
+        ) {
+            media()
+            decoration.gradient?.let { gradient ->
+                Image(gradient, null, Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
+            } ?: Box(
+                modifier = Modifier.fillMaxSize().background(
                     Brush.verticalGradient(
                         colors = listOf(
                             YuJianColors.DeepOverlay.copy(alpha = 0f),
@@ -78,29 +102,33 @@ fun YuJianHeroCard(
                         ),
                     ),
                 ),
-        )
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(YuJianSpacing.md),
-        ) {
-            Text(text = title, style = YuJianTypography.heroTitle)
-            if (metadata.isNotEmpty()) {
+            )
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart).padding(footerPadding),
+            ) {
+                if (footerContent != null) {
+                    footerContent()
+                } else {
+                    Text(text = title, style = YuJianTypography.heroTitle)
+                    if (metadata.isNotEmpty()) {
+                        Text(
+                            text = metadata.joinToString(separator = " · "),
+                            style = YuJianTypography.caption.copy(color = YuJianColors.OnDark),
+                            modifier = Modifier.padding(top = YuJianSpacing.xs),
+                        )
+                    }
+                }
+            }
+            if (editLabel != null) {
                 Text(
-                    text = metadata.joinToString(separator = " · "),
+                    text = editLabel,
                     style = YuJianTypography.caption.copy(color = YuJianColors.OnDark),
-                    modifier = Modifier.padding(top = YuJianSpacing.xs),
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(footerPadding),
                 )
             }
         }
-        if (editLabel != null) {
-            Text(
-                text = editLabel,
-                style = YuJianTypography.caption.copy(color = YuJianColors.OnDark),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(YuJianSpacing.md),
-            )
+        decoration.outline?.let { outline ->
+            Image(outline, null, Modifier.fillMaxSize().alpha(0.72f), contentScale = ContentScale.FillBounds)
         }
     }
 }
