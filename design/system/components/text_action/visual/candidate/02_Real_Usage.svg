@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="780" viewBox="0 0 1320 780"><defs>
+<style>
+.bg{fill:#F7FAFB}.card{fill:#FFF;stroke:#E2EBE8;stroke-width:2}.media{fill:#294B5E}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#18343A}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#71868B}
+.k{font-size:15px;font-weight:800;fill:#71868B;letter-spacing:1px}
+.meta{font-size:14px;font-weight:500;fill:#7A8F93}.strong{font-size:26px;font-weight:600;fill:#168B88}
+.normal{font-size:28px;font-weight:500;fill:#0F7A78}.muted{font-size:26px;font-weight:500;fill:#748897}
+.onmedia{font-size:28px;font-weight:500;fill:#F7FAFB}.state{font-size:16px;font-weight:800;fill:#71868B;text-anchor:middle}
+.note{font-size:14px;font-weight:500;fill:#61777C}
+</style>
+<filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0B2D4B" flood-opacity=".24"/></filter>
+</defs><rect class="bg" width="1320" height="780"/><text x="60" y="66" class="t title">02 · 真实页面用法</text><text x="60" y="98" class="t sub">只展示仓库里已有或已定稿的 Text Action</text><rect x="70" y="145" width="570" height="250" rx="24" class="card"/>
+<text x="105" y="188" class="t k">AUTH · LIGHT</text>
+<text x="105" y="248" class="t meta">还没有账号？</text><text x="255" y="248" class="t strong">创建账号</text>
+<text x="105" y="305" class="t meta">已有账号？</text><text x="235" y="305" class="t strong">去登录</text>
+<text x="455" y="352" class="t muted">忘记密码？</text>
+
+<rect x="680" y="145" width="570" height="250" rx="24" class="card"/>
+<text x="715" y="188" class="t k">RECOGNITION RESULT · LIGHT</text>
+<text x="715" y="265" class="t" style="font-size:42px;font-weight:700">草鱼</text>
+<text x="1040" y="263" class="t normal">修改鱼种</text><path d="M1165 246 l7 7 l-7 7" fill="none" stroke="#0F7A78" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+<rect x="70" y="430" width="570" height="250" rx="24" class="media"/>
+<text x="105" y="474" class="t k" fill="#DDE9E7">NORMAL HOME · ON_MEDIA</text>
+<text x="105" y="555" class="t onmedia" filter="url(#shadow)">最近鱼获</text>
+<text x="485" y="555" class="t onmedia" filter="url(#shadow)">全部</text><path d="M545 538 l7 7 l-7 7" fill="none" stroke="#DCE8E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+<rect x="680" y="430" width="570" height="250" rx="24" class="media"/>
+<text x="715" y="474" class="t k" fill="#DDE9E7">FISH RECORD DETAIL · ON_MEDIA</text>
+<text x="715" y="555" class="t onmedia" filter="url(#shadow)">草鱼 · 46cm · 2.1kg</text>
+<text x="1080" y="625" class="t onmedia" filter="url(#shadow)">编辑</text><path d="M1140 608 l7 7 l-7 7" fill="none" stroke="#DCE8E8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="60" y1="728" x2="1260" y2="728" stroke="#DCE7E3" stroke-width="2"/><text x="60" y="758" class="t note">CANDIDATE · Text Action V1 · review before freeze</text></svg>

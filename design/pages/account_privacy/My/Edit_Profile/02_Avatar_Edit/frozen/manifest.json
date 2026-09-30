@@ -1,0 +1,30 @@
+{
+  "package": "YuJian_Edit_Profile_Avatar_Change_V1_Frozen",
+  "version": "1.0",
+  "status": "FROZEN",
+  "frozen_at": "2026-09-29",
+  "visual_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp",
+  "visual_authority_dimensions": [
+    1448,
+    1086
+  ],
+  "visual_authority_sha256": "7261d5b21fa750d3eb25f89e52819ebdb095ecb615f35550de0bceae3e0e3b4f",
+  "source_generation_png_sha256": "a0355c87486636a1bf67e7bce63919ad8b52a91d16692a5cbcac3580959f0ec6",
+  "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md",
+  "readme_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/README.md",
+  "scope": [
+    "current avatar entry",
+    "source Bottom Sheet",
+    "camera",
+    "Android Photo Picker",
+    "1:1 crop / scale",
+    "pending preview",
+    "save-time upload",
+    "success / failure / retry"
+  ],
+  "notes": [
+    "Selecting/cropping an avatar does not upload immediately.",
+    "Avatar upload occurs only through Edit Profile Save Changes.",
+    "02 is frozen; 03–06 remain independent design work."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "package": "YuJian_Edit_Profile_Nickname_Edit_V1_Frozen",
+  "version": "1.0",
+  "status": "FROZEN",
+  "frozen_at": "2026-09-29",
+  "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+  "visual_authority_dimensions": [
+    1491,
+    1055
+  ],
+  "visual_authority_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+  "source_generation_png_sha256": "5d96c4654abe9899042f29f33987bc49eb21d4b1c427963bda1a0a3fef23d55e",
+  "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
+  "readme_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
+  "backend_authority": {
+    "repository": "pan277942135/Yujian",
+    "ref": "6d4f087a63120899517065ce3c90a13085f11be0",
+    "file": "app/auth_api.py",
+    "contract": "trimmed nickname; 1–20 characters; non-empty; no extra character-class restriction"
+  },
+  "scope": [
+    "Default",
+    "Focus",
+    "Filled",
+    "Empty / whitespace error",
+    "Over-limit error",
+    "1-character minimum valid boundary",
+    "20-character maximum valid boundary",
+    "Save eligibility",
+    "Success / failure draft semantics"
+  ],
+  "notes": [
+    "Frozen Visual Authority restored to the first product-approved Nickname Edit V1 board.",
+    "A later regenerated correction board is superseded and is not an Authority.",
+    "Validation semantics are authoritative in backend + machine + development contracts: trimmed nickname length 1–20.",
+    "03 is frozen; 04–06 remain independent design work."
+  ],
+  "source_filename": "昵称编辑流程与交互规范.png",
+  "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json"
+}
