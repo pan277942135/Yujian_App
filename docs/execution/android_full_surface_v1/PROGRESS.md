@@ -45,7 +45,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P06 Recognition Result | BLOCKED_INFRA | `bf470596c35f39adccb185be04f3da774f0220a7` | Direct High/Medium/Low/No Fish/Image Quality instrumentation authored; font-scale candidate scrolling added; Recognition design closure verifier PASS | Android compile/instrumentation/visual evidence unavailable after bounded no-job attempts | Continue P07 independently |
 | P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | No local Gradle/compiler/Android runtime after bounded no-job attempts; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain P07 Android gate and pinyin coverage gap |
 | P08 My Catches | BLOCKED_INFRA | `3a412ed1a3531b8438ff241837a39d2abc40b9e4` | Search, recent searches, F1 filters, BG_DATA, timeline grouping/folding, date detail, empty states and Growth Marks implemented; tests authored; source Actions and static checks pass | Android compile/unit/instrumentation/visual evidence unavailable; timeline high-fi visual closure is active; catches API returns all records without pagination | Continue P09 independently; carry visual/API paging gaps |
-| P09 Fish Record Detail | IN_PROGRESS | — | Frozen authority audit started; source route/detail and B-side exist, but share/edit/media actions are no-ops pending contract/capability mapping | — | Audit frozen A/B-side, lifecycle, media and edit contracts |
+| P09 Fish Record Detail | BLOCKED_INFRA | `bce336955f49532e6ef6061cbabbc145639b88d3` | A/B Hero, READY-only flip, first-reveal, safe page states, sharing, no-upload-memory actions, and bounded generation polling implemented; detail tests authored | No local Android toolchain and three no-job Android attempts exhausted; editing and supplemental-media APIs are absent; first-reveal field is not server-backed | Continue P10; retain P09 runtime and product capability gaps |
 | P10 Fish Guide | NOT_STARTED | — | — | — | — |
 | P11 Account & Privacy | NOT_STARTED | — | — | — | — |
 | P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
@@ -282,3 +282,42 @@ Git:
 
 Next:
 - Continue P09 Fish Record Detail and map its frozen A-side/B-side, flip, edit, media and no-upload-memory contracts to supported route/backend behavior.
+
+## P09 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P09
+
+Feature: Fish Record Detail A-side, B-side, asset generation and page states
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Reconciled the frozen Overview, B-side, asset-generation, editing and page-state contracts with the existing catch-by-ID route and CatchRepository. A/B remains one FishRecordDetail route and the same record.
+- Kept the current Core UI background and top-navigation frame through loading, invalid-record and network-error states. Loading uses neutral skeleton blocks; invalid and offline cases use the frozen safe copy and correct Back / Reload actions. A cached matching record wins over a refresh error, and API error detail is not rendered.
+- Kept the V2 Hero facts factual and omitted time, absent notes/weather, non-finite measurements and unavailable locations. Original-photo failure uses a neutral Hero fallback and does not mutate B-side state.
+- Replaced the incorrect use of the original capture as supplemental memory with the distinct No Uploaded Memory layout and the frozen actions 添加照片/视频, 继续拍照, and 录制视频. These actions give a local capability-specific message because no existing-catch media association is available.
+- Wired Share to Android's plain-text system chooser and retained the working Fish Guide route.
+- Moved READY B-side presentation into the same Hero and same detail route. The on-media Flip Icon appears only when READY has a usable real B-side URL. No frozen/sample B-side image is used as a runtime fallback; failed B-side media returns locally to A-side.
+- Implemented the first reveal only while the detail screen is resumed and the Hero is visible. The reveal preference is recorded only after the actual B-side image loads and a frame is presented; later entries start on A-side. Since the API has no first_b_reveal_done field, this state is device-local and does not synchronize across devices.
+- B-side generation continues on A-side. Status refresh is bounded to eight 2-second checks while the page is resumed; copy exposes no ETA, percentage or infrastructure detail. Request failures remain local to the memory status and do not contaminate the archive error state.
+- Added pure presentation tests for cached-record precedence, sanitized network errors, finite measurements, and first-reveal eligibility. Added Compose instrumentation coverage for the no-upload actions, READY-only Flip visibility, actual-image first reveal, and A-side default on later entry.
+- git diff --check: PASS. scripts/verify_core_ui_v1_references.py: PASS. scripts/verify_design_manager_navigation.py: PASS; root menu remains 00–05.
+- Frozen B-side, edit, and No Uploaded Memory PNG hashes remain exactly c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b, d81495f760840c0411aa693bb8b3b39fc1d65e012387350732047f1272250114, and ca585b85d1c6fec224e402d368e60d122913ca6c0cb6e5cc6750c266d7fb8a93; no frozen design files were modified.
+
+Validation boundary and remaining product gaps:
+- Kotlin compile, JVM tests, Compose instrumentation, APK and visual/runtime evidence were not run: this workspace has no Gradle wrapper, Gradle, Kotlin compiler, adb or emulator. The bounded three no-job Android workflow attempts were already exhausted; no new Android retry was made. P09 is BLOCKED_INFRA, not runtime PASS.
+- CatchRepository has no update-catch endpoint, no supplemental-memory list/upload association, no note/weather fields, and no delete capability. Its image-upload endpoint is for the new-catch flow and was not reused for existing records. The Edit Hero action and three media actions therefore provide truthful local unavailable feedback; save/edit persistence and attached-media display remain product/API blockers.
+- The one-time first-reveal flag is stored in app-local preferences because the backend model has no cross-device field. The memory collection is rendered as the approved zero-item state because the existing catch model/API does not expose attached media.
+- FishRecordDetail_Design_Audit_Freeze_V1.md contains an older contradictory B-side source-binary note; README, manifest, registry and the exact archived SHA confirm the frozen asset gate. The frozen design authority was not reopened or changed.
+- No screenshot, APK, or emulator result was fabricated.
+
+Git:
+- Epic base: b54c2b936db5941294b216a356ad9e2bd4548f7c
+- Branch: feature/android-full-surface-runtime-v1
+- P09 source checkpoint SHA: bce336955f49532e6ef6061cbabbc145639b88d3
+- PR: #97 (draft; not merged)
+
+Next:
+- Continue P10 Fish Guide, preserving P09's Android execution and backend capability blockers for the final matrix.
