@@ -4316,7 +4316,7 @@
           "status": "FROZEN",
           "authority": "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md",
           "contract": "design/pages/fish_guide/motion/motion_contract.json",
-          "note": "07 · 动效与交互 V1 已冻结：用户驱动 Carousel、一次性 Discover Hint、有限 5 卡滑动、低幅页面转场、真实数据提交后的 LIT/UNLIT 过渡与 Reduce Motion。"
+          "note": "05 · 动效与交互 V1 已冻结：用户驱动 Carousel、一次性 Discover Hint、有限 5 卡滑动、低幅页面转场、真实数据提交后的 LIT/UNLIT 过渡与 Reduce Motion。"
         },
         "haptic": {
           "status": "FROZEN",
