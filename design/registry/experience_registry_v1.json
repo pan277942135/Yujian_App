@@ -287,6 +287,11 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：最近鱼获 全部=NORMAL/ON_MEDIA + separate chevron。"
+        },
+        {
+          "id": "default_profile_avatar_v1",
+          "variant": "DEFAULT_PROFILE_AVATAR",
+          "note": "登录用户头像缺失或加载失败使用 Shared Default Profile Avatar V1；NH02/NH04 仅消费或展示，不得重新定义。"
         }
       ],
       "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。",
