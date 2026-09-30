@@ -2726,3 +2726,18 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 @media(max-width:760px){
   .recognition-state-grid,.recognition-branch-grid,.recognition-finding-grid{grid-template-columns:1fr}
 }
+
+.build-stamp {
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .02em;
+}
+.build-stamp code {
+  font: inherit;
+  color: #567078;
+  background: #f1f5f3;
+  border: 1px solid #e1e9e6;
+  border-radius: 999px;
+  padding: 2px 6px;
+}

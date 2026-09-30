@@ -1,5 +1,9 @@
-const PAGE_REGISTRY_URL = "../registry/experience_registry_v1.json";
-const SHARED_REGISTRY_URL = "../registry/shared_design_system_v1.json";
+const DESIGN_MANAGER_BUILD =
+  document.querySelector('meta[name="design-manager-build"]')?.content || "local";
+const PAGE_REGISTRY_URL =
+  "../registry/experience_registry_v1.json?v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
+const SHARED_REGISTRY_URL =
+  "../registry/shared_design_system_v1.json?v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
 const DESIGN_MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "assets"];
 
 const ICONS = {
@@ -40,7 +44,11 @@ function statusBadge(status) {
     (ICONS[safe] || "•") + ' ' + esc(statusText(safe)) + '</span>';
 }
 
-function repoHref(path) { return path ? "../../" + path : "#"; }
+function repoHref(path) {
+  if (!path) return "#";
+  const sep = path.includes("?") ? "&" : "?";
+  return "../../" + path + sep + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
+}
 function isImage(path) { return !!path && /\.(png|jpe?g|webp|gif|svg)$/i.test(path); }
 
 function currentVersion(feature) {
