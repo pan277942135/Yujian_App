@@ -8,6 +8,7 @@ import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,7 +51,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.drawImage
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -119,7 +119,7 @@ import java.util.Locale
 
 enum class RecognitionSaveDestination { HOME, MEMORY }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RecognitionResultScreen(
     image: SelectedImage?,
@@ -186,6 +186,38 @@ fun RecognitionResultScreen(
     LaunchedEffect(saving, saveError) { if (!saving) saveRequested = false }
     val bbox = productionResult?.assessment?.primary?.box?.let {
         NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2)
+    }
+
+    fun save(destination: RecognitionSaveDestination) {
+        if (selectedKey.isBlank() || saving || saveRequested) return
+        saveRequested = true
+        val corrected = selectedKey != prediction.top1.speciesKey
+        val detector = productionResult?.assessment?.primary?.let {
+            JSONObject().put("confidence", it.confidence.toDouble()).put("box", JSONObject()
+                .put("x1", it.box.x1.toDouble()).put("y1", it.box.y1.toDouble())
+                .put("x2", it.box.x2.toDouble()).put("y2", it.box.y2.toDouble()))
+        }
+        val feedback = FeedbackDraft(
+            sourceEventId = "APP_${java.util.UUID.randomUUID()}", imageId = image?.imageId,
+            feedbackType = recognitionFeedbackType(prediction.top1.speciesKey, selectedKey),
+            modelVersion = prediction.modelVersion, predictedSpecies = prediction.top1.speciesName,
+            confidence = prediction.top1.confidence, correctedSpecies = selectedName.takeIf { corrected },
+            userNote = "ui_state=${uiState.name};length_cm=$lengthText;weight_kg=$weightText;location=$locationText;story=$storyText",
+        )
+        val classifier = JSONObject()
+            .put("ui_state", uiState.name).put("model_version", prediction.modelVersion)
+            .put("prediction_species", prediction.top1.speciesKey).put("confidence", prediction.top1.confidence.toDouble())
+            .put("user_selected_species", selectedKey)
+            .put("length_cm", lengthText.toDoubleOrNull() ?: JSONObject.NULL)
+            .put("weight_kg", weightText.toDoubleOrNull() ?: JSONObject.NULL)
+            .put("location", locationText.ifBlank { JSONObject.NULL })
+            .put("story", storyText.ifBlank { JSONObject.NULL })
+            .put("created_at", currentTime).put("photo_url", image?.filePath ?: "")
+        onSave(
+            CatchSaveDraft(selectedKey, selectedName, prediction.top1.confidence, prediction.modelVersion, detector, classifier),
+            feedback,
+            destination,
+        )
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -381,37 +413,7 @@ fun RecognitionResultScreen(
         )
     }
 
-    fun save(destination: RecognitionSaveDestination) {
-        if (selectedKey.isBlank() || saving || saveRequested) return
-        saveRequested = true
-        val corrected = selectedKey != prediction.top1.speciesKey
-        val detector = productionResult?.assessment?.primary?.let {
-            JSONObject().put("confidence", it.confidence.toDouble()).put("box", JSONObject()
-                .put("x1", it.box.x1.toDouble()).put("y1", it.box.y1.toDouble())
-                .put("x2", it.box.x2.toDouble()).put("y2", it.box.y2.toDouble()))
-        }
-        val feedback = FeedbackDraft(
-            sourceEventId = "APP_${java.util.UUID.randomUUID()}", imageId = image?.imageId,
-            feedbackType = recognitionFeedbackType(prediction.top1.speciesKey, selectedKey),
-            modelVersion = prediction.modelVersion, predictedSpecies = prediction.top1.speciesName,
-            confidence = prediction.top1.confidence, correctedSpecies = selectedName.takeIf { corrected },
-            userNote = "ui_state=${uiState.name};length_cm=$lengthText;weight_kg=$weightText;location=$locationText;story=$storyText",
-        )
-        val classifier = JSONObject()
-            .put("ui_state", uiState.name).put("model_version", prediction.modelVersion)
-            .put("prediction_species", prediction.top1.speciesKey).put("confidence", prediction.top1.confidence.toDouble())
-            .put("user_selected_species", selectedKey)
-            .put("length_cm", lengthText.toDoubleOrNull() ?: JSONObject.NULL)
-            .put("weight_kg", weightText.toDoubleOrNull() ?: JSONObject.NULL)
-            .put("location", locationText.ifBlank { JSONObject.NULL })
-            .put("story", storyText.ifBlank { JSONObject.NULL })
-            .put("created_at", currentTime).put("photo_url", image?.filePath ?: "")
-        onSave(
-            CatchSaveDraft(selectedKey, selectedName, prediction.top1.confidence, prediction.modelVersion, detector, classifier),
-            feedback,
-            destination,
-        )
-    }
+
 }
 
 private enum class ResultEditableField { LENGTH, WEIGHT, LOCATION }
@@ -426,7 +428,7 @@ private val BgContentColorMatrix = ColorMatrix(
 )
 
 @Composable
-private fun BgContentSurface() {
+internal fun BgContentSurface() {
     Image(
         painter = painterResource(R.drawable.account_privacy_morning_lake),
         contentDescription = null,
