@@ -2445,8 +2445,14 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewTitle").textContent=child ? child.title : view.title;
   el("hifiViewStatus").innerHTML=statusBadge(child?.status || view.status || "PARTIAL");
   const summary=child?.summary || view.summary;
-  if(summary){
-    el("hifiViewSummary").textContent=summary;
+  const implementationReady =
+    view.implementation_ready === true ||
+    feature.implementation_readiness?.status === "IMPLEMENTATION_READY";
+  if(summary || implementationReady){
+    const readyLine = implementationReady
+      ? "IMPLEMENTATION READY · Work 无需承担页面级视觉设计判断。"
+      : "";
+    el("hifiViewSummary").textContent=[summary,readyLine].filter(Boolean).join("\n");
     el("hifiViewSummary").classList.remove("hidden");
   } else el("hifiViewSummary").classList.add("hidden");
   el("hifiViewCanvas").innerHTML = child
@@ -2462,7 +2468,13 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   const supportingAuthorityPaths = (child?.supporting_visual_references || [])
     .map(ref => typeof ref === "string" ? ref : ref.path)
     .filter(Boolean);
-  el("hifiViewAuthorities").innerHTML=[child?.primary_visual_authority,...supportingAuthorityPaths,child?.visual_authority,child?.behavior_authority,child?.machine_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.behavior_authority,view.machine_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
+  const implementationAuthorities = [
+    view.engineering_authority,
+    feature.implementation_readiness?.authority_index,
+    ...(feature.implementation_readiness?.contract_paths || []),
+    feature.implementation_readiness?.asset_contract
+  ].filter(Boolean);
+  el("hifiViewAuthorities").innerHTML=[child?.primary_visual_authority,...supportingAuthorityPaths,child?.visual_authority,child?.behavior_authority,child?.machine_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.behavior_authority,view.machine_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image,...implementationAuthorities].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
     '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
   ).join("");
 

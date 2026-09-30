@@ -2905,7 +2905,16 @@
           "Recognition_Result_Hero_Media_Contract_V1"
         ],
         "asset_contract": "design/pages/recognition/assets/Asset_Manifest_V1.json",
-        "note": "Design Package 已实现级冻结；Work 只负责按合同实现，不再承担页面级视觉设计判断。"
+        "note": "Design Package 已实现级冻结；Work 只负责按合同实现，不再承担页面级视觉设计判断。",
+        "authority_index": "design/pages/recognition/result/engineering/README.md",
+        "contract_paths": [
+          "design/pages/recognition/result/engineering/Recognition_Result_Layout_Geometry_V1.md",
+          "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md",
+          "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md",
+          "design/pages/recognition/result/engineering/Recognition_Result_Candidate_Card_V1.md",
+          "design/pages/recognition/result/engineering/Recognition_Result_Visual_Acceptance_Map_V1.md",
+          "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+        ]
       }
     },
     {
