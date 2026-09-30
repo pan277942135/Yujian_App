@@ -89,5 +89,18 @@
     "save_error_preserves_metadata",
     "no_noop_voice",
     "no_auto_location_permission"
-  ]
+  ],
+  "edit_flow": {
+    "status": "FROZEN",
+    "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+    "numeric_contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+    "interaction_override": [
+      "sheet_geometry",
+      "numeric_autofocus_ime",
+      "commit_dismiss_semantics",
+      "location_search",
+      "current_location",
+      "recent_locations"
+    ]
+  }
 }
