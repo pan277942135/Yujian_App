@@ -6426,7 +6426,7 @@
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 Edit Profile Home、02 Avatar、03 Nickname 为现有 Frozen Visual Authorities；04–06 不含可冻结的独立视觉稿。"
+          "note": "01 Edit Profile Home and 02 Avatar are trusted FROZEN visuals. 03 Nickname visual is BLOCKED_INTEGRITY. 04–06 are behavior/state authorities and intentionally require no standalone visual assets."
         },
         "motion": {
           "status": "FROZEN",
@@ -6454,7 +6454,7 @@
         "assets": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01–02 exact frozen assets remain trusted; 03 Nickname asset identity is BLOCKED_INTEGRITY; 04–06 require no standalone image assets."
+          "note": "01–02 exact frozen assets are trusted; 03 Nickname asset identity remains BLOCKED_INTEGRITY; 04–06 require no standalone assets."
         }
       },
       "display_name": "编辑资料",
