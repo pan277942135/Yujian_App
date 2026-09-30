@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.PersonOutline
 import androidx.compose.material3.Text
@@ -40,33 +41,35 @@ import com.yujian.ai.ui.designsystem.components.YuJianActionButtonVariant
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
+import com.yujian.ai.ui.screens.isValidRegisterForm
 import com.yujian.ai.ui.screens.isValidAuthUsername
 
 @Composable
 @OptIn(ExperimentalComposeUiApi::class)
-fun LoginV2Screen(
+fun RegisterV2Screen(
     loading: Boolean,
     error: String?,
-    onLogin: (username: String, password: String) -> Unit,
-    onRegister: () -> Unit,
-    onForgotPassword: () -> Unit,
-    onBack: () -> Unit,
+    onRegister: (username: String, password: String, nickname: String) -> Unit,
+    onBackToLogin: () -> Unit,
     onFieldEdited: () -> Unit = {},
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var nickname by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var usernameTouched by remember { mutableStateOf(false) }
     var passwordTouched by remember { mutableStateOf(false) }
+    var nicknameTouched by remember { mutableStateOf(false) }
     var submitAttempted by remember { mutableStateOf(false) }
     val usernameFocus = remember { FocusRequester() }
     val passwordFocus = remember { FocusRequester() }
+    val nicknameFocus = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-    val canSubmit = isValidAuthUsername(username) && password.isNotBlank()
+    val canSubmit = isValidRegisterForm(username, password, nickname)
     val submit = {
-        if (canSubmit && !loading) onLogin(username.trim(), password) else submitAttempted = true
+        if (canSubmit && !loading) onRegister(username.trim(), password, nickname.trim()) else submitAttempted = true
     }
 
     BackHandler {
@@ -74,50 +77,50 @@ fun LoginV2Screen(
             keyboardController?.hide()
             focusManager.clearFocus()
         } else {
-            onBack()
+            onBackToLogin()
         }
     }
 
     AuthV2Scaffold(
-        title = "欢迎回来",
-        subtitle = "继续记录你的每一次渔获",
-        environmentFraction = 0.34f,
+        title = "创建账号",
+        subtitle = "用一个账号，留住你的钓鱼轨迹",
+        environmentFraction = 0.31f,
     ) {
         AuthV2Field(
             label = "账号",
             value = username,
             onValueChange = { username = it; usernameTouched = true; onFieldEdited() },
             placeholder = "请输入账号",
+            helperText = "3–32 位字母、数字、_ 或 -",
             enabled = !loading,
             leadingIcon = Icons.Rounded.PersonOutline,
             focusRequester = usernameFocus,
-            autofillType = AutofillType.Username,
+            autofillType = AutofillType.NewUsername,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
             errorText = if ((usernameTouched || submitAttempted) && !isValidAuthUsername(username)) {
                 "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
             } else null,
-            modifier = Modifier.testTag("login_username"),
+            modifier = Modifier.testTag("register_username"),
         )
 
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(9.dp))
 
         AuthV2Field(
             label = "密码",
             value = password,
             onValueChange = { password = it; passwordTouched = true; onFieldEdited() },
             placeholder = "请输入密码",
+            helperText = "至少 6 位",
             enabled = !loading,
             leadingIcon = Icons.Rounded.Lock,
             focusRequester = passwordFocus,
-            autofillType = AutofillType.Password,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = {
-                keyboardController?.hide()
-                focusManager.clearFocus()
-                submit()
-            }),
-            errorText = if ((passwordTouched || submitAttempted) && password.isBlank()) "请输入密码" else null,
+            autofillType = AutofillType.NewPassword,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { nicknameFocus.requestFocus() }),
+            errorText = if ((passwordTouched || submitAttempted) && password.length !in 6..72) {
+                "密码长度需要为 6–72 位"
+            } else null,
             visualTransformation = if (passwordVisible) {
                 VisualTransformation.None
             } else {
@@ -125,34 +128,42 @@ fun LoginV2Screen(
             },
             passwordVisible = passwordVisible,
             onTogglePasswordVisibility = { passwordVisible = !passwordVisible },
-            modifier = Modifier.testTag("login_password"),
+            modifier = Modifier.testTag("register_password"),
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 1.dp),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            YuJianTextAction(
-                text = "忘记密码？",
-                onClick = onForgotPassword,
-                role = YuJianTextActionRole.MUTED,
-                enabled = !loading,
-            )
-        }
+        Spacer(Modifier.height(9.dp))
+
+        AuthV2Field(
+            label = "昵称",
+            value = nickname,
+            onValueChange = { nickname = it; nicknameTouched = true; onFieldEdited() },
+            placeholder = "请输入昵称",
+            enabled = !loading,
+            leadingIcon = Icons.Rounded.Badge,
+            focusRequester = nicknameFocus,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = {
+                keyboardController?.hide()
+                focusManager.clearFocus()
+                submit()
+            }),
+            errorText = if ((nicknameTouched || submitAttempted) && nickname.trim().length !in 1..20) {
+                "请输入 1–20 个字符的昵称"
+            } else null,
+            modifier = Modifier.testTag("register_nickname"),
+        )
 
         AuthV2ErrorMessage(
             error = error,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 8.dp),
         )
 
         YuJianPrimaryButton(
-            text = "登录",
+            text = "注册并登录",
             onClick = { submit() },
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("login_submit"),
+                .testTag("register_submit"),
             variant = YuJianActionButtonVariant.PRIMARY,
             enabled = canSubmit,
             loading = loading,
@@ -161,18 +172,18 @@ fun LoginV2Screen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 7.dp),
+                .padding(top = 5.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "还没有账号？",
+                text = "已有账号？",
                 color = YuJianColors.MistBlueGray,
                 fontSize = 13.sp,
             )
             YuJianTextAction(
-                text = "创建账号",
-                onClick = onRegister,
+                text = "去登录",
+                onClick = onBackToLogin,
                 role = YuJianTextActionRole.STRONG,
                 enabled = !loading,
             )

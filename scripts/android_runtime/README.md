@@ -1,7 +1,7 @@
 # Unified Android Runtime Harness
 
 `scripts/run_android_runtime_gate.sh` is the single runtime entry point for
-Recognition Frozen, Data Sanitization, and Runtime Parity.
+Recognition Frozen, Home surfaces, Auth, Fish Guide/Species Detail, Data Sanitization, and Runtime Parity.
 
 The workflow builds the debug APK and androidTest APK exactly once, uploads
 them as `YuJian-runtime-apks-${GITHUB_SHA}` with a SHA-256 manifest, and the

@@ -49,7 +49,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
@@ -115,10 +114,18 @@ fun RecognitionResultScreen(
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date())
     }
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
-    val species = remember {
-        FishRecognitionEngine.MODEL_LABELS.mapIndexed { index, label ->
-            RecognitionCandidate(index, label.first, label.second, 0f)
-        }
+    val species = remember(prediction) {
+        prediction.candidates
+            .distinctBy { it.speciesKey }
+            .sortedBy { it.classIndex }
+            .map { candidate ->
+                RecognitionCandidate(
+                    candidate.classIndex,
+                    candidate.speciesKey,
+                    candidate.speciesName,
+                    0f,
+                )
+            }
     }
 
     Box(Modifier.fillMaxSize().background(WarmBackground)) {

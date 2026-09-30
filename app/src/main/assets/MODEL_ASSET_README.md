@@ -1,19 +1,20 @@
-# MODEL_M1_v0.6 16-class mobile asset gate
+# the current mobile-model-v0.2 classifier 16-class mobile asset gate
 
 The Android app uses the verified 16-class mobile export published by the Model Factory repository.
 
 - canonical release: `pan277942135/Yujian` → `mobile-model-v0.2`
 - release asset: `fish_classifier_v0_2.tflite`
 - Android destination: `app/src/main/assets/fish_classifier.tflite`
-- expected bytes: `6249008`
-- expected SHA-256: `b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7`
+- expected bytes / SHA-256: resolved from the current GitHub Release asset metadata at build time
+- runtime provenance: `app/src/main/assets/model_release_manifest.json`
 - tensor contract: `app/src/main/assets/model_tensor_contract.json`
 - TFLite input: `[1,3,224,224]` Float32 NCHW
-- output: `[1,16]` Float32 logits
+- output class dimension: resolved from the current Release `tensor_contract.json` and `class_map.json`
 - preprocessing: whole-image aspect-preserving letterbox, padding RGB `[124,116,104]`, ImageNet mean/std normalization, no crop
 
-CI downloads the exact release asset and pinned tensor contract before building. It rejects any
-size/hash, tensor shape/dtype, or Android label-order mismatch.
+CI resolves the current assets from the stable mutable Release tag before every build, verifies
+their GitHub asset digests and classifier metadata, then packages a provenance manifest with the
+APK. Runtime validates the classifier against that manifest. Any size/hash, tensor shape/dtype, class-map order, or model/output class-count mismatch is rejected.
 
 ## Class order
 
@@ -48,7 +49,7 @@ The production recognition path loads the real YOLOX-Nano detector before the cl
 - detector contract: `RECOGNITION_PIPELINE_v1`, including NMS, thresholds and floor/ceil crop rounding
 
 Android UX applies `QUALITY_GATE_v1.1` after detector decode. `GOOD` and `WARNING`
-continue to `MODEL_M1_v0.6`; only `INVALID` blocks classification. A strong single-fish
+continue to `the current mobile-model-v0.2 classifier`; only `INVALID` blocks classification. A strong single-fish
 box that touches the frame edge is retained as `WARNING`, so ordinary fishing photos with
 an out-of-frame tail or light occlusion are not rejected before classification.
 
