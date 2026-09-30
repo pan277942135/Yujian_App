@@ -940,6 +940,29 @@
       ],
       "visual_authority": "design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png",
       "manifest_path": "design/system/components/species_picker_v1/manifest.json"
+    },
+    {
+      "id": "default_profile_avatar_v1",
+      "display_name": "默认资料头像",
+      "category": "component",
+      "overall": "FROZEN",
+      "navigation_mode": "submenu_direct",
+      "variants": [
+        {
+          "id": "DEFAULT_PROFILE_AVATAR",
+          "name": "登录用户默认头像",
+          "usage": "有数据首页 / 我的 / 编辑资料 / 账号与登录等登录态资料头像缺失或加载失败场景",
+          "status": "FROZEN",
+          "authority_path": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+          "implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
+          "note": "Logged-in avatar missing/load failure → Default Profile Avatar V1；Guest account entry is a different semantic state and must not reuse this fallback."
+        }
+      ],
+      "notes": "由 NH02 页面级合同提升为 Shared Authority。页面只消费，不得重新定义默认头像。无需新增图片资产；现有 Android vector 仅为实现参考。",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      ]
     }
   ],
   "navigation_groups": [

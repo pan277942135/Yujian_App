@@ -176,9 +176,13 @@ The first catch does not add:
 - save-success status
 - new account prompts
 
-### 7.1 Logged-in avatar state — FROZEN
+### 7.1 Logged-in avatar state — Shared FROZEN Authority
 
-NH02 freezes the identity semantics for the Home header:
+NH02 consumes the shared identity semantics for the Home header. Canonical authority:
+
+`design/system/components/profile_avatar_v1/default_profile_avatar_contract.json`
+
+NH02 may define Home placement/size, but it must not redefine fallback identity semantics:
 
 | Account state | Header avatar |
 | --- | --- |
@@ -189,9 +193,13 @@ NH02 freezes the identity semantics for the Home header:
 
 Default avatar and Guest avatar are different semantic states and must not be conflated.
 
-### 7.2 Default Profile Avatar V1 — FROZEN
+### 7.2 Default Profile Avatar V1 — Shared FROZEN
 
-Design contract:
+Canonical shared design contract:
+
+`design/system/components/profile_avatar_v1/default_profile_avatar_contract.json`
+
+NH02 compatibility reference:
 
 `design/pages/home/normal_home/02_first_catch/default_avatar_contract.json`
 
@@ -199,7 +207,7 @@ Current Android implementation reference:
 
 `app/src/main/res/drawable/profile_fallback_v13.xml`
 
-The design contract is authoritative; the Android drawable is an implementation reference.
+The shared design contract is authoritative; the NH02 contract is a compatibility/consumer reference and the Android drawable is an implementation reference.
 
 Visual language:
 
@@ -528,7 +536,7 @@ NH02 deliberately does not absorb every Normal Home edge state.
 | Loading / unresolved Home | NH03 |
 | Catch image unavailable | NH03 |
 | Refresh / error preservation | NH03 |
-| Header visual comparison: real avatar / default avatar / Guest | NH04 — presentation board only; fallback semantics frozen in NH02 |
+| Header visual comparison: real avatar / default avatar / Guest | NH04 — presentation board only; fallback semantics frozen in Shared Default Profile Avatar V1 |
 | Missing measurement fields | NH04 |
 | Long species / location text | NH04 |
 | Taller aspect ratios | NH05 |
@@ -653,6 +661,6 @@ The following NH02 decisions are frozen in V1:
 14. Avatar load failure uses the same default avatar.
 15. Guest avatar/account entry is not the logged-in default avatar.
 16. The default avatar keeps the same Home header geometry and account-entry interaction as a real avatar.
-17. NH04 may illustrate avatar states but may not redefine the fallback semantics frozen here.
+17. NH04 may illustrate avatar states but may not redefine the fallback semantics frozen by Shared Default Profile Avatar V1.
 
 Any change to these decisions requires a versioned NH02 spec revision.

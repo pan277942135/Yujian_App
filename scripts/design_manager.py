@@ -21,7 +21,7 @@ SHARED_REGISTRY = ROOT / "design" / "registry" / "shared_design_system_v1.json"
 DESIGN_MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "assets"]
 VALID_STATUSES = {
     "FROZEN", "ACTIVE_CLOSURE", "PARTIAL", "RUNTIME_ONLY",
-    "DESIGN_ONLY", "MISSING", "DEPRECATED",
+    "DESIGN_ONLY", "MISSING", "DEPRECATED", "DEFERRED", "BLOCKED_INTEGRITY",
 }
 VERSION_STATUSES = VALID_STATUSES | {"CANDIDATE"}
 

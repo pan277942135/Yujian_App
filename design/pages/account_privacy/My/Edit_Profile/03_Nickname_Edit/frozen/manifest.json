@@ -1,7 +1,7 @@
 {
   "package": "YuJian_Edit_Profile_Nickname_Edit_V1_Frozen",
   "version": "1.0",
-  "status": "FROZEN",
+  "status": "BLOCKED_INTEGRITY",
   "frozen_at": "2026-09-29",
   "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
   "visual_authority_dimensions": [
@@ -33,8 +33,13 @@
     "Frozen Visual Authority restored to the first product-approved Nickname Edit V1 board.",
     "A later regenerated correction board is superseded and is not an Authority.",
     "Validation semantics are authoritative in backend + machine + development contracts: trimmed nickname length 1–20.",
-    "03 is frozen; 04–06 remain independent design work."
+    "03 behavior/machine/development contracts remain frozen; Visual Authority is BLOCKED_INTEGRITY until the approved binary is recovered. 04–06 remain independent design work."
   ],
   "source_filename": "昵称编辑流程与交互规范.png",
-  "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json"
+  "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json",
+  "contract_status": "FROZEN",
+  "visual_integrity_status": "BLOCKED_INTEGRITY",
+  "actual_repository_sha256": "26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b",
+  "expected_frozen_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+  "integrity_note": "Current repository WebP bytes do not match the recorded frozen fingerprint. Recover the originally approved byte-identical source before restoring Visual FROZEN. Do not regenerate, convert, optimize, or re-encode."
 }

@@ -287,6 +287,11 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：最近鱼获 全部=NORMAL/ON_MEDIA + separate chevron。"
+        },
+        {
+          "id": "default_profile_avatar_v1",
+          "variant": "DEFAULT_PROFILE_AVATAR",
+          "note": "登录用户头像缺失或加载失败使用 Shared Default Profile Avatar V1；NH02/NH04 仅消费或展示，不得重新定义。"
         }
       ],
       "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。",
@@ -5492,7 +5497,7 @@
           "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
         }
       },
-      "note": "Design status: PARTIAL. Current Frozen: Login V2.1, Register V2, Edit Profile Home, Avatar, Nickname. Legacy/review required: My, Account & Login, Change Password, Data & Privacy, AI Model Improvement, Location Permission, Privacy Policy. MVP DEFERRED / entry-only: Forgot Password, Export My Data, Delete Account. Visual authority missing: About YuJian and User Agreement. Shared background authority is Morning_Lake_Master_V1 / BG_CONTENT; runtime status is shown separately and this design organization does not claim runtime closure.",
+      "note": "Design status: PARTIAL. Trusted Frozen: Login V2.1, Register V2, Edit Profile Home, Avatar. Nickname behavior/design contract remains frozen but its visual binary identity is BLOCKED_INTEGRITY until the approved byte-identical source is recovered. Legacy/review required: My, Account & Login, Change Password, Data & Privacy, AI Model Improvement, Location Permission, Privacy Policy. MVP DEFERRED / entry-only: Forgot Password, Export My Data, Delete Account. Visual authority missing: About YuJian and User Agreement. Shared authorities include Morning_Lake_Master_V1 / BG_CONTENT and Default Profile Avatar V1; runtime status is tracked separately.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5537,6 +5542,11 @@
           "id": "top_navigation_v1",
           "variant": "BACK_TITLE",
           "note": "Top Navigation V1 / BACK_TITLE / FROZEN：账号与隐私、账号与登录、修改密码、数据与隐私、关于渔见、隐私政策、用户协议统一使用同一二级页结构。"
+        },
+        {
+          "id": "default_profile_avatar_v1",
+          "variant": "DEFAULT_PROFILE_AVATAR",
+          "note": "登录用户头像缺失或加载失败统一使用 Shared Default Profile Avatar V1；Guest 入口是不同语义状态。"
         }
       ],
       "design_sections": [
@@ -5544,14 +5554,23 @@
           "id": "current_frozen",
           "title": "CURRENT FROZEN",
           "status": "FROZEN",
-          "summary": "Only these page authorities are current and Frozen. Their status does not imply Android runtime closure.",
+          "summary": "Only byte-trusted current page authorities are listed here. Nickname is excluded until its frozen binary identity mismatch is resolved.",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "points": [
             "Login V2.1",
             "Register V2",
             "Edit Profile Home V1.1",
-            "Avatar Change V1",
-            "Nickname Edit V1"
+            "Avatar Change V1"
+          ]
+        },
+        {
+          "id": "integrity_blocked",
+          "title": "INTEGRITY BLOCKED",
+          "status": "BLOCKED_INTEGRITY",
+          "summary": "The design/behavior contract exists, but the current repository visual binary does not match the declared frozen fingerprint. Do not regenerate or re-encode it; recover the originally approved byte-identical source.",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "points": [
+            "Nickname Edit V1 · visual binary SHA mismatch"
           ]
         },
         {
@@ -5573,7 +5592,7 @@
         {
           "id": "mvp_deferred",
           "title": "MVP DEFERRED · ENTRY ONLY / COMING SOON",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "summary": "Existing boards are future-flow design references. Production remains entry-only; do not expose the depicted full flows.",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "points": [
@@ -5604,7 +5623,8 @@
             "Top Navigation V1 / BACK_TITLE",
             "Color & Typography V1",
             "Spacing & Radius V1",
-            "Action / Text / Icon components"
+            "Action / Text / Icon components",
+            "Default Profile Avatar V1"
           ]
         },
         {
@@ -5681,9 +5701,9 @@
               "id": "01c",
               "code": "01C",
               "title": "01C · 忘记密码 · Deferred",
-              "status": "PARTIAL",
+              "status": "DEFERRED",
               "authority": "design/pages/account_privacy/Login/Forgot_Password/README.md",
-              "summary": "MVP DEFERRED。当前产品只允许入口和 Coming Soon；不得暴露旧四步生产流程。完整恢复需先有已验证恢复渠道。",
+              "summary": "MVP DEFERRED。已有四步未来流程参考，但当前产品只允许入口和 Coming Soon；完整恢复需先有已验证恢复渠道。",
               "menu_group": "visual",
               "behavior_authority": "design/pages/account_privacy/Login/Forgot_Password/README.md",
               "render_mode": "account_privacy_gallery",
@@ -5691,28 +5711,28 @@
                 {
                   "path": "design/pages/account_privacy/Login/Forgot_Password/01_Account.png",
                   "label": "01 · Account",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
                 },
                 {
                   "path": "design/pages/account_privacy/Login/Forgot_Password/02_Verification.png",
                   "label": "02 · Verification",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
                 },
                 {
                   "path": "design/pages/account_privacy/Login/Forgot_Password/03_New_Password.png",
                   "label": "03 · New Password",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
                 },
                 {
                   "path": "design/pages/account_privacy/Login/Forgot_Password/04_Success.png",
                   "label": "04 · Success",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
                 }
@@ -5737,7 +5757,7 @@
             "02A · 我的 · PARTIAL / REVIEW REQUIRED",
             "02B · 编辑资料首页 · FROZEN",
             "02C · 头像修改 · FROZEN",
-            "02D · 昵称编辑 · FROZEN"
+            "02D · 昵称编辑 · BLOCKED_INTEGRITY"
           ],
           "children": [
             {
@@ -5789,10 +5809,10 @@
               "id": "02d",
               "code": "02D",
               "title": "02D · 昵称编辑",
-              "status": "FROZEN",
+              "status": "BLOCKED_INTEGRITY",
               "authority_type": "visual",
               "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
-              "summary": "Nickname Edit V1 Frozen；trim 后 1–20 字符行为由既有 Machine / Development Contract 约束。",
+              "summary": "Nickname Edit V1 的行为 / Machine / Development Contract 仍有效，但当前仓库 Frozen WebP SHA 与冻结 manifest 声明不一致。Visual integrity BLOCKED；禁止重新生成或重编码替代批准源。",
               "menu_group": "visual",
               "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
               "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
@@ -5944,7 +5964,7 @@
               "id": "04d",
               "code": "04D",
               "title": "04D · 导出我的数据 · Deferred",
-              "status": "PARTIAL",
+              "status": "DEFERRED",
               "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
               "summary": "MVP DEFERRED。生产仅 entry-only / Coming Soon。此处五张图只展示未来流程参考，不授权完整导出状态机上线。",
               "menu_group": "visual",
@@ -5953,35 +5973,35 @@
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/00_Overview.png",
                   "label": "Overview",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/01_Processing.png",
                   "label": "Processing",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/02_Ready.png",
                   "label": "Ready",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/03_Failed.png",
                   "label": "Failed",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/04_Expired.png",
                   "label": "Expired",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
                 }
@@ -5996,7 +6016,7 @@
               "id": "04e",
               "code": "04E",
               "title": "04E · 注销账号 · Deferred",
-              "status": "PARTIAL",
+              "status": "DEFERRED",
               "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
               "summary": "MVP DEFERRED。生产仅 entry-only / Coming Soon。三张图只作为未来参考，不得暴露虚假的注销或破坏性功能。",
               "menu_group": "visual",
@@ -6005,21 +6025,21 @@
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/01_Explanation.png",
                   "label": "Explanation",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/02_Reauth.png",
                   "label": "Re-auth",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/03_Final_Confirmation.png",
                   "label": "Final Confirmation",
-                  "status": "PARTIAL",
+                  "status": "DEFERRED",
                   "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
                   "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
                 }
@@ -6351,7 +6371,7 @@
           "note": "02 头像来源动作复用 Icon Action V1；03 昵称 Clear 使用 CONTEXT / ON_LIGHT。"
         }
       ],
-      "note": "Edit Profile 01–03 冻结；04–06 的原始目录保留作历史，但规则并入 README authority index 且未冻结。",
+      "note": "编辑资料 V1：01 · 编辑资料首页、02 · 头像修改为可信 FROZEN；03 · 昵称编辑行为/合同已冻结但 Visual Integrity = BLOCKED_INTEGRITY（仓库二进制 SHA 与 frozen manifest 不一致）；04–06 仍为 PARTIAL。Runtime 已存在，不等于剩余设计已冻结。",
       "hifi_views": [
         {
           "id": "01_profile_home",
@@ -6393,10 +6413,10 @@
         {
           "id": "03_nickname_edit",
           "title": "03 · 昵称编辑",
-          "status": "FROZEN",
+          "status": "BLOCKED_INTEGRITY",
           "authority_type": "visual",
           "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
-          "summary": "昵称编辑 V1 已冻结并恢复第一张产品定稿 Visual Authority；视觉负责布局/状态呈现，真实校验由 Machine/Development/Backend Contract 冻结为 trim 后 1–20 字符。",
+          "summary": "昵称编辑 V1 已冻结并恢复第一张产品定稿 Visual Authority；视觉负责布局/状态呈现，真实校验由 Machine/Development/Backend Contract 冻结为 trim 后 1–20 字符。 Visual binary identity mismatch unresolved; design/behavior contract remains frozen but visual parity is blocked.",
           "menu_points": [
             "Default",
             "Focus",
