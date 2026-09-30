@@ -6,13 +6,16 @@ Purpose: close the missing edit/modify interaction for optional catch metadata a
 
 Machine-readable authority: `metadata_edit_flow_contract.json`.
 
+Frozen interaction visual authority: `design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png`.
+Visual manifest: `design/pages/recognition/result/metadata_edit/frozen/manifest.json`. The board is authoritative only for Length / Weight / Location Bottom Sheets, keyboard/focus, validation, clear/re-edit, location search, current location, and recent locations. It is not authority for the underlying Result page composition.
+
 ## 0. Scope and authority
 
 Applies to High, Medium after explicit species confirmation, and Low after manual species resolution.
 
 This contract defines only the edit interaction for Length / Weight / Location. It does **not** replace the frozen Result page composition.
 
-The uploaded review board “长度 / 重量 / 地点录入 V1” is accepted as the interaction-intent reference for lightweight Bottom Sheet editing. Elements that conflict with the current Result package are not adopted, including consumer confidence %, old bottom-action arrangement, or old species/tag hierarchy.
+The frozen board at `design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png` is the interaction visual authority for lightweight Bottom Sheet editing only. It is not authority for the underlying Result page composition. Elements that conflict with the current Result package are not adopted, including confidence %, the legacy Result CTA, the old vertical Metadata List, old Species Tag, or Gold action.
 
 Current page presentation remains governed by State Frozen 05–07, Layout Geometry V1, and Metadata Input Contract V1.
 

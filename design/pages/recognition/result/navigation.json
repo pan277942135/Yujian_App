@@ -122,5 +122,35 @@
     }
   ],
   "status": "IMPLEMENTATION_READY",
-  "implementation_authority": "design/pages/recognition/result/engineering/README.md"
+  "implementation_authority": "design/pages/recognition/result/engineering/README.md",
+  "supplemental_authorities": [
+    {
+      "id": "species_selector_v1",
+      "title": "Species Selector V1",
+      "authority": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+      "visual_authority": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+      "contract": "design/pages/recognition/result/species_selector/species_selector_contract.json",
+      "manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
+      "linked_from": [
+        "RR00",
+        "RR01",
+        "RR02",
+        "RR03"
+      ]
+    },
+    {
+      "id": "metadata_edit_flow_v1",
+      "title": "Metadata Edit Flow V1",
+      "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+      "visual_authority": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+      "contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+      "manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json",
+      "linked_from": [
+        "RR00",
+        "RR01",
+        "RR02",
+        "RR03"
+      ]
+    }
+  ]
 }

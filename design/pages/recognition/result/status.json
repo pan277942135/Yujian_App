@@ -52,5 +52,15 @@
   "result_asset_manifest": "design/pages/recognition/assets/Asset_Manifest_V1.json",
   "metadata_edit_flow_frozen": true,
   "metadata_edit_flow_authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-  "metadata_edit_flow_contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json"
+  "metadata_edit_flow_contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+  "species_selector_frozen": true,
+  "species_selector_visual_frozen": true,
+  "species_selector_behavior_frozen": true,
+  "species_selector_authority": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+  "species_selector_visual_authority": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+  "species_selector_contract": "design/pages/recognition/result/species_selector/species_selector_contract.json",
+  "species_selector_visual_manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
+  "metadata_edit_visual_frozen": true,
+  "metadata_edit_visual_authority": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+  "metadata_edit_visual_manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json"
 }

@@ -1,0 +1,22 @@
+{
+  "id": "recognition_result_species_selector_v1",
+  "status": "FROZEN",
+  "freeze_date": "2026-09-30",
+  "spec": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+  "visual_authority": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+  "visual_manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
+  "machine_contract": "design/pages/recognition/result/species_selector/species_selector_contract.json",
+  "visual_frozen": true,
+  "behavior_frozen": true,
+  "logical_states": [
+    "SS01",
+    "SS02",
+    "SS03",
+    "SS04",
+    "SS05",
+    "SS06",
+    "SS07",
+    "SS08"
+  ],
+  "work_visual_judgment_required": false
+}
