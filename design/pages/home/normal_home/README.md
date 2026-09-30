@@ -1,7 +1,7 @@
 # Normal Home V1
 
 Role: **Home / Catch Baseline**  
-Status: **DESIGN FROZEN — NH01–NH06 specifications / boards pending**  
+Status: **DESIGN FROZEN — NH01–NH06**
 Design package: **Closure V1 + V1.1 runtime/background authority correction**
 
 ## Frozen visual authority
@@ -26,12 +26,12 @@ Machine-readable navigation: `navigation.json`
 
 | ID | 二级菜单 | 出图方式 | 当前状态 |
 | --- | --- | --- | --- |
-| NH01 | 主页面｜多鱼获状态 | 独立高保 | FROZEN — 当前视觉权威 |
-| NH02 | 第一条鱼首页 | 独立高保 | **FROZEN · SPEC + VISUAL** |
-| NH03 | 页面状态与异常 | 合并规范图 | **SPEC FROZEN / BOARD PENDING** |
-| NH04 | 组件状态与内容边界 | 合并规范图 | **SPEC FROZEN / BOARD PENDING** |
-| NH05 | 响应式与交互 | 合并规范图 | **SPEC FROZEN / BOARD PENDING** |
-| NH06 | 背景与环境权威 | Authority 规范图 | **SPEC FROZEN / AUTHORITY BOARD PENDING** |
+| NH01 | 主页面｜多鱼获状态 | 独立高保 | **FROZEN** |
+| NH02 | 第一条鱼首页 | 独立高保 | **FROZEN** |
+| NH03 | 页面状态与异常 | 合并规范图 | **FROZEN · SPEC + VISUAL** |
+| NH04 | 组件状态与内容边界 | 合并规范图 | **FROZEN · SPEC + VISUAL** |
+| NH05 | 响应式与交互 | 合并规范图 | **FROZEN · SPEC + VISUAL** |
+| NH06 | 背景与环境权威 | Authority 规范图 | **FROZEN · SPEC + VISUAL** |
 
 ### NH01｜主页面｜多鱼获状态
 
@@ -113,7 +113,7 @@ NH06 is now spec-frozen.
 - `Morning_Lake_Master_V1.png` is the **FROZEN reusable Normal Home background source**;
 - Normal Home maps to `BG_ENV_HERO` under Background System V1;
 - `normal_home_v1.png` and NH02 Frozen PNG remain the authorities for complete page composition;
-- the NH06 Authority Board is still pending;
+- the NH06 board is the workspace visual authority; the reusable master remains `Morning_Lake_Master_V1.png`;
 - runtime copies the registered `Morning_Lake_Master_V1.png` byte-for-byte into the Normal Home runtime asset root;
 - Android applies centered `ContentScale.Crop` at the viewport only; the source bitmap is not recolored or reconstructed;
 - no screenshot crop may be promoted into a reusable background master.

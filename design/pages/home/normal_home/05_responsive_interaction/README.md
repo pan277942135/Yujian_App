@@ -1,8 +1,17 @@
 # NH05 · Responsive & Interaction / 响应式与交互 · Design Spec V1
 
-Status: **SPEC FROZEN — COMBINED BOARD PENDING**  
+Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home phone adaptation / Pager / Reduce Motion**  
 Output policy: **COMBINED_BOARD**
+
+
+## Frozen visual authority
+
+- Visual authority: `design/pages/home/normal_home/05_responsive_interaction/frozen/NH05_Responsive_Interaction_V1_Frozen.png`
+- Manifest: `design/pages/home/normal_home/05_responsive_interaction/frozen/manifest.json`
+- Image: PNG, 1491 × 1055, 2,207,455 bytes, SHA-256 `d5eacef7df2372e5223a0f4939a415260605784b0ba892c5ee09e315f1c43c4c`
+- Frozen status: `FROZEN — SPEC + VISUAL`
+- The frozen raster PNG cannot be replaced by SVG, HTML/CSS, screenshots, or reconstruction.
 
 ---
 

@@ -350,11 +350,11 @@
           "id": "NH03",
           "code": "NH03",
           "title": "NH03 · 页面状态与异常",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority_type": "behavior",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
           "authority": "design/pages/home/normal_home/03_page_states/README.md",
-          "summary": "NH03 规范已冻结，合并板待出。Unknown ≠ Empty；覆盖 Resolving、Image Unavailable、Refresh Preserves Home、Error ≠ Empty。",
+          "summary": "NH03 视觉板已冻结。Unknown ≠ Empty；覆盖 Resolving、Image Unavailable、Refresh Preserves Home、Error ≠ Empty。",
           "menu_points": [
             "Home Resolving → — / — / —",
             "Catch Image Unavailable",
@@ -362,17 +362,22 @@
             "Error preserves stale Home",
             "Only resolved zero → Empty"
           ],
-          "behavior_authority": "design/pages/home/normal_home/03_page_states/README.md"
+          "behavior_authority": "design/pages/home/normal_home/03_page_states/README.md",
+          "image": "design/pages/home/normal_home/03_page_states/frozen/NH03_Page_States_Exceptions_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/03_page_states/frozen/NH03_Page_States_Exceptions_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_authority_manifest": "design/pages/home/normal_home/03_page_states/frozen/manifest.json",
+          "visual_caption": "NH03 · Page States & Exceptions V1 · Frozen Visual Authority"
         },
         {
           "id": "NH04",
           "code": "NH04",
           "title": "NH04 · 组件状态与内容边界",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority_type": "behavior",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
           "authority": "design/pages/home/normal_home/04_component_content_states/README.md",
-          "summary": "NH04 规范已冻结，组件板待出。覆盖 Real Avatar / Default Avatar / Guest，以及 HOME Hero 字段缺失与长文本边界。",
+          "summary": "NH04 组件板已冻结。覆盖 Real Avatar / Default Avatar / Guest，以及 HOME Hero 字段缺失与长文本边界。",
           "menu_points": [
             "Real Avatar / Default Avatar / Guest",
             "Complete Hero",
@@ -381,17 +386,22 @@
             "Long species → ellipsis",
             "Long location → time priority"
           ],
-          "behavior_authority": "design/pages/home/normal_home/04_component_content_states/README.md"
+          "behavior_authority": "design/pages/home/normal_home/04_component_content_states/README.md",
+          "image": "design/pages/home/normal_home/04_component_content_states/frozen/NH04_Component_Content_States_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/04_component_content_states/frozen/NH04_Component_Content_States_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_authority_manifest": "design/pages/home/normal_home/04_component_content_states/frozen/manifest.json",
+          "visual_caption": "NH04 · Component & Content States V1 · Frozen Visual Authority"
         },
         {
           "id": "NH05",
           "code": "NH05",
           "title": "NH05 · 响应式与交互",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority_type": "behavior",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
           "authority": "design/pages/home/normal_home/05_responsive_interaction/README.md",
-          "summary": "NH05 规范已冻结，响应式板待出。1080×1920 为参考；宽度优先，核心构图整体偏移，9:16–21:9 不拉伸 Hero。",
+          "summary": "NH05 响应式与交互板已冻结。1080×1920 为参考；宽度优先，核心构图整体偏移，9:16–21:9 不拉伸 Hero。",
           "menu_points": [
             "9:16 / 19.5:9 / 20:9 / 21:9",
             "Width-first scaling",
@@ -400,19 +410,24 @@
             "Single Record has no pager hint",
             "Reduce Motion"
           ],
-          "behavior_authority": "design/pages/home/normal_home/05_responsive_interaction/README.md"
+          "behavior_authority": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+          "image": "design/pages/home/normal_home/05_responsive_interaction/frozen/NH05_Responsive_Interaction_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/05_responsive_interaction/frozen/NH05_Responsive_Interaction_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_authority_manifest": "design/pages/home/normal_home/05_responsive_interaction/frozen/manifest.json",
+          "visual_caption": "NH05 · Responsive & Interaction V1 · Frozen Visual Authority"
         },
         {
           "id": "NH06",
           "code": "NH06",
           "title": "NH06 · 背景与环境权威",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "repo_image",
           "authority_type": "visual",
-          "image": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-          "visual_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+          "image": "design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png",
           "authority": "design/pages/home/normal_home/06_background_authority/README.md",
-          "summary": "NH06 规范已冻结，Authority Board 待出。Normal Home = Morning_Lake_Master_V1 → BG_ENV_HERO；背景源 Authority 与 NH01/NH02 完整页面构图 Authority 分离。",
+          "summary": "NH06 工作区 Authority Board 已冻结；Normal Home 继续复用 Morning_Lake_Master_V1 → BG_ENV_HERO。",
           "menu_points": [
             "Morning_Lake_Master_V1 · 941×1672",
             "SHA-256 5fba7410…91d7",
@@ -423,7 +438,9 @@
           ],
           "behavior_authority": "design/pages/home/normal_home/06_background_authority/README.md",
           "visual_status": "FROZEN",
-          "visual_caption": "NH06 Source Authority · Morning_Lake_Master_V1 · Authority Board Pending"
+          "visual_caption": "NH06 · Background & Environment Authority V1 · Frozen Visual Authority",
+          "visual_authority_manifest": "design/pages/home/normal_home/06_background_authority/frozen/manifest.json",
+          "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png"
         }
       ]
     },
