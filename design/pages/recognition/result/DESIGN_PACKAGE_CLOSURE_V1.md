@@ -46,6 +46,7 @@ It does not change:
 | Layout Geometry V1 | PASS — FROZEN |
 | Component Map V1 | PASS — FROZEN |
 | Metadata Input Contract V1 | PASS — FROZEN |
+| Metadata Edit Flow V1 | PASS — FROZEN |
 | Candidate Card V1 | PASS — FROZEN |
 | Visual Acceptance Map V1 | PASS — FROZEN |
 | Asset Manifest / Result | PASS — FROZEN |
@@ -110,6 +111,7 @@ Work/frontend may make implementation choices only where explicitly left to plat
 - adaptive width/height behavior;
 - component selection;
 - Result metadata inputs;
+- Result metadata lightweight modification / Bottom Sheet flow;
 - Medium candidate-card visuals/states;
 - dynamic Hero media placement;
 - visual acceptance tolerances;
