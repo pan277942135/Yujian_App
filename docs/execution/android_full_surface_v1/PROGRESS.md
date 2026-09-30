@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P05 Recognition Processing
+- Current phase: P06 Recognition Result
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -41,8 +41,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P02 Empty Home | PASS | `f3210a66e4657b59a2db350cf5952ae0aea68aab` | Local verifier PASS; prior Android CI run `36514649405` PASS; gate artifact `11011440570` | None for Empty Home | Continue P04 |
 | P03 Normal Home / First Catch Home | BLOCKED_INFRA | `2eb538461888e8bcba1a1f027b130709ab498f46` | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
 | P04 Capture entry / shared Capture behavior | BLOCKED_INFRA | `3a4d494308f390cb1f851335f391dab329639a53` | Existing camera/gallery route audited; camera failure containment and image-store tests added | Android instrumentation unavailable in this environment | Continue P05; carry P04 gate into final matrix |
-| P05 Recognition Processing | IN_PROGRESS | — | Frozen runtime/state/motion contracts and existing Android gate identified | — | Reconcile frozen recognition runtime and current failures |
-| P06 Recognition Result | NOT_STARTED | — | — | — | — |
+| P05 Recognition Processing | BLOCKED_INFRA | pending | Contract verifier PASS; cancellation fix and Back instrumentation authored | No local Gradle/Android runtime; Android test and runtime evidence gate unavailable after bounded no-job attempts | Continue P06 independently |
+| P06 Recognition Result | IN_PROGRESS | — | `result` route and screen exist; registry runtime/evidence marked PARTIAL | Targeted result instrumentation and visual evidence | Audit frozen high/medium/low/no-fish/quality states |
 | P07 Result Editing | NOT_STARTED | — | — | — | — |
 | P08 My Catches | NOT_STARTED | — | — | — | — |
 | P09 Fish Record Detail | NOT_STARTED | — | — | — | — |
@@ -148,3 +148,34 @@ Git:
 
 Next:
 - Continue P05 Recognition Processing against the frozen state, motion and runtime contracts; retain both P03 and P04 checks in the final runtime matrix.
+
+## P05 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P05
+
+Feature: Recognition Processing and failure/retry boundary
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Audited the frozen three-state Processing contract and existing production pipeline, state controller, motion policy, Fish Focus implementation and frozen-flow evidence harness. The pipeline remains the source of detector/classifier truth; presented states remain `图片识别中`, `已定位到鱼体`, and `鱼种识别中`, followed by the existing Resolve handoff.
+- Fixed a lifecycle edge: `CancellationException` from the Processing `LaunchedEffect` is rethrown so user Back/disposal does not invoke the technical-failure callback. Other recognition exceptions retain the existing failure presentation and routing.
+- Applied the same cancellation propagation to optional fish-subject generation; actual subject-generation errors continue to degrade to the existing unavailable focus treatment.
+- Added an instrumentation case that starts a suspended recognition call, leaves Processing through the labeled Back action, and asserts that technical failure is not reported.
+- `python3 scripts/verify_recognition_runtime_contract.py` returned PASS for Recognition presentation contract V1.3; `git diff --check` passes.
+
+Validation boundary:
+- The new instrumentation test, Kotlin compile, unit tests and Android lint were not executed: this workspace has no `gradle`/Gradle wrapper, `adb` or emulator.
+- Frozen runtime screenshot/video/timing/motion/accessibility evidence and visual parity require the existing Android gate. The branch has already used its three no-job Android workflow attempts; bounded retry is exhausted, so no manual rerun was started. P05 is therefore BLOCKED_INFRA, not PASS.
+- No runtime screenshots, visual results or APK were fabricated. Existing `recognition-frozen` gate remains enabled.
+
+Git:
+- Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
+- Branch: `feature/android-full-surface-runtime-v1`
+- P05 source checkpoint SHA: pending
+- PR: #97 (draft)
+
+Next:
+- Continue P06 Recognition Result high/medium/low/no-fish/image-quality auditing and targeted implementation, preserving P05's Android evidence blocker for final matrix closure.

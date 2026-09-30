@@ -76,6 +76,7 @@ import java.util.Collections
 import java.util.LinkedHashMap
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.withContext
 
 /**
@@ -217,6 +218,37 @@ class RecognitionFrozenFlowEmulatorTest {
         render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", "10_issue_technical_failure.png")
         assertVisible("请重新拍摄或选择照片。")
         assertNoDirtyTechnicalUi()
+    }
+
+    @Test
+    fun backingOutCancelsRecognitionWithoutReportingTechnicalFailure() {
+        val processingVisible = mutableStateOf(true)
+        val recognizeStarted = CountDownLatch(1)
+        val failureCount = java.util.concurrent.atomic.AtomicInteger(0)
+
+        composeRule.setContent {
+            YujianTheme {
+                if (processingVisible.value) {
+                    RecognitionProcessingScene(
+                        image = photo,
+                        onBack = { processingVisible.value = false },
+                        recognize = {
+                            recognizeStarted.countDown()
+                            awaitCancellation()
+                        },
+                        onFinished = {},
+                        onFailure = { failureCount.incrementAndGet() },
+                    )
+                }
+            }
+        }
+
+        assertTrue("recognition coroutine did not start", recognizeStarted.await(2, TimeUnit.SECONDS))
+        composeRule.onNodeWithContentDescription("返回").performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) { !processingVisible.value }
+        composeRule.waitForIdle()
+
+        assertEquals("user Back must not be routed as recognition failure", 0, failureCount.get())
     }
 
 

@@ -47,6 +47,7 @@ import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -102,7 +103,13 @@ fun RecognitionProcessingScene(
         val primary = assessment?.primary ?: return@LaunchedEffect
         val generator = generateSubject ?: return@LaunchedEffect
         subjectBitmap = null; subjectBox = null; contour = emptyList(); subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
-        val result = runCatching { generator(selected, primary.box) }.getOrNull()
+        val result = try {
+            generator(selected, primary.box)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Throwable) {
+            null
+        }
         subjectResult = result ?: FishSubjectResult(SubjectStatus.FAILED, errorCode = "SUBJECT_GENERATION_NULL")
         if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) {
             logFocusDiagnostic(subjectResult, contour.size, null, false, false)
@@ -118,21 +125,28 @@ fun RecognitionProcessingScene(
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
         controller.reset(SystemClock.uptimeMillis()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = SystemClock.uptimeMillis()
         assessment = null
-        runCatching {
+        val result = try {
             recognize { progress ->
                 assessment = progress.assessment ?: assessment
                 realPhase = progress.phase
                 controller.onPipelinePhase(progress.phase, SystemClock.uptimeMillis())
             }
-        }.onSuccess { result ->
-            assessment = result.assessment; finishedResult = result
-            if (result.ready) {
-                realPhase = RecognitionPhase.RESULT
-                controller.onPipelinePhase(RecognitionPhase.RESULT, SystemClock.uptimeMillis())
-            } else if (!delivered) { delivered = true; onFinished(result) }
-        }.onFailure { error ->
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Throwable) {
             Log.e(LOG_TAG, "Recognition runtime failed", error)
-            realPhase = RecognitionPhase.FAILURE; controller.onPipelinePhase(RecognitionPhase.FAILURE, SystemClock.uptimeMillis()); onFailure(error)
+            realPhase = RecognitionPhase.FAILURE
+            controller.onPipelinePhase(RecognitionPhase.FAILURE, SystemClock.uptimeMillis())
+            onFailure(error)
+            return@LaunchedEffect
+        }
+        assessment = result.assessment; finishedResult = result
+        if (result.ready) {
+            realPhase = RecognitionPhase.RESULT
+            controller.onPipelinePhase(RecognitionPhase.RESULT, SystemClock.uptimeMillis())
+        } else if (!delivered) {
+            delivered = true
+            onFinished(result)
         }
     }
 
