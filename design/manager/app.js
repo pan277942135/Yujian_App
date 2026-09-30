@@ -8,12 +8,14 @@ const DESIGN_MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "a
 
 const ICONS = {
   FROZEN: "✓", ACTIVE_CLOSURE: "◐", PARTIAL: "◒", MISSING: "×",
-  RUNTIME_ONLY: "↗", DESIGN_ONLY: "◇", DEPRECATED: "—", CANDIDATE: "◐"
+  DEFERRED: "↷", BLOCKED_INTEGRITY: "!", RUNTIME_ONLY: "↗",
+  DESIGN_ONLY: "◇", DEPRECATED: "—", CANDIDATE: "◐"
 };
 
 const STATUS_LABELS = {
   FROZEN: "已冻结", ACTIVE_CLOSURE: "收口中", PARTIAL: "部分完成",
-  MISSING: "缺失", RUNTIME_ONLY: "仅运行时", DESIGN_ONLY: "仅设计",
+  MISSING: "缺失", DEFERRED: "已延后", BLOCKED_INTEGRITY: "完整性阻塞",
+  RUNTIME_ONLY: "仅运行时", DESIGN_ONLY: "仅设计",
   DEPRECATED: "已废弃", CANDIDATE: "候选"
 };
 
