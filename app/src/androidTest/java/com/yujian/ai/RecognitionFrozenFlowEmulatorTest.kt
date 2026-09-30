@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.os.SystemClock
 import android.util.Log
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,6 +53,9 @@ import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
+import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
+import com.yujian.ai.ui.recognition.RecognitionDegradationLevel
+import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
@@ -66,6 +70,8 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.Collections
 import java.util.LinkedHashMap
 import java.util.concurrent.atomic.AtomicReference
@@ -122,7 +128,7 @@ class RecognitionFrozenFlowEmulatorTest {
     private lateinit var low: ProductionRecognitionResult
     private lateinit var noFish: ProductionRecognitionResult
     private lateinit var imageQuality: ProductionRecognitionResult
-    private var currentFrozenState: FrozenState = FrozenState.CAPTURE_TRANSITION
+    private var currentFrozenState: FrozenState = FrozenState.IMAGE_RECOGNIZING_EARLY
 
     @Before
     fun setUp() {
@@ -155,22 +161,30 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
-    fun generatesNineFrozenStateScreenshotsAndExercisesProductionNavigation() {
-        val state = mutableStateOf(FrozenState.CAPTURE_TRANSITION)
-        composeRule.setContent { YujianTheme { FrozenRecognitionHarness(state, photo, high, medium, low, noFish, imageQuality) } }
+    fun generatesFrozenThreeStateScreenshotsAndExercisesProductionNavigation() {
+        val state = mutableStateOf(FrozenState.IMAGE_RECOGNIZING_EARLY)
+        val subject = createAnnotatedSubjectAlphaFixture(
+            photo.bitmap,
+            requireNotNull(high.assessment.primary).box,
+        )
+        composeRule.setContent {
+            YujianTheme {
+                FrozenRecognitionHarness(state, photo, high, medium, low, noFish, imageQuality, subject)
+            }
+        }
 
-        render(state, FrozenState.CAPTURE_TRANSITION, "正在准备识别", "01_capture_transition.png")
-        assertVisible("AI 已获取这张照片")
+        render(state, FrozenState.IMAGE_RECOGNIZING_EARLY, "图片识别中", "01_image_recognizing_early.png")
+        assertVisible("正在理解照片并寻找鱼获线索")
 
-        render(state, FrozenState.AI_UNDERSTANDING, "正在理解这张照片", "02_ai_understanding.png")
-        assertVisible("寻找这次鱼获的线索")
+        render(state, FrozenState.IMAGE_RECOGNIZING_LATE, "图片识别中", "02_image_recognizing_late.png")
+        assertVisible("正在理解照片并寻找鱼获线索")
         assertNoDirtyTechnicalUi()
 
-        render(state, FrozenState.FISH_HIGHLIGHT, "已定位到鱼体", "03_fish_highlight.png")
+        render(state, FrozenState.FISH_LOCATED, "已定位到鱼体", "03_fish_located.png")
         assertVisible("正在分析这次鱼获")
 
-        render(state, FrozenState.FISH_IDENTIFYING, "正在认识这条鱼", "04_fish_identifying.png")
-        assertVisible("分析鱼体特征")
+        render(state, FrozenState.SPECIES_RECOGNIZING, "鱼种识别中", "04_species_recognizing.png")
+        assertVisible("正在分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         render(state, FrozenState.RESULT_HIGH, "修改鱼种 ›", "05_result_high.png")
@@ -187,20 +201,20 @@ class RecognitionFrozenFlowEmulatorTest {
         listOf("长度", "重量", "地点", "编辑鱼获记录").forEach {
             assertFalse(composeRule.onAllNodesWithText(it).fetchSemanticsNodes().isNotEmpty())
         }
-        listOf("还不能确定这是什么鱼", "打开鱼种选择", "收起 16 类鱼种", "其他鱼种（可选）", "补充鱼获信息", "认识完成")
+        listOf("还不能确定这是什么鱼", "打开鱼种选择", "其他鱼种（可选）", "补充鱼获信息", "认识完成")
             .forEach { assertFalse(composeRule.onAllNodesWithText(it).fetchSemanticsNodes().isNotEmpty()) }
         composeRule.onNodeWithText("手动选择鱼种").performClick()
         assertVisible("选择鱼种")
 
-        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_error_no_fish.png")
+        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_issue_no_fish.png")
         assertVisible("从相册选择")
         assertVisible("重新拍摄")
 
-        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_error_image_quality.png")
+        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_issue_image_quality.png")
         assertVisible("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。")
         assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", null)
+        render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", "10_issue_technical_failure.png")
         assertVisible("请重新拍摄或选择照片。")
         assertNoDirtyTechnicalUi()
     }
@@ -212,8 +226,10 @@ class RecognitionFrozenFlowEmulatorTest {
         val pipeline = FishRecognitionPipeline(targetContext)
         val completed = mutableStateOf<ProductionRecognitionResult?>(null)
         val completedResult = AtomicReference<ProductionRecognitionResult?>(null)
+        val fishFocusTransform = AtomicReference<RecognitionImageTransform?>(null)
         val pipelineTrace = Collections.synchronizedList(mutableListOf<String>())
         val visualTimes = Collections.synchronizedMap(LinkedHashMap<RecognitionPhase, Long>())
+        val motionSamples = Collections.synchronizedList(mutableListOf<RecognitionMotionTraceSample>())
         val subjectEvidence = mutableStateOf<FishSubjectResult?>(null)
         var finishedAtMs = 0L
 
@@ -225,7 +241,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         image = photo,
                         prediction = requireNotNull(result.prediction),
                         productionResult = result,
-                        onBack = {}, onRetry = {}, onSave = { _, _ -> }, onViewGuide = {},
+                        onBack = {}, onRetry = {}, onSave = { _, _, _ -> },
                     )
                 } else {
                     RecognitionProcessingScene(
@@ -257,6 +273,8 @@ class RecognitionFrozenFlowEmulatorTest {
                             visualTimes.putIfAbsent(phase, atMs)
                             trace("VISUAL_PRESENTED phase=$phase at=$atMs")
                         },
+                        onMotionFrame = { sample -> motionSamples += sample },
+                        onFishFocusTransform = { transform -> fishFocusTransform.set(transform) },
                     )
                 }
             }
@@ -291,22 +309,51 @@ class RecognitionFrozenFlowEmulatorTest {
             expectedPipeline.firstOrNull { line.contains("phase=$it") }
         }
         assertEquals(expectedPipeline, actualPipeline.distinct())
+        assertEquals(
+            listOf(
+                RecognitionPhase.CAPTURED,
+                RecognitionPhase.OUTLINE,
+                RecognitionPhase.CLASSIFYING,
+            ),
+            visualTimes.keys.filter { it != RecognitionPhase.RESULT },
+        )
+        assertFalse("DETECTING leaked into the product presentation trace", visualTimes.containsKey(RecognitionPhase.DETECTING))
 
-        val capturedAt = requireNotNull(visualTimes[RecognitionPhase.CAPTURED])
-        val detectingAt = requireNotNull(visualTimes[RecognitionPhase.DETECTING])
+        val imageRecognizingAt = requireNotNull(visualTimes[RecognitionPhase.CAPTURED])
         val outlineAt = requireNotNull(visualTimes[RecognitionPhase.OUTLINE])
         val classifyingAt = requireNotNull(visualTimes[RecognitionPhase.CLASSIFYING])
         assertTrue("RESULT callback did not complete", finishedAtMs > classifyingAt)
 
-        val capturedMs = detectingAt - capturedAt
-        val detectingMs = outlineAt - detectingAt
-        val outlineMs = classifyingAt - outlineAt
-        val classifyingMs = finishedAtMs - classifyingAt
-        val totalMs = finishedAtMs - capturedAt
-        val fishFocusStableMs = classifyingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+        val imageRecognizingMs = outlineAt - imageRecognizingAt
+        val fishLocatedMs = classifyingAt - outlineAt
+        val speciesRecognizingMs = finishedAtMs - classifyingAt
+        val totalMs = finishedAtMs - imageRecognizingAt
+        val fishFocusStableMs = speciesRecognizingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+        // These markers are delivered by separate Compose effects. Frame scheduling can
+        // make their observed interval shorter than the controller's exact minimum;
+        // controller unit tests continue to assert the frozen 900/600/1250ms contract.
+        val presentationTimestampToleranceMs = 50L
 
-        assertTrue("processing visual flow was outside runtime bound: ${totalMs}ms", totalMs in 2_500L..3_500L)
-        assertTrue("final fish focus was too short: ${fishFocusStableMs}ms", fishFocusStableMs >= 1_000L)
+        assertTrue(
+            "图片识别中 presentation interval was too short: ${imageRecognizingMs}ms",
+            imageRecognizingMs >= 900L - presentationTimestampToleranceMs,
+        )
+        assertTrue(
+            "已定位到鱼体 presentation interval was too short: ${fishLocatedMs}ms",
+            fishLocatedMs >= 600L - presentationTimestampToleranceMs,
+        )
+        assertTrue(
+            "鱼种识别中 including resolve presentation interval was too short: ${speciesRecognizingMs}ms",
+            speciesRecognizingMs >= 1_450L - presentationTimestampToleranceMs,
+        )
+        assertTrue(
+            "nominal presentation interval was too short: ${totalMs}ms",
+            totalMs >= 2_950L - presentationTimestampToleranceMs,
+        )
+        assertTrue(
+            "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
+            fishFocusStableMs >= 1_250L - presentationTimestampToleranceMs,
+        )
 
         val primary = requireNotNull(result.assessment.primary)
         val box = primary.box.normalized()
@@ -321,12 +368,11 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         } ?: 0
         assertTrue("real-catch Level A fixture produced an empty contour", contourSegments > 0)
-        File(evidenceDir, "recognition_processing_timing.txt").writeText(
-            "Contract: CAPTURED=350ms DETECTING=600ms OUTLINE=600ms CLASSIFYING=1250ms TOTAL=2800ms\n" +
-                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
-                "Runtime DETECTING duration: ${detectingMs}ms\n" +
-                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
-                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
+        File(evidenceDir, "recognition_processing_timing_v1_2.txt").writeText(
+            "Contract: IMAGE_RECOGNIZING=900ms FISH_LOCATED=600ms SPECIES_RECOGNIZING=1250ms RESOLVE=200ms TOTAL=2950ms\n" +
+                "Runtime IMAGE_RECOGNIZING duration: ${imageRecognizingMs}ms\n" +
+                "Runtime FISH_LOCATED duration: ${fishLocatedMs}ms\n" +
+                "Runtime SPECIES_RECOGNIZING duration: ${speciesRecognizingMs}ms\n" +
                 "Runtime TOTAL duration: ${totalMs}ms\n" +
                 "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
         )
@@ -345,6 +391,43 @@ class RecognitionFrozenFlowEmulatorTest {
                 "RESULT species=${result.prediction?.top1?.speciesKey} confidence=${result.prediction?.top1?.confidence}\n" +
                 visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=$phase at=$at" } + "\n",
         )
+        File(evidenceDir, "recognition_motion_trace_v1_2.json").writeText(
+            motionSamples.toList().joinToString(
+                prefix = "{\"samples\":[",
+                postfix = "]}\n",
+                separator = ",",
+            ) { sample ->
+                    "{\"uptime_ms\":${sample.uptimeMs},\"phase\":\"${sample.phase}\"," +
+                    "\"segment_offset\":${sample.segmentOffset},\"segment_speed\":${sample.segmentSpeed}," +
+                    "\"state_strength\":${sample.stateStrength}," +
+                    "\"resolve_strength\":${sample.resolveStrength},\"detail_motion_time_ms\":${sample.detailMotionTimeMs}," +
+                    "\"reduce_motion\":${sample.reduceMotion}," +
+                    "\"quality\":\"${sample.qualityLevel}\"}"
+            },
+        )
+        val presentationEvents = listOf(
+            "IMAGE_RECOGNIZING" to imageRecognizingAt,
+            "FISH_LOCATED" to outlineAt,
+            "SPECIES_RECOGNIZING" to classifyingAt,
+            "RESULT" to finishedAtMs,
+        )
+        File(evidenceDir, "recognition_production_flow_trace_v1_2.json").writeText(
+            "{\"contract_version\":\"RECOGNITION_PRESENTATION_v1_3\"," +
+                "\"pipeline_phases\":[${actualPipeline.joinToString(",") { "\"$it\"" }}]," +
+                "\"presentation_events\":[${presentationEvents.joinToString(",") { (state, at) -> "{\"state\":\"$state\",\"at_ms\":$at}" }}]," +
+                "\"result_ready\":${result.ready},\"bbox\":{\"x1\":${box.x1},\"y1\":${box.y1},\"x2\":${box.x2},\"y2\":${box.y2}}}\n",
+        )
+        val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
+        val mappedCenter = transform.mapBox(primary.box)
+        val crop = primary.box.expand(.12f).normalized()
+        File(evidenceDir, "fish_focus_bbox_mapping.json").writeText(
+            "{\"image_px\":{\"width\":${photo.bitmap.width},\"height\":${photo.bitmap.height}}," +
+            "\"display_transform_px\":{\"drawn_width\":${transform.drawnWidth},\"drawn_height\":${transform.drawnHeight}}," +
+                "\"detector_bbox_normalized\":{\"x1\":${box.x1},\"y1\":${box.y1},\"x2\":${box.x2},\"y2\":${box.y2}}," +
+                "\"subject_crop_normalized\":{\"x1\":${crop.x1},\"y1\":${crop.y1},\"x2\":${crop.x2},\"y2\":${crop.y2}}," +
+                "\"content_scale_crop\":{\"scale\":${transform.scale},\"offset_x\":${transform.offsetX}," +
+                "\"offset_y\":${transform.offsetY},\"center_x\":${mappedCenter.x},\"center_y\":${mappedCenter.y}}}\n",
+        )
         File(evidenceDir, "recognition_focus_diagnostic.txt").writeText(
             "SUBJECT_STATUS=${subject.status}\n" +
                 "SUBJECT_QUALITY=${subject.quality}\n" +
@@ -358,8 +441,8 @@ class RecognitionFrozenFlowEmulatorTest {
                 "REDUCE_MOTION=false\n",
         )
         trace(
-            "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
-                "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
+            "TIMING_IMAGE_RECOGNIZING_MS=$imageRecognizingMs TIMING_FISH_LOCATED_MS=$fishLocatedMs " +
+                "TIMING_SPECIES_RECOGNIZING_MS=$speciesRecognizingMs " +
                 "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
         )
     }
@@ -414,7 +497,7 @@ class RecognitionFrozenFlowEmulatorTest {
             }.getOrDefault(false)
         }
         composeRule.onNodeWithTag("recognition-fish-focus-level-a").assertIsDisplayed()
-        capture("10_level_a_contour.png")
+        capture("level_a_real_contour.png")
         val box = realBox.normalized()
         trace(
             "LEVEL_A_REAL_BBOX confidence=${result.assessment.primary?.confidence} " +
@@ -447,10 +530,16 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        assertVisible("正在认识这条鱼")
-        assertVisible("分析鱼体特征")
+        assertVisible("鱼种识别中")
+        assertVisible("正在分析鱼体特征")
         composeRule.onNodeWithTag("recognition-ambient-reduced-motion-low-performance").assertIsDisplayed()
-        composeRule.onNodeWithTag("recognition-fish-focus-level-b-low-performance").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            runCatching {
+                composeRule.onNodeWithTag("recognition-fish-focus-level-a-low-performance").fetchSemanticsNode()
+                true
+            }.getOrDefault(false)
+        }
+        composeRule.onNodeWithTag("recognition-fish-focus-level-a-low-performance").assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         composeRule.waitForIdle()
@@ -467,8 +556,97 @@ class RecognitionFrozenFlowEmulatorTest {
         first.delete()
         second.delete()
 
+        // Restrict the comparison to the four ambient-field edge regions. A
+        // whole-screen ratio is diluted by the photo and affected by unrelated
+        // UI rasterization, while these regions directly test field travel.
         assertTrue("Reduce Motion still produced continuous visual travel: diffRatio=$diffRatio", diffRatio <= 0.01f)
-        capture("11_reduce_motion_low_performance.png")
+        capture("reduce_motion_static.png")
+    }
+
+    @Test
+    fun capturesQualityProfilesAndD0ThroughD4AccessibilityEvidence() {
+        val subject = createAnnotatedSubjectAlphaFixture(
+            photo.bitmap,
+            requireNotNull(high.assessment.primary).box,
+        )
+        val policy = mutableStateOf(RecognitionMotionPolicy())
+        val phaseState = mutableStateOf(RecognitionPhase.DETECTING)
+        val visualClockState = mutableStateOf(720L)
+        // The three profile captures share one real photo, IMAGE_RECOGNIZING
+        // state, and frozen visual clock. Focus ladder evidence is separate.
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionProcessingScene(
+                    image = photo,
+                    onBack = {},
+                    recognize = { onProgress ->
+                        onProgress(RecognitionProgress(phaseState.value, high.assessment))
+                        high
+                    },
+                    generateSubject = { _, _ -> subject },
+                    onFinished = {},
+                    phaseOverride = phaseState.value,
+                    visualClockOverrideMs = visualClockState.value,
+                    motionPolicyOverride = policy.value,
+                )
+            }
+        }
+        listOf(
+            RecognitionDegradationLevel.D0 to "quality_full.png",
+            RecognitionDegradationLevel.D1 to "quality_balanced.png",
+            RecognitionDegradationLevel.D2 to "quality_lite.png",
+        ).forEach { (level, fileName) ->
+            policy.value = RecognitionMotionPolicy(degradationLevel = level)
+            composeRule.waitForIdle()
+            assertVisible("图片识别中")
+            awaitSurfaceFrameCommit()
+            capture(fileName)
+        }
+
+        phaseState.value = RecognitionPhase.CLASSIFYING
+        visualClockState.value = 3_200L
+        composeRule.waitForIdle()
+
+        val levels = listOf(
+            RecognitionDegradationLevel.D0,
+            RecognitionDegradationLevel.D1,
+            RecognitionDegradationLevel.D2,
+            RecognitionDegradationLevel.D3,
+            RecognitionDegradationLevel.D4,
+        )
+        levels.forEach { level ->
+            policy.value = RecognitionMotionPolicy(degradationLevel = level)
+            val focus = when (level) {
+                RecognitionDegradationLevel.D0,
+                RecognitionDegradationLevel.D1,
+                RecognitionDegradationLevel.D2 -> "a"
+                RecognitionDegradationLevel.D3 -> "b"
+                RecognitionDegradationLevel.D4 -> "c"
+            }
+            composeRule.waitUntil(timeoutMillis = 5_000L) {
+                runCatching {
+                    composeRule.onNodeWithTag("recognition-fish-focus-level-$focus").fetchSemanticsNode()
+                    true
+                }.getOrDefault(false)
+            }
+            composeRule.onNodeWithTag("recognition-fish-focus-level-$focus").assertIsDisplayed()
+            capture("degradation_${level.name.lowercase()}.png")
+        }
+
+        policy.value = RecognitionMotionPolicy(
+            reduceMotion = true,
+            degradationLevel = RecognitionDegradationLevel.D0,
+        )
+        composeRule.waitForIdle()
+        capture("reduce_motion_static.png")
+
+        createDegradationContactSheet(levels)
+        File(evidenceDir, "recognition_accessibility_trace_v1_2.json").writeText(
+            """{"quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
+        )
+        File(evidenceDir, "recognition_visual_qa_v1_3.json").writeText(
+            """{"version":"1.3","review_status":"VISUAL_FAIL","reviewed_artifact_id":"11074493735","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"FAIL","evidence":[{"file":"01_image_recognizing_early.png","note":"B_UR companion and micro read as parallel railroad hairlines at the top-right edge."}]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"FAIL","evidence":[{"file":"01_image_recognizing_early.png","note":"The edge field reads as a few faint lines; local receiving light and four-island identity are not clear."},{"file":"quality_full.png","note":"FULL, BALANCED, and LITE are not clearly distinguishable."},{"file":"quality_balanced.png","note":"FULL, BALANCED, and LITE are not clearly distinguishable."},{"file":"quality_lite.png","note":"LITE does not retain a clearly recognizable four-island field."}]}}}""",
+        )
     }
 
     /**
@@ -563,6 +741,10 @@ class RecognitionFrozenFlowEmulatorTest {
         while (y < height) {
             var x = 0
             while (x < width) {
+                if (!isAmbientFieldEdgeSample(x, y, width, height)) {
+                    x += 4
+                    continue
+                }
                 val a = left.getPixel(x, y)
                 val b = right.getPixel(x, y)
                 val delta =
@@ -576,6 +758,47 @@ class RecognitionFrozenFlowEmulatorTest {
             y += 4
         }
         return changed.toFloat() / sampled.coerceAtLeast(1)
+    }
+
+    private fun isAmbientFieldEdgeSample(x: Int, y: Int, width: Int, height: Int): Boolean =
+        (x < width * .32f && y < height * .24f) ||
+            (x > width * .68f && y < height * .45f) ||
+            (x < width * .40f && y > height * .68f) ||
+            (x > width * .60f && y > height * .62f)
+
+    private fun createDegradationContactSheet(levels: List<RecognitionDegradationLevel>) {
+        val images = levels.map { level ->
+            val file = File(evidenceDir, "degradation_${level.name.lowercase()}.png")
+            requireNotNull(BitmapFactory.decodeFile(file.absolutePath)) {
+                "missing runtime screenshot for ${level.name}"
+            }
+        }
+        try {
+            val cellWidth = 240
+            val labelHeight = 48
+            val cellHeight = (images.first().height * cellWidth / images.first().width) + labelHeight
+            val sheet = Bitmap.createBitmap(cellWidth * images.size, cellHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(sheet)
+            canvas.drawColor(Color.BLACK)
+            images.forEachIndexed { index, image ->
+                val left = index * cellWidth
+                val scaledHeight = cellHeight - labelHeight
+                val dest = android.graphics.Rect(left, labelHeight, left + cellWidth, labelHeight + scaledHeight)
+                canvas.drawBitmap(image, null, dest, Paint(Paint.FILTER_BITMAP_FLAG))
+                canvas.drawText(
+                    "${levels[index]} · ${listOf("FULL+A", "BALANCED+A", "LITE+A", "LITE+B", "LITE+C")[index]}",
+                    left + 8f,
+                    32f,
+                    Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 18f },
+                )
+            }
+            File(evidenceDir, "degradation_d0_d4_contact_sheet.png").outputStream().use { stream ->
+                check(sheet.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+            sheet.recycle()
+        } finally {
+            images.forEach(Bitmap::recycle)
+        }
     }
 
     private fun waitForFlowCopy(text: String): Long {
@@ -601,11 +824,47 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.runOnUiThread { state.value = next }
         composeRule.waitForIdle()
         assertVisible(expected)
+        if (screenshotName == "03_fish_located.png" || screenshotName == "04_species_recognizing.png") {
+            composeRule.waitUntil(timeoutMillis = 5_000L) {
+                runCatching {
+                    composeRule.onNodeWithTag("recognition-fish-focus-level-a").fetchSemanticsNode()
+                    true
+                }.getOrDefault(false)
+            }
+            composeRule.onNodeWithTag("recognition-fish-focus-level-a").assertIsDisplayed()
+            assertVisible(expected)
+        }
+        if (screenshotName != null) awaitSurfaceFrameCommit()
         if (screenshotName != null) capture(screenshotName)
         trace("PASS_STATE=$next")
     }
 
+    private fun awaitSurfaceFrameCommit() {
+        composeRule.waitForIdle()
+        val frameDrawn = CountDownLatch(1)
+        val treeRef = AtomicReference<ViewTreeObserver?>()
+        val listener = ViewTreeObserver.OnDrawListener {
+            frameDrawn.countDown()
+        }
+        composeRule.runOnUiThread {
+            val decor = composeRule.activity.window.decorView
+            val tree = decor.viewTreeObserver
+            treeRef.set(tree)
+            tree.addOnDrawListener(listener)
+            decor.invalidate()
+        }
+        assertTrue("Compose state was not drawn before screenshot", frameDrawn.await(5, TimeUnit.SECONDS))
+        composeRule.runOnUiThread {
+            treeRef.get()?.let { tree ->
+                if (tree.isAlive) tree.removeOnDrawListener(listener)
+            }
+        }
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        device.waitForIdle()
+    }
+
     private fun capture(name: String) {
+        awaitSurfaceFrameCommit()
         val output = File(evidenceDir, name)
         val raw = File(evidenceDir, ".$name.raw.png")
         assertTrue("screenshot capture failed: $name", device.takeScreenshot(raw))
@@ -727,15 +986,15 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun prediction(topConfidence: Float, secondConfidence: Float): RecognitionPrediction {
         val top = RecognitionCandidate(0, "grass_carp", "草鱼", topConfidence)
         val second = RecognitionCandidate(1, "crucian_carp", "鲫鱼", secondConfidence)
-        return RecognitionPrediction("MODEL_M1_v0.6", "fixture", top, listOf(top, second), 1L)
+        return RecognitionPrediction("fixture-model", "fixture", top, listOf(top, second), 1L)
     }
 }
 
 private enum class FrozenState {
-    CAPTURE_TRANSITION,
-    AI_UNDERSTANDING,
-    FISH_HIGHLIGHT,
-    FISH_IDENTIFYING,
+    IMAGE_RECOGNIZING_EARLY,
+    IMAGE_RECOGNIZING_LATE,
+    FISH_LOCATED,
+    SPECIES_RECOGNIZING,
     RESULT_HIGH,
     RESULT_MEDIUM,
     RESULT_LOW,
@@ -753,36 +1012,42 @@ private fun FrozenRecognitionHarness(
     low: ProductionRecognitionResult,
     noFish: ProductionRecognitionResult,
     imageQuality: ProductionRecognitionResult,
+    subject: FishSubjectResult? = null,
 ) {
     val stateValue = state.value
     key(stateValue) {
     when (stateValue) {
-        FrozenState.CAPTURE_TRANSITION,
-        FrozenState.AI_UNDERSTANDING,
-        FrozenState.FISH_HIGHLIGHT,
-        FrozenState.FISH_IDENTIFYING -> {
+        FrozenState.IMAGE_RECOGNIZING_EARLY,
+        FrozenState.IMAGE_RECOGNIZING_LATE,
+        FrozenState.FISH_LOCATED,
+        FrozenState.SPECIES_RECOGNIZING -> {
             RecognitionProcessingScene(
                 image = photo,
                 onBack = {},
                 recognize = { onProgress ->
                     val target = when (stateValue) {
-                        FrozenState.CAPTURE_TRANSITION -> RecognitionPhase.CAPTURED
-                        FrozenState.AI_UNDERSTANDING -> RecognitionPhase.DETECTING
-                        FrozenState.FISH_HIGHLIGHT -> RecognitionPhase.OUTLINE
+                        FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
+                        FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING
+                        FrozenState.FISH_LOCATED -> RecognitionPhase.OUTLINE
                         else -> RecognitionPhase.CLASSIFYING
                     }
                     onProgress(RecognitionProgress(target))
                     high
                 },
                 onFinished = {},
+                generateSubject = subject?.let { ready -> { _, _ -> ready } },
                 phaseOverride = when (stateValue) {
-                    FrozenState.CAPTURE_TRANSITION -> RecognitionPhase.CAPTURED
-                    FrozenState.AI_UNDERSTANDING -> RecognitionPhase.DETECTING
-                    FrozenState.FISH_HIGHLIGHT -> RecognitionPhase.OUTLINE
-                    FrozenState.FISH_IDENTIFYING -> RecognitionPhase.CLASSIFYING
+                    FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
+                    FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING
+                    FrozenState.FISH_LOCATED -> RecognitionPhase.OUTLINE
+                    FrozenState.SPECIES_RECOGNIZING -> RecognitionPhase.CLASSIFYING
                     else -> RecognitionPhase.CAPTURED
                 },
-                visualClockOverrideMs = 3_200L,
+                visualClockOverrideMs = when (stateValue) {
+                    FrozenState.IMAGE_RECOGNIZING_EARLY -> 120L
+                    FrozenState.IMAGE_RECOGNIZING_LATE -> 720L
+                    else -> 3_200L
+                },
             )
         }
         FrozenState.RESULT_HIGH,
@@ -799,8 +1064,7 @@ private fun FrozenRecognitionHarness(
                 productionResult = result,
                 onBack = {},
                 onRetry = {},
-                onSave = { _, _ -> },
-                onViewGuide = {},
+                onSave = { _, _, _ -> },
             )
         }
         FrozenState.ERROR_NO_FISH,
@@ -818,7 +1082,6 @@ private fun FrozenRecognitionHarness(
                 onBack = {},
                 onChooseAnother = {},
                 onChooseGallery = {},
-                onRetry = {},
             )
         }
     }

@@ -100,6 +100,6 @@ class FishRecordDetailPresentationTest {
 
     @Test
     fun navigation_contract_targets_catch_id_route() {
-        assertEquals("catch/{catchId}", FishRecordDetailRoute)
+        assertEquals("catch/{catchId}?section={section}", FishRecordDetailRoute)
     }
 }

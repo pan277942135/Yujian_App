@@ -1,8 +1,8 @@
 {
   "feature": "home_normal_v1",
-  "package": "Normal Home Design Package Closure V1",
-  "package_version": "V1",
-  "scope": "design_only",
+  "package": "Normal Home Design Package Closure V1.1",
+  "package_version": "V1.1",
+  "scope": "background_authority_correction",
   "design_frozen": true,
   "visual_frozen": true,
   "behavior_frozen": true,
@@ -15,9 +15,10 @@
   "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
   "reference_width": 1080,
   "reference_height": 1920,
-  "background_authority": "canonical_reference_plus_BG_ENV_HERO",
-  "independent_morning_lake_master_registered": false,
+  "background_authority": "Morning_Lake_Master_V1_for_bitmap__normal_home_v1_png_for_composition",
+  "independent_morning_lake_master_registered": true,
+  "background_source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
   "runtime_root": "app/src/main/assets/normal_home_runtime_v1/",
   "runtime_gate": "normal-home-v1",
-  "closure_base_main_sha": "38ba0e5c02731b99dcea825f88d4da9b48e11b81"
+  "closure_base_main_sha": "7c88d356bd9cc2aa178d5331d47882714b20bc1f"
 }

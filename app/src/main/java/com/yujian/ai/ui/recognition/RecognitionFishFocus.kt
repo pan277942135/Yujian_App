@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
@@ -27,11 +29,14 @@ data class RecognitionContourSegment(
 )
 
 /**
- * Recognition V1.2 fish focus.
+ * Fish Focus A/B/C renderer.
  *
- * Level A follows the real subject alpha contour and is the main AI moment.
- * Level B remains an unobtrusive bbox-derived halo/perimeter fallback and never
- * becomes a detector rectangle. The fish interior is never tinted.
+ * A = real detector bbox + subject contour + halo
+ * B = real bbox-derived halo + restrained perimeter, no contour
+ * C = real bbox center-biased halo only
+ *
+ * Capability/data fallback may use B when a contour is unavailable. Performance
+ * degradation must still follow D0/D1/D2 -> D3 -> D4 in RecognitionMotionPolicy.
  */
 @Composable
 fun RecognitionFishFocus(
@@ -47,93 +52,159 @@ fun RecognitionFishFocus(
     resolveProgress: Float = 0f,
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
+    focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
 ) {
-    val active = phase == RecognitionPhase.OUTLINE || phase == RecognitionPhase.CLASSIFYING
+    val active =
+        phase == RecognitionPhase.OUTLINE ||
+            phase == RecognitionPhase.CLASSIFYING
     if (!active || focusBox == null) return
 
-    val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
-    val focusTag = when {
-        lowPerformance -> "recognition-fish-focus-level-b-low-performance"
-        levelAAvailable -> "recognition-fish-focus-level-a"
-        else -> "recognition-fish-focus-level-b"
+    val levelAAvailable =
+        subjectBitmap != null &&
+            subjectBox != null &&
+            contour.isNotEmpty()
+
+    val effectiveLevel = when {
+        focusLevel == RecognitionFishFocusLevel.C ->
+            RecognitionFishFocusLevel.C
+        focusLevel == RecognitionFishFocusLevel.B ->
+            RecognitionFishFocusLevel.B
+        levelAAvailable ->
+            RecognitionFishFocusLevel.A
+        else ->
+            RecognitionFishFocusLevel.B
     }
 
-    Canvas(modifier.fillMaxSize().testTag(focusTag)) {
+    val focusTag =
+        "recognition-fish-focus-level-${effectiveLevel.name.lowercase()}" +
+            if (lowPerformance) "-low-performance" else ""
+
+    Canvas(
+        modifier
+            .fillMaxSize()
+            .testTag(focusTag),
+    ) {
         val normalized = focusBox.normalized()
-        val point = transform.mapBox(normalized)
-        val center = Offset(point.x, point.y)
-        val radiusX = transform.drawnWidth * normalized.width * .62f + 14.dp.toPx()
-        val radiusY = transform.drawnHeight * normalized.height * .72f + 14.dp.toPx()
+        val mapped = transform.mapBox(normalized)
+        val center = Offset(mapped.x, mapped.y)
 
-        val remaining = 1f - resolveProgress.coerceIn(0f, 1f)
-        val fade = remaining * remaining
+        val baseRadiusX = transform.drawnWidth * normalized.width *
+            if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
+        val baseRadiusY = transform.drawnHeight * normalized.height *
+            if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
+        val visualRadiusX = baseRadiusX + 8.dp.toPx()
+        val visualRadiusY = baseRadiusY + 8.dp.toPx()
 
-        val revealRaw = if (phase == RecognitionPhase.OUTLINE) {
-            (phaseElapsedMs / 370f).coerceIn(0f, 1f)
-        } else {
-            1f
-        }
-        val reveal = revealRaw * revealRaw * (3f - 2f * revealRaw)
+        val remaining =
+            1f - resolveProgress.coerceIn(0f, 1f)
+        val resolveStrength = remaining * remaining
 
-        val pulse = if (phase == RecognitionPhase.CLASSIFYING) {
-            if (reduceMotion) {
-                .90f
+        val revealDuration =
+            if (reduceMotion) 180f else 380f
+        val revealRaw =
+            if (phase == RecognitionPhase.OUTLINE) {
+                (phaseElapsedMs / revealDuration).coerceIn(0f, 1f)
             } else {
-                val t = ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) / 1_900f
-                val wave = ((sin(t * 2f * PI - PI / 2f) + 1f) / 2f).toFloat()
-                .86f + wave * .14f
+                1f
             }
-        } else {
-            reveal
+        val reveal =
+            revealRaw * revealRaw * (3f - 2f * revealRaw)
+
+        val wave =
+            if (
+                phase == RecognitionPhase.CLASSIFYING &&
+                !reduceMotion &&
+                resolveProgress <= 0f
+            ) {
+                val t =
+                    ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) /
+                        1_900f
+                (
+                    (sin(t * 2f * PI - PI / 2f) + 1f) /
+                        2f
+                    ).toFloat()
+            } else {
+                .5f
+            }
+
+        val haloTarget = when {
+            reduceMotion -> .15f
+            phase == RecognitionPhase.OUTLINE -> .16f
+            else -> .12f + .06f * wave
+        }
+        val contourCoreTarget = when {
+            reduceMotion -> .39f
+            phase == RecognitionPhase.OUTLINE -> .36f
+            else -> .30f + .12f * wave
         }
 
-        // A usable subject contour is the visual authority. Keep only a small
-        // local locating cue behind it, never an ellipse the eye can read first.
-        val fallbackHaloStrength = if (levelAAvailable && !lowPerformance) .08f else .20f
-        val haloStrength = fallbackHaloStrength * pulse * fade
+        // A real detector box is already enough to acknowledge the fish. Show
+        // its local receiving halo on the first OUTLINE frame; contour detail
+        // continues to reveal independently as Level A data arrives.
+        val haloReveal = if (phase == RecognitionPhase.OUTLINE) maxOf(.72f, reveal) else reveal
+        val haloAlpha = haloTarget * haloReveal * resolveStrength
 
-        // A restrained bbox-derived local bloom supports the real contour but
-        // never becomes the primary focus when Level A is available.
+        val radiusScale =
+            if (effectiveLevel == RecognitionFishFocusLevel.C) .88f else 1f
+        val radiusX = visualRadiusX * radiusScale
+        val radiusY = visualRadiusY * radiusScale
+
         drawOval(
             brush = Brush.radialGradient(
-                0f to Color.Transparent,
-                .56f to Color.Transparent,
-                .76f to Color(0x00F6D99B),
-                .88f to Color(0xFFF6D99B).copy(alpha = haloStrength),
-                1f to Color.Transparent,
+                colorStops = arrayOf(
+                    0f to Color.Transparent,
+                    .52f to Color.Transparent,
+                    .75f to Color(0x00F6D99B),
+                    .88f to Color(0xFFF6D99B).copy(alpha = haloAlpha),
+                    1f to Color.Transparent,
+                ),
                 center = center,
                 radius = maxOf(radiusX, radiusY) * 1.18f,
             ),
-            topLeft = Offset(center.x - radiusX * 1.18f, center.y - radiusY * 1.18f),
-            size = androidx.compose.ui.geometry.Size(radiusX * 2.36f, radiusY * 2.36f),
+            topLeft = Offset(
+                center.x - radiusX * 1.18f,
+                center.y - radiusY * 1.18f,
+            ),
+            size = Size(
+                radiusX * 2.36f,
+                radiusY * 2.36f,
+            ),
         )
 
-        // Level B / structural perimeter. It remains visible enough to show that
-        // a fish was located even when subject alpha is unavailable.
-        val perimeterAlpha = if (levelAAvailable && !lowPerformance) {
-            .08f * pulse * fade
-        } else {
-            .32f * pulse * fade
+        if (effectiveLevel == RecognitionFishFocusLevel.B) {
+            drawOval(
+                color = Color(0xFFFFE7AE).copy(
+                    alpha = (.22f * reveal * resolveStrength)
+                        .coerceAtMost(.22f),
+                ),
+                topLeft = Offset(
+                    center.x - baseRadiusX,
+                    center.y - baseRadiusY,
+                ),
+                size = Size(
+                    baseRadiusX * 2f,
+                    baseRadiusY * 2f,
+                ),
+                style = Stroke(
+                    width = 1.2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(
+                        floatArrayOf(
+                            maxOf(baseRadiusX, baseRadiusY) * 1.95f,
+                            maxOf(baseRadiusX, baseRadiusY) * 4.55f,
+                        ),
+                        0f,
+                    ),
+                ),
+            )
         }
-        drawOval(
-            color = Color(0xFFFFE7AE).copy(alpha = perimeterAlpha),
-            topLeft = Offset(center.x - radiusX, center.y - radiusY),
-            size = androidx.compose.ui.geometry.Size(radiusX * 2f, radiusY * 2f),
-            style = Stroke(width = if (levelAAvailable && !lowPerformance) .9.dp.toPx() else 1.35.dp.toPx()),
-        )
 
-        if (!lowPerformance && levelAAvailable) {
+        if (
+            effectiveLevel == RecognitionFishFocusLevel.A &&
+            levelAAvailable
+        ) {
             val crop = requireNotNull(subjectBox).normalized()
-            val contourStrength = when (phase) {
-                RecognitionPhase.OUTLINE -> .92f * reveal
-                RecognitionPhase.CLASSIFYING -> .78f * pulse
-                else -> 0f
-            }
-
-            // Building one local path turns three passes into three draw calls,
-            // rather than three calls per mask edge. This makes the detailed
-            // real contour practical on API28 without adding a global effect.
             val realContour = Path()
+
             contour.forEach { segment ->
                 val start = transform.mapNormalized(
                     crop.x1 + segment.startX * crop.width,
@@ -146,22 +217,39 @@ fun RecognitionFishFocus(
                 realContour.moveTo(start.x, start.y)
                 realContour.lineTo(end.x, end.y)
             }
-            // Three restrained, local passes: 9dp outer bloom, 3.6dp mid glow,
-            // and a 1.65dp hot core. The interior is never filled or tinted.
+
+            val coreAlpha =
+                contourCoreTarget * reveal * resolveStrength
+
             drawPath(
                 realContour,
-                Color(0xFFFFD887).copy(alpha = (contourStrength * .17f * fade).coerceAtMost(.17f)),
-                style = Stroke(9.dp.toPx(), cap = StrokeCap.Round),
+                Color(0xFFFFD887).copy(
+                    alpha = (coreAlpha * .20f).coerceAtMost(.09f),
+                ),
+                style = Stroke(
+                    width = 9.dp.toPx(),
+                    cap = StrokeCap.Round,
+                ),
             )
             drawPath(
                 realContour,
-                Color(0xFFFFDE9B).copy(alpha = (contourStrength * .46f * fade).coerceAtMost(.44f)),
-                style = Stroke(3.6.dp.toPx(), cap = StrokeCap.Round),
+                Color(0xFFFFDE9B).copy(
+                    alpha = (coreAlpha * .50f).coerceAtMost(.21f),
+                ),
+                style = Stroke(
+                    width = 3.6.dp.toPx(),
+                    cap = StrokeCap.Round,
+                ),
             )
             drawPath(
                 realContour,
-                Color(0xFFFFE7AE).copy(alpha = (contourStrength * 1.0f * fade).coerceAtMost(.94f)),
-                style = Stroke(1.65.dp.toPx(), cap = StrokeCap.Round),
+                Color(0xFFFFE7AE).copy(
+                    alpha = coreAlpha.coerceAtMost(.42f),
+                ),
+                style = Stroke(
+                    width = 1.4.dp.toPx(),
+                    cap = StrokeCap.Round,
+                ),
             )
         }
     }

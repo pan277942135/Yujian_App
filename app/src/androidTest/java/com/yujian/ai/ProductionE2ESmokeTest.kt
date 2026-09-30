@@ -24,19 +24,17 @@ class ProductionE2ESmokeTest {
             eraseColor(Color.rgb(72, 118, 94))
         }
         val engine = FishRecognitionEngine(context)
-        val expectedModelSha = engine.modelSha256
-        val expectedModelVersion = engine.modelVersion
-        val expectedClassCount = engine.modelClassCount
+        val modelInfo = engine.modelInfo
         val prediction = try {
             engine.recognize(bitmap)
         } finally {
             engine.close()
         }
 
-        assertEquals(expectedModelSha, prediction.modelSha256)
-        assertEquals(expectedModelVersion, prediction.modelVersion)
-        assertEquals(expectedClassCount, prediction.candidates.size)
-        assertTrue(prediction.top1.classIndex in 0 until expectedClassCount)
+        assertEquals(modelInfo.sha256, prediction.modelSha256)
+        assertEquals(modelInfo.modelId, prediction.modelVersion)
+        assertEquals(modelInfo.classCount, prediction.candidates.size)
+        assertTrue(prediction.top1.classIndex in 0 until modelInfo.classCount)
         assertTrue(prediction.top1.confidence.isFinite())
         assertTrue(prediction.top1.confidence in 0f..1f)
         assertTrue(prediction.candidates.all { it.confidence.isFinite() && it.confidence in 0f..1f })

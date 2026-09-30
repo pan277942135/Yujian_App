@@ -76,3 +76,35 @@ B-side visual rules:
 - do not add B面 / AI生成 / 数字鱼体 / 鱼体资产 labels;
 - first reveal and subsequent manual flip behavior remain governed by the frozen Overview authority.
 
+
+
+## Frozen batch scenario authorities
+
+The 2026-09-30 batch review freezes the remaining compact Design Manager entries:
+
+### 03 · 鱼体资产生成
+- Authority: `FishRecordDetail_Asset_Generation_Spec_V1.md`
+- Status: **FROZEN**
+- Board scope: NOT_GENERATED / GENERATING / FAILED
+- READY is handed off to 02 and is not duplicated as a generation page.
+- A-side remains usable during generation.
+
+### 04 · 信息编辑
+- Authority: `FishRecordDetail_Editing_Spec_V1.md`
+- Status: **FROZEN**
+- One consolidated editing workspace.
+- Basic facts + environment/record fields.
+- Save / cancel / validation / failure preservation / destructive confirmation are frozen.
+
+### 05 · 页面状态
+- Authority: `FishRecordDetail_Page_States_Spec_V1.md`
+- Status: **FROZEN**
+- One merged State Board: Loading / Media Missing / Partial Data / Deleted or Invalid / Offline or Network Error / Retry and Fallback.
+- Errors must fail the smallest responsible region.
+
+## Design freeze audit
+
+- Authority: `FishRecordDetail_Design_Audit_Freeze_V1.md`
+- Result: **DESIGN FROZEN — SOURCE BINARY GATE PASS**
+- The 02 B-side PNG is archived at the canonical path and its byte identity matches the approved source.
+- Current runtime `FishMemorySection.kt` is implementation state, not design authority; READY must eventually migrate to the frozen B-side Hero + Flip model.

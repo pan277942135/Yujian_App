@@ -33,10 +33,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      model_id: ${{ steps.model_trace.outputs.model_id }}
+      model_sha256: ${{ steps.model_trace.outputs.model_sha256 }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python image verification dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Pillow for asset verification
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
 
       - name: Verify Android runtime asset contracts
         run: |
@@ -47,6 +58,29 @@ jobs:
 
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
+
+      - name: Read production model identity
+        id: model_trace
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib, re
+          p = pathlib.Path('app/src/main/assets/model_release_contract.json')
+          contract = json.loads(p.read_text(encoding='utf-8'))
+          if contract.get('build_sha') != '${{ github.sha }}':
+              raise SystemExit('model snapshot build_sha does not match the checked-out commit')
+          model_id = str(contract.get('model_id') or '')
+          if not re.fullmatch(r'[A-Za-z0-9_.-]+', model_id):
+              raise SystemExit(f'invalid model_id for artifact naming: {model_id!r}')
+          print(f'model_id={model_id}')
+          print(f'model_sha256={contract["sha256"]}')
+          print('MODEL_RELEASE_TRACE=' + json.dumps({
+              key: contract[key] for key in (
+                  'model_id', 'dataset_id', 'release_tag', 'sha256', 'bytes',
+                  'class_count', 'class_order', 'input_shape', 'output_shape',
+                  'class_map_sha256', 'tensor_contract_sha256'
+              )
+          }, ensure_ascii=False, sort_keys=True))
+          PY
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py
@@ -84,6 +118,13 @@ jobs:
       - name: Verify packaged recognition assets in APK
         run: python3 scripts/verify_packaged_android_apk.py
 
+      - name: Export model trace from the actual APK
+        run: >-
+          python3 scripts/export_apk_model_trace.py
+          --apk app/build/outputs/apk/debug/app-debug.apk
+          --output-dir build/runtime-apks
+          --build-sha "$GITHUB_SHA"
+
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
 
@@ -94,14 +135,14 @@ jobs:
           mkdir -p build/runtime-apks
           cp app/build/outputs/apk/debug/app-debug.apk build/runtime-apks/app-debug.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk build/runtime-apks/app-debug-androidTest.apk
-          (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk > SHA256SUMS)
+          (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json apk_model_trace.json > SHA256SUMS)
           test -s build/runtime-apks/app-debug.apk
           test -s build/runtime-apks/app-debug-androidTest.apk
 
       - name: Upload frozen runtime APK pair
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}
+          name: YuJian-runtime-apks-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
           path: build/runtime-apks
           if-no-files-found: error
           retention-days: 14
@@ -109,26 +150,32 @@ jobs:
       - name: Prepare YuJian debug APK
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
 
-      - name: Prepare Recognition Visual V1.2 QA APK
+      - name: Prepare Recognition Processing V1.3 QA APK
         id: recognition_qa_apk
         run: |
-          filename="YuJian_Recognition_Visual_V1_2_QA_$(TZ=Asia/Shanghai date +%Y%m%d).apk"
+          filename="YuJian_Recognition_Visual_V1_3_QA_${GITHUB_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${filename}"
           echo "filename=${filename}" >> "$GITHUB_OUTPUT"
 
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-debug-${{ github.sha }}
-          path: app/build/outputs/apk/debug/YuJian-debug.apk
+          name: YuJian-debug-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
+          path: |
+            app/build/outputs/apk/debug/YuJian-debug.apk
+            build/runtime-apks/model_release_contract.json
+            build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload Recognition Visual V1.2 QA APK
+      - name: Upload Recognition Processing V1.3 QA APK
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.recognition_qa_apk.outputs.filename }}
-          path: app/build/outputs/apk/debug/${{ steps.recognition_qa_apk.outputs.filename }}
+          path: |
+            app/build/outputs/apk/debug/${{ steps.recognition_qa_apk.outputs.filename }}
+            build/runtime-apks/model_release_contract.json
+            build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
           retention-days: 14
 
@@ -147,7 +194,7 @@ jobs:
           - gate: normal-home-v1
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: recognition-frozen
             api_level: 28
             required: true
@@ -178,7 +225,7 @@ jobs:
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         uses: actions/download-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}
+          name: YuJian-runtime-apks-${{ github.sha }}-${{ needs.build.outputs.model_id }}
           path: build/runtime-apks
 
       - name: Verify exact frozen APK pair
@@ -187,9 +234,7 @@ jobs:
           test -s build/runtime-apks/app-debug.apk
           test -s build/runtime-apks/app-debug-androidTest.apk
           (cd build/runtime-apks && sha256sum -c SHA256SUMS)
-          ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
-
-      - name: Install runtime parity dependencies
+          ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk
         if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
@@ -241,6 +286,30 @@ jobs:
 
           "$adb" start-server >> "$preflight_log" 2>&1
           emulator_started=0
+          if [[ "${{ matrix.gate }}" == "normal-home-v1" ]]; then
+            existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
+            if [[ "$existing_device" == emulator-* ]]; then
+              printf 'RESTART_EXISTING_EMULATOR_FOR_PHYSICAL_CAPTURE device=%s target_skin=1080x1920\n' \
+                "$existing_device" | tee -a "$preflight_log"
+              "$adb" -s "$existing_device" emu kill >> "$preflight_log" 2>&1
+              stopped=0
+              for stop_attempt in $(seq 1 30); do
+                device_state="$("$adb" -s "$existing_device" get-state 2>/dev/null || true)"
+                process_present=0
+                pgrep -f -- "$emulator -avd $avd_name" >/dev/null 2>&1 && process_present=1
+                if [[ "$device_state" != "device" && "$process_present" == "0" ]]; then
+                  stopped=1
+                  break
+                fi
+                sleep 1
+              done
+              if (( stopped != 1 )); then
+                printf 'EXISTING_EMULATOR_DID_NOT_STOP device=%s\n' "$existing_device" | tee -a "$preflight_log"
+                exit 1
+              fi
+              echo 'EXISTING_EMULATOR_STOPPED=1' | tee -a "$preflight_log"
+            fi
+          fi
           if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
             if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
               read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
@@ -347,7 +416,212 @@ jobs:
         if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}
+          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}-${{ needs.build.outputs.model_id }}
+          path: evidence/runtime/${{ matrix.gate }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce runtime gate classification
+        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        run: |
+          result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
+          classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["classification"])' "$result")"
+          if [[ "${{ steps.runtime_gate.outcome }}" != "success" || "$classification" != "PASS" ]]; then
+            echo "Runtime gate failed: classification=$classification action_outcome=${{ steps.runtime_gate.outcome }}"
+            exit 1
+          fi
+
+
+      - name: Add production model trace to runtime evidence
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        run: |
+          mkdir -p "evidence/runtime/${{ matrix.gate }}"
+          cp build/runtime-apks/model_release_contract.json "evidence/runtime/${{ matrix.gate }}/model_release_contract.json"
+          cp build/runtime-apks/apk_model_trace.json "evidence/runtime/${{ matrix.gate }}/apk_model_trace.json"
+
+      - name: Install runtime parity dependencies
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          # Ubuntu 24.04 marks its system Python as externally managed
+          # (PEP 668). Pillow is an evidence-only user dependency; keep the
+          # runner image untouched and opt in explicitly to the user install.
+          python3 -m pip install --user --break-system-packages Pillow
+          python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
+
+      - name: Prepare GCP self-hosted Android runtime
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          test -e /dev/kvm
+
+          adb=/opt/android-sdk/platform-tools/adb
+          emulator=/opt/android-sdk/emulator/emulator
+          preflight_log="evidence/runtime/${{ matrix.gate }}/infra/workflow_preflight.log"
+          emulator_log="evidence/runtime/${{ matrix.gate }}/infra/emulator.log"
+          mkdir -p "$(dirname "$preflight_log")"
+          : > "$preflight_log"
+          : > "$emulator_log"
+          printf 'ADB_BIN=%s\nEMULATOR_BIN=%s\nAPI_LEVEL=%s\n' \
+            "$adb" "$emulator" "${{ matrix.api_level }}" | tee -a "$preflight_log"
+
+          test -x "$emulator"
+          "$emulator" -version 2>&1 | head -n 2 | tee -a "$preflight_log" || true
+          avd_list="$("$emulator" -list-avds 2>&1)" || {
+            printf '%s\n' "$avd_list" | tee -a "$preflight_log"
+            echo 'ANDROID_AVD_LIST_FAILED' | tee -a "$preflight_log"
+            exit 1
+          }
+          printf 'AVAILABLE_AVDS_BEGIN\n%s\nAVAILABLE_AVDS_END\n' \
+            "$avd_list" | tee -a "$preflight_log"
+          avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+          if [[ -z "$avd_name" ]]; then
+            avd_name="$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}')"
+          fi
+          if [[ -z "$avd_name" ]]; then
+            echo 'ANDROID_AVD_NOT_FOUND' | tee -a "$preflight_log"
+            exit 1
+          fi
+          printf 'SELECTED_AVD=%s\nEMULATOR_OPTIONS=%s\n' \
+            "$avd_name" "${{ matrix.emulator_options }}" | tee -a "$preflight_log"
+
+          "$adb" start-server >> "$preflight_log" 2>&1
+          emulator_started=0
+          if [[ "${{ matrix.gate }}" == "normal-home-v1" ]]; then
+            existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
+            if [[ "$existing_device" == emulator-* ]]; then
+              printf 'RESTART_EXISTING_EMULATOR_FOR_PHYSICAL_CAPTURE device=%s target_skin=1080x1920\n' \
+                "$existing_device" | tee -a "$preflight_log"
+              "$adb" -s "$existing_device" emu kill >> "$preflight_log" 2>&1
+              stopped=0
+              for stop_attempt in $(seq 1 30); do
+                device_state="$("$adb" -s "$existing_device" get-state 2>/dev/null || true)"
+                process_present=0
+                pgrep -f -- "$emulator -avd $avd_name" >/dev/null 2>&1 && process_present=1
+                if [[ "$device_state" != "device" && "$process_present" == "0" ]]; then
+                  stopped=1
+                  break
+                fi
+                sleep 1
+              done
+              if (( stopped != 1 )); then
+                printf 'EXISTING_EMULATOR_DID_NOT_STOP device=%s\n' "$existing_device" | tee -a "$preflight_log"
+                exit 1
+              fi
+              echo 'EXISTING_EMULATOR_STOPPED=1' | tee -a "$preflight_log"
+            fi
+          fi
+          if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
+            if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
+              read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
+              nohup "$emulator" -avd "$avd_name" -no-snapshot \
+                "${emulator_options[@]}" > "$emulator_log" 2>&1 &
+              emulator_pid=$!
+              emulator_started=1
+              printf 'EMULATOR_STARTED pid=%s\n' "$emulator_pid" | tee -a "$preflight_log"
+            else
+              echo 'EMULATOR_PROCESS_ALREADY_PRESENT' | tee -a "$preflight_log"
+            fi
+          else
+            echo 'ADB_DEVICE_ALREADY_PRESENT' | tee -a "$preflight_log"
+          fi
+
+          restart_count=0
+          wait_ok=0
+          for wait_attempt in 1 2; do
+            printf 'WAIT_FOR_DEVICE attempt=%s\n' "$wait_attempt" | tee -a "$preflight_log"
+            if timeout 90s "$adb" wait-for-device >> "$preflight_log" 2>&1; then
+              wait_ok=1
+              break
+            fi
+            if (( restart_count == 0 )); then
+              restart_count=1
+              printf 'ADB_RESTART_ONCE reason=WAIT_FOR_DEVICE_TIMEOUT\n' | tee -a "$preflight_log"
+              "$adb" kill-server >> "$preflight_log" 2>&1 || true
+              "$adb" start-server >> "$preflight_log" 2>&1
+            fi
+          done
+
+          if (( wait_ok != 1 )); then
+            "$adb" devices -l >> "$preflight_log" 2>&1 || true
+            if (( emulator_started == 1 )); then
+              kill -0 "$emulator_pid" 2>/dev/null || echo 'EMULATOR_PROCESS_EXITED=1' | tee -a "$preflight_log"
+              tail -n 80 "$emulator_log" | tee -a "$preflight_log"
+            fi
+            echo 'ADB_WAIT_FOR_DEVICE_FAILED' | tee -a "$preflight_log"
+            exit 1
+          fi
+
+          ready=0
+          for readiness_attempt in $(seq 1 30); do
+            state="$("$adb" get-state 2>&1 | tr -d '\r' | head -n 1 || true)"
+            boot="$("$adb" shell getprop sys.boot_completed 2>&1 | tr -d '\r' | head -n 1 || true)"
+            sdk="$("$adb" shell getprop ro.build.version.sdk 2>&1 | tr -d '\r' | head -n 1 || true)"
+            printf 'READINESS attempt=%s state=%s boot_completed=%s sdk=%s\n' \
+              "$readiness_attempt" "$state" "$boot" "$sdk" | tee -a "$preflight_log"
+            if [[ "$state" == "device" && "$boot" == "1" && "$sdk" == "${{ matrix.api_level }}" ]]; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          # Required diagnostics are captured before any APK installation.
+          "$adb" shell getprop sys.boot_completed | tr -d '\r' | tee -a "$preflight_log"
+          "$adb" devices -l | tee -a "$preflight_log"
+          "$adb" shell df -h /data | tee -a "$preflight_log"
+          package_log="${preflight_log}.packages"
+          "$adb" shell pm list packages > "$package_log" 2>&1 || true
+          head -n 20 "$package_log" | tee -a "$preflight_log"
+
+          if (( ready != 1 )); then
+            echo 'ADB_DEVICE_NOT_FULLY_READY' | tee -a "$preflight_log"
+            exit 1
+          fi
+
+      - name: Run unified Android Runtime Harness
+        id: runtime_gate
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        continue-on-error: true
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
+
+      - name: Materialize runtime status when emulator action fails before Harness startup
+        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        run: |
+          result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
+          if [[ ! -s "$result" ]]; then
+            mkdir -p "$(dirname "$result")"
+            python3 scripts/android_runtime/result.py \
+              --output "$result" \
+              --gate "${{ matrix.gate }}" \
+              --api-level "${{ matrix.api_level }}" \
+              --build-sha "$GITHUB_SHA" \
+              --adb-state unknown \
+              --boot-completed unknown \
+              --data-free-kb "" \
+              --preflight FAIL \
+              --install NOT_RUN \
+              --instrumentation NOT_RUN \
+              --evidence NOT_RUN \
+              --classification BLOCKED_INFRA \
+              --failure-phase EMULATOR_RUNNER \
+              --failure-reason EMULATOR_RUNNER_FAILED_BEFORE_HARNESS \
+              --summary-file "${GITHUB_STEP_SUMMARY:-}"
+          fi
+
+      - name: Upload runtime gate status and diagnostics
+        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}-${{ needs.build.outputs.model_id }}
           path: evidence/runtime/${{ matrix.gate }}
           if-no-files-found: error
           retention-days: 14

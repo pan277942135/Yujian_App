@@ -6,6 +6,8 @@ Normal Home is active when the resolved FishRecord collection contains one or mo
 
 Authentication, loading and server-statistics availability do not switch the page to Empty Home.
 
+A valid Home record has a nonblank ID and either a nonblank `speciesId` or `speciesName`. Image availability is not part of validity. An unresolved first archive load is not a resolved empty archive; during refresh, retain the last successfully resolved Home state.
+
 ## 2. Recent-catch ordering
 
 Recent catches are ordered descending by the sanitized resolved timestamp:
@@ -45,6 +47,7 @@ Data precedence follows current product behavior:
 
 - positive server species/catch totals are authoritative when available
 - otherwise local record data provides the fallback
+- local fallback totals use only valid Home records
 - record days are distinct sanitized catch dates from local records
 
 Interactions:

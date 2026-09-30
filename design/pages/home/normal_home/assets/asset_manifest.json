@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "status": "FROZEN",
   "page_id": "normal_home_v1",
   "canonical_reference": {
@@ -33,7 +33,7 @@
   ],
   "runtime_asset_root": "app/src/main/assets/normal_home_runtime_v1/",
   "registered_runtime_derivatives": [
-    "static/scene_base.webp",
+    "static/scene_base.png",
     "camera/camera_button_base.png",
     "camera/camera_gold_rim_mask.png",
     "camera/camera_breath_glow.png",
@@ -43,10 +43,19 @@
     "fish_card/fish_card_shadow.png"
   ],
   "background": {
-    "classification": "PAGE_SPECIFIC_REFERENCE",
+    "classification": "REGISTERED_SYSTEM_MASTER",
     "system_role": "BG_ENV_HERO",
-    "independent_master_registered": false,
-    "policy": "Do not crop the frozen page screenshot into a new reusable background master."
+    "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+    "dimensions": [
+      941,
+      1672
+    ],
+    "runtime_output": "app/src/main/assets/normal_home_runtime_v1/static/scene_base.png",
+    "runtime_output_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+    "transform_policy": "byte-identical copy; Android ContentScale.Crop performs centered viewport crop without source rewrite",
+    "independent_master_registered": true,
+    "policy": "Frozen page PNG remains composition authority; the Morning Lake master is the background bitmap authority. No screenshot crop or visual reinterpretation."
   },
   "forbidden": [
     "hardcoded frozen catch photo",

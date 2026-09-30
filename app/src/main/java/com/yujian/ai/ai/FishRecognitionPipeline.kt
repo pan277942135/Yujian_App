@@ -131,7 +131,6 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 prediction = prediction,
                 cropPixels = pixels,
             )
-            onProgress(RecognitionProgress(RecognitionPhase.RESULT, assessment))
             ready
         } catch (cancelled: CancellationException) {
             throw cancelled

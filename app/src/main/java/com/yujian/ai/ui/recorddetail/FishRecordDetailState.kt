@@ -2,7 +2,7 @@ package com.yujian.ai.ui.recorddetail
 
 import com.yujian.ai.catches.RemoteCatch
 
-const val FishRecordDetailRoute = "catch/{catchId}"
+const val FishRecordDetailRoute = "catch/{catchId}?section={section}"
 
 /** UI state for the permanent memory archive of one catch. */
 sealed interface FishRecordDetailUiState {

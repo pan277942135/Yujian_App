@@ -67,7 +67,7 @@ import com.yujian.ai.ui.home.rememberHomeMotionState
 
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
-    "normal_home_runtime_v1/static/scene_base.webp"
+    "normal_home_runtime_v1/static/scene_base.png"
 
 private const val EmptyHomeReferenceWidth = 1080f
 private const val EmptyHomeReferenceHeight = 1920f
@@ -96,7 +96,6 @@ fun HomeScreen(
     onLoginClick: () -> Unit,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
-    onRecordDaysClick: () -> Unit,
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
 ) {
@@ -171,7 +170,6 @@ fun HomeScreen(
                 onIdentify = onIdentify,
                 onSpeciesClick = onSpeciesClick,
                 onCatchesClick = onCatchesClick,
-                onRecordDaysClick = onRecordDaysClick,
                 onProfileClick = onProfileClick,
                 onCatchClick = onCatchClick,
                 motionState = homeMotionState,
