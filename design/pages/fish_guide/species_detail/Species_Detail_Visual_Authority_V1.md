@@ -59,7 +59,7 @@ Those items remain **PARTIAL / TO REVIEW** and will be handled as a separate Car
 - Page-level Product / Interaction Contract: **FROZEN**
 - Species Detail page-level experience: **FROZEN**
 - Five-card internal visual/content system: **PARTIAL**
-- Runtime parity/evidence: **PENDING under 09 · 验收证据**
+- Runtime parity/evidence: **PENDING in Overview / implementation closure**
 
 Older Fish Guide detail explorations, including earlier white-glass/lake-card versions, are historical references only and must not override this authority.
 
