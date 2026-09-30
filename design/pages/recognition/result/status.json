@@ -3,6 +3,16 @@
   "package": "Recognition Result Design Package V1",
   "package_version": "V1",
   "scope": "design_only",
+  "menu_registered": true,
+  "menu_registry": "design/pages/recognition/result/menu.json",
+  "second_level_pages": [
+    "00_overview",
+    "01_high",
+    "02_medium",
+    "03_low",
+    "04_no_fish",
+    "05_image_quality"
+  ],
   "state_model": "3+2",
   "result_states": [
     "RESULT_HIGH",
@@ -19,6 +29,7 @@
   "behavior_frozen": true,
   "motion_frozen": true,
   "authority_registered": true,
+  "all_state_reviews_closed": true,
   "runtime_alignment": "NEEDS_CLOSURE",
   "state_reference_manifest": "design/pages/recognition/design/reference_manifest.json",
   "core_visual_reference": "design/system/core_visual_v1/reference/recognition_result_v1.png",

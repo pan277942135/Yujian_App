@@ -4,6 +4,25 @@ Role: **Capture → Record Bridge**
 
 Status: **DESIGN FROZEN — 3+2 STATE PACKAGE**
 
+## Design Manager menu
+
+Second-level pages:
+
+- `00_overview/` — Overview / 结果总览
+- `01_high/` — High / 高置信结果
+- `02_medium/` — Medium / 中置信结果
+- `03_low/` — Low / 低置信结果
+- `04_no_fish/` — No Fish / 未检测到鱼
+- `05_image_quality/` — Image Quality / 图片质量不足
+
+Machine-readable menu:
+
+`menu.json`
+
+Menu definition:
+
+`MENU_STRUCTURE_V1.md`
+
 ## Scope
 
 Recognition Result contains five frozen product states:
@@ -19,11 +38,9 @@ Recovery:
 
 `TECHNICAL_FAILURE` remains a runtime-safe generic fallback under the global Recognition runtime contract. It is not one of the 3+2 frozen Result states.
 
-## Visual authority
+## Frozen visuals
 
-### State-specific authority
-
-These five PNGs are the final state-level composition authority:
+The five Design Manager state pages reference the canonical Frozen PNGs directly:
 
 - `design/pages/recognition/design/05_Result_High_Frozen.png`
 - `design/pages/recognition/design/06_Result_Medium_Frozen.png`
@@ -31,9 +48,17 @@ These five PNGs are the final state-level composition authority:
 - `design/pages/recognition/design/08_Error_No_Fish_Frozen.png`
 - `design/pages/recognition/design/09_Error_Image_Quality_Frozen.png`
 
+No duplicate image copies are maintained inside the menu folders.
+
 Dimensions/SHA are frozen in:
 
 `design/pages/recognition/design/reference_manifest.json`
+
+## Authority
+
+### State-specific authority
+
+The five state Frozen PNGs are the final state-level composition authority.
 
 ### System-level authority
 
@@ -72,7 +97,7 @@ It may contain:
 - location
 - short catch note
 - voice-note affordance when implemented
-- save / continue-memory actions
+- save / continue-memory actions for resolved species
 
 It must not become:
 - a Fish Guide detail page
@@ -83,11 +108,16 @@ It must not become:
 
 ## CTA contract
 
-When species is resolved:
+Resolved species:
 
 - `保存本次鱼获` → create FishRecord → Normal Home
 - `继续记录记忆` → create FishRecord first → FishRecordDetail(recordId, initialSection=MEMORY)
 
-A FishRecord must exist before memory-media operations begin.
+Low initial state:
 
-Low-confidence pending-species handling is defined in the Behavior Spec and must not be silently replaced by a mandatory species-selection design.
+- `手动选择鱼种`
+- `重新拍摄`
+
+A Low result does not create an unknown/pending-species FishRecord in V1.
+
+A FishRecord must exist before memory-media operations begin.

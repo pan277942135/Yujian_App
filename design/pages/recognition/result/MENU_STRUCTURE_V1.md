@@ -1,6 +1,6 @@
 # Recognition Result — Design Manager Menu V1
 
-Status: **ACTIVE**
+Status: **DESIGN CLOSED**
 
 一级菜单：**识别结果 / Recognition Result**
 
@@ -8,12 +8,12 @@ Status: **ACTIVE**
 
 | Order | Menu | Frozen authority | Review |
 | --- | --- | --- | --- |
-| 00 | Overview / 结果总览 | 3+2 aggregate | final closure after 01–05 |
-| 01 | High / 高置信结果 | 05_Result_High_Frozen.png | REVIEWED V1 |
-| 02 | Medium / 中置信结果 | 06_Result_Medium_Frozen.png | PENDING |
-| 03 | Low / 低置信结果 | 07_Result_Low_Frozen.png | PENDING |
-| 04 | No Fish / 未检测到鱼 | 08_Error_No_Fish_Frozen.png | PENDING |
-| 05 | Image Quality / 图片质量不足 | 09_Error_Image_Quality_Frozen.png | PENDING |
+| 00 | Overview / 结果总览 | 3+2 aggregate | CLOSED V1 |
+| 01 | High / 高置信结果 | 05_Result_High_Frozen.png | CLOSED V1 |
+| 02 | Medium / 中置信结果 | 06_Result_Medium_Frozen.png | CLOSED V1 |
+| 03 | Low / 低置信结果 | 07_Result_Low_Frozen.png | CLOSED V1 |
+| 04 | No Fish / 未检测到鱼 | 08_Error_No_Fish_Frozen.png | CLOSED V1 |
+| 05 | Image Quality / 图片质量不足 | 09_Error_Image_Quality_Frozen.png | CLOSED V1 |
 
 ## Asset rule
 
@@ -27,7 +27,7 @@ Each second-level page owns:
 - visible UI anatomy
 - behavior/CTA contract
 - review decisions
-- open items
+- explicit rejected alternatives
 - acceptance notes
 
-`00 Overview` is closed only after 01–05 are individually reviewed.
+`00 Overview` is the common 3+2 contract and is now closed after 01–05 individual review.
