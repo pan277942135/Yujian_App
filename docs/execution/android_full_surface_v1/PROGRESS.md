@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P10 Fish Guide
+- Current phase: P11 Account & Privacy
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -47,7 +47,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P08 My Catches | BLOCKED_INFRA | `3a412ed1a3531b8438ff241837a39d2abc40b9e4` | Search, recent searches, F1 filters, BG_DATA, timeline grouping/folding, date detail, empty states and Growth Marks implemented; tests authored; source Actions and static checks pass | Android compile/unit/instrumentation/visual evidence unavailable; timeline high-fi visual closure is active; catches API returns all records without pagination | Continue P09 independently; carry visual/API paging gaps |
 | P09 Fish Record Detail | PUSHED | `bce336955f49532e6ef6061cbabbc145639b88d3` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; PR branch contains the accepted source | Android runtime validation BLOCKED_INFRA — runs #1105, #1106 and #1109 exit before any job; backend dependencies OPEN and tracked separately | Continue P10; carry the shared CI blocker without retry |
 | P10 Fish Guide | BLOCKED_INFRA | Source `7a496304a83995f69d8aef29251326e5e20113c1`; executable-mode follow-up `6c7ca3f1b62af65fc77ccea4507c472978016cf8` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; Design Governance #36732633936 and Empty Home V2 Design Assets #36732633780 PASS | Android runtime validation carries the shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; do not retry per phase | Continue P11 |
-| P11 Account & Privacy | NOT_STARTED | — | — | — | — |
+| P11 Account & Privacy | BLOCKED_INFRA | Source `5d137ba5e0bde2832e9807d95d919f2426159f5f` | Implementation COMPLETE; GitHub source checkpoint PASS; static/source contract checks PASS; Android runtime tests authored under the existing `login-v2` Gate | Shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; Product/API Dependencies: recovery channel, data export endpoint, account deletion endpoint; DESIGN_GAP: User Agreement visual authority and standalone waterside-grass footer asset; legal content review required | Continue P12; carry shared blocker without retry |
 | P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
 | P13 Cross-Journey Integration | NOT_STARTED | — | — | — | — |
 | P14 Final Android Runtime Matrix | NOT_STARTED | — | — | — | — |
@@ -359,6 +359,17 @@ Completed against the frozen Fish Guide Home, Lit / Unlit, Species Detail, Zero 
 - Source checkpoint: `7a496304a83995f69d8aef29251326e5e20113c1`; all 18 uploaded file contents were verified byte-for-byte. Follow-up `6c7ca3f1b62af65fc77ccea4507c472978016cf8` restores the existing executable mode on `scripts/run_android_runtime_gate.sh`. PR #97 remote HEAD was verified after the source, ledger and mode-correction pushes. The P10 Android runtime remains blocked by the one repository-wide 0-job orchestration failure recorded above. No Android Gate retry was made.
 
 P10 has no new backend dependency. P09 edit, supplemental-media, cross-device reveal, note/weather/delete dependencies remain separate Product/API Dependencies and are not infrastructure blockers.
+
+### P11 Account & Privacy checkpoint
+
+- P11 source checkpoint: `5d137ba5e0bde2832e9807d95d919f2426159f5f` (PR #97 head verified). P11 IMPLEMENTATION: COMPLETE. P11 GITHUB CHECKPOINT: PASS. P11 STATIC CONTRACT CHECKS: PASS. P11 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA.
+- Replaced the legacy account page shell with shared Morning Lake `BG_CONTENT` and `BACK_TITLE`. The Edit Profile view follows the frozen current-avatar / account-read-only / nickname / disabled-save hierarchy. The separate waterside-grass foreground in the frozen image is not available as a standalone app resource and is recorded as a design asset gap.
+- Avatar selection remains on Photo Picker or camera. The new crop flow normalizes EXIF orientation, clamps pan/zoom to a square 1:1 viewport, exports a JPEG no larger than 1024×1024, and keeps the result local until Save. Only the existing update-avatar endpoint is used on explicit save; upload failure keeps the pending preview.
+- Nickname checks trim input and count Unicode code points from 1 to 20 without silent truncation; validation copy follows the frozen contract. Save updates the app session only from server responses; IME Done shares the same save action.
+- Password visibility controls, saving/success feedback and 401 expiry handling were added. Privacy consent cannot be changed until its server state loads; enabling and withdrawing require confirmation, failed reads can be retried, and a successful manual withdrawal persists prompt suppression. Location remains informational on this page and does not request permission.
+- Account profile and crop output instrumentation tests were added to the existing `login-v2` Gate; no runner, AVD, workflow orchestration or validation environment was changed. Static checks passed: Core UI references, Design Manager navigation guard, focused P11 source assertions, gate shell syntax and `git diff --check`. Design Governance run `36738406070` and Empty Home V2 Design Assets run `36738405873` succeeded. Android instrumentation was authored but not executed.
+- Product/API Dependencies (not infrastructure): no verified password-recovery channel/endpoint; no data export endpoint; no account deletion endpoint. These flows remain gated and use no invented APIs. User Agreement is still runtime-only with no visual authority; existing legal copy is retained with `LEGAL_COPY_REVIEW_REQUIRED` pending legal review.
+- Android validation carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; P11 did not consume a separate retry budget. Continue with P12.
 
 ## Shared infrastructure follow-up blocker
 
