@@ -907,6 +907,39 @@
         }
       ],
       "note": "页面应优先使用共享间距与圆角 token，不因单页适配而生成新的任意值。"
+    },
+    {
+      "id": "species_picker_v1",
+      "display_name": "共享鱼种选择器",
+      "category": "component",
+      "overall": "PARTIAL",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/components/species_picker_v1/README.md",
+        "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md",
+        "design/system/components/species_picker_v1/manifest.json",
+        "design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png"
+      ],
+      "preview": "design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png",
+      "preview_note": "SINGLE_SELECT 高保真基线已冻结；MULTI_SELECT 复用规则已定义但视觉仍待闭合。调用方复用组件，不建立重复鱼种选择器。",
+      "variants": [
+        {
+          "id": "SINGLE_SELECT",
+          "name": "单选",
+          "usage": "识别结果 / FishRecordDetail 信息编辑",
+          "status": "FROZEN",
+          "authority_path": "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md"
+        },
+        {
+          "id": "MULTI_SELECT",
+          "name": "多选",
+          "usage": "我的鱼获 F2",
+          "status": "PARTIAL",
+          "authority_path": "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md"
+        }
+      ],
+      "visual_authority": "design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png",
+      "manifest_path": "design/system/components/species_picker_v1/manifest.json"
     }
   ],
   "navigation_groups": [

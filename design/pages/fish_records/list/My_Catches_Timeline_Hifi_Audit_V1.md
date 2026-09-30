@@ -12,8 +12,14 @@ Structural / interaction authority:
 Current page visual authority:
 - `design/system/core_visual_v1/reference/my_catches_v2.png`
 
-Recovered historical high-fidelity source:
+Recovered historical behavior / layout source:
 - `鱼获时间轴滚动规范展示板.png`
+
+Recovered T0 high-fidelity board:
+- `design/pages/fish_records/list/frozen/timeline_v1/My_Catches_Timeline_Final_Board.png`
+- Source: `我的鱼获时间线设计定稿.png`
+- 1491 × 1055, 2,125,355 bytes, SHA-256 `d247f9c28708004c00979e2c60ccdba8ea72a97291cf3e2c59daa3623b6937c5`
+- Role: **DESIGN_ONLY / RECOVERED_REFERENCE**; not current visual authority.
 
 Shared-system authority:
 - `Morning_Lake_Master_V1 / BG_DATA`
@@ -21,7 +27,23 @@ Shared-system authority:
 
 ## Review conclusion
 
-The historical Timeline board remains valid as a **behavior / layout reference**, but it is not ready to be frozen as the current visual authority.
+Both recovered boards remain useful as **behavior / layout references**, but neither is ready to be frozen as the current visual authority. T0 contains the state coverage requested by the earlier audit, but its prominent sunrise / visible-sun background conflicts with current BG_DATA. The image is preserved byte-for-byte and is not edited.
+
+## T0 gate review
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Current no-sun BG_DATA | FAIL | T0 uses visible sunrise light and a strong golden water reflection; BG_DATA requires the no-sun Morning_Lake_Master_V1 treatment. |
+| Legacy 5-item bottom navigation removed | PASS | The shown timeline states use a bottom-center camera action and do not show the legacy 5-item navigation. |
+| Scenic day-summary thumbnail removed | PASS | Day summaries use location text / count cues; no separate scenic summary thumbnail is shown. |
+| Per-record capture time removed | PASS | Rows show species and catch facts without a per-record clock time. |
+| Current row geometry and image hierarchy | PASS | The board describes square real-photo thumbnails and keeps species / dimensions / chevron ahead of the low-weight mark. |
+| Growth Mark low-weight treatment | REVIEW | Mark chips are present in the correct row position; their gold emphasis needs review against the current shared low-weight treatment before a new board freezes. |
+| Month Sticky and month handoff | PASS | T0 includes a labeled scrolled Month Sticky state and a cross-month handoff strip. |
+| 6–10 collapsed and expanded | PASS | Both states are explicitly shown. |
+| >10 collapsed and day detail | PASS | T0 shows the five-row timeline state and a separate date-detail screen. |
+
+The BG_DATA gate fails, so Timeline remains `ACTIVE_CLOSURE`; T0 stays `DESIGN_ONLY / RECOVERED_REFERENCE`. The current My Catches main visual remains the visual authority.
 
 The final Timeline high-fidelity must be recomposed against the current My Catches V2 visual language and the current shared design system.
 

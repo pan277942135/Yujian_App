@@ -14,7 +14,7 @@ Design Manager 下的场景子页面不是产品新路由，而是设计状态 /
 5. 点击搜索 / Focused
 6. 搜索有结果
 7. 搜索无结果
-8. 点击筛选 / Filter Sheet
+8. 点击筛选 / F1 顶部内联筛选面板
 9. 筛选有结果
 10. 筛选无结果
 11. Archive Empty
@@ -24,7 +24,7 @@ Design Manager 下的场景子页面不是产品新路由，而是设计状态 /
 ## Shared authority
 
 - List image: `My_Catches_List_Image_Spec_V1.md`
-- Filter: `My_Catches_Filter_Spec_V1.md`
+- Filter: `My_Catches_Filter_Spec_V2.md`
 - Search: `My_Catches_Search_Spec_V1.md`
 - Timeline: `My_Catches_Timeline_Scroll_Spec_V1.md`
 - Growth Mark: `My_Catches_Growth_Mark_Spec_V1.md`

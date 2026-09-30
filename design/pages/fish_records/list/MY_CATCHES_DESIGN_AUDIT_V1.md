@@ -201,7 +201,7 @@ Motion / Haptic / Sound remain separate design-system gaps tracked by Design Man
 The following previously discussed / frozen design decisions have now been restored as explicit repository authority:
 
 - `My_Catches_List_Image_Spec_V1.md`
-- `My_Catches_Filter_Spec_V1.md`
+- `My_Catches_Filter_Spec_V2.md`
 - `My_Catches_Timeline_Scroll_Spec_V1.md`
 - `My_Catches_Growth_Mark_Spec_V1.md`
 

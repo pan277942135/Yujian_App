@@ -100,12 +100,12 @@ F1 不承载：50+ 鱼种完整列表、自定义日期日历、精确尺寸输�
 ## 8. 子菜单映射
 
 - F1 · 筛选面板 — **FROZEN**
-- F2 · 鱼种选择 — Pending
-- F3 · 时间选择 — Pending
-- F4 · 尺寸筛选 — Pending
-- F5 · 特殊记录 — Pending
-- F6 · 筛选有结果 — Pending
-- F7 · 筛选无结果 — Pending
+- F2 · 鱼种选择 — **PARTIAL**; shared species-picker baseline is single-select only, while My Catches needs multi-select.
+- F3 · 时间选择 — **MISSING** standalone high-fidelity state.
+- F4 · 尺寸筛选 — **MISSING** standalone high-fidelity state.
+- F5 · 特殊记录 — **PARTIAL** behavior reuses Growth Mark V1; dedicated state visual is missing.
+- F6 · 筛选有结果 — **PARTIAL** existing timeline behavior applies; dedicated state visual is missing.
+- F7 · 筛选无结果 — **PARTIAL** reuses the frozen multi-state Empty States board; dedicated state visual is not separated.
 
 ## 9. 冻结结论
 
