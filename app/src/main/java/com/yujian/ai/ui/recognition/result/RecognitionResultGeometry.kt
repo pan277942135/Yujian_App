@@ -60,9 +60,9 @@ data class RecognitionHeroMediaPlan(
 enum class SourceEdge { LEFT, TOP, RIGHT, BOTTOM }
 
 object RecognitionResultInputValidation {
-    fun length(raw: String): String? = decimal(raw, 0.1, 999.9, 1, "请输入 0.1–999.9 cm 的长度")
+    fun length(raw: String): String? = decimal(raw, 0.1, 999.9, 1, "请输入有效的长度")
 
-    fun weight(raw: String): String? = decimal(raw, 0.01, 999.99, 2, "请输入 0.01–999.99 kg 的重量")
+    fun weight(raw: String): String? = decimal(raw, 0.01, 999.99, 2, "请输入有效的重量")
 
     fun takeUnicodeCodePoints(value: String, limit: Int): String {
         val end = value.offsetByCodePoints(0, value.codePointCount(0, value.length).coerceAtMost(limit))

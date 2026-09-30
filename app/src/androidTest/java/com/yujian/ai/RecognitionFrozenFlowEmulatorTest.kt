@@ -24,11 +24,15 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
@@ -245,7 +249,7 @@ class RecognitionFrozenFlowEmulatorTest {
         }
 
         assertTrue("recognition coroutine did not start", recognizeStarted.await(2, TimeUnit.SECONDS))
-        composeRule.onNodeWithContentDescription("返回").performClick()
+        composeRule.onAllNodesWithContentDescription("返回").onLast().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) { !processingVisible.value }
         composeRule.waitForIdle()
 
@@ -310,6 +314,145 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
+    fun mediumOtherSelectorSearchesAliasesAndCommitsOnlyAfterSelection() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(medium.prediction),
+                    productionResult = medium,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("都不是？选择其他鱼种").performClick()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("鲤拐子")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-common_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-common_carp").performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("修改鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun unresolvedMediumAndLowCanReturnWithoutCreatingRecordActions() {
+        val showLow = mutableStateOf(false)
+        composeRule.setContent {
+            YujianTheme {
+                if (showLow.value) {
+                    RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(low.prediction),
+                        productionResult = low,
+                        onBack = {},
+                        onRetry = {},
+                        onSave = { _, _, _ -> },
+                    )
+                } else {
+                    RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(medium.prediction),
+                        productionResult = medium,
+                        onBack = {},
+                        onRetry = {},
+                        onSave = { _, _, _ -> },
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithText("都不是？选择其他鱼种").performClick()
+        composeRule.onNodeWithText("暂不确认鱼种").performClick()
+        composeRule.onNodeWithText("都不是？选择其他鱼种").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.runOnIdle { showLow.value = true }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("手动选择鱼种").performClick()
+        composeRule.onNodeWithText("暂不确认鱼种").performClick()
+        composeRule.onNodeWithText("手动选择鱼种").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun confirmedSpeciesEditHidesUnconfirmedActionAndBackKeepsSelection() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+        composeRule.onNodeWithText("修改鱼种").performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodesWithText("选择鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        assertFalse(composeRule.onAllNodesWithText("暂不确认鱼种").fetchSemanticsNodes().isNotEmpty())
+        composeRule.onAllNodesWithContentDescription("返回").onLast().performClick()
+        composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+    }
+
+    @Test
+    fun numericEditorValidatesWithFrozenGentleCopyAndSaveErrorsStaySafe() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    saveError = "backend stack trace: private detail",
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+        composeRule.onNodeWithText("保存鱼获失败，请重试").performScrollTo().assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("backend stack trace: private detail").fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.onNodeWithText("长度").performClick()
+        val lengthField = composeRule.onNodeWithTag("recognition-numeric-长度")
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodesWithTag("recognition-numeric-长度").fetchSemanticsNodes().isNotEmpty()
+        }
+        lengthField.performTextInput("0")
+        lengthField.performImeAction()
+        composeRule.onNodeWithText("请输入有效的长度").assertIsDisplayed()
+    }
+
+    @Test
+    fun resultSaveActionRejectsDuplicateSubmitsUntilParentStateChanges() {
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> saveCalls.incrementAndGet() },
+                )
+            }
+        }
+
+        val saveButton = composeRule.onNodeWithText("保存本次鱼获").performScrollTo()
+        saveButton.performClick()
+        saveButton.performClick()
+        assertEquals("one resolved Result may submit only once while saving", 1, saveCalls.get())
+    }
+
+    @Test
     fun lowResultHidesRecordControlsUntilManualSpeciesSelection() {
         composeRule.setContent {
             YujianTheme {
@@ -332,8 +475,15 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("手动选择鱼种").performClick()
         composeRule.onNodeWithText("选择鱼种").assertIsDisplayed()
-        composeRule.onNodeWithText("鲫鱼").performClick()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("ji yu")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-crucian_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-crucian_carp").performClick()
 
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("修改鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithText("修改鱼种").assertIsDisplayed()
         composeRule.onNodeWithText("长度").assertIsDisplayed()
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()

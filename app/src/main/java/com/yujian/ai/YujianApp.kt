@@ -601,7 +601,7 @@ fun YujianApp() {
                                             if ((error as? ApiException)?.statusCode == 401) {
                                                 logoutToHome()
                                             } else {
-                                                catchSaveError = error.message ?: "保存鱼获失败，请重试"
+                                                catchSaveError = "保存鱼获失败，请重试"
                                             }
                                         }
                                     }
@@ -814,7 +814,7 @@ private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
     return remote.map { item ->
         val localItem = local[item.id]
         item.copy(
-            aliases = localItem?.aliases ?: item.aliases,
+            aliases = (localItem?.aliases.orEmpty() + item.aliases).distinct(),
             category = item.category.ifBlank { localItem?.category.orEmpty() },
             discovered = false,
             catches = 0,

@@ -3,8 +3,6 @@ package com.yujian.ai.ui.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Geocoder
-import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -39,6 +37,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +52,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.FilterQuality
@@ -59,12 +63,17 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -89,6 +98,7 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.feedback.FeedbackDraft
 import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.model.DemoData
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -105,15 +115,18 @@ import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.result.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaMode
 import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaPlanner
+import com.yujian.ai.ui.recognition.result.RecognitionPlace
+import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
 import com.yujian.ai.ui.recognition.result.RecognitionResultInputValidation
+import com.yujian.ai.ui.recognition.result.resolveCurrentRecognitionPlace
+import com.yujian.ai.ui.recognition.result.SpeciesSelectorEntryContext
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WaterTeal
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -147,10 +160,17 @@ fun RecognitionResultScreen(
     val candidateFontScale = LocalDensity.current.fontScale
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
     val selectorSpecies = remember(prediction, availableSpecies) {
-        val extras = availableSpecies.mapIndexed { index, item ->
-            RecognitionCandidate(index, item.id, item.nameCn, 0f)
+        val localCatalog = DemoData.species.map { fish ->
+            FishGuideItem(
+                id = fish.key,
+                nameCn = fish.name,
+                aliases = fish.aliases.split("、").map(String::trim).filter(String::isNotBlank),
+            )
         }
-        (prediction.candidates + extras).distinctBy { it.speciesKey }
+        val predictionSpecies = prediction.candidates.map { candidate ->
+            FishGuideItem(id = candidate.speciesKey, nameCn = candidate.speciesName)
+        }
+        (availableSpecies + localCatalog + predictionSpecies).distinctBy { it.id }
     }
     val speciesImages = remember(availableSpecies, speciesCoverUrlFor) {
         availableSpecies.associate { it.id to speciesCoverUrlFor(it.coverImage) }
@@ -162,6 +182,11 @@ fun RecognitionResultScreen(
         mutableStateOf(if (uiState == RecognitionUiState.RESULT_HIGH) prediction.top1.speciesName else "")
     }
     var selectorVisible by remember(prediction, uiState) { mutableStateOf(false) }
+    val selectorEntryContext = when {
+        uiState == RecognitionUiState.RESULT_MEDIUM && selectedKey.isBlank() -> SpeciesSelectorEntryContext.MEDIUM_OTHER
+        uiState == RecognitionUiState.RESULT_LOW && selectedKey.isBlank() -> SpeciesSelectorEntryContext.LOW_MANUAL
+        else -> SpeciesSelectorEntryContext.EDIT_CONFIRMED
+    }
     var editField by remember(prediction) { mutableStateOf<ResultEditableField?>(null) }
     var lengthText by remember(prediction) { mutableStateOf("") }
     var weightText by remember(prediction) { mutableStateOf("") }
@@ -170,20 +195,40 @@ fun RecognitionResultScreen(
     var saveRequested by remember(prediction) { mutableStateOf(false) }
     var purposeVisible by remember(prediction) { mutableStateOf(false) }
     var resolvingLocation by remember(prediction) { mutableStateOf(false) }
+    var locationError by remember(prediction) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val placeRecentStore = remember(context) { RecognitionPlaceRecentStore(context) }
+    fun resolveCurrentLocation() {
+        scope.launch {
+            resolvingLocation = true
+            locationError = null
+            val place = resolveCurrentRecognitionPlace(context)
+            if (place != null) {
+                locationText = place.name.takeUnicodeCodePoints(40)
+                placeRecentStore.commit(place)
+                editField = null
+            } else {
+                locationError = "无法获取当前位置，请稍后重试"
+            }
+            resolvingLocation = false
+        }
+    }
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
         if (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
             grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         ) {
-            scope.launch {
-                resolvingLocation = true
-                resolveLastKnownPlace(context)?.let { locationText = it.takeUnicodeCodePoints(40) }
-                resolvingLocation = false
-            }
+            resolveCurrentLocation()
+        } else {
+            locationError = "未获得位置权限，仍可搜索地点"
         }
+    }
+    fun requestCurrentLocation() {
+        val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (fine || coarse) resolveCurrentLocation() else purposeVisible = true
     }
     val currentTime = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date()) }
     LaunchedEffect(saving, saveError) { if (!saving) saveRequested = false }
@@ -223,6 +268,10 @@ fun RecognitionResultScreen(
         )
     }
 
+    fun openSpeciesSelector() {
+        selectorVisible = true
+    }
+
     Box(Modifier.fillMaxSize()) {
         BgContentSurface()
         Column(Modifier.fillMaxSize()) {
@@ -251,7 +300,7 @@ fun RecognitionResultScreen(
                             speciesName = selectedName,
                             sideMargin = sideMargin,
                             enabled = !saving,
-                            onChange = { selectorVisible = true },
+                            onChange = { openSpeciesSelector() },
                         )
                         Spacer(Modifier.height(12.dp))
                         ResultMetadataStrip(
@@ -304,7 +353,7 @@ fun RecognitionResultScreen(
                         Box(Modifier.fillMaxWidth().padding(horizontal = sideMargin), contentAlignment = Alignment.CenterStart) {
                             YuJianTextAction(
                                 text = "都不是？选择其他鱼种",
-                                onClick = { selectorVisible = true },
+                                onClick = { openSpeciesSelector() },
                                 role = YuJianTextActionRole.MUTED,
                                 enabled = !saving,
                                 showChevron = true,
@@ -312,7 +361,7 @@ fun RecognitionResultScreen(
                         }
                         if (selectedKey.isNotBlank()) {
                             Spacer(Modifier.height(16.dp))
-                            SpeciesIdentityRow(selectedName, sideMargin, enabled = !saving, onChange = { selectorVisible = true })
+                            SpeciesIdentityRow(selectedName, sideMargin, enabled = !saving, onChange = { openSpeciesSelector() })
                             Spacer(Modifier.height(12.dp))
                             ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, sideMargin, enabled = !saving) { editField = it }
                             Spacer(Modifier.height(12.dp))
@@ -333,7 +382,7 @@ fun RecognitionResultScreen(
                                 Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     YuJianPrimaryButton(
-                                        text = "手动选择鱼种", onClick = { selectorVisible = true },
+                                        text = "手动选择鱼种", onClick = { openSpeciesSelector() },
                                         modifier = Modifier.weight(58f), variant = YuJianActionButtonVariant.SECONDARY_STRONG,
                                     )
                                     YuJianPrimaryButton(
@@ -343,7 +392,7 @@ fun RecognitionResultScreen(
                                 }
                             }
                         } else {
-                            SpeciesIdentityRow(selectedName, sideMargin, enabled = !saving) { selectorVisible = true }
+                            SpeciesIdentityRow(selectedName, sideMargin, enabled = !saving) { openSpeciesSelector() }
                             Spacer(Modifier.height(12.dp))
                             ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, sideMargin, enabled = !saving) { editField = it }
                             Spacer(Modifier.height(12.dp))
@@ -365,32 +414,45 @@ fun RecognitionResultScreen(
     }
 
     if (selectorVisible) {
-        FishSpeciesSelectorDialog(
+        RecognitionSpeciesSelectorScreen(
             species = selectorSpecies,
-            selectedKey = selectedKey,
-            onSelect = { candidate -> selectedKey = candidate.speciesKey; selectedName = candidate.speciesName; selectorVisible = false },
-            onDismiss = { selectorVisible = false },
+            resolveCoverUrl = speciesCoverUrlFor,
+            selectedSpeciesId = selectedKey,
+            entryContext = selectorEntryContext,
+            onBack = { selectorVisible = false },
+            onSelect = { selected ->
+                selectedKey = selected.id
+                selectedName = selected.nameCn
+                selectorVisible = false
+            },
+            onUnconfirmed = { selectorVisible = false },
         )
     }
     editField?.let { field ->
         when (field) {
             ResultEditableField.LENGTH -> ResultFieldEditorSheet(
-                title = "记录长度", label = "长度", unit = "cm", value = lengthText,
+                title = "鱼获长度", label = "长度", unit = "cm", value = lengthText,
                 keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.length(it) },
                 onDismiss = { editField = null }, onSave = { lengthText = it; editField = null },
             )
             ResultEditableField.WEIGHT -> ResultFieldEditorSheet(
-                title = "记录重量", label = "重量", unit = "kg", value = weightText,
+                title = "鱼获重量", label = "重量", unit = "kg", value = weightText,
                 keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.weight(it) },
                 onDismiss = { editField = null }, onSave = { weightText = it; editField = null },
             )
-            ResultEditableField.LOCATION -> ResultLocationSheet(
+            ResultEditableField.LOCATION -> ResultLocationPickerSheet(
                 value = locationText,
                 resolving = resolvingLocation,
+                currentLocationError = locationError,
                 onDismiss = { editField = null },
-                onValueChange = { locationText = it.replace(Regex("\\R+"), " ").takeUnicodeCodePoints(40) },
-                onUseCurrentLocation = { purposeVisible = true },
-                onSave = { locationText = it.trim().takeUnicodeCodePoints(40); editField = null },
+                onUseCurrentLocation = { requestCurrentLocation() },
+                onSelectPlace = { place ->
+                    locationText = place.name.takeUnicodeCodePoints(40)
+                    locationError = null
+                    editField = null
+                },
+                onClearLocation = { locationText = ""; locationError = null; editField = null },
+                onClearCurrentLocationError = { locationError = null },
             )
         }
     }
@@ -402,15 +464,7 @@ fun RecognitionResultScreen(
             confirmButton = {
                 TextButton(onClick = {
                     purposeVisible = false
-                    val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    if (fine || coarse) {
-                        scope.launch {
-                            resolvingLocation = true
-                            resolveLastKnownPlace(context)?.let { locationText = it.takeUnicodeCodePoints(40) }
-                            resolvingLocation = false
-                        }
-                    } else locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
+                    locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
                 }) { Text("继续", color = WaterTeal) }
             },
             dismissButton = { TextButton(onClick = { purposeVisible = false }) { Text("暂不使用") } },
@@ -644,32 +698,8 @@ private fun ResultDualActions(
 @Composable
 private fun ResultInlineError(message: String?, sideMargin: Dp) {
     if (!message.isNullOrBlank()) Text(
-        message, modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin).padding(bottom = 8.dp),
+        "保存鱼获失败，请重试", modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin).padding(bottom = 8.dp),
         color = Color(0xFF9E4035), fontSize = 13.sp, lineHeight = 18.sp,
-    )
-}
-
-@Composable
-private fun FishSpeciesSelectorDialog(
-    species: List<RecognitionCandidate>, selectedKey: String,
-    onSelect: (RecognitionCandidate) -> Unit, onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("选择鱼种", color = DeepInk) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                species.forEach { candidate ->
-                    Row(
-                        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                            .background(if (candidate.speciesKey == selectedKey) SoftWater else Color.Transparent)
-                            .clickable { onSelect(candidate) }.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) { Text(candidate.speciesName, color = DeepInk, modifier = Modifier.weight(1f)); if (candidate.speciesKey == selectedKey) Text("已选择", color = WaterTeal, fontSize = 12.sp) }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("取消") } },
     )
 }
 
@@ -679,66 +709,55 @@ private fun ResultFieldEditorSheet(
     title: String, label: String, unit: String, value: String, keyboardType: KeyboardType,
     validation: (String) -> String?, onDismiss: () -> Unit, onSave: (String) -> Unit,
 ) {
-    var text by remember(title, value) { mutableStateOf(value) }
+    var text by remember(title, value) { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
     var error by remember(title) { mutableStateOf<String?>(null) }
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusRequester = remember(title) { FocusRequester() }
+    fun finishEditing() {
+        val invalid = validation(text.text)
+        if (invalid != null) {
+            error = invalid
+        } else {
+            onSave(text.text.trim())
+            keyboard?.hide()
+        }
+    }
+    LaunchedEffect(title) {
+        delay(220L)
+        focusRequester.requestFocus()
+        keyboard?.show()
+    }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(title, color = DeepInk, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Medium)
+            Text(title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = DeepInk, fontSize = 17.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
-                value = text, onValueChange = { text = it.filter { char -> char.isDigit() || char == '.' || char == ',' }.replace(',', '.').take(8); error = null },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), singleLine = true,
+                value = text, onValueChange = { next ->
+                    val cleaned = next.text.filter { char -> char.isDigit() || char == '.' || char == ',' }.replace(',', '.').take(8)
+                    text = TextFieldValue(cleaned, TextRange(cleaned.length))
+                    error = null
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).focusRequester(focusRequester)
+                    .testTag("recognition-numeric-${label.lowercase()}"), singleLine = true,
                 label = { Text(label) }, suffix = { Text(unit) }, isError = error != null,
                 supportingText = error?.let { { Text(it) } },
-                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                textStyle = TextStyle(fontSize = 32.sp, lineHeight = 40.sp, color = DeepInk),
+                trailingIcon = if (text.text.isNotEmpty()) {
+                    { IconButton(onClick = { text = TextFieldValue(""); error = null }, modifier = Modifier.size(32.dp)) { Icon(Icons.Rounded.Close, contentDescription = "清除输入", tint = MutedInk) } }
+                } else null,
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { finishEditing() }),
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 if (value.isNotBlank()) {
                     YuJianTextAction(
-                        text = "清除", onClick = { text = ""; onSave(""); keyboard?.hide() },
+                        text = "清除", onClick = { onSave(""); keyboard?.hide() },
                         role = YuJianTextActionRole.MUTED,
                     )
                 } else Spacer(Modifier.width(64.dp))
-                YuJianPrimaryButton(text = "完成", onClick = {
-                    val invalid = validation(text)
-                    if (invalid != null) error = invalid else { onSave(text.trim()); keyboard?.hide() }
-                }, modifier = Modifier.weight(1f))
+                YuJianTextAction(text = "完成", onClick = { finishEditing() }, role = YuJianTextActionRole.NORMAL)
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ResultLocationSheet(
-    value: String, resolving: Boolean, onDismiss: () -> Unit, onValueChange: (String) -> Unit,
-    onUseCurrentLocation: () -> Unit, onSave: (String) -> Unit,
-) {
-    var text by remember(value) { mutableStateOf(value) }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("添加地点", color = DeepInk, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Medium)
-            OutlinedTextField(text, { text = it.replace(Regex("\\R+"), " ").takeUnicodeCodePoints(40); onValueChange(text) }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("地点") })
-            YuJianPrimaryButton(
-                text = if (resolving) "正在获取位置…" else "使用当前位置", onClick = onUseCurrentLocation,
-                enabled = !resolving, variant = YuJianActionButtonVariant.SECONDARY_STRONG,
-            )
-            YuJianPrimaryButton(text = "完成", onClick = { onSave(text); }, variant = YuJianActionButtonVariant.PRIMARY)
-        }
-    }
-}
-
 private fun String.takeUnicodeCodePoints(limit: Int): String = RecognitionResultInputValidation.takeUnicodeCodePoints(this, limit)
-
-private suspend fun resolveLastKnownPlace(context: Context): String? = withContext(Dispatchers.IO) {
-    val manager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return@withContext null
-    val location = listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
-        .asSequence().mapNotNull { provider -> runCatching { manager.getLastKnownLocation(provider) }.getOrNull() }
-        .maxByOrNull { it.time } ?: return@withContext null
-    if (!Geocoder.isPresent()) return@withContext "${"%.4f".format(Locale.US, location.latitude)}, ${"%.4f".format(Locale.US, location.longitude)}"
-    runCatching {
-        @Suppress("DEPRECATION")
-        Geocoder(context, Locale.getDefault()).getFromLocation(location.latitude, location.longitude, 1)
-            ?.firstOrNull()?.let { address -> listOfNotNull(address.subLocality, address.locality, address.adminArea).distinct().joinToString(" · ").takeIf(String::isNotBlank) }
-    }.getOrNull()
-}

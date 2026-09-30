@@ -11,6 +11,17 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class FishKnowledgeContractTest {
     @Test
+    fun species_list_parser_keeps_aliases_and_pinyin_search_fields() {
+        val item = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
+            """[{"id":"grass_carp","name_cn":"草鱼","alias":["鲩鱼","草鲩"],"pinyin":"cao yu","pinyin_initials":"cy"}]""",
+        ).single()
+
+        assertEquals(listOf("鲩鱼", "草鲩"), item.aliases)
+        assertEquals("cao yu", item.pinyin)
+        assertEquals("cy", item.pinyinInitials)
+    }
+
+    @Test
     fun detail_contract_parses_full_asset_package_and_sorts_cards() {
         val repository = FishKnowledgeRepository("https://api.example")
         val detail = repository.parseDetailJson(

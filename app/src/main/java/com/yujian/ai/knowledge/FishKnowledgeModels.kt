@@ -12,6 +12,8 @@ data class FishGuideItem(
     val coverImage: String? = null,
     val discovered: Boolean = false,
     val catches: Int = 0,
+    val pinyin: String? = null,
+    val pinyinInitials: String? = null,
 )
 
 data class FishKnowledgeSpecies(

@@ -14,15 +14,23 @@ class FishKnowledgeRepository(
     private val baseUrl: String = BuildConfig.FISH_KNOWLEDGE_BASE_URL,
 ) {
     suspend fun listSpecies(): List<FishGuideItem> = withContext(Dispatchers.IO) {
-        val array = JSONArray(get("/api/v1/fish/species"))
-        (0 until array.length()).map { index ->
+        parseSpeciesJson(get("/api/v1/fish/species"))
+    }
+
+    /** Deterministic parser entry used by the Android contract test and previews. */
+    fun parseSpeciesJson(json: String): List<FishGuideItem> {
+        val array = JSONArray(json)
+        return (0 until array.length()).map { index ->
             val item = array.getJSONObject(index)
             FishGuideItem(
                 id = item.optString("id"),
                 nameCn = item.optString("name_cn"),
+                aliases = stringList(item.optJSONArray("alias")),
                 summary = item.optString("summary"),
                 category = item.optString("category"),
                 coverImage = item.optString("cover_image").ifBlank { null },
+                pinyin = item.optString("pinyin").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
+                pinyinInitials = item.optString("pinyin_initials").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
             )
         }.filter { it.id.isNotBlank() && it.nameCn.isNotBlank() }
     }
