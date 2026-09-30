@@ -18,11 +18,12 @@ Canonical machine-readable navigation:
 | 03 | RR03 | Low / 低置信结果 | 07_Result_Low_Frozen.png | CLOSED V1 |
 | 04 | RR04 | No Fish / 未检测到鱼 | 08_Error_No_Fish_Frozen.png | CLOSED V1 |
 | 05 | RR05 | Image Quality / 图片质量不足 | 09_Error_Image_Quality_Frozen.png | CLOSED V1 |
+| 06 | RR06 | Content Edit / 内容修改 | Species Selector V1 + Metadata Edit Flow V1 (existing FROZEN authorities) | FROZEN AUTHORITY INDEX |
 
 ## Asset rule
 
 The Design Manager pages reference the canonical Frozen PNGs in `design/pages/recognition/design/`.
 
-Do not duplicate, crop, recompress or rename the five canonical PNGs merely for menu display.
+Do not duplicate, crop, recompress or rename the five canonical Result-state PNGs merely for menu display. RR06 links to the separate canonical Species Selector and Metadata Edit PNGs, specs, contracts and manifests.
 
-`00 Overview` is the common 3+2 contract and is closed after 01–05 individual review.
+`00 Overview` is the common 3+2 contract and is closed after 01–05 individual review. RR06 is a separate content-edit authority index; it does not add a sixth Result state or change the 3+2 model.

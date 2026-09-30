@@ -14,6 +14,7 @@ Second-level pages:
 - `03_low/` — Low / 低置信结果
 - `04_no_fish/` — No Fish / 未检测到鱼
 - `05_image_quality/` — Image Quality / 图片质量不足
+- `06_content_edit/` — RR06 · 内容修改（Species Selector V1 + Metadata Edit Flow V1 Authority 索引）
 
 Machine-readable menu:
 
@@ -98,12 +99,14 @@ The Frozen PNG owns Hero **container composition**. The Hero Media Contract owns
 - `review/Recognition_Result_Runtime_Alignment_Review_V1.md`
 - `status.json`
 
-## Supplemental interaction authorities
+## Content-edit authority index · RR06
 
-- Species Selector V1: `design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md` · `design/pages/recognition/result/species_selector/species_selector_contract.json` · `design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png`
-- Metadata Edit Flow V1: existing frozen behavior `design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md` / `design/pages/recognition/result/engineering/metadata_edit_flow_contract.json` plus interaction visual `design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png`
+`design/pages/recognition/result/06_content_edit/README.md` is the single Design Manager entry for the two already-frozen authorities below. RR06 does not add a product state or alter the 3+2 Result model.
 
-RR00–RR03 expose links to both authorities. They do not add RR06/RR07 or change the 3+2 Result navigation. The Metadata Edit board is limited to overlay interactions and does not authorize its legacy Result-page composition.
+- Species Selector V1: `design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md` · `design/pages/recognition/result/species_selector/species_selector_contract.json` · `design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png` · `design/pages/recognition/result/species_selector/frozen/manifest.json`
+- Metadata Edit Flow V1: `design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md` · `design/pages/recognition/result/engineering/metadata_edit_flow_contract.json` · `design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png` · `design/pages/recognition/result/metadata_edit/frozen/manifest.json`
+
+RR06 links to the canonical specs, contracts, PNGs and manifests; it does not duplicate or merge their distinct decision boundaries. Species Selector owns the selector only. The Metadata Edit board remains limited to metadata overlay interactions and does not authorize its legacy Result-page composition.
 
 ## Implementation-ready engineering authority
 

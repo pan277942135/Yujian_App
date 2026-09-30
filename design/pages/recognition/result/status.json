@@ -11,7 +11,8 @@
     "02_medium",
     "03_low",
     "04_no_fish",
-    "05_image_quality"
+    "05_image_quality",
+    "06_content_edit"
   ],
   "state_model": "3+2",
   "result_states": [
@@ -62,5 +63,11 @@
   "species_selector_visual_manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
   "metadata_edit_visual_frozen": true,
   "metadata_edit_visual_authority": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
-  "metadata_edit_visual_manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json"
+  "metadata_edit_visual_manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json",
+  "content_edit_authority_index": "design/pages/recognition/result/06_content_edit/README.md",
+  "content_edit_authorities": [
+    "species_selector_v1",
+    "metadata_edit_flow_v1"
+  ],
+  "content_edit_menu_frozen": true
 }

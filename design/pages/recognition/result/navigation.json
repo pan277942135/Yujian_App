@@ -7,7 +7,7 @@
     "label_en": "Recognition Result",
     "path": "design/pages/recognition/result/"
   },
-  "principle": "3 类识别结果 + 2 类恢复状态；五个关键状态独立高保页面，Overview 汇总共性规则。Frozen 只保留一份 canonical 文件，菜单页直接引用。",
+  "principle": "产品状态仍为 3 类识别结果 + 2 类恢复状态；RR00–RR05 承载总览与五个独立高保页面，RR06 集中索引已冻结的内容修改 Authority，不新增 Result 状态。Frozen 资产只保留一份 canonical 文件，菜单页直接引用。",
   "level_2": [
     {
       "order": 1,
@@ -119,6 +119,21 @@
         "与 No Fish 保持状态区分",
         "Implementation-ready Engineering Contracts V1"
       ]
+    },
+    {
+      "order": 7,
+      "id": "RR06",
+      "label_zh": "内容修改",
+      "label_en": "Content Edit Authorities",
+      "output_policy": "AUTHORITY_INDEX",
+      "status": "FROZEN",
+      "page": "design/pages/recognition/result/06_content_edit/README.md",
+      "contains": [
+        "Species Selector V1 · 鱼种选择（FROZEN）",
+        "Metadata Edit Flow V1 · 长度 / 重量 / 地点修改（FROZEN）",
+        "分别保留现有冻结规范、契约、视觉资产与 manifest",
+        "不新增 Result 产品状态，不改变 3+2 状态模型"
+      ]
     }
   ],
   "status": "IMPLEMENTATION_READY",
@@ -132,10 +147,7 @@
       "contract": "design/pages/recognition/result/species_selector/species_selector_contract.json",
       "manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
       "linked_from": [
-        "RR00",
-        "RR01",
-        "RR02",
-        "RR03"
+        "RR06"
       ]
     },
     {
@@ -146,10 +158,7 @@
       "contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
       "manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json",
       "linked_from": [
-        "RR00",
-        "RR01",
-        "RR02",
-        "RR03"
+        "RR06"
       ]
     }
   ]
