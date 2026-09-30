@@ -3,6 +3,10 @@
 Status: **FROZEN**  
 Freeze date: **2026-09-30**  
 Design Manager owner: **04 · 信息编辑**
+Visual Authority: `design/pages/fish_record/detail/frozen/editing/FishRecordDetail_Editing_V1_Frozen.png`
+Source: `湖畔鱼获编辑界面.png`
+Image: PNG / RGB, 941 × 1672, 1,542,547 bytes
+SHA-256: `d81495f760840c0411aa693bb8b3b39fc1d65e012387350732047f1272250114`
 
 ## 1. Product role
 

@@ -3189,6 +3189,33 @@
             "Save Failure Preserves Input",
             "Delete · Destructive Confirmation",
             "A/B Same FishRecord Identity"
+          ],
+          "children": [
+            {
+              "id": "editing_workspace_visual",
+              "title": "编辑鱼获信息 · 高保真",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "visual",
+              "render_mode": "frozen_image",
+              "visual_authority": "design/pages/fish_record/detail/frozen/editing/FishRecordDetail_Editing_V1_Frozen.png",
+              "image": "design/pages/fish_record/detail/frozen/editing/FishRecordDetail_Editing_V1_Frozen.png",
+              "authority": "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md",
+              "summary": "鱼获详情 04 信息编辑工作区高保真：在同一 FishRecord 上编辑鱼种、长度、重量、地点与记录。",
+              "source_high_fidelity_png": "湖畔鱼获编辑界面.png",
+              "visual_authority_dimensions": {
+                "width": 941,
+                "height": 1672
+              },
+              "visual_authority_bytes": 1542547,
+              "visual_authority_sha256": "d81495f760840c0411aa693bb8b3b39fc1d65e012387350732047f1272250114",
+              "menu_points": [
+                "同一 FishRecord · A/B 身份保持不变",
+                "基础信息 · 鱼种 / 长度 / 重量",
+                "环境与记录 · 时间 / 地点 / 天气 / 感言",
+                "取消 / 保存修改"
+              ]
+            }
           ]
         },
         {
