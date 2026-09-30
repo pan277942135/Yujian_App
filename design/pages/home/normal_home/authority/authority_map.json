@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "page_id": "normal_home_v1",
+  "precedence": [
+    {
+      "priority": 1,
+      "authority": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "scope": "page composition and frozen visual appearance"
+    },
+    {
+      "priority": 2,
+      "authority": "design/pages/home/normal_home/spec/",
+      "scope": "page behavior, visual interpretation and acceptance"
+    },
+    {
+      "priority": 3,
+      "authority": "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md",
+      "scope": "page motion"
+    },
+    {
+      "priority": 4,
+      "authority": "design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md",
+      "scope": "page haptic behavior"
+    },
+    {
+      "priority": 5,
+      "authority": "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md",
+      "scope": "page sound behavior"
+    },
+    {
+      "priority": 6,
+      "authority": "design/system/core_visual_v1/YuJian_Core_Visual_System_V1.md",
+      "scope": "cross-page visual language, BG_ENV_HERO, shared hierarchy and guardrails"
+    },
+    {
+      "priority": 7,
+      "authority": "design/system/core_visual_v1/validation/component_map.json",
+      "scope": "shared component contracts"
+    },
+    {
+      "priority": 8,
+      "authority": "design/system/core_visual_v1/tokens/",
+      "scope": "shared tokens"
+    }
+  ],
+  "runtime_is_design_authority": false,
+  "background_resolution": {
+    "canonical": "normal_home_v1.png plus BG_ENV_HERO",
+    "Morning_Lake_Master_V1": "NOT_REGISTERED_NOT_AUTHORITY",
+    "rule": "A future independent background master requires a versioned Normal Home package revision."
+  },
+  "conflict_rules": [
+    "Do not silently redesign frozen information architecture in implementation.",
+    "Shared components must not fork to match page-local approximations.",
+    "Runtime data replaces example content but not frozen hierarchy.",
+    "A missing source may not be replaced by a generated or screenshot-cropped substitute."
+  ]
+}

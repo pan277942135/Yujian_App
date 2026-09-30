@@ -27,3 +27,13 @@ System specification: `design/system/core_visual_v1/YuJian_Core_Visual_System_V1
 It contains the original visual source, reproducible reusable masters, contracts, validation
 outputs, and Android evidence. The Android runtime is the only platform represented by this V2
 delivery; no iOS or HarmonyOS readiness claim is implied.
+
+
+## Normal Home V1 design package
+
+`design/pages/home/normal_home` is the Design Frozen page package for the Home state with one or more valid FishRecords.
+
+Its canonical visual remains `design/system/core_visual_v1/reference/normal_home_v1.png`.
+Behavior, visual interpretation, motion, haptic, sound, assets, authority ordering and freeze status are versioned inside the page package.
+
+The package intentionally does not register an independent Morning Lake bitmap unless a separately frozen source is present in the repository.
