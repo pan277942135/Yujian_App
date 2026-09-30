@@ -17,7 +17,7 @@ Second-level pages:
 
 Machine-readable menu:
 
-`menu.json`
+`navigation.json`
 
 Menu definition:
 

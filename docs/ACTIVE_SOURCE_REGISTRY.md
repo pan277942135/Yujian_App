@@ -40,9 +40,7 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
   - legacy verifier is removed from active Android CI.
 - `app/src/main/assets/home_empty_v1_3/`
   - status: **COMPATIBILITY — NORMAL HOME ONLY**
-  - still referenced by `HomeScreen` when `showEmptyState == false`;
-  - do not delete until Normal Home migrates to its own canonical runtime asset root.
-  - this path is not Empty Home V2 authority.
+  - historical compatibility path; not Empty Home V2 authority.
 
 ## Normal Home
 
@@ -50,7 +48,9 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
 
 - Design package closure:
   `design/pages/home/normal_home/DESIGN_PACKAGE_CLOSURE_V1.md`
-- Frozen visual:
+- Design Manager secondary navigation:
+  `design/pages/home/normal_home/navigation.json`
+- Frozen visual / NH01:
   `design/system/core_visual_v1/reference/normal_home_v1.png`
 - Frozen SHA-256:
   `6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377`
@@ -69,9 +69,21 @@ Purpose: give Work, Codex, reviewers, and CI one unambiguous map of the current 
 - Status:
   `design/pages/home/normal_home/status.json`
 
+### Design Manager secondary menu
+
+- NH01 — 主页面｜多鱼获状态 — independent Frozen Hi-Fi
+- NH02 — 第一条鱼首页 — independent Hi-Fi to add
+- NH03 — 页面状态与异常 — combined board
+- NH04 — 组件状态与内容边界 — combined board
+- NH05 — 响应式与交互 — combined board
+- NH06 — 背景与环境权威 — authority board
+
 ### Background authority
 
-Normal Home background is currently governed by the frozen Normal Home reference plus the Core Visual System `BG_ENV_HERO` rules. No independent `Morning_Lake_Master_V1` is registered in the repository, so it is not active authority.
+Repository source now present:
+`design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`
+
+The prior Closure V1 statement that this source did not exist is superseded. Until NH06 / Background Authority V1.1 is formally closed, the Frozen NH01 reference remains the complete page-composition authority. The Morning Lake source must not be reconstructed from a screenshot.
 
 ### Runtime traceability
 
@@ -134,6 +146,8 @@ Historical `RECOGNITION_RUNTIME_v1` 800/1500/2300/3000 boundaries are retired.
 
 - Design package closure:
   `design/pages/recognition/result/DESIGN_PACKAGE_CLOSURE_V1.md`
+- Design Manager secondary navigation:
+  `design/pages/recognition/result/navigation.json`
 - State model:
   `design/pages/recognition/result/spec/Recognition_Result_State_Matrix_V1.md`
 - Feature / behavior / visual:
@@ -146,6 +160,15 @@ Historical `RECOGNITION_RUNTIME_v1` 800/1500/2300/3000 boundaries are retired.
   `design/pages/recognition/result/review/Recognition_Result_Runtime_Alignment_Review_V1.md`
 - Status:
   `design/pages/recognition/result/status.json`
+
+### Design Manager secondary menu
+
+- RR00 — 结果总览 — 3+2 aggregate / overview board
+- RR01 — 高置信结果 — independent Frozen Hi-Fi
+- RR02 — 中置信结果 — independent Frozen Hi-Fi
+- RR03 — 低置信结果 — independent Frozen Hi-Fi
+- RR04 — 未检测到鱼 — independent Frozen Hi-Fi
+- RR05 — 图片质量不足 — independent Frozen Hi-Fi
 
 ### State-level visual authority
 
@@ -162,14 +185,13 @@ Design freeze and runtime alignment are tracked separately. Current Result desig
 ## Recognition model
 
 - Detector: `DET_FISH_v0.1`
-- Classifier: `MODEL_M1_v0.6`
-- Published Android classes: 16
+- Classifier production channel: `pan277942135/Yujian@mobile-model-v0.2`
 - Model verifier:
   `scripts/verify_production_model.py`
 - App asset note:
   `app/src/main/assets/MODEL_ASSET_README.md`
 
-Historical MODEL_M1_v0.2 / 9-class PR #2 is closed and must not be revived.
+The mutable production Release is resolved and verified at Android build time; do not restore or permanently pin an older classifier SHA.
 
 ## Runtime harness
 

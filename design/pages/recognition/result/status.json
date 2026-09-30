@@ -4,7 +4,7 @@
   "package_version": "V1",
   "scope": "design_only",
   "menu_registered": true,
-  "menu_registry": "design/pages/recognition/result/menu.json",
+  "menu_registry": "design/pages/recognition/result/navigation.json",
   "second_level_pages": [
     "00_overview",
     "01_high",
