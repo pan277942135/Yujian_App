@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="design-manager-build" content="__DESIGN_MANAGER_BUILD__">
   <title>渔见设计管理</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=__DESIGN_MANAGER_BUILD__">
 </head>
 <body>
   <div class="app-shell">
@@ -14,6 +15,7 @@
         <div>
           <h1>设计管理</h1>
           <p>公共设计系统 + 页面模块</p>
+          <div class="build-stamp">Deploy <code>__DESIGN_MANAGER_BUILD_SHORT__</code></div>
         </div>
       </div>
 
@@ -303,6 +305,6 @@
     </main>
   </div>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=__DESIGN_MANAGER_BUILD__"></script>
 </body>
 </html>

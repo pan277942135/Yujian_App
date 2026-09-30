@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "design/**"
+      - "scripts/verify_design_manager_navigation.py"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
 
@@ -16,7 +17,7 @@ permissions:
 
 concurrency:
   group: "design-manager-pages"
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -37,6 +38,10 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp -R design _site/design
+          BUILD_SHORT="${GITHUB_SHA:0:12}"
+          sed -i "s/__DESIGN_MANAGER_BUILD__/${GITHUB_SHA}/g" _site/design/manager/index.html
+          sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
+          printf '{"sha":"%s","short_sha":"%s"}\n' "${GITHUB_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           touch _site/.nojekyll
           cat > _site/index.html <<'EOF'
           <!doctype html>
@@ -52,6 +57,9 @@ jobs:
           </body>
           </html>
           EOF
+
+      - name: Verify Design Manager navigation artifact
+        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${GITHUB_SHA}"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
