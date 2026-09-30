@@ -5464,7 +5464,8 @@
       "modalities": {
         "behavior": {
           "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md"
+          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+          "note": "Active MVP main path behavior/IA is frozen through Active_Path_Contract_V1 and six page/flow specs; package behavior remains PARTIAL because legal/about and Edit Profile state closure are separate outstanding work."
         },
         "visual": {
           "status": "PARTIAL",
@@ -5497,7 +5498,7 @@
           "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
         }
       },
-      "note": "Design status: PARTIAL. Trusted Frozen: Login V2.1, Register V2, Edit Profile Home, Avatar. Nickname behavior/design contract remains frozen but its visual binary identity is BLOCKED_INTEGRITY until the approved byte-identical source is recovered. Legacy/review required: My, Account & Login, Change Password, Data & Privacy, AI Model Improvement, Location Permission, Privacy Policy. MVP DEFERRED / entry-only: Forgot Password, Export My Data, Delete Account. Visual authority missing: About YuJian and User Agreement. Shared authorities include Morning_Lake_Master_V1 / BG_CONTENT and Default Profile Avatar V1; runtime status is tracked separately.",
+      "note": "Design status: PARTIAL. Active MVP main path (My → Account & Security → Change Password → Data & Privacy → AI Model Improvement → Location) now has FROZEN IA/behavior/content contracts; current visual binaries remain ACTIVE_CLOSURE until new shared-system-aligned Hi-Fi authorities are approved. Trusted visual Frozen remains Login V2.1, Register V2, Edit Profile Home and Avatar. Nickname visual identity remains BLOCKED_INTEGRITY. Deferred: Forgot Password, Export My Data, Delete Account. Legal/About and Edit Profile state closure remain separate follow-up work.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5513,7 +5514,7 @@
           "current": true,
           "visual_authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "spec_authority": "design/pages/account_privacy/README.md",
-          "note": "Consolidated Design Manager authority index. Overall remains PARTIAL; runtime is tracked separately."
+          "note": "V2 consolidated authority index. Active MVP main path behavior/IA is frozen; current visual closure is still in progress. Overall remains PARTIAL."
         }
       ],
       "design_overall": "PARTIAL",
@@ -5541,7 +5542,7 @@
         {
           "id": "top_navigation_v1",
           "variant": "BACK_TITLE",
-          "note": "Top Navigation V1 / BACK_TITLE / FROZEN：账号与隐私、账号与登录、修改密码、数据与隐私、关于渔见、隐私政策、用户协议统一使用同一二级页结构。"
+          "note": "Top Navigation V1 / BACK_TITLE / FROZEN：我的、账号与安全、修改密码、数据与隐私、关于渔见、隐私政策、用户协议等二级页统一使用当前二级页结构。"
         },
         {
           "id": "default_profile_avatar_v1",
@@ -5564,6 +5565,21 @@
           ]
         },
         {
+          "id": "active_main_path",
+          "title": "ACTIVE MVP MAIN PATH · BEHAVIOR / IA FROZEN",
+          "status": "FROZEN",
+          "summary": "The active account path now has frozen page-level IA, behavior, copy boundaries and interaction contracts. Visual binaries remain ACTIVE_CLOSURE and must not be represented by legacy screenshots.",
+          "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
+          "points": [
+            "我的 · My Page Spec V2",
+            "账号与安全 · Account Security Home Spec V1",
+            "修改密码 · Change Password Spec V1",
+            "数据与隐私 · Data & Privacy Home Spec V1",
+            "AI 模型改进 · Consent Spec V1",
+            "位置权限 · Location Privacy Spec V1"
+          ]
+        },
+        {
           "id": "integrity_blocked",
           "title": "INTEGRITY BLOCKED",
           "status": "BLOCKED_INTEGRITY",
@@ -5577,15 +5593,15 @@
           "id": "legacy_review",
           "title": "LEGACY / REVIEW REQUIRED",
           "status": "PARTIAL",
-          "summary": "Existing images remain exact historical references. They are not promoted to current authority without review against shared systems and current IA.",
+          "summary": "Historical images remain exact visual references. Active-path behavior is now frozen, but these legacy binaries are not promoted to current visual authority without shared-system-aligned review.",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "points": [
-            "My",
-            "Account & Login",
-            "Change Password",
-            "Data & Privacy",
-            "AI Model Improvement",
-            "Location Permission",
+            "My visual reference",
+            "Account & Security historical visual reference (旧标题：账号与登录)",
+            "Change Password visual reference",
+            "Data & Privacy visual reference",
+            "AI Model Improvement visual references",
+            "Location Permission visual references",
             "Privacy Policy"
           ]
         },
@@ -5752,9 +5768,9 @@
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/README.md",
-          "summary": "保留 My 作为需复核的历史候选；编辑资料首页、头像和昵称沿用现有三个 Frozen Authority。04–06 已折叠进编辑资料 authority index，不再占用菜单。",
+          "summary": "My 的 IA/Behavior/Content Structure 已冻结；当前旧 My 图仅为历史参考，新 BG_CONTENT 高保仍待上传。编辑资料首页/头像已有可信 Frozen Authority；Nickname 仍为 BLOCKED_INTEGRITY。",
           "menu_points": [
-            "02A · 我的 · PARTIAL / REVIEW REQUIRED",
+            "02A · 我的 · ACTIVE_CLOSURE (Behavior FROZEN / Visual pending)",
             "02B · 编辑资料首页 · FROZEN",
             "02C · 头像修改 · FROZEN",
             "02D · 昵称编辑 · BLOCKED_INTEGRITY"
@@ -5764,9 +5780,9 @@
               "id": "02a",
               "code": "02A",
               "title": "02A · 我的",
-              "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/README.md",
-              "summary": "既有 My 页面保留作 review reference。可见日出与强金色倒影，与当前非空首页 BG_CONTENT（无太阳 Morning Lake Master）不一致；既有信息架构还需复核。未重绘。",
+              "status": "ACTIVE_CLOSURE",
+              "authority": "design/pages/account_privacy/My/My_Page_Spec_V2.md",
+              "summary": "我的 V2 IA / Behavior / Content Structure 已冻结。旧 My PNG 仅为构图历史参考；其 sunrise / strong-gold background 不符合当前 BG_CONTENT。需要一张新的当前全页 PNG 才能 Visual FROZEN。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
@@ -5777,7 +5793,10 @@
                   "role": "LEGACY / REVIEW REQUIRED",
                   "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/My/My_Page_Spec_V2.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "ACTIVE_CLOSURE"
             },
             {
               "id": "02b",
@@ -5822,43 +5841,46 @@
         },
         {
           "id": "03_account_login",
-          "title": "03 · 账号与登录",
+          "title": "03 · 账号与安全",
           "status": "PARTIAL",
           "render_mode": "authority_index",
           "authority_type": "group",
-          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-          "summary": "沿用既有 Account & Login 与 Change Password 图片作为 review reference；runtime existence 不等于 design frozen。",
+          "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
+          "summary": "Authenticated account security hub。旧“账号与登录”命名已废弃；03A/03B 行为与内容合同已冻结，当前高保视觉仍待 shared-system 对齐。",
           "menu_points": [
-            "03A · 账号与登录 · PARTIAL",
-            "03B · 修改密码 · PARTIAL"
+            "03A · 账号与安全首页 · ACTIVE_CLOSURE",
+            "03B · 修改密码 · ACTIVE_CLOSURE"
           ],
           "children": [
             {
               "id": "03a",
               "code": "03A",
-              "title": "03A · 账号与登录",
-              "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-              "summary": "Account & Login 当前只有历史视觉参考；需对照当前 Top Navigation、BG_CONTENT 与 Action / Text / Icon 系统复核。",
+              "title": "03A · 账号与安全首页",
+              "status": "ACTIVE_CLOSURE",
+              "authority": "design/pages/account_privacy/My/Account_Login/Account_Security_Home_Spec_V1.md",
+              "summary": "账号与安全首页 IA / Behavior / Content Structure 已冻结。历史 PNG 仍显示旧标题“账号与登录”，因此不能原样升级为当前 Frozen Visual Authority。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
-                  "label": "Account & Login · 历史参考",
+                  "label": "Account & Security · 旧“账号与登录”视觉参考",
                   "status": "PARTIAL",
                   "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "不宣称当前 Frozen authority。"
+                  "scope": "历史构图参考；旧标题已被“账号与安全”取代，不构成当前 Frozen Authority。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/My/Account_Login/Account_Security_Home_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "ACTIVE_CLOSURE"
             },
             {
               "id": "03b",
               "code": "03B",
               "title": "03B · 修改密码",
-              "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-              "summary": "Change Password 当前只有历史视觉参考；runtime/API 存在不能替代 design freeze。",
+              "status": "ACTIVE_CLOSURE",
+              "authority": "design/pages/account_privacy/My/Account_Login/Change_Password_Spec_V1.md",
+              "summary": "修改密码的字段、6–72 字符校验、错误映射、Loading、成功清空和安全边界已冻结。历史高保仅作为视觉参考。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
@@ -5869,7 +5891,10 @@
                   "role": "LEGACY / REVIEW REQUIRED",
                   "scope": "不使用 runtime 截图替代 visual authority。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/My/Account_Login/Change_Password_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "ACTIVE_CLOSURE"
             }
           ]
         },
@@ -5879,23 +5904,23 @@
           "status": "PARTIAL",
           "render_mode": "authority_index",
           "authority_type": "group",
-          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-          "summary": "每个多状态流程在单一 workspace 中用原仓库图片 gallery 展示。AI consent 与 Location 保留现有业务边界；Export/Delete 为 MVP DEFERRED。",
+          "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
+          "summary": "Data & Privacy 主页面、AI Consent、Location 的 IA/Behavior/Content Structure 已冻结；Export/Delete 继续 DEFERRED。当前 visual binaries 仍处于 ACTIVE_CLOSURE。",
           "menu_points": [
-            "04A · 数据与隐私首页 · PARTIAL",
-            "04B · AI 模型改进 · PARTIAL",
-            "04C · 位置权限 · PARTIAL",
-            "04D · 导出我的数据 · MVP DEFERRED",
-            "04E · 注销账号 · MVP DEFERRED"
+            "04A · 数据与隐私首页 · ACTIVE_CLOSURE",
+            "04B · AI 模型改进 · ACTIVE_CLOSURE",
+            "04C · 位置权限 · ACTIVE_CLOSURE",
+            "04D · 导出我的数据 · DEFERRED",
+            "04E · 注销账号 · DEFERRED"
           ],
           "children": [
             {
               "id": "04a",
               "code": "04A",
               "title": "04A · 数据与隐私首页",
-              "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-              "summary": "既有首页图片为 legacy review reference；视觉状态保持 PARTIAL。",
+              "status": "ACTIVE_CLOSURE",
+              "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md",
+              "summary": "数据与隐私首页 IA / Behavior / Content Structure 已冻结；AI Consent 与 Location 为现役能力，Export/Delete 保持 DEFERRED，Privacy Policy 为独立 legal gate。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
@@ -5906,15 +5931,18 @@
                   "role": "LEGACY / REVIEW REQUIRED",
                   "scope": "不宣称当前 Frozen authority。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "ACTIVE_CLOSURE"
             },
             {
               "id": "04b",
               "code": "04B",
               "title": "04B · AI 模型改进",
-              "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-              "summary": "一个工作区展示启用与关闭两态。默认 OFF，必须明确同意；关闭后停止主动提示。拒绝/关闭 consent 不得影响识别、鱼获保存或纠正。",
+              "status": "ACTIVE_CLOSURE",
+              "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md",
+              "summary": "AI 模型改进授权语义、默认 OFF、显式 Opt-in、撤回、失败回滚和固定文案边界已冻结。两个旧状态图仅为视觉参考。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
@@ -5932,15 +5960,18 @@
                   "role": "LEGACY / REVIEW REQUIRED",
                   "scope": "撤回同意需生效，不影响识别、保存与纠正。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "ACTIVE_CLOSURE"
             },
             {
               "id": "04c",
               "code": "04C",
               "title": "04C · 位置权限",
-              "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-              "summary": "一个工作区展示说明与拒绝两态。不得在启动时请求；仅在用户明确点击“使用当前位置”后请求。拒绝不阻断识别或保存。",
+              "status": "ACTIVE_CLOSURE",
+              "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md",
+              "summary": "Location 权限语义与隐私边界已冻结：设置页只展示状态/说明，不主动触发系统权限；仅在用户明确“使用当前位置”时按场景请求。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
@@ -5958,7 +5989,10 @@
                   "role": "LEGACY / REVIEW REQUIRED",
                   "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "ACTIVE_CLOSURE"
             },
             {
               "id": "04d",
