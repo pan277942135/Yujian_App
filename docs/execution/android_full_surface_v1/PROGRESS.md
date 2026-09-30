@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P07 Result Editing
+- Current phase: P08 My Catches
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -43,8 +43,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P04 Capture entry / shared Capture behavior | BLOCKED_INFRA | `3a4d494308f390cb1f851335f391dab329639a53` | Existing camera/gallery route audited; camera failure containment and image-store tests added | Android instrumentation unavailable in this environment | Continue P05; carry P04 gate into final matrix |
 | P05 Recognition Processing | BLOCKED_INFRA | `f13c71b029fdd03b1cd30f9e2e6a62ee0f9e6745` | Contract verifier PASS; cancellation fix and Back instrumentation authored | No local Gradle/Android runtime; Android test and runtime evidence gate unavailable after bounded no-job attempts | Continue P06 independently |
 | P06 Recognition Result | BLOCKED_INFRA | `bf470596c35f39adccb185be04f3da774f0220a7` | Direct High/Medium/Low/No Fish/Image Quality instrumentation authored; font-scale candidate scrolling added; Recognition design closure verifier PASS | Android compile/instrumentation/visual evidence unavailable after bounded no-job attempts | Continue P07 independently |
-| P07 Result Editing | IN_PROGRESS | — | Existing species selector and metadata/result save paths found | Targeted selector, input, permission, save/error behavior | Audit frozen selector and metadata/save contracts |
-| P08 My Catches | NOT_STARTED | — | — | — | — |
+| P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | No local Gradle/compiler/Android runtime after bounded no-job attempts; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain P07 Android gate and pinyin coverage gap |
+| P08 My Catches | IN_PROGRESS | — | Frozen-spec audit complete; implementation underway for search, F1 filters, timeline summaries/folding, Growth Marks and fixed capture action | Android compile/runtime and populated visual evidence unavailable locally | Complete implementation and static checks, then continue P09 |
 | P09 Fish Record Detail | NOT_STARTED | — | — | — | — |
 | P10 Fish Guide | NOT_STARTED | — | — | — | — |
 | P11 Account & Privacy | NOT_STARTED | — | — | — | — |
@@ -212,3 +212,37 @@ Git:
 
 Next:
 - Continue P07 against the frozen Species Selector, metadata-input and Result save contracts; verify permissions, correction feedback, record-before-memory ordering, duplicate-submit protection and retry state.
+
+## P07 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P07
+
+Feature: Species Selector, Result metadata editing and save/error path
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Replaced the prediction-only dialog with the frozen contextual full selector: formal-name/pinyin/initial/registered-alias search (300ms debounce), Recent (maximum three), Common Species responsive grid, grouped All Species, synchronized selected state, 120ms teal commit feedback, and High/Medium/Low-specific Back and unconfirmed behavior.
+- Extended Fish Knowledge species parsing to preserve aliases and optional `pinyin` / `pinyin_initials`. The nine shipped local species have pinned search readings. Selector media continues to use Fish Knowledge cover URLs and the neutral placeholder path.
+- Updated Length and Weight sheets to the frozen titles, autofocus/caret-at-end decimal input, IME Done validation, committed-value clear and draft-only clearing. Validation copy matches Metadata Edit Flow V1.
+- Replaced manual location text editing with search-only query state, 300ms platform Geocoder lookup, a three-item device-local recent list, explicit-purpose/current-location permission flow, one-shot fresh fix with recent-cache fallback, immediate commit on selected results and explicit clear, and no query commit on dismissal.
+- Sanitized save failures to `保存鱼获失败，请重试`; existing committed metadata survives a failed save and duplicate submit remains blocked. Record creation still completes before Memory navigation; consent-gated feedback upload remains after durable save.
+- Added unit/instrumentation coverage for pinyin/alias matching, recent ordering, selector contexts, numeric validation, parser metadata, safe errors and duplicate submit.
+- `scripts/verify_recognition_design_closure_v1_1.py`: PASS (9 frozen references); `scripts/verify_recognition_runtime_contract.py`: PASS; `git diff --check`: PASS.
+- P07 source Actions: Empty Home V2 Design Assets (`36709257181`) and Design Governance (`36709257235`) both completed successfully. No Android workflow/status was created.
+
+Validation boundary and remaining gap:
+- Kotlin compile, unit tests, instrumentation and visual/runtime evidence are unavailable: this workspace has no Gradle wrapper, Gradle, Kotlin compiler, adb or emulator. Three no-job Android attempts have already exhausted the bounded retry budget; no manual Android rerun was started. P07 remains BLOCKED_INFRA, not runtime PASS.
+- The shipped local catalog has pinyin readings for its nine fish. Other API species still support Chinese-name and returned-alias search; when the API omits `pinyin` and `pinyin_initials`, they cannot be fully pinyin-searched or grouped by formal-name pinyin initial. The parser consumes those optional fields when supplied; full catalog coverage remains a named data dependency.
+- No replacement screenshots or fabricated runtime results were added; frozen design references remain unchanged.
+
+Git:
+- Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
+- Branch: `feature/android-full-surface-runtime-v1`
+- P07 source checkpoint SHA: `3063074c34f4f596a559cc35f68c20ddd7765859`
+- PR: #97 (draft)
+
+Next:
+- Continue P08 My Catches and preserve P07's Android execution blocker and catalog pinyin data dependency in the final matrix.

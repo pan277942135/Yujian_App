@@ -63,6 +63,7 @@ import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.auth.LoginV2Screen
 import com.yujian.ai.ui.auth.RegisterV2Screen
 import com.yujian.ai.ui.screens.MyScreen
+import com.yujian.ai.ui.screens.MyCatchesDayDetailScreen
 import com.yujian.ai.ui.screens.AccountMyScreen
 import com.yujian.ai.ui.screens.AccountLoginScreen
 import com.yujian.ai.ui.screens.AboutYujianScreen
@@ -674,6 +675,22 @@ fun YujianApp() {
                         )
                     }
                 }
+                composable("my_catches/day/{dayKey}", arguments = listOf(navArgument("dayKey") { type = NavType.StringType })) { entry ->
+                    val dayKey = entry.arguments?.getString("dayKey").orEmpty()
+                    val ids = nav.previousBackStackEntry?.savedStateHandle?.get<Array<String>>("my_catches_day_ids").orEmpty().toSet()
+                    val dayCatches = catchesState.catches.filter { it.id in ids }
+                    val active = session
+                    MyCatchesDayDetailScreen(
+                        dayKey = dayKey,
+                        catches = dayCatches,
+                        resolveImageUrl = { path ->
+                            if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
+                        },
+                        accessToken = active?.accessToken.orEmpty(),
+                        onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
+                        onBack = { nav.popBackStack() },
+                    )
+                }
                 composable("my_catches") {
                     val active = session
                     MyScreen(
@@ -687,6 +704,12 @@ fun YujianApp() {
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
                         onCapture = { nav.navigate("identify") },
+                        onBack = { nav.popBackStack() },
+                        onDayDetail = { day ->
+                            val dayKey = day.key
+                            nav.currentBackStackEntry?.savedStateHandle?.set("my_catches_day_ids", day.catches.map { it.id }.toTypedArray())
+                            nav.navigate("my_catches/day/${Uri.encode(dayKey)}")
+                        },
                     )
                 }
                 composable("edit_profile") {

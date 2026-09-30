@@ -70,20 +70,24 @@ fun YuJianFishRecordRowCard(
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(presentation.speciesName, color = DeepInk, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        presentation.speciesName,
+                        color = DeepInk,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                    )
+                    presentation.annotations.firstOrNull()?.let { YuJianAchievementAnnotation(it) }
+                }
                 presentation.measurementLabel?.let { Text(it, color = DeepInk.copy(alpha = 0.82f), fontSize = 12.sp) }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    presentation.location?.let { Text(it, color = MutedInk, fontSize = 11.sp, maxLines = 1) }
+                    presentation.location?.let { Text(it, color = MutedInk, fontSize = 11.sp, maxLines = 1, modifier = Modifier.weight(1f)) }
                     Text(presentation.dateLabel, color = MutedInk, fontSize = 11.sp)
                 }
             }
             Text("›", color = MutedInk, fontSize = 28.sp, modifier = Modifier.widthIn(min = 24.dp))
-        }
-        if (presentation.annotations.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                presentation.annotations.forEach { annotation -> YuJianAchievementAnnotation(annotation) }
-            }
         }
     }
 }
