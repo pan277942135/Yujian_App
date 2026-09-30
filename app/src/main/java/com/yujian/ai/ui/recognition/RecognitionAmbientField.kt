@@ -571,10 +571,11 @@ private fun DrawScope.drawReceivingLight(
     ) {
         val alpha = (.13f * common * weight).coerceAtMost(.14f)
         val brush = Brush.radialGradient(
-            colors = listOf(
-                color.copy(alpha = alpha),
-                color.copy(alpha = alpha * .35f),
-                Color.Transparent,
+            colorStops = arrayOf(
+                0f to color.copy(alpha = alpha),
+                .34f to color.copy(alpha = alpha * .92f),
+                .72f to color.copy(alpha = alpha * .40f),
+                1f to Color.Transparent,
             ),
             center = center,
             radius = radius,
@@ -591,32 +592,32 @@ private fun DrawScope.drawReceivingLight(
         weight = 1f,
         center = Offset(size.width * 1.00f, size.height * .12f),
         radius = size.minDimension * .28f,
-        ovalTopLeft = Offset(size.width * .72f, -size.height * .02f),
-        ovalSize = Size(size.width * .36f, size.height * .34f),
+        ovalTopLeft = Offset(size.width * .62f, -size.height * .04f),
+        ovalSize = Size(size.width * .46f, size.height * .40f),
     )
     islandLight(
         color = AiGoldCore,
         weight = .78f,
         center = Offset(0f, size.height * .10f),
         radius = size.minDimension * .25f,
-        ovalTopLeft = Offset(-size.width * .08f, -size.height * .02f),
-        ovalSize = Size(size.width * .38f, size.height * .28f),
+        ovalTopLeft = Offset(-size.width * .08f, -size.height * .04f),
+        ovalSize = Size(size.width * .46f, size.height * .36f),
     )
     islandLight(
         color = AiGoldCore,
         weight = .63f,
         center = Offset(0f, size.height * .88f),
         radius = size.minDimension * .26f,
-        ovalTopLeft = Offset(-size.width * .08f, size.height * .70f),
-        ovalSize = Size(size.width * .40f, size.height * .30f),
+        ovalTopLeft = Offset(-size.width * .08f, size.height * .64f),
+        ovalSize = Size(size.width * .48f, size.height * .38f),
     )
     islandLight(
         color = AiBlueCore,
         weight = .54f,
         center = Offset(size.width, size.height * .86f),
         radius = size.minDimension * .25f,
-        ovalTopLeft = Offset(size.width * .68f, size.height * .68f),
-        ovalSize = Size(size.width * .38f, size.height * .32f),
+        ovalTopLeft = Offset(size.width * .60f, size.height * .64f),
+        ovalSize = Size(size.width * .48f, size.height * .38f),
     )
 }
 
@@ -648,14 +649,14 @@ private fun DrawScope.drawCompositePrimary(
         filament.color.copy(
             alpha = (.065f * common * quality.outer).coerceAtMost(.07f),
         ),
-        style = stroke(14.dp),
+        style = stroke(20.dp),
     )
     drawPath(
         path,
         filament.color.copy(
         alpha = (.12f * common * quality.mid).coerceAtMost(.13f),
         ),
-        style = stroke(4.dp),
+        style = stroke(5.dp),
     )
     drawPath(
         path,
@@ -1126,7 +1127,7 @@ private val MICRO_HAIRLINES = listOf(
         AiBlueHot,
         .42.dp,
         .085f,
-        .26f,
+        .12f,
         Cubic(.84f, -.01f),
         Cubic(.94f, .05f),
         Cubic(.99f, .13f),
