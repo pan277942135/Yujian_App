@@ -72,6 +72,8 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
     entries = {
         "classifier": "assets/fish_classifier.tflite",
         "tensor_contract": "assets/model_tensor_contract.json",
+        "model_manifest": "assets/model_release_manifest.json",
+        "class_map": "assets/model_class_map.json",
         "detector": "assets/fish_detector_yolox_nano_v0_1.onnx",
         "detector_metadata": "assets/detector_metadata.json",
         "recognition_pipeline": "assets/recognition_pipeline_v1.json",
@@ -79,10 +81,22 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
     payloads = {key: read_apk_entry(apk, path) for key, path in entries.items()}
     classifier_sha = sha256_bytes(payloads["classifier"])
     contract_sha = sha256_bytes(payloads["tensor_contract"])
-    if classifier_sha != bootstrap.PRODUCTION_DEFAULTS["MODEL_TFLITE_SHA256"]:
+    model_manifest = json.loads(payloads["model_manifest"])
+    if model_manifest.get("schema_version") != "YUJIAN_ANDROID_MODEL_RELEASE_v1":
+        raise RuntimeError("APK model release manifest schema mismatch")
+    if classifier_sha != model_manifest.get("model_sha256"):
         raise RuntimeError(f"APK classifier SHA mismatch: {classifier_sha}")
-    if contract_sha != bootstrap.PRODUCTION_DEFAULTS["MODEL_TENSOR_CONTRACT_SHA256"]:
+    if len(payloads["classifier"]) != int(model_manifest.get("model_bytes") or 0):
+        raise RuntimeError("APK classifier size does not match model release manifest")
+    if contract_sha != model_manifest.get("tensor_contract_sha256"):
         raise RuntimeError(f"APK tensor contract SHA mismatch: {contract_sha}")
+    class_map_sha = sha256_bytes(payloads["class_map"])
+    if class_map_sha != model_manifest.get("class_map_sha256"):
+        raise RuntimeError(f"APK class map SHA mismatch: {class_map_sha}")
+    class_map = json.loads(payloads["class_map"])
+    classes = class_map.get("classes") or []
+    if len(classes) != int(model_manifest.get("class_count") or 0):
+        raise RuntimeError("APK class count does not match model release manifest")
 
     metadata = json.loads(payloads["detector_metadata"])
     detector_sha = sha256_bytes(payloads["detector"])
@@ -94,6 +108,7 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
     json.loads(payloads["recognition_pipeline"])
     return {
         "classifier_sha256": classifier_sha,
+        "model_version": str(model_manifest.get("model_version") or ""),
         "tensor_contract_sha256": contract_sha,
         "detector_sha256": detector_sha,
     }

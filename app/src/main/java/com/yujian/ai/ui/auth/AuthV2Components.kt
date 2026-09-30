@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.auth
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -56,8 +57,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardActions
-import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -175,7 +176,7 @@ internal fun AuthV2Scaffold(
 }
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 internal fun AuthV2Field(
     label: String,
     value: String,
@@ -203,7 +204,7 @@ internal fun AuthV2Field(
     }
     DisposableEffect(autofillTree, autofillNode) {
         autofillNode?.let { autofillTree += it }
-        onDispose { autofillNode?.let { autofillTree -= it } }
+        onDispose { autofillNode?.let { node -> autofillTree.children.remove(node.id) } }
     }
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val bringIntoViewRequester = remember { BringIntoViewRequester() }

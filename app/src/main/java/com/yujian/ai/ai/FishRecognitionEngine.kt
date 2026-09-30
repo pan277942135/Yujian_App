@@ -12,6 +12,7 @@ import com.yujian.ai.model.RecognitionPrediction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.DataType
+import org.json.JSONObject
 import org.tensorflow.lite.Interpreter
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -35,13 +36,79 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val values: FloatArray,
     )
 
+    private data class ModelReleaseManifest(
+        val modelVersion: String,
+        val modelSha256: String,
+        val modelBytes: Int,
+        val classCount: Int,
+    )
+
+    private val modelReleaseManifest: ModelReleaseManifest by lazy {
+        val json = context.assets.open(MODEL_RELEASE_MANIFEST_FILE)
+            .bufferedReader()
+            .use { JSONObject(it.readText()) }
+        require(json.getString("schema_version") == MODEL_RELEASE_MANIFEST_SCHEMA) {
+            "生产模型发布清单版本不匹配"
+        }
+        require(json.getString("release_repository") == MODEL_RELEASE_REPOSITORY) {
+            "生产模型仓库不匹配"
+        }
+        require(json.getString("release_tag") == MODEL_RELEASE_TAG) {
+            "生产模型 Release 通道不匹配"
+        }
+        val version = json.getString("model_version")
+        val sha = json.getString("model_sha256").lowercase()
+        val bytes = json.getInt("model_bytes")
+        val classCount = json.getInt("class_count")
+        require(version.isNotBlank()) { "生产模型版本为空" }
+        require(sha.matches(Regex("[0-9a-f]{64}"))) { "生产模型 SHA-256 无效" }
+        require(bytes > 0) { "生产模型大小无效" }
+        require(classCount > 0) { "生产模型类别数无效" }
+        ModelReleaseManifest(version, sha, bytes, classCount)
+    }
+
+    private val modelLabelsInternal: List<Pair<String, String>> by lazy {
+        val json = context.assets.open(MODEL_CLASS_MAP_FILE)
+            .bufferedReader()
+            .use { JSONObject(it.readText()) }
+        val array = json.getJSONArray("classes")
+        val rows = (0 until array.length())
+            .map { array.getJSONObject(it) }
+            .sortedBy { it.getInt("class_index") }
+        require(rows.map { it.getInt("class_index") } == rows.indices.toList()) {
+            "生产模型 class_map class_index 必须从 0 连续"
+        }
+        rows.map { row ->
+            val key = row.getString("species_key").trim()
+            val name = row.optString("common_name_zh")
+                .ifBlank { row.optString("species") }
+                .ifBlank { key }
+            require(key.isNotBlank()) { "生产模型 class_map species_key 为空" }
+            key to name
+        }.also { labels ->
+            require(labels.isNotEmpty()) { "生产模型 class_map 为空" }
+            require(labels.map { it.first }.distinct().size == labels.size) {
+                "生产模型 class_map species_key 重复"
+            }
+            require(labels.size == modelReleaseManifest.classCount) {
+                "生产模型类别数与发布清单不一致"
+            }
+        }
+    }
+
+    val modelVersion: String get() = modelReleaseManifest.modelVersion
+    val modelSha256: String get() = modelReleaseManifest.modelSha256
+    val modelLabels: List<Pair<String, String>> get() = modelLabelsInternal
+    val modelClassCount: Int get() = modelLabelsInternal.size
+
     private val modelBytes: ByteArray by lazy {
         context.assets.open(MODEL_FILE).use { input ->
             ByteArrayOutputStream().use { out -> input.copyTo(out); out.toByteArray() }
         }.also { bytes ->
+            val manifest = modelReleaseManifest
             val actual = bytes.sha256()
-            check(actual == MODEL_SHA256) { "鱼类识别模型校验失败：$actual" }
-            check(bytes.size == MODEL_BYTES) { "鱼类识别模型大小异常：${bytes.size}" }
+            check(actual == manifest.modelSha256) { "鱼类识别模型校验失败：$actual" }
+            check(bytes.size == manifest.modelBytes) { "鱼类识别模型大小异常：${bytes.size}" }
             InferenceTrace.model(actual, bytes.size)
         }
     }
@@ -60,8 +127,9 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val started = System.nanoTime()
         val inputTensor = interpreter.getInputTensor(0)
         val inputShape = inputTensor.shape()
-        require(inputTensor.dataType() == DataType.FLOAT32) { "MODEL_M1_v0.6 输入必须为 FLOAT32" }
-        require(inputShape.size == 4) { "MODEL_M1_v0.6 输入必须为 4D tensor" }
+        val manifest = modelReleaseManifest
+        require(inputTensor.dataType() == DataType.FLOAT32) { "生产分类模型输入必须为 FLOAT32" }
+        require(inputShape.size == 4) { "生产分类模型输入必须为 4D tensor" }
 
         val nchw = inputShape[1] == 3
         val nhwc = inputShape[3] == 3
@@ -76,24 +144,25 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val input = makeInputBuffer(prepared.bitmap, nchw)
 
         val outputTensor = interpreter.getOutputTensor(0)
-        require(outputTensor.dataType() == DataType.FLOAT32) { "MODEL_M1_v0.6 输出必须为 FLOAT32" }
+        require(outputTensor.dataType() == DataType.FLOAT32) { "生产分类模型输出必须为 FLOAT32" }
+        val labels = modelLabelsInternal
         val count = outputTensor.shape().last()
-        require(count == MODEL_CLASS_COUNT) { "模型输出类别数应为 $MODEL_CLASS_COUNT，实际为 $count" }
+        require(count == labels.size) { "模型输出类别数应为 ${labels.size}，实际为 $count" }
 
         val output = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
         interpreter.run(input.buffer, output)
         output.rewind()
         val logits = FloatArray(count) { output.float }
         val probabilities = softmax(logits)
-        val candidates = MODEL_LABELS.mapIndexed { index, label ->
+        val candidates = labels.mapIndexed { index, label ->
             RecognitionCandidate(index, label.first, label.second, probabilities[index].coerceIn(0f, 1f))
         }.sortedByDescending { it.confidence }
         val top1 = candidates.first()
         val latencyMs = (System.nanoTime() - started) / 1_000_000
 
         InferenceTrace.report(
-            modelVersion = MODEL_VERSION,
-            modelSha256 = MODEL_SHA256,
+            modelVersion = manifest.modelVersion,
+            modelSha256 = manifest.modelSha256,
             sourceBitmap = bitmap,
             preparedBitmap = prepared.bitmap,
             inputShape = inputShape,
@@ -109,22 +178,22 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             inputValues = input.values,
             logits = logits,
             probabilities = probabilities,
-            labels = MODEL_LABELS,
+            labels = labels,
             latencyMs = latencyMs,
             pipelineContext = pipelineContext,
         )
 
         Log.i(
             LOG_TAG,
-            "model=$MODEL_VERSION top1=${top1.classIndex}:${top1.speciesKey} confidence=${top1.confidence} latencyMs=$latencyMs",
+            "model=${manifest.modelVersion} top1=${top1.classIndex}:${top1.speciesKey} confidence=${top1.confidence} latencyMs=$latencyMs",
         )
         Log.i(
             LOG_TAG,
             "top3=" + candidates.take(3).joinToString { "${it.classIndex}:${it.speciesKey}:${it.confidence}" },
         )
         RecognitionPrediction(
-            modelVersion = MODEL_VERSION,
-            modelSha256 = MODEL_SHA256,
+            modelVersion = manifest.modelVersion,
+            modelSha256 = manifest.modelSha256,
             top1 = top1,
             candidates = candidates,
             latencyMs = latencyMs,
@@ -133,7 +202,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     }
 
     /**
-     * MODEL_M1_v0.6 classifier preprocessing.
+     * Production classifier preprocessing for the mutable mobile-model-v0.2 channel.
      *
      * The caller owns source selection. The production FishRecognitionPipeline passes
      * a detector-expanded fish crop; classifier-only parity tests can pass a direct bitmap.
@@ -212,10 +281,11 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
 
     companion object {
         const val MODEL_FILE = "fish_classifier.tflite"
-        const val MODEL_VERSION = "MODEL_M1_v0.6"
-        const val MODEL_BYTES = 6_249_008
-        const val MODEL_SHA256 = "b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7"
-        const val MODEL_CLASS_COUNT = 16
+        const val MODEL_RELEASE_MANIFEST_FILE = "model_release_manifest.json"
+        const val MODEL_CLASS_MAP_FILE = "model_class_map.json"
+        private const val MODEL_RELEASE_MANIFEST_SCHEMA = "YUJIAN_ANDROID_MODEL_RELEASE_v1"
+        private const val MODEL_RELEASE_REPOSITORY = "pan277942135/Yujian"
+        private const val MODEL_RELEASE_TAG = "mobile-model-v0.2"
         private const val LOG_TAG = "FishRecognitionEngine"
 
         private const val PADDING_R = 124
@@ -224,23 +294,5 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         private val IMAGENET_MEAN = floatArrayOf(0.485f, 0.456f, 0.406f)
         private val IMAGENET_STD = floatArrayOf(0.229f, 0.224f, 0.225f)
 
-        val MODEL_LABELS = listOf(
-            "bighead_carp" to "鳙鱼",
-            "black_carp" to "青鱼",
-            "blunt_snout_bream" to "鳊鱼 / 武昌鱼",
-            "chinese_catfish" to "鲶鱼",
-            "common_carp" to "鲤鱼",
-            "crucian_carp" to "鲫鱼",
-            "grass_carp" to "草鱼",
-            "largemouth_bass" to "加州鲈",
-            "mandarin_fish" to "鳜鱼",
-            "other_freshwater_fish" to "其他淡水鱼",
-            "sharpbelly" to "白条",
-            "silver_carp" to "白鲢",
-            "snakehead" to "黑鱼",
-            "tilapia" to "罗非鱼",
-            "topmouth_culter" to "翘嘴鲌",
-            "yellow_catfish" to "黄骨鱼",
-        )
     }
 }

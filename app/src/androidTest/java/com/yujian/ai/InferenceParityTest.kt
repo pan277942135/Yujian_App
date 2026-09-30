@@ -7,14 +7,16 @@ import com.yujian.ai.ai.FishRecognitionEngine
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.json.JSONObject
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Golden-image parity for the approved MODEL_M1_v0.6 Android preprocessing contract.
- * The fixture is already 224×224; production still executes its whole-image letterbox
- * path, NCHW RGB packing, and ImageNet normalization before these asserted logits.
+ * Golden-image parity for the currently published mobile-model-v0.2 classifier.
+ * Bootstrap packages the Release parity report alongside the Android test APK so
+ * this gate follows the production model without hardcoding a previous release's
+ * logits or SHA in source.
  */
 @RunWith(AndroidJUnit4::class)
 class InferenceParityTest {
@@ -31,7 +33,15 @@ class InferenceParityTest {
             "golden image must be 224x224, got ${bitmap.width}x${bitmap.height}"
         }
 
+        val releaseParity = testContext.assets.open("model_release_parity_report.json")
+            .bufferedReader()
+            .use { JSONObject(it.readText()) }
+        assertEquals("numerical_runtime_parity", releaseParity.getString("gate_type"))
+
         val engine = FishRecognitionEngine(targetContext)
+        val expectedModelSha = engine.modelSha256
+        val expectedModelVersion = engine.modelVersion
+        val expectedClassCount = engine.modelClassCount
         val prediction = try {
             engine.recognize(bitmap)
         } finally {
@@ -39,18 +49,20 @@ class InferenceParityTest {
             bitmap.recycle()
         }
 
-        assertEquals(FishRecognitionEngine.MODEL_VERSION, prediction.modelVersion)
-        assertEquals(FishRecognitionEngine.MODEL_SHA256, prediction.modelSha256)
+        assertEquals(expectedModelVersion, prediction.modelVersion)
+        assertEquals(expectedModelSha, prediction.modelSha256)
         assertNotNull(prediction.modelInputBitmap)
         assertEquals(224, requireNotNull(prediction.modelInputBitmap).width)
         assertEquals(224, requireNotNull(prediction.modelInputBitmap).height)
-        assertEquals(FishRecognitionEngine.MODEL_CLASS_COUNT, prediction.candidates.size)
-        val top3 = prediction.candidates.take(3)
-        assertEquals(listOf(10, 2, 1), top3.map { it.classIndex })
-        assertEquals(listOf("sharpbelly", "blunt_snout_bream", "black_carp"), top3.map { it.speciesKey })
-        val expected = floatArrayOf(0.211211f, 0.120793f, 0.092158f)
-        top3.zip(expected.asList()).forEach { (candidate, expectedConfidence) ->
-            assertEquals(expectedConfidence, candidate.confidence, 0.0002f)
+        assertEquals(expectedClassCount, prediction.candidates.size)
+
+        val expectedTop3 = releaseParity.getJSONArray("tflite_top3")
+        val top3 = prediction.candidates.take(expectedTop3.length())
+        assertEquals(expectedTop3.length(), top3.size)
+        top3.forEachIndexed { index, candidate ->
+            val expected = expectedTop3.getJSONObject(index)
+            assertEquals(expected.getInt("index"), candidate.classIndex)
+            assertEquals(expected.getDouble("probability").toFloat(), candidate.confidence, 0.0005f)
         }
         assertTrue(prediction.candidates.all { it.confidence.isFinite() && it.confidence in 0f..1f })
     }

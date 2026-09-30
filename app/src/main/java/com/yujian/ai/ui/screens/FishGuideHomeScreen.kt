@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -146,7 +147,9 @@ fun FishGuideHomeScreen(
                             hintShown = true
                         }
                     },
-                    modifier = Modifier.height(472.dp),
+                    modifier = Modifier
+                        .height(472.dp)
+                        .testTag("fish_guide_carousel"),
                 )
             }
             Spacer(Modifier.height(24.dp))

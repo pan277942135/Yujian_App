@@ -128,7 +128,7 @@ MODEL_M1_v0.6
 
 ```text
 fish_classifier_v0_2.tflite
-SHA256: b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7
+SHA256: 构建时从 mobile-model-v0.2 当前 Release asset digest 自动解析
 输出类别数: 16
 ```
 
