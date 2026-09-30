@@ -1,7 +1,11 @@
 # 修改密码 · Spec V1
 
 Status: **FROZEN — Behavior / Validation / Content Structure**
-Visual status: **ACTIVE_CLOSURE**
+Visual status: **FROZEN — COMPOSITE AUTHORITY**
+
+Visual authority:
+- base Hi-Fi: `design/pages/account_privacy/My/Account_Login/01_Change_Password.png`
+- adjustments: `design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
 Page ID: `account_privacy_v1.03b`
 
 ## 1. Purpose
@@ -113,8 +117,10 @@ If a draft exists:
 - loading state is announced;
 - minimum interactive target 44dp.
 
-## 9. Visual closure
+## 9. Visual freeze
 
-Historical `01_Change_Password.png` remains reference evidence only.
+Visual is **FROZEN via composite authority**.
 
-Visual Frozen requires a current full-page authority aligned to BG_CONTENT, BACK_TITLE, current form components and this validation contract.
+`01_Change_Password.png` remains the preserved base Hi-Fi. Current BG_CONTENT, BACK_TITLE, form tokens, password visibility action and canonical empty/disabled state are applied through current Shared authorities and `Active_Path_Visual_Adjustment_Authority_V1.md`.
+
+No replacement image is required.
