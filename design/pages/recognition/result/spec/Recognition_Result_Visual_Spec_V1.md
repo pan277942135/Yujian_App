@@ -45,11 +45,24 @@ Do not use an oversized glyph-only custom back button when the shared component 
 
 ## Hero photo
 
-- real runtime media
-- large radius from the shared visual system
-- fish remains readable
-- avoid destructive crop that removes fish head/tail when a fit-preserving treatment is required by the Frozen reference
-- no debug overlay
+Dynamic Hero media placement is governed by:
+
+- `../media/Recognition_Result_Hero_Media_Contract_V1.md`
+- `../media/hero_media_contract.json`
+
+Rules:
+- display source = original user photo after orientation normalization;
+- detector/classifier crop is guidance only and never the display source;
+- High / Medium / Low = Subject First;
+- valid bbox creates FishSafeRect using +14% horizontal / +18% vertical expansion;
+- Smart Crop Fill is allowed only when FishSafeRect, 12dp visual safety inset and source-edge protection pass;
+- otherwise use Subject Safe Fit;
+- No Fish / Image Quality = Evidence Fit with the full source image visible;
+- Fit support surface = shared GLASS_A over BG_CONTENT;
+- blurred duplicate-photo support is prohibited;
+- generative expand/outpaint is prohibited;
+- Hero outer geometry does not change because the source aspect ratio changes;
+- no debug overlay.
 
 ## High
 
