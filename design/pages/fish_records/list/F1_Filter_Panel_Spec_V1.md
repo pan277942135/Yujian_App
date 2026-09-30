@@ -3,7 +3,13 @@
 Status: **FROZEN**  
 Freeze date: **2026-09-29**  
 Owner: **My Catches / 我的鱼获**  
-Visual Authority: `design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.jpg`
+Visual Authority: `design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.png`
+
+High-Fidelity Source: `晨曦湖畔鱼获筛选界面.png`
+
+Image: PNG / RGB, 941 × 1672, 1,531,888 bytes
+
+SHA-256: `c384ee67ad10997807cd9b3313e0e79ef8de9f39e192c34428022906bc58e246`
 
 ## 1. 产品定位
 

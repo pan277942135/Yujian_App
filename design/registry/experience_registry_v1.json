@@ -4013,20 +4013,20 @@
               "code": "F1",
               "title": "F1 · 筛选面板",
               "status": "FROZEN",
-              "render_mode": "frozen_image",
-              "authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.jpg",
-              "visual_authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.jpg",
+              "render_mode": "repo_image",
+              "authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.png",
+              "visual_authority": "design/pages/fish_records/list/frozen/filter_v1/F1_Filter_Panel_Frozen_V1.png",
               "behavior_authority": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md",
               "authority_type": "visual",
               "freeze_date": "2026-09-29",
               "summary": "顶部内联筛选面板：鱼种 → 时间 → 尺寸 → 特殊记录。高频条件直接点选并即时刷新 Timeline；地点暂不进入 V1。",
               "visual_authority_dimensions": {
-                "width": 360,
-                "height": 640
+                "width": 941,
+                "height": 1672
               },
-              "visual_authority_bytes": 10350,
-              "visual_authority_sha256": "73428eecf75357cad9513374721bbb82ece40ccac2167ae054a75ebc24b404a2",
-              "source_high_fidelity_png": "F1 Filter Panel · approved UI · cache-busted authority"
+              "visual_authority_bytes": 1531888,
+              "visual_authority_sha256": "c384ee67ad10997807cd9b3313e0e79ef8de9f39e192c34428022906bc58e246",
+              "source_high_fidelity_png": "晨曦湖畔鱼获筛选界面.png"
             },
             {
               "id": "f2_species",
