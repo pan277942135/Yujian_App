@@ -517,6 +517,7 @@ fun YujianApp() {
                         RecognitionResultScreen(
                             image = sessionImage,
                             prediction = currentPrediction,
+                            selectableSpecies = guideSpecies,
                             productionResult = productionResult,
                             subjectResult = subjectResult,
                             subjectModelState = subjectModelState,

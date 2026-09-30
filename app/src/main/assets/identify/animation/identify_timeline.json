@@ -1,10 +1,11 @@
 {
-  "contract_version": "RECOGNITION_RUNTIME_v1_1",
+  "contract_version": "RECOGNITION_PRESENTATION_v1_3",
   "timeline_ms": [
-    {"time": 0, "state": "CAPTURED"},
-    {"time": 350, "state": "DETECTING"},
-    {"time": 950, "state": "OUTLINE"},
-    {"time": 1550, "state": "CLASSIFYING"},
-    {"time": 2800, "state": "RESULT"}
-  ]
+    {"time": 0, "state": "IMAGE_RECOGNIZING", "label": "图片识别中"},
+    {"time": 900, "state": "FISH_LOCATED", "label": "已定位到鱼体"},
+    {"time": 1500, "state": "SPECIES_RECOGNIZING", "label": "鱼种识别中"},
+    {"time": 2750, "state": "RESOLVE", "label": ""},
+    {"time": 2950, "state": "RESULT", "label": "识别结果"}
+  ],
+  "production_pipeline": ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING", "RESULT", "FAILURE"]
 }

@@ -1,8 +1,17 @@
 # NH06 · Background & Environment Authority / 背景与环境权威 · Design Spec V1
 
-Status: **SPEC FROZEN — AUTHORITY BOARD PENDING**  
+Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home / Morning Lake / BG_ENV_HERO**  
 Output policy: **AUTHORITY_BOARD**
+
+
+## Frozen visual authority
+
+- Visual authority: `design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png`
+- Manifest: `design/pages/home/normal_home/06_background_authority/frozen/manifest.json`
+- Image: PNG, 1491 × 1055, 1,975,877 bytes, SHA-256 `6eb08594e3d84ff24fa6ba464aa98fd4669211b4102b7fd40dee12017f398aed`
+- Frozen status: `FROZEN — SPEC + VISUAL`
+- The frozen raster PNG cannot be replaced by SVG, HTML/CSS, screenshots, or reconstruction.
 
 ---
 

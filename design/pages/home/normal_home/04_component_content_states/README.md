@@ -1,8 +1,17 @@
 # NH04 · Component & Content States / 组件状态与内容边界 · Design Spec V1
 
-Status: **SPEC FROZEN — COMBINED BOARD PENDING**  
+Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home component states / content boundary behavior**  
 Output policy: **COMBINED_BOARD**
+
+
+## Frozen visual authority
+
+- Visual authority: `design/pages/home/normal_home/04_component_content_states/frozen/NH04_Component_Content_States_V1_Frozen.png`
+- Manifest: `design/pages/home/normal_home/04_component_content_states/frozen/manifest.json`
+- Image: PNG, 1491 × 1055, 2,048,591 bytes, SHA-256 `e35ba89ace9b6ce662a9283bfca584c1b26edb6082655fe1285254a3ca71a8af`
+- Frozen status: `FROZEN — SPEC + VISUAL`
+- The frozen raster PNG cannot be replaced by SVG, HTML/CSS, screenshots, or reconstruction.
 
 ---
 

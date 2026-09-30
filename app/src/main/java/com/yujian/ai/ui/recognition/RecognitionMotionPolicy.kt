@@ -14,24 +14,67 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 
+enum class RecognitionQualityLevel {
+    FULL,
+    BALANCED,
+    LITE,
+}
+
+enum class RecognitionDegradationLevel {
+    D0,
+    D1,
+    D2,
+    D3,
+    D4,
+}
+
+enum class RecognitionFishFocusLevel {
+    A,
+    B,
+    C,
+}
+
 /**
- * Presentation-only degradation policy. It never changes detector/classifier semantics.
+ * Presentation-only adaptation policy. It never changes detector, crop,
+ * classifier, confidence, or result semantics.
  *
- * Reduce Motion follows the system animator scale. Low-performance follows Android's
- * low-RAM device classification. Tests may inject an explicit policy through
- * RecognitionProcessingScene without changing production defaults.
+ * lowPerformance is kept as a compatibility input for tests/callers. When true
+ * and no explicit degradation level is supplied it maps to D2: LITE Edge Field
+ * + Fish Focus A, preserving the frozen rule that ambient detail degrades
+ * before semantic fish focus.
  */
 data class RecognitionMotionPolicy(
     val reduceMotion: Boolean = false,
     val lowPerformance: Boolean = false,
-)
+    val degradationLevel: RecognitionDegradationLevel =
+        if (lowPerformance) RecognitionDegradationLevel.D2 else RecognitionDegradationLevel.D0,
+) {
+    val qualityLevel: RecognitionQualityLevel
+        get() = when (degradationLevel) {
+            RecognitionDegradationLevel.D0 -> RecognitionQualityLevel.FULL
+            RecognitionDegradationLevel.D1 -> RecognitionQualityLevel.BALANCED
+            RecognitionDegradationLevel.D2,
+            RecognitionDegradationLevel.D3,
+            RecognitionDegradationLevel.D4 -> RecognitionQualityLevel.LITE
+        }
+
+    val fishFocusLevel: RecognitionFishFocusLevel
+        get() = when (degradationLevel) {
+            RecognitionDegradationLevel.D0,
+            RecognitionDegradationLevel.D1,
+            RecognitionDegradationLevel.D2 -> RecognitionFishFocusLevel.A
+            RecognitionDegradationLevel.D3 -> RecognitionFishFocusLevel.B
+            RecognitionDegradationLevel.D4 -> RecognitionFishFocusLevel.C
+        }
+}
 
 @Composable
 fun rememberRecognitionMotionPolicy(): RecognitionMotionPolicy {
     val context = LocalContext.current
     var reduceMotion by remember(context) { mutableStateOf(readReduceMotion(context)) }
     val lowPerformance = remember(context) {
-        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        val manager =
+            context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
         manager?.isLowRamDevice == true
     }
 
@@ -44,7 +87,9 @@ fun rememberRecognitionMotionPolicy(): RecognitionMotionPolicy {
             }
         }
         runCatching { resolver.registerContentObserver(uri, false, observer) }
-        onDispose { runCatching { resolver.unregisterContentObserver(observer) } }
+        onDispose {
+            runCatching { resolver.unregisterContentObserver(observer) }
+        }
     }
 
     return remember(reduceMotion, lowPerformance) {
