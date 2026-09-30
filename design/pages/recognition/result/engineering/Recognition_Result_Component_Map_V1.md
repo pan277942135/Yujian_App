@@ -60,6 +60,27 @@ No page-private lookalike of a shared component is authorized.
 - optional real Voice action;
 - no no-op mic.
 
+### ResultNumericEditSheet
+- lightweight Bottom Sheet for Length / Weight;
+- geometry and commit behavior owned by Metadata Edit Flow V1;
+- shared Text Actions for 清除 / 完成;
+- OS decimal IME, not a custom keypad.
+
+### ResultLocationPickerSheet
+- medium Bottom Sheet for location search / current / recent;
+- no separate-page navigation;
+- selected location commits immediately;
+- location permission only on explicit Use Current Location.
+
+### ResultPlaceSearchField
+- query-only place search;
+- typing never commits Result metadata;
+- 300ms debounce.
+
+### ResultRecentLocationList
+- device-local max 3;
+- clearing history is independent from current Result location.
+
 ### ResultCandidateRow
 - Medium only;
 - 2–3 candidates;

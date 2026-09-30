@@ -49,5 +49,8 @@
   "metadata_input_contract": "design/pages/recognition/result/engineering/metadata_input_contract.json",
   "candidate_card_contract": "design/pages/recognition/result/engineering/candidate_card_contract.json",
   "visual_acceptance_map": "design/pages/recognition/result/engineering/visual_acceptance_map.json",
-  "result_asset_manifest": "design/pages/recognition/assets/Asset_Manifest_V1.json"
+  "result_asset_manifest": "design/pages/recognition/assets/Asset_Manifest_V1.json",
+  "metadata_edit_flow_frozen": true,
+  "metadata_edit_flow_authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+  "metadata_edit_flow_contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json"
 }

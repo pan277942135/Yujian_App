@@ -192,3 +192,12 @@ Status: **IMPLEMENTATION READY — Work does not own visual design decisions.**
 Overall 3+2 Result Design Package: **CLOSED V1**
 
 Runtime alignment remains a separate implementation/acceptance task.
+
+
+### Metadata modification closure
+
+Optional Length / Weight / Location modification is frozen by:
+
+`../engineering/Recognition_Result_Metadata_Edit_Flow_V1.md`
+
+The flow uses lightweight Bottom Sheets, stays on the same Result page, auto-opens numeric IME for Length/Weight, and uses Search / Current Location / Recent for Location. Metadata remains optional.
