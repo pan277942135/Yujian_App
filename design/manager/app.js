@@ -1849,6 +1849,39 @@ function fishGuideMotionCanvas(view) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "authority_gallery") {
+    const visualRefs = (view.supporting_visual_references || [])
+      .map(ref => typeof ref === "string" ? { path: ref, label: ref } : ref)
+      .filter(ref => ref.path && isImage(ref.path));
+    const imageCards = visualRefs.map(ref =>
+      '<article class="authority-index-card">' +
+        '<div class="authority-index-head"><strong>' + esc(ref.label || "Frozen Visual Authority") + '</strong>' +
+          statusBadge("FROZEN") + '</div>' +
+        '<div class="hifi-original">' +
+          '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
+            '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.label || "Frozen Visual Authority") + '" loading="lazy" decoding="async"></a>' +
+          '<div class="hifi-original-caption">' + esc(ref.path) + '</div>' +
+        '</div>' +
+      '</article>'
+    ).join("");
+    const boundaryPoints = (view.menu_points || []).map((point, index) =>
+      '<article class="authority-index-card">' +
+        '<div class="authority-index-head"><strong>' +
+          esc(String(index + 1).padStart(2, "0") + " · " + point) +
+        '</strong></div><div class="authority-kind">FROZEN SCOPE</div>' +
+      '</article>'
+    ).join("");
+    return '<div class="authority-index">' +
+      '<div class="authority-index-intro"><strong>Frozen 高保真视觉</strong>' +
+        '<span>' + esc(view.summary || "两项冻结视觉来源按原始 PNG 直接展示。") + '</span></div>' +
+      (imageCards
+        ? '<div class="authority-index-grid">' + imageCards + '</div>'
+        : '<div class="preview-empty">未登记 Frozen PNG 视觉来源。</div>') +
+      '<div class="authority-index-intro"><strong>冻结范围</strong>' +
+        '<span>以下边界与状态说明继续由各自冻结规范和契约约束。</span></div>' +
+      '<div class="authority-index-grid">' + boundaryPoints + '</div>' +
+    '</div>';
+  }
   if (view.render_mode === "fish_guide_motion") return fishGuideMotionCanvas(view);
   if (view.render_mode === "recognition_timeline") return recognitionStateTimelineCanvas(view);
   if (view.render_mode === "recognition_visual_states") return recognitionVisualStatesCanvas(view);
