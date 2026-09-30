@@ -175,3 +175,39 @@ Must pass:
 - screenshot/tooling/environment failure → BLOCKED_INFRA / FAIL_EVIDENCE as appropriate
 
 Do not lower thresholds to turn a failure into PASS.
+
+
+## 11. Metadata Edit Flow evidence
+
+Bottom Sheets are interaction overlays and are not compared against the five full-page Frozen PNGs as page ROIs.
+
+Required deterministic evidence:
+- Length sheet · empty;
+- Length sheet · existing value;
+- Length sheet · invalid zero/error;
+- Weight sheet · existing value;
+- Location · Recent state;
+- Location · search results;
+- Location · current-location resolving;
+- Location · permission denied;
+- Location · search empty/error;
+- reopening and clearing committed values.
+
+Hard interaction gates:
+- numeric field autofocuses and decimal IME opens without a second tap;
+- invalid value cannot commit;
+- scrim/back dismissal does not commit draft;
+- search query does not mutate Result field;
+- search/current/recent selection commits and dismisses immediately;
+- permission is never requested before explicit Use Current Location;
+- Recent clear does not clear current Result location;
+- all metadata remains optional.
+
+Geometry tolerance:
+- sheet outer horizontal edge: ±4dp;
+- sheet top radius: ±2dp;
+- numeric field height: ±3dp;
+- search/current/recent row geometry: ±4dp;
+- action hit targets meet shared-component minimums.
+
+The page beneath the sheet must preserve the same Result geometry and must not navigate into a separate editor screen.
