@@ -548,6 +548,8 @@ class RecognitionFrozenFlowEmulatorTest {
             requireNotNull(high.assessment.primary).box,
         )
         val policy = mutableStateOf(RecognitionMotionPolicy())
+        val phaseState = mutableStateOf(RecognitionPhase.DETECTING)
+        val visualClockState = mutableStateOf(720L)
         // The three profile captures share one real photo, IMAGE_RECOGNIZING
         // state, and frozen visual clock. Focus ladder evidence is separate.
         composeRule.setContent {
@@ -556,12 +558,13 @@ class RecognitionFrozenFlowEmulatorTest {
                     image = photo,
                     onBack = {},
                     recognize = { onProgress ->
-                        onProgress(RecognitionProgress(RecognitionPhase.DETECTING, high.assessment))
+                        onProgress(RecognitionProgress(phaseState.value, high.assessment))
                         high
                     },
+                    generateSubject = { _, _ -> subject },
                     onFinished = {},
-                    phaseOverride = RecognitionPhase.DETECTING,
-                    visualClockOverrideMs = 720L,
+                    phaseOverride = phaseState.value,
+                    visualClockOverrideMs = visualClockState.value,
                     motionPolicyOverride = policy.value,
                 )
             }
@@ -578,23 +581,9 @@ class RecognitionFrozenFlowEmulatorTest {
             capture(fileName)
         }
 
-        composeRule.setContent {
-            YujianTheme {
-                RecognitionProcessingScene(
-                    image = photo,
-                    onBack = {},
-                    recognize = { onProgress ->
-                        onProgress(RecognitionProgress(RecognitionPhase.CLASSIFYING, high.assessment))
-                        high
-                    },
-                    generateSubject = { _, _ -> subject },
-                    onFinished = {},
-                    phaseOverride = RecognitionPhase.CLASSIFYING,
-                    visualClockOverrideMs = 3_200L,
-                    motionPolicyOverride = policy.value,
-                )
-            }
-        }
+        phaseState.value = RecognitionPhase.CLASSIFYING
+        visualClockState.value = 3_200L
+        composeRule.waitForIdle()
 
         val levels = listOf(
             RecognitionDegradationLevel.D0,
