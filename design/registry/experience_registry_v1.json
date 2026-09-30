@@ -350,73 +350,80 @@
           "id": "NH03",
           "code": "NH03",
           "title": "NH03 · 页面状态与异常",
-          "status": "MISSING",
+          "status": "PARTIAL",
           "render_mode": "authority_index",
           "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "合并规范图：Home Resolving、Catch Image Unavailable、刷新中保持已解析状态、异常不得误切 Empty Home。",
+          "authority": "design/pages/home/normal_home/03_page_states/README.md",
+          "summary": "NH03 规范已冻结，合并板待出。Unknown ≠ Empty；覆盖 Resolving、Image Unavailable、Refresh Preserves Home、Error ≠ Empty。",
           "menu_points": [
-            "Home Resolving",
+            "Home Resolving → — / — / —",
             "Catch Image Unavailable",
-            "Refresh state preservation",
-            "Error ≠ Empty Home"
-          ]
+            "Refresh preserves resolved Home",
+            "Error preserves stale Home",
+            "Only resolved zero → Empty"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/03_page_states/README.md"
         },
         {
           "id": "NH04",
           "code": "NH04",
           "title": "NH04 · 组件状态与内容边界",
-          "status": "MISSING",
+          "status": "PARTIAL",
           "render_mode": "authority_index",
           "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "合并规范图：Guest / Logged-in Header、Avatar fallback、Hero 字段缺失组合及长文本边界。",
+          "authority": "design/pages/home/normal_home/04_component_content_states/README.md",
+          "summary": "NH04 规范已冻结，组件板待出。覆盖 Real Avatar / Default Avatar / Guest，以及 HOME Hero 字段缺失与长文本边界。",
           "menu_points": [
-            "Guest Header",
-            "Logged-in Header",
-            "Avatar fallback",
-            "完整/缺失字段组合",
-            "长鱼种名",
-            "长地点"
-          ]
+            "Real Avatar / Default Avatar / Guest",
+            "Complete Hero",
+            "Length only / Weight only / No measurements",
+            "No location / No time",
+            "Long species → ellipsis",
+            "Long location → time priority"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/04_component_content_states/README.md"
         },
         {
           "id": "NH05",
           "code": "NH05",
           "title": "NH05 · 响应式与交互",
-          "status": "MISSING",
+          "status": "PARTIAL",
           "render_mode": "authority_index",
           "authority_type": "behavior",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "合并规范图：9:16 / 19.5:9 / 20:9 / 21:9、Pager selected/adjacent/swipe、Single Record、Reduce Motion。",
+          "authority": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+          "summary": "NH05 规范已冻结，响应式板待出。1080×1920 为参考；宽度优先，核心构图整体偏移，9:16–21:9 不拉伸 Hero。",
           "menu_points": [
-            "9:16",
-            "19.5:9",
-            "20:9",
-            "21:9",
-            "Pager Interaction",
-            "Single Record",
+            "9:16 / 19.5:9 / 20:9 / 21:9",
+            "Width-first scaling",
+            "Frozen vertical offset rule",
+            "Pager selected / adjacent / swipe",
+            "Single Record has no pager hint",
             "Reduce Motion"
-          ]
+          ],
+          "behavior_authority": "design/pages/home/normal_home/05_responsive_interaction/README.md"
         },
         {
           "id": "NH06",
           "code": "NH06",
           "title": "NH06 · 背景与环境权威",
-          "status": "ACTIVE_CLOSURE",
+          "status": "PARTIAL",
           "render_mode": "repo_image",
           "authority_type": "visual",
           "image": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
           "visual_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-          "authority": "design/pages/home/normal_home/navigation.json",
-          "summary": "Background Authority V1.1 待收口。Morning_Lake_Master_V1 是背景母版来源；NH01 Frozen 仍负责完整页面构图与层级，禁止从页面截图反向裁出背景。",
+          "authority": "design/pages/home/normal_home/06_background_authority/README.md",
+          "summary": "NH06 规范已冻结，Authority Board 待出。Normal Home = Morning_Lake_Master_V1 → BG_ENV_HERO；背景源 Authority 与 NH01/NH02 完整页面构图 Authority 分离。",
           "menu_points": [
-            "Morning_Lake_Master_V1",
-            "BG_ENV_HERO",
+            "Morning_Lake_Master_V1 · 941×1672",
+            "SHA-256 5fba7410…91d7",
+            "BG_ENV_HERO exact treatment",
             "Normal Home crop/adaptation",
-            "NH01 composition boundary",
-            "禁止 screenshot extraction"
-          ]
+            "NH01/NH02 composition boundary",
+            "禁止 screenshot extraction / Sunrise source / regenerated lake"
+          ],
+          "behavior_authority": "design/pages/home/normal_home/06_background_authority/README.md",
+          "visual_status": "FROZEN",
+          "visual_caption": "NH06 Source Authority · Morning_Lake_Master_V1 · Authority Board Pending"
         }
       ]
     },
