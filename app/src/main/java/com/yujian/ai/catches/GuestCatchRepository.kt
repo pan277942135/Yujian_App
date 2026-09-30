@@ -34,6 +34,7 @@ class GuestCatchRepository(context: Context) {
         source.copyTo(destination, overwrite = true)
 
         val timestamp = nowIso()
+        val classifier = draft.classifierResult
         val record = RemoteCatch(
             id = id,
             imageUrl = destination.absolutePath,
@@ -43,6 +44,10 @@ class GuestCatchRepository(context: Context) {
             modelVersion = draft.modelVersion,
             capturedAt = timestamp,
             createdAt = timestamp,
+            lengthCm = classifier?.takeIf { it.has("length_cm") && !it.isNull("length_cm") }?.optDouble("length_cm")?.toFloat(),
+            weightKg = classifier?.takeIf { it.has("weight_kg") && !it.isNull("weight_kg") }?.optDouble("weight_kg")?.toFloat(),
+            location = classifier?.takeIf { it.has("location") && !it.isNull("location") }
+                ?.optString("location")?.takeIf(String::isNotBlank),
         )
         val records = JSONArray(preferences.getString(KEY_RECORDS, "[]") ?: "[]")
         records.put(record.toJson())
