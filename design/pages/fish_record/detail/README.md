@@ -62,8 +62,10 @@ The Overview authority freezes the following product behavior:
 - Canonical target: `design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png`
 - Approved source: 941 × 1672 PNG / 2,095,527 bytes
 - Approved SHA-256: `c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b`
-- Freeze decision: **APPROVED**
-- Repository binary gate: canonical PNG must match the approved SHA exactly before Design Manager status changes to FROZEN.
+- Status: **FROZEN**
+- Visual Authority: `design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png`
+- Manifest: `design/pages/fish_record/detail/frozen/manifest.json`
+- SHA-256: `c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b`
 
 B-side visual rules:
 
@@ -103,6 +105,6 @@ The 2026-09-30 batch review freezes the remaining compact Design Manager entries
 ## Design freeze audit
 
 - Authority: `FishRecordDetail_Design_Audit_Freeze_V1.md`
-- Result: **DESIGN FROZEN — SOURCE BINARY GATE OPEN**
-- Only open design-package gate: the exact approved 02 B-side PNG must be written to the canonical repository path and pass its byte identity check.
+- Result: **DESIGN FROZEN — SOURCE BINARY GATE PASS**
+- The 02 B-side PNG is archived at the canonical path and its byte identity matches the approved source.
 - Current runtime `FishMemorySection.kt` is implementation state, not design authority; READY must eventually migrate to the frozen B-side Hero + Flip model.

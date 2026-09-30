@@ -3049,7 +3049,7 @@
         "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
         "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
       },
-      "note": "FishRecordDetail 00–05 batch design review completed on 2026-09-30. 00 Overview, 01 A-side, 03 Asset Generation, 04 Editing and 05 Page States are FROZEN. 02 B-side Visual Spec is FROZEN but the exact approved 941×1672 PNG binary is still missing from the canonical repository path, so the repository visual package remains PARTIAL until the SHA-256 gate passes. Current runtime FishMemorySection is not design authority.",
+      "note": "FishRecordDetail 00–05 batch design review is recorded. 00 Overview, 01 A-side, 02 B-side, 03 Asset Generation, 04 Editing and 05 Page States are design-frozen; overall FishRecordDetail remains PARTIAL because implementation and other modality work are not closed.",
       "hifi_views": [
         {
           "id": "overview",
@@ -3091,31 +3091,22 @@
         {
           "id": "b_side",
           "title": "02 · B 面 · 鱼获记忆",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md",
           "authority_type": "visual",
-          "summary": "B 面 Visual Spec 已冻结，批准原图字节身份已固定；Design Manager 当前不再展示旧 supplemental 图。待 exact PNG 写入 canonical path 并通过 SHA-256 gate 后，02 才切换为 repo_image + FROZEN。",
+          "summary": "B 面 V1 已冻结。它是同一 FishRecord 的独立鱼体与安静自然水体视觉；A 面页面壳、字段、记录内容和媒体区保持不变。唯一视觉 Authority 为批准的原始 PNG。",
           "menu_points": [
-            "Approved visual · exact original PNG required",
-            "Hero: same fish isolated in calm water environment",
+            "Same FishRecord · same independent fish body",
+            "Calm natural water environment",
             "A-side page shell / text / lower content unchanged",
             "草鱼 · 42.6 cm · 1.28 kg · 浙江 · 千岛湖",
-            "READY-only Flip Icon at Hero top-right",
-            "First READY Reveal · Auto A → B Once",
-            "Subsequent Manual Flip · A ↔ B",
-            "Binary SHA gate required before FROZEN"
+            "READY-only Hero-internal Flip Icon · B → A manual",
+            "Frozen raster visual authority · original PNG bytes"
           ],
-          "pending_visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
-          "approved_source": {
-            "width": 941,
-            "height": 1672,
-            "format": "PNG",
-            "bytes": 2095527,
-            "sha256": "c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b"
-          },
-          "spec_status": "FROZEN",
-          "visual_asset_status": "BLOCKED_BINARY_UPLOAD"
+          "visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
+          "image": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
+          "visual_authority_manifest": "design/pages/fish_record/detail/frozen/manifest.json"
         },
         {
           "id": "asset_generation",
@@ -3188,7 +3179,7 @@
       "freeze_review": {
         "state": "DESIGN_FROZEN_WITH_SOURCE_BINARY_GATE",
         "title": "鱼获详情 V2 · 批量设计冻结检查",
-        "note": "00–05 的产品/场景设计已批量冻结。唯一开放 Gate 是 02 B-side 已批准原 PNG 的 exact binary 落库与 SHA-256 校验；该 Gate 不允许使用相似图、重编码图或截图替代。",
+        "note": "00–05 的产品/场景设计已批量冻结。02 B-side 已批准原 PNG 已按原字节写入 canonical path，尺寸、字节数、SHA-256 与 Git blob SHA 均记录于 manifest；exact binary Gate 已通过。Runtime parity/evidence 仍属于后续实现工作。",
         "items": [
           {
             "id": "FRD-FREEZE-00",
@@ -3213,10 +3204,10 @@
           },
           {
             "id": "FRD-FREEZE-02B",
-            "title": "B 面批准原 PNG 字节落库",
-            "status": "BLOCKED_SOURCE",
+            "title": "B 面批准原 PNG 字节落库与 SHA-256 校验",
+            "status": "CONFIRMED",
             "blocking": true,
-            "authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png"
+            "authority": "design/pages/fish_record/detail/frozen/manifest.json"
           },
           {
             "id": "FRD-FREEZE-03",
