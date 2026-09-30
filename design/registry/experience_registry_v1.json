@@ -5470,7 +5470,7 @@
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "Only explicitly listed current authorities are FROZEN; legacy images remain references and deferred flows remain entry-only."
+          "note": "Active MVP main path visuals are FROZEN via composite authority using existing repository PNGs plus Active_Path_Visual_Adjustment_Authority_V1.md. Package visual remains PARTIAL because Legal/About, Nickname integrity and remaining Edit Profile states are outside this closure."
         },
         "motion": {
           "status": "MISSING",
@@ -5498,7 +5498,7 @@
           "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
         }
       },
-      "note": "Design status: PARTIAL. Active MVP main path (My → Account & Security → Change Password → Data & Privacy → AI Model Improvement → Location) now has FROZEN IA/behavior/content contracts; current visual binaries remain ACTIVE_CLOSURE until new shared-system-aligned Hi-Fi authorities are approved. Trusted visual Frozen remains Login V2.1, Register V2, Edit Profile Home and Avatar. Nickname visual identity remains BLOCKED_INTEGRITY. Deferred: Forgot Password, Export My Data, Delete Account. Legal/About and Edit Profile state closure remain separate follow-up work.",
+      "note": "Design status: PARTIAL overall. Active MVP main path (My → Account & Security → Change Password → Data & Privacy → AI Model Improvement → Location) is now DESIGN FROZEN through composite visual authority: existing byte-preserved Hi-Fi binaries + page/behavior specs + Visual Adjustment Authority + Shared Design System. Trusted standalone visual Frozen remains Login V2.1, Register V2, Edit Profile Home and Avatar. Nickname visual identity remains BLOCKED_INTEGRITY. Deferred: Forgot Password, Export My Data, Delete Account. Legal/About and Edit Profile remaining states are separate follow-up work.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5514,7 +5514,7 @@
           "current": true,
           "visual_authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "spec_authority": "design/pages/account_privacy/README.md",
-          "note": "V2 consolidated authority index. Active MVP main path behavior/IA is frozen; current visual closure is still in progress. Overall remains PARTIAL."
+          "note": "V2 consolidated authority index. Active MVP main path is DESIGN FROZEN via composite authority; overall Account & Privacy remains PARTIAL due independent outstanding gates."
         }
       ],
       "design_overall": "PARTIAL",
@@ -5566,18 +5566,18 @@
         },
         {
           "id": "active_main_path",
-          "title": "ACTIVE MVP MAIN PATH · BEHAVIOR / IA FROZEN",
+          "title": "ACTIVE MVP MAIN PATH · DESIGN FROZEN",
           "status": "FROZEN",
-          "summary": "The active account path now has frozen page-level IA, behavior, copy boundaries and interaction contracts. Visual binaries remain ACTIVE_CLOSURE and must not be represented by legacy screenshots.",
-          "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
+          "summary": "The active account path is fully frozen at design level. Visual authority is composite: existing byte-preserved Hi-Fi binaries + page/behavior specs + Visual Adjustment Authority + Shared Design System. No new image generation is required.",
+          "authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
           "points": [
-            "我的 · My Page Spec V2",
-            "账号与安全 · Account Security Home Spec V1",
-            "修改密码 · Change Password Spec V1",
-            "数据与隐私 · Data & Privacy Home Spec V1",
-            "AI 模型改进 · Consent Spec V1",
-            "位置权限 · Location Privacy Spec V1",
-            "Visual production gate: Active_Path_Visual_Closure_Brief_V1.md · 8 required current PNG authorities"
+            "我的 · My Page Spec V2 + existing My/00_My.png",
+            "账号与安全 · Account Security Home Spec V1 + existing 00_Account_Login.png",
+            "修改密码 · Change Password Spec V1 + existing 01_Change_Password.png",
+            "数据与隐私 · Data & Privacy Home Spec V1 + existing 00_Data_Privacy.png",
+            "AI 模型改进 · Consent Spec V1 + existing Enable/Disable PNGs",
+            "位置权限 · Location Privacy Spec V1 + existing Info/Denied PNGs",
+            "Composite override authority: Active_Path_Visual_Adjustment_Authority_V1.md"
           ]
         },
         {
@@ -5594,16 +5594,10 @@
           "id": "legacy_review",
           "title": "LEGACY / REVIEW REQUIRED",
           "status": "PARTIAL",
-          "summary": "Historical images remain exact visual references. Active-path behavior is now frozen, but these legacy binaries are not promoted to current visual authority without shared-system-aligned review.",
+          "summary": "Remaining legacy/review-required visual work outside the active-path freeze.",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "points": [
-            "My visual reference",
-            "Account & Security historical visual reference (旧标题：账号与登录)",
-            "Change Password visual reference",
-            "Data & Privacy visual reference",
-            "AI Model Improvement visual references",
-            "Location Permission visual references",
-            "Privacy Policy"
+            "Privacy Policy shell; legal body copy is not final."
           ]
         },
         {
@@ -5771,7 +5765,7 @@
           "authority": "design/pages/account_privacy/README.md",
           "summary": "My 的 IA/Behavior/Content Structure 已冻结；当前旧 My 图仅为历史参考，新 BG_CONTENT 高保仍待上传。编辑资料首页/头像已有可信 Frozen Authority；Nickname 仍为 BLOCKED_INTEGRITY。",
           "menu_points": [
-            "02A · 我的 · ACTIVE_CLOSURE (Behavior FROZEN / Visual pending)",
+            "02A · 我的 · FROZEN",
             "02B · 编辑资料首页 · FROZEN",
             "02C · 头像修改 · FROZEN",
             "02D · 昵称编辑 · BLOCKED_INTEGRITY"
@@ -5781,23 +5775,30 @@
               "id": "02a",
               "code": "02A",
               "title": "02A · 我的",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/My/My_Page_Spec_V2.md",
-              "summary": "我的 V2 IA / Behavior / Content Structure 已冻结。旧 My PNG 仅为构图历史参考；其 sunrise / strong-gold background 不符合当前 BG_CONTENT。需要一张新的当前全页 PNG 才能 Visual FROZEN。",
+              "summary": "我的 V2 已 DESIGN FROZEN。现有 My/00_My.png 为冻结 Base Hi-Fi；BG_CONTENT、Shared Default Profile Avatar、账号与安全命名等差异由 Visual Adjustment Authority 覆盖，不再生成新图。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/00_My.png",
                   "label": "My · 历史候选参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 }
               ],
               "behavior_authority": "design/pages/account_privacy/My/My_Page_Spec_V2.md",
               "behavior_status": "FROZEN",
-              "visual_status": "ACTIVE_CLOSURE"
+              "visual_status": "FROZEN",
+              "visual_authority": "design/pages/account_privacy/My/00_My.png",
+              "visual_authority_set": [
+                "design/pages/account_privacy/My/00_My.png"
+              ],
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+              "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+              "visual_authority_trusted": true
             },
             {
               "id": "02b",
@@ -5843,74 +5844,88 @@
         {
           "id": "03_account_login",
           "title": "03 · 账号与安全",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
-          "summary": "Authenticated account security hub。旧“账号与登录”命名已废弃；03A/03B 行为与内容合同已冻结，当前高保视觉仍待 shared-system 对齐。",
+          "summary": "账号与安全与修改密码均 DESIGN FROZEN；现有 Hi-Fi 作为 byte-preserved Base，最新命名/Shared tokens 由复合 Authority 覆盖。",
           "menu_points": [
-            "03A · 账号与安全首页 · ACTIVE_CLOSURE",
-            "03B · 修改密码 · ACTIVE_CLOSURE"
+            "03A · 账号与安全首页 · FROZEN",
+            "03B · 修改密码 · FROZEN"
           ],
           "children": [
             {
               "id": "03a",
               "code": "03A",
               "title": "03A · 账号与安全首页",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/My/Account_Login/Account_Security_Home_Spec_V1.md",
-              "summary": "账号与安全首页 IA / Behavior / Content Structure 已冻结。历史 PNG 仍显示旧标题“账号与登录”，因此不能原样升级为当前 Frozen Visual Authority。",
+              "summary": "账号与安全首页已 DESIGN FROZEN。现有 00_Account_Login.png 为冻结 Base Hi-Fi；其中旧标题“账号与登录”由 Visual Adjustment Authority 正式覆盖为“账号与安全”，不重生成图片。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
                   "label": "Account & Security · 旧“账号与登录”视觉参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "历史构图参考；旧标题已被“账号与安全”取代，不构成当前 Frozen Authority。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "历史构图参考；旧标题已被“账号与安全”取代，不构成当前 Frozen Authority。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 }
               ],
               "behavior_authority": "design/pages/account_privacy/My/Account_Login/Account_Security_Home_Spec_V1.md",
               "behavior_status": "FROZEN",
-              "visual_status": "ACTIVE_CLOSURE"
+              "visual_status": "FROZEN",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
+              "visual_authority_set": [
+                "design/pages/account_privacy/My/Account_Login/00_Account_Login.png"
+              ],
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+              "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+              "visual_authority_trusted": true
             },
             {
               "id": "03b",
               "code": "03B",
               "title": "03B · 修改密码",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/My/Account_Login/Change_Password_Spec_V1.md",
-              "summary": "修改密码的字段、6–72 字符校验、错误映射、Loading、成功清空和安全边界已冻结。历史高保仅作为视觉参考。",
+              "summary": "修改密码已 DESIGN FROZEN。现有 01_Change_Password.png 为冻结 Base Hi-Fi；当前验证、输入状态与 Shared Component 规则由 Spec/Adjustment Authority 覆盖。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/01_Change_Password.png",
                   "label": "Change Password · 历史参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "不使用 runtime 截图替代 visual authority。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "不使用 runtime 截图替代 visual authority。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 }
               ],
               "behavior_authority": "design/pages/account_privacy/My/Account_Login/Change_Password_Spec_V1.md",
               "behavior_status": "FROZEN",
-              "visual_status": "ACTIVE_CLOSURE"
+              "visual_status": "FROZEN",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/01_Change_Password.png",
+              "visual_authority_set": [
+                "design/pages/account_privacy/My/Account_Login/01_Change_Password.png"
+              ],
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+              "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+              "visual_authority_trusted": true
             }
           ]
         },
         {
           "id": "04_data_privacy",
           "title": "04 · 数据与隐私",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
-          "summary": "Data & Privacy 主页面、AI Consent、Location 的 IA/Behavior/Content Structure 已冻结；Export/Delete 继续 DEFERRED。当前 visual binaries 仍处于 ACTIVE_CLOSURE。",
+          "summary": "数据与隐私、AI Consent、Location 均 DESIGN FROZEN；Export/Delete 保持 DEFERRED，是已决定的产品状态而非未完成设计。",
           "menu_points": [
-            "04A · 数据与隐私首页 · ACTIVE_CLOSURE",
-            "04B · AI 模型改进 · ACTIVE_CLOSURE",
-            "04C · 位置权限 · ACTIVE_CLOSURE",
+            "04A · 数据与隐私首页 · FROZEN",
+            "04B · AI 模型改进 · FROZEN",
+            "04C · 位置权限 · FROZEN",
             "04D · 导出我的数据 · DEFERRED",
             "04E · 注销账号 · DEFERRED"
           ],
@@ -5919,81 +5934,104 @@
               "id": "04a",
               "code": "04A",
               "title": "04A · 数据与隐私首页",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md",
-              "summary": "数据与隐私首页 IA / Behavior / Content Structure 已冻结；AI Consent 与 Location 为现役能力，Export/Delete 保持 DEFERRED，Privacy Policy 为独立 legal gate。",
+              "summary": "数据与隐私首页已 DESIGN FROZEN。现有 00_Data_Privacy.png 为冻结 Base Hi-Fi；Export/Delete 的 DEFERRED 表达与最新状态标签由 Adjustment Authority 覆盖。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png",
                   "label": "Data & Privacy · 历史参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "不宣称当前 Frozen authority。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "不宣称当前 Frozen authority。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 }
               ],
               "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md",
               "behavior_status": "FROZEN",
-              "visual_status": "ACTIVE_CLOSURE"
+              "visual_status": "FROZEN",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png",
+              "visual_authority_set": [
+                "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png"
+              ],
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+              "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+              "visual_authority_trusted": true
             },
             {
               "id": "04b",
               "code": "04B",
               "title": "04B · AI 模型改进",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md",
-              "summary": "AI 模型改进授权语义、默认 OFF、显式 Opt-in、撤回、失败回滚和固定文案边界已冻结。两个旧状态图仅为视觉参考。",
+              "summary": "AI 模型改进已 DESIGN FROZEN。Enable/Disable 两张现有 PNG 为冻结 Base Hi-Fi set；最新 consent copy/transaction/shared tokens 由 Spec/Adjustment Authority 覆盖。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
                   "label": "Enable Consent · 历史参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "Consent 默认 OFF；仅用户明确同意后开启。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "Consent 默认 OFF；仅用户明确同意后开启。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png",
                   "label": "Disable Confirmation · 历史参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "撤回同意需生效，不影响识别、保存与纠正。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "撤回同意需生效，不影响识别、保存与纠正。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 }
               ],
               "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md",
               "behavior_status": "FROZEN",
-              "visual_status": "ACTIVE_CLOSURE"
+              "visual_status": "FROZEN",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
+              "visual_authority_set": [
+                "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
+                "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png"
+              ],
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+              "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+              "visual_authority_trusted": true
             },
             {
               "id": "04c",
               "code": "04C",
               "title": "04C · 位置权限",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md",
-              "summary": "Location 权限语义与隐私边界已冻结：设置页只展示状态/说明，不主动触发系统权限；仅在用户明确“使用当前位置”时按场景请求。",
+              "summary": "位置权限已 DESIGN FROZEN。Info/Denied 两张现有 PNG 为冻结 Base Hi-Fi set；最新 permission semantics/shared components 由 Spec/Adjustment Authority 覆盖。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
                   "label": "Location Permission · Info · 历史参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "只在用户明确请求当前位置时申请权限。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "只在用户明确请求当前位置时申请权限。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 },
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png",
                   "label": "Location Permission · Denied · 历史参考",
-                  "status": "PARTIAL",
-                  "role": "LEGACY / REVIEW REQUIRED",
-                  "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。"
+                  "status": "FROZEN",
+                  "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+                  "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。 Current written/shared adjustments override superseded screenshot details; binary remains byte-identical."
                 }
               ],
               "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md",
               "behavior_status": "FROZEN",
-              "visual_status": "ACTIVE_CLOSURE"
+              "visual_status": "FROZEN",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
+              "visual_authority_set": [
+                "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
+                "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png"
+              ],
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+              "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md",
+              "visual_authority_trusted": true
             },
             {
               "id": "04d",
