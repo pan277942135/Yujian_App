@@ -39,7 +39,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P00 Inventory / Matrix / Shared Infrastructure | PUSHED | `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`, correction at `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Inventory committed; final tree exact-match verified | No-job Android workflow launch | Continue independent product work |
 | P01 Authentication / Account Entry | BLOCKED_INFRA | `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Existing Login/Register screens and 13 instrumentation tests; Registry source pointer corrected | Runs `36697494308`, `36698295894`, `36698418377` failed with 0 jobs/0 artifacts; current-main run `36697719823` also had 0 jobs | Stop manual retry; continue |
 | P02 Empty Home | PASS | `f3210a66e4657b59a2db350cf5952ae0aea68aab` | Local verifier PASS; prior Android CI run `36514649405` PASS; gate artifact `11011440570` | None for Empty Home | Continue P04 |
-| P03 Normal Home / First Catch Home | BLOCKED_INFRA | Pending source checkpoint SHA | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
+| P03 Normal Home / First Catch Home | BLOCKED_INFRA | `2eb538461888e8bcba1a1f027b130709ab498f46` | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
 | P04 Capture entry / shared Capture behavior | IN_PROGRESS | — | Begin existing-route and capture-contract audit | — | Implement only frozen capture handoff and failure behavior |
 | P05 Recognition Processing | NOT_STARTED | — | — | — | — |
 | P06 Recognition Result | NOT_STARTED | — | — | — | — |
@@ -113,7 +113,7 @@ Evidence boundary:
 Git:
 - Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
-- P03 source checkpoint SHA: pending publication
+- P03 source checkpoint SHA: `2eb538461888e8bcba1a1f027b130709ab498f46`
 - PR: #97 (draft)
 
 Next:
