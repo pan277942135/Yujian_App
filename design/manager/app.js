@@ -2472,10 +2472,15 @@ function accountPrivacyGalleryCanvas(item) {
         (item.visual_status ? '<span>Visual&nbsp;' + statusBadge(item.visual_status) + '</span>' : '') +
       '</div>'
     : "";
+  const adjustment = item.visual_adjustment_authority
+    ? '<div class="authority-kind">COMPOSITE VISUAL AUTHORITY</div>' +
+      '<p>Base Hi-Fi 保持原始二进制；当前差异由 <a href="' + esc(repoHref(item.visual_adjustment_authority)) +
+      '" target="_blank" rel="noreferrer">' + esc(item.visual_adjustment_authority) + '</a> 覆盖。</p>'
+    : "";
   return '<div class="authority-index">' +
     '<div class="authority-index-intro"><strong>' + esc(item.title || "Account & Privacy visual references") + '</strong>' +
       '<span>' + esc(item.summary || "Existing repository images are shown with their current review status.") + '</span>' +
-      governance + '</div>' +
+      governance + adjustment + '</div>' +
     (cards ? '<div class="authority-index-grid">' + cards + '</div>' : '<div class="preview-empty">没有可展示的仓库视觉图。</div>') +
     (points ? '<div class="authority-index-intro"><strong>产品范围与 Gate</strong></div><div class="authority-index-grid">' + points + '</div>' : '') +
   '</div>';
