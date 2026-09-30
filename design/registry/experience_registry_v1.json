@@ -5465,7 +5465,7 @@
         "behavior": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-          "note": "Active MVP main path behavior/IA is frozen through Active_Path_Contract_V1 and six page/flow specs; package behavior remains PARTIAL because legal/about and Edit Profile state closure are separate outstanding work."
+          "note": "Active MVP main path and Legal/About page structure are frozen. Package behavior remains PARTIAL because Edit Profile remaining state/interaction closure is still outstanding; final legal copy is governed separately by LEGAL_REVIEW_REQUIRED."
         },
         "visual": {
           "status": "PARTIAL",
@@ -6600,16 +6600,18 @@
     },
     {
       "id": "user_agreement_v1",
-      "owner_path": "design/pages/account_privacy/User_Agreement",
-      "overall": "RUNTIME_ONLY",
+      "owner_path": "design/pages/account_privacy/legal",
+      "overall": "PARTIAL",
       "modalities": {
         "behavior": {
-          "status": "RUNTIME_ONLY",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/legal/User_Agreement_Content_Draft_V1.md",
+          "note": "Content architecture/product-specific clauses frozen; final legal wording remains legal-review gated."
         },
         "visual": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+          "note": "Reuses Shared Legal Document Shell V1; no separate User Agreement Hi-Fi required."
         },
         "motion": {
           "status": "MISSING",
@@ -6625,15 +6627,17 @@
         },
         "runtime": {
           "status": "RUNTIME_ONLY",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt",
+          "note": "Current runtime copy is placeholder and still includes LEGAL_COPY_REVIEW_REQUIRED."
         },
         "evidence": {
-          "status": "MISSING",
-          "authority": null
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/legal/README.md"
         },
         "assets": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+          "note": "Shared legal-shell visual base; not User Agreement text content."
         }
       },
       "display_name": "用户协议",
@@ -6645,7 +6649,7 @@
           "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
-      "design_overall": "MISSING",
+      "design_overall": "PARTIAL",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -6665,7 +6669,8 @@
           "note": "Top Navigation V1 / BACK_TITLE / FROZEN."
         }
       ],
-      "navigation_hidden": true
+      "navigation_hidden": true,
+      "note": "Hidden compatibility alias. Canonical User Agreement design authority now lives under account_privacy_v1 → 05C. Shared Legal Document Shell and content architecture are frozen; final production Legal Copy remains LEGAL_REVIEW_REQUIRED. Do not create a duplicate top-level User Agreement design module."
     }
   ],
   "design_manager": {
