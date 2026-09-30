@@ -64,7 +64,7 @@ Metadata:
 - the section must not look like a generic settings card
 
 Catch note:
-- label: `留下本次鱼获感言`
+- label role: `留下本次鱼获感言`
 - voice affordance is lightweight and subordinate
 
 Actions:
@@ -75,27 +75,28 @@ Actions:
 ## Medium
 
 - hero photo remains unchanged
+- prompt is one combined line
 - candidate region appears below/within the approved result hierarchy
-- candidate cards remain compact
+- candidate cards remain compact and horizontal
 - selected candidate is visible but not game-like
 - “都不是 / 选择其他鱼种” remains a low-weight escape
 - do not replace the main result photo with candidate artwork
+- after confirmation, reuse High's record/CTA hierarchy
 
 ## Low
 
-- simplify the information density
+- simplify information density
 - `无法确认是什么鱼` is the main message
-- `鱼种待确认` is the record state
-- retake is visually downgraded
-- preserving/saving the catch remains the primary product direction
-- do not expose normal metadata blocks before they are useful
+- initial actions are `手动选择鱼种` and `重新拍摄`
+- no normal metadata/save block before manual species resolution
+- do not invent a pending-species record state
 
 ## No Fish / Image Quality
 
 - keep the source photo visible
 - use a calm recovery panel
 - avoid alarm-red error chrome
-- title and explanatory copy are centered/structured according to Frozen
+- title and explanatory copy are structured according to Frozen
 - retake is primary
 - gallery is secondary
 - back is tertiary

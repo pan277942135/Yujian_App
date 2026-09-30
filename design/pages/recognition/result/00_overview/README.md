@@ -1,30 +1,165 @@
 # 00 — Recognition Result Overview / 结果总览
 
-Status: **PENDING FINAL CLOSURE**
+Status: **DESIGN CLOSED V1**
 
-## State model
+## 3+2 state model
 
-### 3 Result states
-- 01 High / 高置信
-- 02 Medium / 中置信
-- 03 Low / 低置信
+### Result
+1. High / 高置信
+2. Medium / 中置信
+3. Low / 低置信
 
-### 2 Recovery states
-- 04 No Fish / 未检测到鱼
-- 05 Image Quality / 图片质量不足
+### Recovery
+4. No Fish / 未检测到鱼
+5. Image Quality / 图片质量不足
 
-## Purpose
+Technical Failure remains an engineering-safe fallback outside this 3+2 Frozen menu.
 
-This page explains the 3+2 system. It does not replace state-specific pages and does not create another Frozen Hi-Fi.
+## Frozen state authority
 
-## Shared authority
+| State | Frozen |
+| --- | --- |
+| High | `05_Result_High_Frozen.png` |
+| Medium | `06_Result_Medium_Frozen.png` |
+| Low | `07_Result_Low_Frozen.png` |
+| No Fish | `08_Error_No_Fish_Frozen.png` |
+| Image Quality | `09_Error_Image_Quality_Frozen.png` |
 
-- `../authority/authority_map.json`
-- `../spec/Recognition_Result_Feature_Spec_V1.md`
-- `../spec/Recognition_Result_State_Matrix_V1.md`
-- `../spec/Recognition_Result_Behavior_Spec_V1.md`
-- `../spec/Recognition_Result_Visual_Spec_V1.md`
+All five remain canonical in `design/pages/recognition/design/`. Menu pages reference them; they are not duplicated.
 
-## Final closure rule
+## Common visual system
 
-Return here only after 01–05 have been individually reviewed and frozen.
+### Real image first
+
+All 3+2 states retain the user's real capture as the context/hero media.
+
+### Result is no longer Processing
+
+After Result:
+- no AI filament travel;
+- no fish contour pulse;
+- no detector box;
+- no scanner/HUD;
+- no continuous Recognition animation.
+
+### Background
+
+Use the Recognition Result / BG_CONTENT visual family.
+
+The Result world is quieter than Home and no longer carries Processing energy.
+
+### Navigation
+
+Use the shared Result Top Navigation / P0 component family.
+
+### Color
+
+- lake/ink neutrals dominate;
+- teal is the normal action accent;
+- gold is scarce;
+- recovery states do not introduce aggressive red error chrome.
+
+## State differentiation
+
+### High
+
+AI result is usable.
+
+Primary content:
+- species identity
+- lightweight record details
+- memory note
+- dual save/memory CTA
+
+### Medium
+
+AI gives plausible alternatives.
+
+Primary content:
+- one-line confirmation prompt
+- horizontal candidate row
+- explicit user confirmation
+- then reuse normal record flow
+
+### Low
+
+AI cannot responsibly identify the species.
+
+Primary content:
+- `无法确认是什么鱼`
+- manual species selection
+- retake
+
+No metadata/save before species recovery.
+
+### No Fish
+
+The photo does not provide a usable fish subject.
+
+Primary direction:
+- retake
+- gallery fallback
+
+### Image Quality
+
+The image quality blocks reliable recognition.
+
+Primary direction:
+- retake with clearer capture
+- gallery fallback
+
+## Shared interaction rules
+
+- no automatic carousel;
+- no automatic species switching;
+- no confidence scores;
+- no debug/model metadata;
+- no gamification;
+- no no-op controls;
+- loading blocks duplicate save;
+- optional metadata never silently becomes mandatory;
+- location permission is requested only by explicit user action.
+
+## CTA map
+
+| State | Before resolution | After species resolution |
+| --- | --- | --- |
+| High | already resolved | 继续记录记忆 + 保存本次鱼获 |
+| Medium | choose/confirm candidate | 继续记录记忆 + 保存本次鱼获 |
+| Low | 手动选择鱼种 / 重新拍摄 | reuse normal resolved-species record flow |
+| No Fish | 重新拍摄 / 从相册选择 | N/A |
+| Image Quality | 重新拍摄 / 从相册选择 | N/A |
+
+## Motion
+
+Result entry inherits the final 200 ms Processing resolve fade.
+
+After entry:
+- only shared component feedback;
+- no page-level continuous animation;
+- Reduce Motion removes nonessential interpolation.
+
+## Adaptive behavior
+
+All states:
+- support vertical constraints;
+- keep required actions reachable;
+- preserve state hierarchy;
+- do not hide CTA behind system bars/IME;
+- do not change state semantics based on device height.
+
+## Final design closure
+
+01 High: **CLOSED V1**
+
+02 Medium: **CLOSED V1**
+
+03 Low: **CLOSED V1**
+
+04 No Fish: **CLOSED V1**
+
+05 Image Quality: **CLOSED V1**
+
+Overall 3+2 Result Design Package: **CLOSED V1**
+
+Runtime alignment remains a separate implementation/acceptance task.

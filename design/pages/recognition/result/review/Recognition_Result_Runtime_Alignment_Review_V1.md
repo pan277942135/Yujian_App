@@ -16,6 +16,8 @@ Reviewed against:
 
 The current runtime implements all five broad routes, but it is not yet fully conformant with the closed Result design package.
 
+This document records implementation gaps only. It does not redefine the 3+2 UI.
+
 ## P0 — structural / product mismatches
 
 ### 1. High result CTA model
@@ -32,21 +34,17 @@ Action:
 - remove `查看鱼鉴` from the Result primary action model
 - implement the dual CTA save/memory contract
 
-### 2. Low-confidence persistence model
+### 2. Medium confirmation state
 
 Current runtime:
-- `selectedKey` starts blank
-- save actions are absent until user manually selects a species
+- `selectedKey` is initialized to Top-1
 
 Closed design:
-- low result is `鱼种待确认`
-- preserving the catch remains primary
-- pending-species save path must exist where product persistence supports it
+- Medium asks the user to confirm which candidate is correct
+- a model suggestion must not silently count as user confirmation
 
 Action:
-- audit catch data contract for a formal pending species representation
-- do not force a design change to “manual selection required”
-- if persistence lacks support, record and implement the minimum product-safe data-contract fix before claiming parity
+- separate suggestion from explicit confirmation
 
 ### 3. Shared component adoption
 
@@ -76,46 +74,42 @@ Current runtime:
 Closed design:
 - lightweight length / weight / location affordances
 - catch note role is `留下本次鱼获感言`
-- approved voice affordance is preserved
+- approved voice affordance is preserved when functional
 
 Action:
-- refactor information hierarchy to match Frozen high result instead of a generic settings card
+- refactor information hierarchy to match Frozen High rather than a generic settings card
 
-### 5. Medium confirmation semantics
+### 5. High bottom actions
 
-Current runtime:
-- `selectedKey` is initialized to Top-1
-- model suggestion can behave like an already resolved selection before explicit user confirmation
-
-Closed design:
-- Medium must distinguish model suggestion from user-confirmed species
+Current runtime lacks:
+- `继续记录记忆`
 
 Action:
-- separate suggested vs confirmed state
-- candidate tap / other-species selection establishes confirmation
+- implement the frozen dual CTA behavior after design-to-runtime work begins
 
 ### 6. Medium candidate visuals
 
 Current runtime:
 - candidate card uses a generic circle containing the character `鱼`
 
-Frozen design:
-- candidate cards are state-specific visual elements
+Closed design:
+- candidate cards are compact species confirmation elements
 
 Action:
-- match Frozen candidate structure; do not use the generic “鱼” placeholder when approved species representation is available
+- match Frozen candidate structure; do not retain a generic placeholder when approved species representation is available
 
-### 7. Low action hierarchy
+### 7. Low flow
 
 Current runtime:
-- `手动选择鱼种` and `重新拍摄` have equal outlined weight
+- initial Low exposes exactly `手动选择鱼种` + `重新拍摄`
+- metadata is hidden until selection
 
-Closed design:
-- retake is downgraded
-- preserve/save direction has higher product priority
+This is directionally aligned with the finalized Low design.
 
-Action:
-- recompose low action hierarchy per Frozen
+Keep:
+- no pending-species save path
+- no `鱼种待确认` persistence
+- no normal metadata before manual recovery
 
 ## P2 — cleanup / consistency
 
@@ -135,27 +129,22 @@ Current `RecognitionIssueScreen` uses page-private primary/outlined buttons.
 Action:
 - migrate to shared P0 components while preserving the five-state visual geometry
 
-### 10. Runtime tests reflect existing UI more than final package
+### 10. Result-specific acceptance
 
-Current frozen-flow test asserts:
-- High save button
-- Medium helper/candidate
-- Low manual selection + retake
-
-It does not prove:
-- dual High CTA
+Current frozen-flow test proves basic five-state routing but does not prove:
+- High dual CTA
 - memory route
-- low pending-save path
-- voice affordance behavior
+- Medium explicit confirmation
 - shared-component parity
 
 Action:
-- extend Result-specific acceptance evidence after implementation closure
+- extend Result-specific evidence after implementation closure
 
 ## Confirmed correct / keep
 
 - real captured photo remains the primary Result media
 - High / Medium / Low routing remains driven by recognition semantics
+- Low starts with manual selection + retake and hides metadata
 - No Fish and Image Quality are separate runtime states
 - error copy is user-safe
 - location permission is user-triggered

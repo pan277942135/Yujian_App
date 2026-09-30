@@ -32,21 +32,22 @@ PASS only when:
 
 PASS only when:
 - hero photo is preserved
-- candidate cards are additional confirmation UI
-- user-confirmed selection is distinguishable from model suggestion
+- prompt is one combined line
+- candidate cards are additional horizontal confirmation UI
+- model suggestion is distinguishable from user-confirmed choice
 - “都不是 / 选择其他鱼种” remains available
-- selected species can proceed to save/memory flow
+- resolved species reuses the normal save/memory flow
 - candidate UI does not become a second hero carousel
 
 ## E. Low
 
 PASS only when:
 - main message is `无法确认是什么鱼`
-- record state communicates `鱼种待确认`
-- manual species recovery is available
-- retake is lower priority than preserving the catch
-- low state is not forced to expose the normal metadata block
-- design retains a pending-save path; if runtime cannot persist it, the gap is reported rather than hidden
+- `手动选择鱼种` is available
+- `重新拍摄` is available
+- normal metadata/save UI is hidden before species resolution
+- manual selection can recover into the normal record flow
+- no pending/unknown species persistence is invented in V1
 
 ## F. No Fish
 
@@ -78,6 +79,7 @@ PASS only when:
 
 ## I. Save contract
 
+For resolved-species states:
 - duplicate submission is blocked
 - user inputs survive retryable save errors
 - save creates FishRecord before navigation
@@ -96,7 +98,7 @@ Required implementation evidence should include at minimum:
 - saving/loading state
 - species correction interaction
 - medium candidate confirmation
-- low pending/manual recovery
+- low manual recovery
 - dual CTA navigation proof
 
 Existing Recognition visual parity may continue to validate 05–09, but Result-specific behavioral evidence must not be omitted merely because the full Recognition gate is green.
@@ -107,5 +109,5 @@ Existing Recognition visual parity may continue to validate 05–09, but Result-
 - lowering parity thresholds to obtain PASS
 - hiding a required CTA because runtime has no implementation
 - changing confidence semantics to make screens easier to test
-- requiring manual species selection in Low solely because pending persistence is missing
+- inventing pending-species persistence
 - retaining no-op controls

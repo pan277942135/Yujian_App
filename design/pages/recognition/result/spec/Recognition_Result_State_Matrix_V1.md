@@ -1,12 +1,12 @@
 # Recognition Result State Matrix V1
 
-| State | Primary message | Species handling | Metadata | Primary action | Secondary action |
+| State | Primary message | Species handling | Metadata | Initial action | Resolved action |
 | --- | --- | --- | --- | --- | --- |
-| RESULT_HIGH | confirmed species identity | Top-1 selected by default; 修改鱼种 available | available | 保存本次鱼获 | 继续记录记忆 |
-| RESULT_MEDIUM | 帮我确认一下，这条鱼更像哪一种？ | candidate confirmation + other-species entry | available after/alongside confirmation | 保存本次鱼获 after resolution | 继续记录记忆 |
-| RESULT_LOW | 无法确认是什么鱼 | 鱼种待确认; manual selection optional | must not block initial recovery state | 保存本次鱼获 with pending species where product data contract supports it | 手动选择鱼种 / 重新拍摄 as lower-weight recovery |
-| ERROR_NO_FISH | 没有找到可识别的鱼 | none | hidden | 重新拍摄 | 从相册选择 |
-| ERROR_IMAGE_QUALITY | 照片不够清晰，无法识别 | none | hidden | 重新拍摄 | 从相册选择 |
+| RESULT_HIGH | confirmed species identity | Top-1 selected by default; 修改鱼种 available | available | normal record flow | 继续记录记忆 + 保存本次鱼获 |
+| RESULT_MEDIUM | 帮我确认一下，这条鱼更像哪一种？ | candidate confirmation + other-species entry | after confirmation | confirm/select species | 继续记录记忆 + 保存本次鱼获 |
+| RESULT_LOW | 无法确认是什么鱼 | no species claimed; manual selection optional | hidden until species resolution | 手动选择鱼种 / 重新拍摄 | reuse normal resolved-species record flow |
+| ERROR_NO_FISH | 没有找到可识别的鱼 | none | hidden | 重新拍摄 / 从相册选择 | N/A |
+| ERROR_IMAGE_QUALITY | 照片不够清晰，无法识别 | none | hidden | 重新拍摄 / 从相册选择 | N/A |
 
 ## High
 
@@ -26,25 +26,26 @@ Do not add a separate “已识别” label.
 
 Required behavior:
 - hero photo stays the same
-- candidate region is additional confirmation UI, not a replacement hero
+- confirmation prompt is one line
 - candidate cards are horizontally arranged according to Frozen composition
 - “都不是 / 选择其他鱼种” remains visible as an escape
 - explicit user confirmation must be distinguishable from model suggestion
-
-The UI must not silently turn Medium into High merely because Top-1 is prefilled internally.
+- resolved Medium reuses High's record/CTA contract
 
 ## Low
 
 Required visible roles:
 - `无法确认是什么鱼`
-- `鱼种待确认`
-- manual species recovery
-- retake as a lower-priority recovery path
-- save path remains product-priority
+- `手动选择鱼种`
+- `重新拍摄`
 
-Design intent is that an uncertain species does not erase a real catch memory.
+Before manual species selection:
+- no normal metadata block
+- no save CTA
+- no pending/unknown species record
 
-If the current persistence schema cannot save a pending species, that is a runtime/data-contract gap. The design must not be rewritten into “manual species is mandatory” merely to fit an implementation limitation.
+After selection:
+- reuse the normal resolved-species Result contract.
 
 ## No Fish
 

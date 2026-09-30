@@ -38,36 +38,43 @@ Do not enter memory operations before FishRecord creation succeeds.
 
 The page preserves the catch hero and shows candidate choices.
 
+Initial state:
+- model candidates are suggestions;
+- no candidate is silently treated as user-confirmed merely because it is Top-1.
+
 Candidate selection:
 - visually confirms one candidate
 - updates the species identity used for save
-- is user-confirmed state, not merely model suggestion
+- establishes user-confirmed state
 
 Other-species action:
 - opens the shared species selector
 - returns to the same Result screen with the selected species
 
-The candidate region must not replace the catch hero.
+After confirmation:
+- reuse High's metadata and dual CTA contract.
 
 ## 4. Low-confidence flow
 
 Initial state:
-- no species is claimed as confirmed
-- show `鱼种待确认`
-- metadata is not required to explain the state
-- manual selection is available
-- retake is available but lower priority than preserving the catch
-
-Pending save:
-- design requires a path to preserve the catch even when species is still pending
-- persistence may use the product's formal pending/unknown-species representation
-- implementation must not invent a public species label that looks like a real species
-
-If no persistence representation exists, report a runtime/data-contract gap.
+- no species is claimed as confirmed;
+- show `无法确认是什么鱼`;
+- show `手动选择鱼种`;
+- show `重新拍摄`;
+- hide normal catch metadata/save controls.
 
 Manual selection:
-- resolves the species and moves the record into normal save behavior
-- does not require re-running recognition
+- resolves the species;
+- does not rerun Recognition;
+- moves the flow into the normal resolved-species recording contract.
+
+Retake:
+- abandons this recognition attempt and returns to the capture flow.
+
+V1 does not authorize:
+- saving a FishRecord with an invented unknown species;
+- a new `鱼种待确认` persistent state;
+- a pending-species data contract.
 
 ## 5. Metadata
 

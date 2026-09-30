@@ -7,7 +7,7 @@ Recognition Result begins after the real Recognition pipeline has resolved into 
 It is responsible for:
 - presenting the result or recovery reason
 - allowing species confirmation/correction where applicable
-- capturing lightweight catch metadata
+- capturing lightweight catch metadata after species resolution
 - creating the FishRecord
 - routing to Home or Memory
 
@@ -37,6 +37,7 @@ Product intent:
 - preserve the original hero photo
 - present candidate species for explicit confirmation
 - keep “other species” available
+- after confirmation, reuse the normal catch-recording flow
 - do not make the page look like a failure screen
 
 ### RESULT_LOW
@@ -45,10 +46,10 @@ Use when species cannot be responsibly confirmed.
 
 Product intent:
 - say clearly that the species cannot be confirmed
-- keep the catch record recoverable
-- expose manual species selection
-- downgrade retake relative to saving/recovery
-- represent species as pending when the user chooses to save without confirmation
+- offer manual species selection
+- offer retake
+- do not show normal metadata/save controls until species is manually resolved
+- do not invent an unknown/pending-species persistence model
 
 ### ERROR_NO_FISH
 
@@ -72,13 +73,19 @@ Product intent:
 
 ## Shared information hierarchy
 
-For result states:
+For resolved result states:
 
 1. real catch photo
 2. species state
 3. lightweight catch metadata
 4. catch note
 5. record action
+
+For unresolved Low:
+
+1. real catch photo
+2. unable-to-confirm message
+3. manual selection / retake
 
 For recovery states:
 
