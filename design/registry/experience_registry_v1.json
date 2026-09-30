@@ -3007,14 +3007,15 @@
           "note": "Icon Action V1：TopBar Back=NAVIGATION；Fish Guide/Share=UTILITY/ON_LIGHT；B-side card_flip=UTILITY/ON_MEDIA，仅 B-side 已存在时显示。"
         }
       ],
-      "navigation_model": "fish_record_detail_spec_menu_v1",
+      "navigation_model": "fish_record_detail_compact_menu_v2",
       "design_manager_view_rules": {
-        "overview": "parent page remains the page-level overview; 00 is an explicit specification index for the FishRecordDetail system.",
-        "spec_menu": "00–10 + 99 are the FishRecordDetail Design Manager workspaces.",
-        "hierarchy": "01 and 02 own A/B visual-state children; 04 and 05 own editing/state children. B-side is part of FishRecordDetail, not a separate first-level page.",
-        "scope": "This change reorganizes Design Manager navigation only; it does not re-freeze page visuals, runtime behavior, or unresolved states."
+        "overview": "00 is the page-level overview and owns flow, A/B relationship, shared dependencies, and interaction boundaries.",
+        "menu": "FishRecordDetail exposes only 00–05 as direct Design Manager entries. No third-level submenu is used.",
+        "output_principle": "Important pages use standalone UI authority; secondary states, editing variants, exceptions, and edge cases are merged into scenario boards.",
+        "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
+        "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
       },
-      "note": "FishRecordDetail Design Manager menu reorganized on 2026-09-29. Existing A-side Core UI V2 and supplemental B-side reference are preserved; B-side is consolidated under 02 · B 面 · 鱼获记忆. Menu restructuring does not itself freeze unfinished states.",
+      "note": "FishRecordDetail Design Manager compact menu V2 updated on 2026-09-30. Navigation is reduced to six direct entries (00–05) with no third-level submenu. Existing A-side Frozen Authority and supplemental B-side reference are preserved; unfinished editing, generation, and exception states remain scenario-level workspaces rather than separate navigation nodes.",
       "hifi_views": [
         {
           "id": "overview",
@@ -3023,121 +3024,71 @@
           "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/README.md",
           "authority_type": "behavior",
-          "summary": "鱼获详情是单条 FishRecord 的长期详情目的地。Design Manager 从本层统一管理 A 面记录、B 面记忆、翻面、编辑、状态、数据、资产、动效、响应式与验收证据。",
+          "summary": "鱼获详情是单条 FishRecord 的长期详情目的地。Overview 统一管理 A/B 页面关系、进入路径、翻面规则、共享组件依赖与 Authority 边界；不再为工程合同、资产清单、验收证据或 Archive 建独立菜单。",
           "menu_points": [
             "Product Role · Single FishRecord Detail",
             "A / B Surface Model",
             "Entry Points",
-            "Current Frozen A-side Authority",
-            "Supplemental B-side Reference",
+            "First Successful B-side Auto Flip",
+            "Subsequent Manual A ↔ B Flip",
             "Shared Component Dependencies",
-            "Runtime / Evidence Boundary"
+            "Authority / Runtime Boundary"
           ]
         },
         {
           "id": "a_side",
           "title": "01 · A 面 · 鱼获记录",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
           "authority": "design/pages/fish_record/detail/README.md",
           "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
-          "authority_type": "group",
-          "summary": "A 面是 FishRecordDetail 的基础记录面。现有 Core UI V2 PNG 继续作为标准状态视觉 Authority；信息不完整状态仅先建立菜单位置，不在本轮重新设计。",
+          "image": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
+          "authority_type": "visual",
+          "summary": "FishRecordDetail A 面核心页面。现有 Core UI V2 PNG 继续作为 Frozen Visual Authority；字段缺失等次要变化不再拆子菜单，统一进入 05 · 页面状态。",
           "menu_points": [
-            "A-side Page Role",
-            "Hero / Species / Length / Weight / Location",
-            "Catch Note / Memory Copy",
+            "Hero / Species",
+            "Length / Weight / Location",
+            "Catch Note / Memory",
             "Edit Entry",
             "B-side Flip Entry when available",
-            "Authority Boundary"
-          ],
-          "children": [
-            {
-              "id": "standard",
-              "code": "01A",
-              "title": "01A · 标准状态",
-              "status": "FROZEN",
-              "render_mode": "repo_image",
-              "authority_type": "visual",
-              "menu_group": "visual",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
-              "image": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
-              "summary": "现有 FishRecordDetail V2 Core UI Frozen Visual Authority。仅登记到 A 面标准状态，不在本轮重新生成或改图。"
-            },
-            {
-              "id": "incomplete",
-              "code": "01B",
-              "title": "01B · 信息不完整",
-              "status": "MISSING",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "state",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "预留长度、重量、地点或感言缺失时的 A 面状态规范入口；本轮只建立菜单结构。"
-            }
+            "Frozen Visual Authority"
           ]
         },
         {
           "id": "b_side",
           "title": "02 · B 面 · 鱼获记忆",
           "status": "PARTIAL",
-          "render_mode": "authority_index",
+          "render_mode": "repo_image",
           "authority": "design/pages/fish_record/detail/README.md",
+          "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
+          "image": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
           "secondary_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
-          "authority_type": "group",
-          "summary": "B 面收回 FishRecordDetail 内部统一管理，不再作为独立一级页面。现有 fish_memory_reference.png 仅是补充视觉参考；正式 B 面完整设计仍待收口。",
+          "authority_type": "visual",
+          "summary": "B 面核心页面直接展示已生成状态。现有 fish_memory_reference.png 仍为 supplemental visual reference；尚未生成、生成中、失败等生命周期状态统一归入 03 · 鱼体资产生成。",
           "menu_points": [
-            "B-side Role",
             "Generated Memory Surface",
-            "Not-generated State",
             "Real FishRecord Relationship",
             "Manual Flip Entry",
+            "First-success Auto Flip Relationship",
+            "Supplemental Visual Reference",
             "Authority Boundary"
-          ],
-          "children": [
-            {
-              "id": "generated",
-              "code": "02A",
-              "title": "02A · 已生成",
-              "status": "PARTIAL",
-              "render_mode": "repo_image",
-              "authority_type": "visual",
-              "menu_group": "visual",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "visual_authority": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
-              "image": "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png",
-              "summary": "现有 B-side supplemental reference。当前仅作为已生成状态的视觉参考，不提升为完整 Frozen Authority。"
-            },
-            {
-              "id": "not_generated",
-              "code": "02B",
-              "title": "02B · 尚未生成",
-              "status": "MISSING",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "state",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "预留 B 面尚未生成时的产品状态入口；不拆 QUEUED / PROCESSING / FAILURE 为独立详情页。"
-            }
           ]
         },
         {
-          "id": "flip_system",
-          "title": "03 · A / B 翻面系统",
-          "status": "PARTIAL",
+          "id": "asset_generation",
+          "title": "03 · 鱼体资产生成",
+          "status": "MISSING",
           "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/README.md",
           "authority_type": "behavior",
-          "summary": "统一管理首次 B-side 成功后的自动翻面、之后的手动翻面、右上 Flip Icon、返回状态与 Reduce Motion。现有 README 已冻结部分边界，完整时序待后续审视。",
+          "summary": "用一张场景合并 UI 管理 B-side 资产生命周期，不再把每个技术状态拆成菜单。设计输出聚合尚未生成、生成中、生成失败及重试/恢复关系。",
           "menu_points": [
-            "Default Entry Surface",
-            "First Successful B-side Auto Flip",
-            "Subsequent Entry · No Auto Flip",
-            "Manual A ↔ B Flip",
-            "Flip Icon Ownership",
-            "Back / Restore",
-            "Reduce Motion"
+            "尚未生成 · Empty",
+            "生成中 · Generating",
+            "生成失败 · Failed",
+            "Generate / Retry CTA",
+            "Success → B-side Ready",
+            "Do not expose Worker / Queue internals as pages"
           ]
         },
         {
@@ -3147,59 +3098,14 @@
           "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/README.md",
           "authority_type": "behavior",
-          "summary": "统一管理 FishRecordDetail 的字段级编辑入口；不在本层新建一套重型“编辑鱼获”页面。",
+          "summary": "信息编辑作为一个合并场景工作区，不再拆鱼种、长度/重量、地点、感言等子菜单。设计输出以主编辑场景 + 局部 Sheet/Dialog/危险操作组合表达。",
           "menu_points": [
-            "Field-level Editing",
-            "Save / Cancel",
-            "Return to Detail",
-            "Data Persistence",
-            "Shared Input Components"
-          ],
-          "children": [
-            {
-              "id": "species",
-              "code": "04A",
-              "title": "04A · 鱼种",
-              "status": "PARTIAL",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "spec",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "鱼种修改入口与持久化联动规范位置。"
-            },
-            {
-              "id": "size",
-              "code": "04B",
-              "title": "04B · 长度 / 重量",
-              "status": "PARTIAL",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "spec",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "长度与重量的轻量编辑规范位置。"
-            },
-            {
-              "id": "location",
-              "code": "04C",
-              "title": "04C · 地点",
-              "status": "PARTIAL",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "spec",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "地点编辑、清空与返回详情规范位置。"
-            },
-            {
-              "id": "note",
-              "code": "04D",
-              "title": "04D · 鱼获感言",
-              "status": "PARTIAL",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "spec",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "鱼获感言文本/语音入口与保存后的详情显示规范位置。"
-            }
+            "基础信息 · 鱼种 / 长度 / 重量",
+            "环境与记录 · 时间 / 地点 / 天气 / 感言",
+            "Save / Cancel / Return",
+            "Shared Input Components",
+            "Delete / Destructive Confirmation",
+            "Data Persistence"
           ]
         },
         {
@@ -3207,171 +3113,16 @@
           "title": "05 · 页面状态",
           "status": "MISSING",
           "render_mode": "authority_index",
-          "authority": null,
+          "authority": "design/pages/fish_record/detail/README.md",
           "authority_type": "behavior",
-          "summary": "只管理 FishRecordDetail 页面自身可呈现性；B-side 队列/Worker 技术状态不在这里拆成页面。",
+          "summary": "页面状态统一合并为 State Board，不再建立 Normal、媒体缺失、数据不完整、删除/失效等子菜单。仅当状态显著改变页面结构时才单独形成完整 UI。",
           "menu_points": [
-            "Normal",
+            "Loading",
             "Media Missing",
             "Partial Data",
             "Deleted / Invalid Record",
-            "Smallest-region Failure"
-          ],
-          "children": [
-            {
-              "id": "normal",
-              "code": "05A",
-              "title": "05A · 正常",
-              "status": "PARTIAL",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "state",
-              "authority": "design/pages/fish_record/detail/README.md",
-              "summary": "正常详情状态索引；视觉基线复用 01A。"
-            },
-            {
-              "id": "media_missing",
-              "code": "05B",
-              "title": "05B · 媒体缺失",
-              "status": "MISSING",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "state",
-              "authority": null,
-              "summary": "主照片或关联媒体缺失时的局部 fallback 入口。"
-            },
-            {
-              "id": "partial_data",
-              "code": "05C",
-              "title": "05C · 数据不完整",
-              "status": "MISSING",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "state",
-              "authority": null,
-              "summary": "FishRecord 部分字段缺失时的页面状态入口。"
-            },
-            {
-              "id": "invalid_record",
-              "code": "05D",
-              "title": "05D · 删除 / 失效记录",
-              "status": "MISSING",
-              "render_mode": "authority_index",
-              "authority_type": "behavior",
-              "menu_group": "state",
-              "authority": null,
-              "summary": "记录已删除、不可解析或入口失效时的返回策略入口。"
-            }
-          ]
-        },
-        {
-          "id": "content_data",
-          "title": "06 · 内容与数据合同",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
-          "authority_type": "behavior",
-          "summary": "统一定义 FishRecordDetail 展示字段、真实原图、最终鱼种、B-side 资产与跨模块数据同步边界。",
-          "menu_points": [
-            "FishRecord Identity",
-            "Final Species",
-            "Original Catch Photo",
-            "Length / Weight / Location",
-            "Catch Note",
-            "B-side Asset",
-            "Cross-module Update Semantics"
-          ]
-        },
-        {
-          "id": "assets",
-          "title": "07 · 资产",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
-          "authority": "design/system/core_visual_v1/reference/reference_manifest.json",
-          "authority_type": "behavior",
-          "summary": "统一管理 A 面 Hero、B-side、Flip Icon、Placeholder、背景/玻璃及禁止替代资产；本轮只建立入口。",
-          "menu_points": [
-            "A-side Hero Media",
-            "B-side Asset",
-            "Flip Icon",
-            "Placeholder",
-            "Background / Glass",
-            "Forbidden Asset Substitution"
-          ]
-        },
-        {
-          "id": "motion_interaction",
-          "title": "08 · 动效与交互",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority": null,
-          "authority_type": "behavior",
-          "summary": "A↔B 翻面、首次自动翻、页面进入/返回、字段编辑返回、B-side 成功提示与 Reduce Motion 的规范入口。",
-          "menu_points": [
-            "Manual Flip",
-            "First Auto Flip",
-            "Page Enter / Back",
-            "Hero Load",
-            "Edit Return",
-            "B-side Success Feedback",
-            "Reduce Motion"
-          ]
-        },
-        {
-          "id": "responsive_accessibility",
-          "title": "09 · 响应式与无障碍",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority": null,
-          "authority_type": "behavior",
-          "summary": "小屏、大字体、长地点/鱼种/感言、Insets、TalkBack 与 Reduce Motion 的统一规范入口。",
-          "menu_points": [
-            "Small Screen",
-            "Font Scale",
-            "Long Species Name",
-            "Long Location",
-            "Long Catch Note",
-            "System Insets",
-            "TalkBack",
-            "Reduce Motion"
-          ]
-        },
-        {
-          "id": "evidence",
-          "title": "10 · 验收证据",
-          "status": "MISSING",
-          "render_mode": "authority_index",
-          "authority": null,
-          "authority_type": "behavior",
-          "summary": "Frozen vs Runtime、模拟器、真机、A/B 翻面和长文本/小屏/Reduce Motion 的证据入口。",
-          "menu_points": [
-            "Frozen vs Runtime",
-            "A-side Runtime",
-            "B-side Runtime",
-            "A → B",
-            "B → A",
-            "First Auto Flip",
-            "Subsequent Entry · No Auto Flip",
-            "Emulator",
-            "Physical Device",
-            "Long Text / Small Screen",
-            "Reduce Motion"
-          ]
-        },
-        {
-          "id": "archive",
-          "title": "99 · Archive",
-          "status": "DEPRECATED",
-          "render_mode": "authority_index",
-          "authority": "design/pages/fish_record/detail/README.md",
-          "authority_type": "group",
-          "summary": "旧 CatchDetailScreen、RemoteCatchDetailScreen、旧 enrich/detail 探索与被替代的 B-side 独立一级入口统一归档；不得覆盖当前 FishRecordDetail V2。",
-          "menu_points": [
-            "Legacy CatchDetailScreen",
-            "RemoteCatchDetailScreen",
-            "Old Enrichment Concepts",
-            "Standalone B-side Page Entry",
-            "Superseded Detail Drafts"
+            "Offline / Network Error",
+            "Retry / Disabled / Fallback"
           ]
         }
       ]
