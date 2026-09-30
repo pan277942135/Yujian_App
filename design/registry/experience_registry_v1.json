@@ -266,7 +266,7 @@
           "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
         }
       ],
-      "design_overall": "ACTIVE_CLOSURE",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -289,7 +289,7 @@
           "note": "Text Action V1：最近鱼获 全部=NORMAL/ON_MEDIA + separate chevron。"
         }
       ],
-      "note": "NH01 当前视觉权威已冻结；NH02–NH06 按“关键内容独立出图，辅助/组件/边界状态合并出图”继续补齐。",
+      "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。",
       "navigation_model": "normal_home_secondary_menu_v1",
       "design_manager_view_rules": {
         "overview": "页面总览保留当前 Normal Home Closure / shared refs / modalities。",
