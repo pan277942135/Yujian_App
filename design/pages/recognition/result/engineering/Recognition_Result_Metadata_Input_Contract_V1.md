@@ -212,3 +212,21 @@ Retake:
 
 Back:
 - does not silently save metadata.
+
+
+## 10. Metadata Edit Flow authority
+
+The lightweight modification interaction is additionally frozen by:
+
+`Recognition_Result_Metadata_Edit_Flow_V1.md`
+
+Machine-readable authority:
+
+`metadata_edit_flow_contract.json`
+
+Conflict rule:
+- numeric range, precision, optionality, note and voice semantics remain owned by this base Metadata Input Contract;
+- Bottom Sheet titles/geometry, numeric autofocus and IME behavior, commit/dismiss semantics, location search/current/recent flows and recent-history rules are owned by Metadata Edit Flow V1;
+- Metadata Edit Flow V1 supersedes the earlier simplified editor descriptions in Sections 2–5 where the two differ.
+
+The Result page itself remains the frozen 72dp Metadata Strip. The edit-flow review board does not authorize replacing it with a vertical settings list.
