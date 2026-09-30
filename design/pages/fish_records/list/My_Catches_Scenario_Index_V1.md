@@ -55,3 +55,11 @@ Reconciled decisions:
 - Search / Filter 的恢复 CTA 与 Camera Button 语义分层。
 
 Design Manager 左侧子菜单按高保真稿组织，细场景继续作为 Authority 映射。
+
+
+## 2026-09-30 final visual mapping
+
+- Main populated authority: `frozen/main_v2_2/My_Catches_Populated_Main_V2_2_Frozen.webp`
+- Timeline 7-state authority: `frozen/timeline_v1/My_Catches_Timeline_Scroll_V1_Frozen.webp`
+- Filter F1–F5 authorities: `frozen/filter_v1/*.webp`
+- Filter Results reuse Timeline; Filter Empty reuses Empty States V1.

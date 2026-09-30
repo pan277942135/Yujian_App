@@ -74,7 +74,7 @@ Example:
 我的鱼获
 ├── 主页面高保真
 ├── Timeline Scroll V1
-├── 5维筛选 V1
+├── 筛选 V1
 ├── Empty States V1
 ├── Growth Mark V1
 ├── 搜索交互 V1
@@ -108,3 +108,12 @@ B5 remains:
 `design/pages/fish_records/list/My_Catches_Search_Spec_V1.md`
 
 The old dynamic Search canvas remains implementation history only and is not the frozen visual authority.
+
+
+## 7. My Catches V2.2 clarification
+
+- Base-page Top Navigation authority is `TITLE_ONLY`.
+- Search Field / Filter Action are page-owned content utilities below Top Navigation.
+- Filter V1 is F1–F5 and has four dimensions: 鱼种 / 时间 / 尺寸 / 特殊记录.
+- The legacy five-dimensional / Location / Bottom Sheet filter document is SUPERSEDED.
+- Frozen visual children use static raster authorities; Design Manager must not rebuild them from HTML mockups.

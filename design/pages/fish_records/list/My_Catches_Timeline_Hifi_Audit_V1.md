@@ -1,6 +1,6 @@
 # 我的鱼获 · Timeline Scroll V1 · High-Fidelity Audit V1
 
-Status: **ACTIVE_CLOSURE**
+Status: **FROZEN**
 Date: 2026-09-29
 Parent: `my_catches_v2`
 
@@ -191,3 +191,32 @@ Timeline Scroll V1 can return to visual `FROZEN` only when:
 - >10 Day Detail has real high-fidelity evidence;
 - 6–10 collapsed + expanded are both shown;
 - final visual is reviewed against current My Catches main page.
+
+
+---
+
+## 2026-09-30 final visual closure
+
+Final Visual Authority:
+
+`design/pages/fish_records/list/frozen/timeline_v1/My_Catches_Timeline_Scroll_V1_Frozen.webp`
+
+The final board contains the seven required actual UI states:
+
+1. Default / 1–5 catches
+2. scrolled / Month Sticky
+3. 6–10 collapsed
+4. 6–10 expanded
+5. >10 main Timeline
+6. >10 day-detail
+7. cross-month handoff
+
+All states inherit the current My Catches V2.2 page language:
+- TITLE_ONLY base-page identity;
+- page-owned Search / Filter utilities below Top Navigation;
+- BG_DATA;
+- current FishRecordRowCard;
+- low-weight Growth Mark;
+- fixed shared Camera Button.
+
+The previous historical Timeline board remains historical input only.

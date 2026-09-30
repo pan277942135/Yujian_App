@@ -1,6 +1,6 @@
 # 我的鱼获 V2 — Design Audit V1
 
-Status: **PARTIAL / DESIGN CLOSURE REQUIRED**
+Status: **DESIGN FROZEN**
 Scope: **Design governance only**
 Page ID: `my_catches_v2`
 
@@ -232,3 +232,21 @@ Corrections applied:
 
 Current Design Manager navigation is organized by high-fidelity view:
 Main / Timeline / Filter / Empty States / Growth Mark / Search / System states.
+
+
+---
+
+## 13. 2026-09-30 final closure
+
+Status: **DESIGN FROZEN**
+
+Resolved:
+- Filter authority conflict: old five-dimensional Bottom Sheet is SUPERSEDED; F1–F5 current four-dimensional inline model is authoritative.
+- Top Navigation conflict: My Catches base page uses shared TITLE_ONLY only; Search / Filter are page-owned content utilities.
+- F1 visual source is now a full 941×1672 raster authority, not the prior 360×640 low-resolution JPEG.
+- F2–F5 visual + behavior authority completed.
+- Timeline high-fidelity closure completed with seven states.
+- BG_DATA populated-page review completed against current dense archive content.
+- current populated main visual moved to V2.2 page-owned authority.
+
+Current design authority does not depend on Android runtime parity. Runtime gaps remain separate engineering handoff items.
