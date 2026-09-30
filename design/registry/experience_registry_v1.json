@@ -5576,7 +5576,8 @@
             "修改密码 · Change Password Spec V1",
             "数据与隐私 · Data & Privacy Home Spec V1",
             "AI 模型改进 · Consent Spec V1",
-            "位置权限 · Location Privacy Spec V1"
+            "位置权限 · Location Privacy Spec V1",
+            "Visual production gate: Active_Path_Visual_Closure_Brief_V1.md · 8 required current PNG authorities"
           ]
         },
         {
@@ -5842,7 +5843,7 @@
         {
           "id": "03_account_login",
           "title": "03 · 账号与安全",
-          "status": "PARTIAL",
+          "status": "ACTIVE_CLOSURE",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
@@ -5901,7 +5902,7 @@
         {
           "id": "04_data_privacy",
           "title": "04 · 数据与隐私",
-          "status": "PARTIAL",
+          "status": "ACTIVE_CLOSURE",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/Active_Path_Contract_V1.md",
