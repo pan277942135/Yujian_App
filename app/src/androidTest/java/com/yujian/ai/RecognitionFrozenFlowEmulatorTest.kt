@@ -225,7 +225,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         image = photo,
                         prediction = requireNotNull(result.prediction),
                         productionResult = result,
-                        onBack = {}, onRetry = {}, onSave = { _, _ -> }, onViewGuide = {},
+                        onBack = {}, onRetry = {}, onSave = { _, _, _ -> },
                     )
                 } else {
                     RecognitionProcessingScene(
@@ -799,8 +799,7 @@ private fun FrozenRecognitionHarness(
                 productionResult = result,
                 onBack = {},
                 onRetry = {},
-                onSave = { _, _ -> },
-                onViewGuide = {},
+                onSave = { _, _, _ -> },
             )
         }
         FrozenState.ERROR_NO_FISH,
@@ -818,7 +817,6 @@ private fun FrozenRecognitionHarness(
                 onBack = {},
                 onChooseAnother = {},
                 onChooseGallery = {},
-                onRetry = {},
             )
         }
     }
