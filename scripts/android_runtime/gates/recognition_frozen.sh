@@ -98,7 +98,7 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_production_flow_trace_v1_2.json"
   fi
 
-  for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json fish_focus_bbox_mapping.json; do
+  for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi

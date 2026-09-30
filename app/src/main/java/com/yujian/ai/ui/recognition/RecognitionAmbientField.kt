@@ -83,6 +83,11 @@ private data class QualityProfile(
     val alphaMultiplier: Float,
 )
 
+private data class ParticleAnchor(
+    val islandId: String,
+    val point: Cubic,
+)
+
 private enum class ProductStage {
     IMAGE_RECOGNIZING,
     FISH_LOCATED,
@@ -405,6 +410,10 @@ fun RecognitionAmbientField(
 
         if (quality.secondaryFragments) {
             SECONDARY_FRAGMENTS.forEachIndexed { index, fragment ->
+                // These legacy fragments cross the frozen Quiet Gaps. Keep the
+                // profile capability for future safe segments, but suppress
+                // these geometries until they can be spatially clipped.
+                if (fragment.id in QUIET_GAP_CROSSING_FRAGMENTS) return@forEachIndexed
                 val parent = when (fragment.id) {
                     "B2" -> PRIMARY_ISLANDS.first { it.id == "B1" }
                     "G2" -> PRIMARY_ISLANDS.first { it.id == "G1" }
@@ -560,7 +569,7 @@ private fun DrawScope.drawReceivingLight(
         ovalTopLeft: Offset,
         ovalSize: Size,
     ) {
-        val alpha = (.065f * common * weight).coerceAtMost(.07f)
+        val alpha = (.13f * common * weight).coerceAtMost(.14f)
         val brush = Brush.radialGradient(
             colors = listOf(
                 color.copy(alpha = alpha),
@@ -637,14 +646,14 @@ private fun DrawScope.drawCompositePrimary(
     drawPath(
         path,
         filament.color.copy(
-            alpha = (.050f * common * quality.outer).coerceAtMost(.055f),
+            alpha = (.065f * common * quality.outer).coerceAtMost(.07f),
         ),
-        style = stroke(10.dp),
+        style = stroke(14.dp),
     )
     drawPath(
         path,
         filament.color.copy(
-            alpha = (.095f * common * quality.mid).coerceAtMost(.10f),
+        alpha = (.12f * common * quality.mid).coerceAtMost(.13f),
         ),
         style = stroke(4.dp),
     )
@@ -764,30 +773,34 @@ private fun DrawScope.drawEnergyNodes(
             frame.detailEntry *
             quality.alphaMultiplier
 
-    val points = listOf(
-        Offset(size.width * .965f, size.height * .13f) to AiBlueHot,
-        Offset(size.width * .10f, size.height * .07f) to AiGoldHot,
-    )
+    val nodes = listOf("B1" to AiBlueHot, "G1" to AiGoldHot)
 
-    repeat(quality.nodeCount.coerceAtMost(points.size)) { index ->
-        val (center, color) = points[index]
+    repeat(quality.nodeCount.coerceAtMost(nodes.size)) { index ->
+        val (islandId, color) = nodes[index]
+        val island = PRIMARY_ISLANDS.first { it.id == islandId }
         val pulse = if (reduceMotion) {
             1f
         } else {
-            val t = ((nowMs % 4_800L) / 4_800f + index * .31f) % 1f
+            val t = ((nowMs % 4_800L) / 4_800f + island.seed) % 1f
             .78f + .22f * sin(t * 2f * PI).toFloat()
         }
         val weight = if (index == 0) 1f else .42f
         val alpha = common * pulse * weight
+        val trajectory = if (reduceMotion) {
+            .5f
+        } else {
+            positiveMod(frame.cycleOffset + island.seed + island.visibleRatio * .5f)
+        }
+        val center = bezierPoint(island, trajectory, size)
 
         drawCircle(
-            color.copy(alpha = (.10f * alpha).coerceAtMost(.09f)),
-            radius = 10.dp.toPx(),
+            color.copy(alpha = (.07f * alpha).coerceAtMost(.07f)),
+            radius = 4.dp.toPx(),
             center = center,
         )
         drawCircle(
-            color.copy(alpha = (.44f * alpha).coerceAtMost(.38f)),
-            radius = 2.2.dp.toPx(),
+            color.copy(alpha = (.36f * alpha).coerceAtMost(.30f)),
+            radius = 1.35.dp.toPx(),
             center = center,
         )
     }
@@ -810,24 +823,38 @@ private fun DrawScope.drawParticles(
         val t = ((nowMs % 5_000L) / 5_000f + index * .137f) % 1f
         val travel = 14f + (index % 4) * 7f
         val x =
-            anchor.x * size.width +
+            anchor.point.x * size.width +
                 sin((t + index) * 2f * PI).toFloat() * travel
         val y =
-            anchor.y * size.height +
+            anchor.point.y * size.height +
                 (t - .5f) * travel
 
-        val hot = index >= 6
-        val maxAlpha = if (hot) .50f else .35f
+        val goldOwner = anchor.islandId == "G1" || anchor.islandId == "G3"
+        val maxAlpha = .18f
         val pulse = sin(t * PI).toFloat().coerceAtLeast(0f)
+        if (pulse < .42f) return@repeat
 
         drawCircle(
-            color = (if (hot) AiGoldHot else AiBlueHot).copy(
+            color = (if (goldOwner) AiGoldHot else AiBlueHot).copy(
                 alpha = (common * maxAlpha * pulse).coerceAtMost(maxAlpha),
             ),
-            radius = if (hot) 3.dp.toPx() else 1.5.dp.toPx(),
+            radius = 1.5.dp.toPx(),
             center = Offset(x, y),
         )
     }
+}
+
+private fun bezierPoint(filament: Filament, t: Float, size: Size): Offset {
+    val oneMinus = 1f - t
+    val x = oneMinus * oneMinus * oneMinus * filament.start.x +
+        3f * oneMinus * oneMinus * t * filament.control1.x +
+        3f * oneMinus * t * t * filament.control2.x +
+        t * t * t * filament.end.x
+    val y = oneMinus * oneMinus * oneMinus * filament.start.y +
+        3f * oneMinus * oneMinus * t * filament.control1.y +
+        3f * oneMinus * t * t * filament.control2.y +
+        t * t * t * filament.end.y
+    return Offset(x * size.width, y * size.height)
 }
 
 private fun segmentEffect(
@@ -1150,12 +1177,14 @@ private val SECONDARY_FRAGMENTS = listOf(
 )
 
 private val PARTICLE_ANCHORS = listOf(
-    Cubic(.84f, .10f),
-    Cubic(.96f, .33f),
-    Cubic(.92f, .64f),
-    Cubic(.73f, .88f),
-    Cubic(.08f, .18f),
-    Cubic(.04f, .51f),
-    Cubic(.18f, .90f),
-    Cubic(.48f, .97f),
+    ParticleAnchor("B1", Cubic(.84f, .10f)),
+    ParticleAnchor("B1", Cubic(.96f, .33f)),
+    ParticleAnchor("B3", Cubic(.92f, .64f)),
+    ParticleAnchor("B3", Cubic(.73f, .88f)),
+    ParticleAnchor("G1", Cubic(.08f, .18f)),
+    ParticleAnchor("G1", Cubic(.04f, .51f)),
+    ParticleAnchor("G3", Cubic(.18f, .90f)),
+    ParticleAnchor("G3", Cubic(.48f, .97f)),
 )
+
+private val QUIET_GAP_CROSSING_FRAGMENTS = setOf("B2", "G2", "B4")

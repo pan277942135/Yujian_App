@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.os.SystemClock
 import android.util.Log
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
@@ -69,6 +70,8 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.Collections
 import java.util.LinkedHashMap
 import java.util.concurrent.atomic.AtomicReference
@@ -160,7 +163,15 @@ class RecognitionFrozenFlowEmulatorTest {
     @Test
     fun generatesFrozenThreeStateScreenshotsAndExercisesProductionNavigation() {
         val state = mutableStateOf(FrozenState.IMAGE_RECOGNIZING_EARLY)
-        composeRule.setContent { YujianTheme { FrozenRecognitionHarness(state, photo, high, medium, low, noFish, imageQuality) } }
+        val subject = createAnnotatedSubjectAlphaFixture(
+            photo.bitmap,
+            requireNotNull(high.assessment.primary).box,
+        )
+        composeRule.setContent {
+            YujianTheme {
+                FrozenRecognitionHarness(state, photo, high, medium, low, noFish, imageQuality, subject)
+            }
+        }
 
         render(state, FrozenState.IMAGE_RECOGNIZING_EARLY, "图片识别中", "01_image_recognizing_early.png")
         assertVisible("正在理解照片并寻找鱼获线索")
@@ -537,6 +548,36 @@ class RecognitionFrozenFlowEmulatorTest {
             requireNotNull(high.assessment.primary).box,
         )
         val policy = mutableStateOf(RecognitionMotionPolicy())
+        // The three profile captures share one real photo, IMAGE_RECOGNIZING
+        // state, and frozen visual clock. Focus ladder evidence is separate.
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionProcessingScene(
+                    image = photo,
+                    onBack = {},
+                    recognize = { onProgress ->
+                        onProgress(RecognitionProgress(RecognitionPhase.DETECTING, high.assessment))
+                        high
+                    },
+                    onFinished = {},
+                    phaseOverride = RecognitionPhase.DETECTING,
+                    visualClockOverrideMs = 720L,
+                    motionPolicyOverride = policy.value,
+                )
+            }
+        }
+        listOf(
+            RecognitionDegradationLevel.D0 to "quality_full.png",
+            RecognitionDegradationLevel.D1 to "quality_balanced.png",
+            RecognitionDegradationLevel.D2 to "quality_lite.png",
+        ).forEach { (level, fileName) ->
+            policy.value = RecognitionMotionPolicy(degradationLevel = level)
+            composeRule.waitForIdle()
+            assertVisible("图片识别中")
+            awaitSurfaceFrameCommit()
+            capture(fileName)
+        }
+
         composeRule.setContent {
             YujianTheme {
                 RecognitionProcessingScene(
@@ -579,12 +620,6 @@ class RecognitionFrozenFlowEmulatorTest {
             }
             composeRule.onNodeWithTag("recognition-fish-focus-level-$focus").assertIsDisplayed()
             capture("degradation_${level.name.lowercase()}.png")
-            when (level) {
-                RecognitionDegradationLevel.D0 -> capture("quality_full.png")
-                RecognitionDegradationLevel.D1 -> capture("quality_balanced.png")
-                RecognitionDegradationLevel.D2 -> capture("quality_lite.png")
-                else -> Unit
-            }
         }
 
         policy.value = RecognitionMotionPolicy(
@@ -597,6 +632,9 @@ class RecognitionFrozenFlowEmulatorTest {
         createDegradationContactSheet(levels)
         File(evidenceDir, "recognition_accessibility_trace_v1_2.json").writeText(
             """{"quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
+        )
+        File(evidenceDir, "recognition_visual_qa_v1_3.json").writeText(
+            """{"version":"1.3","review_status":"PENDING_VISUAL_REVIEW","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"UNREVIEWED","evidence":[]},"F02":{"status":"UNREVIEWED","evidence":[]},"F03":{"status":"UNREVIEWED","evidence":[]},"F04":{"status":"UNREVIEWED","evidence":[]},"F05":{"status":"UNREVIEWED","evidence":[]},"F06":{"status":"UNREVIEWED","evidence":[]}}}""",
         )
     }
 
@@ -765,11 +803,42 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.runOnUiThread { state.value = next }
         composeRule.waitForIdle()
         assertVisible(expected)
+        if (screenshotName == "03_fish_located.png" || screenshotName == "04_species_recognizing.png") {
+            composeRule.waitUntil(timeoutMillis = 5_000L) {
+                runCatching {
+                    composeRule.onNodeWithTag("recognition-fish-focus-level-a").fetchSemanticsNode()
+                    true
+                }.getOrDefault(false)
+            }
+            composeRule.onNodeWithTag("recognition-fish-focus-level-a").assertIsDisplayed()
+            assertVisible(expected)
+        }
+        if (screenshotName != null) awaitSurfaceFrameCommit()
         if (screenshotName != null) capture(screenshotName)
         trace("PASS_STATE=$next")
     }
 
+    private fun awaitSurfaceFrameCommit() {
+        composeRule.waitForIdle()
+        val frameDrawn = CountDownLatch(1)
+        lateinit var listener: ViewTreeObserver.OnDrawListener
+        composeRule.runOnUiThread {
+            val decor = composeRule.activity.window.decorView
+            val tree = decor.viewTreeObserver
+            listener = ViewTreeObserver.OnDrawListener {
+                if (tree.isAlive) tree.removeOnDrawListener(listener)
+                frameDrawn.countDown()
+            }
+            tree.addOnDrawListener(listener)
+            decor.invalidate()
+        }
+        assertTrue("Compose state was not drawn before screenshot", frameDrawn.await(5, TimeUnit.SECONDS))
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        device.waitForIdle()
+    }
+
     private fun capture(name: String) {
+        awaitSurfaceFrameCommit()
         val output = File(evidenceDir, name)
         val raw = File(evidenceDir, ".$name.raw.png")
         assertTrue("screenshot capture failed: $name", device.takeScreenshot(raw))
@@ -917,6 +986,7 @@ private fun FrozenRecognitionHarness(
     low: ProductionRecognitionResult,
     noFish: ProductionRecognitionResult,
     imageQuality: ProductionRecognitionResult,
+    subject: FishSubjectResult? = null,
 ) {
     val stateValue = state.value
     key(stateValue) {
@@ -939,6 +1009,7 @@ private fun FrozenRecognitionHarness(
                     high
                 },
                 onFinished = {},
+                generateSubject = subject?.let { ready -> { _, _ -> ready } },
                 phaseOverride = when (stateValue) {
                     FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
                     FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING

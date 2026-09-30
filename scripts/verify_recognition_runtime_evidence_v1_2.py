@@ -28,6 +28,7 @@ REQUIRED = [
     "reduce_motion_static.png",
     "degradation_d0_d4_contact_sheet.png",
     "recognition_accessibility_trace_v1_2.json",
+    "recognition_visual_qa_v1_3.json",
     "recognition_production_flow_trace_v1_2.json",
     "level_a_real_contour.png",
     "fish_focus_bbox_mapping.json",
@@ -110,6 +111,18 @@ def main() -> None:
         raise SystemExit("degradation trace does not map D3 to Fish Focus B")
     if accessibility.get("degradation", {}).get("D4") != "LITE+C":
         raise SystemExit("degradation trace does not map D4 to Fish Focus C")
+
+    visual_qa = json.loads(
+        (root / "recognition_visual_qa_v1_3.json").read_text(encoding="utf-8")
+    )
+    expected_findings = {"F01", "F02", "F03", "F04", "F05", "F06"}
+    if set(visual_qa.get("findings", {})) != expected_findings:
+        raise SystemExit("visual QA evidence must include the complete F01-F06 taxonomy")
+    for code, finding in visual_qa["findings"].items():
+        if finding.get("status") not in {"UNREVIEWED", "PASS", "FAIL"}:
+            raise SystemExit(f"invalid visual QA status for {code}")
+        if finding.get("status") == "FAIL" and not finding.get("evidence"):
+            raise SystemExit(f"visual QA failure {code} has no evidence reference")
 
     bbox = json.loads((root / "fish_focus_bbox_mapping.json").read_text(encoding="utf-8"))
     box = bbox.get("detector_bbox_normalized", {})

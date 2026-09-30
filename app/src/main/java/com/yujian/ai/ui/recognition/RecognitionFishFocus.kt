@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
@@ -87,12 +88,12 @@ fun RecognitionFishFocus(
         val mapped = transform.mapBox(normalized)
         val center = Offset(mapped.x, mapped.y)
 
-        val baseRadiusX =
-            transform.drawnWidth * normalized.width * .62f +
-                14.dp.toPx()
-        val baseRadiusY =
-            transform.drawnHeight * normalized.height * .72f +
-                14.dp.toPx()
+        val baseRadiusX = transform.drawnWidth * normalized.width *
+            if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
+        val baseRadiusY = transform.drawnHeight * normalized.height *
+            if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
+        val visualRadiusX = baseRadiusX + 8.dp.toPx()
+        val visualRadiusY = baseRadiusY + 8.dp.toPx()
 
         val remaining =
             1f - resolveProgress.coerceIn(0f, 1f)
@@ -137,13 +138,16 @@ fun RecognitionFishFocus(
             else -> .30f + .12f * wave
         }
 
-        val haloAlpha =
-            haloTarget * reveal * resolveStrength
+        // A real detector box is already enough to acknowledge the fish. Show
+        // its local receiving halo on the first OUTLINE frame; contour detail
+        // continues to reveal independently as Level A data arrives.
+        val haloReveal = if (phase == RecognitionPhase.OUTLINE) maxOf(.72f, reveal) else reveal
+        val haloAlpha = haloTarget * haloReveal * resolveStrength
 
         val radiusScale =
             if (effectiveLevel == RecognitionFishFocusLevel.C) .88f else 1f
-        val radiusX = baseRadiusX * radiusScale
-        val radiusY = baseRadiusY * radiusScale
+        val radiusX = visualRadiusX * radiusScale
+        val radiusY = visualRadiusY * radiusScale
 
         drawOval(
             brush = Brush.radialGradient(
@@ -183,6 +187,13 @@ fun RecognitionFishFocus(
                 ),
                 style = Stroke(
                     width = 1.2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(
+                        floatArrayOf(
+                            maxOf(baseRadiusX, baseRadiusY) * 1.95f,
+                            maxOf(baseRadiusX, baseRadiusY) * 4.55f,
+                        ),
+                        0f,
+                    ),
                 ),
             )
         }
