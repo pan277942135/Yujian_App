@@ -33,7 +33,7 @@
     "Frozen Visual Authority restored to the first product-approved Nickname Edit V1 board.",
     "A later regenerated correction board is superseded and is not an Authority.",
     "Validation semantics are authoritative in backend + machine + development contracts: trimmed nickname length 1–20.",
-    "03 is frozen; 04–06 remain independent design work."
+    "03 behavior/machine/development contracts remain frozen; Visual Authority is BLOCKED_INTEGRITY until the approved binary is recovered. 04–06 remain independent design work."
   ],
   "source_filename": "昵称编辑流程与交互规范.png",
   "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json",
