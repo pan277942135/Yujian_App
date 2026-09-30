@@ -108,3 +108,45 @@ B5 remains:
 `design/pages/fish_records/list/My_Catches_Search_Spec_V1.md`
 
 The old dynamic Search canvas remains implementation history only and is not the frozen visual authority.
+
+
+## 7. Status semantics
+
+Design Manager status is governance state, not implementation optimism.
+
+### FROZEN
+
+Use only when the declared authority exists and its required identity / contract checks are trusted.
+
+### PARTIAL
+
+Use when the scope is active and design work remains incomplete.
+
+### MISSING
+
+Use when a required authority does not yet exist.
+
+### DEFERRED
+
+Use when a known flow or design reference is intentionally outside the current product scope / release.  
+DEFERRED is **not** the same as PARTIAL: it does not imply the team should continue closing that flow in the current scope.
+
+Typical example:
+- future Forgot Password flow while recovery capability is intentionally unavailable;
+- data export or account deletion flows intentionally deferred from the MVP.
+
+### BLOCKED_INTEGRITY
+
+Use when an authority is expected to exist but its identity cannot currently be trusted, for example:
+- repository binary SHA does not match the recorded Frozen fingerprint;
+- canonical source is missing while a non-byte-identical derivative remains.
+
+Rules:
+- do not display the item as FROZEN;
+- do not regenerate / re-encode a substitute merely to make fingerprints agree;
+- retain valid behavior / machine contracts as independently frozen when appropriate;
+- restore FROZEN only after the approved authority identity is recovered or a versioned replacement is explicitly approved.
+
+### Runtime separation
+
+Runtime existence, compile PASS, or production code does not upgrade Design status automatically.
