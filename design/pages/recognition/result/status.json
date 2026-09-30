@@ -39,5 +39,15 @@
   "hero_media_frozen": true,
   "hero_media_contract": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
   "hero_media_numeric_contract": "design/pages/recognition/result/media/hero_media_contract.json",
-  "hero_media_test_vectors": "design/pages/recognition/result/media/hero_media_test_vectors.json"
+  "hero_media_test_vectors": "design/pages/recognition/result/media/hero_media_test_vectors.json",
+  "implementation_ready": true,
+  "implementation_readiness": "IMPLEMENTATION_READY",
+  "work_visual_judgment_required": false,
+  "engineering_contracts_frozen": true,
+  "layout_geometry_contract": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+  "component_map_contract": "design/pages/recognition/result/engineering/component_map.json",
+  "metadata_input_contract": "design/pages/recognition/result/engineering/metadata_input_contract.json",
+  "candidate_card_contract": "design/pages/recognition/result/engineering/candidate_card_contract.json",
+  "visual_acceptance_map": "design/pages/recognition/result/engineering/visual_acceptance_map.json",
+  "result_asset_manifest": "design/pages/recognition/assets/Asset_Manifest_V1.json"
 }
