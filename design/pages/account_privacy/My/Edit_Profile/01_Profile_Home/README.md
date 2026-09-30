@@ -63,6 +63,8 @@ Frozen hierarchy:
 Rules:
 
 - runtime uses the user's current avatar;
+- if a logged-in user's avatar is unset or fails to load, use **Shared Default Profile Avatar V1**: `design/system/components/profile_avatar_v1/default_profile_avatar_contract.json`;
+- Guest account entry is not the logged-in default profile avatar;
 - the person shown in the frozen mockup is illustrative, not a fixed identity asset;
 - avatar editing behavior belongs to `02 · 头像修改`;
 - the Camera icon reuses the shared Icon Action visual language.
