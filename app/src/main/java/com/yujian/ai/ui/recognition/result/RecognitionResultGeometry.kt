@@ -39,6 +39,9 @@ object RecognitionResultGeometryResolver {
             compactHeightPolicy = contentHeightDp < 600,
         )
     }
+
+    /** Accessibility text scaling can make the fixed candidate labels compete for width. */
+    fun usesScrollableCandidateRow(fontScale: Float): Boolean = fontScale >= 1.3f
 }
 
 enum class RecognitionHeroMediaMode { SUBJECT_CROP_FILL, SUBJECT_SAFE_FIT, EVIDENCE_FIT }

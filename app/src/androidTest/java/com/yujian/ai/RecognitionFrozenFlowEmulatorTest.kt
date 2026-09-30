@@ -29,6 +29,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -249,6 +250,123 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitForIdle()
 
         assertEquals("user Back must not be routed as recognition failure", 0, failureCount.get())
+    }
+
+    @Test
+    fun highResultKeepsResolvedSpeciesAndBothRecordActions() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("修改鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("长度").assertIsDisplayed()
+        composeRule.onNodeWithText("重量").assertIsDisplayed()
+        composeRule.onNodeWithText("地点").assertIsDisplayed()
+        composeRule.onNodeWithText("留下本次鱼获感言").assertIsDisplayed()
+        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("已识别").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun mediumResultRequiresExplicitCandidateChoiceBeforeRecordActionsAppear() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(medium.prediction),
+                    productionResult = medium,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("帮我确认一下，这条鱼更像哪一种？").assertIsDisplayed()
+        composeRule.onNodeWithText("都不是？选择其他鱼种").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("继续记录记忆").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+        val suggestedTree = composeRule.onRoot(useUnmergedTree = true).printToString()
+        assertTrue("Top-1 must be exposed as a suggestion", suggestedTree.contains("模型建议"))
+        assertFalse("Top-1 must not be preselected", suggestedTree.contains("Selected = true"))
+
+        composeRule.onNode(hasText("鲫鱼") and hasClickAction()).performClick()
+
+        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+        val selectedTree = composeRule.onRoot(useUnmergedTree = true).printToString()
+        assertTrue("explicit candidate tap must create a selected state", selectedTree.contains("Selected = true"))
+    }
+
+    @Test
+    fun lowResultHidesRecordControlsUntilManualSpeciesSelection() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(low.prediction),
+                    productionResult = low,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("无法确认是什么鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("手动选择鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("重新拍摄").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("长度").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.onNodeWithText("手动选择鱼种").performClick()
+        composeRule.onNodeWithText("选择鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("鲫鱼").performClick()
+
+        composeRule.onNodeWithText("修改鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("长度").assertIsDisplayed()
+        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun noFishAndImageQualityKeepDistinctRecoveryCopyAndActions() {
+        val shownResult = mutableStateOf(noFish)
+        val recoveryActions = Collections.synchronizedList(mutableListOf<String>())
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionIssueScreen(
+                    image = photo,
+                    result = shownResult.value,
+                    onBack = {},
+                    onChooseAnother = { recoveryActions += "camera" },
+                    onChooseGallery = { recoveryActions += "gallery" },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("没有找到可识别的鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("请让鱼完整出现在画面中，再试一次。").assertIsDisplayed()
+        composeRule.onNodeWithText("重新拍摄").performClick()
+        composeRule.onNodeWithText("从相册选择").performClick()
+        assertEquals(listOf("camera", "gallery"), recoveryActions.toList())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        shownResult.value = imageQuality
+        composeRule.onNodeWithText("照片不够清晰，无法识别").assertIsDisplayed()
+        composeRule.onNodeWithText("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
     }
 
 

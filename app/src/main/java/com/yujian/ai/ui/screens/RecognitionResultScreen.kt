@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -56,6 +57,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -142,6 +144,7 @@ fun RecognitionResultScreen(
         LocalConfiguration.current.screenWidthDp,
         LocalConfiguration.current.screenHeightDp,
     )
+    val candidateFontScale = LocalDensity.current.fontScale
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
     val selectorSpecies = remember(prediction, availableSpecies) {
         val extras = availableSpecies.mapIndexed { index, item ->
@@ -292,6 +295,7 @@ fun RecognitionResultScreen(
                             candidates = candidates,
                             selectedKey = selectedKey,
                             widthDp = geometry.heroWidthDp,
+                            accessibilityFontScale = candidateFontScale,
                             saving = saving,
                             speciesImages = speciesImages,
                             onSelect = { candidate -> selectedKey = candidate.speciesKey; selectedName = candidate.speciesName },
@@ -560,12 +564,23 @@ private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, sid
 
 @Composable
 private fun CandidateRow(
-    candidates: List<RecognitionCandidate>, selectedKey: String, widthDp: Int, saving: Boolean,
+    candidates: List<RecognitionCandidate>, selectedKey: String, widthDp: Int,
+    accessibilityFontScale: Float, saving: Boolean,
     speciesImages: Map<String, String?>,
     onSelect: (RecognitionCandidate) -> Unit,
 ) {
-    val cardWidth = if (candidates.size == 2) 136f else ((widthDp - 16f) / 3f).coerceIn(88f, 116f)
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
+    val accessibilityScroll = RecognitionResultGeometryResolver.usesScrollableCandidateRow(accessibilityFontScale)
+    val cardWidth = if (accessibilityScroll) 104f else if (candidates.size == 2) 136f else ((widthDp - 16f) / 3f).coerceIn(88f, 116f)
+    Row(
+        Modifier.fillMaxWidth().then(
+            if (accessibilityScroll) Modifier.horizontalScroll(rememberScrollState()) else Modifier,
+        ),
+        horizontalArrangement = if (accessibilityScroll) {
+            Arrangement.spacedBy(8.dp)
+        } else {
+            Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+        },
+    ) {
         candidates.take(3).forEachIndexed { index, candidate ->
             val selected = candidate.speciesKey == selectedKey
             val suggested = index == 0 && !selected

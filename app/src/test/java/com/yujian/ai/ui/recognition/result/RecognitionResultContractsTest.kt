@@ -28,6 +28,13 @@ class RecognitionResultContractsTest {
     }
 
     @Test
+    fun accessibilityFontScaleEnablesScrollableCandidateRowAtLargeTextSizes() {
+        assertFalse(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.2f))
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.3f))
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.6f))
+    }
+
+    @Test
     fun subjectPlannerUsesSafeFitForMissingOrSourceClippedBox() {
         val missing = RecognitionHeroMediaPlanner.plan(1600, 900, 320f, 248f, null, false)
         assertEquals(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, missing.mode)
