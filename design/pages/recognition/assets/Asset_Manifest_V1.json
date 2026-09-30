@@ -12,6 +12,23 @@
     {
       "name": "Fish_Highlight_Layer",
       "status": "FROZEN"
+    },
+    {
+      "name": "RecognitionResultHeroMedia",
+      "status": "FROZEN",
+      "kind": "DYNAMIC_RUNTIME_MEDIA",
+      "display_source": "original_user_photo_after_orientation_normalization",
+      "focal_guidance": "recognition_fish_bbox_when_trustworthy",
+      "contract": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+      "numeric_contract": "design/pages/recognition/result/media/hero_media_contract.json",
+      "shipping_asset": false,
+      "prohibited_replacements": [
+        "detector_crop",
+        "classifier_crop",
+        "fish_guide_artwork",
+        "generated_fish_asset",
+        "blurred_photo_background"
+      ]
     }
   ]
 }

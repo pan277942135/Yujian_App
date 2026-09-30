@@ -17,19 +17,29 @@
     },
     {
       "rank": 2,
+      "authority": "HERO_MEDIA_CONTRACT_V1",
+      "files": [
+        "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+        "design/pages/recognition/result/media/hero_media_contract.json",
+        "design/pages/recognition/result/media/hero_media_test_vectors.json"
+      ],
+      "rule": "Numeric/behavior authority for mapping arbitrary real user photos inside the Frozen Hero container. Does not redefine page/container geometry."
+    },
+    {
+      "rank": 3,
       "authority": "RESULT_PACKAGE_SPECS",
       "root": "design/pages/recognition/result/",
       "rule": "Behavior, interaction, CTA and implementation-facing state contract."
     },
     {
-      "rank": 3,
+      "rank": 4,
       "authority": "CORE_VISUAL_SYSTEM_REFERENCE",
       "file": "design/system/core_visual_v1/reference/recognition_result_v1.png",
       "sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
       "rule": "Shared Result visual language/base composition. Does not override a state-specific Frozen reference."
     },
     {
-      "rank": 4,
+      "rank": 5,
       "authority": "GLOBAL_RECOGNITION_RUNTIME",
       "files": [
         "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
@@ -38,7 +48,7 @@
       "rule": "Real pipeline/state routing authority. Result visuals must not change model semantics."
     },
     {
-      "rank": 5,
+      "rank": 6,
       "authority": "RUNTIME_IMPLEMENTATION",
       "files": [
         "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
@@ -48,6 +58,7 @@
     }
   ],
   "conflict_rules": [
+    "Frozen state PNG owns Hero container placement; Hero Media Contract owns dynamic user-photo placement inside that container.",
     "State-specific Frozen PNG wins over the Core Visual reference for state differences.",
     "Result spec wins over runtime behavior when runtime is implementation debt.",
     "Global Recognition Runtime Contract wins for classifier/detector/confidence semantics.",

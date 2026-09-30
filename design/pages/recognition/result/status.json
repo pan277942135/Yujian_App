@@ -35,5 +35,9 @@
   "core_visual_reference": "design/system/core_visual_v1/reference/recognition_result_v1.png",
   "core_visual_reference_sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
   "global_runtime_contract": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
-  "acceptance": "design/pages/recognition/result/spec/Recognition_Result_Acceptance_Criteria_V1.md"
+  "acceptance": "design/pages/recognition/result/spec/Recognition_Result_Acceptance_Criteria_V1.md",
+  "hero_media_frozen": true,
+  "hero_media_contract": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+  "hero_media_numeric_contract": "design/pages/recognition/result/media/hero_media_contract.json",
+  "hero_media_test_vectors": "design/pages/recognition/result/media/hero_media_test_vectors.json"
 }
