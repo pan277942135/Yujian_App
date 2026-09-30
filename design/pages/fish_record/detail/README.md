@@ -95,6 +95,11 @@ The 2026-09-30 batch review freezes the remaining compact Design Manager entries
 - One consolidated editing workspace.
 - Basic facts + environment/record fields.
 - Save / cancel / validation / failure preservation / destructive confirmation are frozen.
+- Visual Authority: `design/pages/fish_record/detail/frozen/editing/FishRecordDetail_Editing_V1_Frozen.png`
+- Source: `湖畔鱼获编辑界面.png`
+- Dimensions: **941 × 1672**
+- Bytes: **1,542,547**
+- SHA-256: `d81495f760840c0411aa693bb8b3b39fc1d65e012387350732047f1272250114`
 
 ### 05 · 页面状态
 - Authority: `FishRecordDetail_Page_States_Spec_V1.md`
