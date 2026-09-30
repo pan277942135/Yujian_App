@@ -1,0 +1,28 @@
+{
+  "feature": "recognition_result_v1",
+  "package": "Recognition Result Design Package V1",
+  "package_version": "V1",
+  "scope": "design_only",
+  "state_model": "3+2",
+  "result_states": [
+    "RESULT_HIGH",
+    "RESULT_MEDIUM",
+    "RESULT_LOW"
+  ],
+  "recovery_states": [
+    "ERROR_NO_FISH",
+    "ERROR_IMAGE_QUALITY"
+  ],
+  "technical_failure_frozen": false,
+  "design_frozen": true,
+  "visual_frozen": true,
+  "behavior_frozen": true,
+  "motion_frozen": true,
+  "authority_registered": true,
+  "runtime_alignment": "NEEDS_CLOSURE",
+  "state_reference_manifest": "design/pages/recognition/design/reference_manifest.json",
+  "core_visual_reference": "design/system/core_visual_v1/reference/recognition_result_v1.png",
+  "core_visual_reference_sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
+  "global_runtime_contract": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
+  "acceptance": "design/pages/recognition/result/spec/Recognition_Result_Acceptance_Criteria_V1.md"
+}

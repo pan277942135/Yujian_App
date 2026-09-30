@@ -28,7 +28,6 @@ It contains the original visual source, reproducible reusable masters, contracts
 outputs, and Android evidence. The Android runtime is the only platform represented by this V2
 delivery; no iOS or HarmonyOS readiness claim is implied.
 
-
 ## Normal Home V1 design package
 
 `design/pages/home/normal_home` is the Design Frozen page package for the Home state with one or more valid FishRecords.
@@ -37,3 +36,18 @@ Its canonical visual remains `design/system/core_visual_v1/reference/normal_home
 Behavior, visual interpretation, motion, haptic, sound, assets, authority ordering and freeze status are versioned inside the page package.
 
 The package intentionally does not register an independent Morning Lake bitmap unless a separately frozen source is present in the repository.
+
+## Recognition Result V1 design package
+
+`design/pages/recognition/result` is the Design Frozen 3+2 package for the Recognition Result bridge:
+
+- High
+- Medium
+- Low
+- No Fish
+- Image Quality
+
+The five state-level Frozen references remain under `design/pages/recognition/design/05–09`.
+The system-level `recognition_result_v1.png` defines shared Result visual language, while the five state references define state-specific composition.
+
+Design closure and Android Runtime alignment are intentionally tracked separately.

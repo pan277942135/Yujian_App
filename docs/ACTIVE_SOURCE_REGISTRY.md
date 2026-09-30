@@ -128,6 +128,37 @@ Design freeze and runtime evidence status are tracked separately.
 
 Historical `RECOGNITION_RUNTIME_v1` 800/1500/2300/3000 boundaries are retired.
 
+## Recognition Result 3+2
+
+### Active design authority
+
+- Design package closure:
+  `design/pages/recognition/result/DESIGN_PACKAGE_CLOSURE_V1.md`
+- State model:
+  `design/pages/recognition/result/spec/Recognition_Result_State_Matrix_V1.md`
+- Feature / behavior / visual:
+  `design/pages/recognition/result/spec/`
+- Motion:
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md`
+- Authority order:
+  `design/pages/recognition/result/authority/authority_map.json`
+- Runtime alignment review:
+  `design/pages/recognition/result/review/Recognition_Result_Runtime_Alignment_Review_V1.md`
+- Status:
+  `design/pages/recognition/result/status.json`
+
+### State-level visual authority
+
+- `design/pages/recognition/design/05_Result_High_Frozen.png`
+- `design/pages/recognition/design/06_Result_Medium_Frozen.png`
+- `design/pages/recognition/design/07_Result_Low_Frozen.png`
+- `design/pages/recognition/design/08_Error_No_Fish_Frozen.png`
+- `design/pages/recognition/design/09_Error_Image_Quality_Frozen.png`
+
+The generic Core Visual reference `design/system/core_visual_v1/reference/recognition_result_v1.png` remains the shared Result visual-language authority only. State-level 05–09 references win for state-specific differences.
+
+Design freeze and runtime alignment are tracked separately. Current Result design is frozen; Android Runtime alignment remains `NEEDS_CLOSURE` until the Result-specific review is resolved and revalidated.
+
 ## Recognition model
 
 - Detector: `DET_FISH_v0.1`
