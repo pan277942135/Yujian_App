@@ -27,7 +27,7 @@ Machine-readable navigation: `navigation.json`
 | ID | 二级菜单 | 出图方式 | 当前状态 |
 | --- | --- | --- | --- |
 | NH01 | 主页面｜多鱼获状态 | 独立高保 | FROZEN — 当前视觉权威 |
-| NH02 | 第一条鱼首页 | 独立高保 | **SPEC FROZEN / HIFI REVIEW** |
+| NH02 | 第一条鱼首页 | 独立高保 | **FROZEN · SPEC + VISUAL** |
 | NH03 | 页面状态与异常 | 合并规范图 | 待补 |
 | NH04 | 组件状态与内容边界 | 合并规范图 | 待补 |
 | NH05 | 响应式与交互 | 合并规范图 | 待补 |
@@ -42,7 +42,7 @@ Machine-readable navigation: `navigation.json`
 
 规范已冻结：`02_first_catch/README.md`。
 
-唯一需要新增的关键首页高保状态：仅有 1 条有效 FishRecord。沿用 NH01 全部环境、布局与组件，仅将 Pager 收敛为**同尺寸居中单卡**；左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。当前阶段为 **SPEC FROZEN / HIFI REVIEW**；高保已进入 Design Manager，待视觉确认后再升级为 Frozen Visual Authority。
+唯一需要新增的关键首页高保状态：仅有 1 条有效 FishRecord。沿用 NH01 全部环境、布局与组件，仅将 Pager 收敛为**同尺寸居中单卡**；左右无假邻卡、无 Pager 暗示、无第一条鱼庆祝层。NH02 规范与实际生成的高保真 PNG 原图均已冻结；Design Manager 直接展示 Frozen raster Visual Authority，不使用 SVG / 程序化派生图替代。
 
 ### NH03｜页面状态与异常
 

@@ -30,7 +30,7 @@
       "label_zh": "第一条鱼首页",
       "label_en": "First Catch Home / Single Record",
       "output_policy": "INDEPENDENT_HIFI",
-      "status": "HIFI_REVIEW",
+      "status": "FROZEN",
       "contains": [
         "1 条有效 FishRecord → Normal Home",
         "单张 HOME Hero 保持 NH01 中央主卡尺寸并水平居中",
@@ -43,8 +43,8 @@
       ],
       "authority": "design/pages/home/normal_home/02_first_catch/README.md",
       "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
-      "visual_authority": "design/pages/home/normal_home/02_first_catch/hifi/NH02_First_Catch_Home_V1_HiFi.svg",
-      "visual_manifest": "design/pages/home/normal_home/02_first_catch/hifi/manifest.json"
+      "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "visual_manifest": "design/pages/home/normal_home/02_first_catch/frozen/manifest.json"
     },
     {
       "order": 3,

@@ -322,11 +322,11 @@
           "id": "NH02",
           "code": "NH02",
           "title": "NH02 · 第一条鱼首页",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "repo_image",
           "authority_type": "visual",
           "authority": "design/pages/home/normal_home/02_first_catch/README.md",
-          "summary": "NH02 规范已冻结，高保已进入评审。仅 1 条有效 FishRecord；中央 HOME Hero 同尺寸居中，左右无邻卡与 Pager 暗示，统计样例 1 / 1 / 1。",
+          "summary": "NH02 规范与高保视觉均已冻结。唯一有效 FishRecord 的 Normal Home：1 / 1 / 1，中央单张 HOME Hero，左右无邻卡与 Pager 暗示；沿用 NH01 的 Header、Morning Lake、最近鱼获、CTA 与 Capture Button。",
           "menu_points": [
             "1 valid FishRecord → Normal Home",
             "Same-size centered HOME Hero",
@@ -340,11 +340,11 @@
           ],
           "behavior_authority": "design/pages/home/normal_home/02_first_catch/README.md",
           "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
-          "image": "design/pages/home/normal_home/02_first_catch/hifi/NH02_First_Catch_Home_V1_HiFi.svg",
-          "visual_authority": "design/pages/home/normal_home/02_first_catch/hifi/NH02_First_Catch_Home_V1_HiFi.svg",
-          "visual_status": "CANDIDATE",
-          "visual_caption": "NH02 Hi-Fi Review · 规范已冻结，视觉待最终确认",
-          "visual_authority_manifest": "design/pages/home/normal_home/02_first_catch/hifi/manifest.json"
+          "image": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+          "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+          "visual_status": "FROZEN",
+          "visual_caption": "NH02 · First Catch Home V1 · Frozen Visual Authority",
+          "visual_authority_manifest": "design/pages/home/normal_home/02_first_catch/frozen/manifest.json"
         },
         {
           "id": "NH03",
