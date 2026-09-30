@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P11 Account & Privacy
+- Current phase: P12 Shared Component Parity
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -48,7 +48,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P09 Fish Record Detail | PUSHED | `bce336955f49532e6ef6061cbabbc145639b88d3` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; PR branch contains the accepted source | Android runtime validation BLOCKED_INFRA — runs #1105, #1106 and #1109 exit before any job; backend dependencies OPEN and tracked separately | Continue P10; carry the shared CI blocker without retry |
 | P10 Fish Guide | BLOCKED_INFRA | Source `7a496304a83995f69d8aef29251326e5e20113c1`; executable-mode follow-up `6c7ca3f1b62af65fc77ccea4507c472978016cf8` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; Design Governance #36732633936 and Empty Home V2 Design Assets #36732633780 PASS | Android runtime validation carries the shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; do not retry per phase | Continue P11 |
 | P11 Account & Privacy | BLOCKED_INFRA | Source `5d137ba5e0bde2832e9807d95d919f2426159f5f` | Implementation COMPLETE; GitHub source checkpoint PASS; static/source contract checks PASS; Android runtime tests authored under the existing `login-v2` Gate | Shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; Product/API Dependencies: recovery channel, data export endpoint, account deletion endpoint; DESIGN_GAP: User Agreement visual authority and standalone waterside-grass footer asset; legal content review required | Continue P12; carry shared blocker without retry |
-| P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
+| P12 Shared Component Parity | BLOCKED_INFRA | Source `963403b1729164d4d742e150c2e021ca91978f8e` | Implementation COMPLETE; GitHub source checkpoint PASS; P12 static contract checks PASS; Design Governance #36742433784 and Empty Home V2 Design Assets #36742433851 PASS | Android CI #1202 (run `36742424049`) was created and failed before any job was created (0 jobs); carries the single `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; no per-phase retry | Continue P13 |
 | P13 Cross-Journey Integration | NOT_STARTED | — | — | — | — |
 | P14 Final Android Runtime Matrix | NOT_STARTED | — | — | — | — |
 | P15 APK / Evidence / PR Closure | NOT_STARTED | — | — | — | — |
@@ -370,6 +370,21 @@ P10 has no new backend dependency. P09 edit, supplemental-media, cross-device re
 - Account profile and crop output instrumentation tests were added to the existing `login-v2` Gate; no runner, AVD, workflow orchestration or validation environment was changed. Static checks passed: Core UI references, Design Manager navigation guard, focused P11 source assertions, gate shell syntax and `git diff --check`. Design Governance run `36738406070` and Empty Home V2 Design Assets run `36738405873` succeeded. Android instrumentation was authored but not executed.
 - Product/API Dependencies (not infrastructure): no verified password-recovery channel/endpoint; no data export endpoint; no account deletion endpoint. These flows remain gated and use no invented APIs. User Agreement is still runtime-only with no visual authority; existing legal copy is retained with `LEGAL_COPY_REVIEW_REQUIRED` pending legal review.
 - Android validation carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; P11 did not consume a separate retry budget. Continue with P12.
+
+## P12 Shared Component Parity checkpoint
+
+- P12 scope: shared navigation, action buttons, Icon Action, Text Action, Capture Button, Morning Lake background variants, glass cards, accessibility, and responsive parity. Frozen design specs and assets remain unchanged.
+- Shared Action Button now applies the frozen disabled label colors, exposes the loading state to accessibility, keeps the 56dp/28dp contract, and draws a 2dp `#0F7A78` focus ring with the specified 2dp external gap. Reduced motion updates from the system animator-scale setting while retaining pressed-color feedback.
+- Icon Action and Text Action now expose 44dp minimum targets, button roles and visible keyboard-focus outlines with the frozen external gap. BACK_TITLE navigation now uses that shared 44dp target. My Catches back/search/filter/clear/cancel controls use shared actions; search, filter and recent-search content behavior is unchanged.
+- Capture Button has a dedicated 64dp minimum touch target, uses the frozen camera light-impact feedback, and only creates local idle motion when no scene clock is supplied and motion is allowed. Existing Empty Home raster assets and scene-clock behavior remain in use.
+- BG_CONTENT and BG_DATA use one shared Morning Lake renderer with the existing frozen matrices and 15% / 30% veils. Recognition Result, Fish Guide and My Catches no longer maintain page-local copies. Frozen source images were not changed.
+- Clickable glass cards expose button semantics, disabled semantics, focus feedback and reduced-motion press scaling. Fish Record Detail fallback actions, Share Center's primary action, and Account Privacy prompt CTAs now use shared action components.
+- Component instrumentation was expanded for enabled/disabled/loading semantics, 44dp/64dp targets, button roles, and a 320dp top bar at 1.6 font scale. Evidence files are written to the existing `login_v2` directory by those tests and are required by the existing `login-v2` evidence collector. Tests are authored but not executed.
+- Static checks: `scripts/verify_shared_component_parity.py`, `scripts/verify_core_ui_v1_references.py`, `scripts/verify_design_manager_navigation.py`, `bash -n scripts/android_runtime/gates/login_v2.sh`, Python source compilation, and `git diff --check` PASS. Android compile and instrumentation remain unavailable because of the shared repository-level 0-job failure; no Gate retry was made.
+- P12 implementation has no new Product/API dependency. P09's edit-existing-catch, supplemental media, cross-device reveal, note/weather/delete capabilities remain open Product/API Dependencies and are unrelated to the Android infrastructure blocker.
+- P12 source checkpoint: `963403b1729164d4d742e150c2e021ca91978f8e`. P12 IMPLEMENTATION: COMPLETE. P12 GITHUB CHECKPOINT: PASS. P12 STATIC CONTRACT CHECKS: PASS. P12 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA.
+- Design Governance #474 (`36742433784`) and Empty Home V2 Design Assets #700 (`36742433851`) succeeded. Android CI #1202 (`36742424049`) was created and terminated before creating any job; a read-only jobs check returned 0 jobs. This is the existing shared orchestration blocker; no Android rerun or phase-specific retry was made.
+- Continue P13 Cross-Journey Integration while carrying the single shared blocker.
 
 ## Shared infrastructure follow-up blocker
 
