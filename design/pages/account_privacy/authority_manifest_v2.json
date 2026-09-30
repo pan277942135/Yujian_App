@@ -255,7 +255,7 @@
       "title": "02D · 昵称编辑",
       "menu_location": "账号与隐私 → 02 · 我的与资料 → 02D · 昵称编辑",
       "status": "BLOCKED_INTEGRITY",
-      "visual_authority": null,
+      "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
@@ -282,7 +282,9 @@
       "integrity_status": "BLOCKED_INTEGRITY",
       "contract_status": "FROZEN",
       "blocking_gate": "Recover originally approved byte-identical visual source; do not regenerate or re-encode.",
-      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "visual_authority_status": "BLOCKED_INTEGRITY",
+      "visual_authority_trusted": false
     },
     {
       "id": "03a",
