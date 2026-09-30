@@ -46,7 +46,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P07 Result Editing | BLOCKED_INFRA | `3063074c34f4f596a559cc35f68c20ddd7765859` | Contextual full selector, pinyin/alias search, device-local recents, numeric/location editing, safe save errors; static verifiers and source Actions PASS; targeted tests authored | Shared Android CI orchestration failure prevents Android jobs from being scheduled; extra API catalog species need pinyin fields for full search/index grouping | Continue P08; retain pinyin coverage gap without retrying shared CI blocker |
 | P08 My Catches | BLOCKED_INFRA | `3a412ed1a3531b8438ff241837a39d2abc40b9e4` | Search, recent searches, F1 filters, BG_DATA, timeline grouping/folding, date detail, empty states and Growth Marks implemented; tests authored; source Actions and static checks pass | Android compile/unit/instrumentation/visual evidence unavailable; timeline high-fi visual closure is active; catches API returns all records without pagination | Continue P09 independently; carry visual/API paging gaps |
 | P09 Fish Record Detail | PUSHED | `bce336955f49532e6ef6061cbabbc145639b88d3` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; PR branch contains the accepted source | Android runtime validation BLOCKED_INFRA — runs #1105, #1106 and #1109 exit before any job; backend dependencies OPEN and tracked separately | Continue P10; carry the shared CI blocker without retry |
-| P10 Fish Guide | IN_PROGRESS | — | Home/detail implementation and targeted tests authored; Core UI and navigation verifiers, P10 static contract checks and shell syntax PASS; source checkpoint pending | Shared Android CI 0-job orchestration blocker; do not retry per phase | Push and verify P10, then continue P11 |
+| P10 Fish Guide | BLOCKED_INFRA | `7a496304a83995f69d8aef29251326e5e20113c1` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; Design Governance #36732633936 and Empty Home V2 Design Assets #36732633780 PASS | Android runtime validation carries the shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; do not retry per phase | Continue P11 |
 | P11 Account & Privacy | NOT_STARTED | — | — | — | — |
 | P12 Shared Component Parity | NOT_STARTED | — | — | — | — |
 | P13 Cross-Journey Integration | NOT_STARTED | — | — | — | — |
@@ -342,9 +342,23 @@ Phase: P10
 
 Feature: Fish Guide Home, Lit / Unlit, Species Detail, Zero Catch and five Fish Knowledge cards
 
-Status: IN_PROGRESS
+Status: COMPLETE_WITH_BLOCKED_INFRA
 
-P10 implementation is being completed against the frozen Fish Guide Home, Unlit, Species Detail, Zero Catch, content, responsive, accessibility and motion authorities. Final source SHA, GitHub checkpoint and Android infrastructure status will be recorded after the phase push is verified.
+- P10 IMPLEMENTATION: COMPLETE
+- P10 GITHUB CHECKPOINT: PASS
+- P10 STATIC CONTRACT CHECKS: PASS
+P10 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA
+
+Completed against the frozen Fish Guide Home, Lit / Unlit, Species Detail, Zero Catch, five-card content, responsive, accessibility and motion authorities.
+
+- Home now uses the frozen BG_DATA background and finite responsive carousel, with readable Lit / Unlit states, truthful saved-record counts, reduced-motion behavior, and one-time discovery nudge. Missing catalog media uses neutral unavailable copy rather than fabricated fish imagery.
+- Species Detail presents exactly five fixed Fish Knowledge positions, filters content by active species ID, and keeps unavailable slots in place. Saved records are associated with the stable species ID, ordered newest-first, and previews open the original catch. Zero Catch has a quiet `0次记录` state and routes to the normal capture flow without a species filter.
+- No rarity, power, challenge, stars, ranking, or game progression was added. Existing Fish Knowledge read APIs are used; no endpoint was invented or repurposed.
+- Added JVM projection tests and API parser / Compose instrumentation coverage for fixed card positions, unavailable content, catch association and order, lit/unlit browsing, zero catch, retry, and finite paging. Android tests are authored only; they have not executed.
+- `python3 scripts/verify_core_ui_v1_references.py`, `python3 scripts/verify_design_manager_navigation.py`, P10 static source contract assertions, shell syntax checks, and `git diff --check` pass. Design Governance run `36732633936` and Empty Home V2 Design Assets run `36732633780` pass.
+- Source checkpoint: `7a496304a83995f69d8aef29251326e5e20113c1`; PR #97 remote HEAD was verified at this exact SHA. The P10 Android runtime remains blocked by the one repository-wide 0-job orchestration failure recorded above. No Android Gate retry was made.
+
+P10 has no new backend dependency. P09 edit, supplemental-media, cross-device reveal, note/weather/delete dependencies remain separate Product/API Dependencies and are not infrastructure blockers.
 
 ## Shared infrastructure follow-up blocker
 
