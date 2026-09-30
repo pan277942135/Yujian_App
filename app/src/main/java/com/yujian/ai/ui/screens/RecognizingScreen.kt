@@ -148,11 +148,6 @@ fun RecognitionProcessingScene(
                     Log.i(LOG_TAG, "visual phase $visualPhase -> $nextVisualPhase real=$realPhase")
                     visualPhase = nextVisualPhase
                 }
-                if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true) {
-                    delivered = true
-                    Log.i(LOG_TAG, "delivering RESULT ready=true")
-                    onFinished(requireNotNull(finishedResult))
-                }
                 delay(16L)
             }
         } finally {
@@ -167,9 +162,15 @@ fun RecognitionProcessingScene(
     LaunchedEffect(visualPhase, image?.imageId, phaseOverride) {
         if (phaseOverride == null) {
             // Observe what Compose actually presents, independently from the
-            // fast detector/classifier callback cadence. Tests use this
-            // read-only hook for timing; production behavior is unchanged.
-            onVisualPhasePresented(visualPhase, SystemClock.elapsedRealtime())
+            // fast detector/classifier callback cadence. Deliver RESULT only
+            // after the new state reaches Compose presentation.
+            val presentedAtMs = SystemClock.elapsedRealtime()
+            onVisualPhasePresented(visualPhase, presentedAtMs)
+            if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true && !delivered) {
+                delivered = true
+                Log.i(LOG_TAG, "delivering RESULT after presentation")
+                onFinished(requireNotNull(finishedResult))
+            }
         }
     }
 

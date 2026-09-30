@@ -503,6 +503,12 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("鱼种识别中")
         assertVisible("正在分析鱼体特征")
         composeRule.onNodeWithTag("recognition-ambient-reduced-motion-low-performance").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            runCatching {
+                composeRule.onNodeWithTag("recognition-fish-focus-level-a-low-performance").fetchSemanticsNode()
+                true
+            }.getOrDefault(false)
+        }
         composeRule.onNodeWithTag("recognition-fish-focus-level-a-low-performance").assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
