@@ -323,10 +323,10 @@
           "code": "NH02",
           "title": "NH02 · 第一条鱼首页",
           "status": "PARTIAL",
-          "render_mode": "behavior_spec",
-          "authority_type": "behavior",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
           "authority": "design/pages/home/normal_home/02_first_catch/README.md",
-          "summary": "NH02 规范已冻结，高保待出。仅 1 条有效 FishRecord；保持 NH01 整体结构，中央 HOME Hero 同尺寸居中，左右无假邻卡、无 Pager 暗示。已登录无头像/头像加载失败统一使用 YuJian Default Profile Avatar V1；Guest 为独立语义。",
+          "summary": "NH02 规范已冻结，高保已进入评审。仅 1 条有效 FishRecord；中央 HOME Hero 同尺寸居中，左右无邻卡与 Pager 暗示，统计样例 1 / 1 / 1。",
           "menu_points": [
             "1 valid FishRecord → Normal Home",
             "Same-size centered HOME Hero",
@@ -339,7 +339,12 @@
             "No badge / celebration / new Haptic / Sound"
           ],
           "behavior_authority": "design/pages/home/normal_home/02_first_catch/README.md",
-          "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json"
+          "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+          "image": "design/pages/home/normal_home/02_first_catch/hifi/NH02_First_Catch_Home_V1_HiFi.svg",
+          "visual_authority": "design/pages/home/normal_home/02_first_catch/hifi/NH02_First_Catch_Home_V1_HiFi.svg",
+          "visual_status": "CANDIDATE",
+          "visual_caption": "NH02 Hi-Fi Review · 规范已冻结，视觉待最终确认",
+          "visual_authority_manifest": "design/pages/home/normal_home/02_first_catch/hifi/manifest.json"
         },
         {
           "id": "NH03",

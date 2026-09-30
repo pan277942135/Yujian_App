@@ -1,6 +1,6 @@
 # NH02 · First Catch Home / 第一条鱼首页 · Design Spec V1
 
-Status: **SPEC FROZEN — HIFI PENDING**  
+Status: **SPEC FROZEN — HIFI REVIEW**  
 Scope: **Normal Home / one valid FishRecord**  
 Output policy: **INDEPENDENT_HIFI**  
 Parent visual authority: `design/system/core_visual_v1/reference/normal_home_v1.png`
@@ -55,7 +55,7 @@ Loading / unresolved record state is owned by **NH03 · 页面状态与异常**,
 
 ### 3.1 Parent page authority
 
-Until the dedicated NH02 Hi-Fi is frozen, NH01 remains the visual reference for all shared composition:
+Until the NH02 Hi-Fi review is explicitly approved and frozen, NH01 remains the parent visual reference for all shared composition:
 
 `design/system/core_visual_v1/reference/normal_home_v1.png`
 
@@ -84,7 +84,7 @@ NH02 inherits:
 
 This document is the behavioral / composition authority for the single-record state.
 
-The future NH02 Frozen Hi-Fi may clarify pixel-level visual details, but it **must not contradict this spec or redesign the parent Normal Home system**.
+Current NH02 Hi-Fi review asset: `hifi/NH02_First_Catch_Home_V1_HiFi.svg`. It may clarify the single-record composition, but it **must not contradict this spec or redesign the parent Normal Home system**.
 
 ---
 
@@ -541,7 +541,9 @@ This prevents NH02 from becoming a catch-all state sheet.
 
 NH02 requires one independent full-page Hi-Fi because it is a key state.
 
-The future Frozen image must:
+Current review asset: `hifi/NH02_First_Catch_Home_V1_HiFi.svg`.
+
+Before visual freeze, the Hi-Fi must:
 
 1. use 1080 × 1920 reference canvas;
 2. preserve NH01 page structure and vertical anchors;

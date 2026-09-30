@@ -1898,7 +1898,7 @@ function genericSpecHifiCanvas(feature, view) {
     return '<div class="hifi-original">' +
       '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
       '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(view.title) + '"></a>' +
-      '<div class="hifi-original-caption">当前 Frozen Visual Authority · 本层未生成新视觉资产</div></div>' +
+      '<div class="hifi-original-caption">' + esc(view.visual_caption || (view.visual_status === "FROZEN" ? "当前 Frozen Visual Authority" : "当前 Hi-Fi Review Visual")) + '</div></div>' +
       specIndex;
   }
 
