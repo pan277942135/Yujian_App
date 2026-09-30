@@ -304,6 +304,7 @@ Completed in this branch:
 - B-side generation continues on A-side. Status refresh is bounded to eight 2-second checks while the page is resumed; copy exposes no ETA, percentage or infrastructure detail. Request failures remain local to the memory status and do not contaminate the archive error state.
 - Added pure presentation tests for cached-record precedence, sanitized network errors, finite measurements, and first-reveal eligibility. Added Compose instrumentation coverage for the no-upload actions, READY-only Flip visibility, actual-image first reveal, and A-side default on later entry.
 - git diff --check: PASS. scripts/verify_core_ui_v1_references.py: PASS. scripts/verify_design_manager_navigation.py: PASS; root menu remains 00–05.
+- P09 source Actions: Design Governance (36717435230) and Empty Home V2 Design Assets (36717435195) succeeded. No Android workflow/status was created.
 - Frozen B-side, edit, and No Uploaded Memory PNG hashes remain exactly c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b, d81495f760840c0411aa693bb8b3b39fc1d65e012387350732047f1272250114, and ca585b85d1c6fec224e402d368e60d122913ca6c0cb6e5cc6750c266d7fb8a93; no frozen design files were modified.
 
 Validation boundary and remaining product gaps:
