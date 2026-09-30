@@ -207,7 +207,7 @@ Git:
 - Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
 - P06 source checkpoint SHA: `bf470596c35f39adccb185be04f3da774f0220a7`
-- P06 Actions observation: only Empty Home V2 Design Assets and Design Governance were created (runs `36705525128`, `36705524991`, both in progress when checked); no Android workflow/status was created.
+- P06 Actions observation: Empty Home V2 Design Assets (`36705525128`) and Design Governance (`36705524991`) completed successfully; no Android workflow/status was created.
 - PR: #97 (draft)
 
 Next:
