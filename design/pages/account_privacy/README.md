@@ -1,7 +1,7 @@
 # 账号与隐私 · Design Authority Index V2
 
 Status: **PARTIAL**
-Scope: **Design Manager organization and design authority indexing only**
+Scope: **Design authority indexing + current MVP active-path closure**
 
 本目录统一管理「账号与隐私」的现有设计来源。旧 `manifest.json` 原样保留为历史 23 项资产清单，不代表其中 22 张页面图全部是当前 Frozen Authority。
 
@@ -19,15 +19,44 @@ Scope: **Design Manager organization and design authority indexing only**
 
 Login V2.1 and Register V2 are shown from their canonical PNG paths. `Login/00_Login.png` is labelled **Superseded / Historical** and is not the current Login Authority.
 
+### ACTIVE MVP MAIN PATH · BEHAVIOR / IA FROZEN
+
+Canonical active path:
+
+`我的 → 账号与安全 → 修改密码 / 数据与隐私 → AI 模型改进 / 位置权限`
+
+Parent contract:
+
+`Active_Path_Contract_V1.md`
+
+Page-level authorities:
+
+- **我的** — `My/My_Page_Spec_V2.md`
+- **账号与安全** — `My/Account_Login/Account_Security_Home_Spec_V1.md`
+- **修改密码** — `My/Account_Login/Change_Password_Spec_V1.md`
+- **数据与隐私** — `My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md`
+- **AI 模型改进** — `My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md`
+- **位置权限** — `My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md`
+
+For these six items:
+
+- IA / Behavior / Content Structure = **FROZEN**
+- Visual = **ACTIVE_CLOSURE**
+- historical PNGs remain reference evidence only;
+- current shared-system-aligned high-fidelity binaries are still required before Visual FROZEN.
+
+The old design label **账号与登录** is superseded by **账号与安全**. Android runtime may keep the historical label until Runtime Parity; runtime wording does not override design authority.
+
 ### LEGACY / REVIEW REQUIRED
 
 The following exact repository images remain review references, not current Frozen Authorities:
 
-- My (`My/00_My.png`): current BG_CONTENT uses the no-sun `Morning_Lake_Master_V1`; the legacy board visibly uses sunrise and a strong golden reflection. Its existing layout also needs current account/profile information-architecture review. No redraw was made.
-- Account & Login and Change Password.
-- Data & Privacy home.
-- AI Model Improvement: Enable Consent / Disable Confirmation.
-- Location Permission: Info / Denied.
+- My (`My/00_My.png`): current BG_CONTENT uses the no-sun `Morning_Lake_Master_V1`; the legacy board visibly uses sunrise and a strong golden reflection. The V2 IA is now frozen, but this old visual is not current authority.
+- Historical Account & Login visual: composition reference only; its title is superseded by **账号与安全**.
+- Change Password visual reference.
+- Data & Privacy visual reference.
+- AI Model Improvement: Enable Consent / Disable Confirmation visual references.
+- Location Permission: Info / Denied visual references.
 - Privacy Policy shell; legal body copy is not final.
 
 ### MVP DEFERRED DESIGN REFERENCES
@@ -58,7 +87,7 @@ The only visible top-level module is **账号与隐私**. Its five workspaces ar
 
 1. `01 · 登录与注册`
 2. `02 · 我的与资料`
-3. `03 · 账号与登录`
+3. `03 · 账号与安全`
 4. `04 · 数据与隐私`
 5. `05 · 法律与关于`
 
@@ -70,5 +99,7 @@ The parent page is the Overview. It shows package state, current/legacy/deferred
 
 - `manifest.json` remains the unchanged historical 23-asset inventory.
 - `authority_manifest_v2.json` is the current page/flow classification index and records exact repository image fingerprints without copying binaries.
-- Overall Account & Privacy design remains **PARTIAL**.
-- Runtime status remains separately reported as **PARTIAL**. This task does not change or close Android runtime behavior.
+- Active MVP main-path **IA / Behavior / Content Structure is FROZEN**.
+- Active-path Visual closure remains **ACTIVE_CLOSURE** until new approved Hi-Fi binaries are present.
+- Overall Account & Privacy design remains **PARTIAL** because Legal/About, Edit Profile state closure, Nickname integrity recovery and active-path visual closure remain outstanding.
+- Runtime status remains separately reported as **PARTIAL**. Design freeze does not imply Android runtime parity.
