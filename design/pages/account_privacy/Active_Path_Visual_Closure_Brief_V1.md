@@ -1,159 +1,157 @@
 # Account & Privacy · Active Path Visual Closure Brief V1
 
-Status: **FROZEN PRODUCTION BRIEF**
-Scope: visual production / upload only
-Does not create a Design Manager menu.
+Status: **FROZEN — CLOSED**
+Scope: current active-path visual authority
+Production decision: **REUSE EXISTING HI-FI / NO NEW IMAGE GENERATION**
 
-## 1. Goal
+## 1. Closure decision
 
-Produce the minimum current high-fidelity binary set required to close Visual Authority for:
+The existing 8 Account & Privacy high-fidelity PNGs are sufficient as visual base authorities.
 
-`我的 → 账号与安全 → 修改密码 → 数据与隐私 → AI Consent → Location`
+No replacement PNGs are required.
 
-Behavior / IA / content contracts are already frozen. Visual production must implement them; it may not redesign them.
+The previous plan to create eight newly named Frozen PNGs is superseded.
 
-## 2. Required output set
+Current visual authority model:
+
+> **Existing Hi-Fi binary + Active Path Visual Adjustment Authority V1 + page/behavior spec + Shared Design System**
+
+Adjustment authority:
+
+`design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
+
+## 2. Frozen binary set
 
 ### AP02A · 我的
 
-Target:
-`design/pages/account_privacy/My/frozen/My_V2_Frozen_Final.png`
+`design/pages/account_privacy/My/00_My.png`
 
-One full-page current authority.
+SHA-256:
 
-Must:
-- use BG_CONTENT / no-sun Morning_Lake_Master_V1;
-- use current BACK_TITLE;
-- use Shared Default Profile Avatar V1 semantics;
-- use V2 settings labels including `账号与安全`.
-
-Historical `My/00_My.png` is composition reference only.
+`6a04e8a74d7337e5f3b41f48329b649444636bd85a83c69a24839a2603513b1b`
 
 ### AP03A · 账号与安全
 
-Target:
-`design/pages/account_privacy/My/Account_Login/frozen/Account_Security_Home_V1_Frozen.png`
+Base binary:
 
-One full-page current authority.
+`design/pages/account_privacy/My/Account_Login/00_Account_Login.png`
 
-Must use title:
-`账号与安全`
+SHA-256:
 
-Do not reproduce historical title:
-`账号与登录`
+`8c6c88c21db4bad9d7b2b1ed02079d22a13362217abcc4d03b60bb6ce9bba269`
+
+The binary retains the historical title `账号与登录`; the current composite visual authority overrides the runtime/design title to `账号与安全`.
 
 ### AP03B · 修改密码
 
-Target:
-`design/pages/account_privacy/My/Account_Login/frozen/Change_Password_V1_Frozen.png`
+`design/pages/account_privacy/My/Account_Login/01_Change_Password.png`
 
-Canonical state:
-- fields empty;
-- Save disabled;
-- no error;
-- no success toast/message.
+SHA-256:
 
-Edge states remain behavior-spec states and do not require separate menu entries.
+`00e99aa8c8eff1b0274daf9709f50b3399badd8e9f8c551bd345b6fa9a03aaf2`
 
 ### AP04A · 数据与隐私
 
-Target:
-`design/pages/account_privacy/My/Account_Login/Data_Privacy/frozen/Data_Privacy_Home_V1_Frozen.png`
+`design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png`
 
-Canonical state:
-- consent state resolved;
-- use a stable sample (recommended OFF);
-- Location status visible;
-- Export / Delete visibly Deferred / Coming Soon without exposing future flows;
-- Privacy Policy row visible.
+SHA-256:
 
-### AP04B · AI 模型改进
+`602d75be9b1694df3be3f0c85b5433340d7680bf61bdd86d4561d0b5b7368886`
 
-Targets:
+### AP04B · AI 模型改进 · 开启
 
-`design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/frozen/AI_Consent_Enable_V1_Frozen.png`
+`design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png`
 
-`design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/frozen/AI_Consent_Disable_V1_Frozen.png`
+SHA-256:
 
-These are two Bottom Sheet states in one Design Manager workspace.
+`d10366f930006685dc5f16dd299aece9b60182fc81c03cc4ce7bbf70d86f2009`
 
-The underlying Data & Privacy page must remain visually consistent between the two states.
+### AP04B · AI 模型改进 · 关闭
 
-### AP04C · Location
+`design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png`
 
-Targets:
+SHA-256:
 
-`design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/frozen/Location_Info_V1_Frozen.png`
+`ea424d68844ca24a687a15fc9bbbe6d9f124f156661e283336879dec2bd8fa3c`
 
-`design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/frozen/Location_Denied_V1_Frozen.png`
+### AP04C · Location · Info
 
-One workspace, two states.
+`design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png`
 
-The Data & Privacy settings view is informational and must not depict an automatic permission request on page entry.
+SHA-256:
 
-## 3. Total
+`0ba2f48241017118e4cf24611553a2cce9e969355924e32f950e8d465ecc51aa`
 
-Required current visual binaries:
+### AP04C · Location · Denied
 
-**8 PNG files**
+`design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png`
 
-1. My
-2. Account & Security
-3. Change Password
-4. Data & Privacy
-5. AI Consent Enable
-6. AI Consent Disable
-7. Location Info
-8. Location Denied
+SHA-256:
 
-## 4. Source hierarchy
+`db3610f8f99751928abd8e3bab04492ca44ea4f4bee59c575bd3a585bb6f0679`
 
-Priority:
+All eight binaries remain byte-identical.
 
-1. frozen page/behavior spec;
-2. Shared Design System;
-3. current approved visual authority from adjacent Account surfaces;
-4. historical Account & Privacy PNG only as composition/reference evidence.
+## 3. Adjustment ownership
 
-Historical PNG does not override:
+The binary is the composition/reference layer.
 
-- BG_CONTENT;
-- current Top Navigation;
-- Shared Default Profile Avatar;
-- new Account & Security naming;
-- current consent/location semantics.
+The following current authorities override outdated screenshot details:
 
-## 5. Binary rules
+1. page/behavior spec;
+2. `Active_Path_Visual_Adjustment_Authority_V1.md`;
+3. Shared Design System.
 
-Required:
+Examples:
 
-- actual PNG file;
-- preserve approved source exactly after freeze;
-- record dimensions / bytes / SHA-256;
-- create per-workspace frozen manifest;
-- register exact path in `authority_manifest_v2.json` and `experience_registry_v1.json`.
+- My: current implementation uses BG_CONTENT rather than reproducing the old strong sunrise/gold atmosphere.
+- Account Security: current title is `账号与安全`, not the text embedded in the historical PNG.
+- Data & Privacy: Export/Delete are DEFERRED / Coming Soon.
+- AI Consent: current consent scope/copy and transaction behavior are authoritative.
+- Location: settings/info state never triggers permission merely by opening.
 
-Forbidden:
+## 4. Freeze status
 
-- SVG recreation as final high-fidelity authority;
-- HTML/CSS screenshot as substitute;
-- Android runtime screenshot as design authority;
-- recompress/re-encode after approval;
-- screenshot crop from old board and rename;
-- silently reuse a legacy PNG whose shared-system treatment is outdated.
+The following children may now be reported as Visual **FROZEN** through composite authority:
 
-## 6. Freeze rule
+- 02A · 我的
+- 03A · 账号与安全首页
+- 03B · 修改密码
+- 04A · 数据与隐私首页
+- 04B · AI 模型改进
+- 04C · 位置权限
 
-A child may move:
+This does not freeze unrelated outstanding Account & Privacy work:
 
-`ACTIVE_CLOSURE → FROZEN`
+- Nickname visual integrity remains BLOCKED_INTEGRITY.
+- Edit Profile 04–06 state/interaction closure remains separate.
+- About YuJian / User Agreement remain separate.
+- Privacy Policy legal-copy approval remains separate.
 
-only when:
+## 5. Forbidden work
 
-- its required current PNG(s) exist;
-- product-approved binary identity is recorded;
-- page spec remains unchanged or explicitly versioned;
-- Design Manager renders the actual repository binary;
-- governance validate passes.
+Do not create replacement images solely to make the screenshot reflect every current token/copy decision.
 
-Do not freeze all Account & Privacy merely because these eight visuals close; Legal/About, Edit Profile state closure and Nickname integrity remain independent gates.
+Do not:
+
+- regenerate;
+- redraw;
+- convert PNG/WebP;
+- re-encode;
+- copy/rename as a fake new frozen file;
+- use a runtime screenshot as replacement authority;
+- create SVG/HTML reconstruction as a replacement.
+
+The design system owns the deltas; the existing approved visual assets remain preserved.
+
+## 6. Runtime parity
+
+Android implementation should reproduce:
+
+> existing Hi-Fi composition + current written/shared overrides
+
+not:
+
+> every obsolete pixel/text detail embedded in the old PNG.
+
+Runtime parity remains a separate implementation gate.
