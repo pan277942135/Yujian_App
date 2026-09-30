@@ -2,8 +2,8 @@
 
 Status: **FROZEN — DESIGN / INTERACTION CONTRACT**  
 Date: **2026-09-29**  
-Scope: **Fish Guide · 07 · 动效与交互**  
-Applies to: **01 · 鱼鉴首页 / 01A · 未点亮状态 / 02 · 鱼种详情 / 03 · 鱼种状态**
+Scope: **Fish Guide · 05 · 动效与交互**  
+Applies to: **01 · 鱼鉴首页 / 01A · 未点亮状态 / 02 · 鱼种详情 / 03 · 页面状态**
 
 ---
 
@@ -497,6 +497,6 @@ The spec intentionally does not require a custom physics engine.
 - [x] Offscreen state changes do not replay later.
 - [x] No celebration / lock animation / custom haptic / sound.
 - [x] Reduce Motion contract is explicit.
-- [ ] Runtime evidence is attached under **09 · 验收证据**.
+- [ ] Runtime evidence is tracked in Overview / implementation closure and does not reopen this design contract.
 
 The unchecked Runtime Evidence item does not reopen this frozen motion/interaction contract.
