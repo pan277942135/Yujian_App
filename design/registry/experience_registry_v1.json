@@ -581,16 +581,16 @@
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 的静态形状、渲染规范以及 R01–R06 视觉参考生成规范均已冻结；最终视觉参考图仍待补充，因此本父级保持 ACTIVE_CLOSURE。",
+          "summary": "识别过程的图层与组件归属。AI 边缘光场 V1 的静态形状、渲染规范及 R01–R06 生成规范均已冻结；R01 主视觉 Authority 已冻结，R05 强表现参考已冻结，R02/R03/R04/R06 及 R05 其余强度档仍待视觉补齐。",
           "menu_points": [
             "AI 边缘光场 V1 · 01 · 静态形状 · FROZEN",
             "AI 边缘光场 V1 · 02 · 渲染规范 · FROZEN",
             "AI 边缘光场 V1 · 03 · 视觉参考集 · R01–R06 生成规范 FROZEN",
-            "R01 · 主视觉细节 · 规范 FROZEN / 视觉图待补",
+            "R01 · 主视觉细节 · 视觉 Authority FROZEN",
             "R02 · 能量岛拆解 · 规范 FROZEN / 视觉图待补",
             "R03 · 四岛构图 · 规范 FROZEN / 视觉图待补",
             "R04 · 光场与鱼体聚焦 · 规范 FROZEN / 视觉图待补",
-            "R05 · 强度校准 · 规范 FROZEN / 视觉图待补",
+            "R05 · 强度校准 · 强表现参考 FROZEN / 其余档待补",
             "R06 · 失败边界 · 规范 FROZEN / 视觉图待补"
           ],
           "components": [
@@ -1164,7 +1164,7 @@
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "主视觉细节生成规范已建立：用于确定 AI 边缘光场整体质感、能量感与视觉上限；最终视觉图仍待补充；本条目的生成规范现已冻结。",
+              "summary": "R01 主视觉已直接复用现有高保真定稿并冻结为视觉 Authority；不重新生成。Authority 负责光学质感与整体气质，UI 状态卡不属于 Edge Field 本体，结构规则继续服从已冻结合同。",
               "authority": "design/pages/recognition/processing/references/R01_主视觉细节_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "确定 AI 边缘光场整体视觉质感与代表性主画面，不定义 Runtime 实现。",
@@ -1202,10 +1202,17 @@
                   "粗霓虹 Core",
                   "让 AI 光效压过真实照片"
                 ],
-                "closure": "生成后只判断整体视觉语言是否成立；未确认前不得作为 Runtime 像素级 Authority。"
+                "closure": "R01 主视觉已确认并冻结；后续不再要求重新生成。视觉图负责光学语言与质感，结构与动效冲突时以 Static Shape / Rendering / Motion Contract 为准。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING"
+              "visual_authority_status": "FROZEN",
+              "primary_visual_authority": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+              "visual_authority_sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+              "visual_authority_dimensions": [
+                941,
+                1672
+              ],
+              "visual_authority_scope": "冻结 AI 边缘光场的光学语言、蓝金气质、环境受光、空气光晕、细丝层次、粒子克制与照片优先级。图中的返回键、状态卡和旧状态文案不属于 AI Edge Field Authority；四岛拓扑、Quiet Gap、主次和运动仍以 Static Shape / Rendering / Motion Contract 为结构权威。"
             },
             {
               "id": "ai_edge_field_ref_r02",
@@ -1356,7 +1363,7 @@
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "用于用同一画面建立强、中、弱三档视觉强度对照，后续不再靠“再亮一点/再弱一点”主观描述。 生成规范已冻结；最终视觉图仍待补充。",
+              "summary": "R05 强度校准的“强表现”参考已直接复用现有高保真定稿并冻结；目标档与最低可接受档仍待补齐。",
               "authority": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "建立 AI 边缘光场的视觉强度参照区间，明确上限、目标值与最低可接受值。",
@@ -1389,10 +1396,21 @@
                   "把强度校准做成 FULL/BALANCED/LITE 的运行时实现说明",
                   "用曝光整体提高或降低替代光场强度变化"
                 ],
-                "closure": "R05 先建立视觉参照区间；其中哪一档成为最终目标值，需要后续视觉确认后再冻结。"
+                "closure": "强表现档已有冻结视觉参考；目标档与最低可接受档仍待补齐，因此 R05 整体视觉 Authority 保持 PARTIAL。"
               },
               "spec_status": "FROZEN",
-              "visual_authority_status": "PENDING"
+              "visual_authority_status": "PARTIAL",
+              "supporting_visual_references": [
+                {
+                  "role": "强表现参考",
+                  "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+                  "status": "FROZEN",
+                  "sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58",
+                  "width": 941,
+                  "height": 1672,
+                  "scope": "作为 R05 强表现档的既有视觉上限参考，冻结受光、Bloom、Hairline、Node、Particle 的偏强观感；不作为四岛拓扑 Authority，也不代表最终目标档或最低可接受档。"
+                }
+              ]
             },
             {
               "id": "ai_edge_field_ref_r06",

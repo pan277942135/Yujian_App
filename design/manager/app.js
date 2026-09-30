@@ -2342,7 +2342,39 @@ function recognitionVisualReferenceSpecCanvas(child) {
       ).join("") +
     '</div>';
 
+  const visualCards = [];
+  if (child.primary_visual_authority && isImage(child.primary_visual_authority)) {
+    visualCards.push(
+      '<div class="hifi-original">' +
+        '<a href="' + esc(repoHref(child.primary_visual_authority)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(child.primary_visual_authority)) + '" alt="' + esc(child.title) + '"></a>' +
+        '<div class="hifi-original-caption">主视觉 Authority · FROZEN</div>' +
+      '</div>' +
+      (child.visual_authority_scope
+        ? '<div class="recognition-state-card"><p>' + esc(child.visual_authority_scope) + '</p></div>'
+        : '')
+    );
+  }
+  (child.supporting_visual_references || []).forEach(ref => {
+    const path = typeof ref === "string" ? ref : ref.path;
+    if (!path || !isImage(path)) return;
+    const role = typeof ref === "string" ? "补充视觉参考" : (ref.role || "补充视觉参考");
+    const scope = typeof ref === "string" ? "" : (ref.scope || "");
+    visualCards.push(
+      '<div class="hifi-original">' +
+        '<a href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' +
+          '<img src="' + esc(repoHref(path)) + '" alt="' + esc(role) + '"></a>' +
+        '<div class="hifi-original-caption">' + esc(role) + ' · FROZEN</div>' +
+      '</div>' +
+      (scope ? '<div class="recognition-state-card"><p>' + esc(scope) + '</p></div>' : '')
+    );
+  });
+  const visualBlock = visualCards.length
+    ? '<div class="recognition-section-title">已确认视觉参考</div>' + visualCards.join("")
+    : '';
+
   return '<div class="recognition-timeline-review">' +
+    visualBlock +
     '<div class="recognition-rule"><strong>生成目的</strong><span>' + esc(s.purpose || "") + '</span></div>' +
     '<div class="recognition-section-title">画面形式</div><div class="recognition-state-card"><p>' + esc(s.format || "") + '</p></div>' +
     '<div class="recognition-section-title">构图要求</div>' + grid(s.composition,"构图") +
@@ -2427,7 +2459,10 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     '<button class="hifi-scenario-chip" data-scene-id="'+esc(scene.id)+'">'+esc(scene.title)+'</button>'
   ).join("") || '<span class="preview-empty compact">无附加场景映射</span>';
 
-  el("hifiViewAuthorities").innerHTML=[child?.visual_authority,child?.behavior_authority,child?.machine_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.behavior_authority,view.machine_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
+  const supportingAuthorityPaths = (child?.supporting_visual_references || [])
+    .map(ref => typeof ref === "string" ? ref : ref.path)
+    .filter(Boolean);
+  el("hifiViewAuthorities").innerHTML=[child?.primary_visual_authority,...supportingAuthorityPaths,child?.visual_authority,child?.behavior_authority,child?.machine_authority,child?.authority,child?.secondary_authority,view.visual_authority,view.behavior_authority,view.machine_authority,view.secondary_authority,view.visual_authority_manifest,view.authority,view.image].filter((v,i,a)=>v&&a.indexOf(v)===i).map(path=>
     '<a class="authority-row" href="'+esc(repoHref(path))+'" target="_blank" rel="noreferrer">'+esc(path)+'</a>'
   ).join("");
 
