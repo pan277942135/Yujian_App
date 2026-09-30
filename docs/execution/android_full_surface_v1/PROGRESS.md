@@ -7,7 +7,8 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Platform: Android only
-- Current phase: P00 Inventory / Matrix / Shared Infrastructure
+- Draft PR: #97 (open, draft)
+- Current phase: P01 Authentication / Account Entry
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract
@@ -32,13 +33,15 @@ Before continuing after any interruption, read the branch and remote state and r
 - Existing Android validation stack is `.github/workflows/android.yml`, `scripts/run_android_runtime_gate.sh`, and `scripts/android_runtime/gates/`. Runtime jobs use the existing self-hosted labels `yujian-android` and `api28`. A gate-dispatch mismatch for `fish-guide-v1` is recorded in the matrix for narrow P10 reconciliation.
 - This scratch runtime has Java 17 but no Gradle, adb, or emulator. Runtime/build evidence must come from existing GitHub Actions and the current API 28 runner; no new validation environment is being created.
 - No equivalent full-surface implementation matrix or progress ledger existed in `docs/execution/` at the frozen base.
+- P00 checkpoint `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f` is pushed and Draft PR #97 is open.
+- Android workflow run `36697494308` for P00 ended `failure` with 0 jobs and 0 artifacts. No product gate executed; operational classification is `BLOCKED_INFRA` pending a working run. No manual retry has been issued.
 
 ## Phase ledger
 
 | Phase | Status | Checkpoint SHA | Validation / evidence | Blocker | Next |
 |---|---|---|---|---|---|
-| P00 Inventory / Matrix / Shared Infrastructure | IN_PROGRESS | pending first push | Registry, routes, workflow and runtime harness inspected | None | Commit/push matrix, create Draft PR, begin P01 |
-| P01 Authentication / Account Entry | NOT_STARTED | — | — | — | — |
+| P00 Inventory / Matrix / Shared Infrastructure | PUSHED | `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f` | Registry/navigation/harness inventory committed; Android run 36697494308 produced 0 jobs/0 artifacts | Android workflow launch has not executed a product gate | Continue P01 without waiting on P00 workflow |
+| P01 Authentication / Account Entry | IN_PROGRESS | — | Existing Login/Register screen and Android test coverage reviewed; stale Register registry source path being corrected | Targeted `login-v2` run pending | Correct authority pointer, verify existing gate, continue |
 | P02 Empty Home | NOT_STARTED | — | — | — | — |
 | P03 Normal Home / First Catch Home | NOT_STARTED | — | — | — | — |
 | P04 Capture entry / shared Capture behavior | NOT_STARTED | — | — | — | — |
@@ -58,34 +61,34 @@ Before continuing after any interruption, read the branch and remote state and r
 
 **PROGRESS CHECKPOINT**
 
-Phase: P00
-Feature: Epic inventory and execution ledger
+Phase: P01
+Feature: Authentication / Account Entry
 Status: IN_PROGRESS
 
 Completed:
-- Frozen `main` at `b54c2b936db5941294b216a356ad9e2bd4548f7c`.
-- Created the Epic branch from the frozen base.
-- Audited the registry, Android routes, available tests, current workflow matrix, and runtime harness.
-- Recorded current product gaps and the existing Fish Guide gate dispatch mismatch.
+- Completed and pushed P00 matrix/progress checkpoint `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`; opened Draft PR #97.
+- P01 review confirms frozen Login V2 and Register V2 Compose screens and existing Android tests cover form validation, keyboard traversal, small-screen reachability, submit, error/loading, password visibility and captured screenshots.
+- Correcting the Register V2 runtime source pointer in the active Registry; no frozen UI redesign is needed.
 
 Git:
 - EPIC BASE: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
 - Branch: `feature/android-full-surface-runtime-v1`
-- Local HEAD: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
-- Remote HEAD: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
-- Push: branch created; ledger commit pending
-- Working tree: pending
+- Local HEAD: `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`
+- Remote HEAD: `7fc8c7697b8ee577c5037dfbd4789da09ac8d89f`
+- PR: #97 (draft)
+- Push: YES
+- Working tree: clean at last checkpoint
 
 Validation:
-- Compile: not run (ledger-only phase)
-- Unit: not run (ledger-only phase)
-- Lint: not run (ledger-only phase)
-- Instrumentation: not run (ledger-only phase)
-- Visual: not run (ledger-only phase)
-- Evidence: registry, route, workflow and harness audit recorded in `IMPLEMENTATION_MATRIX.md`
+- Compile: P00 did not run; Android workflow run 36697494308 had 0 jobs
+- Unit: not run
+- Lint: not run
+- Instrumentation: not run
+- Visual: not run
+- Evidence: inventory and current workflow result recorded in `IMPLEMENTATION_MATRIX.md`
 
 Current blocker:
-- NONE
+- P00 Android workflow run 36697494308 concluded failure with 0 jobs/0 artifacts, so no product gate ran. Continue independent implementation; observe the next normal run and classify it without manual rerun.
 
 Next:
-- Push the first P00 ledger checkpoint, verify exact remote SHA, create Draft PR, and proceed directly to P01.
+- Commit the corrected Register runtime authority pointer and this progress update; use the existing `login-v2` gate, classify the result, then continue to P02.
