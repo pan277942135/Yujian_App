@@ -1,7 +1,12 @@
 # AI 模型改进授权 · Consent Spec V1
 
 Status: **FROZEN — Consent Semantics / Copy / Interaction**
-Visual status: **ACTIVE_CLOSURE**
+Visual status: **FROZEN — COMPOSITE AUTHORITY**
+
+Visual authority set:
+- `design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png`
+- `design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png`
+- adjustments: `design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
 Page ID: `account_privacy_v1.04b`
 
 ## 1. Principle
@@ -130,6 +135,6 @@ Use standard sheet transition only.
 
 ## 9. Visual authority
 
-Existing `01_Enable_Consent.png` and `02_Disable_Confirmation.png` remain historical visual references.
+Existing `01_Enable_Consent.png` and `02_Disable_Confirmation.png` are now the byte-preserved base Hi-Fi set.
 
-They may inform the current sheet composition but are not promoted automatically to current Visual FROZEN without explicit binary approval.
+Visual is **FROZEN via composite authority**. Current consent semantics/copy and Shared Sheet/Action tokens are governed by this spec plus `Active_Path_Visual_Adjustment_Authority_V1.md`. No replacement images are required.
