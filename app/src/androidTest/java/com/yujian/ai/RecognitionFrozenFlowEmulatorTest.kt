@@ -821,18 +821,23 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun awaitSurfaceFrameCommit() {
         composeRule.waitForIdle()
         val frameDrawn = CountDownLatch(1)
-        lateinit var listener: ViewTreeObserver.OnDrawListener
+        val treeRef = AtomicReference<ViewTreeObserver?>()
+        val listener = ViewTreeObserver.OnDrawListener {
+            frameDrawn.countDown()
+        }
         composeRule.runOnUiThread {
             val decor = composeRule.activity.window.decorView
             val tree = decor.viewTreeObserver
-            listener = ViewTreeObserver.OnDrawListener {
-                if (tree.isAlive) tree.removeOnDrawListener(listener)
-                frameDrawn.countDown()
-            }
+            treeRef.set(tree)
             tree.addOnDrawListener(listener)
             decor.invalidate()
         }
         assertTrue("Compose state was not drawn before screenshot", frameDrawn.await(5, TimeUnit.SECONDS))
+        composeRule.runOnUiThread {
+            treeRef.get()?.let { tree ->
+                if (tree.isAlive) tree.removeOnDrawListener(listener)
+            }
+        }
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         device.waitForIdle()
     }
