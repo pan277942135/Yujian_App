@@ -54,14 +54,27 @@ Normal Home uses the shared YuJian **BG_ENV_HERO** visual language:
 
 ### Background authority resolution
 
-Closure V1 registers no independent `Morning_Lake_Master_V1` because no frozen repository source exists.
+The repository-level background system is now frozen and supersedes the earlier Closure V1 absence statement.
 
-Therefore background authority is:
+Reusable background source:
 
-1. the Normal Home canonical frozen reference for composition/appearance
-2. Core Visual System V1 BG_ENV_HERO rules for cross-page consistency
+`design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`
 
-A later independent master requires an explicit package revision. A crop or reconstruction from a page screenshot is forbidden.
+Normal Home mapping:
+
+`home_normal_v1 → BG_ENV_HERO → Morning_Lake_Master_V1`
+
+Numeric treatment authority:
+
+`design/system/backgrounds/morning_lake_v1/treatment_contract.json`
+
+Authority split:
+
+1. Morning_Lake_Master_V1 + Background System V1 own reusable environment source/treatment.
+2. NH01/NH02 Frozen page visuals own complete page composition/appearance.
+3. NH06 documents crop/adaptation and the authority boundary.
+
+A crop or reconstruction from a page screenshot is forbidden. Empty Home's Sunrise Hero master is not a Normal Home source.
 
 ## Hero catch card
 

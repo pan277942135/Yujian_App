@@ -52,13 +52,14 @@
       "label_zh": "页面状态与异常",
       "label_en": "Page States & Exceptions",
       "output_policy": "COMBINED_BOARD",
-      "status": "TO_DESIGN",
+      "status": "SPEC_FROZEN_BOARD_PENDING",
       "contains": [
         "Home Resolving / 数据未解析",
         "Catch Image Unavailable / 鱼获图片不可用",
         "刷新中保持已解析 Home 状态",
         "异常不得误切 Empty Home"
-      ]
+      ],
+      "authority": "design/pages/home/normal_home/03_page_states/README.md"
     },
     {
       "order": 4,
@@ -66,7 +67,7 @@
       "label_zh": "组件状态与内容边界",
       "label_en": "Component & Content States",
       "output_policy": "COMBINED_BOARD",
-      "status": "TO_DESIGN",
+      "status": "SPEC_FROZEN_BOARD_PENDING",
       "contains": [
         "Guest Header",
         "Logged-in Header",
@@ -74,7 +75,8 @@
         "Catch Hero 完整数据",
         "仅长度 / 仅重量 / 无尺寸 / 无地点 / 无时间",
         "长鱼种名 / 长地点文本边界"
-      ]
+      ],
+      "authority": "design/pages/home/normal_home/04_component_content_states/README.md"
     },
     {
       "order": 5,
@@ -82,7 +84,7 @@
       "label_zh": "响应式与交互",
       "label_en": "Responsive & Interaction",
       "output_policy": "COMBINED_BOARD",
-      "status": "TO_DESIGN",
+      "status": "SPEC_FROZEN_BOARD_PENDING",
       "contains": [
         "9:16",
         "19.5:9",
@@ -91,7 +93,8 @@
         "Pager selected / adjacent / swipe",
         "Single Record 不提供 Pager 暗示",
         "Reduce Motion"
-      ]
+      ],
+      "authority": "design/pages/home/normal_home/05_responsive_interaction/README.md"
     },
     {
       "order": 6,
@@ -99,7 +102,7 @@
       "label_zh": "背景与环境权威",
       "label_en": "Background & Environment Authority",
       "output_policy": "AUTHORITY_BOARD",
-      "status": "SOURCE_PRESENT_AUTHORITY_REVISION_PENDING",
+      "status": "SPEC_FROZEN_AUTHORITY_BOARD_PENDING",
       "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "contains": [
         "Morning Lake Master",
@@ -107,7 +110,8 @@
         "裁切 / 适配规则",
         "禁止从页面截图裁出背景",
         "与 NH01 完整页面构图权威的职责边界"
-      ]
+      ],
+      "authority": "design/pages/home/normal_home/06_background_authority/README.md"
     }
   ]
 }
