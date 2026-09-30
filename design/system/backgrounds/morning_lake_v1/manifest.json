@@ -1,0 +1,62 @@
+{
+  "system": "YuJian Morning Lake Background System",
+  "version": "V1",
+  "status": "FROZEN",
+  "frozen_date": "2026-09-29",
+  "design_coordinate_canvas": [
+    1080,
+    1920
+  ],
+  "canonical_assets_keep_native_dimensions": true,
+  "authority": [
+    "design/system/backgrounds/morning_lake_v1/Background_System_Spec_V1.md",
+    "design/system/backgrounds/morning_lake_v1/treatment_contract.json",
+    "design/system/backgrounds/morning_lake_v1/usage_map.json",
+    "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Sunrise_Hero_V1.png"
+  ],
+  "masters": [
+    {
+      "id": "Morning_Lake_Master_V1",
+      "filename": "Morning_Lake_Master_V1.png",
+      "source_filename": "晨雾山湖与远山.png",
+      "width": 941,
+      "height": 1672,
+      "mode": "RGB",
+      "bytes": 2255291,
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "role": "DEFAULT_SHARED_MASTER",
+      "status": "FROZEN"
+    },
+    {
+      "id": "Morning_Lake_Sunrise_Hero_V1",
+      "filename": "Morning_Lake_Sunrise_Hero_V1.png",
+      "source_filename": "晨曦映照的静谧山湖.png",
+      "width": 941,
+      "height": 1672,
+      "mode": "RGB",
+      "bytes": 2101397,
+      "sha256": "28313d84c8cf3fb9db52196874e9c4d55483c99ff61cf579cac3ecc69af6cc50",
+      "role": "EMPTY_HOME_ONLY",
+      "status": "FROZEN"
+    }
+  ],
+  "variants": [
+    "BG_ENV_HERO",
+    "BG_CONTENT",
+    "BG_DATA",
+    "BG_CAPTURE",
+    "BG_SOLID_FALLBACK"
+  ],
+  "visual_review": {
+    "path": "design/system/backgrounds/morning_lake_v1/validation/Morning_Lake_Content_Adaptation_Approved_V1.png",
+    "width": 992,
+    "height": 1586,
+    "mode": "RGB",
+    "bytes": 1808379,
+    "sha256": "911ab26ad1c53fb2d10c7e225ad8bfffeb959246be2fef29abf80cf979801cce",
+    "status": "APPROVED",
+    "note": "Visual review evidence only. Displayed percentages are explanatory; treatment_contract.json is numeric authority."
+  },
+  "freeze_gate": "PASS"
+}

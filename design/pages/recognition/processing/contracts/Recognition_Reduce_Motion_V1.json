@@ -1,0 +1,117 @@
+{
+  "system": "RECOGNITION_PROCESSING",
+  "version": "1.0",
+  "status": "FROZEN_REDUCE_MOTION",
+  "authority": "design/pages/recognition/processing/accessibility/Recognition_Reduce_Motion_V1.md",
+  "orthogonal_to_quality_level": true,
+  "application_order": [
+    "quality_level",
+    "reduce_motion_override"
+  ],
+  "segment_offset": {
+    "continuous_travel": false,
+    "if_enabled_before_entry": "use_frozen_primary_seeds",
+    "if_enabled_during_processing": "freeze_current_offset",
+    "state_change_repositions": false,
+    "if_disabled_during_processing": {
+      "resume_from_current_offset": true,
+      "speed_ramp_ms": 220,
+      "easing": [
+        0.22,
+        1,
+        0.36,
+        1
+      ]
+    }
+  },
+  "hairline": {
+    "visible_as_allowed_by_quality_level": true,
+    "positional_motion": false,
+    "periodic_visibility_motion": false,
+    "independent_clock": false
+  },
+  "particles": {
+    "enabled": false,
+    "blink_replacement": false,
+    "twinkle_replacement": false,
+    "optional_disable_fade_ms_max": 120
+  },
+  "hot_node": {
+    "visible_as_allowed_by_quality_level": true,
+    "positional_motion": false,
+    "periodic_alpha_pulse": false
+  },
+  "fish_focus": {
+    "reveal": {
+      "type": "alpha_only",
+      "duration_ms": 180,
+      "easing": [
+        0.22,
+        1,
+        0.36,
+        1
+      ],
+      "scale": false,
+      "positional_motion": false
+    },
+    "static_target": {
+      "halo_alpha": 0.15,
+      "contour_core_alpha": 0.39
+    },
+    "breathing": false
+  },
+  "edge_field_entry": {
+    "staged_entry": false,
+    "type": "alpha_only",
+    "duration_ms": 180,
+    "easing": [
+      0.22,
+      1,
+      0.36,
+      1
+    ]
+  },
+  "state_strength": {
+    "targets": {
+      "image_recognizing": 1,
+      "fish_located": 0.58,
+      "species_recognizing": 0.36
+    },
+    "transition_ms": 180,
+    "alpha_only": true
+  },
+  "resolve": {
+    "duration_ms": 200,
+    "formula": "(1-p)^2",
+    "positional_motion": false,
+    "scale": false,
+    "slide": false,
+    "zoom": false
+  },
+  "invariants": [
+    "pipeline",
+    "product_state",
+    "minimum_state_duration",
+    "result_routing",
+    "confidence",
+    "quality_semantics",
+    "four_island_topology",
+    "quiet_gaps",
+    "fish_focus_availability",
+    "copy"
+  ],
+  "hard_failures": [
+    "hide_all_edge_field",
+    "force_lite_quality",
+    "segment_jump_on_state_transition",
+    "blink_or_flash_substitution",
+    "moving_particles",
+    "fish_focus_breathing",
+    "scale_pulse_replacement",
+    "slide_or_zoom_resolve",
+    "mid_session_snap_to_seed",
+    "motion_clock_restart_on_disable",
+    "change_recognition_semantics",
+    "remove_fish_focus"
+  ]
+}

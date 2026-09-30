@@ -1,0 +1,349 @@
+{
+  "component": "AI_EDGE_FIELD_V1",
+  "version": "1.0",
+  "status": "FROZEN_STATIC_SHAPE",
+  "scope": "static_topology_only",
+  "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
+  "perceptual_references": [
+    "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+    "design/pages/recognition/design/01_Capture_Transition_Frozen.png"
+  ],
+  "primary_islands": [
+    {
+      "id": "G_UL",
+      "family": "gold",
+      "path": "G1",
+      "zones": {
+        "top_x": [
+          0,
+          0.3
+        ],
+        "left_y": [
+          0,
+          0.24
+        ]
+      }
+    },
+    {
+      "id": "B_UR",
+      "family": "blue",
+      "path": "B1",
+      "zones": {
+        "top_x": [
+          0.72,
+          1
+        ],
+        "right_y": [
+          0,
+          0.42
+        ]
+      }
+    },
+    {
+      "id": "B_LR",
+      "family": "blue",
+      "path": "B3",
+      "zones": {
+        "right_y": [
+          0.62,
+          1
+        ],
+        "bottom_x": [
+          0.64,
+          1
+        ]
+      }
+    },
+    {
+      "id": "G_LL",
+      "family": "gold",
+      "path": "G3",
+      "zones": {
+        "left_y": [
+          0.7,
+          1
+        ],
+        "bottom_x": [
+          0,
+          0.38
+        ]
+      }
+    }
+  ],
+  "secondary_fragments": [
+    {
+      "path": "B2",
+      "role": "secondary_only",
+      "must_not_connect": [
+        "B_UR",
+        "B_LR"
+      ]
+    },
+    {
+      "path": "G2",
+      "role": "secondary_only",
+      "must_not_connect": [
+        "G_UL",
+        "G_LL"
+      ]
+    },
+    {
+      "path": "B4",
+      "role": "secondary_only",
+      "must_not_fill_gap": "Q_BOTTOM"
+    }
+  ],
+  "quiet_gaps": [
+    {
+      "id": "Q_TOP",
+      "edge": "top",
+      "range": [
+        0.32,
+        0.68
+      ]
+    },
+    {
+      "id": "Q_LEFT",
+      "edge": "left",
+      "range": [
+        0.38,
+        0.62
+      ]
+    },
+    {
+      "id": "Q_RIGHT",
+      "edge": "right",
+      "range": [
+        0.46,
+        0.58
+      ]
+    },
+    {
+      "id": "Q_BOTTOM",
+      "edge": "bottom",
+      "range": [
+        0.4,
+        0.62
+      ]
+    }
+  ],
+  "edge_depth": {
+    "primary_centerline_nearest_edge_max_ratio": 0.12,
+    "bloom_soft_extent_max_ratio": 0.18,
+    "center_subject_safe_area": true
+  },
+  "relative_visual_weight_max": {
+    "primary_filament": 1,
+    "secondary_hairline": 0.35,
+    "energy_node": 0.3,
+    "edge_bloom": 0.25,
+    "sparse_particle": 0.2
+  },
+  "hard_forbidden": [
+    "closed_frame",
+    "closed_ellipse_or_orbit",
+    "continuous_edge_border",
+    "center_crossing_primary_filament",
+    "four_equal_corners",
+    "full_frame_color_wash",
+    "secondary_border_reconstruction",
+    "uniform_energy_nodes",
+    "confetti_particles",
+    "effect_stronger_than_photo"
+  ],
+  "stroke_system": {
+    "composite_layers": {
+      "outer_bloom": {
+        "width_dp": 10,
+        "role": "weak atmospheric diffusion"
+      },
+      "mid_glow": {
+        "width_dp": 4,
+        "role": "soft luminous body"
+      },
+      "core": {
+        "width_dp": "per_path",
+        "role": "hot path identity"
+      }
+    },
+    "core_width_dp": {
+      "G1": 1.1,
+      "B1": 1.2,
+      "B2": 1,
+      "B3": 1.2,
+      "B4": 0.8,
+      "G2": 0.9,
+      "G3": 1.2
+    },
+    "rules": [
+      "same_path_centerline_for_all_layers",
+      "core_width_is_path_specific",
+      "no_global_equal_width_normalization",
+      "outer_mid_are_glow_layers_not_parallel_filaments",
+      "secondary_weight_lower_than_primary",
+      "bloom_must_not_equalize_apparent_thickness"
+    ]
+  },
+  "island_internal_structure": {
+    "default_composition": "1_primary_plus_1_companion_hairline",
+    "island_composition": {
+      "G_UL": {
+        "primary": 1,
+        "companion_hairline": 1,
+        "micro_hairline": 0,
+        "emphasis": "medium"
+      },
+      "B_UR": {
+        "primary": 1,
+        "companion_hairline": 1,
+        "micro_hairline": 1,
+        "emphasis": "highest"
+      },
+      "B_LR": {
+        "primary": 1,
+        "companion_hairline": 1,
+        "micro_hairline": 0,
+        "emphasis": "medium_low"
+      },
+      "G_LL": {
+        "primary": 1,
+        "companion_hairline": 1,
+        "micro_hairline": 0,
+        "emphasis": "medium"
+      }
+    },
+    "companion_hairline": {
+      "core_width_dp": [
+        0.5,
+        0.65
+      ],
+      "local_glow_width_dp": [
+        1.8,
+        2.4
+      ],
+      "outer_bloom": false,
+      "visual_weight_ratio": [
+        0.22,
+        0.35
+      ],
+      "visible_length_ratio": [
+        0.25,
+        0.55
+      ],
+      "centerline_offset_dp": [
+        4,
+        10
+      ],
+      "constant_parallel_spacing_forbidden": true,
+      "same_endpoints_as_primary_forbidden": true
+    },
+    "micro_hairline": {
+      "allowed_islands": [
+        "B_UR"
+      ],
+      "core_width_dp": [
+        0.35,
+        0.5
+      ],
+      "local_glow_width_dp": [
+        1.2,
+        1.8
+      ],
+      "outer_bloom": false,
+      "visual_weight_ratio": [
+        0.12,
+        0.22
+      ],
+      "visible_length_ratio": [
+        0.15,
+        0.32
+      ],
+      "centerline_offset_dp": [
+        7,
+        14
+      ]
+    },
+    "hard_rules": [
+      "primary_is_only_dominant_line",
+      "hairline_shorter_thinner_dimmer",
+      "no_primary_outer_bloom_on_hairlines",
+      "no_constant_parallel_railway_spacing",
+      "islands_not_identical_complexity",
+      "only_B_UR_may_have_two_hairlines",
+      "hairline_must_not_cross_quiet_gap_to_connect_islands",
+      "hairline_must_not_form_new_energy_island"
+    ]
+  },
+  "harmony_reference_adoption": {
+    "source_family": "HarmonyOS UI Design Kit / immersive light field",
+    "adopted_rules": [
+      "light_field_before_line",
+      "local_receiving_light",
+      "one_dominant_light_moment",
+      "soft_physical_layering",
+      "point_light_as_accent",
+      "content_remains_dominant"
+    ],
+    "not_adopted": [
+      "full_background_flowing_light",
+      "closed_component_border_light",
+      "symmetric_dual_edge_treatment",
+      "press_material_response"
+    ]
+  },
+  "optical_stack": {
+    "local_receiving_light": {
+      "edge_depth_ratio": [
+        0.08,
+        0.18
+      ],
+      "relative_weight": [
+        0.1,
+        0.18
+      ]
+    },
+    "outer_bloom": {
+      "width_dp": 10
+    },
+    "mid_glow": {
+      "width_dp": 4
+    },
+    "primary_core": {
+      "width_dp": "per_path_0.8_to_1.2"
+    },
+    "hairline": {
+      "width_dp": [
+        0.35,
+        0.65
+      ]
+    }
+  },
+  "static_master_balance": {
+    "B_UR": {
+      "peak": 1,
+      "role": "dominant"
+    },
+    "G_UL": {
+      "peak": [
+        0.72,
+        0.82
+      ]
+    },
+    "G_LL": {
+      "peak": [
+        0.58,
+        0.68
+      ]
+    },
+    "B_LR": {
+      "peak": [
+        0.48,
+        0.6
+      ]
+    },
+    "hot_nodes": {
+      "B_UR": 1,
+      "global_secondary_max": 1
+    }
+  }
+}
