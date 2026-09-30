@@ -1,5 +1,7 @@
 # Forgot Password · Deferred Design Reference
 
+Status: **DEFERRED**
+
 Product scope: **MVP DEFERRED — ENTRY ONLY / COMING SOON**
 
 The historical four-screen board remains available in Design Manager as a single review gallery:
