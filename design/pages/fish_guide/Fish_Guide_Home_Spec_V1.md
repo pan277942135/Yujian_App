@@ -22,7 +22,7 @@ Authority order:
 5. **Shared visual system contracts**  
    Background / glass / color / typography / spacing / radius registries.
 
-The UNLIT image is promoted to a directly inspectable **01A · 未点亮状态** Design Manager workspace, but it remains a state delta of the same FishGuideCard system and does not replace the main frozen page shell.  
+The UNLIT image remains directly inspectable as nested child **01 → 01A · 未点亮状态** in Design Manager. It is a state delta of the same FishGuideCard system and does not replace the main frozen page shell.  
 Runtime evidence never replaces design authority.
 
 ---
@@ -214,7 +214,7 @@ Presentation:
 
 Dedicated second-level Design Manager authority:
 
-- Menu: **01A · 未点亮状态**
+- Design Manager: **01 · 鱼鉴首页 → 01A · 未点亮状态**
 - Visual: `design/system/core_visual_v1/reference/supplemental/fish_guide_unlit_state.png`
 - State spec: `design/pages/fish_guide/Fish_Guide_Unlit_State_Spec_V1.md`
 
@@ -288,7 +288,7 @@ On return:
 - restore carousel position;
 - do not reset to the first catalog item.
 
-Cross-module linkage to My Catches belongs to **02 · 鱼种详情** and **04 · 鱼种导航**; Fish Guide Home does not need a second large CTA for it.
+Cross-module linkage to My Catches belongs to **02 · 鱼种详情**. There is no standalone Fish Guide navigation menu; Fish Guide Home does not need a second large CTA for it.
 
 ---
 
@@ -311,7 +311,7 @@ Glass is used for legibility and layering only; it must not become a special-eff
 
 ## 11. Responsive guardrails
 
-Detailed responsive behavior is owned by **08 · 响应式**.
+Detailed responsive behavior is owned by **06 · 响应式与无障碍**.
 
 Fish Guide Home must preserve these invariants:
 
@@ -327,7 +327,7 @@ On smaller screens, reduce peripheral spacing before removing the adjacent-card 
 
 ## 12. Accessibility / motion guardrails
 
-Detailed motion is owned by **07 · 动效与交互**.
+Detailed motion is owned by **05 · 动效与交互**.
 
 Home-level invariants:
 
@@ -357,7 +357,7 @@ UNLIT state visual authority (Core UI supplemental reference):
 
 Design Manager route:
 
-`鱼鉴 → 01A · 未点亮状态`
+`鱼鉴 → 01 · 鱼鉴首页 → 01A · 未点亮状态`
 
 Shared background:
 
@@ -383,7 +383,7 @@ Detailed contracts for:
 - loading;
 - runtime fallback;
 
-belong to **03 · 鱼种状态** and **09 · 验收证据**.
+belong to **03 · 页面状态**. Runtime evidence is tracked in Overview / implementation closure and is not a standalone design menu.
 
 Until those specs are frozen, runtime fallback must not invent new visual hierarchy.
 
@@ -402,7 +402,7 @@ Fish Guide Home passes design acceptance only when all are true:
 - [x] Discovery progress uses `已点亮 N / T 种` and stays low-weight.
 - [x] Species Catch Count is based on saved FishRecord entries.
 - [x] LIT / UNLIT are encounter states, not permission states.
-- [x] UNLIT is exposed as a direct **01A · 未点亮状态** Design Manager second-level workspace.
+- [x] UNLIT remains directly inspectable as nested child **01 → 01A · 未点亮状态**.
 - [x] 01A directly previews the existing frozen `fish_guide_unlit_state.png`; no replacement visual is generated.
 - [x] UNLIT remains visible, readable, browsable, and tappable.
 - [x] No rarity / level / achievement / large-lock game semantics.
@@ -410,6 +410,6 @@ Fish Guide Home passes design acceptance only when all are true:
 - [x] FishGuideCard is single-face; Auto Flip is forbidden.
 - [x] Fish Guide Home does not autoplay or automatically switch Species.
 - [x] A single first-entry low-amplitude Carousel Discover Hint is allowed; Reduce Motion disables it.
-- [ ] Runtime parity evidence is attached under **09 · 验收证据**.
+- [ ] Runtime parity evidence is tracked in Overview / implementation closure without reopening this design contract.
 
 The final unchecked item is an implementation/evidence gate and does not reopen the frozen homepage design contract.
