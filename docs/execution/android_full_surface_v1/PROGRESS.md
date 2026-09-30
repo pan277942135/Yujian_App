@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P06 Recognition Result
+- Current phase: P07 Result Editing
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -42,8 +42,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P03 Normal Home / First Catch Home | BLOCKED_INFRA | `2eb538461888e8bcba1a1f027b130709ab498f46` | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
 | P04 Capture entry / shared Capture behavior | BLOCKED_INFRA | `3a4d494308f390cb1f851335f391dab329639a53` | Existing camera/gallery route audited; camera failure containment and image-store tests added | Android instrumentation unavailable in this environment | Continue P05; carry P04 gate into final matrix |
 | P05 Recognition Processing | BLOCKED_INFRA | `f13c71b029fdd03b1cd30f9e2e6a62ee0f9e6745` | Contract verifier PASS; cancellation fix and Back instrumentation authored | No local Gradle/Android runtime; Android test and runtime evidence gate unavailable after bounded no-job attempts | Continue P06 independently |
-| P06 Recognition Result | IN_PROGRESS | — | `result` route and screen exist; registry runtime/evidence marked PARTIAL | Targeted result instrumentation and visual evidence | Audit frozen high/medium/low/no-fish/quality states |
-| P07 Result Editing | NOT_STARTED | — | — | — | — |
+| P06 Recognition Result | BLOCKED_INFRA | `bf470596c35f39adccb185be04f3da774f0220a7` | Direct High/Medium/Low/No Fish/Image Quality instrumentation authored; font-scale candidate scrolling added; Recognition design closure verifier PASS | Android compile/instrumentation/visual evidence unavailable after bounded no-job attempts | Continue P07 independently |
+| P07 Result Editing | IN_PROGRESS | — | Existing species selector and metadata/result save paths found | Targeted selector, input, permission, save/error behavior | Audit frozen selector and metadata/save contracts |
 | P08 My Catches | NOT_STARTED | — | — | — | — |
 | P09 Fish Record Detail | NOT_STARTED | — | — | — | — |
 | P10 Fish Guide | NOT_STARTED | — | — | — | — |
@@ -180,3 +180,35 @@ Git:
 
 Next:
 - Continue P06 Recognition Result high/medium/low/no-fish/image-quality auditing and targeted implementation, preserving P05's Android evidence blocker for final matrix closure.
+
+## P06 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P06
+
+Feature: Recognition Result 3+2 states
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Audited `recognition_result_v1` state, behavior, geometry, candidate-card and Hero Media contracts against the live composables. The current source already has the shared Result navigation/actions, High dual CTA, explicit Medium confirmation, Low manual recovery, separate No Fish/Image Quality copy and source-photo Hero planner; the older runtime-alignment review predates these implementations.
+- Added direct instrumentation for High identity/metadata/dual CTA, Medium no-selection then explicit candidate confirmation, Low no-save until manual species selection, and distinct No Fish/Image Quality recovery copy/actions.
+- Added an accessibility font-scale policy: at font scale 1.3 and above, Medium candidates use fixed 104dp cards in a horizontally scrollable row. Added unit coverage for the policy boundary.
+- `python3 scripts/verify_recognition_design_closure_v1_1.py` returned PASS for all 9 frozen references; `python3 scripts/verify_recognition_runtime_contract.py` returned PASS; `git diff --check` passes.
+- Existing `recognition-frozen` gate already runs `RecognitionFrozenFlowEmulatorTest`; the new result tests are covered by that gate without introducing another runner path.
+
+Validation boundary:
+- Kotlin compile, unit and instrumentation tests have not run because this workspace has no Gradle/Gradle wrapper, adb or emulator.
+- Result runtime screenshots, compact/large-font evidence and visual acceptance ROIs must come from the existing Android gate. No Android workflow job has been created for the current branch; the bounded no-job retry budget remains exhausted. P06 is therefore BLOCKED_INFRA, not PASS.
+- Frozen references remain unchanged; no substitute runtime screenshots or parity results were created.
+
+Git:
+- Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
+- Branch: `feature/android-full-surface-runtime-v1`
+- P06 source checkpoint SHA: `bf470596c35f39adccb185be04f3da774f0220a7`
+- P06 Actions observation: only Empty Home V2 Design Assets and Design Governance were created (runs `36705525128`, `36705524991`, both in progress when checked); no Android workflow/status was created.
+- PR: #97 (draft)
+
+Next:
+- Continue P07 against the frozen Species Selector, metadata-input and Result save contracts; verify permissions, correction feedback, record-before-memory ordering, duplicate-submit protection and retry state.
