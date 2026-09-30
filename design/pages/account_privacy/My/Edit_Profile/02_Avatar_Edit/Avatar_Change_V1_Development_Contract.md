@@ -1,7 +1,7 @@
 # Avatar Change V1 · Frozen Development Contract
 
-Status: **FROZEN**  
-Scope: `编辑资料 → 02 · 头像修改`  
+Status: **FROZEN**
+Scope: `编辑资料 → 02 · 头像修改`
 Visual Authority: `design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp`
 
 ## 1. Product contract
@@ -21,7 +21,7 @@ Edit Profile
 → Success / Failure
 ```
 
-**Frozen rule:** selecting or cropping an avatar MUST NOT upload it immediately.  
+**Frozen rule:** selecting or cropping an avatar MUST NOT upload it immediately.
 Upload occurs only when the user taps **保存修改** on Edit Profile.
 
 This keeps avatar and nickname changes in one explicit save transaction.
@@ -221,7 +221,7 @@ Crop page:
 
 After `使用此头像` returns to Edit Profile:
 - the avatar is an unsaved edit;
-- page-level Unsaved Changes behavior is owned by `06 · 交互与适配规范`.
+- page-level Unsaved Changes behavior remains PARTIAL under the Interaction / Adaptation section in `design/pages/account_privacy/My/Edit_Profile/README.md`.
 
 ## 13. Accessibility
 

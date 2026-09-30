@@ -1,0 +1,683 @@
+{
+  "id": "account_privacy_authority_manifest_v2",
+  "version": "2.0",
+  "status": "PARTIAL",
+  "freeze_date": "2026-09-30",
+  "scope": "Design authority classification and Design Manager navigation; runtime status is separate.",
+  "historical_package_manifest": {
+    "path": "design/pages/account_privacy/manifest.json",
+    "status": "PRESERVED_HISTORICAL_INVENTORY",
+    "asset_count": 23,
+    "ui_reference_images": 22,
+    "shared_background_asset": "design/pages/account_privacy/shared/morning_lake_background.png"
+  },
+  "current_shared_background_authority": {
+    "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "variant": "BG_CONTENT",
+    "status": "FROZEN"
+  },
+  "flows": [
+    {
+      "id": "01a",
+      "canonical_id": "account_privacy_v1.01a",
+      "title": "01A · 登录",
+      "menu_location": "账号与隐私 → 01 · 登录与注册 → 01A · 登录",
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+          "label": "Login V2.1 · 当前 Frozen Authority",
+          "status": "FROZEN",
+          "source_type": "FROZEN_REPOSITORY_VISUAL",
+          "format": "PNG",
+          "bytes": 1152035,
+          "sha256": "c9323f11a9d935f8e98b95276a73930b549b20262eddb5a57968a10835c7486e",
+          "width": 864,
+          "height": 1536,
+          "mode": "RGB",
+          "role": "CURRENT AUTHORITY",
+          "scope": "当前唯一 Login Visual Authority。"
+        },
+        {
+          "path": "design/pages/account_privacy/Login/00_Login.png",
+          "label": "旧 Login V2 · Superseded",
+          "status": "DEPRECATED",
+          "source_type": "SUPERSEDED_HISTORICAL_VISUAL",
+          "format": "PNG",
+          "bytes": 1596585,
+          "sha256": "3eb52b73edb04e24fea6bdcdc8c9082bab0b3babb7bad79dd6718774a1fe79ab",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "HISTORICAL / SUPERSEDED",
+          "scope": "不得作为当前 Login Visual Authority。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+      "behavior_authority": "design/pages/account_privacy/Login/Login_V2_Closure.md",
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP",
+      "superseded_source": "design/pages/account_privacy/Login/00_Login.png"
+    },
+    {
+      "id": "01b",
+      "canonical_id": "account_privacy_v1.01b",
+      "title": "01B · 注册",
+      "menu_location": "账号与隐私 → 01 · 登录与注册 → 01B · 注册",
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+          "label": "01B · 注册",
+          "status": "FROZEN",
+          "source_type": "FROZEN_REPOSITORY_VISUAL",
+          "format": "PNG",
+          "bytes": 1116673,
+          "sha256": "d96f5d2d1df254336031ca68f67bc63b680f73d0924b82fc96ebe22abb13d0fe",
+          "width": 864,
+          "height": 1536,
+          "mode": "RGB",
+          "role": "CURRENT AUTHORITY"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "01c",
+      "canonical_id": "account_privacy_v1.01c",
+      "title": "01C · 忘记密码 · Deferred",
+      "menu_location": "账号与隐私 → 01 · 登录与注册 → 01C · 忘记密码 · Deferred",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/Login/Forgot_Password/01_Account.png",
+          "label": "01 · Account",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 688674,
+          "sha256": "4eb862e3c3b42928c868f3ff82023ddc6c0a5c634b4e1bd79479f7c20769046d",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+        },
+        {
+          "path": "design/pages/account_privacy/Login/Forgot_Password/02_Verification.png",
+          "label": "02 · Verification",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 683131,
+          "sha256": "72b9dc7c70a042dbcbd0e0ba8f187f34683bfdbded2e8cc4c8e8891efcb05e55",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+        },
+        {
+          "path": "design/pages/account_privacy/Login/Forgot_Password/03_New_Password.png",
+          "label": "03 · New Password",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 650049,
+          "sha256": "f1031682b909eb74305099f756567ec469a3c6a5e663806e30b4151829e545a3",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+        },
+        {
+          "path": "design/pages/account_privacy/Login/Forgot_Password/04_Success.png",
+          "label": "04 · Success",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 676073,
+          "sha256": "c88147ec8bcc363b69d111d52affd7a1e76d7c989d317e4c7ebe1a9d18e034ee",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/Login/Forgot_Password/README.md",
+      "behavior_authority": "design/pages/account_privacy/Login/Forgot_Password/README.md",
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "DEFERRED",
+      "backend_gate": "Verified recovery channel required; until then production is entry-only / Coming Soon."
+    },
+    {
+      "id": "02a",
+      "canonical_id": "account_privacy_v1.02a",
+      "title": "02A · 我的",
+      "menu_location": "账号与隐私 → 02 · 我的与资料 → 02A · 我的",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/00_My.png",
+          "label": "My · 历史候选参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 1588604,
+          "sha256": "6a04e8a74d7337e5f3b41f48329b649444636bd85a83c69a24839a2603513b1b",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/README.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "02b",
+      "canonical_id": "account_privacy_v1.02b",
+      "title": "02B · 编辑资料首页",
+      "menu_location": "账号与隐私 → 02 · 我的与资料 → 02B · 编辑资料首页",
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp",
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp",
+          "label": "02B · 编辑资料首页",
+          "status": "FROZEN",
+          "source_type": "FROZEN_REPOSITORY_VISUAL",
+          "format": "WEBP",
+          "bytes": 166086,
+          "sha256": "791a6b873878341e84ac48cc47861789b20dfee904effd071af5427111bbaf96",
+          "width": 941,
+          "height": 1672,
+          "mode": "RGB",
+          "role": "CURRENT AUTHORITY"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
+      "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "02c",
+      "canonical_id": "account_privacy_v1.02c",
+      "title": "02C · 头像修改",
+      "menu_location": "账号与隐私 → 02 · 我的与资料 → 02C · 头像修改",
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp",
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp",
+          "label": "02C · 头像修改",
+          "status": "FROZEN",
+          "source_type": "FROZEN_REPOSITORY_VISUAL",
+          "format": "WEBP",
+          "bytes": 108104,
+          "sha256": "7261d5b21fa750d3eb25f89e52819ebdb095ecb615f35550de0bceae3e0e3b4f",
+          "width": 1448,
+          "height": 1086,
+          "mode": "RGB",
+          "role": "CURRENT AUTHORITY"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/README.md",
+      "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md",
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "02d",
+      "canonical_id": "account_privacy_v1.02d",
+      "title": "02D · 昵称编辑",
+      "menu_location": "账号与隐私 → 02 · 我的与资料 → 02D · 昵称编辑",
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+          "label": "02D · 昵称编辑",
+          "status": "FROZEN",
+          "source_type": "FROZEN_REPOSITORY_VISUAL",
+          "format": "WEBP",
+          "bytes": 15007,
+          "sha256": "26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b",
+          "width": 1491,
+          "height": 1055,
+          "mode": "RGB",
+          "role": "CURRENT AUTHORITY",
+          "declared_frozen_manifest_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+          "identity_check": "MISMATCH"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
+      "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "03a",
+      "canonical_id": "account_privacy_v1.03a",
+      "title": "03A · 账号与登录",
+      "menu_location": "账号与隐私 → 03 · 账号与登录 → 03A · 账号与登录",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
+          "label": "Account & Login · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 644914,
+          "sha256": "8c6c88c21db4bad9d7b2b1ed02079d22a13362217abcc4d03b60bb6ce9bba269",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "不宣称当前 Frozen authority。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "03b",
+      "canonical_id": "account_privacy_v1.03b",
+      "title": "03B · 修改密码",
+      "menu_location": "账号与隐私 → 03 · 账号与登录 → 03B · 修改密码",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/01_Change_Password.png",
+          "label": "Change Password · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 607320,
+          "sha256": "00e99aa8c8eff1b0274daf9709f50b3399badd8e9f8c551bd345b6fa9a03aaf2",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "不使用 runtime 截图替代 visual authority。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "04a",
+      "canonical_id": "account_privacy_v1.04a",
+      "title": "04A · 数据与隐私首页",
+      "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04A · 数据与隐私首页",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png",
+          "label": "Data & Privacy · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 558179,
+          "sha256": "602d75be9b1694df3be3f0c85b5433340d7680bf61bdd86d4561d0b5b7368886",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "不宣称当前 Frozen authority。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "04b",
+      "canonical_id": "account_privacy_v1.04b",
+      "title": "04B · AI 模型改进",
+      "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04B · AI 模型改进",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
+          "label": "Enable Consent · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 533321,
+          "sha256": "d10366f930006685dc5f16dd299aece9b60182fc81c03cc4ce7bbf70d86f2009",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "Consent 默认 OFF；仅用户明确同意后开启。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png",
+          "label": "Disable Confirmation · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 179673,
+          "sha256": "ea424d68844ca24a687a15fc9bbbe6d9f124f156661e283336879dec2bd8fa3c",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "撤回同意需生效，不影响识别、保存与纠正。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "04c",
+      "canonical_id": "account_privacy_v1.04c",
+      "title": "04C · 位置权限",
+      "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04C · 位置权限",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
+          "label": "Location Permission · Info · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 189921,
+          "sha256": "0ba2f48241017118e4cf24611553a2cce9e969355924e32f950e8d465ecc51aa",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "只在用户明确请求当前位置时申请权限。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png",
+          "label": "Location Permission · Denied · 历史参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 672704,
+          "sha256": "db3610f8f99751928abd8e3bab04492ca44ea4f4bee59c575bd3a585bb6f0679",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGACY / REVIEW REQUIRED",
+          "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "04d",
+      "canonical_id": "account_privacy_v1.04d",
+      "title": "04D · 导出我的数据 · Deferred",
+      "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04D · 导出我的数据 · Deferred",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/00_Overview.png",
+          "label": "Overview",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 584705,
+          "sha256": "053f419e3985370b6df2797ce63e2c94171bc60f1c41f79e7d6d79f533b9b50d",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/01_Processing.png",
+          "label": "Processing",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 692680,
+          "sha256": "eeb1b1f5ef81308a254b6d1447aa4df5e255f0e1c5a187f18f7b1f868d6eeba3",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/02_Ready.png",
+          "label": "Ready",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 648083,
+          "sha256": "1198e531cc798f68d8f64e96cc044b86c4f61c4a45ed0adfcacde6a53535269f",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/03_Failed.png",
+          "label": "Failed",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 686329,
+          "sha256": "ab688ef5be5d1ea7a43c0d5fac076b0429809cd5fd22fba585bb8b558828e282",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/04_Expired.png",
+          "label": "Expired",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 682817,
+          "sha256": "fd46f676660424a721be7061399241f2ea2ce12f7e1f790a96edd799247f5a47",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "DEFERRED",
+      "backend_gate": "Capability is deferred in MVP; production is entry-only / Coming Soon."
+    },
+    {
+      "id": "04e",
+      "canonical_id": "account_privacy_v1.04e",
+      "title": "04E · 注销账号 · Deferred",
+      "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04E · 注销账号 · Deferred",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/01_Explanation.png",
+          "label": "Explanation",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 659497,
+          "sha256": "649a0ab56f551d3846fb41890474622718d420992879d8a890af21802b616215",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/02_Reauth.png",
+          "label": "Re-auth",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 669075,
+          "sha256": "6e5b39401590c92d7a6a3fd55ebadb395d59929dfe7913984d9cf8727373c73a",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
+        },
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/03_Final_Confirmation.png",
+          "label": "Final Confirmation",
+          "status": "PARTIAL",
+          "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
+          "format": "PNG",
+          "bytes": 430134,
+          "sha256": "2be3b35d66cf176987e00cc64fc1baa7f50dd51ebc606a17ba9260af486c9cba",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+          "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "DEFERRED",
+      "backend_gate": "Capability is deferred in MVP; production is entry-only / Coming Soon."
+    },
+    {
+      "id": "05a",
+      "canonical_id": "account_privacy_v1.05a",
+      "title": "05A · 关于渔见",
+      "menu_location": "账号与隐私 → 05 · 法律与关于 → 05A · 关于渔见",
+      "status": "MISSING",
+      "visual_authority": null,
+      "visual_references": [],
+      "source_type": "NO_VISUAL_AUTHORITY",
+      "spec_authority": "design/pages/account_privacy/README.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    },
+    {
+      "id": "05b",
+      "canonical_id": "account_privacy_v1.05b",
+      "title": "05B · 隐私政策",
+      "menu_location": "账号与隐私 → 05 · 法律与关于 → 05B · 隐私政策",
+      "status": "PARTIAL",
+      "visual_authority": null,
+      "visual_references": [
+        {
+          "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+          "label": "Privacy Policy · 历史页面壳参考",
+          "status": "PARTIAL",
+          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "format": "PNG",
+          "bytes": 1953886,
+          "sha256": "cd3a7e367492b89e9a126f7129d024072ce88232483e79ef5ca614fa487bf6af",
+          "width": 1080,
+          "height": 1920,
+          "mode": "RGB",
+          "role": "LEGAL REVIEW REQUIRED",
+          "scope": "只复用视觉结构；最终法律正文须来源于批准法务文本。"
+        }
+      ],
+      "source_type": "EXISTING_REPOSITORY_BINARY",
+      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP",
+      "legal_gate": "Page shell is a reference; final legal body requires approved legal copy."
+    },
+    {
+      "id": "05c",
+      "canonical_id": "account_privacy_v1.05c",
+      "title": "05C · 用户协议",
+      "menu_location": "账号与隐私 → 05 · 法律与关于 → 05C · 用户协议",
+      "status": "MISSING",
+      "visual_authority": null,
+      "visual_references": [],
+      "source_type": "NO_VISUAL_AUTHORITY",
+      "spec_authority": "design/pages/account_privacy/README.md",
+      "behavior_authority": null,
+      "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
+      "product_scope": "MVP"
+    }
+  ],
+  "historical_background_reference": {
+    "path": "design/pages/account_privacy/shared/morning_lake_background.png",
+    "label": "Legacy Account & Privacy shared background",
+    "status": "DEPRECATED",
+    "source_type": "SUPERSEDED_HISTORICAL_VISUAL",
+    "format": "PNG",
+    "bytes": 990458,
+    "sha256": "8df4c17468bb64170bfc79529920e88060a53cd84faa912e80743e47caecce35",
+    "width": 1080,
+    "height": 1920,
+    "mode": "RGBA",
+    "role": "HISTORICAL BACKGROUND ONLY",
+    "scope": "Not current background authority."
+  },
+  "known_integrity_findings": [
+    {
+      "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+      "actual_repository_sha256": "26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b",
+      "declared_frozen_manifest_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+      "status": "MISMATCH_RETAINED_UNCHANGED",
+      "follow_up": "Locate the originally approved byte-identical source before claiming binary parity; do not regenerate or re-encode."
+    }
+  ],
+  "runtime_status": {
+    "status": "PARTIAL",
+    "authority": "design/pages/account_privacy/qa/QA_REPORT.md",
+    "note": "Tracked separately. This manifest does not assert runtime parity or runtime PASS."
+  }
+}

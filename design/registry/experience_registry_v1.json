@@ -5462,8 +5462,9 @@
           "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md"
         },
         "visual": {
-          "status": "FROZEN",
-          "authority": "design/pages/account_privacy/manifest.json"
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "note": "Only explicitly listed current authorities are FROZEN; legacy images remain references and deferred flows remain entry-only."
         },
         "motion": {
           "status": "MISSING",
@@ -5486,19 +5487,28 @@
           "authority": "design/pages/account_privacy/qa/QA_REPORT.md"
         },
         "assets": {
-          "status": "FROZEN",
-          "authority": "design/pages/account_privacy/manifest.json"
+          "status": "PARTIAL",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
         }
       },
-      "note": "冻结 UI 包包含 22 个界面参考和共用清晨湖景背景；部分流程按 MVP 范围暂不进入运行时。",
+      "note": "Design status: PARTIAL. Current Frozen: Login V2.1, Register V2, Edit Profile Home, Avatar, Nickname. Legacy/review required: My, Account & Login, Change Password, Data & Privacy, AI Model Improvement, Location Permission, Privacy Policy. MVP DEFERRED / entry-only: Forgot Password, Export My Data, Delete Account. Visual authority missing: About YuJian and User Agreement. Shared background authority is Morning_Lake_Master_V1 / BG_CONTENT; runtime status is shown separately and this design organization does not claim runtime closure.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
           "version": "V1",
-          "status": "FROZEN",
-          "current": true,
+          "status": "PARTIAL",
+          "current": false,
           "visual_authority": "design/pages/account_privacy/manifest.json",
-          "note": "已冻结 UI 包；部分流程按 MVP 范围暂不进入运行时。"
+          "note": "Historical package inventory only; its 22 UI images are not automatically current Frozen authorities."
+        },
+        {
+          "version": "V2",
+          "status": "PARTIAL",
+          "current": true,
+          "visual_authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "spec_authority": "design/pages/account_privacy/README.md",
+          "note": "Consolidated Design Manager authority index. Overall remains PARTIAL; runtime is tracked separately."
         }
       ],
       "design_overall": "PARTIAL",
@@ -5527,6 +5537,553 @@
           "id": "top_navigation_v1",
           "variant": "BACK_TITLE",
           "note": "Top Navigation V1 / BACK_TITLE / FROZEN：账号与隐私、账号与登录、修改密码、数据与隐私、关于渔见、隐私政策、用户协议统一使用同一二级页结构。"
+        }
+      ],
+      "design_sections": [
+        {
+          "id": "current_frozen",
+          "title": "CURRENT FROZEN",
+          "status": "FROZEN",
+          "summary": "Only these page authorities are current and Frozen. Their status does not imply Android runtime closure.",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "points": [
+            "Login V2.1",
+            "Register V2",
+            "Edit Profile Home V1.1",
+            "Avatar Change V1",
+            "Nickname Edit V1"
+          ]
+        },
+        {
+          "id": "legacy_review",
+          "title": "LEGACY / REVIEW REQUIRED",
+          "status": "PARTIAL",
+          "summary": "Existing images remain exact historical references. They are not promoted to current authority without review against shared systems and current IA.",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "points": [
+            "My",
+            "Account & Login",
+            "Change Password",
+            "Data & Privacy",
+            "AI Model Improvement",
+            "Location Permission",
+            "Privacy Policy"
+          ]
+        },
+        {
+          "id": "mvp_deferred",
+          "title": "MVP DEFERRED · ENTRY ONLY / COMING SOON",
+          "status": "PARTIAL",
+          "summary": "Existing boards are future-flow design references. Production remains entry-only; do not expose the depicted full flows.",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "points": [
+            "Forgot Password",
+            "Export My Data",
+            "Delete Account"
+          ]
+        },
+        {
+          "id": "missing_visual",
+          "title": "DESIGN AUTHORITY MISSING",
+          "status": "MISSING",
+          "summary": "No independent Frozen Visual Authority exists. No replacement or runtime screenshot is supplied.",
+          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "points": [
+            "About YuJian",
+            "User Agreement"
+          ]
+        },
+        {
+          "id": "shared_systems",
+          "title": "SHARED SYSTEM DEPENDENCIES",
+          "status": "FROZEN",
+          "summary": "Account surfaces reference shared systems; the legacy account background is not current authority.",
+          "authority": "design/registry/shared_design_system_v1.json",
+          "points": [
+            "Morning_Lake_Master_V1 / BG_CONTENT",
+            "Top Navigation V1 / BACK_TITLE",
+            "Color & Typography V1",
+            "Spacing & Radius V1",
+            "Action / Text / Icon components"
+          ]
+        },
+        {
+          "id": "runtime_separate",
+          "title": "RUNTIME STATUS · TRACKED SEPARATELY",
+          "status": "PARTIAL",
+          "summary": "Runtime status remains PARTIAL and is not changed or closed by this design-only consolidation.",
+          "authority": "design/pages/account_privacy/qa/QA_REPORT.md",
+          "points": [
+            "No Android runtime changes",
+            "No runtime parity claim",
+            "No Runtime PASS claim"
+          ]
+        }
+      ],
+      "hifi_views": [
+        {
+          "id": "01_login_register",
+          "title": "01 · 登录与注册",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/account_privacy/README.md",
+          "summary": "当前登录与注册各有独立 Frozen Authority；忘记密码保留为一个 Deferred 工作区，生产仅 entry-only / Coming Soon。",
+          "menu_points": [
+            "01A · 登录 · FROZEN",
+            "01B · 注册 · FROZEN",
+            "01C · 忘记密码 · MVP DEFERRED"
+          ],
+          "children": [
+            {
+              "id": "01a",
+              "code": "01A",
+              "title": "01A · 登录",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "authority": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+              "summary": "Login V2.1 是唯一当前登录视觉 Authority。旧 Login V2 仅作为 Superseded 历史参考。",
+              "menu_group": "visual",
+              "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+              "behavior_authority": "design/pages/account_privacy/Login/Login_V2_Closure.md",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+                  "label": "Login V2.1 · 当前 Frozen Authority",
+                  "status": "FROZEN",
+                  "role": "CURRENT AUTHORITY",
+                  "scope": "当前唯一 Login Visual Authority。"
+                },
+                {
+                  "path": "design/pages/account_privacy/Login/00_Login.png",
+                  "label": "旧 Login V2 · Superseded",
+                  "status": "DEPRECATED",
+                  "role": "HISTORICAL / SUPERSEDED",
+                  "scope": "不得作为当前 Login Visual Authority。"
+                }
+              ]
+            },
+            {
+              "id": "01b",
+              "code": "01B",
+              "title": "01B · 注册",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+              "summary": "Register V2 当前 Frozen visual 使用仓库内批准 PNG；背景继续遵循共享 BG_CONTENT。",
+              "menu_group": "visual",
+              "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+              "behavior_authority": "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md",
+              "render_mode": "repo_image"
+            },
+            {
+              "id": "01c",
+              "code": "01C",
+              "title": "01C · 忘记密码 · Deferred",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/Login/Forgot_Password/README.md",
+              "summary": "MVP DEFERRED。当前产品只允许入口和 Coming Soon；不得暴露旧四步生产流程。完整恢复需先有已验证恢复渠道。",
+              "menu_group": "visual",
+              "behavior_authority": "design/pages/account_privacy/Login/Forgot_Password/README.md",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/Login/Forgot_Password/01_Account.png",
+                  "label": "01 · Account",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+                },
+                {
+                  "path": "design/pages/account_privacy/Login/Forgot_Password/02_Verification.png",
+                  "label": "02 · Verification",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+                },
+                {
+                  "path": "design/pages/account_privacy/Login/Forgot_Password/03_New_Password.png",
+                  "label": "03 · New Password",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+                },
+                {
+                  "path": "design/pages/account_privacy/Login/Forgot_Password/04_Success.png",
+                  "label": "04 · Success",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "仅未来流程参考；Production = entry-only / Coming Soon。"
+                }
+              ],
+              "menu_points": [
+                "Production: ENTRY ONLY / COMING SOON",
+                "Backend gate: verified recovery channel required"
+              ],
+              "product_scope": "DEFERRED"
+            }
+          ]
+        },
+        {
+          "id": "02_my_profile",
+          "title": "02 · 我的与资料",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/account_privacy/README.md",
+          "summary": "保留 My 作为需复核的历史候选；编辑资料首页、头像和昵称沿用现有三个 Frozen Authority。04–06 已折叠进编辑资料 authority index，不再占用菜单。",
+          "menu_points": [
+            "02A · 我的 · PARTIAL / REVIEW REQUIRED",
+            "02B · 编辑资料首页 · FROZEN",
+            "02C · 头像修改 · FROZEN",
+            "02D · 昵称编辑 · FROZEN"
+          ],
+          "children": [
+            {
+              "id": "02a",
+              "code": "02A",
+              "title": "02A · 我的",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/README.md",
+              "summary": "既有 My 页面保留作 review reference。可见日出与强金色倒影，与当前非空首页 BG_CONTENT（无太阳 Morning Lake Master）不一致；既有信息架构还需复核。未重绘。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/00_My.png",
+                  "label": "My · 历史候选参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。"
+                }
+              ]
+            },
+            {
+              "id": "02b",
+              "code": "02B",
+              "title": "02B · 编辑资料首页",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
+              "summary": "Edit Profile Home V1.1 Frozen；默认未修改时保存按钮 Disabled。04–06 的未冻结条款汇总在编辑资料 authority index。",
+              "menu_group": "visual",
+              "visual_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp",
+              "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
+              "render_mode": "repo_image"
+            },
+            {
+              "id": "02c",
+              "code": "02C",
+              "title": "02C · 头像修改",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/README.md",
+              "summary": "Avatar Change V1 Frozen；沿用现有来源选择、裁切、pending preview、统一保存上传与失败重试契约。",
+              "menu_group": "visual",
+              "visual_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp",
+              "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md",
+              "render_mode": "repo_image"
+            },
+            {
+              "id": "02d",
+              "code": "02D",
+              "title": "02D · 昵称编辑",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
+              "summary": "Nickname Edit V1 Frozen；trim 后 1–20 字符行为由既有 Machine / Development Contract 约束。",
+              "menu_group": "visual",
+              "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+              "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
+              "render_mode": "repo_image"
+            }
+          ]
+        },
+        {
+          "id": "03_account_login",
+          "title": "03 · 账号与登录",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+          "summary": "沿用既有 Account & Login 与 Change Password 图片作为 review reference；runtime existence 不等于 design frozen。",
+          "menu_points": [
+            "03A · 账号与登录 · PARTIAL",
+            "03B · 修改密码 · PARTIAL"
+          ],
+          "children": [
+            {
+              "id": "03a",
+              "code": "03A",
+              "title": "03A · 账号与登录",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "Account & Login 当前只有历史视觉参考；需对照当前 Top Navigation、BG_CONTENT 与 Action / Text / Icon 系统复核。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
+                  "label": "Account & Login · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "不宣称当前 Frozen authority。"
+                }
+              ]
+            },
+            {
+              "id": "03b",
+              "code": "03B",
+              "title": "03B · 修改密码",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "Change Password 当前只有历史视觉参考；runtime/API 存在不能替代 design freeze。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/01_Change_Password.png",
+                  "label": "Change Password · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "不使用 runtime 截图替代 visual authority。"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "04_data_privacy",
+          "title": "04 · 数据与隐私",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+          "summary": "每个多状态流程在单一 workspace 中用原仓库图片 gallery 展示。AI consent 与 Location 保留现有业务边界；Export/Delete 为 MVP DEFERRED。",
+          "menu_points": [
+            "04A · 数据与隐私首页 · PARTIAL",
+            "04B · AI 模型改进 · PARTIAL",
+            "04C · 位置权限 · PARTIAL",
+            "04D · 导出我的数据 · MVP DEFERRED",
+            "04E · 注销账号 · MVP DEFERRED"
+          ],
+          "children": [
+            {
+              "id": "04a",
+              "code": "04A",
+              "title": "04A · 数据与隐私首页",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "既有首页图片为 legacy review reference；视觉状态保持 PARTIAL。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png",
+                  "label": "Data & Privacy · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "不宣称当前 Frozen authority。"
+                }
+              ]
+            },
+            {
+              "id": "04b",
+              "code": "04B",
+              "title": "04B · AI 模型改进",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "一个工作区展示启用与关闭两态。默认 OFF，必须明确同意；关闭后停止主动提示。拒绝/关闭 consent 不得影响识别、鱼获保存或纠正。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
+                  "label": "Enable Consent · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "Consent 默认 OFF；仅用户明确同意后开启。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png",
+                  "label": "Disable Confirmation · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "撤回同意需生效，不影响识别、保存与纠正。"
+                }
+              ]
+            },
+            {
+              "id": "04c",
+              "code": "04C",
+              "title": "04C · 位置权限",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "一个工作区展示说明与拒绝两态。不得在启动时请求；仅在用户明确点击“使用当前位置”后请求。拒绝不阻断识别或保存。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
+                  "label": "Location Permission · Info · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "只在用户明确请求当前位置时申请权限。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png",
+                  "label": "Location Permission · Denied · 历史参考",
+                  "status": "PARTIAL",
+                  "role": "LEGACY / REVIEW REQUIRED",
+                  "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。"
+                }
+              ]
+            },
+            {
+              "id": "04d",
+              "code": "04D",
+              "title": "04D · 导出我的数据 · Deferred",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "MVP DEFERRED。生产仅 entry-only / Coming Soon。此处五张图只展示未来流程参考，不授权完整导出状态机上线。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/00_Overview.png",
+                  "label": "Overview",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/01_Processing.png",
+                  "label": "Processing",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/02_Ready.png",
+                  "label": "Ready",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/03_Failed.png",
+                  "label": "Failed",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/04_Expired.png",
+                  "label": "Expired",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表当前 capability。"
+                }
+              ],
+              "menu_points": [
+                "Production: ENTRY ONLY / COMING SOON",
+                "No Runtime PASS claim"
+              ],
+              "product_scope": "DEFERRED"
+            },
+            {
+              "id": "04e",
+              "code": "04E",
+              "title": "04E · 注销账号 · Deferred",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "MVP DEFERRED。生产仅 entry-only / Coming Soon。三张图只作为未来参考，不得暴露虚假的注销或破坏性功能。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/01_Explanation.png",
+                  "label": "Explanation",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/02_Reauth.png",
+                  "label": "Re-auth",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
+                },
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/03_Final_Confirmation.png",
+                  "label": "Final Confirmation",
+                  "status": "PARTIAL",
+                  "role": "MVP DEFERRED · HISTORICAL DESIGN REFERENCE",
+                  "scope": "Production = entry-only / Coming Soon；不代表可执行删除。"
+                }
+              ],
+              "menu_points": [
+                "Production: ENTRY ONLY / COMING SOON",
+                "No destructive action or Runtime PASS"
+              ],
+              "product_scope": "DEFERRED"
+            }
+          ]
+        },
+        {
+          "id": "05_legal_about",
+          "title": "05 · 法律与关于",
+          "status": "PARTIAL",
+          "render_mode": "authority_index",
+          "authority_type": "group",
+          "authority": "design/pages/account_privacy/README.md",
+          "summary": "About YuJian 与 User Agreement 当前没有独立 Frozen visual authority；Privacy Policy 仅复用历史页面壳作参考，法务正文未冻结。",
+          "menu_points": [
+            "05A · 关于渔见 · VISUAL MISSING",
+            "05B · 隐私政策 · PARTIAL / LEGAL REVIEW",
+            "05C · 用户协议 · VISUAL MISSING"
+          ],
+          "children": [
+            {
+              "id": "05a",
+              "code": "05A",
+              "title": "05A · 关于渔见",
+              "status": "MISSING",
+              "authority": "design/pages/account_privacy/README.md",
+              "summary": "运行时页面存在，但 Account & Privacy 包内没有独立 Frozen Visual Authority。此页不放运行时截图或占位图。",
+              "menu_group": "visual"
+            },
+            {
+              "id": "05b",
+              "code": "05B",
+              "title": "05B · 隐私政策",
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
+              "summary": "可查看既有页面视觉结构参考；法律正文仍需法务审查，不可标记为最终冻结文案。",
+              "menu_group": "visual",
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+                  "label": "Privacy Policy · 历史页面壳参考",
+                  "status": "PARTIAL",
+                  "role": "LEGAL REVIEW REQUIRED",
+                  "scope": "只复用视觉结构；最终法律正文须来源于批准法务文本。"
+                }
+              ]
+            },
+            {
+              "id": "05c",
+              "code": "05C",
+              "title": "05C · 用户协议",
+              "status": "MISSING",
+              "authority": "design/pages/account_privacy/README.md",
+              "summary": "运行时页面存在，但独立 Frozen Visual Authority 缺失。不得生成替代高保真图或用运行时截图冻结。",
+              "menu_group": "visual"
+            }
+          ]
         }
       ]
     },
@@ -5623,7 +6180,8 @@
         }
       ],
       "note": "Login V2.1 设计已冻结；最终 Visual Authority 为用户确认的 160939 高保真图。Runtime/Evidence 单独验证。",
-      "frozen_manifest": "design/pages/account_privacy/Login/frozen/manifest.json"
+      "frozen_manifest": "design/pages/account_privacy/Login/frozen/manifest.json",
+      "navigation_hidden": true
     },
     {
       "id": "auth_register_v2",
@@ -5711,7 +6269,8 @@
           "note": "Icon Action V1：密码可见性=CONTEXT/ON_LIGHT；若提供字段清空动作则使用 Clear/CONTEXT。"
         }
       ],
-      "frozen_manifest": "design/pages/account_privacy/Register/frozen/manifest.json"
+      "frozen_manifest": "design/pages/account_privacy/Register/frozen/manifest.json",
+      "navigation_hidden": true
     },
     {
       "id": "profile_edit_v1",
@@ -5721,12 +6280,12 @@
         "behavior": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "02 Avatar Change 与 03 Nickname Edit 已有 Frozen Development Contract；04–06 仍待冻结。"
+          "note": "01–03 具有既有设计 / Development Contract；Save Feedback、Edge States、Interaction Adaptation 仍为 PARTIAL，已并入 authority index，不作为独立菜单。"
         },
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01–03 视觉已 FROZEN；04–06 仍待逐页设计与冻结。"
+          "note": "01 Edit Profile Home、02 Avatar、03 Nickname 为现有 Frozen Visual Authorities；04–06 不含可冻结的独立视觉稿。"
         },
         "motion": {
           "status": "MISSING",
@@ -5751,7 +6310,7 @@
         "assets": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01–03 Frozen visual assets 已归档；04–06 仍待补齐。"
+          "note": "01–03 保留 exact frozen assets；04–06 原有 README 仅为 structure-only，不存在可冻结图像。"
         }
       },
       "display_name": "编辑资料",
@@ -5761,7 +6320,7 @@
           "status": "PARTIAL",
           "current": true,
           "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑已 FROZEN；03 Visual Authority 已恢复为第一张产品定稿图；04–06 仍为 PARTIAL。"
+          "note": "01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑为 FROZEN；04–06 的不完整规则保留 PARTIAL 并并入 authority index。"
         }
       ],
       "design_overall": "PARTIAL",
@@ -5792,7 +6351,7 @@
           "note": "02 头像来源动作复用 Icon Action V1；03 昵称 Clear 使用 CONTEXT / ON_LIGHT。"
         }
       ],
-      "note": "编辑资料 V1：01 · 编辑资料首页、02 · 头像修改、03 · 昵称编辑已 FROZEN；04–06 仍为 PARTIAL。Runtime 已存在，不等于剩余设计已冻结。",
+      "note": "Edit Profile 01–03 冻结；04–06 的原始目录保留作历史，但规则并入 README authority index 且未冻结。",
       "hifi_views": [
         {
           "id": "01_profile_home",
@@ -5900,7 +6459,8 @@
             "Accessibility"
           ]
         }
-      ]
+      ],
+      "navigation_hidden": true
     },
     {
       "id": "user_agreement_v1",
@@ -5968,7 +6528,8 @@
           "variant": "BACK_TITLE",
           "note": "Top Navigation V1 / BACK_TITLE / FROZEN."
         }
-      ]
+      ],
+      "navigation_hidden": true
     }
   ],
   "design_manager": {
