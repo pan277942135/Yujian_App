@@ -1,38 +1,112 @@
-# Navigation / Flow Spec
+# Navigation / Flow Spec V2
 
+Status: **PARTIAL package / Active MVP path FROZEN**
+
+## 1. Active MVP path — FROZEN
+
+```
+Home avatar
+  → 我的
+      → 编辑个人资料
+      → 账号与安全
+          → 修改密码
+          → 数据与隐私
+              → AI 模型改进
+              → 位置权限
+              → 导出我的数据 · DEFERRED
+              → 注销账号 · DEFERRED
+              → 隐私政策
+      → 关于渔见
+```
+
+Active-path owner:
+
+`design/pages/account_privacy/Active_Path_Contract_V1.md`
+
+The historical design label `账号与登录` is superseded by `账号与安全`.
+
+## 2. Authentication
+
+```
 Login
-→ Forgot Password / Account
-→ Verification
-→ New Password
-→ Success
-→ Login
+  → Register
+  → Forgot Password · DEFERRED
+```
 
-My
-→ Account & Login
-    → Change Password
-    → Data & Privacy
-        → AI Model Improvement Enable Consent
-        → AI Model Improvement Disable Confirmation
-        → Location Permission
-        → Export My Data
-            → Processing
-            → Ready / Failed / Expired
-        → Delete Account
-            → Explanation
-            → Re-auth
-            → Final Confirmation
-        → Privacy Policy
+Forgot Password historical future-flow reference:
 
-## Exit / back behavior
-- Back from any non-terminal page returns to its parent.
-- Success pages should not re-enter completed forms via back-stack.
-- Final destructive confirmation stays modal until cancel/confirm.
+```
+Account
+  → Verification
+  → New Password
+  → Success
+  → Login
+```
 
-## Design Manager Consolidation · 2026-09-30
+This four-step recovery flow is **not current production behavior** until a verified recovery channel exists.
 
-- Forgot Password, Export My Data and Delete Account remain **MVP DEFERRED / ENTRY ONLY / COMING SOON**. Their historical state images are gallery references, not an instruction to expose full production flows.
-- Forgot Password remains gated on a verified recovery channel.
-- AI improvement consent is OFF by default, requires explicit user consent, and may be withdrawn. Refusal or withdrawal does not block recognition, FishRecord saving or correction.
-- Location permission is requested only after an explicit “使用当前位置” action; denial does not block recognition or FishRecord saving.
-- The legacy account package background is historical. Current account pages reference shared `Morning_Lake_Master_V1 / BG_CONTENT` where applicable.
-- These organization notes do not freeze unresolved visual/behavior details or assert runtime completion.
+## 3. Data & Privacy
+
+### AI Model Improvement — active
+
+```
+Data & Privacy
+  → current consent state
+      OFF → Enable confirmation sheet
+      ON  → Disable confirmation sheet
+```
+
+Consent must be explicit. Withdrawal must not block recognition, FishRecord save or correction.
+
+### Location — active
+
+```
+Data & Privacy
+  → Location info/status only
+
+FishRecord location action
+  → explicit “使用当前位置”
+  → permission check/request when needed
+```
+
+Opening Data & Privacy or the Location row does not request system permission.
+
+### Export — DEFERRED
+
+Historical reference states:
+
+```
+Overview → Processing → Ready / Failed / Expired
+```
+
+Production remains ENTRY ONLY / COMING SOON.
+
+### Delete Account — DEFERRED
+
+Historical reference states:
+
+```
+Explanation → Re-auth → Final Confirmation
+```
+
+Production remains ENTRY ONLY / COMING SOON.
+
+## 4. Exit / back behavior
+
+- Back from a full page returns to its immediate parent.
+- A sheet/dialog closes before the underlying page is left.
+- System Back and TopNav Back are semantically equivalent.
+- Success state must not create a broken/re-entered completed form.
+- Deferred flows must not expose historical future-state screens in production.
+- Runtime navigation differences are tracked as Runtime Parity, not by reopening this design flow.
+
+## 5. Shared system boundary
+
+Current account pages use:
+
+- Morning_Lake_Master_V1 / BG_CONTENT
+- Top Navigation V1 / BACK_TITLE
+- Shared Default Profile Avatar V1
+- current Action / Text / Icon / Spacing / Radius authorities
+
+Legacy Account & Privacy background imagery remains historical reference only.
