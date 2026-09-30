@@ -3025,7 +3025,7 @@
         "hierarchy": "01 is the A-side core page; 02 is the B-side ready page; 03 merges asset-generation lifecycle states; 04 merges editing scenarios; 05 merges page states. A/B flip rules are documented within Overview and B-side instead of occupying a separate menu entry.",
         "scope": "This is a Design Manager navigation simplification. Existing frozen visual authority remains unchanged."
       },
-      "note": "FishRecordDetail compact navigation remains 00–05 with no third-level submenu. On 2026-09-30 the Overview behavior authority was frozen: A/B are two surfaces of one FishRecordDetail; B-side lifecycle is NOT_GENERATED / GENERATING / READY / FAILED; first READY reveal auto-flips A→B at most once per FishRecord; subsequent entries default to A and use manual Flip Icon only when READY. Existing A-side Frozen Visual Authority and supplemental B-side reference are unchanged.",
+      "note": "FishRecordDetail compact navigation remains 00–05 with no third-level submenu. Overview behavior and the B-side visual authority are frozen; remaining 03 · 鱼体资产生成, 04 · 信息编辑, and 05 · 页面状态 work remains incomplete.",
       "hifi_views": [
         {
           "id": "overview",
@@ -3067,31 +3067,21 @@
         {
           "id": "b_side",
           "title": "02 · B 面 · 鱼获记忆",
-          "status": "PARTIAL",
-          "render_mode": "authority_index",
+          "status": "FROZEN",
+          "render_mode": "repo_image",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md",
           "authority_type": "visual",
-          "summary": "B 面 Visual Spec 已冻结，批准原图字节身份已固定；Design Manager 当前不再展示旧 supplemental 图。待 exact PNG 写入 canonical path 并通过 SHA-256 gate 后，02 才切换为 repo_image + FROZEN。",
+          "summary": "B 面 V1 已冻结。此页面是同一 FishRecord 的独立鱼体与安静自然水体视觉；A 面页面壳、字段、记录内容和媒体区保持不变。唯一视觉 Authority 为原始 PNG。",
           "menu_points": [
-            "Approved visual · exact original PNG required",
-            "Hero: same fish isolated in calm water environment",
+            "Same FishRecord · same independent fish body",
+            "Calm natural water environment",
             "A-side page shell / text / lower content unchanged",
             "草鱼 · 42.6 cm · 1.28 kg · 浙江 · 千岛湖",
-            "READY-only Flip Icon at Hero top-right",
-            "First READY Reveal · Auto A → B Once",
-            "Subsequent Manual Flip · A ↔ B",
-            "Binary SHA gate required before FROZEN"
+            "READY-only Hero-internal Flip Icon · B → A manual",
+            "Frozen raster visual authority · original PNG bytes"
           ],
-          "pending_visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
-          "approved_source": {
-            "width": 941,
-            "height": 1672,
-            "format": "PNG",
-            "bytes": 2095527,
-            "sha256": "c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b"
-          },
-          "spec_status": "FROZEN",
-          "visual_asset_status": "BLOCKED_BINARY_UPLOAD"
+          "visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
+          "image": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png"
         },
         {
           "id": "asset_generation",
