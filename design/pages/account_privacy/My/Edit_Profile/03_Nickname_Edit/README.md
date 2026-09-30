@@ -1,8 +1,23 @@
 # 03 · 昵称编辑
 
-Status: **FROZEN**
+Status: **BLOCKED_INTEGRITY — Behavior / Machine / Development Contract FROZEN; Visual Binary Identity Unresolved**
 
-## Frozen Authority
+## Governance status
+
+- Behavior / Machine / Development contracts: **FROZEN**
+- Intended approved Visual Authority identity: **FROZEN fingerprint recorded**
+- Current repository visual binary: **BLOCKED_INTEGRITY**
+- Overall Design Manager child status: **BLOCKED_INTEGRITY**
+
+Current repository SHA-256:
+`26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`
+
+Declared approved/frozen SHA-256:
+`5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`
+
+These do not match. Recover the originally approved byte-identical source before restoring Visual FROZEN. Do **not** regenerate, convert, optimize, or re-encode a substitute.
+
+## Frozen Contract Authorities
 
 ### Visual Authority
 `design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp`
@@ -107,6 +122,8 @@ Canvas:
 
 ## Runtime
 
-Design = **FROZEN**
+Design behavior/contracts = **FROZEN**
+
+Visual integrity = **BLOCKED_INTEGRITY**
 
 Runtime = **待后续按 Frozen Contract 收口与 Evidence Gate 验证**
