@@ -78,7 +78,11 @@
     "ResultCandidateRow",
     "ResultCandidateCard",
     "ResultRecoveryPanel",
-    "ResultInlineError"
+    "ResultInlineError",
+    "ResultNumericEditSheet",
+    "ResultLocationPickerSheet",
+    "ResultPlaceSearchField",
+    "ResultRecentLocationList"
   ],
   "prohibited": [
     "page_private_shared_button_copy",
@@ -86,5 +90,6 @@
     "generic_settings_metadata",
     "fish_guide_card_as_candidate",
     "frozen_screenshot_runtime_crop"
-  ]
+  ],
+  "metadata_edit_flow": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md"
 }
