@@ -1,0 +1,23 @@
+{
+  "feature": "home_normal_v1",
+  "package": "Normal Home Design Package Closure V1",
+  "package_version": "V1",
+  "scope": "design_only",
+  "design_frozen": true,
+  "visual_frozen": true,
+  "behavior_frozen": true,
+  "motion_frozen": true,
+  "haptic_frozen": true,
+  "sound_frozen": true,
+  "assets_registered": true,
+  "authority_registered": true,
+  "canonical_reference": "design/system/core_visual_v1/reference/normal_home_v1.png",
+  "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "reference_width": 1080,
+  "reference_height": 1920,
+  "background_authority": "canonical_reference_plus_BG_ENV_HERO",
+  "independent_morning_lake_master_registered": false,
+  "runtime_root": "app/src/main/assets/normal_home_runtime_v1/",
+  "runtime_gate": "normal-home-v1",
+  "closure_base_main_sha": "38ba0e5c02731b99dcea825f88d4da9b48e11b81"
+}
