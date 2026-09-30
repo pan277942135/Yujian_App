@@ -122,6 +122,10 @@ fun YuJianFishGuideCard(
                     }
                     if (isUnlit) {
                         Text(
+                            text = "尚未点亮",
+                            style = YuJianTypography.body.copy(color = YuJianColors.OnDark.copy(alpha = 0.92f)),
+                        )
+                        Text(
                             text = "还没有我的记录",
                             style = YuJianTypography.caption.copy(color = YuJianColors.OnDark.copy(alpha = 0.84f)),
                         )

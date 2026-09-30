@@ -78,5 +78,21 @@
       "page-wide synchronized looping",
       "decorative continuous HUD motion"
     ]
+  },
+  "fish_guide": {
+    "discover_hint": {
+      "trigger": "screen resumed and carousel idle",
+      "idle_delay_ms": 600,
+      "offset_dp_toward_next_species": 14,
+      "out_duration_ms": 180,
+      "return_duration_ms": 260,
+      "easing": "shared calm easing",
+      "repeat": "once per installation",
+      "cancel_on_user_input": true,
+      "changes_selected_species": false,
+      "reduce_motion": "omit hint; preserve user swipe"
+    },
+    "auto_species_advance": false,
+    "auto_flip": false
   }
 }

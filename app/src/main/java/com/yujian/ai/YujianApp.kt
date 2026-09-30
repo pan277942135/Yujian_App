@@ -591,11 +591,12 @@ fun YujianApp() {
                 }
                 composable("guide") {
                     FishGuideHomeScreen(
-                        species = guideSpecies,
+                        species = guideSpecies.withSavedCatchState(catchesState.catches),
                         loading = guideLoading,
                         offlinePreview = guideOfflinePreview,
                         error = guideError,
                         resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
+                        onBack = { nav.popBackStack() },
                         onRetry = { guideRetry++ },
                         onSpeciesClick = { fish -> nav.navigate("species/${Uri.encode(fish.id)}") },
                     )
@@ -777,8 +778,8 @@ private fun localGuideItems(): List<FishGuideItem> = DemoData.species.map { fish
         aliases = fish.aliases.split("、").map(String::trim).filter(String::isNotBlank),
         category = fish.category,
         summary = fish.description,
-        discovered = fish.discovered,
-        catches = fish.catches,
+        discovered = false,
+        catches = 0,
     )
 }
 
@@ -789,8 +790,22 @@ private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
         item.copy(
             aliases = localItem?.aliases ?: item.aliases,
             category = item.category.ifBlank { localItem?.category.orEmpty() },
-            discovered = localItem?.discovered ?: false,
-            catches = localItem?.catches ?: 0,
+            discovered = false,
+            catches = 0,
+        )
+    }
+}
+
+private fun List<FishGuideItem>.withSavedCatchState(catches: List<RemoteCatch>): List<FishGuideItem> {
+    val bySpeciesId = catches.groupBy { it.speciesId.trim().lowercase() }
+    val bySpeciesName = catches.groupBy { it.speciesName.trim().lowercase() }
+    return map { species ->
+        val savedRecords = bySpeciesId[species.id.trim().lowercase()]
+            ?: bySpeciesName[species.nameCn.trim().lowercase()]
+            ?: emptyList()
+        species.copy(
+            discovered = savedRecords.isNotEmpty(),
+            catches = savedRecords.size,
         )
     }
 }

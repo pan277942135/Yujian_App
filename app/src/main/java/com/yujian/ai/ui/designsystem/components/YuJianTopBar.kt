@@ -59,7 +59,7 @@ fun YuJianTitleOnlyTopBar(
         modifier = modifier
             .fillMaxWidth()
             .then(topNavigationInsets(horizontalPadding, statusBarInset))
-            .heightIn(min = minHeight)
+            .heightIn(min = minHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -84,7 +84,7 @@ fun YuJianBackTitleTopBar(
         modifier = modifier
             .fillMaxWidth()
             .then(topNavigationInsets(8.dp, statusBarInset))
-            .heightIn(min = 56.dp)
+            .heightIn(min = 56.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         YuJianBackAction(
@@ -138,7 +138,7 @@ fun YuJianBackTitleActionsTopBar(
         modifier = modifier
             .fillMaxWidth()
             .then(topNavigationInsets(8.dp, statusBarInset))
-            .heightIn(min = 56.dp)
+            .heightIn(min = 56.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         YuJianBackAction(
@@ -193,7 +193,7 @@ fun YuJianTopBar(
         modifier = modifier
             .fillMaxWidth()
             .then(topNavigationInsets(if (onBack == null) 16.dp else 8.dp, statusBarInset))
-            .heightIn(min = if (onBack == null) 64.dp else 56.dp)
+            .heightIn(min = if (onBack == null) 64.dp else 56.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
