@@ -1,0 +1,117 @@
+{
+  "contract": "recognition_result_metadata_edit_flow",
+  "version": "V1",
+  "status": "FROZEN",
+  "scope": [
+    "RESULT_HIGH",
+    "RESULT_MEDIUM_RESOLVED",
+    "RESULT_LOW_RESOLVED"
+  ],
+  "review_board_usage": "interaction_intent_only",
+  "page_presentation": "keep_frozen_result_metadata_strip",
+  "numeric_sheet": {
+    "component": "ResultNumericEditSheet",
+    "target_height_fraction": 0.25,
+    "content_height_band_dp": [
+      168,
+      220
+    ],
+    "top_radius_dp": 28,
+    "horizontal_padding_dp": 24,
+    "titles": {
+      "length": "鱼获长度",
+      "weight": "鱼获重量"
+    },
+    "title_sp": 17,
+    "field_min_height_dp": 56,
+    "preferred_field_width_360_dp": [
+      200,
+      216
+    ],
+    "value_sp": 32,
+    "unit_sp": 14,
+    "autofocus": true,
+    "auto_open_decimal_ime": true,
+    "ime_done": "validate_commit_dismiss",
+    "dismiss": "discard_uncommitted_draft",
+    "clear_committed": "clear_and_dismiss"
+  },
+  "validation": {
+    "length": {
+      "range": [
+        0.1,
+        999.9
+      ],
+      "decimals": 1,
+      "error": "请输入有效的长度"
+    },
+    "weight": {
+      "range": [
+        0.01,
+        999.99
+      ],
+      "decimals": 2,
+      "error": "请输入有效的重量"
+    }
+  },
+  "location_sheet": {
+    "component": "ResultLocationPickerSheet",
+    "title": "鱼获地点",
+    "target_height_fraction": 0.4,
+    "preferred_height_band_dp": [
+      280,
+      420
+    ],
+    "max_height_fraction": 0.56,
+    "search": {
+      "placeholder": "搜索地点（如：千岛湖、富春江）",
+      "min_height_dp": 48,
+      "max_codepoints": 40,
+      "debounce_ms": 300,
+      "query_commits": false,
+      "permission_required": false
+    },
+    "current_location": {
+      "permission_request": "explicit_tap_only",
+      "success": "commit_recent_dismiss",
+      "failure": "stay_sheet",
+      "denial": "stay_sheet_search_recent_available"
+    },
+    "recent": {
+      "title": "最近使用",
+      "max_entries": 3,
+      "storage": "device_local",
+      "sync": "none_v1",
+      "clear_history_does_not_clear_current": true
+    },
+    "states": [
+      "IDLE_RECENT",
+      "SEARCHING",
+      "RESULTS",
+      "EMPTY",
+      "ERROR",
+      "LOCATING",
+      "PERMISSION_DENIED"
+    ],
+    "commit_sources": [
+      "search_result",
+      "recent",
+      "current_location_success",
+      "explicit_clear"
+    ],
+    "non_commit_sources": [
+      "search_query",
+      "search_loading",
+      "search_error",
+      "permission_denial",
+      "sheet_dismissal"
+    ]
+  },
+  "invariants": [
+    "metadata_optional",
+    "same_result_page",
+    "no_recognition_rerun",
+    "no_species_change",
+    "no_auto_location_permission"
+  ]
+}
