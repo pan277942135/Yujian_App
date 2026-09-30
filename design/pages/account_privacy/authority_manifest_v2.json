@@ -727,5 +727,6 @@
     "ia_behavior_content": "FROZEN",
     "visual": "ACTIVE_CLOSURE",
     "note": "Current approved Hi-Fi binaries are still required before the active path can be visually frozen."
-  }
+  },
+  "active_path_visual_closure_brief": "design/pages/account_privacy/Active_Path_Visual_Closure_Brief_V1.md"
 }
