@@ -4125,48 +4125,42 @@
               "code": "F2",
               "title": "F2 · 鱼种选择",
               "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "render_mode": "placeholder"
             },
             {
               "id": "f3_time",
               "code": "F3",
               "title": "F3 · 时间选择",
               "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "render_mode": "placeholder"
             },
             {
               "id": "f4_size",
               "code": "F4",
               "title": "F4 · 尺寸筛选",
               "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "render_mode": "placeholder"
             },
             {
               "id": "f5_special_record",
               "code": "F5",
               "title": "F5 · 特殊记录",
               "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "render_mode": "placeholder"
             },
             {
               "id": "f6_results",
               "code": "F6",
               "title": "F6 · 筛选有结果",
               "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "render_mode": "placeholder"
             },
             {
               "id": "f7_empty",
               "code": "F7",
               "title": "F7 · 筛选无结果",
               "status": "MISSING",
-              "render_mode": "placeholder",
-              "authority_type": "visual"
+              "render_mode": "placeholder"
             }
           ]
         },
