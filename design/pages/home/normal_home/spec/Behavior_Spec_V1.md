@@ -66,12 +66,15 @@ There is no Normal Home “从相册选择” affordance in V1.
 ## 6. Account affordance
 
 Authenticated:
-- show user avatar when available
-- tap → My / profile entry
+- show the user's real avatar when valid avatar media is available;
+- when avatar media is absent or fails to load, show **YuJian Default Profile Avatar V1**;
+- default-avatar contract: `design/pages/home/normal_home/02_first_catch/default_avatar_contract.json`;
+- tap either real avatar or default avatar → My / profile entry.
 
 Guest:
-- show approved guest/account affordance
-- tap → login/registration entry
+- show approved guest/account affordance;
+- tap → login/registration entry;
+- Guest affordance is not the logged-in default avatar.
 
 Account state must not replace Normal Home with Empty Home.
 

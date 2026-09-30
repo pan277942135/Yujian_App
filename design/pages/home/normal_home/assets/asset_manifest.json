@@ -17,6 +17,14 @@
       "id": "user_avatar",
       "classification": "RUNTIME_PROFILE_MEDIA",
       "source": "Account profile"
+    },
+    {
+      "id": "default_profile_avatar",
+      "classification": "DESIGN_FROZEN_FALLBACK_RUNTIME_VECTOR",
+      "design_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+      "android_implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
+      "usage": "Logged-in Home account avatar when avatar media is absent or fails to load",
+      "guest_equivalent": false
     }
   ],
   "shared_components": [
@@ -45,6 +53,8 @@
     "hardcoded frozen user avatar",
     "screenshot-derived shared card bitmap",
     "screenshot-derived Morning Lake master",
-    "page-local fork of shared capture button"
+    "page-local fork of shared capture button",
+    "use guest avatar as logged-in default profile avatar",
+    "use initials/random colors/generated faces as Normal Home default avatar"
   ]
 }
