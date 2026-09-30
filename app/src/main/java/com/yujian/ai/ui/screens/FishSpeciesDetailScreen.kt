@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,20 +19,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -56,10 +49,13 @@ import com.yujian.ai.knowledge.FishKnowledgeDetail
 import com.yujian.ai.knowledge.FishKnowledgeGalleryImage
 import com.yujian.ai.knowledge.FishKnowledgeVideo
 import com.yujian.ai.knowledge.toFallbackDetail
-import com.yujian.ai.ui.components.FishIllustration
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.components.TagChip
-import com.yujian.ai.ui.components.YujianTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianActionButtonVariant
+import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
+import com.yujian.ai.ui.designsystem.components.YuJianTextAction
+import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
 import com.yujian.ai.ui.theme.CardWhite
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
@@ -69,11 +65,11 @@ import com.yujian.ai.ui.theme.WaterTeal
 
 private val cardOrder = listOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL")
 private val cardLabels = mapOf(
-    "HERO" to "英雄卡",
-    "IDENTIFICATION" to "识别卡",
-    "ECO" to "生态卡",
-    "GEAR" to "装备卡",
-    "SKILL" to "作钓技术卡",
+    "HERO" to "鱼种主卡",
+    "IDENTIFICATION" to "辨识",
+    "ECO" to "生态",
+    "GEAR" to "装备",
+    "SKILL" to "作钓",
 )
 private val cardGold = Color(0xFFD6B56D)
 private val cardInk = Color(0xFF171717)
@@ -85,13 +81,15 @@ private enum class DetailTab(val label: String) {
 }
 
 private fun cardSlots(detail: FishKnowledgeDetail): List<FishKnowledgeCard> {
-    val existing = detail.cards.associateBy { it.cardType.trim().uppercase() }
+    val existing = detail.cards
+        .filter { it.status.equals("ACTIVE", ignoreCase = true) }
+        .associateBy { it.cardType.trim().uppercase() }
     return cardOrder.mapIndexed { index, type ->
         existing[type] ?: FishKnowledgeCard(
             id = -(index + 1),
             speciesId = detail.species.id,
             cardType = type,
-            title = "${detail.species.nameCn}${cardLabels[type] ?: "鱼鉴卡"}",
+            title = "内容待补充",
             imageUrl = "",
             description = "",
             content = FishKnowledgeCardContent(type = type),
@@ -100,25 +98,6 @@ private fun cardSlots(detail: FishKnowledgeDetail): List<FishKnowledgeCard> {
         )
     }
 }
-
-private fun orderedHeroCards(detail: FishKnowledgeDetail): List<FishKnowledgeCard> =
-    detail.cards
-        .mapNotNull { card ->
-            val normalizedType = card.cardType.trim().uppercase()
-            val order = cardOrder.indexOf(normalizedType)
-            if (order < 0 || !card.status.equals("ACTIVE", ignoreCase = true)) {
-                null
-            } else {
-                order to card
-            }
-        }
-        .sortedWith(
-            compareBy<Pair<Int, FishKnowledgeCard>> { it.first }
-                .thenBy { it.second.sortOrder }
-                .thenBy { it.second.id },
-        )
-        .distinctBy { it.first }
-        .map { it.second }
 
 @Composable
 fun FishSpeciesDetailScreen(
@@ -138,10 +117,19 @@ fun FishSpeciesDetailScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(if (loading) "正在加载鱼种详情…" else "暂时无法读取鱼种详情", color = MutedInk, fontSize = 14.sp)
                 if (!loading) {
-                    Button(onClick = onRetry, modifier = Modifier.padding(top = 12.dp)) {
-                        Icon(Icons.Rounded.Refresh, contentDescription = "重试", modifier = Modifier.size(17.dp))
-                        Text("重试", modifier = Modifier.padding(start = 6.dp))
-                    }
+                    YuJianPrimaryButton(
+                        text = "重试",
+                        onClick = onRetry,
+                        modifier = Modifier.padding(top = 12.dp),
+                        variant = YuJianActionButtonVariant.PRIMARY,
+                        leadingIcon = {
+                            Icon(
+                                Icons.Rounded.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(17.dp),
+                            )
+                        },
+                    )
                 }
             }
         }
@@ -152,47 +140,101 @@ fun FishSpeciesDetailScreen(
     val aliases = species.aliases.joinToString("、")
     val catchCount = fallback?.catches ?: 0
     val cards = remember(content) { cardSlots(content) }
-    val heroCards = remember(content) { orderedHeroCards(content) }
+    val usingFallback = detail == null && fallback != null
+    val speciesImageUrl = resolveAssetUrl(species.coverImage ?: content.cover?.imageUrl)
+    val gallery = content.gallery.mapNotNull { image ->
+        resolveAssetUrl(image.url)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { image to it }
+    }
     var selectedTab by remember(species.id) { mutableStateOf(DetailTab.INTRO) }
+    val listState = rememberLazyListState()
+    LaunchedEffect(species.id) {
+        listState.scrollToItem(0)
+    }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize().background(WarmBackground),
         contentPadding = PaddingValues(bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item { YujianTopBar(title = species.nameCn, subtitle = aliases.ifBlank { species.id }, onBack = onBack) }
+        item {
+            YuJianBackTitleTopBar(
+                title = species.nameCn,
+                onBack = onBack,
+            )
+        }
 
-        if (error != null || offlinePreview) {
+        if (error != null || offlinePreview || usingFallback) {
             item {
                 Row(
-                    Modifier.padding(horizontal = 20.dp).fillMaxWidth().background(Color(0xFFFFF3E8), RoundedCornerShape(16.dp)).padding(12.dp),
+                    Modifier
+                        .padding(horizontal = 20.dp)
+                        .fillMaxWidth()
+                        .background(Color(0xFFFFF3E8), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        if (offlinePreview) "离线预览：${error ?: "当前内容来自本地预览"}" else (error ?: "内容暂不可用"),
-                        color = Color(0xFF9A5B16), fontSize = 11.sp, modifier = Modifier.weight(1f),
+                        text = when {
+                            usingFallback && loading -> "本地参考 · 正在获取最新鱼鉴资料"
+                            offlinePreview -> "本地参考 · ${error ?: "当前网络不可用"}"
+                            error != null -> error
+                            else -> "本地参考"
+                        },
+                        color = Color(0xFF9A5B16),
+                        fontSize = 11.sp,
+                        modifier = Modifier.weight(1f),
                     )
-                    Button(onClick = onRetry, contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)) {
-                        Text("重试", fontSize = 12.sp)
+                    if (error != null && !loading) {
+                        YuJianTextAction(
+                            text = "重试",
+                            onClick = onRetry,
+                            role = YuJianTextActionRole.STRONG,
+                        )
                     }
                 }
             }
         }
 
-        item { HeroCarousel(heroCards, resolveAssetUrl) }
-
         item {
             Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(species.nameCn, color = DeepInk, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-                        if (!species.scientificName.isNullOrBlank()) {
-                            Text(species.scientificName, color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(top = 3.dp))
-                        }
+                if (!speciesImageUrl.isNullOrBlank()) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(SoftWater),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        RemoteImage(
+                            speciesImageUrl,
+                            Modifier.fillMaxSize(),
+                            contentDescription = species.nameCn,
+                            contentScale = ContentScale.Fit,
+                        )
                     }
-                    Box(Modifier.size(44.dp).background(CardWhite, CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Bookmark, contentDescription = "收藏", tint = WaterTeal)
-                    }
+                    Spacer(Modifier.height(18.dp))
+                }
+
+                Text(species.nameCn, color = DeepInk, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                if (!species.scientificName.isNullOrBlank()) {
+                    Text(
+                        species.scientificName,
+                        color = MutedInk,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 3.dp),
+                    )
+                }
+                if (aliases.isNotBlank()) {
+                    Text(
+                        "别名：$aliases",
+                        color = MutedInk,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 16.dp)) {
                     if (species.category.isNotBlank()) TagChip(species.category, true)
@@ -221,12 +263,12 @@ fun FishSpeciesDetailScreen(
             DetailTab.INTRO -> {
                 item { KnowledgeSection(content) }
 
-                if (content.gallery.isNotEmpty()) {
+                if (gallery.isNotEmpty()) {
                     item {
                         SectionCard(title = "真实照片") {
                             LazyRow(contentPadding = PaddingValues(end = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                items(content.gallery, key = { it.id }) { image ->
-                                    GalleryView(image, resolveAssetUrl(image.url))
+                                items(gallery, key = { it.first.id }) { (image, imageUrl) ->
+                                    GalleryView(image, imageUrl)
                                 }
                             }
                         }
@@ -247,142 +289,68 @@ fun FishSpeciesDetailScreen(
 }
 
 @Composable
-private fun HeroCarousel(
-    cards: List<FishKnowledgeCard>,
-    resolveAssetUrl: (String?) -> String?,
-) {
-    if (cards.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(28.dp))
-                .background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("暂无鱼鉴卡", color = cardGold, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-        }
-        return
-    }
-
-    val pagerState = rememberPagerState(pageCount = { cards.size })
-    Column(Modifier.padding(horizontal = 20.dp).fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .shadow(
-                    18.dp,
-                    RoundedCornerShape(28.dp),
-                    ambientColor = WaterTeal.copy(alpha = .08f),
-                    spotColor = WaterTeal.copy(alpha = .08f),
-                )
-                .clip(RoundedCornerShape(28.dp))
-                .background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
-        ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                val card = cards[page]
-                val imageUrl = card.imageUrl
-                    .takeIf { it.isNotBlank() }
-                    ?.let(resolveAssetUrl)
-                if (imageUrl != null) {
-                    RemoteImage(
-                        imageUrl,
-                        Modifier.fillMaxSize(),
-                        contentDescription = "${card.cardType} ${card.title}",
-                        contentScale = ContentScale.Fit,
-                    )
-                } else {
-                    HeroCardPlaceholder(card)
-                }
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            cards.indices.forEach { index ->
-                val selected = index == pagerState.currentPage
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 3.dp)
-                        .size(if (selected) 8.dp else 6.dp)
-                        .clip(CircleShape)
-                        .background(if (selected) WaterTeal else MutedInk.copy(alpha = .35f)),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeroCardPlaceholder(card: FishKnowledgeCard) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(28.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Column {
-            Text(card.cardType, color = cardGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Text(
-                cardLabels[card.cardType] ?: "鱼鉴卡",
-                color = Color.White,
-                fontSize = 27.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-        Column {
-            Text(
-                card.title.ifBlank { "内容待补充" },
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                "暂无真实图片",
-                color = cardGold.copy(alpha = .82f),
-                fontSize = 13.sp,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-    }
-}
-
-@Composable
 private fun FishCardView(card: FishKnowledgeCard, imageUrl: String?) {
+    val published = card.status.equals("ACTIVE", ignoreCase = true)
     val structured = card.content
-    val supportingText = when (card.cardType) {
-        "IDENTIFICATION" -> structured.features.take(2).joinToString(" · ") { "${it.title}：${it.text}" }
-        "ECO" -> listOf(structured.waterLayer, structured.behavior).filter { it.isNotBlank() }.joinToString(" · ")
-        "GEAR" -> listOf(structured.rod, structured.hook).filter { it.isNotBlank() }.joinToString(" · ")
-        "SKILL" -> structured.tip
-        else -> structured.description.ifBlank { card.description }
+    val supportingText = if (!published) {
+        ""
+    } else {
+        when (card.cardType) {
+            "IDENTIFICATION" -> structured.features.take(2).joinToString(" · ") { "${it.title}：${it.text}" }
+            "ECO" -> listOf(structured.waterLayer, structured.behavior).filter { it.isNotBlank() }.joinToString(" · ")
+            "GEAR" -> listOf(structured.rod, structured.hook).filter { it.isNotBlank() }.joinToString(" · ")
+            "SKILL" -> structured.tip
+            else -> structured.description.ifBlank { card.description }
+        }
     }
+    val resolvedImage = imageUrl.takeIf { published && !it.isNullOrBlank() }
+
     Box(
-        Modifier.width(190.dp).height(238.dp).clip(RoundedCornerShape(16.dp)).background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
+        Modifier
+            .width(190.dp)
+            .height(238.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Brush.verticalGradient(listOf(cardInk, Color(0xFF302718)))),
     ) {
-        if (imageUrl != null) RemoteImage(imageUrl, Modifier.fillMaxSize(), contentDescription = card.title, contentScale = ContentScale.Crop)
+        if (resolvedImage != null) {
+            RemoteImage(
+                resolvedImage,
+                Modifier.fillMaxSize(),
+                contentDescription = card.title,
+                contentScale = ContentScale.Crop,
+            )
+        }
         Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text(card.cardType, color = cardGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text(cardLabels[card.cardType] ?: "鱼鉴卡", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
-                if (structured.tag.isNotBlank()) Text(structured.tag, color = cardGold, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
-                if (structured.rarity > 0 || structured.power > 0 || structured.challenge > 0) {
-                    Text("稀有 ${structured.rarity}  ·  力量 ${structured.power}  ·  挑战 ${structured.challenge}", color = Color.White.copy(alpha = .75f), fontSize = 9.sp, modifier = Modifier.padding(top = 5.dp))
+                Text("鱼鉴知识", color = cardGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    cardLabels[card.cardType] ?: "鱼鉴卡",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 5.dp),
+                )
+                if (published && structured.tag.isNotBlank()) {
+                    Text(structured.tag, color = cardGold, fontSize = 10.sp, modifier = Modifier.padding(top = 6.dp))
                 }
             }
             Column {
-                Text(card.title.ifBlank { "内容待补充" }, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    if (published) card.title.ifBlank { cardLabels[card.cardType] ?: "鱼鉴卡" } else "内容待补充",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
                 if (supportingText.isNotBlank()) {
-                    Text(supportingText, color = Color.White.copy(alpha = .78f), fontSize = 10.sp, lineHeight = 15.sp, maxLines = 3, modifier = Modifier.padding(top = 6.dp))
+                    Text(
+                        supportingText,
+                        color = Color.White.copy(alpha = .78f),
+                        fontSize = 10.sp,
+                        lineHeight = 15.sp,
+                        maxLines = 3,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
                 }
-                if (imageUrl == null) Text("暂无真实图片 · ${if (card.status == "ACTIVE") "可展示" else "待发布"}", color = cardGold.copy(alpha = .82f), fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
             }
         }
     }
@@ -495,41 +463,26 @@ private fun SimilaritySection(detail: FishKnowledgeDetail) {
 @Composable
 private fun CatchSection(catchCount: Int, onOpenCatch: () -> Unit) {
     SectionCard(title = "我的鱼获") {
-        if (catchCount == 0) EmptyAsset("还没有鱼获记录") else CatchPreviewRow(catchCount)
-        Button(
+        if (catchCount == 0) {
+            EmptyAsset("还没有该鱼种的鱼获记录")
+        } else {
+            Text("已记录 $catchCount 条该鱼种鱼获", color = DeepInk, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        }
+        YuJianPrimaryButton(
+            text = if (catchCount > 0) "查看我的鱼获 · $catchCount" else "查看我的鱼获",
             onClick = onOpenCatch,
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-        ) {
-            Text(if (catchCount > 0) "查看我的鱼获 · $catchCount" else "记录我的鱼获")
-        }
-        Text("鱼获详情会保留照片、时间、重量、长度和地点。", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 10.dp))
-    }
-}
-
-@Composable
-private fun CatchPreviewRow(count: Int) {
-    Row(Modifier.fillMaxWidth().background(WarmBackground, RoundedCornerShape(14.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(68.dp).clip(RoundedCornerShape(10.dp)).background(SoftWater), contentAlignment = Alignment.Center) {
-            FishIllustration(size = 48.dp, bodyColor = WaterTeal.copy(alpha = .6f))
-        }
-        Column(Modifier.padding(start = 10.dp)) {
-            Text("最近鱼获", color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-            Text("共 $count 条 · 照片待查看", color = MutedInk, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
-            Text("时间 / 重量 / 长度 / 地点", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))
-        }
+            modifier = Modifier.padding(top = 12.dp),
+            variant = YuJianActionButtonVariant.PRIMARY,
+        )
     }
 }
 
 @Composable
 private fun RankingSection() {
     SectionCard(title = "排行榜") {
-        EmptyAsset("暂无排行榜")
+        EmptyAsset("排行榜暂未开放")
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.Center) {
             Text("敬请期待", color = MutedInk, fontSize = 12.sp)
-        }
-        OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-            Text("排行榜即将开放")
         }
     }
 }
@@ -537,29 +490,52 @@ private fun RankingSection() {
 @Composable
 private fun VideoRow(video: FishKnowledgeVideo, coverUrl: String?) {
     val context = LocalContext.current
+    val canOpen = isValidWebUrl(video.videoUrl)
+    val openModifier = if (canOpen) {
+        Modifier.clickable {
+            runCatching {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(video.videoUrl)))
+            }
+        }
+    } else {
+        Modifier
+    }
+
     Row(
-        Modifier.fillMaxWidth().clickable { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(video.videoUrl))) } }
-            .background(WarmBackground, RoundedCornerShape(12.dp)).padding(8.dp),
+        Modifier
+            .fillMaxWidth()
+            .then(openModifier)
+            .background(WarmBackground, RoundedCornerShape(12.dp))
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(58.dp).clip(RoundedCornerShape(9.dp)).background(Color(0xFFE2E8E6)), contentAlignment = Alignment.Center) {
             if (coverUrl != null) RemoteImage(coverUrl, Modifier.fillMaxSize(), contentDescription = video.title)
-            Icon(Icons.Rounded.PlayArrow, contentDescription = "播放", tint = WaterTeal)
+            Icon(
+                Icons.Rounded.PlayArrow,
+                contentDescription = if (canOpen) "播放" else null,
+                tint = if (canOpen) WaterTeal else MutedInk,
+            )
         }
         Column(Modifier.weight(1f).padding(start = 10.dp)) {
             Text(video.title, color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             Text("${video.type} · ${video.duration}s${if (video.tags.isEmpty()) "" else " · ${video.tags.joinToString("、")}"}", color = MutedInk, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))
         }
-        Text("打开", color = WaterTeal, fontSize = 11.sp)
+        Text(if (canOpen) "打开" else "暂不可用", color = if (canOpen) WaterTeal else MutedInk, fontSize = 11.sp)
     }
 }
 
+private fun isValidWebUrl(url: String): Boolean {
+    val uri = runCatching { Uri.parse(url.trim()) }.getOrNull() ?: return false
+    return (uri.scheme.equals("http", ignoreCase = true) || uri.scheme.equals("https", ignoreCase = true)) &&
+        !uri.host.isNullOrBlank()
+}
+
 @Composable
-private fun GalleryView(image: FishKnowledgeGalleryImage, imageUrl: String?) {
+private fun GalleryView(image: FishKnowledgeGalleryImage, imageUrl: String) {
     Column(Modifier.width(170.dp)) {
         Box(Modifier.fillMaxWidth().height(130.dp).clip(RoundedCornerShape(14.dp)).background(SoftWater), contentAlignment = Alignment.Center) {
-            if (imageUrl != null) RemoteImage(imageUrl, Modifier.fillMaxSize(), contentDescription = image.title, contentScale = ContentScale.Crop)
-            else Text("暂无图片", color = MutedInk, fontSize = 11.sp)
+            RemoteImage(imageUrl, Modifier.fillMaxSize(), contentDescription = image.title, contentScale = ContentScale.Crop)
         }
         Text(image.title ?: image.type, color = DeepInk, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
     }

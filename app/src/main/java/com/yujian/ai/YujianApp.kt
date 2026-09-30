@@ -603,7 +603,12 @@ fun YujianApp() {
                 }
                 composable("species/{key}", arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
                     val key = entry.arguments?.getString("key") ?: "grass_carp"
-                    val fallback = guideSpecies.firstOrNull { it.id == key } ?: localGuideItems().firstOrNull { it.id == key }
+                    val fallback = guideSpecies
+                        .withSavedCatchState(catchesState.catches)
+                        .firstOrNull { it.id == key }
+                        ?: localGuideItems()
+                            .withSavedCatchState(catchesState.catches)
+                            .firstOrNull { it.id == key }
                     var detail by remember(key) { mutableStateOf<FishKnowledgeDetail?>(null) }
                     var detailLoading by remember(key) { mutableStateOf(true) }
                     var detailOfflinePreview by remember(key) { mutableStateOf(false) }
