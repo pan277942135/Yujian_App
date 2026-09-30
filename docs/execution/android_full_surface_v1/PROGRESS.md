@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P04 Capture entry / shared Capture behavior
+- Current phase: P05 Recognition Processing
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -40,8 +40,8 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P01 Authentication / Account Entry | BLOCKED_INFRA | `009a85fac554dfcb4400cb5c5b59d72228aa89ee` | Existing Login/Register screens and 13 instrumentation tests; Registry source pointer corrected | Runs `36697494308`, `36698295894`, `36698418377` failed with 0 jobs/0 artifacts; current-main run `36697719823` also had 0 jobs | Stop manual retry; continue |
 | P02 Empty Home | PASS | `f3210a66e4657b59a2db350cf5952ae0aea68aab` | Local verifier PASS; prior Android CI run `36514649405` PASS; gate artifact `11011440570` | None for Empty Home | Continue P04 |
 | P03 Normal Home / First Catch Home | BLOCKED_INFRA | `2eb538461888e8bcba1a1f027b130709ab498f46` | PR #76 baseline merged; NH02–NH06 fixes and targeted tests authored; Normal Home asset/source verifier PASS | Current Android suite unavailable; inherited 1080×2340 capture is BLOCKED_INFRA (`DEVICE_CANNOT_CAPTURE_1080X2340`) | Continue P04; preserve P03 gate for final matrix |
-| P04 Capture entry / shared Capture behavior | IN_PROGRESS | — | Begin existing-route and capture-contract audit | — | Implement only frozen capture handoff and failure behavior |
-| P05 Recognition Processing | NOT_STARTED | — | — | — | — |
+| P04 Capture entry / shared Capture behavior | BLOCKED_INFRA | Pending source checkpoint SHA | Existing camera/gallery route audited; camera failure containment and image-store tests added | Android instrumentation unavailable in this environment | Continue P05; carry P04 gate into final matrix |
+| P05 Recognition Processing | IN_PROGRESS | — | Frozen runtime/state/motion contracts and existing Android gate identified | — | Reconcile frozen recognition runtime and current failures |
 | P06 Recognition Result | NOT_STARTED | — | — | — | — |
 | P07 Result Editing | NOT_STARTED | — | — | — | — |
 | P08 My Catches | NOT_STARTED | — | — | — | — |
@@ -118,3 +118,33 @@ Git:
 
 Next:
 - Continue P04 Capture entry / shared Capture behavior without modifying CI, AVD, runner, backend or model infrastructure.
+
+## P04 checkpoint
+
+**PROGRESS CHECKPOINT**
+
+Phase: P04
+
+Feature: Capture entry / shared Capture behavior
+
+Status: BLOCKED_INFRA
+
+Completed in this branch:
+- Confirmed Empty Home and Normal Home continue to reuse the existing `identify` route; gallery entry uses the same screen with `openGallery=true`. No second CameraX or Picker implementation was added.
+- Contained CameraX lifecycle bind and immediate capture-start exceptions. When the camera is unavailable, the screen retains a retry action and the existing gallery path.
+- Replaced raw camera/picker/normalization exception text with short actionable copy; temporary camera output files are deleted after normalization or failure.
+- Added `RecognitionImageStoreTest` for camera and gallery FileProvider normalization, retained source identity, normalized bitmap dimensions and empty camera output feedback. Added it to the existing `recognition-frozen` instrumentation gate.
+
+Validation boundary:
+- `git diff --check` passes.
+- The new Android instrumentation tests were not executable here: no local Gradle, adb or emulator. The current Android workflow continues to have no job results for this branch; there is no device evidence for capture/permission behavior.
+- P04 is therefore `BLOCKED_INFRA`, not runtime PASS. No AVD, runner, permission-policy or backend changes were made.
+
+Git:
+- Epic base: `b54c2b936db5941294b216a356ad9e2bd4548f7c`
+- Branch: `feature/android-full-surface-runtime-v1`
+- P04 source checkpoint SHA: pending publication
+- PR: #97 (draft)
+
+Next:
+- Continue P05 Recognition Processing against the frozen state, motion and runtime contracts; retain both P03 and P04 checks in the final runtime matrix.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest'
+  printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionImageStoreTest'
 }
 
 # Video evidence is captured outside instrumentation so observation cannot

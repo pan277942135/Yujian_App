@@ -56,6 +56,14 @@ import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.home.HomeCameraButton
 import kotlinx.coroutines.launch
 
+private const val CameraPermissionHint = "相机权限未开启，你仍然可以从相册选择照片"
+private const val CameraUnavailableHint = "相机暂不可用，请重试或从相册选择照片"
+private const val CameraStartFailureHint = "无法启动拍照，请重试或从相册选择照片"
+private const val CameraCaptureFailureHint = "没有完成拍照，请重试或从相册选择照片"
+private const val CameraImageFailureHint = "拍照文件无法处理，请重新拍摄"
+private const val GalleryUnavailableHint = "暂时无法打开相册，请重试"
+private const val GalleryImageFailureHint = "照片读取失败，请重新选择"
+
 /**
  * Camera entry for both Empty and Normal Home.
  *
@@ -84,6 +92,8 @@ fun IdentifyScreen(
     var permissionRequested by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var cameraReady by remember { mutableStateOf(false) }
+    var cameraRetry by remember { mutableStateOf(0) }
     // This local handoff is set before navigation, so CameraX and its controls
     // cannot share a frame with the Recognition processing scene.
     var handoffImage by remember { mutableStateOf<SelectedImage?>(null) }
@@ -110,10 +120,18 @@ fun IdentifyScreen(
         }
     }
 
-    DisposableEffect(cameraController, lifecycleOwner, hasCameraPermission) {
+    DisposableEffect(cameraController, lifecycleOwner, hasCameraPermission, cameraRetry) {
         if (hasCameraPermission) {
-            cameraController.bindToLifecycle(lifecycleOwner)
-        }
+            runCatching { cameraController.bindToLifecycle(lifecycleOwner) }
+                .onSuccess {
+                    cameraReady = true
+                    if (error == CameraUnavailableHint) error = null
+                }
+                .onFailure {
+                    cameraReady = false
+                    error = CameraUnavailableHint
+                }
+        } else cameraReady = false
         onDispose { cameraController.unbind() }
     }
 
@@ -122,7 +140,7 @@ fun IdentifyScreen(
     ) { granted ->
         hasCameraPermission = granted
         if (!granted) {
-            error = "相机权限未开启，你仍然可以从相册选择照片"
+            error = CameraPermissionHint
         } else {
             error = null
         }
@@ -146,7 +164,7 @@ fun IdentifyScreen(
                 handoffImage = selected
                 onImageReady(selected)
             }.onFailure {
-                error = it.message ?: "照片读取失败，请重新选择"
+                error = GalleryImageFailureHint
             }
             loading = false
         }
@@ -156,7 +174,11 @@ fun IdentifyScreen(
         if (!loading) {
             loading = true
             error = null
-            galleryLauncher.launch("image/*")
+            runCatching { galleryLauncher.launch("image/*") }
+                .onFailure {
+                    loading = false
+                    error = GalleryUnavailableHint
+                }
         }
     }
 
@@ -171,34 +193,54 @@ fun IdentifyScreen(
             return
         }
         if (loading) return
-        val target = RecognitionImageStore.createCameraTarget(context)
-        loading = true
+        if (!cameraReady) {
+            error = CameraUnavailableHint
+            cameraRetry += 1
+            return
+        }
         error = null
-        val output = ImageCapture.OutputFileOptions.Builder(target.file).build()
-        cameraController.takePicture(
-            output,
-            ContextCompat.getMainExecutor(context),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(result: ImageCapture.OutputFileResults) {
-                    scope.launch {
-                        runCatching {
-                        RecognitionImageStore.normalizeCameraFile(context, target.file)
-                    }.onSuccess { selected ->
-                            handoffImage = selected
-                            onImageReady(selected)
-                        }.onFailure {
-                            error = it.message ?: "拍照文件无法解析，请重新拍摄"
+        val targetResult = runCatching { RecognitionImageStore.createCameraTarget(context) }
+        if (targetResult.isFailure) {
+            error = CameraStartFailureHint
+            return
+        }
+        val target = targetResult.getOrThrow()
+        loading = true
+        try {
+            val output = ImageCapture.OutputFileOptions.Builder(target.file).build()
+            cameraController.takePicture(
+                output,
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                        scope.launch {
+                            val normalized = runCatching {
+                                RecognitionImageStore.normalizeCameraFile(context, target.file)
+                            }
+                            target.file.delete()
+                            normalized.onSuccess { selected ->
+                                handoffImage = selected
+                                onImageReady(selected)
+                            }.onFailure {
+                                error = CameraImageFailureHint
+                            }
+                            loading = false
                         }
-                        loading = false
                     }
-                }
 
-                override fun onError(exception: ImageCaptureException) {
-                    loading = false
-                    error = exception.message ?: "没有完成拍照，请重新拍摄"
-                }
-            },
-        )
+                    @Suppress("UNUSED_PARAMETER")
+                    override fun onError(exception: ImageCaptureException) {
+                        target.file.delete()
+                        loading = false
+                        error = CameraCaptureFailureHint
+                    }
+                },
+            )
+        } catch (_: Exception) {
+            target.file.delete()
+            loading = false
+            error = CameraStartFailureHint
+        }
     }
 
     LaunchedEffect(autoOpenGallery) {
@@ -223,7 +265,7 @@ fun IdentifyScreen(
             // previous SelectedImage from flashing while the new gallery
             // image is normalized.
             Box(Modifier.fillMaxSize().background(Color.Black))
-        } else if (hasCameraPermission) {
+        } else if (hasCameraPermission && cameraReady) {
             AndroidView(
                 factory = { context ->
                     PreviewView(context).apply {
@@ -257,14 +299,24 @@ fun IdentifyScreen(
             }
         }
 
-        if (handoffImage == null && !loading && !hasCameraPermission && !autoOpenGallery) {
-            Button(
-                onClick = {
-                    permissionRequested = true
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                },
-                modifier = Modifier.align(Alignment.Center),
-            ) { Text("开启相机") }
+        if (handoffImage == null && !loading && !autoOpenGallery) {
+            if (!hasCameraPermission) {
+                Button(
+                    onClick = {
+                        permissionRequested = true
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    },
+                    modifier = Modifier.align(Alignment.Center),
+                ) { Text("开启相机") }
+            } else if (!cameraReady) {
+                Button(
+                    onClick = {
+                        error = null
+                        cameraRetry += 1
+                    },
+                    modifier = Modifier.align(Alignment.Center),
+                ) { Text("重试打开相机") }
+            }
         }
 
         error?.takeIf { handoffImage == null && !loading }?.let {
