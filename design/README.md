@@ -48,3 +48,23 @@ Current Normal Home menu:
 - NH06 背景与环境权威 — authority board / Morning Lake source relationship
 
 The repository now contains `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`. Normal Home page composition remains governed by the Frozen NH01 reference until the NH06 background-authority revision is formally closed.
+
+## Recognition Result V1 design package
+
+`design/pages/recognition/result` is the Design Frozen 3+2 package for the Recognition Result bridge.
+
+Design Manager 二级菜单：
+`design/pages/recognition/result/navigation.json`
+
+Current Recognition Result menu:
+- RR00 结果总览 — 3+2 shared rules / final closure board
+- RR01 高置信结果 — independent Frozen Hi-Fi
+- RR02 中置信结果 — independent Frozen Hi-Fi
+- RR03 低置信结果 — independent Frozen Hi-Fi
+- RR04 未检测到鱼 — independent Frozen Hi-Fi
+- RR05 图片质量不足 — independent Frozen Hi-Fi
+
+The five state-level Frozen references remain under `design/pages/recognition/design/05–09`.
+The system-level `recognition_result_v1.png` defines shared Result visual language, while the five state references define state-specific composition.
+
+Design closure and Android Runtime alignment are tracked separately.
