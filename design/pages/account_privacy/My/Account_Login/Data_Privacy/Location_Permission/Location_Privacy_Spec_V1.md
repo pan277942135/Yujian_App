@@ -1,7 +1,12 @@
 # 位置权限 · Privacy Spec V1
 
 Status: **FROZEN — Permission Semantics / Copy / Interaction**
-Visual status: **ACTIVE_CLOSURE**
+Visual status: **FROZEN — COMPOSITE AUTHORITY**
+
+Visual authority set:
+- `design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png`
+- `design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png`
+- adjustments: `design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
 Page ID: `account_privacy_v1.04c`
 
 ## 1. Principle
@@ -104,6 +109,6 @@ If permission is granted but current location cannot be resolved:
 
 ## 8. Visual authority
 
-Existing `01_Info.png` and `02_Denied.png` remain historical references.
+Existing `01_Info.png` and `02_Denied.png` are the byte-preserved base Hi-Fi set.
 
-Current Visual Frozen requires explicit approval against BG_CONTENT / current modal and settings components. Runtime screenshots are not substitutes.
+Visual is **FROZEN via composite authority**. Current permission semantics, BG_CONTENT and shared dialog/settings components are governed by this spec plus `Active_Path_Visual_Adjustment_Authority_V1.md`. Runtime screenshots are not substitutes and no replacement images are required.
