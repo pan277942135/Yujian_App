@@ -2498,7 +2498,11 @@ function genericSpecChildCanvas(child, feature = null) {
     return '<div class="hifi-original">' +
       '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
       '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(child.title) + '"></a>' +
-      '<div class="hifi-original-caption">当前子状态 Frozen Visual Authority · 直接引用仓库原始 PNG</div></div>' +
+      '<div class="hifi-original-caption">' +
+        esc(child.status === "FROZEN"
+          ? "当前子状态 Frozen Visual Authority · 直接引用仓库原始文件"
+          : "当前视觉参考 · " + statusText(child.status || "PARTIAL") + " · 不构成可信 Frozen Authority") +
+      '</div></div>' +
       '<div class="authority-index">' +
         '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
           '<span>' + esc(child.summary || "本子状态已建立正式规范。") + '</span></div>' +
@@ -2509,7 +2513,7 @@ function genericSpecChildCanvas(child, feature = null) {
                   '<div class="authority-index-head"><strong>' +
                     esc(String(index + 1).padStart(2, "0") + " · " + point) +
                   '</strong></div>' +
-                  '<div class="authority-kind">FROZEN SPEC</div>' +
+                  '<div class="authority-kind">' + esc(child.status === "FROZEN" ? "FROZEN SPEC" : statusText(child.status || "PARTIAL").toUpperCase() + " SPEC / GATE") + '</div>' +
                 '</article>'
               ).join("") +
             '</div>'
