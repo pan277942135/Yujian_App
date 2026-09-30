@@ -1,7 +1,11 @@
 # 账号与安全 · Home Spec V1
 
 Status: **FROZEN — IA / Behavior / Content Structure**
-Visual status: **ACTIVE_CLOSURE**
+Visual status: **FROZEN — COMPOSITE AUTHORITY**
+
+Visual authority:
+- base Hi-Fi: `design/pages/account_privacy/My/Account_Login/00_Account_Login.png`
+- adjustments: `design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
 Page ID: `account_privacy_v1.03a`
 
 ## 1. Naming authority
@@ -95,8 +99,10 @@ After logout:
 
 Historical `00_Account_Login.png` remains a visual reference until a current approved high-fidelity binary is frozen.
 
-## 8. Visual closure gate
+## 8. Visual freeze
 
-Current visual must show the new title `账号与安全`.
+Visual is **FROZEN via composite authority**.
 
-A historical PNG with title `账号与登录` cannot be promoted unchanged as current Frozen Authority.
+The existing PNG remains byte-identical as the composition layer. Its embedded historical title `账号与登录` is superseded by the frozen design title `账号与安全` through `Active_Path_Visual_Adjustment_Authority_V1.md`.
+
+Do not regenerate the PNG merely to replace embedded text.

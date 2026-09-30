@@ -1,7 +1,11 @@
 # 我的 · Page Spec V2
 
 Status: **FROZEN — IA / Behavior / Content Structure**
-Visual status: **ACTIVE_CLOSURE — new current Hi-Fi still required**
+Visual status: **FROZEN — COMPOSITE AUTHORITY**
+
+Visual authority:
+- base Hi-Fi: `design/pages/account_privacy/My/00_My.png`
+- adjustments: `design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
 Page ID: `account_privacy_v1.02a`
 
 ## 1. Purpose
@@ -148,14 +152,10 @@ Required design semantics:
 
 Loading/error of statistics must not remove account navigation.
 
-## 9. Visual closure gate
+## 9. Visual freeze
 
-Before Visual FROZEN:
+Visual is **FROZEN via composite authority**.
 
-- produce one current full-page PNG authority;
-- use BG_CONTENT;
-- use Shared Default Profile Avatar semantics;
-- use current Top Navigation / settings-row components;
-- preserve this IA exactly.
+The existing `My/00_My.png` remains the byte-preserved base Hi-Fi. Do not regenerate it.
 
-Historical `My/00_My.png` remains a legacy composition reference only.
+Current implementation must apply the frozen adjustments in `Active_Path_Visual_Adjustment_Authority_V1.md`, including BG_CONTENT, Shared Default Profile Avatar V1 and `账号与安全` naming. Shared authorities override obsolete screenshot pixels.

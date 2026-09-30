@@ -166,22 +166,22 @@
       "canonical_id": "account_privacy_v1.02a",
       "title": "02A · 我的",
       "menu_location": "账号与隐私 → 02 · 我的与资料 → 02A · 我的",
-      "status": "ACTIVE_CLOSURE",
-      "visual_authority": null,
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/00_My.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/00_My.png",
           "label": "My · 历史候选参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 1588604,
           "sha256": "6a04e8a74d7337e5f3b41f48329b649444636bd85a83c69a24839a2603513b1b",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "保留原二进制；日出/金色倒影不符合当前 Morning_Lake_Master_V1 / BG_CONTENT。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -191,9 +191,14 @@
       "product_scope": "MVP",
       "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
       "behavior_status": "FROZEN",
-      "visual_status": "ACTIVE_CLOSURE",
-      "visual_authority_trusted": false,
-      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only."
+      "visual_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "visual_authority_set": [
+        "design/pages/account_privacy/My/00_My.png"
+      ],
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+      "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
     },
     {
       "id": "02b",
@@ -295,22 +300,22 @@
       "canonical_id": "account_privacy_v1.03a",
       "title": "03A · 账号与安全首页",
       "menu_location": "账号与隐私 → 03 · 账号与安全 → 03A · 账号与安全首页",
-      "status": "ACTIVE_CLOSURE",
-      "visual_authority": null,
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/00_Account_Login.png",
           "label": "Account & Login · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 644914,
           "sha256": "8c6c88c21db4bad9d7b2b1ed02079d22a13362217abcc4d03b60bb6ce9bba269",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "不宣称当前 Frozen authority。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "不宣称当前 Frozen authority。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -320,31 +325,36 @@
       "product_scope": "MVP",
       "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
       "behavior_status": "FROZEN",
-      "visual_status": "ACTIVE_CLOSURE",
-      "visual_authority_trusted": false,
-      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only."
+      "visual_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "visual_authority_set": [
+        "design/pages/account_privacy/My/Account_Login/00_Account_Login.png"
+      ],
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+      "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
     },
     {
       "id": "03b",
       "canonical_id": "account_privacy_v1.03b",
       "title": "03B · 修改密码",
       "menu_location": "账号与隐私 → 03 · 账号与安全 → 03B · 修改密码",
-      "status": "ACTIVE_CLOSURE",
-      "visual_authority": null,
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/01_Change_Password.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/01_Change_Password.png",
           "label": "Change Password · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 607320,
           "sha256": "00e99aa8c8eff1b0274daf9709f50b3399badd8e9f8c551bd345b6fa9a03aaf2",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "不使用 runtime 截图替代 visual authority。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "不使用 runtime 截图替代 visual authority。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -354,31 +364,36 @@
       "product_scope": "MVP",
       "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
       "behavior_status": "FROZEN",
-      "visual_status": "ACTIVE_CLOSURE",
-      "visual_authority_trusted": false,
-      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only."
+      "visual_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "visual_authority_set": [
+        "design/pages/account_privacy/My/Account_Login/01_Change_Password.png"
+      ],
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+      "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
     },
     {
       "id": "04a",
       "canonical_id": "account_privacy_v1.04a",
       "title": "04A · 数据与隐私首页",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04A · 数据与隐私首页",
-      "status": "ACTIVE_CLOSURE",
-      "visual_authority": null,
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png",
           "label": "Data & Privacy · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 558179,
           "sha256": "602d75be9b1694df3be3f0c85b5433340d7680bf61bdd86d4561d0b5b7368886",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "不宣称当前 Frozen authority。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "不宣称当前 Frozen authority。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -387,45 +402,50 @@
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
       "behavior_status": "FROZEN",
-      "visual_status": "ACTIVE_CLOSURE",
-      "visual_authority_trusted": false,
-      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only. Data & Privacy visual must preserve DEFERRED status for Export/Delete."
+      "visual_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "visual_authority_set": [
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/00_Data_Privacy.png"
+      ],
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+      "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
     },
     {
       "id": "04b",
       "canonical_id": "account_privacy_v1.04b",
       "title": "04B · AI 模型改进",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04B · AI 模型改进",
-      "status": "ACTIVE_CLOSURE",
-      "visual_authority": null,
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
           "label": "Enable Consent · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 533321,
           "sha256": "d10366f930006685dc5f16dd299aece9b60182fc81c03cc4ce7bbf70d86f2009",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "Consent 默认 OFF；仅用户明确同意后开启。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "Consent 默认 OFF；仅用户明确同意后开启。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         },
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png",
           "label": "Disable Confirmation · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 179673,
           "sha256": "ea424d68844ca24a687a15fc9bbbe6d9f124f156661e283336879dec2bd8fa3c",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "撤回同意需生效，不影响识别、保存与纠正。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "撤回同意需生效，不影响识别、保存与纠正。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -434,45 +454,51 @@
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
       "behavior_status": "FROZEN",
-      "visual_status": "ACTIVE_CLOSURE",
-      "visual_authority_trusted": false,
-      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only. Use current Bottom Sheet/shared components; do not broaden consent scope."
+      "visual_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "visual_authority_set": [
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png"
+      ],
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+      "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
     },
     {
       "id": "04c",
       "canonical_id": "account_privacy_v1.04c",
       "title": "04C · 位置权限",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04C · 位置权限",
-      "status": "ACTIVE_CLOSURE",
-      "visual_authority": null,
+      "status": "FROZEN",
+      "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
           "label": "Location Permission · Info · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 189921,
           "sha256": "0ba2f48241017118e4cf24611553a2cce9e969355924e32f950e8d465ecc51aa",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "只在用户明确请求当前位置时申请权限。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "只在用户明确请求当前位置时申请权限。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         },
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png",
           "label": "Location Permission · Denied · 历史参考",
-          "status": "PARTIAL",
-          "source_type": "LEGACY_REVIEW_REFERENCE",
+          "status": "FROZEN",
+          "source_type": "FROZEN_BASE_HIFI",
           "format": "PNG",
           "bytes": 672704,
           "sha256": "db3610f8f99751928abd8e3bab04492ca44ea4f4bee59c575bd3a585bb6f0679",
           "width": 1080,
           "height": 1920,
           "mode": "RGB",
-          "role": "LEGACY / REVIEW REQUIRED",
-          "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。"
+          "role": "FROZEN BASE HI-FI · COMPOSITE AUTHORITY",
+          "scope": "权限拒绝不阻断 recognition 或 FishRecord saving。 Current page/behavior/shared adjustments override superseded screenshot details; this binary remains byte-identical."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -481,9 +507,15 @@
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
       "behavior_status": "FROZEN",
-      "visual_status": "ACTIVE_CLOSURE",
-      "visual_authority_trusted": false,
-      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only. Settings UI must remain informational and must not trigger permission on entry."
+      "visual_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "visual_closure_gate": null,
+      "visual_authority_set": [
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png"
+      ],
+      "visual_authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+      "visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
     },
     {
       "id": "04d",
@@ -725,8 +757,10 @@
   "active_path_contract": "design/pages/account_privacy/Active_Path_Contract_V1.md",
   "active_path_status": {
     "ia_behavior_content": "FROZEN",
-    "visual": "ACTIVE_CLOSURE",
-    "note": "Current approved Hi-Fi binaries are still required before the active path can be visually frozen."
+    "visual": "FROZEN",
+    "authority_mode": "COMPOSITE_BASE_PLUS_ADJUSTMENT",
+    "note": "Existing byte-preserved Hi-Fi binaries are frozen as the visual base; current deltas are owned by Active_Path_Visual_Adjustment_Authority_V1.md and Shared Design System. No replacement images are required."
   },
-  "active_path_visual_closure_brief": "design/pages/account_privacy/Active_Path_Visual_Closure_Brief_V1.md"
+  "active_path_visual_closure_brief": "design/pages/account_privacy/Active_Path_Visual_Closure_Brief_V1.md",
+  "active_path_visual_adjustment_authority": "design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md"
 }

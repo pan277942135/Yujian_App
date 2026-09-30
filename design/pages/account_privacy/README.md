@@ -19,7 +19,7 @@ Scope: **Design authority indexing + current MVP active-path closure**
 
 Login V2.1 and Register V2 are shown from their canonical PNG paths. `Login/00_Login.png` is labelled **Superseded / Historical** and is not the current Login Authority.
 
-### ACTIVE MVP MAIN PATH · BEHAVIOR / IA FROZEN
+### ACTIVE MVP MAIN PATH · DESIGN FROZEN
 
 Canonical active path:
 
@@ -41,22 +41,35 @@ Page-level authorities:
 For these six items:
 
 - IA / Behavior / Content Structure = **FROZEN**
-- Visual = **ACTIVE_CLOSURE**
-- historical PNGs remain reference evidence only;
-- current shared-system-aligned high-fidelity binaries are still required before Visual FROZEN.
+- Visual = **FROZEN**
+- existing repository PNGs are retained byte-identical as **Frozen Base Hi-Fi**;
+- no replacement images are required;
+- current differences are frozen in `Active_Path_Visual_Adjustment_Authority_V1.md`;
+- final visual authority is composite: **Base Hi-Fi + page spec + adjustment authority + Shared Design System**.
 
 The old design label **账号与登录** is superseded by **账号与安全**. Android runtime may keep the historical label until Runtime Parity; runtime wording does not override design authority.
 
+### FROZEN COMPOSITE VISUAL AUTHORITIES
+
+The following existing binaries are now frozen as the active-path visual base:
+
+- `My/00_My.png`
+- `My/Account_Login/00_Account_Login.png`
+- `My/Account_Login/01_Change_Password.png`
+- `My/Account_Login/Data_Privacy/00_Data_Privacy.png`
+- `My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png`
+- `My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png`
+- `My/Account_Login/Data_Privacy/Location_Permission/01_Info.png`
+- `My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png`
+
+They are **not edited or regenerated**. Current deltas such as BG_CONTENT, `账号与安全` naming, DEFERRED states, Shared Avatar and current consent/location semantics are owned by:
+
+`Active_Path_Visual_Adjustment_Authority_V1.md`
+
 ### LEGACY / REVIEW REQUIRED
 
-The following exact repository images remain review references, not current Frozen Authorities:
+Remaining review-required visual work outside the active-path freeze:
 
-- My (`My/00_My.png`): current BG_CONTENT uses the no-sun `Morning_Lake_Master_V1`; the legacy board visibly uses sunrise and a strong golden reflection. The V2 IA is now frozen, but this old visual is not current authority.
-- Historical Account & Login visual: composition reference only; its title is superseded by **账号与安全**.
-- Change Password visual reference.
-- Data & Privacy visual reference.
-- AI Model Improvement: Enable Consent / Disable Confirmation visual references.
-- Location Permission: Info / Denied visual references.
 - Privacy Policy shell; legal body copy is not final.
 
 ### MVP DEFERRED DESIGN REFERENCES
@@ -100,6 +113,7 @@ The parent page is the Overview. It shows package state, current/legacy/deferred
 - `manifest.json` remains the unchanged historical 23-asset inventory.
 - `authority_manifest_v2.json` is the current page/flow classification index and records exact repository image fingerprints without copying binaries.
 - Active MVP main-path **IA / Behavior / Content Structure is FROZEN**.
-- Active-path Visual closure remains **ACTIVE_CLOSURE** until new approved Hi-Fi binaries are present.
+- Active MVP main-path **Visual is FROZEN via composite authority**.
+- No new active-path Hi-Fi images are required.
 - Overall Account & Privacy design remains **PARTIAL** because Legal/About, Edit Profile state closure, Nickname integrity recovery and active-path visual closure remain outstanding.
 - Runtime status remains separately reported as **PARTIAL**. Design freeze does not imply Android runtime parity.

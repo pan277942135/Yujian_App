@@ -1,7 +1,7 @@
 # Account & Privacy · Active Main Path Contract V1
 
-Status: **FROZEN — IA / Behavior / Content Structure**
-Visual closure: **ACTIVE_CLOSURE**
+Status: **DESIGN FROZEN — IA / Behavior / Content / Visual**
+Visual authority: **FROZEN — COMPOSITE BASE HI-FI + ADJUSTMENT SPEC**
 Scope: **Current MVP active path only**
 
 ## 1. Canonical path
@@ -56,16 +56,22 @@ No page may redefine these locally.
 
 ## 4. Visual governance
 
-Historical PNGs remain composition/reference evidence only unless explicitly promoted by a versioned visual freeze.
+The existing Account & Privacy high-fidelity PNGs are now frozen as byte-preserved **Base Hi-Fi** authorities.
+
+Composite visual authority:
+
+`design/pages/account_privacy/Active_Path_Visual_Adjustment_Authority_V1.md`
+
+The existing binary owns composition; current page specs, the adjustment authority and Shared Design System override superseded screenshot details.
 
 Do not:
 
-- call a historical screenshot current Frozen Authority;
+- edit, regenerate, re-encode or copy/rename the existing frozen binaries;
 - use Android runtime screenshots as Design Authority;
-- reconstruct high-fidelity visuals in HTML/SVG and call them frozen;
-- retain the legacy sunrise Account background where current BG_CONTENT is required.
+- reconstruct high-fidelity visuals in HTML/SVG and call them replacement assets;
+- reproduce superseded sunrise/background, naming, consent, location or Deferred semantics merely because they remain embedded in an old PNG.
 
-The six behavior/content specs in this path are frozen independently of the missing current high-fidelity binary closure.
+No new active-path high-fidelity binary is required for design freeze.
 
 ## 5. Navigation rules
 
