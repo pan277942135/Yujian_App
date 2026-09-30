@@ -13,6 +13,7 @@ Scope: **Design authority indexing + current MVP active-path closure**
 - **Register V2** — `Register/frozen/Register_V2_Frozen_Final.png`; spec: `Register/Register_V2_Design_Spec_V1.md`.
 - **Edit Profile Home V1.1** — `My/Edit_Profile/01_Profile_Home/frozen/Edit_Profile_Home_V1_1_Frozen.webp`.
 - **Avatar Change V1** — `My/Edit_Profile/02_Avatar_Edit/frozen/Avatar_Change_V1_Frozen.webp`.
+- **Edit Profile State & Interaction V1** — `My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md`; Save Feedback / Edge States / Interaction & Adaptation are FROZEN without standalone image assets.
 ### INTEGRITY BLOCKED
 
 - **Nickname Edit V1** — behavior / machine / development contracts remain frozen, but the current repository WebP SHA-256 (`26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`) does **not** match the declared frozen visual SHA-256 (`5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`). Therefore Visual Authority status is **BLOCKED_INTEGRITY**, not FROZEN. Recover the originally approved byte-identical source; do not regenerate or re-encode it.
@@ -142,5 +143,5 @@ The parent page is the Overview. It shows package state, current/legacy/deferred
 - Active MVP main-path **Visual is FROZEN via composite authority**.
 - No new active-path Hi-Fi images are required.
 - About / Legal page design is FROZEN; final Privacy Policy / User Agreement Legal Copy remains LEGAL_REVIEW_REQUIRED.
-- Overall Account & Privacy remains **PARTIAL** because final Legal Copy, Edit Profile state closure and Nickname integrity recovery remain outstanding.
+- Overall Account & Privacy remains **PARTIAL** because final Legal Copy and Nickname visual integrity recovery remain outstanding.
 - Runtime status remains separately reported as **PARTIAL**. Design freeze does not imply Android runtime parity.
