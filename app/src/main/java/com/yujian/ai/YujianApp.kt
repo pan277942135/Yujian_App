@@ -768,6 +768,7 @@ fun YujianApp() {
                             profile = active,
                             authRepository = authRepository,
                             onProfileUpdated = ::applyProfile,
+                            onAuthenticationExpired = ::logoutToHome,
                             onBack = { nav.popBackStack() },
                         )
                     }
@@ -794,6 +795,7 @@ fun YujianApp() {
                         ChangePasswordScreen(
                             authRepository = authRepository,
                             accessToken = active.accessToken,
+                            onAuthenticationExpired = ::logoutToHome,
                             onBack = { nav.popBackStack() },
                         )
                     }
@@ -806,13 +808,18 @@ fun YujianApp() {
                         DataPrivacyScreen(
                             authRepository = authRepository,
                             accessToken = active.accessToken,
+                            onAuthenticationExpired = ::logoutToHome,
                             onPrivacyPolicy = { nav.navigate("privacy_policy") },
                             onComingSoon = { kind ->
                                 if ((kind == ComingSoonKind.EXPORT_DATA && !AccountPrivacyCapabilities.dataExportEnabled) ||
                                     (kind == ComingSoonKind.DELETE_ACCOUNT && !AccountPrivacyCapabilities.accountDeletionEnabled)
                                 ) comingSoon = kind
                             },
-                            onManualWithdrawal = { promptFrequency = promptFrequency.suppressAfterManualWithdrawal() },
+                            onManualWithdrawal = {
+                                val updated = promptFrequency.suppressAfterManualWithdrawal()
+                                promptFrequency = updated
+                                promptFrequencyStore.save(updated)
+                            },
                             onBack = { nav.popBackStack() },
                         )
                     }
