@@ -100,6 +100,11 @@ class CatchRepository(
     }
 
     suspend fun saveCatch(token: String, upload: UploadedCatchImage, draft: CatchSaveDraft): RemoteCatch = withContext(Dispatchers.IO) {
+        val classifier = draft.classifierResult
+        val length = classifier?.takeIf { it.has("length_cm") && !it.isNull("length_cm") }?.optDouble("length_cm")
+        val weight = classifier?.takeIf { it.has("weight_kg") && !it.isNull("weight_kg") }?.optDouble("weight_kg")
+        val location = classifier?.takeIf { it.has("location") && !it.isNull("location") }
+            ?.optString("location")?.takeIf(String::isNotBlank)
         val body = JSONObject()
             .put("image_upload_id", upload.uploadId)
             .put("species_id", draft.speciesId)
@@ -108,6 +113,9 @@ class CatchRepository(
             .put("model_version", draft.modelVersion)
             .put("detector_result", draft.detectorResult ?: JSONObject.NULL)
             .put("classifier_result", draft.classifierResult ?: JSONObject.NULL)
+            .put("length_cm", length ?: JSONObject.NULL)
+            .put("weight_kg", weight ?: JSONObject.NULL)
+            .put("location", location ?: JSONObject.NULL)
         val response = json("POST", "/api/v1/catches", token, body)
         return@withContext parseCatch(response.optJSONObject("catch") ?: throw IOException("保存响应缺少鱼获记录"))
     }

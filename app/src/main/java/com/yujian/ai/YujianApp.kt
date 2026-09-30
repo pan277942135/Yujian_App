@@ -75,6 +75,7 @@ import com.yujian.ai.ui.screens.EditProfileScreen
 import com.yujian.ai.ui.screens.LegalDocumentScreen
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
+import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
@@ -391,9 +392,13 @@ fun YujianApp() {
                 }
                 composable(
                     route = FishRecordDetailRoute,
-                    arguments = listOf(navArgument("catchId") { type = NavType.StringType }),
+                    arguments = listOf(
+                        navArgument("catchId") { type = NavType.StringType },
+                        navArgument("section") { type = NavType.StringType; defaultValue = "" },
+                    ),
                 ) { entry ->
                     val catchId = entry.arguments?.getString("catchId").orEmpty()
+                    val initialSection = entry.arguments?.getString("section").orEmpty()
                     val detailState = FishRecordDetailPresentation.resolve(
                         catchId = catchId,
                         records = catchesState.catches,
@@ -402,6 +407,7 @@ fun YujianApp() {
                     )
                     FishRecordDetailScreen(
                         uiState = detailState,
+                        initialSection = initialSection,
                         imageUrlFor = { record ->
                             if (File(record.imageUrl).exists()) "file://${record.imageUrl}"
                             else catchRepository.resolveUrl(record.imageUrl)
@@ -517,7 +523,6 @@ fun YujianApp() {
                         RecognitionResultScreen(
                             image = sessionImage,
                             prediction = currentPrediction,
-                            selectableSpecies = guideSpecies,
                             productionResult = productionResult,
                             subjectResult = subjectResult,
                             subjectModelState = subjectModelState,
@@ -546,7 +551,9 @@ fun YujianApp() {
                             },
                             saving = catchSaving,
                             saveError = catchSaveError,
-                            onSave = { draft, feedback ->
+                            availableSpecies = guideSpecies,
+                            speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
+                            onSave = { draft, feedback, destination ->
                                 val active = session
                                 val selected = sessionImage
                                 if (selected == null) {
@@ -555,21 +562,24 @@ fun YujianApp() {
                                     scope.launch {
                                         catchSaving = true
                                         catchSaveError = null
-                                        runCatching {
+                                        val saveResult = runCatching {
                                             if (active == null) {
                                                 guestCatchRepository.saveCatch(File(selected.filePath), draft)
                                             } else {
                                                 val upload = catchRepository.uploadImage(active.accessToken, File(selected.filePath))
                                                 catchRepository.saveCatch(active.accessToken, upload, draft)
                                             }
-                                        }.onSuccess {
-                                            catchSaving = false
+                                        }
+                                        if (saveResult.isSuccess) {
+                                            val createdRecord = saveResult.getOrThrow()
+                                            val updatedInference = inferenceAsset?.let { asset ->
+                                                runCatching { inferenceRecorder.attachFeedback(asset, feedback) }.getOrNull()
+                                            }
                                             catchReload++
                                             if (active != null) {
                                                 scope.launch {
                                                     val privacy = runCatching { authRepository.getPrivacySettings(active.accessToken) }.getOrNull()
-                                                    inferenceAsset?.let { asset ->
-                                                        val updated = inferenceRecorder.attachFeedback(asset, feedback)
+                                                    updatedInference?.let { updated ->
                                                         // Inference/training uploads are denied by default. The server
                                                         // consent value is read after the record is durably saved.
                                                         if (privacy?.enabled == true && feedback.correctedSpecies?.isNotBlank() == true) {
@@ -591,8 +601,17 @@ fun YujianApp() {
                                                 sessionManager.markGuestRegistrationPromptShown()
                                                 guestRegistrationPromptVisible = true
                                             }
-                                            nav.navigate("home") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
-                                        }.onFailure { error ->
+                                            catchSaving = false
+                                            if (destination == RecognitionSaveDestination.MEMORY) {
+                                                nav.navigate("catch/${Uri.encode(createdRecord.id)}?section=memory") {
+                                                    popUpTo("result") { inclusive = true }
+                                                    launchSingleTop = true
+                                                }
+                                            } else {
+                                                nav.navigate("home") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
+                                            }
+                                        } else {
+                                            val error = requireNotNull(saveResult.exceptionOrNull())
                                             catchSaving = false
                                             if ((error as? ApiException)?.statusCode == 401) {
                                                 logoutToHome()
@@ -603,7 +622,6 @@ fun YujianApp() {
                                     }
                                 }
                             },
-                            onViewGuide = { speciesId -> nav.navigate("species/${Uri.encode(speciesId)}") },
                         )
                     }
                 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Share
@@ -32,6 +33,7 @@ import com.yujian.ai.presentation.presentationSpeciesName
 @Composable
 fun FishRecordDetailScreen(
     uiState: FishRecordDetailUiState,
+    initialSection: String = "",
     imageUrlFor: (RemoteCatch) -> String?,
     bsideUrlFor: (RemoteCatch) -> String?,
     accessToken: String,
@@ -48,8 +50,10 @@ fun FishRecordDetailScreen(
         is FishRecordDetailUiState.Error -> DetailMessage(uiState.message, onBack = onBack)
         is FishRecordDetailUiState.Success -> {
             val record = uiState.record
+            val listState = rememberLazyListState(initialFirstVisibleItemIndex = if (initialSection.equals("memory", true)) 4 else 0)
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                state = listState,
                 contentPadding = PaddingValues(
                     start = YuJianSpacing.sm,
                     end = YuJianSpacing.sm,
