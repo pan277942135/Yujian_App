@@ -1,6 +1,9 @@
 # Generated recognition release assets are fetched and verified by the canonical bootstrap.
 app/src/main/assets/fish_classifier.tflite
-app/src/main/assets/model_tensor_contract.json
+app/src/main/assets/fish_classifier_v0_2.metadata.json
+app/src/main/assets/class_map.json
+app/src/main/assets/tensor_contract.json
+app/src/main/assets/model_release_contract.json
 app/src/main/assets/fish_detector_yolox_nano_v0_1.onnx
 app/src/main/assets/detector_metadata.json
 app/src/main/assets/recognition_pipeline_v1.json

@@ -33,6 +33,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      model_id: ${{ steps.model_trace.outputs.model_id }}
+      model_sha256: ${{ steps.model_trace.outputs.model_sha256 }}
 
     steps:
       - name: Checkout
@@ -46,6 +49,29 @@ jobs:
 
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
+
+      - name: Read production model identity
+        id: model_trace
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib, re
+          p = pathlib.Path('app/src/main/assets/model_release_contract.json')
+          contract = json.loads(p.read_text(encoding='utf-8'))
+          if contract.get('build_sha') != '${{ github.sha }}':
+              raise SystemExit('model snapshot build_sha does not match the checked-out commit')
+          model_id = str(contract.get('model_id') or '')
+          if not re.fullmatch(r'[A-Za-z0-9_.-]+', model_id):
+              raise SystemExit(f'invalid model_id for artifact naming: {model_id!r}')
+          print(f'model_id={model_id}')
+          print(f'model_sha256={contract["sha256"]}')
+          print('MODEL_RELEASE_TRACE=' + json.dumps({
+              key: contract[key] for key in (
+                  'model_id', 'dataset_id', 'release_tag', 'sha256', 'bytes',
+                  'class_count', 'class_order', 'input_shape', 'output_shape',
+                  'class_map_sha256', 'tensor_contract_sha256'
+              )
+          }, ensure_ascii=False, sort_keys=True))
+          PY
 
       - name: Verify production TFLite model
         run: python3 scripts/verify_production_model.py
@@ -83,6 +109,13 @@ jobs:
       - name: Verify packaged recognition assets in APK
         run: python3 scripts/verify_packaged_android_apk.py
 
+      - name: Export model trace from the actual APK
+        run: >-
+          python3 scripts/export_apk_model_trace.py
+          --apk app/build/outputs/apk/debug/app-debug.apk
+          --output-dir build/runtime-apks
+          --build-sha "$GITHUB_SHA"
+
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
 
@@ -93,14 +126,14 @@ jobs:
           mkdir -p build/runtime-apks
           cp app/build/outputs/apk/debug/app-debug.apk build/runtime-apks/app-debug.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk build/runtime-apks/app-debug-androidTest.apk
-          (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk > SHA256SUMS)
+          (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json apk_model_trace.json > SHA256SUMS)
           test -s build/runtime-apks/app-debug.apk
           test -s build/runtime-apks/app-debug-androidTest.apk
 
       - name: Upload frozen runtime APK pair
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}
+          name: YuJian-runtime-apks-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
           path: build/runtime-apks
           if-no-files-found: error
           retention-days: 14
@@ -108,26 +141,32 @@ jobs:
       - name: Prepare YuJian debug APK
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/YuJian-debug.apk
 
-      - name: Prepare Recognition Visual V1.2 QA APK
+      - name: Prepare Recognition Processing V1.3 QA APK
         id: recognition_qa_apk
         run: |
-          filename="YuJian_Recognition_Visual_V1_2_QA_$(TZ=Asia/Shanghai date +%Y%m%d).apk"
+          filename="YuJian_Recognition_Visual_V1_3_QA_${GITHUB_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${filename}"
           echo "filename=${filename}" >> "$GITHUB_OUTPUT"
 
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-debug-${{ github.sha }}
-          path: app/build/outputs/apk/debug/YuJian-debug.apk
+          name: YuJian-debug-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
+          path: |
+            app/build/outputs/apk/debug/YuJian-debug.apk
+            build/runtime-apks/model_release_contract.json
+            build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload Recognition Visual V1.2 QA APK
+      - name: Upload Recognition Processing V1.3 QA APK
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.recognition_qa_apk.outputs.filename }}
-          path: app/build/outputs/apk/debug/${{ steps.recognition_qa_apk.outputs.filename }}
+          path: |
+            app/build/outputs/apk/debug/${{ steps.recognition_qa_apk.outputs.filename }}
+            build/runtime-apks/model_release_contract.json
+            build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
           retention-days: 14
 
@@ -173,7 +212,7 @@ jobs:
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         uses: actions/download-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}
+          name: YuJian-runtime-apks-${{ github.sha }}-${{ needs.build.outputs.model_id }}
           path: build/runtime-apks
 
       - name: Verify exact frozen APK pair
@@ -183,6 +222,13 @@ jobs:
           test -s build/runtime-apks/app-debug-androidTest.apk
           (cd build/runtime-apks && sha256sum -c SHA256SUMS)
           ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
+
+      - name: Add production model trace to runtime evidence
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        run: |
+          mkdir -p "evidence/runtime/${{ matrix.gate }}"
+          cp build/runtime-apks/model_release_contract.json "evidence/runtime/${{ matrix.gate }}/model_release_contract.json"
+          cp build/runtime-apks/apk_model_trace.json "evidence/runtime/${{ matrix.gate }}/apk_model_trace.json"
 
       - name: Install runtime parity dependencies
         if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
@@ -342,7 +388,7 @@ jobs:
         if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}
+          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}-${{ needs.build.outputs.model_id }}
           path: evidence/runtime/${{ matrix.gate }}
           if-no-files-found: error
           retention-days: 14

@@ -118,27 +118,17 @@ App 内置基础模型
 
 ## 当前 P0 技术检查点（2026-08-31）
 
-当前主分类模型：
+历史模型基线（2026-08-31；仅保留作诊断记录）：
 
 ```text
 MODEL_M1_v0.6
 ```
 
-当前移动模型：
-
-```text
-fish_classifier_v0_2.tflite
-SHA256: b77ea78e7f8554078ea3a79051039af1ace04f0ac4e2604da57d1dd8f0b010e7
-输出类别数: 16
-```
-
-当前已验证状态：
-
-```text
-同一 Golden Image：
-TFLite Top-1 = sharpbelly / index 10
-Android parity contract = [1,16] Float32
-```
+Android 正式打包始终解析 `pan277942135/Yujian` 的 `mobile-model-v0.2`
+Release 当前文件。Bootstrap 同时获取 TFLite、metadata、class_map 与
+tensor_contract，生成并打包 `model_release_contract.json`；每个 APK 按该快照
+记录实际模型 SHA、数据集、类别顺序和 tensor shape。禁止把旧 SHA 或类别数
+作为持续生效的固定合同。
 
 常见 RGB/BGR、NCHW/NHWC、ImageNet/0..1 组合已经诊断过，不能解释问题。
 

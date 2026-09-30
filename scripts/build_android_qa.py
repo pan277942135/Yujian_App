@@ -17,6 +17,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import bootstrap_android_recognition_assets as bootstrap  # noqa: E402
+from production_model_contract import (  # noqa: E402
+    ANDROID_CLASS_MAP_FILE,
+    ANDROID_METADATA_FILE,
+    ANDROID_MODEL_FILE,
+    ANDROID_SNAPSHOT_FILE,
+    ANDROID_TENSOR_CONTRACT_FILE,
+    snapshot_summary,
+    verify_model_snapshot,
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -70,19 +79,24 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
     if not apk.is_file() or apk.stat().st_size == 0:
         raise RuntimeError(f"APK_ASSET_MISSING: {apk}")
     entries = {
-        "classifier": "assets/fish_classifier.tflite",
-        "tensor_contract": "assets/model_tensor_contract.json",
+        "classifier": f"assets/{ANDROID_MODEL_FILE}",
+        "model_metadata": f"assets/{ANDROID_METADATA_FILE}",
+        "class_map": f"assets/{ANDROID_CLASS_MAP_FILE}",
+        "tensor_contract": f"assets/{ANDROID_TENSOR_CONTRACT_FILE}",
+        "model_snapshot": f"assets/{ANDROID_SNAPSHOT_FILE}",
         "detector": "assets/fish_detector_yolox_nano_v0_1.onnx",
         "detector_metadata": "assets/detector_metadata.json",
         "recognition_pipeline": "assets/recognition_pipeline_v1.json",
     }
     payloads = {key: read_apk_entry(apk, path) for key, path in entries.items()}
-    classifier_sha = sha256_bytes(payloads["classifier"])
-    contract_sha = sha256_bytes(payloads["tensor_contract"])
-    if classifier_sha != bootstrap.PRODUCTION_DEFAULTS["MODEL_TFLITE_SHA256"]:
-        raise RuntimeError(f"APK classifier SHA mismatch: {classifier_sha}")
-    if contract_sha != bootstrap.PRODUCTION_DEFAULTS["MODEL_TENSOR_CONTRACT_SHA256"]:
-        raise RuntimeError(f"APK tensor contract SHA mismatch: {contract_sha}")
+    model_snapshot = json.loads(payloads["model_snapshot"])
+    model_trace = verify_model_snapshot(
+        model=payloads["classifier"],
+        metadata_bytes=payloads["model_metadata"],
+        class_map_bytes=payloads["class_map"],
+        tensor_contract_bytes=payloads["tensor_contract"],
+        snapshot=model_snapshot,
+    )
 
     metadata = json.loads(payloads["detector_metadata"])
     detector_sha = sha256_bytes(payloads["detector"])
@@ -90,11 +104,10 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
         raise RuntimeError("APK detector metadata does not match packaged ONNX SHA")
     if int(metadata.get("onnx_bytes") or 0) != len(payloads["detector"]):
         raise RuntimeError("APK detector metadata does not match packaged ONNX size")
-    json.loads(payloads["tensor_contract"])
     json.loads(payloads["recognition_pipeline"])
     return {
-        "classifier_sha256": classifier_sha,
-        "tensor_contract_sha256": contract_sha,
+        "model": snapshot_summary(model_trace),
+        "model_snapshot_sha256": sha256_bytes(payloads["model_snapshot"]),
         "detector_sha256": detector_sha,
     }
 

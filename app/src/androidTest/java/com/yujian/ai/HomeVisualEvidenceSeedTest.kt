@@ -51,7 +51,7 @@ class HomeVisualEvidenceSeedTest {
                             else -> "鲫鱼"
                         },
                         confidence = 0.92f,
-                        modelVersion = "MODEL_M1_v0.6",
+                        modelVersion = "fixture-model",
                     ),
                 )
             }

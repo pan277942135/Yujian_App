@@ -190,7 +190,7 @@ class RecognitionFrozenFlowEmulatorTest {
         listOf("长度", "重量", "地点", "编辑鱼获记录").forEach {
             assertFalse(composeRule.onAllNodesWithText(it).fetchSemanticsNodes().isNotEmpty())
         }
-        listOf("还不能确定这是什么鱼", "打开鱼种选择", "收起 16 类鱼种", "其他鱼种（可选）", "补充鱼获信息", "认识完成")
+        listOf("还不能确定这是什么鱼", "打开鱼种选择", "其他鱼种（可选）", "补充鱼获信息", "认识完成")
             .forEach { assertFalse(composeRule.onAllNodesWithText(it).fetchSemanticsNodes().isNotEmpty()) }
         composeRule.onNodeWithText("手动选择鱼种").performClick()
         assertVisible("选择鱼种")
@@ -885,7 +885,7 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun prediction(topConfidence: Float, secondConfidence: Float): RecognitionPrediction {
         val top = RecognitionCandidate(0, "grass_carp", "草鱼", topConfidence)
         val second = RecognitionCandidate(1, "crucian_carp", "鲫鱼", secondConfidence)
-        return RecognitionPrediction("MODEL_M1_v0.6", "fixture", top, listOf(top, second), 1L)
+        return RecognitionPrediction("fixture-model", "fixture", top, listOf(top, second), 1L)
     }
 }
 
