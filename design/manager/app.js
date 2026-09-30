@@ -2466,9 +2466,16 @@ function accountPrivacyGalleryCanvas(item) {
       esc(String(index + 1).padStart(2, "0") + " · " + point) +
     '</strong></div><div class="authority-kind">SCOPE / GATE</div></article>'
   ).join("");
+  const governance = (item.behavior_status || item.visual_status)
+    ? '<div class="authority-index-head">' +
+        (item.behavior_status ? '<span>Behavior / IA&nbsp;' + statusBadge(item.behavior_status) + '</span>' : '') +
+        (item.visual_status ? '<span>Visual&nbsp;' + statusBadge(item.visual_status) + '</span>' : '') +
+      '</div>'
+    : "";
   return '<div class="authority-index">' +
     '<div class="authority-index-intro"><strong>' + esc(item.title || "Account & Privacy visual references") + '</strong>' +
-      '<span>' + esc(item.summary || "Existing repository images are shown with their current review status.") + '</span></div>' +
+      '<span>' + esc(item.summary || "Existing repository images are shown with their current review status.") + '</span>' +
+      governance + '</div>' +
     (cards ? '<div class="authority-index-grid">' + cards + '</div>' : '<div class="preview-empty">没有可展示的仓库视觉图。</div>') +
     (points ? '<div class="authority-index-intro"><strong>产品范围与 Gate</strong></div><div class="authority-index-grid">' + points + '</div>' : '') +
   '</div>';

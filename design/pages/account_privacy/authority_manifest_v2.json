@@ -166,7 +166,7 @@
       "canonical_id": "account_privacy_v1.02a",
       "title": "02A · 我的",
       "menu_location": "账号与隐私 → 02 · 我的与资料 → 02A · 我的",
-      "status": "PARTIAL",
+      "status": "ACTIVE_CLOSURE",
       "visual_authority": null,
       "visual_references": [
         {
@@ -185,11 +185,15 @@
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/README.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/My/My_Page_Spec_V2.md",
+      "behavior_authority": "design/pages/account_privacy/My/My_Page_Spec_V2.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "behavior_status": "FROZEN",
+      "visual_status": "ACTIVE_CLOSURE",
+      "visual_authority_trusted": false,
+      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only."
     },
     {
       "id": "02b",
@@ -289,9 +293,9 @@
     {
       "id": "03a",
       "canonical_id": "account_privacy_v1.03a",
-      "title": "03A · 账号与登录",
-      "menu_location": "账号与隐私 → 03 · 账号与登录 → 03A · 账号与登录",
-      "status": "PARTIAL",
+      "title": "03A · 账号与安全首页",
+      "menu_location": "账号与隐私 → 03 · 账号与安全 → 03A · 账号与安全首页",
+      "status": "ACTIVE_CLOSURE",
       "visual_authority": null,
       "visual_references": [
         {
@@ -310,18 +314,22 @@
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/My/Account_Login/Account_Security_Home_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/My/Account_Login/Account_Security_Home_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "behavior_status": "FROZEN",
+      "visual_status": "ACTIVE_CLOSURE",
+      "visual_authority_trusted": false,
+      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only."
     },
     {
       "id": "03b",
       "canonical_id": "account_privacy_v1.03b",
       "title": "03B · 修改密码",
-      "menu_location": "账号与隐私 → 03 · 账号与登录 → 03B · 修改密码",
-      "status": "PARTIAL",
+      "menu_location": "账号与隐私 → 03 · 账号与安全 → 03B · 修改密码",
+      "status": "ACTIVE_CLOSURE",
       "visual_authority": null,
       "visual_references": [
         {
@@ -340,18 +348,22 @@
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/My/Account_Login/Change_Password_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/My/Account_Login/Change_Password_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "behavior_status": "FROZEN",
+      "visual_status": "ACTIVE_CLOSURE",
+      "visual_authority_trusted": false,
+      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only."
     },
     {
       "id": "04a",
       "canonical_id": "account_privacy_v1.04a",
       "title": "04A · 数据与隐私首页",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04A · 数据与隐私首页",
-      "status": "PARTIAL",
+      "status": "ACTIVE_CLOSURE",
       "visual_authority": null,
       "visual_references": [
         {
@@ -370,17 +382,21 @@
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Data_Privacy_Home_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "behavior_status": "FROZEN",
+      "visual_status": "ACTIVE_CLOSURE",
+      "visual_authority_trusted": false,
+      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only. Data & Privacy visual must preserve DEFERRED status for Export/Delete."
     },
     {
       "id": "04b",
       "canonical_id": "account_privacy_v1.04b",
       "title": "04B · AI 模型改进",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04B · AI 模型改进",
-      "status": "PARTIAL",
+      "status": "ACTIVE_CLOSURE",
       "visual_authority": null,
       "visual_references": [
         {
@@ -413,17 +429,21 @@
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/AI_Model_Improvement/AI_Model_Improvement_Consent_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "behavior_status": "FROZEN",
+      "visual_status": "ACTIVE_CLOSURE",
+      "visual_authority_trusted": false,
+      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only. Use current Bottom Sheet/shared components; do not broaden consent scope."
     },
     {
       "id": "04c",
       "canonical_id": "account_privacy_v1.04c",
       "title": "04C · 位置权限",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04C · 位置权限",
-      "status": "PARTIAL",
+      "status": "ACTIVE_CLOSURE",
       "visual_authority": null,
       "visual_references": [
         {
@@ -456,10 +476,14 @@
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
-      "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-      "behavior_authority": null,
+      "spec_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md",
+      "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Location_Permission/Location_Privacy_Spec_V1.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "behavior_status": "FROZEN",
+      "visual_status": "ACTIVE_CLOSURE",
+      "visual_authority_trusted": false,
+      "visual_closure_gate": "Approve and freeze a current shared-system-aligned high-fidelity binary; historical repository visuals remain references only. Settings UI must remain informational and must not trigger permission on entry."
     },
     {
       "id": "04d",
@@ -697,5 +721,12 @@
     "id": "yujian_default_profile_avatar_v1",
     "status": "FROZEN",
     "rule": "Logged-in missing/load-failed avatar uses shared default; Guest is a different semantic state."
-  }
+  },
+  "active_path_contract": "design/pages/account_privacy/Active_Path_Contract_V1.md",
+  "active_path_status": {
+    "ia_behavior_content": "FROZEN",
+    "visual": "ACTIVE_CLOSURE",
+    "note": "Current approved Hi-Fi binaries are still required before the active path can be visually frozen."
+  },
+  "active_path_visual_closure_brief": "design/pages/account_privacy/Active_Path_Visual_Closure_Brief_V1.md"
 }
