@@ -43,6 +43,13 @@ It does not change:
 | Accessibility / compact-height rule | PASS |
 | Shared component rule | PASS |
 | Hero Media Contract V1 | PASS — FROZEN |
+| Layout Geometry V1 | PASS — FROZEN |
+| Component Map V1 | PASS — FROZEN |
+| Metadata Input Contract V1 | PASS — FROZEN |
+| Candidate Card V1 | PASS — FROZEN |
+| Visual Acceptance Map V1 | PASS — FROZEN |
+| Asset Manifest / Result | PASS — FROZEN |
+| Implementation readiness | **PASS — IMPLEMENTATION READY** |
 | Acceptance criteria | PASS |
 | Runtime consistency | NEEDS IMPLEMENTATION CLOSURE |
 
@@ -92,3 +99,20 @@ Any change to:
 - Result-to-memory flow
 
 requires a versioned Result package revision.
+
+
+## Implementation readiness declaration
+
+The Design Package is now **IMPLEMENTATION READY**.
+
+Work/frontend may make implementation choices only where explicitly left to platform/runtime by a frozen contract. It must not make independent visual-design decisions for:
+- page geometry;
+- adaptive width/height behavior;
+- component selection;
+- Result metadata inputs;
+- Medium candidate-card visuals/states;
+- dynamic Hero media placement;
+- visual acceptance tolerances;
+- Result asset/component sourcing.
+
+Runtime parity remains `NEEDS_CLOSURE` until implementation and evidence pass.

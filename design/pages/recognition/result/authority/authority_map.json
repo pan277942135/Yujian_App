@@ -27,19 +27,31 @@
     },
     {
       "rank": 3,
+      "authority": "ENGINEERING_DESIGN_CONTRACTS_V1",
+      "files": [
+        "design/pages/recognition/result/engineering/Recognition_Result_Layout_Geometry_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Candidate_Card_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Visual_Acceptance_Map_V1.md"
+      ],
+      "rule": "Deterministic page geometry, adaptive behavior, component mapping, input behavior, candidate state visuals and visual QA tolerances."
+    },
+    {
+      "rank": 4,
       "authority": "RESULT_PACKAGE_SPECS",
       "root": "design/pages/recognition/result/",
       "rule": "Behavior, interaction, CTA and implementation-facing state contract."
     },
     {
-      "rank": 4,
+      "rank": 5,
       "authority": "CORE_VISUAL_SYSTEM_REFERENCE",
       "file": "design/system/core_visual_v1/reference/recognition_result_v1.png",
       "sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
       "rule": "Shared Result visual language/base composition. Does not override a state-specific Frozen reference."
     },
     {
-      "rank": 5,
+      "rank": 6,
       "authority": "GLOBAL_RECOGNITION_RUNTIME",
       "files": [
         "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
@@ -48,7 +60,7 @@
       "rule": "Real pipeline/state routing authority. Result visuals must not change model semantics."
     },
     {
-      "rank": 6,
+      "rank": 7,
       "authority": "RUNTIME_IMPLEMENTATION",
       "files": [
         "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
@@ -58,6 +70,7 @@
     }
   ],
   "conflict_rules": [
+    "Engineering Design Contracts govern implementation details not uniquely measurable from a Frozen PNG; they do not authorize changing the Frozen page hierarchy.",
     "Frozen state PNG owns Hero container placement; Hero Media Contract owns dynamic user-photo placement inside that container.",
     "State-specific Frozen PNG wins over the Core Visual reference for state differences.",
     "Result spec wins over runtime behavior when runtime is implementation debt.",

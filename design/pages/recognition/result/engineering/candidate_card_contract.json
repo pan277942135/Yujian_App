@@ -1,0 +1,80 @@
+{
+  "contract": "recognition_result_candidate_card",
+  "version": "V1",
+  "status": "FROZEN",
+  "count": {
+    "min": 2,
+    "max": 3,
+    "more_than_3": "top_3_model_order",
+    "less_than_2": "upstream_state_contract_issue"
+  },
+  "row": {
+    "gap_dp": 8,
+    "canonical_width_dp": 320,
+    "canonical_height_dp": 112,
+    "three_card_width_dp": 101.3,
+    "two_card_width_max_dp": 136,
+    "accessibility_scroll_card_width_dp": 104
+  },
+  "card": {
+    "height_dp": 112,
+    "height_320_dp": 108,
+    "radius_dp": 16,
+    "padding_dp": 10,
+    "media_dp": 48,
+    "media_320_dp": 44,
+    "media_label_gap_dp": 8,
+    "label_sp": 14,
+    "label_line_height_sp": 20,
+    "label_max_lines": 1
+  },
+  "media": {
+    "source_priority": [
+      "approved_species_cover_image",
+      "approved_neutral_system_fish_placeholder"
+    ],
+    "content_scale": "fit",
+    "forbidden": [
+      "other_species_image",
+      "generic_鱼_text_placeholder"
+    ]
+  },
+  "states": {
+    "Default": {
+      "border_dp": 1,
+      "surface": "neutral_GLASS_A_light"
+    },
+    "Suggested": {
+      "border_dp": 1,
+      "border": "teal_28pct",
+      "selected": false,
+      "confidence_visible": false
+    },
+    "Selected": {
+      "border_dp": 2,
+      "border": "#0F7A78",
+      "fill": "teal_8pct",
+      "selected": true,
+      "gold": false
+    },
+    "Pressed": {
+      "scale": 0.985
+    },
+    "Disabled": {
+      "opacity": 0.42
+    },
+    "Focus": {
+      "outline_dp": 2,
+      "outline": "#0F7A78",
+      "external_gap_dp": 2
+    }
+  },
+  "behavior": {
+    "initial_top1": "Suggested",
+    "initial_selected": null,
+    "selection": "explicit_tap_only",
+    "reorder_on_select": false,
+    "autoplay": false,
+    "snap": false
+  }
+}

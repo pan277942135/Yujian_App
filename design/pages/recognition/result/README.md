@@ -98,6 +98,24 @@ The Frozen PNG owns Hero **container composition**. The Hero Media Contract owns
 - `review/Recognition_Result_Runtime_Alignment_Review_V1.md`
 - `status.json`
 
+## Implementation-ready engineering authority
+
+Work / frontend implementation must read:
+
+- `engineering/Recognition_Result_Layout_Geometry_V1.md`
+- `engineering/Recognition_Result_Component_Map_V1.md`
+- `engineering/Recognition_Result_Metadata_Input_Contract_V1.md`
+- `engineering/Recognition_Result_Candidate_Card_V1.md`
+- `engineering/Recognition_Result_Visual_Acceptance_Map_V1.md`
+
+Machine-readable companions live beside each Markdown contract.
+
+Combined with Hero Media V1, these contracts remove page-level visual discretion from implementation.
+
+**Recognition Result Design Package status: IMPLEMENTATION READY.**
+
+Runtime implementation and validation remain a separate closure step.
+
 ## Product responsibility
 
 Recognition Result is a lightweight confirmation and record bridge.

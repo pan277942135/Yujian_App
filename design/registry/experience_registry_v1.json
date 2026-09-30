@@ -2596,7 +2596,8 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/result/authority/authority_map.json"
+          "authority": "design/pages/recognition/result/authority/authority_map.json",
+          "note": "3+2 Frozen + Hero Media + Engineering Contracts V1; implementation-ready."
         },
         "motion": {
           "status": "FROZEN",
@@ -2623,7 +2624,7 @@
         },
         "assets": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/design/reference_manifest.json"
+          "authority": "design/pages/recognition/assets/Asset_Manifest_V1.json"
         }
       },
       "display_name": "识别结果",
@@ -2672,7 +2673,9 @@
         "state_pages": "RR01–RR05 each directly preview one canonical Frozen Hi-Fi reference.",
         "authority": "05–09 state Frozen PNG > Result package spec > Core Visual recognition_result_v1 > runtime implementation.",
         "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager.",
-        "hero_media": "RR01–RR03 use Subject First; RR04–RR05 use Evidence Fit. Frozen PNG owns container geometry; Hero Media V1 owns dynamic photo placement inside it."
+        "hero_media": "RR01–RR03 use Subject First; RR04–RR05 use Evidence Fit. Frozen PNG owns container geometry; Hero Media V1 owns dynamic photo placement inside it.",
+        "implementation_ready": "RR00–RR05 all inherit frozen Geometry / Component Map / Metadata / Candidate / Acceptance / Hero Media contracts.",
+        "canonical_geometry": "360×640dp content canvas; adaptive rules frozen for 320/360/393/411dp."
       },
       "hifi_views": [
         {
@@ -2693,10 +2696,15 @@
             "CTA Map",
             "Motion / Reduce Motion",
             "Adaptive / Accessibility",
-            "Final Design Closure"
+            "Final Design Closure",
+            "Layout Geometry V1",
+            "Component Map V1",
+            "Visual Acceptance Map V1"
           ],
           "freeze_date": "2026-09-30",
-          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+          "implementation_ready": true,
+          "engineering_authority": "design/pages/recognition/result/engineering/README.md"
         },
         {
           "id": "high",
@@ -2718,11 +2726,17 @@
             "继续记录记忆 / 保存本次鱼获",
             "Shared Top Navigation",
             "Adaptive / IME",
-            "Rejected Alternatives"
+            "Rejected Alternatives",
+            "Layout Geometry V1",
+            "Component Map V1",
+            "Visual Acceptance Map V1",
+            "Metadata Input Contract V1"
           ],
           "freeze_date": "2026-09-30",
           "hero_media_mode": "SUBJECT_FIRST",
-          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+          "implementation_ready": true,
+          "engineering_authority": "design/pages/recognition/result/engineering/README.md"
         },
         {
           "id": "medium",
@@ -2744,11 +2758,18 @@
             "都不是？选择其他鱼种",
             "Post-confirmation Record Flow",
             "No Auto Candidate",
-            "Adaptive"
+            "Adaptive",
+            "Layout Geometry V1",
+            "Component Map V1",
+            "Visual Acceptance Map V1",
+            "Candidate Card V1",
+            "Metadata Input Contract V1"
           ],
           "freeze_date": "2026-09-30",
           "hero_media_mode": "SUBJECT_FIRST",
-          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+          "implementation_ready": true,
+          "engineering_authority": "design/pages/recognition/result/engineering/README.md"
         },
         {
           "id": "low",
@@ -2769,11 +2790,17 @@
             "No Metadata Before Resolution",
             "No Save Before Resolution",
             "Manual Recovery → Normal Record Flow",
-            "No Pending Species State"
+            "No Pending Species State",
+            "Layout Geometry V1",
+            "Component Map V1",
+            "Visual Acceptance Map V1",
+            "Resolved Flow → Metadata Contract V1"
           ],
           "freeze_date": "2026-09-30",
           "hero_media_mode": "SUBJECT_FIRST",
-          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+          "implementation_ready": true,
+          "engineering_authority": "design/pages/recognition/result/engineering/README.md"
         },
         {
           "id": "no_fish",
@@ -2794,11 +2821,16 @@
             "从相册选择",
             "Back = Tertiary",
             "No FishRecord",
-            "Calm Recovery Visual"
+            "Calm Recovery Visual",
+            "Layout Geometry V1",
+            "Component Map V1",
+            "Visual Acceptance Map V1"
           ],
           "freeze_date": "2026-09-30",
           "hero_media_mode": "EVIDENCE_FIT",
-          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+          "implementation_ready": true,
+          "engineering_authority": "design/pages/recognition/result/engineering/README.md"
         },
         {
           "id": "image_quality",
@@ -2819,11 +2851,16 @@
             "从相册选择",
             "No Metadata / Save",
             "Distinct from No Fish",
-            "Shared Recovery Family"
+            "Shared Recovery Family",
+            "Layout Geometry V1",
+            "Component Map V1",
+            "Visual Acceptance Map V1"
           ],
           "freeze_date": "2026-09-30",
           "hero_media_mode": "EVIDENCE_FIT",
-          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+          "hero_media_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+          "implementation_ready": true,
+          "engineering_authority": "design/pages/recognition/result/engineering/README.md"
         }
       ],
       "hero_media_contract": {
@@ -2854,6 +2891,21 @@
           "AI outpaint",
           "generative modification"
         ]
+      },
+      "implementation_readiness": {
+        "status": "IMPLEMENTATION_READY",
+        "work_visual_judgment_required": false,
+        "authority_root": "design/pages/recognition/result/engineering/",
+        "contracts": [
+          "Recognition_Result_Layout_Geometry_V1",
+          "Recognition_Result_Component_Map_V1",
+          "Recognition_Result_Metadata_Input_Contract_V1",
+          "Recognition_Result_Candidate_Card_V1",
+          "Recognition_Result_Visual_Acceptance_Map_V1",
+          "Recognition_Result_Hero_Media_Contract_V1"
+        ],
+        "asset_contract": "design/pages/recognition/assets/Asset_Manifest_V1.json",
+        "note": "Design Package 已实现级冻结；Work 只负责按合同实现，不再承担页面级视觉设计判断。"
       }
     },
     {
