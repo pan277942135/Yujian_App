@@ -53,6 +53,7 @@ import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
 import com.yujian.ai.ui.recognition.result.RecognitionPlace
 import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
+import com.yujian.ai.ui.recognition.result.RecognitionResultInputValidation
 import com.yujian.ai.ui.recognition.result.searchRecognitionPlaces
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
@@ -113,7 +114,9 @@ internal fun ResultLocationPickerSheet(
             OutlinedTextField(
                 value = query,
                 onValueChange = {
-                    query = com.yujian.ai.ui.recognition.result.RecognitionResultInputValidation.takeUnicodeCodePoints(it, 40)
+                    query = RecognitionResultInputValidation.takeUnicodeCodePoints(
+                        it.replace(Regex("\\R+"), " "), 40,
+                    )
                     onClearCurrentLocationError()
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("recognition-location-search"),

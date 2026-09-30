@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -736,7 +737,8 @@ private fun ResultFieldEditorSheet(
                     text = TextFieldValue(cleaned, TextRange(cleaned.length))
                     error = null
                 },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).focusRequester(focusRequester)
+                modifier = Modifier.widthIn(max = 216.dp).fillMaxWidth().heightIn(min = 64.dp)
+                    .align(Alignment.CenterHorizontally).focusRequester(focusRequester)
                     .testTag("recognition-numeric-${label.lowercase()}"), singleLine = true,
                 label = { Text(label) }, suffix = { Text(unit) }, isError = error != null,
                 supportingText = error?.let { { Text(it) } },
