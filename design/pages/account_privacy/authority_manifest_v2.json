@@ -94,13 +94,13 @@
       "canonical_id": "account_privacy_v1.01c",
       "title": "01C · 忘记密码 · Deferred",
       "menu_location": "账号与隐私 → 01 · 登录与注册 → 01C · 忘记密码 · Deferred",
-      "status": "PARTIAL",
+      "status": "DEFERRED",
       "visual_authority": null,
       "visual_references": [
         {
           "path": "design/pages/account_privacy/Login/Forgot_Password/01_Account.png",
           "label": "01 · Account",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 688674,
@@ -114,7 +114,7 @@
         {
           "path": "design/pages/account_privacy/Login/Forgot_Password/02_Verification.png",
           "label": "02 · Verification",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 683131,
@@ -128,7 +128,7 @@
         {
           "path": "design/pages/account_privacy/Login/Forgot_Password/03_New_Password.png",
           "label": "03 · New Password",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 650049,
@@ -142,7 +142,7 @@
         {
           "path": "design/pages/account_privacy/Login/Forgot_Password/04_Success.png",
           "label": "04 · Success",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 676073,
@@ -188,7 +188,8 @@
       "spec_authority": "design/pages/account_privacy/README.md",
       "behavior_authority": null,
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
     },
     {
       "id": "02b",
@@ -216,7 +217,8 @@
       "spec_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
       "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/01_Profile_Home/README.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
     },
     {
       "id": "02c",
@@ -244,20 +246,21 @@
       "spec_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/README.md",
       "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/02_Avatar_Edit/Avatar_Change_V1_Development_Contract.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
     },
     {
       "id": "02d",
       "canonical_id": "account_privacy_v1.02d",
       "title": "02D · 昵称编辑",
       "menu_location": "账号与隐私 → 02 · 我的与资料 → 02D · 昵称编辑",
-      "status": "FROZEN",
-      "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
+      "status": "BLOCKED_INTEGRITY",
+      "visual_authority": null,
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
           "label": "02D · 昵称编辑",
-          "status": "FROZEN",
+          "status": "BLOCKED_INTEGRITY",
           "source_type": "FROZEN_REPOSITORY_VISUAL",
           "format": "WEBP",
           "bytes": 15007,
@@ -265,16 +268,21 @@
           "width": 1491,
           "height": 1055,
           "mode": "RGB",
-          "role": "CURRENT AUTHORITY",
+          "role": "EXPECTED FROZEN VISUAL · BINARY IDENTITY UNRESOLVED",
           "declared_frozen_manifest_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
-          "identity_check": "MISMATCH"
+          "identity_check": "MISMATCH",
+          "scope": "Current repository bytes do not match the frozen manifest fingerprint. Do not use as verified Frozen authority until the approved byte-identical source is recovered."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
       "spec_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
       "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "integrity_status": "BLOCKED_INTEGRITY",
+      "contract_status": "FROZEN",
+      "blocking_gate": "Recover originally approved byte-identical visual source; do not regenerate or re-encode.",
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
     },
     {
       "id": "03a",
@@ -303,7 +311,8 @@
       "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
       "behavior_authority": null,
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
     },
     {
       "id": "03b",
@@ -332,7 +341,8 @@
       "spec_authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
       "behavior_authority": null,
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
-      "product_scope": "MVP"
+      "product_scope": "MVP",
+      "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
     },
     {
       "id": "04a",
@@ -454,13 +464,13 @@
       "canonical_id": "account_privacy_v1.04d",
       "title": "04D · 导出我的数据 · Deferred",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04D · 导出我的数据 · Deferred",
-      "status": "PARTIAL",
+      "status": "DEFERRED",
       "visual_authority": null,
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/00_Overview.png",
           "label": "Overview",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 584705,
@@ -474,7 +484,7 @@
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/01_Processing.png",
           "label": "Processing",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 692680,
@@ -488,7 +498,7 @@
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/02_Ready.png",
           "label": "Ready",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 648083,
@@ -502,7 +512,7 @@
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/03_Failed.png",
           "label": "Failed",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 686329,
@@ -516,7 +526,7 @@
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Export_My_Data/04_Expired.png",
           "label": "Expired",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 682817,
@@ -540,13 +550,13 @@
       "canonical_id": "account_privacy_v1.04e",
       "title": "04E · 注销账号 · Deferred",
       "menu_location": "账号与隐私 → 04 · 数据与隐私 → 04E · 注销账号 · Deferred",
-      "status": "PARTIAL",
+      "status": "DEFERRED",
       "visual_authority": null,
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/01_Explanation.png",
           "label": "Explanation",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 659497,
@@ -560,7 +570,7 @@
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/02_Reauth.png",
           "label": "Re-auth",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 669075,
@@ -574,7 +584,7 @@
         {
           "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/Delete_Account/03_Final_Confirmation.png",
           "label": "Final Confirmation",
-          "status": "PARTIAL",
+          "status": "DEFERRED",
           "source_type": "DEFERRED_REPOSITORY_VISUAL_REFERENCE",
           "format": "PNG",
           "bytes": 430134,
@@ -671,13 +681,19 @@
       "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
       "actual_repository_sha256": "26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b",
       "declared_frozen_manifest_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
-      "status": "MISMATCH_RETAINED_UNCHANGED",
-      "follow_up": "Locate the originally approved byte-identical source before claiming binary parity; do not regenerate or re-encode."
+      "status": "BLOCKED_INTEGRITY",
+      "follow_up": "Recover the originally approved byte-identical source before restoring Visual FROZEN. Do not regenerate, convert, optimize, or re-encode."
     }
   ],
   "runtime_status": {
     "status": "PARTIAL",
     "authority": "design/pages/account_privacy/qa/QA_REPORT.md",
     "note": "Tracked separately. This manifest does not assert runtime parity or runtime PASS."
+  },
+  "current_shared_profile_avatar_authority": {
+    "path": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+    "id": "yujian_default_profile_avatar_v1",
+    "status": "FROZEN",
+    "rule": "Logged-in missing/load-failed avatar uses shared default; Guest is a different semantic state."
   }
 }
