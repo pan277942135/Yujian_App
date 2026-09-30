@@ -5470,7 +5470,7 @@
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "Active MVP main path visuals are FROZEN via composite authority using existing repository PNGs plus Active_Path_Visual_Adjustment_Authority_V1.md. Package visual remains PARTIAL because Legal/About, Nickname integrity and remaining Edit Profile states are outside this closure."
+          "note": "Active MVP main path and Legal/About page shells are FROZEN. Package visual remains PARTIAL only because Nickname integrity and remaining Edit Profile states are outside this closure."
         },
         "motion": {
           "status": "MISSING",
@@ -5498,7 +5498,7 @@
           "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
         }
       },
-      "note": "Design status: PARTIAL overall. Active MVP main path (My → Account & Security → Change Password → Data & Privacy → AI Model Improvement → Location) is now DESIGN FROZEN through composite visual authority: existing byte-preserved Hi-Fi binaries + page/behavior specs + Visual Adjustment Authority + Shared Design System. Trusted standalone visual Frozen remains Login V2.1, Register V2, Edit Profile Home and Avatar. Nickname visual identity remains BLOCKED_INTEGRITY. Deferred: Forgot Password, Export My Data, Delete Account. Legal/About and Edit Profile remaining states are separate follow-up work.",
+      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is now frozen: About uses Shared Component Composition; Privacy Policy and User Agreement share Legal Document Shell V1. Final legal copy for Privacy Policy/User Agreement remains LEGAL_REVIEW_REQUIRED and therefore Account & Privacy overall remains PARTIAL. Nickname visual identity remains BLOCKED_INTEGRITY; Edit Profile remaining state/interaction closure is separate.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5514,7 +5514,7 @@
           "current": true,
           "visual_authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "spec_authority": "design/pages/account_privacy/README.md",
-          "note": "V2 consolidated authority index. Active MVP main path is DESIGN FROZEN via composite authority; overall Account & Privacy remains PARTIAL due independent outstanding gates."
+          "note": "V2 consolidated authority index. Active MVP main path and Legal/About page design are frozen; final legal copy remains review-gated. Overall remains PARTIAL."
         }
       ],
       "design_overall": "PARTIAL",
@@ -5548,6 +5548,11 @@
           "id": "default_profile_avatar_v1",
           "variant": "DEFAULT_PROFILE_AVATAR",
           "note": "登录用户头像缺失或加载失败统一使用 Shared Default Profile Avatar V1；Guest 入口是不同语义状态。"
+        },
+        {
+          "id": "legal_document_shell_v1",
+          "variant": "LEGAL_DOCUMENT",
+          "note": "隐私政策与用户协议共用 Shared Legal Document Shell V1；Shell Frozen 不等于法律正文已批准。"
         }
       ],
       "design_sections": [
@@ -6131,50 +6136,88 @@
           "status": "PARTIAL",
           "render_mode": "authority_index",
           "authority_type": "group",
-          "authority": "design/pages/account_privacy/README.md",
-          "summary": "About YuJian 与 User Agreement 当前没有独立 Frozen visual authority；Privacy Policy 仅复用历史页面壳作参考，法务正文未冻结。",
+          "authority": "design/pages/account_privacy/legal/README.md",
+          "summary": "05A About 页面设计已冻结；05B/05C 共用 Legal Document Shell V1，Visual/Content Architecture 已冻结；Privacy Policy / User Agreement 最终法律正文仍为 LEGAL_REVIEW_REQUIRED。",
           "menu_points": [
-            "05A · 关于渔见 · VISUAL MISSING",
-            "05B · 隐私政策 · PARTIAL / LEGAL REVIEW",
-            "05C · 用户协议 · VISUAL MISSING"
+            "05A · 关于渔见 · FROZEN",
+            "05B · 隐私政策 · VISUAL FROZEN / LEGAL COPY REVIEW REQUIRED",
+            "05C · 用户协议 · VISUAL FROZEN / LEGAL COPY REVIEW REQUIRED"
           ],
           "children": [
             {
               "id": "05a",
               "code": "05A",
               "title": "05A · 关于渔见",
-              "status": "MISSING",
-              "authority": "design/pages/account_privacy/README.md",
-              "summary": "运行时页面存在，但 Account & Privacy 包内没有独立 Frozen Visual Authority。此页不放运行时截图或占位图。",
-              "menu_group": "visual"
+              "status": "FROZEN",
+              "authority": "design/pages/account_privacy/legal/About_YuJian_Spec_V1.md",
+              "summary": "关于渔见已 DESIGN FROZEN。页面完全由 BG_CONTENT、BACK_TITLE、品牌信息卡与 Legal rows 的 Shared Component Composition 定义，不需要单独高保图。",
+              "menu_group": "visual",
+              "behavior_authority": "design/pages/account_privacy/legal/About_YuJian_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "FROZEN",
+              "visual_authority_mode": "SHARED_COMPONENT_COMPOSITION",
+              "visual_authority": null,
+              "visual_authority_trusted": true,
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": []
             },
             {
               "id": "05b",
               "code": "05B",
               "title": "05B · 隐私政策",
               "status": "PARTIAL",
-              "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-              "summary": "可查看既有页面视觉结构参考；法律正文仍需法务审查，不可标记为最终冻结文案。",
+              "authority": "design/pages/account_privacy/legal/Privacy_Policy_Content_Draft_V1.md",
+              "summary": "隐私政策页面 Shell / Visual 已冻结，正文结构也已冻结；最终 Legal Copy 仍待法务审查，不可标记为正式生效版本。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
                 {
                   "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
                   "label": "Privacy Policy · 历史页面壳参考",
-                  "status": "PARTIAL",
-                  "role": "LEGAL REVIEW REQUIRED",
-                  "scope": "只复用视觉结构；最终法律正文须来源于批准法务文本。"
+                  "status": "FROZEN",
+                  "role": "FROZEN LEGAL SHELL BASE HI-FI",
+                  "scope": "作为 Shared Legal Document Shell 的视觉基底；最终法律正文独立 LEGAL_REVIEW_REQUIRED。"
                 }
-              ]
+              ],
+              "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "FROZEN",
+              "content_status": "PARTIAL",
+              "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
+              "legal_gate": "Final production legal copy requires approved operator/entity, effective date/version, contact channel, actual vendor/SDK/data-flow disclosure and jurisdiction-specific legal review.",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+              "visual_authority_mode": "COMPOSITE_BASE_PLUS_SHARED_LEGAL_SHELL",
+              "visual_adjustment_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+              "visual_authority_trusted": true
             },
             {
               "id": "05c",
               "code": "05C",
               "title": "05C · 用户协议",
-              "status": "MISSING",
-              "authority": "design/pages/account_privacy/README.md",
-              "summary": "运行时页面存在，但独立 Frozen Visual Authority 缺失。不得生成替代高保真图或用运行时截图冻结。",
-              "menu_group": "visual"
+              "status": "PARTIAL",
+              "authority": "design/pages/account_privacy/legal/User_Agreement_Content_Draft_V1.md",
+              "summary": "用户协议不再缺 Visual Authority：复用 Shared Legal Document Shell V1，不需要再生成一张几乎相同的高保图。Content Architecture 已冻结，最终 Legal Copy 仍待法务审查。",
+              "menu_group": "visual",
+              "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+              "behavior_status": "FROZEN",
+              "visual_status": "FROZEN",
+              "content_status": "PARTIAL",
+              "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
+              "legal_gate": "Final production user agreement requires counsel approval for operator/entity, effective date/version, governing law/dispute terms, minors, liability and contact details.",
+              "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+              "visual_authority_mode": "SHARED_LEGAL_SHELL_REUSE",
+              "visual_adjustment_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+              "visual_authority_trusted": true,
+              "render_mode": "account_privacy_gallery",
+              "supporting_visual_references": [
+                {
+                  "path": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+                  "label": "Shared Legal Document Shell · Visual Base",
+                  "status": "FROZEN",
+                  "role": "FROZEN SHARED SHELL BASE · NOT USER AGREEMENT COPY",
+                  "scope": "仅作为法律长文本页视觉壳；用户协议正文由 User_Agreement_Content_Draft_V1.md 管理，最终文本需法务批准。"
+                }
+              ]
             }
           ]
         }
