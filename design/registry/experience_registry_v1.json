@@ -451,25 +451,25 @@
       "modalities": {
         "behavior": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md"
+          "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/design/reference_manifest.json"
+          "authority": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
         },
         "motion": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md"
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md"
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null,
-          "note": "尚未登记识别流程的震动合同。"
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md",
+          "note": "Recognition Processing V1.2 = NONE."
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null,
-          "note": "尚未登记识别流程的声音合同。"
+          "status": "FROZEN",
+          "authority": "design/pages/recognition/processing/sound/Recognition_Processing_Sound_Spec_V1.md",
+          "note": "Recognition Processing V1.2 = NONE."
         },
         "runtime": {
           "status": "ACTIVE_CLOSURE",
@@ -477,25 +477,25 @@
         },
         "evidence": {
           "status": "ACTIVE_CLOSURE",
-          "authority": "design/pages/recognition/evidence/Recognition_Evidence_Contract_V1_1.md"
+          "authority": "design/pages/recognition/evidence/Recognition_Runtime_Evidence_V1_2.md"
         },
         "assets": {
           "status": "FROZEN",
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "Recognition Processing 已建立 6 个直接子菜单。State Timeline 当前采用三步产品模型：图片识别中 → 已定位到鱼体 → 鱼种识别中；02 · Visual States 已同步将原 4 张 Processing UI 按 3 个状态重新归组。当前仅更新设计管理与产品规范，不涉及实现。",
+      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。",
       "display_name": "识别过程",
       "design_versions": [
         {
           "version": "V1.2",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "current": true,
-          "spec_authority": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md",
-          "note": "Nine frozen state references remain archived under the Recognition package."
+          "spec_authority": "design/pages/recognition/Recognition_Design_Closure_V1_2.md",
+          "note": "Current design closure. Existing four Processing PNGs form the frozen three-state Keyframe Set; Runtime/Evidence remain separate."
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -512,13 +512,13 @@
         {
           "id": "state_timeline",
           "title": "01 · State Timeline",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "authority_type": "behavior",
           "render_mode": "recognition_timeline",
           "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md",
-          "secondary_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_1.md",
+          "secondary_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
           "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
-          "summary": "纯产品/设计状态规范：Processing 由 4 步简化为 3 步——图片识别中 → 已定位到鱼体 → 鱼种识别中；RESOLVE 仍是转场，Result / Issue / Back 是出口。",
+          "summary": "FROZEN：Processing 只包含三步产品状态——图片识别中 → 已定位到鱼体 → 鱼种识别中；RESOLVE 是转场，Result / Issue / Back 是出口。",
           "menu_points": [
             "Processing 只包含 3 个用户可感知状态：图片识别中 / 已定位到鱼体 / 鱼种识别中",
             "原 CAPTURED + DETECTING 合并为“图片识别中”，减少一次没有明显用户价值的文案切换",
@@ -665,13 +665,13 @@
         {
           "id": "visual_states",
           "title": "02 · Visual States",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "authority_type": "visual",
           "render_mode": "recognition_visual_states",
           "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
-          "visual_authority_manifest": "design/pages/recognition/design/reference_manifest.json",
+          "visual_authority_manifest": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
-          "summary": "现有 4 张历史 Frozen Processing UI 不删除：原 01 + 02 归并为新的第一状态“图片识别中”的早/晚参考帧；03、04 分别对应“已定位到鱼体”“鱼种识别中”。三步状态的最终视觉 Authority 后续再冻结。",
+          "summary": "FROZEN：现有 4 张历史 Frozen Processing PNG 组成三状态 Keyframe Set。01+02 为“图片识别中”Early/Late，同属一个产品状态；03=已定位到鱼体；04=鱼种识别中。不生成替代 PNG。",
           "visual_states": [
             {
               "id": "image_recognizing",
@@ -729,29 +729,29 @@
         {
           "id": "layer_component_ownership",
           "title": "03 · 图层与组件归属",
-          "status": "ACTIVE_CLOSURE",
+          "status": "FROZEN",
           "authority_type": "visual",
           "render_mode": "recognition_layer_system",
           "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
           "secondary_authority": "design/pages/recognition/spec/Recognition_Page_Anatomy_V1.md",
-          "summary": "AI 边缘光场视觉参考采用“现有高保优先复用”策略：R01 已冻结主视觉；R02 使用现有拆解视觉并由文字纠偏；R03 无需新图，使用现有完整状态图+工程图+Static Shape；R04 直接复用 Fish Highlight / Fish Identifying；R05 复用 01/02 并由 Runtime LITE 闭环；R06 只在真实失败案例出现时归档，不为凑图主动生成。",
+          "summary": "FROZEN：AI Edge Field parent、Layer / Component Ownership 与 R01–R06 设计边界已完成。优先复用现有高保与工程合同；R02–R06 不再要求为了凑图生成新视觉。",
           "menu_points": [
             "AI 边缘光场 V1 · 01 · 静态形状 · FROZEN",
             "AI 边缘光场 V1 · 02 · 渲染规范 · FROZEN",
-            "AI 边缘光场 V1 · 03 · 视觉参考集 · R01–R06 生成规范 FROZEN",
-            "R01 · 主视觉细节 · 视觉 Authority FROZEN",
-            "R02 · 能量岛拆解 · 规范 FROZEN / 视觉图待补",
-            "R03 · 四岛构图 · 规范 FROZEN / 视觉图待补",
-            "R04 · 光场与鱼体聚焦 · 规范 FROZEN / 视觉图待补",
-            "R05 · 强度校准 · 强表现参考 FROZEN / 其余档待补",
-            "R06 · 失败边界 · 规范 FROZEN / 视觉图待补"
+            "AI 边缘光场 V1 · 03 · 视觉参考集 · R01–R06 · FROZEN",
+            "R01 · 主视觉细节 · FROZEN",
+            "R02 · 能量岛拆解 · FROZEN / 文字纠偏为准",
+            "R03 · 四岛构图 · FROZEN / 复用 Static Shape + 现有视觉",
+            "R04 · 光场与鱼体聚焦 · FROZEN / 复用 03+04",
+            "R05 · 强度校准 · FROZEN / 最低强度由 Runtime Evidence 证明",
+            "R06 · 失败边界 · FROZEN / QA 红线，不主动生成反例"
           ],
           "components": [
             {
               "id": "ai_edge_field_v1",
               "name": "AI 边缘光场 V1",
-              "status": "ACTIVE_CLOSURE",
+              "status": "FROZEN",
               "ownership": "Recognition Processing / shared across all three Processing states",
               "scope": [
                 "Edge Ambient Bloom",
@@ -773,7 +773,7 @@
               "completed_steps": [
                 "01 · 静态形状 · FROZEN",
                 "02 · 渲染规范 · FROZEN",
-                "03 · 视觉参考集 · R01–R06 生成规范 FROZEN / 视觉图待补"
+                "03 · 视觉参考集 · R01–R06 · FROZEN / 无待补设计图"
               ]
             }
           ],
