@@ -173,7 +173,7 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("正在分析这次鱼获")
 
         render(state, FrozenState.SPECIES_RECOGNIZING, "鱼种识别中", "04_species_recognizing.png")
-        assertVisible("分析鱼体特征")
+        assertVisible("正在分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         render(state, FrozenState.RESULT_HIGH, "修改鱼种 ›", "05_result_high.png")
@@ -501,7 +501,7 @@ class RecognitionFrozenFlowEmulatorTest {
         }
 
         assertVisible("鱼种识别中")
-        assertVisible("分析鱼体特征")
+        assertVisible("正在分析鱼体特征")
         composeRule.onNodeWithTag("recognition-ambient-reduced-motion-low-performance").assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-fish-focus-level-a-low-performance").assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
