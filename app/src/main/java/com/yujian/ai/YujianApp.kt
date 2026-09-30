@@ -94,6 +94,8 @@ private data class CatchArchiveState(
     val statistics: CatchStatistics = CatchStatistics(),
     val loading: Boolean = false,
     val error: String? = null,
+    val resolved: Boolean = false,
+    val ownerKey: String? = null,
 )
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
@@ -234,18 +236,30 @@ fun YujianApp() {
     }
     LaunchedEffect(session?.accessToken, catchReload, guestMigrationPending) {
         val active = session
-        catchesState = catchesState.copy(loading = true, error = null)
+        val archiveOwnerKey = active?.userId ?: "guest:$guestId"
+        catchesState = if (catchesState.ownerKey == archiveOwnerKey) {
+            catchesState.copy(loading = true, error = null)
+        } else {
+            CatchArchiveState(loading = true, ownerKey = archiveOwnerKey)
+        }
         runCatching {
             if (active == null || guestMigrationPending) {
                 val local = guestCatchRepository.listCatches()
                 CatchArchiveState(
                     catches = local,
                     statistics = guestCatchRepository.statistics(local),
+                    resolved = true,
+                    ownerKey = archiveOwnerKey,
                 )
             } else {
+                val records = catchRepository.listCatches(active.accessToken)
+                val statistics = runCatching { catchRepository.statistics(active.accessToken) }
+                    .getOrDefault(CatchStatistics())
                 CatchArchiveState(
-                    catches = catchRepository.listCatches(active.accessToken),
-                    statistics = catchRepository.statistics(active.accessToken),
+                    catches = records,
+                    statistics = statistics,
+                    resolved = true,
+                    ownerKey = archiveOwnerKey,
                 )
             }
         }.onSuccess { catchesState = it }
@@ -350,8 +364,12 @@ fun YujianApp() {
                     val active = session
                     // The Home state is derived only from fish records. Login,
                     // loading, and server statistics never select Empty/Normal.
-                    val emptyHome = resolveHomeState(catchesState.catches) == HomeState.EMPTY
-                    HomeScreen(
+                    val resolvedHomeState = resolveHomeState(catchesState.catches, catchesState.resolved)
+                    if (resolvedHomeState == null) {
+                        // Keep the launch surface neutral until the archive resolves.
+                        // In particular, an initial loading/error is not an empty archive.
+                        Box(Modifier.fillMaxSize())
+                    } else HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
                         recentCatches = catchesState.catches,
@@ -361,13 +379,12 @@ fun YujianApp() {
                         accessToken = active?.accessToken.orEmpty(),
                         isLoggedIn = active != null,
                         avatarUrl = active?.avatarUrl,
-                        showEmptyState = emptyHome,
+                        showEmptyState = resolvedHomeState == HomeState.EMPTY,
                         onIdentify = { nav.navigate("identify") },
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
-                        onRecordDaysClick = { },
                         onProfileClick = { if (active == null) nav.navigate("auth/login") else nav.navigate("my") },
                         onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
                     )

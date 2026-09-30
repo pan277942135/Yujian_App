@@ -12,6 +12,9 @@ A design or implementation is conformant only when all applicable criteria pass.
 ## B. State and behavior
 
 - one or more valid FishRecords selects Normal Home
+- unresolved initial archive load does not select Empty Home
+- valid record requires a nonblank ID and a species ID or name; image failure does not invalidate it
+- refresh loading/error retains the last successfully resolved Home state
 - authentication does not select Home state
 - recent records are newest-first by resolved timestamp
 - one-record and multiple-record states preserve the same hierarchy
@@ -20,6 +23,7 @@ A design or implementation is conformant only when all applicable criteria pass.
 - 鱼种 opens Fish Guide
 - 鱼获 and 全部 open My Catches
 - 记录天数 has no V1 navigation
+- 记录天数 has no click semantics, ripple or haptic
 - primary capture uses the existing identify flow
 
 ## C. Visual
@@ -31,6 +35,7 @@ A design or implementation is conformant only when all applicable criteria pass.
 - gold remains scarce
 - no HUD/gamification drift
 - taller ratios preserve hierarchy without stretching the hero card
+- runtime screenshots are captured at actual target dimensions; no screenshot is resized to pass
 
 ## D. Motion
 

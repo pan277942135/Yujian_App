@@ -52,16 +52,12 @@ Normal Home uses the shared YuJian **BG_ENV_HERO** visual language:
 - no strong HDR
 - no tourism-poster sunlight
 
-### Background authority resolution
+### Background authority resolution (V1.1)
 
-Closure V1 registers no independent `Morning_Lake_Master_V1` because no frozen repository source exists.
-
-Therefore background authority is:
-
-1. the Normal Home canonical frozen reference for composition/appearance
-2. Core Visual System V1 BG_ENV_HERO rules for cross-page consistency
-
-A later independent master requires an explicit package revision. A crop or reconstruction from a page screenshot is forbidden.
+- Page composition and hierarchy: `design/system/core_visual_v1/reference/normal_home_v1.png`.
+- Background bitmap: `design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png` (941 × 1672; SHA-256 `5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`).
+- Runtime source is copied byte-for-byte; Android uses centered `ContentScale.Crop` for the viewport. The bitmap is not recolored or reconstructed.
+- A crop or reconstruction from a page screenshot is forbidden.
 
 ## Hero catch card
 

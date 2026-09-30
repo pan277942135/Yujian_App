@@ -161,7 +161,11 @@ gate_collect_evidence
 evidence_rc=$?
 if (( evidence_rc != EXIT_PASS )); then
   YUJIAN_EVIDENCE_STATUS="FAIL"
-  finish_gate "$EXIT_FAIL_EVIDENCE" "FAIL_EVIDENCE"
+  if (( evidence_rc == EXIT_BLOCKED_INFRA )); then
+    finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+  else
+    finish_gate "$EXIT_FAIL_EVIDENCE" "FAIL_EVIDENCE"
+  fi
   final_rc=$?
   exit "$final_rc"
 fi

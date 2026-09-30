@@ -99,7 +99,7 @@
       "label_zh": "背景与环境权威",
       "label_en": "Background & Environment Authority",
       "output_policy": "AUTHORITY_BOARD",
-      "status": "SOURCE_PRESENT_AUTHORITY_REVISION_PENDING",
+      "status": "FROZEN_AUTHORITY_V1_1",
       "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "contains": [
         "Morning Lake Master",

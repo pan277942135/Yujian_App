@@ -1,8 +1,8 @@
 # Normal Home V1
 
 Role: **Home / Catch Baseline**  
-Status: **DESIGN FROZEN — NH01 / expansion in progress**  
-Design package: **Closure V1**
+Status: **DESIGN FROZEN — NH01 / NH06 authority closure**  
+Design package: **Closure V1.1 (background authority correction)**
 
 ## Frozen visual authority
 
@@ -31,7 +31,7 @@ Machine-readable navigation: `navigation.json`
 | NH03 | 页面状态与异常 | 合并规范图 | 待补 |
 | NH04 | 组件状态与内容边界 | 合并规范图 | 待补 |
 | NH05 | 响应式与交互 | 合并规范图 | 待补 |
-| NH06 | 背景与环境权威 | Authority 规范图 | 背景源已存在，Authority V1.1 待收口 |
+| NH06 | 背景与环境权威 | Authority 规范图 | FROZEN — Closure V1.1 |
 
 ### NH01｜主页面｜多鱼获状态
 
@@ -59,11 +59,7 @@ Machine-readable navigation: `navigation.json`
 
 ### NH06｜背景与环境权威
 
-当前仓库已存在：
-`design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png`
-
-该菜单负责收口 Morning Lake Master 与 Normal Home 的使用关系、裁切/适配规则和 Authority 边界。
-NH01 完整页面仍是页面构图/层级权威；禁止从页面截图反向裁出背景母版。
+由 `DESIGN_PACKAGE_CLOSURE_V1_1.md` 收口：Morning Lake Master 是 Normal Home 背景位图 authority；NH01 完整页面仍是页面构图/层级 authority。Runtime 使用源文件字节级副本，Android 仅按屏幕执行居中 `ContentScale.Crop`。禁止从页面截图反向裁出背景母版。
 
 ## Frozen hierarchy
 
@@ -89,7 +85,7 @@ Real catch media must remain visually above statistics. The page must not drift 
 - Authority order: `authority/authority_map.json`
 - NH02 First Catch spec: `02_first_catch/README.md`
 - Design Manager navigation: `navigation.json`
-- Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`
+- Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`; authority correction: `DESIGN_PACKAGE_CLOSURE_V1_1.md`
 - Machine-readable status: `status.json`
 
 ## Shared components
@@ -100,13 +96,10 @@ Real catch media must remain visually above statistics. The page must not drift 
 
 ## Background authority
 
-Closure V1 predates the repository-level `Morning_Lake_Master_V1` source. The source is now present, so the previous statement that no such source exists is superseded.
+Closure V1.1 registers the repository's independent `Morning_Lake_Master_V1` as the Normal Home background bitmap authority. The frozen Normal Home PNG remains the composition and hierarchy authority. Runtime uses a byte-identical copy of the master; Android applies only centered `ContentScale.Crop` to fit the viewport.
 
-Until the Normal Home Background Authority V1.1 closure is completed:
-- `normal_home_v1.png` remains the authority for complete page composition and appearance;
-- `Morning_Lake_Master_V1.png` is the registered background source candidate handled under NH06;
-- no screenshot crop may be promoted into a reusable background master.
+No screenshot crop may be promoted into a reusable background master.
 
 ## Runtime boundary
 
-Runtime closure remains separately documented in `RUNTIME_CLOSURE_V1.md`. This Design Manager navigation update does not redefine Android implementation, backend, model or worker behavior.
+Runtime closure remains separately documented in `RUNTIME_CLOSURE_V1.md`. NH02–NH05 remain separate Design Manager items; V1.1 closes the background source authority and runtime parity contract without redefining Android implementation, backend, model or worker behavior.

@@ -1,75 +1,69 @@
 package com.yujian.ai.ui.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.radius.YuJianRadius
+import com.yujian.ai.ui.designsystem.components.YuJianHeroCard
+import com.yujian.ai.ui.designsystem.components.YuJianHeroDecoration
+import com.yujian.ai.ui.designsystem.components.YuJianHeroVariant
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import com.yujian.ai.presentation.PresentationSanitizer
 import com.yujian.ai.presentation.presentationSpeciesName
 import com.yujian.ai.presentation.sanitizeOptionalText
 import java.util.Locale
 
-private const val FISH_CARD_ROOT = "normal_home_runtime_v1/fish_card"
+/** Maps a Home catch record into the shared Hero family; frame, treatment and interaction live there. */
 @Composable
 internal fun RecentFishCard(
     item: RemoteCatch,
     imageUrl: String?,
     accessToken: String,
     onClick: () -> Unit,
+    cardHeight: Dp,
     runtimeAssets: NormalHomeRuntimeAssets? = null,
 ) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .clickable(onClick = onClick),
-    ) {
-        runtimeAssets?.fishCardShadow?.let { shadow ->
-            Image(
-                bitmap = shadow.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize().alpha(0.48f),
-                contentScale = ContentScale.FillBounds,
-            )
-        } ?: AssetImage(
-            "$FISH_CARD_ROOT/fish_card_shadow.png",
-            Modifier.fillMaxSize().alpha(0.48f),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-        )
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 2.dp, vertical = 4.dp)
-                .clip(YuJianRadius.glassCard),
-        ) {
+    YuJianHeroCard(
+        title = presentationSpeciesName(item.speciesName),
+        metadata = emptyList(),
+        variant = YuJianHeroVariant.HOME,
+        modifier = Modifier.fillMaxSize(),
+        heightOverride = cardHeight,
+        contentInsetHorizontal = 2.dp,
+        contentInsetVertical = 4.dp,
+        footerPadding = 12.dp,
+        onClick = onClick,
+        semanticsTag = "normal-home-catch-card-${item.id}",
+        decoration = YuJianHeroDecoration(
+            shadow = runtimeAssets?.fishCardShadow?.asImageBitmap(),
+            gradient = runtimeAssets?.fishCardGradient?.asImageBitmap(),
+            outline = runtimeAssets?.fishCardOutline?.asImageBitmap(),
+        ),
+        footerContent = {
+            HomeCatchFooter(item)
+        },
+        media = {
             RemoteImage(
                 url = imageUrl,
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayerForPhoto(1.08f, 0.22f)
+                    .graphicsLayer { scaleX = 1.08f; scaleY = 1.08f; alpha = 0.22f }
                     .blur(18.dp),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
@@ -88,74 +82,42 @@ internal fun RecentFishCard(
                     modifier = Modifier.size(44.dp),
                 )
             }
-            runtimeAssets?.fishCardGradient?.let { gradient ->
-                Image(
-                    bitmap = gradient.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds,
-                )
-            } ?: AssetImage(
-                "$FISH_CARD_ROOT/fish_card_gradient.png",
-                Modifier.fillMaxSize(),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-            )
-            Column(
-                Modifier.align(Alignment.BottomStart).padding(horizontal = 12.dp, vertical = 12.dp),
-            ) {
-                Text(
-                    text = presentationSpeciesName(item.speciesName),
-                    style = YuJianTypography.sectionTitle.copy(
-                        color = YuJianColors.OnDark,
-                        fontSize = 32.sp,
-                        lineHeight = 38.sp,
-                    ),
-                )
-                displayMeasurement(item)?.let { value ->
-                    Text(
-                        text = value,
-                        style = YuJianTypography.body.copy(
-                            color = YuJianColors.OnDark.copy(alpha = 0.94f),
-                            fontSize = 22.sp,
-                            lineHeight = 28.sp,
-                        ),
-                        modifier = Modifier.padding(top = 5.dp),
-                    )
-                }
-                formatCatchMeta(item)?.let { value ->
-                    Text(
-                        text = value,
-                        style = YuJianTypography.caption.copy(
-                            color = YuJianColors.OnDark.copy(alpha = 0.88f),
-                            fontSize = 16.sp,
-                            lineHeight = 22.sp,
-                        ),
-                        modifier = Modifier.padding(top = 5.dp),
-                    )
-                }
-            }
-        }
-        runtimeAssets?.fishCardOutline?.let { outline ->
-            Image(
-                bitmap = outline.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize().alpha(0.72f),
-                contentScale = ContentScale.FillBounds,
-            )
-        } ?: AssetImage(
-            "$FISH_CARD_ROOT/fish_card_outline.png",
-            Modifier.fillMaxSize().alpha(0.72f),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-        )
-    }
+        },
+    )
 }
 
-private fun Modifier.graphicsLayerForPhoto(scale: Float, alpha: Float): Modifier = graphicsLayer {
-    scaleX = scale
-    scaleY = scale
-    this.alpha = alpha
+@Composable
+private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
+    Text(
+        text = presentationSpeciesName(item.speciesName),
+        style = YuJianTypography.sectionTitle.copy(
+            color = YuJianColors.OnDark,
+            fontSize = 32.sp,
+            lineHeight = 38.sp,
+        ),
+    )
+    displayMeasurement(item)?.let { value ->
+        Text(
+            text = value,
+            style = YuJianTypography.body.copy(
+                color = YuJianColors.OnDark.copy(alpha = 0.94f),
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
+            ),
+            modifier = Modifier.padding(top = 5.dp),
+        )
+    }
+    formatCatchMeta(item)?.let { value ->
+        Text(
+            text = value,
+            style = YuJianTypography.caption.copy(
+                color = YuJianColors.OnDark.copy(alpha = 0.88f),
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+            ),
+            modifier = Modifier.padding(top = 5.dp),
+        )
+    }
 }
 
 private fun displayMeasurement(item: RemoteCatch): String? = buildList {
