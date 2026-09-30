@@ -527,6 +527,7 @@ private fun MetadataField(label: String, value: String, modifier: Modifier, enab
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, sideMargin: Dp, enabled: Boolean = true) {
     var focused by remember { mutableStateOf(false) }
