@@ -90,7 +90,7 @@ fun groupCatchesByMonthAndDay(catches: List<RemoteCatch>): List<MyCatchesMonthGr
 
 fun daySummary(catches: List<RemoteCatch>): String {
     val locations = catches.mapNotNull { sanitizeOptionalText(it.location) }.distinct()
-    val countLabel = "${catches.size}条鱼获 · ${catches.map(::speciesKey).distinct().size}种鱼"
+    val countLabel = "${catches.size}条鱼获 · ${catches.map { it.speciesKey() }.distinct().size}种鱼"
     return if (locations.size == 1) "${locations.first()} · $countLabel" else countLabel
 }
 

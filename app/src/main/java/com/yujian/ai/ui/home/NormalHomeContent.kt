@@ -264,13 +264,14 @@ private fun NormalHomeHeader(
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.profile_fallback_v13),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
+                    placeholder = {
+                        Image(
+                            painter = painterResource(R.drawable.profile_fallback_v13),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    },
+                )
             }
         } else {
             runtimeAssets?.guestAvatar?.let { avatar ->

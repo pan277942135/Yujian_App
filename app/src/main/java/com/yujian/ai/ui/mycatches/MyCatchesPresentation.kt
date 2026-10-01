@@ -35,7 +35,7 @@ object GrowthMarkResolver {
             }
         }
 
-        chronological.groupBy(::speciesKey).values.forEach { records ->
+        chronological.groupBy { it.speciesKey() }.values.forEach { records ->
             records.firstOrNull()?.let { first ->
                 result.getValue(first.id).add(
                     GrowthMark(GrowthMarkType.FirstSpecies, "首条${presentationSpeciesName(first.speciesName)}"),
@@ -43,7 +43,7 @@ object GrowthMarkResolver {
             }
         }
 
-        catches.groupBy(::speciesKey).values.forEach { records ->
+        catches.groupBy { it.speciesKey() }.values.forEach { records ->
             val lengths = records.mapNotNull { it.lengthCm?.takeIf { value -> value.isFinite() && value > 0f } }
             lengths.maxOrNull()?.let { longest ->
                 records.filter { it.lengthCm == longest }.forEach { record ->

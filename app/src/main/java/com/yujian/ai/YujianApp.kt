@@ -542,12 +542,6 @@ fun YujianApp() {
                                     launchSingleTop = true
                                 }
                             },
-                            onRetry = {
-                                productionResult = null
-                                recognitionTechnicalFailure = false
-                                prediction = null
-                                nav.navigate("recognizing") { popUpTo("recognition_issue") { inclusive = true } }
-                            },
                         )
                     }
                 }

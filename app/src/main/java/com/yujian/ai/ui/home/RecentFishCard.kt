@@ -81,21 +81,22 @@ internal fun RecentFishCard(
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
                 contentScale = ContentScale.Fit,
                 authToken = accessToken,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.24f))
-                        .testTag("normal-home-media-fallback"),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.image_error_v12),
-                        contentDescription = null,
-                        modifier = Modifier.size(44.dp).alpha(0.55f),
-                    )
-                }
-            }
+                placeholder = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(YuJianColors.MistBlueGray.copy(alpha = 0.24f))
+                            .testTag("normal-home-media-fallback"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.image_error_v12),
+                            contentDescription = null,
+                            modifier = Modifier.size(44.dp).alpha(0.55f),
+                        )
+                    }
+                },
+            )
         },
     )
 }

@@ -64,9 +64,10 @@ fun YuJianFishRecordRowCard(
                     modifier = Modifier.size(82.dp),
                     contentDescription = "${presentation.speciesName} 鱼获照片",
                     contentScale = ContentScale.Crop,
-                ) {
-                    FishIllustration(size = 50.dp, bodyColor = FishGreen.copy(alpha = 0.62f))
-                }
+                    placeholder = {
+                        FishIllustration(size = 50.dp, bodyColor = FishGreen.copy(alpha = 0.62f))
+                    },
+                )
             }
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
