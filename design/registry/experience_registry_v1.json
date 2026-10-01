@@ -5473,16 +5473,19 @@
           "note": "Active MVP main path, My/Profile, Account Security, Data & Privacy, and Legal/About visual shells have frozen authorities. Nickname visual integrity is recovered and no longer blocks design."
         },
         "motion": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+          "note": "No feature-specific Account & Privacy motion. Inherit only Shared Action/Icon/Text component press/loading behavior and standard platform/shared transitions; no ambient/decorative motion."
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+          "note": "No feature-specific Account & Privacy haptic. Component-level tap haptics remain none; success/error/consent/logout do not add custom vibration."
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+          "note": "No Account & Privacy product sound. No click/success/error/consent/logout/ambient audio assets are required."
         },
         "runtime": {
           "status": "PARTIAL",
@@ -5498,7 +5501,7 @@
           "note": "Current/legacy/deferred authorities are classified in authority_manifest_v2.json. Nickname Frozen WebP integrity is restored and verified."
         }
       },
-      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is frozen; final production legal copy remains LEGAL_REVIEW_REQUIRED. Edit Profile design authority is now fully FROZEN, including recovered Nickname visual integrity. Deferred flows remain explicit.",
+      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is frozen; final production legal copy remains LEGAL_REVIEW_REQUIRED. Edit Profile design authority is fully FROZEN, including recovered Nickname visual integrity. Motion/Haptic/Sound are now explicitly FROZEN as no-custom-feedback decisions inherited from Shared Design System. Deferred flows remain explicit.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
