@@ -51,7 +51,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P12 Shared Component Parity | BLOCKED_INFRA | Source `963403b1729164d4d742e150c2e021ca91978f8e` | Implementation COMPLETE; GitHub source checkpoint PASS; P12 static contract checks PASS; Design Governance #36742433784 and Empty Home V2 Design Assets #36742433851 PASS | Android CI #1202 (run `36742424049`) was created and failed before any job was created (0 jobs); carries the single `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; no per-phase retry | Continue P13 |
 | P13 Cross-Journey Integration | BLOCKED_INFRA | `60aa90f736d7d767ff87897bdae3ecfc9a385baf` | Logout returns to a clean Home stack; Fish Guide route rejects blank species IDs; guest migration failure preserves the local archive and gives visible feedback; journey static contract checks PASS | Android CI #1214 (`36804255986`) was created and failed before any job was created (0 jobs); carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`. Product/API dependency: no idempotent guest-archive migration key/upsert contract | Continue P14; do not retry the shared blocker |
 | P14 Final Android Runtime Matrix | BLOCKED_INFRA | `687405ee5ac249f5c24c41e76cbafa37de09337c` | Required API 28 matrix now includes data sanitization; Fish Record Detail and Fish Knowledge tests are routed into existing gates; final-matrix static checks PASS | Android CI #1219 (`36804905064`) created and failed before any job (0 jobs); carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; no retry | Continue P15; run accumulated gates when orchestration recovers |
-| P15 APK / Evidence / PR Closure | NOT_STARTED | — | — | — | — |
+| P15 APK / Evidence / PR Closure | BLOCKED_INFRA | `7d252009e2c421756d546e7eb65a6d89929729fe` | Full-Surface APK/provenance bundle and checksum verifier are wired into the existing build job; static closure checks PASS; Design Governance #482 and Empty Home V2 Design Assets #708 PASS | Android CI #1221 (`36805518146`) failed before any job (0 jobs); artifact list is empty, so no actual APK or Android evidence exists. Carries the shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE` | Keep PR #97 draft/open; continue when the existing Android job scheduler recovers |
 
 ## P02 checkpoint
 
@@ -407,6 +407,15 @@ P10 has no new backend dependency. P09 edit, supplemental-media, cross-device re
 - P14 IMPLEMENTATION: COMPLETE. P14 GITHUB CHECKPOINT: PASS. P14 STATIC CONTRACT CHECKS: PASS. P14 ANDROID RUNTIME MATRIX: BLOCKED_INFRA.
 - Design Governance #480 (`36804908893`) and Empty Home V2 Design Assets #706 (`36804908880`) succeeded. Android CI #1219 (`36804905064`) was created for P14 and failed before any job was created; the read-only jobs result was empty. This is the same shared repository-level blocker; no retry was made.
 - Continue P15 APK / Evidence / Closure. The existing build/artifact path is ready to run once Android job scheduling recovers; do not claim an APK or runtime evidence until the authoritative workflow actually produces them.
+
+## P15 APK / Evidence / Closure checkpoint
+
+- P15 source checkpoint: `7d252009e2c421756d546e7eb65a6d89929729fe`; PR #97 head was verified at this exact SHA before the P15 ledger update.
+- The existing build job now packages the same build-once `app-debug.apk` as `YuJian_Full_Surface_Android_<source-SHA-prefix>_<model-id>.apk`; the named Actions artifact is tied to the full source SHA and production model ID. It includes `SHA256SUMS`, `model_release_contract.json`, and `apk_model_trace.json`.
+- Added `scripts/verify_full_surface_apk_bundle.py` to reject empty or extra APKs, filename/SHA/model mismatches, broken APK digests, and incorrect bundle checksums. `scripts/verify_p15_closure_contract.py`, final-matrix checks, journey checks, YAML parse, affected shell syntax, Python compilation, `git diff --check`, and a temporary bundle-format smoke check PASS. The smoke check used temporary format-only bytes; it is not an Android APK and is not runtime evidence.
+- Design Governance #482 (`36805522491`) and Empty Home V2 Design Assets #708 (`36805522488`) succeeded. Android CI #1221 (`36805518146`) was created and failed before any job was created. A read-only check returned 0 jobs and 0 artifacts. The build job did not run, so no installable APK, APK SHA, artifact ID, Android runtime evidence, or screenshots were produced.
+- P15 PACKAGING CONTRACT: PASS. P15 ACTUAL APK ARTIFACT: BLOCKED_INFRA. P15 ANDROID EVIDENCE: BLOCKED_INFRA. P15 PR CLOSURE: OPEN.
+- Keep PR #97 draft and unmerged. When the shared orchestration blocker clears, run the accumulated API 28 matrix against the final Epic HEAD, verify the produced artifact ID/digest and evidence-to-commit trace, then perform final closure without restarting P09–P15.
 
 ## Shared infrastructure follow-up blocker
 
