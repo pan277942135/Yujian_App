@@ -84,7 +84,7 @@ fun RegisterV2Screen(
     AuthV2Scaffold(
         title = "创建账号",
         subtitle = "用一个账号，留住你的钓鱼轨迹",
-        environmentFraction = 0.31f,
+        environmentFraction = 0.42f,
     ) {
         AuthV2Field(
             label = "账号",
