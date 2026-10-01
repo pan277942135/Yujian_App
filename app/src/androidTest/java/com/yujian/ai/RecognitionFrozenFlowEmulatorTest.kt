@@ -36,6 +36,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.compose.NavHost
@@ -193,7 +194,7 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("正在分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.RESULT_HIGH, "修改鱼种 ›", "05_result_high.png")
+        render(state, FrozenState.RESULT_HIGH, "修改鱼种", "05_result_high.png")
         assertVisible("草鱼")
         composeRule.onNodeWithText("保存本次鱼获").assertIsEnabled()
 
@@ -308,12 +309,22 @@ class RecognitionFrozenFlowEmulatorTest {
         assertTrue("Top-1 must be exposed as a suggestion", suggestedTree.contains("模型建议"))
         assertFalse("Top-1 must not be preselected", suggestedTree.contains("Selected = true"))
 
-        composeRule.onNode(hasText("鲫鱼") and hasClickAction()).performClick()
+        val candidate = composeRule.onNode(hasText("鲫鱼") and hasClickAction())
+        assertFalse(
+            "suggested candidate must not be preselected",
+            candidate.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Selected) == true,
+        )
+        candidate.performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            candidate.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Selected) == true
+        }
+        assertTrue(
+            "explicit candidate tap must create a selected state",
+            candidate.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Selected) == true,
+        )
 
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
-        val selectedTree = composeRule.onRoot(useUnmergedTree = true).printToString()
-        assertTrue("explicit candidate tap must create a selected state", selectedTree.contains("Selected = true"))
     }
 
     @Test

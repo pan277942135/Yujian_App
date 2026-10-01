@@ -1,9 +1,14 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.os.ParcelFileDescriptor
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -95,9 +100,7 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
         saveScreenshot("fish_guide_lit.png")
 
-        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithText("鲫鱼").assertIsDisplayed()
+        swipeCarouselToSelectedSpecies("鲫鱼")
         composeRule.onNodeWithText("尚未点亮").assertIsDisplayed()
         saveScreenshot("fish_guide_unlit.png")
         composeRule.onNodeWithText("鲫鱼").performClick()
@@ -110,9 +113,29 @@ class FishGuideRuntimeTest {
         val context = instrumentation.targetContext
         val prefs = context.getSharedPreferences("fish_guide_home", 0)
         prefs.edit().putBoolean("carousel_discover_hint_shown", false).commit()
-        shell("settings put global animator_duration_scale 0")
-        shell("settings put global transition_animation_scale 0")
+        val animatorScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        )
+        val transitionScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1f,
+        )
         try {
+            shell("settings put global animator_duration_scale 0")
+            shell("settings put global transition_animation_scale 0")
+            assertEquals(
+                0f,
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f),
+                0f,
+            )
+            assertEquals(
+                0f,
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f),
+                0f,
+            )
             composeRule.setContent {
                 FishGuideHomeScreen(
                     species = species,
@@ -128,12 +151,10 @@ class FishGuideRuntimeTest {
             composeRule.mainClock.advanceTimeBy(1300)
             composeRule.waitForIdle()
             assertFalse(prefs.getBoolean("carousel_discover_hint_shown", false))
-            composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
-            composeRule.waitForIdle()
-            composeRule.onNodeWithText("鲫鱼").assertIsDisplayed()
+            swipeCarouselToSelectedSpecies("鲫鱼")
         } finally {
-            shell("settings put global animator_duration_scale 1")
-            shell("settings put global transition_animation_scale 1")
+            shell("settings put global animator_duration_scale $animatorScale")
+            shell("settings put global transition_animation_scale $transitionScale")
         }
     }
 
@@ -154,7 +175,7 @@ class FishGuideRuntimeTest {
         }
         composeRule.onNodeWithText("当前无法加载鱼种资料").assertIsDisplayed()
         saveScreenshot("fish_guide_error.png")
-        composeRule.onNodeWithText("检查网络后重试").performClick()
+        composeRule.onNode(hasText("检查网络后重试") and hasClickAction()).performClick()
         composeRule.runOnIdle { assertTrue(retried) }
     }
 
@@ -400,8 +421,20 @@ class FishGuideRuntimeTest {
         bitmap.recycle()
     }
 
+    private fun swipeCarouselToSelectedSpecies(name: String) {
+        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithContentDescription(name).fetchSemanticsNodes().any { node ->
+                node.config.getOrNull(SemanticsProperties.StateDescription)
+                    ?.contains("当前选中") == true
+            }
+        }
+        composeRule.onNodeWithText(name).assertIsDisplayed()
+    }
+
     private fun shell(command: String) {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand(command).close()
+        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand(command)
+        ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use { it.readText() }
     }
 }

@@ -8,6 +8,10 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -31,6 +35,10 @@ import org.junit.Rule
 import org.junit.Test
 
 class AccountPrivacyRuntimeTest {
+    private fun primaryButton(text: String) = composeRule.onNode(
+        hasText(text) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button),
+    )
+
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -58,19 +66,19 @@ class AccountPrivacyRuntimeTest {
         composeRule.onNodeWithText("账号").assertIsDisplayed()
         composeRule.onNodeWithText("angler_2025").assertIsDisplayed()
         composeRule.onNodeWithText("不可修改").assertIsDisplayed()
-        composeRule.onNodeWithTag("edit_profile_save").assertIsNotEnabled()
+        primaryButton("保存修改").assertIsNotEnabled()
         saveScreenshot("account_profile_idle.png")
 
         composeRule.onNodeWithTag("edit_profile_nickname").performTextClearance()
         composeRule.onNodeWithTag("edit_profile_nickname").performTextInput("🙂".repeat(21))
         composeRule.onNodeWithText("21/20").assertExists()
         composeRule.onNodeWithText("昵称不能超过 20 个字符").assertExists()
-        composeRule.onNodeWithTag("edit_profile_save").assertIsNotEnabled()
+        primaryButton("保存修改").assertIsNotEnabled()
         saveScreenshot("account_profile_invalid_nickname.png")
 
         composeRule.onNodeWithTag("edit_profile_nickname").performTextClearance()
         composeRule.onNodeWithTag("edit_profile_nickname").performTextInput("新昵称")
-        composeRule.onNodeWithTag("edit_profile_save").assertIsEnabled()
+        primaryButton("保存修改").assertIsEnabled()
         composeRule.onNodeWithText("更换头像").performClick()
         composeRule.onNodeWithText("拍照").assertIsDisplayed()
         composeRule.onNodeWithText("从相册选择").assertIsDisplayed()

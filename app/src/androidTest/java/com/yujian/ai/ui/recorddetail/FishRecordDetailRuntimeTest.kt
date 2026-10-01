@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -73,26 +75,29 @@ class FishRecordDetailRuntimeTest {
         val memory = imageFile(context.cacheDir, "memory-$id.png", 0xFF497B83.toInt())
         val preferences = context.getSharedPreferences("fish_record_detail_v1", 0)
         preferences.edit().remove("first_b_reveal_done:$id").commit()
+        val laterEntry = mutableStateOf(false)
 
         composeRule.setContent {
             YujianTheme {
-                Box(Modifier.size(360.dp, 640.dp)) {
-                    FishRecordDetailScreen(
-                        uiState = FishRecordDetailUiState.Success(record),
-                        imageUrlFor = { Uri.fromFile(original).toString() },
-                        bsideUrlFor = { Uri.fromFile(memory).toString() },
-                        accessToken = "",
-                        onBack = {},
-                        onRetry = {},
-                        onOpenFishGuide = {},
-                        onShare = {},
-                        onEditRecord = {},
-                        onAddMedia = {},
-                        onContinuePhoto = {},
-                        onRecordVideo = {},
-                        onGenerateMemory = null,
-                        onRefreshBsideStatus = { true },
-                    )
+                key(laterEntry.value) {
+                    Box(Modifier.size(360.dp, 640.dp)) {
+                        FishRecordDetailScreen(
+                            uiState = FishRecordDetailUiState.Success(record),
+                            imageUrlFor = { Uri.fromFile(original).toString() },
+                            bsideUrlFor = { Uri.fromFile(memory).toString() },
+                            accessToken = "",
+                            onBack = {},
+                            onRetry = {},
+                            onOpenFishGuide = {},
+                            onShare = {},
+                            onEditRecord = {},
+                            onAddMedia = {},
+                            onContinuePhoto = {},
+                            onRecordVideo = {},
+                            onGenerateMemory = null,
+                            onRefreshBsideStatus = { true },
+                        )
+                    }
                 }
             }
         }
@@ -104,27 +109,10 @@ class FishRecordDetailRuntimeTest {
         composeRule.onNodeWithContentDescription("切回鱼获照片").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("为这次相遇生成一份鱼获记忆").fetchSemanticsNodes().isEmpty())
 
-        composeRule.setContent {
-            YujianTheme {
-                Box(Modifier.size(360.dp, 640.dp)) {
-                    FishRecordDetailScreen(
-                        uiState = FishRecordDetailUiState.Success(record),
-                        imageUrlFor = { Uri.fromFile(original).toString() },
-                        bsideUrlFor = { Uri.fromFile(memory).toString() },
-                        accessToken = "",
-                        onBack = {},
-                        onRetry = {},
-                        onOpenFishGuide = {},
-                        onShare = {},
-                        onEditRecord = {},
-                        onAddMedia = {},
-                        onContinuePhoto = {},
-                        onRecordVideo = {},
-                        onGenerateMemory = null,
-                        onRefreshBsideStatus = { true },
-                    )
-                }
-            }
+        composeRule.runOnIdle { laterEntry.value = true }
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithContentDescription("草鱼 鱼获照片")
+                .fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithContentDescription("草鱼 鱼获照片").assertIsDisplayed()
     }

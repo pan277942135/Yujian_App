@@ -96,7 +96,6 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun launchFresh() {
-        device.executeShellCommand("am force-stop $APP_PACKAGE")
         val intent = context.packageManager.getLaunchIntentForPackage(APP_PACKAGE)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             ?: error("Unable to resolve YuJian launcher activity")
