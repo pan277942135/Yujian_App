@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.material3.Text
@@ -146,8 +148,33 @@ fun YuJianFishGuideCard(
                                 alpha = 0.78f + settledEncounter * 0.12f,
                             ),
                         ),
-                    ),
+                ),
             )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 22.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = item.name,
+                    style = YuJianTypography.heroTitle.copy(color = YuJianColors.DeepInk),
+                )
+                Box(
+                    Modifier
+                        .width(44.dp)
+                        .height(3.dp)
+                        .background(YuJianColors.MorningGold, YuJianRadius.pill),
+                )
+                item.category.takeIf { it.isNotBlank() }?.let { category ->
+                    Text(
+                        text = category,
+                        style = YuJianTypography.body.copy(color = YuJianColors.DeepInk.copy(alpha = 0.88f)),
+                    )
+                }
+            }
 
             if (!isAdjacent) {
                 Column(
@@ -157,16 +184,6 @@ fun YuJianFishGuideCard(
                         .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(
-                        text = item.name,
-                        style = YuJianTypography.heroTitle.copy(color = YuJianColors.OnDark),
-                    )
-                    item.category.takeIf { it.isNotBlank() }?.let { category ->
-                        Text(
-                            text = category,
-                            style = YuJianTypography.body.copy(color = YuJianColors.OnDark.copy(alpha = 0.92f)),
-                        )
-                    }
                     val recordText = formatRecordCount(item.catches)
                     AnimatedVisibility(
                         visible = isUnlit,

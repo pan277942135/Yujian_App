@@ -103,7 +103,11 @@ class FishGuideRuntimeTest {
 
         composeRule.onNodeWithText("鱼鉴").assertIsDisplayed()
         composeRule.onNodeWithText("已点亮 2 / 3 种").assertIsDisplayed()
+        composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
+        val speciesTitleBounds = composeRule.onNodeWithText("草鱼").fetchSemanticsNode().boundsInRoot
+        assertTrue("Species title must anchor the upper card hierarchy", speciesTitleBounds.center.y < carouselBounds.center.y)
         saveScreenshot("fish_guide_lit.png")
 
         swipeCarouselToSelectedSpecies(
@@ -482,6 +486,7 @@ class FishGuideRuntimeTest {
         }
 
         waitForSelectedSpecies(name = name, expectedPage = expectedPage)
+        composeRule.onNodeWithText("${expectedPage + 1} / ${species.size}").assertIsDisplayed()
         composeRule.onNodeWithText(name).assertIsDisplayed()
     }
 

@@ -47,6 +47,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -61,8 +62,10 @@ import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import com.yujian.ai.ui.fishguide.FishGuideBackground
 import com.yujian.ai.ui.fishguide.FishGuideCarousel
 import com.yujian.ai.ui.fishguide.FishGuideProgress
+import com.yujian.ai.ui.fishguide.FishGuideResponsiveGeometryResolver
 import com.yujian.ai.ui.fishguide.litCount
 import com.yujian.ai.ui.fishguide.progressFraction
+import com.yujian.ai.ui.fishguide.selectionIndex
 import com.yujian.ai.ui.fishguide.toFishGuidePresentation
 
 private const val FISH_GUIDE_PREFERENCES = "fish_guide_home"
@@ -176,6 +179,13 @@ fun FishGuideHomeScreen(
                             .fillMaxWidth()
                             .testTag("fish_guide_carousel"),
                     )
+                    Text(
+                        text = "${selectionIndex(species, selectedSpeciesId) + 1} / ${species.size}",
+                        style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 20.sp),
+                        color = YuJianColors.DeepInk.copy(alpha = 0.88f),
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        textAlign = TextAlign.Center,
+                    )
                 }
                 Spacer(Modifier.height(24.dp))
             }
@@ -199,7 +209,11 @@ private fun FishGuideProgressHeader(species: List<FishGuideItem>, reduceMotion: 
     ) {
         Text(
             text = "已点亮 ${species.litCount()} / ${species.size} 种",
-            style = YuJianTypography.caption.copy(color = YuJianColors.TextSecondary),
+            style = YuJianTypography.caption.copy(
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                color = YuJianColors.DeepInk.copy(alpha = 0.88f),
+            ),
         )
         FishGuideProgress(
             fraction = species.progressFraction(),
@@ -245,11 +259,11 @@ private fun FishGuideLoadingState(onBack: () -> Unit) {
             ),
             contentAlignment = Alignment.Center,
         ) {
-            val width = maxWidth * 0.84f
+            val geometry = FishGuideResponsiveGeometryResolver.resolveHome(maxWidth.value)
             Box(
                 Modifier
-                    .width(width)
-                    .height((width * 1.37f).coerceAtLeast(300.dp))
+                    .width(geometry.cardWidthDp.dp)
+                    .height(geometry.cardHeightDp.dp)
                     .background(YuJianColors.MistWhite.copy(alpha = 0.62f), RoundedCornerShape(28.dp)),
             )
         }

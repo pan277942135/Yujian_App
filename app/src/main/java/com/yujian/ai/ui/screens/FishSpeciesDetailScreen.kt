@@ -82,6 +82,7 @@ import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import com.yujian.ai.ui.fishguide.FishGuideBackground
+import com.yujian.ai.ui.fishguide.FishGuideResponsiveGeometryResolver
 import com.yujian.ai.ui.fishguide.FishGuideKnowledgeCardPresentation
 import com.yujian.ai.ui.fishguide.savedRecordsForSpecies
 import com.yujian.ai.ui.fishguide.toKnowledgeCardPresentations
@@ -321,7 +322,7 @@ private fun SpeciesKnowledgeCarousel(
     onAdjacentTap: (Int) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val cardWidth = maxWidth * 0.84f
+        val cardWidth = maxWidth * FishGuideResponsiveGeometryResolver.SPECIES_DETAIL_CARD_WIDTH_FRACTION
         val sidePeek = (maxWidth - cardWidth) / 2f
         HorizontalPager(
             state = pagerState,

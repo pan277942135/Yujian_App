@@ -130,9 +130,10 @@ fun FishGuideCarousel(
     val currentMarkUserInteraction by rememberUpdatedState(markUserInteraction)
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val cardWidth = maxWidth * 0.84f
-        val cardHeight = (cardWidth * 1.37f).coerceAtLeast(300.dp)
-        val sidePeek = ((maxWidth - cardWidth) / 2f).coerceAtLeast(0.dp)
+        val geometry = FishGuideResponsiveGeometryResolver.resolveHome(maxWidth.value)
+        val cardWidth = geometry.cardWidthDp.dp
+        val cardHeight = geometry.cardHeightDp.dp
+        val sidePeek = geometry.sidePaddingDp.dp
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -147,7 +148,7 @@ fun FishGuideCarousel(
                 .graphicsLayer { translationX = hintTranslation.value.dp.toPx() },
             pageSize = PageSize.Fixed(cardWidth),
             contentPadding = PaddingValues(horizontal = sidePeek),
-            pageSpacing = 8.dp,
+            pageSpacing = geometry.pageSpacingDp.dp,
             flingBehavior = PagerDefaults.flingBehavior(
                 state = pagerState,
                 snapAnimationSpec = tween(durationMillis = if (reduceMotion) 100 else 260),
