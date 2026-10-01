@@ -312,15 +312,15 @@ class RecognitionFrozenFlowEmulatorTest {
         val candidate = composeRule.onNode(hasText("鲫鱼") and hasClickAction())
         assertFalse(
             "suggested candidate must not be preselected",
-            candidate.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Selected) == true,
+            candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true,
         )
         candidate.performClick()
         composeRule.waitUntil(timeoutMillis = 3_000L) {
-            candidate.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Selected) == true
+            candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true
         }
         assertTrue(
             "explicit candidate tap must create a selected state",
-            candidate.fetchSemanticsNode().config.getOrNull(SemanticsProperties.Selected) == true,
+            candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true,
         )
 
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
