@@ -5,6 +5,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.yujian.ai.knowledge.FishGuideItem
+import androidx.compose.ui.unit.dp
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
+import com.yujian.ai.ui.adaptive.resolveAdaptiveLayoutProfile
 
 class RecognitionResultContractsTest {
     @Test
@@ -17,6 +20,38 @@ class RecognitionResultContractsTest {
         }
         assertEquals(20, RecognitionResultGeometryResolver.resolve(360, 640).horizontalMarginDp)
         assertEquals(24, RecognitionResultGeometryResolver.resolve(411, 640).horizontalMarginDp)
+    }
+
+    @Test
+    fun resultGeometryUsesSafeViewportProfilesWithoutStretchingHero() {
+        val expected = listOf(
+            Triple(320f, 640f, 288 to 224),
+            Triple(360f, 780f, 320 to 248),
+            Triple(393f, 852f, 353 to 274),
+            Triple(411f, 891f, 363 to 282),
+        )
+        expected.forEach { (width, height, hero) ->
+            val profile = resolveAdaptiveLayoutProfile(width, height, fontScale = 1f)
+            val geometry = RecognitionResultGeometryResolver.resolve(profile)
+            assertEquals(hero.first, geometry.heroWidthDp)
+            assertEquals(hero.second, geometry.heroHeightDp)
+            val actualAspect = geometry.heroWidthDp.toFloat() / geometry.heroHeightDp
+            assertTrue(kotlin.math.abs(actualAspect - 1.2903f) / 1.2903f <= 0.015f)
+        }
+        val accessible = resolveAdaptiveLayoutProfile(360f, 780f, fontScale = 1.3f)
+        assertTrue(accessible.accessibilityFontScale)
+        assertTrue(accessible.requiresScrollableContent)
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(accessible.fontScale))
+
+        val cutoutProfile = resolveAdaptiveLayoutProfile(
+            windowWidthDp = 393f,
+            windowHeightDp = 852f,
+            fontScale = 1f,
+            safeInsets = SafeDrawingInsetsDp(top = 44.dp, bottom = 24.dp, start = 12.dp, end = 12.dp),
+        )
+        assertEquals(369f, cutoutProfile.safeWidthDp)
+        assertEquals(784f, cutoutProfile.safeHeightDp)
+        assertEquals(329, RecognitionResultGeometryResolver.resolve(cutoutProfile).heroWidthDp)
     }
 
     @Test

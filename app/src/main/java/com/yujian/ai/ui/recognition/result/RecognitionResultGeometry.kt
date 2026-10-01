@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.recognition.result
 
+import com.yujian.ai.ui.adaptive.AdaptiveLayoutProfile
 import kotlin.math.roundToInt
 
 data class RecognitionResultGeometry(
@@ -12,6 +13,11 @@ data class RecognitionResultGeometry(
 
 /** Pure adaptive resolver for the frozen Recognition Result geometry. */
 object RecognitionResultGeometryResolver {
+    fun resolve(profile: AdaptiveLayoutProfile): RecognitionResultGeometry = resolve(
+        windowWidthDp = profile.safeWidthDp.roundToInt(),
+        contentHeightDp = profile.safeHeightDp.roundToInt(),
+    )
+
     fun resolve(windowWidthDp: Int, contentHeightDp: Int): RecognitionResultGeometry {
         val width = windowWidthDp.coerceAtLeast(1)
         val margin = when {

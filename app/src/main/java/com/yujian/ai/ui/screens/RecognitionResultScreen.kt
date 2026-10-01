@@ -107,6 +107,11 @@ import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
+import com.yujian.ai.ui.designsystem.glass.MistGlass
+import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
+import com.yujian.ai.ui.designsystem.radius.YuJianRadius
+import com.yujian.ai.ui.adaptive.rememberAdaptiveLayoutProfile
+import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.recognitionFeedbackType
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
@@ -151,10 +156,13 @@ fun RecognitionResultScreen(
     onSave: (CatchSaveDraft, FeedbackDraft, RecognitionSaveDestination) -> Unit,
 ) {
     val uiState = remember(prediction) { resolveRecognitionResultState(prediction) }
-    val geometry = RecognitionResultGeometryResolver.resolve(
-        LocalConfiguration.current.screenWidthDp,
-        LocalConfiguration.current.screenHeightDp,
+    val configuration = LocalConfiguration.current
+    val safeInsets = rememberSafeDrawingInsets()
+    val adaptiveProfile = rememberAdaptiveLayoutProfile(
+        configuration.screenWidthDp.dp,
+        configuration.screenHeightDp.dp,
     )
+    val geometry = RecognitionResultGeometryResolver.resolve(adaptiveProfile)
     val candidateFontScale = LocalDensity.current.fontScale
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
     val selectorSpecies = remember(prediction, availableSpecies) {
@@ -191,6 +199,7 @@ fun RecognitionResultScreen(
     var locationText by remember(prediction) { mutableStateOf("") }
     var storyText by remember(prediction) { mutableStateOf("") }
     var saveRequested by remember(prediction) { mutableStateOf(false) }
+    var requestedSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
     var purposeVisible by remember(prediction) { mutableStateOf(false) }
     var resolvingLocation by remember(prediction) { mutableStateOf(false) }
     var locationError by remember(prediction) { mutableStateOf<String?>(null) }
@@ -229,7 +238,12 @@ fun RecognitionResultScreen(
         if (fine || coarse) resolveCurrentLocation() else purposeVisible = true
     }
     val currentTime = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date()) }
-    LaunchedEffect(saving, saveError) { if (!saving) saveRequested = false }
+    LaunchedEffect(saving, saveError) {
+        if (!saving && saveRequested) {
+            saveRequested = false
+            requestedSaveDestination = null
+        }
+    }
     val bbox = productionResult?.assessment?.primary?.box?.let {
         NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2)
     }
@@ -237,6 +251,7 @@ fun RecognitionResultScreen(
     fun save(destination: RecognitionSaveDestination) {
         if (selectedKey.isBlank() || saving || saveRequested) return
         saveRequested = true
+        requestedSaveDestination = destination
         val corrected = selectedKey != prediction.top1.speciesKey
         val detector = productionResult?.assessment?.primary?.let {
             JSONObject().put("confidence", it.confidence.toDouble()).put("box", JSONObject()
@@ -270,14 +285,16 @@ fun RecognitionResultScreen(
         selectorVisible = true
     }
 
+    val activeLoadingDestination = requestedSaveDestination.takeIf { saveRequested }
     Box(Modifier.fillMaxSize()) {
         BgContentSurface()
         Column(Modifier.fillMaxSize()) {
             YuJianBackTitleTopBar(title = "识别结果", onBack = onBack, backEnabled = !saving)
             Column(
-                Modifier.fillMaxSize()
+                Modifier.weight(1f).fillMaxWidth()
+                    .padding(start = safeInsets.start, end = safeInsets.end)
                     .verticalScroll(rememberScrollState())
-                    .padding(bottom = 20.dp),
+                    .padding(bottom = 20.dp + safeInsets.bottom),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -288,6 +305,8 @@ fun RecognitionResultScreen(
                         bbox = bbox,
                         widthDp = geometry.heroWidthDp,
                         heightDp = geometry.heroHeightDp,
+                        evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
+                            uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
                     )
                 }
                 Spacer(Modifier.height(16.dp))
@@ -297,6 +316,7 @@ fun RecognitionResultScreen(
                         SpeciesIdentityRow(
                             speciesName = selectedName,
                             sideMargin = sideMargin,
+                            widthDp = geometry.heroWidthDp,
                             enabled = !saving,
                             onChange = { openSpeciesSelector() },
                         )
@@ -307,6 +327,7 @@ fun RecognitionResultScreen(
                             location = locationText,
                             resolvingLocation = resolvingLocation,
                             sideMargin = sideMargin,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                             enabled = !saving,
                             onField = { editField = it },
                         )
@@ -316,11 +337,14 @@ fun RecognitionResultScreen(
                             onValueChange = { storyText = it.takeUnicodeCodePoints(120) },
                             sideMargin = sideMargin,
                             enabled = !saving,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                         )
                         Spacer(Modifier.height(16.dp))
                         ResultInlineError(saveError, sideMargin)
                         ResultDualActions(
                             saving = saving,
+                            loadingDestination = activeLoadingDestination,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                             sideMargin = 24.dp,
                             onContinue = { save(RecognitionSaveDestination.MEMORY) },
                             onSave = { save(RecognitionSaveDestination.HOME) },
@@ -334,7 +358,7 @@ fun RecognitionResultScreen(
                             fontSize = 20.sp,
                             lineHeight = 28.sp,
                             fontWeight = FontWeight.Medium,
-                            maxLines = 1,
+                            maxLines = if (adaptiveProfile.accessibilityFontScale || geometry.heroWidthDp <= 320) 2 else 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                         Spacer(Modifier.height(12.dp))
@@ -359,15 +383,17 @@ fun RecognitionResultScreen(
                         }
                         if (selectedKey.isNotBlank()) {
                             Spacer(Modifier.height(16.dp))
-                            SpeciesIdentityRow(selectedName, sideMargin, enabled = !saving, onChange = { openSpeciesSelector() })
+                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving, onChange = { openSpeciesSelector() })
                             Spacer(Modifier.height(12.dp))
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, sideMargin, enabled = !saving) { editField = it }
+                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, sideMargin, accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
                             Spacer(Modifier.height(12.dp))
-                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(120) }, sideMargin, enabled = !saving)
+                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(120) }, sideMargin, enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                             Spacer(Modifier.height(16.dp))
                             ResultInlineError(saveError, sideMargin)
                             ResultDualActions(
                                 saving = saving,
+                                loadingDestination = activeLoadingDestination,
+                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                                 sideMargin = 24.dp,
                                 onContinue = { save(RecognitionSaveDestination.MEMORY) },
                                 onSave = { save(RecognitionSaveDestination.HOME) },
@@ -378,27 +404,46 @@ fun RecognitionResultScreen(
                         if (selectedKey.isBlank()) {
                             Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                 Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    YuJianPrimaryButton(
-                                        text = "手动选择鱼种", onClick = { openSpeciesSelector() },
-                                        modifier = Modifier.weight(58f), variant = YuJianActionButtonVariant.SECONDARY_STRONG,
-                                    )
-                                    YuJianPrimaryButton(
-                                        text = "重新拍摄", onClick = onRetry,
-                                        modifier = Modifier.weight(42f), variant = YuJianActionButtonVariant.SECONDARY_MUTED,
-                                    )
+                                if (adaptiveProfile.accessibilityFontScale) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        YuJianPrimaryButton(
+                                            text = "手动选择鱼种", onClick = { openSpeciesSelector() },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                                        )
+                                        YuJianPrimaryButton(
+                                            text = "重新拍摄", onClick = onRetry,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            variant = YuJianActionButtonVariant.SECONDARY_MUTED,
+                                        )
+                                    }
+                                } else {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        YuJianPrimaryButton(
+                                            text = "手动选择鱼种", onClick = { openSpeciesSelector() },
+                                            modifier = Modifier.weight(58f),
+                                            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                                        )
+                                        YuJianPrimaryButton(
+                                            text = "重新拍摄", onClick = onRetry,
+                                            modifier = Modifier.weight(42f),
+                                            variant = YuJianActionButtonVariant.SECONDARY_MUTED,
+                                        )
+                                    }
                                 }
                             }
                         } else {
-                            SpeciesIdentityRow(selectedName, sideMargin, enabled = !saving) { openSpeciesSelector() }
+                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving) { openSpeciesSelector() }
                             Spacer(Modifier.height(12.dp))
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, sideMargin, enabled = !saving) { editField = it }
+                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, sideMargin, accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
                             Spacer(Modifier.height(12.dp))
-                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(120) }, sideMargin, enabled = !saving)
+                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(120) }, sideMargin, enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                             Spacer(Modifier.height(16.dp))
                             ResultInlineError(saveError, sideMargin)
                             ResultDualActions(
                                 saving = saving, sideMargin = 24.dp,
+                                loadingDestination = activeLoadingDestination,
+                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                                 onContinue = { save(RecognitionSaveDestination.MEMORY) },
                                 onSave = { save(RecognitionSaveDestination.HOME) },
                             )
@@ -493,46 +538,51 @@ fun ResultHeroViewport(
         RecognitionHeroMediaPlanner.plan(bitmap.width, bitmap.height, widthDp.toFloat(), heightDp.toFloat(), bbox, evidenceFirst = evidenceFirst)
     }
     Box(
-        Modifier.width(widthDp.dp).height(heightDp.dp).clip(RoundedCornerShape(24.dp))
-            .background(Color(0xDDF7FAFB)).border(1.dp, Color(0x66FFFFFF), RoundedCornerShape(24.dp)),
-        contentAlignment = Alignment.Center,
+        Modifier.width(widthDp.dp).height(heightDp.dp),
     ) {
-        Canvas(Modifier.fillMaxSize()) {
-            val src = plan.sourceRect
-            val sourceLeft = (src.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
-            val sourceTop = (src.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
-            val sourceRight = (src.right * bitmap.width).toInt().coerceIn(sourceLeft + 1, bitmap.width)
-            val sourceBottom = (src.bottom * bitmap.height).toInt().coerceIn(sourceTop + 1, bitmap.height)
-            val cropW = sourceRight - sourceLeft
-            val cropH = sourceBottom - sourceTop
-            val scale = if (plan.mode == RecognitionHeroMediaMode.SUBJECT_CROP_FILL) {
-                maxOf(size.width / cropW, size.height / cropH)
-            } else minOf(size.width / cropW, size.height / cropH)
-            val dstW = cropW * scale
-            val dstH = cropH * scale
-            val dstX = (size.width - dstW) / 2f
-            val dstY = (size.height - dstH) / 2f
-            clipRect {
-                drawImage(
-                    image = bitmap,
-                    srcOffset = IntOffset(sourceLeft, sourceTop),
-                    srcSize = IntSize(cropW, cropH),
-                    dstOffset = IntOffset(dstX.toInt(), dstY.toInt()),
-                    dstSize = IntSize(dstW.toInt(), dstH.toInt()),
-                    filterQuality = FilterQuality.Medium,
-                )
+        MistGlass(
+            level = YuJianGlassLevel.Light,
+            modifier = Modifier.fillMaxSize(),
+            shape = YuJianRadius.heroCard,
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                val src = plan.sourceRect
+                val sourceLeft = (src.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
+                val sourceTop = (src.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
+                val sourceRight = (src.right * bitmap.width).toInt().coerceIn(sourceLeft + 1, bitmap.width)
+                val sourceBottom = (src.bottom * bitmap.height).toInt().coerceIn(sourceTop + 1, bitmap.height)
+                val cropW = sourceRight - sourceLeft
+                val cropH = sourceBottom - sourceTop
+                val scale = if (plan.mode == RecognitionHeroMediaMode.SUBJECT_CROP_FILL) {
+                    maxOf(size.width / cropW, size.height / cropH)
+                } else minOf(size.width / cropW, size.height / cropH)
+                val dstW = cropW * scale
+                val dstH = cropH * scale
+                val dstX = (size.width - dstW) / 2f
+                val dstY = (size.height - dstH) / 2f
+                clipRect {
+                    drawImage(
+                        image = bitmap,
+                        srcOffset = IntOffset(sourceLeft, sourceTop),
+                        srcSize = IntSize(cropW, cropH),
+                        dstOffset = IntOffset(dstX.toInt(), dstY.toInt()),
+                        dstSize = IntSize(dstW.toInt(), dstH.toInt()),
+                        filterQuality = FilterQuality.Medium,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SpeciesIdentityRow(speciesName: String, sideMargin: Dp, enabled: Boolean = true, onChange: () -> Unit) {
+private fun SpeciesIdentityRow(speciesName: String, sideMargin: Dp, widthDp: Int, enabled: Boolean = true, onChange: () -> Unit) {
+    val compactTitle = widthDp <= 359
     Row(
         Modifier.fillMaxWidth().padding(horizontal = sideMargin).heightIn(min = 44.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(speciesName, modifier = Modifier.weight(1f), color = DeepInk, fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(speciesName, modifier = Modifier.weight(1f), color = DeepInk, fontSize = if (compactTitle) 28.sp else 30.sp, lineHeight = if (compactTitle) 34.sp else 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         YuJianTextAction(text = "修改鱼种", onClick = onChange, role = YuJianTextActionRole.NORMAL, enabled = enabled, showChevron = true)
     }
 }
@@ -540,25 +590,25 @@ private fun SpeciesIdentityRow(speciesName: String, sideMargin: Dp, enabled: Boo
 @Composable
 private fun ResultMetadataStrip(
     length: String, weight: String, location: String, resolvingLocation: Boolean,
-    sideMargin: Dp, enabled: Boolean = true, onField: (ResultEditableField) -> Unit,
+    sideMargin: Dp, accessibilityFontScale: Boolean = false, enabled: Boolean = true, onField: (ResultEditableField) -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = sideMargin).height(72.dp)
+        Modifier.fillMaxWidth().padding(horizontal = sideMargin).heightIn(min = if (accessibilityFontScale) 84.dp else 72.dp)
             .clip(RoundedCornerShape(18.dp)).background(Color(0xDDF7FAFB)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MetadataField("长度", if (length.isBlank()) "添加" else "$length cm", Modifier.weight(1f), enabled) { onField(ResultEditableField.LENGTH) }
+        MetadataField("长度", if (length.isBlank()) "添加" else "$length cm", Modifier.weight(1f), enabled, accessibilityFontScale) { onField(ResultEditableField.LENGTH) }
         HorizontalDivider(modifier = Modifier.size(width = 1.dp, height = 32.dp), color = Color(0x2674898D))
-        MetadataField("重量", if (weight.isBlank()) "添加" else "$weight kg", Modifier.weight(1f), enabled) { onField(ResultEditableField.WEIGHT) }
+        MetadataField("重量", if (weight.isBlank()) "添加" else "$weight kg", Modifier.weight(1f), enabled, accessibilityFontScale) { onField(ResultEditableField.WEIGHT) }
         HorizontalDivider(modifier = Modifier.size(width = 1.dp, height = 32.dp), color = Color(0x2674898D))
-        MetadataField("地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "添加地点" }, Modifier.weight(1f), enabled) { onField(ResultEditableField.LOCATION) }
+        MetadataField("地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "添加地点" }, Modifier.weight(1f), enabled, accessibilityFontScale) { onField(ResultEditableField.LOCATION) }
     }
 }
 
 @Composable
-private fun MetadataField(label: String, value: String, modifier: Modifier, enabled: Boolean, onClick: () -> Unit) {
+private fun MetadataField(label: String, value: String, modifier: Modifier, enabled: Boolean, accessibilityFontScale: Boolean, onClick: () -> Unit) {
     Column(
-        modifier.fillMaxSize().clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(horizontal = 8.dp, vertical = 12.dp),
+        modifier.fillMaxSize().clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(horizontal = 8.dp, vertical = if (accessibilityFontScale) 8.dp else 12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -571,12 +621,19 @@ private fun MetadataField(label: String, value: String, modifier: Modifier, enab
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, sideMargin: Dp, enabled: Boolean = true) {
+private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, sideMargin: Dp, enabled: Boolean = true, accessibilityFontScale: Boolean = false) {
     var focused by remember { mutableStateOf(false) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     Column(
-        Modifier.fillMaxWidth().padding(horizontal = sideMargin).heightIn(min = 80.dp, max = if (focused) 112.dp else 80.dp)
+        Modifier.fillMaxWidth().padding(horizontal = sideMargin).heightIn(
+            min = if (accessibilityFontScale) 108.dp else 80.dp,
+            max = when {
+                accessibilityFontScale -> 156.dp
+                focused -> 112.dp
+                else -> 80.dp
+            },
+        )
             .clip(RoundedCornerShape(18.dp)).background(Color(0xB8F7FAFB)).padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -592,7 +649,7 @@ private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, sid
                         if (it.isFocused) coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
                     },
                 minLines = 1,
-                maxLines = if (focused) 4 else 2,
+                maxLines = if (focused || accessibilityFontScale) 4 else 2,
                 enabled = enabled,
                 textStyle = TextStyle(color = DeepInk, fontSize = 15.sp, lineHeight = 22.sp),
             )
@@ -662,21 +719,69 @@ private fun CandidateRow(
 
 @Composable
 private fun ResultDualActions(
-    saving: Boolean, sideMargin: Dp, onContinue: () -> Unit, onSave: () -> Unit,
+    saving: Boolean,
+    loadingDestination: RecognitionSaveDestination?,
+    accessibilityFontScale: Boolean,
+    sideMargin: Dp,
+    onContinue: () -> Unit,
+    onSave: () -> Unit,
 ) {
     // The callbacks are supplied by the enclosing page so metadata and species are validated together.
-    Row(Modifier.fillMaxWidth().padding(horizontal = sideMargin), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        YuJianPrimaryButton(
-            text = "继续记录记忆", onClick = onContinue,
-            modifier = Modifier.weight(44f), enabled = !saving, loading = saving,
-            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
-        )
-        YuJianPrimaryButton(
-            text = "保存本次鱼获", onClick = onSave,
-            modifier = Modifier.weight(56f), enabled = !saving, loading = saving,
-            variant = YuJianActionButtonVariant.PRIMARY,
-        )
+    val blocked = saving || loadingDestination != null
+    if (accessibilityFontScale) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ResultDualActionButton(
+                destination = RecognitionSaveDestination.MEMORY,
+                loadingDestination = loadingDestination,
+                enabled = !blocked,
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onContinue,
+            )
+            ResultDualActionButton(
+                destination = RecognitionSaveDestination.HOME,
+                loadingDestination = loadingDestination,
+                enabled = !blocked,
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onSave,
+            )
+        }
+    } else {
+        Row(Modifier.fillMaxWidth().padding(horizontal = sideMargin), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ResultDualActionButton(
+                destination = RecognitionSaveDestination.MEMORY,
+                loadingDestination = loadingDestination,
+                enabled = !blocked,
+                modifier = Modifier.weight(44f),
+                onClick = onContinue,
+            )
+            ResultDualActionButton(
+                destination = RecognitionSaveDestination.HOME,
+                loadingDestination = loadingDestination,
+                enabled = !blocked,
+                modifier = Modifier.weight(56f),
+                onClick = onSave,
+            )
+        }
     }
+}
+
+@Composable
+private fun ResultDualActionButton(
+    destination: RecognitionSaveDestination,
+    loadingDestination: RecognitionSaveDestination?,
+    enabled: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    val isContinue = destination == RecognitionSaveDestination.MEMORY
+    YuJianPrimaryButton(
+        text = if (isContinue) "继续记录记忆" else "保存本次鱼获",
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        loading = loadingDestination == destination,
+        variant = if (isContinue) YuJianActionButtonVariant.SECONDARY_STRONG else YuJianActionButtonVariant.PRIMARY,
+    )
 }
 
 @Composable

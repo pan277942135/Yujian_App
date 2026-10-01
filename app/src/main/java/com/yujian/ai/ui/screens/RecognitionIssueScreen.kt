@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.designsystem.components.YuJianActionButtonVariant
@@ -30,6 +30,8 @@ import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.resolveRecognitionUiState
+import com.yujian.ai.ui.adaptive.rememberAdaptiveLayoutProfile
+import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
@@ -44,10 +46,13 @@ fun RecognitionIssueScreen(
     onChooseGallery: () -> Unit,
 ) {
     val state = result?.let(::resolveRecognitionUiState)
-    val geometry = RecognitionResultGeometryResolver.resolve(
-        androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp,
-        androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp,
+    val configuration = LocalConfiguration.current
+    val safeInsets = rememberSafeDrawingInsets()
+    val adaptiveProfile = rememberAdaptiveLayoutProfile(
+        configuration.screenWidthDp.dp,
+        configuration.screenHeightDp.dp,
     )
+    val geometry = RecognitionResultGeometryResolver.resolve(adaptiveProfile)
     val copy = when {
         technicalFailure || state == RecognitionUiState.TECHNICAL_FAILURE ->
             "识别没有完成" to "请重新拍摄或选择照片。"
@@ -61,7 +66,10 @@ fun RecognitionIssueScreen(
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             YuJianBackTitleTopBar(title = "识别结果", onBack = onBack)
             Column(
-                Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()).padding(bottom = 20.dp),
+                Modifier.fillMaxWidth().weight(1f)
+                    .padding(start = safeInsets.start, end = safeInsets.end)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 20.dp + safeInsets.bottom),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
