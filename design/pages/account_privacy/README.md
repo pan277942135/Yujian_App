@@ -143,3 +143,52 @@ The parent page is the Overview. It shows package state, current/legacy/deferred
 - About / Legal page design is FROZEN; final Privacy Policy / User Agreement Legal Copy remains LEGAL_REVIEW_REQUIRED.
 - Overall Account & Privacy remains **PARTIAL** only because final production Legal Copy for Privacy Policy / User Agreement remains LEGAL_REVIEW_REQUIRED. Visual design authority no longer has an integrity blocker.
 - Runtime status remains separately reported as **PARTIAL**. Design freeze does not imply Android runtime parity.
+
+
+### INTERACTION FEEDBACK
+
+Account & Privacy Motion / Haptic / Sound are explicitly **FROZEN**.
+
+Authority:
+
+`spec/Account_Privacy_Interaction_Feedback_Spec_V1.md`
+
+Frozen decisions:
+
+- Motion: no feature-specific motion; inherit Shared Action / Icon / Text press/loading behavior and standard platform/shared transitions only.
+- Haptic: no feature-specific haptic for save, validation, consent, logout or navigation.
+- Sound: no Account & Privacy product sound or audio asset.
+- Reduce Motion: inherit Shared behavior; do not add decorative spatial motion.
+- Success/error feedback remains textual/semantic, not celebratory sensory feedback.
+
+This is an intentional product decision, not a missing design surface.
+
+
+## FINAL DESIGN STATE
+
+Account & Privacy design is now **FROZEN**.
+
+Final review:
+
+`Account_Privacy_Design_Freeze_Review_V1.md`
+
+Frozen design dimensions:
+
+- Visual
+- Behavior / IA
+- Motion
+- Haptic
+- Sound
+- Assets
+- Design Evidence
+
+Independent external gates:
+
+- Android Runtime = PARTIAL
+- Privacy Policy final Legal Copy = LEGAL_REVIEW_REQUIRED
+- User Agreement final Legal Copy = LEGAL_REVIEW_REQUIRED
+- Forgot Password = DEFERRED
+- Export My Data = DEFERRED
+- Delete Account = DEFERRED
+
+These external gates do not keep Design open.

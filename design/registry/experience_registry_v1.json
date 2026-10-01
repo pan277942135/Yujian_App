@@ -5463,42 +5463,46 @@
       "overall": "PARTIAL",
       "modalities": {
         "behavior": {
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority": "design/pages/account_privacy/spec/FLOW_SPEC.md",
-          "note": "Active MVP main path, Legal/About page structure and Edit Profile state/interaction behavior are frozen. Package behavior remains PARTIAL only because final legal copy is separately review-gated and deferred product flows remain outside MVP."
+          "note": "All active and deferred behavior/IA decisions are frozen. Deferred product flows are deliberate scope states, not incomplete design."
         },
         "visual": {
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "Active MVP main path, My/Profile, Account Security, Data & Privacy, and Legal/About visual shells have frozen authorities. Nickname visual integrity is recovered and no longer blocks design."
+          "note": "All current Account & Privacy visual authorities are frozen, including composite/shared-shell authorities and recovered Nickname integrity."
         },
         "motion": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+          "note": "No feature-specific Account & Privacy motion. Inherit only Shared Action/Icon/Text component press/loading behavior and standard platform/shared transitions; no ambient/decorative motion."
         },
         "haptic": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+          "note": "No feature-specific Account & Privacy haptic. Component-level tap haptics remain none; success/error/consent/logout do not add custom vibration."
         },
         "sound": {
-          "status": "MISSING",
-          "authority": null
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+          "note": "No Account & Privacy product sound. No click/success/error/consent/logout/ambient audio assets are required."
         },
         "runtime": {
           "status": "PARTIAL",
           "authority": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
         },
         "evidence": {
-          "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/qa/QA_REPORT.md"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md",
+          "note": "Final Design Freeze Review V1 plus existing QA/Registry/Governance evidence closes design authority. Runtime evidence remains separate."
         },
         "assets": {
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "Current/legacy/deferred authorities are classified in authority_manifest_v2.json. Nickname Frozen WebP integrity is restored and verified."
+          "note": "Current, composite, shared, historical and deferred assets are classified; Nickname frozen asset integrity is restored."
         }
       },
-      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is frozen; final production legal copy remains LEGAL_REVIEW_REQUIRED. Edit Profile design authority is now fully FROZEN, including recovered Nickname visual integrity. Deferred flows remain explicit.",
+      "note": "ACCOUNT & PRIVACY DESIGN = FROZEN. Visual / behavior / motion / haptic / sound / assets / design evidence are closed. Android Runtime remains PARTIAL. Privacy Policy and User Agreement final Legal Copy remain LEGAL_REVIEW_REQUIRED as external legal-content gates. Forgot Password / Export My Data / Delete Account remain DEFERRED and do not reopen design.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5517,7 +5521,7 @@
           "note": "V2 consolidated authority index. Active MVP main path and Legal/About page design are frozen; final legal copy remains review-gated. Overall remains PARTIAL."
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -5644,21 +5648,40 @@
             "No runtime parity claim",
             "No Runtime PASS claim"
           ]
+        },
+        {
+          "id": "final_design_freeze",
+          "title": "FINAL DESIGN FREEZE",
+          "status": "FROZEN",
+          "summary": "Account & Privacy design is closed. Legal-copy approval, Runtime Parity and Deferred feature activation are independent external gates and do not keep design open.",
+          "authority": "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md",
+          "points": [
+            "Visual · FROZEN",
+            "Behavior / IA · FROZEN",
+            "Motion · FROZEN",
+            "Haptic · FROZEN",
+            "Sound · FROZEN",
+            "Assets · FROZEN",
+            "Design Evidence · FROZEN",
+            "Runtime · PARTIAL",
+            "Privacy Policy / User Agreement Legal Copy · LEGAL_REVIEW_REQUIRED",
+            "Forgot Password / Export / Delete · DEFERRED"
+          ]
         }
       ],
       "hifi_views": [
         {
           "id": "01_login_register",
           "title": "01 · 登录与注册",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/README.md",
-          "summary": "当前登录与注册各有独立 Frozen Authority；忘记密码保留为一个 Deferred 工作区，生产仅 entry-only / Coming Soon。",
+          "summary": "登录 / 注册设计已冻结；忘记密码为明确 DEFERRED 产品状态，不构成未完成设计。",
           "menu_points": [
             "01A · 登录 · FROZEN",
             "01B · 注册 · FROZEN",
-            "01C · 忘记密码 · MVP DEFERRED"
+            "01C · 忘记密码 · DEFERRED"
           ],
           "children": [
             {
@@ -6123,15 +6146,15 @@
         {
           "id": "05_legal_about",
           "title": "05 · 法律与关于",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/legal/README.md",
-          "summary": "05A About 页面设计已冻结；05B/05C 共用 Legal Document Shell V1，Visual/Content Architecture 已冻结；Privacy Policy / User Agreement 最终法律正文仍为 LEGAL_REVIEW_REQUIRED。",
+          "summary": "法律与关于页面设计已冻结。Privacy Policy / User Agreement 共用 Frozen Legal Document Shell，Content Architecture 已冻结；最终 Legal Copy 继续由独立 LEGAL_REVIEW_REQUIRED Gate 管理。",
           "menu_points": [
             "05A · 关于渔见 · FROZEN",
-            "05B · 隐私政策 · VISUAL FROZEN / LEGAL COPY REVIEW REQUIRED",
-            "05C · 用户协议 · VISUAL FROZEN / LEGAL COPY REVIEW REQUIRED"
+            "05B · 隐私政策 · DESIGN FROZEN / LEGAL COPY REVIEW REQUIRED",
+            "05C · 用户协议 · DESIGN FROZEN / LEGAL COPY REVIEW REQUIRED"
           ],
           "children": [
             {
@@ -6160,9 +6183,9 @@
               "id": "05b",
               "code": "05B",
               "title": "05B · 隐私政策",
-              "status": "PARTIAL",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/legal/Privacy_Policy_Content_Draft_V1.md",
-              "summary": "隐私政策页面 Shell / Visual 已冻结，正文结构也已冻结；最终 Legal Copy 仍待法务审查，不可标记为正式生效版本。",
+              "summary": "隐私政策页面 Shell / Visual 已冻结，正文结构已冻结；页面 Design FROZEN。最终 Legal Copy 仍待法务审查，不可标记为正式生效版本。",
               "menu_group": "visual",
               "render_mode": "account_privacy_gallery",
               "supporting_visual_references": [
@@ -6177,26 +6200,27 @@
               "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
               "behavior_status": "FROZEN",
               "visual_status": "FROZEN",
-              "content_status": "PARTIAL",
+              "content_status": "FROZEN",
               "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
               "legal_gate": "Final production legal copy requires approved operator/entity, effective date/version, contact channel, actual vendor/SDK/data-flow disclosure and jurisdiction-specific legal review.",
               "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
               "visual_authority_mode": "COMPOSITE_BASE_PLUS_SHARED_LEGAL_SHELL",
               "visual_adjustment_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
-              "visual_authority_trusted": true
+              "visual_authority_trusted": true,
+              "design_status": "FROZEN"
             },
             {
               "id": "05c",
               "code": "05C",
               "title": "05C · 用户协议",
-              "status": "PARTIAL",
+              "status": "FROZEN",
               "authority": "design/pages/account_privacy/legal/User_Agreement_Content_Draft_V1.md",
-              "summary": "用户协议不再缺 Visual Authority：复用 Shared Legal Document Shell V1，不需要再生成一张几乎相同的高保图。Content Architecture 已冻结，最终 Legal Copy 仍待法务审查。",
+              "summary": "用户协议不再缺 Visual Authority：复用 Shared Legal Document Shell V1，不需要再生成一张几乎相同的高保图。Content Architecture 已冻结；页面 Design FROZEN。最终 Legal Copy 仍待法务审查。",
               "menu_group": "visual",
               "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
               "behavior_status": "FROZEN",
               "visual_status": "FROZEN",
-              "content_status": "PARTIAL",
+              "content_status": "FROZEN",
               "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
               "legal_gate": "Final production user agreement requires counsel approval for operator/entity, effective date/version, governing law/dispute terms, minors, liability and contact details.",
               "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
@@ -6212,7 +6236,8 @@
                   "role": "FROZEN SHARED SHELL BASE · NOT USER AGREEMENT COPY",
                   "scope": "仅作为法律长文本页视觉壳；用户协议正文由 User_Agreement_Content_Draft_V1.md 管理，最终文本需法务批准。"
                 }
-              ]
+              ],
+              "design_status": "FROZEN"
             }
           ]
         }
@@ -6629,8 +6654,9 @@
           "note": "Current runtime copy is placeholder and still includes LEGAL_COPY_REVIEW_REQUIRED."
         },
         "evidence": {
-          "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/legal/README.md"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md",
+          "note": "Design authority is closed through canonical 05C. Final legal wording remains an external legal-review gate."
         },
         "assets": {
           "status": "FROZEN",
@@ -6647,7 +6673,7 @@
           "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -6668,7 +6694,7 @@
         }
       ],
       "navigation_hidden": true,
-      "note": "Hidden compatibility alias. Canonical User Agreement design authority now lives under account_privacy_v1 → 05C. Shared Legal Document Shell and content architecture are frozen; final production Legal Copy remains LEGAL_REVIEW_REQUIRED. Do not create a duplicate top-level User Agreement design module."
+      "note": "Hidden compatibility alias. Canonical User Agreement design authority lives under account_privacy_v1 → 05C. Shared Legal Document Shell and content architecture are FROZEN; final production Legal Copy remains LEGAL_REVIEW_REQUIRED. Runtime remains separate."
     }
   ],
   "design_manager": {
