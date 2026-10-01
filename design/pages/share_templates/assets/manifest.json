@@ -1,0 +1,113 @@
+{
+  "id": "share_templates_recovered_assets_v1",
+  "status": "PARTIAL",
+  "source_policy": "Historical existing images only. No image generation. Repository previews are non-cropped web-display derivatives of existing PNGs.",
+  "preview_transform": {
+    "width": 320,
+    "format": "WEBP",
+    "quality": 74,
+    "method": 6,
+    "crop": false,
+    "creative_edit": false
+  },
+  "assets": [
+    {
+      "id": "t01_01",
+      "template": "T01",
+      "source_name": "千岛湖九月钓鱼战绩 инфографик.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2177105,
+      "source_sha256": "6b15748eb2cc19cadd9fe2f91a8707ce2a89501ffd717ffcb719b059ea87a0f7",
+      "preview": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
+      "preview_sha256": "6de38d53cf645e8b5d55d7b1142ec51cdebbbb345ae0aaf6e58d3bbb9e51eefa",
+      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN"
+    },
+    {
+      "id": "t01_02",
+      "template": "T01",
+      "source_name": "千岛湖九月战绩·渔见奢华玻璃卡.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2597137,
+      "source_sha256": "1b660a9915fbc28ec330a8d2d4808ef22e184841ac62aa851b1085b7d68a5137",
+      "preview": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
+      "preview_sha256": "afa0e6224b52e1412da8fcb5bfdcdc57ac98acd7a0f665905490233b7680d993",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN"
+    },
+    {
+      "id": "t02_01",
+      "template": "T02",
+      "source_name": "千岛湖九月垂钓记.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2193129,
+      "source_sha256": "153a7ca632b9481ef2c2b63cea6767144292e1ad513b77e79851e9e6e859c3f2",
+      "preview": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
+      "preview_sha256": "071192e3d044a0828d8c21aa1a5e3b32c0c0a7231126ac2d7d859eb92c34993a",
+      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN"
+    },
+    {
+      "id": "t02_02",
+      "template": "T02",
+      "source_name": "千岛湖水边故事垂钓纪念卡.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2102077,
+      "source_sha256": "9bc3d3a4b326de7bfc3df849fe9a51bfa0868501f21cad8cd7e27b2b26bb3cdf",
+      "preview": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
+      "preview_sha256": "be538485f14d5bcd7dd418da2a3a160156aadb114f37089a346a8bc154239eda",
+      "role": "HISTORICAL ITERATION · NOT FROZEN"
+    },
+    {
+      "id": "t02_03",
+      "template": "T02",
+      "source_name": "千岛湖九月水边故事.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2483802,
+      "source_sha256": "cd0b5f4d91c1e1fc113dc4f1cf448ea7f8a1dff186630ae01f797e2111b5b432",
+      "preview": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
+      "preview_sha256": "68e79be976b05819933dc7cb5398b0362b18f5f4a4c2241e71bc0a1bdf31e569",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN"
+    },
+    {
+      "id": "t02_04",
+      "template": "T02",
+      "source_name": "水边故事：千岛湖九月垂钓记.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2500445,
+      "source_sha256": "cd5a447dd6d4b60339229708591c43ae8954c9394c88edceb244146c5212ce7f",
+      "preview": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
+      "preview_sha256": "b074eadfbacbd868af33d7e8690d4bdeebd6410df9842baa45aab0c453f960da",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN"
+    },
+    {
+      "id": "t02_05",
+      "template": "T02",
+      "source_name": "千岛湖九月钓鱼故事.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2430329,
+      "source_sha256": "9e6046d21b6a113e5767888e30eee2bda91506c75df1ddb51ecbc3be0e594095",
+      "preview": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
+      "preview_sha256": "86db270a31aa426430693af8550e3e635163fa29523bba81d355b702a5e89455",
+      "role": "HISTORICAL ITERATION · NOT FROZEN"
+    }
+  ]
+}
