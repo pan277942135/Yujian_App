@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.SystemClock
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,8 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.FishInputAssessment
@@ -38,6 +35,8 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.identify.RecognitionContentScaleMode
+import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
@@ -240,14 +239,27 @@ private fun RecognitionPhoto(
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
-    val transform = calculateRecognitionImageTransform(with(density) { maxWidth.toPx() }, with(density) { maxHeight.toPx() }, bitmap.width, bitmap.height)
+    val transform = remember(bitmap, maxWidth, maxHeight, density) {
+        calculateRecognitionImageTransform(
+            containerWidth = with(density) { maxWidth.toPx() },
+            containerHeight = with(density) { maxHeight.toPx() },
+            imageWidth = bitmap.width,
+            imageHeight = bitmap.height,
+            contentScaleMode = RecognitionContentScaleMode.CROP,
+        )
+    }
     if (onFishFocusTransform != null) {
         LaunchedEffect(transform, onFishFocusTransform) {
             onFishFocusTransform(transform)
         }
     }
     // The captured image is opaque on the first Recognition frame; only visual overlays animate.
-    Image(bitmap.asImageBitmap(), "正在识别的鱼获照片", Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+    RecognitionSourcePhoto(
+        bitmap = bitmap.asImageBitmap(),
+        transform = transform,
+        contentDescription = "正在识别的鱼获照片",
+        modifier = Modifier.fillMaxSize(),
+    )
     RecognitionAmbientField(
         phase, Modifier.fillMaxSize(), visualClockOverrideMs,
         lowPerformance = motionPolicy.lowPerformance,

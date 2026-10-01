@@ -647,16 +647,16 @@ private fun DrawScope.drawCompositePrimary(
     drawPath(
         path,
         filament.color.copy(
-            alpha = (.065f * common * quality.outer).coerceAtMost(.07f),
+            alpha = (.04f * common * quality.outer).coerceAtMost(.055f),
         ),
-        style = stroke(20.dp),
+        style = stroke(10.dp),
     )
     drawPath(
         path,
         filament.color.copy(
-        alpha = (.12f * common * quality.mid).coerceAtMost(.13f),
+        alpha = (.075f * common * quality.mid).coerceAtMost(.10f),
         ),
-        style = stroke(5.dp),
+        style = stroke(4.dp),
     )
     drawPath(
         path,

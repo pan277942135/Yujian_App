@@ -21,6 +21,28 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlin.math.PI
 import kotlin.math.sin
 
+internal fun recognitionOutlineHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return .15f
+    val elapsed = phaseElapsedMs.coerceAtLeast(0L)
+    val envelope = when {
+        elapsed < OUTLINE_HALO_ATTACK_MS -> smoothFraction(elapsed.toFloat() / OUTLINE_HALO_ATTACK_MS)
+        elapsed < OUTLINE_HALO_SETTLE_MS -> 1f - smoothFraction(
+            (elapsed - OUTLINE_HALO_ATTACK_MS).toFloat() /
+                (OUTLINE_HALO_SETTLE_MS - OUTLINE_HALO_ATTACK_MS),
+        )
+        else -> 0f
+    }
+    return .10f + .08f * envelope
+}
+
+private fun smoothFraction(value: Float): Float {
+    val t = value.coerceIn(0f, 1f)
+    return t * t * (3f - 2f * t)
+}
+
+private const val OUTLINE_HALO_ATTACK_MS = 120L
+private const val OUTLINE_HALO_SETTLE_MS = 420L
+
 data class RecognitionContourSegment(
     val startX: Float,
     val startY: Float,
@@ -127,10 +149,12 @@ fun RecognitionFishFocus(
                 .5f
             }
 
-        val haloTarget = when {
-            reduceMotion -> .15f
-            phase == RecognitionPhase.OUTLINE -> .16f
-            else -> .12f + .06f * wave
+        val haloTarget = if (phase == RecognitionPhase.OUTLINE) {
+            recognitionOutlineHaloAlpha(phaseElapsedMs, reduceMotion)
+        } else if (reduceMotion) {
+            .15f
+        } else {
+            .12f + .06f * wave
         }
         val contourCoreTarget = when {
             reduceMotion -> .39f
@@ -141,7 +165,7 @@ fun RecognitionFishFocus(
         // A real detector box is already enough to acknowledge the fish. Show
         // its local receiving halo on the first OUTLINE frame; contour detail
         // continues to reveal independently as Level A data arrives.
-        val haloReveal = if (phase == RecognitionPhase.OUTLINE) maxOf(.72f, reveal) else reveal
+        val haloReveal = if (phase == RecognitionPhase.OUTLINE) reveal.coerceAtLeast(.72f) else reveal
         val haloAlpha = haloTarget * haloReveal * resolveStrength
 
         val radiusScale =
@@ -224,20 +248,10 @@ fun RecognitionFishFocus(
             drawPath(
                 realContour,
                 Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .20f).coerceAtMost(.09f),
+                    alpha = (coreAlpha * .42f).coerceAtMost(.18f),
                 ),
                 style = Stroke(
-                    width = 9.dp.toPx(),
-                    cap = StrokeCap.Round,
-                ),
-            )
-            drawPath(
-                realContour,
-                Color(0xFFFFDE9B).copy(
-                    alpha = (coreAlpha * .50f).coerceAtMost(.21f),
-                ),
-                style = Stroke(
-                    width = 3.6.dp.toPx(),
+                    width = 8.dp.toPx(),
                     cap = StrokeCap.Round,
                 ),
             )
@@ -247,7 +261,7 @@ fun RecognitionFishFocus(
                     alpha = coreAlpha.coerceAtMost(.42f),
                 ),
                 style = Stroke(
-                    width = 1.4.dp.toPx(),
+                    width = 1.5.dp.toPx(),
                     cap = StrokeCap.Round,
                 ),
             )

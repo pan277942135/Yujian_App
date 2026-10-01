@@ -11,11 +11,11 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -40,9 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -54,6 +53,9 @@ import com.yujian.ai.R
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.home.HomeCameraButton
+import com.yujian.ai.ui.identify.RecognitionContentScaleMode
+import com.yujian.ai.ui.identify.RecognitionSourcePhoto
+import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import kotlinx.coroutines.launch
 
 private const val CameraPermissionHint = "相机权限未开启，你仍然可以从相册选择照片"
@@ -254,12 +256,23 @@ fun IdentifyScreen(
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val displayedPhoto = handoffImage
         if (displayedPhoto != null) {
-            Image(
-                bitmap = displayedPhoto.bitmap.asImageBitmap(),
-                contentDescription = "刚拍下的鱼获",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
-            )
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val density = LocalDensity.current
+                val transform = remember(displayedPhoto.imageId, maxWidth, maxHeight, density) {
+                    calculateRecognitionImageTransform(
+                        containerWidth = with(density) { maxWidth.toPx() },
+                        containerHeight = with(density) { maxHeight.toPx() },
+                        imageWidth = displayedPhoto.bitmap.width,
+                        imageHeight = displayedPhoto.bitmap.height,
+                        contentScaleMode = RecognitionContentScaleMode.CROP,
+                    )
+                }
+                RecognitionSourcePhoto(
+                    bitmap = displayedPhoto.bitmap.asImageBitmap(),
+                    transform = transform,
+                    contentDescription = "刚拍下的鱼获",
+                )
+            }
         } else if (loading) {
             // A neutral handoff frame prevents a stale CameraX frame or the
             // previous SelectedImage from flashing while the new gallery
