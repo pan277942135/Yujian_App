@@ -12,7 +12,17 @@
       1491,
       1055
     ],
-    "note": "Approved first high-fidelity board. It is authoritative for layout and visual state depiction; business validation semantics are governed by backend/machine/development contracts."
+    "note": "Approved first high-fidelity board. It is authoritative for layout and visual state depiction; business validation semantics are governed by backend/machine/development contracts.",
+    "integrity_status": "FROZEN",
+    "git_blob_sha": "250d59f8317043003f38d939507dc6a085ca9f21",
+    "bytes": 123202,
+    "derivation": {
+      "encoder": "Pillow WebP",
+      "pillow_version": "12.3.0",
+      "quality": 45,
+      "method": 6,
+      "note": "Recorded after byte-identical recovery; these parameters reproduce the originally frozen WebP SHA-256 exactly from the approved source PNG."
+    }
   },
   "backend_authority": {
     "repository": "pan277942135/Yujian",

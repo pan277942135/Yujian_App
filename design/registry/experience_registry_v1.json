@@ -5470,7 +5470,7 @@
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "Active MVP main path and Legal/About page shells are FROZEN. Package visual remains PARTIAL because Nickname visual integrity is BLOCKED_INTEGRITY."
+          "note": "Active MVP main path, My/Profile, Account Security, Data & Privacy, and Legal/About visual shells have frozen authorities. Nickname visual integrity is recovered and no longer blocks design."
         },
         "motion": {
           "status": "MISSING",
@@ -5495,10 +5495,10 @@
         "assets": {
           "status": "PARTIAL",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "note": "The original manifest.json remains the historical 23-asset inventory; this V2 manifest classifies current, legacy, deferred and missing authorities."
+          "note": "Current/legacy/deferred authorities are classified in authority_manifest_v2.json. Nickname Frozen WebP integrity is restored and verified."
         }
       },
-      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is frozen; final legal copy remains LEGAL_REVIEW_REQUIRED. Edit Profile behavior/state/interaction is now fully frozen; the remaining Edit Profile design blocker is Nickname visual integrity. Deferred flows remain explicit.",
+      "note": "Design status: PARTIAL overall. Active MVP main path is DESIGN FROZEN. Legal/About page design is frozen; final production legal copy remains LEGAL_REVIEW_REQUIRED. Edit Profile design authority is now fully FROZEN, including recovered Nickname visual integrity. Deferred flows remain explicit.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5583,16 +5583,6 @@
             "AI 模型改进 · Consent Spec V1 + existing Enable/Disable PNGs",
             "位置权限 · Location Privacy Spec V1 + existing Info/Denied PNGs",
             "Composite override authority: Active_Path_Visual_Adjustment_Authority_V1.md"
-          ]
-        },
-        {
-          "id": "integrity_blocked",
-          "title": "INTEGRITY BLOCKED",
-          "status": "BLOCKED_INTEGRITY",
-          "summary": "The design/behavior contract exists, but the current repository visual binary does not match the declared frozen fingerprint. Do not regenerate or re-encode it; recover the originally approved byte-identical source.",
-          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "points": [
-            "Nickname Edit V1 · visual binary SHA mismatch"
           ]
         },
         {
@@ -5764,16 +5754,16 @@
         {
           "id": "02_my_profile",
           "title": "02 · 我的与资料",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/account_privacy/README.md",
-          "summary": "My、编辑资料首页、头像修改均已 FROZEN；Edit Profile 的 Save/Edge/Interaction 规则已统一冻结。仅 Nickname Visual Integrity 仍为 BLOCKED_INTEGRITY。",
+          "summary": "My、编辑资料首页、头像修改、昵称编辑均已 FROZEN；Edit Profile 的 Save/Edge/Interaction 规则也已统一冻结。",
           "menu_points": [
             "02A · 我的 · FROZEN",
             "02B · 编辑资料首页 · FROZEN",
             "02C · 头像修改 · FROZEN",
-            "02D · 昵称编辑 · BLOCKED_INTEGRITY"
+            "02D · 昵称编辑 · FROZEN"
           ],
           "children": [
             {
@@ -5835,10 +5825,10 @@
               "id": "02d",
               "code": "02D",
               "title": "02D · 昵称编辑",
-              "status": "BLOCKED_INTEGRITY",
+              "status": "FROZEN",
               "authority_type": "visual",
               "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
-              "summary": "Nickname Edit V1 的行为 / Machine / Development Contract 仍有效，但当前仓库 Frozen WebP SHA 与冻结 manifest 声明不一致。Visual integrity BLOCKED；禁止重新生成或重编码替代批准源。",
+              "summary": "Nickname Edit V1 已恢复可信 Frozen Visual Authority。批准源与仓库 WebP 均完成 byte-identical integrity verification；Behavior / Machine / Development Contract 同为 FROZEN。",
               "menu_group": "visual",
               "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
               "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
@@ -6416,17 +6406,17 @@
     {
       "id": "profile_edit_v1",
       "owner_path": "design/pages/account_privacy/My/Edit_Profile",
-      "overall": "PARTIAL",
+      "overall": "ACTIVE_CLOSURE",
       "modalities": {
         "behavior": {
           "status": "FROZEN",
           "authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
-          "note": "01–03 dedicated contracts plus Edit_Profile_State_Interaction_Spec_V1 freeze all current Edit Profile state/interaction behavior. Nickname visual integrity remains an independent asset gate."
+          "note": "01–03 dedicated contracts plus Edit_Profile_State_Interaction_Spec_V1 freeze all current Edit Profile state/interaction behavior."
         },
         "visual": {
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 Edit Profile Home and 02 Avatar are trusted FROZEN visuals. 03 Nickname visual is BLOCKED_INTEGRITY. 04–06 are behavior/state authorities and intentionally require no standalone visual assets."
+          "note": "01 Edit Profile Home, 02 Avatar and 03 Nickname are trusted FROZEN visuals. 04–06 are behavior/state authorities and intentionally require no standalone visual assets."
         },
         "motion": {
           "status": "FROZEN",
@@ -6452,22 +6442,22 @@
           "authority": null
         },
         "assets": {
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01–02 exact frozen assets are trusted; 03 Nickname asset identity remains BLOCKED_INTEGRITY; 04–06 require no standalone assets."
+          "note": "01–03 exact frozen assets are integrity-verified; 04–06 require no standalone assets."
         }
       },
       "display_name": "编辑资料",
       "design_versions": [
         {
           "version": "V1.1",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "current": true,
           "spec_authority": "design/pages/account_privacy/My/Edit_Profile/README.md",
-          "note": "01 Home / 02 Avatar visual frozen; 03 Nickname behavior frozen but visual integrity blocked; 04–06 state/edge/interaction fully frozen through unified contract."
+          "note": "All current Edit Profile design authorities are frozen. Nickname Visual Authority was recovered byte-identically and verified; Runtime/Evidence remain separate."
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -6495,7 +6485,7 @@
           "note": "02 头像来源动作复用 Icon Action V1；03 昵称 Clear 使用 CONTEXT / ON_LIGHT。"
         }
       ],
-      "note": "编辑资料 V1：Behavior/State/Interaction 已全部 FROZEN；01 · 编辑资料首页、02 · 头像修改 Visual FROZEN；03 · 昵称编辑 Behavior FROZEN 但 Visual Integrity = BLOCKED_INTEGRITY。04–06 已统一冻结到 Edit_Profile_State_Interaction_Spec_V1.md，不再是独立待设计项。Runtime parity remains separate.",
+      "note": "编辑资料 V1 Design Authority 已完整 FROZEN：01 编辑资料首页、02 头像修改、03 昵称编辑 Visual/Behavior 均已冻结，04–06 State/Edge/Interaction 已统一冻结。Nickname 原批准源与 Frozen WebP 已 byte-identical 恢复并通过 SHA-256 + Git blob 双重验证。Runtime / Evidence 继续独立收口。",
       "hifi_views": [
         {
           "id": "01_profile_home",
@@ -6537,10 +6527,10 @@
         {
           "id": "03_nickname_edit",
           "title": "03 · 昵称编辑",
-          "status": "BLOCKED_INTEGRITY",
+          "status": "FROZEN",
           "authority_type": "visual",
           "authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/README.md",
-          "summary": "昵称编辑 V1 已冻结并恢复第一张产品定稿 Visual Authority；视觉负责布局/状态呈现，真实校验由 Machine/Development/Backend Contract 冻结为 trim 后 1–20 字符。 Visual binary identity mismatch unresolved; design/behavior contract remains frozen but visual parity is blocked.",
+          "summary": "昵称编辑 V1 已完整 FROZEN：第一张产品批准源已找回，Frozen WebP 以原 SHA-256 / Git blob identity 恢复；真实校验仍以 Backend + Machine + Development Contract 的 trim 后 1–20 字符为准。",
           "menu_points": [
             "Default",
             "Focus",
