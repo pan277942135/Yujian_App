@@ -3341,6 +3341,362 @@
       }
     },
     {
+      "id": "share_templates_v1",
+      "owner_path": "design/pages/share_templates",
+      "display_name": "分享模板",
+      "overall": "PARTIAL",
+      "design_overall": "PARTIAL",
+      "modalities": {
+        "behavior": {
+          "status": "FROZEN",
+          "authority": "design/pages/share_templates/01_Product_Model_V1.md",
+          "note": "V1 = T01 战绩卡 + T02 水边故事；模板类型与时间范围独立。早期 P08 六时间类别模板模型已 DEPRECATED。"
+        },
+        "visual": {
+          "status": "PARTIAL",
+          "authority": "design/pages/share_templates/assets/manifest.json",
+          "note": "已恢复 7 张真实历史高保迭代，并以无裁切展示缩略图放入 Design Manager。未找到可证明某一二进制为唯一最终批准稿的证据，因此不假标 Visual FROZEN。"
+        },
+        "motion": {
+          "status": "PARTIAL",
+          "authority": null,
+          "note": "未恢复到独立、可信的分享模板 Motion Authority；本轮不自行补设计。"
+        },
+        "haptic": {
+          "status": "PARTIAL",
+          "authority": null,
+          "note": "未恢复到独立、可信的分享模板 Haptic Authority；本轮不自行补设计。"
+        },
+        "sound": {
+          "status": "PARTIAL",
+          "authority": null,
+          "note": "未恢复到独立、可信的分享模板 Sound Authority；本轮不自行补设计。"
+        },
+        "runtime": {
+          "status": "RUNTIME_ONLY",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/ShareCenterScreen.kt",
+          "note": "历史 P08 Runtime：六 period chips + 非 SINGLE 硬编码示例统计 + text/plain Sharesheet。只作为历史实现证据，不覆盖当前设计 Authority。"
+        },
+        "evidence": {
+          "status": "PARTIAL",
+          "authority": "design/pages/share_templates/assets/manifest.json",
+          "note": "历史视觉源的文件名、尺寸、原 PNG SHA-256 与仓库展示缩略图 SHA-256 已登记。唯一最终 Visual Authority 尚未确认。"
+        },
+        "assets": {
+          "status": "PARTIAL",
+          "authority": "design/pages/share_templates/assets/manifest.json",
+          "note": "已有 7 张历史高保来源已恢复并展示；仓库仅保存非裁切 WebP 展示缩略图，原 PNG identity 通过 manifest 记录。"
+        }
+      },
+      "note": "分享模板既有设计已系统性恢复到 Design Manager。当前产品模型为 T01 战绩卡 / T02 水边故事，时间范围与模板解耦；行为与数据规则已冻结。7 张既有视觉迭代全部保留展示，不新生成图片、不伪造最终视觉冻结。",
+      "design_versions": [
+        {
+          "version": "P08 EARLY",
+          "status": "DEPRECATED",
+          "current": false,
+          "runtime_authority": "app/src/main/java/com/yujian/ai/ui/screens/ShareCenterScreen.kt",
+          "note": "历史六类别：单条 / 今日 / 本周 / 本月 / 本年 / 累计。已被 V1 两模板 × 时间范围模型取代。"
+        },
+        {
+          "version": "V1",
+          "status": "PARTIAL",
+          "current": true,
+          "spec_authority": "design/pages/share_templates/README.md",
+          "asset_manifest": "design/pages/share_templates/assets/manifest.json",
+          "note": "T01/T02 当前产品模型；Behavior/Data/Interaction/Responsive specs 已整理，Visual 最终选版仍待明确批准。"
+        }
+      ],
+      "shared_system_refs": [
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        },
+        {
+          "id": "action_button_v1",
+          "note": "分享/导出主动作继续消费 Shared Action Button；本模块不新建按钮体系。"
+        }
+      ],
+      "design_sections": [
+        {
+          "id": "ST-01",
+          "title": "CURRENT PRODUCT MODEL",
+          "status": "FROZEN",
+          "summary": "分享模板 V1 收敛为两类固定模板，时间范围独立选择。",
+          "authority": "design/pages/share_templates/01_Product_Model_V1.md",
+          "points": [
+            "T01 · 战绩卡",
+            "T02 · 水边故事",
+            "时间范围：今天 / 本周 / 本月 / 自定义",
+            "Template × Time Range"
+          ]
+        },
+        {
+          "id": "ST-02",
+          "title": "RECOVERED EXISTING VISUALS",
+          "status": "PARTIAL",
+          "summary": "7 张历史高保已恢复展示；全部是既有视觉，不是本轮新生成。因无可靠证据指定唯一最终批准稿，继续保持 Visual PARTIAL。",
+          "authority": "design/pages/share_templates/assets/manifest.json",
+          "points": [
+            "T01 · 2 个历史版本",
+            "T02 · 5 个历史版本",
+            "原 PNG SHA-256 已登记",
+            "仓库 WebP 仅为展示缩略图"
+          ]
+        },
+        {
+          "id": "ST-03",
+          "title": "SUPERSEDED P08 MODEL",
+          "status": "DEPRECATED",
+          "summary": "旧 Runtime 将单条/今日/本周/本月/本年/累计作为六个模板类别；现仅保留历史证据。",
+          "authority": "app/src/main/java/com/yujian/ai/ui/screens/ShareCenterScreen.kt",
+          "points": [
+            "单条",
+            "今日",
+            "本周",
+            "本月",
+            "本年",
+            "累计"
+          ]
+        }
+      ],
+      "hifi_views": [
+        {
+          "id": "01_overview",
+          "code": "01",
+          "title": "01 · 总览与产品模型",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "authority": "design/pages/share_templates/01_Product_Model_V1.md",
+          "summary": "V1 只保留 T01 战绩卡与 T02 水边故事；模板与时间范围独立。旧 P08 六时间类别模型正式降为历史。",
+          "menu_points": [
+            "T01 · 战绩卡",
+            "T02 · 水边故事",
+            "今天 / 本周 / 本月 / 自定义",
+            "模板 × 时间范围",
+            "P08 六时间类别 · DEPRECATED"
+          ]
+        },
+        {
+          "id": "02_t01",
+          "code": "02",
+          "title": "02 · T01 · 战绩卡",
+          "status": "PARTIAL",
+          "authority_type": "group",
+          "authority": "design/pages/share_templates/02_T01_Achievement_Card_Spec_V1.md",
+          "summary": "战绩卡 Content/Behavior 已冻结；两张既有高保版本完整保留为视觉迭代参考，尚不指定唯一 Frozen Visual。",
+          "menu_points": [
+            "数据主导",
+            "Fish Sticker 主视觉",
+            "Top 1–3 真实鱼获",
+            "其余鱼种 × 数量",
+            "禁止虚构数据/游戏化排名"
+          ],
+          "children": [
+            {
+              "id": "02a",
+              "code": "02A",
+              "title": "02A · 九月战绩 · 自然浅色版",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
+              "summary": "既有 T01 历史高保。仓库文件为 120×213 无裁切展示缩略图；原 PNG 941×1672、SHA-256 记录于 asset manifest。不是本轮新图，不构成唯一 Frozen Visual Authority。",
+              "menu_points": [
+                "Original: 千岛湖九月钓鱼战绩 инфографик.png",
+                "Historical existing visual",
+                "No crop / no redesign",
+                "Final visual selection pending"
+              ]
+            },
+            {
+              "id": "02b",
+              "code": "02B",
+              "title": "02B · 九月战绩 · 玻璃风格迭代版",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
+              "summary": "既有 T01 金色/玻璃风格历史迭代。保留用于追溯设计演化；不自动升级为当前最终风格。",
+              "menu_points": [
+                "Original: 千岛湖九月战绩·渔见奢华玻璃卡.png",
+                "Historical style iteration",
+                "Stronger glass/gold treatment",
+                "Not final frozen"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "03_t02",
+          "code": "03",
+          "title": "03 · T02 · 水边故事",
+          "status": "PARTIAL",
+          "authority_type": "group",
+          "authority": "design/pages/share_templates/03_T02_Waterside_Story_Spec_V1.md",
+          "summary": "水边故事 Content/Behavior 已冻结；5 张既有高保迭代完整保留。当前 Authority 强调真实照片主导、轻统计、用户文案，不虚构故事。",
+          "menu_points": [
+            "1–3 张真实照片",
+            "轻统计",
+            "全部鱼种 × 数量",
+            "用户提供故事文案",
+            "禁止假视频/假字幕"
+          ],
+          "children": [
+            {
+              "id": "03a",
+              "code": "03A",
+              "title": "03A · 轻色三照片",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
+              "summary": "既有 T02 浅色编辑式三照片版本；作为当前重要候选参考保留，不假标 Frozen。",
+              "menu_points": [
+                "Original: 千岛湖九月垂钓记.png",
+                "Photo-led",
+                "Historical existing visual",
+                "Final visual selection pending"
+              ]
+            },
+            {
+              "id": "03b",
+              "code": "03B",
+              "title": "03B · 轻色双照片",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
+              "summary": "既有 T02 双照片纪念卡版本，完整保留为历史布局参考。",
+              "menu_points": [
+                "Original: 千岛湖水边故事垂钓纪念卡.png",
+                "Two-photo layout",
+                "Historical existing visual",
+                "Not final frozen"
+              ]
+            },
+            {
+              "id": "03c",
+              "code": "03C",
+              "title": "03C · 深色无字幕",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
+              "summary": "既有深色/金色 T02 迭代，无照片字幕；用于对比历史视觉方向。",
+              "menu_points": [
+                "Original: 千岛湖九月水边故事.png",
+                "Dark/gold iteration",
+                "No photo captions",
+                "Not final frozen"
+              ]
+            },
+            {
+              "id": "03d",
+              "code": "03D",
+              "title": "03D · 深色带字幕",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
+              "summary": "既有深色 T02 迭代，含照片字幕/视频标记实验；现规范明确这些元素只能由真实媒体/用户内容驱动。",
+              "menu_points": [
+                "Original: 水边故事：千岛湖九月垂钓记.png",
+                "Caption/video experiment",
+                "Current spec forbids fabricated media/copy",
+                "Not final frozen"
+              ]
+            },
+            {
+              "id": "03e",
+              "code": "03E",
+              "title": "03E · 轻色带字幕",
+              "status": "DESIGN_ONLY",
+              "authority_type": "visual",
+              "render_mode": "repo_image",
+              "authority": "design/pages/share_templates/assets/manifest.json",
+              "image": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
+              "visual_authority": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
+              "summary": "既有浅色三照片带字幕版本；保留作为历史视觉实验，不将自动文案视作真实用户记忆。",
+              "menu_points": [
+                "Original: 千岛湖九月钓鱼故事.png",
+                "Light caption iteration",
+                "User story copy required by current spec",
+                "Not final frozen"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "04_data_rules",
+          "code": "04",
+          "title": "04 · 时间范围与数据规则",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "authority": "design/pages/share_templates/04_Time_Range_Data_Rules_V1.md",
+          "summary": "时间范围与数据源规则已冻结：今天/本周/本月/自定义；所有统计来自真实 FishRecord，Missing ≠ 0。",
+          "menu_points": [
+            "今天",
+            "本周",
+            "本月",
+            "自定义",
+            "真实 FishRecord Source of Truth",
+            "Missing ≠ 0",
+            "混合地点不得伪造单一地点"
+          ]
+        },
+        {
+          "id": "05_interaction",
+          "code": "05",
+          "title": "05 · 模板选择与分享交互",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "authority": "design/pages/share_templates/05_Share_Interaction_Spec_V1.md",
+          "summary": "固定模板选择与系统分享交互已整理：Template × Time Range，明确不做自由画布编辑器。",
+          "menu_points": [
+            "Template × Time Range",
+            "固定模板",
+            "真实数据 Preview",
+            "显式分享动作",
+            "System Sharesheet",
+            "失败保留选择",
+            "No free-form editor"
+          ]
+        },
+        {
+          "id": "06_responsive",
+          "code": "06",
+          "title": "06 · 响应式与无障碍",
+          "status": "FROZEN",
+          "authority_type": "behavior",
+          "authority": "design/pages/share_templates/06_Responsive_Accessibility_V1.md",
+          "summary": "9:16 输出、比例保持、真实照片裁切边界、44dp、语义 Selected、分享反馈与 Reduce Motion 边界已整理。",
+          "menu_points": [
+            "9:16 output",
+            "Preview aspect-ratio preserved",
+            "No required-content crop",
+            "44dp targets",
+            "Selected semantics",
+            "Accessible preview summary",
+            "No decorative motion required"
+          ]
+        }
+      ]
+    },
+    {
       "id": "fish_memory_bside_v1",
       "owner_path": "design/system/core_visual_v1/reference/supplemental",
       "overall": "PARTIAL",
