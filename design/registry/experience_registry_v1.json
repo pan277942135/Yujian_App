@@ -3355,7 +3355,7 @@
         "visual": {
           "status": "PARTIAL",
           "authority": "design/pages/share_templates/assets/manifest.json",
-          "note": "已恢复 7 张真实历史高保迭代，并以无裁切展示缩略图放入 Design Manager。未找到可证明某一二进制为唯一最终批准稿的证据，因此不假标 Visual FROZEN。"
+          "note": "7 张既有历史高保原 PNG 已逐张上传并直接用于 Design Manager 高保页面；原图均为 941×1672 原始字节。没有足够证据指定唯一最终批准稿，Visual 维持 PARTIAL。"
         },
         "motion": {
           "status": "PARTIAL",
@@ -3380,15 +3380,15 @@
         "evidence": {
           "status": "PARTIAL",
           "authority": "design/pages/share_templates/assets/manifest.json",
-          "note": "历史视觉源的文件名、尺寸、原 PNG SHA-256 与仓库展示缩略图 SHA-256 已登记。唯一最终 Visual Authority 尚未确认。"
+          "note": "历史视觉源的文件名、尺寸、原 PNG SHA-256 与仓库展示缩略图 SHA-256 已登记；7 张原 PNG 已上传且作为各高保页主图。唯一最终 Visual Authority 尚未确认。"
         },
         "assets": {
           "status": "PARTIAL",
           "authority": "design/pages/share_templates/assets/manifest.json",
-          "note": "已有 7 张历史高保来源已恢复并展示；仓库仅保存非裁切 WebP 展示缩略图，原 PNG identity 通过 manifest 记录。"
+          "note": "7 张历史高保原 PNG 已逐张上传并在对应高保页面直接展示；原始文件、尺寸与 SHA-256 登记于 manifest。轻量 WebP 仅作总览缩略图。"
         }
       },
-      "note": "分享模板既有设计已系统性恢复到 Design Manager。当前产品模型为 T01 战绩卡 / T02 水边故事，时间范围与模板解耦；行为与数据规则已冻结。7 张既有视觉迭代全部保留展示，不新生成图片、不伪造最终视觉冻结。",
+      "note": "分享模板既有设计已系统性恢复到 Design Manager。当前产品模型为 T01 战绩卡 / T02 水边故事，时间范围与模板解耦；行为与数据规则已冻结。7 张历史视觉原 PNG 已上传并直接展示，不新生成图片、不伪造最终视觉冻结。",
       "design_versions": [
         {
           "version": "P08 EARLY",
@@ -3436,13 +3436,13 @@
           "id": "ST-02",
           "title": "RECOVERED EXISTING VISUALS",
           "status": "PARTIAL",
-          "summary": "7 张历史高保已恢复展示；全部是既有视觉，不是本轮新生成。因无可靠证据指定唯一最终批准稿，继续保持 Visual PARTIAL。",
+          "summary": "7 张历史高保原 PNG 已直接展示；全部是既有视觉，不是本轮新生成。因无可靠证据指定唯一最终批准稿，继续保持 Visual PARTIAL。",
           "authority": "design/pages/share_templates/assets/manifest.json",
           "points": [
             "T01 · 2 个历史版本",
             "T02 · 5 个历史版本",
-            "原 PNG SHA-256 已登记",
-            "仓库 WebP 仅为展示缩略图"
+            "原 PNG 原尺寸展示，SHA-256 已登记",
+            "WebP 仅用于轻量总览缩略图"
           ]
         },
         {
@@ -3502,9 +3502,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
-              "summary": "既有 T01 历史高保。仓库文件为 120×213 无裁切展示缩略图；原 PNG 941×1672、SHA-256 记录于 asset manifest。不是本轮新图，不构成唯一 Frozen Visual Authority。",
+              "image": "design/pages/share_templates/assets/originals/t01_01.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t01_01.png",
+              "summary": "既有 T01 历史高保。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 千岛湖九月钓鱼战绩 инфографик.png",
                 "Historical existing visual",
@@ -3522,9 +3522,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
-              "summary": "既有 T01 金色/玻璃风格历史迭代。保留用于追溯设计演化；不自动升级为当前最终风格。",
+              "image": "design/pages/share_templates/assets/originals/t01_02.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t01_02.png",
+              "summary": "既有 T01 金色/玻璃风格历史迭代。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 千岛湖九月战绩·渔见奢华玻璃卡.png",
                 "Historical style iteration",
@@ -3560,9 +3560,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
-              "summary": "既有 T02 浅色编辑式三照片版本；作为当前重要候选参考保留，不假标 Frozen。",
+              "image": "design/pages/share_templates/assets/originals/t02_01.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t02_01.png",
+              "summary": "既有 T02 浅色编辑式三照片版本；作为当前重要候选参考保留，不假标 Frozen。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 千岛湖九月垂钓记.png",
                 "Photo-led",
@@ -3580,9 +3580,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
-              "summary": "既有 T02 双照片纪念卡版本，完整保留为历史布局参考。",
+              "image": "design/pages/share_templates/assets/originals/t02_02.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t02_02.png",
+              "summary": "既有 T02 双照片纪念卡版本，完整保留为历史布局参考。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 千岛湖水边故事垂钓纪念卡.png",
                 "Two-photo layout",
@@ -3600,9 +3600,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
-              "summary": "既有深色/金色 T02 迭代，无照片字幕；用于对比历史视觉方向。",
+              "image": "design/pages/share_templates/assets/originals/t02_03.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t02_03.png",
+              "summary": "既有深色/金色 T02 迭代，无照片字幕；用于对比历史视觉方向。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 千岛湖九月水边故事.png",
                 "Dark/gold iteration",
@@ -3620,9 +3620,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
-              "summary": "既有深色 T02 迭代，含照片字幕/视频标记实验；现规范明确这些元素只能由真实媒体/用户内容驱动。",
+              "image": "design/pages/share_templates/assets/originals/t02_04.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t02_04.png",
+              "summary": "既有深色 T02 迭代，含照片字幕/视频标记实验；现规范明确这些元素只能由真实媒体/用户内容驱动。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 水边故事：千岛湖九月垂钓记.png",
                 "Caption/video experiment",
@@ -3640,9 +3640,9 @@
               "authority_type": "visual",
               "render_mode": "repo_image",
               "authority": "design/pages/share_templates/assets/manifest.json",
-              "image": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
-              "visual_authority": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
-              "summary": "既有浅色三照片带字幕版本；保留作为历史视觉实验，不将自动文案视作真实用户记忆。",
+              "image": "design/pages/share_templates/assets/originals/t02_05.png",
+              "visual_authority": "design/pages/share_templates/assets/originals/t02_05.png",
+              "summary": "既有浅色三照片带字幕版本；保留作为历史视觉实验，不将自动文案视作真实用户记忆。Design Manager 直接展示已上传的 941×1672 原 PNG（字节未修改）；这是既有历史迭代，不构成唯一 Frozen Visual Authority。",
               "menu_points": [
                 "Original: 千岛湖九月钓鱼故事.png",
                 "Light caption iteration",
