@@ -5,6 +5,7 @@ import android.os.ParcelFileDescriptor
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -17,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeLeft
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.RemoteCatch
@@ -102,7 +104,15 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
         saveScreenshot("fish_guide_lit.png")
 
-        swipeCarouselToSelectedSpecies("鲫鱼")
+        swipeCarouselToSelectedSpecies(
+
+            fromName = "草鱼",
+
+            name = "鲫鱼",
+
+            expectedPage = 1,
+
+        )
         composeRule.onNodeWithText("尚未点亮").assertIsDisplayed()
         saveScreenshot("fish_guide_unlit.png")
         composeRule.onNodeWithText("鲫鱼").performClick()
@@ -150,10 +160,16 @@ class FishGuideRuntimeTest {
                     onSpeciesClick = {},
                 )
             }
+            waitForSelectedSpecies(name = "草鱼", expectedPage = 0)
             composeRule.mainClock.advanceTimeBy(1300)
-            composeRule.waitForIdle()
-            assertFalse(prefs.getBoolean("carousel_discover_hint_shown", false))
-            swipeCarouselToSelectedSpecies("鲫鱼")
+            composeRule.runOnIdle {
+                assertFalse(prefs.getBoolean("carousel_discover_hint_shown", false))
+            }
+            swipeCarouselToSelectedSpecies(
+                fromName = "草鱼",
+                name = "鲫鱼",
+                expectedPage = 1,
+            )
         } finally {
             shell("settings put global animator_duration_scale $animatorScale")
             shell("settings put global transition_animation_scale $transitionScale")
@@ -423,52 +439,56 @@ class FishGuideRuntimeTest {
         bitmap.recycle()
     }
 
-    private fun swipeCarouselToSelectedSpecies(name: String) {
-        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
+    private fun swipeCarouselToSelectedSpecies(
+        fromName: String,
+        name: String,
+        expectedPage: Int,
+    ) {
+        waitForSelectedSpecies(name = fromName, expectedPage = expectedPage - 1)
+
+        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput {
+            val start = Offset(size.width * 0.84f, size.height * 0.5f)
+            val end = Offset(size.width * 0.16f, size.height * 0.5f)
+            swipe(start = start, end = end, durationMillis = 1_100L)
+        }
+
+        waitForSelectedSpecies(name = name, expectedPage = expectedPage)
+        composeRule.onNodeWithText(name).assertIsDisplayed()
+    }
+
+    private fun waitForSelectedSpecies(name: String, expectedPage: Int) {
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            selectedSpeciesNode(name = name, expectedPage = expectedPage) != null
+        }
+
         val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
             .fetchSemanticsNode()
             .boundsInRoot
-        var lastTargetBounds = "not available"
-        var lastCenterDelta = "not available"
-        val targetCentered = runCatching {
-            composeRule.waitUntil(timeoutMillis = 5_000L) {
-                val target = composeRule.onAllNodesWithContentDescription(name)
-                    .fetchSemanticsNodes()
-                    .firstOrNull()
-                if (target == null) {
-                    lastTargetBounds = "target semantics node not found"
-                    lastCenterDelta = "not available"
-                    false
-                } else {
-                    val bounds = target.boundsInRoot
-                    val centerDelta = abs(bounds.center.x - carouselBounds.center.x)
-                    lastTargetBounds = bounds.toString()
-                    lastCenterDelta = centerDelta.toString()
-                    bounds.width > 0f && centerDelta <= bounds.width * 0.1f
-                }
-            }
-        }.isSuccess
+        val activeNode = selectedSpeciesNode(name = name, expectedPage = expectedPage)
+            ?: throw AssertionError(
+                "$name did not expose current-selected state for page $expectedPage",
+            )
+        val centerDelta = abs(activeNode.boundsInRoot.center.x - carouselBounds.center.x)
         assertTrue(
-            "Swipe did not center $name: carouselCenterX=${carouselBounds.center.x}, " +
-                "targetBounds=$lastTargetBounds, centerDeltaX=$lastCenterDelta",
-            targetCentered,
+            "Selected card $name is not centered: page=$expectedPage, " +
+                "carouselCenterX=${carouselBounds.center.x}, cardBounds=${activeNode.boundsInRoot}, " +
+                "centerDeltaX=$centerDelta",
+            activeNode.boundsInRoot.width > 0f &&
+                centerDelta <= activeNode.boundsInRoot.width * 0.1f,
         )
-
-        composeRule.waitForIdle()
-        val activeNode = composeRule.onAllNodesWithContentDescription(name)
-            .fetchSemanticsNodes()
-            .minByOrNull { abs(it.boundsInRoot.center.x - carouselBounds.center.x) }
-        val activeBounds = activeNode?.boundsInRoot
-        val stateDescription = runCatching {
-            activeNode?.config?.get(SemanticsProperties.StateDescription)
-        }.getOrNull()
-        assertTrue(
-            "Centered card $name lacks current-selected state: bounds=$activeBounds, " +
-                "carouselCenterX=${carouselBounds.center.x}, stateDescription=$stateDescription",
-            stateDescription?.contains("当前选中") == true,
-        )
-        composeRule.onNodeWithText(name).assertIsDisplayed()
     }
+
+    private fun selectedSpeciesNode(name: String, expectedPage: Int) =
+        composeRule.onAllNodesWithContentDescription(name)
+            .fetchSemanticsNodes()
+            .firstOrNull { node ->
+                val stateDescription = runCatching {
+                    node.config[SemanticsProperties.StateDescription]
+                }.getOrNull()
+                val description = stateDescription.orEmpty()
+                description.contains("第 ${expectedPage + 1} 种，共 ${species.size} 种") &&
+                    description.contains("当前选中")
+            }
 
     private fun shell(command: String) {
         val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation

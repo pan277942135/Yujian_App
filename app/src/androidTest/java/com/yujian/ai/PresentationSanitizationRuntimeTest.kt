@@ -2,11 +2,11 @@ package com.yujian.ai
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.Until
 import org.json.JSONArray
 import org.json.JSONObject
@@ -38,8 +38,7 @@ class PresentationSanitizationRuntimeTest {
         assertHome("null location")
         screenshot("01_normal_home_null_clean.png")
 
-        clickText("全部")
-        waitForText("我的鱼获")
+        clickVisibleText(sourceText = "全部", destinationText = "我的鱼获")
         assertRuntimeClean("My Catches with null location")
         assertVisible("草鱼")
         assertVisible(currentDayLabel())
@@ -47,8 +46,7 @@ class PresentationSanitizationRuntimeTest {
         assertAbsent("首次null")
         screenshot("02_my_catches_null_clean.png")
 
-        clickText("草鱼")
-        waitForText("鱼获详情")
+        clickVisibleText(sourceText = "草鱼", destinationText = "鱼获详情")
         assertRuntimeClean("FishRecordDetail with null location")
         assertVisible("草鱼")
         assertAbsent("2026-09-25T")
@@ -110,27 +108,29 @@ class PresentationSanitizationRuntimeTest {
         assertRuntimeClean("Normal Home: $label")
     }
 
-    private fun clickText(text: String) {
-        val selector = By.text(text)
-        waitForText(text)
-        repeat(3) {
-            device.waitForIdle()
-            val objectUnderTest = device.findObject(selector)
-            if (objectUnderTest == null) return@repeat
-            try {
-                val bounds = objectUnderTest.visibleBounds
-                if (!bounds.isEmpty) {
-                    assertTrue(
-                        "Expected clickable text: $text",
-                        device.click(bounds.centerX(), bounds.centerY()),
-                    )
-                    return
-                }
-            } catch (_: StaleObjectException) {
-                device.waitForIdle()
-            }
+    private fun clickVisibleText(sourceText: String, destinationText: String) {
+        val selector = By.text(sourceText).clickable(true)
+        assertTrue(
+            "Timed out waiting for clickable source: $sourceText",
+            device.wait(Until.hasObject(selector), SETTLE_MILLIS),
+        )
+
+        val candidateBounds = device.findObjects(selector).mapNotNull { candidate ->
+            runCatching { Rect(candidate.visibleBounds) }
+                .getOrNull()
+                ?.takeUnless { it.isEmpty }
         }
-        throw AssertionError("Unable to click visible text after refreshing its node: $text")
+        val targetBounds = candidateBounds.maxByOrNull {
+            it.width().toLong() * it.height().toLong()
+        } ?: throw AssertionError(
+            "No visible clickable bounds found for $sourceText",
+        )
+
+        assertTrue(
+            "Expected clickable text: $sourceText at $targetBounds",
+            device.click(targetBounds.centerX(), targetBounds.centerY()),
+        )
+        waitForText(destinationText)
     }
 
     private fun waitForText(text: String) {
