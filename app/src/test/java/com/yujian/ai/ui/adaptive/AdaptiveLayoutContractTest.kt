@@ -17,7 +17,10 @@ class AdaptiveLayoutContractTest {
         ).map { (width, height, widthClass) ->
             resolveAdaptiveLayoutProfile(width, height, 1f).also {
                 assertEquals(widthClass, it.widthClass)
-                assertEquals(AdaptiveHeightClass.TALL, it.heightClass)
+                assertEquals(
+                    if (height < 720f) AdaptiveHeightClass.STANDARD else AdaptiveHeightClass.TALL,
+                    it.heightClass,
+                )
                 assertFalse(it.accessibilityFontScale)
             }
         }
