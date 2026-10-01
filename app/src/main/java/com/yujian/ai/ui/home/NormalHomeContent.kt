@@ -64,6 +64,7 @@ private const val NormalHomeHeaderY = 104f
 private const val NormalHomeHeaderWidth = 904f
 private const val NormalHomeHeaderHeight = 104f
 private const val NormalHomeStatsY = 304f
+private const val NormalHomeStatsHeight = 116f
 private const val NormalHomeRecentHeaderY = 494f
 private const val NormalHomeRecentHeaderHeight = 70f
 private const val NormalHomeCardY = 596f
@@ -134,7 +135,8 @@ internal fun NormalHomeContent(
         Box(
             modifier = Modifier
                 .offset(y = refY(NormalHomeStatsY))
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .height(ref(NormalHomeStatsHeight)),
             contentAlignment = Alignment.Center,
         ) {
             HomeStats(
@@ -266,7 +268,7 @@ private fun NormalHomeHeader(
                         Image(
                             painter = painterResource(R.drawable.profile_fallback_v13),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().testTag("normal-home-default-profile-avatar"),
+                            modifier = Modifier.fillMaxSize(),
                         )
                     },
                 )

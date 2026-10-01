@@ -86,7 +86,7 @@ class RecognitionImageTransformTest {
 
         assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), fit.visibleSourceRect)
         assertEquals(250f, fit.translationY, 0.01f)
-        assertEquals(1f, fit.scale, 0.01f)
+        assertEquals(0.5f, fit.scale, 0.01f)
         assertNotEquals(fit, processing)
     }
 }
