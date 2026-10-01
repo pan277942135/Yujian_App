@@ -1,7 +1,7 @@
 # 账号与隐私 · Design Authority Index V2
 
-Status: **PARTIAL**
-Scope: **Design authority indexing + current MVP active-path closure**
+Status: **DESIGN FROZEN · V1.0 FINAL**
+Scope: **Final Account & Privacy design authority; Runtime / Legal Copy / Deferred activation tracked separately**
 
 本目录统一管理「账号与隐私」的现有设计来源。旧 `manifest.json` 原样保留为历史 23 项资产清单，不代表其中 22 张页面图全部是当前 Frozen Authority。
 
@@ -111,6 +111,22 @@ Before Privacy Policy or User Agreement can be marked final Legal Copy FROZEN, a
 - final liability / governing-law language.
 
 Design does not invent these legal facts.
+
+
+## Final Cross-Page Design Contracts
+
+The following four contracts complete the Account & Privacy Design System V1.0 FINAL:
+
+- `Account_Privacy_Design_Principles_V1.md` — product/design principles, authority precedence, Deferred/Legal governance and reopen rule.
+- `Account_Page_State_Model_V1.md` — read-only, editable, consent, permission, Deferred and legal state families plus loading/error/success rules.
+- `Account_Navigation_Interaction_Rules_V1.md` — Back, unsaved changes, Dialog/Bottom Sheet, Toast/inline feedback, permission handoff and navigation semantics.
+- `Account_Accessibility_Localization_V1.md` — 44dp targets, TalkBack semantics, 200% font scale, contrast, localization/text growth and legal-text requirements.
+
+Freeze marker:
+
+`ACCOUNT_PRIVACY_DESIGN_FREEZE_FINAL_V1`
+
+These contracts do not reopen page-specific frozen authorities; they remove cross-page ambiguity and govern future implementation parity.
 
 ## Shared System Dependencies
 

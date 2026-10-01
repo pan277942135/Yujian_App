@@ -1,6 +1,6 @@
 # Account & Privacy · Design Freeze Review V1
 
-Status: **FROZEN**
+Status: **FROZEN · V1.0 FINAL**
 Date: 2026-10-01
 Scope: Account & Privacy design authority only
 
@@ -24,6 +24,21 @@ It does **not** claim:
 - implementation of Deferred product flows.
 
 Those remain independent runtime/legal/product gates.
+
+## 1A. Final cross-page contracts
+
+The final freeze includes four cross-page contracts:
+
+- `Account_Privacy_Design_Principles_V1.md` — FROZEN
+- `Account_Page_State_Model_V1.md` — FROZEN
+- `Account_Navigation_Interaction_Rules_V1.md` — FROZEN
+- `Account_Accessibility_Localization_V1.md` — FROZEN
+
+These close the remaining cross-page ambiguity around state taxonomy, feedback, Back/navigation, modal usage, accessibility and localization. They do not create new pages or modify frozen images.
+
+Freeze marker:
+
+`ACCOUNT_PRIVACY_DESIGN_FREEZE_FINAL_V1`
 
 ## 2. Menu / IA
 
@@ -222,7 +237,7 @@ Reopen design only for a real versioned product/design change such as:
 
 ## 15. Final state
 
-`ACCOUNT & PRIVACY DESIGN = FROZEN`
+`ACCOUNT & PRIVACY DESIGN = FROZEN · V1.0 FINAL`
 
 `ACCOUNT & PRIVACY RUNTIME = PARTIAL`
 
