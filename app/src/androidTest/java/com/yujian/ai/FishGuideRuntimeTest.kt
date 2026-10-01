@@ -426,8 +426,8 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             composeRule.onAllNodesWithContentDescription(name).fetchSemanticsNodes().any { node ->
-                node.config.getOrNull(SemanticsProperties.StateDescription)
-                    ?.contains("当前选中") == true
+                node.config[SemanticsProperties.StateDescription]
+                    .contains("当前选中")
             }
         }
         composeRule.onNodeWithText(name).assertIsDisplayed()
