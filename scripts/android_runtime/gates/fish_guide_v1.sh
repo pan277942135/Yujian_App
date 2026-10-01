@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.FishGuideRuntimeTest'
+  printf '%s\n' 'com.yujian.ai.FishGuideRuntimeTest,com.yujian.ai.FishKnowledgeContractTest'
 }
 
 gate_collect_evidence() {
