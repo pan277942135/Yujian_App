@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P12 Shared Component Parity
+- Current phase: P14 Final Android Runtime Matrix
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -49,7 +49,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P10 Fish Guide | BLOCKED_INFRA | Source `7a496304a83995f69d8aef29251326e5e20113c1`; executable-mode follow-up `6c7ca3f1b62af65fc77ccea4507c472978016cf8` | Implementation COMPLETE; GitHub checkpoint PASS; static contract checks PASS; Design Governance #36732633936 and Empty Home V2 Design Assets #36732633780 PASS | Android runtime validation carries the shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; do not retry per phase | Continue P11 |
 | P11 Account & Privacy | BLOCKED_INFRA | Source `5d137ba5e0bde2832e9807d95d919f2426159f5f` | Implementation COMPLETE; GitHub source checkpoint PASS; static/source contract checks PASS; Android runtime tests authored under the existing `login-v2` Gate | Shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; Product/API Dependencies: recovery channel, data export endpoint, account deletion endpoint; DESIGN_GAP: User Agreement visual authority and standalone waterside-grass footer asset; legal content review required | Continue P12; carry shared blocker without retry |
 | P12 Shared Component Parity | BLOCKED_INFRA | Source `963403b1729164d4d742e150c2e021ca91978f8e` | Implementation COMPLETE; GitHub source checkpoint PASS; P12 static contract checks PASS; Design Governance #36742433784 and Empty Home V2 Design Assets #36742433851 PASS | Android CI #1202 (run `36742424049`) was created and failed before any job was created (0 jobs); carries the single `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; no per-phase retry | Continue P13 |
-| P13 Cross-Journey Integration | NOT_STARTED | — | — | — | — |
+| P13 Cross-Journey Integration | BLOCKED_INFRA | `60aa90f736d7d767ff87897bdae3ecfc9a385baf` | Logout returns to a clean Home stack; Fish Guide route rejects blank species IDs; guest migration failure preserves the local archive and gives visible feedback; journey static contract checks PASS | Android CI #1214 (`36804255986`) was created and failed before any job was created (0 jobs); carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`. Product/API dependency: no idempotent guest-archive migration key/upsert contract | Continue P14; do not retry the shared blocker |
 | P14 Final Android Runtime Matrix | NOT_STARTED | — | — | — | — |
 | P15 APK / Evidence / PR Closure | NOT_STARTED | — | — | — | — |
 
@@ -385,6 +385,18 @@ P10 has no new backend dependency. P09 edit, supplemental-media, cross-device re
 - P12 source checkpoint: `963403b1729164d4d742e150c2e021ca91978f8e`. P12 IMPLEMENTATION: COMPLETE. P12 GITHUB CHECKPOINT: PASS. P12 STATIC CONTRACT CHECKS: PASS. P12 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA.
 - Design Governance #474 (`36742433784`) and Empty Home V2 Design Assets #700 (`36742433851`) succeeded. Android CI #1202 (`36742424049`) was created and terminated before creating any job; a read-only jobs check returned 0 jobs. This is the existing shared orchestration blocker; no Android rerun or phase-specific retry was made.
 - Continue P13 Cross-Journey Integration while carrying the single shared blocker.
+
+## P13 Cross-Journey Integration checkpoint
+
+- P13 source checkpoint: `60aa90f736d7d767ff87897bdae3ecfc9a385baf`; the GitHub PR head was verified at this exact SHA.
+- Logging out now clears nested authenticated routes back to Home, preventing Back from reopening account-only pages after local session state is cleared.
+- Fish Record Detail's Fish Guide action only navigates when a nonblank species ID exists; a missing association produces a short user-facing message instead of a malformed destination.
+- Guest archive transfer failure now explains that the local archive remains visible and that the current session will not automatically retry. The local archive remains in place after partial failure to avoid data loss or immediate duplicate uploads.
+- Added `scripts/verify_android_journey_integration.py` to check the central Home → capture/recognition → saved detail/memory, Fish Guide → filtered catches, auth routes, logout stack and missing-species guard contracts. P13, shared component parity, Core UI references, Design Manager navigation, Python compilation and `git diff --check` all PASS.
+- Product/API dependency (not infrastructure): the new-catch API has no idempotent guest-archive migration key/upsert contract. A later explicit login can initiate another migration attempt after a partial transfer, so robust cross-session retry/deduplication remains open; no API was invented. P09's update-existing-catch, supplemental media, server-side reveal and note/weather/delete dependencies remain separately open.
+- P13 IMPLEMENTATION: COMPLETE. P13 GITHUB CHECKPOINT: PASS. P13 STATIC CONTRACT CHECKS: PASS. P13 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA.
+- Design Governance #476 (`36804261150`) and Empty Home V2 Design Assets #702 (`36804261118`) succeeded. Android CI #1214 (`36804255986`) was created for P13 and failed before any job was created; the read-only jobs result was empty. This is the existing shared repository-level blocker; no retry was made.
+- Continue P14 Final Android Runtime Matrix using the existing Android CI / GCP / API 28 / `yujian-api28` / Android Runtime Harness authorities when orchestration permits. Do not spend another retry on the unchanged 0-job blocker.
 
 ## Shared infrastructure follow-up blocker
 
