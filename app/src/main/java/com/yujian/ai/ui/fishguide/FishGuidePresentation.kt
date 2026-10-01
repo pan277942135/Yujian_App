@@ -138,35 +138,50 @@ fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeC
 
 private fun FishKnowledgeDetail.identificationFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> = buildList {
     val features = card?.content?.features.orEmpty()
-        .filter { it.title.isNotBlank() || it.text.isNotBlank() }
-        .map { FishGuideKnowledgeFact(it.title.cleanOrNull() ?: "辨识特征", it.text.cleanOrNull() ?: it.title) }
+        .mapNotNull { feature ->
+            val title = feature.title.cleanOrNull()
+            val text = feature.text.cleanOrNull()
+            if (title == null && text == null) null
+            else FishGuideKnowledgeFact(title ?: "辨识特征", text ?: title.orEmpty())
+        }
     if (features.isNotEmpty()) {
         addAll(features)
     } else {
         profile.bodyShape.cleanOrNull()?.let { add(FishGuideKnowledgeFact("体形", it)) }
-        addAll(profile.features.filter(String::isNotBlank)
-            .mapIndexed { index, feature -> FishGuideKnowledgeFact("特征 ${index + 1}", feature) })
+        addAll(profile.features.mapIndexedNotNull { index, feature ->
+            feature.cleanOrNull()?.let { FishGuideKnowledgeFact("特征 ${index + 1}", it) }
+        })
     }
     val cardSimilar = card?.content?.similar.orEmpty()
-        .filter { it.name.isNotBlank() || it.difference.isNotBlank() }
-        .map { FishGuideKnowledgeFact(it.name.cleanOrNull() ?: "相近鱼种", it.difference.cleanOrNull() ?: it.name) }
+        .mapNotNull { similar ->
+            val name = similar.name.cleanOrNull()
+            val difference = similar.difference.cleanOrNull()
+            if (name == null && difference == null) null
+            else FishGuideKnowledgeFact(name ?: "相近鱼种", difference ?: name.orEmpty())
+        }
     if (cardSimilar.isNotEmpty()) {
         addAll(cardSimilar)
     } else {
-        addAll(similarity.filter { it.similarSpeciesNameCn.isNotBlank() || it.difference.isNotBlank() }
-            .map { FishGuideKnowledgeFact(it.similarSpeciesNameCn.cleanOrNull() ?: "相近鱼种", it.difference.cleanOrNull() ?: it.similarSpeciesNameCn) })
+        addAll(similarity.mapNotNull { similar ->
+            val name = similar.similarSpeciesNameCn.cleanOrNull()
+            val difference = similar.difference.cleanOrNull()
+            if (name == null && difference == null) null
+            else FishGuideKnowledgeFact(name ?: "相近鱼种", difference ?: name.orEmpty())
+        })
     }
 }
 
 private fun FishKnowledgeDetail.ecologyFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> {
     val content = card?.content
     val ecology = knowledge.ecology
-    val habitat = content?.habitat.orEmpty().ifEmpty { ecology.habitat }.ifEmpty { profile.habitat }
+    val habitat = content?.habitat.orEmpty().cleanKnowledgeValues()
+        .ifEmpty { ecology.habitat.cleanKnowledgeValues() }
+        .ifEmpty { profile.habitat.cleanKnowledgeValues() }
     val season = content?.season.cleanOrNull() ?: ecology.season.cleanOrNull()
-        ?: profile.season.filter(String::isNotBlank).joinToString("、").cleanOrNull()
-        ?: fishing.season.filter(String::isNotBlank).joinToString("、").cleanOrNull()
+        ?: profile.season.cleanKnowledgeValues().joinToString("、").cleanOrNull()
+        ?: fishing.season.cleanKnowledgeValues().joinToString("、").cleanOrNull()
     return buildList {
-        habitat.filter(String::isNotBlank).takeIf { it.isNotEmpty() }?.let { add(FishGuideKnowledgeFact("常见水域", it.joinToString("、"))) }
+        habitat.takeIf { it.isNotEmpty() }?.let { add(FishGuideKnowledgeFact("常见水域", it.joinToString("、"))) }
         (content?.waterLayer.cleanOrNull() ?: ecology.waterLayer.cleanOrNull() ?: fishing.waterLayer.cleanOrNull())
             ?.let { add(FishGuideKnowledgeFact("活动水层", it)) }
         season?.let { add(FishGuideKnowledgeFact("活跃季节", it)) }
@@ -180,8 +195,10 @@ private fun FishKnowledgeDetail.gearFacts(card: FishKnowledgeCard?): List<FishGu
     val content = card?.content
     val gear = knowledge.gear
     val method = content?.method.cleanOrNull() ?: gear.method.cleanOrNull()
-        ?: fishing.method.filter(String::isNotBlank).joinToString("、").cleanOrNull()
-    val bait = content?.bait.orEmpty().ifEmpty { gear.bait }.ifEmpty { fishing.bait }
+        ?: fishing.method.cleanKnowledgeValues().joinToString("、").cleanOrNull()
+    val bait = content?.bait.orEmpty().cleanKnowledgeValues()
+        .ifEmpty { gear.bait.cleanKnowledgeValues() }
+        .ifEmpty { fishing.bait.cleanKnowledgeValues() }
     return buildList {
         method?.let { add(FishGuideKnowledgeFact("常用钓法", it)) }
         (content?.rod.cleanOrNull() ?: gear.rod.cleanOrNull())?.let { add(FishGuideKnowledgeFact("鱼竿", it)) }
@@ -208,4 +225,9 @@ private fun normalizeKnowledgeCardType(value: String): String = when (value.trim
     else -> value.trim().uppercase()
 }
 
-private fun String?.cleanOrNull(): String? = this?.trim()?.takeIf(String::isNotEmpty)
+private fun List<String>.cleanKnowledgeValues(): List<String> = mapNotNull { it.cleanOrNull() }
+
+/** Structured backend serialization is data, not copy, even when it arrives in a text field. */
+private fun String?.cleanOrNull(): String? = this?.trim()?.takeIf { value ->
+    value.isNotEmpty() && !value.startsWith('{') && !value.startsWith('[')
+}

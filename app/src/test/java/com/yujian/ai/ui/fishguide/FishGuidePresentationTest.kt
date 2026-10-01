@@ -121,6 +121,68 @@ class FishGuidePresentationTest {
         assertTrue(cards.none { it.available })
     }
 
+    @Test
+    fun serializedBackendPayloadIsNeverProjectedAsKnowledgeCardCopy() {
+        val detail = knowledgeDetail(
+            summary = "{ \"type\": \"species_summary\", \"value\": \"raw\" }",
+            cards = listOf(
+                card(
+                    "grass",
+                    "HERO",
+                    0,
+                    FishKnowledgeCardContent(description = "[ { \"type\": \"summary\" } ]"),
+                ).copy(description = "{ \"type\": \"legacy_description\" }"),
+                card(
+                    "grass",
+                    "IDENTIFICATION",
+                    1,
+                    FishKnowledgeCardContent(
+                        features = listOf(
+                            com.yujian.ai.knowledge.FishKnowledgeFeature(
+                                "{ \"type\": \"feature\" }",
+                                "[ { \"value\": \"raw\" } ]",
+                            ),
+                            com.yujian.ai.knowledge.FishKnowledgeFeature("体形", "细长"),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val cards = detail.toKnowledgeCardPresentations()
+        val visibleCopy = buildList {
+            cards.forEach { card ->
+                card.summary?.let { add(it) }
+                card.facts.forEach { fact ->
+                    add(fact.label)
+                    add(fact.value)
+                }
+            }
+        }
+
+        assertNull(cards[0].summary)
+        assertTrue(visibleCopy.any { it == "细长" })
+        assertFalse(visibleCopy.any { it.trimStart().startsWith('{') || it.trimStart().startsWith('[') })
+    }
+
+    @Test
+    fun longStructuredKnowledgeFactIsPreservedForNaturalReflow() {
+        val longFact = "适合在水草边缘观察鱼群活动与水流变化。".repeat(24)
+        val detail = knowledgeDetail(
+            cards = listOf(
+                card(
+                    "grass",
+                    "SKILL",
+                    4,
+                    FishKnowledgeCardContent(find = longFact),
+                ),
+            ),
+        )
+
+        val projected = detail.toKnowledgeCardPresentations().last().facts.single { it.label == "找鱼" }
+        assertEquals(longFact, projected.value)
+    }
+
     private fun knowledgeDetail(
         cards: List<FishKnowledgeCard> = emptyList(),
         summary: String = "鱼种摘要",
