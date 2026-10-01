@@ -4,14 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreHoriz
@@ -19,13 +14,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 
 data class YuJianTopBarAction(
     val icon: ImageVector,
@@ -36,12 +31,11 @@ data class YuJianTopBarAction(
 
 @Composable
 private fun topNavigationInsets(horizontalPadding: Dp, statusBarInset: Boolean): Modifier {
-    val safe = WindowInsets.safeDrawing.asPaddingValues()
-    val direction = LocalLayoutDirection.current
+    val safe = rememberSafeDrawingInsets()
     return Modifier.padding(
-        top = if (statusBarInset) safe.calculateTopPadding() else 0.dp,
-        start = horizontalPadding + safe.calculateStartPadding(direction),
-        end = horizontalPadding + safe.calculateEndPadding(direction),
+        top = if (statusBarInset) safe.top else 0.dp,
+        start = horizontalPadding + safe.start,
+        end = horizontalPadding + safe.end,
     )
 }
 
