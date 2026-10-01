@@ -131,10 +131,15 @@ class MyCatchesPresentationTest {
 
     @Test
     fun recentSearchesAreCommittedOnceAndCappedAtSix() {
-        val recent = (1..6).map { "query-$it" }
-        assertEquals(listOf("grass lake", "query-1", "query-2", "query-3", "query-4", "query-5"), commitRecentSearch(recent, " grass lake "))
-        assertEquals(listOf("grass lake", "query-2", "query-3", "query-4", "query-5", "query-6"), commitRecentSearch(recent, "GRASS LAKE"))
-        assertEquals(recent, commitRecentSearch(recent, "   "))
+        val initial = (1..6).map { "query-$it" }
+        val firstCommit = commitRecentSearch(initial, " grass lake ")
+        assertEquals(listOf("grass lake", "query-1", "query-2", "query-3", "query-4", "query-5"), firstCommit)
+
+        val repeatedCommit = commitRecentSearch(firstCommit, "GRASS LAKE")
+        assertEquals(listOf("GRASS LAKE", "query-1", "query-2", "query-3", "query-4", "query-5"), repeatedCommit)
+        assertEquals(1, repeatedCommit.count { it.equals("grass lake", ignoreCase = true) })
+        assertEquals(6, repeatedCommit.size)
+        assertEquals(repeatedCommit, commitRecentSearch(repeatedCommit, "   "))
     }
 
     @Test

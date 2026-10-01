@@ -54,7 +54,10 @@ class ProfileEditingContractsTest {
         val portrait = avatarCropSourceRect(800, 1600, 300f, 300f, AvatarCropTransform())
         val square = avatarCropSourceRect(1000, 1000, 300f, 300f, AvatarCropTransform())
         assertEquals(800, portrait.side)
-        assertEquals(0, portrait.top)
+        assertEquals(0, portrait.left)
+        assertEquals(400, portrait.top)
         assertEquals(1000, square.side)
+        assertEquals(0, square.left)
+        assertEquals(0, square.top)
     }
 }
