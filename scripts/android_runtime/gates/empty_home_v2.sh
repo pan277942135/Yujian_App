@@ -195,14 +195,51 @@ PY
     ffmpeg -y -ss 2.4 -i "$home_dir/full_runtime_15s.mp4" -frames:v 1 "$home_dir/10_sun_particle_frame.png"
     ffmpeg -y -ss 0.2 -i "$home_dir/full_runtime_15s.mp4" -frames:v 1 "$home_dir/11_cloud_start.png"
 
+    # Compare cloud drift at the same physical capture size as the video start.
+    "${YUJIAN_ADB_BIN}" shell wm size reset
     sleep 50
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/12_cloud_later.png"
+    "${YUJIAN_ADB_BIN}" shell wm size 1080x1920
 
     ffmpeg -y -i "$home_dir/full_runtime_15s.mp4" -t 10 -c copy "$home_dir/environment_motion.mp4"
     ffmpeg -y -i "$home_dir/full_runtime_15s.mp4" -vf 'crop=iw/3:ih*0.22:iw*0.324:ih*0.484' -an "$home_dir/bobber_ripple_crop.mp4"
     ffmpeg -y -i "$home_dir/full_runtime_15s.mp4" -vf 'crop=iw*0.39:ih*0.27:iw*0.31:ih*0.69' -an "$home_dir/camera_motion.mp4"
 
     python3 "$YUJIAN_REPO_ROOT/scripts/build_empty_home_runtime_evidence.py" --evidence-dir "$home_dir" --build-sha "$YUJIAN_BUILD_SHA"
+    python3 - "$YUJIAN_REPO_ROOT/design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png" "$home_dir/runtime_static.png" "$home_dir/visual_parity_report.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+from PIL import Image, ImageChops, ImageStat
+
+reference_path, runtime_path, report_path = map(Path, sys.argv[1:4])
+reference = Image.open(reference_path).convert("RGB")
+runtime = Image.open(runtime_path).convert("RGB")
+if reference.size != runtime.size:
+    runtime = runtime.resize(reference.size, Image.Resampling.LANCZOS)
+box = (0, 0, 1080, 200)
+diff = ImageChops.difference(reference.crop(box), runtime.crop(box))
+header_mae = sum(ImageStat.Stat(diff).mean) / 3.0
+report = json.loads(report_path.read_text(encoding="utf-8"))
+header_status = "PASS" if header_mae <= 42.0 else "FAIL"
+report["regions"]["header"] = {
+    "authority": "Empty_Home_Final_Design_V2",
+    "reference_box": list(box),
+    "metric": "mean_absolute_rgb_error",
+    "value": round(header_mae, 4),
+    "threshold": 42.0,
+    "status": header_status,
+}
+report["regions"]["fishing_composition"] = dict(report["regions"]["bobber_water"])
+report["regions"]["fishing_composition"]["authority"] = "Empty_Home_Frozen_Visual_Revision_V2_2"
+report["regions"]["fishing_composition"]["contract"] = "rod_line_bobber_water_contact_ripple"
+report["region_failures"] = sorted(set(report.get("region_failures", [])) | ({"header"} if header_status != "PASS" else set()))
+report["status"] = "PASS" if report.get("full_frame_status") == "PASS" and not report["region_failures"] else "FAIL"
+report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+print(f"EMPTY_HOME_REGION_GATE header_mae={header_mae:.4f} threshold=42 status={header_status} fishing=CONTRACT")
+if report["status"] != "PASS":
+    raise SystemExit("EMPTY_HOME_REGION_GATE_FAILED")
+PY
     parity_status="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])' "$home_dir/visual_parity_report.json")"
     if [[ "$parity_status" != "PASS" ]]; then
       cat "$home_dir/visual_parity_report.json" >&2
@@ -210,6 +247,120 @@ PY
       exit 1
     fi
     cp "$YUJIAN_REPO_ROOT/design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png" "$home_dir/static_reference.png"
+    # Region crops remain separate evidence so the scene background cannot
+    # hide defects in frozen Hero, header, fishing composition, Camera or CTA.
+    python3 - "$home_dir/runtime_static.png" "$home_dir" <<'PY'
+from pathlib import Path
+import shutil
+import sys
+from PIL import Image
+
+image = Image.open(sys.argv[1]).convert("RGB")
+out = Path(sys.argv[2])
+if image.size != (1080, 1920):
+    raise SystemExit(f"EMPTY_HOME_REFERENCE_CAPTURE_DIMENSIONS={image.width}x{image.height}")
+for name, box in {
+    "01_static_full.png": (0, 0, 1080, 1920),
+    "02_header.png": (0, 0, 1080, 200),
+    "03_hero.png": (50, 224, 675, 535),
+    "04_rod_line.png": (0, 1140, 690, 1380),
+    "05_bobber_contact.png": (440, 1260, 680, 1380),
+    "06_ripple.png": (420, 1260, 700, 1380),
+    "07_camera_static.png": (420, 1520, 660, 1770),
+}.items():
+    image.crop(box).save(out / name)
+for old, new in (
+    ("05_gold_rim_sweep_before.png", "08_camera_sweep_before.png"),
+    ("06_gold_rim_sweep_peak.png", "09_camera_sweep_peak.png"),
+    ("07_gold_rim_sweep_after.png", "10_camera_sweep_after.png"),
+    ("08_camera_breath_min.png", "11_camera_breath_min.png"),
+    ("09_camera_breath_max.png", "12_camera_breath_max.png"),
+    ("10_sun_particle_frame.png", "13_sun_particle.png"),
+    ("11_cloud_start.png", "14_cloud_start.png"),
+    ("12_cloud_later.png", "15_cloud_later.png"),
+):
+    shutil.copyfile(out / old, out / new)
+PY
+
+    # The real HomeScreen instrumentation gate is rerun for each actual WM
+    # viewport/font scale; it asserts safe-area bounds and saves app-only PNGs.
+    responsive_remote="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/empty_home_responsive"
+    density_output="$("${YUJIAN_ADB_BIN}" shell wm density 2>&1 | tr -d '\r')"
+    density_dpi="$(awk '/Override density:/ {override=$3} /Physical density:/ {physical=$3} END {print override ? override : physical}' <<< "$density_output")"
+    if [[ ! "$density_dpi" =~ ^[0-9]+$ ]]; then
+      printf 'EMPTY_HOME_RESPONSIVE_DENSITY_UNAVAILABLE=%s\n' "$density_output" >&2
+      exit 1
+    fi
+    original_font_scale="$("${YUJIAN_ADB_BIN}" shell settings get system font_scale 2>/dev/null | tr -d '\r')"
+    if [[ ! "$original_font_scale" =~ ^[0-9]+([.][0-9]+)?$ ]]; then original_font_scale=1.0; fi
+    responsive_log="$home_dir/responsive_matrix.tsv"
+    : > "$responsive_log"
+    restore_responsive_device() {
+      "${YUJIAN_ADB_BIN}" shell wm size 1080x1920 >/dev/null 2>&1 || true
+      "${YUJIAN_ADB_BIN}" shell settings put system font_scale "$original_font_scale" >/dev/null 2>&1 || true
+    }
+    trap restore_responsive_device EXIT
+    for profile in '320 640' '360 780' '393 852' '411 891'; do
+      read -r width_dp height_dp <<< "$profile"
+      pixel_width="$(python3 -c 'import sys; print(round(int(sys.argv[1])*int(sys.argv[3])/160))' "$width_dp" "$height_dp" "$density_dpi")"
+      pixel_height="$(python3 -c 'import sys; print(round(int(sys.argv[2])*int(sys.argv[3])/160))' "$width_dp" "$height_dp" "$density_dpi")"
+      for font_scale in 1.0 1.3; do
+        font_tag="${font_scale/./_}"
+        screenshot="responsive_${width_dp}x${height_dp}_font_${font_tag}.png"
+        test_log="$home_dir/${screenshot%.png}.instrumentation.log"
+        "${YUJIAN_ADB_BIN}" shell wm size "${pixel_width}x${pixel_height}"
+        "${YUJIAN_ADB_BIN}" shell settings put system font_scale "$font_scale"
+        "${YUJIAN_ADB_BIN}" shell am force-stop "$YUJIAN_APP_PACKAGE"
+        timeout 90s "${YUJIAN_ADB_BIN}" shell am instrument -w -r \
+          -e class 'com.yujian.ai.EmptyHomeResponsiveRuntimeTest#requiredControlsRemainVisibleInsideSafeDrawingViewport' \
+          -e expectedWidthDp "$width_dp" -e expectedHeightDp "$height_dp" \
+          -e expectedFontScale "$font_scale" -e evidenceName "$screenshot" \
+          "$YUJIAN_INSTRUMENTATION_TARGET" > "$test_log" 2>&1 || {
+            cat "$test_log" >&2
+            printf 'EMPTY_HOME_RESPONSIVE_PROFILE_FAILED=%sdpx%sdp fontScale=%s\n' "$width_dp" "$height_dp" "$font_scale" >&2
+            exit 1
+          }
+        "${YUJIAN_ADB_BIN}" pull "$responsive_remote/$screenshot" "$home_dir/$screenshot" >/dev/null
+        python3 - "$home_dir/$screenshot" "$width_dp" "$height_dp" "$font_scale" "$pixel_width" "$pixel_height" <<'PY'
+from pathlib import Path
+import sys
+from PIL import Image, ImageStat
+
+path = Path(sys.argv[1])
+expected = (int(sys.argv[5]), int(sys.argv[6]))
+image = Image.open(path).convert("RGB")
+stat = ImageStat.Stat(image)
+mean, spread = sum(stat.mean) / 3, sum(stat.stddev) / 3
+if not (expected[0] * .95 <= image.width <= expected[0] * 1.05):
+    raise SystemExit(f"responsive width {image.width} differs from target {expected[0]}")
+if not (expected[1] * .90 <= image.height <= expected[1] * 1.05):
+    raise SystemExit(f"responsive height {image.height} differs from target {expected[1]}")
+if (mean > 245 and spread < 8) or (mean < 8 and spread < 8):
+    raise SystemExit(f"responsive screenshot is blank: mean={mean:.2f}, spread={spread:.2f}")
+print(f"EMPTY_HOME_RESPONSIVE_CAPTURE_PASS {sys.argv[2]}x{sys.argv[3]}dp fontScale={sys.argv[4]} capture={image.width}x{image.height}")
+PY
+        printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$width_dp" "$height_dp" "$font_scale" "$pixel_width" "$pixel_height" "$screenshot" >> "$responsive_log"
+      done
+    done
+    python3 - "$responsive_log" "$home_dir/responsive_matrix.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source, destination = map(Path, sys.argv[1:3])
+profiles = []
+for row in source.read_text().splitlines():
+    width, height, scale, pixel_width, pixel_height, screenshot = row.split("\t")
+    profiles.append({"width_dp": int(width), "height_dp": int(height), "font_scale": float(scale),
+                     "configured_width_px": int(pixel_width), "configured_height_px": int(pixel_height),
+                     "screenshot": screenshot, "instrumentation": "PASS"})
+if len(profiles) != 8:
+    raise SystemExit(f"expected 8 responsive viewport/font-scale results, got {len(profiles)}")
+destination.write_text(json.dumps({"status": "PASS", "profiles": profiles}, ensure_ascii=False, indent=2) + "\n")
+print("EMPTY_HOME_RESPONSIVE_MATRIX_PASS profiles=8")
+PY
+    restore_responsive_device
+    trap - EXIT
   )
   evidence_command_rc=$?
   if (( evidence_command_rc != 0 )); then
@@ -224,7 +375,26 @@ PY
     "$home_dir/Empty_Home_V2_Parity_Runtime.mp4" \
     "$home_dir/visual_parity_report.json" \
     "$home_dir/runtime_debug.json" \
-    "$home_dir/static_reference.png"
+    "$home_dir/static_reference.png" \
+    "$home_dir/01_static_full.png" \
+    "$home_dir/02_header.png" \
+    "$home_dir/03_hero.png" \
+    "$home_dir/04_rod_line.png" \
+    "$home_dir/05_bobber_contact.png" \
+    "$home_dir/06_ripple.png" \
+    "$home_dir/07_camera_static.png" \
+    "$home_dir/08_camera_sweep_before.png" \
+    "$home_dir/09_camera_sweep_peak.png" \
+    "$home_dir/10_camera_sweep_after.png" \
+    "$home_dir/11_camera_breath_min.png" \
+    "$home_dir/12_camera_breath_max.png" \
+    "$home_dir/13_sun_particle.png" \
+    "$home_dir/14_cloud_start.png" \
+    "$home_dir/15_cloud_later.png" \
+    "$home_dir/full_runtime_15s.mp4" \
+    "$home_dir/bobber_ripple_crop.mp4" \
+    "$home_dir/camera_motion.mp4" \
+    "$home_dir/responsive_matrix.json"
   do
     if [[ ! -s "$file" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
