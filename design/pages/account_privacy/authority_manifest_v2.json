@@ -1,8 +1,8 @@
 {
   "id": "account_privacy_authority_manifest_v2",
   "version": "2.0",
-  "status": "PARTIAL",
-  "freeze_date": "2026-09-30",
+  "status": "FROZEN",
+  "freeze_date": "2026-10-01",
   "scope": "Design authority classification and Design Manager navigation; runtime status is separate.",
   "historical_package_manifest": {
     "path": "design/pages/account_privacy/manifest.json",
@@ -872,5 +872,14 @@
       "04d",
       "04e"
     ]
-  }
+  },
+  "design_system_version": "V1.0 FINAL",
+  "design_freeze_marker": "ACCOUNT_PRIVACY_DESIGN_FREEZE_FINAL_V1",
+  "design_system_contracts": {
+    "principles": "design/pages/account_privacy/Account_Privacy_Design_Principles_V1.md",
+    "page_state_model": "design/pages/account_privacy/Account_Page_State_Model_V1.md",
+    "navigation_interaction": "design/pages/account_privacy/Account_Navigation_Interaction_Rules_V1.md",
+    "accessibility_localization": "design/pages/account_privacy/Account_Accessibility_Localization_V1.md"
+  },
+  "note": "Design authority is fully frozen. Runtime, final legal-copy approval and Deferred feature activation are tracked as independent external gates."
 }

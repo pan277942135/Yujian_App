@@ -10,7 +10,9 @@
     "RUNTIME_ONLY",
     "DESIGN_ONLY",
     "MISSING",
-    "DEPRECATED"
+    "DEPRECATED",
+    "DEFERRED",
+    "BLOCKED_INTEGRITY"
   ],
   "features": [
     {
@@ -5502,7 +5504,7 @@
           "note": "Current, composite, shared, historical and deferred assets are classified; Nickname frozen asset integrity is restored."
         }
       },
-      "note": "ACCOUNT & PRIVACY DESIGN = FROZEN. Visual / behavior / motion / haptic / sound / assets / design evidence are closed. Android Runtime remains PARTIAL. Privacy Policy and User Agreement final Legal Copy remain LEGAL_REVIEW_REQUIRED as external legal-content gates. Forgot Password / Export My Data / Delete Account remain DEFERRED and do not reopen design.",
+      "note": "ACCOUNT & PRIVACY DESIGN = FROZEN · V1.0 FINAL. IA, visual, behavior/state, navigation/interaction, accessibility/localization, motion, haptic, sound, assets and design evidence are closed. Android Runtime remains PARTIAL. Privacy Policy/User Agreement final Legal Copy remain LEGAL_REVIEW_REQUIRED. Forgot Password / Export My Data / Delete Account remain DEFERRED and do not reopen design.",
       "display_name": "账号与隐私",
       "design_versions": [
         {
@@ -5514,11 +5516,11 @@
         },
         {
           "version": "V2",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "current": true,
           "visual_authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "spec_authority": "design/pages/account_privacy/README.md",
-          "note": "V2 consolidated authority index. Active MVP main path and Legal/About page design are frozen; final legal copy remains review-gated. Overall remains PARTIAL."
+          "note": "Current consolidated design authority. Account & Privacy Design System V1.0 FINAL is frozen; Runtime, Legal Copy approval and Deferred activation remain separate external gates."
         }
       ],
       "design_overall": "FROZEN",
@@ -5564,13 +5566,15 @@
           "id": "current_frozen",
           "title": "CURRENT FROZEN",
           "status": "FROZEN",
-          "summary": "Only byte-trusted current page authorities are listed here. Nickname is excluded until its frozen binary identity mismatch is resolved.",
+          "summary": "Current trusted design authorities are closed, including recovered byte-identical Nickname visual integrity.",
           "authority": "design/pages/account_privacy/authority_manifest_v2.json",
           "points": [
             "Login V2.1",
             "Register V2",
             "Edit Profile Home V1.1",
-            "Avatar Change V1"
+            "Avatar Change V1",
+            "Nickname Edit V1 · integrity recovered",
+            "Account & Privacy Design System V1.0 FINAL · four cross-page contracts"
           ]
         },
         {
@@ -5590,13 +5594,14 @@
           ]
         },
         {
-          "id": "legacy_review",
-          "title": "LEGACY / REVIEW REQUIRED",
+          "id": "external_legal_copy_gate",
+          "title": "EXTERNAL LEGAL COPY GATE",
           "status": "PARTIAL",
-          "summary": "Remaining legacy/review-required visual work outside the active-path freeze.",
-          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
+          "summary": "No visual/design authority remains open. Only final Privacy Policy / User Agreement legal wording awaits legal approval.",
+          "authority": "design/pages/account_privacy/legal/README.md",
           "points": [
-            "Privacy Policy shell; legal body copy is not final."
+            "Privacy Policy final Legal Copy · LEGAL_REVIEW_REQUIRED",
+            "User Agreement final Legal Copy · LEGAL_REVIEW_REQUIRED"
           ]
         },
         {
@@ -5612,17 +5617,6 @@
           ]
         },
         {
-          "id": "missing_visual",
-          "title": "DESIGN AUTHORITY MISSING",
-          "status": "MISSING",
-          "summary": "No independent Frozen Visual Authority exists. No replacement or runtime screenshot is supplied.",
-          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "points": [
-            "About YuJian",
-            "User Agreement"
-          ]
-        },
-        {
           "id": "shared_systems",
           "title": "SHARED SYSTEM DEPENDENCIES",
           "status": "FROZEN",
@@ -5634,7 +5628,8 @@
             "Color & Typography V1",
             "Spacing & Radius V1",
             "Action / Text / Icon components",
-            "Default Profile Avatar V1"
+            "Default Profile Avatar V1",
+            "Legal Document Shell V1"
           ]
         },
         {
@@ -5653,16 +5648,17 @@
           "id": "final_design_freeze",
           "title": "FINAL DESIGN FREEZE",
           "status": "FROZEN",
-          "summary": "Account & Privacy design is closed. Legal-copy approval, Runtime Parity and Deferred feature activation are independent external gates and do not keep design open.",
+          "summary": "Account & Privacy Design System V1.0 FINAL is closed. Cross-page principles, state, navigation/interaction and accessibility/localization are frozen. Runtime, Legal Copy approval and Deferred activation remain independent external gates.",
           "authority": "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md",
           "points": [
+            "Design Principles V1 · FROZEN",
+            "Page State Model V1 · FROZEN",
+            "Navigation & Interaction Rules V1 · FROZEN",
+            "Accessibility & Localization V1 · FROZEN",
             "Visual · FROZEN",
             "Behavior / IA · FROZEN",
-            "Motion · FROZEN",
-            "Haptic · FROZEN",
-            "Sound · FROZEN",
-            "Assets · FROZEN",
-            "Design Evidence · FROZEN",
+            "Motion / Haptic / Sound · FROZEN",
+            "Assets / Design Evidence · FROZEN",
             "Runtime · PARTIAL",
             "Privacy Policy / User Agreement Legal Copy · LEGAL_REVIEW_REQUIRED",
             "Forgot Password / Export / Delete · DEFERRED"
@@ -6241,7 +6237,15 @@
             }
           ]
         }
-      ]
+      ],
+      "design_system_version": "V1.0 FINAL",
+      "design_freeze_marker": "ACCOUNT_PRIVACY_DESIGN_FREEZE_FINAL_V1",
+      "design_system_contracts": {
+        "principles": "design/pages/account_privacy/Account_Privacy_Design_Principles_V1.md",
+        "page_state_model": "design/pages/account_privacy/Account_Page_State_Model_V1.md",
+        "navigation_interaction": "design/pages/account_privacy/Account_Navigation_Interaction_Rules_V1.md",
+        "accessibility_localization": "design/pages/account_privacy/Account_Accessibility_Localization_V1.md"
+      }
     },
     {
       "id": "auth_login_v2",
