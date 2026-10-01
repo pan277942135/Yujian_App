@@ -1,5 +1,5 @@
 {
-  "asset_revision": "HOME_EMPTY_ASSETS_V2.1",
+  "asset_revision": "HOME_EMPTY_ASSETS_V2.2",
   "asset_root": "empty_home_runtime_v2",
   "camera": [
     "camera/camera_button_base.png",
@@ -43,5 +43,24 @@
   },
   "static": [
     "static/scene_base.webp"
+  ],
+  "visual_revision": "V2.2",
+  "approved_visual_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+  "authority_manifest": "shared/contracts/authority_manifest.json",
+  "contract_sha256": {
+    "authority_manifest.json": "cd01baee212b17c6a15eb8f23a7502a253e6f85d1977e4e8f2dc907077572bdb",
+    "anchor_contract.json": "1cb51833161be87e1897b5abcda920bd5bd8ee81b13621a2160e214782f25892",
+    "responsive_mapping_contract.json": "ba167c0977bbdcac7b76b9bec50b750f5490bb8d5efbf36ef44a9da995a94b07",
+    "layer_contract.json": "0ef23f8e93f4b94a0d34b1eedcf4ad3b5d95372119b5c4837e9cc379d4e01559",
+    "motion_contract.json": "1131546550cff2b06d9c3c682e3aaa879a69a5a9df511d959f3465d50b32dd7f",
+    "haptic_contract.json": "a87c3fef6e976d138d7a52009a4d129a47948de0dab196712001eef454b433be"
+  },
+  "current_contracts": [
+    "authority_manifest.json",
+    "anchor_contract.json",
+    "responsive_mapping_contract.json",
+    "layer_contract.json",
+    "motion_contract.json",
+    "haptic_contract.json"
   ]
 }

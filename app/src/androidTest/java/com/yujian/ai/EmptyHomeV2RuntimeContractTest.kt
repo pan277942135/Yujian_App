@@ -17,8 +17,14 @@ class EmptyHomeV2RuntimeContractTest {
         assertTrue(files.containsAll(setOf("static", "dynamic", "camera", "config")))
         val motion = assets.open("$root/config/motion_contract.json").bufferedReader().use { JSONObject(it.readText()) }
         val anchors = assets.open("$root/config/anchor_contract.json").bufferedReader().use { JSONObject(it.readText()) }
+        val authority = assets.open("$root/config/authority_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
+        val responsive = assets.open("$root/config/responsive_mapping_contract.json").bufferedReader().use { JSONObject(it.readText()) }
         val runtime = assets.open("$root/config/runtime_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
 
+        assertEquals("CURRENT", authority.getString("authority_status"))
+        assertEquals("V2.2", authority.getString("visual_revision"))
+        assertEquals("UNIFORM_COVER", responsive.getJSONObject("groups").getJSONObject("scene_space").getString("strategy"))
+        assertEquals(620, responsive.getJSONObject("groups").getJSONObject("hero_copy").getJSONObject("reference_machine_bbox_px").getInt("width"))
         assertEquals("Empty_Home_Final_Design_V2", runtime.getString("design_version"))
         assertEquals("V2.2", runtime.getString("visual_revision"))
         assertEquals("3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec", runtime.getString("approved_visual_sha256"))
@@ -35,7 +41,7 @@ class EmptyHomeV2RuntimeContractTest {
         assertEquals(3200, ripple.getInt("duration_ms"))
         assertEquals(1.22, ripple.getDouble("scale_to"), 0.0001)
         assertEquals(0.30, ripple.getDouble("alpha_from"), 0.0001)
-        assertEquals("ripple_below_bobber", ripple.getString("z_order"))
+        assertEquals("below_bobber_above_water", ripple.getString("z_order"))
         assertEquals(
             anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString(),
             anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString(),

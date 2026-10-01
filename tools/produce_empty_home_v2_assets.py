@@ -378,37 +378,47 @@ def main() -> None:
     save_png(camera_rim, RUNTIME / "camera" / "camera_gold_rim_mask.png")
     save_png(camera_glow, RUNTIME / "camera" / "camera_breath_glow.png")
 
-    anchors = {
-        "reference_canvas": {"width": REF_W, "height": REF_H},
-        "bobber": {"bbox_reference_px": {"x": 518, "y": 1084, "width": 24, "height": 122}, "center_reference_px": [530, 1145], "center_normalized": [0.490741, 0.596354], "bottom_reference_px": [530, 1206], "water_contact_reference_px": [530, 1168]},
-        "ripple": {"center_reference_px": [530, 1168], "center_normalized": [0.490741, 0.608333], "bbox_reference_px": {"x": 411, "y": 1127, "width": 238, "height": 82}},
-        "rod": {"bbox_reference_px": {"x": 0, "y": 950, "width": 450, "height": 365}, "tip_reference_px": [431, 958]},
-        "line": {"bbox_reference_px": {"x": 400, "y": 950, "width": 170, "height": 250}, "start_reference_px": [415, 950], "end_reference_px": [530, 1169]},
-        "camera_button": {"center_reference_px": [540, 1604], "center_normalized": [0.5, 0.835417], "bbox_reference_px": {"x": 436, "y": 1500, "width": 208, "height": 208}},
-        "hero_title": {"bbox_reference_px": {"x": 50, "y": 224, "width": 620, "height": 310}, "accessible_text": "现在，轮到你，记录第一条鱼。"},
-    }
-    motion = {
-        "design_version": "Empty_Home_Final_Design_V2",
-        "bobber": {"axis": "y", "range_reference_px": 3, "duration_ms": 4600, "keyframes": [[0,0],[1150,-3],[2300,0],[3450,3],[4600,0]], "x_motion_reference_px": 0, "rotation_deg": 0, "scale_animation": False, "loop": True},
-        "ripple": {"count": 1, "center_reference_px": [530,1168], "scale_from": 1.0, "scale_to": 1.22, "alpha_from": 0.30, "alpha_to": 0.0, "duration_ms": 3200, "loop": True, "z_order": "ripple_below_bobber"},
-        "cloud": {"speed_reference_px_per_s": 0.2, "cycle_baseline_ms": 60000, "visibility": "extremely_subtle"},
-        "sun_particle_beam": {"duration_ms": 4800, "max_alpha": 0.18, "particle_count_range": [6,12]},
-        "camera_gold_rim": {"first_delay_ms": 3000, "duration_ms": 1400, "repeat_interval_ms": 9000},
-        "camera_breath": {"duration_ms": 5000, "max_scale": 1.015},
-    }
-    haptic = {"camera_tap": {"semantic": "light_impact", "duration_hint_ms": 20}, "album_tap": {"semantic": "platform_light_click"}, "page_enter": "none", "idle": "none"}
-    layers_contract = {"design_version": "Empty_Home_Final_Design_V2", "order": ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "ripple", "bobber", "native_ui"], "rules": {"scene_base_has_baked_ripple": False, "ripple_count": 1, "ripple_below_bobber": True, "native_ui_is_baked": False}}
+    # Geometry/motion contracts have one design-side source of truth. This
+    # producer only copies those frozen machine contracts into the APK assets;
+    # it must never recreate V2 anchors from the legacy source raster.
+    contracts_dir = DESIGN / "shared" / "contracts"
+    runtime_config = RUNTIME / "config"
+    contract_files = [
+        "authority_manifest.json", "anchor_contract.json", "responsive_mapping_contract.json",
+        "layer_contract.json", "motion_contract.json", "haptic_contract.json",
+    ]
+    for name in contract_files:
+        source_contract = contracts_dir / name
+        if not source_contract.is_file():
+            raise SystemExit(f"Missing current Empty Home authority contract: {source_contract}")
+        runtime_config.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_contract, runtime_config / name)
+
     runtime_files = ["static/scene_base.webp", "dynamic/cloud.png", "dynamic/sun_beam_mask.png", "dynamic/particle_mask.png", "dynamic/rod.png", "dynamic/line.png", "dynamic/bobber.png", "dynamic/ripple_mask.png", "camera/camera_button_base.png", "camera/camera_gold_rim_mask.png", "camera/camera_breath_glow.png"]
-    runtime_manifest = {"design_version": "Empty_Home_Final_Design_V2", "asset_revision": "HOME_EMPTY_ASSETS_V2.0", "reference_canvas": [REF_W, REF_H], "asset_root": "empty_home_runtime_v2", "static": ["static/scene_base.webp"], "dynamic": ["dynamic/cloud.png", "dynamic/sun_beam_mask.png", "dynamic/particle_mask.png", "dynamic/rod.png", "dynamic/line.png", "dynamic/bobber.png", "dynamic/ripple_mask.png"], "camera": ["camera/camera_button_base.png", "camera/camera_gold_rim_mask.png", "camera/camera_breath_glow.png"], "sha256": {path: sha(RUNTIME / path) for path in runtime_files}, "excludes": ["frozen_source", "validation", "proof", "preview", "mp4", "gif"]}
-    for base_dir in [DESIGN / "shared" / "contracts", RUNTIME / "config"]:
-        write_json(base_dir / "anchor_contract.json", anchors)
-        write_json(base_dir / "motion_contract.json", motion)
-        write_json(base_dir / "haptic_contract.json", haptic)
-        write_json(base_dir / "layer_contract.json", layers_contract)
-        write_json(base_dir / "runtime_manifest.json", runtime_manifest)
+    contract_sha256 = {name: sha(contracts_dir / name) for name in contract_files}
+    runtime_manifest = {
+        "design_version": "Empty_Home_Final_Design_V2",
+        "visual_revision": "V2.2",
+        "approved_visual_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+        "authority_manifest": "shared/contracts/authority_manifest.json",
+        "asset_revision": "HOME_EMPTY_ASSETS_V2.2",
+        "reference_canvas": [REF_W, REF_H],
+        "asset_root": "empty_home_runtime_v2",
+        "static": ["static/scene_base.webp"],
+        "dynamic": ["dynamic/cloud.png", "dynamic/sun_beam_mask.png", "dynamic/particle_mask.png", "dynamic/rod.png", "dynamic/line.png", "dynamic/bobber.png", "dynamic/ripple_mask.png"],
+        "camera": ["camera/camera_button_base.png", "camera/camera_gold_rim_mask.png", "camera/camera_breath_glow.png"],
+        "sha256": {path: sha(RUNTIME / path) for path in runtime_files},
+        "contract_sha256": contract_sha256,
+        "current_contracts": contract_files,
+        "excludes": ["frozen_source", "validation", "proof", "preview", "mp4", "gif"],
+    }
+    write_json(contracts_dir / "runtime_manifest.json", runtime_manifest)
+    write_json(runtime_config / "runtime_manifest.json", runtime_manifest)
     write_json(SYSTEM / "visual_contract.json", {"component": "primary_capture_button", "design_version": "V2", "core": "solid white", "rim": "fine gold", "icon": "deep blue grey", "diameter_reference_px": 208})
-    write_json(SYSTEM / "motion_contract.json", {"breath": motion["camera_breath"], "gold_rim": motion["camera_gold_rim"]})
-    write_json(SYSTEM / "haptic_contract.json", haptic)
+    motion_authority = json.loads((contracts_dir / "motion_contract.json").read_text(encoding="utf-8"))
+    haptic_authority = json.loads((contracts_dir / "haptic_contract.json").read_text(encoding="utf-8"))
+    write_json(SYSTEM / "motion_contract.json", {"breath": motion_authority["camera_breath"], "gold_rim": motion_authority["camera_gold_rim"]})
+    write_json(SYSTEM / "haptic_contract.json", haptic_authority)
 
     # Shared final masters are a non-mutating copy of intermediates with explicit product roles.
     shared_assets = DESIGN / "shared" / "assets"

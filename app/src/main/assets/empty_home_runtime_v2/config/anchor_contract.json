@@ -46,6 +46,17 @@
       "width": 620,
       "x": 50,
       "y": 224
+    },
+    "reference_measurement": {
+      "normalized_source": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+      "machine_bbox_is_authoritative": true,
+      "visible_ink_and_gold_bbox_reference_px": {
+        "left": 80,
+        "top": 245,
+        "right_exclusive": 675,
+        "bottom_exclusive": 535
+      },
+      "measurement_note": "Visible raster extent measured from the frozen normalized V2 PNG; responsive layout uses the frozen machine bbox, not a regenerated crop."
     }
   },
   "line": {
@@ -77,8 +88,8 @@
     "geometry": "cubic_bezier_slack"
   },
   "reference_canvas": {
-    "height": 1920,
-    "width": 1080
+    "width": 1080,
+    "height": 1920
   },
   "ripple": {
     "bbox_reference_px": {
@@ -114,5 +125,9 @@
     "camera_size_reference_px": 220,
     "album_top_reference_px": 1780,
     "spacing_rule": "prompt -> camera >= 25px; camera -> album >= 23px on 1080x1920 reference"
-  }
+  },
+  "design_version": "Empty_Home_Final_Design_V2",
+  "visual_revision": "V2.2",
+  "authority_status": "CURRENT",
+  "contract_revision": "EMPTY_HOME_LAYOUT_ANCHORS_V2_2"
 }

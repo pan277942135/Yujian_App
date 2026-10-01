@@ -11,13 +11,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = ROOT / "design/pages/home/empty_home"
+CANONICAL = FEATURE / "shared/contracts"
 RUNTIME = ROOT / "app/src/main/assets/empty_home_runtime_v2"
 REQUIRED = {
     "static/scene_base.webp",
     "dynamic/cloud.png", "dynamic/sun_beam_mask.png", "dynamic/particle_mask.png",
     "dynamic/rod.png", "dynamic/line.png", "dynamic/bobber.png", "dynamic/ripple_mask.png",
     "camera/camera_button_base.png", "camera/camera_gold_rim_mask.png", "camera/camera_breath_glow.png",
-    "config/runtime_manifest.json", "config/layer_contract.json", "config/anchor_contract.json",
+    "config/runtime_manifest.json", "config/authority_manifest.json", "config/layer_contract.json",
+    "config/anchor_contract.json", "config/responsive_mapping_contract.json",
     "config/motion_contract.json", "config/haptic_contract.json",
 }
 FORBIDDEN = ("proof", "preview", "validation", ".mp4", ".gif", "frozen", "source")
@@ -49,9 +51,44 @@ def main() -> int:
         return 1
 
     runtime = load(RUNTIME / "config/runtime_manifest.json")
+    design_runtime = load(CANONICAL / "runtime_manifest.json")
     anchors = load(RUNTIME / "config/anchor_contract.json")
     motion = load(RUNTIME / "config/motion_contract.json")
     layers = load(RUNTIME / "config/layer_contract.json")
+    authority = load(CANONICAL / "authority_manifest.json")
+    responsive = load(CANONICAL / "responsive_mapping_contract.json")
+
+    # The design-side machine contracts are the sole visual authority. Packaged
+    # Runtime copies must remain byte-semantically equal, including responsive
+    # mapping, so local APK assets cannot drift into a second active authority.
+    for name in ("anchor_contract.json", "responsive_mapping_contract.json", "layer_contract.json", "motion_contract.json", "haptic_contract.json"):
+        canonical_contract = load(CANONICAL / name)
+        packaged_contract = load(RUNTIME / "config" / name)
+        if canonical_contract != packaged_contract:
+            fail(errors, f"design and packaged Runtime contract diverge: {name}")
+
+    if authority.get("authority_status") != "CURRENT":
+        fail(errors, "authority manifest is not marked CURRENT")
+    if authority.get("design_version") != "Empty_Home_Final_Design_V2" or authority.get("visual_revision") != "V2.2":
+        fail(errors, "authority manifest must name V2 / V2.2")
+    if authority.get("contracts", {}).get("responsive_mapping") != "responsive_mapping_contract.json":
+        fail(errors, "authority manifest does not register the responsive mapping contract")
+    if design_runtime != runtime:
+        fail(errors, "design and packaged Runtime manifests diverge")
+    if responsive.get("design_version") != "Empty_Home_Final_Design_V2" or responsive.get("visual_revision") != "V2.2":
+        fail(errors, "responsive mapping contract must name V2 / V2.2")
+    if responsive.get("reference_canvas") != [1080, 1920]:
+        fail(errors, "responsive mapping reference canvas must be [1080, 1920]")
+    groups = responsive.get("groups", {})
+    scene_mapping = groups.get("scene_space", {})
+    if scene_mapping.get("strategy") != "UNIFORM_COVER" or scene_mapping.get("all_scene_locked_elements_share_transform") is not True:
+        fail(errors, "scene elements must share one UNIFORM_COVER sceneTransform")
+    if groups.get("hero_copy", {}).get("reference_machine_bbox_px") != {"x": 50, "y": 224, "width": 620, "height": 310}:
+        fail(errors, "hero responsive mapping differs from the frozen machine bbox")
+    if groups.get("hero_copy", {}).get("fill_bounds") is not False or groups.get("hero_copy", {}).get("stretch") is not False:
+        fail(errors, "hero may not use FillBounds or anisotropic stretching")
+    if [item.get("width_dp") for item in responsive.get("responsive_profiles_to_verify", [])] != [320, 360, 393, 411]:
+        fail(errors, "responsive mapping must cover all four required width profiles")
     source = load(FEATURE / "source/provenance/source_manifest.json")
     production = load(FEATURE / "intermediate/validation/asset_production_report.json")
     asset_manifest = load(FEATURE / "shared/contracts/asset_manifest.json")
@@ -62,20 +99,41 @@ def main() -> int:
         fail(errors, "runtime reference canvas must be [1080, 1920]")
     if runtime.get("visual_revision") != "V2.2":
         fail(errors, "runtime visual revision must be V2.2")
+    contract_hashes = runtime.get("contract_sha256", {})
+    for name in runtime.get("current_contracts", []):
+        packaged = RUNTIME / "config" / name
+        if contract_hashes.get(name) != digest(packaged):
+            fail(errors, "runtime manifest contract SHA256 mismatch: " + name)
     if runtime.get("approved_visual_sha256") != "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec":
         fail(errors, "runtime approved visual SHA mismatch")
     for relative_path, expected_sha in runtime.get("sha256", {}).items():
         candidate = RUNTIME / relative_path
         if not candidate.is_file() or digest(candidate) != expected_sha:
             fail(errors, "runtime asset SHA256 mismatch: " + relative_path)
-    if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "ripple", "bobber", "native_ui"]:
-        fail(errors, "layer order does not preserve Ripple below Bobber")
+    if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "bobber_underwater", "water_contact_occlusion", "ripple", "bobber_above_water", "foreground_occlusion", "native_ui", "capture_action"]:
+        fail(errors, "layer order does not preserve the V2.2 water-contact compositing order")
     if layers.get("rules", {}).get("ripple_count") != 1 or layers.get("rules", {}).get("scene_base_has_baked_ripple") is not False:
         fail(errors, "single-ripple/no-baked-ripple rule failed")
+    if layers.get("rules", {}).get("scene_transform") != "UNIFORM_COVER" or layers.get("rules", {}).get("bobber_is_split_at_water_contact") is not True:
+        fail(errors, "scene transform and bobber water-contact split rules are missing")
     if anchors["ripple"]["center_reference_px"] != anchors["bobber"]["water_contact_reference_px"]:
         fail(errors, "ripple center must equal bobber water contact")
     if anchors["bobber"]["water_contact_reference_px"] != [560, 1320]:
         fail(errors, "V2.2 bobber water contact mismatch")
+    if anchors.get("visual_revision") != "V2.2" or anchors.get("authority_status") != "CURRENT":
+        fail(errors, "anchor contract is not the current V2.2 authority")
+    if anchors.get("hero_title", {}).get("bbox_reference_px") != {"x": 50, "y": 224, "width": 620, "height": 310}:
+        fail(errors, "Hero anchor differs from the frozen normalized reference contract")
+    if anchors.get("rod", {}).get("bbox_reference_px", {}).get("x") != -96 or anchors.get("rod", {}).get("bbox_reference_px", {}).get("y") != 1172:
+        fail(errors, "V2.2 rod origin mismatch")
+    if anchors.get("rod", {}).get("tip_reference_px") != [335, 1180]:
+        fail(errors, "V2.2 rod tip mismatch")
+    if anchors.get("line", {}).get("control_points_reference_px") != [[390, 1265], [470, 1352]]:
+        fail(errors, "V2.2 single cubic line control points mismatch")
+    if anchors.get("bobber", {}).get("bbox_reference_px") != {"x": 548, "y": 1236, "width": 24, "height": 122}:
+        fail(errors, "V2.2 bobber geometry mismatch")
+    if anchors.get("cta", {}).get("camera_size_reference_px") != 220:
+        fail(errors, "V2.2 Camera size mismatch")
     if anchors["rod"]["tip_reference_px"] != [335, 1180]:
         fail(errors, "V2.2 rod tip mismatch")
     line = anchors.get("line", {})
