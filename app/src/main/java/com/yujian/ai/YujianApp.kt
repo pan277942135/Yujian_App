@@ -145,7 +145,10 @@ fun YujianApp() {
         sessionManager.clear()
         session = null
         catchesState = CatchArchiveState()
-        nav.navigate("home") { launchSingleTop = true }
+        nav.navigate("home") {
+            popUpTo("home") { inclusive = false }
+            launchSingleTop = true
+        }
     }
 
     fun applyProfile(profile: com.yujian.ai.auth.AccountProfile) {
@@ -168,6 +171,16 @@ fun YujianApp() {
                 .onSuccess {
                     guestMigrationPending = false
                     catchReload++
+                }
+                .onFailure {
+                    // Keep the local archive visible after a partial migration. The
+                    // account API has no idempotent migration key, so don't retry
+                    // automatically in this session and risk duplicate remote catches.
+                    Toast.makeText(
+                        activityContext,
+                        "游客鱼获迁移未完成；本机原记录仍保留，暂不自动重试以避免重复记录。",
+                        Toast.LENGTH_LONG,
+                    ).show()
                 }
         }
     }
@@ -404,7 +417,13 @@ fun YujianApp() {
                         accessToken = session?.accessToken.orEmpty(),
                         onBack = { nav.popBackStack() },
                         onRetry = { catchReload++ },
-                        onOpenFishGuide = { record -> nav.navigate("species/${Uri.encode(record.speciesId)}") },
+                        onOpenFishGuide = { record ->
+                            if (record.speciesId.isNotBlank()) {
+                                nav.navigate("species/${Uri.encode(record.speciesId)}")
+                            } else {
+                                Toast.makeText(activityContext, "这条鱼获暂缺鱼鉴条目关联", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         onShare = { record ->
                             val shareText = buildList {
                                 add("鱼获记录：${presentationSpeciesName(record.speciesName)}")
