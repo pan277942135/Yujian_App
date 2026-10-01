@@ -168,6 +168,27 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Prepare YuJian Full-Surface APK bundle
+        run: |
+          filename="YuJian_Full_Surface_Android_${GITHUB_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
+          mkdir -p build/full-surface-apk
+          cp app/build/outputs/apk/debug/app-debug.apk "build/full-surface-apk/${filename}"
+          cp build/runtime-apks/model_release_contract.json build/full-surface-apk/model_release_contract.json
+          cp build/runtime-apks/apk_model_trace.json build/full-surface-apk/apk_model_trace.json
+          (cd build/full-surface-apk && sha256sum "${filename}" model_release_contract.json apk_model_trace.json > SHA256SUMS)
+          python3 scripts/verify_full_surface_apk_bundle.py \
+            --bundle-dir build/full-surface-apk \
+            --build-sha "$GITHUB_SHA" \
+            --model-id "${{ steps.model_trace.outputs.model_id }}"
+
+      - name: Upload Full-Surface Android APK and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Full-Surface-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
+          path: build/full-surface-apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload Recognition Processing V1.3 QA APK
         uses: actions/upload-artifact@v4
         with:
