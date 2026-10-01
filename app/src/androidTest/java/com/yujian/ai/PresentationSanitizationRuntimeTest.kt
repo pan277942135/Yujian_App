@@ -42,7 +42,7 @@ class PresentationSanitizationRuntimeTest {
         assertRuntimeClean("My Catches with null location")
         assertVisible("草鱼")
         assertVisible(currentDayLabel())
-        assertVisible("1条鱼获")
+        assertVisible("1条鱼获 · 1种鱼")
         assertAbsent("首次null")
         screenshot("02_my_catches_null_clean.png")
 

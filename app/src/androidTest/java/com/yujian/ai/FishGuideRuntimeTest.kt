@@ -38,6 +38,7 @@ import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import kotlin.math.abs
 import org.junit.Rule
 import org.junit.Test
 
@@ -423,13 +424,48 @@ class FishGuideRuntimeTest {
     }
 
     private fun swipeCarouselToSelectedSpecies(name: String) {
-        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
-        composeRule.waitUntil(timeoutMillis = 5_000L) {
-            composeRule.onAllNodesWithContentDescription(name).fetchSemanticsNodes().any { node ->
-                node.config[SemanticsProperties.StateDescription]
-                    .contains("当前选中")
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
+            .fetchSemanticsNode()
+            .boundsInRoot
+        var lastTargetBounds = "not available"
+        var lastCenterDelta = "not available"
+        val targetCentered = runCatching {
+            composeRule.waitUntil(timeoutMillis = 5_000L) {
+                val target = composeRule.onAllNodesWithContentDescription(name)
+                    .fetchSemanticsNodes()
+                    .firstOrNull()
+                if (target == null) {
+                    lastTargetBounds = "target semantics node not found"
+                    lastCenterDelta = "not available"
+                    false
+                } else {
+                    val bounds = target.boundsInRoot
+                    val centerDelta = abs(bounds.center.x - carouselBounds.center.x)
+                    lastTargetBounds = bounds.toString()
+                    lastCenterDelta = centerDelta.toString()
+                    bounds.width > 0f && centerDelta <= bounds.width * 0.1f
+                }
             }
-        }
+        }.isSuccess
+        assertTrue(
+            "Swipe did not center $name: carouselCenterX=${carouselBounds.center.x}, " +
+                "targetBounds=$lastTargetBounds, centerDeltaX=$lastCenterDelta",
+            targetCentered,
+        )
+
+        composeRule.waitForIdle()
+        val activeNode = composeRule.onAllNodesWithContentDescription(name)
+            .fetchSemanticsNodes()
+            .minByOrNull { abs(it.boundsInRoot.center.x - carouselBounds.center.x) }
+        val activeBounds = activeNode?.boundsInRoot
+        val stateDescription = runCatching {
+            activeNode?.config?.get(SemanticsProperties.StateDescription)
+        }.getOrNull()
+        assertTrue(
+            "Centered card $name lacks current-selected state: bounds=$activeBounds, " +
+                "carouselCenterX=${carouselBounds.center.x}, stateDescription=$stateDescription",
+            stateDescription?.contains("当前选中") == true,
+        )
         composeRule.onNodeWithText(name).assertIsDisplayed()
     }
 
