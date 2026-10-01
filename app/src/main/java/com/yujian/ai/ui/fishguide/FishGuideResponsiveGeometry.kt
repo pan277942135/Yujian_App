@@ -10,6 +10,14 @@ data class FishGuideCarouselGeometry(
     val adjacentVisibleDp: Float,
 )
 
+data class SpeciesDetailCarouselGeometry(
+    val viewportWidthDp: Float,
+    val cardWidthDp: Float,
+    val pageSpacingDp: Float,
+    val sidePaddingDp: Float,
+    val adjacentVisibleDp: Float,
+)
+
 object FishGuideResponsiveGeometryResolver {
     // Frozen Home card bounds: x≈134..807 (673px), y≈442..1365 (923px).
     private const val HOME_CARD_WIDTH_FRACTION = 673f / 941f
@@ -31,6 +39,22 @@ object FishGuideResponsiveGeometryResolver {
             pageSpacingDp = pageSpacing,
             sidePaddingDp = sidePadding,
             adjacentVisibleDp = (sidePadding - pageSpacing).coerceAtLeast(0f),
+        )
+    }
+
+    fun resolveSpeciesDetail(
+        viewportWidthDp: Float,
+        pageSpacingDp: Float = 8f,
+    ): SpeciesDetailCarouselGeometry {
+        require(viewportWidthDp > 0f && pageSpacingDp >= 0f)
+        val cardWidth = viewportWidthDp * SPECIES_DETAIL_CARD_WIDTH_FRACTION
+        val sidePadding = (viewportWidthDp - cardWidth) / 2f
+        return SpeciesDetailCarouselGeometry(
+            viewportWidthDp = viewportWidthDp,
+            cardWidthDp = cardWidth,
+            pageSpacingDp = pageSpacingDp,
+            sidePaddingDp = sidePadding,
+            adjacentVisibleDp = (sidePadding - pageSpacingDp).coerceAtLeast(0f),
         )
     }
 }

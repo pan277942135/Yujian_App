@@ -20,7 +20,11 @@ class FishGuideResponsiveGeometryTest {
 
     @Test
     fun speciesDetailUsesFrozen82To86PercentActiveCardTarget() {
-        assertTrue(FishGuideResponsiveGeometryResolver.SPECIES_DETAIL_CARD_WIDTH_FRACTION in 0.82f..0.86f)
+        listOf(320f, 360f, 393f, 411f).forEach { width ->
+            val geometry = FishGuideResponsiveGeometryResolver.resolveSpeciesDetail(width)
+            assertTrue(geometry.cardWidthDp / width in 0.82f..0.86f)
+            assertTrue(geometry.adjacentVisibleDp / width in 0.05f..0.08f)
+        }
     }
 
     @Test

@@ -322,8 +322,9 @@ private fun SpeciesKnowledgeCarousel(
     onAdjacentTap: (Int) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val cardWidth = maxWidth * FishGuideResponsiveGeometryResolver.SPECIES_DETAIL_CARD_WIDTH_FRACTION
-        val sidePeek = (maxWidth - cardWidth) / 2f
+        val geometry = FishGuideResponsiveGeometryResolver.resolveSpeciesDetail(maxWidth.value)
+        val cardWidth = geometry.cardWidthDp.dp
+        val sidePeek = geometry.sidePaddingDp.dp
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -332,7 +333,7 @@ private fun SpeciesKnowledgeCarousel(
                 .testTag("fish_species_knowledge_carousel"),
             pageSize = PageSize.Fixed(cardWidth),
             contentPadding = PaddingValues(horizontal = sidePeek),
-            pageSpacing = 8.dp,
+            pageSpacing = geometry.pageSpacingDp.dp,
             flingBehavior = PagerDefaults.flingBehavior(
                 state = pagerState,
                 snapAnimationSpec = tween(durationMillis = if (reduceMotion) 100 else 260),
@@ -341,11 +342,11 @@ private fun SpeciesKnowledgeCarousel(
         ) { page ->
             Box(
                 modifier = Modifier
-                    .width(cardWidth)
+                .width(cardWidth)
                     .heightIn(min = 390.dp)
                     .semantics {
                         contentDescription = "${cards[page].label}，${cards[page].title}"
-                        stateDescription = "第 ${page + 1} 张，共 5 张${if (page == settledPage && !pagerState.isScrollInProgress) "，当前选中" else ""}"
+                        stateDescription = "第 ${page + 1} 张，共 5 张${if (page == pagerState.currentPage && !pagerState.isScrollInProgress) "，当前选中" else ""}"
                     },
             ) {
                 KnowledgeCardSurface(

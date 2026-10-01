@@ -234,6 +234,14 @@ class FishGuideRuntimeTest {
         assertTrue(composeRule.onAllNodesWithText("英雄卡").fetchSemanticsNodes().isEmpty())
         assertTrue(composeRule.onAllNodesWithText("稀有 2  ·  力量 3  ·  挑战 1").fetchSemanticsNodes().isEmpty())
         composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        val carouselBounds = composeRule.onNodeWithTag("fish_species_knowledge_carousel")
+            .fetchSemanticsNode().boundsInRoot
+        val activeCardBounds = composeRule.onNodeWithContentDescription("鱼种名片，草鱼")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Species Detail active card width must follow the frozen 82–86% range",
+            activeCardBounds.width / carouselBounds.width in 0.82f..0.86f,
+        )
         assertTrue(composeRule.onAllNodesWithText("排行榜").fetchSemanticsNodes().isEmpty())
         saveScreenshot("fish_species_detail.png")
         composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
