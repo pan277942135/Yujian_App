@@ -14,15 +14,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -47,7 +48,6 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -56,11 +56,14 @@ import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
-import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.HomeEmptyScene
+import com.yujian.ai.ui.home.EmptyHomeLayoutMapping
+import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
+import com.yujian.ai.ui.home.calculateEmptyHomeLayoutMapping
 import com.yujian.ai.ui.home.HomeMotionState
 import com.yujian.ai.ui.home.NormalHomeContent
+import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.rememberNormalHomeRuntimeAssets
 import com.yujian.ai.ui.home.rememberHomeMotionState
@@ -68,18 +71,6 @@ import com.yujian.ai.ui.home.rememberHomeMotionState
 private val Ink = Color(0xFF18324A)
 private const val HomeBackground =
     "normal_home_runtime_v1/static/scene_base.png"
-
-private const val EmptyHomeReferenceWidth = 1080f
-private const val EmptyHomeReferenceHeight = 1920f
-private const val EmptyHomeHeroX = 75f
-private const val EmptyHomeHeroY = 240f
-private const val EmptyHomeHeroWidth = 606f
-private const val EmptyHomeHeroHeight = 296f
-private const val EmptyHomePromptY = 1448f
-private const val EmptyHomeCameraX = 430f
-private const val EmptyHomeCameraY = 1537f
-private const val EmptyHomeCameraSize = 220f
-private const val EmptyHomeAlbumY = 1780f
 
 @Composable
 fun HomeScreen(
@@ -101,7 +92,10 @@ fun HomeScreen(
     onCatchClick: (String) -> Unit,
 ) {
     val view = LocalView.current
-    val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+    val safePadding = WindowInsets.safeDrawing.asPaddingValues()
+    val safeInsets = rememberSafeDrawingInsets()
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
     val homeMotionState = rememberHomeMotionState()
     val emptyRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = showEmptyState)
     val normalRuntimeAssets = rememberNormalHomeRuntimeAssets(enabled = !showEmptyState)
@@ -126,16 +120,27 @@ fun HomeScreen(
         onDispose { }
     }
 
-    Box(Modifier.fillMaxSize()) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val mapping = remember(maxWidth, maxHeight, density, safeInsets, layoutDirection) {
+            calculateEmptyHomeLayoutMapping(
+                windowWidthDp = maxWidth.value,
+                windowHeightDp = maxHeight.value,
+                density = density.density,
+                fontScale = density.fontScale,
+                safeInsets = safeInsets,
+                layoutDirection = layoutDirection,
+            )
+        }
         if (showEmptyState) {
             HomeEmptyScene(
+                layoutMapping = mapping,
                 modifier = Modifier.fillMaxSize(),
                 motionState = homeMotionState,
                 runtimeAssets = emptyRuntimeAssets,
             )
             EmptyHomeContent(
                 modifier = Modifier.fillMaxSize(),
-                topInset = safeInsets.calculateTopPadding(),
+                layoutMapping = mapping,
                 isLoggedIn = isLoggedIn,
                 avatarUrl = avatarUrl,
                 resolveImageUrl = resolveImageUrl,
@@ -176,7 +181,7 @@ fun HomeScreen(
                 isResolving = isResolving,
                 motionState = homeMotionState,
                 runtimeAssets = normalRuntimeAssets,
-                modifier = Modifier.fillMaxSize().padding(safeInsets),
+                modifier = Modifier.fillMaxSize().padding(safePadding),
             )
         }
     }
@@ -185,7 +190,7 @@ fun HomeScreen(
 @Composable
 private fun EmptyHomeContent(
     modifier: Modifier,
-    topInset: Dp,
+    layoutMapping: EmptyHomeLayoutMapping,
     isLoggedIn: Boolean,
     avatarUrl: String?,
     resolveImageUrl: (String?) -> String?,
@@ -200,22 +205,14 @@ private fun EmptyHomeContent(
     val loginClick = rememberDebouncedClick(onLoginClick)
     val albumClick = rememberDebouncedClick(onAlbumClick)
 
-    BoxWithConstraints(modifier) {
-        val scaleX = maxWidth / EmptyHomeReferenceWidth
-        val scaleY = maxHeight / EmptyHomeReferenceHeight
-        fun refX(value: Float): Dp = scaleX * value
-        fun refY(value: Float): Dp = scaleY * value
-
+    Box(modifier) {
+        val header = layoutMapping.headerBounds
         Box(
             Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .widthIn(max = 430.dp)
-                .padding(
-                    top = topInset + 16.dp,
-                    start = 24.dp,
-                    end = 24.dp,
-                ),
+                .offset(x = header.left.dp, y = header.top.dp)
+                .width(header.width.dp)
+                .heightIn(min = header.height.dp)
+                .padding(horizontal = layoutMapping.profile.horizontalContentInsetDp.dp),
         ) {
             Column(
                 modifier = Modifier.align(Alignment.CenterStart),
@@ -295,20 +292,21 @@ private fun EmptyHomeContent(
             contentDescription = "现在，轮到你记录第一条鱼",
             modifier = Modifier
                 .offset(
-                    x = refX(EmptyHomeHeroX),
-                    y = refY(EmptyHomeHeroY),
+                    x = layoutMapping.heroBounds.left.dp,
+                    y = layoutMapping.heroBounds.top.dp,
                 )
-                .width(refX(EmptyHomeHeroWidth))
-                .height(refY(EmptyHomeHeroHeight)),
-            contentScale = ContentScale.FillBounds,
+                .width(layoutMapping.heroBounds.width.dp)
+                .height(layoutMapping.heroBounds.height.dp),
+            contentScale = ContentScale.Fit,
         )
 
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = refY(EmptyHomePromptY))
-                .fillMaxWidth()
-                .height(refY(64f)),
+                .offset(
+                    x = layoutMapping.promptBounds.left.dp,
+                    y = layoutMapping.promptBounds.top.dp,
+                )
+                .width(layoutMapping.promptBounds.width.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -321,23 +319,26 @@ private fun EmptyHomeContent(
             )
         }
 
-        val cameraSize = refX(EmptyHomeCameraSize)
+        val cameraBounds = layoutMapping.cameraBounds
         HomeCameraButton(
             onClick = onIdentify,
             modifier = Modifier.offset(
-                x = refX(EmptyHomeCameraX),
-                y = refY(EmptyHomeCameraY),
+                x = cameraBounds.left.dp,
+                y = cameraBounds.top.dp,
             ),
             motionState = motionState,
             runtimeAssets = runtimeAssets,
-            visualSize = cameraSize,
-            touchTargetSize = cameraSize,
+            visualSize = cameraBounds.width.dp,
+            touchTargetSize = cameraBounds.width.dp,
         )
 
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = refY(EmptyHomeAlbumY))
+                .offset(
+                    x = (layoutMapping.albumBounds.left - layoutMapping.windowWidthDp / 2f).dp,
+                    y = layoutMapping.albumBounds.top.dp,
+                )
                 .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                 .semantics {
                     contentDescription = "从相册选择照片"

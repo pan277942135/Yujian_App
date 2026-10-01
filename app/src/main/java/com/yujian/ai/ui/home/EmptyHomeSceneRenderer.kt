@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -22,7 +21,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.ContentScale
 import com.yujian.ai.ui.components.AssetImage
-import com.yujian.ai.ui.designsystem.color.YuJianColors
 import kotlin.math.roundToInt
 
 private const val FALLBACK_BACKGROUND =
@@ -47,6 +45,7 @@ internal fun EmptyHomeSceneRenderer(
     modifier: Modifier,
     motionState: HomeMotionState,
     runtimeAssets: EmptyHomeRuntimeAssets?,
+    sceneTransform: ReferenceSceneTransform,
 ) {
     Box(modifier.clipToBounds()) {
         AssetImage(
@@ -55,11 +54,6 @@ internal fun EmptyHomeSceneRenderer(
             contentDescription = null,
             contentScale = ContentScale.Crop,
         )
-        Canvas(Modifier.fillMaxSize()) {
-            // A light blue-gray veil lowers saturation and foreground noise
-            // while keeping the frozen lake and CTA structure intact.
-            drawRect(color = YuJianColors.MistBlueGray.copy(alpha = 0.045f))
-        }
         if (runtimeAssets != null) {
             val particles = remember { createSunParticleSpecs() }
             val paint = remember {
@@ -73,6 +67,7 @@ internal fun EmptyHomeSceneRenderer(
                     particles = particles,
                     paint = paint,
                     destination = destination,
+                    transform = sceneTransform,
                 )
             }
         }
@@ -85,9 +80,24 @@ private fun DrawScope.drawRuntimeOverlays(
     particles: List<SunParticleSpec>,
     paint: Paint,
     destination: RectF,
+    transform: ReferenceSceneTransform,
 ) {
-    val transform = calculateReferenceSceneTransform(size.width, size.height)
     val time = if (motionState.running) motionState.sceneTimeSeconds else 0f
+
+    drawReferenceBitmap(
+        bitmap = assets.sceneBase,
+        x = 0f,
+        y = 0f,
+        width = REFERENCE_SCENE_WIDTH,
+        height = REFERENCE_SCENE_HEIGHT,
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+
+    // Remove the former full-page and bottom color veils. V2 does not authorize
+    // an additional grade over the frozen Sunrise Hero surface.
 
     drawReferenceBitmap(
         bitmap = assets.cloud,
@@ -136,18 +146,6 @@ private fun DrawScope.drawRuntimeOverlays(
         destination = destination,
     )
     drawFrozenFishingLine(transform)
-
-    // Local atmosphere only: no glass surface, hard vignette, or CTA plate.
-    drawRect(
-        brush = Brush.verticalGradient(
-            colors = listOf(
-                Color.Transparent,
-                YuJianColors.MistBlueGray.copy(alpha = 0.055f),
-            ),
-            startY = size.height * 0.72f,
-            endY = size.height,
-        ),
-    )
 
     val bobberMotionActive = emptyHomeMotionActive(
         running = motionState.running,

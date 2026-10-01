@@ -45,6 +45,9 @@
     "safe_top_ui": {
       "strategy": "SAFE_TOP_ANCHORED",
       "inset_source": "WindowInsets.safeDrawing",
+      "top_margin_after_safe_inset_dp": 16,
+      "maximum_content_width_dp": 430,
+      "minimum_touch_target_dp": 48,
       "elements": ["logo", "subtitle", "login", "profile"],
       "position_independent_of_scene_crop": true
     },
@@ -81,6 +84,8 @@
       "reference_relationships": "Prompt, Camera and Album anchors are measured in one CTA group. Camera is 220px square; visual clear gaps remain at least 25px and 23px respectively. Prompt and Album heights remain content-driven.",
       "group_scale": "safeWidthDp/1080",
       "vertical_anchor": "translate the group so its reference-canvas bottom aligns with safe viewport bottom: translateY=safeHeightDp-1920*(safeWidthDp/1080); anchor offsets use the same group scale",
+      "bottom_overflow_compensation": "move the whole group upward only when the 48dp Album touch target would extend below the safe viewport",
+      "accessibility_reflow": "move Prompt upward only as needed to retain its 24sp line-height and minimum 25px reference clear gap before Camera",
       "prompt_and_album_height": "content_driven",
       "minimum_touch_target_dp": 48
     }

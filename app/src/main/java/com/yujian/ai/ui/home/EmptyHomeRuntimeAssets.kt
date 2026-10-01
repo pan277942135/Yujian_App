@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 private const val ROOT = "empty_home_runtime_v2"
 
 internal data class EmptyHomeRuntimeAssets(
+    val sceneBase: Bitmap,
     val cloud: Bitmap,
     val sunBeam: Bitmap,
     val particle: Bitmap,
@@ -41,6 +42,7 @@ private fun decodeAsset(context: Context, path: String): Bitmap {
 
 private fun loadRuntimeAssets(context: Context): EmptyHomeRuntimeAssets =
     EmptyHomeRuntimeAssets(
+        sceneBase = decodeAsset(context, "static/scene_base.webp"),
         cloud = decodeAsset(context, "dynamic/cloud.png"),
         sunBeam = decodeAsset(context, "dynamic/sun_beam_mask.png"),
         particle = decodeAsset(context, "dynamic/particle_mask.png"),

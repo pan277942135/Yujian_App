@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -80,6 +81,9 @@ def main() -> int:
     if responsive.get("reference_canvas") != [1080, 1920]:
         fail(errors, "responsive mapping reference canvas must be [1080, 1920]")
     groups = responsive.get("groups", {})
+    header_mapping = groups.get("safe_top_ui", {})
+    if header_mapping.get("top_margin_after_safe_inset_dp") != 16 or header_mapping.get("maximum_content_width_dp") != 430 or header_mapping.get("minimum_touch_target_dp") != 48:
+        fail(errors, "safe-top header geometry/target contract is incomplete")
     scene_mapping = groups.get("scene_space", {})
     if scene_mapping.get("strategy") != "UNIFORM_COVER" or scene_mapping.get("all_scene_locked_elements_share_transform") is not True:
         fail(errors, "scene elements must share one UNIFORM_COVER sceneTransform")
@@ -89,6 +93,43 @@ def main() -> int:
         fail(errors, "hero may not use FillBounds or anisotropic stretching")
     if [item.get("width_dp") for item in responsive.get("responsive_profiles_to_verify", [])] != [320, 360, 393, 411]:
         fail(errors, "responsive mapping must cover all four required width profiles")
+
+    layout_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeLayoutMapping.kt").read_text()
+    home_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt").read_text()
+    scene_entry = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeEmptyScene.kt").read_text()
+    scene_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt").read_text()
+    geometry_constants = {
+        "REFERENCE_WIDTH_PX": anchors["reference_canvas"]["width"],
+        "REFERENCE_HEIGHT_PX": anchors["reference_canvas"]["height"],
+        "HERO_X_PX": anchors["hero_title"]["bbox_reference_px"]["x"],
+        "HERO_Y_PX": anchors["hero_title"]["bbox_reference_px"]["y"],
+        "HERO_WIDTH_PX": anchors["hero_title"]["bbox_reference_px"]["width"],
+        "HERO_HEIGHT_PX": anchors["hero_title"]["bbox_reference_px"]["height"],
+        "PROMPT_Y_PX": anchors["cta"]["prompt_top_reference_px"],
+        "CAMERA_X_PX": anchors["camera_button"]["bbox_reference_px"]["x"],
+        "CAMERA_Y_PX": anchors["camera_button"]["bbox_reference_px"]["y"],
+        "CAMERA_SIZE_PX": anchors["cta"]["camera_size_reference_px"],
+        "ALBUM_Y_PX": anchors["cta"]["album_top_reference_px"],
+        "PROMPT_CAMERA_GAP_MIN_PX": responsive["groups"]["capture_cta_group"]["reference_geometry_px"]["prompt_to_camera_clear_gap_minimum"],
+        "CAMERA_ALBUM_GAP_MIN_PX": responsive["groups"]["capture_cta_group"]["reference_geometry_px"]["camera_to_album_clear_gap_minimum"],
+        "SAFE_HEADER_INSET_DP": responsive["groups"]["safe_top_ui"]["top_margin_after_safe_inset_dp"],
+        "HEADER_MAX_WIDTH_DP": responsive["groups"]["safe_top_ui"]["maximum_content_width_dp"],
+        "HEADER_MIN_TOUCH_TARGET_DP": responsive["groups"]["safe_top_ui"]["minimum_touch_target_dp"],
+    }
+    for name, expected in geometry_constants.items():
+        match = re.search(rf"const val {name} = ([0-9.]+)f", layout_source)
+        if match is None or float(match.group(1)) != float(expected):
+            fail(errors, f"EmptyHomeLayoutMapping.{name} diverges from the canonical machine contract")
+    if re.search(r"\bscaleX\b|\bscaleY\b|\brefX\s*\(|\brefY\s*\(", home_screen):
+        fail(errors, "HomeScreen still contains independent X/Y reference scaling")
+    if "ContentScale.FillBounds" in home_screen:
+        fail(errors, "Empty Home Hero may not use ContentScale.FillBounds")
+    if "sceneTransform = layoutMapping.sceneTransform" not in scene_entry:
+        fail(errors, "HomeEmptyScene does not pass its single sceneTransform to the renderer")
+    if "bitmap = assets.sceneBase" not in scene_renderer or "transform = transform" not in scene_renderer:
+        fail(errors, "scene base and scene-locked overlays must share sceneTransform")
+    if "MistBlueGray" in scene_renderer:
+        fail(errors, "Empty Home Scene may not add an unauthorized blue-gray grade")
     source = load(FEATURE / "source/provenance/source_manifest.json")
     production = load(FEATURE / "intermediate/validation/asset_production_report.json")
     asset_manifest = load(FEATURE / "shared/contracts/asset_manifest.json")
