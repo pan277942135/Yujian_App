@@ -162,3 +162,33 @@ Frozen decisions:
 - Success/error feedback remains textual/semantic, not celebratory sensory feedback.
 
 This is an intentional product decision, not a missing design surface.
+
+
+## FINAL DESIGN STATE
+
+Account & Privacy design is now **FROZEN**.
+
+Final review:
+
+`Account_Privacy_Design_Freeze_Review_V1.md`
+
+Frozen design dimensions:
+
+- Visual
+- Behavior / IA
+- Motion
+- Haptic
+- Sound
+- Assets
+- Design Evidence
+
+Independent external gates:
+
+- Android Runtime = PARTIAL
+- Privacy Policy final Legal Copy = LEGAL_REVIEW_REQUIRED
+- User Agreement final Legal Copy = LEGAL_REVIEW_REQUIRED
+- Forgot Password = DEFERRED
+- Export My Data = DEFERRED
+- Delete Account = DEFERRED
+
+These external gates do not keep Design open.
