@@ -833,5 +833,30 @@
       "resolved_at": "2026-10-01",
       "note": "Originally approved source recovered; source SHA matched the recorded authority. Frozen WebP was reproduced byte-identically and verified by SHA-256 plus Git blob identity."
     }
-  ]
+  ],
+  "interaction_feedback_authority": {
+    "status": "FROZEN",
+    "authority": "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md",
+    "motion": {
+      "status": "FROZEN",
+      "mode": "SHARED_ONLY_NO_FEATURE_CUSTOM",
+      "dependencies": [
+        "design/system/components/action_button/motion_contract.json",
+        "design/system/components/icon_action/motion_contract.json",
+        "design/system/components/text_action/motion_contract.json",
+        "design/system/motion/README.md"
+      ]
+    },
+    "haptic": {
+      "status": "FROZEN",
+      "mode": "NONE",
+      "dependency": "design/system/haptic/README.md"
+    },
+    "sound": {
+      "status": "FROZEN",
+      "mode": "NONE",
+      "dependency": "design/system/sound/README.md"
+    },
+    "note": "Account & Privacy adds no private motion/haptic/sound layer. Shared component feedback and platform/shared transitions only."
+  }
 }
