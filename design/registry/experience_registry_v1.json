@@ -5586,16 +5586,6 @@
           ]
         },
         {
-          "id": "integrity_blocked",
-          "title": "INTEGRITY BLOCKED",
-          "status": "BLOCKED_INTEGRITY",
-          "summary": "The design/behavior contract exists, but the current repository visual binary does not match the declared frozen fingerprint. Do not regenerate or re-encode it; recover the originally approved byte-identical source.",
-          "authority": "design/pages/account_privacy/authority_manifest_v2.json",
-          "points": [
-            "Nickname Edit V1 · visual binary SHA mismatch"
-          ]
-        },
-        {
           "id": "legacy_review",
           "title": "LEGACY / REVIEW REQUIRED",
           "status": "PARTIAL",
