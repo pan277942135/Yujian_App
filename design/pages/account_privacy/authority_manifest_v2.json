@@ -696,7 +696,7 @@
       "canonical_id": "account_privacy_v1.05b",
       "title": "05B · 隐私政策",
       "menu_location": "账号与隐私 → 05 · 法律与关于 → 05B · 隐私政策",
-      "status": "PARTIAL",
+      "status": "FROZEN",
       "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
       "visual_references": [
         {
@@ -722,18 +722,19 @@
       "legal_gate": "Final production legal copy requires legal approval; frozen visual shell does not imply approved legal text.",
       "behavior_status": "FROZEN",
       "visual_status": "FROZEN",
-      "content_status": "PARTIAL",
+      "content_status": "FROZEN",
       "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
       "visual_authority_mode": "COMPOSITE_BASE_PLUS_SHARED_LEGAL_SHELL",
       "visual_authority_trusted": true,
-      "visual_closure_gate": null
+      "visual_closure_gate": null,
+      "design_status": "FROZEN"
     },
     {
       "id": "05c",
       "canonical_id": "account_privacy_v1.05c",
       "title": "05C · 用户协议",
       "menu_location": "账号与隐私 → 05 · 法律与关于 → 05C · 用户协议",
-      "status": "PARTIAL",
+      "status": "FROZEN",
       "visual_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
       "visual_references": [
         {
@@ -758,12 +759,13 @@
       "product_scope": "MVP",
       "behavior_status": "FROZEN",
       "visual_status": "FROZEN",
-      "content_status": "PARTIAL",
+      "content_status": "FROZEN",
       "legal_copy_status": "LEGAL_REVIEW_REQUIRED",
       "visual_authority_mode": "SHARED_LEGAL_SHELL_REUSE",
       "visual_authority_trusted": true,
       "visual_closure_gate": null,
-      "legal_gate": "Final production user agreement requires legal approval; content architecture is frozen but final legal wording is not."
+      "legal_gate": "Final production user agreement requires legal approval; content architecture is frozen but final legal wording is not.",
+      "design_status": "FROZEN"
     }
   ],
   "historical_background_reference": {
@@ -858,5 +860,17 @@
       "dependency": "design/system/sound/README.md"
     },
     "note": "Account & Privacy adds no private motion/haptic/sound layer. Shared component feedback and platform/shared transitions only."
+  },
+  "design_status": "FROZEN",
+  "design_freeze_review": "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md",
+  "external_gates": {
+    "runtime": "PARTIAL",
+    "privacy_policy_legal_copy": "LEGAL_REVIEW_REQUIRED",
+    "user_agreement_legal_copy": "LEGAL_REVIEW_REQUIRED",
+    "deferred_product_flows": [
+      "01c",
+      "04d",
+      "04e"
+    ]
   }
 }
