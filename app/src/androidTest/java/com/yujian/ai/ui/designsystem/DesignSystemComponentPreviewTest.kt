@@ -63,15 +63,15 @@ class DesignSystemComponentPreviewTest {
         composeRule.onNodeWithText("禁用按钮").assertIsNotEnabled()
         composeRule.onNodeWithText("正在保存").assertIsNotEnabled()
         val loadingNode = composeRule.onNodeWithText("正在保存").fetchSemanticsNode()
-        assertEquals("正在加载", loadingNode.config.getOrNull(SemanticsProperties.StateDescription))
+        assertEquals("正在加载", loadingNode.config[SemanticsProperties.StateDescription])
         val backNode = composeRule.onNodeWithContentDescription("返回").fetchSemanticsNode()
-        assertEquals(Role.Button, backNode.config.getOrNull(SemanticsProperties.Role))
+        assertEquals(Role.Button, backNode.config[SemanticsProperties.Role])
         composeRule.onNodeWithContentDescription("返回")
             .assertWidthIsAtLeast(44.dp)
         composeRule.onNodeWithText("取消").assertWidthIsAtLeast(44.dp)
         composeRule.onNodeWithContentDescription("开始识鱼").assertWidthIsAtLeast(64.dp)
         val cardNode = composeRule.onNodeWithText("可操作信息卡").fetchSemanticsNode()
-        assertEquals(Role.Button, cardNode.config.getOrNull(SemanticsProperties.Role))
+        assertEquals(Role.Button, cardNode.config[SemanticsProperties.Role])
         saveScreenshot("shared_components_accessibility.png")
     }
 
