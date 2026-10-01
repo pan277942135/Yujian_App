@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.Until
 import org.json.JSONArray
 import org.json.JSONObject
@@ -110,10 +111,26 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun clickText(text: String) {
+        val selector = By.text(text)
         waitForText(text)
-        val objectUnderTest = device.findObject(By.text(text))
-        assertTrue("Expected clickable text: $text", objectUnderTest != null)
-        objectUnderTest!!.click()
+        repeat(3) {
+            device.waitForIdle()
+            val objectUnderTest = device.findObject(selector)
+            if (objectUnderTest == null) return@repeat
+            try {
+                val bounds = objectUnderTest.visibleBounds
+                if (!bounds.isEmpty) {
+                    assertTrue(
+                        "Expected clickable text: $text",
+                        device.click(bounds.centerX(), bounds.centerY()),
+                    )
+                    return
+                }
+            } catch (_: StaleObjectException) {
+                device.waitForIdle()
+            }
+        }
+        throw AssertionError("Unable to click visible text after refreshing its node: $text")
     }
 
     private fun waitForText(text: String) {

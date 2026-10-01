@@ -424,6 +424,7 @@ class FishGuideRuntimeTest {
     }
 
     private fun swipeCarouselToSelectedSpecies(name: String) {
+        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
         val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
             .fetchSemanticsNode()
             .boundsInRoot
