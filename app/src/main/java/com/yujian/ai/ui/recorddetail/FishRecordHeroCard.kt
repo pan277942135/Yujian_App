@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.components.YuJianHeroCard
@@ -30,6 +31,7 @@ fun FishRecordHeroCard(
     canFlip: Boolean,
     bsideReloadToken: Int,
     accessToken: String,
+    heroHeight: Dp,
     onEdit: () -> Unit,
     onFlip: () -> Unit,
     onBsideLoadResult: (Boolean) -> Unit,
@@ -44,6 +46,7 @@ fun FishRecordHeroCard(
         title = speciesName,
         metadata = metadata,
         variant = YuJianHeroVariant.DETAIL,
+        heightOverride = heroHeight,
         editLabel = "编辑 >",
         onClick = onEdit,
         mediaAction = {

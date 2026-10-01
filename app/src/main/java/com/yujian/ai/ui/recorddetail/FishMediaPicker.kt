@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
@@ -33,11 +34,12 @@ fun FishMediaPicker(
     onAddPhotosOrVideos: () -> Unit,
     onContinuePhoto: () -> Unit,
     onRecordVideo: () -> Unit,
+    fontScale: Float,
 ) {
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
         level = YuJianGlassLevel.Light,
-        contentPadding = PaddingValues(YuJianSpacing.md),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text("鱼获记忆", style = YuJianTypography.sectionTitle)
@@ -48,29 +50,32 @@ fun FishMediaPicker(
                 modifier = Modifier.padding(top = YuJianSpacing.xs),
             )
             Box(
-                modifier = Modifier.fillMaxWidth().height(190.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(
+                    min = if (fontScale >= 1.3f) 120.dp else 104.dp,
+                    max = if (fontScale >= 1.3f) 168.dp else 136.dp,
+                ),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
                         Icons.Rounded.Image,
                         contentDescription = null,
                         tint = YuJianColors.MistBlueGray,
-                        modifier = Modifier.size(56.dp),
+                        modifier = Modifier.size(48.dp),
                     )
                     Text("留下这次鱼获的画面", style = YuJianTypography.sectionTitle)
                     Text(
                         "照片和视频，会让这一刻更完整。",
-                        style = YuJianTypography.body,
+                        style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 20.sp),
                         color = YuJianColors.MistBlueGray,
                     )
                 }
             }
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                if (maxWidth < 280.dp) {
+                if (maxWidth < 330.dp || fontScale >= 1.3f) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         MemoryMediaAction(
                             label = "添加照片/视频",
@@ -100,7 +105,7 @@ fun FishMediaPicker(
                             label = "添加照片/视频",
                             icon = Icons.Rounded.Image,
                             onClick = onAddPhotosOrVideos,
-                            modifier = Modifier.weight(1.2f),
+                            modifier = Modifier.weight(1.3f),
                         )
                         MemoryMediaAction(
                             label = "继续拍照",
@@ -130,9 +135,9 @@ private fun MemoryMediaAction(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.heightIn(min = 48.dp),
         shape = YuJianRadius.button,
-        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
     ) {
         Icon(icon, contentDescription = null, tint = YuJianColors.DeepLakeBlue, modifier = Modifier.size(18.dp))
         Text(
