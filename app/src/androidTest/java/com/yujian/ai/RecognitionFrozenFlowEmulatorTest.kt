@@ -21,11 +21,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -477,7 +475,7 @@ class RecognitionFrozenFlowEmulatorTest {
     fun resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading() {
         val saving = mutableStateOf(false)
         val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
-        val loading = SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "正在加载")
+        val loadingDescription = "StateDescription = 正在加载"
 
         composeRule.setContent {
             YujianTheme {
@@ -499,11 +497,13 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
-        assertTrue(composeRule.onAllNodes(loading).fetchSemanticsNodes().isEmpty())
+        assertFalse(
+            composeRule.onRoot(useUnmergedTree = true).printToString().contains(loadingDescription),
+        )
 
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) {
-            composeRule.onAllNodes(loading).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onRoot(useUnmergedTree = true).printToString().contains(loadingDescription)
         }
         assertEquals(1, saveCalls.get())
     }
