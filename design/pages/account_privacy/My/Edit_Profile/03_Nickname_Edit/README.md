@@ -1,21 +1,27 @@
 # 03 · 昵称编辑
 
-Status: **BLOCKED_INTEGRITY — Behavior / Machine / Development Contract FROZEN; Visual Binary Identity Unresolved**
+Status: **FROZEN — Behavior / Machine / Development / Visual Authority**
 
 ## Governance status
 
 - Behavior / Machine / Development contracts: **FROZEN**
-- Intended approved Visual Authority identity: **FROZEN fingerprint recorded**
-- Current repository visual binary: **BLOCKED_INTEGRITY**
-- Overall Design Manager child status: **BLOCKED_INTEGRITY**
+- Visual Authority: **FROZEN**
+- Repository visual integrity: **VERIFIED**
+- Overall Design Manager child status: **FROZEN**
 
-Current repository SHA-256:
-`26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b`
-
-Declared approved/frozen SHA-256:
+Repository / declared Frozen SHA-256:
 `5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3`
 
-These do not match. Recover the originally approved byte-identical source before restoring Visual FROZEN. Do **not** regenerate, convert, optimize, or re-encode a substitute.
+Git blob SHA:
+`250d59f8317043003f38d939507dc6a085ca9f21`
+
+Approved source:
+`昵称编辑流程与交互规范.png`
+
+Approved source SHA-256:
+`5d96c4654abe9899042f29f33987bc49eb21d4b1c427963bda1a0a3fef23d55e`
+
+The originally approved source was recovered and its SHA-256 matched the frozen source record exactly. Reproducing the frozen WebP with Pillow WebP `quality=45, method=6` produced the exact recorded Frozen SHA-256 and Git blob identity. The later regenerated correction board remains superseded and is not an Authority.
 
 ## Frozen Contract Authorities
 
@@ -124,6 +130,6 @@ Canvas:
 
 Design behavior/contracts = **FROZEN**
 
-Visual integrity = **BLOCKED_INTEGRITY**
+Visual integrity = **FROZEN / VERIFIED**
 
 Runtime = **待后续按 Frozen Contract 收口与 Evidence Gate 验证**
