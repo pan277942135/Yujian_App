@@ -82,3 +82,5 @@ This design package does not:
 The current Android `ShareCenterScreen.kt` is historical implementation evidence only.
 
 Its six-period chip model and hardcoded sample statistics do not override this current design authority.
+
+Original 941×1672 PNG files are stored under `assets/originals/`. They are the recovered historical source files, byte-verified against the SHA-256 values in `assets/manifest.json`. The existing 120×213 WebP files under `assets/recovered/` remain display thumbnails only. No image was generated or visually edited in this update.

@@ -1,7 +1,7 @@
 {
   "id": "share_templates_recovered_assets_v1",
   "status": "PARTIAL",
-  "source_policy": "Recovered historical user-approved/generated design images only. No new creative image generation. Original PNGs remain source evidence outside the repository; repository WebPs are display thumbnails only.",
+  "source_policy": "Recovered historical user-approved/generated design images only. No new creative image generation. Original PNG binaries are stored under assets/originals/; recovered WebPs under assets/recovered/ remain display-only thumbnails. Original PNG SHA-256 values are verified.",
   "preview_transform": {
     "width": 120,
     "height": 213,
@@ -32,8 +32,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t01_01.png"
     },
     {
       "id": "t01_02",
@@ -54,8 +55,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t01_02.png"
     },
     {
       "id": "t02_01",
@@ -76,8 +78,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t02_01.png"
     },
     {
       "id": "t02_02",
@@ -98,8 +101,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t02_02.png"
     },
     {
       "id": "t02_03",
@@ -120,8 +124,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t02_03.png"
     },
     {
       "id": "t02_04",
@@ -142,8 +147,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t02_04.png"
     },
     {
       "id": "t02_05",
@@ -164,8 +170,9 @@
         213
       ],
       "display_thumbnail_only": true,
-      "original_png_in_repository": false,
-      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+      "original_png_in_repository": true,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary.",
+      "original_path": "design/pages/share_templates/assets/originals/t02_05.png"
     }
   ]
 }

@@ -3509,8 +3509,10 @@
                 "Original: 千岛湖九月钓鱼战绩 инфографик.png",
                 "Historical existing visual",
                 "No crop / no redesign",
-                "Final visual selection pending"
-              ]
+                "Final visual selection pending",
+                "Original PNG: design/pages/share_templates/assets/originals/t01_01.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t01_01.png"
             },
             {
               "id": "02b",
@@ -3527,8 +3529,10 @@
                 "Original: 千岛湖九月战绩·渔见奢华玻璃卡.png",
                 "Historical style iteration",
                 "Stronger glass/gold treatment",
-                "Not final frozen"
-              ]
+                "Not final frozen",
+                "Original PNG: design/pages/share_templates/assets/originals/t01_02.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t01_02.png"
             }
           ]
         },
@@ -3563,8 +3567,10 @@
                 "Original: 千岛湖九月垂钓记.png",
                 "Photo-led",
                 "Historical existing visual",
-                "Final visual selection pending"
-              ]
+                "Final visual selection pending",
+                "Original PNG: design/pages/share_templates/assets/originals/t02_01.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t02_01.png"
             },
             {
               "id": "03b",
@@ -3581,8 +3587,10 @@
                 "Original: 千岛湖水边故事垂钓纪念卡.png",
                 "Two-photo layout",
                 "Historical existing visual",
-                "Not final frozen"
-              ]
+                "Not final frozen",
+                "Original PNG: design/pages/share_templates/assets/originals/t02_02.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t02_02.png"
             },
             {
               "id": "03c",
@@ -3599,8 +3607,10 @@
                 "Original: 千岛湖九月水边故事.png",
                 "Dark/gold iteration",
                 "No photo captions",
-                "Not final frozen"
-              ]
+                "Not final frozen",
+                "Original PNG: design/pages/share_templates/assets/originals/t02_03.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t02_03.png"
             },
             {
               "id": "03d",
@@ -3617,8 +3627,10 @@
                 "Original: 水边故事：千岛湖九月垂钓记.png",
                 "Caption/video experiment",
                 "Current spec forbids fabricated media/copy",
-                "Not final frozen"
-              ]
+                "Not final frozen",
+                "Original PNG: design/pages/share_templates/assets/originals/t02_04.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t02_04.png"
             },
             {
               "id": "03e",
@@ -3635,8 +3647,10 @@
                 "Original: 千岛湖九月钓鱼故事.png",
                 "Light caption iteration",
                 "User story copy required by current spec",
-                "Not final frozen"
-              ]
+                "Not final frozen",
+                "Original PNG: design/pages/share_templates/assets/originals/t02_05.png"
+              ],
+              "primary_visual_authority": "design/pages/share_templates/assets/originals/t02_05.png"
             }
           ]
         },
