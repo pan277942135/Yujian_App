@@ -69,7 +69,7 @@ class EmptyHomeLayoutMappingTest {
     }
 
     @Test
-    fun 320By640UsesShortProfileWithoutShrinkingHeroOrTouchTarget() {
+    fun compact320By640UsesShortProfileWithoutShrinkingHeroOrTouchTarget() {
         val mapping = calculateEmptyHomeLayoutMapping(
             windowWidthDp = 320f,
             windowHeightDp = 640f,
