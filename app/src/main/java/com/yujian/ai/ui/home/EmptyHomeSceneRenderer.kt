@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.ContentScale
 import com.yujian.ai.ui.components.AssetImage
+import com.yujian.ai.ui.designsystem.color.YuJianColors
 import kotlin.math.roundToInt
 
 private const val FALLBACK_BACKGROUND =
