@@ -1,14 +1,16 @@
 {
   "id": "share_templates_recovered_assets_v1",
   "status": "PARTIAL",
-  "source_policy": "Historical existing images only. No image generation. Repository previews are non-cropped web-display derivatives of existing PNGs.",
+  "source_policy": "Recovered historical user-approved/generated design images only. No new creative image generation. Original PNGs remain source evidence outside the repository; repository WebPs are display thumbnails only.",
   "preview_transform": {
-    "width": 320,
+    "width": 120,
+    "height": 213,
     "format": "WEBP",
-    "quality": 74,
+    "quality": 60,
     "method": 6,
     "crop": false,
-    "creative_edit": false
+    "creative_edit": false,
+    "display_thumbnail_only": true
   },
   "assets": [
     {
@@ -22,8 +24,16 @@
       "source_bytes": 2177105,
       "source_sha256": "6b15748eb2cc19cadd9fe2f91a8707ce2a89501ffd717ffcb719b059ea87a0f7",
       "preview": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
-      "preview_sha256": "6de38d53cf645e8b5d55d7b1142ec51cdebbbb345ae0aaf6e58d3bbb9e51eefa",
-      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN"
+      "preview_sha256": "280c8d0e4737cd9e7b208ce556adbeb9e87c0c041c390db90a867d7be8766ade",
+      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN",
+      "preview_bytes": 6576,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     },
     {
       "id": "t01_02",
@@ -36,8 +46,16 @@
       "source_bytes": 2597137,
       "source_sha256": "1b660a9915fbc28ec330a8d2d4808ef22e184841ac62aa851b1085b7d68a5137",
       "preview": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
-      "preview_sha256": "afa0e6224b52e1412da8fcb5bfdcdc57ac98acd7a0f665905490233b7680d993",
-      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN"
+      "preview_sha256": "6f97a0aec4e13e5b52dc6537b5af2ebabf125fb9549ae73ca62cbe008a2ca266",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN",
+      "preview_bytes": 7578,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     },
     {
       "id": "t02_01",
@@ -50,8 +68,16 @@
       "source_bytes": 2193129,
       "source_sha256": "153a7ca632b9481ef2c2b63cea6767144292e1ad513b77e79851e9e6e859c3f2",
       "preview": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
-      "preview_sha256": "071192e3d044a0828d8c21aa1a5e3b32c0c0a7231126ac2d7d859eb92c34993a",
-      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN"
+      "preview_sha256": "08c100a2ab773360b984c692bca90667813bb3ed1fdbcd5948a8caf17656cf3f",
+      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN",
+      "preview_bytes": 5762,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     },
     {
       "id": "t02_02",
@@ -64,8 +90,16 @@
       "source_bytes": 2102077,
       "source_sha256": "9bc3d3a4b326de7bfc3df849fe9a51bfa0868501f21cad8cd7e27b2b26bb3cdf",
       "preview": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
-      "preview_sha256": "be538485f14d5bcd7dd418da2a3a160156aadb114f37089a346a8bc154239eda",
-      "role": "HISTORICAL ITERATION · NOT FROZEN"
+      "preview_sha256": "a9c93a197447c78d51e9cc686067ea6b7841fce56761cd05eeaefb4d79ac7f92",
+      "role": "HISTORICAL ITERATION · NOT FROZEN",
+      "preview_bytes": 5850,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     },
     {
       "id": "t02_03",
@@ -78,8 +112,16 @@
       "source_bytes": 2483802,
       "source_sha256": "cd0b5f4d91c1e1fc113dc4f1cf448ea7f8a1dff186630ae01f797e2111b5b432",
       "preview": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
-      "preview_sha256": "68e79be976b05819933dc7cb5398b0362b18f5f4a4c2241e71bc0a1bdf31e569",
-      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN"
+      "preview_sha256": "e10ac07bf675e57f2f3825a3790eb5aa576605bbd0e3498684f11ae6e2af3257",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN",
+      "preview_bytes": 7596,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     },
     {
       "id": "t02_04",
@@ -92,8 +134,16 @@
       "source_bytes": 2500445,
       "source_sha256": "cd5a447dd6d4b60339229708591c43ae8954c9394c88edceb244146c5212ce7f",
       "preview": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
-      "preview_sha256": "b074eadfbacbd868af33d7e8690d4bdeebd6410df9842baa45aab0c453f960da",
-      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN"
+      "preview_sha256": "584e6faeb22f12a2b56258c5df252687dcc51f7b0aabe8516f0b17f9092ff470",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN",
+      "preview_bytes": 7724,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     },
     {
       "id": "t02_05",
@@ -106,8 +156,16 @@
       "source_bytes": 2430329,
       "source_sha256": "9e6046d21b6a113e5767888e30eee2bda91506c75df1ddb51ecbc3be0e594095",
       "preview": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
-      "preview_sha256": "86db270a31aa426430693af8550e3e635163fa29523bba81d355b702a5e89455",
-      "role": "HISTORICAL ITERATION · NOT FROZEN"
+      "preview_sha256": "0d7da5755af6b2fe5a536a9ab6b901200556617dcaed19b183b908cd1d9348ab",
+      "role": "HISTORICAL ITERATION · NOT FROZEN",
+      "preview_bytes": 6396,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
     }
   ]
 }
