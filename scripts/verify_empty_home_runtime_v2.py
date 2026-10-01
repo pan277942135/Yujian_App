@@ -134,6 +134,7 @@ def main() -> int:
     home_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt").read_text()
     scene_entry = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeEmptyScene.kt").read_text()
     scene_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt").read_text()
+    motion_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt").read_text()
     geometry_constants = {
         "REFERENCE_WIDTH_PX": anchors["reference_canvas"]["width"],
         "REFERENCE_HEIGHT_PX": anchors["reference_canvas"]["height"],
@@ -214,19 +215,57 @@ def main() -> int:
         fail(errors, "V2.2 rod tip mismatch")
     if anchors.get("line", {}).get("control_points_reference_px") != [[390, 1265], [470, 1352]]:
         fail(errors, "V2.2 single cubic line control points mismatch")
+    line = anchors.get("line", {})
     if anchors.get("bobber", {}).get("bbox_reference_px") != {"x": 548, "y": 1236, "width": 24, "height": 122}:
         fail(errors, "V2.2 bobber geometry mismatch")
+    anchor_values = {
+        "EMPTY_HOME_V2_ROD_X": anchors["rod"]["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_ROD_Y": anchors["rod"]["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_ROD_TIP_X": anchors["rod"]["tip_reference_px"][0],
+        "EMPTY_HOME_V2_ROD_TIP_Y": anchors["rod"]["tip_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_C1_X": line["control_points_reference_px"][0][0],
+        "EMPTY_HOME_V2_LINE_C1_Y": line["control_points_reference_px"][0][1],
+        "EMPTY_HOME_V2_LINE_C2_X": line["control_points_reference_px"][1][0],
+        "EMPTY_HOME_V2_LINE_C2_Y": line["control_points_reference_px"][1][1],
+        "EMPTY_HOME_V2_LINE_END_X": line["end_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_END_Y": line["end_reference_px"][1],
+        "EMPTY_HOME_V2_BOBBER_X": anchors["bobber"]["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_BOBBER_Y": anchors["bobber"]["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_RIPPLE_X": anchors["ripple"]["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_RIPPLE_Y": anchors["ripple"]["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_WATER_CONTACT_X": anchors["bobber"]["water_contact_reference_px"][0],
+        "EMPTY_HOME_V2_WATER_CONTACT_Y": anchors["bobber"]["water_contact_reference_px"][1],
+    }
+    for name, expected in anchor_values.items():
+        match = re.search(rf"const val {name} = (-?[0-9.]+)f", motion_source)
+        if match is None or float(match.group(1)) != float(expected):
+            fail(errors, f"EmptyHomeMotion.{name} diverges from the canonical V2.2 anchor contract")
     if anchors.get("cta", {}).get("camera_size_reference_px") != 220:
         fail(errors, "V2.2 Camera size mismatch")
     if anchors["rod"]["tip_reference_px"] != [335, 1180]:
         fail(errors, "V2.2 rod tip mismatch")
-    line = anchors.get("line", {})
     if line.get("start_reference_px") != [335, 1180]:
         fail(errors, "V2.2 fishing line must start at rod tip")
     if line.get("control_points_reference_px") != [[390, 1265], [470, 1352]]:
         fail(errors, "V2.2 fishing line slack control points mismatch")
     if line.get("end_reference_px") != [560, 1328]:
         fail(errors, "V2.2 fishing line must terminate below the bobber water seam")
+    if line["end_reference_px"][1] <= anchors["bobber"]["water_contact_reference_px"][1]:
+        fail(errors, "fishing line endpoint must remain below the water contact")
+    if scene_renderer.count("cubicTo(") != 1:
+        fail(errors, "fishing line renderer must contain exactly one cubic Bézier")
+    fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]
+    layer_markers = (
+        "source = Rect(0, bobberSplit.splitY",
+        "bitmap = assets.sceneBase",
+        "bitmap = assets.ripple",
+        "source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY)",
+    )
+    layer_positions = [fishing_layers.find(marker) for marker in layer_markers]
+    if any(position < 0 for position in layer_positions) or layer_positions != sorted(layer_positions):
+        fail(errors, "bobber must composite underwater, frozen water seam, ripple, then above-water portion")
+    if "waterContactY - bobberTopY" not in scene_renderer:
+        fail(errors, "bobber source split must be derived from the fixed water-contact coordinate")
     cta = anchors.get("cta", {})
     if (
         cta.get("prompt_top_reference_px"),

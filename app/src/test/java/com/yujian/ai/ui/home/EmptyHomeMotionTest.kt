@@ -53,6 +53,32 @@ class EmptyHomeMotionTest {
     }
 
     @Test
+    fun bobberArtworkSplitsAtTheFixedWaterContactAcrossFrozenMotion() {
+        val still = calculateBobberWaterSplit(
+            bitmapHeight = 122,
+            bobberTopY = EMPTY_HOME_V2_BOBBER_Y,
+            waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
+        )
+        assertEquals(84, still.splitY)
+        assertEquals(38, still.underwaterHeight)
+
+        listOf(-3f, 0f, 3f).forEach { offset ->
+            val movedTop = EMPTY_HOME_V2_BOBBER_Y + offset
+            val split = calculateBobberWaterSplit(
+                bitmapHeight = 122,
+                bobberTopY = movedTop,
+                waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
+            )
+            assertEquals(122, split.splitY + split.underwaterHeight)
+            assertEquals(
+                EMPTY_HOME_V2_WATER_CONTACT_Y,
+                movedTop + split.splitY,
+                0.5f,
+            )
+        }
+    }
+
+    @Test
     fun reducedMotionFreezesSceneAndDisablesIdleEffects() {
         assertTrue(emptyHomeMotionActive(running = true, reduceMotion = false))
         assertTrue(!emptyHomeMotionActive(running = true, reduceMotion = true))
