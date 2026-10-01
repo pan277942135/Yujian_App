@@ -3,7 +3,6 @@ package com.yujian.ai.ui.home
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -93,9 +92,9 @@ class NormalHomeHeroBehaviorTest {
 
         compose.onNodeWithTag("normal-home-resolving-hero").assertIsDisplayed()
         compose.onNodeWithContentDescription("开始识鱼").assertHasClickAction()
-        compose.onNodeWithText("最近鱼获").assertDoesNotExist()
-        compose.onNodeWithText("记录下一条鱼").assertDoesNotExist()
-        compose.onNodeWithTag("normal-home-catch-pager").assertDoesNotExist()
+        assertTrue(compose.onAllNodesWithText("最近鱼获").fetchSemanticsNodes().isEmpty())
+        assertTrue(compose.onAllNodesWithText("记录下一条鱼").fetchSemanticsNodes().isEmpty())
+        assertTrue(compose.onAllNodesWithTag("normal-home-catch-pager").fetchSemanticsNodes().isEmpty())
         assertEquals(3, compose.onAllNodesWithText("—").fetchSemanticsNodes().size)
     }
 

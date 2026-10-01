@@ -12,10 +12,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertWidthIsAtLeast
-import androidx.compose.ui.test.hasRole
-import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -34,6 +33,7 @@ import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
 import com.yujian.ai.ui.theme.YujianTheme
 import java.io.File
 import java.io.FileOutputStream
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -61,15 +61,17 @@ class DesignSystemComponentPreviewTest {
         }
 
         composeRule.onNodeWithText("禁用按钮").assertIsNotEnabled()
-        composeRule.onNodeWithText("正在保存")
-            .assertIsNotEnabled()
-            .assert(hasStateDescription("正在加载"))
+        composeRule.onNodeWithText("正在保存").assertIsNotEnabled()
+        val loadingNode = composeRule.onNodeWithText("正在保存").fetchSemanticsNode()
+        assertEquals("正在加载", loadingNode.config.getOrNull(SemanticsProperties.StateDescription))
+        val backNode = composeRule.onNodeWithContentDescription("返回").fetchSemanticsNode()
+        assertEquals(Role.Button, backNode.config.getOrNull(SemanticsProperties.Role))
         composeRule.onNodeWithContentDescription("返回")
-            .assert(hasRole(Role.Button))
             .assertWidthIsAtLeast(44.dp)
         composeRule.onNodeWithText("取消").assertWidthIsAtLeast(44.dp)
         composeRule.onNodeWithContentDescription("开始识鱼").assertWidthIsAtLeast(64.dp)
-        composeRule.onNodeWithText("可操作信息卡").assert(hasRole(Role.Button))
+        val cardNode = composeRule.onNodeWithText("可操作信息卡").fetchSemanticsNode()
+        assertEquals(Role.Button, cardNode.config.getOrNull(SemanticsProperties.Role))
         saveScreenshot("shared_components_accessibility.png")
     }
 

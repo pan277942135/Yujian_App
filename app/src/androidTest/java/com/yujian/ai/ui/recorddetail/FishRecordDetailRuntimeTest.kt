@@ -6,9 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -19,6 +20,7 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.theme.YujianTheme
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -55,7 +57,7 @@ class FishRecordDetailRuntimeTest {
 
         composeRule.onNodeWithText("鱼获记忆").assertIsDisplayed()
         composeRule.onNodeWithText("还没有留下影像").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("切换鱼获记忆").assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithContentDescription("切换鱼获记忆").fetchSemanticsNodes().isEmpty())
         composeRule.onNodeWithText("添加照片/视频").performClick()
         composeRule.onNodeWithText("继续拍照").performClick()
         composeRule.onNodeWithText("录制视频").performClick()
@@ -100,7 +102,7 @@ class FishRecordDetailRuntimeTest {
         }
         composeRule.onNodeWithContentDescription("草鱼 鱼获记忆").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("切回鱼获照片").assertIsDisplayed()
-        composeRule.onNodeWithText("为这次相遇生成一份鱼获记忆").assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithText("为这次相遇生成一份鱼获记忆").fetchSemanticsNodes().isEmpty())
 
         composeRule.setContent {
             YujianTheme {

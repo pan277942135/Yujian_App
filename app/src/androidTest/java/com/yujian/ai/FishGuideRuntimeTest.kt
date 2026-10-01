@@ -3,8 +3,8 @@ package com.yujian.ai
 import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -190,10 +190,10 @@ class FishGuideRuntimeTest {
 
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
         composeRule.onNodeWithText("鱼种名片").assertExists()
-        composeRule.onNodeWithText("英雄卡").assertDoesNotExist()
-        composeRule.onNodeWithText("稀有 2  ·  力量 3  ·  挑战 1").assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithText("英雄卡").fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithText("稀有 2  ·  力量 3  ·  挑战 1").fetchSemanticsNodes().isEmpty())
         composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
-        composeRule.onNodeWithText("排行榜").assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithText("排行榜").fetchSemanticsNodes().isEmpty())
         saveScreenshot("fish_species_detail.png")
         composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("3次记录").assertIsDisplayed()

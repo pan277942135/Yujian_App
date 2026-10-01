@@ -249,7 +249,10 @@ class RecognitionFrozenFlowEmulatorTest {
         }
 
         assertTrue("recognition coroutine did not start", recognizeStarted.await(2, TimeUnit.SECONDS))
-        composeRule.onAllNodesWithContentDescription("返回").onLast().performClick()
+        val backNodes = composeRule.onAllNodesWithContentDescription("返回")
+        val lastBackIndex = backNodes.fetchSemanticsNodes().lastIndex
+        assertTrue("active overlay Back action must exist", lastBackIndex >= 0)
+        backNodes[lastBackIndex].performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) { !processingVisible.value }
         composeRule.waitForIdle()
 
@@ -398,7 +401,10 @@ class RecognitionFrozenFlowEmulatorTest {
             composeRule.onAllNodesWithText("选择鱼种").fetchSemanticsNodes().isNotEmpty()
         }
         assertFalse(composeRule.onAllNodesWithText("暂不确认鱼种").fetchSemanticsNodes().isNotEmpty())
-        composeRule.onAllNodesWithContentDescription("返回").onLast().performClick()
+        val backNodes = composeRule.onAllNodesWithContentDescription("返回")
+        val lastBackIndex = backNodes.fetchSemanticsNodes().lastIndex
+        assertTrue("active species selector Back action must exist", lastBackIndex >= 0)
+        backNodes[lastBackIndex].performClick()
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
     }
 

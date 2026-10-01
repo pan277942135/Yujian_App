@@ -6,9 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -26,6 +26,7 @@ import com.yujian.ai.ui.screens.writeAvatarCrop
 import java.io.File
 import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -76,7 +77,11 @@ class AccountPrivacyRuntimeTest {
         composeRule.onNodeWithText("取消").assertIsDisplayed()
         saveScreenshot("account_avatar_source_sheet.png")
         composeRule.onNodeWithText("取消").performClick()
-        composeRule.onNodeWithText("头像预览已暂存，尚未上传").assertDoesNotExist()
+        assertTrue(
+            composeRule.onAllNodesWithText("头像预览已暂存，尚未上传")
+                .fetchSemanticsNodes()
+                .isEmpty(),
+        )
     }
 
     @Test
