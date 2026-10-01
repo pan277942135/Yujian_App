@@ -7,7 +7,7 @@
 - Branch: `feature/android-full-surface-runtime-v1`
 - Target: `main`
 - Draft PR: #97 (open, draft)
-- Current phase: P14 Final Android Runtime Matrix
+- Current phase: P15 APK / Evidence / Closure
 - Terminal status: IN_PROGRESS
 
 ## Recovery Contract and hard rules
@@ -50,7 +50,7 @@ Reconcile local/remote HEAD, worktree, last completed phase, PR and CI state bef
 | P11 Account & Privacy | BLOCKED_INFRA | Source `5d137ba5e0bde2832e9807d95d919f2426159f5f` | Implementation COMPLETE; GitHub source checkpoint PASS; static/source contract checks PASS; Android runtime tests authored under the existing `login-v2` Gate | Shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; Product/API Dependencies: recovery channel, data export endpoint, account deletion endpoint; DESIGN_GAP: User Agreement visual authority and standalone waterside-grass footer asset; legal content review required | Continue P12; carry shared blocker without retry |
 | P12 Shared Component Parity | BLOCKED_INFRA | Source `963403b1729164d4d742e150c2e021ca91978f8e` | Implementation COMPLETE; GitHub source checkpoint PASS; P12 static contract checks PASS; Design Governance #36742433784 and Empty Home V2 Design Assets #36742433851 PASS | Android CI #1202 (run `36742424049`) was created and failed before any job was created (0 jobs); carries the single `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; no per-phase retry | Continue P13 |
 | P13 Cross-Journey Integration | BLOCKED_INFRA | `60aa90f736d7d767ff87897bdae3ecfc9a385baf` | Logout returns to a clean Home stack; Fish Guide route rejects blank species IDs; guest migration failure preserves the local archive and gives visible feedback; journey static contract checks PASS | Android CI #1214 (`36804255986`) was created and failed before any job was created (0 jobs); carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`. Product/API dependency: no idempotent guest-archive migration key/upsert contract | Continue P14; do not retry the shared blocker |
-| P14 Final Android Runtime Matrix | NOT_STARTED | — | — | — | — |
+| P14 Final Android Runtime Matrix | BLOCKED_INFRA | `687405ee5ac249f5c24c41e76cbafa37de09337c` | Required API 28 matrix now includes data sanitization; Fish Record Detail and Fish Knowledge tests are routed into existing gates; final-matrix static checks PASS | Android CI #1219 (`36804905064`) created and failed before any job (0 jobs); carries the single shared `REPOSITORY_ANDROID_CI_ORCHESTRATION_FAILURE`; no retry | Continue P15; run accumulated gates when orchestration recovers |
 | P15 APK / Evidence / PR Closure | NOT_STARTED | — | — | — | — |
 
 ## P02 checkpoint
@@ -397,6 +397,16 @@ P10 has no new backend dependency. P09 edit, supplemental-media, cross-device re
 - P13 IMPLEMENTATION: COMPLETE. P13 GITHUB CHECKPOINT: PASS. P13 STATIC CONTRACT CHECKS: PASS. P13 ANDROID RUNTIME VALIDATION: BLOCKED_INFRA.
 - Design Governance #476 (`36804261150`) and Empty Home V2 Design Assets #702 (`36804261118`) succeeded. Android CI #1214 (`36804255986`) was created for P13 and failed before any job was created; the read-only jobs result was empty. This is the existing shared repository-level blocker; no retry was made.
 - Continue P14 Final Android Runtime Matrix using the existing Android CI / GCP / API 28 / `yujian-api28` / Android Runtime Harness authorities when orchestration permits. Do not spend another retry on the unchanged 0-job blocker.
+
+## P14 Final Android Runtime Matrix checkpoint
+
+- P14 source checkpoint: `687405ee5ac249f5c24c41e76cbafa37de09337c`; PR #97 head was verified at this exact source SHA before the P14 ledger update.
+- Static audit found three authored test groups that were not part of the required full-surface matrix: Fish Record Detail runtime, Fish Knowledge parsing, and the existing Home → My Catches → Fish Record Detail data-sanitization journey. They are now routed through the existing `login-v2`, `fish-guide-v1`, and required `data-sanitization` API 28 rows.
+- The matrix still builds one frozen APK pair, verifies its checksums, serializes one gate at a time, and uses the existing `yujian-android/api28` self-hosted runner and Android Runtime Harness. Runner, AVD, GitHub Actions orchestration and validation environment were not rebuilt or bypassed.
+- `scripts/verify_final_android_matrix.py`, P13 journey checks, shared-component parity, Core UI reference checks, Design Manager navigation, Python compilation, affected gate-script syntax and `git diff --check` PASS. No Android job started, so build, APK, instrumentation and runtime evidence remain unexecuted.
+- P14 IMPLEMENTATION: COMPLETE. P14 GITHUB CHECKPOINT: PASS. P14 STATIC CONTRACT CHECKS: PASS. P14 ANDROID RUNTIME MATRIX: BLOCKED_INFRA.
+- Design Governance #480 (`36804908893`) and Empty Home V2 Design Assets #706 (`36804908880`) succeeded. Android CI #1219 (`36804905064`) was created for P14 and failed before any job was created; the read-only jobs result was empty. This is the same shared repository-level blocker; no retry was made.
+- Continue P15 APK / Evidence / Closure. The existing build/artifact path is ready to run once Android job scheduling recovers; do not claim an APK or runtime evidence until the authoritative workflow actually produces them.
 
 ## Shared infrastructure follow-up blocker
 
