@@ -1,0 +1,171 @@
+{
+  "id": "share_templates_recovered_assets_v1",
+  "status": "PARTIAL",
+  "source_policy": "Recovered historical user-approved/generated design images only. No new creative image generation. Original PNGs remain source evidence outside the repository; repository WebPs are display thumbnails only.",
+  "preview_transform": {
+    "width": 120,
+    "height": 213,
+    "format": "WEBP",
+    "quality": 60,
+    "method": 6,
+    "crop": false,
+    "creative_edit": false,
+    "display_thumbnail_only": true
+  },
+  "assets": [
+    {
+      "id": "t01_01",
+      "template": "T01",
+      "source_name": "千岛湖九月钓鱼战绩 инфографик.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2177105,
+      "source_sha256": "6b15748eb2cc19cadd9fe2f91a8707ce2a89501ffd717ffcb719b059ea87a0f7",
+      "preview": "design/pages/share_templates/assets/recovered/T01_01_September_Achievement_Reference.webp",
+      "preview_sha256": "280c8d0e4737cd9e7b208ce556adbeb9e87c0c041c390db90a867d7be8766ade",
+      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN",
+      "preview_bytes": 6576,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    },
+    {
+      "id": "t01_02",
+      "template": "T01",
+      "source_name": "千岛湖九月战绩·渔见奢华玻璃卡.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2597137,
+      "source_sha256": "1b660a9915fbc28ec330a8d2d4808ef22e184841ac62aa851b1085b7d68a5137",
+      "preview": "design/pages/share_templates/assets/recovered/T01_02_Glass_Style_Iteration.webp",
+      "preview_sha256": "6f97a0aec4e13e5b52dc6537b5af2ebabf125fb9549ae73ca62cbe008a2ca266",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN",
+      "preview_bytes": 7578,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    },
+    {
+      "id": "t02_01",
+      "template": "T02",
+      "source_name": "千岛湖九月垂钓记.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2193129,
+      "source_sha256": "153a7ca632b9481ef2c2b63cea6767144292e1ad513b77e79851e9e6e859c3f2",
+      "preview": "design/pages/share_templates/assets/recovered/T02_01_Waterside_Story_Light.webp",
+      "preview_sha256": "08c100a2ab773360b984c692bca90667813bb3ed1fdbcd5948a8caf17656cf3f",
+      "role": "CURRENT DESIGN REFERENCE · NOT FROZEN",
+      "preview_bytes": 5762,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    },
+    {
+      "id": "t02_02",
+      "template": "T02",
+      "source_name": "千岛湖水边故事垂钓纪念卡.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2102077,
+      "source_sha256": "9bc3d3a4b326de7bfc3df849fe9a51bfa0868501f21cad8cd7e27b2b26bb3cdf",
+      "preview": "design/pages/share_templates/assets/recovered/T02_02_Waterside_Story_Two_Photo.webp",
+      "preview_sha256": "a9c93a197447c78d51e9cc686067ea6b7841fce56761cd05eeaefb4d79ac7f92",
+      "role": "HISTORICAL ITERATION · NOT FROZEN",
+      "preview_bytes": 5850,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    },
+    {
+      "id": "t02_03",
+      "template": "T02",
+      "source_name": "千岛湖九月水边故事.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2483802,
+      "source_sha256": "cd0b5f4d91c1e1fc113dc4f1cf448ea7f8a1dff186630ae01f797e2111b5b432",
+      "preview": "design/pages/share_templates/assets/recovered/T02_03_Waterside_Story_Dark_No_Captions.webp",
+      "preview_sha256": "e10ac07bf675e57f2f3825a3790eb5aa576605bbd0e3498684f11ae6e2af3257",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN",
+      "preview_bytes": 7596,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    },
+    {
+      "id": "t02_04",
+      "template": "T02",
+      "source_name": "水边故事：千岛湖九月垂钓记.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2500445,
+      "source_sha256": "cd5a447dd6d4b60339229708591c43ae8954c9394c88edceb244146c5212ce7f",
+      "preview": "design/pages/share_templates/assets/recovered/T02_04_Waterside_Story_Dark_Captions.webp",
+      "preview_sha256": "584e6faeb22f12a2b56258c5df252687dcc51f7b0aabe8516f0b17f9092ff470",
+      "role": "HISTORICAL STYLE ITERATION · NOT FROZEN",
+      "preview_bytes": 7724,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    },
+    {
+      "id": "t02_05",
+      "template": "T02",
+      "source_name": "千岛湖九月钓鱼故事.png",
+      "source_dimensions": [
+        941,
+        1672
+      ],
+      "source_bytes": 2430329,
+      "source_sha256": "9e6046d21b6a113e5767888e30eee2bda91506c75df1ddb51ecbc3be0e594095",
+      "preview": "design/pages/share_templates/assets/recovered/T02_05_Waterside_Story_Light_Captions.webp",
+      "preview_sha256": "0d7da5755af6b2fe5a536a9ab6b901200556617dcaed19b183b908cd1d9348ab",
+      "role": "HISTORICAL ITERATION · NOT FROZEN",
+      "preview_bytes": 6396,
+      "preview_dimensions": [
+        120,
+        213
+      ],
+      "display_thumbnail_only": true,
+      "original_png_in_repository": false,
+      "integrity_note": "Original PNG identity is recorded by source filename/dimensions/bytes/SHA-256. Repository WebP is a non-cropped display derivative only and must not be promoted as the original frozen binary."
+    }
+  ]
+}
