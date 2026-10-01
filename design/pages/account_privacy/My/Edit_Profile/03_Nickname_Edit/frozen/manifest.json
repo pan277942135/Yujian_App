@@ -1,7 +1,7 @@
 {
   "package": "YuJian_Edit_Profile_Nickname_Edit_V1_Frozen",
   "version": "1.0",
-  "status": "BLOCKED_INTEGRITY",
+  "status": "FROZEN",
   "frozen_at": "2026-09-29",
   "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
   "visual_authority_dimensions": [
@@ -33,13 +33,33 @@
     "Frozen Visual Authority restored to the first product-approved Nickname Edit V1 board.",
     "A later regenerated correction board is superseded and is not an Authority.",
     "Validation semantics are authoritative in backend + machine + development contracts: trimmed nickname length 1–20.",
-    "03 behavior/machine/development contracts remain frozen; Visual Authority is BLOCKED_INTEGRITY until the approved binary is recovered. 04–06 remain independent design work."
+    "03 behavior/machine/development contracts and Visual Authority are FROZEN; byte-identical visual integrity was recovered and verified on 2026-10-01."
   ],
   "source_filename": "昵称编辑流程与交互规范.png",
   "machine_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/contracts/Nickname_Edit_V1_Contract.json",
   "contract_status": "FROZEN",
-  "visual_integrity_status": "BLOCKED_INTEGRITY",
-  "actual_repository_sha256": "26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b",
+  "visual_integrity_status": "FROZEN",
+  "actual_repository_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
   "expected_frozen_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
-  "integrity_note": "Current repository WebP bytes do not match the recorded frozen fingerprint. Recover the originally approved byte-identical source before restoring Visual FROZEN. Do not regenerate, convert, optimize, or re-encode."
+  "integrity_note": "Recovered byte-identical Frozen Visual Authority. Repository binary matches the recorded frozen SHA-256 and Git blob identity.",
+  "visual_authority_bytes": 123202,
+  "visual_authority_git_blob_sha": "250d59f8317043003f38d939507dc6a085ca9f21",
+  "recovery_provenance": {
+    "recovered_at": "2026-10-01",
+    "approved_source_filename": "昵称编辑流程与交互规范.png",
+    "approved_source_sha256": "5d96c4654abe9899042f29f33987bc49eb21d4b1c427963bda1a0a3fef23d55e",
+    "recovered_webp_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+    "recovered_webp_git_blob_sha": "250d59f8317043003f38d939507dc6a085ca9f21",
+    "dimensions": [
+      1491,
+      1055
+    ],
+    "derivation": {
+      "encoder": "Pillow WebP",
+      "pillow_version": "12.3.0",
+      "quality": 45,
+      "method": 6
+    },
+    "verification": "Approved source SHA matched the frozen source record; derived WebP SHA-256 and Git blob SHA matched the originally recorded Frozen Visual Authority exactly."
+  }
 }
