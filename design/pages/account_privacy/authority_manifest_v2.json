@@ -265,24 +265,24 @@
       "canonical_id": "account_privacy_v1.02d",
       "title": "02D · 昵称编辑",
       "menu_location": "账号与隐私 → 02 · 我的与资料 → 02D · 昵称编辑",
-      "status": "BLOCKED_INTEGRITY",
+      "status": "FROZEN",
       "visual_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
       "visual_references": [
         {
           "path": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/frozen/Nickname_Edit_V1_Frozen.webp",
           "label": "02D · 昵称编辑",
-          "status": "BLOCKED_INTEGRITY",
+          "status": "FROZEN",
           "source_type": "FROZEN_REPOSITORY_VISUAL",
           "format": "WEBP",
-          "bytes": 15007,
-          "sha256": "26abab813e915fed11c34e1c9febf2eac96d3876e6fa945ccb22372b8d62079b",
+          "bytes": 123202,
+          "sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
           "width": 1491,
           "height": 1055,
           "mode": "RGB",
-          "role": "EXPECTED FROZEN VISUAL · BINARY IDENTITY UNRESOLVED",
+          "role": "CURRENT FROZEN VISUAL AUTHORITY",
           "declared_frozen_manifest_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
-          "identity_check": "MISMATCH",
-          "scope": "Current repository bytes do not match the frozen manifest fingerprint. Do not use as verified Frozen authority until the approved byte-identical source is recovered."
+          "identity_check": "MATCH",
+          "scope": "Repository bytes match the recorded Frozen Visual Authority fingerprint exactly."
         }
       ],
       "source_type": "EXISTING_REPOSITORY_BINARY",
@@ -290,13 +290,21 @@
       "behavior_authority": "design/pages/account_privacy/My/Edit_Profile/03_Nickname_Edit/Nickname_Edit_V1_Development_Contract.md",
       "shared_background_authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png / BG_CONTENT",
       "product_scope": "MVP",
-      "integrity_status": "BLOCKED_INTEGRITY",
+      "integrity_status": "FROZEN",
       "contract_status": "FROZEN",
-      "blocking_gate": "Recover originally approved byte-identical visual source; do not regenerate or re-encode.",
+      "blocking_gate": null,
       "shared_avatar_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
-      "visual_authority_status": "BLOCKED_INTEGRITY",
-      "visual_authority_trusted": false,
-      "state_interaction_authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      "visual_authority_status": "FROZEN",
+      "visual_authority_trusted": true,
+      "state_interaction_authority": "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md",
+      "recovery_provenance": {
+        "status": "VERIFIED",
+        "recovered_webp_sha256": "5de45bba50734ec9cfac73fce50feebdf78f70a8f3a41789c3d923816f069ea3",
+        "git_blob_sha": "250d59f8317043003f38d939507dc6a085ca9f21",
+        "bytes": 123202,
+        "approved_source_sha256": "5d96c4654abe9899042f29f33987bc49eb21d4b1c427963bda1a0a3fef23d55e",
+        "derivation": "Pillow WebP 12.3.0; quality=45; method=6"
+      }
     },
     {
       "id": "03a",
