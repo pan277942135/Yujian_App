@@ -105,13 +105,9 @@ class FishGuideRuntimeTest {
         saveScreenshot("fish_guide_lit.png")
 
         swipeCarouselToSelectedSpecies(
-
             fromName = "草鱼",
-
             name = "鲫鱼",
-
             expectedPage = 1,
-
         )
         composeRule.onNodeWithText("尚未点亮").assertIsDisplayed()
         saveScreenshot("fish_guide_unlit.png")
@@ -446,9 +442,12 @@ class FishGuideRuntimeTest {
     ) {
         waitForSelectedSpecies(name = fromName, expectedPage = expectedPage - 1)
 
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val start = Offset(carouselBounds.width * 0.84f, carouselBounds.height * 0.5f)
+        val end = Offset(carouselBounds.width * 0.16f, carouselBounds.height * 0.5f)
         composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput {
-            val start = Offset(size.width * 0.84f, size.height * 0.5f)
-            val end = Offset(size.width * 0.16f, size.height * 0.5f)
             swipe(start = start, end = end, durationMillis = 1_100L)
         }
 
