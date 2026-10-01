@@ -48,12 +48,13 @@
   "approved_visual_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
   "authority_manifest": "shared/contracts/authority_manifest.json",
   "contract_sha256": {
-    "authority_manifest.json": "cd01baee212b17c6a15eb8f23a7502a253e6f85d1977e4e8f2dc907077572bdb",
+    "authority_manifest.json": "11ac72652610355ce52c3228e72e2c701be1961c37321b12ed9c8cfc5e88860b",
     "anchor_contract.json": "1cb51833161be87e1897b5abcda920bd5bd8ee81b13621a2160e214782f25892",
     "responsive_mapping_contract.json": "dda5695834a675132f9dd50b597025c8ce3f65f9b4f747cab714188859543c84",
     "layer_contract.json": "0ef23f8e93f4b94a0d34b1eedcf4ad3b5d95372119b5c4837e9cc379d4e01559",
     "motion_contract.json": "1131546550cff2b06d9c3c682e3aaa879a69a5a9df511d959f3465d50b32dd7f",
-    "haptic_contract.json": "a87c3fef6e976d138d7a52009a4d129a47948de0dab196712001eef454b433be"
+    "haptic_contract.json": "a87c3fef6e976d138d7a52009a4d129a47948de0dab196712001eef454b433be",
+    "hero_asset_contract.json": "1784f12f8a8ef2806337b8c1275386b601ee7e41f22f02be57e6634ed5ea0d84"
   },
   "current_contracts": [
     "authority_manifest.json",
@@ -61,6 +62,17 @@
     "responsive_mapping_contract.json",
     "layer_contract.json",
     "motion_contract.json",
-    "haptic_contract.json"
-  ]
+    "haptic_contract.json",
+    "hero_asset_contract.json"
+  ],
+  "hero_resource": {
+    "design_path": "design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png",
+    "runtime_resource_path": "app/src/main/res/drawable-nodpi/empty_home_title_v2.png",
+    "dimensions_px": [
+      625,
+      311
+    ],
+    "sha256": "5561e3b577234ceba41487dd3705e82fa910e96cc6a6cc2d89942f13a629c9ff",
+    "render_content_scale": "FIT"
+  }
 }

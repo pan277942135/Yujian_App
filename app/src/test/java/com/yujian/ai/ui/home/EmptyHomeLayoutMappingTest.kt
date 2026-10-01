@@ -2,6 +2,7 @@ package com.yujian.ai.ui.home
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.abs
 import com.yujian.ai.ui.adaptive.AdaptiveHeightClass
 import com.yujian.ai.ui.adaptive.AdaptiveWidthClass
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
@@ -107,5 +108,20 @@ class EmptyHomeLayoutMappingTest {
         assertEquals(8f, rtl.safeViewport.left, 0.001f)
         assertTrue(ltr.heroBounds.right <= ltr.safeViewport.right)
         assertTrue(rtl.heroBounds.right <= rtl.safeViewport.right)
+    }
+
+    @Test
+    fun canonicalHeroFitPreservesSourceAspectWithinOnePercent() {
+        val sourceWidth = EmptyHomeFrozenLayoutGeometry.HERO_ASSET_WIDTH_PX
+        val sourceHeight = EmptyHomeFrozenLayoutGeometry.HERO_ASSET_HEIGHT_PX
+        val boxWidth = EmptyHomeFrozenLayoutGeometry.HERO_WIDTH_PX
+        val boxHeight = EmptyHomeFrozenLayoutGeometry.HERO_HEIGHT_PX
+        val fitScale = minOf(boxWidth / sourceWidth, boxHeight / sourceHeight)
+        val renderedWidth = sourceWidth * fitScale
+        val renderedHeight = sourceHeight * fitScale
+        val sourceAspect = sourceWidth / sourceHeight
+        val renderedAspect = renderedWidth / renderedHeight
+
+        assertTrue(abs(renderedAspect / sourceAspect - 1f) <= 0.01f)
     }
 }

@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -21,7 +22,7 @@ REQUIRED = {
     "camera/camera_button_base.png", "camera/camera_gold_rim_mask.png", "camera/camera_breath_glow.png",
     "config/runtime_manifest.json", "config/authority_manifest.json", "config/layer_contract.json",
     "config/anchor_contract.json", "config/responsive_mapping_contract.json",
-    "config/motion_contract.json", "config/haptic_contract.json",
+    "config/motion_contract.json", "config/haptic_contract.json", "config/hero_asset_contract.json",
 }
 FORBIDDEN = ("proof", "preview", "validation", ".mp4", ".gif", "frozen", "source")
 
@@ -62,7 +63,7 @@ def main() -> int:
     # The design-side machine contracts are the sole visual authority. Packaged
     # Runtime copies must remain byte-semantically equal, including responsive
     # mapping, so local APK assets cannot drift into a second active authority.
-    for name in ("anchor_contract.json", "responsive_mapping_contract.json", "layer_contract.json", "motion_contract.json", "haptic_contract.json"):
+    for name in ("anchor_contract.json", "responsive_mapping_contract.json", "layer_contract.json", "motion_contract.json", "haptic_contract.json", "hero_asset_contract.json"):
         canonical_contract = load(CANONICAL / name)
         packaged_contract = load(RUNTIME / "config" / name)
         if canonical_contract != packaged_contract:
@@ -74,6 +75,8 @@ def main() -> int:
         fail(errors, "authority manifest must name V2 / V2.2")
     if authority.get("contracts", {}).get("responsive_mapping") != "responsive_mapping_contract.json":
         fail(errors, "authority manifest does not register the responsive mapping contract")
+    if authority.get("contracts", {}).get("hero_asset") != "hero_asset_contract.json":
+        fail(errors, "authority manifest does not register the frozen Hero asset contract")
     if design_runtime != runtime:
         fail(errors, "design and packaged Runtime manifests diverge")
     if responsive.get("design_version") != "Empty_Home_Final_Design_V2" or responsive.get("visual_revision") != "V2.2":
@@ -93,6 +96,39 @@ def main() -> int:
         fail(errors, "hero may not use FillBounds or anisotropic stretching")
     if [item.get("width_dp") for item in responsive.get("responsive_profiles_to_verify", [])] != [320, 360, 393, 411]:
         fail(errors, "responsive mapping must cover all four required width profiles")
+
+    hero_contract = load(CANONICAL / "hero_asset_contract.json")
+    hero_source = ROOT / hero_contract["source"]["path"]
+    hero_design_asset = ROOT / hero_contract["asset"]["design_path"]
+    hero_runtime_asset = ROOT / hero_contract["asset"]["runtime_resource_path"]
+    if hero_contract.get("authority_status") != "CURRENT" or hero_contract.get("visual_revision") != "V2.2":
+        fail(errors, "Hero asset contract is not the current V2.2 authority")
+    if not hero_source.is_file() or digest(hero_source) != hero_contract["source"]["sha256"]:
+        fail(errors, "Hero derivation source SHA does not match the frozen normalized V2 reference")
+    for candidate in (hero_design_asset, hero_runtime_asset):
+        if not candidate.is_file() or digest(candidate) != hero_contract["asset"]["sha256"]:
+            fail(errors, "canonical design Hero and Android resource must match the frozen derived SHA")
+    if hero_design_asset.read_bytes() != hero_runtime_asset.read_bytes():
+        fail(errors, "Android Hero resource is not an exact copy of the canonical design asset")
+    try:
+        with hero_design_asset.open("rb") as png:
+            header = png.read(29)
+        width, height = struct.unpack(">II", header[16:24])
+        color_type = header[25]
+        expected_size = tuple(hero_contract["asset"]["dimensions_px"])
+        if (width, height) != expected_size or color_type != 6:
+            fail(errors, "canonical Hero asset must be the declared RGBA PNG")
+    except (OSError, struct.error):
+        fail(errors, "canonical Hero asset PNG header is invalid")
+    hero_ratio = hero_contract["asset"]["dimensions_px"][0] / hero_contract["asset"]["dimensions_px"][1]
+    layout_box = hero_contract["layout_reference_bbox_px"]
+    fit_scale = min(layout_box["width"] / hero_contract["asset"]["dimensions_px"][0], layout_box["height"] / hero_contract["asset"]["dimensions_px"][1])
+    rendered_ratio = (
+        hero_contract["asset"]["dimensions_px"][0] * fit_scale
+        / (hero_contract["asset"]["dimensions_px"][1] * fit_scale)
+    )
+    if hero_contract["asset"].get("render_content_scale") != "FIT" or abs(rendered_ratio / hero_ratio - 1.0) > 0.01:
+        fail(errors, "Hero FIT rendering must preserve the source aspect ratio within one percent")
 
     layout_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeLayoutMapping.kt").read_text()
     home_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt").read_text()
@@ -115,6 +151,8 @@ def main() -> int:
         "SAFE_HEADER_INSET_DP": responsive["groups"]["safe_top_ui"]["top_margin_after_safe_inset_dp"],
         "HEADER_MAX_WIDTH_DP": responsive["groups"]["safe_top_ui"]["maximum_content_width_dp"],
         "HEADER_MIN_TOUCH_TARGET_DP": responsive["groups"]["safe_top_ui"]["minimum_touch_target_dp"],
+        "HERO_ASSET_WIDTH_PX": hero_contract["asset"]["dimensions_px"][0],
+        "HERO_ASSET_HEIGHT_PX": hero_contract["asset"]["dimensions_px"][1],
     }
     for name, expected in geometry_constants.items():
         match = re.search(rf"const val {name} = ([0-9.]+)f", layout_source)
@@ -124,6 +162,11 @@ def main() -> int:
         fail(errors, "HomeScreen still contains independent X/Y reference scaling")
     if "ContentScale.FillBounds" in home_screen:
         fail(errors, "Empty Home Hero may not use ContentScale.FillBounds")
+    if "ContentScale.Fit" not in home_screen or "painterResource(R.drawable.empty_home_title_v2)" not in home_screen:
+        fail(errors, "HomeScreen must render the canonical Hero resource with ContentScale.Fit")
+    gradle = (ROOT / "app/build.gradle.kts").read_text()
+    if "generateEmptyHomeFrozenHero" in gradle or "emptyHomeGeneratedResDir" in gradle or "emptyHomeFrozenHeroSource" in gradle:
+        fail(errors, "Gradle may not regenerate the frozen Empty Home Hero at build time")
     if "sceneTransform = layoutMapping.sceneTransform" not in scene_entry:
         fail(errors, "HomeEmptyScene does not pass its single sceneTransform to the renderer")
     if "bitmap = assets.sceneBase" not in scene_renderer or "transform = transform" not in scene_renderer:

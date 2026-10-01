@@ -23,6 +23,9 @@ FROZEN_INPUT = ROOT.parent / "upload" / "晨雾湖畔，记录第一条鱼.png"
 DESIGN = ROOT / "design" / "pages" / "home" / "empty_home"
 SYSTEM = ROOT / "design" / "system" / "components" / "primary_capture_button"
 RUNTIME = ROOT / "app" / "src" / "main" / "assets" / "empty_home_runtime_v2"
+HERO_CONTRACT = DESIGN / "shared" / "contracts" / "hero_asset_contract.json"
+HERO_DESIGN_ASSET = DESIGN / "shared" / "assets" / "hero" / "empty_home_hero_v2_2.png"
+HERO_RUNTIME_RESOURCE = ROOT / "app" / "src" / "main" / "res" / "drawable-nodpi" / "empty_home_title_v2.png"
 REF_W, REF_H = 1080, 1920
 GOLD = (218, 160, 45, 255)
 INK = (24, 50, 74, 255)
@@ -342,6 +345,19 @@ def main() -> None:
     base_path = DESIGN / "intermediate" / "background" / "clean_scene_master_1080x1920.png"
     save_png(base, base_path)
 
+    # The approved Hero derivative is frozen in source control. Asset production
+    # verifies and copies it; only the explicit one-time derivation tool may
+    # create the RGBA pixels from the normalized authority.
+    hero_contract = json.loads(HERO_CONTRACT.read_text(encoding="utf-8"))
+    expected_hero_sha = hero_contract["asset"]["sha256"]
+    if sha(normalized_path) != hero_contract["source"]["sha256"]:
+        raise SystemExit("Normalized frozen source differs from the canonical Hero derivation input")
+    if sha(HERO_DESIGN_ASSET) != expected_hero_sha:
+        raise SystemExit("Canonical Empty Home Hero asset SHA mismatch")
+    shutil.copyfile(HERO_DESIGN_ASSET, HERO_RUNTIME_RESOURCE)
+    if sha(HERO_RUNTIME_RESOURCE) != expected_hero_sha:
+        raise SystemExit("Packaged Empty Home Hero resource SHA mismatch")
+
     # Fishing layers are extracted against the localized clean plate.  This preserves frozen V2
     # silhouette and colour while eliminating lake/background pixels from the alpha masters.
     layers = {
@@ -385,7 +401,7 @@ def main() -> None:
     runtime_config = RUNTIME / "config"
     contract_files = [
         "authority_manifest.json", "anchor_contract.json", "responsive_mapping_contract.json",
-        "layer_contract.json", "motion_contract.json", "haptic_contract.json",
+        "layer_contract.json", "motion_contract.json", "haptic_contract.json", "hero_asset_contract.json",
     ]
     for name in contract_files:
         source_contract = contracts_dir / name
@@ -410,6 +426,13 @@ def main() -> None:
         "sha256": {path: sha(RUNTIME / path) for path in runtime_files},
         "contract_sha256": contract_sha256,
         "current_contracts": contract_files,
+        "hero_resource": {
+            "design_path": hero_contract["asset"]["design_path"],
+            "runtime_resource_path": hero_contract["asset"]["runtime_resource_path"],
+            "dimensions_px": hero_contract["asset"]["dimensions_px"],
+            "sha256": expected_hero_sha,
+            "render_content_scale": "FIT",
+        },
         "excludes": ["frozen_source", "validation", "proof", "preview", "mp4", "gif"],
     }
     write_json(contracts_dir / "runtime_manifest.json", runtime_manifest)
@@ -437,11 +460,12 @@ def main() -> None:
         shutil.copyfile(source, destination)
     build_validation(frozen, base, layers)
 
-    asset_paths = [*mapping.values(), SYSTEM / "assets" / "capture_button_base.png", SYSTEM / "assets" / "capture_button_gold_rim.png", SYSTEM / "assets" / "capture_button_breath_glow.png"]
+    asset_paths = [*mapping.values(), HERO_DESIGN_ASSET, SYSTEM / "assets" / "capture_button_base.png", SYSTEM / "assets" / "capture_button_gold_rim.png", SYSTEM / "assets" / "capture_button_breath_glow.png"]
     manifest_assets = []
     for path in asset_paths:
         with Image.open(path) as im:
-            manifest_assets.append({"asset_id": "home_empty_v2_" + path.stem, "role": "runtime_static" if "scene" in path.name else "runtime_dynamic", "source": "Empty_Home_Final_Design_V2", "path": str(path.relative_to(ROOT)).replace("\\", "/"), "master_format": "png_rgba" if im.mode == "RGBA" else "png_rgb", "width": im.width, "height": im.height, "alpha": im.mode == "RGBA", "sha256": sha(path), "coordinate_space": "reference_1080x1920", "version": "2.0", "platforms": ["android"]})
+            is_hero = path == HERO_DESIGN_ASSET
+            manifest_assets.append({"asset_id": "home_empty_v2_hero" if is_hero else "home_empty_v2_" + path.stem, "role": "runtime_static" if is_hero or "scene" in path.name else "runtime_dynamic", "source": "Empty_Home_Final_Design_V2", "path": str(path.relative_to(ROOT)).replace("\\", "/"), "master_format": "png_rgba" if im.mode == "RGBA" else "png_rgb", "width": im.width, "height": im.height, "alpha": im.mode == "RGBA", "sha256": sha(path), "coordinate_space": "hero_local" if is_hero else "reference_1080x1920", "version": "2.2" if is_hero else "2.0", "platforms": ["android"]})
     write_json(DESIGN / "shared" / "contracts" / "asset_manifest.json", {"design_version": "Empty_Home_Final_Design_V2", "assets": manifest_assets})
     checksum_entries = [f"{sha(frozen_path)}  source/frozen/Empty_Home_Final_Design_V2.png"]
     for asset in asset_paths:

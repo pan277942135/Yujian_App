@@ -46,6 +46,8 @@ internal object EmptyHomeFrozenLayoutGeometry {
     const val HERO_Y_PX = 224f
     const val HERO_WIDTH_PX = 620f
     const val HERO_HEIGHT_PX = 310f
+    const val HERO_ASSET_WIDTH_PX = 625f
+    const val HERO_ASSET_HEIGHT_PX = 311f
     const val PROMPT_Y_PX = 1448f
     const val CAMERA_X_PX = 430f
     const val CAMERA_Y_PX = 1537f

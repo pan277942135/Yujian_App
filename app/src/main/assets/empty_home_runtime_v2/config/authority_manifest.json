@@ -12,7 +12,10 @@
     "approved_delta_source": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
     "approved_delta_artwork": {
       "filename": "晨雾湖畔_静待第一条鱼.png",
-      "dimensions": [941, 1672],
+      "dimensions": [
+        941,
+        1672
+      ],
       "sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
       "repository_copy": "NOT_PRESENT; numeric approved V2.2 delta remains recorded in the frozen spec and anchor contract"
     }
@@ -22,7 +25,8 @@
     "layout_anchors": "anchor_contract.json",
     "responsive_mapping": "responsive_mapping_contract.json",
     "layers": "layer_contract.json",
-    "motion": "motion_contract.json"
+    "motion": "motion_contract.json",
+    "hero_asset": "hero_asset_contract.json"
   },
   "merge_rule": "V2 remains authoritative except for the CTA and rod-line-bobber-water-contact deltas explicitly approved by V2.2.",
   "historical_contract_policy": "This directory contains the sole current machine-readable authority. Older V2 values must not be restored by generators or treated as current."

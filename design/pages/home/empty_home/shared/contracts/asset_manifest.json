@@ -175,6 +175,22 @@
       "source": "Empty_Home_Final_Design_V2",
       "version": "2.0",
       "width": 208
+    },
+    {
+      "asset_id": "home_empty_v2_hero",
+      "role": "runtime_static",
+      "source": "Empty_Home_Final_Design_V2",
+      "path": "design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png",
+      "master_format": "png_rgba",
+      "width": 625,
+      "height": 311,
+      "alpha": true,
+      "sha256": "5561e3b577234ceba41487dd3705e82fa910e96cc6a6cc2d89942f13a629c9ff",
+      "coordinate_space": "hero_local",
+      "version": "2.2",
+      "platforms": [
+        "android"
+      ]
     }
   ],
   "design_version": "Empty_Home_Final_Design_V2"
