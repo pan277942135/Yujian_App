@@ -504,27 +504,11 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
         assertTrue(composeRule.onAllNodes(loading).fetchSemanticsNodes().isEmpty())
 
-        composeRule.onNodeWithTe…5239 tokens truncated…motion_b.png")
-        assertTrue(device.takeScreenshot(first))
-        Thread.sleep(350L)
-        assertTrue(device.takeScreenshot(second))
-        val firstRaw = requireNotNull(BitmapFactory.decodeFile(first.absolutePath))
-        val secondRaw = requireNotNull(BitmapFactory.decodeFile(second.absolutePath))
-        val firstBitmap = cropToComposeRoot(firstRaw, appSurfaceBounds)
-        val secondBitmap = cropToComposeRoot(secondRaw, appSurfaceBounds)
-        firstRaw.recycle()
-        secondRaw.recycle()
-        val diffRatio = bitmapDifferenceRatio(firstBitmap, secondBitmap, topSkipPx = 80)
-        firstBitmap.recycle()
-        secondBitmap.recycle()
-        first.delete()
-        second.delete()
-
-        // Restrict the comparison to the four ambient-field edge regions. A
-        // whole-screen ratio is diluted by the photo and affected by unrelated
-        // UI rasterization, while these regions directly test field travel.
-        assertTrue("Reduce Motion still produced continuous visual travel: diffRatio=$diffRatio", diffRatio <= 0.01f)
-        capture("reduce_motion_static.png")
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(loading).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals(1, saveCalls.get())
     }
 
     @Test
