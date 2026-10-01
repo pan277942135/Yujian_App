@@ -6654,8 +6654,9 @@
           "note": "Current runtime copy is placeholder and still includes LEGAL_COPY_REVIEW_REQUIRED."
         },
         "evidence": {
-          "status": "PARTIAL",
-          "authority": "design/pages/account_privacy/legal/README.md"
+          "status": "FROZEN",
+          "authority": "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md",
+          "note": "Design authority is closed through canonical 05C. Final legal wording remains an external legal-review gate."
         },
         "assets": {
           "status": "FROZEN",
@@ -6672,7 +6673,7 @@
           "note": "运行时已存在，但尚未归档独立的冻结设计包。"
         }
       ],
-      "design_overall": "PARTIAL",
+      "design_overall": "FROZEN",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -6693,7 +6694,7 @@
         }
       ],
       "navigation_hidden": true,
-      "note": "Hidden compatibility alias. Canonical User Agreement design authority now lives under account_privacy_v1 → 05C. Shared Legal Document Shell and content architecture are frozen; final production Legal Copy remains LEGAL_REVIEW_REQUIRED. Do not create a duplicate top-level User Agreement design module."
+      "note": "Hidden compatibility alias. Canonical User Agreement design authority lives under account_privacy_v1 → 05C. Shared Legal Document Shell and content architecture are FROZEN; final production Legal Copy remains LEGAL_REVIEW_REQUIRED. Runtime remains separate."
     }
   ],
   "design_manager": {
