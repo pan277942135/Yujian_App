@@ -1,6 +1,7 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.ParcelFileDescriptor
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
@@ -426,13 +428,41 @@ class FishGuideRuntimeTest {
     private fun saveScreenshot(name: String) {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val bitmap = instrumentation.uiAutomation.takeScreenshot()
-        val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
-        check(root.exists() || root.mkdirs())
-        FileOutputStream(File(root, name)).use { out ->
-            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out))
+        val rawBitmap = instrumentation.uiAutomation.takeScreenshot()
+        val appSurface = cropToComposeRoot(rawBitmap)
+        try {
+            val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
+            check(root.exists() || root.mkdirs())
+            FileOutputStream(File(root, name)).use { out ->
+                check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, out))
+            }
+        } finally {
+            if (appSurface !== rawBitmap) appSurface.recycle()
+            rawBitmap.recycle()
         }
-        bitmap.recycle()
+    }
+
+    private fun cropToComposeRoot(source: Bitmap): Bitmap {
+        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+        val windowOrigin = IntArray(2)
+        composeRule.runOnUiThread {
+            composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
+        }
+        val bounds = Rect(
+            kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
+            kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
+            kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
+            kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
+        )
+        check(bounds.left >= 0 && bounds.top >= 0 &&
+            bounds.right <= source.width && bounds.bottom <= source.height
+        ) {
+            "Compose root bounds $bounds exceed screenshot ${source.width}x${source.height}"
+        }
+        check(bounds.width() > 0 && bounds.height() > 0) {
+            "Compose root has empty screenshot bounds: $bounds"
+        }
+        return Bitmap.createBitmap(source, bounds.left, bounds.top, bounds.width(), bounds.height())
     }
 
     private fun swipeCarouselToSelectedSpecies(

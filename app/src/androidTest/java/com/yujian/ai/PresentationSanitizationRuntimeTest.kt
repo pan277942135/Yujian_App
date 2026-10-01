@@ -3,11 +3,11 @@ package com.yujian.ai
 import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
+import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertFalse
@@ -109,32 +109,35 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun clickVisibleText(sourceText: String, destinationText: String) {
-        val selector = By.text(sourceText).clickable(true)
+        val targetBounds = waitForVisibleTextBounds(sourceText)
         assertTrue(
-            "Timed out waiting for clickable source: $sourceText",
-            device.wait(Until.hasObject(selector), SETTLE_MILLIS),
-        )
-
-        val candidateBounds = device.findObjects(selector).mapNotNull { candidate ->
-            runCatching { Rect(candidate.visibleBounds) }
-                .getOrNull()
-                ?.takeUnless { it.isEmpty }
-        }
-        val targetBounds = candidateBounds.maxByOrNull {
-            it.width().toLong() * it.height().toLong()
-        } ?: throw AssertionError(
-            "No visible clickable bounds found for $sourceText",
-        )
-
-        assertTrue(
-            "Expected clickable text: $sourceText at $targetBounds",
+            "Expected visible text: $sourceText at $targetBounds",
             device.click(targetBounds.centerX(), targetBounds.centerY()),
         )
         waitForText(destinationText)
     }
 
     private fun waitForText(text: String) {
-        assertTrue("Timed out waiting for: $text", device.wait(Until.hasObject(By.text(text)), SETTLE_MILLIS))
+        waitForVisibleTextBounds(text)
+    }
+
+    private fun waitForVisibleTextBounds(text: String): Rect {
+        val selector = By.text(text)
+        val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
+        while (SystemClock.uptimeMillis() < deadline) {
+            val visibleBounds = runCatching { device.findObjects(selector) }
+                .getOrNull()
+                ?.mapNotNull { candidate ->
+                    runCatching { Rect(candidate.visibleBounds) }
+                        .getOrNull()
+                        ?.takeUnless { it.isEmpty }
+                }
+                .orEmpty()
+            visibleBounds.maxByOrNull { it.width().toLong() * it.height() }
+                ?.let { return it }
+            SystemClock.sleep(100L)
+        }
+        throw AssertionError("Timed out waiting for visible text: $text")
     }
 
     private fun assertVisible(text: String) {

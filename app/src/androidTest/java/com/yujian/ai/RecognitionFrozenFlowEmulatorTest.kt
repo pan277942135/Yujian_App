@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
 import android.view.ViewTreeObserver
@@ -860,13 +861,18 @@ class RecognitionFrozenFlowEmulatorTest {
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         composeRule.waitForIdle()
+        val appSurfaceBounds = composeSurfaceBoundsOnScreen()
         val first = File(evidenceDir, "_reduce_motion_a.png")
         val second = File(evidenceDir, "_reduce_motion_b.png")
         assertTrue(device.takeScreenshot(first))
         Thread.sleep(350L)
         assertTrue(device.takeScreenshot(second))
-        val firstBitmap = requireNotNull(BitmapFactory.decodeFile(first.absolutePath))
-        val secondBitmap = requireNotNull(BitmapFactory.decodeFile(second.absolutePath))
+        val firstRaw = requireNotNull(BitmapFactory.decodeFile(first.absolutePath))
+        val secondRaw = requireNotNull(BitmapFactory.decodeFile(second.absolutePath))
+        val firstBitmap = cropToComposeRoot(firstRaw, appSurfaceBounds)
+        val secondBitmap = cropToComposeRoot(secondRaw, appSurfaceBounds)
+        firstRaw.recycle()
+        secondRaw.recycle()
         val diffRatio = bitmapDifferenceRatio(firstBitmap, secondBitmap, topSkipPx = 80)
         firstBitmap.recycle()
         secondBitmap.recycle()
@@ -1190,15 +1196,15 @@ class RecognitionFrozenFlowEmulatorTest {
         val bitmap = BitmapFactory.decodeFile(raw.absolutePath)
         assertTrue("unreadable screenshot: $name", bitmap != null && bitmap.width > 0 && bitmap.height > 0)
         val decoded = requireNotNull(bitmap)
-        val canonical = canonicalizeApi28Screenshot(decoded)
+        val appSurface = cropToComposeRoot(decoded)
         output.outputStream().use { stream ->
-            check(canonical.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         trace(
-            "SCREENSHOT_CANONICALIZED name=$name raw=${decoded.width}x${decoded.height} " +
-                "output=${canonical.width}x${canonical.height}",
+            "SCREENSHOT_APP_SURFACE_ONLY name=$name raw=${decoded.width}x${decoded.height} " +
+                "output=${appSurface.width}x${appSurface.height}",
         )
-        if (canonical !== decoded) canonical.recycle()
+        if (appSurface !== decoded) appSurface.recycle()
         decoded.recycle()
         raw.delete()
 
@@ -1215,51 +1221,33 @@ class RecognitionFrozenFlowEmulatorTest {
         // instrumentation process depend on writing /data/local/tmp.
     }
 
-    /**
-     * API28 UiDevice can return a 2x backing bitmap whose real display occupies
-     * only the upper-left quadrant; the unused right/bottom halves are pure
-     * black. Screenrecord and the actual user-visible surface use the real
-     * viewport. Remove only that exact padding signature, never arbitrary dark
-     * product pixels.
-     */
-    private fun canonicalizeApi28Screenshot(source: Bitmap): Bitmap {
-        if (source.width < 2 || source.height < 2 ||
-            source.width % 2 != 0 || source.height % 2 != 0
-        ) return source
-        val halfWidth = source.width / 2
-        val halfHeight = source.height / 2
-        // On the first API28 frame the unused upper-right quadrant can still
-        // contain stale launcher pixels while the entire lower half is black.
-        // A black lower half is the stable doubled-backing-buffer signature;
-        // the Recognition surface itself always fills the real viewport.
-        if (!isBlackPadding(source, 0, halfHeight, source.width, source.height)) {
-            return source
+    private fun composeSurfaceBoundsOnScreen(): Rect {
+        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+        val windowOrigin = IntArray(2)
+        composeRule.runOnUiThread {
+            composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
         }
-        return Bitmap.createBitmap(source, 0, 0, halfWidth, halfHeight)
+        return Rect(
+            kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
+            kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
+            kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
+            kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
+        )
     }
 
-    private fun isBlackPadding(
-        bitmap: Bitmap,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
-    ): Boolean {
-        val stepX = ((right - left) / 24).coerceAtLeast(1)
-        val stepY = ((bottom - top) / 24).coerceAtLeast(1)
-        var y = top
-        while (y < bottom) {
-            var x = left
-            while (x < right) {
-                val pixel = bitmap.getPixel(x, y)
-                if (Color.red(pixel) > 3 || Color.green(pixel) > 3 || Color.blue(pixel) > 3) {
-                    return false
-                }
-                x += stepX
-            }
-            y += stepY
+    private fun cropToComposeRoot(
+        source: Bitmap,
+        bounds: Rect = composeSurfaceBoundsOnScreen(),
+    ): Bitmap {
+        check(bounds.left >= 0 && bounds.top >= 0 &&
+            bounds.right <= source.width && bounds.bottom <= source.height
+        ) {
+            "Compose root bounds $bounds exceed screenshot ${source.width}x${source.height}"
         }
-        return true
+        check(bounds.width() > 0 && bounds.height() > 0) {
+            "Compose root has empty screenshot bounds: $bounds"
+        }
+        return Bitmap.createBitmap(source, bounds.left, bounds.top, bounds.width(), bounds.height())
     }
 
     private fun assertVisible(text: String) {
