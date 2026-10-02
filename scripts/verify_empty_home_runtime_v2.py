@@ -18,7 +18,7 @@ RUNTIME = ROOT / "app/src/main/assets/empty_home_runtime_v2"
 REQUIRED = {
     "static/scene_base.webp",
     "dynamic/cloud.png", "dynamic/sun_beam_mask.png", "dynamic/particle_mask.png",
-    "dynamic/rod.png", "dynamic/line.png", "dynamic/bobber.png", "dynamic/ripple_mask.png",
+    "dynamic/rod.png", "dynamic/line.png", "dynamic/bobber.png", "dynamic/bobber_reflection.png", "dynamic/ripple_mask.png",
     "camera/camera_button_base.png", "camera/camera_gold_rim_mask.png", "camera/camera_breath_glow.png",
     "config/runtime_manifest.json", "config/authority_manifest.json", "config/layer_contract.json",
     "config/anchor_contract.json", "config/responsive_mapping_contract.json",
@@ -33,6 +33,16 @@ def load(path: Path) -> dict:
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def png_dimensions(path: Path) -> tuple[int, int]:
+    with path.open("rb") as stream:
+        if stream.read(8) != b"\x89PNG\r\n\x1a\n":
+            raise AssertionError(f"not PNG: {path}")
+        length = struct.unpack(">I", stream.read(4))[0]
+        if stream.read(4) != b"IHDR" or length < 8:
+            raise AssertionError(f"invalid PNG header: {path}")
+        return struct.unpack(">II", stream.read(8))
 
 
 def fail(errors: list[str], message: str) -> None:
@@ -71,8 +81,8 @@ def main() -> int:
 
     if authority.get("authority_status") != "CURRENT":
         fail(errors, "authority manifest is not marked CURRENT")
-    if authority.get("design_version") != "Empty_Home_Final_Design_V2" or authority.get("visual_revision") != "V2.3":
-        fail(errors, "authority manifest must name V2 with V2.3 bobber override")
+    if authority.get("design_version") != "Empty_Home_Final_Design_V2" or authority.get("visual_revision") != "V2.2":
+        fail(errors, "authority manifest must name the measured V2.2 Fishing Composition")
     if authority.get("contracts", {}).get("responsive_mapping") != "responsive_mapping_contract.json":
         fail(errors, "authority manifest does not register the responsive mapping contract")
     if authority.get("contracts", {}).get("hero_asset") != "hero_asset_contract.json":
@@ -88,8 +98,19 @@ def main() -> int:
     if header_mapping.get("top_margin_after_safe_inset_dp") != 16 or header_mapping.get("maximum_content_width_dp") != 430 or header_mapping.get("minimum_touch_target_dp") != 48:
         fail(errors, "safe-top header geometry/target contract is incomplete")
     scene_mapping = groups.get("scene_space", {})
-    if scene_mapping.get("strategy") != "UNIFORM_COVER" or scene_mapping.get("all_scene_locked_elements_share_transform") is not True:
-        fail(errors, "scene elements must share one UNIFORM_COVER sceneTransform")
+    if scene_mapping.get("strategy") != "UNIFORM_COVER_COMPOSITION_AWARE" or scene_mapping.get("all_scene_locked_elements_share_transform") is not True:
+        fail(errors, "scene elements must share one composition-aware sceneTransform")
+    expected_scene_targets = [
+        {"width": 1080, "height": 1920}, {"width": 1080, "height": 2160},
+        {"width": 1080, "height": 2340}, {"width": 1080, "height": 2400},
+        {"width": 720, "height": 1600},
+        {"width": 320, "height": 640, "validation": "STRUCTURAL_ONLY"},
+    ]
+    if responsive.get("responsive_scene_capture_targets_px") != expected_scene_targets:
+        fail(errors, "responsive scene targets must cover the six approved aspect profiles")
+    protected_bounds = scene_mapping.get("fishing_protected_bounds_reference_px", {})
+    if (protected_bounds.get("left"), protected_bounds.get("right")) != (0, 660):
+        fail(errors, "fishing protected horizontal bounds must preserve rod through ripple")
     if groups.get("hero_copy", {}).get("reference_machine_bbox_px") != {"x": 50, "y": 224, "width": 620, "height": 310}:
         fail(errors, "hero responsive mapping differs from the frozen machine bbox")
     if groups.get("hero_copy", {}).get("fill_bounds") is not False or groups.get("hero_copy", {}).get("stretch") is not False:
@@ -172,18 +193,27 @@ def main() -> int:
         fail(errors, "HomeEmptyScene does not pass its single sceneTransform to the renderer")
     if "bitmap = assets.sceneBase" not in scene_renderer or "transform = transform" not in scene_renderer:
         fail(errors, "scene base and scene-locked overlays must share sceneTransform")
+    if "protectedMaxOffsetX" not in motion_source or "coerceIn(protectedMinOffsetX, protectedMaxOffsetX)" not in motion_source:
+        fail(errors, "scene transform does not clamp Cover alignment to the Fishing Protected Bounds")
+    if "offsetX = (containerWidthPx - REFERENCE_SCENE_WIDTH * scale) / 2f" in motion_source:
+        fail(errors, "centered Cover may crop the left-side rod and is not permitted")
     if "MistBlueGray" in scene_renderer:
         fail(errors, "Empty Home Scene may not add an unauthorized blue-gray grade")
     source = load(FEATURE / "source/provenance/source_manifest.json")
     production = load(FEATURE / "intermediate/validation/asset_production_report.json")
     asset_manifest = load(FEATURE / "shared/contracts/asset_manifest.json")
+    v22_authority = FEATURE / "source/frozen/Empty_Home_Frozen_Visual_V2_2.png"
+    if not v22_authority.is_file() or digest(v22_authority) != "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec":
+        fail(errors, "canonical V2.2 Fishing Composition authority SHA mismatch")
+    if authority.get("reference_canvas", {}).get("approved_delta_artwork", {}).get("repository_copy") != "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png":
+        fail(errors, "authority manifest must use the committed V2.2 visual file")
 
     if runtime.get("design_version") != "Empty_Home_Final_Design_V2":
         fail(errors, "runtime manifest does not name Frozen V2")
     if runtime.get("reference_canvas") != [1080, 1920]:
         fail(errors, "runtime reference canvas must be [1080, 1920]")
-    if runtime.get("visual_revision") != "V2.3":
-        fail(errors, "runtime visual revision must be V2.3")
+    if runtime.get("visual_revision") != "V2.2":
+        fail(errors, "runtime visual revision must be the measured V2.2 Fishing Composition")
     contract_hashes = runtime.get("contract_sha256", {})
     for name in runtime.get("current_contracts", []):
         packaged = RUNTIME / "config" / name
@@ -195,42 +225,38 @@ def main() -> int:
         candidate = RUNTIME / relative_path
         if not candidate.is_file() or digest(candidate) != expected_sha:
             fail(errors, "runtime asset SHA256 mismatch: " + relative_path)
-    if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "water_contact_occlusion", "ripple", "bobber_above_water", "foreground_occlusion", "native_ui", "capture_action"]:
-        fail(errors, "layer order does not preserve the V2.3 no-ghost water-contact order")
+    if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "bobber_reflection", "water_contact_occlusion", "ripple", "bobber_body", "foreground_occlusion", "native_ui", "capture_action"]:
+        fail(errors, "layer order does not preserve V2.2 fishing registration and separate reflection")
     if layers.get("rules", {}).get("ripple_count") != 1 or layers.get("rules", {}).get("scene_base_has_baked_ripple") is not False:
         fail(errors, "single-ripple/no-baked-ripple rule failed")
-    if layers.get("rules", {}).get("scene_transform") != "UNIFORM_COVER" or layers.get("rules", {}).get("bobber_is_split_at_water_contact") is not True:
+    if layers.get("rules", {}).get("scene_transform") != "UNIFORM_COVER_COMPOSITION_AWARE" or layers.get("rules", {}).get("bobber_is_split_at_water_contact") is not True:
         fail(errors, "scene transform and bobber water-contact split rules are missing")
-    if anchors["ripple"]["center_reference_px"] != anchors["bobber"]["water_contact_reference_px"]:
-        fail(errors, "ripple center must equal bobber water contact")
-    if anchors["bobber"]["water_contact_reference_px"] != [560, 1120]:
-        fail(errors, "V2.3 bobber water contact must be in the open-water target zone")
-    if anchors["bobber"]["water_contact_reference_px"][1] not in range(1100, 1141):
-        fail(errors, "V2.3 bobber contact is outside the approved open-water band")
-    if anchors["ripple"]["center_reference_px"] != [560, 1120]:
-        fail(errors, "V2.3 ripple center must remain attached to the bobber contact")
-    if anchors["bobber"]["bbox_reference_px"] != {"x": 548, "y": 1036, "width": 24, "height": 122}:
-        fail(errors, "V2.3 bobber origin/size mismatch")
-    if layers.get("rules", {}).get("bobber_water_treatment") != "above_water_crop_no_submerged_copy":
-        fail(errors, "V2.3 no-ghost water treatment contract missing")
-    if anchors.get("visual_revision") != "V2.3" or anchors.get("authority_status") != "CURRENT":
-        fail(errors, "anchor contract is not the current V2.3 authority")
+    if anchors["bobber"]["water_contact_reference_px"] != [561, 1323]:
+        fail(errors, "bobber contact must match the measured V2.2 authority")
+    if anchors["ripple"]["center_reference_px"] != [562, 1320]:
+        fail(errors, "ripple center must match the measured V2.2 authority")
+    if anchors["bobber"]["bbox_reference_px"] != {"x": 550, "y": 1250, "width": 24, "height": 78}:
+        fail(errors, "V2.2 bobber body origin/size mismatch")
+    if layers.get("rules", {}).get("bobber_water_treatment") != "single_body_plus_separate_faded_reflection":
+        fail(errors, "separate V2.2 reflection treatment contract missing")
+    if anchors.get("visual_revision") != "V2.2" or anchors.get("authority_status") != "CURRENT":
+        fail(errors, "anchor contract is not the current measured V2.2 authority")
     if anchors.get("hero_title", {}).get("bbox_reference_px") != {"x": 50, "y": 224, "width": 620, "height": 310}:
         fail(errors, "Hero anchor differs from the frozen normalized reference contract")
-    if anchors.get("rod", {}).get("bbox_reference_px", {}).get("x") != -96 or anchors.get("rod", {}).get("bbox_reference_px", {}).get("y") != 1172:
-        fail(errors, "V2.2 rod origin mismatch")
-    if anchors.get("rod", {}).get("tip_reference_px") != [335, 1180]:
+    if anchors.get("rod", {}).get("asset_origin_reference_px") != [0, 1180]:
+        fail(errors, "V2.2 rod asset origin mismatch")
+    if anchors.get("rod", {}).get("tip_reference_px") != [337, 1184]:
         fail(errors, "V2.2 rod tip mismatch")
-    if anchors.get("line", {}).get("control_points_reference_px") != [[390, 1218], [470, 1090]]:
-        fail(errors, "V2.3 single cubic line control points mismatch")
+    if anchors.get("line", {}).get("control_points_reference_px") != [[389, 1257], [471, 1312]]:
+        fail(errors, "V2.2 measured line fit control points mismatch")
     line = anchors.get("line", {})
-    if anchors.get("bobber", {}).get("bbox_reference_px") != {"x": 548, "y": 1036, "width": 24, "height": 122}:
-        fail(errors, "V2.3 bobber geometry mismatch")
     anchor_values = {
         "EMPTY_HOME_V2_ROD_X": anchors["rod"]["bbox_reference_px"]["x"],
         "EMPTY_HOME_V2_ROD_Y": anchors["rod"]["bbox_reference_px"]["y"],
         "EMPTY_HOME_V2_ROD_TIP_X": anchors["rod"]["tip_reference_px"][0],
         "EMPTY_HOME_V2_ROD_TIP_Y": anchors["rod"]["tip_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_START_X": line["start_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_START_Y": line["start_reference_px"][1],
         "EMPTY_HOME_V2_LINE_C1_X": line["control_points_reference_px"][0][0],
         "EMPTY_HOME_V2_LINE_C1_Y": line["control_points_reference_px"][0][1],
         "EMPTY_HOME_V2_LINE_C2_X": line["control_points_reference_px"][1][0],
@@ -247,36 +273,53 @@ def main() -> int:
     for name, expected in anchor_values.items():
         match = re.search(rf"const val {name} = (-?[0-9.]+)f", motion_source)
         if match is None or float(match.group(1)) != float(expected):
-            fail(errors, f"EmptyHomeMotion.{name} diverges from the canonical V2.3 anchor contract")
+            fail(errors, f"EmptyHomeMotion.{name} diverges from the canonical V2.2 measured anchor contract")
     if anchors.get("cta", {}).get("camera_size_reference_px") != 220:
         fail(errors, "V2.2 Camera size mismatch")
-    if anchors["rod"]["tip_reference_px"] != [335, 1180]:
+    if anchors["rod"]["tip_reference_px"] != [337, 1184]:
         fail(errors, "V2.2 rod tip mismatch")
-    if line.get("start_reference_px") != [335, 1180]:
+    if line.get("start_reference_px") != anchors["rod"]["tip_reference_px"]:
         fail(errors, "V2.2 fishing line must start at rod tip")
-    if line.get("control_points_reference_px") != [[390, 1218], [470, 1090]]:
-        fail(errors, "V2.3 fishing line slack control points mismatch")
-    if line.get("end_reference_px") != [560, 1128]:
-        fail(errors, "V2.3 fishing line must terminate below the bobber water seam")
-    if line["end_reference_px"][1] <= anchors["bobber"]["water_contact_reference_px"][1]:
-        fail(errors, "fishing line endpoint must remain below the water contact")
+    if line.get("control_points_reference_px") != [[389, 1257], [471, 1312]]:
+        fail(errors, "V2.2 fishing line fit control points mismatch")
+    if line.get("end_reference_px") != [560, 1326]:
+        fail(errors, "V2.2 fishing line endpoint must enter the bobber contact occlusion")
+    contact = anchors["bobber"]["water_contact_reference_px"]
+    bobber_bounds = anchors["bobber"]["bbox_reference_px"]
+    if not (bobber_bounds["x"] <= line["end_reference_px"][0] <= bobber_bounds["x"] + bobber_bounds["width"] and contact[1] <= line["end_reference_px"][1] <= contact[1] + 4):
+        fail(errors, "line endpoint is not inside the bobber water-contact occlusion region")
     if scene_renderer.count("cubicTo(") != 1:
         fail(errors, "fishing line renderer must contain exactly one cubic Bézier")
     fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]
     layer_markers = (
-        "bitmap = assets.sceneBase",
+        "bitmap = assets.bobberReflection",
         "bitmap = assets.ripple",
         "source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY)",
     )
     layer_positions = [fishing_layers.find(marker) for marker in layer_markers]
     if any(position < 0 for position in layer_positions) or layer_positions != sorted(layer_positions):
-        fail(errors, "bobber must composite the frozen water seam and ripple beneath one above-water crop")
+        fail(errors, "bobber/reflection/contact/ripple ordering does not match V2.2 compositing")
+    if scene_renderer.count("bitmap = assets.bobber,") != 1 or "bitmap = assets.bobberReflection" not in scene_renderer:
+        fail(errors, "bobber body must render once and reflection must use its own asset")
     if "source = Rect(0, bobberSplit.splitY" in scene_renderer or "underwaterHeight.toFloat()" in scene_renderer:
         fail(errors, "Runtime must not render a second submerged bobber silhouette")
     if layers.get("rules", {}).get("bobber_underwater_visible_height_reference_px") != 0 or layers.get("rules", {}).get("bobber_underwater_alpha") != 0:
-        fail(errors, "V2.3 must suppress the submerged bobber copy")
+        fail(errors, "V2.2 reflection must remain separate from the single bobber body")
     if "waterContactY - bobberTopY" not in scene_renderer:
         fail(errors, "bobber source split must be derived from the fixed water-contact coordinate")
+    line_renderer = scene_renderer[scene_renderer.index("private fun DrawScope.drawFrozenFishingLine"):scene_renderer.index("private fun DrawScope.drawSunParticles")]
+    if line_renderer.count("drawPath(") != 1 or "DeepInk" in line_renderer or "Stroke(width = 2.25f" in line_renderer:
+        fail(errors, "Fishing line must use one authority-matched pale stroke without a dark outline")
+    reflection_asset = RUNTIME / "dynamic/bobber_reflection.png"
+    body_asset = RUNTIME / "dynamic/bobber.png"
+    if reflection_asset.read_bytes() == body_asset.read_bytes():
+        fail(errors, "bobber reflection must be a distinct optical asset")
+    for asset_path, expected in ((RUNTIME / "dynamic/rod.png", (340, 206)), (body_asset, (24, 78)), (reflection_asset, (12, 52))):
+        try:
+            if png_dimensions(asset_path) != expected:
+                fail(errors, "fishing layer source dimensions mismatch: " + str(asset_path.relative_to(RUNTIME)))
+        except (OSError, AssertionError):
+            fail(errors, "invalid fishing layer PNG: " + str(asset_path.relative_to(RUNTIME)))
     cta = anchors.get("cta", {})
     if (
         cta.get("prompt_top_reference_px"),

@@ -20,17 +20,17 @@
       "alpha": true,
       "asset_id": "home_empty_v2_rod_master",
       "coordinate_space": "reference_1080x1920",
-      "height": 365,
+      "height": 206,
       "master_format": "png_rgba",
       "path": "design/pages/home/empty_home/shared/assets/fishing/rod_master.png",
       "platforms": [
         "android"
       ],
       "role": "runtime_dynamic",
-      "sha256": "8750d752f261efa64f23f52aadf4a46187143d9b5686d81cb58b48b61604b785",
-      "source": "Empty_Home_Final_Design_V2",
-      "version": "2.0",
-      "width": 450
+      "sha256": "d79a848c396168343148e9ce690a2934ce11d56332d05b5677c71c9131adb00c",
+      "source": "Empty_Home_Frozen_Visual_V2_2",
+      "version": "2.2",
+      "width": 340
     },
     {
       "alpha": true,
@@ -52,16 +52,16 @@
       "alpha": true,
       "asset_id": "home_empty_v2_bobber_master",
       "coordinate_space": "reference_1080x1920",
-      "height": 122,
+      "height": 78,
       "master_format": "png_rgba",
       "path": "design/pages/home/empty_home/shared/assets/fishing/bobber_master.png",
       "platforms": [
         "android"
       ],
       "role": "runtime_dynamic",
-      "sha256": "69c36ab7477f2356aa14323ba2c24b6134f6d222000fcef5ce44acf1dec68be2",
-      "source": "Empty_Home_Final_Design_V2",
-      "version": "2.0",
+      "sha256": "2878f57c5e2ec9fab34230f985bb2ae3474270b2444a6d5621dba0679ea976ae",
+      "source": "Empty_Home_Frozen_Visual_V2_2",
+      "version": "2.2",
       "width": 24
     },
     {
@@ -191,7 +191,22 @@
       "platforms": [
         "android"
       ]
+    },
+    {
+      "alpha": true,
+      "asset_id": "home_empty_v2_bobber_reflection_master",
+      "coordinate_space": "reference_1080x1920",
+      "height": 52,
+      "master_format": "png_rgba",
+      "path": "design/pages/home/empty_home/shared/assets/fishing/bobber_reflection_master.png",
+      "platforms": [
+        "android"
+      ],
+      "role": "runtime_dynamic",
+      "sha256": "e9cd8132e08149c57f0af85d86a1c15b42bbb325ef3a9789b5b6a5cf40ae0b05",
+      "source": "Empty_Home_Frozen_Visual_V2_2",
+      "version": "2.2",
+      "width": 12
     }
-  ],
-  "design_version": "Empty_Home_Final_Design_V2"
+  ]
 }
