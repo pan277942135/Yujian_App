@@ -58,7 +58,7 @@ gate_collect_evidence() {
     "${YUJIAN_ADB_BIN}" shell rm -f "$responsive_remote/$canonical_capture"
     timeout 90s "${YUJIAN_ADB_BIN}" shell am instrument -w -r \
       -e class 'com.yujian.ai.EmptyHomeResponsiveRuntimeTest#requiredControlsRemainVisibleInsideSafeDrawingViewport' \
-      -e expectedWidthDp 1080 -e expectedHeightDp 1920 \
+      -e expectedWidthPx 1080 -e expectedHeightPx 1920 \
       -e expectedFontScale 1.0 -e evidenceName "$canonical_capture" -e canonicalCapture true \
       "$YUJIAN_INSTRUMENTATION_TARGET" > "$canonical_test_log" 2>&1 || {
         cat "$canonical_test_log" >&2
@@ -84,6 +84,11 @@ if (mean > 245 and spread < 8) or (mean < 8 and spread < 8):
 print(f"CANONICAL_APP_SURFACE_CAPTURE_PASS dimensions=1080x1920 mean={mean:.2f} spread={spread:.2f}")
 PY
     cp "$home_dir/runtime_static.png" "$home_dir/01_empty_home_static.png"
+    # Static canonical capture freezes only the Compose test clock. Restore
+    # production Android animation scales before physical motion evidence.
+    "${YUJIAN_ADB_BIN}" shell settings put global animator_duration_scale 1.0 || true
+    "${YUJIAN_ADB_BIN}" shell settings put global transition_animation_scale 1.0 || true
+    "${YUJIAN_ADB_BIN}" shell settings put global window_animation_scale 1.0 || true
     sleep 4
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_4s.png"
 
