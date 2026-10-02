@@ -77,7 +77,6 @@ private data class QualityProfile(
     val core: Float,
     val companionIds: Set<String>,
     val microEnabled: Boolean,
-    val secondaryFragments: Boolean,
     val nodeCount: Int,
     val particleCount: Int,
     val alphaMultiplier: Float,
@@ -343,7 +342,6 @@ fun RecognitionAmbientField(
         val primaryPaths = buildPaths(size, PRIMARY_ISLANDS)
         val companionPaths = buildEchoPaths(size, COMPANION_HAIRLINES)
         val microPaths = buildEchoPaths(size, MICRO_HAIRLINES)
-        val fragmentPaths = buildPaths(size, SECONDARY_FRAGMENTS)
 
         drawReceivingLight(
             frame = frame,
@@ -404,33 +402,6 @@ fun RecognitionAmbientField(
                     offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
                     common = common,
                     micro = true,
-                )
-            }
-        }
-
-        if (quality.secondaryFragments) {
-            SECONDARY_FRAGMENTS.forEachIndexed { index, fragment ->
-                // These legacy fragments cross the frozen Quiet Gaps. Keep the
-                // profile capability for future safe segments, but suppress
-                // these geometries until they can be spatially clipped.
-                if (fragment.id in QUIET_GAP_CROSSING_FRAGMENTS) return@forEachIndexed
-                val parent = when (fragment.id) {
-                    "B2" -> PRIMARY_ISLANDS.first { it.id == "B1" }
-                    "G2" -> PRIMARY_ISLANDS.first { it.id == "G1" }
-                    else -> PRIMARY_ISLANDS.first { it.id == "B3" }
-                }
-                val common =
-                    frame.stateStrength *
-                        frame.resolveStrength *
-                        frame.detailEntry *
-                        quality.alphaMultiplier *
-                        parent.islandWeight *
-                        .32f
-                drawSecondaryFragment(
-                    path = fragmentPaths[index],
-                    filament = fragment,
-                    offset = positiveMod(frame.cycleOffset + parent.seed + fragment.seed),
-                    common = common,
                 )
             }
         }
@@ -517,7 +488,6 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
             core = 1f,
             companionIds = setOf("B1C", "G1C", "G3C", "B3C"),
             microEnabled = true,
-            secondaryFragments = true,
             nodeCount = 2,
             particleCount = 8,
             alphaMultiplier = 1f,
@@ -529,7 +499,6 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
             core = 1f,
             companionIds = setOf("B1C", "G1C"),
             microEnabled = false,
-            secondaryFragments = false,
             nodeCount = 1,
             particleCount = 4,
             alphaMultiplier = .92f,
@@ -541,7 +510,6 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
             core = 1f,
             companionIds = emptySet(),
             microEnabled = false,
-            secondaryFragments = false,
             nodeCount = 0,
             particleCount = 0,
             alphaMultiplier = .82f,
@@ -718,43 +686,6 @@ private fun DrawScope.drawHairlineEcho(
         ),
         style = Stroke(
             width = echo.width.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round,
-            pathEffect = effect,
-        ),
-    )
-}
-
-private fun DrawScope.drawSecondaryFragment(
-    path: Path,
-    filament: Filament,
-    offset: Float,
-    common: Float,
-) {
-    if (common <= .001f) return
-
-    val effect = segmentEffect(
-        filament = filament,
-        size = size,
-        offset = offset,
-        visibleRatio = filament.visibleRatio,
-    )
-
-    drawPath(
-        path,
-        filament.color.copy(alpha = (.08f * common).coerceAtMost(.04f)),
-        style = Stroke(
-            width = 3.dp.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round,
-            pathEffect = effect,
-        ),
-    )
-    drawPath(
-        path,
-        filament.hot.copy(alpha = (.32f * common).coerceAtMost(.14f)),
-        style = Stroke(
-            width = filament.width.toPx(),
             cap = StrokeCap.Round,
             join = StrokeJoin.Round,
             pathEffect = effect,
@@ -1003,12 +934,7 @@ private fun easedFraction(
 private fun positiveMod(value: Float): Float =
     ((value % 1f) + 1f) % 1f
 
-/**
- * Frozen four Primary Energy Islands.
- *
- * Legacy B2/G2/B4 are not primaries anymore; they live below as optional
- * secondary fragment zones.
- */
+/** Frozen seven-path primary AI topology: B1/B2/B3/B4 and G1/G2/G3. */
 private val PRIMARY_ISLANDS = listOf(
     Filament(
         "B1",
@@ -1024,30 +950,17 @@ private val PRIMARY_ISLANDS = listOf(
         Cubic(.96f, .42f),
     ),
     Filament(
-        "G1",
-        AiGoldCore,
-        AiGoldHot,
-        1.1.dp,
-        .12f,
-        .26f,
-        .78f,
-        Cubic(-.02f, .18f),
-        Cubic(.03f, .08f),
-        Cubic(.12f, .02f),
-        Cubic(.26f, -.02f),
-    ),
-    Filament(
-        "G3",
-        AiGoldCore,
-        AiGoldHot,
-        1.2.dp,
-        .64f,
-        .22f,
-        .63f,
-        Cubic(-.01f, .74f),
-        Cubic(.08f, .86f),
-        Cubic(.20f, .95f),
-        Cubic(.38f, 1.02f),
+        "B2",
+        AiBlueCore,
+        AiBlueHot,
+        1.0.dp,
+        .07f,
+        .18f,
+        .30f,
+        Cubic(1.01f, .18f),
+        Cubic(.92f, .31f),
+        Cubic(.95f, .52f),
+        Cubic(1.02f, .68f),
     ),
     Filament(
         "B3",
@@ -1061,6 +974,58 @@ private val PRIMARY_ISLANDS = listOf(
         Cubic(.92f, .75f),
         Cubic(.84f, .89f),
         Cubic(.66f, 1.02f),
+    ),
+    Filament(
+        "B4",
+        AiBlueCore,
+        AiBlueHot,
+        .8.dp,
+        .11f,
+        .14f,
+        .22f,
+        Cubic(.22f, 1.02f),
+        Cubic(.38f, .95f),
+        Cubic(.52f, .95f),
+        Cubic(.66f, 1.01f),
+    ),
+    Filament(
+        "G1",
+        AiGoldCore,
+        AiGoldHot,
+        1.1.dp,
+        .12f,
+        .26f,
+        .78f,
+        Cubic(-.02f, .18f),
+        Cubic(.03f, .08f),
+        Cubic(.12f, .02f),
+        Cubic(.26f, -.02f),
+    ),
+    Filament(
+        "G2",
+        AiGoldCore,
+        AiGoldHot,
+        .9.dp,
+        .09f,
+        .16f,
+        .26f,
+        Cubic(-.02f, .33f),
+        Cubic(.04f, .47f),
+        Cubic(.02f, .62f),
+        Cubic(-.01f, .78f),
+    ),
+    Filament(
+        "G3",
+        AiGoldCore,
+        AiGoldHot,
+        1.2.dp,
+        .64f,
+        .22f,
+        .63f,
+        Cubic(-.01f, .74f),
+        Cubic(.08f, .86f),
+        Cubic(.20f, .95f),
+        Cubic(.38f, 1.02f),
     ),
 )
 
@@ -1135,48 +1100,6 @@ private val MICRO_HAIRLINES = listOf(
     ),
 )
 
-private val SECONDARY_FRAGMENTS = listOf(
-    Filament(
-        "B2",
-        AiBlueCore,
-        AiBlueHot,
-        1.0.dp,
-        .07f,
-        .18f,
-        .30f,
-        Cubic(1.01f, .18f),
-        Cubic(.92f, .31f),
-        Cubic(.95f, .52f),
-        Cubic(1.02f, .68f),
-    ),
-    Filament(
-        "G2",
-        AiGoldCore,
-        AiGoldHot,
-        .9.dp,
-        .09f,
-        .16f,
-        .26f,
-        Cubic(-.02f, .33f),
-        Cubic(.04f, .47f),
-        Cubic(.02f, .62f),
-        Cubic(-.01f, .78f),
-    ),
-    Filament(
-        "B4",
-        AiBlueCore,
-        AiBlueHot,
-        .8.dp,
-        .11f,
-        .14f,
-        .22f,
-        Cubic(.22f, 1.02f),
-        Cubic(.38f, .95f),
-        Cubic(.52f, .95f),
-        Cubic(.66f, 1.01f),
-    ),
-)
-
 private val PARTICLE_ANCHORS = listOf(
     ParticleAnchor("B1", Cubic(.84f, .10f)),
     ParticleAnchor("B1", Cubic(.96f, .33f)),
@@ -1187,5 +1110,3 @@ private val PARTICLE_ANCHORS = listOf(
     ParticleAnchor("G3", Cubic(.18f, .90f)),
     ParticleAnchor("G3", Cubic(.48f, .97f)),
 )
-
-private val QUIET_GAP_CROSSING_FRAGMENTS = setOf("B2", "G2", "B4")
