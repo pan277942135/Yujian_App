@@ -3,6 +3,7 @@ package com.yujian.ai.ui.identify
 import com.yujian.ai.ai.NormalizedFishBox
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionImageTransformTest {
@@ -88,5 +89,63 @@ class RecognitionImageTransformTest {
         assertEquals(250f, fit.translationY, 0.01f)
         assertEquals(0.5f, fit.scale, 0.01f)
         assertNotEquals(fit, processing)
+    }
+
+    @Test
+    fun allGeometryUsesTheSameNormalizedSourceTransform() {
+        val transform = calculateRecognitionImageTransform(
+            containerWidth = 1080f,
+            containerHeight = 2340f,
+            imageWidth = 1152,
+            imageHeight = 1536,
+        )
+        val box = NormalizedFishBox(.12f, .18f, .78f, .86f)
+        val rect = transform.mapBoxRect(box)
+        val center = transform.mapBox(box)
+
+        assertEquals(rect.center.x, center.x, .001f)
+        assertEquals(rect.center.y, center.y, .001f)
+        assertEquals(
+            transform.mapNormalized(.12f, .18f),
+            rect.run { DisplayPoint(left, top) },
+        )
+        assertEquals(
+            transform.mapNormalized(.78f, .86f),
+            rect.run { DisplayPoint(right, bottom) },
+        )
+        assertEquals(
+            transform.mapSourcePixel(1152f * .12f, 1536f * .18f),
+            transform.mapNormalized(.12f, .18f),
+        )
+        assertEquals(transform.mapSubjectRelative(box, .5f, .5f).x, center.x, .001f)
+        assertEquals(transform.mapSubjectRelative(box, .5f, .5f).y, center.y, .001f)
+    }
+
+    @Test
+    fun responsivePortraitTargetsKeepEdgeLocationsInThePhotoSpace() {
+        val viewports = listOf(
+            1080f to 1920f,
+            1080f to 2160f,
+            1080f to 2340f,
+            1080f to 2400f,
+            720f to 1600f,
+            320f to 640f,
+        )
+        val locations = listOf(
+            NormalizedFishBox(.40f, .40f, .60f, .60f),
+            NormalizedFishBox(.01f, .35f, .22f, .62f),
+            NormalizedFishBox(.78f, .35f, .99f, .62f),
+            NormalizedFishBox(.35f, .02f, .65f, .22f),
+            NormalizedFishBox(.35f, .78f, .65f, .98f),
+        )
+        viewports.forEach { (width, height) ->
+            val transform = calculateRecognitionImageTransform(width, height, 1152, 1536)
+            locations.forEach { box ->
+                val mapped = transform.mapBox(box)
+                assertTrue(mapped.x.isFinite() && mapped.y.isFinite())
+                assertEquals(mapped.x, transform.mapSubjectRelative(box, .5f, .5f).x, .001f)
+                assertEquals(mapped.y, transform.mapSubjectRelative(box, .5f, .5f).y, .001f)
+            }
+        }
     }
 }

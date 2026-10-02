@@ -8,6 +8,17 @@ enum class RecognitionContentScaleMode { CROP, FIT }
 
 data class DisplayPoint(val x: Float, val y: Float)
 
+data class DisplayRect(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+) {
+    val width: Float get() = (right - left).coerceAtLeast(0f)
+    val height: Float get() = (bottom - top).coerceAtLeast(0f)
+    val center: DisplayPoint get() = DisplayPoint((left + right) / 2f, (top + bottom) / 2f)
+}
+
 data class NormalizedSourceRect(
     val left: Float,
     val top: Float,
@@ -37,11 +48,41 @@ data class RecognitionImageTransform(
         translationY + y.coerceIn(0f, 1f) * drawnHeight,
     )
 
-    fun mapBox(box: NormalizedFishBox): DisplayPoint {
-        val normalized = box.normalized()
+    fun mapNormalizedRect(rect: NormalizedSourceRect): DisplayRect {
+        val normalized = NormalizedSourceRect(
+            left = min(rect.left, rect.right).coerceIn(0f, 1f),
+            top = min(rect.top, rect.bottom).coerceIn(0f, 1f),
+            right = max(rect.left, rect.right).coerceIn(0f, 1f),
+            bottom = max(rect.top, rect.bottom).coerceIn(0f, 1f),
+        )
+        val topLeft = mapNormalized(normalized.left, normalized.top)
+        val bottomRight = mapNormalized(normalized.right, normalized.bottom)
+        return DisplayRect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y)
+    }
+
+    fun mapSourcePixel(x: Float, y: Float): DisplayPoint = mapNormalized(
+        x / sourceWidthPx.toFloat(),
+        y / sourceHeightPx.toFloat(),
+    )
+
+    fun mapSourceRect(rect: NormalizedSourceRect): DisplayRect = mapNormalizedRect(rect)
+
+    fun mapSubjectRelative(subjectBox: NormalizedFishBox, x: Float, y: Float): DisplayPoint {
+        val subject = subjectBox.normalized()
         return mapNormalized(
-            normalized.x1 + normalized.width / 2f,
-            normalized.y1 + normalized.height / 2f,
+            subject.x1 + subject.width * x.coerceIn(0f, 1f),
+            subject.y1 + subject.height * y.coerceIn(0f, 1f),
+        )
+    }
+
+    fun mapBox(box: NormalizedFishBox): DisplayPoint {
+        return mapBoxRect(box).center
+    }
+
+    fun mapBoxRect(box: NormalizedFishBox): DisplayRect {
+        val normalized = box.normalized()
+        return mapNormalizedRect(
+            NormalizedSourceRect(normalized.x1, normalized.y1, normalized.x2, normalized.y2),
         )
     }
 }

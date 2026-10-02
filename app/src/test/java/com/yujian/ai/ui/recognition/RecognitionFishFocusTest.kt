@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.recognition
 
+import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,5 +28,21 @@ class RecognitionFishFocusTest {
 
         assertEquals(.15f, first, .001f)
         assertEquals(first, later, .001f)
+    }
+
+    @Test
+    fun levelARadiiUseFrozenFourteenDpOpticalPadding() {
+        val transform = calculateRecognitionImageTransform(1080f, 2340f, 1152, 1536)
+        val box = NormalizedFishBox(.20f, .25f, .80f, .75f)
+        val mapped = transform.mapBoxRect(box)
+        val radii = recognitionFishFocusRadii(
+            transform,
+            box,
+            RecognitionFishFocusLevel.A,
+            paddingPx = 14f,
+        )
+
+        assertEquals(mapped.width * .62f + 14f, radii.radiusX, .001f)
+        assertEquals(mapped.height * .72f + 14f, radii.radiusY, .001f)
     }
 }

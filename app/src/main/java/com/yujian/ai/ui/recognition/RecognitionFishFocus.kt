@@ -50,6 +50,24 @@ data class RecognitionContourSegment(
     val endY: Float,
 )
 
+internal data class RecognitionFishFocusRadii(
+    val radiusX: Float,
+    val radiusY: Float,
+)
+
+internal fun recognitionFishFocusRadii(
+    transform: RecognitionImageTransform,
+    focusBox: NormalizedFishBox,
+    focusLevel: RecognitionFishFocusLevel,
+    paddingPx: Float,
+): RecognitionFishFocusRadii {
+    val mapped = transform.mapBoxRect(focusBox.normalized())
+    return RecognitionFishFocusRadii(
+        radiusX = mapped.width * (if (focusLevel == RecognitionFishFocusLevel.B) .54f else .62f) + paddingPx,
+        radiusY = mapped.height * (if (focusLevel == RecognitionFishFocusLevel.B) .60f else .72f) + paddingPx,
+    )
+}
+
 /**
  * Fish Focus A/B/C renderer.
  *
@@ -107,15 +125,18 @@ fun RecognitionFishFocus(
             .testTag(focusTag),
     ) {
         val normalized = focusBox.normalized()
-        val mapped = transform.mapBox(normalized)
-        val center = Offset(mapped.x, mapped.y)
-
-        val baseRadiusX = transform.drawnWidth * normalized.width *
-            if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
-        val baseRadiusY = transform.drawnHeight * normalized.height *
-            if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
-        val visualRadiusX = baseRadiusX + 8.dp.toPx()
-        val visualRadiusY = baseRadiusY + 8.dp.toPx()
+        val mappedRect = transform.mapBoxRect(normalized)
+        val center = Offset(mappedRect.center.x, mappedRect.center.y)
+        val radii = recognitionFishFocusRadii(
+            transform = transform,
+            focusBox = normalized,
+            focusLevel = effectiveLevel,
+            paddingPx = 14.dp.toPx(),
+        )
+        val baseRadiusX = mappedRect.width * if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
+        val baseRadiusY = mappedRect.height * if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
+        val visualRadiusX = radii.radiusX
+        val visualRadiusY = radii.radiusY
 
         val remaining =
             1f - resolveProgress.coerceIn(0f, 1f)
@@ -248,10 +269,20 @@ fun RecognitionFishFocus(
             drawPath(
                 realContour,
                 Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .42f).coerceAtMost(.18f),
+                    alpha = (coreAlpha * .30f).coerceAtMost(.12f),
                 ),
                 style = Stroke(
-                    width = 8.dp.toPx(),
+                    width = 11.dp.toPx(),
+                    cap = StrokeCap.Round,
+                ),
+            )
+            drawPath(
+                realContour,
+                Color(0xFFFFD887).copy(
+                    alpha = (coreAlpha * .68f).coerceAtMost(.24f),
+                ),
+                style = Stroke(
+                    width = 4.dp.toPx(),
                     cap = StrokeCap.Round,
                 ),
             )

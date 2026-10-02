@@ -33,6 +33,12 @@
       "state": "SPECIES_RECOGNIZING",
       "role": "PRIMARY",
       "reference": "04_Fish_Identifying_Frozen.png"
+    },
+    {
+      "file": "05_resolve.png",
+      "state": "RESOLVE",
+      "role": "RELEASE_BEFORE_RESULT",
+      "reference": null
     }
   ],
   "terminal_evidence": [
