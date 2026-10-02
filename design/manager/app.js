@@ -2556,6 +2556,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     authorityType === "behavior" ? "交互规范" :
     child && feature.id === "account_privacy_v1" && child.visual_status === "FROZEN" && child.legal_copy_status ? "冻结视觉 / Legal Copy Gate" :
     child && feature.id === "account_privacy_v1" && child.status !== "FROZEN" ? "视觉参考 / Authority" :
+    child?.status === "DESIGN_ONLY" ? "视觉参考 / Authority" :
     child ? "冻结高保真 Authority" : "高保真 / Authority 索引";
   el("hifiViewTitle").textContent=child ? child.title : view.title;
   el("hifiViewStatus").innerHTML=statusBadge(child?.status || view.status || "PARTIAL");
