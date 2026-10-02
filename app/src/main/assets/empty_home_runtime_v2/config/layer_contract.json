@@ -1,15 +1,14 @@
 {
   "design_version": "Empty_Home_Final_Design_V2",
-  "visual_revision": "V2.2",
+  "visual_revision": "V2.3",
   "authority_status": "CURRENT",
-  "contract_revision": "EMPTY_HOME_LAYERS_V2_2",
+  "contract_revision": "EMPTY_HOME_LAYERS_V2_3",
   "order": [
     "scene_base",
     "cloud_atmosphere",
     "sun_ambient",
     "rod",
     "line",
-    "bobber_underwater",
     "water_contact_occlusion",
     "ripple",
     "bobber_above_water",
@@ -26,15 +25,22 @@
     "bobber_is_split_at_water_contact": true,
     "water_contact_reference_px": [
       560,
-      1320
+      1120
     ],
     "bobber_origin_reference_px": [
       548,
-      1236
+      1036
     ],
     "bobber_water_contact_local_y_reference_px": 84,
     "ripple_below_bobber_above_water": true,
     "line_terminates_behind_or_below_contact": true,
-    "camera_action_is_top_actionable_layer": true
+    "camera_action_is_top_actionable_layer": true,
+    "ripple_center_reference_px": [
+      560,
+      1120
+    ],
+    "bobber_water_treatment": "above_water_crop_no_submerged_copy",
+    "bobber_underwater_visible_height_reference_px": 0,
+    "bobber_underwater_alpha": 0
   }
 }

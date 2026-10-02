@@ -20,13 +20,14 @@ class EmptyHomeV2RuntimeContractTest {
         val authority = assets.open("$root/config/authority_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
         val responsive = assets.open("$root/config/responsive_mapping_contract.json").bufferedReader().use { JSONObject(it.readText()) }
         val runtime = assets.open("$root/config/runtime_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
+        val layers = assets.open("$root/config/layer_contract.json").bufferedReader().use { JSONObject(it.readText()) }
 
         assertEquals("CURRENT", authority.getString("authority_status"))
-        assertEquals("V2.2", authority.getString("visual_revision"))
+        assertEquals("V2.3", authority.getString("visual_revision"))
         assertEquals("UNIFORM_COVER", responsive.getJSONObject("groups").getJSONObject("scene_space").getString("strategy"))
         assertEquals(620, responsive.getJSONObject("groups").getJSONObject("hero_copy").getJSONObject("reference_machine_bbox_px").getInt("width"))
         assertEquals("Empty_Home_Final_Design_V2", runtime.getString("design_version"))
-        assertEquals("V2.2", runtime.getString("visual_revision"))
+        assertEquals("V2.3", runtime.getString("visual_revision"))
         assertEquals("3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec", runtime.getString("approved_visual_sha256"))
         assertEquals(1080, runtime.getJSONArray("reference_canvas").getInt(0))
         assertEquals(1920, runtime.getJSONArray("reference_canvas").getInt(1))
@@ -46,9 +47,19 @@ class EmptyHomeV2RuntimeContractTest {
             anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString(),
             anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString(),
         )
-        assertEquals("[560,1320]", anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString())
+        assertEquals("[560,1120]", anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString())
+        assertEquals("[548, 1036, 24, 122]", listOf("x", "y", "width", "height").map {
+            anchors.getJSONObject("bobber").getJSONObject("bbox_reference_px").getInt(it)
+        }.toString())
+        assertTrue(anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").getInt(1) in 1100..1140)
         assertEquals("[335,1180]", anchors.getJSONObject("line").getJSONArray("start_reference_px").toString())
-        assertEquals("[560,1328]", anchors.getJSONObject("line").getJSONArray("end_reference_px").toString())
+        assertEquals("[560,1128]", anchors.getJSONObject("line").getJSONArray("end_reference_px").toString())
+        assertEquals("[560,1120]", anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString())
+        assertFalse(layers.getJSONArray("order").toString().contains("bobber_underwater"))
+        val treatment = motion.getJSONObject("bobber_water_treatment")
+        assertEquals("above_water_crop_no_submerged_copy", treatment.getString("mode"))
+        assertEquals(0, treatment.getInt("underwater_visible_height_reference_px"))
+        assertEquals(0.0, treatment.getDouble("underwater_alpha"), 0.0001)
         assertEquals(220, anchors.getJSONObject("cta").getInt("camera_size_reference_px"))
 
         assets.open("$root/camera/camera_button_base.png").use { stream ->

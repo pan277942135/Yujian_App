@@ -35,7 +35,12 @@ class EmptyHomeMotionTest {
         assertEquals(0.30f, rippleAlpha(0f), 0.0001f)
         assertEquals(0f, rippleAlpha(3.2f - 0.0001f), 0.0001f)
         assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, 560f, 0.0001f)
-        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, 1320f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, 1120f, 0.0001f)
+        assertTrue(EMPTY_HOME_V2_WATER_CONTACT_Y in 1100f..1140f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_BOBBER_X + 12f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_BOBBER_Y + 84f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_RIPPLE_X + 119f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_RIPPLE_Y + 41f, 0.0001f)
     }
 
     @Test
@@ -43,11 +48,11 @@ class EmptyHomeMotionTest {
         assertEquals(335f, EMPTY_HOME_V2_ROD_TIP_X, 0.0001f)
         assertEquals(1180f, EMPTY_HOME_V2_ROD_TIP_Y, 0.0001f)
         assertEquals(390f, EMPTY_HOME_V2_LINE_C1_X, 0.0001f)
-        assertEquals(1265f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
+        assertEquals(1218f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
         assertEquals(470f, EMPTY_HOME_V2_LINE_C2_X, 0.0001f)
-        assertEquals(1352f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
+        assertEquals(1090f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
         assertEquals(560f, EMPTY_HOME_V2_LINE_END_X, 0.0001f)
-        assertEquals(1328f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
+        assertEquals(1128f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
         assertTrue(EMPTY_HOME_V2_LINE_END_Y > EMPTY_HOME_V2_WATER_CONTACT_Y)
         assertTrue(EMPTY_HOME_V2_LINE_C2_Y > EMPTY_HOME_V2_LINE_END_Y)
     }
@@ -60,7 +65,10 @@ class EmptyHomeMotionTest {
             waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
         )
         assertEquals(84, still.splitY)
-        assertEquals(38, still.underwaterHeight)
+        assertEquals(0, still.underwaterHeight)
+        assertEquals(0f, still.underwaterAlpha, 0.0001f)
+        assertTrue(still.underwaterHeight <= 122 * 0.20f)
+        assertTrue(still.underwaterAlpha <= 0.25f)
 
         listOf(-3f, 0f, 3f).forEach { offset ->
             val movedTop = EMPTY_HOME_V2_BOBBER_Y + offset
@@ -69,7 +77,9 @@ class EmptyHomeMotionTest {
                 bobberTopY = movedTop,
                 waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
             )
-            assertEquals(122, split.splitY + split.underwaterHeight)
+            assertEquals((EMPTY_HOME_V2_WATER_CONTACT_Y - movedTop).toInt(), split.splitY)
+            assertEquals(0, split.underwaterHeight)
+            assertEquals(0f, split.underwaterAlpha, 0.0001f)
             assertEquals(
                 EMPTY_HOME_V2_WATER_CONTACT_Y,
                 movedTop + split.splitY,

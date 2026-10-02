@@ -71,8 +71,8 @@ def main() -> int:
 
     if authority.get("authority_status") != "CURRENT":
         fail(errors, "authority manifest is not marked CURRENT")
-    if authority.get("design_version") != "Empty_Home_Final_Design_V2" or authority.get("visual_revision") != "V2.2":
-        fail(errors, "authority manifest must name V2 / V2.2")
+    if authority.get("design_version") != "Empty_Home_Final_Design_V2" or authority.get("visual_revision") != "V2.3":
+        fail(errors, "authority manifest must name V2 with V2.3 bobber override")
     if authority.get("contracts", {}).get("responsive_mapping") != "responsive_mapping_contract.json":
         fail(errors, "authority manifest does not register the responsive mapping contract")
     if authority.get("contracts", {}).get("hero_asset") != "hero_asset_contract.json":
@@ -102,7 +102,7 @@ def main() -> int:
     hero_design_asset = ROOT / hero_contract["asset"]["design_path"]
     hero_runtime_asset = ROOT / hero_contract["asset"]["runtime_resource_path"]
     if hero_contract.get("authority_status") != "CURRENT" or hero_contract.get("visual_revision") != "V2.2":
-        fail(errors, "Hero asset contract is not the current V2.2 authority")
+        fail(errors, "Hero asset contract is not the current V2.3 authority")
     if not hero_source.is_file() or digest(hero_source) != hero_contract["source"]["sha256"]:
         fail(errors, "Hero derivation source SHA does not match the frozen normalized V2 reference")
     for candidate in (hero_design_asset, hero_runtime_asset):
@@ -182,8 +182,8 @@ def main() -> int:
         fail(errors, "runtime manifest does not name Frozen V2")
     if runtime.get("reference_canvas") != [1080, 1920]:
         fail(errors, "runtime reference canvas must be [1080, 1920]")
-    if runtime.get("visual_revision") != "V2.2":
-        fail(errors, "runtime visual revision must be V2.2")
+    if runtime.get("visual_revision") != "V2.3":
+        fail(errors, "runtime visual revision must be V2.3")
     contract_hashes = runtime.get("contract_sha256", {})
     for name in runtime.get("current_contracts", []):
         packaged = RUNTIME / "config" / name
@@ -195,29 +195,37 @@ def main() -> int:
         candidate = RUNTIME / relative_path
         if not candidate.is_file() or digest(candidate) != expected_sha:
             fail(errors, "runtime asset SHA256 mismatch: " + relative_path)
-    if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "bobber_underwater", "water_contact_occlusion", "ripple", "bobber_above_water", "foreground_occlusion", "native_ui", "capture_action"]:
-        fail(errors, "layer order does not preserve the V2.2 water-contact compositing order")
+    if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "water_contact_occlusion", "ripple", "bobber_above_water", "foreground_occlusion", "native_ui", "capture_action"]:
+        fail(errors, "layer order does not preserve the V2.3 no-ghost water-contact order")
     if layers.get("rules", {}).get("ripple_count") != 1 or layers.get("rules", {}).get("scene_base_has_baked_ripple") is not False:
         fail(errors, "single-ripple/no-baked-ripple rule failed")
     if layers.get("rules", {}).get("scene_transform") != "UNIFORM_COVER" or layers.get("rules", {}).get("bobber_is_split_at_water_contact") is not True:
         fail(errors, "scene transform and bobber water-contact split rules are missing")
     if anchors["ripple"]["center_reference_px"] != anchors["bobber"]["water_contact_reference_px"]:
         fail(errors, "ripple center must equal bobber water contact")
-    if anchors["bobber"]["water_contact_reference_px"] != [560, 1320]:
-        fail(errors, "V2.2 bobber water contact mismatch")
-    if anchors.get("visual_revision") != "V2.2" or anchors.get("authority_status") != "CURRENT":
-        fail(errors, "anchor contract is not the current V2.2 authority")
+    if anchors["bobber"]["water_contact_reference_px"] != [560, 1120]:
+        fail(errors, "V2.3 bobber water contact must be in the open-water target zone")
+    if anchors["bobber"]["water_contact_reference_px"][1] not in range(1100, 1141):
+        fail(errors, "V2.3 bobber contact is outside the approved open-water band")
+    if anchors["ripple"]["center_reference_px"] != [560, 1120]:
+        fail(errors, "V2.3 ripple center must remain attached to the bobber contact")
+    if anchors["bobber"]["bbox_reference_px"] != {"x": 548, "y": 1036, "width": 24, "height": 122}:
+        fail(errors, "V2.3 bobber origin/size mismatch")
+    if layers.get("rules", {}).get("bobber_water_treatment") != "above_water_crop_no_submerged_copy":
+        fail(errors, "V2.3 no-ghost water treatment contract missing")
+    if anchors.get("visual_revision") != "V2.3" or anchors.get("authority_status") != "CURRENT":
+        fail(errors, "anchor contract is not the current V2.3 authority")
     if anchors.get("hero_title", {}).get("bbox_reference_px") != {"x": 50, "y": 224, "width": 620, "height": 310}:
         fail(errors, "Hero anchor differs from the frozen normalized reference contract")
     if anchors.get("rod", {}).get("bbox_reference_px", {}).get("x") != -96 or anchors.get("rod", {}).get("bbox_reference_px", {}).get("y") != 1172:
         fail(errors, "V2.2 rod origin mismatch")
     if anchors.get("rod", {}).get("tip_reference_px") != [335, 1180]:
         fail(errors, "V2.2 rod tip mismatch")
-    if anchors.get("line", {}).get("control_points_reference_px") != [[390, 1265], [470, 1352]]:
-        fail(errors, "V2.2 single cubic line control points mismatch")
+    if anchors.get("line", {}).get("control_points_reference_px") != [[390, 1218], [470, 1090]]:
+        fail(errors, "V2.3 single cubic line control points mismatch")
     line = anchors.get("line", {})
-    if anchors.get("bobber", {}).get("bbox_reference_px") != {"x": 548, "y": 1236, "width": 24, "height": 122}:
-        fail(errors, "V2.2 bobber geometry mismatch")
+    if anchors.get("bobber", {}).get("bbox_reference_px") != {"x": 548, "y": 1036, "width": 24, "height": 122}:
+        fail(errors, "V2.3 bobber geometry mismatch")
     anchor_values = {
         "EMPTY_HOME_V2_ROD_X": anchors["rod"]["bbox_reference_px"]["x"],
         "EMPTY_HOME_V2_ROD_Y": anchors["rod"]["bbox_reference_px"]["y"],
@@ -239,31 +247,34 @@ def main() -> int:
     for name, expected in anchor_values.items():
         match = re.search(rf"const val {name} = (-?[0-9.]+)f", motion_source)
         if match is None or float(match.group(1)) != float(expected):
-            fail(errors, f"EmptyHomeMotion.{name} diverges from the canonical V2.2 anchor contract")
+            fail(errors, f"EmptyHomeMotion.{name} diverges from the canonical V2.3 anchor contract")
     if anchors.get("cta", {}).get("camera_size_reference_px") != 220:
         fail(errors, "V2.2 Camera size mismatch")
     if anchors["rod"]["tip_reference_px"] != [335, 1180]:
         fail(errors, "V2.2 rod tip mismatch")
     if line.get("start_reference_px") != [335, 1180]:
         fail(errors, "V2.2 fishing line must start at rod tip")
-    if line.get("control_points_reference_px") != [[390, 1265], [470, 1352]]:
-        fail(errors, "V2.2 fishing line slack control points mismatch")
-    if line.get("end_reference_px") != [560, 1328]:
-        fail(errors, "V2.2 fishing line must terminate below the bobber water seam")
+    if line.get("control_points_reference_px") != [[390, 1218], [470, 1090]]:
+        fail(errors, "V2.3 fishing line slack control points mismatch")
+    if line.get("end_reference_px") != [560, 1128]:
+        fail(errors, "V2.3 fishing line must terminate below the bobber water seam")
     if line["end_reference_px"][1] <= anchors["bobber"]["water_contact_reference_px"][1]:
         fail(errors, "fishing line endpoint must remain below the water contact")
     if scene_renderer.count("cubicTo(") != 1:
         fail(errors, "fishing line renderer must contain exactly one cubic Bézier")
     fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]
     layer_markers = (
-        "source = Rect(0, bobberSplit.splitY",
         "bitmap = assets.sceneBase",
         "bitmap = assets.ripple",
         "source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY)",
     )
     layer_positions = [fishing_layers.find(marker) for marker in layer_markers]
     if any(position < 0 for position in layer_positions) or layer_positions != sorted(layer_positions):
-        fail(errors, "bobber must composite underwater, frozen water seam, ripple, then above-water portion")
+        fail(errors, "bobber must composite the frozen water seam and ripple beneath one above-water crop")
+    if "source = Rect(0, bobberSplit.splitY" in scene_renderer or "underwaterHeight.toFloat()" in scene_renderer:
+        fail(errors, "Runtime must not render a second submerged bobber silhouette")
+    if layers.get("rules", {}).get("bobber_underwater_visible_height_reference_px") != 0 or layers.get("rules", {}).get("bobber_underwater_alpha") != 0:
+        fail(errors, "V2.3 must suppress the submerged bobber copy")
     if "waterContactY - bobberTopY" not in scene_renderer:
         fail(errors, "bobber source split must be derived from the fixed water-contact coordinate")
     cta = anchors.get("cta", {})

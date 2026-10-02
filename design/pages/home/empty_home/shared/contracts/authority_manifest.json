@@ -1,15 +1,15 @@
 {
-  "contract_revision": "EMPTY_HOME_MACHINE_AUTHORITY_V2_2",
+  "contract_revision": "EMPTY_HOME_MACHINE_AUTHORITY_V2_3",
   "design_version": "Empty_Home_Final_Design_V2",
-  "visual_revision": "V2.2",
+  "visual_revision": "V2.3",
   "visual_revision_status": "APPROVED_FROZEN",
   "authority_status": "CURRENT",
-  "authority_scope": "Frozen V2 base plus the approved V2.2 delta; implementation and responsive translation only.",
+  "authority_scope": "Frozen V2 base and approved V2.2 delta, with only the V2.3 bobber open-water placement and no-ghost water treatment overrides.",
   "reference_canvas": {
     "width": 1080,
     "height": 1920,
     "normalized_reference": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
-    "approved_delta_source": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
+    "approved_delta_source": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_3.md",
     "approved_delta_artwork": {
       "filename": "晨雾湖畔_静待第一条鱼.png",
       "dimensions": [
@@ -28,6 +28,6 @@
     "motion": "motion_contract.json",
     "hero_asset": "hero_asset_contract.json"
   },
-  "merge_rule": "V2 remains authoritative except for the CTA and rod-line-bobber-water-contact deltas explicitly approved by V2.2.",
+  "merge_rule": "V2 remains authoritative except for CTA and fishing-composition deltas explicitly approved by V2.2, plus only the bobber placement and water-treatment overrides explicitly approved by V2.3.",
   "historical_contract_policy": "This directory contains the sole current machine-readable authority. Older V2 values must not be restored by generators or treated as current."
 }

@@ -4,23 +4,23 @@
       "height": 122,
       "width": 24,
       "x": 548,
-      "y": 1236
+      "y": 1036
     },
     "bottom_reference_px": [
       560,
-      1358
+      1158
     ],
     "center_normalized": [
       0.518519,
-      0.675521
+      0.571354
     ],
     "center_reference_px": [
       560,
-      1297
+      1097
     ],
     "water_contact_reference_px": [
       560,
-      1320
+      1120
     ]
   },
   "camera_button": {
@@ -61,10 +61,10 @@
   },
   "line": {
     "bbox_reference_px": {
-      "height": 172,
+      "height": 128,
       "width": 225,
       "x": 335,
-      "y": 1180
+      "y": 1090
     },
     "start_reference_px": [
       335,
@@ -73,16 +73,16 @@
     "control_points_reference_px": [
       [
         390,
-        1265
+        1218
       ],
       [
         470,
-        1352
+        1090
       ]
     ],
     "end_reference_px": [
       560,
-      1328
+      1128
     ],
     "endpoint_semantics": "rod_tip_to_below_bobber_water_contact",
     "geometry": "cubic_bezier_slack"
@@ -96,15 +96,15 @@
       "height": 82,
       "width": 238,
       "x": 441,
-      "y": 1279
+      "y": 1079
     },
     "center_normalized": [
       0.518519,
-      0.6875
+      0.583333
     ],
     "center_reference_px": [
       560,
-      1320
+      1120
     ]
   },
   "rod": {
@@ -127,7 +127,7 @@
     "spacing_rule": "prompt -> camera >= 25px; camera -> album >= 23px on 1080x1920 reference"
   },
   "design_version": "Empty_Home_Final_Design_V2",
-  "visual_revision": "V2.2",
+  "visual_revision": "V2.3",
   "authority_status": "CURRENT",
-  "contract_revision": "EMPTY_HOME_LAYOUT_ANCHORS_V2_2"
+  "contract_revision": "EMPTY_HOME_LAYOUT_ANCHORS_V2_3"
 }

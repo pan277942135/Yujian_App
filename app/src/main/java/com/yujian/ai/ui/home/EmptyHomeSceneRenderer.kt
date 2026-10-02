@@ -164,21 +164,9 @@ private fun DrawScope.drawRuntimeOverlays(
         waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
     )
 
-    // The line and submerged bobber are drawn behind the water plane. A thin
-    // patch copied from the frozen scene base then restores the lake pixels
-    // across the contact seam; it introduces no new color or refraction.
-    drawReferenceBitmap(
-        bitmap = assets.bobber,
-        x = EMPTY_HOME_V2_BOBBER_X,
-        y = EMPTY_HOME_V2_BOBBER_Y + bobberOffset + bobberSplit.splitY,
-        width = assets.bobber.width.toFloat(),
-        height = bobberSplit.underwaterHeight.toFloat(),
-        alpha = 1f,
-        transform = transform,
-        paint = paint,
-        destination = destination,
-        source = Rect(0, bobberSplit.splitY, assets.bobber.width, assets.bobber.height),
-    )
+    // V2.3 deliberately omits the submerged bitmap copy. The top crop,
+    // water-contact seam and single ripple keep one continuous float at rest
+    // without rendering a second full-opacity silhouette below the lake surface.
     val contactLeft = EMPTY_HOME_V2_BOBBER_X.roundToInt()
     val contactTop = EMPTY_HOME_V2_WATER_CONTACT_Y.roundToInt() - 1
     drawReferenceBitmap(
@@ -234,6 +222,7 @@ private fun DrawScope.drawRuntimeOverlays(
 internal data class BobberWaterSplit(
     val splitY: Int,
     val underwaterHeight: Int,
+    val underwaterAlpha: Float,
 )
 
 internal fun calculateBobberWaterSplit(
@@ -243,7 +232,9 @@ internal fun calculateBobberWaterSplit(
 ): BobberWaterSplit {
     require(bitmapHeight > 0)
     val splitY = (waterContactY - bobberTopY).roundToInt().coerceIn(0, bitmapHeight)
-    return BobberWaterSplit(splitY = splitY, underwaterHeight = bitmapHeight - splitY)
+    // The source artwork continues below the seam, but V2.3 treats that area
+    // as fully hidden by the water instead of drawing it as a second float.
+    return BobberWaterSplit(splitY = splitY, underwaterHeight = 0, underwaterAlpha = 0f)
 }
 
 private fun DrawScope.drawFrozenFishingLine(
