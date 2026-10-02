@@ -54,7 +54,7 @@ class EmptyHomeMotionTest {
         assertEquals(560f, EMPTY_HOME_V2_LINE_END_X, 0.0001f)
         assertEquals(1128f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
         assertTrue(EMPTY_HOME_V2_LINE_END_Y > EMPTY_HOME_V2_WATER_CONTACT_Y)
-        assertTrue(EMPTY_HOME_V2_LINE_C2_Y > EMPTY_HOME_V2_LINE_END_Y)
+        assertTrue(EMPTY_HOME_V2_LINE_C2_Y < EMPTY_HOME_V2_LINE_END_Y)
     }
 
     @Test
