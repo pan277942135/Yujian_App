@@ -1,0 +1,25 @@
+{
+  "feature": "my_catches_v2",
+  "view_id": "habitat",
+  "status": "DESIGN_ONLY",
+  "visual_selection": "PENDING_USER_SELECTION",
+  "source_files": [
+    {
+      "path": "reference/Habitat_Pond_Levels_1-5_Reference.png",
+      "source": "Library /Catcher/五级生态鱼塘演变全景图.png",
+      "role": "DESIGN_ONLY · STAGE SHAPE REFERENCE",
+      "dimensions": "1536x1024",
+      "bytes": 3499139,
+      "sha256": "5c5698fd9057996759607937f7bc0824636a4aad1d3cd61480705b79d4d8db1c"
+    },
+    {
+      "path": "reference/Habitat_Lake_Levels_1-7_Reference.png",
+      "source": "Library /Catcher/我的渔境：七大湖泊全景对比.png",
+      "role": "DESIGN_ONLY · STAGE SHAPE REFERENCE",
+      "dimensions": "821x1916",
+      "bytes": 2904628,
+      "sha256": "ebdb3455ef78326eeab44c309c00eb05bea8f907e595f7667bf28938a9853de3"
+    }
+  ],
+  "note": "Original PNG bytes preserved. Neither image is selected as the habitat screen's frozen visual authority."
+}
