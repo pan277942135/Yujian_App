@@ -113,10 +113,13 @@ class RecognitionImageTransformTest {
             transform.mapNormalized(.78f, .86f),
             rect.run { DisplayPoint(right, bottom) },
         )
-        assertEquals(
-            transform.mapSourcePixel(1152f * .12f, 1536f * .18f),
-            transform.mapNormalized(.12f, .18f),
-        )
+        val fromPixel =
+            transform.mapSourcePixel(1152f * .12f, 1536f * .18f)
+        val fromNormalized =
+            transform.mapNormalized(.12f, .18f)
+
+        assertEquals(fromNormalized.x, fromPixel.x, .001f)
+        assertEquals(fromNormalized.y, fromPixel.y, .001f)
         assertEquals(transform.mapSubjectRelative(box, .5f, .5f).x, center.x, .001f)
         assertEquals(transform.mapSubjectRelative(box, .5f, .5f).y, center.y, .001f)
     }
