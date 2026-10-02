@@ -1,7 +1,7 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
-import android.graphics.Rect as AndroidRect
+import android.graphics.Canvas
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalDensity
@@ -50,6 +50,7 @@ class EmptyHomeResponsiveRuntimeTest {
         val evidenceName = requireNotNull(arguments.getString("evidenceName")) {
             "evidenceName instrumentation argument is required"
         }
+        val canonicalCapture = arguments.getString("canonicalCapture")?.toBoolean() ?: false
 
         val observedProfile = AtomicReference<RuntimeProfile?>()
         composeRule.setContent {
@@ -116,37 +117,39 @@ class EmptyHomeResponsiveRuntimeTest {
         assertTrue("Camera must remain a reachable touch target", camera.width / density >= 48f && camera.height / density >= 48f)
         assertTrue("Album must remain above the safe bottom inset", album.bottom <= safeBottom)
         assertTrue("Album action must remain below Camera", album.top > camera.bottom)
-        saveAppSurfaceScreenshot(evidenceName)
+        saveAppSurfaceScreenshot(evidenceName, requireCanonical = canonicalCapture)
     }
 
-    private fun saveAppSurfaceScreenshot(name: String) {
+    private fun saveAppSurfaceScreenshot(name: String, requireCanonical: Boolean) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val raw = instrumentation.uiAutomation.takeScreenshot()
-        try {
-            val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
-            val windowOrigin = IntArray(2)
-            composeRule.runOnUiThread {
-                composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
+        val captured = AtomicReference<Bitmap?>()
+        composeRule.runOnUiThread {
+            val appRoot = composeRule.activity.window.decorView
+            val width = appRoot.width
+            val height = appRoot.height
+            assertTrue("app surface is not laid out: ${width}x${height}", appRoot.isLaidOut && width > 0 && height > 0)
+            if (requireCanonical) {
+                assertEquals("CANONICAL_CAPTURE_INVALID width", 1080, width)
+                assertEquals("CANONICAL_CAPTURE_INVALID height", 1920, height)
             }
-            val crop = AndroidRect(
-                kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
-                kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
-                kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
-                kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
-            ).apply { intersect(0, 0, raw.width, raw.height) }
-            assertTrue("Compose app surface crop is empty: $crop", !crop.isEmpty)
-            val appSurface = Bitmap.createBitmap(raw, crop.left, crop.top, crop.width(), crop.height())
-            try {
-                val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "empty_home_responsive")
-                assertTrue("responsive evidence directory cannot be created", directory.exists() || directory.mkdirs())
-                FileOutputStream(File(directory, name)).use { output ->
-                    assertTrue("responsive screenshot encoding failed", appSurface.compress(Bitmap.CompressFormat.PNG, 100, output))
-                }
-            } finally {
-                appSurface.recycle()
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            appRoot.draw(Canvas(bitmap))
+            captured.set(bitmap)
+        }
+
+        val appSurface = requireNotNull(captured.get()) { "app surface capture was not produced" }
+        try {
+            if (requireCanonical) {
+                assertEquals("CANONICAL_CAPTURE_INVALID width", 1080, appSurface.width)
+                assertEquals("CANONICAL_CAPTURE_INVALID height", 1920, appSurface.height)
+            }
+            val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "empty_home_responsive")
+            assertTrue("responsive evidence directory cannot be created", directory.exists() || directory.mkdirs())
+            FileOutputStream(File(directory, name)).use { output ->
+                assertTrue("app surface PNG encoding failed", appSurface.compress(Bitmap.CompressFormat.PNG, 100, output))
             }
         } finally {
-            raw.recycle()
+            appSurface.recycle()
         }
     }
 

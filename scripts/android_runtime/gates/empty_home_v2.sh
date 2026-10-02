@@ -46,48 +46,43 @@ gate_collect_evidence() {
       exit 1
     fi
 
-    # Compose can report the Activity as resumed before decoded scene assets
-    # have reached the first real frame. Wait on pixels/parity only; do not
-    # use UIAutomator text as a readiness signal for this Compose screen.
-    render_ready=0
-    for attempt in $(seq 1 20); do
-      candidate="$home_dir/runtime_static_candidate.png"
-      "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$candidate"
-      if python3 - "$candidate" "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/empty_home_v2.png" <<'PY'
-from PIL import Image, ImageStat
+    # Capture the composed HomeScreen from its measured application DecorView.
+    # The instrumentation path refuses any size other than the requested canonical surface.
+    responsive_remote="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/empty_home_responsive"
+    canonical_capture="runtime_static.png"
+    canonical_test_log="$home_dir/canonical_capture.instrumentation.log"
+    original_font_scale=$("${YUJIAN_ADB_BIN}" shell settings get system font_scale | tr -d '\015')
+    if [[ ! "$original_font_scale" =~ ^[0-9]+([.][0-9]+)?$ ]]; then original_font_scale=1.0; fi
+    "${YUJIAN_ADB_BIN}" shell settings put system font_scale 1.0
+    "${YUJIAN_ADB_BIN}" shell mkdir -p "$responsive_remote"
+    "${YUJIAN_ADB_BIN}" shell rm -f "$responsive_remote/$canonical_capture"
+    timeout 90s "${YUJIAN_ADB_BIN}" shell am instrument -w -r \
+      -e class 'com.yujian.ai.EmptyHomeResponsiveRuntimeTest#requiredControlsRemainVisibleInsideSafeDrawingViewport' \
+      -e expectedWidthDp 1080 -e expectedHeightDp 1920 \
+      -e expectedFontScale 1.0 -e evidenceName "$canonical_capture" -e canonicalCapture true \
+      "$YUJIAN_INSTRUMENTATION_TARGET" > "$canonical_test_log" 2>&1 || {
+        cat "$canonical_test_log" >&2
+        echo 'CANONICAL_CAPTURE_INVALID instrumentation did not produce a valid app-surface capture' >&2
+        exit 1
+      }
+    cat "$canonical_test_log"
+    "${YUJIAN_ADB_BIN}" pull "$responsive_remote/$canonical_capture" "$home_dir/runtime_static.png" >/dev/null
+    python3 - "$home_dir/runtime_static.png" <<'PY'
+from pathlib import Path
 import sys
-from PIL import ImageChops
+from PIL import Image, ImageStat
 
-img = Image.open(sys.argv[1]).convert("RGB")
-stat = ImageStat.Stat(img)
+path = Path(sys.argv[1])
+image = Image.open(path).convert("RGB")
+if image.size != (1080, 1920):
+    raise SystemExit(f"CANONICAL_CAPTURE_INVALID dimensions={image.width}x{image.height}")
+stat = ImageStat.Stat(image)
 mean = sum(stat.mean) / 3.0
 spread = sum(stat.stddev) / 3.0
 if (mean > 245 and spread < 8) or (mean < 8 and spread < 8):
-    raise SystemExit(f"EMPTY_HOME_BLANK_FRAME mean={mean:.2f} spread={spread:.2f}")
-
-reference = Image.open(sys.argv[2]).convert("RGB").resize(img.size, Image.Resampling.LANCZOS)
-diff = ImageChops.difference(reference, img)
-histogram = diff.histogram()
-mae = sum(index % 256 * count for index, count in enumerate(histogram)) / (img.width * img.height * 3)
-if mae > 40:
-    raise SystemExit(f"EMPTY_HOME_PARITY_NOT_READY mean={mean:.2f} spread={spread:.2f} mae={mae:.4f}")
-print(f"EMPTY_HOME_FRAME_READY mean={mean:.2f} spread={spread:.2f} mae={mae:.4f}")
+    raise SystemExit(f"CANONICAL_CAPTURE_INVALID blank_surface mean={mean:.2f} spread={spread:.2f}")
+print(f"CANONICAL_APP_SURFACE_CAPTURE_PASS dimensions=1080x1920 mean={mean:.2f} spread={spread:.2f}")
 PY
-      then
-        mv "$candidate" "$home_dir/runtime_static.png"
-        render_ready=1
-        break
-      fi
-      printf 'EMPTY_HOME_RENDER_SETTLE attempt=%s\n' "$attempt"
-      sleep 1
-    done
-
-    if (( render_ready != 1 )); then
-      echo 'EMPTY_HOME_RENDER_NOT_READY'
-      "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/render_not_ready.png" || true
-      exit 1
-    fi
-
     cp "$home_dir/runtime_static.png" "$home_dir/01_empty_home_static.png"
     sleep 4
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_4s.png"
