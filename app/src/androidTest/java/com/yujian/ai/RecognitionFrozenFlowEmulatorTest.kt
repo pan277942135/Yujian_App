@@ -196,6 +196,11 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("正在分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
+        render(state, FrozenState.RESOLVE, "鱼种识别中", "05_resolve.png")
+        cropEvidence("02_image_recognizing_late.png", "06_edge_field_crop.png", 0f, 0f, 1f, .44f)
+        cropEvidence("03_fish_located.png", "07_fish_focus_crop.png", .04f, .16f, .96f, .90f)
+        cropEvidence("03_fish_located.png", "08_contour_closeup.png", .18f, .22f, .82f, .82f)
+
         render(state, FrozenState.RESULT_HIGH, "修改鱼种", "05_result_high.png")
         assertVisible("草鱼")
         composeRule.onNodeWithText("保存本次鱼获").assertIsEnabled()
@@ -685,6 +690,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val speciesRecognizingMs = finishedAtMs - classifyingAt
         val totalMs = finishedAtMs - imageRecognizingAt
         val fishFocusStableMs = speciesRecognizingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+        val resolveAtMs = finishedAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS
         // These markers are delivered by separate Compose effects. Frame scheduling can
         // make their observed interval shorter than the controller's exact minimum;
         // controller unit tests continue to assert the frozen 900/600/1250ms contract.
@@ -729,6 +735,7 @@ class RecognitionFrozenFlowEmulatorTest {
                 "Runtime IMAGE_RECOGNIZING duration: ${imageRecognizingMs}ms\n" +
                 "Runtime FISH_LOCATED duration: ${fishLocatedMs}ms\n" +
                 "Runtime SPECIES_RECOGNIZING duration: ${speciesRecognizingMs}ms\n" +
+                "Runtime RESOLVE duration: ${RecognitionVisualStateController.RESOLVE_FADE_MS}ms\n" +
                 "Runtime TOTAL duration: ${totalMs}ms\n" +
                 "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
         )
@@ -765,15 +772,26 @@ class RecognitionFrozenFlowEmulatorTest {
             "IMAGE_RECOGNIZING" to imageRecognizingAt,
             "FISH_LOCATED" to outlineAt,
             "SPECIES_RECOGNIZING" to classifyingAt,
+            "RESOLVE" to resolveAtMs,
             "RESULT" to finishedAtMs,
         )
+        val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
+        val mappedRect = transform.mapBoxRect(primary.box)
+        val cropPixelsJson = result.cropPixels?.joinToString(prefix = "[", postfix = "]") ?: "null"
         File(evidenceDir, "recognition_production_flow_trace_v1_2.json").writeText(
             "{\"contract_version\":\"RECOGNITION_PRESENTATION_v1_3\"," +
                 "\"pipeline_phases\":[${actualPipeline.joinToString(",") { "\"$it\"" }}]," +
                 "\"presentation_events\":[${presentationEvents.joinToString(",") { (state, at) -> "{\"state\":\"$state\",\"at_ms\":$at}" }}]," +
-                "\"result_ready\":${result.ready},\"bbox\":{\"x1\":${box.x1},\"y1\":${box.y1},\"x2\":${box.x2},\"y2\":${box.y2}}}\n",
+                "\"result_ready\":${result.ready}," +
+                "\"source\":{\"width\":${photo.bitmap.width},\"height\":${photo.bitmap.height},\"orientation\":\"portrait\"}," +
+                "\"detector\":{\"model\":\"${result.detectorRun.modelVersion}\",\"detections\":${result.detectorRun.detections.size},\"confidence\":${primary.confidence}}," +
+                "\"bbox\":{\"x1\":${box.x1},\"y1\":${box.y1},\"x2\":${box.x2},\"y2\":${box.y2},\"area_ratio\":${box.areaRatio}}," +
+                "\"quality_gate\":{\"status\":\"${result.assessment.status}\",\"level\":\"${result.assessment.qualityLevel}\",\"reason\":\"${result.assessment.qualityReason}\",\"classifier_eligible\":${result.assessment.isClassifierEligible}}," +
+                "\"crop\":{\"pixels\":$cropPixelsJson,\"expand_ratio\":${FishDetectionQualityGate.CROP_EXPAND_RATIO}}," +
+                "\"mapped_bbox_screen\":{\"left\":${mappedRect.left},\"top\":${mappedRect.top},\"right\":${mappedRect.right},\"bottom\":${mappedRect.bottom}}," +
+                "\"subject\":{\"status\":\"${subject.status}\",\"quality\":\"${subject.quality}\",\"mask_area\":${subject.maskAreaRatio},\"contour_segments\":$contourSegments}," +
+                "\"focus\":{\"level\":\"A\",\"degradation\":\"D0\"},\"route\":\"RESULT\"}\n",
         )
-        val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
         val mappedCenter = transform.mapBox(primary.box)
         val crop = primary.box.expand(.12f).normalized()
         File(evidenceDir, "fish_focus_bbox_mapping.json").writeText(
@@ -1006,7 +1024,7 @@ class RecognitionFrozenFlowEmulatorTest {
             """{"quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
         )
         File(evidenceDir, "recognition_visual_qa_v1_3.json").writeText(
-            """{"version":"1.3","review_status":"VISUAL_FAIL","reviewed_artifact_id":"11074493735","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"FAIL","evidence":[{"file":"01_image_recognizing_early.png","note":"B_UR companion and micro read as parallel railroad hairlines at the top-right edge."}]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"FAIL","evidence":[{"file":"01_image_recognizing_early.png","note":"The edge field reads as a few faint lines; local receiving light and four-island identity are not clear."},{"file":"quality_full.png","note":"FULL, BALANCED, and LITE are not clearly distinguishable."},{"file":"quality_balanced.png","note":"FULL, BALANCED, and LITE are not clearly distinguishable."},{"file":"quality_lite.png","note":"LITE does not retain a clearly recognizable four-island field."}]}}}""",
+            """{"version":"1.3","review_status":"PENDING_PHYSICAL_REVIEW","reviewed_artifact_id":"pending-runtime-capture","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png"]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png","quality_full.png","quality_balanced.png","quality_lite.png"]}}}""",
         )
     }
 
@@ -1259,6 +1277,33 @@ class RecognitionFrozenFlowEmulatorTest {
         // instrumentation process depend on writing /data/local/tmp.
     }
 
+    private fun cropEvidence(
+        sourceName: String,
+        targetName: String,
+        left: Float,
+        top: Float,
+        right: Float,
+        bottom: Float,
+    ) {
+        val source = requireNotNull(BitmapFactory.decodeFile(File(evidenceDir, sourceName).absolutePath)) {
+            "missing source evidence for crop: $sourceName"
+        }
+        val cropLeft = (source.width * left).toInt().coerceIn(0, source.width - 1)
+        val cropTop = (source.height * top).toInt().coerceIn(0, source.height - 1)
+        val cropWidth = (source.width * (right - left)).toInt()
+            .coerceAtLeast(1)
+            .coerceAtMost(source.width - cropLeft)
+        val cropHeight = (source.height * (bottom - top)).toInt()
+            .coerceAtLeast(1)
+            .coerceAtMost(source.height - cropTop)
+        val crop = Bitmap.createBitmap(source, cropLeft, cropTop, cropWidth, cropHeight)
+        File(evidenceDir, targetName).outputStream().use { output ->
+            check(crop.compress(Bitmap.CompressFormat.PNG, 100, output))
+        }
+        crop.recycle()
+        source.recycle()
+    }
+
     private fun composeSurfaceBoundsOnScreen(): Rect {
         val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
         val windowOrigin = IntArray(2)
@@ -1338,6 +1383,7 @@ private enum class FrozenState {
     IMAGE_RECOGNIZING_LATE,
     FISH_LOCATED,
     SPECIES_RECOGNIZING,
+    RESOLVE,
     RESULT_HIGH,
     RESULT_MEDIUM,
     RESULT_LOW,
@@ -1363,7 +1409,8 @@ private fun FrozenRecognitionHarness(
         FrozenState.IMAGE_RECOGNIZING_EARLY,
         FrozenState.IMAGE_RECOGNIZING_LATE,
         FrozenState.FISH_LOCATED,
-        FrozenState.SPECIES_RECOGNIZING -> {
+        FrozenState.SPECIES_RECOGNIZING,
+        FrozenState.RESOLVE -> {
             RecognitionProcessingScene(
                 image = photo,
                 onBack = {},
@@ -1383,7 +1430,8 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
                     FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING
                     FrozenState.FISH_LOCATED -> RecognitionPhase.OUTLINE
-                    FrozenState.SPECIES_RECOGNIZING -> RecognitionPhase.CLASSIFYING
+                    FrozenState.SPECIES_RECOGNIZING,
+                    FrozenState.RESOLVE -> RecognitionPhase.CLASSIFYING
                     else -> RecognitionPhase.CAPTURED
                 },
                 visualClockOverrideMs = when (stateValue) {
@@ -1391,6 +1439,7 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_LATE -> 720L
                     else -> 3_200L
                 },
+                resolveProgressOverride = if (stateValue == FrozenState.RESOLVE) .72f else null,
             )
         }
         FrozenState.RESULT_HIGH,

@@ -57,7 +57,7 @@ fun RecognitionStatusOverlay(
     }
 
     val opening = phase == RecognitionPhase.CAPTURED || phase == RecognitionPhase.DETECTING
-    val shape = RoundedCornerShape(26.dp)
+    val shape = RoundedCornerShape(if (opening) 26.dp else 30.dp)
     val energyBorder = Brush.horizontalGradient(
         colors = listOf(
             Color(0x70FFE7AE),
@@ -80,29 +80,29 @@ fun RecognitionStatusOverlay(
                         .background(Color(0x3D10262D))
                 } else {
                     Modifier
-                        .height(96.dp)
+                        .height(112.dp)
                         .clip(shape)
                         .background(Color(0xA31A2C35))
                         .border(width = .75.dp, brush = energyBorder, shape = shape)
                 },
             )
             .padding(
-                horizontal = if (opening) 22.dp else 24.dp,
+                horizontal = if (opening) 22.dp else 28.dp,
                 vertical = if (opening) 14.dp else 0.dp,
             ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(if (opening) 18.dp else 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (opening) 18.dp else 16.dp),
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(if (opening) 40.dp else 46.dp),
+            modifier = Modifier.size(if (opening) 40.dp else 54.dp),
         ) {
             if (reduceMotion) {
                 Box(
                     Modifier
                         .matchParentSize()
                         .border(
-                            width = 3.dp,
+                            width = if (opening) 3.dp else 4.dp,
                             color = StatusGold,
                             shape = CircleShape,
                         ),
@@ -112,7 +112,7 @@ fun RecognitionStatusOverlay(
                     modifier = Modifier.matchParentSize(),
                     color = StatusGold,
                     trackColor = Color(0x668A979B),
-                    strokeWidth = 3.dp,
+                    strokeWidth = if (opening) 3.dp else 4.dp,
                 )
             }
             Box(
@@ -127,7 +127,7 @@ fun RecognitionStatusOverlay(
             Text(
                 copy.first,
                 color = Color.White,
-                fontSize = if (opening) 18.sp else 19.sp,
+                fontSize = if (opening) 18.sp else 20.sp,
                 fontWeight = FontWeight.Medium,
             )
             Text(

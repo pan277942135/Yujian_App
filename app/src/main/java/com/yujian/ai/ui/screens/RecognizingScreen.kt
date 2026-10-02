@@ -7,8 +7,11 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -24,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.ai.NormalizedFishBox
@@ -52,6 +56,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.math.min
+import java.util.ArrayDeque
 
 private const val OUTLINE_THRESHOLD = 36
 // Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
@@ -67,9 +72,11 @@ fun RecognizingScreen(
     onFinished: (ProductionRecognitionResult) -> Unit, onFailure: (Throwable) -> Unit = {},
     phaseOverride: RecognitionPhase? = null, visualClockOverrideMs: Long? = null,
     motionPolicyOverride: RecognitionMotionPolicy? = null,
+    resolveProgressOverride: Float? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
+    resolveProgressOverride = resolveProgressOverride,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -84,6 +91,7 @@ fun RecognitionProcessingScene(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
+    resolveProgressOverride: Float? = null,
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -189,9 +197,21 @@ fun RecognitionProcessingScene(
 
     val rendered = phaseOverride ?: visualPhase
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
-    val resolveProgress = if (phaseOverride != null) 0f else controller.resolveProgress(visualNowMs)
-    val resolveActive = phaseOverride == null && controller.isResolveActive(visualNowMs)
+    val resolveProgress = resolveProgressOverride ?: if (phaseOverride != null) {
+        0f
+    } else {
+        controller.resolveProgress(visualNowMs)
+    }
+    val resolveActive = resolveProgressOverride?.let { it > 0f } == true ||
+        (phaseOverride == null && controller.isResolveActive(visualNowMs))
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+    val layoutDirection = LocalLayoutDirection.current
+    val safeHorizontal = maxOf(
+        24.dp,
+        safeInsets.calculateLeftPadding(layoutDirection),
+        safeInsets.calculateRightPadding(layoutDirection),
+    )
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
             val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
@@ -212,18 +232,28 @@ fun RecognitionProcessingScene(
             visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
             onFishFocusTransform, Modifier.fillMaxSize(),
         )
-        IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(top = 18.dp, start = 12.dp)) {
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(
+                    top = safeInsets.calculateTopPadding() + 4.dp,
+                    start = safeHorizontal / 2f,
+                ),
+        ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
         }
         RecognitionStatusOverlay(
             rendered,
-            Modifier.align(Alignment.BottomCenter).padding(
-                horizontal = 24.dp,
-                vertical = if (
-                    rendered == RecognitionPhase.CAPTURED ||
-                    rendered == RecognitionPhase.DETECTING
-                ) 84.dp else 34.dp,
-            ),
+            Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = safeHorizontal)
+                .padding(
+                    bottom = safeInsets.calculateBottomPadding() + if (
+                        rendered == RecognitionPhase.CAPTURED ||
+                        rendered == RecognitionPhase.DETECTING
+                    ) 84.dp else 34.dp,
+                ),
             resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
         )
@@ -285,20 +315,84 @@ internal fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
     val width = bitmap.width; val height = bitmap.height
     if (width <= 1 || height <= 1) return emptyList()
     val pixels = IntArray(width * height); bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-    fun foreground(x: Int, y: Int) = android.graphics.Color.alpha(pixels[y.coerceIn(0, height - 1) * width + x.coerceIn(0, width - 1)]) >= OUTLINE_THRESHOLD
-    val segments = ArrayList<RecognitionContourSegment>(); var y = 0
-    while (y < height) {
-        var x = 0; val yStep = min(OUTLINE_STRIDE, height - y)
-        while (x < width) {
-            val xStep = min(OUTLINE_STRIDE, width - x)
-            if (foreground(x, y)) {
-                if (x == 0 || !foreground(x - 1, y)) segments += RecognitionContourSegment(x / width.toFloat(), y / height.toFloat(), x / width.toFloat(), (y + yStep) / height.toFloat())
-                if (x + xStep >= width || !foreground(x + xStep, y)) { val edge = (x + xStep).coerceAtMost(width) / width.toFloat(); segments += RecognitionContourSegment(edge, y / height.toFloat(), edge, (y + yStep) / height.toFloat()) }
-                if (y == 0 || !foreground(x, y - 1)) segments += RecognitionContourSegment(x / width.toFloat(), y / height.toFloat(), (x + xStep) / width.toFloat(), y / height.toFloat())
-                if (y + yStep >= height || !foreground(x, y + yStep)) { val edge = (y + yStep).coerceAtMost(height) / height.toFloat(); segments += RecognitionContourSegment(x / width.toFloat(), edge, (x + xStep) / width.toFloat(), edge) }
+    val gridWidth = (width + OUTLINE_STRIDE - 1) / OUTLINE_STRIDE
+    val gridHeight = (height + OUTLINE_STRIDE - 1) / OUTLINE_STRIDE
+    val foreground = BooleanArray(gridWidth * gridHeight)
+    for (gridY in 0 until gridHeight) {
+        for (gridX in 0 until gridWidth) {
+            val x = (gridX * OUTLINE_STRIDE).coerceAtMost(width - 1)
+            val y = (gridY * OUTLINE_STRIDE).coerceAtMost(height - 1)
+            foreground[gridY * gridWidth + gridX] =
+                android.graphics.Color.alpha(pixels[y * width + x]) >= OUTLINE_THRESHOLD
+        }
+    }
+
+    // Keep the largest connected subject and discard tiny alpha islands before
+    // raster edges become visible. This preserves fins/tail while removing
+    // segmentation speckles that otherwise read as broken neon noise.
+    val labels = IntArray(foreground.size) { -1 }
+    val componentSizes = ArrayList<Int>()
+    var nextLabel = 0
+    val queue = ArrayDeque<Int>()
+    for (index in foreground.indices) {
+        if (!foreground[index] || labels[index] >= 0) continue
+        labels[index] = nextLabel
+        queue.add(index)
+        var size = 0
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            size += 1
+            val x = current % gridWidth
+            val y = current / gridWidth
+            for (dy in -1..1) for (dx in -1..1) {
+                if (dx == 0 && dy == 0) continue
+                val nx = x + dx
+                val ny = y + dy
+                if (nx !in 0 until gridWidth || ny !in 0 until gridHeight) continue
+                val neighbor = ny * gridWidth + nx
+                if (foreground[neighbor] && labels[neighbor] < 0) {
+                    labels[neighbor] = nextLabel
+                    queue.add(neighbor)
+                }
             }
-            x += xStep
-        }; y += yStep
+        }
+        componentSizes += size
+        nextLabel += 1
+    }
+    val largest = componentSizes.maxOrNull() ?: return emptyList()
+    val minimumComponent = maxOf(4, largest / 200)
+    val keep = componentSizes.map { it >= minimumComponent }
+
+    val segments = ArrayList<RecognitionContourSegment>()
+    fun kept(gridX: Int, gridY: Int): Boolean {
+        if (gridX !in 0 until gridWidth || gridY !in 0 until gridHeight) return false
+        val label = labels[gridY * gridWidth + gridX]
+        return label >= 0 && keep[label]
+    }
+    fun addOrMerge(segment: RecognitionContourSegment) {
+        val previous = segments.lastOrNull()
+        if (previous != null &&
+            previous.endX == segment.startX && previous.endY == segment.startY &&
+            ((previous.startX == previous.endX && segment.startX == segment.endX) ||
+                (previous.startY == previous.endY && segment.startY == segment.endY))
+        ) {
+            segments[segments.lastIndex] = previous.copy(endX = segment.endX, endY = segment.endY)
+        } else {
+            segments += segment
+        }
+    }
+    for (gridY in 0 until gridHeight) {
+        for (gridX in 0 until gridWidth) {
+            if (!kept(gridX, gridY)) continue
+            val left = gridX * OUTLINE_STRIDE / width.toFloat()
+            val top = gridY * OUTLINE_STRIDE / height.toFloat()
+            val right = min((gridX + 1) * OUTLINE_STRIDE, width) / width.toFloat()
+            val bottom = min((gridY + 1) * OUTLINE_STRIDE, height) / height.toFloat()
+            if (!kept(gridX - 1, gridY)) addOrMerge(RecognitionContourSegment(left, top, left, bottom))
+            if (!kept(gridX + 1, gridY)) addOrMerge(RecognitionContourSegment(right, top, right, bottom))
+            if (!kept(gridX, gridY - 1)) addOrMerge(RecognitionContourSegment(left, top, right, top))
+            if (!kept(gridX, gridY + 1)) addOrMerge(RecognitionContourSegment(left, bottom, right, bottom))
+        }
     }
     return segments
 }
