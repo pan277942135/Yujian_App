@@ -1,6 +1,10 @@
 package com.yujian.ai.ui.recognition.result
 
 import com.yujian.ai.ui.adaptive.AdaptiveLayoutProfile
+import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.identify.RecognitionContentScaleMode
+import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import kotlin.math.roundToInt
 
 data class RecognitionResultGeometry(
@@ -63,6 +67,23 @@ data class RecognitionHeroMediaPlan(
     val sourceClippedEdges: Set<SourceEdge>,
 )
 
+enum class RecognitionSubjectVisibilityPolicy {
+    FULL_SOURCE_SAFE,
+    SUBJECT_SAFE_FIT,
+}
+
+/**
+ * Frozen Processing media geometry. The primary transform is the only geometry
+ * authority for the photo, bbox, halo, and contour. The background is decorative.
+ */
+data class RecognitionProcessingMediaPlan(
+    val primarySourceRect: NormalizedSourceRect,
+    val primaryContentScaleMode: RecognitionContentScaleMode,
+    val primaryTransform: RecognitionImageTransform,
+    val decorativeBackgroundTransform: RecognitionImageTransform?,
+    val subjectVisibilityPolicy: RecognitionSubjectVisibilityPolicy,
+)
+
 enum class SourceEdge { LEFT, TOP, RIGHT, BOTTOM }
 
 object RecognitionResultInputValidation {
@@ -88,8 +109,55 @@ object RecognitionResultInputValidation {
  * Plans a crop in the normalized, EXIF-oriented bitmap coordinate space.
  * SelectedImage is normalized before inference, so detector boxes use this same space.
  */
-object RecognitionHeroMediaPlanner {
-    fun plan(
+object RecognitionMediaPlanner {
+    fun planProcessing(
+        sourceWidth: Int,
+        sourceHeight: Int,
+        viewportWidthPx: Float,
+        viewportHeightPx: Float,
+        bbox: NormalizedFishBox? = null,
+    ): RecognitionProcessingMediaPlan {
+        require(sourceWidth > 0 && sourceHeight > 0)
+        require(viewportWidthPx > 0f && viewportHeightPx > 0f)
+
+        // Processing has no safe opportunity to wait for a detector box before
+        // its first frame. Full-source FIT therefore stays frozen for every
+        // phase; a later bbox never causes a photo pan, zoom, or crop jump.
+        val primary = calculateRecognitionImageTransform(
+            containerWidth = viewportWidthPx,
+            containerHeight = viewportHeightPx,
+            imageWidth = sourceWidth,
+            imageHeight = sourceHeight,
+            contentScaleMode = RecognitionContentScaleMode.FIT,
+        )
+        val needsDecorativeFill =
+            primary.drawnWidth < viewportWidthPx - 0.5f ||
+                primary.drawnHeight < viewportHeightPx - 0.5f
+        val decorative = if (needsDecorativeFill) {
+            calculateRecognitionImageTransform(
+                containerWidth = viewportWidthPx,
+                containerHeight = viewportHeightPx,
+                imageWidth = sourceWidth,
+                imageHeight = sourceHeight,
+                contentScaleMode = RecognitionContentScaleMode.CROP,
+            )
+        } else {
+            null
+        }
+        return RecognitionProcessingMediaPlan(
+            primarySourceRect = NormalizedSourceRect(0f, 0f, 1f, 1f),
+            primaryContentScaleMode = RecognitionContentScaleMode.FIT,
+            primaryTransform = primary,
+            decorativeBackgroundTransform = decorative,
+            subjectVisibilityPolicy = if (bbox != null && bbox.width > 0.001f && bbox.height > 0.001f) {
+                RecognitionSubjectVisibilityPolicy.SUBJECT_SAFE_FIT
+            } else {
+                RecognitionSubjectVisibilityPolicy.FULL_SOURCE_SAFE
+            },
+        )
+    }
+
+    fun planResult(
         sourceWidth: Int,
         sourceHeight: Int,
         viewportWidthDp: Float,
@@ -149,4 +217,23 @@ object RecognitionHeroMediaPlanner {
 
     private fun NormalizedSourceRect.isValid(): Boolean =
         left >= 0f && top >= 0f && right <= 1f && bottom <= 1f && width > 0.001f && height > 0.001f
+}
+
+/** Backwards-compatible result entry point; the shared planner owns the policy. */
+object RecognitionHeroMediaPlanner {
+    fun plan(
+        sourceWidth: Int,
+        sourceHeight: Int,
+        viewportWidthDp: Float,
+        viewportHeightDp: Float,
+        bbox: NormalizedSourceRect?,
+        evidenceFirst: Boolean,
+    ): RecognitionHeroMediaPlan = RecognitionMediaPlanner.planResult(
+        sourceWidth,
+        sourceHeight,
+        viewportWidthDp,
+        viewportHeightDp,
+        bbox,
+        evidenceFirst,
+    )
 }
