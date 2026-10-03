@@ -5,7 +5,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -250,24 +249,6 @@ fun RecognitionFishFocus(
             if (effectiveLevel == RecognitionFishFocusLevel.C) .88f else 1f
         val radiusX = visualRadiusX * radiusScale
         val radiusY = visualRadiusY * radiusScale
-
-        if (effectiveLevel != RecognitionFishFocusLevel.C) {
-            // Keep the frozen A/B hierarchy explicit: the detector box is the
-            // first reliable physical acknowledgement, while segmentation and
-            // halo details arrive on top of the same source transform.
-            drawRoundRect(
-                color = Color(0xFFFFE7AE).copy(
-                    alpha = (.64f * haloReveal * resolveStrength).coerceAtMost(.72f),
-                ),
-                topLeft = Offset(mappedRect.left, mappedRect.top),
-                size = Size(mappedRect.width, mappedRect.height),
-                cornerRadius = CornerRadius(
-                    minOf(mappedRect.width, mappedRect.height) * .08f,
-                    minOf(mappedRect.width, mappedRect.height) * .08f,
-                ),
-                style = Stroke(width = 1.8.dp.toPx()),
-            )
-        }
 
         drawOval(
             brush = Brush.radialGradient(

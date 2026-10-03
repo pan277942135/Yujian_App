@@ -889,8 +889,8 @@ internal fun recognitionAmbientStateCalibration(phase: RecognitionPhase): Recogn
     when (phase) {
         RecognitionPhase.CAPTURED,
         RecognitionPhase.DETECTING -> RecognitionAmbientStateCalibration(1f, 1f)
-        RecognitionPhase.OUTLINE -> RecognitionAmbientStateCalibration(.48f, .62f)
-        RecognitionPhase.CLASSIFYING -> RecognitionAmbientStateCalibration(.30f, .42f)
+        RecognitionPhase.OUTLINE -> RecognitionAmbientStateCalibration(.58f, .62f)
+        RecognitionPhase.CLASSIFYING -> RecognitionAmbientStateCalibration(.36f, .42f)
         RecognitionPhase.RESULT,
         RecognitionPhase.FAILURE -> RecognitionAmbientStateCalibration(0f, 0f)
     }
