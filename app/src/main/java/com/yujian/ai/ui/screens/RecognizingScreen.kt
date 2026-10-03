@@ -48,6 +48,8 @@ import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
+import com.yujian.ai.ui.recognition.FISH_FOCUS_A_PROMOTION_DELAY_MS
+import com.yujian.ai.ui.recognition.recognitionDisplayedFishFocusLevel
 import com.yujian.ai.ui.recognition.result.RecognitionMediaPlanner
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import kotlinx.coroutines.CancellationException
@@ -205,6 +207,13 @@ fun RecognitionProcessingScene(
     val resolveActive = resolveProgressOverride?.let { it > 0f } == true ||
         (phaseOverride == null && controller.isResolveActive(visualNowMs))
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
+    val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
+        requestedLevel = motionPolicy.fishFocusLevel,
+        levelAAvailable = levelAAvailable,
+        phaseElapsedMs = phaseElapsedMs,
+        phaseOverrideActive = phaseOverride != null,
+    )
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
     val safeHorizontal = maxOf(
@@ -214,15 +223,25 @@ fun RecognitionProcessingScene(
     )
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
-            val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
             logFocusDiagnostic(
                 subject = subjectResult,
                 contourSegments = contour.size,
                 box = assessment?.primary?.box,
                 lowPerformance = motionPolicy.lowPerformance,
                 reduceMotion = motionPolicy.reduceMotion,
-                focusLevel = motionPolicy.fishFocusLevel,
+                focusLevel = displayedFocusLevel,
                 levelAAvailable = levelAAvailable,
+            )
+        }
+    }
+    LaunchedEffect(rendered, displayedFocusLevel, levelAAvailable) {
+        if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
+            Log.i(
+                LOG_TAG,
+                "FOCUS_READINESS phase=$rendered level=${displayedFocusLevel.name} " +
+                    "level_a_available=$levelAAvailable phase_elapsed_ms=$phaseElapsedMs " +
+                    "requested_level=${motionPolicy.fishFocusLevel.name} " +
+                    "promotion_delay_ms=$FISH_FOCUS_A_PROMOTION_DELAY_MS",
             )
         }
     }
@@ -230,7 +249,7 @@ fun RecognitionProcessingScene(
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
             visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
-            onFishFocusTransform, Modifier.fillMaxSize(),
+            displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(
             onClick = onBack,
@@ -266,6 +285,7 @@ private fun RecognitionPhoto(
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
     phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
+    focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
@@ -314,7 +334,7 @@ private fun RecognitionPhoto(
         visualClockOverrideMs, phaseElapsedMs, resolveProgress,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
-        focusLevel = motionPolicy.fishFocusLevel,
+        focusLevel = focusLevel,
     )
 }
 
@@ -434,3 +454,4 @@ private fun logFocusDiagnostic(
             "REDUCE_MOTION=$reduceMotion",
     )
 }
+

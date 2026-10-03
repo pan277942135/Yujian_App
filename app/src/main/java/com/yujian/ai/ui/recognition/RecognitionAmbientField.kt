@@ -99,6 +99,11 @@ private data class MotionTarget(
     val speed: Float,
 )
 
+internal data class RecognitionAmbientStateCalibration(
+    val strength: Float,
+    val speed: Float,
+)
+
 private data class MotionFrame(
     val cycleOffset: Float,
     val segmentSpeed: Float,
@@ -880,12 +885,24 @@ private fun productStage(phase: RecognitionPhase): ProductStage =
         RecognitionPhase.FAILURE -> ProductStage.TERMINAL
     }
 
+internal fun recognitionAmbientStateCalibration(phase: RecognitionPhase): RecognitionAmbientStateCalibration =
+    when (phase) {
+        RecognitionPhase.CAPTURED,
+        RecognitionPhase.DETECTING -> RecognitionAmbientStateCalibration(1f, 1f)
+        RecognitionPhase.OUTLINE -> RecognitionAmbientStateCalibration(.48f, .62f)
+        RecognitionPhase.CLASSIFYING -> RecognitionAmbientStateCalibration(.30f, .42f)
+        RecognitionPhase.RESULT,
+        RecognitionPhase.FAILURE -> RecognitionAmbientStateCalibration(0f, 0f)
+    }
+
 private fun targetFor(stage: ProductStage): MotionTarget =
     when (stage) {
-        ProductStage.IMAGE_RECOGNIZING -> MotionTarget(1f, 1f)
-        ProductStage.FISH_LOCATED -> MotionTarget(.58f, .62f)
-        ProductStage.SPECIES_RECOGNIZING -> MotionTarget(.36f, .42f)
-        ProductStage.TERMINAL -> MotionTarget(0f, 0f)
+        ProductStage.IMAGE_RECOGNIZING -> recognitionAmbientStateCalibration(RecognitionPhase.CAPTURED)
+        ProductStage.FISH_LOCATED -> recognitionAmbientStateCalibration(RecognitionPhase.OUTLINE)
+        ProductStage.SPECIES_RECOGNIZING -> recognitionAmbientStateCalibration(RecognitionPhase.CLASSIFYING)
+        ProductStage.TERMINAL -> recognitionAmbientStateCalibration(RecognitionPhase.RESULT)
+    }.let { calibration ->
+        MotionTarget(calibration.strength, calibration.speed)
     }
 
 private fun transitionDurationFor(stage: ProductStage): Long =
@@ -1110,3 +1127,4 @@ private val PARTICLE_ANCHORS = listOf(
     ParticleAnchor("G3", Cubic(.18f, .90f)),
     ParticleAnchor("G3", Cubic(.48f, .97f)),
 )
+
