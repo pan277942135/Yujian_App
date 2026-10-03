@@ -278,7 +278,6 @@ fun RecognitionProcessingScene(
         )
     }
 }
-
 @Composable
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
@@ -451,6 +450,6 @@ private fun logFocusDiagnostic(
             "FOCUS_RENDER_MODE=$mode FOCUS_LEVEL_REQUESTED=${focusLevel.name} " +
             "REAL_BBOX=${bbox?.x1 ?: "NONE"},${bbox?.y1 ?: "NONE"}," +
             "${bbox?.x2 ?: "NONE"},${bbox?.y2 ?: "NONE"} LOW_PERFORMANCE=$lowPerformance " +
-            "REDUCE_MOTION=$reduceMotion",
+        "REDUCE_MOTION=$reduceMotion",
     )
 }

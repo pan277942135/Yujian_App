@@ -34,7 +34,6 @@ internal fun recognitionOutlineHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boo
     }
     return .10f + .08f * envelope
 }
-
 internal fun recognitionLevelBHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
     if (reduceMotion) return .28f
     val elapsed = phaseElapsedMs.coerceAtLeast(0L)
