@@ -68,8 +68,8 @@ gate_collect_evidence() {
     05_result_high.png \
     06_result_medium.png \
     07_result_low.png \
-    08_issue_no_fish.png \
-    09_issue_image_quality.png \
+    08_error_no_fish.png \
+    09_error_image_quality.png \
     10_issue_technical_failure.png \
     level_a_real_contour.png \
     06_edge_field_crop.png \
@@ -278,3 +278,4 @@ PY
   fi
   return "$EXIT_PASS"
 }
+

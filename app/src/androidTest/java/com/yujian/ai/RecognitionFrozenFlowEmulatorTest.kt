@@ -221,11 +221,11 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("手动选择鱼种").performClick()
         assertVisible("选择鱼种")
 
-        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_issue_no_fish.png")
+        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_error_no_fish.png")
         assertVisible("从相册选择")
         assertVisible("重新拍摄")
 
-        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_issue_image_quality.png")
+        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_error_image_quality.png")
         assertVisible("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。")
         assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
 
