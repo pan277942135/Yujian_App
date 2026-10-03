@@ -35,6 +35,48 @@ internal fun recognitionOutlineHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boo
     return .10f + .08f * envelope
 }
 
+internal fun recognitionLevelBHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return .28f
+    val elapsed = phaseElapsedMs.coerceAtLeast(0L)
+    val envelope = when {
+        elapsed < LEVEL_B_HALO_ATTACK_MS -> smoothFraction(elapsed.toFloat() / LEVEL_B_HALO_ATTACK_MS)
+        elapsed < LEVEL_B_HALO_SETTLE_MS -> 1f - smoothFraction(
+            (elapsed - LEVEL_B_HALO_ATTACK_MS).toFloat() /
+                (LEVEL_B_HALO_SETTLE_MS - LEVEL_B_HALO_ATTACK_MS),
+        )
+        else -> 0f
+    }
+    return .24f + .12f * envelope
+}
+
+internal fun recognitionLevelBPerimeterAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return .48f
+    val elapsed = phaseElapsedMs.coerceAtLeast(0L)
+    val envelope = when {
+        elapsed < LEVEL_B_HALO_ATTACK_MS -> smoothFraction(elapsed.toFloat() / LEVEL_B_HALO_ATTACK_MS)
+        elapsed < LEVEL_B_HALO_SETTLE_MS -> 1f - smoothFraction(
+            (elapsed - LEVEL_B_HALO_ATTACK_MS).toFloat() /
+                (LEVEL_B_HALO_SETTLE_MS - LEVEL_B_HALO_ATTACK_MS),
+        )
+        else -> 0f
+    }
+    return .42f + .14f * envelope
+}
+
+internal fun recognitionDisplayedFishFocusLevel(
+    requestedLevel: RecognitionFishFocusLevel,
+    levelAAvailable: Boolean,
+    phaseElapsedMs: Long,
+    phaseOverrideActive: Boolean,
+): RecognitionFishFocusLevel = when {
+    requestedLevel == RecognitionFishFocusLevel.C -> RecognitionFishFocusLevel.C
+    requestedLevel == RecognitionFishFocusLevel.B -> RecognitionFishFocusLevel.B
+    !levelAAvailable -> RecognitionFishFocusLevel.B
+    phaseOverrideActive || phaseElapsedMs >= FISH_FOCUS_A_PROMOTION_DELAY_MS ->
+        RecognitionFishFocusLevel.A
+    else -> RecognitionFishFocusLevel.B
+}
+
 private fun smoothFraction(value: Float): Float {
     val t = value.coerceIn(0f, 1f)
     return t * t * (3f - 2f * t)
@@ -42,6 +84,9 @@ private fun smoothFraction(value: Float): Float {
 
 private const val OUTLINE_HALO_ATTACK_MS = 120L
 private const val OUTLINE_HALO_SETTLE_MS = 420L
+private const val LEVEL_B_HALO_ATTACK_MS = 120L
+private const val LEVEL_B_HALO_SETTLE_MS = 420L
+internal const val FISH_FOCUS_A_PROMOTION_DELAY_MS = 420L
 
 data class RecognitionContourSegment(
     val startX: Float,
@@ -171,7 +216,11 @@ fun RecognitionFishFocus(
             }
 
         val haloTarget = if (phase == RecognitionPhase.OUTLINE) {
-            recognitionOutlineHaloAlpha(phaseElapsedMs, reduceMotion)
+            if (effectiveLevel == RecognitionFishFocusLevel.B) {
+                recognitionLevelBHaloAlpha(phaseElapsedMs, reduceMotion)
+            } else {
+                recognitionOutlineHaloAlpha(phaseElapsedMs, reduceMotion)
+            }
         } else if (reduceMotion) {
             .15f
         } else {
@@ -186,7 +235,15 @@ fun RecognitionFishFocus(
         // A real detector box is already enough to acknowledge the fish. Show
         // its local receiving halo on the first OUTLINE frame; contour detail
         // continues to reveal independently as Level A data arrives.
-        val haloReveal = if (phase == RecognitionPhase.OUTLINE) reveal.coerceAtLeast(.72f) else reveal
+        val haloReveal = if (
+            phase == RecognitionPhase.OUTLINE && effectiveLevel == RecognitionFishFocusLevel.B
+        ) {
+            1f
+        } else if (phase == RecognitionPhase.OUTLINE) {
+            reveal.coerceAtLeast(.72f)
+        } else {
+            reveal
+        }
         val haloAlpha = haloTarget * haloReveal * resolveStrength
 
         val radiusScale =
@@ -219,8 +276,13 @@ fun RecognitionFishFocus(
         if (effectiveLevel == RecognitionFishFocusLevel.B) {
             drawOval(
                 color = Color(0xFFFFE7AE).copy(
-                    alpha = (.22f * reveal * resolveStrength)
-                        .coerceAtMost(.22f),
+                    alpha = (
+                        if (phase == RecognitionPhase.OUTLINE) {
+                            recognitionLevelBPerimeterAlpha(phaseElapsedMs, reduceMotion)
+                        } else {
+                            .30f + .12f * wave
+                        }
+                    ) * haloReveal * resolveStrength,
                 ),
                 topLeft = Offset(
                     center.x - baseRadiusX,

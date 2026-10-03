@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -94,6 +95,7 @@ import kotlinx.coroutines.withContext
 class RecognitionFrozenFlowEmulatorTest {
     private companion object {
         const val FROZEN_GATE_LOG_TAG = "RecognitionFrozenGate"
+        const val SCREENSHOT_SCALE_TOLERANCE = 0.01f
 
         // Manual ground-truth annotation in source-photo pixel coordinates.
         // Clockwise from the mouth around the actual carp silhouette.
@@ -220,17 +222,37 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("手动选择鱼种").performClick()
         assertVisible("选择鱼种")
 
-        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_issue_no_fish.png")
+        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_error_no_fish.png")
         assertVisible("从相册选择")
         assertVisible("重新拍摄")
 
-        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_issue_image_quality.png")
+        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_error_image_quality.png")
         assertVisible("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。")
         assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
 
         render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", "10_issue_technical_failure.png")
         assertVisible("请重新拍摄或选择照片。")
         assertNoDirtyTechnicalUi()
+    }
+
+    @Test
+    fun screenshotCoordinateConversionMapsLogicalSurfaceToPhysicalPixels() {
+        assertEquals(
+            Rect(0, 0, 640, 1256),
+            screenshotCropBounds(640, 1280, 320, 640, Rect(0, 0, 320, 628)),
+        )
+        assertEquals(
+            Rect(0, 0, 1080, 1920),
+            screenshotCropBounds(1080, 1920, 1080, 1920, Rect(0, 0, 1080, 1920)),
+        )
+        assertEquals(
+            Rect(20, 40, 620, 1240),
+            screenshotCropBounds(640, 1280, 320, 640, Rect(10, 20, 310, 620)),
+        )
+        assertEquals(
+            Rect(0, 0, 640, 1232),
+            screenshotCropBounds(640, 1280, 320, 640, Rect(0, 0, 320, 616)),
+        )
     }
 
     @Test
@@ -480,7 +502,8 @@ class RecognitionFrozenFlowEmulatorTest {
     fun resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading() {
         val saving = mutableStateOf(false)
         val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
-        val loadingDescription = "StateDescription = 正在加载"
+        val memoryLoading = hasText("继续记录记忆") and hasStateDescription("正在加载")
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
 
         composeRule.setContent {
             YujianTheme {
@@ -502,15 +525,18 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
-        assertFalse(
-            composeRule.onRoot(useUnmergedTree = true).printToString().contains(loadingDescription),
-        )
+        assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
 
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) {
-            composeRule.onRoot(useUnmergedTree = true).printToString().contains(loadingDescription)
+            saveCalls.get() == 1
         }
         assertEquals(1, saveCalls.get())
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
     }
 
     @Test
@@ -1252,12 +1278,36 @@ class RecognitionFrozenFlowEmulatorTest {
         val bitmap = BitmapFactory.decodeFile(raw.absolutePath)
         assertTrue("unreadable screenshot: $name", bitmap != null && bitmap.width > 0 && bitmap.height > 0)
         val decoded = requireNotNull(bitmap)
-        val appSurface = cropToComposeRoot(decoded)
+        val logicalDisplayWidth = device.displayWidth
+        val logicalDisplayHeight = device.displayHeight
+        val logicalRootBounds = composeSurfaceBoundsOnScreen()
+        val physicalCropBounds = screenshotCropBounds(
+            sourceWidth = decoded.width,
+            sourceHeight = decoded.height,
+            logicalDisplayWidth = logicalDisplayWidth,
+            logicalDisplayHeight = logicalDisplayHeight,
+            logicalBounds = logicalRootBounds,
+        )
+        val appSurface = Bitmap.createBitmap(
+            decoded,
+            physicalCropBounds.left,
+            physicalCropBounds.top,
+            physicalCropBounds.width(),
+            physicalCropBounds.height(),
+        )
         output.outputStream().use { stream ->
             check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         trace(
-            "SCREENSHOT_APP_SURFACE_ONLY name=$name raw=${decoded.width}x${decoded.height} " +
+            "SCREENSHOT_APP_SURFACE_ONLY name=$name " +
+                "logical_display=${logicalDisplayWidth}x${logicalDisplayHeight} " +
+                "raw_screenshot=${decoded.width}x${decoded.height} " +
+                "logical_root_bounds=${logicalRootBounds.left},${logicalRootBounds.top}," +
+                "${logicalRootBounds.right},${logicalRootBounds.bottom} " +
+                "pixel_scale=${decoded.width / logicalDisplayWidth.toFloat()}," +
+                "${decoded.height / logicalDisplayHeight.toFloat()} " +
+                "physical_crop_bounds=${physicalCropBounds.left},${physicalCropBounds.top}," +
+                "${physicalCropBounds.right},${physicalCropBounds.bottom} " +
                 "output=${appSurface.width}x${appSurface.height}",
         )
         if (appSurface !== decoded) appSurface.recycle()
@@ -1322,15 +1372,60 @@ class RecognitionFrozenFlowEmulatorTest {
         source: Bitmap,
         bounds: Rect = composeSurfaceBoundsOnScreen(),
     ): Bitmap {
-        check(bounds.left >= 0 && bounds.top >= 0 &&
-            bounds.right <= source.width && bounds.bottom <= source.height
+        val physicalBounds = screenshotCropBounds(
+            sourceWidth = source.width,
+            sourceHeight = source.height,
+            logicalDisplayWidth = device.displayWidth,
+            logicalDisplayHeight = device.displayHeight,
+            logicalBounds = bounds,
+        )
+        return Bitmap.createBitmap(
+            source,
+            physicalBounds.left,
+            physicalBounds.top,
+            physicalBounds.width(),
+            physicalBounds.height(),
+        )
+    }
+
+    private fun screenshotCropBounds(
+        sourceWidth: Int,
+        sourceHeight: Int,
+        logicalDisplayWidth: Int,
+        logicalDisplayHeight: Int,
+        logicalBounds: Rect,
+    ): Rect {
+        require(sourceWidth > 0 && sourceHeight > 0) {
+            "Screenshot must have positive dimensions: ${sourceWidth}x${sourceHeight}"
+        }
+        require(logicalDisplayWidth > 0 && logicalDisplayHeight > 0) {
+            "Logical display must have positive dimensions: ${logicalDisplayWidth}x${logicalDisplayHeight}"
+        }
+        val scaleX = sourceWidth / logicalDisplayWidth.toFloat()
+        val scaleY = sourceHeight / logicalDisplayHeight.toFloat()
+        require(scaleX > 0f && scaleY > 0f) {
+            "Screenshot pixel scale must be positive: $scaleX,$scaleY"
+        }
+        require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
+            "Non-uniform screenshot scaling is not supported without explicit runtime evidence: " +
+                "scaleX=$scaleX scaleY=$scaleY"
+        }
+
+        val left = kotlin.math.floor(logicalBounds.left * scaleX).toInt().coerceIn(0, sourceWidth)
+        val top = kotlin.math.floor(logicalBounds.top * scaleY).toInt().coerceIn(0, sourceHeight)
+        val right = kotlin.math.ceil(logicalBounds.right * scaleX).toInt().coerceIn(0, sourceWidth)
+        val bottom = kotlin.math.ceil(logicalBounds.bottom * scaleY).toInt().coerceIn(0, sourceHeight)
+        val physicalBounds = Rect(left, top, right, bottom)
+        require(physicalBounds.width() > 0 && physicalBounds.height() > 0) {
+            "Physical screenshot crop is empty: logical=$logicalBounds physical=$physicalBounds"
+        }
+        require(
+            physicalBounds.left >= 0 && physicalBounds.top >= 0 &&
+                physicalBounds.right <= sourceWidth && physicalBounds.bottom <= sourceHeight
         ) {
-            "Compose root bounds $bounds exceed screenshot ${source.width}x${source.height}"
+            "Physical screenshot crop exceeds ${sourceWidth}x${sourceHeight}: $physicalBounds"
         }
-        check(bounds.width() > 0 && bounds.height() > 0) {
-            "Compose root has empty screenshot bounds: $bounds"
-        }
-        return Bitmap.createBitmap(source, bounds.left, bounds.top, bounds.width(), bounds.height())
+        return physicalBounds
     }
 
     private fun assertVisible(text: String) {

@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
@@ -37,9 +38,7 @@ import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
-import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.identify.RecognitionImageTransform
-import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
@@ -49,6 +48,9 @@ import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
+import com.yujian.ai.ui.recognition.FISH_FOCUS_A_PROMOTION_DELAY_MS
+import com.yujian.ai.ui.recognition.recognitionDisplayedFishFocusLevel
+import com.yujian.ai.ui.recognition.result.RecognitionMediaPlanner
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -205,6 +207,13 @@ fun RecognitionProcessingScene(
     val resolveActive = resolveProgressOverride?.let { it > 0f } == true ||
         (phaseOverride == null && controller.isResolveActive(visualNowMs))
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
+    val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
+        requestedLevel = motionPolicy.fishFocusLevel,
+        levelAAvailable = levelAAvailable,
+        phaseElapsedMs = phaseElapsedMs,
+        phaseOverrideActive = phaseOverride != null,
+    )
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
     val safeHorizontal = maxOf(
@@ -214,15 +223,25 @@ fun RecognitionProcessingScene(
     )
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
-            val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
             logFocusDiagnostic(
                 subject = subjectResult,
                 contourSegments = contour.size,
                 box = assessment?.primary?.box,
                 lowPerformance = motionPolicy.lowPerformance,
                 reduceMotion = motionPolicy.reduceMotion,
-                focusLevel = motionPolicy.fishFocusLevel,
+                focusLevel = displayedFocusLevel,
                 levelAAvailable = levelAAvailable,
+            )
+        }
+    }
+    LaunchedEffect(rendered, displayedFocusLevel, levelAAvailable) {
+        if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
+            Log.i(
+                LOG_TAG,
+                "FOCUS_READINESS phase=$rendered level=${displayedFocusLevel.name} " +
+                    "level_a_available=$levelAAvailable phase_elapsed_ms=$phaseElapsedMs " +
+                    "requested_level=${motionPolicy.fishFocusLevel.name} " +
+                    "promotion_delay_ms=$FISH_FOCUS_A_PROMOTION_DELAY_MS",
             )
         }
     }
@@ -230,7 +249,7 @@ fun RecognitionProcessingScene(
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
             visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
-            onFishFocusTransform, Modifier.fillMaxSize(),
+            displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(
             onClick = onBack,
@@ -266,22 +285,33 @@ private fun RecognitionPhoto(
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
     phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
+    focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
-    val transform = remember(bitmap, maxWidth, maxHeight, density) {
-        calculateRecognitionImageTransform(
-            containerWidth = with(density) { maxWidth.toPx() },
-            containerHeight = with(density) { maxHeight.toPx() },
-            imageWidth = bitmap.width,
-            imageHeight = bitmap.height,
-            contentScaleMode = RecognitionContentScaleMode.CROP,
+    val mediaPlan = remember(bitmap, maxWidth, maxHeight, density) {
+        RecognitionMediaPlanner.planProcessing(
+            viewportWidthPx = with(density) { maxWidth.toPx() },
+            viewportHeightPx = with(density) { maxHeight.toPx() },
+            sourceWidth = bitmap.width,
+            sourceHeight = bitmap.height,
         )
     }
+    val transform = mediaPlan.primaryTransform
     if (onFishFocusTransform != null) {
         LaunchedEffect(transform, onFishFocusTransform) {
             onFishFocusTransform(transform)
         }
+    }
+    // The same source may fill the letterboxed bands decoratively, but this
+    // transform is never used by focus geometry and never changes by phase.
+    mediaPlan.decorativeBackgroundTransform?.let { backgroundTransform ->
+        RecognitionSourcePhoto(
+            bitmap = bitmap.asImageBitmap(),
+            transform = backgroundTransform,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().graphicsLayer(alpha = .16f),
+        )
     }
     // The captured image is opaque on the first Recognition frame; only visual overlays animate.
     RecognitionSourcePhoto(
@@ -304,7 +334,7 @@ private fun RecognitionPhoto(
         visualClockOverrideMs, phaseElapsedMs, resolveProgress,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
-        focusLevel = motionPolicy.fishFocusLevel,
+        focusLevel = focusLevel,
     )
 }
 

@@ -31,6 +31,57 @@ class RecognitionFishFocusTest {
     }
 
     @Test
+    fun levelBIsPerceptibleOnTheFirstOutlineFrameBeforeContourPromotion() {
+        val halo = recognitionLevelBHaloAlpha(0L, reduceMotion = false)
+        val perimeter = recognitionLevelBPerimeterAlpha(0L, reduceMotion = false)
+
+        assertTrue("Level B halo must be immediately visible", halo >= .24f)
+        assertTrue("Level B perimeter must be immediately visible", perimeter >= .42f)
+        assertTrue(recognitionLevelBHaloAlpha(120L, false) > halo)
+        assertTrue(recognitionLevelBPerimeterAlpha(120L, false) > perimeter)
+    }
+
+    @Test
+    fun levelAPromotionWaitsForTheLevelBBeatButKeepsFallbacksBounded() {
+        assertEquals(
+            RecognitionFishFocusLevel.B,
+            recognitionDisplayedFishFocusLevel(
+                RecognitionFishFocusLevel.A,
+                levelAAvailable = false,
+                phaseElapsedMs = 0L,
+                phaseOverrideActive = false,
+            ),
+        )
+        assertEquals(
+            RecognitionFishFocusLevel.B,
+            recognitionDisplayedFishFocusLevel(
+                RecognitionFishFocusLevel.A,
+                levelAAvailable = true,
+                phaseElapsedMs = FISH_FOCUS_A_PROMOTION_DELAY_MS - 1L,
+                phaseOverrideActive = false,
+            ),
+        )
+        assertEquals(
+            RecognitionFishFocusLevel.A,
+            recognitionDisplayedFishFocusLevel(
+                RecognitionFishFocusLevel.A,
+                levelAAvailable = true,
+                phaseElapsedMs = FISH_FOCUS_A_PROMOTION_DELAY_MS,
+                phaseOverrideActive = false,
+            ),
+        )
+        assertEquals(
+            RecognitionFishFocusLevel.C,
+            recognitionDisplayedFishFocusLevel(
+                RecognitionFishFocusLevel.C,
+                levelAAvailable = true,
+                phaseElapsedMs = 0L,
+                phaseOverrideActive = false,
+            ),
+        )
+    }
+
+    @Test
     fun levelARadiiUseFrozenFourteenDpOpticalPadding() {
         val transform = calculateRecognitionImageTransform(1080f, 2340f, 1152, 1536)
         val box = NormalizedFishBox(.20f, .25f, .80f, .75f)
