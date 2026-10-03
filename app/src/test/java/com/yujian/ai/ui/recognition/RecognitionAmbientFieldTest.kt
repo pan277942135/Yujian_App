@@ -19,4 +19,12 @@ class RecognitionAmbientFieldTest {
         assertEquals(.62f, located.speed, .001f)
         assertEquals(.42f, classifying.speed, .001f)
     }
+
+    @Test
+    fun primaryFieldKeepsFourIslandsAndSecondaryPathsRemainFragments() {
+        assertEquals(setOf("B1", "G1", "B3", "G3"), recognitionAmbientPrimaryIslandIds)
+        assertEquals(setOf("B2", "G2", "B4"), recognitionAmbientSecondaryFragmentIds)
+        assertTrue(recognitionAmbientPrimaryIslandIds.intersect(recognitionAmbientSecondaryFragmentIds).isEmpty())
+    }
 }
+

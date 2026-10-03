@@ -37,6 +37,9 @@ private val AiGoldCore = Color(0xFFF6D99B)
 private val AiGoldHot = Color(0xFFFFE7AE)
 private val MotionEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
 
+internal val recognitionAmbientPrimaryIslandIds = setOf("B1", "G1", "B3", "G3")
+internal val recognitionAmbientSecondaryFragmentIds = setOf("B2", "G2", "B4")
+
 private data class Cubic(
     val x: Float,
     val y: Float,
@@ -363,13 +366,23 @@ fun RecognitionAmbientField(
                     quality.alphaMultiplier *
                     filament.islandWeight
 
-            drawCompositePrimary(
-                path = path,
-                filament = filament,
-                offset = offset,
-                common = common,
-                quality = quality,
-            )
+            if (filament.id in recognitionAmbientPrimaryIslandIds) {
+                drawCompositePrimary(
+                    path = path,
+                    filament = filament,
+                    offset = offset,
+                    common = common,
+                    quality = quality,
+                )
+            } else {
+                drawSecondaryFragment(
+                    path = path,
+                    filament = filament,
+                    offset = offset,
+                    common = common,
+                    quality = quality,
+                )
+            }
         }
 
         if (quality.companionIds.isNotEmpty()) {
@@ -635,6 +648,48 @@ private fun DrawScope.drawCompositePrimary(
         path,
         filament.hot.copy(
             alpha = (.46f * common * quality.core).coerceAtMost(.50f),
+        ),
+        style = stroke(filament.width),
+    )
+}
+
+private fun DrawScope.drawSecondaryFragment(
+    path: Path,
+    filament: Filament,
+    offset: Float,
+    common: Float,
+    quality: QualityProfile,
+) {
+    if (common <= .001f) return
+
+    val effect = segmentEffect(
+        filament = filament,
+        size = size,
+        offset = offset,
+        visibleRatio = filament.visibleRatio,
+    )
+    val stroke = { width: Dp ->
+        Stroke(
+            width = width.toPx(),
+            cap = StrokeCap.Round,
+            join = StrokeJoin.Round,
+            pathEffect = effect,
+        )
+    }
+
+    // B2/G2/B4 are fragment accents only. They do not receive the Primary
+    // 10dp outer bloom, so they cannot reconstruct a second perimeter.
+    drawPath(
+        path,
+        filament.color.copy(
+            alpha = (.025f * common * quality.mid).coerceAtMost(.035f),
+        ),
+        style = stroke(2.dp),
+    )
+    drawPath(
+        path,
+        filament.hot.copy(
+            alpha = (.16f * common * quality.core).coerceAtMost(.12f),
         ),
         style = stroke(filament.width),
     )
@@ -1127,3 +1182,4 @@ private val PARTICLE_ANCHORS = listOf(
     ParticleAnchor("G3", Cubic(.18f, .90f)),
     ParticleAnchor("G3", Cubic(.48f, .97f)),
 )
+

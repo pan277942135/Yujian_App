@@ -76,6 +76,34 @@
     "State changes do not restart the continuous Edge Field motion clock",
     "Runtime and evidence closure remain independent from design freeze"
   ],
+  "visual_layer": {
+    "status_overlay": {
+      "surface": "#1A2C35",
+      "surface_alpha": 0.85,
+      "height_dp": 112,
+      "corner_radius_dp": 30,
+      "horizontal_padding_dp": 28,
+      "indicator_size_dp": 54,
+      "indicator_stroke_dp": 4,
+      "opening_copy": ["图片识别中", "正在理解照片并寻找鱼获线索"],
+      "located": ["已定位到鱼体", "正在分析这次鱼获"],
+      "classifying": ["正在认识这条鱼", "分析鱼体特征"],
+      "resolve": "fade_with_shared_resolve_strength"
+    },
+    "edge_field": {
+      "primary_islands": ["G_UL", "B_UR", "B_LR", "G_LL"],
+      "secondary_fragments": ["B2", "G2", "B4"],
+      "secondary_outer_bloom": false,
+      "photo_remains_dominant": true
+    },
+    "fish_focus": {
+      "level_a": "subject_contour_plus_bbox_halo",
+      "level_b": "bbox_halo_plus_restrained_ellipse",
+      "level_c": "center_biased_halo",
+      "rectangle_at_any_level": false,
+      "transform": "shared_photo_transform"
+    }
+  },
   "compatibility": {
     "previous_machine_contract": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
     "previous_contract_role": "HISTORICAL_COMPATIBILITY_ONLY",
@@ -87,3 +115,4 @@
     "evidence": "ACTIVE_CLOSURE"
   }
 }
+

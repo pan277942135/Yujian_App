@@ -10,7 +10,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
@@ -293,13 +292,6 @@ fun RecognitionFishFocus(
                 ),
                 style = Stroke(
                     width = 1.2.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(
-                        floatArrayOf(
-                            maxOf(baseRadiusX, baseRadiusY) * 1.95f,
-                            maxOf(baseRadiusX, baseRadiusY) * 4.55f,
-                        ),
-                        0f,
-                    ),
                 ),
             )
         }
@@ -360,3 +352,4 @@ fun RecognitionFishFocus(
         }
     }
 }
+
