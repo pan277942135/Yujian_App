@@ -10,6 +10,7 @@ import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.adaptive.resolveAdaptiveLayoutProfile
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.screens.lowPendingSaveDestination
+import kotlin.math.roundToInt
 
 class RecognitionResultContractsTest {
     @Test
@@ -77,7 +78,7 @@ class RecognitionResultContractsTest {
         val normal = RecognitionResultGeometryResolver.resolve(360, 640)
         val compact = RecognitionResultGeometryResolver.resolve(360, 599)
         assertTrue(compact.compactHeightPolicy)
-        assertEquals((normal.heroHeightDp * 0.88f).toInt(), compact.heroHeightDp)
+        assertEquals((normal.heroHeightDp * 0.88f).roundToInt(), compact.heroHeightDp)
     }
 
     @Test
