@@ -273,6 +273,32 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
+    fun physicalDisplayMappingConvertsMeasuredLogicalViewToRawSourcePixels() {
+        val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
+            sourceBounds = Rect(0, 24, 640, 1280),
+            logicalDisplayWidth = 640,
+            logicalDisplayHeight = 1280,
+            physicalDisplayWidth = 320,
+            physicalDisplayHeight = 640,
+            bitmapWidth = 640,
+            bitmapHeight = 1280,
+        )
+        assertEquals(Rect(0, 12, 320, 640), sourceBitmapBounds)
+
+        val mapping = captureSurfaceMapping(
+            sourceBitmapWidth = 640,
+            sourceBitmapHeight = 1280,
+            sourceBounds = sourceBitmapBounds,
+            targetBitmapWidth = 640,
+            targetBitmapHeight = 1280,
+            targetBounds = Rect(0, 24, 640, 1280),
+        )
+        assertEquals(2f, mapping.scaleX, 0.001f)
+        assertEquals(2f, mapping.scaleY, 0.001f)
+        assertEquals(640, mapping.targetBitmapBounds.width())
+        assertEquals(1256, mapping.targetBitmapBounds.height())
+    }
+    @Test
     fun backingOutCancelsRecognitionWithoutReportingTechnicalFailure() {
         val processingVisible = mutableStateOf(true)
         val recognizeStarted = CountDownLatch(1)
@@ -1310,10 +1336,12 @@ class RecognitionFrozenFlowEmulatorTest {
             "SCREENSHOT_CAPTURE_FORENSICS name=" + name + " " +
                 "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
                 "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
+                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
+                sourceSurface.physicalDisplayHeightPx + " " +
                 "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
                 "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
                 "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
-                "source_view_bounds_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
+                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
                 sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
                 sourceSurface.viewBoundsOnScreenPx.bottom + " " +
                 "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
@@ -1323,10 +1351,19 @@ class RecognitionFrozenFlowEmulatorTest {
                 targetBitmapBounds.right + "," + targetBitmapBounds.bottom + " " +
                 "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi,
         )
+        val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
+            sourceBounds = sourceSurface.viewBoundsOnScreenPx,
+            logicalDisplayWidth = logicalDisplayWidth,
+            logicalDisplayHeight = logicalDisplayHeight,
+            physicalDisplayWidth = sourceSurface.physicalDisplayWidthPx,
+            physicalDisplayHeight = sourceSurface.physicalDisplayHeightPx,
+            bitmapWidth = decoded.width,
+            bitmapHeight = decoded.height,
+        )
         val mapping = captureSurfaceMapping(
             sourceBitmapWidth = decoded.width,
             sourceBitmapHeight = decoded.height,
-            sourceBounds = sourceSurface.viewBoundsOnScreenPx,
+            sourceBounds = sourceBitmapBounds,
             targetBitmapWidth = decoded.width,
             targetBitmapHeight = decoded.height,
             targetBounds = targetBitmapBounds,
@@ -1353,11 +1390,13 @@ class RecognitionFrozenFlowEmulatorTest {
             "SCREENSHOT_APP_SURFACE_ONLY name=" + name + " " +
                 "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
                 "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
+                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
+                sourceSurface.physicalDisplayHeightPx + " " +
                 "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
                 "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
                 "source_view_class=" + sourceSurface.viewClassName + " " +
                 "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
-                "source_view_bounds_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
+                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
                 sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
                 sourceSurface.viewBoundsOnScreenPx.bottom + " " +
                 "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
@@ -1431,6 +1470,8 @@ class RecognitionFrozenFlowEmulatorTest {
         val contentWidthPx: Int,
         val contentHeightPx: Int,
         val viewClassName: String,
+        val physicalDisplayWidthPx: Int,
+        val physicalDisplayHeightPx: Int,
         val density: Float,
         val densityDpi: Int,
     )
@@ -1449,6 +1490,11 @@ class RecognitionFrozenFlowEmulatorTest {
             val content = composeRule.activity.findViewById<View>(android.R.id.content)
                 ?: error("Recognition capture content View is unavailable")
             val sourceView = findComposeSourceView(content) ?: content
+            val display = decor.display ?: error("Recognition capture display is unavailable")
+            val displayMode = display.mode
+            check(displayMode.physicalWidth > 0 && displayMode.physicalHeight > 0) {
+                "Recognition capture display mode has invalid size ${displayMode.physicalWidth}x${displayMode.physicalHeight}"
+            }
             val location = IntArray(2)
             sourceView.getLocationOnScreen(location)
             check(sourceView.width > 0 && sourceView.height > 0) {
@@ -1471,6 +1517,8 @@ class RecognitionFrozenFlowEmulatorTest {
                     contentWidthPx = content.width,
                     contentHeightPx = content.height,
                     viewClassName = sourceView.javaClass.name,
+                    physicalDisplayWidthPx = displayMode.physicalWidth,
+                    physicalDisplayHeightPx = displayMode.physicalHeight,
                     density = sourceView.resources.displayMetrics.density,
                     densityDpi = sourceView.resources.displayMetrics.densityDpi,
                 ),
@@ -1491,6 +1539,39 @@ class RecognitionFrozenFlowEmulatorTest {
         return candidate
     }
 
+    private fun mapSourceViewBoundsToBitmap(
+        sourceBounds: Rect,
+        logicalDisplayWidth: Int,
+        logicalDisplayHeight: Int,
+        physicalDisplayWidth: Int,
+        physicalDisplayHeight: Int,
+        bitmapWidth: Int,
+        bitmapHeight: Int,
+    ): Rect {
+        require(logicalDisplayWidth > 0 && logicalDisplayHeight > 0) {
+            "Logical display must have positive dimensions: ${logicalDisplayWidth}x${logicalDisplayHeight}"
+        }
+        require(physicalDisplayWidth > 0 && physicalDisplayHeight > 0) {
+            "Physical display must have positive dimensions: ${physicalDisplayWidth}x${physicalDisplayHeight}"
+        }
+        require(bitmapWidth > 0 && bitmapHeight > 0) {
+            "Capture bitmap must have positive dimensions: ${bitmapWidth}x${bitmapHeight}"
+        }
+        val scaleX = physicalDisplayWidth / logicalDisplayWidth.toFloat()
+        val scaleY = physicalDisplayHeight / logicalDisplayHeight.toFloat()
+        require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
+            "Logical-to-physical display mapping is non-uniform: scaleX=$scaleX scaleY=$scaleY"
+        }
+        val left = kotlin.math.floor(sourceBounds.left * scaleX).toInt().coerceIn(0, bitmapWidth)
+        val top = kotlin.math.floor(sourceBounds.top * scaleY).toInt().coerceIn(0, bitmapHeight)
+        val right = kotlin.math.ceil(sourceBounds.right * scaleX).toInt().coerceIn(0, bitmapWidth)
+        val bottom = kotlin.math.ceil(sourceBounds.bottom * scaleY).toInt().coerceIn(0, bitmapHeight)
+        val physicalBounds = Rect(left, top, right, bottom)
+        require(physicalBounds.width() > 0 && physicalBounds.height() > 0) {
+            "Mapped physical source bounds are empty: logical=$sourceBounds physical=$physicalBounds"
+        }
+        return physicalBounds
+    }
     private fun captureSurfaceMapping(
         sourceBitmapWidth: Int,
         sourceBitmapHeight: Int,
