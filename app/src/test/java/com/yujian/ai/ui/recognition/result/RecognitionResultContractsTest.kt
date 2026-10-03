@@ -4,18 +4,73 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.yujian.ai.knowledge.FishGuideItem
+import androidx.compose.ui.unit.dp
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
+import com.yujian.ai.ui.adaptive.resolveAdaptiveLayoutProfile
+import com.yujian.ai.ui.screens.RecognitionSaveDestination
+import com.yujian.ai.ui.screens.lowPendingSaveDestination
+import kotlin.math.roundToInt
 
 class RecognitionResultContractsTest {
     @Test
     fun frozenWidthGeometryMatchesCanonicalTable() {
-        val expected = mapOf(320 to (288 to 224), 360 to (320 to 248), 393 to (353 to 274), 411 to (363 to 282))
+        val expected = mapOf(320 to (288 to 188), 360 to (322 to 210), 393 to (355 to 232), 411 to (363 to 237))
         expected.forEach { (width, size) ->
             val geometry = RecognitionResultGeometryResolver.resolve(width, 640)
             assertEquals(size.first, geometry.heroWidthDp)
             assertEquals(size.second, geometry.heroHeightDp)
         }
-        assertEquals(20, RecognitionResultGeometryResolver.resolve(360, 640).horizontalMarginDp)
+        assertEquals(19, RecognitionResultGeometryResolver.resolve(360, 640).horizontalMarginDp)
         assertEquals(24, RecognitionResultGeometryResolver.resolve(411, 640).horizontalMarginDp)
+    }
+
+    @Test
+    fun resultStatesUseTheirFrozenHeroAspectFamilies() {
+        val expected = mapOf(
+            RecognitionResultVisualState.HIGH to 210,
+            RecognitionResultVisualState.MEDIUM to 178,
+            RecognitionResultVisualState.LOW to 178,
+            RecognitionResultVisualState.NO_FISH to 245,
+            RecognitionResultVisualState.IMAGE_QUALITY to 214,
+        )
+        expected.forEach { (state, height) ->
+            val geometry = RecognitionResultGeometryResolver.resolve(360, 640, state)
+            assertEquals(322, geometry.heroWidthDp)
+            assertEquals(height, geometry.heroHeightDp)
+        }
+    }
+
+    @Test
+    fun resultGeometryUsesSafeViewportProfilesWithoutStretchingHero() {
+        val expected = listOf(
+            Triple(320f, 640f, 288 to 188),
+            Triple(360f, 780f, 322 to 210),
+            Triple(393f, 852f, 355 to 232),
+            Triple(411f, 891f, 363 to 237),
+        )
+        expected.forEach { (width, height, hero) ->
+            val profile = resolveAdaptiveLayoutProfile(width, height, fontScale = 1f)
+            val geometry = RecognitionResultGeometryResolver.resolve(profile)
+            assertEquals(hero.first, geometry.heroWidthDp)
+            assertEquals(hero.second, geometry.heroHeightDp)
+            val actualAspect = geometry.heroWidthDp.toFloat() / geometry.heroHeightDp
+            assertTrue(actualAspect > 1.45f)
+        }
+        val accessible = resolveAdaptiveLayoutProfile(360f, 780f, fontScale = 1.3f)
+        assertTrue(accessible.accessibilityFontScale)
+        assertTrue(accessible.requiresScrollableContent)
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(accessible.fontScale))
+
+        val cutoutProfile = resolveAdaptiveLayoutProfile(
+            windowWidthDp = 393f,
+            windowHeightDp = 852f,
+            fontScale = 1f,
+            safeInsets = SafeDrawingInsetsDp(top = 44.dp, bottom = 24.dp, start = 12.dp, end = 12.dp),
+        )
+        assertEquals(369f, cutoutProfile.safeWidthDp)
+        assertEquals(784f, cutoutProfile.safeHeightDp)
+        assertEquals(331, RecognitionResultGeometryResolver.resolve(cutoutProfile).heroWidthDp)
     }
 
     @Test
@@ -23,8 +78,14 @@ class RecognitionResultContractsTest {
         val normal = RecognitionResultGeometryResolver.resolve(360, 640)
         val compact = RecognitionResultGeometryResolver.resolve(360, 599)
         assertTrue(compact.compactHeightPolicy)
-        assertTrue(compact.heroHeightDp >= 208)
-        assertTrue(compact.heroHeightDp >= (normal.heroHeightDp * 0.88f).toInt())
+        assertEquals((normal.heroHeightDp * 0.88f).roundToInt(), compact.heroHeightDp)
+    }
+
+    @Test
+    fun accessibilityFontScaleEnablesScrollableCandidateRowAtLargeTextSizes() {
+        assertFalse(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.2f))
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.3f))
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.6f))
     }
 
     @Test
@@ -65,5 +126,55 @@ class RecognitionResultContractsTest {
     fun metadataLimitsCountUnicodeCodePointsRatherThanUtf16Units() {
         val input = "a😀bc"
         assertEquals("a😀b", RecognitionResultInputValidation.takeUnicodeCodePoints(input, 3))
+    }
+
+    @Test
+    fun lowSaveWaitsForSpeciesBeforeResumingTheRequestedDestination() {
+        assertEquals(null, lowPendingSaveDestination("", RecognitionSaveDestination.HOME))
+        assertEquals(RecognitionSaveDestination.MEMORY, lowPendingSaveDestination("grass_carp", RecognitionSaveDestination.MEMORY))
+    }
+
+    @Test
+    fun speciesSearchMatchesFormalNamePinyinInitialsAndRegisteredAliases() {
+        val grassCarp = FishGuideItem("grass_carp", "草鱼", aliases = listOf("鲩鱼", "草鲩"))
+        val catalog = listOf(grassCarp, FishGuideItem("crucian_carp", "鲫鱼"))
+
+        assertEquals(listOf(grassCarp), RecognitionSpeciesSearch.search(catalog, "草鱼"))
+        assertEquals(listOf(grassCarp), RecognitionSpeciesSearch.search(catalog, "caoyu"))
+        assertEquals(listOf(grassCarp), RecognitionSpeciesSearch.search(catalog, "cy"))
+        assertEquals(listOf(grassCarp), RecognitionSpeciesSearch.search(catalog, "鲩鱼"))
+        assertEquals("C", RecognitionSpeciesSearch.initial(grassCarp))
+    }
+
+    @Test
+    fun speciesRecentSelectionMovesToFrontDeduplicatesAndKeepsThree() {
+        assertEquals(
+            listOf("black_carp", "grass_carp", "crucian_carp"),
+            updateSpeciesRecents(listOf("grass_carp", "crucian_carp", "black_carp"), "black_carp"),
+        )
+        assertEquals(
+            listOf("yellow_catfish", "grass_carp", "crucian_carp"),
+            updateSpeciesRecents(listOf("grass_carp", "crucian_carp", "common_carp"), "yellow_catfish"),
+        )
+        assertEquals(emptyList<String>(), updateSpeciesRecents(listOf("grass_carp"), "", 0))
+    }
+
+    @Test
+    fun locationRecentSelectionDeduplicatesNormalizedNamesAndKeepsThree() {
+        assertEquals(
+            listOf(
+                RecognitionPlace("千岛湖", "淳安县"),
+                RecognitionPlace("太湖", "江苏省"),
+                RecognitionPlace("富春江", "浙江省"),
+            ),
+            updateRecognitionPlaceRecents(
+                listOf(RecognitionPlace("太湖", "江苏省"), RecognitionPlace("千岛湖", "旧地址"), RecognitionPlace("富春江", "浙江省")),
+                RecognitionPlace(" 千岛湖 ", "淳安县"),
+            ),
+        )
+        assertEquals(
+            listOf(RecognitionPlace("A"), RecognitionPlace("B"), RecognitionPlace("C")),
+            updateRecognitionPlaceRecents(listOf(RecognitionPlace("B"), RecognitionPlace("C")), RecognitionPlace("A")),
+        )
     }
 }

@@ -1,150 +1,53 @@
-# Recognition Result Visual Spec V1
+# Recognition Result Visual Spec V1.1
 
-## Visual intent
+Status: **FROZEN — SEVEN PNG AUTHORITIES**
 
-Recognition Result is the moment where AI recedes and the user's catch becomes the subject again.
+Recognition Result is the moment where Processing recedes and the user's catch
+becomes the subject again. Runtime must follow the state-specific Frozen PNG,
+not a universal component default.
 
-The visual tone is:
-- natural
-- calm
-- documentary
-- low-noise
-- memory-led
+## Shared language
 
-It is not:
-- scanner UI
-- AI dashboard
-- achievement screen
-- form-heavy admin UI
+- original oriented photo remains the dominant visual object;
+- Result, Recovery, and Low use centered-title BACK_CENTER_TITLE;
+- Species Selector remains left-title BACK_TITLE;
+- Result Glass is shared MistGlass with restrained Result radius;
+- no Processing edge field, Fish Focus, detector box, debug metadata, or
+  continuous AI animation survives into Result.
 
-## Shared base
+## Hero media
 
-The real captured photo remains the dominant visual object.
+High / Medium / Low use bbox-guided FishSafeRect and prefer Subject Crop Fill;
+unsafe Fill falls back to Subject Safe Fit. No Fish / Image Quality use complete
+source Evidence Fit. No stretch, generated fill, blurred duplicate, or
+detector/classifier crop is allowed.
 
-Background:
-- uses the quiet Result treatment from Core Visual System V1
-- must not become a full-frame Processing glow
-- may use low-salience atmospheric treatment only as shown by Frozen references
-
-Processing effects:
-- no AI filaments
-- no fish contour
-- no halo breathing
-- no detector rectangle
-- no HUD
-
-## Top Navigation
-
-Use the shared P0 Top Navigation.
-
-Title:
-- `识别结果` where present in the Frozen state
-- back affordance follows shared component geometry
-
-Do not use an oversized glyph-only custom back button when the shared component is available.
-
-## Hero photo
-
-Dynamic Hero media placement is governed by:
-
-- `../media/Recognition_Result_Hero_Media_Contract_V1.md`
-- `../media/hero_media_contract.json`
-
-Rules:
-- display source = original user photo after orientation normalization;
-- detector/classifier crop is guidance only and never the display source;
-- High / Medium / Low = Subject First;
-- valid bbox creates FishSafeRect using +14% horizontal / +18% vertical expansion;
-- Smart Crop Fill is allowed only when FishSafeRect, 12dp visual safety inset and source-edge protection pass;
-- otherwise use Subject Safe Fit;
-- No Fish / Image Quality = Evidence Fit with the full source image visible;
-- Fit support surface = shared GLASS_A over BG_CONTENT;
-- blurred duplicate-photo support is prohibited;
-- generative expand/outpaint is prohibited;
-- Hero outer geometry does not change because the source aspect ratio changes;
-- no debug overlay.
+State Hero targets at 360dp are High 322×210, Medium/Low 322×178, No Fish
+322×245, and Image Quality 322×214.
 
 ## High
 
-Species line:
-- species name is the dominant text identity
-- `修改鱼种 ›` sits on the same identity row
-- do not add “已识别”
-
-Metadata:
-- length / weight / location remain lightweight
-- approved icons/affordances are preserved
-- the section must not look like a generic settings card
-
-Catch note:
-- label role: `留下本次鱼获感言`
-- voice affordance is lightweight and subordinate
-
-Actions:
-- bottom dual-action hierarchy
-- light: `继续记录记忆`
-- primary: `保存本次鱼获`
+Hero → Species Identity → vertical Length / Weight / Location Metadata → Story
+Card → equal-width `继续记忆` / `保存本次鱼获` actions.
 
 ## Medium
 
-- hero photo remains unchanged
-- prompt is one combined line
-- candidate region appears below/within the approved result hierarchy
-- candidate cards remain compact and horizontal
-- selected candidate is visible but not game-like
-- “都不是 / 选择其他鱼种” remains a low-weight escape
-- do not replace the main result photo with candidate artwork
-- after confirmation, reuse High's record/CTA hierarchy
+Hero → one Candidate Glass Panel containing prompt, candidates, and other-species
+action → resolved Metadata / Story / CTA. Suggested is not selected. Medium
+Selected uses restrained Gold; Selector Selected remains Teal.
 
 ## Low
 
-- simplify information density
-- `无法确认是什么鱼` is the main message
-- initial actions are `手动选择鱼种` and `重新拍摄`
-- no normal metadata/save block before manual species resolution
-- do not invent a pending-species record state
+Hero → `无法确认是什么鱼` → manual/retake actions → vertical Metadata → Story
+→ Dual CTA. Metadata and Story remain editable before species resolution. An
+unresolved CTA enters LOW_MANUAL and resumes only after species selection; no
+unknown-species record is persisted.
 
-## No Fish / Image Quality
+## Recovery
 
-- keep the source photo visible
-- use a calm recovery panel
-- avoid alarm-red error chrome
-- title and explanatory copy are structured according to Frozen
-- retake is primary
-- gallery is secondary
-- back is tertiary
+No Fish and Image Quality each use one unified Recovery Glass Panel containing
+title, guidance, Retake, and Gallery. Recovery buttons are not teal-solid.
 
-## Color
-
-- lake/ink neutrals dominate
-- teal is the normal action accent
-- gold remains scarce
-- error states do not introduce aggressive red surfaces
-
-## Typography
-
-Use existing YuJian typography roles:
-- page title
-- species identity / hero title
-- body
-- caption
-- button text
-
-Do not introduce page-local type scales unless required by the Frozen reference.
-
-## Compact height / small screen
-
-On short devices:
-- content may scroll
-- hero may reduce within the frozen hierarchy
-- action area must remain reachable
-- no CTA may be covered by system bars or IME
-- hierarchy must not collapse into a dense form
-
-## Accessibility
-
-- action touch target >= shared component contract
-- species/change action has a meaningful label
-- voice action has contentDescription
-- candidate cards expose selected/unselected semantics
-- image has useful semantics only when it helps navigation/understanding; decorative background is silent
+Story uses `写下这次鱼获的故事`, placeholder `记录这一刻的感受……`, a 300
+Unicode code-point limit, and a live `{count}/300` counter. Voice is omitted
+unless it can perform real speech recognition and write a transcript.

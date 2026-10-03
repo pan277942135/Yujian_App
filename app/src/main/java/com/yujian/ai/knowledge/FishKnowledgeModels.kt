@@ -1,7 +1,5 @@
 package com.yujian.ai.knowledge
 
-import com.yujian.ai.model.DemoData
-
 data class FishGuideItem(
     val id: String,
     val nameCn: String,
@@ -12,6 +10,9 @@ data class FishGuideItem(
     val coverImage: String? = null,
     val discovered: Boolean = false,
     val catches: Int = 0,
+    val pinyin: String? = null,
+    val pinyinInitials: String? = null,
+    val catalogStatus: String = "ACTIVE",
 )
 
 data class FishKnowledgeSpecies(
@@ -165,7 +166,6 @@ data class FishKnowledgeDetail(
 )
 
 fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
-    val local = DemoData.species.firstOrNull { it.key == id }
     val categoryParts = category.split(" · ", limit = 2)
     return FishKnowledgeDetail(
         species = FishKnowledgeSpecies(
@@ -177,7 +177,7 @@ fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
             family = categoryParts.getOrNull(1),
             genus = null,
             summary = summary,
-            status = "ACTIVE",
+            status = catalogStatus,
             coverImage = coverImage,
         ),
         cover = null,
@@ -186,16 +186,16 @@ fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
         profile = FishKnowledgeProfile(
             bodyShape = null,
             features = emptyList(),
-            habitat = local?.habitat?.split(" · ").orEmpty(),
-            food = local?.diet,
-            season = local?.season?.let { listOf(it) }.orEmpty(),
+            habitat = emptyList(),
+            food = null,
+            season = emptyList(),
         ),
         fishing = FishKnowledgeFishing(
             waterLayer = null,
             season = emptyList(),
             bait = emptyList(),
             method = emptyList(),
-            summary = local?.tip.orEmpty(),
+            summary = "",
         ),
         videos = emptyList(),
         similarity = emptyList(),

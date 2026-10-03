@@ -1,16 +1,29 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.graphics.Rect
+import android.os.ParcelFileDescriptor
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeLeft
 import androidx.test.platform.app.InstrumentationRegistry
+import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.knowledge.FishGuideItem
 import com.yujian.ai.knowledge.FishKnowledgeCard
 import com.yujian.ai.knowledge.FishKnowledgeCardContent
@@ -29,6 +42,7 @@ import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import kotlin.math.abs
 import org.junit.Rule
 import org.junit.Test
 
@@ -89,12 +103,18 @@ class FishGuideRuntimeTest {
 
         composeRule.onNodeWithText("鱼鉴").assertIsDisplayed()
         composeRule.onNodeWithText("已点亮 2 / 3 种").assertIsDisplayed()
+        composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
+        val speciesTitleBounds = composeRule.onNodeWithText("草鱼").fetchSemanticsNode().boundsInRoot
+        assertTrue("Species title must anchor the upper card hierarchy", speciesTitleBounds.center.y < carouselBounds.center.y)
         saveScreenshot("fish_guide_lit.png")
 
-        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithText("鲫鱼").assertIsDisplayed()
+        swipeCarouselToSelectedSpecies(
+            fromName = "草鱼",
+            name = "鲫鱼",
+            expectedPage = 1,
+        )
         composeRule.onNodeWithText("尚未点亮").assertIsDisplayed()
         saveScreenshot("fish_guide_unlit.png")
         composeRule.onNodeWithText("鲫鱼").performClick()
@@ -107,9 +127,29 @@ class FishGuideRuntimeTest {
         val context = instrumentation.targetContext
         val prefs = context.getSharedPreferences("fish_guide_home", 0)
         prefs.edit().putBoolean("carousel_discover_hint_shown", false).commit()
-        shell("settings put global animator_duration_scale 0")
-        shell("settings put global transition_animation_scale 0")
+        val animatorScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        )
+        val transitionScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1f,
+        )
         try {
+            shell("settings put global animator_duration_scale 0")
+            shell("settings put global transition_animation_scale 0")
+            assertEquals(
+                0f,
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f),
+                0f,
+            )
+            assertEquals(
+                0f,
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f),
+                0f,
+            )
             composeRule.setContent {
                 FishGuideHomeScreen(
                     species = species,
@@ -122,15 +162,19 @@ class FishGuideRuntimeTest {
                     onSpeciesClick = {},
                 )
             }
+            waitForSelectedSpecies(name = "草鱼", expectedPage = 0)
             composeRule.mainClock.advanceTimeBy(1300)
-            composeRule.waitForIdle()
-            assertFalse(prefs.getBoolean("carousel_discover_hint_shown", false))
-            composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput { swipeLeft() }
-            composeRule.waitForIdle()
-            composeRule.onNodeWithText("鲫鱼").assertIsDisplayed()
+            composeRule.runOnIdle {
+                assertFalse(prefs.getBoolean("carousel_discover_hint_shown", false))
+            }
+            swipeCarouselToSelectedSpecies(
+                fromName = "草鱼",
+                name = "鲫鱼",
+                expectedPage = 1,
+            )
         } finally {
-            shell("settings put global animator_duration_scale 1")
-            shell("settings put global transition_animation_scale 1")
+            shell("settings put global animator_duration_scale $animatorScale")
+            shell("settings put global transition_animation_scale $transitionScale")
         }
     }
 
@@ -149,46 +193,130 @@ class FishGuideRuntimeTest {
                 onSpeciesClick = {},
             )
         }
-        composeRule.onNodeWithText("鱼种档案暂时无法加载").assertIsDisplayed()
+        composeRule.onNodeWithText("当前无法加载鱼种资料").assertIsDisplayed()
         saveScreenshot("fish_guide_error.png")
-        composeRule.onNodeWithText("重试").performClick()
+        composeRule.onNode(hasText("检查网络后重试") and hasClickAction()).performClick()
         composeRule.runOnIdle { assertTrue(retried) }
     }
 
     @Test
     fun speciesDetail_usesNaturalKnowledgeSemanticsAndRealCatchCount() {
-        val fallback = species.first().copy(catches = 3)
         val detail = detailFixture()
-        var openedCatch = false
+        val catches = listOf(
+            catch("catch_1", "grass_carp", "2026-09-22T10:00:00Z"),
+            catch("catch_2", "grass_carp", "2026-09-25T10:00:00Z"),
+            catch("catch_3", "grass_carp", "2026-09-27T10:00:00Z"),
+            catch("other", "crucian_carp", "2026-09-28T10:00:00Z"),
+        )
+        var openedCatchId: String? = null
+        var openedSpeciesFilter: String? = null
         var backed = false
         composeRule.setContent {
             FishSpeciesDetailScreen(
                 detail = detail,
-                fallback = fallback,
+                fallback = null,
+                savedCatches = catches,
                 loading = false,
                 offlinePreview = false,
                 error = null,
                 resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
                 onRetry = {},
                 onBack = { backed = true },
-                onOpenCatch = { openedCatch = true },
+                onRecordCatch = {},
+                onOpenCatch = { openedCatchId = it },
+                onOpenSpeciesCatches = { openedSpeciesFilter = it },
             )
         }
 
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
-        composeRule.onNodeWithText("鱼种主卡").assertExists()
-        composeRule.onNodeWithText("英雄卡").assertDoesNotExist()
-        composeRule.onNodeWithText("稀有 2  ·  力量 3  ·  挑战 1").assertDoesNotExist()
+        composeRule.onNodeWithText("鱼种名片").assertExists()
+        assertTrue(composeRule.onAllNodesWithText("英雄卡").fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithText("稀有 2  ·  力量 3  ·  挑战 1").fetchSemanticsNodes().isEmpty())
+        composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        val carouselBounds = composeRule.onNodeWithTag("fish_species_knowledge_carousel")
+            .fetchSemanticsNode().boundsInRoot
+        val activeCardBounds = composeRule.onNodeWithContentDescription("鱼种名片，草鱼")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Species Detail active card width must follow the frozen 82–86% range",
+            activeCardBounds.width / carouselBounds.width in 0.82f..0.86f,
+        )
+        assertTrue(composeRule.onAllNodesWithText("排行榜").fetchSemanticsNodes().isEmpty())
         saveScreenshot("fish_species_detail.png")
+        composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("3次记录").assertIsDisplayed()
 
-        composeRule.onNodeWithText("我的鱼获").performClick()
-        composeRule.onNodeWithText("已记录 3 条该鱼种鱼获").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("我的草鱼，3次记录，打开该鱼种鱼获").performClick()
+        composeRule.runOnIdle { assertEquals("grass_carp", openedSpeciesFilter) }
+        composeRule.onNodeWithContentDescription("打开草鱼鱼获记录，2026-09-27，照片暂不可用").performClick()
+        composeRule.runOnIdle { assertEquals("catch_3", openedCatchId) }
         saveScreenshot("fish_species_detail_catch.png")
-        composeRule.onNodeWithText("查看我的鱼获 · 3").performClick()
-        composeRule.runOnIdle { assertTrue(openedCatch) }
 
         composeRule.onNodeWithContentDescription("返回").performClick()
         composeRule.runOnIdle { assertTrue(backed) }
+    }
+
+    @Test
+    fun speciesDetail_zeroCatch_usesQuietStateAndUnfilteredCaptureEntry() {
+        var openedCapture = false
+        var openedFilteredCatches = false
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detailFixture(),
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = {},
+                onRecordCatch = { openedCapture = true },
+                onOpenCatch = {},
+                onOpenSpeciesCatches = { openedFilteredCatches = true },
+            )
+        }
+
+        composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("0次记录").assertIsDisplayed()
+        composeRule.onNodeWithText("还没有记录").assertIsDisplayed()
+        saveScreenshot("fish_species_detail_zero_catch.png")
+        composeRule.onNodeWithText("去记录鱼获").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertTrue(openedCapture)
+            assertFalse(openedFilteredCatches)
+        }
+    }
+
+    @Test
+    fun speciesDetail_knowledgeCarouselHasFiveFinitePositions() {
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detailFixture(),
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = {},
+                onRecordCatch = {},
+                onOpenCatch = {},
+                onOpenSpeciesCatches = {},
+            )
+        }
+
+        composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        repeat(4) {
+            composeRule.onNodeWithTag("fish_species_knowledge_carousel").performTouchInput { swipeLeft() }
+        }
+        composeRule.onNodeWithText("05 / 05").assertIsDisplayed()
+        composeRule.onNodeWithTag("fish_species_knowledge_carousel").performTouchInput { swipeLeft() }
+        composeRule.onNodeWithText("05 / 05").assertIsDisplayed()
     }
 
     @Test
@@ -198,19 +326,34 @@ class FishGuideRuntimeTest {
             FishSpeciesDetailScreen(
                 detail = null,
                 fallback = null,
+                savedCatches = emptyList(),
                 loading = false,
                 offlinePreview = false,
                 error = "服务暂不可用",
                 resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
                 onRetry = { retried = true },
                 onBack = {},
+                onRecordCatch = {},
                 onOpenCatch = {},
+                onOpenSpeciesCatches = {},
             )
         }
-        composeRule.onNodeWithText("暂时无法读取鱼种详情").assertIsDisplayed()
+        composeRule.onNodeWithText("该鱼种资料暂不可用").assertIsDisplayed()
         composeRule.onNodeWithText("重试").performClick()
         composeRule.runOnIdle { assertTrue(retried) }
     }
+
+    private fun catch(id: String, speciesId: String, date: String) = RemoteCatch(
+        id = id,
+        imageUrl = "",
+        speciesId = speciesId,
+        speciesName = "草鱼",
+        confidence = 0.9f,
+        modelVersion = "test",
+        capturedAt = date,
+        createdAt = date,
+    )
 
     private fun detailFixture(): FishKnowledgeDetail = FishKnowledgeDetail(
         species = FishKnowledgeSpecies(
@@ -297,17 +440,101 @@ class FishGuideRuntimeTest {
     private fun saveScreenshot(name: String) {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val bitmap = instrumentation.uiAutomation.takeScreenshot()
-        val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
-        check(root.exists() || root.mkdirs())
-        FileOutputStream(File(root, name)).use { out ->
-            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out))
+        val rawBitmap = instrumentation.uiAutomation.takeScreenshot()
+        val appSurface = cropToComposeRoot(rawBitmap)
+        try {
+            val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
+            check(root.exists() || root.mkdirs())
+            FileOutputStream(File(root, name)).use { out ->
+                check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, out))
+            }
+        } finally {
+            if (appSurface !== rawBitmap) appSurface.recycle()
+            rawBitmap.recycle()
         }
-        bitmap.recycle()
     }
 
+    private fun cropToComposeRoot(source: Bitmap): Bitmap {
+        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+        val windowOrigin = IntArray(2)
+        composeRule.runOnUiThread {
+            composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
+        }
+        val bounds = Rect(
+            kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
+            kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
+            kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
+            kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
+        )
+        check(bounds.left >= 0 && bounds.top >= 0 &&
+            bounds.right <= source.width && bounds.bottom <= source.height
+        ) {
+            "Compose root bounds $bounds exceed screenshot ${source.width}x${source.height}"
+        }
+        check(bounds.width() > 0 && bounds.height() > 0) {
+            "Compose root has empty screenshot bounds: $bounds"
+        }
+        return Bitmap.createBitmap(source, bounds.left, bounds.top, bounds.width(), bounds.height())
+    }
+
+    private fun swipeCarouselToSelectedSpecies(
+        fromName: String,
+        name: String,
+        expectedPage: Int,
+    ) {
+        waitForSelectedSpecies(name = fromName, expectedPage = expectedPage - 1)
+
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val start = Offset(carouselBounds.width * 0.84f, carouselBounds.height * 0.5f)
+        val end = Offset(carouselBounds.width * 0.16f, carouselBounds.height * 0.5f)
+        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput {
+            swipe(start = start, end = end, durationMillis = 1_100L)
+        }
+
+        waitForSelectedSpecies(name = name, expectedPage = expectedPage)
+        composeRule.onNodeWithText("${expectedPage + 1} / ${species.size}").assertIsDisplayed()
+        composeRule.onNodeWithText(name).assertIsDisplayed()
+    }
+
+    private fun waitForSelectedSpecies(name: String, expectedPage: Int) {
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            selectedSpeciesNode(name = name, expectedPage = expectedPage) != null
+        }
+
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val activeNode = selectedSpeciesNode(name = name, expectedPage = expectedPage)
+            ?: throw AssertionError(
+                "$name did not expose current-selected state for page $expectedPage",
+            )
+        val centerDelta = abs(activeNode.boundsInRoot.center.x - carouselBounds.center.x)
+        assertTrue(
+            "Selected card $name is not centered: page=$expectedPage, " +
+                "carouselCenterX=${carouselBounds.center.x}, cardBounds=${activeNode.boundsInRoot}, " +
+                "centerDeltaX=$centerDelta",
+            activeNode.boundsInRoot.width > 0f &&
+                centerDelta <= activeNode.boundsInRoot.width * 0.1f,
+        )
+    }
+
+    private fun selectedSpeciesNode(name: String, expectedPage: Int) =
+        composeRule.onAllNodesWithContentDescription(name)
+            .fetchSemanticsNodes()
+            .firstOrNull { node ->
+                val stateDescription = runCatching {
+                    node.config[SemanticsProperties.StateDescription]
+                }.getOrNull()
+                val description = stateDescription.orEmpty()
+                description.contains("第 ${expectedPage + 1} 种，共 ${species.size} 种") &&
+                    description.contains("当前选中")
+            }
+
     private fun shell(command: String) {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand(command).close()
+        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand(command)
+        ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use { it.readText() }
     }
 }

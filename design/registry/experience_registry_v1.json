@@ -6800,7 +6800,7 @@
         },
         "runtime": {
           "status": "RUNTIME_ONLY",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AuthScreens.kt"
+          "authority": "app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt"
         },
         "evidence": {
           "status": "MISSING",

@@ -1,224 +1,42 @@
 {
   "contract": "recognition_result_visual_acceptance_map",
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN",
-  "canonical": {
-    "width_dp": 360,
-    "height_dp": 640,
-    "frozen_px": [
-      941,
-      1672
-    ],
-    "runtime_system_chrome": "canonicalize_remove"
-  },
-  "dynamic_masks": [
-    "hero_photo_interior",
-    "dynamic_species_glyphs",
-    "metadata_values",
-    "location_value",
-    "note_text",
-    "candidate_species_artwork"
+  "authority": "user_physical_visual_acceptance",
+  "frozen_assets": [
+    "design/pages/recognition/design/05_Result_High_Frozen.png",
+    "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+    "design/pages/recognition/design/07_Result_Low_Frozen.png",
+    "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+    "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+    "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+    "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png"
   ],
-  "geometry_tolerance_dp": {
-    "nav": 4,
-    "hero": 4,
-    "state_anchor": 6,
-    "metadata_note": 6,
-    "candidate": 3,
-    "cta": 4
+  "hero_targets": {
+    "HIGH": [322, 210],
+    "MEDIUM": [322, 178],
+    "LOW": [322, 178],
+    "NO_FISH": [322, 245],
+    "IMAGE_QUALITY": [322, 214]
   },
-  "hard_geometry": {
-    "action_height_dp": 56,
-    "action_gap_dp": 12,
-    "high_pair_ratio": [
-      44,
-      56
-    ],
-    "low_pair_ratio": [
-      58,
-      42
-    ],
-    "hero_aspect_ratio_deviation_max": 0.015
+  "assertions": {
+    "result_title_centered": true,
+    "species_selector_left_title": true,
+    "high_metadata_layout": "vertical_three_row",
+    "story_max_unicode_code_points": 300,
+    "story_counter": true,
+    "subject_states_media": "original_photo_bbox_safe_crop_fill",
+    "recovery_states_media": "full_source_evidence_fit",
+    "shared_glass": "MistGlass",
+    "recovery_single_panel": true,
+    "low_unresolved_metadata_story": true,
+    "low_unresolved_save_creates_record": false,
+    "final_visual_acceptance_performed": false
   },
-  "mae_255": {
-    "full_static_shell": 28,
-    "navigation": 22,
-    "hero_frame": 24,
-    "identity_prompt": 26,
-    "metadata_note": 24,
-    "candidate": 24,
-    "recovery": 24,
-    "cta": 20
-  },
-  "roi": {
-    "HIGH": {
-      "NAV": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "HERO_FRAME": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "IDENTITY": [
-        20,
-        328,
-        320,
-        44
-      ],
-      "METADATA": [
-        20,
-        384,
-        320,
-        72
-      ],
-      "NOTE": [
-        20,
-        468,
-        320,
-        80
-      ],
-      "CTA": [
-        24,
-        564,
-        312,
-        56
-      ]
-    },
-    "MEDIUM_UNRESOLVED": {
-      "NAV": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "HERO_FRAME": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "PROMPT": [
-        20,
-        328,
-        320,
-        28
-      ],
-      "CANDIDATES": [
-        20,
-        368,
-        320,
-        112
-      ],
-      "OTHER_SPECIES": [
-        20,
-        488,
-        320,
-        44
-      ]
-    },
-    "LOW": {
-      "NAV": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "HERO_FRAME": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "MESSAGE": [
-        20,
-        328,
-        320,
-        34
-      ],
-      "CTA": [
-        24,
-        378,
-        312,
-        56
-      ]
-    },
-    "RECOVERY": {
-      "NAV": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "HERO_FRAME": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "RECOVERY_PANEL": [
-        20,
-        332,
-        320,
-        128
-      ],
-      "PRIMARY": [
-        24,
-        480,
-        312,
-        56
-      ],
-      "SECONDARY": [
-        24,
-        548,
-        312,
-        56
-      ]
-    }
-  },
-  "classifications": [
-    "PASS",
-    "FAIL_BEHAVIOR",
-    "FAIL_GEOMETRY",
-    "FAIL_COMPONENT",
-    "FAIL_VISUAL",
-    "FAIL_HERO_MEDIA",
-    "FAIL_EVIDENCE",
-    "BLOCKED_INFRA"
-  ],
-  "metadata_edit_flow": {
-    "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-    "evidence": [
-      "length_empty",
-      "length_existing",
-      "length_invalid_zero",
-      "weight_existing",
-      "location_recent",
-      "location_search_results",
-      "location_locating",
-      "location_permission_denied",
-      "location_empty_or_error",
-      "clear_reopen"
-    ],
-    "geometry_tolerance_dp": {
-      "sheet_outer_edge": 4,
-      "sheet_top_radius": 2,
-      "numeric_field_height": 3,
-      "location_rows": 4
-    },
-    "hard_behavior": [
-      "numeric_autofocus_and_ime",
-      "invalid_does_not_commit",
-      "dismiss_discards_draft",
-      "query_does_not_commit",
-      "location_selection_commits_and_dismisses",
-      "permission_explicit_only",
-      "recent_clear_independent",
-      "metadata_optional"
-    ]
+  "tokens": {
+    "medium_selected": "MorningGold",
+    "selector_selected": "#0F7A78",
+    "result_save": "RESULT_SAVE",
+    "result_radius": "YuJianRadius.resultGlass"
   }
 }

@@ -1,240 +1,54 @@
 {
   "contract": "recognition_result_layout_geometry",
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN",
-  "canonical_canvas": {
-    "width_dp": 360,
-    "height_dp": 640,
-    "system_insets": "excluded_host_owned",
-    "reference_png_px": [
-      941,
-      1672
-    ]
+  "authority": "seven_frozen_result_assets",
+  "canonical_viewport_dp": { "width": 360, "content_width": 322 },
+  "hero_by_state": {
+    "HIGH": { "width_dp": 322, "height_dp": 210, "aspect": 1.53 },
+    "MEDIUM": { "width_dp": 322, "height_dp": 178, "aspect": 1.81 },
+    "LOW": { "width_dp": 322, "height_dp": 178, "aspect": 1.81 },
+    "NO_FISH": { "width_dp": 322, "height_dp": 245, "aspect": 1.31 },
+    "IMAGE_QUALITY": { "width_dp": 322, "height_dp": 214, "aspect": 1.50 }
   },
-  "global": {
-    "top_nav_height_dp": 56,
-    "top_nav_hero_gap_dp": 8,
-    "content_margin_dp": 20,
-    "hero": {
-      "width_dp": 320,
-      "height_dp": 248,
-      "aspect_ratio": 1.2903,
-      "radius_token": "YuJianRadius.heroCard"
-    },
-    "section_gap_dp": 16,
-    "related_gap_dp": 12,
-    "compact_gap_dp": 8,
-    "action_height_dp": 56,
-    "action_pair_gap_dp": 12,
-    "action_margin_dp": 24,
-    "bottom_padding_dp": 20
+  "navigation": {
+    "result_states": "BACK_CENTER_TITLE",
+    "title": "识别结果",
+    "species_selector": "BACK_TITLE"
   },
-  "states": {
-    "RR01_HIGH": {
-      "nav": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "hero": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "identity": [
-        20,
-        328,
-        320,
-        44
-      ],
-      "metadata": [
-        20,
-        384,
-        320,
-        72
-      ],
-      "note": [
-        20,
-        468,
-        320,
-        80
-      ],
-      "cta": [
-        24,
-        564,
-        312,
-        56
-      ],
-      "cta_ratio": [
-        44,
-        56
-      ]
-    },
-    "RR02_MEDIUM_UNRESOLVED": {
-      "nav": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "hero": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "prompt": [
-        20,
-        328,
-        320,
-        28
-      ],
-      "candidates": [
-        20,
-        368,
-        320,
-        112
-      ],
-      "other_species": [
-        20,
-        488,
-        320,
-        44
-      ]
-    },
-    "RR02_MEDIUM_RESOLVED": {
-      "inherit": "RR02_MEDIUM_UNRESOLVED",
-      "append": {
-        "metadata_top_gap_dp": 16,
-        "metadata_h_dp": 72,
-        "note_top_gap_dp": 12,
-        "note_h_dp": 80,
-        "cta_top_gap_dp": 16,
-        "cta_h_dp": 56,
-        "bottom_padding_dp": 20
-      },
-      "scroll_expected": true
-    },
-    "RR03_LOW": {
-      "nav": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "hero": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "message": [
-        20,
-        328,
-        320,
-        34
-      ],
-      "cta": [
-        24,
-        378,
-        312,
-        56
-      ],
-      "cta_ratio": [
-        58,
-        42
-      ]
-    },
-    "RR04_NO_FISH": {
-      "nav": [
-        0,
-        0,
-        360,
-        56
-      ],
-      "hero": [
-        20,
-        64,
-        320,
-        248
-      ],
-      "recovery": [
-        20,
-        332,
-        320,
-        128
-      ],
-      "primary": [
-        24,
-        480,
-        312,
-        56
-      ],
-      "secondary": [
-        24,
-        548,
-        312,
-        56
-      ]
-    },
-    "RR05_IMAGE_QUALITY": {
-      "inherits": "RR04_NO_FISH"
-    }
+  "surfaces": {
+    "glass": "MistGlass",
+    "result_radius_token": "YuJianRadius.resultGlass",
+    "hero_radius_token": "YuJianRadius.resultHero"
   },
-  "width_adaptive": {
-    "320": {
-      "content_margin_dp": 16,
-      "hero": [
-        288,
-        224
-      ],
-      "candidate_card_width_dp": 90.7,
-      "cta_margin_dp": 24
-    },
-    "360": {
-      "content_margin_dp": 20,
-      "hero": [
-        320,
-        248
-      ],
-      "candidate_card_width_dp": 101.3,
-      "cta_margin_dp": 24
-    },
-    "393": {
-      "content_margin_dp": 20,
-      "hero": [
-        353,
-        274
-      ],
-      "candidate_card_width_dp": 112.3,
-      "cta_margin_dp": 24
-    },
-    "411": {
-      "content_margin_dp": 24,
-      "hero": [
-        363,
-        282
-      ],
-      "candidate_card_width_dp": 115.7,
-      "cta_margin_dp": 24
-    }
+  "composition": {
+    "HIGH": ["hero", "species_identity", "metadata_vertical", "story", "dual_cta"],
+    "MEDIUM": ["hero", "candidate_glass_panel", "metadata_vertical_after_selection", "story_after_selection", "dual_cta_after_selection"],
+    "LOW": ["hero", "low_message", "manual_or_retake", "metadata_vertical", "story", "dual_cta"],
+    "NO_FISH": ["hero_evidence_fit", "recovery_glass_panel"],
+    "IMAGE_QUALITY": ["hero_evidence_fit", "recovery_glass_panel"]
   },
-  "height_adaptive": {
-    "canonical_min_dp": 640,
-    "scroll_band_dp": [
-      600,
-      639
-    ],
-    "compact_below_dp": 600,
-    "hero_max_reduction_fraction": 0.12,
-    "hero_min_height_dp": 208
+  "story": { "max_unicode_code_points": 300, "counter": "{count}/300" },
+  "cta": {
+    "continue": "继续记忆",
+    "save": "保存本次鱼获",
+    "save_variant": "RESULT_SAVE",
+    "equal_width": true,
+    "gap_dp": 12
   },
-  "tolerance": {
-    "critical_anchor_dp": 4,
-    "state_block_dp": 6,
-    "candidate_geometry_dp": 3,
-    "hero_aspect_ratio_fraction": 0.015
+  "low_pending_save": {
+    "unresolved_save_creates_record": false,
+    "selector_entry": "LOW_MANUAL",
+    "resume_after_species_selection": true,
+    "clear_on_unconfirmed_return": true
+  },
+  "media": {
+    "subject_states": ["HIGH", "MEDIUM", "LOW"],
+    "recovery_states": ["NO_FISH", "IMAGE_QUALITY"],
+    "subject_policy": "SUBJECT_CROP_FILL_THEN_SUBJECT_SAFE_FIT",
+    "recovery_policy": "EVIDENCE_FIT",
+    "blurred_duplicate": false,
+    "generated_fill": false,
+    "stretch": false
   }
 }

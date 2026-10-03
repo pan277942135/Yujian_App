@@ -9,6 +9,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -89,40 +90,44 @@ fun YuJianIconAction(
     }
     val focusShape = RoundedCornerShape(12.dp)
     val focusModifier = if (focused) {
-        Modifier.border(2.dp, YuJianColors.ActiveAccent, focusShape)
+        Modifier.border(2.dp, YuJianColors.ActionPrimary, focusShape).padding(4.dp)
     } else {
         Modifier
     }
 
     Box(
-        modifier = modifier
-            .size(YuJianSpacing.xxl)
-            .then(focusModifier)
-            .onFocusChanged { focused = it.isFocused }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                role = Role.Button,
-                onClick = onClick,
-            )
-            .focusable(enabled = enabled),
+        modifier = modifier.then(focusModifier),
         contentAlignment = Alignment.Center,
     ) {
-        if (supportDisc && tone == YuJianIconActionTone.ON_MEDIA) {
-            Box(
-                Modifier
-                    .size(36.dp)
-                    .background(Color(0x29081926), CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape),
+        Box(
+            modifier = Modifier
+                .size(YuJianSpacing.minimumTouchTarget)
+                .onFocusChanged { focused = it.isFocused }
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClick = onClick,
+                )
+                .focusable(enabled = enabled),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (supportDisc && tone == YuJianIconActionTone.ON_MEDIA) {
+                Box(
+                    Modifier
+                        .size(36.dp)
+                        .background(Color(0x29081926), CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.18f), CircleShape),
+                )
+            }
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = tint,
+                modifier = Modifier.size(glyphSize),
             )
         }
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(glyphSize),
-        )
     }
 }
 

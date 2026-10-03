@@ -93,11 +93,15 @@ internal fun AuthV2Scaffold(
             maxHeight >= 640.dp -> AuthHeightBand.COMPACT
             else -> AuthHeightBand.VERY_COMPACT
         }
-        val environmentHeight = when (heightBand) {
-            AuthHeightBand.STANDARD -> (maxHeight * environmentFraction).coerceIn(188.dp, 272.dp)
-            AuthHeightBand.COMPACT -> (maxHeight * 0.31f).coerceIn(184.dp, 232.dp)
-            AuthHeightBand.VERY_COMPACT -> (maxHeight * 0.27f).coerceIn(144.dp, 184.dp)
+        val environmentMinimum = when (heightBand) {
+            AuthHeightBand.STANDARD -> 188.dp
+            AuthHeightBand.COMPACT -> 184.dp
+            AuthHeightBand.VERY_COMPACT -> 144.dp
         }
+        val environmentHeight = (maxHeight * environmentFraction).coerceAtLeast(environmentMinimum)
+        val titleScale = (maxWidth / 320.dp).coerceIn(1f, 1.57f)
+        val subtitleScale = (maxWidth / 320.dp).coerceIn(1f, 1.43f)
+        val headerInset = (maxWidth * (26f / 320f) - 24.dp).coerceAtLeast(0.dp)
         val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
         Image(
@@ -152,24 +156,32 @@ internal fun AuthV2Scaffold(
                     bottom = if (imeVisible || heightBand == AuthHeightBand.VERY_COMPACT) 24.dp else 96.dp,
                 ),
         ) {
-            YuJianTitleOnlyTopBar(
-                title = title,
-                modifier = Modifier.fillMaxWidth(),
-                horizontalPadding = 0.dp,
-                minHeight = 0.dp,
-                statusBarInset = false,
-                titleStyle = YuJianTypography.pageTitle.copy(
-                    color = YuJianColors.DeepLakeBlue,
-                    fontWeight = FontWeight.SemiBold,
-                ),
-            )
-            Text(
-                text = subtitle,
-                color = YuJianColors.MistBlueGray,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                modifier = Modifier.padding(top = 6.dp, bottom = 20.dp),
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = headerInset, end = headerInset),
+            ) {
+                YuJianTitleOnlyTopBar(
+                    title = title,
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalPadding = 0.dp,
+                    minHeight = 0.dp,
+                    statusBarInset = false,
+                    titleStyle = YuJianTypography.pageTitle.copy(
+                        fontSize = YuJianTypography.pageTitle.fontSize * titleScale,
+                        lineHeight = YuJianTypography.pageTitle.lineHeight * titleScale,
+                        color = YuJianColors.DeepLakeBlue,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                )
+                Text(
+                    text = subtitle,
+                    color = YuJianColors.MistBlueGray,
+                    fontSize = 14.sp * subtitleScale,
+                    lineHeight = 20.sp * subtitleScale,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 34.dp),
+                )
+            }
             content()
         }
     }

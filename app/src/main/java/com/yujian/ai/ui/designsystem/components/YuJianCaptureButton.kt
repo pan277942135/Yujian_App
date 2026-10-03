@@ -31,6 +31,7 @@ import com.yujian.ai.ui.designsystem.haptic.YuJianHaptic
 import com.yujian.ai.ui.designsystem.haptic.rememberYuJianHaptic
 import com.yujian.ai.ui.designsystem.motion.YuJianMotion
 import com.yujian.ai.ui.designsystem.motion.rememberYuJianInfiniteTransition
+import com.yujian.ai.ui.designsystem.motion.rememberYuJianReduceMotion
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import kotlin.math.PI
 import kotlin.math.sin
@@ -74,25 +75,31 @@ fun YuJianCaptureButton(
     touchTargetSize: Dp? = null,
 ) {
     val haptic = rememberYuJianHaptic()
-    val transition = rememberYuJianInfiniteTransition(label = "YuJianCaptureButton")
-    val rimProgress by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = YuJianMotion.captureRimSweepSpec(),
-        label = "GoldRimSweep",
-    )
-    val breathingScale by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = YuJianMotion.CaptureBreathingMaxScale,
-        animationSpec = YuJianMotion.captureBreathingSpec(),
-        label = "CaptureBreathing",
-    )
+    val effectiveMotionEnabled = motionEnabled && !rememberYuJianReduceMotion()
+    val (rimProgress, breathingScale) = if (effectiveMotionEnabled && rasterMotion == null) {
+        val transition = rememberYuJianInfiniteTransition(label = "YuJianCaptureButton")
+        val localRimProgress by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = YuJianMotion.captureRimSweepSpec(),
+            label = "GoldRimSweep",
+        )
+        val localBreathingScale by transition.animateFloat(
+            initialValue = 1f,
+            targetValue = YuJianMotion.CaptureBreathingMaxScale,
+            animationSpec = YuJianMotion.captureBreathingSpec(),
+            label = "CaptureBreathing",
+        )
+        localRimProgress to localBreathingScale
+    } else {
+        0f to 1f
+    }
     val sweepAlpha = sin(rimProgress * PI.toFloat()).coerceAtLeast(0f)
-    val visualScale = if (motionEnabled) rasterMotion?.breathScale ?: breathingScale else 1f
-    val visibleSweepAlpha = if (motionEnabled) rasterMotion?.sweepAlpha ?: sweepAlpha else 0f
+    val visualScale = if (effectiveMotionEnabled) rasterMotion?.breathScale ?: breathingScale else 1f
+    val visibleSweepAlpha = if (effectiveMotionEnabled) rasterMotion?.sweepAlpha ?: sweepAlpha else 0f
     val resolvedVisualSize = visualSize
         ?: if (rasterAssets != null) RasterCaptureVisualSize else CaptureVisualSize
-    val resolvedTouchTarget = touchTargetSize ?: YuJianSpacing.minimumTouchTarget
+    val resolvedTouchTarget = touchTargetSize ?: YuJianSpacing.captureTouchTarget
 
     Box(
         modifier = modifier
@@ -102,7 +109,7 @@ fun YuJianCaptureButton(
                 role = Role.Button
             }
             .clickable(enabled = enabled) {
-                haptic.perform(YuJianHaptic.Feedback.Light)
+                haptic.perform(YuJianHaptic.Feedback.LightImpact)
                 onClick()
             },
         contentAlignment = Alignment.Center,
@@ -119,7 +126,7 @@ fun YuJianCaptureButton(
             contentAlignment = Alignment.Center,
         ) {
             if (rasterAssets != null) {
-                val glowAlpha = if (motionEnabled) rasterMotion?.breathGlowAlpha ?: 0f else 0f
+                val glowAlpha = if (effectiveMotionEnabled) rasterMotion?.breathGlowAlpha ?: 0f else 0f
                 Image(
                     bitmap = rasterAssets.breathGlow,
                     contentDescription = null,

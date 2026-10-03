@@ -1,6 +1,8 @@
 package com.yujian.ai
 
+import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -50,6 +52,7 @@ import com.yujian.ai.model.DemoData
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.session.UserSessionManager
+import com.yujian.ai.presentation.presentationSpeciesName
 import com.yujian.ai.privacy.AccountPrivacyCapabilities
 import com.yujian.ai.privacy.PrivacyPromptFrequency
 import com.yujian.ai.privacy.PrivacyPromptFrequencyStore
@@ -63,6 +66,7 @@ import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.auth.LoginV2Screen
 import com.yujian.ai.ui.auth.RegisterV2Screen
 import com.yujian.ai.ui.screens.MyScreen
+import com.yujian.ai.ui.screens.MyCatchesDayDetailScreen
 import com.yujian.ai.ui.screens.AccountMyScreen
 import com.yujian.ai.ui.screens.AccountLoginScreen
 import com.yujian.ai.ui.screens.AboutYujianScreen
@@ -77,6 +81,7 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.screens.RecognizingScreen
+import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
 import com.yujian.ai.ui.components.GuestRegistrationDialog
@@ -90,18 +95,10 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 
-private data class CatchArchiveState(
-    val catches: List<RemoteCatch> = emptyList(),
-    val statistics: CatchStatistics = CatchStatistics(),
-    val loading: Boolean = false,
-    val error: String? = null,
-    val resolved: Boolean = false,
-    val ownerKey: String? = null,
-)
-
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun YujianApp() {
+    val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -148,7 +145,10 @@ fun YujianApp() {
         sessionManager.clear()
         session = null
         catchesState = CatchArchiveState()
-        nav.navigate("home") { launchSingleTop = true }
+        nav.navigate("home") {
+            popUpTo("home") { inclusive = false }
+            launchSingleTop = true
+        }
     }
 
     fun applyProfile(profile: com.yujian.ai.auth.AccountProfile) {
@@ -172,6 +172,16 @@ fun YujianApp() {
                     guestMigrationPending = false
                     catchReload++
                 }
+                .onFailure {
+                    // Keep the local archive visible after a partial migration. The
+                    // account API has no idempotent migration key, so don't retry
+                    // automatically in this session and risk duplicate remote catches.
+                    Toast.makeText(
+                        activityContext,
+                        "游客鱼获迁移未完成；本机原记录仍保留，暂不自动重试以避免重复记录。",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
         }
     }
 
@@ -193,9 +203,8 @@ fun YujianApp() {
         scope.launch {
             runCatching { catchRepository.createBsideJob(active.accessToken, record.id) }
                 .onSuccess { generated -> applyBsideStatus(record.id, generated.status, generated.resultUri) }
-                .onFailure { error ->
+                .onFailure {
                     applyBsideStatus(record.id, BsideStatus.FAILED, null)
-                    catchesState = catchesState.copy(error = error.message ?: "渔获卡生成请求失败，请重试")
                 }
         }
     }
@@ -229,8 +238,7 @@ fun YujianApp() {
                 guideOfflinePreview = false
             }
             .onFailure { error ->
-                guideSpecies = localGuideItems()
-                guideOfflinePreview = true
+                guideOfflinePreview = guideSpecies.isNotEmpty()
                 guideError = error.message ?: "Fish Knowledge API 暂不可用"
             }
         guideLoading = false
@@ -238,11 +246,7 @@ fun YujianApp() {
     LaunchedEffect(session?.accessToken, catchReload, guestMigrationPending) {
         val active = session
         val archiveOwnerKey = active?.userId ?: "guest:$guestId"
-        catchesState = if (catchesState.ownerKey == archiveOwnerKey) {
-            catchesState.copy(loading = true, error = null)
-        } else {
-            CatchArchiveState(loading = true, ownerKey = archiveOwnerKey)
-        }
+        catchesState = catchesState.beginLoad(archiveOwnerKey)
         runCatching {
             if (active == null || guestMigrationPending) {
                 val local = guestCatchRepository.listCatches()
@@ -268,7 +272,7 @@ fun YujianApp() {
                 if ((error as? ApiException)?.statusCode == 401) {
                     logoutToHome()
                 } else {
-                    catchesState = catchesState.copy(loading = false, error = error.message ?: "鱼获数据加载失败")
+                    catchesState = catchesState.failLoad(error.message ?: "鱼获数据加载失败")
                 }
             }
     }
@@ -366,11 +370,7 @@ fun YujianApp() {
                     // The Home state is derived only from fish records. Login,
                     // loading, and server statistics never select Empty/Normal.
                     val resolvedHomeState = resolveHomeState(catchesState.catches, catchesState.resolved)
-                    if (resolvedHomeState == null) {
-                        // Keep the launch surface neutral until the archive resolves.
-                        // In particular, an initial loading/error is not an empty archive.
-                        Box(Modifier.fillMaxSize())
-                    } else HomeScreen(
+                    HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
                         recentCatches = catchesState.catches,
@@ -381,6 +381,7 @@ fun YujianApp() {
                         isLoggedIn = active != null,
                         avatarUrl = active?.avatarUrl,
                         showEmptyState = resolvedHomeState == HomeState.EMPTY,
+                        isResolving = resolvedHomeState == null,
                         onIdentify = { nav.navigate("identify") },
                         onAlbumClick = { nav.navigate("identify?openGallery=true") },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
@@ -415,13 +416,51 @@ fun YujianApp() {
                         bsideUrlFor = { record -> catchRepository.resolveUrl(record.bsideUri) },
                         accessToken = session?.accessToken.orEmpty(),
                         onBack = { nav.popBackStack() },
-                        onOpenFishGuide = { record -> nav.navigate("species/${Uri.encode(record.speciesId)}") },
-                        onShare = { },
-                        onEditRecord = { },
-                        onAddMedia = { },
+                        onRetry = { catchReload++ },
+                        onOpenFishGuide = { record ->
+                            if (record.speciesId.isNotBlank()) {
+                                nav.navigate("species/${Uri.encode(record.speciesId)}")
+                            } else {
+                                Toast.makeText(activityContext, "这条鱼获暂缺鱼鉴条目关联", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onShare = { record ->
+                            val shareText = buildList {
+                                add("鱼获记录：${presentationSpeciesName(record.speciesName)}")
+                                FishRecordDetailPresentation.measurement(record)?.let { add("尺寸：$it") }
+                                FishRecordDetailPresentation.location(record)?.let { add("地点：$it") }
+                            }.joinToString(separator = "\n")
+                            runCatching {
+                                activityContext.startActivity(
+                                    Intent.createChooser(
+                                        Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_SUBJECT, "分享鱼获")
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                        },
+                                        "分享鱼获",
+                                    ),
+                                )
+                            }.onFailure {
+                                Toast.makeText(activityContext, "暂时无法分享这条鱼获", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onEditRecord = {
+                            Toast.makeText(activityContext, "当前版本暂不支持保存鱼获修改", Toast.LENGTH_SHORT).show()
+                        },
+                        onAddMedia = {
+                            Toast.makeText(activityContext, "当前版本暂不支持为已有鱼获上传照片或视频", Toast.LENGTH_SHORT).show()
+                        },
+                        onContinuePhoto = {
+                            Toast.makeText(activityContext, "当前版本暂不支持将新照片关联到已有鱼获", Toast.LENGTH_SHORT).show()
+                        },
+                        onRecordVideo = {
+                            Toast.makeText(activityContext, "当前版本暂不支持为鱼获保存视频", Toast.LENGTH_SHORT).show()
+                        },
                         onGenerateMemory = if (session != null) {
                             { record -> requestBsideGeneration(record) }
                         } else null,
+                        onRefreshBsideStatus = { id -> refreshBsideStatus(id) },
                     )
                 }
                 composable(
@@ -503,12 +542,6 @@ fun YujianApp() {
                                     launchSingleTop = true
                                 }
                             },
-                            onRetry = {
-                                productionResult = null
-                                recognitionTechnicalFailure = false
-                                prediction = null
-                                nav.navigate("recognizing") { popUpTo("recognition_issue") { inclusive = true } }
-                            },
                         )
                     }
                 }
@@ -551,7 +584,7 @@ fun YujianApp() {
                             },
                             saving = catchSaving,
                             saveError = catchSaveError,
-                            availableSpecies = guideSpecies,
+                            availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             onSave = { draft, feedback, destination ->
                                 val active = session
@@ -616,7 +649,7 @@ fun YujianApp() {
                                             if ((error as? ApiException)?.statusCode == 401) {
                                                 logoutToHome()
                                             } else {
-                                                catchSaveError = error.message ?: "保存鱼获失败，请重试"
+                                                catchSaveError = "保存鱼获失败，请重试"
                                             }
                                         }
                                     }
@@ -642,9 +675,6 @@ fun YujianApp() {
                     val fallback = guideSpecies
                         .withSavedCatchState(catchesState.catches)
                         .firstOrNull { it.id == key }
-                        ?: localGuideItems()
-                            .withSavedCatchState(catchesState.catches)
-                            .firstOrNull { it.id == key }
                     var detail by remember(key) { mutableStateOf<FishKnowledgeDetail?>(null) }
                     var detailLoading by remember(key) { mutableStateOf(true) }
                     var detailOfflinePreview by remember(key) { mutableStateOf(false) }
@@ -664,13 +694,19 @@ fun YujianApp() {
                     FishSpeciesDetailScreen(
                         detail = detail,
                         fallback = fallback,
+                        savedCatches = catchesState.catches,
                         loading = detailLoading,
                         offlinePreview = detailOfflinePreview,
                         error = detailError,
                         resolveAssetUrl = fishKnowledgeRepository::resolveAssetUrl,
+                        resolveCatchImageUrl = { path ->
+                            if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
+                        },
                         onRetry = { detailRetry++ },
                         onBack = { nav.popBackStack() },
-                        onOpenCatch = { nav.navigate("my_catches") },
+                        onRecordCatch = { nav.navigate("identify") },
+                        onOpenCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
+                        onOpenSpeciesCatches = { speciesId -> nav.navigate("my_catches?speciesId=${Uri.encode(speciesId)}") },
                     )
                 }
                 composable("my") {
@@ -689,12 +725,38 @@ fun YujianApp() {
                         )
                     }
                 }
-                composable("my_catches") {
+                composable("my_catches/day/{dayKey}", arguments = listOf(navArgument("dayKey") { type = NavType.StringType })) { entry ->
+                    val dayKey = entry.arguments?.getString("dayKey").orEmpty()
+                    val ids = nav.previousBackStackEntry?.savedStateHandle?.get<Array<String>>("my_catches_day_ids").orEmpty().toSet()
+                    val dayCatches = catchesState.catches.filter { it.id in ids }
+                    val active = session
+                    MyCatchesDayDetailScreen(
+                        dayKey = dayKey,
+                        catches = dayCatches,
+                        resolveImageUrl = { path ->
+                            if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
+                        },
+                        accessToken = active?.accessToken.orEmpty(),
+                        onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
+                        onBack = { nav.popBackStack() },
+                    )
+                }
+                composable(
+                    route = "my_catches?speciesId={speciesId}",
+                    arguments = listOf(
+                        navArgument("speciesId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                    ),
+                ) { entry ->
                     val active = session
                     MyScreen(
                         catches = catchesState.catches,
                         loading = catchesState.loading,
                         error = catchesState.error,
+                        initialSpeciesFilterId = entry.arguments?.getString("speciesId"),
                         resolveImageUrl = { path ->
                             if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
                         },
@@ -702,6 +764,12 @@ fun YujianApp() {
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
                         onCapture = { nav.navigate("identify") },
+                        onBack = { nav.popBackStack() },
+                        onDayDetail = { day ->
+                            val dayKey = day.key
+                            nav.currentBackStackEntry?.savedStateHandle?.set("my_catches_day_ids", day.catches.map { it.id }.toTypedArray())
+                            nav.navigate("my_catches/day/${Uri.encode(dayKey)}")
+                        },
                     )
                 }
                 composable("edit_profile") {
@@ -713,6 +781,7 @@ fun YujianApp() {
                             profile = active,
                             authRepository = authRepository,
                             onProfileUpdated = ::applyProfile,
+                            onAuthenticationExpired = ::logoutToHome,
                             onBack = { nav.popBackStack() },
                         )
                     }
@@ -739,6 +808,7 @@ fun YujianApp() {
                         ChangePasswordScreen(
                             authRepository = authRepository,
                             accessToken = active.accessToken,
+                            onAuthenticationExpired = ::logoutToHome,
                             onBack = { nav.popBackStack() },
                         )
                     }
@@ -751,13 +821,18 @@ fun YujianApp() {
                         DataPrivacyScreen(
                             authRepository = authRepository,
                             accessToken = active.accessToken,
+                            onAuthenticationExpired = ::logoutToHome,
                             onPrivacyPolicy = { nav.navigate("privacy_policy") },
                             onComingSoon = { kind ->
                                 if ((kind == ComingSoonKind.EXPORT_DATA && !AccountPrivacyCapabilities.dataExportEnabled) ||
                                     (kind == ComingSoonKind.DELETE_ACCOUNT && !AccountPrivacyCapabilities.accountDeletionEnabled)
                                 ) comingSoon = kind
                             },
-                            onManualWithdrawal = { promptFrequency = promptFrequency.suppressAfterManualWithdrawal() },
+                            onManualWithdrawal = {
+                                val updated = promptFrequency.suppressAfterManualWithdrawal()
+                                promptFrequency = updated
+                                promptFrequencyStore.save(updated)
+                            },
                             onBack = { nav.popBackStack() },
                         )
                     }
@@ -824,26 +899,16 @@ private fun localGuideItems(): List<FishGuideItem> = DemoData.species.map { fish
     )
 }
 
-private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> {
-    val local = localGuideItems().associateBy { it.id }
-    return remote.map { item ->
-        val localItem = local[item.id]
-        item.copy(
-            aliases = localItem?.aliases ?: item.aliases,
-            category = item.category.ifBlank { localItem?.category.orEmpty() },
-            discovered = false,
-            catches = 0,
-        )
-    }
-}
+private fun mergeGuideItems(remote: List<FishGuideItem>): List<FishGuideItem> =
+    remote.filter { it.catalogStatus == "ACTIVE" }.map { it.copy(discovered = false, catches = 0) }
 
 private fun List<FishGuideItem>.withSavedCatchState(catches: List<RemoteCatch>): List<FishGuideItem> {
-    val bySpeciesId = catches.groupBy { it.speciesId.trim().lowercase() }
-    val bySpeciesName = catches.groupBy { it.speciesName.trim().lowercase() }
     return map { species ->
-        val savedRecords = bySpeciesId[species.id.trim().lowercase()]
-            ?: bySpeciesName[species.nameCn.trim().lowercase()]
-            ?: emptyList()
+        val savedRecords = catches.filter { record ->
+            if (record.id.isBlank()) false
+            else if (record.speciesId.isNotBlank()) record.speciesId.trim().equals(species.id.trim(), ignoreCase = true)
+            else record.speciesName.trim().equals(species.nameCn.trim(), ignoreCase = true)
+        }
         species.copy(
             discovered = savedRecords.isNotEmpty(),
             catches = savedRecords.size,

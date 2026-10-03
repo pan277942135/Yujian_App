@@ -2,11 +2,12 @@ package com.yujian.ai
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
+import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertFalse
@@ -37,17 +38,15 @@ class PresentationSanitizationRuntimeTest {
         assertHome("null location")
         screenshot("01_normal_home_null_clean.png")
 
-        clickText("全部")
-        waitForText("我的鱼获")
+        clickVisibleText(sourceText = "全部", destinationText = "我的鱼获")
         assertRuntimeClean("My Catches with null location")
         assertVisible("草鱼")
         assertVisible(currentDayLabel())
-        assertVisible("1条鱼获")
+        assertVisible("1条鱼获 · 1种鱼")
         assertAbsent("首次null")
         screenshot("02_my_catches_null_clean.png")
 
-        clickText("草鱼")
-        waitForText("鱼获详情")
+        clickVisibleText(sourceText = "草鱼", destinationText = "鱼获详情")
         assertRuntimeClean("FishRecordDetail with null location")
         assertVisible("草鱼")
         assertAbsent("2026-09-25T")
@@ -96,7 +95,6 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun launchFresh() {
-        device.executeShellCommand("am force-stop $APP_PACKAGE")
         val intent = context.packageManager.getLaunchIntentForPackage(APP_PACKAGE)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             ?: error("Unable to resolve YuJian launcher activity")
@@ -110,15 +108,36 @@ class PresentationSanitizationRuntimeTest {
         assertRuntimeClean("Normal Home: $label")
     }
 
-    private fun clickText(text: String) {
-        waitForText(text)
-        val objectUnderTest = device.findObject(By.text(text))
-        assertTrue("Expected clickable text: $text", objectUnderTest != null)
-        objectUnderTest!!.click()
+    private fun clickVisibleText(sourceText: String, destinationText: String) {
+        val targetBounds = waitForVisibleTextBounds(sourceText)
+        assertTrue(
+            "Expected visible text: $sourceText at $targetBounds",
+            device.click(targetBounds.centerX(), targetBounds.centerY()),
+        )
+        waitForText(destinationText)
     }
 
     private fun waitForText(text: String) {
-        assertTrue("Timed out waiting for: $text", device.wait(Until.hasObject(By.text(text)), SETTLE_MILLIS))
+        waitForVisibleTextBounds(text)
+    }
+
+    private fun waitForVisibleTextBounds(text: String): Rect {
+        val selector = By.text(text)
+        val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
+        while (SystemClock.uptimeMillis() < deadline) {
+            val visibleBounds = runCatching { device.findObjects(selector) }
+                .getOrNull()
+                ?.mapNotNull { candidate ->
+                    runCatching { Rect(candidate.visibleBounds) }
+                        .getOrNull()
+                        ?.takeUnless { it.isEmpty }
+                }
+                .orEmpty()
+            visibleBounds.maxByOrNull { it.width().toLong() * it.height() }
+                ?.let { return it }
+            SystemClock.sleep(100L)
+        }
+        throw AssertionError("Timed out waiting for visible text: $text")
     }
 
     private fun assertVisible(text: String) {

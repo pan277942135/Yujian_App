@@ -1,18 +1,13 @@
 package com.yujian.ai.ui.designsystem.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreHoriz
@@ -20,14 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
-import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 
 data class YuJianTopBarAction(
     val icon: ImageVector,
@@ -38,12 +32,11 @@ data class YuJianTopBarAction(
 
 @Composable
 private fun topNavigationInsets(horizontalPadding: Dp, statusBarInset: Boolean): Modifier {
-    val safe = WindowInsets.safeDrawing.asPaddingValues()
-    val direction = LocalLayoutDirection.current
+    val safe = rememberSafeDrawingInsets()
     return Modifier.padding(
-        top = if (statusBarInset) safe.calculateTopPadding() else 0.dp,
-        start = horizontalPadding + safe.calculateStartPadding(direction),
-        end = horizontalPadding + safe.calculateEndPadding(direction),
+        top = if (statusBarInset) safe.top else 0.dp,
+        start = horizontalPadding + safe.start,
+        end = horizontalPadding + safe.end,
     )
 }
 
@@ -92,13 +85,42 @@ fun YuJianBackTitleTopBar(
         YuJianBackAction(
             onClick = onBack,
             enabled = backEnabled,
-            modifier = Modifier.size(YuJianSpacing.xxl),
         )
         Spacer(Modifier.width(8.dp))
         Text(
             text = title,
             style = YuJianTypography.sectionTitle,
             modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** Result navigation variant: the title is centered independently of the back action. */
+@Composable
+fun YuJianBackCenterTitleTopBar(
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    backEnabled: Boolean = true,
+    statusBarInset: Boolean = true,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(topNavigationInsets(8.dp, statusBarInset))
+            .heightIn(min = 56.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        YuJianBackAction(
+            onClick = onBack,
+            modifier = Modifier.align(Alignment.CenterStart),
+            enabled = backEnabled,
+        )
+        Text(
+            text = title,
+            style = YuJianTypography.sectionTitle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -146,7 +168,6 @@ fun YuJianBackTitleActionsTopBar(
         YuJianBackAction(
             onClick = onBack,
             enabled = backEnabled,
-            modifier = Modifier.size(YuJianSpacing.xxl),
         )
         Spacer(Modifier.width(8.dp))
         Text(
@@ -199,7 +220,7 @@ fun YuJianTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            YuJianBackAction(onClick = onBack, modifier = Modifier.size(YuJianSpacing.xxl))
+            YuJianBackAction(onClick = onBack)
             Spacer(Modifier.width(8.dp))
         }
         Text(

@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -26,6 +28,9 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleActionsTopBar
@@ -44,16 +49,21 @@ import org.junit.Rule
 import org.junit.Test
 
 class LoginV2RuntimeTest {
+    private fun primaryButton(text: String) = composeRule.onNode(
+        hasText(text) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button),
+    )
+
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun idle_matchesFrozenStructure() {
+        var loginCalls = 0
         composeRule.setContent {
             LoginV2Screen(
                 loading = false,
                 error = null,
-                onLogin = { _, _ -> },
+                onLogin = { _, _ -> loginCalls += 1 },
                 onRegister = {},
                 onForgotPassword = {},
                 onBack = {},
@@ -65,7 +75,9 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithTag("login_password").assertExists()
         composeRule.onNodeWithText("忘记密码？").assertExists()
         composeRule.onNodeWithText("创建账号").assertExists()
-        composeRule.onNodeWithTag("login_submit").assertIsNotEnabled()
+        primaryButton("登录").assertIsNotEnabled()
+        primaryButton("登录").performTouchInput { down(center); up() }
+        composeRule.runOnIdle { assertEquals(0, loginCalls) }
         saveScreenshot("login_v2_idle.png")
     }
 
@@ -85,9 +97,9 @@ class LoginV2RuntimeTest {
         }
         composeRule.onNodeWithTag("login_username").performTextInput("fisher001")
         composeRule.onNodeWithTag("login_password").performTextInput("123456")
-        composeRule.onNodeWithTag("login_submit").assertIsEnabled()
+        primaryButton("登录").assertIsEnabled()
         saveScreenshot("login_v2_filled.png")
-        composeRule.onNodeWithTag("login_submit").performClick()
+        primaryButton("登录").performClick()
         composeRule.runOnIdle {
             assertEquals("fisher001", username)
             assertEquals("123456", password)
@@ -212,6 +224,7 @@ class LoginV2RuntimeTest {
 
     @Test
     fun p0SharedComponents_renderFrozenVariantsAndButtonStates() {
+        var disabledButtonClicks = 0
         composeRule.setContent {
             Column {
                 YuJianTitleOnlyTopBar("标题")
@@ -238,7 +251,7 @@ class LoginV2RuntimeTest {
                 YuJianPrimaryButton("按下", onClick = {}, modifier = Modifier.testTag("p0_button_pressed"))
                 YuJianPrimaryButton(
                     "禁用",
-                    onClick = {},
+                    onClick = { disabledButtonClicks += 1 },
                     modifier = Modifier.testTag("p0_button_disabled"),
                     enabled = false,
                 )
@@ -250,8 +263,10 @@ class LoginV2RuntimeTest {
                 )
             }
         }
-        composeRule.onNodeWithTag("p0_button_default").assertIsEnabled()
-        composeRule.onNodeWithTag("p0_button_disabled").assertIsNotEnabled()
+        primaryButton("默认").assertIsEnabled()
+        primaryButton("禁用").assertIsNotEnabled()
+        primaryButton("禁用").performTouchInput { down(center); up() }
+        composeRule.runOnIdle { assertEquals(0, disabledButtonClicks) }
         composeRule.onNodeWithText("文字操作").assertExists()
         composeRule.onNodeWithContentDescription("独立图标操作").assertExists()
         saveScreenshot("p0_shared_components_default.png")
@@ -298,7 +313,7 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithTag("register_nickname").assertExists()
         composeRule.onNodeWithText("注册并登录").assertExists()
         composeRule.onNodeWithText("去登录").assertExists()
-        composeRule.onNodeWithTag("register_submit").assertIsNotEnabled()
+        primaryButton("注册并登录").assertIsNotEnabled()
         saveScreenshot("register_v2_idle.png")
     }
 
@@ -322,9 +337,9 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithTag("register_username").performTextInput("fisher002")
         composeRule.onNodeWithTag("register_password").performTextInput("123456")
         composeRule.onNodeWithTag("register_nickname").performTextInput("angler")
-        composeRule.onNodeWithTag("register_submit").assertIsEnabled()
+        primaryButton("注册并登录").assertIsEnabled()
         saveScreenshot("register_v2_filled.png")
-        composeRule.onNodeWithTag("register_submit").performClick()
+        primaryButton("注册并登录").performClick()
         composeRule.runOnIdle {
             assertEquals("fisher002", username)
             assertEquals("123456", password)
@@ -334,10 +349,11 @@ class LoginV2RuntimeTest {
 
     @Test
     fun register_errorAndLoading_areVisibleAndStable() {
+        val loading = mutableStateOf(false)
         composeRule.setContent {
             RegisterV2Screen(
-                loading = false,
-                error = "账号已存在",
+                loading = loading.value,
+                error = if (loading.value) null else "账号已存在",
                 onRegister = { _, _, _ -> },
                 onBackToLogin = {},
             )
@@ -345,15 +361,8 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithText("账号已存在").assertExists()
         saveScreenshot("register_v2_error.png")
 
-        composeRule.setContent {
-            RegisterV2Screen(
-                loading = true,
-                error = null,
-                onRegister = { _, _, _ -> },
-                onBackToLogin = {},
-            )
-        }
-        composeRule.onNodeWithTag("register_submit").assertIsNotEnabled()
+        composeRule.runOnIdle { loading.value = true }
+        primaryButton("注册并登录").assertIsNotEnabled()
         saveScreenshot("register_v2_loading.png")
     }
 

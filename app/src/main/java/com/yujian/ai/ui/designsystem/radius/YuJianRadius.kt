@@ -14,6 +14,9 @@ object YuJianRadius {
 
     val heroCard = RoundedCornerShape(extraLarge)
     val glassCard = RoundedCornerShape(large)
+    /** Result Frozen uses a quieter, additive surface geometry than global Glass. */
+    val resultGlass = RoundedCornerShape(20.dp)
+    val resultHero = RoundedCornerShape(20.dp)
     val button = RoundedCornerShape(medium)
     val pill = RoundedCornerShape(medium)
     val avatar: Shape = CircleShape

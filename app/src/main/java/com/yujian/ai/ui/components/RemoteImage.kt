@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,14 +31,19 @@ fun RemoteImage(
     contentScale: ContentScale = ContentScale.Crop,
     authToken: String? = null,
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
+    reloadToken: Int = 0,
+    onLoadResult: ((Boolean) -> Unit)? = null,
 ) {
-    val bitmapState = remember(url, authToken) { mutableStateOf<Bitmap?>(null) }
-    LaunchedEffect(url, authToken) {
-        bitmapState.value = if (url.isNullOrBlank()) {
-            null
-        } else {
-            withContext(Dispatchers.IO) { loadBitmap(url, authToken) }
+    val bitmapState = remember(url, authToken, reloadToken) { mutableStateOf<Bitmap?>(null) }
+    val latestOnLoadResult = rememberUpdatedState(onLoadResult)
+    LaunchedEffect(url, authToken, reloadToken) {
+        if (url.isNullOrBlank()) {
+            bitmapState.value = null
+            return@LaunchedEffect
         }
+        val loaded = withContext(Dispatchers.IO) { loadBitmap(url, authToken) }
+        bitmapState.value = loaded
+        latestOnLoadResult.value?.invoke(loaded != null)
     }
     val bitmap = bitmapState.value
     if (bitmap != null) {

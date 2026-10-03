@@ -16,6 +16,7 @@ object YuJianSpacing {
     val textRelated = xs
     val cardInternal = md
     val majorSection = xl
-    val minimumTouchTarget = screen
+    val minimumTouchTarget = 44.dp
+    val captureTouchTarget = 64.dp
     val actionButtonHeight = 56.dp
 }

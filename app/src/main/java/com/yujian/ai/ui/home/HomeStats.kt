@@ -61,6 +61,7 @@ fun HomeStats(
     catches: List<RemoteCatch>,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
+    isResolving: Boolean = false,
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     Row(
@@ -70,21 +71,36 @@ fun HomeStats(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HomeStat(Modifier.weight(1f), values.speciesCount.toString(), "鱼种", onSpeciesClick)
+        HomeStat(
+            Modifier.weight(1f),
+            if (isResolving) "—" else values.speciesCount.toString(),
+            "鱼种",
+            onClick = onSpeciesClick.takeUnless { isResolving },
+        )
         Box(
             Modifier
                 .width(1.dp)
                 .height(YuJianSpacing.xl)
                 .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
         )
-        HomeStat(Modifier.weight(1f), values.catchCount.toString(), "鱼获", onCatchesClick)
+        HomeStat(
+            Modifier.weight(1f),
+            if (isResolving) "—" else values.catchCount.toString(),
+            "鱼获",
+            onClick = onCatchesClick.takeUnless { isResolving },
+        )
         Box(
             Modifier
                 .width(1.dp)
                 .height(YuJianSpacing.xl)
                 .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
         )
-        HomeStat(Modifier.weight(1f), values.recordDays.toString(), "记录天数", onClick = null)
+        HomeStat(
+            Modifier.weight(1f),
+            if (isResolving) "—" else values.recordDays.toString(),
+            "记录天数",
+            onClick = null,
+        )
     }
 }
 

@@ -82,16 +82,19 @@ fun groupCatchesByMonthAndDay(catches: List<RemoteCatch>): List<MyCatchesMonthGr
                             catches = sortCatchesNewestFirst(dayCatches),
                         )
                     }
-                    .sortedByDescending { it.key },
+                    .sortedWith(compareByDescending<MyCatchesDayGroup> { it.key != "unknown" }.thenByDescending { it.key }),
             )
         }
-        .sortedByDescending { it.key }
+        .sortedWith(compareByDescending<MyCatchesMonthGroup> { it.key != "unknown" }.thenByDescending { it.key })
 }
 
 fun daySummary(catches: List<RemoteCatch>): String {
-    val locations = catches.mapNotNull { sanitizeOptionalText(it.location) }.distinct()
-    val countLabel = "${catches.size}条鱼获"
-    return if (locations.size == 1) "${locations.first()} · $countLabel" else countLabel
+    val sanitizedLocations = catches.map { sanitizeOptionalText(it.location) }
+    val singleLocation = sanitizedLocations.firstOrNull()?.takeIf { location ->
+        sanitizedLocations.all { it == location }
+    }
+    val countLabel = "${catches.size}条鱼获 · ${catches.map { it.speciesKey() }.distinct().size}种鱼"
+    return singleLocation?.let { "$it · $countLabel" } ?: countLabel
 }
 
 fun filterAndSortCatches(
@@ -100,22 +103,83 @@ fun filterAndSortCatches(
     filter: MyCatchesFilterState,
     nowMillis: Long = System.currentTimeMillis(),
 ): List<RemoteCatch> = sortCatchesNewestFirst(
-    catches.filter { record ->
-        matchesCatchSearch(record, query) && matchesCatchFilter(record, filter, nowMillis)
+    catches.let { allCatches ->
+        val marks = GrowthMarkResolver.resolve(allCatches)
+        allCatches.filter { record ->
+            matchesCatchSearch(record, query, marks[record.id].orEmpty()) &&
+                matchesCatchFilter(record, filter, marks[record.id].orEmpty(), nowMillis)
+        }
     },
 )
 
-private fun matchesCatchFilter(record: RemoteCatch, filter: MyCatchesFilterState, nowMillis: Long): Boolean {
+private fun matchesCatchFilter(
+    record: RemoteCatch,
+    filter: MyCatchesFilterState,
+    marks: List<GrowthMark>,
+    nowMillis: Long,
+): Boolean {
     val timestamp = resolveCatchTimestamp(record)
-    val speciesKey = record.speciesId.ifBlank { record.speciesName }
-    if (filter.speciesIds.isNotEmpty() && speciesKey !in filter.speciesIds) return false
-    if (filter.locations.isNotEmpty() && sanitizeOptionalText(record.location) !in filter.locations) return false
+    if (filter.speciesIds.isNotEmpty() && record.speciesKey() !in filter.speciesIds) return false
+    if (filter.specialMarks.isNotEmpty() && filter.specialMarks.none { special ->
+            marks.any { mark ->
+                when (special) {
+                    SpecialCatchMark.FirstSpecies -> mark.type == GrowthMarkType.FirstSpecies
+                    SpecialCatchMark.Longest -> mark.type == GrowthMarkType.Longest
+                    SpecialCatchMark.Heaviest -> mark.type == GrowthMarkType.Heaviest
+                    SpecialCatchMark.Milestone -> mark.type == GrowthMarkType.CountMilestone
+                }
+            }
+        }
+    ) return false
+
+    val length = record.lengthCm?.takeIf { it.isFinite() && it > 0f }
+    if (filter.lengthRange != CatchLengthRange.All && !matchesRange(length, filter.lengthRange.min, filter.lengthRange.max)) return false
+    if (filter.customLengthMinCm != null || filter.customLengthMaxCm != null) {
+        if (!matchesCustomRange(length, filter.customLengthMinCm, filter.customLengthMaxCm)) return false
+    }
+    val weight = record.weightKg?.takeIf { it.isFinite() && it > 0f }
+    if (filter.weightRange != CatchWeightRange.All && !matchesRange(weight, filter.weightRange.min, filter.weightRange.max)) return false
+    if (filter.customWeightMinKg != null || filter.customWeightMaxKg != null) {
+        if (!matchesCustomRange(weight, filter.customWeightMinKg, filter.customWeightMaxKg)) return false
+    }
+
+    val date = timestamp.takeIf { it.isKnown }?.let { "%04d-%02d-%02d".format(Locale.US, it.year, it.month, it.day) }
     return when (filter.timeRange) {
         CatchTimeRange.All -> true
-        CatchTimeRange.Last7Days -> timestamp.millis?.let { it >= nowMillis - 7L * 24 * 60 * 60 * 1_000 } == true
-        CatchTimeRange.Last30Days -> timestamp.millis?.let { it >= nowMillis - 30L * 24 * 60 * 60 * 1_000 } == true
+        CatchTimeRange.ThisMonth -> {
+            val now = Calendar.getInstance().apply { timeInMillis = nowMillis }
+            timestamp.millis?.let { it <= nowMillis } == true &&
+                now.get(Calendar.YEAR) == timestamp.year && now.get(Calendar.MONTH) + 1 == timestamp.month
+        }
+        CatchTimeRange.Last3Months -> {
+            val cutoff = Calendar.getInstance().apply { timeInMillis = nowMillis; add(Calendar.MONTH, -3) }.timeInMillis
+            timestamp.millis?.let { it >= cutoff && it <= nowMillis } == true
+        }
         CatchTimeRange.ThisYear -> {
             timestamp.isKnown && Calendar.getInstance().apply { timeInMillis = nowMillis }.get(Calendar.YEAR) == timestamp.year
         }
+        CatchTimeRange.Custom -> {
+            val start = filter.customStartDate?.takeIf(::isValidCatchDate)
+            val end = filter.customEndDate?.takeIf(::isValidCatchDate)
+            date != null && (start == null || date >= start) && (end == null || date <= end) && (start != null || end != null)
+        }
     }
+}
+
+private fun matchesRange(value: Float?, min: Float?, max: Float?): Boolean =
+    value != null && (min == null || value >= min) && (max == null || value < max)
+
+private fun matchesCustomRange(value: Float?, min: Float?, max: Float?): Boolean =
+    value != null && (min == null || value >= min) && (max == null || value <= max)
+
+fun isValidCatchDate(value: String): Boolean {
+    if (!value.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) return false
+    val parts = value.split('-').map { it.toInt() }
+    return runCatching {
+        Calendar.getInstance().apply {
+            isLenient = false
+            clear()
+            set(parts[0], parts[1] - 1, parts[2], 0, 0, 0)
+        }.time
+    }.isSuccess
 }

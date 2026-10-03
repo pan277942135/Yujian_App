@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -109,53 +110,61 @@ fun YuJianTextAction(
     }
 
     Box(
-        modifier = modifier
-            .defaultMinSize(minWidth = YuJianSpacing.xxl, minHeight = YuJianSpacing.xxl)
-            .then(focusModifier)
-            .onFocusChanged { focused = it.isFocused }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                role = Role.Button,
-                onClick = onClick,
-            )
-            .focusable(enabled = enabled)
-            .padding(horizontal = 8.dp),
+        modifier = modifier.then(focusModifier),
         contentAlignment = Alignment.Center,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = text,
-                maxLines = 1,
-                style = TextStyle(
-                    color = color,
-                    fontSize = fontSize,
-                    lineHeight = 18.sp,
-                    fontWeight = fontWeight,
-                    shadow = if (tone == YuJianTextActionTone.ON_MEDIA) {
-                        Shadow(
-                            color = Color(0x3D0B2D4B),
-                            offset = Offset(0f, 1f),
-                            blurRadius = 3f,
-                        )
-                    } else {
-                        null
-                    },
-                ),
-            )
-            if (showChevron) {
-                Spacer(Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Rounded.ChevronRight,
-                    contentDescription = null,
-                    tint = if (tone == YuJianTextActionTone.ON_MEDIA) {
-                        color.copy(alpha = 0.87f)
-                    } else {
-                        color
-                    },
-                    modifier = Modifier.size(14.dp),
+        Box(
+            modifier = Modifier
+                .then(if (focused) Modifier.padding(4.dp) else Modifier)
+                .defaultMinSize(
+                    minWidth = YuJianSpacing.minimumTouchTarget,
+                    minHeight = YuJianSpacing.minimumTouchTarget,
                 )
+                .onFocusChanged { focused = it.isFocused }
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClick = onClick,
+                )
+                .focusable(enabled = enabled)
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = text,
+                    maxLines = 1,
+                    style = TextStyle(
+                        color = color,
+                        fontSize = fontSize,
+                        lineHeight = 18.sp,
+                        fontWeight = fontWeight,
+                        shadow = if (tone == YuJianTextActionTone.ON_MEDIA) {
+                            Shadow(
+                                color = Color(0x3D0B2D4B),
+                                offset = Offset(0f, 1f),
+                                blurRadius = 3f,
+                            )
+                        } else {
+                            null
+                        },
+                    ),
+                )
+                if (showChevron) {
+                    Spacer(Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                        tint = if (tone == YuJianTextActionTone.ON_MEDIA) {
+                            color.copy(alpha = 0.87f)
+                        } else {
+                            color
+                        },
+                        modifier = Modifier.size(14.dp),
+                    )
+                }
             }
         }
     }

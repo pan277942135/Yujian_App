@@ -1,32 +1,20 @@
 package com.yujian.ai.ui.fishguide
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
+import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
 
-/** Low-salience BG_DATA treatment: morning lake atmosphere without a bitmap. */
+/** Frozen BG_DATA wrapper retained for Fish Guide call sites. */
 @Composable
 fun FishGuideBackground(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        YuJianColors.LakeWhite,
-                        YuJianColors.MistWhite.copy(alpha = 0.72f),
-                        YuJianColors.LakeBlue.copy(alpha = 0.28f),
-                    ),
-                ),
-            ),
+    YuJianMorningLakeBackground(
+        variant = YuJianMorningLakeVariant.DATA,
+        modifier = modifier,
         content = content,
     )
 }

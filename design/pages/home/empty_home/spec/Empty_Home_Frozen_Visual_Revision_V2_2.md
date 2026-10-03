@@ -7,6 +7,7 @@ Approved visual source:
 - filename: `晨雾湖畔_静待第一条鱼.png`
 - dimensions: `941 × 1672`
 - SHA-256: `3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec`
+- repository authority path: `design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png`
 
 ## Authority rule
 

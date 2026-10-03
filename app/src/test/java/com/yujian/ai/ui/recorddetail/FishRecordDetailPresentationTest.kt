@@ -42,13 +42,24 @@ class FishRecordDetailPresentationTest {
     }
 
     @Test
+    fun cached_record_wins_over_refresh_error() {
+        val state = FishRecordDetailPresentation.resolve(
+            "catch-42",
+            listOf(record),
+            loading = false,
+            error = "private server detail",
+        )
+        assertEquals(FishRecordDetailUiState.Success(record), state)
+    }
+
+    @Test
     fun missing_record_is_empty_and_request_error_is_error() {
         assertEquals(
             FishRecordDetailUiState.Empty,
             FishRecordDetailPresentation.resolve("missing", listOf(record), loading = false, error = null),
         )
         assertEquals(
-            FishRecordDetailUiState.Error("网络不可用"),
+            FishRecordDetailUiState.Error("暂时无法打开这条鱼获"),
             FishRecordDetailPresentation.resolve("missing", emptyList(), loading = false, error = "网络不可用"),
         )
     }
@@ -62,9 +73,47 @@ class FishRecordDetailPresentationTest {
     }
 
     @Test
-    fun media_uses_only_real_record_image() {
-        assertEquals(listOf("https://example.test/catch.jpg"), FishRecordDetailPresentation.mediaUrls(record))
-        assertTrue(FishRecordDetailPresentation.mediaUrls(record.copy(imageUrl = "")).isEmpty())
+    fun nonFinite_measurements_are_omitted() {
+        assertEquals(
+            "1.28 kg",
+            FishRecordDetailPresentation.measurement(record.copy(lengthCm = Float.NaN)),
+        )
+        assertEquals(
+            "42.6 cm",
+            FishRecordDetailPresentation.measurement(record.copy(weightKg = Float.POSITIVE_INFINITY)),
+        )
+    }
+
+    @Test
+    fun first_bside_reveal_requires_ready_asset_and_unconsumed_flag() {
+        assertTrue(
+            FishRecordDetailPresentation.shouldAutoRevealBside(
+                BsideStatus.READY,
+                hasAsset = true,
+                firstRevealDone = false,
+            ),
+        )
+        assertFalse(
+            FishRecordDetailPresentation.shouldAutoRevealBside(
+                BsideStatus.READY,
+                hasAsset = false,
+                firstRevealDone = false,
+            ),
+        )
+        assertFalse(
+            FishRecordDetailPresentation.shouldAutoRevealBside(
+                BsideStatus.GENERATING,
+                hasAsset = true,
+                firstRevealDone = false,
+            ),
+        )
+        assertFalse(
+            FishRecordDetailPresentation.shouldAutoRevealBside(
+                BsideStatus.READY,
+                hasAsset = true,
+                firstRevealDone = true,
+            ),
+        )
     }
 
     @Test
@@ -86,6 +135,7 @@ class FishRecordDetailPresentationTest {
         )
 
         assertEquals(null, FishRecordDetailPresentation.location(missingLocation))
+        assertEquals("浙江 · 千岛湖", FishRecordDetailPresentation.location(record))
         assertEquals("今天 20:07", FishRecordDetailPresentation.capturedAt(missingLocation))
         assertFalse(FishRecordDetailPresentation.capturedAt(missingLocation)!!.contains("T20:07"))
     }
