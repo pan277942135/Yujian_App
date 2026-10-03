@@ -8,27 +8,45 @@ import com.yujian.ai.knowledge.FishGuideItem
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.adaptive.resolveAdaptiveLayoutProfile
+import com.yujian.ai.ui.screens.RecognitionSaveDestination
+import com.yujian.ai.ui.screens.lowPendingSaveDestination
 
 class RecognitionResultContractsTest {
     @Test
     fun frozenWidthGeometryMatchesCanonicalTable() {
-        val expected = mapOf(320 to (288 to 224), 360 to (320 to 248), 393 to (353 to 274), 411 to (363 to 282))
+        val expected = mapOf(320 to (288 to 188), 360 to (322 to 210), 393 to (355 to 232), 411 to (363 to 237))
         expected.forEach { (width, size) ->
             val geometry = RecognitionResultGeometryResolver.resolve(width, 640)
             assertEquals(size.first, geometry.heroWidthDp)
             assertEquals(size.second, geometry.heroHeightDp)
         }
-        assertEquals(20, RecognitionResultGeometryResolver.resolve(360, 640).horizontalMarginDp)
+        assertEquals(19, RecognitionResultGeometryResolver.resolve(360, 640).horizontalMarginDp)
         assertEquals(24, RecognitionResultGeometryResolver.resolve(411, 640).horizontalMarginDp)
+    }
+
+    @Test
+    fun resultStatesUseTheirFrozenHeroAspectFamilies() {
+        val expected = mapOf(
+            RecognitionResultVisualState.HIGH to 210,
+            RecognitionResultVisualState.MEDIUM to 178,
+            RecognitionResultVisualState.LOW to 178,
+            RecognitionResultVisualState.NO_FISH to 245,
+            RecognitionResultVisualState.IMAGE_QUALITY to 214,
+        )
+        expected.forEach { (state, height) ->
+            val geometry = RecognitionResultGeometryResolver.resolve(360, 640, state)
+            assertEquals(322, geometry.heroWidthDp)
+            assertEquals(height, geometry.heroHeightDp)
+        }
     }
 
     @Test
     fun resultGeometryUsesSafeViewportProfilesWithoutStretchingHero() {
         val expected = listOf(
-            Triple(320f, 640f, 288 to 224),
-            Triple(360f, 780f, 320 to 248),
-            Triple(393f, 852f, 353 to 274),
-            Triple(411f, 891f, 363 to 282),
+            Triple(320f, 640f, 288 to 188),
+            Triple(360f, 780f, 322 to 210),
+            Triple(393f, 852f, 355 to 232),
+            Triple(411f, 891f, 363 to 237),
         )
         expected.forEach { (width, height, hero) ->
             val profile = resolveAdaptiveLayoutProfile(width, height, fontScale = 1f)
@@ -36,7 +54,7 @@ class RecognitionResultContractsTest {
             assertEquals(hero.first, geometry.heroWidthDp)
             assertEquals(hero.second, geometry.heroHeightDp)
             val actualAspect = geometry.heroWidthDp.toFloat() / geometry.heroHeightDp
-            assertTrue(kotlin.math.abs(actualAspect - 1.2903f) / 1.2903f <= 0.015f)
+            assertTrue(actualAspect > 1.45f)
         }
         val accessible = resolveAdaptiveLayoutProfile(360f, 780f, fontScale = 1.3f)
         assertTrue(accessible.accessibilityFontScale)
@@ -51,7 +69,7 @@ class RecognitionResultContractsTest {
         )
         assertEquals(369f, cutoutProfile.safeWidthDp)
         assertEquals(784f, cutoutProfile.safeHeightDp)
-        assertEquals(329, RecognitionResultGeometryResolver.resolve(cutoutProfile).heroWidthDp)
+        assertEquals(331, RecognitionResultGeometryResolver.resolve(cutoutProfile).heroWidthDp)
     }
 
     @Test
@@ -59,8 +77,7 @@ class RecognitionResultContractsTest {
         val normal = RecognitionResultGeometryResolver.resolve(360, 640)
         val compact = RecognitionResultGeometryResolver.resolve(360, 599)
         assertTrue(compact.compactHeightPolicy)
-        assertTrue(compact.heroHeightDp >= 208)
-        assertTrue(compact.heroHeightDp >= (normal.heroHeightDp * 0.88f).toInt())
+        assertEquals((normal.heroHeightDp * 0.88f).toInt(), compact.heroHeightDp)
     }
 
     @Test
@@ -97,17 +114,23 @@ class RecognitionResultContractsTest {
     fun metadataValidationHonorsOptionalRangeAndPrecision() {
         assertEquals(null, RecognitionResultInputValidation.length(""))
         assertEquals(null, RecognitionResultInputValidation.length(" 42.6 "))
-        assertEquals("请输入有效的长度", RecognitionResultInputValidation.length("0.09"))
-        assertEquals("请输入有效的长度", RecognitionResultInputValidation.length("1.25"))
+        assertEquals("请输入 0.1–999.9 cm 的长度", RecognitionResultInputValidation.length("0.09"))
+        assertEquals("请输入 0.1–999.9 cm 的长度", RecognitionResultInputValidation.length("1.25"))
         assertEquals(null, RecognitionResultInputValidation.weight("0.01"))
         assertEquals(null, RecognitionResultInputValidation.weight("999.99"))
-        assertEquals("请输入有效的重量", RecognitionResultInputValidation.weight("1000"))
+        assertEquals("请输入 0.01–999.99 kg 的重量", RecognitionResultInputValidation.weight("1000"))
     }
 
     @Test
     fun metadataLimitsCountUnicodeCodePointsRatherThanUtf16Units() {
         val input = "a😀bc"
         assertEquals("a😀b", RecognitionResultInputValidation.takeUnicodeCodePoints(input, 3))
+    }
+
+    @Test
+    fun lowSaveWaitsForSpeciesBeforeResumingTheRequestedDestination() {
+        assertEquals(null, lowPendingSaveDestination("", RecognitionSaveDestination.HOME))
+        assertEquals(RecognitionSaveDestination.MEMORY, lowPendingSaveDestination("grass_carp", RecognitionSaveDestination.MEMORY))
     }
 
     @Test

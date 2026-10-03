@@ -1,95 +1,45 @@
 {
   "contract": "recognition_result_component_map",
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN",
-  "shared": [
-    {
-      "element": "top_navigation",
-      "component": "top_navigation_v1",
-      "variant": "BACK_TITLE"
-    },
-    {
-      "element": "back",
-      "component": "icon_action_v1",
-      "variant": "NAVIGATION"
-    },
-    {
-      "element": "modify_species",
-      "component": "text_action_v1",
-      "variant": "NORMAL_LIGHT_CHEVRON"
-    },
-    {
-      "element": "other_species",
-      "component": "text_action_v1",
-      "variant": "MUTED_LIGHT_CHEVRON"
-    },
-    {
-      "element": "continue_memory",
-      "component": "action_button_v1",
-      "variant": "SECONDARY_STRONG"
-    },
-    {
-      "element": "save_catch",
-      "component": "action_button_v1",
-      "variant": "PRIMARY"
-    },
-    {
-      "element": "manual_species",
-      "component": "action_button_v1",
-      "variant": "SECONDARY_STRONG"
-    },
-    {
-      "element": "low_retake",
-      "component": "action_button_v1",
-      "variant": "SECONDARY_MUTED"
-    },
-    {
-      "element": "recovery_retake",
-      "component": "action_button_v1",
-      "variant": "PRIMARY"
-    },
-    {
-      "element": "recovery_gallery",
-      "component": "action_button_v1",
-      "variant": "SECONDARY_STRONG"
-    },
-    {
-      "element": "voice",
-      "component": "icon_action_v1",
-      "variant": "CONTEXT"
-    },
-    {
-      "element": "fit_support",
-      "component": "mist_glass_surface_v1",
-      "variant": "GLASS_A"
-    },
-    {
-      "element": "background",
-      "component": "background_system",
-      "variant": "BG_CONTENT"
-    }
-  ],
+  "shared": {
+    "result_top_navigation": { "component": "top_navigation_v1", "variant": "BACK_CENTER_TITLE" },
+    "species_selector_top_navigation": { "component": "top_navigation_v1", "variant": "BACK_TITLE" },
+    "continue_memory": { "component": "action_button_v1", "variant": "SECONDARY_MUTED" },
+    "save_catch": { "component": "action_button_v1", "variant": "RESULT_SAVE" },
+    "recovery_retake": { "component": "action_button_v1", "variant": "SECONDARY_STRONG" },
+    "recovery_gallery": { "component": "action_button_v1", "variant": "SECONDARY_MUTED" },
+    "glass": { "component": "mist_glass_surface_v1", "variant": "RESULT_RESTRAINED" },
+    "background": { "component": "background_system", "variant": "BG_CONTENT" }
+  },
   "private": [
     "ResultHeroViewport",
     "ResultSpeciesIdentityRow",
     "ResultMetadataStrip",
-    "ResultMetadataField",
     "ResultMemoryNote",
     "ResultCandidateRow",
     "ResultCandidateCard",
     "ResultRecoveryPanel",
     "ResultInlineError",
     "ResultNumericEditSheet",
-    "ResultLocationPickerSheet",
-    "ResultPlaceSearchField",
-    "ResultRecentLocationList"
+    "ResultLocationPickerSheet"
   ],
+  "state_composition": {
+    "HIGH": ["hero", "species_identity", "metadata_vertical", "story", "dual_cta"],
+    "MEDIUM": ["hero", "candidate_glass_panel", "metadata_after_selection", "story_after_selection", "dual_cta_after_selection"],
+    "LOW": ["hero", "message", "manual_or_retake", "metadata_vertical", "story", "dual_cta"],
+    "NO_FISH": ["hero_evidence_fit", "recovery_glass_panel"],
+    "IMAGE_QUALITY": ["hero_evidence_fit", "recovery_glass_panel"]
+  },
   "prohibited": [
-    "page_private_shared_button_copy",
-    "custom_back_row",
-    "generic_settings_metadata",
-    "fish_guide_card_as_candidate",
-    "frozen_screenshot_runtime_crop"
-  ],
-  "metadata_edit_flow": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md"
+    "universal_hero_aspect",
+    "page_private_fake_glass",
+    "teal_solid_result_save",
+    "teal_solid_recovery_button",
+    "horizontal_high_metadata_strip",
+    "independent_recovery_buttons",
+    "automatic_medium_selection",
+    "noop_voice_control",
+    "unknown_species_fish_record"
+  ]
 }

@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.designsystem.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -90,6 +91,36 @@ fun YuJianBackTitleTopBar(
             text = title,
             style = YuJianTypography.sectionTitle,
             modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** Result navigation variant: the title is centered independently of the back action. */
+@Composable
+fun YuJianBackCenterTitleTopBar(
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    backEnabled: Boolean = true,
+    statusBarInset: Boolean = true,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(topNavigationInsets(8.dp, statusBarInset))
+            .heightIn(min = 56.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        YuJianBackAction(
+            onClick = onBack,
+            modifier = Modifier.align(Alignment.CenterStart),
+            enabled = backEnabled,
+        )
+        Text(
+            text = title,
+            style = YuJianTypography.sectionTitle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

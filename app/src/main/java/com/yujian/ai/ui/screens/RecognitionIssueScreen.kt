@@ -1,6 +1,5 @@
 package com.yujian.ai.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,15 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,13 +22,17 @@ import androidx.compose.ui.platform.LocalConfiguration
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.designsystem.components.YuJianActionButtonVariant
-import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianBackCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
+import com.yujian.ai.ui.designsystem.glass.MistGlass
+import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
+import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.resolveRecognitionUiState
 import com.yujian.ai.ui.adaptive.rememberAdaptiveLayoutProfile
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
+import com.yujian.ai.ui.recognition.result.RecognitionResultVisualState
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
 
@@ -52,7 +52,12 @@ fun RecognitionIssueScreen(
         configuration.screenWidthDp.dp,
         configuration.screenHeightDp.dp,
     )
-    val geometry = RecognitionResultGeometryResolver.resolve(adaptiveProfile)
+    val visualState = if (state == RecognitionUiState.ERROR_NO_FISH) {
+        RecognitionResultVisualState.NO_FISH
+    } else {
+        RecognitionResultVisualState.IMAGE_QUALITY
+    }
+    val geometry = RecognitionResultGeometryResolver.resolve(adaptiveProfile, visualState)
     val copy = when {
         technicalFailure || state == RecognitionUiState.TECHNICAL_FAILURE ->
             "识别没有完成" to "请重新拍摄或选择照片。"
@@ -64,7 +69,7 @@ fun RecognitionIssueScreen(
     Box(Modifier.fillMaxSize()) {
         BgContentSurface()
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            YuJianBackTitleTopBar(title = "识别结果", onBack = onBack)
+            YuJianBackCenterTitleTopBar(title = "识别结果", onBack = onBack)
             Column(
                 Modifier.fillMaxWidth().weight(1f)
                     .padding(start = safeInsets.start, end = safeInsets.end)
@@ -81,25 +86,28 @@ fun RecognitionIssueScreen(
                         evidenceFirst = true,
                     )
                 }
-                Spacer(Modifier.height(20.dp))
-                Column(
-                    Modifier.fillMaxWidth().padding(horizontal = geometry.horizontalMarginDp.dp)
-                        .heightIn(min = 128.dp).background(Color(0xDDF7FAFB), RoundedCornerShape(20.dp)).padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                Spacer(Modifier.height(16.dp))
+                MistGlass(
+                    level = YuJianGlassLevel.Light,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = geometry.horizontalMarginDp.dp),
+                    shape = YuJianRadius.resultGlass,
                 ) {
-                    Text(copy.first, color = DeepInk, fontSize = 22.sp, lineHeight = 30.sp, fontWeight = FontWeight.SemiBold)
-                    Text(copy.second, color = MutedInk, fontSize = 15.sp, lineHeight = 23.sp)
-                }
-                Spacer(Modifier.height(20.dp))
-                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    YuJianPrimaryButton(
-                        text = "重新拍摄", onClick = onChooseAnother,
-                        variant = YuJianActionButtonVariant.PRIMARY,
-                    )
-                    YuJianPrimaryButton(
-                        text = "从相册选择", onClick = onChooseGallery,
-                        variant = YuJianActionButtonVariant.SECONDARY_STRONG,
-                    )
+                    Column(
+                        Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(copy.first, color = DeepInk, fontSize = 22.sp, lineHeight = 30.sp, fontWeight = FontWeight.SemiBold)
+                        Text(copy.second, color = MutedInk, fontSize = 15.sp, lineHeight = 23.sp)
+                        Spacer(Modifier.height(4.dp))
+                        YuJianPrimaryButton(
+                            text = "重新拍摄", onClick = onChooseAnother,
+                            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                        )
+                        YuJianPrimaryButton(
+                            text = "从相册选择", onClick = onChooseGallery,
+                            variant = YuJianActionButtonVariant.SECONDARY_MUTED,
+                        )
+                    }
                 }
             }
         }

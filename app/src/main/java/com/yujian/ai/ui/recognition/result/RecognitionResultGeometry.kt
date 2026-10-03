@@ -15,36 +15,54 @@ data class RecognitionResultGeometry(
     val compactHeightPolicy: Boolean,
 )
 
+enum class RecognitionResultVisualState {
+    HIGH,
+    MEDIUM,
+    LOW,
+    NO_FISH,
+    IMAGE_QUALITY,
+}
+
 /** Pure adaptive resolver for the frozen Recognition Result geometry. */
 object RecognitionResultGeometryResolver {
-    fun resolve(profile: AdaptiveLayoutProfile): RecognitionResultGeometry = resolve(
+    fun resolve(
+        profile: AdaptiveLayoutProfile,
+        state: RecognitionResultVisualState = RecognitionResultVisualState.HIGH,
+    ): RecognitionResultGeometry = resolve(
         windowWidthDp = profile.safeWidthDp.roundToInt(),
         contentHeightDp = profile.safeHeightDp.roundToInt(),
+        state = state,
     )
 
-    fun resolve(windowWidthDp: Int, contentHeightDp: Int): RecognitionResultGeometry {
+    fun resolve(
+        windowWidthDp: Int,
+        contentHeightDp: Int,
+        state: RecognitionResultVisualState = RecognitionResultVisualState.HIGH,
+    ): RecognitionResultGeometry {
         val width = windowWidthDp.coerceAtLeast(1)
         val margin = when {
             width <= 320 -> 16
-            width <= 393 -> 20
+            width <= 393 -> 19
             else -> 24
         }
         val contentWidth = (width - margin * 2).coerceAtLeast(1)
         val heroWidth = contentWidth
-        var heroHeight = when (width) {
-            320 -> 224
-            360 -> 248
-            393 -> 274
-            411 -> 282
-            else -> (heroWidth / 1.2903f).roundToInt().coerceAtMost(282)
+        val heroHeight = when (state) {
+            RecognitionResultVisualState.HIGH -> (heroWidth / 1.5333f).roundToInt()
+            RecognitionResultVisualState.MEDIUM,
+            RecognitionResultVisualState.LOW -> (heroWidth / 1.809f).roundToInt()
+            RecognitionResultVisualState.NO_FISH -> (heroWidth / 1.3143f).roundToInt()
+            RecognitionResultVisualState.IMAGE_QUALITY -> (heroWidth / 1.5047f).roundToInt()
         }
-        if (contentHeightDp < 600) {
-            heroHeight = (heroHeight * 0.88f).roundToInt().coerceAtLeast(208)
+        val adaptedHeroHeight = if (contentHeightDp < 600) {
+            (heroHeight * 0.88f).roundToInt().coerceAtLeast(160)
+        } else {
+            heroHeight
         }
         return RecognitionResultGeometry(
             horizontalMarginDp = margin,
             heroWidthDp = heroWidth,
-            heroHeightDp = heroHeight,
+            heroHeightDp = adaptedHeroHeight,
             candidateWidthDp = ((contentWidth - 16f) / 3f).coerceIn(88f, 116f),
             compactHeightPolicy = contentHeightDp < 600,
         )
@@ -87,9 +105,9 @@ data class RecognitionProcessingMediaPlan(
 enum class SourceEdge { LEFT, TOP, RIGHT, BOTTOM }
 
 object RecognitionResultInputValidation {
-    fun length(raw: String): String? = decimal(raw, 0.1, 999.9, 1, "请输入有效的长度")
+    fun length(raw: String): String? = decimal(raw, 0.1, 999.9, 1, "请输入 0.1–999.9 cm 的长度")
 
-    fun weight(raw: String): String? = decimal(raw, 0.01, 999.99, 2, "请输入有效的重量")
+    fun weight(raw: String): String? = decimal(raw, 0.01, 999.99, 2, "请输入 0.01–999.99 kg 的重量")
 
     fun takeUnicodeCodePoints(value: String, limit: Int): String {
         val end = value.offsetByCodePoints(0, value.codePointCount(0, value.length).coerceAtMost(limit))

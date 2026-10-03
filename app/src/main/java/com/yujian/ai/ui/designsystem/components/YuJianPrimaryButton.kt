@@ -44,6 +44,8 @@ enum class YuJianActionButtonVariant {
     PRIMARY,
     SECONDARY_STRONG,
     SECONDARY_MUTED,
+    /** Result-page save action: light surface with a restrained Morning Gold edge. */
+    RESULT_SAVE,
     /** Compatibility tone used by the existing component gallery. */
     BRAND_GOLD,
 }
@@ -91,6 +93,7 @@ fun YuJianPrimaryButton(
         YuJianActionButtonVariant.PRIMARY -> Color.White
         YuJianActionButtonVariant.SECONDARY_STRONG -> YuJianColors.DeepLakeBlue
         YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.MistBlueGray
+        YuJianActionButtonVariant.RESULT_SAVE -> YuJianColors.DeepLakeBlue
         YuJianActionButtonVariant.BRAND_GOLD -> YuJianColors.DeepLakeBlue
     }
     val container = when (resolvedVariant) {
@@ -100,6 +103,8 @@ fun YuJianPrimaryButton(
             if (pressed) Color(0xFFEAF3F1) else Color(0xE0F7FAFB)
         YuJianActionButtonVariant.SECONDARY_MUTED ->
             if (pressed) Color(0xE6F7FAFB) else Color(0x73F7FAFB)
+        YuJianActionButtonVariant.RESULT_SAVE ->
+            if (pressed) YuJianColors.LakeWhite else Color(0xF7FAFB)
         YuJianActionButtonVariant.BRAND_GOLD ->
             if (pressed) Color(0xFFE5C77C) else YuJianColors.MorningGold
     }
@@ -107,12 +112,14 @@ fun YuJianPrimaryButton(
         YuJianActionButtonVariant.PRIMARY -> YuJianColors.PrimaryActionDisabledSurface
         YuJianActionButtonVariant.SECONDARY_STRONG,
         YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.ActionDisabledSurface
+        YuJianActionButtonVariant.RESULT_SAVE -> YuJianColors.ActionDisabledSurface
         YuJianActionButtonVariant.BRAND_GOLD -> YuJianColors.MorningGold.copy(alpha = 0.48f)
     }
     val disabledContent = when (resolvedVariant) {
         YuJianActionButtonVariant.PRIMARY -> YuJianColors.PrimaryActionDisabledContent
         YuJianActionButtonVariant.SECONDARY_STRONG,
         YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.ActionDisabledContent
+        YuJianActionButtonVariant.RESULT_SAVE -> YuJianColors.ActionDisabledContent
         YuJianActionButtonVariant.BRAND_GOLD -> YuJianColors.DeepLakeBlue.copy(alpha = 0.56f)
     }
     val labelColor = if (!enabled && !loading) disabledContent else content
@@ -121,6 +128,7 @@ fun YuJianPrimaryButton(
         resolvedVariant == YuJianActionButtonVariant.PRIMARY -> Color.White.copy(alpha = 0.10f)
         resolvedVariant == YuJianActionButtonVariant.SECONDARY_STRONG -> primary.copy(alpha = if (pressed) 0.36f else 0.26f)
         resolvedVariant == YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.MistBlueGray.copy(alpha = 0.18f)
+        resolvedVariant == YuJianActionButtonVariant.RESULT_SAVE -> YuJianColors.MorningGold
         else -> YuJianColors.DeepLakeBlue.copy(alpha = 0.10f)
     }
     val shape = YuJianRadius.button
@@ -128,7 +136,8 @@ fun YuJianPrimaryButton(
         YuJianActionButtonVariant.PRIMARY -> if (pressed) 1.4.dp else 2.dp
         YuJianActionButtonVariant.SECONDARY_STRONG,
         YuJianActionButtonVariant.BRAND_GOLD -> if (pressed) 0.7.dp else 1.dp
-        YuJianActionButtonVariant.SECONDARY_MUTED -> 0.dp
+        YuJianActionButtonVariant.SECONDARY_MUTED,
+        YuJianActionButtonVariant.RESULT_SAVE -> if (pressed) 0.7.dp else 1.dp
     }
     val interactive = enabled && !loading
 
