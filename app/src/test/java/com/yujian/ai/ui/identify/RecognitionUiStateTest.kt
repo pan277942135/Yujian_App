@@ -56,6 +56,28 @@ class RecognitionUiStateTest {
         assertEquals(RecognitionUiState.TECHNICAL_FAILURE, resolveRecognitionUiState(technical))
     }
 
+    @Test
+    fun fishPresentWithLowSpeciesConfidenceRoutesToLowConfidence() {
+        val detectorRun = FishDetectorEngine.DetectorRun("test", "sha", 416, 1f, 32, 32, 1L, emptyList())
+        val assessment = FishDetectionQualityGate.assess(
+            listOf(
+                FishDetection(0.92f, NormalizedFishBox(.1f, .1f, .8f, .8f)),
+                FishDetection(0.41f, NormalizedFishBox(.12f, .12f, .78f, .78f)),
+            ),
+        )
+        val top = RecognitionCandidate(0, "grass_carp", "草鱼", .31f)
+        val second = RecognitionCandidate(1, "crucian_carp", "鲫鱼", .21f)
+        val result = ProductionRecognitionResult(
+            status = assessment.status,
+            detectorRun = detectorRun,
+            assessment = assessment,
+            prediction = RecognitionPrediction("fixture-model", "sha", top, listOf(top, second), 1L),
+            cropPixels = intArrayOf(0, 0, 10, 10),
+        )
+
+        assertEquals(RecognitionUiState.RESULT_LOW, resolveRecognitionUiState(result))
+    }
+
     private fun prediction(topConfidence: Float, secondConfidence: Float): RecognitionPrediction {
         val top = RecognitionCandidate(0, "grass_carp", "草鱼", topConfidence)
         val second = RecognitionCandidate(1, "crucian_carp", "鲫鱼", secondConfidence)

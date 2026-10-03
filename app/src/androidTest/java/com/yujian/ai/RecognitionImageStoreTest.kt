@@ -75,4 +75,19 @@ class RecognitionImageStoreTest {
             emptyInput.delete()
         }
     }
+
+    @Test
+    fun cameraTargetUriWritesToTheFileConsumedByRecognitionHandoff() {
+        val target = RecognitionImageStore.createCameraTarget(context)
+        try {
+            context.contentResolver.openOutputStream(target.uri)?.use { output ->
+                output.write(byteArrayOf(0x01, 0x02, 0x03))
+            } ?: error("camera target URI is not writable")
+            assertTrue(target.file.exists())
+            assertTrue(target.file.length() > 0L)
+            assertEquals("${context.packageName}.fileprovider", target.uri.authority)
+        } finally {
+            target.file.delete()
+        }
+    }
 }

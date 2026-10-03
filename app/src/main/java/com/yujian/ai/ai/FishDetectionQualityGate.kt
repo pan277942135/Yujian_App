@@ -135,14 +135,18 @@ object FishDetectionQualityGate {
 
         val primary = strong.first()
         if (strong.size >= 2) {
+            // Multiple strong candidates are detector ambiguity, not proof that
+            // the source image is unusable. Keep the highest-ranked fish as the
+            // classifier crop so a clear handheld photo can still resolve to a
+            // normal low-confidence result instead of IMAGE_QUALITY.
             return FishInputAssessment(
                 FishInputStatus.MULTIPLE_FISH,
                 primary,
-                null,
+                primary.box.expand(CROP_EXPAND_RATIO),
                 strong,
                 weak,
-                "multiple_strong_fish_detections",
-                FishQualityLevel.INVALID,
+                "multiple_strong_fish_candidates_primary_selected",
+                FishQualityLevel.WARNING,
             )
         }
 

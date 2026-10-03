@@ -2,6 +2,7 @@ package com.yujian.ai.ui.screens
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentValues
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -211,7 +212,15 @@ fun IdentifyScreen(
         val target = targetResult.getOrThrow()
         loading = true
         try {
-            val output = ImageCapture.OutputFileOptions.Builder(target.file).build()
+            // CameraX must write through the same FileProvider URI that owns the
+            // capture target. Some physical devices reject the raw cache File
+            // output path even though the preview and ImageCapture use case are
+            // ready; the provider-backed stream is the stable handoff contract.
+            val output = ImageCapture.OutputFileOptions.Builder(
+                context.contentResolver,
+                target.uri,
+                ContentValues(),
+            ).build()
             cameraController.takePicture(
                 output,
                 ContextCompat.getMainExecutor(context),
@@ -219,6 +228,9 @@ fun IdentifyScreen(
                     override fun onImageSaved(result: ImageCapture.OutputFileResults) {
                         scope.launch {
                             val normalized = runCatching {
+                                check(target.file.exists() && target.file.length() > 0L) {
+                                    "没有读取到拍照内容，请重新拍摄"
+                                }
                                 RecognitionImageStore.normalizeCameraFile(context, target.file)
                             }
                             target.file.delete()

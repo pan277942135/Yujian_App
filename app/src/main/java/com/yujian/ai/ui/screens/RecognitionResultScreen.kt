@@ -751,14 +751,14 @@ private fun ResultDualActions(
                 destination = RecognitionSaveDestination.MEMORY,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
-                modifier = Modifier.weight(44f),
+                modifier = Modifier.weight(50f),
                 onClick = onContinue,
             )
             ResultDualActionButton(
                 destination = RecognitionSaveDestination.HOME,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
-                modifier = Modifier.weight(56f),
+                modifier = Modifier.weight(50f),
                 onClick = onSave,
             )
         }
