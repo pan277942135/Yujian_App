@@ -22,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -480,7 +482,8 @@ class RecognitionFrozenFlowEmulatorTest {
     fun resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading() {
         val saving = mutableStateOf(false)
         val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
-        val loadingDescription = "StateDescription = 正在加载"
+        val memoryLoading = hasText("继续记录记忆") and hasStateDescription("正在加载")
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
 
         composeRule.setContent {
             YujianTheme {
@@ -502,15 +505,18 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
-        assertFalse(
-            composeRule.onRoot(useUnmergedTree = true).printToString().contains(loadingDescription),
-        )
+        assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
 
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) {
-            composeRule.onRoot(useUnmergedTree = true).printToString().contains(loadingDescription)
+            saveCalls.get() == 1
         }
         assertEquals(1, saveCalls.get())
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
     }
 
     @Test
@@ -1479,3 +1485,4 @@ private fun FrozenRecognitionHarness(
     }
     }
 }
+
