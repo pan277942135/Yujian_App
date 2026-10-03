@@ -39,14 +39,13 @@ The order is fixed. Runtime must not reorder cards based on available content, c
 
 Forbidden card families:
 
-- rarity / 稀有度
-- power / 战力
-- challenge / 挑战等级
+Game/progression semantics remain forbidden:
+
 - ranking / 排行
-- legendary / epic tiers
+- legendary / epic collectible tiers
 - star rating used as collectible progression
 
-Legacy fields with those meanings may remain in transport models temporarily, but Fish Guide V1 must ignore them visually and semantically.
+The legacy `rarity / 稀有度`, `power / 战力`, and `challenge / 挑战等级` fields may appear only in the approved HERO descriptive rating panel defined by Visual Authority V2. They describe species metadata and must never represent player progression, unlock state, ranking, achievement, or collectible tier.
 
 ---
 
@@ -79,6 +78,10 @@ Primary sources:
 - approved species media.
 
 ---
+
+### Approved HERO descriptive rating metadata
+
+V2 HERO may display five-star `rarity`, `power`, and `challenge` values as species descriptive metadata. The labels may be localized as 稀有度、力道感（力量值）、上手门槛（挑战值）. This is an editorial field-guide summary only: it does not unlock cards, change encounter state, rank users, or imply a game progression system.
 
 ## 3. Card 02 · IDENTIFICATION / 辨识特征
 
@@ -271,11 +274,15 @@ Inside the frozen Species Detail carousel:
 
 Keep:
 
-- restrained black-gold knowledge-card family;
+- Morning Lake / lake-glass atmosphere;
 - documentary / natural-history tone;
+- gray-blue-green palette with restrained warm-gold editorial accents;
+- deep lake-blue typography;
 - realistic biological subject;
 - strong fish identity;
 - clear hierarchy between title, fact and supporting copy.
+
+The legacy black/gold card family is preserved as historical material and marked SUPERSEDED_VISUAL_REFERENCE; it is not current V2 card-internal authority.
 
 Avoid:
 
@@ -307,7 +314,7 @@ Canonical card types remain:
 
 `HERO / IDENTIFICATION / ECO / GEAR / SKILL`
 
-Legacy transport fields `rarity / power / challenge` are **deprecated for Fish Guide presentation**.
+Legacy transport fields `rarity / power / challenge` are descriptive species metadata when rendered in the approved HERO rating panel; they are **not progression semantics** and must never drive unlock, ranking, or activation.
 
 Runtime tabs or destinations such as “排行榜” are outside this frozen V1 information architecture.
 
@@ -333,7 +340,7 @@ Runtime tabs or destinations such as “排行榜” are outside this frozen V1 
 - [x] Species media authority is separated from FishRecord / Recognition / B-side assets.
 - [x] Knowledge-card artwork has a species + type mapping rule.
 - [x] Structured data remains the factual source of truth.
-- [x] Visual language remains natural-history / black-gold, not game-card progression.
+- [x] V2 visual language is Morning Lake / lake-glass / documentary gray-blue-green with restrained warm gold, not game-card progression.
 - [x] Accessibility requires text equivalents for critical information.
 
 This contract replaces the former standalone **05 · 内容合同** and **06 · 资产** Design Manager placeholders.
