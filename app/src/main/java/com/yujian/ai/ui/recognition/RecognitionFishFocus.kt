@@ -352,4 +352,3 @@ fun RecognitionFishFocus(
         }
     }
 }
-

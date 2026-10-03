@@ -27,4 +27,3 @@ class RecognitionAmbientFieldTest {
         assertTrue(recognitionAmbientPrimaryIslandIds.intersect(recognitionAmbientSecondaryFragmentIds).isEmpty())
     }
 }
-
