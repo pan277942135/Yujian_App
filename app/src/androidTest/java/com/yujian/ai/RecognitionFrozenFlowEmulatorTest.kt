@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
+import android.view.View
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
@@ -253,6 +254,22 @@ class RecognitionFrozenFlowEmulatorTest {
             Rect(0, 0, 640, 1232),
             screenshotCropBounds(640, 1280, 320, 640, Rect(0, 0, 320, 616)),
         )
+    }
+
+    @Test
+    fun measuredSourceSurfaceMapsToTargetCaptureWithoutStretching() {
+        val mapping = captureSurfaceMapping(
+            sourceBitmapWidth = 640,
+            sourceBitmapHeight = 1280,
+            sourceBounds = Rect(0, 0, 320, 628),
+            targetBitmapWidth = 640,
+            targetBitmapHeight = 1280,
+            targetBounds = Rect(0, 24, 640, 1280),
+        )
+        assertEquals(Rect(0, 0, 320, 628), mapping.sourceBitmapBounds)
+        assertEquals(Rect(0, 24, 640, 1280), mapping.targetBitmapBounds)
+        assertEquals(2f, mapping.scaleX, 0.001f)
+        assertEquals(2f, mapping.scaleY, 0.001f)
     }
 
     @Test
@@ -1281,36 +1298,86 @@ class RecognitionFrozenFlowEmulatorTest {
         val logicalDisplayWidth = device.displayWidth
         val logicalDisplayHeight = device.displayHeight
         val logicalRootBounds = composeSurfaceBoundsOnScreen()
-        val physicalCropBounds = screenshotCropBounds(
+        val sourceSurface = measureCaptureSourceSurface()
+        val targetBitmapBounds = screenshotCropBounds(
             sourceWidth = decoded.width,
             sourceHeight = decoded.height,
             logicalDisplayWidth = logicalDisplayWidth,
             logicalDisplayHeight = logicalDisplayHeight,
             logicalBounds = logicalRootBounds,
         )
-        val appSurface = Bitmap.createBitmap(
-            decoded,
-            physicalCropBounds.left,
-            physicalCropBounds.top,
-            physicalCropBounds.width(),
-            physicalCropBounds.height(),
+        trace(
+            "SCREENSHOT_CAPTURE_FORENSICS name=" + name + " " +
+                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
+                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
+                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
+                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
+                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
+                "source_view_bounds_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
+                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
+                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
+                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
+                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
+                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
+                "target_bitmap_crop_px=" + targetBitmapBounds.left + "," + targetBitmapBounds.top + "," +
+                targetBitmapBounds.right + "," + targetBitmapBounds.bottom + " " +
+                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi,
         )
+        val mapping = captureSurfaceMapping(
+            sourceBitmapWidth = decoded.width,
+            sourceBitmapHeight = decoded.height,
+            sourceBounds = sourceSurface.viewBoundsOnScreenPx,
+            targetBitmapWidth = decoded.width,
+            targetBitmapHeight = decoded.height,
+            targetBounds = targetBitmapBounds,
+        )
+        val sourceSurfaceBitmap = Bitmap.createBitmap(
+            decoded,
+            mapping.sourceBitmapBounds.left,
+            mapping.sourceBitmapBounds.top,
+            mapping.sourceBitmapBounds.width(),
+            mapping.sourceBitmapBounds.height(),
+        )
+        val appSurface = Bitmap.createBitmap(
+            mapping.targetBitmapBounds.width(),
+            mapping.targetBitmapBounds.height(),
+            Bitmap.Config.ARGB_8888,
+        )
+        val canvas = Canvas(appSurface)
+        canvas.scale(mapping.scaleX, mapping.scaleY)
+        canvas.drawBitmap(sourceSurfaceBitmap, 0f, 0f, null)
         output.outputStream().use { stream ->
             check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         trace(
-            "SCREENSHOT_APP_SURFACE_ONLY name=$name " +
-                "logical_display=${logicalDisplayWidth}x${logicalDisplayHeight} " +
-                "raw_screenshot=${decoded.width}x${decoded.height} " +
-                "logical_root_bounds=${logicalRootBounds.left},${logicalRootBounds.top}," +
-                "${logicalRootBounds.right},${logicalRootBounds.bottom} " +
-                "pixel_scale=${decoded.width / logicalDisplayWidth.toFloat()}," +
-                "${decoded.height / logicalDisplayHeight.toFloat()} " +
-                "physical_crop_bounds=${physicalCropBounds.left},${physicalCropBounds.top}," +
-                "${physicalCropBounds.right},${physicalCropBounds.bottom} " +
-                "output=${appSurface.width}x${appSurface.height}",
+            "SCREENSHOT_APP_SURFACE_ONLY name=" + name + " " +
+                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
+                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
+                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
+                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
+                "source_view_class=" + sourceSurface.viewClassName + " " +
+                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
+                "source_view_bounds_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
+                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
+                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
+                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
+                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
+                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
+                "source_bitmap_crop_px=" + mapping.sourceBitmapBounds.left + "," +
+                mapping.sourceBitmapBounds.top + "," + mapping.sourceBitmapBounds.right + "," +
+                mapping.sourceBitmapBounds.bottom + " " +
+                "target_bitmap_crop_px=" + mapping.targetBitmapBounds.left + "," +
+                mapping.targetBitmapBounds.top + "," + mapping.targetBitmapBounds.right + "," +
+                mapping.targetBitmapBounds.bottom + " " +
+                "view_origin_in_bitmap_px=" + mapping.sourceBitmapBounds.left + "," +
+                mapping.sourceBitmapBounds.top + " " +
+                "canvas_initial_transform=identity " +
+                "canvas_transform=scale(" + mapping.scaleX + "," + mapping.scaleY + ") " +
+                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi + " " +
+                "output_px=" + appSurface.width + "x" + appSurface.height,
         )
-        if (appSurface !== decoded) appSurface.recycle()
+        if (sourceSurfaceBitmap !== decoded) sourceSurfaceBitmap.recycle()
+        appSurface.recycle()
         decoded.recycle()
         raw.delete()
 
@@ -1326,7 +1393,6 @@ class RecognitionFrozenFlowEmulatorTest {
         // CI exports it after the test through adb run-as; do not make the
         // instrumentation process depend on writing /data/local/tmp.
     }
-
     private fun cropEvidence(
         sourceName: String,
         targetName: String,
@@ -1354,6 +1420,115 @@ class RecognitionFrozenFlowEmulatorTest {
         source.recycle()
     }
 
+    private data class CaptureSourceSurface(
+        val viewBoundsOnScreenPx: Rect,
+        val viewWidthPx: Int,
+        val viewHeightPx: Int,
+        val windowWidthPx: Int,
+        val windowHeightPx: Int,
+        val decorWidthPx: Int,
+        val decorHeightPx: Int,
+        val contentWidthPx: Int,
+        val contentHeightPx: Int,
+        val viewClassName: String,
+        val density: Float,
+        val densityDpi: Int,
+    )
+
+    private data class CaptureSurfaceMapping(
+        val sourceBitmapBounds: Rect,
+        val targetBitmapBounds: Rect,
+        val scaleX: Float,
+        val scaleY: Float,
+    )
+
+    private fun measureCaptureSourceSurface(): CaptureSourceSurface {
+        val measured = AtomicReference<CaptureSourceSurface?>()
+        composeRule.runOnUiThread {
+            val decor = composeRule.activity.window.decorView
+            val content = composeRule.activity.findViewById<View>(android.R.id.content)
+                ?: error("Recognition capture content View is unavailable")
+            val sourceView = findComposeSourceView(content) ?: content
+            val location = IntArray(2)
+            sourceView.getLocationOnScreen(location)
+            check(sourceView.width > 0 && sourceView.height > 0) {
+                "Recognition capture source View has invalid size ${sourceView.width}x${sourceView.height}"
+            }
+            measured.set(
+                CaptureSourceSurface(
+                    viewBoundsOnScreenPx = Rect(
+                        location[0],
+                        location[1],
+                        location[0] + sourceView.width,
+                        location[1] + sourceView.height,
+                    ),
+                    viewWidthPx = sourceView.width,
+                    viewHeightPx = sourceView.height,
+                    windowWidthPx = decor.width,
+                    windowHeightPx = decor.height,
+                    decorWidthPx = decor.width,
+                    decorHeightPx = decor.height,
+                    contentWidthPx = content.width,
+                    contentHeightPx = content.height,
+                    viewClassName = sourceView.javaClass.name,
+                    density = sourceView.resources.displayMetrics.density,
+                    densityDpi = sourceView.resources.displayMetrics.densityDpi,
+                ),
+            )
+        }
+        return requireNotNull(measured.get()) {
+            "Recognition capture source View bounds were not measured"
+        }
+    }
+
+    private fun findComposeSourceView(view: View): View? {
+        var candidate: View? = if (view.javaClass.name.contains("Compose")) view else null
+        if (view is android.view.ViewGroup) {
+            for (index in 0 until view.childCount) {
+                candidate = findComposeSourceView(view.getChildAt(index)) ?: candidate
+            }
+        }
+        return candidate
+    }
+
+    private fun captureSurfaceMapping(
+        sourceBitmapWidth: Int,
+        sourceBitmapHeight: Int,
+        sourceBounds: Rect,
+        targetBitmapWidth: Int,
+        targetBitmapHeight: Int,
+        targetBounds: Rect,
+    ): CaptureSurfaceMapping {
+        require(sourceBitmapWidth > 0 && sourceBitmapHeight > 0) {
+            "Source capture bitmap must have positive dimensions: ${sourceBitmapWidth}x${sourceBitmapHeight}"
+        }
+        require(targetBitmapWidth > 0 && targetBitmapHeight > 0) {
+            "Target capture bitmap must have positive dimensions: ${targetBitmapWidth}x${targetBitmapHeight}"
+        }
+        require(sourceBounds.left >= 0 && sourceBounds.top >= 0 &&
+            sourceBounds.right <= sourceBitmapWidth && sourceBounds.bottom <= sourceBitmapHeight) {
+            "Source View bounds exceed capture bitmap: bounds=$sourceBounds bitmap=${sourceBitmapWidth}x${sourceBitmapHeight}"
+        }
+        require(targetBounds.left >= 0 && targetBounds.top >= 0 &&
+            targetBounds.right <= targetBitmapWidth && targetBounds.bottom <= targetBitmapHeight) {
+            "Target crop bounds exceed capture bitmap: bounds=$targetBounds bitmap=${targetBitmapWidth}x${targetBitmapHeight}"
+        }
+        require(sourceBounds.width() > 0 && sourceBounds.height() > 0) {
+            "Source View bounds must be non-empty: $sourceBounds"
+        }
+        require(targetBounds.width() > 0 && targetBounds.height() > 0) {
+            "Target crop bounds must be non-empty: $targetBounds"
+        }
+        val scaleX = targetBounds.width() / sourceBounds.width().toFloat()
+        val scaleY = targetBounds.height() / sourceBounds.height().toFloat()
+        require(scaleX > 0f && scaleY > 0f) {
+            "Capture surface scale must be positive: $scaleX,$scaleY"
+        }
+        require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
+            "Capture surface mapping would stretch the source: source=$sourceBounds target=$targetBounds scaleX=$scaleX scaleY=$scaleY"
+        }
+        return CaptureSurfaceMapping(Rect(sourceBounds), Rect(targetBounds), scaleX, scaleY)
+    }
     private fun composeSurfaceBoundsOnScreen(): Rect {
         val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
         val windowOrigin = IntArray(2)
