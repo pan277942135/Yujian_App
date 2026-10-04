@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.rememberScrollState
@@ -15,18 +16,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.PhotoLibrary
+import androidx.compose.material3.Icon
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.designsystem.components.YuJianActionButtonVariant
 import com.yujian.ai.ui.designsystem.components.YuJianBackCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
-import com.yujian.ai.ui.designsystem.glass.MistGlass
-import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
-import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.resolveRecognitionUiState
 import com.yujian.ai.ui.adaptive.rememberAdaptiveLayoutProfile
@@ -87,25 +90,55 @@ fun RecognitionIssueScreen(
                     )
                 }
                 Spacer(Modifier.height(16.dp))
-                MistGlass(
-                    level = YuJianGlassLevel.Light,
+                ResultRecoverySurface(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = geometry.horizontalMarginDp.dp),
-                    shape = YuJianRadius.resultGlass,
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Text(copy.first, color = DeepInk, fontSize = 22.sp, lineHeight = 30.sp, fontWeight = FontWeight.SemiBold)
-                        Text(copy.second, color = MutedInk, fontSize = 15.sp, lineHeight = 23.sp)
+                        Text(
+                            copy.first,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = DeepInk,
+                            fontSize = 22.sp,
+                            lineHeight = 30.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            copy.second,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = MutedInk,
+                            fontSize = 15.sp,
+                            lineHeight = 23.sp,
+                        )
                         Spacer(Modifier.height(4.dp))
                         YuJianPrimaryButton(
                             text = "重新拍摄", onClick = onChooseAnother,
-                            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                            modifier = Modifier.fillMaxWidth(),
+                            variant = YuJianActionButtonVariant.PRIMARY,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.CameraAlt,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            },
                         )
                         YuJianPrimaryButton(
                             text = "从相册选择", onClick = onChooseGallery,
-                            variant = YuJianActionButtonVariant.SECONDARY_MUTED,
+                            modifier = Modifier.fillMaxWidth(),
+                            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.PhotoLibrary,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            },
                         )
                     }
                 }
