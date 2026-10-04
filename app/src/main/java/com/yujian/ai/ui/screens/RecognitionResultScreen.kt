@@ -56,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -184,6 +185,11 @@ fun RecognitionResultScreen(
         configuration.screenHeightDp.dp,
     )
     val geometry = RecognitionResultGeometryResolver.resolve(adaptiveProfile, visualState)
+    val resultPageScrollEnabled = RecognitionResultGeometryResolver.usesScrollableResultPage(
+        compactHeightPolicy = geometry.compactHeightPolicy,
+        accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+    )
+    val compactResultActions = geometry.heroWidthDp <= 340
     val candidateFontScale = LocalDensity.current.fontScale
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
     val selectorSpecies = remember(prediction, availableSpecies) {
@@ -328,7 +334,8 @@ fun RecognitionResultScreen(
             Column(
                 Modifier.weight(1f).fillMaxWidth()
                     .padding(start = safeInsets.start, end = safeInsets.end)
-                    .verticalScroll(rememberScrollState())
+                    .then(if (resultPageScrollEnabled) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                    .clipToBounds()
                     .padding(bottom = 20.dp + safeInsets.bottom),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -344,7 +351,7 @@ fun RecognitionResultScreen(
                             uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
                     )
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
                 val sideMargin = geometry.horizontalMarginDp.dp
                 when (uiState) {
                     RecognitionUiState.RESULT_HIGH -> {
@@ -355,7 +362,7 @@ fun RecognitionResultScreen(
                             enabled = !saving,
                             onChange = { openSpeciesSelector() },
                         )
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(8.dp))
                         ResultMetadataStrip(
                             length = lengthText,
                             weight = weightText,
@@ -366,7 +373,7 @@ fun RecognitionResultScreen(
                             enabled = !saving,
                             onField = { editField = it },
                         )
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(8.dp))
                         ResultMemoryNote(
                             value = storyText,
                             onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
@@ -380,16 +387,15 @@ fun RecognitionResultScreen(
                             saving = saving,
                             loadingDestination = activeLoadingDestination,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            sideMargin = 24.dp,
+                            compactLayout = compactResultActions,
+                            sideMargin = if (compactResultActions) 16.dp else 24.dp,
                             onContinue = { save(RecognitionSaveDestination.MEMORY) },
                             onSave = { save(RecognitionSaveDestination.HOME) },
                         )
                     }
                     RecognitionUiState.RESULT_MEDIUM -> {
-                        MistGlass(
-                            level = YuJianGlassLevel.Light,
+                        ResultInformationGlass(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                            shape = YuJianRadius.resultGlass,
                         ) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text(
@@ -420,9 +426,9 @@ fun RecognitionResultScreen(
                             }
                         }
                         if (selectedKey.isNotBlank()) {
-                            Spacer(Modifier.height(16.dp))
-                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving, onChange = { openSpeciesSelector() })
                             Spacer(Modifier.height(12.dp))
+                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving, onChange = { openSpeciesSelector() })
+                            Spacer(Modifier.height(8.dp))
                             ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
                             Spacer(Modifier.height(12.dp))
                             ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
@@ -432,7 +438,8 @@ fun RecognitionResultScreen(
                                 saving = saving,
                                 loadingDestination = activeLoadingDestination,
                                 accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                                sideMargin = 24.dp,
+                                compactLayout = compactResultActions,
+                                sideMargin = if (compactResultActions) 16.dp else 24.dp,
                                 onContinue = { save(RecognitionSaveDestination.MEMORY) },
                                 onSave = { save(RecognitionSaveDestination.HOME) },
                             )
@@ -464,6 +471,7 @@ fun RecognitionResultScreen(
                                 saving = saving, sideMargin = 0.dp,
                                 loadingDestination = activeLoadingDestination,
                                 accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                compactLayout = compactResultActions,
                                 onContinue = { save(RecognitionSaveDestination.MEMORY) },
                                 onSave = { save(RecognitionSaveDestination.HOME) },
                             )
@@ -563,11 +571,7 @@ fun ResultHeroViewport(
     Box(
         Modifier.width(widthDp.dp).height(heightDp.dp),
     ) {
-        MistGlass(
-            level = YuJianGlassLevel.Light,
-            modifier = Modifier.fillMaxSize(),
-            shape = YuJianRadius.resultHero,
-        ) {
+        ResultHeroSupportSurface(Modifier.fillMaxSize()) {
             Canvas(Modifier.fillMaxSize()) {
                 val src = plan.sourceRect
                 val sourceLeft = (src.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
@@ -615,10 +619,8 @@ private fun ResultMetadataStrip(
     length: String, weight: String, location: String, resolvingLocation: Boolean,
     modifier: Modifier, accessibilityFontScale: Boolean = false, enabled: Boolean = true, onField: (ResultEditableField) -> Unit,
 ) {
-    MistGlass(
-        level = YuJianGlassLevel.Light,
+    ResultInformationGlass(
         modifier = modifier,
-        shape = YuJianRadius.resultGlass,
     ) {
         Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
             MetadataField(Icons.Rounded.Straighten, "长度", if (length.isBlank()) "请输入" else "$length cm", enabled, accessibilityFontScale) { onField(ResultEditableField.LENGTH) }
@@ -627,6 +629,32 @@ private fun ResultMetadataStrip(
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0x2674898D))
             MetadataField(Icons.Rounded.LocationOn, "地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "请选择" }, enabled, accessibilityFontScale) { onField(ResultEditableField.LOCATION) }
         }
+    }
+}
+
+@Composable
+private fun ResultHeroSupportSurface(modifier: Modifier, content: @Composable () -> Unit) {
+    Box(
+        modifier = modifier
+            .clip(YuJianRadius.resultHero)
+            .background(YuJianColors.DeepLakeBlue.copy(alpha = 0.16f))
+            .border(1.dp, Color.White.copy(alpha = 0.38f), YuJianRadius.resultHero),
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun ResultInformationGlass(
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    MistGlass(
+        level = YuJianGlassLevel.Strong,
+        modifier = modifier,
+        shape = YuJianRadius.resultGlass,
+    ) {
+        content()
     }
 }
 
@@ -640,7 +668,7 @@ private fun MetadataField(
     onClick: () -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = if (accessibilityFontScale) 68.dp else 60.dp)
+        Modifier.fillMaxWidth().heightIn(min = if (accessibilityFontScale) 68.dp else 56.dp)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -668,17 +696,15 @@ private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, mod
     var focused by remember { mutableStateOf(false) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
-    MistGlass(
-        level = YuJianGlassLevel.Light,
+    ResultInformationGlass(
         modifier = modifier.heightIn(
-            min = if (accessibilityFontScale) 128.dp else 112.dp,
+            min = if (accessibilityFontScale) 128.dp else 104.dp,
             max = when {
                 accessibilityFontScale -> 176.dp
                 focused -> 156.dp
-                else -> 128.dp
+                else -> 120.dp
             },
         ),
-        shape = YuJianRadius.resultGlass,
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("写下这次鱼获的故事", color = DeepInk, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium)
@@ -732,9 +758,8 @@ private fun CandidateRow(
         candidates.take(3).forEachIndexed { index, candidate ->
             val selected = candidate.speciesKey == selectedKey
             val suggested = index == 0 && !selected
-            MistGlass(
-                level = YuJianGlassLevel.Light,
-                modifier = Modifier.width(cardWidth.dp).height(if (widthDp < 300) 108.dp else 112.dp)
+            ResultInformationGlass(
+                modifier = Modifier.width(cardWidth.dp).height(if (widthDp < 300) 100.dp else 104.dp)
                     .graphicsLayer { alpha = if (saving) 0.42f else 1f }
                     .then(if (selected) Modifier.border(2.dp, YuJianColors.MorningGold, YuJianRadius.resultGlass) else Modifier)
                     .semantics {
@@ -742,7 +767,6 @@ private fun CandidateRow(
                         if (suggested) stateDescription = "模型建议"
                     }
                     .clickable(enabled = !saving, role = Role.RadioButton) { onSelect(candidate) },
-                shape = YuJianRadius.resultGlass,
             ) {
                 Column(
                     Modifier.fillMaxSize().padding(10.dp),
@@ -779,6 +803,7 @@ private fun ResultDualActions(
     saving: Boolean,
     loadingDestination: RecognitionSaveDestination?,
     accessibilityFontScale: Boolean,
+    compactLayout: Boolean,
     sideMargin: Dp,
     onContinue: () -> Unit,
     onSave: () -> Unit,
@@ -786,11 +811,12 @@ private fun ResultDualActions(
     // The callbacks are supplied by the enclosing page so metadata and species are validated together.
     val blocked = saving || loadingDestination != null
     if (accessibilityFontScale) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp)) {
             ResultDualActionButton(
                 destination = RecognitionSaveDestination.MEMORY,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
+                compactLayout = compactLayout,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onContinue,
             )
@@ -798,24 +824,27 @@ private fun ResultDualActions(
                 destination = RecognitionSaveDestination.HOME,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
+                compactLayout = compactLayout,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onSave,
             )
         }
     } else {
-        Row(Modifier.fillMaxWidth().padding(horizontal = sideMargin), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = sideMargin), horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp)) {
             ResultDualActionButton(
                 destination = RecognitionSaveDestination.MEMORY,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
-                modifier = Modifier.weight(50f),
+                compactLayout = compactLayout,
+                modifier = Modifier.weight(1f),
                 onClick = onContinue,
             )
             ResultDualActionButton(
                 destination = RecognitionSaveDestination.HOME,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
-                modifier = Modifier.weight(50f),
+                compactLayout = compactLayout,
+                modifier = Modifier.weight(1f),
                 onClick = onSave,
             )
         }
@@ -827,6 +856,7 @@ private fun ResultDualActionButton(
     destination: RecognitionSaveDestination,
     loadingDestination: RecognitionSaveDestination?,
     enabled: Boolean,
+    compactLayout: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
@@ -838,12 +868,14 @@ private fun ResultDualActionButton(
         enabled = enabled,
         loading = loadingDestination == destination,
         variant = if (isContinue) YuJianActionButtonVariant.SECONDARY_MUTED else YuJianActionButtonVariant.RESULT_SAVE,
-        leadingIcon = {
-            Icon(
-                imageVector = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-            )
+        leadingIcon = if (compactLayout) null else {
+            {
+                Icon(
+                    imageVector = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         },
     )
 }

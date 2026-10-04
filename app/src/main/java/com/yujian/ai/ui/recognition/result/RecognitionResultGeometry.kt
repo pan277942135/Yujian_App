@@ -48,11 +48,11 @@ object RecognitionResultGeometryResolver {
         val contentWidth = (width - margin * 2).coerceAtLeast(1)
         val heroWidth = contentWidth
         val heroHeight = when (state) {
-            RecognitionResultVisualState.HIGH -> (heroWidth / 1.5333f).roundToInt()
+            RecognitionResultVisualState.HIGH -> (heroWidth / 1.62f).roundToInt()
             RecognitionResultVisualState.MEDIUM,
-            RecognitionResultVisualState.LOW -> (heroWidth / 1.809f).roundToInt()
-            RecognitionResultVisualState.NO_FISH -> (heroWidth / 1.3143f).roundToInt()
-            RecognitionResultVisualState.IMAGE_QUALITY -> (heroWidth / 1.5047f).roundToInt()
+            RecognitionResultVisualState.LOW -> (heroWidth / 1.94f).roundToInt()
+            RecognitionResultVisualState.NO_FISH -> (heroWidth / 1.43f).roundToInt()
+            RecognitionResultVisualState.IMAGE_QUALITY -> (heroWidth / 1.62f).roundToInt()
         }
         val adaptedHeroHeight = if (contentHeightDp < 600) {
             (heroHeight * 0.88f).roundToInt().coerceAtLeast(160)
@@ -70,6 +70,10 @@ object RecognitionResultGeometryResolver {
 
     /** Accessibility text scaling can make the fixed candidate labels compete for width. */
     fun usesScrollableCandidateRow(fontScale: Float): Boolean = fontScale >= 1.3f
+
+    /** Keep ordinary Result pages free of an always-on scroll affordance. */
+    fun usesScrollableResultPage(compactHeightPolicy: Boolean, accessibilityFontScale: Boolean): Boolean =
+        compactHeightPolicy || accessibilityFontScale
 }
 
 enum class RecognitionHeroMediaMode { SUBJECT_CROP_FILL, SUBJECT_SAFE_FIT, EVIDENCE_FIT }

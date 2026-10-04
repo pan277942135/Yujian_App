@@ -15,7 +15,7 @@ import kotlin.math.roundToInt
 class RecognitionResultContractsTest {
     @Test
     fun frozenWidthGeometryMatchesCanonicalTable() {
-        val expected = mapOf(320 to (288 to 188), 360 to (322 to 210), 393 to (355 to 232), 411 to (363 to 237))
+        val expected = mapOf(320 to (288 to 178), 360 to (322 to 199), 393 to (355 to 219), 411 to (363 to 224))
         expected.forEach { (width, size) ->
             val geometry = RecognitionResultGeometryResolver.resolve(width, 640)
             assertEquals(size.first, geometry.heroWidthDp)
@@ -28,11 +28,11 @@ class RecognitionResultContractsTest {
     @Test
     fun resultStatesUseTheirFrozenHeroAspectFamilies() {
         val expected = mapOf(
-            RecognitionResultVisualState.HIGH to 210,
-            RecognitionResultVisualState.MEDIUM to 178,
-            RecognitionResultVisualState.LOW to 178,
-            RecognitionResultVisualState.NO_FISH to 245,
-            RecognitionResultVisualState.IMAGE_QUALITY to 214,
+            RecognitionResultVisualState.HIGH to 199,
+            RecognitionResultVisualState.MEDIUM to 166,
+            RecognitionResultVisualState.LOW to 166,
+            RecognitionResultVisualState.NO_FISH to 225,
+            RecognitionResultVisualState.IMAGE_QUALITY to 199,
         )
         expected.forEach { (state, height) ->
             val geometry = RecognitionResultGeometryResolver.resolve(360, 640, state)
@@ -44,10 +44,10 @@ class RecognitionResultContractsTest {
     @Test
     fun resultGeometryUsesSafeViewportProfilesWithoutStretchingHero() {
         val expected = listOf(
-            Triple(320f, 640f, 288 to 188),
-            Triple(360f, 780f, 322 to 210),
-            Triple(393f, 852f, 355 to 232),
-            Triple(411f, 891f, 363 to 237),
+            Triple(320f, 640f, 288 to 178),
+            Triple(360f, 780f, 322 to 199),
+            Triple(393f, 852f, 355 to 219),
+            Triple(411f, 891f, 363 to 224),
         )
         expected.forEach { (width, height, hero) ->
             val profile = resolveAdaptiveLayoutProfile(width, height, fontScale = 1f)
@@ -86,6 +86,13 @@ class RecognitionResultContractsTest {
         assertFalse(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.2f))
         assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.3f))
         assertTrue(RecognitionResultGeometryResolver.usesScrollableCandidateRow(1.6f))
+    }
+
+    @Test
+    fun resultPageScrollIsReservedForShortOrAccessibleViewports() {
+        assertFalse(RecognitionResultGeometryResolver.usesScrollableResultPage(false, false))
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableResultPage(true, false))
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableResultPage(false, true))
     }
 
     @Test
