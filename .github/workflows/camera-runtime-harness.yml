@@ -112,3 +112,377 @@ jobs:
           path: evidence/camera-runtime-inventory
           if-no-files-found: error
           retention-days: 14
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      model_id: ${{ steps.model_trace.outputs.model_id }}
+    env:
+      YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+      YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+      YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+    steps:
+      - name: Checkout infrastructure commit
+        uses: actions/checkout@v4
+
+      - name: Verify frozen product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          product_sha="a503b2d919972679c4366c3ca6cdf210017a9137"
+          git fetch --no-tags origin "$product_sha"
+          git diff --quiet "$product_sha" "$GITHUB_SHA" -- app/src/main/
+          printf 'PRODUCT_SOURCE_SHA=%s\nINFRASTRUCTURE_HEAD=%s\nBUILD_SHA=%s\n' \
+            "$product_sha" "$GITHUB_SHA" "$GITHUB_SHA" | tee build-source-provenance.txt
+          cat build-source-provenance.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up Python asset verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Pillow for asset verification
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Verify frozen runtime asset contracts
+        run: |
+          python3 scripts/verify_empty_home_runtime_v2.py
+          python3 scripts/verify_normal_home_runtime_v1.py
+          python3 scripts/verify_recognition_design_closure_v1_1.py
+          python3 scripts/verify_recognition_runtime_contract.py
+
+      - name: Bootstrap verified recognition assets
+        run: python3 scripts/bootstrap_android_recognition_assets.py
+
+      - name: Read production model identity
+        id: model_trace
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib, re
+          path = pathlib.Path('app/src/main/assets/model_release_contract.json')
+          contract = json.loads(path.read_text(encoding='utf-8'))
+          if contract.get('build_sha') != '${{ github.sha }}':
+              raise SystemExit('model snapshot build_sha does not match this infrastructure build')
+          model_id = str(contract.get('model_id') or '')
+          if not re.fullmatch(r'[A-Za-z0-9_.-]+', model_id):
+              raise SystemExit(f'invalid model_id for artifact naming: {model_id!r}')
+          print(f'model_id={model_id}')
+          print(f'model_sha256={contract["sha256"]}')
+          PY
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Resolve stable SDK AAPT2
+        shell: bash
+        run: |
+          set -euo pipefail
+          aapt2="$ANDROID_HOME/build-tools/35.0.0/aapt2"
+          test -x "$aapt2"
+          echo "YUJIAN_AAPT2=$aapt2" >> "$GITHUB_ENV"
+
+      - name: Compile unit and camera instrumentation tests
+        run: |
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" \
+            test :app:assembleDebug :app:assembleDebugAndroidTest \
+            --stacktrace --no-daemon --max-workers=2
+
+      - name: Stage exact runtime APK pair and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="build/camera-runtime-apks"
+          mkdir -p "$out"
+          cp app/build/outputs/apk/debug/app-debug.apk "$out/app-debug.apk"
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk "$out/app-debug-androidTest.apk"
+          cp app/src/main/assets/model_release_contract.json "$out/model_release_contract.json"
+          cat build-source-provenance.txt > "$out/camera_runtime_provenance.txt"
+          printf 'MODEL_ID=%s\nMODEL_SHA256=%s\n' \
+            "${{ steps.model_trace.outputs.model_id }}" \
+            "${{ steps.model_trace.outputs.model_sha256 }}" >> "$out/camera_runtime_provenance.txt"
+          (cd "$out" && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json > SHA256SUMS)
+          cat "$out/camera_runtime_provenance.txt" >> "$GITHUB_STEP_SUMMARY"
+          cat "$out/SHA256SUMS" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload camera runtime APK pair
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-runtime-apks-${{ github.sha }}
+          path: build/camera-runtime-apks
+          if-no-files-found: error
+          retention-days: 14
+
+  camera-runtime:
+    needs: [inventory, build]
+    runs-on: [self-hosted, yujian-android, api28]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout infrastructure commit
+        uses: actions/checkout@v4
+
+      - name: Download runner inventory
+        uses: actions/download-artifact@v4
+        with:
+          name: camera-runtime-inventory-${{ github.sha }}
+          path: evidence/camera-runtime-inventory
+
+      - name: Download frozen APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: camera-runtime-apks-${{ github.sha }}
+          path: build/camera-runtime-apks
+
+      - name: Verify APK provenance and source freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd build/camera-runtime-apks && sha256sum -c SHA256SUMS)
+          grep -Fx 'PRODUCT_SOURCE_SHA=a503b2d919972679c4366c3ca6cdf210017a9137' \
+            build/camera-runtime-apks/camera_runtime_provenance.txt
+          grep -Fx "INFRASTRUCTURE_HEAD=$GITHUB_SHA" \
+            build/camera-runtime-apks/camera_runtime_provenance.txt
+          grep -Fq 'cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA' \
+            app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
+          grep -Fq 'setEnabledUseCases(CameraController.IMAGE_CAPTURE)' \
+            app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
+          git diff --quiet a503b2d919972679c4366c3ca6cdf210017a9137 "$GITHUB_SHA" -- app/src/main/
+
+      - name: Verify installed emulator camera mode support
+        id: camera_caps
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="evidence/camera-runtime-v1"
+          mkdir -p "$out"
+          emulator="/opt/android-sdk/emulator/emulator"
+          inventory="evidence/camera-runtime-inventory/camera_preflight.txt"
+          help_all="$out/emulator_help_all.txt"
+          "$emulator" -help-all > "$help_all" 2>&1
+          grep -i -A5 -B2 'camera-back' "$help_all" > "$out/camera_mode_help.txt"
+          avd_name="$(sed -n 's/^SELECTED_AVD=//p' "$inventory" | head -n 1)"
+          test -n "$avd_name"
+          test "$avd_name" = "yujian-api28"
+          grep -Eq '^hw.camera.back[[:space:]]*=[[:space:]]*emulated' "$inventory"
+          modes="$out/camera_mode_help.txt"
+          valid_modes="$out/camera_valid_modes.txt"
+          sed -n '/Valid values for <mode> are:/,$p' "$modes" |
+            sed -n 's/^[[:space:]]*\([[:alnum:]_]*\)[[:space:]]*->.*/\1/p' > "$valid_modes"
+          if grep -qx 'virtualscene' "$valid_modes"; then
+            camera_mode="virtualscene"
+          elif grep -qx 'emulated' "$valid_modes"; then
+            camera_mode="emulated"
+          else
+            echo "No deterministic emulator-provided rear camera mode is listed by installed emulator help."
+            cat "$modes"
+            exit 1
+          fi
+          {
+            printf 'SELECTED_AVD=%s\n' "$avd_name"
+            printf 'VALID_CAMERA_BACK_MODES=%s\n' "$(paste -sd, "$valid_modes")"
+            printf 'SELECTED_CAMERA_BACKEND=%s\n' "$camera_mode"
+            printf 'HOST_WEBCAM_DEPENDENCY=NO\n'
+          } | tee "$out/camera_mode_selection.txt"
+          echo "avd_name=$avd_name" >> "$GITHUB_OUTPUT"
+          echo "camera_mode=$camera_mode" >> "$GITHUB_OUTPUT"
+
+      - name: Start camera-enabled API 28 AVD and wait for readiness
+        id: runtime_prep
+        continue-on-error: true
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          set -euo pipefail
+          out="evidence/camera-runtime-v1"
+          mkdir -p "$out"
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          adb="/opt/android-sdk/platform-tools/adb"
+          emulator="/opt/android-sdk/emulator/emulator"
+          avd_name="${{ steps.camera_caps.outputs.avd_name }}"
+          camera_mode="${{ steps.camera_caps.outputs.camera_mode }}"
+          emulator_log="$out/emulator.log"
+          preflight="$out/runner_preflight.txt"
+          command="$emulator -avd $avd_name -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back $camera_mode -partition-size 4096"
+          printf 'RUNNER_NAME=%s\nRUNNER_OS=%s\nAVD=%s\nCAMERA_BACKEND=%s\nEFFECTIVE_LAUNCH_COMMAND=%s\n' \
+            "${RUNNER_NAME:-unknown}" "${RUNNER_OS:-unknown}" "$avd_name" "$camera_mode" "$command" \
+            | tee "$preflight"
+          "$adb" start-server >> "$preflight" 2>&1
+
+          old_devices="$("$adb" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ {print $1}')"
+          for serial in $old_devices; do
+            printf 'STOPPING_PREEXISTING_EMULATOR=%s\n' "$serial" | tee -a "$preflight"
+            "$adb" -s "$serial" emu kill >> "$preflight" 2>&1 || true
+          done
+          for attempt in $(seq 1 30); do
+            remaining="$("$adb" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ {print $1}')"
+            if [[ -z "$remaining" ]]; then break; fi
+            if (( attempt == 30 )); then
+              printf 'PREEXISTING_EMULATOR_DID_NOT_STOP=%s\n' "$remaining" | tee -a "$preflight"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          nohup "$emulator" -avd "$avd_name" -no-snapshot -no-window \
+            -gpu swiftshader_indirect -noaudio -no-boot-anim \
+            -camera-back "$camera_mode" -partition-size 4096 \
+            > "$emulator_log" 2>&1 &
+          emulator_pid=$!
+          printf 'EMULATOR_PID=%s\n' "$emulator_pid" | tee -a "$preflight"
+
+          if ! timeout 120s "$adb" wait-for-device >> "$preflight" 2>&1; then
+            echo "ADB_WAIT_FOR_DEVICE=FAIL" | tee -a "$preflight"
+            tail -n 100 "$emulator_log" >> "$preflight" || true
+            exit 1
+          fi
+
+          ready=0
+          for attempt in $(seq 1 90); do
+            state="$("$adb" get-state 2>&1 | tr -d '\r' | head -n 1 || true)"
+            boot="$("$adb" shell getprop sys.boot_completed 2>&1 | tr -d '\r' | head -n 1 || true)"
+            api="$("$adb" shell getprop ro.build.version.sdk 2>&1 | tr -d '\r' | head -n 1 || true)"
+            pm_ok=0
+            timeout 10s "$adb" shell pm list packages > "$out/packages.txt" 2>&1 && pm_ok=1 || true
+            system_ui="$("$adb" shell pidof com.android.systemui 2>/dev/null | tr -d '\r' || true)"
+            launcher="$("$adb" shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME 2>&1 | tr -d '\r' | tail -n 1 || true)"
+            camera_service="$("$adb" shell service check media.camera 2>&1 | tr -d '\r' | tail -n 1 || true)"
+            printf 'READINESS attempt=%s state=%s boot_completed=%s api=%s pm=%s system_ui=%s launcher=%s camera_service=%s\n' \
+              "$attempt" "$state" "$boot" "$api" "$pm_ok" "${system_ui:-missing}" \
+              "${launcher:-missing}" "${camera_service:-missing}" | tee -a "$preflight"
+            if [[ "$state" == "device" && "$boot" == "1" && "$api" == "28" &&
+                  "$pm_ok" == "1" && -n "$system_ui" && -n "$launcher" &&
+                  "$camera_service" == *"found"* ]]; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          "$adb" shell dumpsys media.camera > "$out/camera_service_boot_preflight.txt" 2>&1 || \
+            "$adb" shell dumpsys camera > "$out/camera_service_boot_preflight.txt" 2>&1 || true
+          if (( ready != 1 )); then
+            echo "EMULATOR_READINESS=FAIL" | tee -a "$preflight"
+            tail -n 100 "$emulator_log" >> "$preflight" || true
+            exit 1
+          fi
+          echo "EMULATOR_READINESS=PASS" | tee -a "$preflight"
+          echo "PACKAGE_MANAGER_RESPONSIVE=PASS" | tee -a "$preflight"
+          echo "SYSTEM_UI_AND_LAUNCHER_READY=PASS" | tee -a "$preflight"
+          echo "CAMERA_SERVICE_RESPONSIVE=PASS" | tee -a "$preflight"
+
+      - name: Run production CameraX runtime gate
+        id: camera_gate
+        if: ${{ always() && steps.runtime_prep.outcome == 'success' }}
+        continue-on-error: true
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          bash scripts/run_android_runtime_gate.sh \
+            --gate camera-runtime-v1 --api-level 28 --build-sha "$GITHUB_SHA" \
+            --app-apk build/camera-runtime-apks/app-debug.apk \
+            --test-apk build/camera-runtime-apks/app-debug-androidTest.apk \
+            --evidence-dir evidence/runtime/camera-runtime-v1
+
+      - name: Run existing runtime smoke gate
+        id: smoke_gate
+        if: ${{ always() && steps.runtime_prep.outcome == 'success' }}
+        continue-on-error: true
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          bash scripts/run_android_runtime_gate.sh \
+            --gate login-v2 --api-level 28 --build-sha "$GITHUB_SHA" \
+            --app-apk build/camera-runtime-apks/app-debug.apk \
+            --test-apk build/camera-runtime-apks/app-debug-androidTest.apk \
+            --evidence-dir evidence/runtime/existing-harness-smoke
+
+      - name: Stop camera-enabled emulator
+        if: ${{ always() && hashFiles('evidence/camera-runtime-v1/runner_preflight.txt') != '' }}
+        shell: bash
+        env:
+          ADB: /opt/android-sdk/platform-tools/adb
+        run: |
+          set -uo pipefail
+          adb="/opt/android-sdk/platform-tools/adb"
+          "$adb" emu kill >/dev/null 2>&1 || true
+          for attempt in $(seq 1 30); do
+            if ! "$adb" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ {found=1} END {exit !found}'; then
+              echo "CAMERA_EMULATOR_STOPPED=YES"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "CAMERA_EMULATOR_STOPPED=NO"
+          exit 1
+
+      - name: Materialize runtime status and summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          camera_result="evidence/runtime/camera-runtime-v1/runtime_gate_result.json"
+          smoke_result="evidence/runtime/existing-harness-smoke/runtime_gate_result.json"
+          mkdir -p evidence/runtime/camera-runtime-v1 evidence/runtime/existing-harness-smoke
+          if [[ ! -s "$camera_result" ]]; then
+            python3 scripts/android_runtime/result.py \
+              --output "$camera_result" --gate camera-runtime-v1 --api-level 28 \
+              --build-sha "$GITHUB_SHA" --adb-state unknown --boot-completed unknown \
+              --data-free-kb "" --preflight FAIL --install NOT_RUN --instrumentation NOT_RUN \
+              --evidence NOT_RUN --classification BLOCKED_INFRA \
+              --failure-phase EMULATOR_RUNNER --failure-reason CAMERA_RUNTIME_PREPARATION_FAILED \
+              --summary-file "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ ! -s "$smoke_result" ]]; then
+            python3 scripts/android_runtime/result.py \
+              --output "$smoke_result" --gate login-v2 --api-level 28 \
+              --build-sha "$GITHUB_SHA" --adb-state unknown --boot-completed unknown \
+              --data-free-kb "" --preflight NOT_RUN --install NOT_RUN --instrumentation NOT_RUN \
+              --evidence NOT_RUN --classification BLOCKED_INFRA \
+              --failure-phase EMULATOR_RUNNER --failure-reason EXISTING_RUNTIME_SMOKE_NOT_RUN \
+              --summary-file "$GITHUB_STEP_SUMMARY"
+          fi
+          {
+            echo "## Camera Runtime Harness P0"
+            echo
+            echo "- Product Source SHA: a503b2d919972679c4366c3ca6cdf210017a9137"
+            echo "- Infrastructure HEAD: $GITHUB_SHA"
+            echo "- Camera gate: $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$camera_result")"
+            echo "- Existing runtime smoke: $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$smoke_result")"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload camera runtime and smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-runtime-evidence-${{ github.sha }}
+          path: |
+            evidence/camera-runtime-inventory
+            evidence/camera-runtime-v1
+            evidence/runtime/camera-runtime-v1
+            evidence/runtime/existing-harness-smoke
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce camera and smoke gate results
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          camera_class="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' evidence/runtime/camera-runtime-v1/runtime_gate_result.json)"
+          smoke_class="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' evidence/runtime/existing-harness-smoke/runtime_gate_result.json)"
+          if [[ "$camera_class" != "PASS" || "$smoke_class" != "PASS" ]]; then
+            echo "Camera gate classification=$camera_class; existing smoke classification=$smoke_class"
+            exit 1
+          fi
+
