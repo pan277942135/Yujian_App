@@ -352,10 +352,95 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("长度").assertIsDisplayed()
         composeRule.onNodeWithText("重量").assertIsDisplayed()
         composeRule.onNodeWithText("地点").assertIsDisplayed()
-        composeRule.onNodeWithText("留下本次鱼获感言").assertIsDisplayed()
+        composeRule.onNodeWithText("写下这次鱼获的故事").assertIsDisplayed()
         composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("已识别").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun resultVisibleHierarchyRemainsReachableOnCanonicalNormalViewport() {
+        val stage = mutableStateOf("high")
+        composeRule.setContent {
+            YujianTheme {
+                key(stage.value) {
+                    when (stage.value) {
+                        "high" -> RecognitionResultScreen(
+                            image = photo,
+                            prediction = requireNotNull(high.prediction),
+                            productionResult = high,
+                            onBack = {},
+                            onRetry = {},
+                            onSave = { _, _, _ -> },
+                        )
+                        "low" -> RecognitionResultScreen(
+                            image = photo,
+                            prediction = requireNotNull(low.prediction),
+                            productionResult = low,
+                            onBack = {},
+                            onRetry = {},
+                            onSave = { _, _, _ -> },
+                        )
+                        else -> RecognitionIssueScreen(
+                            image = photo,
+                            result = noFish,
+                            onBack = {},
+                            onChooseAnother = {},
+                            onChooseGallery = {},
+                        )
+                    }
+                }
+            }
+        }
+
+        fun reach(text: String) {
+            composeRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+        }
+
+        // High: every frozen Result section, including both terminal actions,
+        // must remain reachable after the Result glass has been measured.
+        composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-result-species").performScrollTo().assertIsDisplayed()
+        reach("草鱼")
+        reach("长度")
+        reach("写下这次鱼获的故事")
+        reach("继续记录记忆")
+        reach("保存本次鱼获")
+
+        // Low before manual selection: the recovery actions are visible.
+        stage.value = "low"
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+        reach("无法确认是什么鱼")
+        reach("手动选择鱼种")
+        reach("重新拍摄")
+
+        // Low after explicit selection: the shared species/metadata/story/CTA
+        // hierarchy must become reachable rather than being pushed out.
+        composeRule.onNodeWithText("手动选择鱼种").performClick()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("ji yu")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-crucian_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-crucian_carp").performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("修改鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        reach("鲫鱼")
+        reach("修改鱼种")
+        reach("长度")
+        reach("写下这次鱼获的故事")
+        reach("继续记录记忆")
+        reach("保存本次鱼获")
+
+        // Recovery states use their own readable surface and preserve the
+        // centered title/guidance plus both icon-bearing actions.
+        stage.value = "recovery"
+        composeRule.waitForIdle()
+        reach("没有找到可识别的鱼")
+        reach("请让鱼完整出现在画面中，再试一次。")
+        reach("重新拍摄")
+        reach("从相册选择")
     }
 
     @Test
