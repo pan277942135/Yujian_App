@@ -1,0 +1,114 @@
+name: Camera Runtime Harness P0
+
+on:
+  push:
+    branches:
+      - infra/camera-runtime-harness-p0-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yujian-camera-runtime-inventory-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    runs-on: [self-hosted, yujian-android, api28]
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read runtime authority and camera capabilities
+        shell: bash
+        run: |
+          set -uo pipefail
+          out="evidence/camera-runtime-inventory"
+          mkdir -p "$out"
+          report="$out/camera_preflight.txt"
+          {
+            printf 'RUNNER_NAME=%s\n' "${RUNNER_NAME:-unknown}"
+            printf 'RUNNER_OS=%s\n' "${RUNNER_OS:-unknown}"
+            printf 'RUNNER_ARCH=%s\n' "${RUNNER_ARCH:-unknown}"
+            printf 'MACHINE_NAME=%s\n' "$(hostname)"
+            printf '\n--- OS ---\n'
+            cat /etc/os-release
+            uname -a
+
+            adb="/opt/android-sdk/platform-tools/adb"
+            emulator="/opt/android-sdk/emulator/emulator"
+            printf '\nADB_BIN=%s\nEMULATOR_BIN=%s\n' "$adb" "$emulator"
+            test -x "$adb" || { echo 'ADB_MISSING=1'; exit 1; }
+            test -x "$emulator" || { echo 'EMULATOR_MISSING=1'; exit 1; }
+            "$adb" version 2>&1
+            "$emulator" -version 2>&1
+
+            printf '\n--- AVD list ---\n'
+            avd_list="$("$emulator" -list-avds 2>&1)"
+            printf '%s\n' "$avd_list"
+            avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+            if [[ -z "$avd_name" ]]; then
+              avd_name="$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}')"
+            fi
+            printf 'SELECTED_AVD=%s\n' "${avd_name:-none}"
+            if [[ -z "$avd_name" ]]; then
+              echo 'ANDROID_AVD_NOT_FOUND=1'
+              exit 1
+            fi
+
+            printf '\n--- AVD ini and config.ini ---\n'
+            printf 'ANDROID_AVD_HOME=%s\nANDROID_USER_HOME=%s\nHOME=%s\n'               "${ANDROID_AVD_HOME:-unset}" "${ANDROID_USER_HOME:-unset}" "$HOME"
+            avd_ini=''
+            for candidate in               "${ANDROID_AVD_HOME:-}/$avd_name.ini"               "${ANDROID_USER_HOME:-}/avd/$avd_name.ini"               "$HOME/.android/avd/$avd_name.ini"; do
+              if [[ -n "$candidate" && -f "$candidate" ]]; then avd_ini="$candidate"; break; fi
+            done
+            printf 'AVD_INI_PATH=%s\n' "${avd_ini:-not-found}"
+            if [[ -n "$avd_ini" ]]; then
+              cat "$avd_ini"
+              avd_dir="$(sed -n 's/^path=//p' "$avd_ini" | head -n 1)"
+              if [[ -n "$avd_dir" && -f "$avd_dir/config.ini" ]]; then
+                printf 'AVD_CONFIG_PATH=%s\n' "$avd_dir/config.ini"
+                cat "$avd_dir/config.ini"
+              else
+                echo 'AVD_CONFIG_PATH=not-found'
+              fi
+            else
+              echo 'AVD_CONFIG_PATH=not-found'
+            fi
+
+            printf '\n--- Current workflow camera arguments ---\n'
+            rg -n -C 1 'camera-(back|front)|emulator_options:' .github/workflows/android.yml || true
+
+            printf '\n--- Emulator help camera options ---\n'
+            "$emulator" -help > "$out/emulator_help.txt" 2>&1
+            help_rc=$?
+            printf 'EMULATOR_HELP_EXIT=%s\n' "$help_rc"
+            grep -in -C 3 camera "$out/emulator_help.txt" || true
+
+            "$emulator" -help-all > "$out/emulator_help_all.txt" 2>&1
+            help_all_rc=$?
+            printf 'EMULATOR_HELP_ALL_EXIT=%s\n' "$help_all_rc"
+            grep -in -C 3 camera "$out/emulator_help_all.txt" || true
+
+            printf '\n--- Existing ADB devices (read-only) ---\n'
+            "$adb" devices -l 2>&1
+            serials="$("$adb" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ {print $1}')"
+            for serial in $serials; do
+              printf '\n--- Existing device %s ---\n' "$serial"
+              "$adb" -s "$serial" shell getprop sys.boot_completed 2>&1
+              "$adb" -s "$serial" shell getprop ro.build.version.sdk 2>&1
+              "$adb" -s "$serial" shell dumpsys media.camera 2>&1 ||                 "$adb" -s "$serial" shell dumpsys camera 2>&1 || true
+            done
+          } 2>&1 | tee "$report"
+          test -s "$report"
+
+      - name: Upload camera inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-runtime-inventory-${{ github.sha }}
+          path: evidence/camera-runtime-inventory
+          if-no-files-found: error
+          retention-days: 14
