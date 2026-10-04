@@ -2,8 +2,8 @@ package com.yujian.ai.ui.screens
 
 import android.Manifest
 import android.app.Activity
-import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -52,14 +52,20 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Observer
 import com.yujian.ai.R
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.home.HomeCameraButton
+import com.yujian.ai.ui.identify.RecognitionCameraCaptureContract
+import com.yujian.ai.ui.identify.RecognitionCameraCaptureOutput
+import com.yujian.ai.ui.identify.RecognitionCameraCaptureState
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import kotlinx.coroutines.launch
+import java.io.File
+import java.util.UUID
 
 private const val CameraPermissionHint = "相机权限未开启，你仍然可以从相册选择照片"
 private const val CameraUnavailableHint = "相机暂不可用，请重试或从相册选择照片"
@@ -68,6 +74,17 @@ private const val CameraCaptureFailureHint = "没有完成拍照，请重试或�
 private const val CameraImageFailureHint = "拍照文件无法处理，请重新拍摄"
 private const val GalleryUnavailableHint = "暂时无法打开相册，请重试"
 private const val GalleryImageFailureHint = "照片读取失败，请重新选择"
+private const val RecognitionCameraCaptureTag = "RecognitionCameraCapture"
+
+private fun diagnosticValue(value: Any?): String =
+    value?.toString()?.replace(Regex("\\s+"), " ") ?: "none"
+
+private fun logCapture(requestId: String, event: String, fields: String = "") {
+    Log.d(
+        RecognitionCameraCaptureTag,
+        "request=$requestId event=$event${if (fields.isBlank()) "" else " $fields"}",
+    )
+}
 
 /**
  * Camera entry for both Empty and Normal Home.
@@ -97,8 +114,12 @@ fun IdentifyScreen(
     var permissionRequested by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    var cameraReady by remember { mutableStateOf(false) }
+    var cameraBound by remember { mutableStateOf(false) }
+    var imageCaptureReady by remember { mutableStateOf(false) }
+    var previewStreaming by remember { mutableStateOf(false) }
+    var captureState by remember { mutableStateOf(RecognitionCameraCaptureState.INITIALIZING) }
     var cameraRetry by remember { mutableStateOf(0) }
+    var previewView by remember { mutableStateOf<PreviewView?>(null) }
     // This local handoff is set before navigation, so CameraX and its controls
     // cannot share a frame with the Recognition processing scene.
     var handoffImage by remember { mutableStateOf<SelectedImage?>(null) }
@@ -107,6 +128,27 @@ fun IdentifyScreen(
         LifecycleCameraController(context).apply {
             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
+        }
+    }
+
+    fun imageCaptureInstanceReady(): Boolean = imageCaptureReady && runCatching {
+        cameraController.isImageCaptureEnabled && cameraController.cameraInfo != null
+    }.getOrDefault(false)
+
+    fun cameraCanCapture(): Boolean =
+        hasCameraPermission && cameraBound && previewStreaming && imageCaptureInstanceReady()
+
+    fun syncCaptureState() {
+        if (captureState == RecognitionCameraCaptureState.CAPTURING ||
+            captureState == RecognitionCameraCaptureState.SUCCESS
+        ) {
+            return
+        }
+        captureState = when {
+            cameraCanCapture() && captureState == RecognitionCameraCaptureState.ERROR ->
+                RecognitionCameraCaptureState.ERROR
+            cameraCanCapture() -> RecognitionCameraCaptureState.READY
+            else -> RecognitionCameraCaptureState.INITIALIZING
         }
     }
 
@@ -126,18 +168,85 @@ fun IdentifyScreen(
     }
 
     DisposableEffect(cameraController, lifecycleOwner, hasCameraPermission, cameraRetry) {
+        cameraBound = false
+        imageCaptureReady = false
+        previewStreaming = false
+        captureState = RecognitionCameraCaptureState.INITIALIZING
         if (hasCameraPermission) {
-            runCatching { cameraController.bindToLifecycle(lifecycleOwner) }
+            val initializationFuture = cameraController.getInitializationFuture()
+            initializationFuture.addListener(
+                {
+                    val initialized = runCatching {
+                        initializationFuture.get()
+                        true
+                    }.getOrElse { initializationError ->
+                        Log.e(
+                            RecognitionCameraCaptureTag,
+                            "event=camera_initialization_failed " +
+                                "cause_class=${diagnosticValue(initializationError::class.simpleName)} " +
+                                "cause_message=${diagnosticValue(initializationError.message)}",
+                        )
+                        false
+                    }
+                    imageCaptureReady = initialized && runCatching {
+                        cameraController.isImageCaptureEnabled
+                    }.getOrDefault(false)
+                    if (!imageCaptureReady) {
+                        captureState = RecognitionCameraCaptureState.ERROR
+                        error = CameraUnavailableHint
+                    } else {
+                        syncCaptureState()
+                    }
+                },
+                ContextCompat.getMainExecutor(context),
+            )
+            runCatching {
+                cameraController.bindToLifecycle(lifecycleOwner)
+                cameraBound = true
+                syncCaptureState()
+            }
                 .onSuccess {
-                    cameraReady = true
-                    if (error == CameraUnavailableHint) error = null
+                    logCapture(
+                        "camera-bind",
+                        "camera_provider_bound",
+                        "bound=true lifecycle_state=${lifecycleOwner.lifecycle.currentState.name}",
+                    )
                 }
-                .onFailure {
-                    cameraReady = false
+                .onFailure { bindError ->
+                    cameraBound = false
+                    captureState = RecognitionCameraCaptureState.ERROR
                     error = CameraUnavailableHint
+                    Log.e(
+                        RecognitionCameraCaptureTag,
+                        "event=camera_bind_failed " +
+                            "cause_class=${diagnosticValue(bindError::class.simpleName)} " +
+                            "cause_message=${diagnosticValue(bindError.message)}",
+                    )
                 }
-        } else cameraReady = false
+        }
         onDispose { cameraController.unbind() }
+    }
+
+    DisposableEffect(previewView, lifecycleOwner) {
+        val currentPreview = previewView
+        if (currentPreview == null) {
+            onDispose { }
+        } else {
+            val observer = Observer<PreviewView.StreamState> { streamState ->
+                previewStreaming = streamState == PreviewView.StreamState.STREAMING
+                logCapture(
+                    "preview-state",
+                    "preview_stream_state",
+                    "state=${streamState.name} camera_provider_bound=$cameraBound " +
+                        "image_capture_ready=${imageCaptureInstanceReady()}",
+                )
+                syncCaptureState()
+            }
+            currentPreview.previewStreamState.observe(lifecycleOwner, observer)
+            onDispose {
+                currentPreview.previewStreamState.removeObserver(observer)
+            }
+        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -188,7 +297,11 @@ fun IdentifyScreen(
     }
 
     fun capture() {
+        val requestId = "cap_${UUID.randomUUID()}"
+        val captureButtonEnabled = !loading && cameraCanCapture() &&
+            RecognitionCameraCaptureContract.canStartCapture(captureState)
         if (!hasCameraPermission) {
+            logCapture(requestId, "capture_blocked", "reason=permission_denied capture_button_enabled=false")
             if (!permissionRequested) {
                 permissionRequested = true
                 permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -197,63 +310,172 @@ fun IdentifyScreen(
             }
             return
         }
-        if (loading) return
-        if (!cameraReady) {
-            error = CameraUnavailableHint
-            cameraRetry += 1
+        if (loading) {
+            logCapture(requestId, "capture_blocked", "reason=already_loading capture_button_enabled=false")
             return
         }
+        val capturingState = RecognitionCameraCaptureContract.beginCapture(captureState)
+        if (!captureButtonEnabled || capturingState == null) {
+            logCapture(
+                requestId,
+                "capture_blocked",
+                "reason=not_ready camera_provider_bound=$cameraBound " +
+                    "preview_bound=$previewStreaming " +
+                    "image_capture_ready=${imageCaptureInstanceReady()} " +
+                    "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name} " +
+                    "capture_state=${captureState.name} capture_button_enabled=false",
+            )
+            error = CameraUnavailableHint
+            return
+        }
+        captureState = capturingState
         error = null
         val targetResult = runCatching { RecognitionImageStore.createCameraTarget(context) }
         if (targetResult.isFailure) {
+            captureState = RecognitionCameraCaptureContract.completeError()
+            Log.e(
+                RecognitionCameraCaptureTag,
+                "request=$requestId event=target_create_failed " +
+                    "cause_class=${diagnosticValue(targetResult.exceptionOrNull()?.let { it::class.simpleName })} " +
+                    "cause_message=${diagnosticValue(targetResult.exceptionOrNull()?.message)}",
+            )
             error = CameraStartFailureHint
             return
         }
         val target = targetResult.getOrThrow()
+        logCapture(
+            requestId,
+            "before_capture",
+            "camera_provider_bound=$cameraBound preview_bound=$previewStreaming " +
+                "image_capture_instance_ready=${imageCaptureInstanceReady()} " +
+                "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name} " +
+                "capture_button_enabled=false output_target_type=file " +
+                "output_file=${diagnosticValue(target.file.absolutePath)} " +
+                "output_uri_type=${diagnosticValue(target.uri.scheme)} " +
+                "parent_directory_exists=${target.file.parentFile?.isDirectory == true} " +
+                "parent_directory_writable=${target.file.parentFile?.canWrite() == true}",
+        )
         loading = true
         try {
-            // CameraX must write through the same FileProvider URI that owns the
-            // capture target. Some physical devices reject the raw cache File
-            // output path even though the preview and ImageCapture use case are
-            // ready; the provider-backed stream is the stable handoff contract.
-            val output = ImageCapture.OutputFileOptions.Builder(
-                context.contentResolver,
-                target.uri,
-                ContentValues(),
-            ).build()
+            // CameraX writes directly to the app-private cache file. The
+            // FileProvider URI remains available for gallery/test handoffs but
+            // is not used as the still-image output target.
+            val output = ImageCapture.OutputFileOptions.Builder(target.file).build()
             cameraController.takePicture(
                 output,
                 ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                        logCapture(
+                            requestId,
+                            "on_image_saved",
+                            "reached=true saved_uri=${diagnosticValue(result.savedUri)} " +
+                                "file_exists=${target.file.exists()} file_bytes=${target.file.length()} " +
+                                "decode_attempted=true",
+                        )
                         scope.launch {
-                            val normalized = runCatching {
-                                check(target.file.exists() && target.file.length() > 0L) {
-                                    "没有读取到拍照内容，请重新拍摄"
+                            try {
+                                val fileExists = target.file.exists()
+                                val fileBytes = target.file.length()
+                                val normalized = runCatching {
+                                    check(fileExists && fileBytes > 0L) {
+                                        "没有读取到拍照内容，请重新拍摄"
+                                    }
+                                    RecognitionImageStore.normalizeCameraFileWithDetails(context, target.file)
                                 }
-                                RecognitionImageStore.normalizeCameraFile(context, target.file)
+                                val details = normalized.getOrNull()
+                                val selectedFile = details?.selectedImage?.filePath?.let(::File)
+                                val outputEvidence = RecognitionCameraCaptureOutput(
+                                    callbackSucceeded = true,
+                                    fileExists = fileExists,
+                                    fileBytes = fileBytes,
+                                    decodedWidth = details?.decodedWidth ?: 0,
+                                    decodedHeight = details?.decodedHeight ?: 0,
+                                    selectedImageCreated = details != null &&
+                                        selectedFile?.let { it.exists() && it.length() > 0L } == true,
+                                )
+                                captureState = RecognitionCameraCaptureContract.completeCapture(outputEvidence)
+                                if (outputEvidence.isValid && details != null) {
+                                    logCapture(
+                                        requestId,
+                                        "decode_result",
+                                        "decode_success=true decoded_width=${details.decodedWidth} " +
+                                            "decoded_height=${details.decodedHeight} rotation_degrees=${details.rotationDegrees} " +
+                                            "selected_image_created=true",
+                                    )
+                                    handoffImage = details.selectedImage
+                                    runCatching { onImageReady(details.selectedImage) }
+                                        .onSuccess {
+                                            logCapture(requestId, "recognition_navigation", "started=true")
+                                        }
+                                        .onFailure { navigationError ->
+                                            captureState = RecognitionCameraCaptureContract.completeError()
+                                            error = CameraImageFailureHint
+                                            Log.e(
+                                                RecognitionCameraCaptureTag,
+                                                "request=$requestId event=recognition_navigation " +
+                                                    "started=false cause_class=${diagnosticValue(navigationError::class.simpleName)} " +
+                                                    "cause_message=${diagnosticValue(navigationError.message)}",
+                                            )
+                                        }
+                                } else {
+                                    val decodeError = normalized.exceptionOrNull()
+                                    Log.e(
+                                        RecognitionCameraCaptureTag,
+                                        "request=$requestId event=decode_result " +
+                                            "decode_attempted=true decode_success=false " +
+                                            "decoded_width=0 decoded_height=0 " +
+                                            "selected_image_created=false " +
+                                            "cause_class=${diagnosticValue(decodeError?.let { it::class.simpleName })} " +
+                                            "cause_message=${diagnosticValue(decodeError?.message)}",
+                                    )
+                                    error = CameraImageFailureHint
+                                }
+                            } finally {
+                                val cleanupSucceeded = !target.file.exists() || target.file.delete()
+                                logCapture(
+                                    requestId,
+                                    "post_capture",
+                                    "temporary_file_cleanup=$cleanupSucceeded " +
+                                        "camera_state_after_callback=${captureState.name} " +
+                                        "camera_provider_bound=$cameraBound preview_bound=$previewStreaming",
+                                )
+                                loading = false
                             }
-                            target.file.delete()
-                            normalized.onSuccess { selected ->
-                                handoffImage = selected
-                                onImageReady(selected)
-                            }.onFailure {
-                                error = CameraImageFailureHint
-                            }
-                            loading = false
                         }
                     }
 
-                    @Suppress("UNUSED_PARAMETER")
                     override fun onError(exception: ImageCaptureException) {
-                        target.file.delete()
+                        val cause = exception.cause
+                        val outputFileExists = target.file.exists()
+                        val outputFileBytes = target.file.length()
+                        val cleanupSucceeded = !target.file.exists() || target.file.delete()
+                        captureState = RecognitionCameraCaptureContract.completeError()
+                        Log.e(
+                            RecognitionCameraCaptureTag,
+                            "request=$requestId event=error " +
+                                "image_capture_error=${diagnosticValue(exception.imageCaptureError)} " +
+                                "message=${diagnosticValue(exception.message)} " +
+                                "cause_class=${diagnosticValue(cause?.let { it::class.simpleName })} " +
+                                "cause_message=${diagnosticValue(cause?.message)} " +
+                                "output_file_exists=$outputFileExists output_file_bytes=$outputFileBytes " +
+                                "temporary_file_cleanup=$cleanupSucceeded",
+                        )
                         loading = false
                         error = CameraCaptureFailureHint
                     }
                 },
             )
-        } catch (_: Exception) {
-            target.file.delete()
+        } catch (captureError: Exception) {
+            val cleanupSucceeded = !target.file.exists() || target.file.delete()
+            captureState = RecognitionCameraCaptureContract.completeError()
+            Log.e(
+                RecognitionCameraCaptureTag,
+                "request=$requestId event=take_picture_throw " +
+                    "cause_class=${diagnosticValue(captureError::class.simpleName)} " +
+                    "cause_message=${diagnosticValue(captureError.message)} " +
+                    "temporary_file_cleanup=$cleanupSucceeded",
+            )
             loading = false
             error = CameraStartFailureHint
         }
@@ -292,17 +514,20 @@ fun IdentifyScreen(
             // previous SelectedImage from flashing while the new gallery
             // image is normalized.
             Box(Modifier.fillMaxSize().background(Color.Black))
-        } else if (hasCameraPermission && cameraReady) {
+        } else if (hasCameraPermission && cameraBound) {
             AndroidView(
                 factory = { context ->
                     PreviewView(context).apply {
                         scaleType = PreviewView.ScaleType.FILL_CENTER
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                         controller = cameraController
-                    }
+                    }.also { previewView = it }
                 },
                 modifier = Modifier.fillMaxSize(),
-                update = { it.controller = cameraController },
+                update = {
+                    previewView = it
+                    it.controller = cameraController
+                },
             )
         }
 
@@ -335,7 +560,7 @@ fun IdentifyScreen(
                     },
                     modifier = Modifier.align(Alignment.Center),
                 ) { Text("开启相机") }
-            } else if (!cameraReady) {
+            } else if (!cameraBound || !imageCaptureReady || !previewStreaming) {
                 Button(
                     onClick = {
                         error = null
@@ -375,7 +600,11 @@ fun IdentifyScreen(
                     modifier = Modifier.size(30.dp),
                 )
             }
-            HomeCameraButton(onClick = ::capture)
+            HomeCameraButton(
+                onClick = ::capture,
+                enabled = cameraCanCapture() &&
+                    RecognitionCameraCaptureContract.canStartCapture(captureState),
+            )
         }
     }
 }
