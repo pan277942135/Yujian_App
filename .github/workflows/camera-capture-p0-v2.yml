@@ -140,7 +140,7 @@ jobs:
           harness_parent="7d247ed84e6c4c948bdcea70addb7a5bca62501f"
           git fetch --no-tags origin "$product_base"
           git diff --check "$product_base" "$GITHUB_SHA"
-          unexpected="$(git diff --name-only "$product_base" "$GITHUB_SHA" -- app/src/main/ | grep -Ev '^(app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen\.kt|app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract\.kt|app/src/main/java/com/yujian/ai/catches/CatchRepository\.kt|app/src/main/java/com/yujian/ai/ui/home/HomeStats\.kt|app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent\.kt|app/src/main/java/com/yujian/ai/ui/home/RecentFishCard\.kt|app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components\.kt)$' || true)"
+          unexpected="$(git diff --name-only "$product_base" "$GITHUB_SHA" -- app/src/main/ | grep -Ev '^(app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen\.kt|app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen\.kt|app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract\.kt|app/src/main/java/com/yujian/ai/catches/CatchRepository\.kt|app/src/main/java/com/yujian/ai/ui/home/HomeStats\.kt|app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent\.kt|app/src/main/java/com/yujian/ai/ui/home/RecentFishCard\.kt|app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components\.kt)$' || true)"
           if [[ -n "$unexpected" ]]; then
             printf 'UNEXPECTED_PRODUCT_SOURCE_CHANGES\n%s\n' "$unexpected"
             exit 1
@@ -167,8 +167,13 @@ jobs:
       - name: Test camera runtime gate permission handling
         run: bash camera-harness/scripts/android_runtime/tests/test_camera_runtime_gate.sh
 
+      - name: Test runtime terminal-result classification
+        run: bash camera-harness/scripts/android_runtime/tests/test_contract.sh
+
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
+        env:
+          YUJIAN_GITHUB_TOKEN: ${{ github.token }}
 
       - name: Read production model identity
         id: model_trace

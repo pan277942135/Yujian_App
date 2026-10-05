@@ -164,8 +164,13 @@ jobs:
       - name: Test camera runtime gate permission handling
         run: bash scripts/android_runtime/tests/test_camera_runtime_gate.sh
 
+      - name: Test runtime terminal-result classification
+        run: bash scripts/android_runtime/tests/test_contract.sh
+
       - name: Bootstrap verified recognition assets
         run: GITHUB_SHA="$PRODUCT_SOURCE_SHA" python3 scripts/bootstrap_android_recognition_assets.py
+        env:
+          YUJIAN_GITHUB_TOKEN: ${{ github.token }}
 
       - name: Read production model identity
         id: model_trace

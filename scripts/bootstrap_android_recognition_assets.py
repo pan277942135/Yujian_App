@@ -63,6 +63,11 @@ class BootstrapError(RuntimeError):
     pass
 
 
+def _github_api_authorization() -> dict[str, str]:
+    token = os.environ.get("YUJIAN_GITHUB_TOKEN", "").strip()
+    return {"Authorization": f"Bearer {token}"} if token else {}
+
+
 @dataclass(frozen=True)
 class DetectorContract:
     detector_bundle_url: str
@@ -92,6 +97,7 @@ def fetch_production_release() -> dict:
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "YuJian-Android-Model-Bootstrap/1",
+            **_github_api_authorization(),
         },
     )
     with urlopen(request, timeout=30) as response:
@@ -139,6 +145,7 @@ def download_release_asset(asset: dict, destination: Path) -> bytes:
             "Accept": "application/octet-stream",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "YuJian-Android-Model-Bootstrap/1",
+            **_github_api_authorization(),
         },
     )
     destination.parent.mkdir(parents=True, exist_ok=True)

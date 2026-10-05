@@ -56,9 +56,12 @@ jobs:
           python3 scripts/verify_normal_home_runtime_v1.py
           python3 scripts/verify_recognition_design_closure_v1_1.py
           python3 scripts/verify_recognition_runtime_contract.py
+          python3 scripts/test_bootstrap_android_recognition_assets.py
 
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
+        env:
+          YUJIAN_GITHUB_TOKEN: ${{ github.token }}
 
       - name: Read production model identity
         id: model_trace
