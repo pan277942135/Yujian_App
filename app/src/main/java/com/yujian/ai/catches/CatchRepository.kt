@@ -171,8 +171,6 @@ class CatchRepository(
             .takeIf(String::isNotBlank),
         bsideStatus = BsideStatus.fromWire(item.optString("bside_status")),
         bsideUri = item.optString("bside_uri").takeIf(String::isNotBlank),
-        story = item.optJSONObject("classifier_result")?.optString("story")
-            ?.takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) || it.equals("undefined", ignoreCase = true) },
     )
 
     private fun parseBsideGeneration(item: JSONObject): BsideGeneration = BsideGeneration(

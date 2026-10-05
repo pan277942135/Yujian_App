@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.BsideStatus
@@ -63,7 +64,36 @@ class FishRecordDetailRuntimeTest {
         composeRule.onNodeWithText("添加照片/视频").performClick()
         composeRule.onNodeWithText("继续拍照").performClick()
         composeRule.onNodeWithText("录制视频").performClick()
+        composeRule.onNodeWithText("为这次相遇生成一份鱼获记忆").performScrollTo().assertIsDisplayed()
         composeRule.runOnIdle { assertEquals(listOf("add", "photo", "video"), calls) }
+    }
+
+    @Test
+    fun suppliedStoryIsRenderedInAboutCatchSection() {
+        composeRule.setContent {
+            YujianTheme {
+                Box(Modifier.size(360.dp, 640.dp)) {
+                    FishRecordDetailScreen(
+                        uiState = FishRecordDetailUiState.Success(record("with-story").copy(story = "第一条黑鱼。")),
+                        imageUrlFor = { null },
+                        bsideUrlFor = { null },
+                        accessToken = "",
+                        onBack = {},
+                        onRetry = {},
+                        onOpenFishGuide = {},
+                        onShare = {},
+                        onEditRecord = {},
+                        onAddMedia = {},
+                        onContinuePhoto = {},
+                        onRecordVideo = {},
+                        onGenerateMemory = null,
+                        onRefreshBsideStatus = { true },
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("第一条黑鱼。").performScrollTo().assertIsDisplayed()
     }
 
     @Test
