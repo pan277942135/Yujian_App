@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import androidx.compose.ui.text.TextRange
 import com.yujian.ai.knowledge.FishGuideItem
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
@@ -13,6 +14,21 @@ import com.yujian.ai.ui.screens.lowPendingSaveDestination
 import kotlin.math.roundToInt
 
 class RecognitionResultContractsTest {
+    @Test
+    fun numericEditorPrefillsExistingValueAndPlacesCaretAtTheEnd() {
+        val initial = resultNumericEditorInitialValue("28 cm")
+
+        assertEquals("28", initial.text)
+        assertEquals(TextRange(2), initial.selection)
+        assertEquals("", resultNumericEditorInitialValue("").text)
+    }
+
+    @Test
+    fun speciesIdentityStripsLeadingPlaceholderGlyphs() {
+        assertEquals("黑鱼", resultSpeciesDisplayName("◧□黑鱼"))
+        assertEquals("草鱼", resultSpeciesDisplayName("草鱼"))
+    }
+
     @Test
     fun frozenWidthGeometryMatchesCanonicalTable() {
         val expected = mapOf(320 to (288 to 178), 360 to (322 to 199), 393 to (355 to 219), 411 to (363 to 224))

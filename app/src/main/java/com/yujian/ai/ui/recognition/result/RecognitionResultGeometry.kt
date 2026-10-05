@@ -5,6 +5,8 @@ import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import kotlin.math.roundToInt
 
 data class RecognitionResultGeometry(
@@ -126,6 +128,19 @@ object RecognitionResultInputValidation {
         return null
     }
 }
+
+/** Existing metadata opens as editable numeric text with the caret at its logical end. */
+fun resultNumericEditorInitialValue(rawValue: String): TextFieldValue {
+    val text = rawValue
+        .filter { it.isDigit() || it == '.' || it == ',' }
+        .replace(',', '.')
+        .take(8)
+    return TextFieldValue(text = text, selection = TextRange(text.length))
+}
+
+/** Result identity contains only the species name, without leading broken glyphs or placeholders. */
+fun resultSpeciesDisplayName(value: String): String =
+    value.trimStart().dropWhile { !it.isLetterOrDigit() }.trim()
 
 /**
  * Plans a crop in the normalized, EXIF-oriented bitmap coordinate space.

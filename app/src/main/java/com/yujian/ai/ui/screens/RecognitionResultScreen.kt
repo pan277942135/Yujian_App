@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,10 +40,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Scale
+import androidx.compose.material.icons.rounded.SetMeal
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -130,6 +133,8 @@ import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
 import com.yujian.ai.ui.recognition.result.RecognitionResultInputValidation
 import com.yujian.ai.ui.recognition.result.RecognitionResultVisualState
+import com.yujian.ai.ui.recognition.result.resultNumericEditorInitialValue
+import com.yujian.ai.ui.recognition.result.resultSpeciesDisplayName
 import com.yujian.ai.ui.recognition.result.resolveCurrentRecognitionPlace
 import com.yujian.ai.ui.recognition.result.SpeciesSelectorEntryContext
 import com.yujian.ai.ui.theme.DeepInk
@@ -446,16 +451,24 @@ fun RecognitionResultScreen(
                         Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
                             if (selectedKey.isBlank()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(if (compactResultActions) 8.dp else 12.dp)) {
                                     YuJianPrimaryButton(
                                         text = "手动选择鱼种", onClick = { openSpeciesSelector() },
                                         modifier = Modifier.weight(1f),
-                                        variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                                        enabled = !saving,
+                                        variant = YuJianActionButtonVariant.RESULT_SAVE,
+                                        leadingIcon = { Icon(Icons.Rounded.SetMeal, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
+                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+                                        leadingIconSpacing = 4.dp,
                                     )
                                     YuJianPrimaryButton(
                                         text = "重新拍摄", onClick = onRetry,
                                         modifier = Modifier.weight(1f),
-                                        variant = YuJianActionButtonVariant.SECONDARY_MUTED,
+                                        enabled = !saving,
+                                        variant = YuJianActionButtonVariant.RESULT_CONTINUE,
+                                        leadingIcon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
+                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+                                        leadingIconSpacing = 4.dp,
                                     )
                                 }
                             } else {
@@ -607,7 +620,7 @@ private fun SpeciesIdentityRow(speciesName: String, sideMargin: Dp, widthDp: Int
             .testTag("recognition-result-species"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(speciesName, modifier = Modifier.weight(1f), color = DeepInk, fontSize = if (compactTitle) 28.sp else 30.sp, lineHeight = if (compactTitle) 34.sp else 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(resultSpeciesDisplayName(speciesName), modifier = Modifier.weight(1f), color = DeepInk, fontSize = if (compactTitle) 28.sp else 30.sp, lineHeight = if (compactTitle) 34.sp else 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         YuJianTextAction(text = "修改鱼种", onClick = onChange, role = YuJianTextActionRole.NORMAL, enabled = enabled, showChevron = true)
     }
 }
@@ -721,7 +734,7 @@ private fun MetadataField(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MutedInk)
-            Column(Modifier.padding(start = 12.dp)) {
+            Column(Modifier.weight(1f).padding(start = 12.dp, end = 8.dp)) {
                 Text(label, color = MutedInk, fontSize = 12.sp, lineHeight = 18.sp, maxLines = 1)
                 Text(
                     value,
@@ -917,16 +930,16 @@ private fun ResultDualActionButton(
         modifier = modifier,
         enabled = enabled,
         loading = loadingDestination == destination,
-        variant = if (isContinue) YuJianActionButtonVariant.SECONDARY_MUTED else YuJianActionButtonVariant.RESULT_SAVE,
-        leadingIcon = if (compactLayout) null else {
-            {
-                Icon(
-                    imageVector = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+        variant = if (isContinue) YuJianActionButtonVariant.RESULT_CONTINUE else YuJianActionButtonVariant.RESULT_SAVE,
+        leadingIcon = {
+            Icon(
+                imageVector = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save,
+                contentDescription = null,
+                modifier = Modifier.size(if (compactLayout) 16.dp else 18.dp),
+            )
         },
+        contentPadding = if (compactLayout) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+        leadingIconSpacing = 4.dp,
     )
 }
 
@@ -944,7 +957,8 @@ private fun ResultFieldEditorSheet(
     title: String, label: String, unit: String, value: String, keyboardType: KeyboardType,
     validation: (String) -> String?, onDismiss: () -> Unit, onSave: (String) -> Unit,
 ) {
-    var text by remember(title, value) { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+    val initialValue = remember(title, value) { resultNumericEditorInitialValue(value) }
+    var text by remember(title, value) { mutableStateOf(initialValue) }
     var error by remember(title) { mutableStateOf<String?>(null) }
     val keyboard = LocalSoftwareKeyboardController.current
     val focusRequester = remember(title) { FocusRequester() }
@@ -984,7 +998,7 @@ private fun ResultFieldEditorSheet(
                 keyboardActions = KeyboardActions(onDone = { finishEditing() }),
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                if (value.isNotBlank()) {
+                if (initialValue.text.isNotBlank()) {
                     YuJianTextAction(
                         text = "清除", onClick = { onSave(""); keyboard?.hide() },
                         role = YuJianTextActionRole.MUTED,
