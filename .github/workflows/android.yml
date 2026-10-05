@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/fix/recognition-camera-capture-p0-v2' }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

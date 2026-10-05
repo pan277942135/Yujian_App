@@ -609,4 +609,3 @@ class RecognitionCameraRuntimeTest {
         File(evidenceDir, name).writeText(content)
     }
 }
-
