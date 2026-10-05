@@ -41,6 +41,9 @@ class RecognitionCameraRuntimeTest {
         private const val BACK_BUTTON = "返回"
         private const val ALBUM_BUTTON = "从相册选择"
         private const val RECOGNITION_IMAGE = "正在识别的鱼获照片"
+        private const val RECOGNITION_NO_FISH = "没有找到可识别的鱼"
+        private const val RECOGNITION_IMAGE_QUALITY = "照片不够清晰，无法识别"
+        private const val RECOGNITION_TECHNICAL_FAILURE = "识别没有完成"
         private const val LOG_TAG = "RecognitionCameraCapture"
         private const val CAMERA_WAIT_MS = 60_000L
         private const val CAPTURE_INVOCATION_WAIT_MS = 10_000L
@@ -372,12 +375,21 @@ class RecognitionCameraRuntimeTest {
 
         assertTrue("Production recognition navigation event was not emitted",
             handoffLogs.contains(requestPrefix + "event=recognition_navigation started=true"))
-        assertTrue("Recognition Processing did not expose the captured image", device.wait(
-            Until.hasObject(By.desc(RECOGNITION_IMAGE)), 30_000L,
-        ))
+        val recognitionDestination = waitForRecognitionDestination(CAMERA_WAIT_MS)
+        if (recognitionDestination == null || recognitionDestination == "technical_failure") {
+            saveUiHierarchy("ui_hierarchy_recognition_handoff_failure.xml")
+            screenshot("06_recognition_handoff.png")
+            record("RECOGNITION_HANDOFF", "FAIL_DESTINATION_NOT_ACCEPTABLE")
+            record("RECOGNITION_SCREEN", recognitionDestination ?: "NOT_OBSERVED")
+            saveDiagnostics()
+            throw AssertionError(
+                "Recognition did not reach the processing image or an accepted No Fish/Image Quality screen; " +
+                    "observed=" + recognitionDestination,
+            )
+        }
         screenshot("06_recognition_handoff.png")
         record("RECOGNITION_HANDOFF", "PASS")
-        record("RECOGNITION_SCREEN", RECOGNITION_IMAGE)
+        record("RECOGNITION_SCREEN", recognitionDestination)
         saveDiagnostics()
     }
 
@@ -509,6 +521,24 @@ class RecognitionCameraRuntimeTest {
         val file = File(evidenceDir, name)
         runCatching { device.dumpWindowHierarchy(file) }
             .onFailure { write(name.replace(".xml", "_error.txt"), it.javaClass.name + ": " + it.message) }
+    }
+
+    private fun waitForRecognitionDestination(timeoutMs: Long): String? {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (SystemClock.elapsedRealtime() < deadline) {
+            when {
+                device.findObject(By.desc(RECOGNITION_IMAGE)) != null ->
+                    return "PROCESSING_IMAGE_VISIBLE"
+                device.findObject(By.text(RECOGNITION_NO_FISH)) != null ->
+                    return "NO_FISH"
+                device.findObject(By.text(RECOGNITION_IMAGE_QUALITY)) != null ->
+                    return "IMAGE_QUALITY"
+                device.findObject(By.text(RECOGNITION_TECHNICAL_FAILURE)) != null ->
+                    return "TECHNICAL_FAILURE"
+            }
+            SystemClock.sleep(150L)
+        }
+        return null
     }
 
     private fun waitForCaptureOutcome(timeoutMs: Long, requestId: String): String {
