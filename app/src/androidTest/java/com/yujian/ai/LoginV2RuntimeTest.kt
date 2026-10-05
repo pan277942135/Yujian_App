@@ -1,6 +1,7 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.os.ParcelFileDescriptor
 import androidx.activity.ComponentActivity
 import androidx.core.view.WindowInsetsCompat
 import androidx.compose.ui.test.assertIsEnabled
@@ -48,6 +49,7 @@ import java.io.File
 import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -58,6 +60,41 @@ class LoginV2RuntimeTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    private var originalImeWithHardwareKeyboard: String? = null
+    private var imeWithHardwareKeyboardChanged = false
+
+    @After
+    fun restoreHardwareKeyboardImeSetting() {
+        if (!imeWithHardwareKeyboardChanged) return
+        try {
+            val setting = originalImeWithHardwareKeyboard
+            if (setting == "0" || setting == "1") {
+                runShellCommand("settings put secure show_ime_with_hard_keyboard $setting")
+            } else {
+                runShellCommand("settings delete secure show_ime_with_hard_keyboard")
+            }
+        } finally {
+            imeWithHardwareKeyboardChanged = false
+        }
+    }
+
+    private fun runShellCommand(command: String): String {
+        val output = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand(command)
+        return ParcelFileDescriptor.AutoCloseInputStream(output).bufferedReader().use {
+            it.readText().trim()
+        }
+    }
+
+    private fun showSoftwareKeyboardForEmulator() {
+        if (imeWithHardwareKeyboardChanged) return
+        originalImeWithHardwareKeyboard = runShellCommand(
+            "settings get secure show_ime_with_hard_keyboard",
+        )
+        imeWithHardwareKeyboardChanged = true
+        runShellCommand("settings put secure show_ime_with_hard_keyboard 1")
+    }
 
     private fun awaitImeVisible() {
         composeRule.waitUntil(timeoutMillis = 5_000L) {
@@ -241,6 +278,7 @@ class LoginV2RuntimeTest {
         }
 
         val username = composeRule.onNodeWithTag("login_username")
+        showSoftwareKeyboardForEmulator()
         username.performClick()
         awaitImeVisible()
         username.performTextInput("x")
@@ -310,6 +348,7 @@ class LoginV2RuntimeTest {
 
         val usernameError = "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
         val username = composeRule.onNodeWithTag("register_username")
+        showSoftwareKeyboardForEmulator()
         username.performClick()
         awaitImeVisible()
         username.performTextInput("x")
