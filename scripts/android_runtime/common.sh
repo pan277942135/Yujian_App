@@ -47,8 +47,10 @@ runtime_adb_state() {
 
 runtime_is_transport_failure_file() {
   local file="$1"
+  # Only explicit adb/device-transport signatures are infrastructure loss.
+  # CameraX application errors such as "Camera is closed" remain FAIL_TEST.
   grep -Eiq \
-    'device offline|no devices/emulators found|device .*not found|transport (error|id)|closed|connection reset|cannot connect to daemon|failed to read|failed to get feature set|device unauthorized|more than one device' \
+    '(^|[[:space:]])(adb: )?error: (device offline|device unauthorized|device .*not found|no devices/emulators found|more than one device/emulator|transport [^[:space:]]+ not found)|cannot connect to daemon|failed to get feature set: (device offline|device unauthorized|device .*not found)|adb.*protocol fault|device transport (lost|closed|offline)|transport (error|lost|closed|offline):' \
     "$file"
 }
 

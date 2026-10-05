@@ -177,6 +177,13 @@ class RecognitionCameraRuntimeTest {
         val requestId = captureLine?.let { Regex("request=([^ ]+)").find(it)?.groupValues?.get(1) }
         record("CAPTURE_REQUEST_STATE", captureLine ?: "MISSING")
         record("CAPTURE_REQUEST_ID", requestId ?: "MISSING")
+        assertTrue("CameraX PreviewView/controller must remain alive while CAPTURING",
+            captureLine != null &&
+                captureLine.contains("capture_state=CAPTURING") &&
+                captureLine.contains("camera_provider_bound=true") &&
+                captureLine.contains("camera_controller_alive=true") &&
+                captureLine.contains("preview_view_attached=true"))
+        record("PREVIEW_CONTROLLER_ALIVE_WHILE_CAPTURING", "PASS")
         if (invocationCount == 0) {
             record("TAKE_PICTURE_INVOKED", "false")
             saveCaptureInvocationFailureDiagnostics(invocationLogs)
@@ -248,6 +255,11 @@ class RecognitionCameraRuntimeTest {
         }
         assertNotNull("onImageSaved was not reached after the terminal result", savedLine)
         val saved = savedLine!!
+        assertTrue("CameraX controller/PreviewView was detached before the terminal callback",
+            saved.contains("camera_provider_bound=true") &&
+                saved.contains("camera_controller_alive=true") &&
+                saved.contains("preview_view_attached=true"))
+        record("PREVIEW_CONTROLLER_ALIVE_AT_TERMINAL_CALLBACK", "PASS")
         assertTrue("Production callback did not report a non-empty saved file",
             saved.contains("file_exists=true") && Regex("file_bytes=([1-9][0-9]*)").containsMatchIn(saved))
         record("ON_IMAGE_SAVED", "PASS")
@@ -560,4 +572,3 @@ class RecognitionCameraRuntimeTest {
         File(evidenceDir, name).writeText(content)
     }
 }
-
