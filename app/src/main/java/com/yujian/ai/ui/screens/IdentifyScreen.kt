@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -112,7 +113,8 @@ fun IdentifyScreen(
         )
     }
     var permissionRequested by remember { mutableStateOf(false) }
-    var loading by remember { mutableStateOf(false) }
+    var galleryLoading by remember { mutableStateOf(false) }
+    var activeCaptureRequestId by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var cameraBound by remember { mutableStateOf(false) }
     var imageCaptureReady by remember { mutableStateOf(false) }
@@ -139,17 +141,10 @@ fun IdentifyScreen(
         hasCameraPermission && cameraBound && previewStreaming && imageCaptureInstanceReady()
 
     fun syncCaptureState() {
-        if (captureState == RecognitionCameraCaptureState.CAPTURING ||
-            captureState == RecognitionCameraCaptureState.SUCCESS
-        ) {
-            return
-        }
-        captureState = when {
-            cameraCanCapture() && captureState == RecognitionCameraCaptureState.ERROR ->
-                RecognitionCameraCaptureState.ERROR
-            cameraCanCapture() -> RecognitionCameraCaptureState.READY
-            else -> RecognitionCameraCaptureState.INITIALIZING
-        }
+        captureState = RecognitionCameraCaptureContract.reconcileReadiness(
+            state = captureState,
+            cameraReady = cameraCanCapture(),
+        )
     }
 
     DisposableEffect(view) {
@@ -224,7 +219,17 @@ fun IdentifyScreen(
                     )
                 }
         }
-        onDispose { cameraController.unbind() }
+        onDispose {
+            logCapture(
+                activeCaptureRequestId ?: "camera-controller",
+                "camera_controller_dispose",
+                "camera_provider_bound=$cameraBound preview_attached=${previewView?.isAttachedToWindow == true} " +
+                    "capture_state=${captureState.name} " +
+                    "active_capture_request_id=${diagnosticValue(activeCaptureRequestId)} " +
+                    "teardown_during_capture=${captureState == RecognitionCameraCaptureState.CAPTURING && activeCaptureRequestId != null}",
+            )
+            cameraController.unbind()
+        }
     }
 
     DisposableEffect(previewView, lifecycleOwner) {
@@ -232,6 +237,27 @@ fun IdentifyScreen(
         if (currentPreview == null) {
             onDispose { }
         } else {
+            fun logSurfaceState(attached: Boolean) {
+                logCapture(
+                    activeCaptureRequestId ?: "camera-preview",
+                    "capture_surface_state",
+                    "preview_attached=$attached controller_attached=${currentPreview.controller === cameraController} " +
+                        "capture_state=${captureState.name} " +
+                        "active_capture_request_id=${diagnosticValue(activeCaptureRequestId)} " +
+                        "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name}",
+                )
+            }
+            val attachListener = object : android.view.View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(view: android.view.View) {
+                    logSurfaceState(true)
+                }
+
+                override fun onViewDetachedFromWindow(view: android.view.View) {
+                    logSurfaceState(false)
+                }
+            }
+            currentPreview.addOnAttachStateChangeListener(attachListener)
+            if (currentPreview.isAttachedToWindow) logSurfaceState(true)
             val observer = Observer<PreviewView.StreamState> { streamState ->
                 previewStreaming = streamState == PreviewView.StreamState.STREAMING
                 logCapture(
@@ -245,6 +271,7 @@ fun IdentifyScreen(
             currentPreview.previewStreamState.observe(lifecycleOwner, observer)
             onDispose {
                 currentPreview.previewStreamState.removeObserver(observer)
+                currentPreview.removeOnAttachStateChangeListener(attachListener)
             }
         }
     }
@@ -264,7 +291,7 @@ fun IdentifyScreen(
         ActivityResultContracts.GetContent(),
     ) { uri ->
         if (uri == null) {
-            loading = false
+            galleryLoading = false
             return@rememberLauncherForActivityResult
         }
         scope.launch {
@@ -280,17 +307,17 @@ fun IdentifyScreen(
             }.onFailure {
                 error = GalleryImageFailureHint
             }
-            loading = false
+            galleryLoading = false
         }
     }
 
     fun openGallery() {
-        if (!loading) {
-            loading = true
+        if (!galleryLoading && captureState != RecognitionCameraCaptureState.CAPTURING) {
+            galleryLoading = true
             error = null
             runCatching { galleryLauncher.launch("image/*") }
                 .onFailure {
-                    loading = false
+                    galleryLoading = false
                     error = GalleryUnavailableHint
                 }
         }
@@ -298,7 +325,7 @@ fun IdentifyScreen(
 
     fun capture() {
         val requestId = "cap_${UUID.randomUUID()}"
-        val captureButtonEnabled = !loading && cameraCanCapture() &&
+        val captureButtonEnabled = !galleryLoading && cameraCanCapture() &&
             RecognitionCameraCaptureContract.canStartCapture(captureState)
         if (!hasCameraPermission) {
             logCapture(requestId, "capture_blocked", "reason=permission_denied capture_button_enabled=false")
@@ -310,8 +337,12 @@ fun IdentifyScreen(
             }
             return
         }
-        if (loading) {
-            logCapture(requestId, "capture_blocked", "reason=already_loading capture_button_enabled=false")
+        if (galleryLoading || captureState == RecognitionCameraCaptureState.CAPTURING) {
+            logCapture(
+                requestId,
+                "capture_blocked",
+                "reason=competing_or_active_flow capture_state=${captureState.name} capture_button_enabled=false",
+            )
             return
         }
         val capturingState = RecognitionCameraCaptureContract.beginCapture(captureState)
@@ -333,6 +364,7 @@ fun IdentifyScreen(
         val targetResult = runCatching { RecognitionImageStore.createCameraTarget(context) }
         if (targetResult.isFailure) {
             captureState = RecognitionCameraCaptureContract.completeError()
+            syncCaptureState()
             Log.e(
                 RecognitionCameraCaptureTag,
                 "request=$requestId event=target_create_failed " +
@@ -343,10 +375,14 @@ fun IdentifyScreen(
             return
         }
         val target = targetResult.getOrThrow()
+        activeCaptureRequestId = requestId
         logCapture(
             requestId,
             "before_capture",
             "camera_provider_bound=$cameraBound preview_bound=$previewStreaming " +
+                "preview_attached=${previewView?.isAttachedToWindow == true} " +
+                "controller_attached=${previewView?.controller === cameraController} " +
+                "capture_state=${captureState.name} " +
                 "image_capture_instance_ready=${imageCaptureInstanceReady()} " +
                 "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name} " +
                 "capture_button_enabled=false output_target_type=file " +
@@ -355,7 +391,6 @@ fun IdentifyScreen(
                 "parent_directory_exists=${target.file.parentFile?.isDirectory == true} " +
                 "parent_directory_writable=${target.file.parentFile?.canWrite() == true}",
         )
-        loading = true
         try {
             // CameraX writes directly to the app-private cache file. The
             // FileProvider URI remains available for gallery/test handoffs but
@@ -366,6 +401,14 @@ fun IdentifyScreen(
                 ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                        activeCaptureRequestId = null
+                        logCapture(
+                            requestId,
+                            "terminal_callback",
+                            "result=onImageSaved capture_state=${captureState.name} " +
+                                "preview_attached=${previewView?.isAttachedToWindow == true} " +
+                                "controller_attached=${previewView?.controller === cameraController}",
+                        )
                         logCapture(
                             requestId,
                             "on_image_saved",
@@ -395,6 +438,9 @@ fun IdentifyScreen(
                                         selectedFile?.let { it.exists() && it.length() > 0L } == true,
                                 )
                                 captureState = RecognitionCameraCaptureContract.completeCapture(outputEvidence)
+                                if (captureState == RecognitionCameraCaptureState.ERROR) {
+                                    syncCaptureState()
+                                }
                                 if (outputEvidence.isValid && details != null) {
                                     logCapture(
                                         requestId,
@@ -440,17 +486,37 @@ fun IdentifyScreen(
                                         "camera_state_after_callback=${captureState.name} " +
                                         "camera_provider_bound=$cameraBound preview_bound=$previewStreaming",
                                 )
-                                loading = false
+                                // The camera request is terminal; leave the live PreviewView mounted for retry.
                             }
                         }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
                         val cause = exception.cause
+                        activeCaptureRequestId = null
+                        logCapture(
+                            requestId,
+                            "terminal_callback",
+                            "result=onError capture_state=${captureState.name} " +
+                                "camera_provider_bound=$cameraBound preview_streaming=$previewStreaming " +
+                                "image_capture_ready=${imageCaptureInstanceReady()} " +
+                                "preview_attached=${previewView?.isAttachedToWindow == true} " +
+                                "controller_attached=${previewView?.controller === cameraController} " +
+                                "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name}",
+                        )
                         val outputFileExists = target.file.exists()
                         val outputFileBytes = target.file.length()
                         val cleanupSucceeded = !target.file.exists() || target.file.delete()
                         captureState = RecognitionCameraCaptureContract.completeError()
+                        syncCaptureState()
+                        logCapture(
+                            requestId,
+                            "capture_recovery_state",
+                            "capture_state=${captureState.name} camera_provider_bound=$cameraBound " +
+                                "preview_streaming=$previewStreaming image_capture_ready=${imageCaptureInstanceReady()} " +
+                                "preview_attached=${previewView?.isAttachedToWindow == true} " +
+                                "controller_attached=${previewView?.controller === cameraController}",
+                        )
                         Log.e(
                             RecognitionCameraCaptureTag,
                             "request=$requestId event=error " +
@@ -461,14 +527,22 @@ fun IdentifyScreen(
                                 "output_file_exists=$outputFileExists output_file_bytes=$outputFileBytes " +
                                 "temporary_file_cleanup=$cleanupSucceeded",
                         )
-                        loading = false
                         error = CameraCaptureFailureHint
                     }
                 },
             )
         } catch (captureError: Exception) {
             val cleanupSucceeded = !target.file.exists() || target.file.delete()
+            activeCaptureRequestId = null
+            logCapture(
+                requestId,
+                "terminal_callback",
+                "result=takePictureThrow capture_state=${captureState.name} " +
+                    "preview_attached=${previewView?.isAttachedToWindow == true} " +
+                    "controller_attached=${previewView?.controller === cameraController}",
+            )
             captureState = RecognitionCameraCaptureContract.completeError()
+            syncCaptureState()
             Log.e(
                 RecognitionCameraCaptureTag,
                 "request=$requestId event=take_picture_throw " +
@@ -476,7 +550,6 @@ fun IdentifyScreen(
                     "cause_message=${diagnosticValue(captureError.message)} " +
                     "temporary_file_cleanup=$cleanupSucceeded",
             )
-            loading = false
             error = CameraStartFailureHint
         }
     }
@@ -487,6 +560,10 @@ fun IdentifyScreen(
             permissionRequested = true
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    BackHandler(enabled = captureState == RecognitionCameraCaptureState.CAPTURING) {
+        // Keep the bound CameraX surface alive until the current request completes.
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -509,12 +586,19 @@ fun IdentifyScreen(
                     contentDescription = "刚拍下的鱼获",
                 )
             }
-        } else if (loading) {
+        } else if (galleryLoading) {
             // A neutral handoff frame prevents a stale CameraX frame or the
             // previous SelectedImage from flashing while the new gallery
             // image is normalized.
             Box(Modifier.fillMaxSize().background(Color.Black))
-        } else if (hasCameraPermission && cameraBound) {
+        } else if (
+            RecognitionCameraCaptureContract.shouldKeepPreviewMounted(
+                captureState = captureState,
+                cameraBound = hasCameraPermission && cameraBound,
+                galleryLoading = galleryLoading,
+                handoffImageAvailable = handoffImage != null,
+            )
+        ) {
             AndroidView(
                 factory = { context ->
                     PreviewView(context).apply {
@@ -526,19 +610,22 @@ fun IdentifyScreen(
                 modifier = Modifier.fillMaxSize(),
                 update = {
                     previewView = it
-                    it.controller = cameraController
+                    if (it.controller !== cameraController) {
+                        it.controller = cameraController
+                    }
                 },
             )
         }
 
-        if (handoffImage == null && !loading) {
+        if (handoffImage == null && !galleryLoading) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = if (loading) 0.30f else 0.12f)),
+                    .background(Color.Black.copy(alpha = if (galleryLoading) 0.30f else 0.12f)),
             )
             IconButton(
                 onClick = onBack,
+                enabled = captureState != RecognitionCameraCaptureState.CAPTURING,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(top = safeInsets.calculateTopPadding() + 8.dp, start = 12.dp),
@@ -551,7 +638,10 @@ fun IdentifyScreen(
             }
         }
 
-        if (handoffImage == null && !loading && !autoOpenGallery) {
+        if (
+            handoffImage == null && !galleryLoading && !autoOpenGallery &&
+            captureState != RecognitionCameraCaptureState.CAPTURING
+        ) {
             if (!hasCameraPermission) {
                 Button(
                     onClick = {
@@ -563,15 +653,17 @@ fun IdentifyScreen(
             } else if (!cameraBound || !imageCaptureReady || !previewStreaming) {
                 Button(
                     onClick = {
-                        error = null
-                        cameraRetry += 1
+                        if (captureState != RecognitionCameraCaptureState.CAPTURING) {
+                            error = null
+                            cameraRetry += 1
+                        }
                     },
                     modifier = Modifier.align(Alignment.Center),
                 ) { Text("重试打开相机") }
             }
         }
 
-        error?.takeIf { handoffImage == null && !loading }?.let {
+        error?.takeIf { handoffImage == null && !galleryLoading }?.let {
             Text(
                 text = it,
                 color = Color.White,
@@ -581,7 +673,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null && !loading) Row(
+        if (handoffImage == null && !galleryLoading) Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = safeInsets.calculateBottomPadding() + 18.dp),
@@ -591,7 +683,10 @@ fun IdentifyScreen(
             Box(
                 Modifier
                     .size(54.dp)
-                    .clickable(onClick = ::openGallery),
+                    .clickable(
+                        enabled = captureState != RecognitionCameraCaptureState.CAPTURING,
+                        onClick = ::openGallery,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(

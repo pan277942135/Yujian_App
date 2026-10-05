@@ -34,11 +34,32 @@ data class RecognitionCameraCaptureOutput(
 
 object RecognitionCameraCaptureContract {
     fun canStartCapture(state: RecognitionCameraCaptureState): Boolean =
-        state == RecognitionCameraCaptureState.READY ||
-            state == RecognitionCameraCaptureState.ERROR
+        state == RecognitionCameraCaptureState.READY
 
     fun beginCapture(state: RecognitionCameraCaptureState): RecognitionCameraCaptureState? =
         if (canStartCapture(state)) RecognitionCameraCaptureState.CAPTURING else null
+
+    fun reconcileReadiness(
+        state: RecognitionCameraCaptureState,
+        cameraReady: Boolean,
+    ): RecognitionCameraCaptureState = when {
+        state == RecognitionCameraCaptureState.CAPTURING ||
+            state == RecognitionCameraCaptureState.SUCCESS -> state
+        cameraReady -> RecognitionCameraCaptureState.READY
+        state == RecognitionCameraCaptureState.ERROR -> RecognitionCameraCaptureState.ERROR
+        else -> RecognitionCameraCaptureState.INITIALIZING
+    }
+
+    fun shouldKeepPreviewMounted(
+        captureState: RecognitionCameraCaptureState,
+        cameraBound: Boolean,
+        galleryLoading: Boolean,
+        handoffImageAvailable: Boolean,
+    ): Boolean =
+        cameraBound &&
+            !galleryLoading &&
+            !handoffImageAvailable &&
+            captureState != RecognitionCameraCaptureState.SUCCESS
 
     fun completeCapture(output: RecognitionCameraCaptureOutput): RecognitionCameraCaptureState =
         if (output.isValid) {
