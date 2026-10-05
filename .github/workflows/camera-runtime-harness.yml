@@ -152,6 +152,9 @@ jobs:
           python3 scripts/verify_recognition_design_closure_v1_1.py
           python3 scripts/verify_recognition_runtime_contract.py
 
+      - name: Test camera runtime gate permission handling
+        run: bash scripts/android_runtime/tests/test_camera_runtime_gate.sh
+
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
 
@@ -402,7 +405,7 @@ jobs:
           ADB: /opt/android-sdk/platform-tools/adb
         run: |
           bash scripts/run_android_runtime_gate.sh \
-            --gate login-v2 --api-level 28 --build-sha "$GITHUB_SHA" \
+            --gate camera-runtime-smoke --api-level 28 --build-sha "$GITHUB_SHA" \
             --app-apk build/camera-runtime-apks/app-debug.apk \
             --test-apk build/camera-runtime-apks/app-debug-androidTest.apk \
             --evidence-dir evidence/runtime/existing-harness-smoke
@@ -445,7 +448,7 @@ jobs:
           fi
           if [[ ! -s "$smoke_result" ]]; then
             python3 scripts/android_runtime/result.py \
-              --output "$smoke_result" --gate login-v2 --api-level 28 \
+              --output "$smoke_result" --gate camera-runtime-smoke --api-level 28 \
               --build-sha "$GITHUB_SHA" --adb-state unknown --boot-completed unknown \
               --data-free-kb "" --preflight NOT_RUN --install NOT_RUN --instrumentation NOT_RUN \
               --evidence NOT_RUN --classification BLOCKED_INFRA \

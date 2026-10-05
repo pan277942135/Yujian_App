@@ -8,14 +8,16 @@ gate_before_instrumentation() {
   local output="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
   mkdir -p "$output"
   "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE" >/dev/null 2>&1 || true
-  local clear_result grant_result
-  clear_result="$("$YUJIAN_ADB_BIN" shell pm clear "$YUJIAN_APP_PACKAGE" 2>&1 | tr -d '\r')"
-  grant_result="$("$YUJIAN_ADB_BIN" shell pm grant "$YUJIAN_APP_PACKAGE" android.permission.CAMERA 2>&1 | tr -d '\r')"
+  local clear_result grant_result clear_rc=0 grant_rc=0
+  clear_result="$("$YUJIAN_ADB_BIN" shell pm clear "$YUJIAN_APP_PACKAGE" 2>&1 | tr -d '\r')" || clear_rc=$?
+  grant_result="$("$YUJIAN_ADB_BIN" shell pm grant "$YUJIAN_APP_PACKAGE" android.permission.CAMERA 2>&1 | tr -d '\r')" || grant_rc=$?
   {
     printf 'APP_DATA_RESET=%s\n' "$clear_result"
+    printf 'APP_DATA_RESET_EXIT_CODE=%s\n' "$clear_rc"
     printf 'CAMERA_PERMISSION_GRANT=%s\n' "$grant_result"
+    printf 'CAMERA_PERMISSION_GRANT_EXIT_CODE=%s\n' "$grant_rc"
   } > "$output/permission_preflight.txt"
-  if [[ "$clear_result" != *"Success"* || ( "$grant_result" != *"Success"* && "$grant_result" != *"granted"* ) ]]; then
+  if (( clear_rc != 0 || grant_rc != 0 )) || [[ "$clear_result" != *"Success"* ]]; then
     runtime_set_failure "CAMERA_PERMISSION_SETUP" "APP_RESET_OR_CAMERA_PERMISSION_GRANT_FAILED"
     return "$EXIT_BLOCKED_INFRA"
   fi
@@ -50,11 +52,9 @@ gate_after_instrumentation() {
     camera_runtime_pull_file "cache/camera-runtime-v1/$name" "$output/$name"
   done
 
-  "$YUJIAN_ADB_BIN" logcat -d -v threadtime \
-    -s RecognitionCameraCapture:D CameraX:D Camera2CameraImpl:D Camera2CameraInfo:D \
-       Camera2CameraControl:D Camera2CameraCaptureSession:D Camera2CameraDevice:D \
-       CameraManagerGlobal:W AndroidRuntime:E \
-    > "$output/camera_runtime_log.txt" 2>&1 || true
+  timeout 20s "$YUJIAN_ADB_BIN" logcat -d -v threadtime 2>&1 |
+    grep -Ei 'RecognitionCameraCapture|CameraX|Camera2|CameraManager|CameraService|AndroidRuntime' |
+    tail -n 3000 > "$output/camera_runtime_log.txt" || true
   "$YUJIAN_ADB_BIN" shell dumpsys media.camera \
     > "$output/camera_service_after_test.txt" 2>&1 || \
     "$YUJIAN_ADB_BIN" shell dumpsys camera \

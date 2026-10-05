@@ -9,7 +9,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage:
   bash scripts/run_android_runtime_gate.sh \
-    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|fish-guide-v1|runtime-parity|camera-runtime-v1 \
+    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|fish-guide-v1|runtime-parity|camera-runtime-v1|camera-runtime-smoke \
     --app-apk path/to/app-debug.apk \
     --test-apk path/to/app-debug-androidTest.apk \
     --evidence-dir evidence/runtime/<gate> \
@@ -85,6 +85,9 @@ case "$GATE" in
     ;;
   camera-runtime-v1)
     source "$RUNTIME_DIR/gates/camera_runtime_v1.sh"
+    ;;
+  camera-runtime-smoke)
+    source "$RUNTIME_DIR/gates/camera_runtime_smoke.sh"
     ;;
   *)
     runtime_set_failure "CONFIG" "UNKNOWN_GATE"
