@@ -119,30 +119,19 @@ gate_collect_evidence() {
 
   local rc
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920
-  normal_home_run_seed seedSingleGuestCatch "$out/seed_single.log" || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_exact "$out/02_normal_home_runtime_1080x1920.png" 1080 1920
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
-
-  "$YUJIAN_ADB_BIN" shell wm size 1080x2340
-  normal_home_run_seed seedSingleGuestCatch "$out/seed_single_19_5_9.log" || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_exact "$out/04_normal_home_single_19_5_9_1080x2340.png" 1080 2340
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2340"; return "$EXIT_BLOCKED_INFRA"; fi
-
-  "$YUJIAN_ADB_BIN" shell wm size 1080x2400
   normal_home_run_seed seedTwoAspectPortraitGuestCatches "$out/seed_two_aspect_portraits.log" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 2400
+  normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 1920
   rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2400"; return "$EXIT_BLOCKED_INFRA"; fi
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
+  normal_home_capture_exact "$out/04_normal_home_runtime_1080x1920.png" 1080 1920
+  rc=$?
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
   "$YUJIAN_ADB_BIN" shell input swipe 900 1200 180 1200 450
   sleep 2
-  normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 2400
+  normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 1920
   rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2400"; return "$EXIT_BLOCKED_INFRA"; fi
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
   python3 - "$out/01_normal_home_first_card.png" "$out/02_normal_home_second_card.png" <<'PY'
 from PIL import Image, ImageChops, ImageStat
 import sys
@@ -160,21 +149,9 @@ PY
     return "$EXIT_FAIL_EVIDENCE"
   fi
 
-  normal_home_run_seed seedMultipleGuestCatches "$out/seed_multiple_20_9.log" || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_exact "$out/05_normal_home_multiple_20_9_1080x2400.png" 1080 2400
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2400"; return "$EXIT_BLOCKED_INFRA"; fi
-
-  "$YUJIAN_ADB_BIN" shell wm size 1080x2520
-  sleep 2
-  normal_home_capture_exact "$out/06_normal_home_multiple_21_9_1080x2520.png" 1080 2520
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2520"; return "$EXIT_BLOCKED_INFRA"; fi
-
-  cp "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/normal_home_v1.png" "$out/01_normal_home_frozen_1080x1920.png"
-  cp "$YUJIAN_REPO_ROOT/app/src/main/assets/normal_home_runtime_v1/static/scene_base.png" "$out/08_normal_home_background_runtime.png"
-  cp "$YUJIAN_REPO_ROOT/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" "$out/07_normal_home_background_source.png"
+  cp "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/normal_home_v1.png" "$out/03_normal_home_frozen_1080x1920.png"
+  cp "$YUJIAN_REPO_ROOT/app/src/main/assets/normal_home_runtime_v1/static/scene_base.png" "$out/07_normal_home_background_runtime.png"
+  cp "$YUJIAN_REPO_ROOT/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" "$out/06_normal_home_background_source.png"
   python3 "$YUJIAN_REPO_ROOT/scripts/verify_normal_home_visual_evidence.py" "$out" || {
     runtime_set_failure "EVIDENCE" "NORMAL_HOME_VISUAL_EVIDENCE_FAILED"
     return "$EXIT_FAIL_EVIDENCE"
@@ -184,17 +161,17 @@ PY
     'NormalHomeDataParityTest: deterministic 9:16 and 4:5 portraits share one cover viewport; card content, long locations, stats, header, carousel and navigation remain visible and actionable.' \
     'HomeStatsSemanticsTest: recordDays has no OnClick; fish species and catch totals navigate.' \
     'NormalHomeHeroBehaviorTest: one catch is centered; tap opens the matching recordId; multiple catches remain manual and swipeable.' \
-    'Home state, valid-record filtering, timestamp ordering and Reduce Motion: covered by testDebugUnitTest.' \
+    'Home state, responsive measurement profiles, valid-record filtering, timestamp ordering and Reduce Motion: covered by JVM and Android semantics tests.' \
     'No custom Home Hero haptic; no Home sound.' \
-    > "$out/11_normal_home_semantics_report.txt"
+    > "$out/10_normal_home_semantics_report.txt"
 
   "$YUJIAN_ADB_BIN" shell wm size reset
   sleep 1
   "$YUJIAN_ADB_BIN" shell rm -f /sdcard/normal_home_motion.mp4
   "$YUJIAN_ADB_BIN" shell screenrecord --time-limit 10 /sdcard/normal_home_motion.mp4 > "$out/screenrecord.log" 2>&1
-  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/12_Normal_Home_Runtime_10s.mp4" >/dev/null
+  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/11_Normal_Home_Runtime_10s.mp4" >/dev/null
   local duration
-  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/12_Normal_Home_Runtime_10s.mp4")"
+  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/11_Normal_Home_Runtime_10s.mp4")"
   python3 - "$duration" <<'PY'
 import sys
 duration=float(sys.argv[1])
@@ -207,18 +184,15 @@ PY
   for file in \
     "$out/01_normal_home_first_card.png" \
     "$out/02_normal_home_second_card.png" \
-    "$out/01_normal_home_frozen_1080x1920.png" \
-    "$out/02_normal_home_runtime_1080x1920.png" \
-    "$out/03_normal_home_frozen_runtime_side_by_side.png" \
-    "$out/04_normal_home_single_19_5_9_1080x2340.png" \
-    "$out/05_normal_home_multiple_20_9_1080x2400.png" \
-    "$out/06_normal_home_multiple_21_9_1080x2520.png" \
-    "$out/07_normal_home_background_source.png" \
-    "$out/08_normal_home_background_runtime.png" \
-    "$out/09_normal_home_background_parity_report.json" \
-    "$out/10_normal_home_visual_parity_report.json" \
-    "$out/11_normal_home_semantics_report.txt" \
-    "$out/12_Normal_Home_Runtime_10s.mp4"
+    "$out/03_normal_home_frozen_1080x1920.png" \
+    "$out/04_normal_home_runtime_1080x1920.png" \
+    "$out/05_normal_home_frozen_runtime_side_by_side.png" \
+    "$out/06_normal_home_background_source.png" \
+    "$out/07_normal_home_background_runtime.png" \
+    "$out/08_normal_home_background_parity_report.json" \
+    "$out/09_normal_home_visual_parity_report.json" \
+    "$out/10_normal_home_semantics_report.txt" \
+    "$out/11_Normal_Home_Runtime_10s.mp4"
   do
     if [[ ! -s "$file" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"

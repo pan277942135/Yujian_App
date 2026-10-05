@@ -196,11 +196,11 @@ class RecognitionFrozenFlowEmulatorTest {
         render(state, FrozenState.FISH_LOCATED, "已定位到鱼体", "03_fish_located.png")
         assertVisible("正在分析这次鱼获")
 
-        render(state, FrozenState.SPECIES_RECOGNIZING, "鱼种识别中", "04_species_recognizing.png")
-        assertVisible("正在分析鱼体特征")
+        render(state, FrozenState.SPECIES_RECOGNIZING, "正在认识这条鱼", "04_species_recognizing.png")
+        assertVisible("分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.RESOLVE, "鱼种识别中", "05_resolve.png")
+        render(state, FrozenState.RESOLVE, "正在认识这条鱼", "05_resolve.png")
         cropEvidence("02_image_recognizing_late.png", "06_edge_field_crop.png", 0f, 0f, 1f, .44f)
         cropEvidence("03_fish_located.png", "07_fish_focus_crop.png", .04f, .16f, .96f, .90f)
         cropEvidence("03_fish_located.png", "08_contour_closeup.png", .18f, .22f, .82f, .82f)
@@ -354,7 +354,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("重量").assertIsDisplayed()
         composeRule.onNodeWithText("地点").assertIsDisplayed()
         composeRule.onNodeWithText("写下这次鱼获的故事").assertIsDisplayed()
-        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("已识别").fetchSemanticsNodes().isNotEmpty())
     }
@@ -405,7 +405,7 @@ class RecognitionFrozenFlowEmulatorTest {
         reach("草鱼")
         reach("长度")
         reach("写下这次鱼获的故事")
-        reach("继续记录记忆")
+        reach("继续记忆")
         reach("保存本次鱼获")
 
         // Low before manual selection: the recovery actions are visible.
@@ -415,6 +415,10 @@ class RecognitionFrozenFlowEmulatorTest {
         reach("无法确认是什么鱼")
         reach("手动选择鱼种")
         reach("重新拍摄")
+        assertFalse(composeRule.onAllNodesWithText("长度").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("写下这次鱼获的故事").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("继续记忆").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
 
         // Low after explicit selection: the shared species/metadata/story/CTA
         // hierarchy must become reachable rather than being pushed out.
@@ -431,7 +435,7 @@ class RecognitionFrozenFlowEmulatorTest {
         reach("修改鱼种")
         reach("长度")
         reach("写下这次鱼获的故事")
-        reach("继续记录记忆")
+        reach("继续记忆")
         reach("保存本次鱼获")
 
         // Recovery states use their own readable surface and preserve the
@@ -461,7 +465,7 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("帮我确认一下，这条鱼更像哪一种？").assertIsDisplayed()
         composeRule.onNodeWithText("都不是？选择其他鱼种").assertIsDisplayed()
-        assertFalse(composeRule.onAllNodesWithText("继续记录记忆").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("继续记忆").fetchSemanticsNodes().isNotEmpty())
         assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
         val suggestedTree = composeRule.onRoot(useUnmergedTree = true).printToString()
         assertTrue("Top-1 must be exposed as a suggestion", suggestedTree.contains("模型建议"))
@@ -481,7 +485,7 @@ class RecognitionFrozenFlowEmulatorTest {
             candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true,
         )
 
-        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
     }
 
@@ -600,6 +604,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitUntil(timeoutMillis = 2_000L) {
             composeRule.onAllNodesWithTag("recognition-numeric-长度").fetchSemanticsNodes().isNotEmpty()
         }
+        composeRule.onNodeWithContentDescription("清除输入").performClick()
         lengthField.performTextInput("0")
         lengthField.performImeAction()
         composeRule.onNodeWithText("请输入有效的长度").assertIsDisplayed()
@@ -656,7 +661,7 @@ class RecognitionFrozenFlowEmulatorTest {
     fun resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading() {
         val saving = mutableStateOf(false)
         val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
-        val memoryLoading = hasText("继续记录记忆") and hasStateDescription("正在加载")
+        val memoryLoading = hasText("继续记忆") and hasStateDescription("正在加载")
         val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
 
         composeRule.setContent {
@@ -677,7 +682,7 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
         assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
         assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
@@ -727,7 +732,7 @@ class RecognitionFrozenFlowEmulatorTest {
         }
         composeRule.onNodeWithText("修改鱼种").assertIsDisplayed()
         composeRule.onNodeWithText("长度").assertIsDisplayed()
-        composeRule.onNodeWithText("继续记录记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
     }
 
@@ -1084,8 +1089,8 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        assertVisible("鱼种识别中")
-        assertVisible("正在分析鱼体特征")
+        assertVisible("正在认识这条鱼")
+        assertVisible("分析鱼体特征")
         composeRule.onNodeWithTag("recognition-ambient-reduced-motion-low-performance").assertIsDisplayed()
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             runCatching {

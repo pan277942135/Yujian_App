@@ -472,19 +472,19 @@ fun RecognitionResultScreen(
                                     )
                                 }
                             } else {
-                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving) { openSpeciesSelector() }
+                                SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving) { openSpeciesSelector() }
+                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
+                                ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                                ResultInlineError(saveError, 0.dp)
+                                ResultDualActions(
+                                    saving = saving, sideMargin = 0.dp,
+                                    loadingDestination = activeLoadingDestination,
+                                    accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                    compactLayout = compactResultActions,
+                                    onContinue = { save(RecognitionSaveDestination.MEMORY) },
+                                    onSave = { save(RecognitionSaveDestination.HOME) },
+                                )
                             }
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
-                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                            ResultInlineError(saveError, 0.dp)
-                            ResultDualActions(
-                                saving = saving, sideMargin = 0.dp,
-                                loadingDestination = activeLoadingDestination,
-                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                                compactLayout = compactResultActions,
-                                onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                                onSave = { save(RecognitionSaveDestination.HOME) },
-                            )
                         }
                     }
                     else -> Unit
