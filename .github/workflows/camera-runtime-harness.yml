@@ -5,6 +5,9 @@ on:
     branches:
       - infra/camera-runtime-harness-p0-v1
       - infra/camera-runtime-harness-p0-v1-1
+      - fix/recognition-camera-capture-p0-v2
+      - integration/android-product-closure-v1
+      - main
   workflow_dispatch:
 
 permissions:
@@ -119,23 +122,28 @@ jobs:
     timeout-minutes: 40
     outputs:
       model_id: ${{ steps.model_trace.outputs.model_id }}
+      product_sha: ${{ steps.product_source.outputs.product_sha }}
     env:
       YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
       YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
       YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
     steps:
-      - name: Checkout infrastructure commit
+      - name: Checkout product source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ startsWith(github.ref_name, 'infra/camera-runtime-harness-') && 'fix/recognition-camera-capture-p0-v2' || github.ref_name }}
 
-      - name: Verify frozen product source
+      - name: Record product source and harness provenance
+        id: product_source
         shell: bash
         run: |
           set -euo pipefail
-          product_sha="a503b2d919972679c4366c3ca6cdf210017a9137"
-          git fetch --no-tags origin "$product_sha"
-          git diff --quiet "$product_sha" "$GITHUB_SHA" -- app/src/main/
+          product_sha="$(git rev-parse HEAD)"
+          test -s app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
+          echo "PRODUCT_SOURCE_SHA=$product_sha" >> "$GITHUB_ENV"
+          echo "product_sha=$product_sha" >> "$GITHUB_OUTPUT"
           printf 'PRODUCT_SOURCE_SHA=%s\nINFRASTRUCTURE_HEAD=%s\nBUILD_SHA=%s\n' \
-            "$product_sha" "$GITHUB_SHA" "$GITHUB_SHA" | tee build-source-provenance.txt
+            "$product_sha" "$GITHUB_SHA" "$product_sha" | tee build-source-provenance.txt
           cat build-source-provenance.txt >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up Python asset verification
@@ -157,7 +165,7 @@ jobs:
         run: bash scripts/android_runtime/tests/test_camera_runtime_gate.sh
 
       - name: Bootstrap verified recognition assets
-        run: python3 scripts/bootstrap_android_recognition_assets.py
+        run: GITHUB_SHA="$PRODUCT_SOURCE_SHA" python3 scripts/bootstrap_android_recognition_assets.py
 
       - name: Read production model identity
         id: model_trace
@@ -166,8 +174,8 @@ jobs:
           import json, pathlib, re
           path = pathlib.Path('app/src/main/assets/model_release_contract.json')
           contract = json.loads(path.read_text(encoding='utf-8'))
-          if contract.get('build_sha') != '${{ github.sha }}':
-              raise SystemExit('model snapshot build_sha does not match this infrastructure build')
+          if contract.get('build_sha') != '${{ steps.product_source.outputs.product_sha }}':
+              raise SystemExit('model snapshot build_sha does not match the checked-out product source')
           model_id = str(contract.get('model_id') or '')
           if not re.fullmatch(r'[A-Za-z0-9_.-]+', model_id):
               raise SystemExit(f'invalid model_id for artifact naming: {model_id!r}')
@@ -230,8 +238,10 @@ jobs:
     runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 60
     steps:
-      - name: Checkout infrastructure commit
+      - name: Checkout exact product source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.product_sha }}
 
       - name: Download runner inventory
         uses: actions/download-artifact@v4
@@ -250,7 +260,7 @@ jobs:
         run: |
           set -euo pipefail
           (cd build/camera-runtime-apks && sha256sum -c SHA256SUMS)
-          grep -Fx 'PRODUCT_SOURCE_SHA=a503b2d919972679c4366c3ca6cdf210017a9137' \
+          grep -Fx "PRODUCT_SOURCE_SHA=${{ needs.build.outputs.product_sha }}" \
             build/camera-runtime-apks/camera_runtime_provenance.txt
           grep -Fx "INFRASTRUCTURE_HEAD=$GITHUB_SHA" \
             build/camera-runtime-apks/camera_runtime_provenance.txt
@@ -258,7 +268,7 @@ jobs:
             app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
           grep -Fq 'setEnabledUseCases(CameraController.IMAGE_CAPTURE)' \
             app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
-          git diff --quiet a503b2d919972679c4366c3ca6cdf210017a9137 "$GITHUB_SHA" -- app/src/main/
+          test "$(git rev-parse HEAD)" = "${{ needs.build.outputs.product_sha }}"
 
       - name: Verify installed emulator camera mode support
         id: camera_caps
@@ -392,7 +402,7 @@ jobs:
           ADB: /opt/android-sdk/platform-tools/adb
         run: |
           bash scripts/run_android_runtime_gate.sh \
-            --gate camera-runtime-v1 --api-level 28 --build-sha "$GITHUB_SHA" \
+            --gate camera-runtime-v1 --api-level 28 --build-sha "${{ needs.build.outputs.product_sha }}" \
             --app-apk build/camera-runtime-apks/app-debug.apk \
             --test-apk build/camera-runtime-apks/app-debug-androidTest.apk \
             --evidence-dir evidence/runtime/camera-runtime-v1
@@ -406,7 +416,7 @@ jobs:
           ADB: /opt/android-sdk/platform-tools/adb
         run: |
           bash scripts/run_android_runtime_gate.sh \
-            --gate camera-runtime-smoke --api-level 28 --build-sha "$GITHUB_SHA" \
+            --gate camera-runtime-smoke --api-level 28 --build-sha "${{ needs.build.outputs.product_sha }}" \
             --app-apk build/camera-runtime-apks/app-debug.apk \
             --test-apk build/camera-runtime-apks/app-debug-androidTest.apk \
             --evidence-dir evidence/runtime/existing-harness-smoke
@@ -441,7 +451,7 @@ jobs:
           if [[ ! -s "$camera_result" ]]; then
             python3 scripts/android_runtime/result.py \
               --output "$camera_result" --gate camera-runtime-v1 --api-level 28 \
-              --build-sha "$GITHUB_SHA" --adb-state unknown --boot-completed unknown \
+              --build-sha "${{ needs.build.outputs.product_sha }}" --adb-state unknown --boot-completed unknown \
               --data-free-kb "" --preflight FAIL --install NOT_RUN --instrumentation NOT_RUN \
               --evidence NOT_RUN --classification BLOCKED_INFRA \
               --failure-phase EMULATOR_RUNNER --failure-reason CAMERA_RUNTIME_PREPARATION_FAILED \
@@ -450,7 +460,7 @@ jobs:
           if [[ ! -s "$smoke_result" ]]; then
             python3 scripts/android_runtime/result.py \
               --output "$smoke_result" --gate camera-runtime-smoke --api-level 28 \
-              --build-sha "$GITHUB_SHA" --adb-state unknown --boot-completed unknown \
+              --build-sha "${{ needs.build.outputs.product_sha }}" --adb-state unknown --boot-completed unknown \
               --data-free-kb "" --preflight NOT_RUN --install NOT_RUN --instrumentation NOT_RUN \
               --evidence NOT_RUN --classification BLOCKED_INFRA \
               --failure-phase EMULATOR_RUNNER --failure-reason EXISTING_RUNTIME_SMOKE_NOT_RUN \
@@ -459,7 +469,7 @@ jobs:
           {
             echo "## Camera Runtime Harness P0"
             echo
-            echo "- Product Source SHA: a503b2d919972679c4366c3ca6cdf210017a9137"
+            echo "- Product Source SHA: ${{ needs.build.outputs.product_sha }}"
             echo "- Infrastructure HEAD: $GITHUB_SHA"
             echo "- Camera gate: $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$camera_result")"
             echo "- Existing runtime smoke: $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$smoke_result")"
@@ -489,4 +499,3 @@ jobs:
             echo "Camera gate classification=$camera_class; existing smoke classification=$smoke_class"
             exit 1
           fi
-

@@ -205,4 +205,3 @@ YUJIAN_EVIDENCE_STATUS="PASS"
 finish_gate "$EXIT_PASS" "PASS"
 final_rc=$?
 exit "$final_rc"
-

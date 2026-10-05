@@ -129,18 +129,18 @@ jobs:
       - name: Checkout frozen camera runtime harness
         uses: actions/checkout@v4
         with:
-          ref: 7da54bff8ad316393ccf94ecc76dba7fb646a1d2
+          ref: 7d247ed84e6c4c948bdcea70addb7a5bca62501f
           path: camera-harness
 
-      - name: Verify camera-only product source changes
+      - name: Verify authorized product closure source changes
         shell: bash
         run: |
           set -euo pipefail
           product_base="43d40b25b0667e89f2b67d62edf5d483e75302e7"
-          harness_parent="7da54bff8ad316393ccf94ecc76dba7fb646a1d2"
+          harness_parent="7d247ed84e6c4c948bdcea70addb7a5bca62501f"
           git fetch --no-tags origin "$product_base"
           git diff --check "$product_base" "$GITHUB_SHA"
-          unexpected="$(git diff --name-only "$product_base" "$GITHUB_SHA" -- app/src/main/ | grep -Ev '^(app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt|app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract.kt)$' || true)"
+          unexpected="$(git diff --name-only "$product_base" "$GITHUB_SHA" -- app/src/main/ | grep -Ev '^(app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen\.kt|app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract\.kt|app/src/main/java/com/yujian/ai/catches/CatchRepository\.kt|app/src/main/java/com/yujian/ai/ui/home/HomeStats\.kt|app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent\.kt|app/src/main/java/com/yujian/ai/ui/home/RecentFishCard\.kt|app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components\.kt)$' || true)"
           if [[ -n "$unexpected" ]]; then
             printf 'UNEXPECTED_PRODUCT_SOURCE_CHANGES\n%s\n' "$unexpected"
             exit 1
@@ -253,7 +253,7 @@ jobs:
       - name: Checkout frozen camera runtime harness
         uses: actions/checkout@v4
         with:
-          ref: 7da54bff8ad316393ccf94ecc76dba7fb646a1d2
+          ref: 7d247ed84e6c4c948bdcea70addb7a5bca62501f
           path: camera-harness
 
       - name: Download runner inventory
@@ -274,11 +274,11 @@ jobs:
           set -euo pipefail
           (cd build/camera-runtime-apks && sha256sum -c SHA256SUMS)
           grep -Fx "PRODUCT_SOURCE_SHA=$GITHUB_SHA" build/camera-runtime-apks/camera_runtime_provenance.txt
-          grep -Fx 'HARNESS_PARENT_SHA=7da54bff8ad316393ccf94ecc76dba7fb646a1d2' build/camera-runtime-apks/camera_runtime_provenance.txt
+          grep -Fx 'HARNESS_PARENT_SHA=7d247ed84e6c4c948bdcea70addb7a5bca62501f' build/camera-runtime-apks/camera_runtime_provenance.txt
           grep -Fq 'cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA' app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
           grep -Fq 'setEnabledUseCases(CameraController.IMAGE_CAPTURE)' app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt
           git fetch --no-tags origin 43d40b25b0667e89f2b67d62edf5d483e75302e7
-          unexpected="$(git diff --name-only 43d40b25b0667e89f2b67d62edf5d483e75302e7 "$GITHUB_SHA" -- app/src/main/ | grep -Ev '^(app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt|app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract.kt)$' || true)"
+          unexpected="$(git diff --name-only 43d40b25b0667e89f2b67d62edf5d483e75302e7 "$GITHUB_SHA" -- app/src/main/ | grep -Ev '^(app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen\.kt|app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract\.kt|app/src/main/java/com/yujian/ai/catches/CatchRepository\.kt|app/src/main/java/com/yujian/ai/ui/home/HomeStats\.kt|app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent\.kt|app/src/main/java/com/yujian/ai/ui/home/RecentFishCard\.kt|app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components\.kt)$' || true)"
           if [[ -n "$unexpected" ]]; then
             printf 'UNEXPECTED_PRODUCT_SOURCE_CHANGES\n%s\n' "$unexpected"
             exit 1
@@ -482,7 +482,7 @@ jobs:
             echo
             echo "- Product Base SHA: 43d40b25b0667e89f2b67d62edf5d483e75302e7"
             echo "- Product Source SHA: $GITHUB_SHA"
-            echo "- Frozen Harness Parent: 7da54bff8ad316393ccf94ecc76dba7fb646a1d2"
+            echo "- Frozen Harness Parent: 7d247ed84e6c4c948bdcea70addb7a5bca62501f"
             echo "- Camera gate: $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$camera_result")"
             echo "- Existing runtime smoke: $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$smoke_result")"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -537,7 +537,7 @@ jobs:
           bytes="$(stat -c '%s' "build/camera-release/$release_name")"
           sha="$(sha256sum "build/camera-release/$release_name" | awk '{print $1}')"
           test "$bytes" -gt 0
-          printf 'PRODUCT_BASE_SHA=43d40b25b0667e89f2b67d62edf5d483e75302e7\nPRODUCT_SOURCE_SHA=%s\nHARNESS_PARENT_SHA=7da54bff8ad316393ccf94ecc76dba7fb646a1d2\nBUILD_SHA=%s\nAPK_FILENAME=%s\nAPK_BYTES=%s\nAPK_SHA256=%s\n' \
+          printf 'PRODUCT_BASE_SHA=43d40b25b0667e89f2b67d62edf5d483e75302e7\nPRODUCT_SOURCE_SHA=%s\nHARNESS_PARENT_SHA=7d247ed84e6c4c948bdcea70addb7a5bca62501f\nBUILD_SHA=%s\nAPK_FILENAME=%s\nAPK_BYTES=%s\nAPK_SHA256=%s\n' \
             "$GITHUB_SHA" "$GITHUB_SHA" "$release_name" "$bytes" "$sha" \
             | tee build/camera-release/camera_release_provenance.txt
           (cd build/camera-release && sha256sum "$release_name" camera_release_provenance.txt > SHA256SUMS)
