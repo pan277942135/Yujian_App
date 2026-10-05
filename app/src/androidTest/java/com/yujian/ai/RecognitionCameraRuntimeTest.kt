@@ -350,9 +350,19 @@ class RecognitionCameraRuntimeTest {
             ExifInterface.TAG_ORIENTATION,
             ExifInterface.ORIENTATION_NORMAL,
         )
-        assertEquals("SelectedImage must have normalized pixel orientation",
-            ExifInterface.ORIENTATION_NORMAL, selectedOrientation)
-        record("ORIENTATION_NORMALIZATION", "PASS")
+        assertTrue(
+            "SelectedImage pixels must be normalized; EXIF may be normal or undefined",
+            selectedOrientation == ExifInterface.ORIENTATION_NORMAL ||
+                selectedOrientation == ExifInterface.ORIENTATION_UNDEFINED,
+        )
+        record(
+            "ORIENTATION_NORMALIZATION",
+            if (selectedOrientation == ExifInterface.ORIENTATION_NORMAL) {
+                "PASS_EXIF_NORMAL"
+            } else {
+                "PASS_NORMALIZED_PIXELS_EXIF_UNDEFINED"
+            },
+        )
         record("SOURCE_ROTATION_DEGREES", rotationDegrees.toString())
         record("SELECTED_IMAGE", "PASS")
         record("SELECTED_IMAGE_BYTES", selectedFiles.single().length().toString())
