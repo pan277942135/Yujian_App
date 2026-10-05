@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
@@ -320,7 +320,7 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
         )
         Row(
             modifier = Modifier
-                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
                 .semantics(mergeDescendants = true) {
                     contentDescription = "全部鱼获"
                     role = Role.Button
