@@ -1,0 +1,30 @@
+name: Empty Home V2 Design Assets
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Frozen V2 source and Android asset contracts
+        run: python3 scripts/design_asset_pipeline/validate_empty_home_v2_design.py
+
+      - name: Upload static recompose validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: Empty-Home-V2-design-validation-${{ github.sha }}
+          path: design/pages/home/empty_home/intermediate/validation
+          if-no-files-found: error
+          retention-days: 7

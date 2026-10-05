@@ -1,0 +1,59 @@
+{
+  "version": "1.3",
+  "reference_canvas_px": {
+    "w": 1080,
+    "h": 1920
+  },
+  "water_contact_anchor_ref_px": {
+    "x": 792,
+    "y": 1048
+  },
+  "water_contact_anchor_normalized": {
+    "x": 0.733333,
+    "y": 0.545833
+  },
+  "body": {
+    "asset": "assets/bobber/bobber_real_v13.png",
+    "display_ref_px": {
+      "w": 16,
+      "h": 56
+    },
+    "asset_water_contact": {
+      "x": 0.5,
+      "y": 0.94
+    },
+    "transform_origin": {
+      "x": 0.5,
+      "y": 0.94
+    }
+  },
+  "reflection": {
+    "asset": "assets/bobber/bobber_reflection_v13.png",
+    "display_ref_px": {
+      "w": 14,
+      "h": 44
+    },
+    "top_offset_ref_px": 2,
+    "base_alpha": 0.26
+  },
+  "water_shadow": {
+    "asset": "assets/bobber/bobber_water_shadow_v13.png",
+    "display_ref_px": {
+      "w": 52,
+      "h": 14
+    },
+    "center_offset_ref_px": {
+      "x": 0,
+      "y": 1
+    },
+    "base_alpha": 0.55
+  },
+  "runtime_rule": "All visual sizes are reference-image pixels multiplied by the same ContentScale.Crop scale. Never use fixed 36dp/92dp/108dp sizes for bobber layers.",
+  "acceptance_tolerance": {
+    "water_contact_ref_px": {
+      "x": 10,
+      "y": 10
+    },
+    "body_size_percent": 10
+  }
+}

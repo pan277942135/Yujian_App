@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "GLASS_A": {
+    "white_alpha": "0.72-0.80",
+    "border": "1px light white",
+    "blur": "medium",
+    "shadow": "extremely soft",
+    "usage": [
+      "primary content",
+      "recognition info",
+      "memory primary card"
+    ]
+  },
+  "GLASS_B": {
+    "white_alpha": "0.55-0.68",
+    "border": "very light",
+    "blur": "medium",
+    "usage": [
+      "story",
+      "secondary statistics"
+    ]
+  },
+  "GLASS_C": {
+    "type": "overlay/pill",
+    "hero_overlay": "transparent to DeepOverlay 20-26%",
+    "usage": [
+      "hero metadata protection",
+      "light pills"
+    ]
+  },
+  "rule": "Glass supports readability; it must not become the subject."
+}

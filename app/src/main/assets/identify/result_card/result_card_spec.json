@@ -1,0 +1,15 @@
+{
+  "image": "photo_first",
+  "gradient": "bottom_dark_overlay",
+  "fields": [
+    "species",
+    "length_weight",
+    "location_time"
+  ],
+  "forbidden": [
+    "badge",
+    "ranking",
+    "complex_icons",
+    "card_within_card"
+  ]
+}

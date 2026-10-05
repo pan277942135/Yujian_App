@@ -1,0 +1,78 @@
+name: Design Manager Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "design/**"
+      - "scripts/verify_design_manager_navigation.py"
+      - ".github/workflows/design-manager-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "design-manager-pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Prepare static site
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp -R design _site/design
+          BUILD_SHORT="${GITHUB_SHA:0:12}"
+          sed -i "s/__DESIGN_MANAGER_BUILD__/${GITHUB_SHA}/g" _site/design/manager/index.html
+          sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
+          printf '{"sha":"%s","short_sha":"%s"}\n' "${GITHUB_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
+          touch _site/.nojekyll
+          cat > _site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta http-equiv="refresh" content="0; url=./design/manager/">
+            <title>YuJian Design Manager</title>
+          </head>
+          <body>
+            <p><a href="./design/manager/">Open YuJian Design Manager</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Verify Design Manager navigation artifact
+        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${GITHUB_SHA}"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: design-manager-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

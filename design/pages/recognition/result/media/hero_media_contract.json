@@ -1,0 +1,20 @@
+{
+  "contract": "recognition_result_hero_media",
+  "version": "V1.1",
+  "status": "FROZEN",
+  "source": "original_oriented_user_photo",
+  "subject_states": {
+    "states": ["HIGH", "MEDIUM", "LOW"],
+    "bbox_role": "FishSafeRect_guidance",
+    "preferred_mode": "SUBJECT_CROP_FILL",
+    "fallback_mode": "SUBJECT_SAFE_FIT",
+    "safe_rect_expansion": { "horizontal_fraction": 0.14, "vertical_fraction": 0.18 },
+    "visual_safety_inset_dp": 12
+  },
+  "recovery_states": {
+    "states": ["NO_FISH", "IMAGE_QUALITY"],
+    "mode": "EVIDENCE_FIT",
+    "source_rect": [0.0, 0.0, 1.0, 1.0]
+  },
+  "prohibited": ["stretch", "generated_fill", "blurred_duplicate", "detector_crop", "classifier_crop", "post_entry_crop_jump"]
+}

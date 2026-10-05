@@ -1,0 +1,29 @@
+{
+  "version": "1.3",
+  "center": "bobber.water_contact",
+  "inner": {
+    "asset": "assets/ripple/ripple_inner_v13.png",
+    "display_ref_px": {
+      "w": 72,
+      "h": 22
+    },
+    "start_scale": 0.9,
+    "end_scale": 1.1,
+    "start_alpha": 0.22,
+    "end_alpha": 0.0
+  },
+  "outer": {
+    "asset": "assets/ripple/ripple_outer_v13.png",
+    "display_ref_px": {
+      "w": 116,
+      "h": 34
+    },
+    "start_scale": 0.92,
+    "end_scale": 1.14,
+    "start_alpha": 0.14,
+    "end_alpha": 0.0
+  },
+  "duration_ms": 1100,
+  "trigger": "bite_only",
+  "no_idle_loop": true
+}

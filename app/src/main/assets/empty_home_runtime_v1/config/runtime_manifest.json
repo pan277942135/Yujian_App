@@ -1,0 +1,102 @@
+{
+  "runtime_revision": "V1",
+  "motion_revision": "V1.1",
+  "source_zip_sha256": "cde41925fa6b9682bfa965981afd0af9c23b8d15d5d3f9ab523b74fcbf0edf61",
+  "source_master_sha256": "b7e0e8912865a17a2f2a3b386138779bfcb41a4842fd8fd9589e830455756733",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "coordinate_system": "reference_px_top_left"
+  },
+  "static_cache": {
+    "path": "static_scene_cache.png",
+    "includes": "accepted V1.1 static layers excluding cloud, sun_glow, bobber, ripple_mask and ui_content"
+  },
+  "dynamic_layers": {
+    "cloud": {
+      "path": "dynamic/cloud_layer.png",
+      "source": "runtime_layers/environment/cloud_layer.png",
+      "bbox": {
+        "x": 0,
+        "y": 5,
+        "width": 1080,
+        "height": 645
+      }
+    },
+    "sun_glow": {
+      "path": "dynamic/sun_glow.png",
+      "source": "runtime_layers/lighting/sun_glow.png",
+      "bbox": {
+        "x": 660,
+        "y": 495,
+        "width": 370,
+        "height": 371
+      }
+    },
+    "bobber": {
+      "path": "dynamic/bobber.png",
+      "source": "runtime_layers/fishing/bobber.png",
+      "bbox": {
+        "x": 743,
+        "y": 1112,
+        "width": 15,
+        "height": 49
+      }
+    },
+    "ripple": {
+      "path": "dynamic/ripple_mask.png",
+      "source": "runtime_layers/fishing/ripple_mask.png",
+      "bbox": {
+        "x": 690,
+        "y": 1137,
+        "width": 124,
+        "height": 46
+      }
+    }
+  },
+  "camera": {
+    "base": "camera/camera_button_base.png",
+    "gold_rim": "camera/camera_gold_rim_mask.png",
+    "breath_glow": "camera/camera_breath_glow.png",
+    "transform": "config/camera_transform.json"
+  },
+  "protected_anchors": {
+    "sun_center": {
+      "x": 845,
+      "y": 680
+    },
+    "horizon_y": 904,
+    "rod_tip": {
+      "x": 405,
+      "y": 975
+    },
+    "bobber_center": {
+      "x": 750,
+      "y": 1143
+    },
+    "water_contact": {
+      "x": 750,
+      "y": 1158
+    },
+    "sun_reflection_axis": {
+      "x": 842,
+      "y0": 900,
+      "y1": 1560
+    }
+  },
+  "systems": {
+    "bobber": "enabled",
+    "ripple": "enabled",
+    "cloud": "enabled",
+    "sun_particle_beam": "enabled",
+    "camera_gold_rim": "enabled",
+    "camera_breathe": "enabled"
+  },
+  "forbidden_runtime_assets": [
+    "proof/",
+    "preview/",
+    "validation/",
+    "motion_preview_final.mp4"
+  ],
+  "ai_generation_used": false
+}

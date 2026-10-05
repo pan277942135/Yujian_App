@@ -1,0 +1,117 @@
+{
+  "feature": "recognition_processing",
+  "version": "1.2",
+  "status": "FROZEN_DESIGN_CONTRACT",
+  "scope": "product_presentation_design_only_runtime_and_evidence_close_separately",
+  "authority": {
+    "design_closure": "design/pages/recognition/Recognition_Design_Closure_V1_2.md",
+    "state_timeline": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md",
+    "visual_keyframe_set": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",
+    "visual_spec": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+    "motion": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
+    "ai_edge_field_motion": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
+    "degradation_accessibility": "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
+    "haptic": "design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md",
+    "sound": "design/pages/recognition/processing/sound/Recognition_Processing_Sound_Spec_V1.md",
+    "runtime_evidence_contract": "design/pages/recognition/evidence/Recognition_Runtime_Evidence_V1_2.md"
+  },
+  "product_states": [
+    {
+      "id": "IMAGE_RECOGNIZING",
+      "display_name": "图片识别中",
+      "minimum_visual_beat_ms": 900,
+      "edge_field_strength": 1,
+      "segment_speed": 1
+    },
+    {
+      "id": "FISH_LOCATED",
+      "display_name": "已定位到鱼体",
+      "minimum_visual_beat_ms": 600,
+      "edge_field_strength": 0.58,
+      "segment_speed": 0.62
+    },
+    {
+      "id": "SPECIES_RECOGNIZING",
+      "display_name": "鱼种识别中",
+      "minimum_visual_beat_ms": 1250,
+      "edge_field_strength": 0.36,
+      "segment_speed": 0.42
+    }
+  ],
+  "transition": {
+    "id": "RESOLVE",
+    "is_processing_state": false,
+    "duration_ms": 200,
+    "rule": "freeze current SegmentOffset, then fade the shared field using ResolveStrength"
+  },
+  "legacy_mapping": {
+    "CAPTURED": "IMAGE_RECOGNIZING_EARLY_REFERENCE_ONLY",
+    "DETECTING": "IMAGE_RECOGNIZING_LATE_REFERENCE_ONLY",
+    "OUTLINE": "FISH_LOCATED",
+    "CLASSIFYING": "SPECIES_RECOGNIZING"
+  },
+  "visual_keyframes": {
+    "IMAGE_RECOGNIZING": [
+      "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
+    ],
+    "FISH_LOCATED": [
+      "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
+    ],
+    "SPECIES_RECOGNIZING": [
+      "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
+    ]
+  },
+  "feedback": {
+    "haptic": "NONE",
+    "sound": "NONE"
+  },
+  "invariants": [
+    "Exactly three user-visible Processing states",
+    "RESOLVE is a transition, not a fourth state",
+    "No fake progress percentage or ETA",
+    "Fish Focus appears only after a real fish location exists",
+    "Photo remains visually dominant",
+    "AI Edge Field keeps four Primary Energy Islands and mandatory Quiet Gaps",
+    "State changes do not restart the continuous Edge Field motion clock",
+    "Runtime and evidence closure remain independent from design freeze"
+  ],
+  "visual_layer": {
+    "status_overlay": {
+      "surface": "#1A2C35",
+      "surface_alpha": 0.85,
+      "height_dp": 112,
+      "corner_radius_dp": 30,
+      "horizontal_padding_dp": 28,
+      "indicator_size_dp": 54,
+      "indicator_stroke_dp": 4,
+      "opening_copy": ["图片识别中", "正在理解照片并寻找鱼获线索"],
+      "located": ["已定位到鱼体", "正在分析这次鱼获"],
+      "classifying": ["正在认识这条鱼", "分析鱼体特征"],
+      "resolve": "fade_with_shared_resolve_strength"
+    },
+    "edge_field": {
+      "primary_islands": ["G_UL", "B_UR", "B_LR", "G_LL"],
+      "secondary_fragments": ["B2", "G2", "B4"],
+      "secondary_outer_bloom": false,
+      "photo_remains_dominant": true
+    },
+    "fish_focus": {
+      "level_a": "subject_contour_plus_bbox_halo",
+      "level_b": "bbox_halo_plus_restrained_ellipse",
+      "level_c": "center_biased_halo",
+      "rectangle_at_any_level": false,
+      "transform": "shared_photo_transform"
+    }
+  },
+  "compatibility": {
+    "previous_machine_contract": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+    "previous_contract_role": "HISTORICAL_COMPATIBILITY_ONLY",
+    "rule": "V1.1 may remain for historical runtime/tests but must not define the current product-state or motion authority."
+  },
+  "closure": {
+    "design": "FROZEN",
+    "runtime": "ACTIVE_CLOSURE",
+    "evidence": "ACTIVE_CLOSURE"
+  }
+}

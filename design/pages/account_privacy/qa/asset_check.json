@@ -1,0 +1,190 @@
+{
+  "ok": true,
+  "count": 23,
+  "assets": [
+    {
+      "path": "Login/00_Login.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "Login/Forgot_Password/01_Account.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "Login/Forgot_Password/02_Verification.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "Login/Forgot_Password/03_New_Password.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "Login/Forgot_Password/04_Success.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/00_My.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/00_Account_Login.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/01_Change_Password.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/00_Data_Privacy.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/04_Privacy_Policy.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/AI_Model_Improvement/01_Enable_Consent.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/AI_Model_Improvement/02_Disable_Confirmation.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Delete_Account/01_Explanation.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Delete_Account/02_Reauth.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Delete_Account/03_Final_Confirmation.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Export_My_Data/00_Overview.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Export_My_Data/01_Processing.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Export_My_Data/02_Ready.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Export_My_Data/03_Failed.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Export_My_Data/04_Expired.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Location_Permission/01_Info.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "My/Account_Login/Data_Privacy/Location_Permission/02_Denied.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "shared/morning_lake_background.png",
+      "size": [
+        1080,
+        1920
+      ],
+      "mode": "RGBA"
+    }
+  ]
+}

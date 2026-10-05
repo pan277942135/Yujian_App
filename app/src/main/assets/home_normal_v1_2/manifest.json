@@ -1,0 +1,19 @@
+{
+  "package": "YuJian_home_normal_frontend_assets_V1.2",
+  "type": "runtime-addon",
+  "depends_on": [
+    "YuJian_home_empty_frontend_assets_V1.2"
+  ],
+  "runtime": [
+    "assets/avatar/*",
+    "assets/fish_card/*",
+    "assets/icons/*"
+  ],
+  "config": [
+    "config/normal_home_layout.json",
+    "config/photo_fit_policy.json",
+    "config/recent_card_style.json",
+    "config/fish_card_idle.json",
+    "config/display_rules.json"
+  ]
+}

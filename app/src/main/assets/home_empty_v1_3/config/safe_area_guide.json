@@ -1,0 +1,7 @@
+{
+  "top_header_margin_dp": 16,
+  "title_top_gap_dp": "12-20 after header",
+  "cta_bottom_from_safe_area_dp": "44-64",
+  "album_gap_from_camera_dp": "20-28",
+  "background_extends_behind_system_bars": true
+}

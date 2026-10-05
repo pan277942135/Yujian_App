@@ -1,0 +1,69 @@
+{
+  "feature": "Recognition Flow V1",
+  "version": "1.1",
+  "references": [
+    {
+      "file": "01_Capture_Transition_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58"
+    },
+    {
+      "file": "02_AI_Understanding_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b"
+    },
+    {
+      "file": "03_Fish_Highlight_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284"
+    },
+    {
+      "file": "04_Fish_Identifying_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec"
+    },
+    {
+      "file": "05_Result_High_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "f540ddc4b3844a453170537eaa70f506dc0eb1c312fc3410a960ad6cd87ba156"
+    },
+    {
+      "file": "06_Result_Medium_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "5a334f8deef344910865d43057a2df3d6d5137ca8ebfad3eef7557120586fcd3"
+    },
+    {
+      "file": "07_Result_Low_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "b767965028786374bcadf9dd1b219b7b61f698edade323d8557293ebcec1d6e1"
+    },
+    {
+      "file": "08_Error_No_Fish_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "3952e2f8eb8e42124e8554f6c1481351ff7cb7bb200180613787c4448bf2d8d2"
+    },
+    {
+      "file": "09_Error_Image_Quality_Frozen.png",
+      "status": "FROZEN",
+      "width": 941,
+      "height": 1672,
+      "sha256": "965be5b37ce4c41e8a5b758f2f94bac16fa0b99dc135e25b114c2943d35b1a0d"
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "version": "1.0",
+  "status": "PASS",
+  "source_of_truth": "design/system/core_visual_v1/reference/reference_manifest.json",
+  "components": [
+    {
+      "component_id": "YuJianPrimaryCaptureButton",
+      "source_screens": [
+        "empty_home_v2",
+        "normal_home_v1",
+        "my_catches_v2"
+      ],
+      "implementation": "HYBRID",
+      "variants": [
+        "home_primary_capture",
+        "archive_primary_capture"
+      ],
+      "token_dependencies": [
+        "color.LakeWhite",
+        "color.MorningGold",
+        "color.DeepLakeBlue",
+        "radius.R_CIRCLE",
+        "motion.empty_home.camera_gold_rim_sweep",
+        "motion.empty_home.camera_breathing"
+      ],
+      "runtime_notes": "Use a native Compose circular control with a vector camera glyph. Keep the white core, thin MorningGold rim, and restrained highlight; do not substitute a screenshot crop. The visual target is about 56 dp with at least a 64 dp touch target."
+    },
+    {
+      "component_id": "YuJianCatchHeroCard",
+      "source_screens": [
+        "normal_home_v1",
+        "fish_record_detail_v2",
+        "supplemental/fish_memory_reference"
+      ],
+      "implementation": "HYBRID",
+      "variants": [
+        "HOME",
+        "DETAIL"
+      ],
+      "token_dependencies": [
+        "radius.R_XL",
+        "glass.GLASS_C",
+        "color.DeepOverlay",
+        "spacing.SP_3",
+        "spacing.SP_4",
+        "typography.DISPLAY",
+        "typography.UI"
+      ],
+      "runtime_notes": "One shared component family with dynamic real-catch media. HOME shows relative time and location when required; DETAIL shows species, length, weight, location, and a low-weight edit affordance. Apply only a light bottom readability gradient; never add a solid black strip, confidence overlay, or badge pile."
+    },
+    {
+      "component_id": "MistGlassCard",
+      "source_screens": [
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "implementation": "NATIVE",
+      "variants": [
+        "primary_content",
+        "secondary_story",
+        "overlay_or_pill"
+      ],
+      "token_dependencies": [
+        "glass.GLASS_A",
+        "glass.GLASS_B",
+        "glass.GLASS_C",
+        "radius.R_MD",
+        "radius.R_LG",
+        "color.MistWhite"
+      ],
+      "runtime_notes": "Compose surface only. Glass is a readability and layer-separation treatment, never a bitmap or a visual-effect subject."
+    },
+    {
+      "component_id": "TopNavigation",
+      "source_screens": [
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "implementation": "HYBRID",
+      "variants": [
+        "back_with_title",
+        "title_with_utility_actions",
+        "search_filter"
+      ],
+      "token_dependencies": [
+        "color.DeepLakeBlue",
+        "typography.DISPLAY",
+        "typography.UI",
+        "spacing.SP_2",
+        "spacing.SP_3"
+      ],
+      "runtime_notes": "Use native layout and a single rounded-outline vector icon family for back, search, filter, share, edit, chevron, location, length, and weight. Utility actions remain lower contrast than the title and hero."
+    },
+    {
+      "component_id": "FishRecordRowCard",
+      "source_screens": [
+        "my_catches_v2"
+      ],
+      "implementation": "HYBRID",
+      "variants": [
+        "timeline_record",
+        "timeline_record_with_annotation"
+      ],
+      "token_dependencies": [
+        "glass.GLASS_A",
+        "radius.R_LG",
+        "spacing.SP_2",
+        "spacing.SP_3",
+        "typography.DISPLAY",
+        "typography.UI"
+      ],
+      "runtime_notes": "Native card hierarchy with a page-specific dynamic catch thumbnail, species, measurements, disclosure affordance, and optional low-weight meaningful-record annotation. The record remains visually above the annotation."
+    },
+    {
+      "component_id": "FishGuideCard",
+      "source_screens": [
+        "fish_guide_v2",
+        "supplemental/fish_guide_unlit_state"
+      ],
+      "implementation": "HYBRID",
+      "variants": [
+        "lit_species",
+        "unlit_species",
+        "carousel_adjacent_preview"
+      ],
+      "token_dependencies": [
+        "glass.GLASS_A",
+        "glass.GLASS_B",
+        "radius.R_XL",
+        "color.MorningGold",
+        "color.SoftGold",
+        "typography.DISPLAY",
+        "typography.UI"
+      ],
+      "runtime_notes": "One Personal Natural Field Guide card system. Use native structure with a real or approved page-specific fish image/illustration. Lit and unlit are states of one component; avoid rarity, star, legendary, XP, or game-card hierarchy."
+    },
+    {
+      "component_id": "AchievementAnnotation",
+      "source_screens": [
+        "my_catches_v2",
+        "fish_record_detail_v2",
+        "fish_guide_v2"
+      ],
+      "implementation": "NATIVE",
+      "variants": [
+        "meaningful_record",
+        "first_or_longest_memory"
+      ],
+      "token_dependencies": [
+        "color.SoftGold",
+        "color.MistBlueGray",
+        "typography.UI",
+        "radius.R_SM"
+      ],
+      "runtime_notes": "Small, low-saturation annotation such as 最大记录, 首条草鱼, or 首次千岛湖. It explains why a memory matters and never becomes a reward economy."
+    }
+  ]
+}

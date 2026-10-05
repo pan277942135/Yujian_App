@@ -1,0 +1,43 @@
+{
+  "asset_revision": "NORMAL_HOME_RUNTIME_V1.1",
+  "asset_root": "normal_home_runtime_v1",
+  "frozen_authority": "design/system/core_visual_v1/reference/normal_home_v1.png",
+  "frozen_authority_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "reference_canvas": [1080, 1920],
+  "static": ["static/scene_base.png"],
+  "background_provenance": {
+    "source_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+    "source_dimensions": [941, 1672],
+    "runtime_path": "app/src/main/assets/normal_home_runtime_v1/static/scene_base.png",
+    "runtime_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+    "runtime_dimensions": [941, 1672],
+    "transform_policy": "byte-identical copy; Android ContentScale.Crop applies centered viewport crop without changing the source bitmap"
+  },
+  "camera": [
+    "camera/camera_button_base.png",
+    "camera/camera_gold_rim_mask.png",
+    "camera/camera_breath_glow.png"
+  ],
+  "avatar": ["avatar/guest_avatar.png"],
+  "fish_card": [
+    "fish_card/fish_card_gradient.png",
+    "fish_card/fish_card_outline.png",
+    "fish_card/fish_card_shadow.png"
+  ],
+  "source_policy": {
+    "runtime_may_reference_home_empty_v1_3": false,
+    "runtime_may_reference_home_normal_v1_2": false,
+    "binary_copy_policy": "registered background master copied byte-for-byte; other shared assets retain their registered blobs"
+  },
+  "git_blobs": {
+    "static/scene_base.png": "188593ed13b0fd6b9164aaba8632e783b8534d68",
+    "camera/camera_button_base.png": "7017622172491023276f2092ada4e75e976b1f6b",
+    "camera/camera_gold_rim_mask.png": "2d10713e4ec0a458e88396fdd162102c87239755",
+    "camera/camera_breath_glow.png": "cc8ae4ae614072ed00d035eebbb65a40e8af12cf",
+    "avatar/guest_avatar.png": "f58549babb41aaedb5ee2590e6d48bceda19d05a",
+    "fish_card/fish_card_gradient.png": "b17776098b76ecc6ce7488fef70c6ad319d58a21",
+    "fish_card/fish_card_outline.png": "6ca9464b44b5aadda2819bda74f1dc3244055815",
+    "fish_card/fish_card_shadow.png": "2a782f76a7880cf957b71ec718a0d260099e5f65"
+  }
+}

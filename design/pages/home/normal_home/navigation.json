@@ -1,0 +1,125 @@
+{
+  "version": "1.0",
+  "scope": "design_manager_secondary_navigation",
+  "level_1": {
+    "id": "normal_home",
+    "label_zh": "有数据首页",
+    "label_en": "Normal Home",
+    "path": "design/pages/home/normal_home/"
+  },
+  "principle": "关键内容独立出图；辅助状态、组件状态、边界状态按内容合并出图。",
+  "level_2": [
+    {
+      "order": 1,
+      "id": "NH01",
+      "label_zh": "主页面｜多鱼获状态",
+      "label_en": "Current Visual Authority / Multiple Records",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "authority": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "contains": [
+        "多鱼获 Pager 主状态",
+        "中央当前鱼获主卡",
+        "左右相邻鱼获露边",
+        "统计 / 最近鱼获 / 全部 / 记录下一条鱼 / Capture Button"
+      ]
+    },
+    {
+      "order": 2,
+      "id": "NH02",
+      "label_zh": "第一条鱼首页",
+      "label_en": "First Catch Home / Single Record",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "contains": [
+        "1 条有效 FishRecord → Normal Home",
+        "单张 HOME Hero 保持 NH01 中央主卡尺寸并水平居中",
+        "左右无假邻卡 / 无 Pager 暗示",
+        "Canonical Hi-Fi 统计样例 1 / 1 / 1",
+        "保留 最近鱼获 / 全部 / 记录下一条鱼 / Capture Button",
+        "已登录无头像或头像加载失败 → YuJian Default Profile Avatar V1",
+        "默认头像 ≠ Guest 头像；点击行为与真实头像一致",
+        "无第一条鱼 Badge / 庆祝 / 新增 Haptic / Sound"
+      ],
+      "authority": "design/pages/home/normal_home/02_first_catch/README.md",
+      "machine_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+      "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "visual_manifest": "design/pages/home/normal_home/02_first_catch/frozen/manifest.json"
+    },
+    {
+      "order": 3,
+      "id": "NH03",
+      "label_zh": "页面状态与异常",
+      "label_en": "Page States & Exceptions",
+      "output_policy": "COMBINED_BOARD",
+      "status": "FROZEN",
+      "contains": [
+        "Home Resolving / 数据未解析",
+        "Catch Image Unavailable / 鱼获图片不可用",
+        "刷新中保持已解析 Home 状态",
+        "异常不得误切 Empty Home"
+      ],
+      "authority": "design/pages/home/normal_home/03_page_states/README.md",
+      "visual_authority": "design/pages/home/normal_home/03_page_states/frozen/NH03_Page_States_Exceptions_V1_Frozen.png",
+      "visual_manifest": "design/pages/home/normal_home/03_page_states/frozen/manifest.json"
+    },
+    {
+      "order": 4,
+      "id": "NH04",
+      "label_zh": "组件状态与内容边界",
+      "label_en": "Component & Content States",
+      "output_policy": "COMBINED_BOARD",
+      "status": "FROZEN",
+      "contains": [
+        "Guest Header",
+        "Logged-in Header",
+        "Avatar fallback",
+        "Catch Hero 完整数据",
+        "仅长度 / 仅重量 / 无尺寸 / 无地点 / 无时间",
+        "长鱼种名 / 长地点文本边界"
+      ],
+      "authority": "design/pages/home/normal_home/04_component_content_states/README.md",
+      "visual_authority": "design/pages/home/normal_home/04_component_content_states/frozen/NH04_Component_Content_States_V1_Frozen.png",
+      "visual_manifest": "design/pages/home/normal_home/04_component_content_states/frozen/manifest.json"
+    },
+    {
+      "order": 5,
+      "id": "NH05",
+      "label_zh": "响应式与交互",
+      "label_en": "Responsive & Interaction",
+      "output_policy": "COMBINED_BOARD",
+      "status": "FROZEN",
+      "contains": [
+        "9:16",
+        "19.5:9",
+        "20:9",
+        "21:9",
+        "Pager selected / adjacent / swipe",
+        "Single Record 不提供 Pager 暗示",
+        "Reduce Motion"
+      ],
+      "authority": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+      "visual_authority": "design/pages/home/normal_home/05_responsive_interaction/frozen/NH05_Responsive_Interaction_V1_Frozen.png",
+      "visual_manifest": "design/pages/home/normal_home/05_responsive_interaction/frozen/manifest.json"
+    },
+    {
+      "order": 6,
+      "id": "NH06",
+      "label_zh": "背景与环境权威",
+      "label_en": "Background & Environment Authority",
+      "output_policy": "AUTHORITY_BOARD",
+      "status": "FROZEN",
+      "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "contains": [
+        "Morning Lake Master",
+        "Normal Home 背景使用关系",
+        "裁切 / 适配规则",
+        "禁止从页面截图裁出背景",
+        "与 NH01 完整页面构图权威的职责边界"
+      ],
+      "authority": "design/pages/home/normal_home/06_background_authority/README.md",
+      "visual_authority": "design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png",
+      "visual_manifest": "design/pages/home/normal_home/06_background_authority/frozen/manifest.json"
+    }
+  ]
+}

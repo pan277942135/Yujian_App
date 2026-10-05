@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="830" viewBox="0 0 1320 830"><defs>
+<style>
+.bg{fill:#F7FAFB}.card{fill:#FFFFFF;stroke:#DFE9E6;stroke-width:2}.surface{fill:#EEF4F3}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#0B2D4B}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#748897}
+.k{font-size:15px;font-weight:800;fill:#748897;letter-spacing:1px}.meta{font-size:14px;font-weight:500;fill:#748897}
+.navTitle{font-size:20px;font-weight:500;fill:#0B2D4B}.note{font-size:14px;font-weight:500;fill:#61777C}
+.back{fill:none;stroke:#0B2D4B;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</defs><rect class="bg" width="1320" height="830"/><text x="60" y="66" class="t title">02 · BACK_TITLE 真实使用</text><text x="60" y="98" class="t sub">识别结果 / 账号与登录 / 数据与隐私 / 隐私政策</text><rect x="70" y="145" width="570" height="280" rx="24" class="card"/>
+<text x="105" y="187" class="t k">RECOGNITION RESULT · BG_CONTENT</text>
+<rect x="105" y="215" width="500" height="168" rx="18" class="surface"/>
+  <rect x="129" y="255" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+  <path class="back" d="M207 303 L182 321 L207 339 M184 321 H217"/>
+  <text x="285" y="335" class="t navTitle">识别结果</text>
+<text x="105" y="405" class="t meta">Legacy centered 25sp/Bold is deprecated.</text>
+
+<rect x="680" y="145" width="570" height="280" rx="24" class="card"/>
+<text x="715" y="187" class="t k">ACCOUNT &amp; LOGIN · BG_CONTENT</text>
+<rect x="715" y="215" width="500" height="168" rx="18" class="surface"/>
+  <rect x="739" y="255" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+  <path class="back" d="M817 303 L792 321 L817 339 M794 321 H827"/>
+  <text x="895" y="335" class="t navTitle">账号与登录</text>
+<text x="715" y="405" class="t meta">Same 56dp / 20sp / Medium composition.</text>
+
+<rect x="70" y="455" width="570" height="280" rx="24" class="card"/>
+<text x="105" y="497" class="t k">DATA &amp; PRIVACY · BG_CONTENT</text>
+<rect x="105" y="525" width="500" height="168" rx="18" class="surface"/>
+  <rect x="129" y="565" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+  <path class="back" d="M207 613 L182 631 L207 649 M184 631 H217"/>
+  <text x="285" y="645" class="t navTitle">数据与隐私</text>
+<text x="105" y="715" class="t meta">Back semantics = immediate parent layer.</text>
+
+<rect x="680" y="455" width="570" height="280" rx="24" class="card"/>
+<text x="715" y="497" class="t k">PRIVACY POLICY · BG_CONTENT</text>
+<rect x="715" y="525" width="500" height="168" rx="18" class="surface"/>
+  <rect x="739" y="565" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+  <path class="back" d="M817 613 L792 631 L817 649 M794 631 H827"/>
+  <text x="895" y="645" class="t navTitle">隐私政策</text>
+<text x="715" y="715" class="t meta">No page subtitle inside Top Navigation.</text><line x1="60" y1="778" x2="1260" y2="778" stroke="#DCE7E3" stroke-width="2"/><text x="60" y="808" class="t note">FROZEN · Top Navigation / BACK_TITLE V1 · Component Visual Reference</text></svg>

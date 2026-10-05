@@ -1,0 +1,45 @@
+{
+  "design_version": "Empty_Home_Final_Design_V2",
+  "visual_revision": "V2.2",
+  "contract_revision": "EMPTY_HOME_HERO_ASSET_V2_2",
+  "authority_status": "CURRENT",
+  "asset_audit": {
+    "legacy_transparent_asset": "app/src/main/res/drawable-nodpi/empty_home_title.png",
+    "legacy_dimensions_px": [2172, 724],
+    "approved_authority_registration": false,
+    "decision": "Not used: this legacy asset has no frozen-source provenance or matching current Hero geometry."
+  },
+  "source": {
+    "path": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+    "sha256": "ebf96d310678b5fd47149cd8dadf3dd24cb00b2b83253876aa4cf9e89f954b77",
+    "dimensions_px": [1080, 1920]
+  },
+  "layout_reference_bbox_px": {
+    "x": 50,
+    "y": 224,
+    "width": 620,
+    "height": 310
+  },
+  "source_crop_px": {
+    "x": 50,
+    "y": 224,
+    "width": 625,
+    "height": 311,
+    "reason": "Includes the frozen measured visible ink overhang through right-exclusive x=675 and bottom-exclusive y=535; ContentScale.Fit keeps the complete mark inside the 620x310 layout box."
+  },
+  "derivation": {
+    "script": "tools/derive_empty_home_hero_v2_2.py",
+    "method": "One-time deterministic RGBA palette separation from the frozen composite. Pixels matching the frozen navy #123048 within Euclidean RGB distance 105 or warm gold #DAA02D within distance 115 receive linearly derived alpha; hue guards reject non-ink pixels. Source RGB is retained for selected pixels; zero-alpha pixels are transparent black. No resize or coordinate transform is applied.",
+    "build_time_regeneration": false
+  },
+  "asset": {
+    "design_path": "design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png",
+    "runtime_resource_path": "app/src/main/res/drawable-nodpi/empty_home_title_v2.png",
+    "dimensions_px": [625, 311],
+    "format": "PNG RGBA",
+    "sha256": "5561e3b577234ceba41487dd3705e82fa910e96cc6a6cc2d89942f13a629c9ff",
+    "aspect_ratio": 2.0096463023,
+    "render_content_scale": "FIT",
+    "maximum_rendered_aspect_error_percent": 1.0
+  }
+}

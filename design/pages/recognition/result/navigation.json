@@ -1,0 +1,165 @@
+{
+  "version": "1.0",
+  "scope": "design_manager_secondary_navigation",
+  "level_1": {
+    "id": "recognition_result",
+    "label_zh": "识别结果",
+    "label_en": "Recognition Result",
+    "path": "design/pages/recognition/result/"
+  },
+  "principle": "产品状态仍为 3 类识别结果 + 2 类恢复状态；RR00–RR05 承载总览与五个独立高保页面，RR06 集中索引已冻结的内容修改 Authority，不新增 Result 状态。Frozen 资产只保留一份 canonical 文件，菜单页直接引用。",
+  "level_2": [
+    {
+      "order": 1,
+      "id": "RR00",
+      "label_zh": "结果总览",
+      "label_en": "Overview / 3+2 State System",
+      "output_policy": "OVERVIEW_BOARD",
+      "status": "FROZEN",
+      "page": "design/pages/recognition/result/00_overview/README.md",
+      "contains": [
+        "3+2 状态关系",
+        "共用视觉规则",
+        "Hero Media Contract V1",
+        "CTA Map",
+        "Motion / Adaptive / Accessibility",
+        "最终闭环",
+        "Implementation-ready Engineering Contracts V1"
+      ]
+    },
+    {
+      "order": 2,
+      "id": "RR01",
+      "label_zh": "高置信结果",
+      "label_en": "High Confidence Result",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "page": "design/pages/recognition/result/01_high/README.md",
+      "contains": [
+        "真实鱼获 Hero",
+        "Hero Media Contract V1",
+        "鱼种 + 修改鱼种",
+        "轻量鱼获信息",
+        "鱼获感言",
+        "继续记忆 / 保存本次鱼获",
+        "Implementation-ready Engineering Contracts V1"
+      ]
+    },
+    {
+      "order": 3,
+      "id": "RR02",
+      "label_zh": "中置信结果",
+      "label_en": "Medium Confidence Result",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "authority": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+      "page": "design/pages/recognition/result/02_medium/README.md",
+      "contains": [
+        "真实鱼获 Hero",
+        "Hero Media Contract V1",
+        "单行确认文案",
+        "候选横排",
+        "其他鱼种入口",
+        "确认后复用正常记录流",
+        "Implementation-ready Engineering Contracts V1"
+      ]
+    },
+    {
+      "order": 4,
+      "id": "RR03",
+      "label_zh": "低置信结果",
+      "label_en": "Low Confidence Result",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "authority": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+      "page": "design/pages/recognition/result/03_low/README.md",
+      "contains": [
+        "无法确认是什么鱼",
+        "Hero Media Contract V1",
+        "手动选择鱼种",
+        "重新拍摄",
+        "选择前保留 Metadata / Story；Save 先进入 LOW_MANUAL",
+        "Implementation-ready Engineering Contracts V1"
+      ]
+    },
+    {
+      "order": 5,
+      "id": "RR04",
+      "label_zh": "未检测到鱼",
+      "label_en": "No Fish",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "authority": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+      "page": "design/pages/recognition/result/04_no_fish/README.md",
+      "contains": [
+        "未找到可识别的鱼",
+        "Hero Media Contract V1",
+        "重新拍摄",
+        "从相册选择",
+        "无 FishRecord 创建",
+        "Implementation-ready Engineering Contracts V1"
+      ]
+    },
+    {
+      "order": 6,
+      "id": "RR05",
+      "label_zh": "图片质量不足",
+      "label_en": "Image Quality",
+      "output_policy": "INDEPENDENT_HIFI",
+      "status": "FROZEN",
+      "authority": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+      "page": "design/pages/recognition/result/05_image_quality/README.md",
+      "contains": [
+        "照片不够清晰",
+        "Hero Media Contract V1",
+        "清晰度/遮挡指导",
+        "重新拍摄",
+        "从相册选择",
+        "与 No Fish 保持状态区分",
+        "Implementation-ready Engineering Contracts V1"
+      ]
+    },
+    {
+      "order": 7,
+      "id": "RR06",
+      "label_zh": "内容修改",
+      "label_en": "Content Edit Authorities",
+      "output_policy": "AUTHORITY_INDEX",
+      "status": "FROZEN",
+      "page": "design/pages/recognition/result/06_content_edit/README.md",
+      "contains": [
+        "Species Selector V1 · 鱼种选择（FROZEN）",
+        "Metadata Edit Flow V1 · 长度 / 重量 / 地点修改（FROZEN）",
+        "分别保留现有冻结规范、契约、视觉资产与 manifest",
+        "不新增 Result 产品状态，不改变 3+2 状态模型"
+      ]
+    }
+  ],
+  "status": "IMPLEMENTATION_READY",
+  "implementation_authority": "design/pages/recognition/result/engineering/README.md",
+  "supplemental_authorities": [
+    {
+      "id": "species_selector_v1",
+      "title": "Species Selector V1",
+      "authority": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+      "visual_authority": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+      "contract": "design/pages/recognition/result/species_selector/species_selector_contract.json",
+      "manifest": "design/pages/recognition/result/species_selector/frozen/manifest.json",
+      "linked_from": [
+        "RR06"
+      ]
+    },
+    {
+      "id": "metadata_edit_flow_v1",
+      "title": "Metadata Edit Flow V1",
+      "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+      "visual_authority": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+      "contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+      "manifest": "design/pages/recognition/result/metadata_edit/frozen/manifest.json",
+      "linked_from": [
+        "RR06"
+      ]
+    }
+  ]
+}

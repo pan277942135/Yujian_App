@@ -1,0 +1,145 @@
+{
+  "contract": "recognition_result_hero_media_test_vectors",
+  "version": "V1",
+  "status": "FROZEN",
+  "scenarios": [
+    {
+      "id": "TV01",
+      "source_ratio": "9:16",
+      "state": "RESULT_HIGH",
+      "bbox": "valid_centered",
+      "expected_mode": "SUBJECT_CROP_FILL",
+      "hard": [
+        "bbox_100",
+        "safe_rect_100"
+      ]
+    },
+    {
+      "id": "TV02",
+      "source_ratio": "9:16",
+      "state": "RESULT_MEDIUM",
+      "bbox": "valid_near_edge",
+      "expected_mode": "SUBJECT_CROP_FILL_OR_SAFE_FIT",
+      "hard": [
+        "no_subject_crop",
+        "12dp_safe_inset_or_fit"
+      ]
+    },
+    {
+      "id": "TV03",
+      "source_ratio": "16:9",
+      "state": "RESULT_HIGH",
+      "bbox": "long_horizontal",
+      "expected_mode": "SUBJECT_CROP_FILL_OR_SAFE_FIT",
+      "hard": [
+        "head_tail_preserved"
+      ]
+    },
+    {
+      "id": "TV04",
+      "source_ratio": "1:1",
+      "state": "RESULT_LOW",
+      "bbox": "valid",
+      "expected_mode": "SUBJECT_CROP_FILL_OR_SAFE_FIT",
+      "hard": [
+        "bbox_100"
+      ]
+    },
+    {
+      "id": "TV05",
+      "source_ratio": ">=3:1",
+      "state": "RESULT_HIGH",
+      "bbox": "valid",
+      "expected_mode": "SUBJECT_SAFE_FIT_IF_FILL_DESTRUCTIVE",
+      "hard": [
+        "safe_rect_100"
+      ]
+    },
+    {
+      "id": "TV06",
+      "source_ratio": "<=1:3",
+      "state": "RESULT_HIGH",
+      "bbox": "valid",
+      "expected_mode": "SUBJECT_SAFE_FIT_IF_FILL_DESTRUCTIVE",
+      "hard": [
+        "safe_rect_100"
+      ]
+    },
+    {
+      "id": "TV07",
+      "source_ratio": "any",
+      "state": "RESULT_HIGH",
+      "bbox": "touches_source_edge<=2pct",
+      "expected_mode": "SUBJECT_CROP_FILL_OR_SAFE_FIT",
+      "hard": [
+        "no_additional_crop_on_touching_edge"
+      ]
+    },
+    {
+      "id": "TV08",
+      "source_ratio": "any",
+      "state": "RESULT_HIGH",
+      "bbox": "invalid_or_missing",
+      "expected_mode": "SUBJECT_SAFE_FIT",
+      "hard": [
+        "whole_source_visible"
+      ]
+    },
+    {
+      "id": "TV09",
+      "source_ratio": "any",
+      "state": "ERROR_NO_FISH",
+      "bbox": "ignored",
+      "expected_mode": "EVIDENCE_FIT",
+      "hard": [
+        "whole_source_visible",
+        "no_bbox_crop"
+      ]
+    },
+    {
+      "id": "TV10",
+      "source_ratio": "any",
+      "state": "ERROR_IMAGE_QUALITY",
+      "bbox": "ignored",
+      "expected_mode": "EVIDENCE_FIT",
+      "hard": [
+        "whole_source_visible",
+        "no_bbox_crop"
+      ]
+    },
+    {
+      "id": "TV11",
+      "source_ratio": "any",
+      "state": "RESULT_HIGH",
+      "orientation": "EXIF_90",
+      "bbox": "valid_pre_transform",
+      "expected_mode": "SUBJECT_CROP_FILL_OR_SAFE_FIT",
+      "hard": [
+        "orientation_correct",
+        "bbox_transformed_to_oriented_space"
+      ]
+    },
+    {
+      "id": "TV12",
+      "source_ratio": "any",
+      "state": "RESULT_HIGH",
+      "source_quality": "low_resolution",
+      "expected_mode": "NORMAL_DECODER_SCALING_ONLY",
+      "hard": [
+        "no_ai_upscale",
+        "no_fake_sharpen"
+      ]
+    },
+    {
+      "id": "TV13",
+      "source_ratio": "any",
+      "state": "RESULT_HIGH",
+      "lighting": "night",
+      "expected_mode": "SUBJECT_CROP_FILL_OR_SAFE_FIT",
+      "hard": [
+        "no_photo_color_grading",
+        "no_blurred_photo_support"
+      ]
+    }
+  ]
+}

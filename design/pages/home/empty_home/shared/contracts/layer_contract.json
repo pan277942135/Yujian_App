@@ -1,0 +1,57 @@
+{
+  "design_version": "Empty_Home_Final_Design_V2",
+  "visual_revision": "V2.2",
+  "authority_status": "CURRENT",
+  "contract_revision": "EMPTY_HOME_LAYERS_V2_2_MEASURED",
+  "order": [
+    "scene_base",
+    "cloud_atmosphere",
+    "sun_ambient",
+    "rod",
+    "line",
+    "bobber_reflection",
+    "water_contact_occlusion",
+    "ripple",
+    "bobber_body",
+    "foreground_occlusion",
+    "native_ui",
+    "capture_action"
+  ],
+  "rules": {
+    "native_ui_is_baked": false,
+    "scene_base_has_baked_ripple": false,
+    "ripple_count": 1,
+    "scene_locked_elements_share_transform": "sceneTransform",
+    "scene_transform": "UNIFORM_COVER_COMPOSITION_AWARE",
+    "bobber_is_split_at_water_contact": true,
+    "water_contact_reference_px": [
+      561,
+      1323
+    ],
+    "bobber_origin_reference_px": [
+      550,
+      1250
+    ],
+    "bobber_water_contact_local_y_reference_px": 73,
+    "ripple_below_bobber_above_water": true,
+    "line_terminates_behind_or_below_contact": true,
+    "camera_action_is_top_actionable_layer": true,
+    "ripple_center_reference_px": [
+      562,
+      1320
+    ],
+    "bobber_water_treatment": "single_body_plus_separate_faded_reflection",
+    "bobber_underwater_visible_height_reference_px": 0,
+    "bobber_underwater_alpha": 0,
+    "fishing_protected_bounds_reference_px": {
+      "left": 0,
+      "top": 1180,
+      "right": 660,
+      "bottom": 1380
+    },
+    "bobber_body_render_count": 1,
+    "reflection_is_separate_asset": true,
+    "line_stroke_model": "single_pale_stroke_without_outline",
+    "line_endpoint_occluded_by_bobber_contact": true
+  }
+}

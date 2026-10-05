@@ -1,0 +1,34 @@
+{
+  "type": "sun_particle_beam",
+  "enabled": true,
+  "anchor": {
+    "x": 845,
+    "y": 680
+  },
+  "duration_s": 4.8,
+  "beam": {
+    "count": 3,
+    "alpha_min": 0.0,
+    "alpha_max": 0.16,
+    "soft_edge": true,
+    "mask": "animation/support/sun_beam_mask.png",
+    "direction": "downward_toward_reflection_axis"
+  },
+  "particles": {
+    "count": 10,
+    "seed": 20260920,
+    "alpha_min": 0.035,
+    "alpha_max": 0.12,
+    "motion": "slow_downward_drift_plus_small_x_drift",
+    "mask": "animation/support/sun_particle_mask.png"
+  },
+  "color_source": "master_sun_reflection_sample",
+  "generated_color": false,
+  "color_rgb": [
+    253,
+    207,
+    136
+  ],
+  "no_hue_redesign": true,
+  "ui_exclusion": true
+}

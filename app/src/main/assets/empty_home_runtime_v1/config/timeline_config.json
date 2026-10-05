@@ -1,0 +1,33 @@
+{
+  "version": "1.1",
+  "scene_loop": "infinite",
+  "phase_policy": "independent_periods_no_global_sync",
+  "static_layers_locked": true,
+  "layers": {
+    "bobber": {
+      "enabled": true,
+      "config": "bobber_motion.json"
+    },
+    "ripple": {
+      "enabled": true,
+      "config": "ripple_motion.json"
+    },
+    "cloud": {
+      "enabled": true,
+      "config": "cloud_motion.json"
+    },
+    "sun_particle_beam": {
+      "enabled": true,
+      "config": "sun_particle_beam_motion.json"
+    },
+    "camera_gold_rim": {
+      "enabled": true,
+      "config": "camera_gold_rim_motion.json"
+    },
+    "camera_breathe": {
+      "enabled": true,
+      "config": "camera_breath_motion.json"
+    }
+  },
+  "android_integration": "deferred_to_feature_empty_home_runtime_scene_renderer_v1"
+}

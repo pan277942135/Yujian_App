@@ -1,0 +1,26 @@
+{
+  "component": "text_action",
+  "version": "V1",
+  "status": "FROZEN",
+  "pressed": {
+    "properties": [
+      "color",
+      "alpha"
+    ],
+    "duration_ms": 90,
+    "scale": false,
+    "bounce": false
+  },
+  "idle_animation": "none",
+  "loading": "N/A",
+  "reduce_motion": {
+    "spatial_motion": false,
+    "color_alpha_feedback": true
+  },
+  "haptic": {
+    "component_level": "none"
+  },
+  "sound": {
+    "enabled": false
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "contract_revision": "EMPTY_HOME_MACHINE_AUTHORITY_V2_2_MEASURED",
+  "design_version": "Empty_Home_Final_Design_V2",
+  "visual_revision": "V2.2",
+  "visual_revision_status": "APPROVED_FROZEN",
+  "authority_status": "CURRENT",
+  "authority_scope": "Frozen V2 base and approved V2.2 fishing-composition and capture-button deltas. V2.3 Runtime geometry is historical and is not active authority.",
+  "reference_canvas": {
+    "width": 1080,
+    "height": 1920,
+    "normalized_reference": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+    "approved_delta_source": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
+    "approved_delta_artwork": {
+      "filename": "晨雾湖畔_静待第一条鱼.png",
+      "dimensions": [
+        941,
+        1672
+      ],
+      "sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+      "repository_copy": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png"
+    }
+  },
+  "canonical_contract_directory": "design/pages/home/empty_home/shared/contracts",
+  "contracts": {
+    "layout_anchors": "anchor_contract.json",
+    "responsive_mapping": "responsive_mapping_contract.json",
+    "layers": "layer_contract.json",
+    "motion": "motion_contract.json",
+    "hero_asset": "hero_asset_contract.json"
+  },
+  "merge_rule": "V2 remains authoritative except for the approved V2.2 capture-button and Fishing Composition deltas measured from the canonical V2.2 raster.",
+  "historical_contract_policy": "V2.3 remains a historical attempted Runtime correction; its Fishing Composition geometry is not active. The current machine-readable V2.2 contracts govern Runtime."
+}
