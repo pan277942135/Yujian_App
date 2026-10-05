@@ -28,8 +28,11 @@ gate_before_instrumentation() {
 camera_runtime_pull_file() {
   local source="$1"
   local destination="$2"
-  "$YUJIAN_ADB_BIN" exec-out run-as "$YUJIAN_APP_PACKAGE" cat "$source" \
-    > "$destination" 2>/dev/null || true
+  if ! "$YUJIAN_ADB_BIN" exec-out run-as "$YUJIAN_APP_PACKAGE" cat "$source" \
+      > "$destination" 2>/dev/null; then
+    rm -f "$destination"
+    return 0
+  fi
   if [[ ! -s "$destination" ]]; then rm -f "$destination"; fi
 }
 
@@ -47,10 +50,20 @@ gate_after_instrumentation() {
     camera_preflight.txt \
     camera_runtime_log.txt \
     camera_capture_trace.txt \
-    camera_service_after_test.txt
+    camera_service_after_test.txt \
+    capture_invocation_failure.txt \
+    readiness_failure_diagnostics.txt \
+    ui_hierarchy_after_capture_tap.xml \
+    ui_hierarchy_readiness_failure.xml
   do
     camera_runtime_pull_file "cache/camera-runtime-v1/$name" "$output/$name"
   done
+
+  local instrumentation_log="$YUJIAN_EVIDENCE_DIR/instrumentation.log"
+  if [[ -s "$instrumentation_log" ]]; then
+    cp "$instrumentation_log" "$output/instrumentation_result.txt"
+    cp "$instrumentation_log" "$YUJIAN_EVIDENCE_DIR/instrumentation_result.txt"
+  fi
 
   timeout 20s "$YUJIAN_ADB_BIN" logcat -d -v threadtime 2>&1 |
     grep -Ei 'RecognitionCameraCapture|CameraX|Camera2|CameraManager|CameraService|AndroidRuntime' |
@@ -68,6 +81,9 @@ gate_after_instrumentation() {
   fi
   if [[ -s "$output/camera_capture_trace.txt" ]]; then
     cp "$output/camera_capture_trace.txt" "$YUJIAN_EVIDENCE_DIR/camera_capture_trace.txt"
+  fi
+  if [[ -s "$output/instrumentation_result.txt" ]]; then
+    cp "$output/instrumentation_result.txt" "$YUJIAN_EVIDENCE_DIR/instrumentation_result.txt"
   fi
 }
 
@@ -103,7 +119,8 @@ gate_collect_evidence() {
     05_post_capture.png \
     06_recognition_handoff.png \
     camera_capture_trace.txt \
-    camera_runtime_log.txt
+    camera_runtime_log.txt \
+    instrumentation_result.txt
   do
     if [[ ! -s "$output/$name" ]]; then
       printf 'MISSING_CAMERA_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"

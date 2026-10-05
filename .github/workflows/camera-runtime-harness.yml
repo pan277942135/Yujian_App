@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - infra/camera-runtime-harness-p0-v1
+      - infra/camera-runtime-harness-p0-v1-1
   workflow_dispatch:
 
 permissions:
