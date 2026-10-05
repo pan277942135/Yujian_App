@@ -130,4 +130,3 @@ gate_collect_evidence() {
   done
   return "$EXIT_PASS"
 }
-
