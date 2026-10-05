@@ -142,9 +142,15 @@ gate_collect_evidence() {
       --reference-dir "$YUJIAN_REPO_ROOT/design/pages/recognition/design" \
       --output-dir "$output_dir" || {
         runtime_set_failure "EVIDENCE" "RECOGNITION_VISUAL_PARITY_INVALID"
-        return "$EXIT_FAIL_EVIDENCE"
-      }
+      return "$EXIT_FAIL_EVIDENCE"
+    }
   fi
+
+  # The frozen evidence manifest retains the older "issue" names while the
+  # production flow now emits the clearer "error" names. Keep both manifest
+  # paths bound to the exact same captured evidence.
+  [[ ! -s "$output_dir/08_error_no_fish.png" ]] || cp "$output_dir/08_error_no_fish.png" "$output_dir/08_issue_no_fish.png"
+  [[ ! -s "$output_dir/09_error_image_quality.png" ]] || cp "$output_dir/09_error_image_quality.png" "$output_dir/09_issue_image_quality.png"
 
   if [[ -s "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" && "${YUJIAN_VALIDATE_RECOGNITION_VIDEO:-1}" == "1" ]]; then
     local validation_rc=0

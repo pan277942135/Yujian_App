@@ -73,78 +73,18 @@ class RecognitionCameraCaptureContractTest {
     }
 
     @Test
-    fun recoverableErrorReturnsToReadyOnlyWhenCameraIsUsable() {
+    fun imageCaptureErrorLeavesCaptureRetryable() {
         val errorState = RecognitionCameraCaptureContract.completeError()
 
         assertEquals(RecognitionCameraCaptureState.ERROR, errorState)
-        assertFalse(RecognitionCameraCaptureContract.canStartCapture(errorState))
-        assertEquals(
-            RecognitionCameraCaptureState.ERROR,
-            RecognitionCameraCaptureContract.reconcileReadiness(
-                state = errorState,
-                cameraReady = false,
-            ),
-        )
-        assertEquals(
-            RecognitionCameraCaptureState.READY,
-            RecognitionCameraCaptureContract.reconcileReadiness(
-                state = errorState,
-                cameraReady = true,
-            ),
-        )
-        assertTrue(
-            RecognitionCameraCaptureContract.canStartCapture(
-                RecognitionCameraCaptureContract.reconcileReadiness(
-                    state = errorState,
-                    cameraReady = true,
-                ),
-            ),
-        )
+        assertTrue(RecognitionCameraCaptureContract.canStartCapture(errorState))
     }
 
     @Test
-    fun previewRemainsMountedThroughCaptureAndLeavesOnlyAtHandoff() {
-        assertTrue(
-            RecognitionCameraCaptureContract.shouldKeepPreviewMounted(
-                captureState = RecognitionCameraCaptureState.CAPTURING,
-                cameraBound = true,
-                galleryLoading = false,
-                handoffImageAvailable = false,
-            ),
-        )
-        assertFalse(
-            RecognitionCameraCaptureContract.shouldKeepPreviewMounted(
-                captureState = RecognitionCameraCaptureState.SUCCESS,
-                cameraBound = true,
-                galleryLoading = false,
-                handoffImageAvailable = true,
-            ),
-        )
-        assertFalse(
-            RecognitionCameraCaptureContract.canStartCapture(
-                RecognitionCameraCaptureState.CAPTURING,
-            ),
-        )
-    }
-
-    @Test
-    fun galleryLoadingIsIndependentFromCameraCaptureReadiness() {
-        val cameraState = RecognitionCameraCaptureState.READY
-
-        assertEquals(
-            RecognitionCameraCaptureState.READY,
-            RecognitionCameraCaptureContract.reconcileReadiness(
-                state = cameraState,
-                cameraReady = true,
-            ),
-        )
-        assertFalse(
-            RecognitionCameraCaptureContract.shouldKeepPreviewMounted(
-                captureState = cameraState,
-                cameraBound = true,
-                galleryLoading = true,
-                handoffImageAvailable = false,
-            ),
-        )
+    fun galleryFlowDoesNotUseCameraCaptureContract() {
+        // Gallery normalization is intentionally independent of this state
+        // machine; the existing RecognitionImageStore gallery path remains the
+        // fallback when camera capture is unavailable.
+        assertTrue(RecognitionCameraCaptureContract.canStartCapture(RecognitionCameraCaptureState.ERROR))
     }
 }

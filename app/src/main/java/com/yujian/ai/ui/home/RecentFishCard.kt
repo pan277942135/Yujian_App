@@ -12,9 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -67,19 +65,9 @@ internal fun RecentFishCard(
         media = {
             RemoteImage(
                 url = imageUrl,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { scaleX = 1.08f; scaleY = 1.08f; alpha = 0.22f }
-                    .blur(18.dp),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                authToken = accessToken,
-            )
-            RemoteImage(
-                url = imageUrl,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().testTag("normal-home-catch-media-${item.id}"),
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop,
                 authToken = accessToken,
                 placeholder = {
                     Box(
@@ -112,6 +100,7 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
         ),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.testTag("normal-home-catch-species-${item.id}"),
     )
     displayMeasurement(item)?.let { value ->
         Text(
@@ -123,7 +112,7 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 5.dp),
+            modifier = Modifier.padding(top = 5.dp).testTag("normal-home-catch-measurement-${item.id}"),
         )
     }
     formatCatchMeta(item)?.let { value ->
@@ -136,7 +125,9 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 5.dp),
+            modifier = Modifier
+                .padding(top = 5.dp)
+                .testTag("normal-home-catch-meta-${item.id}"),
         )
     }
 }

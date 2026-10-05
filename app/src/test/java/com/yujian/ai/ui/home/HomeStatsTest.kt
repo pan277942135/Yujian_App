@@ -7,6 +7,19 @@ import org.junit.Test
 
 class HomeStatsTest {
     @Test
+    fun twoDistinctSpeciesAndCatchesOnOneDayRemainDataDriven() {
+        val values = resolveHomeStatValues(
+            statistics = CatchStatistics(),
+            catches = listOf(
+                catchRecord("snakehead", "黑鱼", "2026-10-04T21:48:00+08:00"),
+                catchRecord("mandarin-fish", "鳜鱼", "2026-10-04T21:50:00+08:00"),
+            ),
+        )
+
+        assertEquals(HomeStatValues(speciesCount = 2, catchCount = 2, recordDays = 1), values)
+    }
+
+    @Test
     fun serverTotalsRemainAuthoritativeWhileRecordDaysComeFromRealRecords() {
         val values = resolveHomeStatValues(
             statistics = CatchStatistics(totalCatches = 38, speciesCount = 12),

@@ -1,6 +1,9 @@
 package com.yujian.ai
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.CatchSaveDraft
@@ -24,6 +27,71 @@ class HomeVisualEvidenceSeedTest {
 
     @Test
     fun seedMultipleGuestCatches() = seed(3)
+
+    @Test
+    fun seedTwoAspectPortraitGuestCatches() {
+        val preferences = context.getSharedPreferences(GUEST_ARCHIVE_PREFERENCES, Context.MODE_PRIVATE)
+        preferences.edit().clear().commit()
+        File(context.filesDir, "guest_catches").deleteRecursively()
+
+        val fixtures = listOf(
+            SeedCatch(
+                filename = "normal-home-portrait-9x16.png",
+                width = 360,
+                height = 640,
+                color = android.graphics.Color.rgb(46, 126, 184),
+                speciesId = "visual_snakehead",
+                speciesName = "黑鱼",
+                capturedAt = "2026-10-04T21:50:00+08:00",
+                lengthCm = 28.0,
+                weightKg = 2.6,
+                location = "江苏省苏州市吴中区太湖国家湿地公园东岸",
+            ),
+            SeedCatch(
+                filename = "normal-home-portrait-4x5.png",
+                width = 640,
+                height = 800,
+                color = android.graphics.Color.rgb(214, 53, 81),
+                speciesId = "visual_mandarin_fish",
+                speciesName = "鳜鱼",
+                capturedAt = "2026-10-04T21:48:00+08:00",
+                lengthCm = 32.0,
+                weightKg = 3.0,
+                location = "浙江省杭州市临安区青山湖国家森林公园东侧码头",
+            ),
+        )
+        val repository = GuestCatchRepository(context)
+        runBlocking {
+            fixtures.forEach { fixture ->
+                val source = createPortraitFixture(fixture)
+                repository.saveCatch(
+                    source,
+                    CatchSaveDraft(
+                        speciesId = fixture.speciesId,
+                        speciesName = fixture.speciesName,
+                        confidence = 0.92f,
+                        modelVersion = "normal-home-data-parity-fixture",
+                    ),
+                )
+                source.delete()
+            }
+        }
+
+        val records = JSONArray(preferences.getString(GUEST_RECORDS_KEY, null))
+        assertEquals(2, records.length())
+        fixtures.forEachIndexed { index, fixture ->
+            records.getJSONObject(index)
+                .put("captured_at", fixture.capturedAt)
+                .put("created_at", fixture.capturedAt)
+                .put("length_cm", fixture.lengthCm)
+                .put("weight_kg", fixture.weightKg)
+                .put("location", fixture.location)
+        }
+        assertTrue(
+            "Aspect-ratio guest seed was not persisted",
+            preferences.edit().putString(GUEST_RECORDS_KEY, records.toString()).commit(),
+        )
+    }
 
     private fun seed(count: Int) {
         val preferences = context.getSharedPreferences(GUEST_ARCHIVE_PREFERENCES, Context.MODE_PRIVATE)
@@ -77,6 +145,36 @@ class HomeVisualEvidenceSeedTest {
             preferences.edit().putString(GUEST_RECORDS_KEY, visualRecords.toString()).commit(),
         )
     }
+
+    private fun createPortraitFixture(fixture: SeedCatch): File {
+        val file = File(context.cacheDir, fixture.filename)
+        val bitmap = Bitmap.createBitmap(fixture.width, fixture.height, Bitmap.Config.ARGB_8888)
+        Canvas(bitmap).apply {
+            drawColor(fixture.color)
+            val marker = Paint().apply { color = android.graphics.Color.rgb(255, 230, 66) }
+            val markerWidth = fixture.width * 0.1f
+            drawRect(0f, 0f, markerWidth, fixture.height.toFloat(), marker)
+            drawRect(fixture.width - markerWidth, 0f, fixture.width.toFloat(), fixture.height.toFloat(), marker)
+        }
+        file.outputStream().use { output ->
+            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output))
+        }
+        bitmap.recycle()
+        return file
+    }
+
+    private data class SeedCatch(
+        val filename: String,
+        val width: Int,
+        val height: Int,
+        val color: Int,
+        val speciesId: String,
+        val speciesName: String,
+        val capturedAt: String,
+        val lengthCm: Double,
+        val weightKg: Double,
+        val location: String,
+    )
 
     private companion object {
         const val GUEST_ARCHIVE_PREFERENCES = "yujian_guest_archive"

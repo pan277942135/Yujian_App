@@ -188,6 +188,15 @@ class RecognitionCameraRuntimeTest {
             "CAMERA_CONTROLLER_ATTACHED_AT_CAPTURE_REQUEST",
             (captureLine?.contains("controller_attached=true") == true).toString(),
         )
+        assertTrue(
+            "PreviewView/controller must remain alive while capture is CAPTURING",
+            captureLine != null && captureLine.contains("capture_state=CAPTURING") &&
+                captureLine.contains("camera_provider_bound=true") &&
+                captureLine.contains("camera_controller_alive=true") &&
+                captureLine.contains("preview_view_attached=true") &&
+                captureLine.contains("preview_attached=true") &&
+                captureLine.contains("controller_attached=true"),
+        )
         if (invocationCount == 0) {
             record("TAKE_PICTURE_INVOKED", "false")
             saveCaptureInvocationFailureDiagnostics(invocationLogs)
@@ -288,6 +297,15 @@ class RecognitionCameraRuntimeTest {
             record("OUTPUT_PATH", failedOutputPath ?: "NOT_REPORTED")
             record("OUTPUT_FILE_EXISTS", (failedOutputFile?.isFile == true).toString())
             record("OUTPUT_FILE_BYTES", (failedOutputFile?.takeIf { it.isFile }?.length() ?: 0L).toString())
+            assertTrue("Capture error must leave the app on the Camera route",
+                !device.hasObject(By.desc(RECOGNITION_IMAGE)))
+            val cameraWasHealthy = errorLine.contains("camera_ready_for_retry=true")
+            if (cameraWasHealthy) {
+                assertTrue("Healthy CameraX must remain retryable after onError", device.wait(
+                    Until.findObject(By.desc(CAMERA_BUTTON)), 5_000L,
+                )?.isEnabled == true)
+            }
+            record("CAMERA_ERROR_RECOVERY", if (cameraWasHealthy) "RETRYABLE_NO_NAVIGATION" else "REBIND_REQUESTED_NO_NAVIGATION")
             saveDiagnostics()
             throw AssertionError("PRODUCT_FAILURE_CONFIRMED after READY and takePicture invocation: " + errorLine)
         }
@@ -300,6 +318,11 @@ class RecognitionCameraRuntimeTest {
         )
         assertNotNull("onImageSaved was not reached after the terminal result", savedLine)
         val saved = savedLine!!
+        assertTrue("Terminal callback must report the live PreviewView and controller",
+            terminalStateLine?.contains("camera_controller_alive=true") == true &&
+                terminalStateLine.contains("preview_view_attached=true") &&
+                terminalStateLine.contains("preview_attached=true") &&
+                terminalStateLine.contains("controller_attached=true"))
         assertTrue("Production callback did not report a non-empty saved file",
             saved.contains("file_exists=true") && Regex("file_bytes=([1-9][0-9]*)").containsMatchIn(saved))
         record("ON_IMAGE_SAVED", "PASS")

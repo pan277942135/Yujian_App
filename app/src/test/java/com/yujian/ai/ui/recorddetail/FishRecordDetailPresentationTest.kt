@@ -76,6 +76,7 @@ class FishRecordDetailPresentationTest {
     fun saved_story_is_preserved_and_sentinel_values_are_hidden() {
         assertEquals("第一条黑鱼。", FishRecordDetailPresentation.story(record.copy(story = "第一条黑鱼。")))
         assertEquals(null, FishRecordDetailPresentation.story(record.copy(story = "null")))
+        assertEquals(null, FishRecordDetailPresentation.story(record.copy(story = "undefined")))
         assertEquals(null, FishRecordDetailPresentation.story(record.copy(story = "   ")))
     }
 

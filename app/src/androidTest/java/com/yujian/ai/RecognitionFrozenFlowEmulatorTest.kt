@@ -58,6 +58,7 @@ import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
+import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -624,6 +625,31 @@ class RecognitionFrozenFlowEmulatorTest {
         saveButton.performClick()
         saveButton.performClick()
         assertEquals("one resolved Result may submit only once while saving", 1, saveCalls.get())
+    }
+
+    @Test
+    fun resultStoryIsIncludedInTheCatchSavePayload() {
+        val submittedDraft = java.util.concurrent.atomic.AtomicReference<CatchSaveDraft?>(null)
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { draft, _, _ -> submittedDraft.set(draft) },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recognition-story-input")
+            .performScrollTo()
+            .performTextInput("第一条黑鱼。")
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+
+        val classifierResult = requireNotNull(submittedDraft.get()?.classifierResult)
+        assertEquals("第一条黑鱼。", classifierResult.optString("story"))
     }
 
     @Test

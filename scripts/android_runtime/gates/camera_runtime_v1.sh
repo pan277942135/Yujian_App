@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+
+gate_test_classes() {
+  printf '%s\n' 'com.yujian.ai.RecognitionCameraRuntimeTest'
+}
+
+gate_before_instrumentation() {
+  local output="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+  mkdir -p "$output"
+  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE" >/dev/null 2>&1 || true
+  local clear_result grant_result clear_rc=0 grant_rc=0
+  clear_result="$("$YUJIAN_ADB_BIN" shell pm clear "$YUJIAN_APP_PACKAGE" 2>&1 | tr -d '\r')" || clear_rc=$?
+  grant_result="$("$YUJIAN_ADB_BIN" shell pm grant "$YUJIAN_APP_PACKAGE" android.permission.CAMERA 2>&1 | tr -d '\r')" || grant_rc=$?
+  {
+    printf 'APP_DATA_RESET=%s\n' "$clear_result"
+    printf 'APP_DATA_RESET_EXIT_CODE=%s\n' "$clear_rc"
+    printf 'CAMERA_PERMISSION_GRANT=%s\n' "$grant_result"
+    printf 'CAMERA_PERMISSION_GRANT_EXIT_CODE=%s\n' "$grant_rc"
+  } > "$output/permission_preflight.txt"
+  if (( clear_rc != 0 || grant_rc != 0 )) || [[ "$clear_result" != *"Success"* ]]; then
+    runtime_set_failure "CAMERA_PERMISSION_SETUP" "APP_RESET_OR_CAMERA_PERMISSION_GRANT_FAILED"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
+  return "$EXIT_PASS"
+}
+
+camera_runtime_pull_file() {
+  local source="$1"
+  local destination="$2"
+  if ! "$YUJIAN_ADB_BIN" exec-out run-as "$YUJIAN_APP_PACKAGE" cat "$source" \
+      > "$destination" 2>/dev/null; then
+    rm -f "$destination"
+    return 0
+  fi
+  if [[ ! -s "$destination" ]]; then rm -f "$destination"; fi
+}
+
+gate_after_instrumentation() {
+  local output="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+  mkdir -p "$output"
+  local name
+  for name in \
+    01_camera_open.png \
+    02_preview_streaming.png \
+    03_capture_ready.png \
+    04_capture_pressed.png \
+    05_post_capture.png \
+    06_recognition_handoff.png \
+    camera_preflight.txt \
+    camera_runtime_log.txt \
+    camera_capture_trace.txt \
+    camera_service_after_test.txt \
+    capture_invocation_failure.txt \
+    readiness_failure_diagnostics.txt \
+    ui_hierarchy_after_capture_tap.xml \
+    ui_hierarchy_readiness_failure.xml
+  do
+    camera_runtime_pull_file "cache/camera-runtime-v1/$name" "$output/$name"
+  done
+
+  local instrumentation_log="$YUJIAN_EVIDENCE_DIR/instrumentation.log"
+  if [[ -s "$instrumentation_log" ]]; then
+    cp "$instrumentation_log" "$output/instrumentation_result.txt"
+    cp "$instrumentation_log" "$YUJIAN_EVIDENCE_DIR/instrumentation_result.txt"
+  fi
+
+  timeout 20s "$YUJIAN_ADB_BIN" logcat -d -v threadtime 2>&1 |
+    grep -Ei 'RecognitionCameraCapture|CameraX|Camera2|CameraManager|CameraService|AndroidRuntime' |
+    tail -n 3000 > "$output/camera_runtime_log.txt" || true
+  "$YUJIAN_ADB_BIN" shell dumpsys media.camera \
+    > "$output/camera_service_after_test.txt" 2>&1 || \
+    "$YUJIAN_ADB_BIN" shell dumpsys camera \
+      > "$output/camera_service_after_test.txt" 2>&1 || true
+
+  if [[ -s "$output/camera_preflight.txt" ]]; then
+    cp "$output/camera_preflight.txt" "$YUJIAN_EVIDENCE_DIR/camera_preflight.txt"
+  fi
+  if [[ -s "$output/camera_runtime_log.txt" ]]; then
+    cp "$output/camera_runtime_log.txt" "$YUJIAN_EVIDENCE_DIR/camera_runtime_log.txt"
+  fi
+  if [[ -s "$output/camera_capture_trace.txt" ]]; then
+    cp "$output/camera_capture_trace.txt" "$YUJIAN_EVIDENCE_DIR/camera_capture_trace.txt"
+  fi
+  if [[ -s "$output/instrumentation_result.txt" ]]; then
+    cp "$output/instrumentation_result.txt" "$YUJIAN_EVIDENCE_DIR/instrumentation_result.txt"
+  fi
+}
+
+gate_instrumentation_failure_classification() {
+  local preflight="$YUJIAN_EVIDENCE_DIR/camera_preflight.txt"
+  if [[ -s "$preflight" ]] && {
+    grep -q '^BACK_CAMERA_COUNT=0$' "$preflight" ||
+      grep -q '^CAMERA_SERVICE_RESPONSIVE=false$' "$preflight"
+  }; then
+    runtime_set_failure "CAMERA_PREFLIGHT" "REAR_CAMERA_NOT_ENUMERATED"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  return "$EXIT_FAIL_TEST"
+}
+
+gate_collect_evidence() {
+  local output="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+  local name
+  if [[ ! -s "$output/camera_preflight.txt" ]]; then
+    runtime_set_failure "EVIDENCE" "CAMERA_PREFLIGHT_REPORT_MISSING"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  if grep -q '^BACK_CAMERA_COUNT=0$' "$output/camera_preflight.txt" ||
+     grep -q '^CAMERA_SERVICE_RESPONSIVE=false$' "$output/camera_preflight.txt"; then
+    runtime_set_failure "CAMERA_PREFLIGHT" "REAR_CAMERA_NOT_ENUMERATED"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  for name in \
+    01_camera_open.png \
+    02_preview_streaming.png \
+    03_capture_ready.png \
+    04_capture_pressed.png \
+    05_post_capture.png \
+    06_recognition_handoff.png \
+    camera_capture_trace.txt \
+    camera_runtime_log.txt \
+    instrumentation_result.txt
+  do
+    if [[ ! -s "$output/$name" ]]; then
+      printf 'MISSING_CAMERA_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "CAMERA_RUNTIME_EVIDENCE_INCOMPLETE"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  return "$EXIT_PASS"
+}
+

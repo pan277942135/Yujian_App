@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
@@ -143,6 +144,8 @@ internal fun NormalHomeContent(
                 onSpeciesClick = onSpeciesClick,
                 onCatchesClick = onCatchesClick,
                 isResolving = isResolving,
+                dividerHeight = ref(56f),
+                horizontalPadding = ref(150f),
             )
         }
 
@@ -162,7 +165,8 @@ internal fun NormalHomeContent(
                 modifier = Modifier
                     .offset(y = refY(NormalHomeRecentHeaderY))
                     .fillMaxWidth()
-                    .height(ref(NormalHomeRecentHeaderHeight)),
+                    .height(ref(NormalHomeRecentHeaderHeight))
+                    .testTag("normal-home-recent-header"),
                 contentAlignment = Alignment.Center,
             ) {
                 RecentCatchSectionHeader(onCatchesClick = onCatchesClick)
@@ -310,12 +314,19 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
                 color = YuJianColors.OnDark,
                 fontSize = 24.sp,
                 lineHeight = 30.sp,
+                shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.30f), blurRadius = 3f),
             ),
+            modifier = Modifier.testTag("normal-home-recent-title"),
         )
         Row(
             modifier = Modifier
-                .clickable(onClick = onCatchesClick)
-                .padding(vertical = YuJianSpacing.xs),
+                .requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "全部鱼获"
+                    role = Role.Button
+                }
+                .clickable(role = Role.Button, onClick = onCatchesClick)
+                .testTag("normal-home-recent-all"),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(YuJianSpacing.xs),
         ) {
@@ -325,11 +336,12 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
                     color = YuJianColors.OnDark,
                     fontSize = 18.sp,
                     lineHeight = 24.sp,
+                    shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.30f), blurRadius = 3f),
                 ),
             )
             Image(
                 painter = painterResource(R.drawable.all_chevron_v12),
-                contentDescription = "全部鱼获",
+                contentDescription = null,
                 modifier = Modifier.size(YuJianSpacing.sm),
             )
         }
