@@ -1,9 +1,11 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.os.ParcelFileDescriptor
 import androidx.activity.ComponentActivity
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsFocused
@@ -97,10 +99,27 @@ class LoginV2RuntimeTest {
     }
 
     private fun awaitImeVisible() {
+        val activity = composeRule.activity
+        val decorView = activity.window.decorView
+        val visibleFrameBeforeIme = Rect()
+        decorView.getWindowVisibleDisplayFrame(visibleFrameBeforeIme)
+        val imeVisibilityThresholdPx = (100 * activity.resources.displayMetrics.density).toInt()
+
+        activity.runOnUiThread {
+            WindowInsetsControllerCompat(activity.window, decorView)
+                .show(WindowInsetsCompat.Type.ime())
+        }
+
         composeRule.waitUntil(timeoutMillis = 5_000L) {
-            val insets = composeRule.activity.window.decorView.rootWindowInsets
-                ?: return@waitUntil false
-            WindowInsetsCompat.toWindowInsetsCompat(insets).isVisible(WindowInsetsCompat.Type.ime())
+            val insets = decorView.rootWindowInsets
+            val imeInsetsVisible = insets?.let {
+                WindowInsetsCompat.toWindowInsetsCompat(it).isVisible(WindowInsetsCompat.Type.ime())
+            } ?: false
+            val visibleFrame = Rect()
+            decorView.getWindowVisibleDisplayFrame(visibleFrame)
+            val keyboardReducedVisibleFrame =
+                visibleFrameBeforeIme.bottom - visibleFrame.bottom > imeVisibilityThresholdPx
+            imeInsetsVisible || keyboardReducedVisibleFrame
         }
     }
 
