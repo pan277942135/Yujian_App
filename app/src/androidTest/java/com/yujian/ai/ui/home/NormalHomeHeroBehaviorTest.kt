@@ -149,7 +149,7 @@ class NormalHomeHeroBehaviorTest {
         compose.onNodeWithContentDescription("个人中心")
             .assertHasClickAction()
             .performClick()
-        compose.onNodeWithTag("normal-home-default-profile-avatar").assertIsDisplayed()
+        compose.onNodeWithTag("normal-home-default-profile-avatar", useUnmergedTree = true).assertIsDisplayed()
         compose.runOnIdle { assertEquals(1, profileClicks) }
     }
 

@@ -97,18 +97,18 @@ class NormalHomeDataParityTest {
                     compose.onAllNodesWithContentDescription("黑鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
             }
 
-            compose.onNodeWithTag("normal-home-stat-species-value").assertIsDisplayed().assertTextEquals("2")
-            compose.onNodeWithTag("normal-home-stat-catches-value").assertIsDisplayed().assertTextEquals("2")
-            compose.onNodeWithTag("normal-home-stat-record-days-value").assertIsDisplayed().assertTextEquals("1")
-            compose.onNodeWithTag("normal-home-stat-species-label").assertTextEquals("鱼种")
-            compose.onNodeWithTag("normal-home-stat-catches-label").assertTextEquals("鱼获")
-            compose.onNodeWithTag("normal-home-stat-record-days-label").assertTextEquals("记录天数")
+            compose.onNodeWithTag("normal-home-stat-species-value", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("2")
+            compose.onNodeWithTag("normal-home-stat-catches-value", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("2")
+            compose.onNodeWithTag("normal-home-stat-record-days-value", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("1")
+            compose.onNodeWithTag("normal-home-stat-species-label", useUnmergedTree = true).assertTextEquals("鱼种")
+            compose.onNodeWithTag("normal-home-stat-catches-label", useUnmergedTree = true).assertTextEquals("鱼获")
+            compose.onNodeWithTag("normal-home-stat-record-days-label", useUnmergedTree = true).assertTextEquals("记录天数")
 
             val labels = listOf("species", "catches", "record-days").map { tag ->
-                compose.onNodeWithTag("normal-home-stat-$tag-label").fetchSemanticsNode().boundsInRoot
+                compose.onNodeWithTag("normal-home-stat-$tag-label", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             }
             val values = listOf("species", "catches", "record-days").map { tag ->
-                compose.onNodeWithTag("normal-home-stat-$tag-value").fetchSemanticsNode().boundsInRoot
+                compose.onNodeWithTag("normal-home-stat-$tag-value", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
             }
             assertEquals(labels[0].bottom, labels[1].bottom, 1.5f)
             assertEquals(labels[1].bottom, labels[2].bottom, 1.5f)
@@ -152,7 +152,7 @@ class NormalHomeDataParityTest {
             firstCard.assertIsDisplayed()
             secondCard.assertIsDisplayed()
             val firstCardBounds = firstCard.fetchSemanticsNode().boundsInRoot
-            val firstMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-snakehead")
+            val firstMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-snakehead", useUnmergedTree = true)
                 .fetchSemanticsNode().boundsInRoot
             assertEquals(pagerBounds.center.x, firstCardBounds.center.x, 1.5f)
             assertEquals(740f / 1080f, firstCardBounds.width / pagerBounds.width, 0.015f)
@@ -161,16 +161,16 @@ class NormalHomeDataParityTest {
             assertTrue(firstMediaBounds.width < firstCardBounds.width)
             assertTrue(firstMediaBounds.height < firstCardBounds.height)
 
-            compose.onNodeWithTag("normal-home-catch-species-catch-snakehead").assertTextEquals("黑鱼")
-            compose.onNodeWithTag("normal-home-catch-measurement-catch-snakehead").assertTextEquals("28 cm · 2.6 kg")
+            compose.onNodeWithTag("normal-home-catch-species-catch-snakehead", useUnmergedTree = true).assertTextEquals("黑鱼")
+            compose.onNodeWithTag("normal-home-catch-measurement-catch-snakehead", useUnmergedTree = true).assertTextEquals("28 cm · 2.6 kg")
             assertTrue(
-                compose.onNodeWithTag("normal-home-catch-species-catch-snakehead").fetchSemanticsNode().boundsInRoot.right <= firstCardBounds.right + 1f,
+                compose.onNodeWithTag("normal-home-catch-species-catch-snakehead", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.right <= firstCardBounds.right + 1f,
             )
             assertTrue(
-                compose.onNodeWithTag("normal-home-catch-measurement-catch-snakehead").fetchSemanticsNode().boundsInRoot.right <= firstCardBounds.right + 1f,
+                compose.onNodeWithTag("normal-home-catch-measurement-catch-snakehead", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.right <= firstCardBounds.right + 1f,
             )
-            compose.onNodeWithTag("normal-home-catch-meta-catch-snakehead").assertIsDisplayed()
-            val longMeta = compose.onNodeWithTag("normal-home-catch-meta-catch-snakehead").fetchSemanticsNode()
+            compose.onNodeWithTag("normal-home-catch-meta-catch-snakehead", useUnmergedTree = true).assertIsDisplayed()
+            val longMeta = compose.onNodeWithTag("normal-home-catch-meta-catch-snakehead", useUnmergedTree = true).fetchSemanticsNode()
             val metaText = longMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue("The timestamp and separator stay before the long location", metaText.contains("21:50 · "))
             assertTrue(metaText.contains("江苏省苏州市吴中区太湖国家湿地公园东岸"))
@@ -194,16 +194,16 @@ class NormalHomeDataParityTest {
             pager.performTouchInput { swipeLeft() }
             compose.waitForIdle()
             val secondCardBounds = secondCard.fetchSemanticsNode().boundsInRoot
-            val secondMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-bass")
+            val secondMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-bass", useUnmergedTree = true)
                 .fetchSemanticsNode().boundsInRoot
             assertEquals(pagerBounds.center.x, secondCardBounds.center.x, 1.5f)
             assertEquals(firstCardBounds.width, secondCardBounds.width, 1.5f)
             assertEquals(firstCardBounds.height, secondCardBounds.height, 1.5f)
             assertEquals(firstMediaBounds.width, secondMediaBounds.width, 1.5f)
             assertEquals(firstMediaBounds.height, secondMediaBounds.height, 1.5f)
-            compose.onNodeWithTag("normal-home-catch-species-catch-bass").assertTextEquals("鳜鱼")
-            compose.onNodeWithTag("normal-home-catch-measurement-catch-bass").assertTextEquals("32 cm · 3 kg")
-            val secondMeta = compose.onNodeWithTag("normal-home-catch-meta-catch-bass").assertIsDisplayed().fetchSemanticsNode()
+            compose.onNodeWithTag("normal-home-catch-species-catch-bass", useUnmergedTree = true).assertTextEquals("鳜鱼")
+            compose.onNodeWithTag("normal-home-catch-measurement-catch-bass", useUnmergedTree = true).assertTextEquals("32 cm · 3 kg")
+            val secondMeta = compose.onNodeWithTag("normal-home-catch-meta-catch-bass", useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode()
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
