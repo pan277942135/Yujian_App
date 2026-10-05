@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
@@ -231,8 +231,7 @@ internal fun AuthV2Field(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .bringIntoViewRequester(bringIntoViewRequester)
-            .padding(bottom = if (imeVisible) 24.dp else 0.dp),
+            .bringIntoViewRequester(bringIntoViewRequester),
     ) {
         Text(
             text = label,
@@ -247,7 +246,7 @@ internal fun AuthV2Field(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(top = 7.dp)
-                .height(56.dp)
+                .heightIn(min = 56.dp)
                 .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
                 .onGloballyPositioned { layout ->
                     autofillNode?.boundingBox = layout.boundsInWindow()

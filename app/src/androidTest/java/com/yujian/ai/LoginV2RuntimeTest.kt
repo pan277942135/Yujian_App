@@ -2,6 +2,7 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
+import androidx.core.view.WindowInsetsCompat
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsFocused
@@ -10,9 +11,11 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.fetchSemanticsNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performScrollTo
@@ -45,6 +48,7 @@ import com.yujian.ai.ui.auth.RegisterV2Screen
 import java.io.File
 import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -55,6 +59,22 @@ class LoginV2RuntimeTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    private fun awaitImeVisible() {
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            val insets = composeRule.activity.window.decorView.rootWindowInsets
+                ?: return@waitUntil false
+            WindowInsetsCompat.toWindowInsetsCompat(insets).isVisible(WindowInsetsCompat.Type.ime())
+        }
+    }
+
+    private fun assertInsideCompactViewport(node: SemanticsNodeInteraction) {
+        val viewport = composeRule.onNodeWithTag("auth_compact_viewport")
+            .fetchSemanticsNode().boundsInRoot
+        val bounds = node.fetchSemanticsNode().boundsInRoot
+        assertTrue("node is clipped above the compact viewport", bounds.top >= viewport.top)
+        assertTrue("node is clipped below the compact viewport", bounds.bottom <= viewport.bottom)
+    }
 
     @Test
     fun idle_matchesFrozenStructure() {
@@ -207,6 +227,36 @@ class LoginV2RuntimeTest {
     }
 
     @Test
+    fun login_invalidUsernameWithIme_keepsErrorVisibleAndLaterActionsReachable() {
+        composeRule.setContent {
+            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
+                LoginV2Screen(
+                    loading = false,
+                    error = null,
+                    onLogin = { _, _ -> },
+                    onRegister = {},
+                    onForgotPassword = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        val username = composeRule.onNodeWithTag("login_username")
+        username.performClick()
+        awaitImeVisible()
+        username.performTextInput("x")
+        composeRule.onNodeWithText("账号").assertIsDisplayed()
+        username.assertIsFocused().assertTextContains("x").assertIsDisplayed()
+        val error = composeRule.onNodeWithText("请输入 3–32 位字母、数字、_ 或 - 组成的账号")
+        error.assertIsDisplayed()
+        assertInsideCompactViewport(error)
+
+        composeRule.onNodeWithTag("login_password").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("login_submit").performScrollTo().assertIsDisplayed()
+        saveScreenshot("login_v2_invalid_username_ime_compact.png")
+    }
+
+    @Test
     fun register_smallScreen_keepsSubmitReachableByScrolling() {
         composeRule.setContent {
             Box(Modifier.width(360.dp).height(560.dp)) {
@@ -220,6 +270,80 @@ class LoginV2RuntimeTest {
         }
         composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
         saveScreenshot("register_v2_small_screen.png")
+    }
+
+    @Test
+    fun register_helpers_areVisibleAndScrollableOnCompactScreen() {
+        composeRule.setContent {
+            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
+                RegisterV2Screen(
+                    loading = false,
+                    error = null,
+                    onRegister = { _, _, _ -> },
+                    onBackToLogin = {},
+                )
+            }
+        }
+
+        val usernameHelper = composeRule.onNodeWithText("3–32 位字母、数字、_ 或 -")
+        usernameHelper.assertIsDisplayed()
+        assertInsideCompactViewport(usernameHelper)
+        val passwordHelper = composeRule.onNodeWithText("至少 6 位")
+        passwordHelper.performScrollTo().assertIsDisplayed()
+        assertInsideCompactViewport(passwordHelper)
+        composeRule.onNodeWithTag("register_nickname").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
+        saveScreenshot("register_v2_helpers_compact.png")
+    }
+
+    @Test
+    fun register_invalidFieldsWithIme_showFullErrorsWithoutOverlapAndKeepSubmitReachable() {
+        composeRule.setContent {
+            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
+                RegisterV2Screen(
+                    loading = false,
+                    error = null,
+                    onRegister = { _, _, _ -> },
+                    onBackToLogin = {},
+                )
+            }
+        }
+
+        val usernameError = "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
+        val username = composeRule.onNodeWithTag("register_username")
+        username.performClick()
+        awaitImeVisible()
+        username.performTextInput("x")
+        composeRule.onNodeWithText("账号").assertIsDisplayed()
+        username.assertIsFocused().assertTextContains("x").assertIsDisplayed()
+        val usernameErrorNode = composeRule.onNodeWithText(usernameError)
+        usernameErrorNode.assertIsDisplayed()
+        assertInsideCompactViewport(usernameErrorNode)
+        val usernameErrorBottom = usernameErrorNode.fetchSemanticsNode().boundsInRoot.bottom
+        val passwordTop = composeRule.onNodeWithTag("register_password")
+            .fetchSemanticsNode().boundsInRoot.top
+        assertTrue("username error overlaps the password field", usernameErrorBottom < passwordTop)
+
+        val password = composeRule.onNodeWithTag("register_password")
+        password.performScrollTo().performClick().performTextInput("1")
+        password.assertIsFocused().assertTextContains("1").assertIsDisplayed()
+        val passwordErrorNode = composeRule.onNodeWithText("密码长度需要为 6–72 位")
+        passwordErrorNode.assertIsDisplayed()
+        assertInsideCompactViewport(passwordErrorNode)
+        val passwordErrorBottom = passwordErrorNode.fetchSemanticsNode().boundsInRoot.bottom
+        val nicknameTop = composeRule.onNodeWithTag("register_nickname")
+            .fetchSemanticsNode().boundsInRoot.top
+        assertTrue("password error overlaps the nickname field", passwordErrorBottom < nicknameTop)
+
+        val nickname = composeRule.onNodeWithTag("register_nickname")
+        nickname.performScrollTo().performClick().performTextInput(" ")
+        composeRule.onNodeWithText("昵称").assertIsDisplayed()
+        nickname.assertIsFocused().assertIsDisplayed()
+        val nicknameError = composeRule.onNodeWithText("请输入 1–20 个字符的昵称")
+        nicknameError.assertIsDisplayed()
+        assertInsideCompactViewport(nicknameError)
+        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
+        saveScreenshot("register_v2_invalid_fields_ime_compact.png")
     }
 
     @Test
