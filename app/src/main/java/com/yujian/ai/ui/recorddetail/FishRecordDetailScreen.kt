@@ -275,7 +275,12 @@ fun FishRecordDetailScreen(
                             },
                         )
                     }
-                    item { AboutCatchSection(onEdit = { onEditRecord(record) }) }
+                    item {
+                        AboutCatchSection(
+                            story = FishRecordDetailPresentation.story(record),
+                            onEdit = { onEditRecord(record) },
+                        )
+                    }
                     item {
                         FishMediaPicker(
                             onAddPhotosOrVideos = { onAddMedia(record) },
@@ -350,7 +355,7 @@ private fun LoadingDetailState(heroHeight: Dp) {
 }
 
 @Composable
-private fun AboutCatchSection(onEdit: () -> Unit) {
+private fun AboutCatchSection(story: String?, onEdit: () -> Unit) {
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
@@ -366,6 +371,14 @@ private fun AboutCatchSection(onEdit: () -> Unit) {
                 onClick = onEdit,
                 family = YuJianIconActionFamily.UTILITY,
                 tone = YuJianIconActionTone.ON_LIGHT,
+            )
+        }
+        story?.takeIf(String::isNotBlank)?.let { note ->
+            Text(
+                text = note,
+                modifier = Modifier.fillMaxWidth().padding(top = YuJianSpacing.xs),
+                style = YuJianTypography.body,
+                color = YuJianColors.DeepInk,
             )
         }
     }

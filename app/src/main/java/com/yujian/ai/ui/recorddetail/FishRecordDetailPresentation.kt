@@ -31,6 +31,8 @@ object FishRecordDetailPresentation {
     fun location(record: RemoteCatch): String? = sanitizeOptionalText(record.location)
         ?.replace(Regex("\\s*·\\s*"), " · ")
 
+    fun story(record: RemoteCatch): String? = sanitizeOptionalText(record.story)
+
     fun capturedAt(record: RemoteCatch): String? =
         PresentationSanitizer.formatDetailTimestamp(record.capturedAt, record.createdAt)
 

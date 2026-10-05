@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.draw.blur
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
@@ -33,6 +35,7 @@ fun RemoteImage(
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
     reloadToken: Int = 0,
     onLoadResult: ((Boolean) -> Unit)? = null,
+    preservePortraitWithFitBackdrop: Boolean = false,
 ) {
     val bitmapState = remember(url, authToken, reloadToken) { mutableStateOf<Bitmap?>(null) }
     val latestOnLoadResult = rememberUpdatedState(onLoadResult)
@@ -46,13 +49,32 @@ fun RemoteImage(
         latestOnLoadResult.value?.invoke(loaded != null)
     }
     val bitmap = bitmapState.value
-    if (bitmap != null) {
-        Image(
-            bitmap = bitmap!!.asImageBitmap(),
-            contentDescription = contentDescription,
-            modifier = modifier,
-            contentScale = contentScale,
-        )
+    val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
+    if (imageBitmap != null) {
+        if (preservePortraitWithFitBackdrop && bitmap?.let { it.height > it.width } == true) {
+            Box(modifier = modifier) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().blur(18.dp),
+                    contentScale = ContentScale.Crop,
+                )
+                Box(Modifier.fillMaxSize().background(Color(0xFF16242C).copy(alpha = 0.18f)))
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+            }
+        } else {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = contentDescription,
+                modifier = modifier,
+                contentScale = contentScale,
+            )
+        }
     } else {
         Box(modifier = modifier, contentAlignment = Alignment.Center) { placeholder() }
     }

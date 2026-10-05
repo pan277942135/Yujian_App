@@ -48,6 +48,7 @@ data class RemoteCatch(
     val location: String? = null,
     val bsideStatus: BsideStatus = BsideStatus.NONE,
     val bsideUri: String? = null,
+    val story: String? = null,
 ) {
     val confidencePercent: Int get() = (confidence * 100).roundToInt().coerceIn(0, 100)
 }
@@ -170,6 +171,8 @@ class CatchRepository(
             .takeIf(String::isNotBlank),
         bsideStatus = BsideStatus.fromWire(item.optString("bside_status")),
         bsideUri = item.optString("bside_uri").takeIf(String::isNotBlank),
+        story = item.optJSONObject("classifier_result")?.optString("story")
+            ?.takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) || it.equals("undefined", ignoreCase = true) },
     )
 
     private fun parseBsideGeneration(item: JSONObject): BsideGeneration = BsideGeneration(
