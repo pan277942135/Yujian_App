@@ -210,7 +210,7 @@ class RecognitionCameraRuntimeTest {
             when {
                 savedLine != null -> "onImageSaved"
                 errorLine != null -> "onError_or_takePictureThrow"
-                else -> "timeout",
+                else -> "timeout"
             },
         )
         record("TERMINAL_CALLBACK_COUNT", terminalLines.size.toString())
@@ -260,14 +260,12 @@ class RecognitionCameraRuntimeTest {
         record("OUTPUT_PATH", outputPath!!)
         record("OUTPUT_FILE_EXISTS", "YES_AT_ON_IMAGE_SAVED")
         record("OUTPUT_FILE_BYTES", outputBytes!!)
-        record("ON_IMAGE_SAVED", "PASS")
 
         // Production normalizes and deletes its temporary CameraX file after
         // decoding it. Wait for the real production handoff, then validate its
         // decode diagnostics and the normalized SelectedImage file.
         val handoffLogs = waitForRecognitionHandoff(CAMERA_WAIT_MS, requestId!!)
         write("camera_runtime_log.txt", handoffLogs)
-        val requestPrefix = "request=$requestId "
         val decodeLine = handoffLogs.lineSequence().firstOrNull {
             it.contains(requestPrefix) && it.contains("event=decode_result")
         }
