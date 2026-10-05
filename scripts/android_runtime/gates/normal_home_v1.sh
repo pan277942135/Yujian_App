@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest'
+  printf '%s\n' 'com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest'
 }
 
 normal_home_run_seed() {
@@ -133,6 +133,33 @@ gate_collect_evidence() {
   if (( rc != 0 )); then normal_home_blocked_dimension "1080X2340"; return "$EXIT_BLOCKED_INFRA"; fi
 
   "$YUJIAN_ADB_BIN" shell wm size 1080x2400
+  normal_home_run_seed seedTwoAspectPortraitGuestCatches "$out/seed_two_aspect_portraits.log" || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 2400
+  rc=$?
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2400"; return "$EXIT_BLOCKED_INFRA"; fi
+  "$YUJIAN_ADB_BIN" shell input swipe 900 1200 180 1200 450
+  sleep 2
+  normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 2400
+  rc=$?
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X2400"; return "$EXIT_BLOCKED_INFRA"; fi
+  python3 - "$out/01_normal_home_first_card.png" "$out/02_normal_home_second_card.png" <<'PY'
+from PIL import Image, ImageChops, ImageStat
+import sys
+
+first, second = (Image.open(path).convert("RGB") for path in sys.argv[1:])
+region = (140, 600, 940, 1800)
+mae = sum(ImageStat.Stat(ImageChops.difference(first.crop(region), second.crop(region))).mean) / 3.0
+print(f"NORMAL_HOME_PAGER_CAPTURE_MAE={mae:.2f}")
+if mae < 6.0:
+    raise SystemExit("NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE")
+PY
+  rc=$?
+  if (( rc != 0 )); then
+    runtime_set_failure "EVIDENCE" "NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
   normal_home_run_seed seedMultipleGuestCatches "$out/seed_multiple_20_9.log" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_exact "$out/05_normal_home_multiple_20_9_1080x2400.png" 1080 2400
@@ -154,6 +181,7 @@ gate_collect_evidence() {
   }
 
   printf '%s\n' \
+    'NormalHomeDataParityTest: deterministic 9:16 and 4:5 portraits share one cover viewport; card content, long locations, stats, header, carousel and navigation remain visible and actionable.' \
     'HomeStatsSemanticsTest: recordDays has no OnClick; fish species and catch totals navigate.' \
     'NormalHomeHeroBehaviorTest: one catch is centered; tap opens the matching recordId; multiple catches remain manual and swipeable.' \
     'Home state, valid-record filtering, timestamp ordering and Reduce Motion: covered by testDebugUnitTest.' \
@@ -177,6 +205,8 @@ PY
 
   local missing=0 file
   for file in \
+    "$out/01_normal_home_first_card.png" \
+    "$out/02_normal_home_second_card.png" \
     "$out/01_normal_home_frozen_1080x1920.png" \
     "$out/02_normal_home_runtime_1080x1920.png" \
     "$out/03_normal_home_frozen_runtime_side_by_side.png" \
