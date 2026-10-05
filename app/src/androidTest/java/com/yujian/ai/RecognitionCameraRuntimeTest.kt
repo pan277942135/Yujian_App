@@ -256,13 +256,6 @@ class RecognitionCameraRuntimeTest {
             ).toString())
         record("PREVIEW_DETACHED_DURING_CAPTURE", detachedWhileCaptureActive.toString())
         record("CAMERA_CONTROLLER_DISPOSED_DURING_CAPTURE", controllerDisposedWhileCaptureActive.toString())
-        assertTrue(
-            "PreviewView/controller must stay attached from before_capture through the terminal callback",
-            captureLine?.contains("preview_attached=true") == true &&
-                captureLine?.contains("controller_attached=true") == true &&
-                captureLineIndex >= 0 && terminalLineIndex > captureLineIndex &&
-                !detachedWhileCaptureActive && !controllerDisposedWhileCaptureActive,
-        )
         val terminalStateLine = callbackLogLines.firstOrNull {
             it.contains(requestPrefix) && it.contains("event=terminal_callback")
         }
@@ -295,6 +288,13 @@ class RecognitionCameraRuntimeTest {
             saveDiagnostics()
             throw AssertionError("PRODUCT_FAILURE_CONFIRMED after READY and takePicture invocation: " + errorLine)
         }
+        assertTrue(
+            "PreviewView/controller must stay attached from before_capture through the terminal callback",
+            captureLine?.contains("preview_attached=true") == true &&
+                captureLine?.contains("controller_attached=true") == true &&
+                captureLineIndex >= 0 && terminalLineIndex > captureLineIndex &&
+                !detachedWhileCaptureActive && !controllerDisposedWhileCaptureActive,
+        )
         assertNotNull("onImageSaved was not reached after the terminal result", savedLine)
         val saved = savedLine!!
         assertTrue("Production callback did not report a non-empty saved file",
