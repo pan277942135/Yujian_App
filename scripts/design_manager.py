@@ -22,6 +22,7 @@ DESIGN_MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "assets"
 VALID_STATUSES = {
     "FROZEN", "ACTIVE_CLOSURE", "PARTIAL", "RUNTIME_ONLY",
     "DESIGN_ONLY", "MISSING", "DEPRECATED", "DEFERRED", "BLOCKED_INTEGRITY",
+    "SPEC_FROZEN", "VISUAL_MISSING",
 }
 VERSION_STATUSES = VALID_STATUSES | {"CANDIDATE"}
 
@@ -258,6 +259,11 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
                     f"{feature_id}/{view_id}.image",
                     view.get("image"),
                 )
+                visual_status = view.get("visual_status")
+                if visual_status is not None and visual_status not in VALID_STATUSES:
+                    errors.append(f"{feature_id}/{view_id}: invalid visual_status {visual_status!r}")
+                if visual_status == "VISUAL_MISSING" and view.get("status") != "SPEC_FROZEN":
+                    errors.append(f"{feature_id}/{view_id}: VISUAL_MISSING requires SPEC_FROZEN status")
                 scenario_ids = view.get("scenario_ids", [])
                 if not isinstance(scenario_ids, list):
                     errors.append(f"{feature_id}/{view_id}: scenario_ids must be a list")

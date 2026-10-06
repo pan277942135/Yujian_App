@@ -122,3 +122,9 @@ FROZEN when all are true:
 4. Flip Icon is hidden until READY.
 5. no fake percentage / ETA / internal infrastructure copy exists.
 6. success handoff obeys the one-time first-reveal authority.
+
+## 10. Frozen raster Visual Authority
+
+Scenario board: `design/pages/fish_record/detail/frozen/generation/FishRecordDetail_Asset_Generation_States_V1_Frozen.png`. It shows NOT_GENERATED, GENERATING, and FAILED on one board. READY remains owned by 02 · B-side and is not a fourth generation state.
+
+`AUTH_REQUIRED` is an action-availability variant, not a lifecycle state. Its supporting copy is **登录后可以生成鱼获记忆。** Do not add AUTH_REQUIRED as a fifth lifecycle column.

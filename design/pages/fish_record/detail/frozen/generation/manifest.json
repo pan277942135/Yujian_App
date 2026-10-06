@@ -1,0 +1,28 @@
+{
+  "id": "generation",
+  "status": "FROZEN",
+  "authority_type": "VISUAL_AUTHORITY",
+  "path": "design/pages/fish_record/detail/frozen/generation/FishRecordDetail_Asset_Generation_States_V1_Frozen.png",
+  "dimensions_px": {
+    "width": 1680,
+    "height": 1220
+  },
+  "bytes": 295408,
+  "sha256": "6ae96ce7ca8883d427f3c62d20f9184d444a1851b36f0bca2bef5738701e635a",
+  "authority_spec": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md",
+  "freeze_date": "2026-10-07",
+  "raster_format": "image/png",
+  "source_media": {
+    "path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+    "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "source_bytes_unchanged": true
+  },
+  "scenario": "FishRecordDetail 03 Asset Generation",
+  "states": [
+    "NOT_GENERATED",
+    "GENERATING",
+    "FAILED"
+  ],
+  "auth_required": "action availability only; not a lifecycle state",
+  "ready_owner": "FishRecordDetail 02 B-side"
+}
