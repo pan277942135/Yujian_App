@@ -7,10 +7,10 @@ import java.text.DecimalFormat
 import java.util.Locale
 
 enum class GrowthMarkType {
+    CountMilestone,
+    FirstSpecies,
     Longest,
     Heaviest,
-    FirstSpecies,
-    FirstLocation,
 }
 
 data class GrowthMark(
@@ -18,42 +18,64 @@ data class GrowthMark(
     val text: String,
 )
 
-/**
- * Derives only factual archive marks. It deliberately returns all applicable marks;
- * display priority is not invented here because the frozen source does not define one.
- */
+/** Derives factual archive marks from the complete catch history. */
 object GrowthMarkResolver {
+    private val countMilestones = setOf(10, 50, 100, 500, 1000)
+
     fun resolve(catches: List<RemoteCatch>): Map<String, List<GrowthMark>> {
         val result = catches.associate { it.id to mutableListOf<GrowthMark>() }.toMutableMap()
-        val chronological = catches.sortedWith(
-            compareBy<RemoteCatch> { resolveCatchTimestamp(it).millis ?: Long.MIN_VALUE }.thenBy { it.id },
-        )
+        val chronological = catches
+            .filter { resolveCatchTimestamp(it).isKnown }
+            .sortedWith(compareBy<RemoteCatch> { resolveCatchTimestamp(it).millis ?: Long.MAX_VALUE }.thenBy { it.id })
 
-        chronological.groupBy { it.speciesId.ifBlank { it.speciesName } }.values.forEach { records ->
+        chronological.forEachIndexed { index, record ->
+            val count = index + 1
+            if (count in countMilestones) {
+                result.getValue(record.id).add(GrowthMark(GrowthMarkType.CountMilestone, "第${count}条"))
+            }
+        }
+
+        chronological.groupBy { it.speciesKey() }.values.forEach { records ->
             records.firstOrNull()?.let { first ->
                 result.getValue(first.id).add(
                     GrowthMark(GrowthMarkType.FirstSpecies, "首条${presentationSpeciesName(first.speciesName)}"),
                 )
             }
         }
-        chronological.mapNotNull { record ->
-            sanitizeOptionalText(record.location)?.let { it to record }
-        }.groupBy({ it.first }, { it.second }).values.forEach { records ->
-            records.firstOrNull()?.let { first ->
-                sanitizeOptionalText(first.location)?.let { location ->
-                    result.getValue(first.id).add(GrowthMark(GrowthMarkType.FirstLocation, "首次$location"))
+
+        catches.groupBy { it.speciesKey() }.values.forEach { records ->
+            val lengths = records.mapNotNull { it.lengthCm?.takeIf { value -> value.isFinite() && value > 0f } }
+            lengths.maxOrNull()?.let { longest ->
+                records.filter { it.lengthCm == longest }.forEach { record ->
+                    result.getValue(record.id).add(GrowthMark(GrowthMarkType.Longest, "最长"))
+                }
+            }
+            val weights = records.mapNotNull { it.weightKg?.takeIf { value -> value.isFinite() && value > 0f } }
+            weights.maxOrNull()?.let { heaviest ->
+                records.filter { it.weightKg == heaviest }.forEach { record ->
+                    result.getValue(record.id).add(GrowthMark(GrowthMarkType.Heaviest, "最重"))
                 }
             }
         }
-        catches.maxByOrNull { it.lengthCm ?: Float.MIN_VALUE }?.takeIf { it.lengthCm != null }?.let { record ->
-            result.getValue(record.id).add(GrowthMark(GrowthMarkType.Longest, "最长记录"))
-        }
-        catches.maxByOrNull { it.weightKg ?: Float.MIN_VALUE }?.takeIf { it.weightKg != null }?.let { record ->
-            result.getValue(record.id).add(GrowthMark(GrowthMarkType.Heaviest, "最大记录"))
-        }
-        return result.mapValues { it.value.toList() }
+        return result.mapValues { (_, marks) -> marks.toList() }
     }
 }
+
+/** The list shows at most one low-weight annotation, with the frozen priority. */
+fun List<GrowthMark>.rowGrowthMark(): GrowthMark? {
+    firstOrNull { it.type == GrowthMarkType.CountMilestone }?.let { return it }
+    firstOrNull { it.type == GrowthMarkType.FirstSpecies }?.let { return it }
+    val hasLongest = any { it.type == GrowthMarkType.Longest }
+    val hasHeaviest = any { it.type == GrowthMarkType.Heaviest }
+    return when {
+        hasLongest && hasHeaviest -> GrowthMark(GrowthMarkType.Longest, "最长 · 最重")
+        hasLongest -> GrowthMark(GrowthMarkType.Longest, "最长")
+        hasHeaviest -> GrowthMark(GrowthMarkType.Heaviest, "最重")
+        else -> null
+    }
+}
+
+fun RemoteCatch.speciesKey(): String = speciesId.ifBlank { speciesName.trim().lowercase(Locale.ROOT) }
 
 data class FishRecordPresentation(
     val id: String,

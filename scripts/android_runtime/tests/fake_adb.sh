@@ -79,7 +79,11 @@ case "$1" in
       exit 0
     fi
     if [[ "$command_line" == *recognition_production_flow_trace_v1_2.json* ]]; then
-      printf '{"pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"IMAGE_RECOGNIZING","at_ms":0},{"state":"FISH_LOCATED","at_ms":900},{"state":"SPECIES_RECOGNIZING","at_ms":1500},{"state":"RESULT","at_ms":2950}],"result_ready":true,"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+      printf '{"pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"IMAGE_RECOGNIZING","at_ms":0},{"state":"FISH_LOCATED","at_ms":900},{"state":"SPECIES_RECOGNIZING","at_ms":1500},{"state":"RESOLVE","at_ms":2750},{"state":"RESULT","at_ms":2950}],"result_ready":true,"source":{"width":1080,"height":1920},"quality_gate":{"classifier_eligible":true},"focus":{"level":"A"},"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_visual_qa_v1_3.json* ]]; then
+      printf '{"findings":{"F01":{"status":"UNREVIEWED"},"F02":{"status":"UNREVIEWED"},"F03":{"status":"UNREVIEWED"},"F04":{"status":"UNREVIEWED"},"F05":{"status":"UNREVIEWED"},"F06":{"status":"UNREVIEWED"}}}\n'
       exit 0
     fi
     if [[ "$command_line" == *recognition_accessibility_trace_v1_2.json* ]]; then
@@ -98,8 +102,13 @@ case "$1" in
         03_fish_located.png) cat "$fixture_root/03_Fish_Highlight_Frozen.png" ;;
         04_species_recognizing.png) cat "$fixture_root/04_Fish_Identifying_Frozen.png" ;;
         05_result_high.png) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+        05_resolve.png) cat "$fixture_root/05_Result_High_Frozen.png" ;;
         06_result_medium.png) cat "$fixture_root/06_Result_Medium_Frozen.png" ;;
         07_result_low.png) cat "$fixture_root/07_Result_Low_Frozen.png" ;;
+        08_error_no_fish.png) cat "$fixture_root/08_Error_No_Fish_Frozen.png" ;;
+        09_error_image_quality.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
+        10_issue_technical_failure.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
+        06_edge_field_crop.png|07_fish_focus_crop.png|08_contour_closeup.png) printf 'fake-evidence\n' ;;
         08_issue_no_fish.png) cat "$fixture_root/08_Error_No_Fish_Frozen.png" ;;
         09_issue_image_quality.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
         10_issue_technical_failure.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
@@ -161,6 +170,10 @@ case "$1" in
       exit 0
     fi
     if [[ "$command_line" == *'am instrument'* ]]; then
+      if [[ "$MODE" == "camera-closed" ]]; then
+        printf 'INSTRUMENTATION_STATUS: numtests=1\nINSTRUMENTATION_STATUS: stack=androidx.camera.core.ImageCaptureException: Camera is closed.\nFAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
+        exit 1
+      fi
       if [[ "$MODE" == "test-fail" ]]; then
         printf 'INSTRUMENTATION_STATUS: numtests=1\nFAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
         exit 1

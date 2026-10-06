@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
@@ -61,47 +63,79 @@ fun HomeStats(
     catches: List<RemoteCatch>,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
+    isResolving: Boolean = false,
+    dividerHeight: Dp = YuJianSpacing.xl,
+    horizontalPadding: Dp = YuJianSpacing.lg,
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = YuJianSpacing.lg),
+            .padding(horizontal = horizontalPadding),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HomeStat(Modifier.weight(1f), values.speciesCount.toString(), "鱼种", onSpeciesClick)
+        HomeStat(
+            Modifier.weight(1f),
+            if (isResolving) "—" else values.speciesCount.toString(),
+            "鱼种",
+            onClick = onSpeciesClick.takeUnless { isResolving },
+            semanticsTag = "normal-home-stat-species",
+        )
         Box(
             Modifier
                 .width(1.dp)
-                .height(YuJianSpacing.xl)
-                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
+                .height(dividerHeight)
+                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f))
+                .testTag("normal-home-stat-divider-1"),
         )
-        HomeStat(Modifier.weight(1f), values.catchCount.toString(), "鱼获", onCatchesClick)
+        HomeStat(
+            Modifier.weight(1f),
+            if (isResolving) "—" else values.catchCount.toString(),
+            "鱼获",
+            onClick = onCatchesClick.takeUnless { isResolving },
+            semanticsTag = "normal-home-stat-catches",
+        )
         Box(
             Modifier
                 .width(1.dp)
-                .height(YuJianSpacing.xl)
-                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f)),
+                .height(dividerHeight)
+                .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f))
+                .testTag("normal-home-stat-divider-2"),
         )
-        HomeStat(Modifier.weight(1f), values.recordDays.toString(), "记录天数", onClick = null)
+        HomeStat(
+            Modifier.weight(1f),
+            if (isResolving) "—" else values.recordDays.toString(),
+            "记录天数",
+            onClick = null,
+            semanticsTag = "normal-home-stat-record-days",
+        )
     }
 }
 
 @Composable
-internal fun HomeStat(modifier: Modifier, value: String, label: String, onClick: (() -> Unit)?) {
+internal fun HomeStat(
+    modifier: Modifier,
+    value: String,
+    label: String,
+    onClick: (() -> Unit)?,
+    semanticsTag: String,
+) {
     Column(
         modifier = (if (onClick == null) modifier else modifier.clickable(onClick = onClick))
-            .padding(vertical = YuJianSpacing.xs),
+            .padding(vertical = YuJianSpacing.xs)
+            .testTag(semanticsTag),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = value,
             style = YuJianTypography.dataNumber.copy(color = YuJianColors.TextPrimary),
+            modifier = Modifier.testTag("$semanticsTag-value"),
         )
         Text(
             text = label,
             style = YuJianTypography.caption.copy(color = YuJianColors.TextPrimary.copy(alpha = 0.78f)),
+            modifier = Modifier.testTag("$semanticsTag-label"),
         )
     }
 }

@@ -48,6 +48,7 @@ data class RemoteCatch(
     val location: String? = null,
     val bsideStatus: BsideStatus = BsideStatus.NONE,
     val bsideUri: String? = null,
+    val story: String? = null,
 ) {
     val confidencePercent: Int get() = (confidence * 100).roundToInt().coerceIn(0, 100)
 }
@@ -78,6 +79,15 @@ data class MemoryEntry(
     val assetUrl: String? = null,
     val createdAt: String,
 )
+
+/** Maps the authenticated catches API's top-level story field to user content. */
+internal fun catchStoryFromWire(value: String?): String? = value
+    ?.trim()
+    ?.takeIf {
+        it.isNotEmpty() &&
+            !it.equals("null", ignoreCase = true) &&
+            !it.equals("undefined", ignoreCase = true)
+    }
 
 class CatchRepository(
     private val baseUrl: String = BuildConfig.USER_API_BASE_URL,
@@ -170,6 +180,7 @@ class CatchRepository(
             .takeIf(String::isNotBlank),
         bsideStatus = BsideStatus.fromWire(item.optString("bside_status")),
         bsideUri = item.optString("bside_uri").takeIf(String::isNotBlank),
+        story = catchStoryFromWire(item.optString("story")),
     )
 
     private fun parseBsideGeneration(item: JSONObject): BsideGeneration = BsideGeneration(

@@ -49,7 +49,7 @@
     "alpha_from": 0.3,
     "alpha_to": 0,
     "center_reference_px": [
-      560,
+      562,
       1320
     ],
     "count": 1,
@@ -57,7 +57,7 @@
     "loop": true,
     "scale_from": 1,
     "scale_to": 1.22,
-    "z_order": "ripple_below_bobber"
+    "z_order": "below_bobber_above_water"
   },
   "sun_particle_beam": {
     "duration_ms": 4800,
@@ -67,5 +67,14 @@
       12
     ]
   },
-  "visual_revision": "V2.2"
+  "visual_revision": "V2.2",
+  "authority_status": "CURRENT",
+  "contract_revision": "EMPTY_HOME_MOTION_V2_2_MEASURED",
+  "bobber_water_treatment": {
+    "mode": "single_body_plus_separate_faded_reflection",
+    "underwater_visible_height_reference_px": 0,
+    "underwater_alpha": 0,
+    "reflection_max_alpha": 0.32,
+    "reflection_motion": "fixed_at_water_plane"
+  }
 }

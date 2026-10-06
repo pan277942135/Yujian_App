@@ -1,106 +1,48 @@
 {
   "contract": "recognition_result_metadata_input",
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN",
-  "metadata_strip": {
-    "height_dp": 72,
-    "radius_token": "YuJianRadius.medium",
-    "surface": "GLASS_A_light",
+  "applies_to": ["HIGH", "MEDIUM_AFTER_SELECTION", "LOW_BEFORE_SELECTION", "LOW_AFTER_SELECTION"],
+  "presentation": {
+    "surface": "MistGlass",
+    "layout": "vertical_three_row",
     "fields": [
-      "length",
-      "weight",
-      "location"
-    ],
-    "dividers_dp": 1
+      { "key": "length", "label": "长度", "empty": "请输入", "example": "42.6 cm" },
+      { "key": "weight", "label": "重量", "empty": "请输入", "example": "1.28 kg" },
+      { "key": "location", "label": "地点", "empty": "请选择", "example": "千岛湖" }
+    ]
   },
-  "fields": {
-    "length": {
-      "label": "长度",
-      "empty": "添加",
-      "unit": "cm",
-      "range": [
-        0.1,
-        999.9
-      ],
-      "decimals": 1,
-      "keyboard": "decimal_numeric",
-      "optional": true,
-      "error": "请输入 0.1–999.9 cm 的长度"
-    },
-    "weight": {
-      "label": "重量",
-      "empty": "添加",
-      "unit": "kg",
-      "range": [
-        0.01,
-        999.99
-      ],
-      "decimals": 2,
-      "keyboard": "decimal_numeric",
-      "optional": true,
-      "error": "请输入 0.01–999.99 kg 的重量"
-    },
-    "location": {
-      "label": "地点",
-      "empty": "添加地点",
-      "max_codepoints": 40,
-      "single_line": true,
-      "optional": true,
-      "permission_request": "explicit_use_current_location_only"
-    }
-  },
-  "editor_sheet": {
-    "top_radius_dp": 28,
-    "horizontal_padding_dp": 24,
-    "top_padding_dp": 16,
-    "bottom_padding_dp": 24,
-    "input_min_height_dp": 56,
-    "primary_height_dp": 56
-  },
-  "note": {
-    "label": "留下本次鱼获感言",
-    "placeholder": "记录这一刻的感受…",
-    "height_dp": 80,
-    "focused_max_height_dp": 112,
-    "max_codepoints": 120,
-    "visible_lines": 3,
-    "multiline": true
-  },
-  "voice": {
+  "length": {
+    "title": "鱼获长度",
+    "unit": "cm",
+    "keyboard": "decimal",
     "optional": true,
-    "hide_when_unavailable": true,
-    "component": "icon_action_v1/CONTEXT",
-    "touch_dp": 44,
-    "glyph_dp": [
-      18,
-      20
-    ],
-    "states": [
-      "Idle",
-      "Listening",
-      "Processing",
-      "Error",
-      "Disabled"
-    ]
+    "range": [0.1, 999.9],
+    "precision": 1,
+    "error": "请输入 0.1–999.9 cm 的长度"
   },
-  "invariants": [
-    "metadata_optional",
-    "species_change_preserves_metadata",
-    "save_error_preserves_metadata",
-    "no_noop_voice",
-    "no_auto_location_permission"
-  ],
-  "edit_flow": {
-    "status": "FROZEN",
-    "authority": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
-    "numeric_contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
-    "interaction_override": [
-      "sheet_geometry",
-      "numeric_autofocus_ime",
-      "commit_dismiss_semantics",
-      "location_search",
-      "current_location",
-      "recent_locations"
-    ]
+  "weight": {
+    "title": "鱼获重量",
+    "unit": "kg",
+    "keyboard": "decimal",
+    "optional": true,
+    "range": [0.01, 999.99],
+    "precision": 2,
+    "error": "请输入 0.01–999.99 kg 的重量"
+  },
+  "location": {
+    "title": "鱼获地点",
+    "search": true,
+    "current_location": "explicit_action_only",
+    "recent_max": 3,
+    "commit": "immediate_on_selection",
+    "navigation": "same_page_bottom_sheet"
+  },
+  "story": {
+    "title": "写下这次鱼获的故事",
+    "placeholder": "记录这一刻的感受……",
+    "max_unicode_code_points": 300,
+    "counter": "{count}/300",
+    "multiline": true
   }
 }

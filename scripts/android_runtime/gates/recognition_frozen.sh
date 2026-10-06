@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest'
+  printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.PipelineTraceTest'
 }
-
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
 # assertions and single proof screenshots.
@@ -64,13 +63,17 @@ gate_collect_evidence() {
     02_image_recognizing_late.png \
     03_fish_located.png \
     04_species_recognizing.png \
+    05_resolve.png \
     05_result_high.png \
     06_result_medium.png \
     07_result_low.png \
-    08_issue_no_fish.png \
-    09_issue_image_quality.png \
+    08_error_no_fish.png \
+    09_error_image_quality.png \
     10_issue_technical_failure.png \
     level_a_real_contour.png \
+    06_edge_field_crop.png \
+    07_fish_focus_crop.png \
+    08_contour_closeup.png \
     quality_full.png \
     quality_balanced.png \
     quality_lite.png \
@@ -98,10 +101,25 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_production_flow_trace_v1_2.json"
   fi
 
-  for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json; do
+  for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi
+  done
+
+  for name in \
+    portrait_low_confidence_original.jpg \
+    portrait_low_confidence_classifier_crop.png \
+    portrait_low_confidence_model_input_224.png \
+    portrait_low_confidence_inference_report.txt \
+    portrait_low_confidence_class_map.json \
+    portrait_low_confidence_diagnostic.json
+  do
+    if [[ ! -s "$output_dir/$name" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$output_dir/$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "PORTRAIT_LOW_CONFIDENCE_REPLAY_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
   done
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
@@ -130,6 +148,25 @@ gate_collect_evidence() {
     rm -f "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME"
   fi
 
+  if [[ -s "$output_dir/01_image_recognizing_early.png" &&
+        -s "$output_dir/02_image_recognizing_late.png" &&
+        -s "$output_dir/03_fish_located.png" &&
+        -s "$output_dir/04_species_recognizing.png" ]]; then
+    python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_visual_parity_v1_1.py" \
+      --runtime-dir "$output_dir" \
+      --reference-dir "$YUJIAN_REPO_ROOT/design/pages/recognition/design" \
+      --output-dir "$output_dir" || {
+        runtime_set_failure "EVIDENCE" "RECOGNITION_VISUAL_PARITY_INVALID"
+      return "$EXIT_FAIL_EVIDENCE"
+    }
+  fi
+
+  # The frozen evidence manifest retains the older "issue" names while the
+  # production flow now emits the clearer "error" names. Keep both manifest
+  # paths bound to the exact same captured evidence.
+  [[ ! -s "$output_dir/08_error_no_fish.png" ]] || cp "$output_dir/08_error_no_fish.png" "$output_dir/08_issue_no_fish.png"
+  [[ ! -s "$output_dir/09_error_image_quality.png" ]] || cp "$output_dir/09_error_image_quality.png" "$output_dir/09_issue_image_quality.png"
+
   if [[ -s "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME" && "${YUJIAN_VALIDATE_RECOGNITION_VIDEO:-1}" == "1" ]]; then
     local validation_rc=0
     python3 - "$output_dir" <<'PY' || validation_rc=$?
@@ -146,11 +183,15 @@ from PIL import Image, ImageChops, ImageStat
 output_dir = Path(sys.argv[1])
 video_path = output_dir / "recognition_processing_v1_2.mp4"
 validation_path = output_dir / "recognition_processing_video_validation.txt"
-references = [
-    Image.open(path).convert("RGB")
-    for path in sorted(output_dir.glob("0*.png"))
+reference_names = [
+    "01_image_recognizing_early.png",
+    "02_image_recognizing_late.png",
+    "03_fish_located.png",
+    "04_species_recognizing.png",
+    "05_resolve.png",
 ]
-if len(references) != 9:
+references = [Image.open(output_dir / name).convert("RGB") for name in reference_names]
+if len(references) != 5:
     raise SystemExit(f"RECOGNITION_VIDEO_REFERENCE_COUNT={len(references)}")
 
 probe = subprocess.run(

@@ -18,8 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.IosShare
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +38,7 @@ import com.yujian.ai.model.CatchRecord
 import com.yujian.ai.model.SharePeriod
 import com.yujian.ai.ui.components.FishIllustration
 import com.yujian.ai.ui.components.YujianTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.theme.Achievement
 import com.yujian.ai.ui.theme.AchievementInk
 import com.yujian.ai.ui.theme.CardWhite
@@ -81,7 +80,8 @@ fun ShareCenterScreen(
             ShareCard(period = selected, catch = catch)
         }
 
-        Button(
+        YuJianPrimaryButton(
+            text = "分享这个模板",
             onClick = {
                 val text = shareCopy(selected, catch)
                 context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
@@ -90,12 +90,8 @@ fun ShareCenterScreen(
                 }, "分享渔见鱼获"))
             },
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp).fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = WaterTeal),
-        ) {
-            Icon(Icons.Rounded.IosShare, contentDescription = null)
-            Text("分享这个模板", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
-        }
+            leadingIcon = { Icon(Icons.Rounded.IosShare, contentDescription = null, modifier = Modifier.width(20.dp)) },
+        )
     }
 }
 

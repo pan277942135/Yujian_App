@@ -25,25 +25,30 @@ import kotlin.random.Random
 
 internal const val REFERENCE_SCENE_WIDTH = 1080f
 internal const val REFERENCE_SCENE_HEIGHT = 1920f
-// Frozen Visual Revision V2.2: geometry is measured in the 1080x1920
-// reference canvas. The line starts at the rod tip, carries visible slack,
-// and terminates just below the bobber water-contact seam.
-internal const val EMPTY_HOME_V2_ROD_X = -96f
-internal const val EMPTY_HOME_V2_ROD_Y = 1172f
-internal const val EMPTY_HOME_V2_ROD_TIP_X = 335f
-internal const val EMPTY_HOME_V2_ROD_TIP_Y = 1180f
-internal const val EMPTY_HOME_V2_LINE_C1_X = 390f
-internal const val EMPTY_HOME_V2_LINE_C1_Y = 1265f
-internal const val EMPTY_HOME_V2_LINE_C2_X = 470f
-internal const val EMPTY_HOME_V2_LINE_C2_Y = 1352f
+// V2.2 Fishing Composition anchors, measured from the committed 941x1672
+// authority and normalized uniformly to the 1080x1920 reference canvas.
+internal const val EMPTY_HOME_V2_ROD_X = 0f
+internal const val EMPTY_HOME_V2_ROD_Y = 1180f
+internal const val EMPTY_HOME_V2_ROD_TIP_X = 337f
+internal const val EMPTY_HOME_V2_ROD_TIP_Y = 1184f
+internal const val EMPTY_HOME_V2_LINE_START_X = 337f
+internal const val EMPTY_HOME_V2_LINE_START_Y = 1184f
+internal const val EMPTY_HOME_V2_LINE_C1_X = 389f
+internal const val EMPTY_HOME_V2_LINE_C1_Y = 1257f
+internal const val EMPTY_HOME_V2_LINE_C2_X = 471f
+internal const val EMPTY_HOME_V2_LINE_C2_Y = 1312f
 internal const val EMPTY_HOME_V2_LINE_END_X = 560f
-internal const val EMPTY_HOME_V2_LINE_END_Y = 1328f
-internal const val EMPTY_HOME_V2_BOBBER_X = 548f
-internal const val EMPTY_HOME_V2_BOBBER_Y = 1236f
-internal const val EMPTY_HOME_V2_RIPPLE_X = 441f
+internal const val EMPTY_HOME_V2_LINE_END_Y = 1326f
+internal const val EMPTY_HOME_V2_BOBBER_X = 550f
+internal const val EMPTY_HOME_V2_BOBBER_Y = 1250f
+internal const val EMPTY_HOME_V2_REFLECTION_X = 556f
+internal const val EMPTY_HOME_V2_REFLECTION_Y = 1322f
+internal const val EMPTY_HOME_V2_RIPPLE_X = 443f
 internal const val EMPTY_HOME_V2_RIPPLE_Y = 1279f
-internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 560f
-internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1320f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 561f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1323f
+internal const val EMPTY_HOME_V2_FISHING_PROTECTED_LEFT = 0f
+internal const val EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT = 660f
 
 // Environment loops deliberately start on distinct phases. Their periods and
 // amplitudes remain frozen; only page-entry synchronization is avoided.
@@ -153,9 +158,19 @@ internal fun calculateReferenceSceneTransform(
         containerWidthPx / REFERENCE_SCENE_WIDTH,
         containerHeightPx / REFERENCE_SCENE_HEIGHT,
     )
+    val centeredOffsetX = (containerWidthPx - REFERENCE_SCENE_WIDTH * scale) / 2f
+    val protectedMinOffsetX = -EMPTY_HOME_V2_FISHING_PROTECTED_LEFT * scale
+    val protectedMaxOffsetX = containerWidthPx - EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT * scale
+    val offsetX = if (protectedMaxOffsetX >= protectedMinOffsetX) {
+        centeredOffsetX.coerceIn(protectedMinOffsetX, protectedMaxOffsetX)
+    } else {
+        centeredOffsetX.coerceAtLeast(protectedMinOffsetX)
+    }
     return ReferenceSceneTransform(
         scale = scale,
-        offsetX = (containerWidthPx - REFERENCE_SCENE_WIDTH * scale) / 2f,
+        // Keep the measured rod-to-ripple area on screen. Any excess Cover crop
+        // comes from the right-side decorative environment, never from the rod.
+        offsetX = offsetX,
         offsetY = (containerHeightPx - REFERENCE_SCENE_HEIGHT * scale) / 2f,
     )
 }

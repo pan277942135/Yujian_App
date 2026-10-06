@@ -2,82 +2,74 @@ package com.yujian.ai.ui.recorddetail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
 import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.ui.components.RemoteImage
-import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
-import com.yujian.ai.presentation.presentationSpeciesName
 
 @Composable
 fun FishMemorySection(
     record: RemoteCatch,
-    bsideUrl: String?,
-    accessToken: String,
+    generationEnabled: Boolean,
+    bsideUnavailable: Boolean,
     onGenerateMemory: (() -> Unit)?,
+    onRetryBside: () -> Unit,
 ) {
+    if (record.bsideStatus == BsideStatus.READY && !bsideUnavailable) return
+
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
         level = YuJianGlassLevel.Light,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(YuJianSpacing.md),
+        contentPadding = PaddingValues(YuJianSpacing.md),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.AutoAwesome, contentDescription = null, tint = YuJianColors.MorningGold)
-                Text(
-                    text = when (record.bsideStatus) {
-                        BsideStatus.READY -> "这条鱼的记忆"
-                        else -> "留下这条鱼的记忆"
-                    },
-                    style = YuJianTypography.sectionTitle,
-                    modifier = Modifier.padding(start = YuJianSpacing.xs),
-                )
-            }
             when (record.bsideStatus) {
-                BsideStatus.NONE -> MemoryAction(
-                    label = "生成鱼获记忆",
-                    enabled = onGenerateMemory != null,
-                    onClick = { onGenerateMemory?.invoke() },
-                )
-                BsideStatus.GENERATING -> {
-                    Text("正在生成鱼获记忆…", style = YuJianTypography.body)
-                    Text("完成后会出现在这条记录里。", style = YuJianTypography.caption)
-                }
-                BsideStatus.FAILED -> {
-                    Text("记忆生成失败", style = YuJianTypography.body)
+                BsideStatus.NONE -> {
+                    Text("为这次相遇生成一份鱼获记忆", style = YuJianTypography.body)
                     MemoryAction(
-                        label = "重新生成",
-                        enabled = onGenerateMemory != null,
+                        label = "生成鱼获记忆",
+                        enabled = generationEnabled,
                         onClick = { onGenerateMemory?.invoke() },
                     )
+                    if (!generationEnabled) {
+                        Text("登录后可以生成鱼获记忆。", style = YuJianTypography.caption)
+                    }
                 }
-                BsideStatus.READY -> {
-                    Text("一段关于这次相遇的视觉记忆。", style = YuJianTypography.body)
-                    if (!bsideUrl.isNullOrBlank()) {
-                        RemoteImage(
-                            url = bsideUrl,
-                            authToken = accessToken,
-                            modifier = Modifier.fillMaxWidth().padding(top = YuJianSpacing.xs),
-                            contentDescription = "${presentationSpeciesName(record.speciesName)} 鱼获记忆",
-                            contentScale = ContentScale.Crop,
-                        )
+                BsideStatus.GENERATING -> {
+                    Text("正在生成鱼获记忆…", style = YuJianTypography.body)
+                    Text(
+                        "可以继续浏览或离开，完成后会保留在这条鱼获里。",
+                        style = YuJianTypography.caption,
+                    )
+                }
+                BsideStatus.FAILED -> {
+                    Text("鱼获记忆生成失败", style = YuJianTypography.body)
+                    Text("原鱼获记录不受影响。", style = YuJianTypography.caption)
+                    MemoryAction(
+                        label = "重新生成",
+                        enabled = generationEnabled,
+                        onClick = { onGenerateMemory?.invoke() },
+                    )
+                    if (!generationEnabled) {
+                        Text("登录后可以重试鱼获记忆。", style = YuJianTypography.caption)
+                    }
+                }
+                BsideStatus.READY -> if (bsideUnavailable) {
+                    Text("鱼获记忆暂时无法显示", style = YuJianTypography.body)
+                    OutlinedButton(
+                        onClick = onRetryBside,
+                        modifier = Modifier.padding(top = YuJianSpacing.xs),
+                    ) {
+                        Text("重新加载")
                     }
                 }
             }

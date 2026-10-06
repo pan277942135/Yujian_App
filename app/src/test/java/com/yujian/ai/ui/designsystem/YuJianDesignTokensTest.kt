@@ -45,6 +45,7 @@ class YuJianDesignTokensTest {
         assertEquals(
             setOf(
                 YuJianHaptic.Feedback.Light,
+                YuJianHaptic.Feedback.LightImpact,
                 YuJianHaptic.Feedback.Medium,
                 YuJianHaptic.Feedback.Success,
             ),

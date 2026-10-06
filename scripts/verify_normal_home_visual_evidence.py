@@ -126,29 +126,28 @@ def main(out: Path) -> int:
     empty_scene = ROOT / "app/src/main/assets/empty_home_runtime_v2/static/scene_base.webp"
     runtime_asset = ROOT / "app/src/main/assets/normal_home_runtime_v1/static/scene_base.png"
 
-    expected_frozen = out / "01_normal_home_frozen_1080x1920.png"
-    runtime = out / "02_normal_home_runtime_1080x1920.png"
+    expected_frozen = out / "03_normal_home_frozen_1080x1920.png"
+    runtime = out / "04_normal_home_runtime_1080x1920.png"
+    first_card = out / "01_normal_home_first_card.png"
+    second_card = out / "02_normal_home_second_card.png"
     if not expected_frozen.exists():
         expected_frozen.write_bytes(frozen.read_bytes())
     require_capture(expected_frozen, (1080, 1920))
     require_capture(runtime, (1080, 1920))
+    require_capture(first_card, (1080, 1920))
+    require_capture(second_card, (1080, 1920))
     if sha256(expected_frozen) != FROZEN_SHA:
         raise ValueError("Frozen screenshot is not the registered immutable authority")
+    first_image = Image.open(first_card).convert("RGB")
+    second_image = Image.open(second_card).convert("RGB")
+    carousel_mae = mae(first_image.crop((140, 600, 940, 1800)), second_image.crop((140, 600, 940, 1800)))
+    if carousel_mae < 6.0:
+        raise ValueError(f"second carousel page did not produce a distinct capture (MAE={carousel_mae:.2f})")
 
-    adaptive = {
-        "19.5:9 single": (out / "04_normal_home_single_19_5_9_1080x2340.png", (1080, 2340)),
-        "20:9 multiple": (out / "05_normal_home_multiple_20_9_1080x2400.png", (1080, 2400)),
-        "21:9 multiple": (out / "06_normal_home_multiple_21_9_1080x2520.png", (1080, 2520)),
-    }
-    adaptive_dimensions = {}
-    for name, (path, expected) in adaptive.items():
-        require_capture(path, expected)
-        adaptive_dimensions[name] = list(dimensions(path))
+    structural = {runtime.name: analyze_structure(runtime)}
 
-    structural = {path.name: analyze_structure(path) for path in [runtime, *(item[0] for item in adaptive.values())]}
-
-    source_evidence = out / "07_normal_home_background_source.png"
-    runtime_evidence = out / "08_normal_home_background_runtime.png"
+    source_evidence = out / "06_normal_home_background_source.png"
+    runtime_evidence = out / "07_normal_home_background_runtime.png"
     if not source_evidence.exists():
         source_evidence.write_bytes(source.read_bytes())
     if not runtime_evidence.exists():
@@ -185,7 +184,7 @@ def main(out: Path) -> int:
             "result": "REJECTED_AS_REQUIRED",
         },
     }
-    (out / "09_normal_home_background_parity_report.json").write_text(
+    (out / "08_normal_home_background_parity_report.json").write_text(
         json.dumps(background_report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
@@ -215,7 +214,7 @@ def main(out: Path) -> int:
     draw = ImageDraw.Draw(canvas)
     draw.text((16, 16), "Frozen authority · 1080×1920", fill="black")
     draw.text((1096, 16), "Android runtime · 1080×1920", fill="black")
-    canvas.save(out / "03_normal_home_frozen_runtime_side_by_side.png")
+    canvas.save(out / "05_normal_home_frozen_runtime_side_by_side.png")
 
     report = {
         "status": "PASS_DIMENSIONS_AND_HIERARCHY_REVIEW_REQUIRED",
@@ -227,18 +226,19 @@ def main(out: Path) -> int:
         "structural_anchors": "PASS",
         "region_metrics_descriptive_only": region_metrics,
         "hierarchy_and_geometry_review": "STRUCTURAL_ANCHORS_PASS; DIRECT_VISUAL_REVIEW_STILL_REQUIRED",
-        "adaptive_actual_dimensions": adaptive_dimensions,
-        "adaptive_review_policy": "structural and safe-area review; no stretching to Frozen 9:16",
+        "carousel_capture_mae": round(carousel_mae, 4),
+        "carousel_pages_captured_at_native_dimensions": True,
+        "native_capture_dimensions": list(dimensions(runtime)),
         "background_parity": "PASS",
         "frozen_hierarchy": "REVIEW_REQUIRED",
         "hero_geometry": "REVIEW_REQUIRED",
         "typography_readability": "REVIEW_REQUIRED",
-        "adaptive_ratios": "PASS_DIMENSIONS_REVIEW_REQUIRED",
-        "behavior": "SEE_11_NORMAL_HOME_SEMANTICS_REPORT",
-        "motion": "SEE_12_VIDEO_AND_REDUCE_MOTION_TEST",
+        "responsive_measurement": "COVERED_BY_COMPOSE_MEASUREMENT_TESTS; runtime screenshot uses device-native 1080x1920",
+        "behavior": "SEE_10_NORMAL_HOME_SEMANTICS_REPORT",
+        "motion": "SEE_11_VIDEO_AND_REDUCE_MOTION_TEST",
         "haptic_sound": "HOME_HAPTIC_NONE; SOUND_NONE",
     }
-    (out / "10_normal_home_visual_parity_report.json").write_text(
+    (out / "09_normal_home_visual_parity_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     (out / "visual_parity_report.json").write_text(

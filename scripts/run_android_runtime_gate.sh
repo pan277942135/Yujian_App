@@ -9,7 +9,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage:
   bash scripts/run_android_runtime_gate.sh \
-    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|runtime-parity \
+    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|fish-guide-v1|runtime-parity|camera-runtime-v1|camera-runtime-smoke \
     --app-apk path/to/app-debug.apk \
     --test-apk path/to/app-debug-androidTest.apk \
     --evidence-dir evidence/runtime/<gate> \
@@ -77,8 +77,17 @@ case "$GATE" in
   login-v2)
     source "$RUNTIME_DIR/gates/login_v2.sh"
     ;;
+  fish-guide-v1)
+    source "$RUNTIME_DIR/gates/fish_guide_v1.sh"
+    ;;
   runtime-parity)
     source "$RUNTIME_DIR/gates/runtime_parity.sh"
+    ;;
+  camera-runtime-v1)
+    source "$RUNTIME_DIR/gates/camera_runtime_v1.sh"
+    ;;
+  camera-runtime-smoke)
+    source "$RUNTIME_DIR/gates/camera_runtime_smoke.sh"
     ;;
   *)
     runtime_set_failure "CONFIG" "UNKNOWN_GATE"
@@ -100,6 +109,11 @@ finish_gate() {
     mkdir -p "$YUJIAN_EVIDENCE_DIR/recognition_v1_2"
     cp "$YUJIAN_RESULT_PATH" \
       "$YUJIAN_EVIDENCE_DIR/recognition_v1_2/runtime_gate_result_v1_2.json"
+  fi
+  if [[ "$YUJIAN_GATE" == "camera-runtime-v1" ]]; then
+    mkdir -p "$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+    cp "$YUJIAN_RESULT_PATH" \
+      "$YUJIAN_EVIDENCE_DIR/camera_runtime_v1/runtime_gate_result.json"
   fi
   return "$exit_code"
 }
@@ -137,7 +151,14 @@ fi
 YUJIAN_INSTALL_STATUS="PASS"
 
 if declare -F gate_before_instrumentation >/dev/null 2>&1; then
-  gate_before_instrumentation || true
+  gate_before_instrumentation
+  before_instrumentation_rc=$?
+  if (( before_instrumentation_rc != EXIT_PASS )) && [[ "$GATE" == "camera-runtime-v1" ]]; then
+    YUJIAN_INSTRUMENTATION_STATUS="FAIL"
+    finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+    final_rc=$?
+    exit "$final_rc"
+  fi
 fi
 
 android_runtime_run_instrumentation "$test_classes"
@@ -151,6 +172,14 @@ if (( instrumentation_rc != EXIT_PASS )); then
   YUJIAN_INSTRUMENTATION_STATUS="FAIL"
   if (( instrumentation_rc == EXIT_BLOCKED_INFRA )); then
     finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+  elif declare -F gate_instrumentation_failure_classification >/dev/null 2>&1; then
+    gate_instrumentation_failure_classification
+    failure_classification_rc=$?
+    if (( failure_classification_rc == EXIT_BLOCKED_INFRA )); then
+      finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+    else
+      finish_gate "$EXIT_FAIL_TEST" "FAIL_TEST"
+    fi
   else
     finish_gate "$EXIT_FAIL_TEST" "FAIL_TEST"
   fi
@@ -163,7 +192,11 @@ gate_collect_evidence
 evidence_rc=$?
 if (( evidence_rc != EXIT_PASS )); then
   YUJIAN_EVIDENCE_STATUS="FAIL"
-  finish_gate "$EXIT_FAIL_EVIDENCE" "FAIL_EVIDENCE"
+  if (( evidence_rc == EXIT_BLOCKED_INFRA )); then
+    finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+  else
+    finish_gate "$EXIT_FAIL_EVIDENCE" "FAIL_EVIDENCE"
+  fi
   final_rc=$?
   exit "$final_rc"
 fi
