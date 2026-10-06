@@ -12,7 +12,9 @@
     "MISSING",
     "DEPRECATED",
     "DEFERRED",
-    "BLOCKED_INTEGRITY"
+    "BLOCKED_INTEGRITY",
+    "SPEC_FROZEN",
+    "VISUAL_MISSING"
   ],
   "features": [
     {
@@ -3162,11 +3164,11 @@
         {
           "id": "asset_generation",
           "title": "03 · 鱼体资产生成",
-          "status": "FROZEN",
+          "status": "SPEC_FROZEN",
           "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "FROZEN：NOT_GENERATED / GENERATING / FAILED 合并为一个生成场景板；A 面始终可用；禁止伪造百分比/ETA；成功统一交接 READY，并服从首次一次性 A→B reveal。",
+          "summary": "行为规范已冻结；NOT_GENERATED / GENERATING / FAILED 场景板缺失，READY 仍由 02 · B 面呈现。",
           "menu_points": [
             "NOT_GENERATED · 生成鱼获记忆",
             "GENERATING · A-side remains usable",
@@ -3177,7 +3179,8 @@
             "READY presentation owned by 02",
             "First READY Reveal · Auto A → B Once",
             "Reduce Motion / Accessibility"
-          ]
+          ],
+          "visual_status": "VISUAL_MISSING"
         },
         {
           "id": "editing",
