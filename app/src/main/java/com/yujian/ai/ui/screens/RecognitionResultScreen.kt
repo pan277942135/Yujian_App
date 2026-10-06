@@ -730,31 +730,30 @@ private fun MetadataField(
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(end = 28.dp),
+            Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MutedInk)
-            Column(Modifier.weight(1f).padding(start = 12.dp, end = 8.dp)) {
-                Text(label, color = MutedInk, fontSize = 12.sp, lineHeight = 18.sp, maxLines = 1)
-                Text(
-                    value,
-                    color = if (value == "请输入" || value == "请选择" || value == "正在获取位置…") MutedInk else DeepInk,
-                    fontSize = 16.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(
+                label,
+                color = DeepInk,
+                fontSize = 18.sp,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(start = 12.dp),
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                value,
+                color = if (value == "请输入" || value == "请选择" || value == "正在获取位置…") MutedInk else DeepInk,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text("›", color = DeepInk, fontSize = 22.sp, modifier = Modifier.padding(start = 8.dp))
         }
-        Text(
-            "›",
-            color = MutedInk,
-            fontSize = 22.sp,
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(start = 8.dp),
-        )
     }
 }
 
@@ -930,7 +929,7 @@ private fun ResultDualActionButton(
         modifier = modifier,
         enabled = enabled,
         loading = loadingDestination == destination,
-        variant = if (isContinue) YuJianActionButtonVariant.RESULT_CONTINUE else YuJianActionButtonVariant.RESULT_SAVE,
+        variant = if (isContinue) YuJianActionButtonVariant.SECONDARY_STRONG else YuJianActionButtonVariant.PRIMARY,
         leadingIcon = {
             Icon(
                 imageVector = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save,

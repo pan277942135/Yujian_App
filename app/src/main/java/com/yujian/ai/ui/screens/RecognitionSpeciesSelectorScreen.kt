@@ -262,7 +262,7 @@ internal fun RecognitionSpeciesSelectorScreen(
 private fun RecentSpeciesChip(item: FishGuideItem, selected: Boolean, imageUrl: String?, enabled: Boolean, onClick: () -> Unit) {
     Row(
         Modifier.clip(RoundedCornerShape(18.dp))
-            .background(if (selected) SoftWater else Color(0xBFF7FAFB))
+            .background(if (selected) SoftWater else Color(0xE6F7FAFB))
             .border(if (selected) 2.dp else 1.dp, if (selected) WaterTeal else Color(0x47FFFFFF), RoundedCornerShape(18.dp))
             .semantics(mergeDescendants = true) {
                 this.selected = selected
@@ -283,7 +283,7 @@ private fun RecentSpeciesChip(item: FishGuideItem, selected: Boolean, imageUrl: 
 private fun CommonSpeciesCard(item: FishGuideItem, selected: Boolean, imageUrl: String?, enabled: Boolean, modifier: Modifier, onClick: () -> Unit) {
     Column(
         modifier.heightIn(min = 88.dp).clip(RoundedCornerShape(16.dp))
-            .background(if (selected) SoftWater else Color(0xBFF7FAFB))
+            .background(if (selected) SoftWater else Color(0xE6F7FAFB))
             .border(if (selected) 2.dp else 1.dp, if (selected) WaterTeal else Color(0x47FFFFFF), RoundedCornerShape(16.dp))
             .semantics(mergeDescendants = true) {
                 this.selected = selected
@@ -313,7 +313,7 @@ private fun SpeciesListRow(
 ) {
     Row(
         Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(RoundedCornerShape(14.dp))
-            .background(if (selected) SoftWater else Color(0xCFF7FAFB))
+            .background(if (selected) SoftWater else Color(0xEAF7FAFB))
             .border(if (selected) 2.dp else 1.dp, if (selected) WaterTeal else Color(0x33FFFFFF), RoundedCornerShape(14.dp))
             .semantics(mergeDescendants = true) {
                 this.selected = selected

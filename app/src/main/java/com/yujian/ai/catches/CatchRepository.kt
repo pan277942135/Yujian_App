@@ -34,6 +34,15 @@ data class BsideGeneration(
     val resultUri: String?,
 )
 
+/** App-private original media attached to a FishRecord on this device. */
+data class CatchMemoryMedia(
+    val id: String,
+    val filePath: String,
+    val mimeType: String,
+) {
+    val isVideo: Boolean get() = mimeType.startsWith("video/")
+}
+
 data class RemoteCatch(
     val id: String,
     val imageUrl: String,
@@ -49,6 +58,7 @@ data class RemoteCatch(
     val bsideStatus: BsideStatus = BsideStatus.NONE,
     val bsideUri: String? = null,
     val story: String? = null,
+    val memoryMedia: List<CatchMemoryMedia> = emptyList(),
 ) {
     val confidencePercent: Int get() = (confidence * 100).roundToInt().coerceIn(0, 100)
 }

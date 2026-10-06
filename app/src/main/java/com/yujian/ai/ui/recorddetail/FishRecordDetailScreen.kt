@@ -283,6 +283,7 @@ fun FishRecordDetailScreen(
                     }
                     item {
                         FishMediaPicker(
+                            media = record.memoryMedia,
                             onAddPhotosOrVideos = { onAddMedia(record) },
                             onContinuePhoto = { onContinuePhoto(record) },
                             onRecordVideo = { onRecordVideo(record) },

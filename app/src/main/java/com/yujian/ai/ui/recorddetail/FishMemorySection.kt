@@ -60,7 +60,7 @@ fun FishMemorySection(
                         onClick = { onGenerateMemory?.invoke() },
                     )
                     if (!generationEnabled) {
-                        Text("登录后可以重试鱼获记忆。", style = YuJianTypography.caption)
+                        Text("登录后可以生成鱼获记忆。", style = YuJianTypography.caption)
                     }
                 }
                 BsideStatus.READY -> if (bsideUnavailable) {

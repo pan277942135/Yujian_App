@@ -1,8 +1,11 @@
 package com.yujian.ai
 
-import android.content.Intent
 import android.net.Uri
+import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -38,6 +41,7 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.auth.ApiException
 import com.yujian.ai.auth.AuthRepository
 import com.yujian.ai.catches.CatchRepository
+import com.yujian.ai.catches.CatchLocalOverlayStore
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.GuestCatchRepository
@@ -88,10 +92,15 @@ import com.yujian.ai.ui.components.GuestRegistrationDialog
 import com.yujian.ai.ui.recorddetail.FishRecordDetailPresentation
 import com.yujian.ai.ui.recorddetail.FishRecordDetailScreen
 import com.yujian.ai.ui.recorddetail.FishRecordDetailRoute
+import com.yujian.ai.ui.recorddetail.FishRecordEditSheet
+import com.yujian.ai.ui.recorddetail.FishMemoryCaptureMode
+import com.yujian.ai.ui.recorddetail.FishMemoryCaptureScreen
 import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 
@@ -107,6 +116,7 @@ fun YujianApp() {
     val authRepository = remember { AuthRepository() }
     val promptFrequencyStore = remember { PrivacyPromptFrequencyStore(context) }
     val catchRepository = remember { CatchRepository() }
+    val localCatchOverlays = remember(context) { CatchLocalOverlayStore(context) }
     val guestCatchRepository = remember(guestId) { GuestCatchRepository(context) }
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
     val subjectPreviewEngine = remember { FishSubjectPreviewEngine(context) }
@@ -140,6 +150,28 @@ fun YujianApp() {
     var correctionPromptVisible by remember { mutableStateOf(false) }
     val backStackEntry by nav.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    var pendingMediaCatchId by remember { mutableStateOf<String?>(null) }
+    val memoryMediaPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(30),
+    ) { selectedUris ->
+        val catchId = pendingMediaCatchId
+        pendingMediaCatchId = null
+        if (catchId != null && selectedUris.isNotEmpty()) {
+            scope.launch {
+                val imported = withContext(Dispatchers.IO) {
+                    selectedUris.mapNotNull { uri -> runCatching { localCatchOverlays.importUri(catchId, uri) }.getOrNull() }
+                }
+                catchesState = catchesState.copy(
+                    catches = catchesState.catches.map { item ->
+                        if (item.id == catchId) localCatchOverlays.apply(item) else item
+                    },
+                )
+                if (imported.isEmpty()) {
+                    Toast.makeText(activityContext, "影像没有保存成功，请重试", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     fun logoutToHome() {
         sessionManager.clear()
@@ -249,7 +281,7 @@ fun YujianApp() {
         catchesState = catchesState.beginLoad(archiveOwnerKey)
         runCatching {
             if (active == null || guestMigrationPending) {
-                val local = guestCatchRepository.listCatches()
+                val local = localCatchOverlays.apply(guestCatchRepository.listCatches())
                 CatchArchiveState(
                     catches = local,
                     statistics = guestCatchRepository.statistics(local),
@@ -257,7 +289,7 @@ fun YujianApp() {
                     ownerKey = archiveOwnerKey,
                 )
             } else {
-                val records = catchRepository.listCatches(active.accessToken)
+                val records = localCatchOverlays.apply(catchRepository.listCatches(active.accessToken))
                 val statistics = runCatching { catchRepository.statistics(active.accessToken) }
                     .getOrDefault(CatchStatistics())
                 CatchArchiveState(
@@ -392,6 +424,40 @@ fun YujianApp() {
                     )
                 }
                 composable(
+                    route = "memory_capture/{catchId}/{captureMode}",
+                    arguments = listOf(
+                        navArgument("catchId") { type = NavType.StringType },
+                        navArgument("captureMode") { type = NavType.StringType },
+                    ),
+                ) { entry ->
+                    val catchId = entry.arguments?.getString("catchId").orEmpty()
+                    val captureMode = FishMemoryCaptureMode.fromRoute(entry.arguments?.getString("captureMode"))
+                    FishMemoryCaptureScreen(
+                        recordId = catchId,
+                        initialMode = captureMode,
+                        store = localCatchOverlays,
+                        onBack = { nav.popBackStack() },
+                        onCaptured = { file, mimeType ->
+                            scope.launch {
+                                runCatching {
+                                    withContext(Dispatchers.IO) {
+                                        localCatchOverlays.attachCapture(catchId, file, mimeType)
+                                    }
+                                }.onSuccess {
+                                    catchesState = catchesState.copy(
+                                        catches = catchesState.catches.map { item ->
+                                            if (item.id == catchId) localCatchOverlays.apply(item) else item
+                                        },
+                                    )
+                                    nav.popBackStack()
+                                }.onFailure {
+                                    Toast.makeText(activityContext, "影像关联失败，请重试", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                    )
+                }
+                composable(
                     route = FishRecordDetailRoute,
                     arguments = listOf(
                         navArgument("catchId") { type = NavType.StringType },
@@ -400,6 +466,7 @@ fun YujianApp() {
                 ) { entry ->
                     val catchId = entry.arguments?.getString("catchId").orEmpty()
                     val initialSection = entry.arguments?.getString("section").orEmpty()
+                    var editingRecord by remember(catchId) { mutableStateOf<RemoteCatch?>(null) }
                     val detailState = FishRecordDetailPresentation.resolve(
                         catchId = catchId,
                         records = catchesState.catches,
@@ -445,23 +512,46 @@ fun YujianApp() {
                                 Toast.makeText(activityContext, "暂时无法分享这条鱼获", Toast.LENGTH_SHORT).show()
                             }
                         },
-                        onEditRecord = {
-                            Toast.makeText(activityContext, "当前版本暂不支持保存鱼获修改", Toast.LENGTH_SHORT).show()
+                        onEditRecord = { record ->
+                            editingRecord = record
                         },
-                        onAddMedia = {
-                            Toast.makeText(activityContext, "当前版本暂不支持为已有鱼获上传照片或视频", Toast.LENGTH_SHORT).show()
+                        onAddMedia = { record ->
+                            pendingMediaCatchId = record.id
+                            memoryMediaPicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo),
+                            )
                         },
-                        onContinuePhoto = {
-                            Toast.makeText(activityContext, "当前版本暂不支持将新照片关联到已有鱼获", Toast.LENGTH_SHORT).show()
+                        onContinuePhoto = { record ->
+                            nav.navigate("memory_capture/${Uri.encode(record.id)}/${FishMemoryCaptureMode.PHOTO.routeValue}")
                         },
-                        onRecordVideo = {
-                            Toast.makeText(activityContext, "当前版本暂不支持为鱼获保存视频", Toast.LENGTH_SHORT).show()
+                        onRecordVideo = { record ->
+                            nav.navigate("memory_capture/${Uri.encode(record.id)}/${FishMemoryCaptureMode.VIDEO.routeValue}")
                         },
                         onGenerateMemory = if (session != null) {
                             { record -> requestBsideGeneration(record) }
                         } else null,
                         onRefreshBsideStatus = { id -> refreshBsideStatus(id) },
                     )
+                    editingRecord?.let { record ->
+                        FishRecordEditSheet(
+                            record = record,
+                            speciesCatalog = guideSpecies,
+                            onDismiss = { editingRecord = null },
+                            onSave = { draft ->
+                                runCatching { localCatchOverlays.saveEdit(record.id, draft) }
+                                    .getOrDefault(false)
+                                    .also { saved ->
+                                        if (saved) {
+                                            catchesState = catchesState.copy(
+                                                catches = catchesState.catches.map { item ->
+                                                    if (item.id == record.id) localCatchOverlays.apply(item) else item
+                                                },
+                                            )
+                                        }
+                                    }
+                            },
+                        )
+                    }
                 }
                 composable(
                     route = "identify?openGallery={openGallery}",

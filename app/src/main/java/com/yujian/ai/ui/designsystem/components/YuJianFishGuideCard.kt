@@ -29,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -111,6 +113,9 @@ fun YuJianFishGuideCard(
                 onClick = onClick,
             )
     } else Modifier
+    val unlitImageFilter = remember(isUnlit) {
+        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.66f) }) else null
+    }
     YuJianGlassCard(
         modifier = modifier.then(interactionModifier),
         level = if (isUnlit) YuJianGlassLevel.Light else YuJianGlassLevel.Medium,
@@ -124,6 +129,7 @@ fun YuJianFishGuideCard(
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
+                    colorFilter = unlitImageFilter,
                     placeholder = { MissingSpeciesArtwork(item, isUnlit) },
                 )
             } else {
@@ -134,7 +140,7 @@ fun YuJianFishGuideCard(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.28f * (1f - settledEncounter))),
+                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.20f * (1f - settledEncounter))),
                 )
             }
             Box(
@@ -145,7 +151,7 @@ fun YuJianFishGuideCard(
                             0f to Color.Transparent,
                             0.56f to Color.Transparent,
                             1f to YuJianColors.DeepOverlay.copy(
-                                alpha = 0.78f + settledEncounter * 0.12f,
+                            alpha = if (isUnlit) 0.48f + settledEncounter * 0.04f else 0.78f + settledEncounter * 0.12f,
                             ),
                         ),
                 ),

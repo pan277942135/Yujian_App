@@ -84,7 +84,9 @@ fun RegisterV2Screen(
     AuthV2Scaffold(
         title = "创建账号",
         subtitle = "用一个账号，留住你的钓鱼轨迹",
-        environmentFraction = 0.42f,
+        environmentFraction = 0.36f,
+        subtitleBottomSpacing = 24.dp,
+        bottomContentSpacing = 80.dp,
     ) {
         AuthV2Field(
             label = "账号",
@@ -104,7 +106,7 @@ fun RegisterV2Screen(
             modifier = Modifier.testTag("register_username"),
         )
 
-        Spacer(Modifier.height(9.dp))
+        Spacer(Modifier.height(7.dp))
 
         AuthV2Field(
             label = "密码",
@@ -131,7 +133,7 @@ fun RegisterV2Screen(
             modifier = Modifier.testTag("register_password"),
         )
 
-        Spacer(Modifier.height(9.dp))
+        Spacer(Modifier.height(7.dp))
 
         AuthV2Field(
             label = "昵称",

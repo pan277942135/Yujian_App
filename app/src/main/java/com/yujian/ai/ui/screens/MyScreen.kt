@@ -78,6 +78,7 @@ import com.yujian.ai.ui.designsystem.components.YuJianAchievementAnnotation
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
 import com.yujian.ai.ui.designsystem.components.YuJianBackAction
+import com.yujian.ai.ui.designsystem.components.YuJianBackCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianFishRecordRowCard
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
@@ -412,13 +413,19 @@ fun MyCatchesDayDetailScreen(
 
 @Composable
 private fun MainHeader(onBack: () -> Unit, filterActive: Boolean, onSearch: () -> Unit, onFilter: () -> Unit) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-        YuJianBackAction(onClick = onBack)
-        Text("我的鱼获", color = DeepInk, fontSize = 23.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-        YuJianIconAction(icon = Icons.Rounded.Search, contentDescription = "搜索", onClick = onSearch)
-        Box {
-            YuJianIconAction(icon = Icons.Rounded.FilterList, contentDescription = "筛选", onClick = onFilter)
-            if (filterActive) Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp).background(WaterTeal, CircleShape))
+    Box(Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        YuJianBackCenterTitleTopBar(
+            title = "我的鱼获",
+            onBack = onBack,
+            modifier = Modifier.fillMaxWidth(),
+            statusBarInset = false,
+        )
+        Row(Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
+            YuJianIconAction(icon = Icons.Rounded.Search, contentDescription = "搜索", onClick = onSearch)
+            Box {
+                YuJianIconAction(icon = Icons.Rounded.FilterList, contentDescription = "筛选", onClick = onFilter)
+                if (filterActive) Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp).background(WaterTeal, CircleShape))
+            }
         }
     }
 }

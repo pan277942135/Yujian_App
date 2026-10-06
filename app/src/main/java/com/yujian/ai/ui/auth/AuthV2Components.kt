@@ -82,6 +82,8 @@ internal fun AuthV2Scaffold(
     subtitle: String,
     modifier: Modifier = Modifier,
     environmentFraction: Float,
+    subtitleBottomSpacing: androidx.compose.ui.unit.Dp = 34.dp,
+    bottomContentSpacing: androidx.compose.ui.unit.Dp = 96.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     BoxWithConstraints(
@@ -154,7 +156,7 @@ internal fun AuthV2Scaffold(
                     start = 24.dp,
                     end = 24.dp,
                     top = environmentHeight - 8.dp,
-                    bottom = if (imeVisible || heightBand == AuthHeightBand.VERY_COMPACT) 24.dp else 96.dp,
+                    bottom = if (imeVisible || heightBand == AuthHeightBand.VERY_COMPACT) 24.dp else bottomContentSpacing,
                 ),
         ) {
             Column(
@@ -180,7 +182,7 @@ internal fun AuthV2Scaffold(
                     color = YuJianColors.MistBlueGray,
                     fontSize = 14.sp * subtitleScale,
                     lineHeight = 20.sp * subtitleScale,
-                    modifier = Modifier.padding(top = 6.dp, bottom = 34.dp),
+                    modifier = Modifier.padding(top = 6.dp, bottom = subtitleBottomSpacing),
                 )
             }
             content()

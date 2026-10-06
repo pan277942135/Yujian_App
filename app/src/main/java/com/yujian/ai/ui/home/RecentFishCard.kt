@@ -69,6 +69,8 @@ internal fun RecentFishCard(
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
                 contentScale = ContentScale.Crop,
                 authToken = accessToken,
+                preservePortraitWithFitBackdrop = true,
+                trimVerifiedLetterbox = true,
                 placeholder = {
                     Box(
                         modifier = Modifier

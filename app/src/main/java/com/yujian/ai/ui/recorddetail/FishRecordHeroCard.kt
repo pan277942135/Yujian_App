@@ -85,6 +85,7 @@ fun FishRecordHeroCard(
                 contentDescription = if (showBside) "$speciesName 鱼获记忆" else "$speciesName 鱼获照片",
                 contentScale = ContentScale.Crop,
                 preservePortraitWithFitBackdrop = !showBside,
+                trimVerifiedLetterbox = !showBside,
                 reloadToken = if (showBside) bsideReloadToken else 0,
                 onLoadResult = if (showBside) onBsideLoadResult else null,
                 placeholder = {
