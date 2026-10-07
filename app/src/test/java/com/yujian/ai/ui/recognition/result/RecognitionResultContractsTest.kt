@@ -31,7 +31,7 @@ class RecognitionResultContractsTest {
 
     @Test
     fun frozenWidthGeometryMatchesCanonicalTable() {
-        val expected = mapOf(320 to (288 to 178), 360 to (322 to 199), 393 to (355 to 219), 411 to (363 to 224))
+        val expected = mapOf(320 to (288 to 188), 360 to (322 to 210), 393 to (355 to 232), 411 to (363 to 237))
         expected.forEach { (width, size) ->
             val geometry = RecognitionResultGeometryResolver.resolve(width, 640)
             assertEquals(size.first, geometry.heroWidthDp)
@@ -44,10 +44,10 @@ class RecognitionResultContractsTest {
     @Test
     fun resultStatesUseTheirFrozenHeroAspectFamilies() {
         val expected = mapOf(
-            RecognitionResultVisualState.HIGH to 199,
+            RecognitionResultVisualState.HIGH to 210,
             RecognitionResultVisualState.MEDIUM to 166,
             RecognitionResultVisualState.LOW to 166,
-            RecognitionResultVisualState.NO_FISH to 225,
+            RecognitionResultVisualState.NO_FISH to 245,
             RecognitionResultVisualState.IMAGE_QUALITY to 199,
         )
         expected.forEach { (state, height) ->
@@ -60,10 +60,10 @@ class RecognitionResultContractsTest {
     @Test
     fun resultGeometryUsesSafeViewportProfilesWithoutStretchingHero() {
         val expected = listOf(
-            Triple(320f, 640f, 288 to 178),
-            Triple(360f, 780f, 322 to 199),
-            Triple(393f, 852f, 355 to 219),
-            Triple(411f, 891f, 363 to 224),
+            Triple(320f, 640f, 288 to 188),
+            Triple(360f, 780f, 322 to 210),
+            Triple(393f, 852f, 355 to 232),
+            Triple(411f, 891f, 363 to 237),
         )
         expected.forEach { (width, height, hero) ->
             val profile = resolveAdaptiveLayoutProfile(width, height, fontScale = 1f)
@@ -200,4 +200,59 @@ class RecognitionResultContractsTest {
             updateRecognitionPlaceRecents(listOf(RecognitionPlace("B"), RecognitionPlace("C")), RecognitionPlace("A")),
         )
     }
+
+    @Test
+    fun portraitSubjectMayFillOnlyWhenTheFishSafeRectRemainsProtected() {
+        val safePortrait = RecognitionHeroMediaPlanner.plan(
+            sourceWidth = 1080,
+            sourceHeight = 1920,
+            viewportWidthDp = 322f,
+            viewportHeightDp = 210f,
+            bbox = NormalizedSourceRect(.35f, .40f, .65f, .60f),
+            evidenceFirst = false,
+        )
+        assertEquals(RecognitionHeroMediaMode.SUBJECT_CROP_FILL, safePortrait.mode)
+        assertFalse(safePortrait.requiresSourceBackdrop)
+        assertTrue(safePortrait.sourceRect.top <= .40f)
+        assertTrue(safePortrait.sourceRect.bottom >= .60f)
+
+        val clippedPortrait = RecognitionHeroMediaPlanner.plan(
+            sourceWidth = 1080,
+            sourceHeight = 1920,
+            viewportWidthDp = 322f,
+            viewportHeightDp = 210f,
+            bbox = NormalizedSourceRect(0f, .34f, .48f, .66f),
+            evidenceFirst = false,
+        )
+        assertEquals(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, clippedPortrait.mode)
+        assertTrue(clippedPortrait.requiresSourceBackdrop)
+        assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), clippedPortrait.sourceRect)
+    }
+
+    @Test
+    fun portraitAndExtremePortraitNoFishKeepFullEvidenceOverSourceDerivedBackdrop() {
+        val portrait = RecognitionHeroMediaPlanner.plan(
+            sourceWidth = 1080,
+            sourceHeight = 1920,
+            viewportWidthDp = 322f,
+            viewportHeightDp = 245f,
+            bbox = null,
+            evidenceFirst = true,
+        )
+        val extremePortrait = RecognitionHeroMediaPlanner.plan(
+            sourceWidth = 640,
+            sourceHeight = 1920,
+            viewportWidthDp = 322f,
+            viewportHeightDp = 245f,
+            bbox = null,
+            evidenceFirst = true,
+        )
+
+        listOf(portrait, extremePortrait).forEach { plan ->
+            assertEquals(RecognitionHeroMediaMode.EVIDENCE_FIT, plan.mode)
+            assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), plan.sourceRect)
+            assertTrue(plan.requiresSourceBackdrop)
+        }
+    }
+
 }

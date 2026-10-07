@@ -50,10 +50,10 @@ object RecognitionResultGeometryResolver {
         val contentWidth = (width - margin * 2).coerceAtLeast(1)
         val heroWidth = contentWidth
         val heroHeight = when (state) {
-            RecognitionResultVisualState.HIGH -> (heroWidth / 1.62f).roundToInt()
+            RecognitionResultVisualState.HIGH -> (heroWidth * 210f / 322f).roundToInt()
             RecognitionResultVisualState.MEDIUM,
             RecognitionResultVisualState.LOW -> (heroWidth / 1.94f).roundToInt()
-            RecognitionResultVisualState.NO_FISH -> (heroWidth / 1.43f).roundToInt()
+            RecognitionResultVisualState.NO_FISH -> (heroWidth * 245f / 322f).roundToInt()
             RecognitionResultVisualState.IMAGE_QUALITY -> (heroWidth / 1.62f).roundToInt()
         }
         val adaptedHeroHeight = if (contentHeightDp < 600) {
@@ -89,7 +89,11 @@ data class RecognitionHeroMediaPlan(
     val mode: RecognitionHeroMediaMode,
     val sourceRect: NormalizedSourceRect,
     val sourceClippedEdges: Set<SourceEdge>,
-)
+) {
+    /** Safe-fit and evidence-fit presentations use a same-source ambient fill behind the full photo. */
+    val requiresSourceBackdrop: Boolean
+        get() = mode != RecognitionHeroMediaMode.SUBJECT_CROP_FILL
+}
 
 enum class RecognitionSubjectVisibilityPolicy {
     FULL_SOURCE_SAFE,

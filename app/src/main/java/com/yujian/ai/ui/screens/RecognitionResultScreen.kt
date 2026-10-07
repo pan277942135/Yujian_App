@@ -35,11 +35,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.PhotoLibrary
@@ -66,6 +67,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -127,6 +129,7 @@ import com.yujian.ai.ui.identify.recognitionFeedbackType
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.result.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaMode
+import com.yujian.ai.ui.recognition.result.createRecognitionHeroAmbientBackdrop
 import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaPlanner
 import com.yujian.ai.ui.recognition.result.RecognitionPlace
 import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
@@ -351,6 +354,7 @@ fun RecognitionResultScreen(
                         heightDp = geometry.heroHeightDp,
                         evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
                             uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
+                        sourceBackdropEnabled = uiState == RecognitionUiState.RESULT_HIGH,
                     )
                 }
                 Spacer(Modifier.height(12.dp))
@@ -386,6 +390,7 @@ fun RecognitionResultScreen(
                         Spacer(Modifier.height(16.dp))
                         ResultInlineError(saveError, sideMargin)
                         ResultDualActions(
+                            useResultSurfaceActions = true,
                             saving = saving,
                             loadingDestination = activeLoadingDestination,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
@@ -574,78 +579,154 @@ fun ResultHeroViewport(
     widthDp: Int,
     heightDp: Int,
     evidenceFirst: Boolean = false,
+    sourceBackdropEnabled: Boolean = false,
 ) {
     val plan = remember(bitmap, bbox, widthDp, heightDp, evidenceFirst) {
-        RecognitionHeroMediaPlanner.plan(bitmap.width, bitmap.height, widthDp.toFloat(), heightDp.toFloat(), bbox, evidenceFirst = evidenceFirst)
+        RecognitionHeroMediaPlanner.plan(
+            bitmap.width,
+            bitmap.height,
+            widthDp.toFloat(),
+            heightDp.toFloat(),
+            bbox,
+            evidenceFirst = evidenceFirst,
+        )
     }
+    val sourceBackdrop = remember(bitmap, plan.mode, sourceBackdropEnabled) {
+        if (sourceBackdropEnabled && plan.requiresSourceBackdrop) {
+            createRecognitionHeroAmbientBackdrop(bitmap.asAndroidBitmap()).asImageBitmap()
+        } else {
+            null
+        }
+    }
+    val shape = YuJianRadius.resultHero
     Box(
-        Modifier.width(widthDp.dp).height(heightDp.dp).testTag("recognition-result-hero"),
+        Modifier
+            .width(widthDp.dp)
+            .height(heightDp.dp)
+            .clip(shape)
+            .background(Color.Black, shape)
+            .border(1.dp, Color.White.copy(alpha = 0.42f), shape)
+            .testTag("recognition-result-hero"),
     ) {
-        ResultHeroSupportSurface(Modifier.fillMaxSize()) {
-            Canvas(Modifier.fillMaxSize()) {
-                val src = plan.sourceRect
-                val sourceLeft = (src.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
-                val sourceTop = (src.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
-                val sourceRight = (src.right * bitmap.width).toInt().coerceIn(sourceLeft + 1, bitmap.width)
-                val sourceBottom = (src.bottom * bitmap.height).toInt().coerceIn(sourceTop + 1, bitmap.height)
-                val cropW = sourceRight - sourceLeft
-                val cropH = sourceBottom - sourceTop
-                val scale = if (plan.mode == RecognitionHeroMediaMode.SUBJECT_CROP_FILL) {
-                    maxOf(size.width / cropW, size.height / cropH)
-                } else minOf(size.width / cropW, size.height / cropH)
-                val dstW = cropW * scale
-                val dstH = cropH * scale
-                val dstX = (size.width - dstW) / 2f
-                val dstY = (size.height - dstH) / 2f
-                clipRect {
-                    drawImage(
-                        image = bitmap,
-                        srcOffset = IntOffset(sourceLeft, sourceTop),
-                        srcSize = IntSize(cropW, cropH),
-                        dstOffset = IntOffset(dstX.toInt(), dstY.toInt()),
-                        dstSize = IntSize(dstW.toInt(), dstH.toInt()),
-                        filterQuality = FilterQuality.Medium,
-                    )
-                }
+        sourceBackdrop?.let { ambient ->
+            Canvas(
+                Modifier
+                    .fillMaxSize()
+                    .testTag("recognition-result-hero-source-backdrop"),
+            ) {
+                val scale = maxOf(size.width / ambient.width, size.height / ambient.height)
+                val dstW = ambient.width * scale
+                val dstH = ambient.height * scale
+                drawImage(
+                    image = ambient,
+                    dstOffset = IntOffset(((size.width - dstW) / 2f).toInt(), ((size.height - dstH) / 2f).toInt()),
+                    dstSize = IntSize(dstW.toInt(), dstH.toInt()),
+                    alpha = 0.84f,
+                    filterQuality = FilterQuality.Medium,
+                )
+                drawRect(Color.Black.copy(alpha = 0.10f))
+            }
+        }
+        Canvas(Modifier.fillMaxSize()) {
+            val src = plan.sourceRect
+            val sourceLeft = (src.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
+            val sourceTop = (src.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
+            val sourceRight = (src.right * bitmap.width).toInt().coerceIn(sourceLeft + 1, bitmap.width)
+            val sourceBottom = (src.bottom * bitmap.height).toInt().coerceIn(sourceTop + 1, bitmap.height)
+            val cropW = sourceRight - sourceLeft
+            val cropH = sourceBottom - sourceTop
+            val scale = if (plan.mode == RecognitionHeroMediaMode.SUBJECT_CROP_FILL) {
+                maxOf(size.width / cropW, size.height / cropH)
+            } else {
+                minOf(size.width / cropW, size.height / cropH)
+            }
+            val dstW = cropW * scale
+            val dstH = cropH * scale
+            val dstX = (size.width - dstW) / 2f
+            val dstY = (size.height - dstH) / 2f
+            clipRect {
+                drawImage(
+                    image = bitmap,
+                    srcOffset = IntOffset(sourceLeft, sourceTop),
+                    srcSize = IntSize(cropW, cropH),
+                    dstOffset = IntOffset(dstX.toInt(), dstY.toInt()),
+                    dstSize = IntSize(dstW.toInt(), dstH.toInt()),
+                    filterQuality = FilterQuality.Medium,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SpeciesIdentityRow(speciesName: String, sideMargin: Dp, widthDp: Int, enabled: Boolean = true, onChange: () -> Unit) {
+private fun SpeciesIdentityRow(
+    speciesName: String,
+    sideMargin: Dp,
+    widthDp: Int,
+    enabled: Boolean = true,
+    onChange: () -> Unit,
+) {
     val compactTitle = widthDp <= 359
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = sideMargin).heightIn(min = 44.dp)
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = sideMargin)
+            .heightIn(min = 44.dp)
             .testTag("recognition-result-species"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(resultSpeciesDisplayName(speciesName), modifier = Modifier.weight(1f), color = DeepInk, fontSize = if (compactTitle) 28.sp else 30.sp, lineHeight = if (compactTitle) 34.sp else 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            resultSpeciesDisplayName(speciesName),
+            modifier = Modifier.weight(1f),
+            color = DeepInk,
+            fontSize = if (compactTitle) 28.sp else 30.sp,
+            lineHeight = if (compactTitle) 34.sp else 36.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(Color.White.copy(alpha = 0.82f), RoundedCornerShape(50))
-                .border(1.dp, Color.White.copy(alpha = 0.94f), RoundedCornerShape(50))
                 .clickable(enabled = enabled, role = Role.Button, onClick = onChange)
-                .padding(horizontal = 12.dp, vertical = 7.dp)
+                .padding(start = 8.dp, end = 2.dp, top = 6.dp, bottom = 6.dp)
                 .testTag("recognition-result-species-edit"),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("修改鱼种", color = DeepInk, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
-            Text("›", color = DeepInk.copy(alpha = 0.82f), fontSize = 20.sp, lineHeight = 20.sp, modifier = Modifier.padding(start = 4.dp))
+            Text(
+                "修改鱼种",
+                color = YuJianColors.DeepLakeBlue,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            Icon(
+                Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.padding(start = 2.dp).size(16.dp),
+                tint = YuJianColors.DeepLakeBlue.copy(alpha = 0.72f),
+            )
         }
     }
 }
 
 @Composable
 private fun ResultMetadataStrip(
-    length: String, weight: String, location: String, resolvingLocation: Boolean,
-    modifier: Modifier, accessibilityFontScale: Boolean = false, enabled: Boolean = true, onField: (ResultEditableField) -> Unit,
+    length: String,
+    weight: String,
+    location: String,
+    resolvingLocation: Boolean,
+    modifier: Modifier,
+    accessibilityFontScale: Boolean = false,
+    enabled: Boolean = true,
+    onField: (ResultEditableField) -> Unit,
 ) {
     ResultMetadataSurface(
         modifier = modifier.testTag("recognition-result-metadata"),
     ) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(
+            Modifier.fillMaxWidth().padding(vertical = 2.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
             CatchFactRow(Icons.Rounded.Straighten, "长度", if (length.isBlank()) "请输入" else "$length cm", enabled, accessibilityFontScale) { onField(ResultEditableField.LENGTH) }
             CatchFactRow(Icons.Rounded.Scale, "重量", if (weight.isBlank()) "请输入" else "$weight kg", enabled, accessibilityFontScale) { onField(ResultEditableField.WEIGHT) }
             CatchFactRow(Icons.Rounded.LocationOn, "地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "请选择" }, enabled, accessibilityFontScale) { onField(ResultEditableField.LOCATION) }
@@ -672,18 +753,6 @@ private fun ResultMetadataSurface(modifier: Modifier, content: @Composable () ->
 }
 
 @Composable
-private fun ResultHeroSupportSurface(modifier: Modifier, content: @Composable () -> Unit) {
-    Box(
-        modifier = modifier
-            .clip(YuJianRadius.resultHero)
-            .background(YuJianColors.DeepLakeBlue.copy(alpha = 0.16f))
-            .border(1.dp, Color.White.copy(alpha = 0.38f), YuJianRadius.resultHero),
-    ) {
-        content()
-    }
-}
-
-@Composable
 private fun ResultInformationGlass(
     modifier: Modifier,
     content: @Composable () -> Unit,
@@ -703,21 +772,18 @@ private fun ResultInformationGlass(
 @Composable
 internal fun ResultRecoverySurface(
     modifier: Modifier,
+    fillAlpha: Float = 0.91f,
+    borderAlpha: Float = 0.84f,
     content: @Composable () -> Unit,
 ) {
     ResultContentDrivenSurface(
         modifier = modifier,
-        fill = Color.White.copy(alpha = 0.91f),
-        border = Color.White.copy(alpha = 0.84f),
+        fill = Color.White.copy(alpha = fillAlpha),
+        border = Color.White.copy(alpha = borderAlpha),
         content = content,
     )
 }
 
-/**
- * The surface deliberately has no size-filling child. The caller's content is
- * measured first; the glass is a draw-only treatment over those measured
- * bounds, so the background can never claim the available parent height.
- */
 @Composable
 private fun ResultContentDrivenSurface(
     modifier: Modifier,
@@ -752,16 +818,23 @@ private fun CatchFactRow(
     onClick: () -> Unit,
 ) {
     Box(
-        Modifier.fillMaxWidth().heightIn(min = if (accessibilityFontScale) 68.dp else 56.dp)
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = if (accessibilityFontScale) 68.dp else 48.dp)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = 5.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = DeepInk.copy(alpha = 0.72f))
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = YuJianColors.DeepLakeBlue.copy(alpha = 0.78f),
+            )
             Text(
                 label,
                 color = MutedInk,
@@ -782,10 +855,10 @@ private fun CatchFactRow(
                 overflow = TextOverflow.Ellipsis,
             )
             Icon(
-                Icons.Rounded.Edit,
+                Icons.Rounded.ChevronRight,
                 contentDescription = null,
-                modifier = Modifier.padding(start = 8.dp).size(16.dp),
-                tint = MutedInk.copy(alpha = 0.72f),
+                modifier = Modifier.padding(start = 6.dp).size(18.dp),
+                tint = YuJianColors.DeepLakeBlue.copy(alpha = 0.62f),
             )
         }
     }
@@ -793,41 +866,71 @@ private fun CatchFactRow(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ResultMemoryNote(value: String, onValueChange: (String) -> Unit, modifier: Modifier, enabled: Boolean = true, accessibilityFontScale: Boolean = false) {
+private fun ResultMemoryNote(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier,
+    enabled: Boolean = true,
+    accessibilityFontScale: Boolean = false,
+) {
     var focused by remember { mutableStateOf(false) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     ResultInformationGlass(
         modifier = modifier
-            .heightIn(min = if (accessibilityFontScale) 128.dp else 104.dp)
+            .heightIn(min = if (accessibilityFontScale) 144.dp else 132.dp)
             .testTag("recognition-result-story"),
     ) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("写下这次鱼获的故事", color = DeepInk, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Medium)
-            Box(Modifier.fillMaxWidth().heightIn(min = 44.dp)) {
-                if (value.isBlank()) Text("记录这一刻的感受……", color = MutedInk, fontSize = 15.sp, lineHeight = 22.sp)
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    modifier = Modifier.fillMaxWidth().testTag("recognition-story-input").bringIntoViewRequester(bringIntoViewRequester)
-                        .onFocusChanged {
-                            focused = it.isFocused
-                            if (it.isFocused) coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
-                        },
-                    minLines = 1,
-                    maxLines = if (focused || accessibilityFontScale) 4 else 2,
-                    enabled = enabled,
-                    textStyle = TextStyle(color = DeepInk, fontSize = 15.sp, lineHeight = 22.sp),
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "写下这次鱼获的故事",
+                color = DeepInk,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White.copy(alpha = 0.66f))
+                    .border(1.dp, Color.White.copy(alpha = 0.92f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                    .testTag("recognition-story-editor"),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Box(Modifier.fillMaxWidth().heightIn(min = 44.dp)) {
+                    if (value.isBlank()) {
+                        Text("记录这一刻的感受……", color = MutedInk, fontSize = 15.sp, lineHeight = 22.sp)
+                    }
+                    BasicTextField(
+                        value = value,
+                        onValueChange = onValueChange,
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("recognition-story-input")
+                            .bringIntoViewRequester(bringIntoViewRequester)
+                            .onFocusChanged {
+                                focused = it.isFocused
+                                if (it.isFocused) coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+                            },
+                        minLines = 1,
+                        maxLines = if (focused || accessibilityFontScale) 4 else 2,
+                        enabled = enabled,
+                        textStyle = TextStyle(color = DeepInk, fontSize = 15.sp, lineHeight = 22.sp),
+                    )
+                }
+                Text(
+                    "${value.codePointCount(0, value.length)}/300",
+                    modifier = Modifier.fillMaxWidth().testTag("recognition-story-counter"),
+                    textAlign = TextAlign.End,
+                    color = MutedInk,
+                    fontSize = 12.sp,
+                    lineHeight = 18.sp,
                 )
             }
-            Text(
-                "${value.codePointCount(0, value.length)}/300",
-                modifier = Modifier.fillMaxWidth().testTag("recognition-story-counter"),
-                textAlign = TextAlign.End,
-                color = MutedInk,
-                fontSize = 12.sp,
-                lineHeight = 18.sp,
-            )
         }
     }
 }
@@ -903,16 +1006,21 @@ private fun ResultDualActions(
     sideMargin: Dp,
     onContinue: () -> Unit,
     onSave: () -> Unit,
+    useResultSurfaceActions: Boolean = false,
 ) {
     // The callbacks are supplied by the enclosing page so metadata and species are validated together.
     val blocked = saving || loadingDestination != null
     if (accessibilityFontScale) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp)) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+            verticalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp),
+        ) {
             ResultDualActionButton(
                 destination = RecognitionSaveDestination.MEMORY,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
                 compactLayout = compactLayout,
+                useResultSurfaceActions = useResultSurfaceActions,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onContinue,
             )
@@ -921,17 +1029,22 @@ private fun ResultDualActions(
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
                 compactLayout = compactLayout,
+                useResultSurfaceActions = useResultSurfaceActions,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onSave,
             )
         }
     } else {
-        Row(Modifier.fillMaxWidth().padding(horizontal = sideMargin), horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp)) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+            horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp),
+        ) {
             ResultDualActionButton(
                 destination = RecognitionSaveDestination.MEMORY,
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
                 compactLayout = compactLayout,
+                useResultSurfaceActions = useResultSurfaceActions,
                 modifier = Modifier.weight(1f),
                 onClick = onContinue,
             )
@@ -940,6 +1053,7 @@ private fun ResultDualActions(
                 loadingDestination = loadingDestination,
                 enabled = !blocked,
                 compactLayout = compactLayout,
+                useResultSurfaceActions = useResultSurfaceActions,
                 modifier = Modifier.weight(1f),
                 onClick = onSave,
             )
@@ -953,27 +1067,100 @@ private fun ResultDualActionButton(
     loadingDestination: RecognitionSaveDestination?,
     enabled: Boolean,
     compactLayout: Boolean,
+    useResultSurfaceActions: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
     val isContinue = destination == RecognitionSaveDestination.MEMORY
-    YuJianPrimaryButton(
-        text = if (isContinue) "继续记忆" else "保存本次鱼获",
-        onClick = onClick,
-        modifier = modifier,
-        enabled = enabled,
-        loading = loadingDestination == destination,
-        variant = if (isContinue) YuJianActionButtonVariant.SECONDARY_STRONG else YuJianActionButtonVariant.PRIMARY,
-        leadingIcon = {
+    val text = if (isContinue) "继续记忆" else "保存本次鱼获"
+    val icon = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save
+    val loading = loadingDestination == destination
+    if (useResultSurfaceActions) {
+        ResultSurfaceActionButton(
+            text = text,
+            icon = icon,
+            modifier = modifier,
+            enabled = enabled,
+            loading = loading,
+            compactLayout = compactLayout,
+            emphasized = !isContinue,
+            testTag = if (isContinue) "recognition-result-continue" else "recognition-result-save",
+            onClick = onClick,
+        )
+    } else {
+        YuJianPrimaryButton(
+            text = text,
+            onClick = onClick,
+            modifier = modifier,
+            enabled = enabled,
+            loading = loading,
+            variant = if (isContinue) YuJianActionButtonVariant.SECONDARY_STRONG else YuJianActionButtonVariant.PRIMARY,
+            leadingIcon = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(if (compactLayout) 16.dp else 18.dp),
+                )
+            },
+            contentPadding = if (compactLayout) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+            leadingIconSpacing = 4.dp,
+        )
+    }
+}
+
+@Composable
+internal fun ResultSurfaceActionButton(
+    text: String,
+    icon: ImageVector,
+    modifier: Modifier,
+    enabled: Boolean,
+    loading: Boolean,
+    compactLayout: Boolean,
+    emphasized: Boolean,
+    testTag: String,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(18.dp)
+    val surface = if (emphasized) Color.White.copy(alpha = 0.96f) else Color.White.copy(alpha = 0.74f)
+    val edge = if (emphasized) YuJianColors.MorningGold else YuJianColors.DeepLakeBlue.copy(alpha = 0.24f)
+    Row(
+        modifier = modifier
+            .heightIn(min = 52.dp)
+            .clip(shape)
+            .background(surface, shape)
+            .border(if (emphasized) 1.4.dp else 1.dp, edge, shape)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .testTag(testTag)
+            .padding(horizontal = if (compactLayout) 8.dp else 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(if (compactLayout) 16.dp else 18.dp),
+                color = YuJianColors.DeepLakeBlue,
+                strokeWidth = 2.dp,
+            )
+        } else {
             Icon(
-                imageVector = if (isContinue) Icons.Rounded.PhotoLibrary else Icons.Rounded.Save,
+                imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(if (compactLayout) 16.dp else 18.dp),
+                tint = YuJianColors.DeepLakeBlue,
             )
-        },
-        contentPadding = if (compactLayout) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
-        leadingIconSpacing = 4.dp,
-    )
+        }
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text,
+            color = YuJianColors.DeepLakeBlue,
+            fontSize = if (compactLayout) 13.sp else 14.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }
 
 @Composable
