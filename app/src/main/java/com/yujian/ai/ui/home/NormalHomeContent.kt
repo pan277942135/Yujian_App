@@ -71,7 +71,7 @@ private const val NormalHomeCardY = 596f
 private const val NormalHomeCardWidth = 740f
 private const val NormalHomeCardHeight = 880f
 private const val NormalHomeCtaY = 1495f
-private const val NormalHomeCameraY = 1548f
+private const val NormalHomeCameraY = 1552f
 private const val NormalHomeCameraSize = 224f
 private const val NormalHomeCameraTouchSize = 232f
 
