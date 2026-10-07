@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.catches.CatchMemoryMedia
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
@@ -58,30 +59,30 @@ fun FishMediaPicker(
 ) {
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        level = YuJianGlassLevel.Light,
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 14.dp),
+        level = YuJianGlassLevel.Strong,
+        shape = RoundedCornerShape(20.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text("鱼获记忆", style = YuJianTypography.sectionTitle)
             if (media.isEmpty()) {
                 Text(
                     "还没有留下影像",
-                    style = YuJianTypography.caption,
+                    style = YuJianTypography.caption.copy(fontSize = 13.sp, lineHeight = 18.sp),
                     color = YuJianColors.MistBlueGray,
-                    modifier = Modifier.padding(top = YuJianSpacing.xs),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
                 Box(
-                    modifier = Modifier.fillMaxWidth().heightIn(
-                        min = if (fontScale >= 1.3f) 112.dp else 96.dp,
-                        max = if (fontScale >= 1.3f) 152.dp else 124.dp,
-                    ),
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 6.dp)
+                        .heightIn(min = if (fontScale >= 1.3f) 116.dp else 104.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Box(Modifier.size(52.dp)) {
+                        Box(Modifier.size(if (fontScale >= 1.3f) 60.dp else 56.dp)) {
                             Icon(
                                 Icons.Outlined.Image,
                                 contentDescription = null,
@@ -95,11 +96,16 @@ fun FishMediaPicker(
                                 modifier = Modifier.align(Alignment.BottomEnd).size(22.dp),
                             )
                         }
-                        Text("留下这次鱼获的画面", style = YuJianTypography.sectionTitle)
+                        Text(
+                            "留下这次鱼获的画面",
+                            style = YuJianTypography.sectionTitle.copy(fontSize = 19.sp, lineHeight = 24.sp),
+                            textAlign = TextAlign.Center,
+                        )
                         Text(
                             "照片和视频，会让这一刻更完整。",
                             style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 20.sp),
                             color = YuJianColors.MistBlueGray,
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }
@@ -137,7 +143,7 @@ fun FishMediaPicker(
                     }
                 }
             }
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                 if (maxWidth < 282.dp || fontScale >= 1.3f) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         MemoryMediaAction(

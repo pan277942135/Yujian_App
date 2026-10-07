@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recorddetail
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -19,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,9 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -45,7 +57,7 @@ import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.components.YuJianBackTitleActionsTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianBackAction
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
@@ -53,7 +65,6 @@ import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionTone
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
-import com.yujian.ai.ui.designsystem.components.YuJianTopBarAction
 import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
@@ -220,21 +231,10 @@ fun FishRecordDetailScreen(
                 }
 
                 Column(Modifier.fillMaxSize()) {
-                    YuJianBackTitleActionsTopBar(
-                        title = "鱼获详情",
+                    FishRecordDetailTopBar(
                         onBack = onBack,
-                        actions = listOf(
-                            YuJianTopBarAction(
-                                icon = Icons.Rounded.MenuBook,
-                                contentDescription = "鱼鉴",
-                                onClick = { onOpenFishGuide(record) },
-                            ),
-                            YuJianTopBarAction(
-                                icon = Icons.Rounded.Share,
-                                contentDescription = "分享",
-                                onClick = { onShare(record) },
-                            ),
-                        ),
+                        onOpenFishGuide = { onOpenFishGuide(record) },
+                        onShare = { onShare(record) },
                     )
                     LazyColumn(
                         modifier = Modifier.weight(1f).fillMaxWidth()
@@ -359,7 +359,9 @@ private fun LoadingDetailState(heroHeight: Dp) {
 private fun AboutCatchSection(story: String?, onEdit: () -> Unit) {
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+        level = com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel.Strong,
+        shape = RoundedCornerShape(20.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -382,6 +384,69 @@ private fun AboutCatchSection(story: String?, onEdit: () -> Unit) {
                 color = YuJianColors.DeepInk,
             )
         }
+    }
+}
+
+@Composable
+private fun FishRecordDetailTopBar(
+    onBack: () -> Unit,
+    onOpenFishGuide: () -> Unit,
+    onShare: () -> Unit,
+) {
+    val safe = rememberSafeDrawingInsets()
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .padding(top = safe.top, start = safe.start + 8.dp, end = safe.end + 8.dp)
+            .heightIn(min = 64.dp),
+    ) {
+        YuJianBackAction(
+            onClick = onBack,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
+        Text(
+            text = "鱼获详情",
+            modifier = Modifier.align(Alignment.Center).padding(horizontal = 88.dp),
+            style = YuJianTypography.sectionTitle.copy(fontSize = 21.sp, lineHeight = 27.sp),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
+        Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            FishRecordDetailTopAction(Icons.Rounded.MenuBook, "鱼鉴", onOpenFishGuide)
+            FishRecordDetailTopAction(Icons.Rounded.Share, "分享", onShare)
+        }
+    }
+}
+
+@Composable
+private fun FishRecordDetailTopAction(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.width(48.dp).heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = YuJianColors.DeepLakeBlue,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(
+            text = label,
+            style = YuJianTypography.caption.copy(fontSize = 10.sp, lineHeight = 14.sp),
+            color = YuJianColors.DeepLakeBlue,
+            maxLines = 1,
+        )
     }
 }
 
