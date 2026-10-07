@@ -32,7 +32,7 @@
   },
   "git_blobs": {
     "static/scene_base.png": "188593ed13b0fd6b9164aaba8632e783b8534d68",
-    "camera/camera_button_base.png": "7017622172491023276f2092ada4e75e976b1f6b",
+    "camera/camera_button_base.png": "cc653b4478a1749cfa3fc74eb7b830d183db4ee4",
     "camera/camera_gold_rim_mask.png": "2d10713e4ec0a458e88396fdd162102c87239755",
     "camera/camera_breath_glow.png": "cc8ae4ae614072ed00d035eebbb65a40e8af12cf",
     "avatar/guest_avatar.png": "f58549babb41aaedb5ee2590e6d48bceda19d05a",
