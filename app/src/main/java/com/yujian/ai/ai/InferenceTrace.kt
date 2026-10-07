@@ -33,6 +33,11 @@ object InferenceTrace {
         val qualityLevel: String = "GOOD",
         val qualityReason: String = "unknown",
         val bboxAreaRatio: Float = 0f,
+        val detectorOnnxSha256: String = "",
+        val detectorRetryPolicyVersion: String = FishDetectorEngine.ORIENTATION_RETRY_POLICY_VERSION,
+        val detectorAttempts: List<DetectorAttemptTrace> = emptyList(),
+        val detectorSelectedAttempt: String = "ORIGINAL",
+        val detectorSelectionReason: String = "ORIGINAL_ASSESSMENT_PRESERVED",
     )
 
     @Volatile
@@ -55,6 +60,29 @@ object InferenceTrace {
 
     fun model(sha: String, size: Int) {
         Log.i(TAG, "model_sha=$sha model_bytes=$size")
+    }
+
+    /** Internal production trace; raw ONNX candidate diagnostics never enter this record. */
+    fun detectorOutcome(run: FishDetectorEngine.DetectorRun, finalBox: NormalizedFishBox?) {
+        val report = buildString {
+            appendLine("=== YUJIAN_DETECTOR_TRACE_BEGIN ===")
+            appendLine("original_size=${run.originalWidth}x${run.originalHeight}")
+            appendLine("detector_model_version=${run.modelVersion}")
+            appendLine("detector_onnx_sha256=${run.onnxSha256}")
+            appendLine("detector_retry_policy_version=${run.retryPolicyVersion}")
+            run.attemptTrace.forEach { attempt ->
+                appendLine("orientation_attempt=${attempt.orientationAttempt}")
+                appendLine("detection_count=${attempt.detectionCount}")
+                appendLine("top_confidence=${attempt.topConfidence?.let(::formatFloat) ?: "NA"}")
+                appendLine("quality_status=${attempt.qualityStatus}")
+                appendLine("quality_level=${attempt.qualityLevel}")
+            }
+            appendLine("selected_attempt=${run.selectedAttempt}")
+            appendLine("selection_reason=${run.selectionReason}")
+            appendLine("detector_bbox_normalized=${finalBox?.let { formatFloatArray(floatArrayOf(it.x1, it.y1, it.x2, it.y2)) } ?: "NA"}")
+            appendLine("=== YUJIAN_DETECTOR_TRACE_END ===")
+        }
+        Log.i(TAG, report)
     }
 
     fun report(
@@ -116,6 +144,17 @@ object InferenceTrace {
                 appendLine("pipeline=DETECTOR_CROP_CLASSIFIER")
                 appendLine("original_size=${pipelineContext.originalWidth}x${pipelineContext.originalHeight}")
                 appendLine("detector_model_version=${pipelineContext.detectorModelVersion}")
+                appendLine("detector_onnx_sha256=${pipelineContext.detectorOnnxSha256}")
+                appendLine("detector_retry_policy_version=${pipelineContext.detectorRetryPolicyVersion}")
+                pipelineContext.detectorAttempts.forEach { attempt ->
+                    appendLine("orientation_attempt=${attempt.orientationAttempt}")
+                    appendLine("detection_count=${attempt.detectionCount}")
+                    appendLine("top_confidence=${attempt.topConfidence?.let(::formatFloat) ?: "NA"}")
+                    appendLine("quality_status=${attempt.qualityStatus}")
+                    appendLine("quality_level=${attempt.qualityLevel}")
+                }
+                appendLine("selected_attempt=${pipelineContext.detectorSelectedAttempt}")
+                appendLine("selection_reason=${pipelineContext.detectorSelectionReason}")
                 appendLine("detector_confidence=${formatFloat(pipelineContext.detectorConfidence)}")
                 appendLine("detector_bbox_normalized=${formatFloatArray(pipelineContext.detectorBox)}")
                 appendLine("quality_gate_version=${FishDetectionQualityGate.QUALITY_GATE_VERSION}")

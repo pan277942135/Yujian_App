@@ -54,6 +54,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
 
         val detectorRun = detector.detect(bitmap)
         val assessment = FishDetectionQualityGate.assess(detectorRun.detections)
+        InferenceTrace.detectorOutcome(detectorRun, assessment.primary?.box)
 
         if (!assessment.isClassifierEligible) {
             val route = if (assessment.status == FishInputStatus.FISH_TOO_SMALL) {
@@ -102,6 +103,11 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             originalWidth = bitmap.width,
             originalHeight = bitmap.height,
             detectorModelVersion = detectorRun.modelVersion,
+            detectorOnnxSha256 = detectorRun.onnxSha256,
+            detectorRetryPolicyVersion = detectorRun.retryPolicyVersion,
+            detectorAttempts = detectorRun.attemptTrace,
+            detectorSelectedAttempt = detectorRun.selectedAttempt,
+            detectorSelectionReason = detectorRun.selectionReason,
             detectorConfidence = primary.confidence,
             detectorBox = floatArrayOf(box.x1, box.y1, box.x2, box.y2),
             cropExpandRatio = FishDetectionQualityGate.CROP_EXPAND_RATIO,

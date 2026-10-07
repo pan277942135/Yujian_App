@@ -45,7 +45,7 @@ jobs:
       - name: Set up Python image verification dependency
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.13'
 
       - name: Install Pillow for asset verification
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
