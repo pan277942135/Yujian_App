@@ -255,4 +255,13 @@ class RecognitionResultContractsTest {
         }
     }
 
+
+    @Test
+    fun sourceBackdropOptInIsLimitedToTheHighAndNoFishSurfaces() {
+        assertTrue(RecognitionResultVisualState.HIGH.usesSourceDerivedHeroBackdrop())
+        assertTrue(RecognitionResultVisualState.NO_FISH.usesSourceDerivedHeroBackdrop())
+        assertFalse(RecognitionResultVisualState.MEDIUM.usesSourceDerivedHeroBackdrop())
+        assertFalse(RecognitionResultVisualState.LOW.usesSourceDerivedHeroBackdrop())
+        assertFalse(RecognitionResultVisualState.IMAGE_QUALITY.usesSourceDerivedHeroBackdrop())
+    }
 }

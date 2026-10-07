@@ -36,6 +36,7 @@ import com.yujian.ai.ui.adaptive.rememberAdaptiveLayoutProfile
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
 import com.yujian.ai.ui.recognition.result.RecognitionResultVisualState
+import com.yujian.ai.ui.recognition.result.usesSourceDerivedHeroBackdrop
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
 
@@ -55,7 +56,8 @@ fun RecognitionIssueScreen(
         configuration.screenWidthDp.dp,
         configuration.screenHeightDp.dp,
     )
-    val visualState = if (state == RecognitionUiState.ERROR_NO_FISH) {
+    val isNoFish = !technicalFailure && state == RecognitionUiState.ERROR_NO_FISH
+    val visualState = if (isNoFish) {
         RecognitionResultVisualState.NO_FISH
     } else {
         RecognitionResultVisualState.IMAGE_QUALITY
@@ -87,11 +89,14 @@ fun RecognitionIssueScreen(
                         bitmap = it.bitmap.asImageBitmap(), bbox = null,
                         widthDp = geometry.heroWidthDp, heightDp = geometry.heroHeightDp,
                         evidenceFirst = true,
+                        sourceBackdropEnabled = visualState.usesSourceDerivedHeroBackdrop(),
                     )
                 }
                 Spacer(Modifier.height(16.dp))
                 ResultRecoverySurface(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = geometry.horizontalMarginDp.dp),
+                    fillAlpha = if (isNoFish) 0.89f else 0.91f,
+                    borderAlpha = if (isNoFish) 0.80f else 0.84f,
                 ) {
                     Column(
                         Modifier.fillMaxWidth().padding(16.dp),
@@ -116,30 +121,59 @@ fun RecognitionIssueScreen(
                             lineHeight = 23.sp,
                         )
                         Spacer(Modifier.height(4.dp))
-                        YuJianPrimaryButton(
-                            text = "重新拍摄", onClick = onChooseAnother,
-                            modifier = Modifier.fillMaxWidth(),
-                            variant = YuJianActionButtonVariant.PRIMARY,
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.CameraAlt,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                        )
-                        YuJianPrimaryButton(
-                            text = "从相册选择", onClick = onChooseGallery,
-                            modifier = Modifier.fillMaxWidth(),
-                            variant = YuJianActionButtonVariant.SECONDARY_STRONG,
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.PhotoLibrary,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            },
-                        )
+                        // RR04 draws these actions directly on its Result surface, avoiding the shared Material button's extra surface/elevation layer.
+                        if (isNoFish) {
+                            ResultSurfaceActionButton(
+                                text = "重新拍摄",
+                                icon = Icons.Rounded.CameraAlt,
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = true,
+                                loading = false,
+                                compactLayout = geometry.heroWidthDp <= 322,
+                                emphasized = true,
+                                testTag = "recognition-no-fish-retake",
+                                onClick = onChooseAnother,
+                            )
+                        } else {
+                            YuJianPrimaryButton(
+                                text = "重新拍摄", onClick = onChooseAnother,
+                                modifier = Modifier.fillMaxWidth(),
+                                variant = YuJianActionButtonVariant.PRIMARY,
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.CameraAlt,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                },
+                            )
+                        }
+                        if (isNoFish) {
+                            ResultSurfaceActionButton(
+                                text = "从相册选择",
+                                icon = Icons.Rounded.PhotoLibrary,
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = true,
+                                loading = false,
+                                compactLayout = geometry.heroWidthDp <= 322,
+                                emphasized = false,
+                                testTag = "recognition-no-fish-gallery",
+                                onClick = onChooseGallery,
+                            )
+                        } else {
+                            YuJianPrimaryButton(
+                                text = "从相册选择", onClick = onChooseGallery,
+                                modifier = Modifier.fillMaxWidth(),
+                                variant = YuJianActionButtonVariant.SECONDARY_STRONG,
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Rounded.PhotoLibrary,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                },
+                            )
+                        }
                     }
                 }
             }

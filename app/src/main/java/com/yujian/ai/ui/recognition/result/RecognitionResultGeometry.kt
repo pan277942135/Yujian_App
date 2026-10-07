@@ -25,6 +25,11 @@ enum class RecognitionResultVisualState {
     IMAGE_QUALITY,
 }
 
+/** Ambient fill is opted into only for the high-confidence and no-fish acceptance surfaces. */
+fun RecognitionResultVisualState.usesSourceDerivedHeroBackdrop(): Boolean =
+    this == RecognitionResultVisualState.HIGH || this == RecognitionResultVisualState.NO_FISH
+
+
 /** Pure adaptive resolver for the frozen Recognition Result geometry. */
 object RecognitionResultGeometryResolver {
     fun resolve(

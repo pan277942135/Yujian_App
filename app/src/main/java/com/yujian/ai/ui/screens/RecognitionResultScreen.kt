@@ -131,6 +131,7 @@ import com.yujian.ai.ui.recognition.result.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaMode
 import com.yujian.ai.ui.recognition.result.createRecognitionHeroAmbientBackdrop
 import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaPlanner
+import com.yujian.ai.ui.recognition.result.usesSourceDerivedHeroBackdrop
 import com.yujian.ai.ui.recognition.result.RecognitionPlace
 import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
@@ -354,7 +355,7 @@ fun RecognitionResultScreen(
                         heightDp = geometry.heroHeightDp,
                         evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
                             uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
-                        sourceBackdropEnabled = uiState == RecognitionUiState.RESULT_HIGH,
+                        sourceBackdropEnabled = visualState.usesSourceDerivedHeroBackdrop(),
                     )
                 }
                 Spacer(Modifier.height(12.dp))
