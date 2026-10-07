@@ -43,6 +43,8 @@ class DetectorOrientationRetryRuntimeTest {
         )
         assertEquals(0, result.detectorRun.attemptTrace[0].detectionCount)
         assertTrue(result.detectorRun.attemptTrace[2].detectionCount > 0)
+        assertTrue(result.detectorRun.selectionReason.isNotBlank())
+        assertTrue(result.detectorRun.attemptTrace.all { it.qualityStatus.isNotBlank() && it.qualityLevel.isNotBlank() })
         assertEquals(
             "12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f",
             result.detectorRun.onnxSha256,

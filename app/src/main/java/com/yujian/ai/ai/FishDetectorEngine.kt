@@ -520,7 +520,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         }
 
         private fun assessmentRankScore(assessment: FishInputAssessment): Float =
-            assessment.primary?.let(FishDetectionQualityGate::rankScore) ?: 0f
+            assessment.primary?.let { FishDetectionQualityGate.rankScore(it) } ?: 0f
 
         internal fun nms(detections: List<FishDetection>, iouThreshold: Float): List<FishDetection> {
             val kept = mutableListOf<FishDetection>()

@@ -147,14 +147,13 @@ class FishDetectorOrientationTest {
             listOf(DetectorOrientationAttempt.ORIGINAL, DetectorOrientationAttempt.CW90, DetectorOrientationAttempt.CCW90),
             FishDetectorEngine.attemptsForOriginalAssessment(noFish),
         )
-        assertEquals(
-            null,
+        assertTrue(
             FishDetectorEngine.selectRecoveredAssessment(
                 listOf(
                     DetectorAssessmentCandidate(DetectorOrientationAttempt.CW90, noFish),
                     DetectorAssessmentCandidate(DetectorOrientationAttempt.CCW90, noFish),
                 ),
-            ),
+            ) == null,
         )
         assertEquals(FishInputStatus.NO_FISH, noFish.status)
     }
