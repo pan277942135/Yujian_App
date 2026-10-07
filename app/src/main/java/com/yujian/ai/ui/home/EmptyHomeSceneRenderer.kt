@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -12,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.ContentScale
 import com.yujian.ai.ui.components.AssetImage
-import com.yujian.ai.ui.designsystem.color.YuJianColors
 import kotlin.math.roundToInt
 
 private const val FALLBACK_BACKGROUND =
@@ -47,6 +46,7 @@ internal fun EmptyHomeSceneRenderer(
     modifier: Modifier,
     motionState: HomeMotionState,
     runtimeAssets: EmptyHomeRuntimeAssets?,
+    sceneTransform: ReferenceSceneTransform,
 ) {
     Box(modifier.clipToBounds()) {
         AssetImage(
@@ -55,11 +55,6 @@ internal fun EmptyHomeSceneRenderer(
             contentDescription = null,
             contentScale = ContentScale.Crop,
         )
-        Canvas(Modifier.fillMaxSize()) {
-            // A light blue-gray veil lowers saturation and foreground noise
-            // while keeping the frozen lake and CTA structure intact.
-            drawRect(color = YuJianColors.MistBlueGray.copy(alpha = 0.045f))
-        }
         if (runtimeAssets != null) {
             val particles = remember { createSunParticleSpecs() }
             val paint = remember {
@@ -73,6 +68,7 @@ internal fun EmptyHomeSceneRenderer(
                     particles = particles,
                     paint = paint,
                     destination = destination,
+                    transform = sceneTransform,
                 )
             }
         }
@@ -85,9 +81,24 @@ private fun DrawScope.drawRuntimeOverlays(
     particles: List<SunParticleSpec>,
     paint: Paint,
     destination: RectF,
+    transform: ReferenceSceneTransform,
 ) {
-    val transform = calculateReferenceSceneTransform(size.width, size.height)
     val time = if (motionState.running) motionState.sceneTimeSeconds else 0f
+
+    drawReferenceBitmap(
+        bitmap = assets.sceneBase,
+        x = 0f,
+        y = 0f,
+        width = REFERENCE_SCENE_WIDTH,
+        height = REFERENCE_SCENE_HEIGHT,
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+
+    // Remove the former full-page and bottom color veils. V2 does not authorize
+    // an additional grade over the frozen Sunrise Hero surface.
 
     drawReferenceBitmap(
         bitmap = assets.cloud,
@@ -137,18 +148,6 @@ private fun DrawScope.drawRuntimeOverlays(
     )
     drawFrozenFishingLine(transform)
 
-    // Local atmosphere only: no glass surface, hard vignette, or CTA plate.
-    drawRect(
-        brush = Brush.verticalGradient(
-            colors = listOf(
-                Color.Transparent,
-                YuJianColors.MistBlueGray.copy(alpha = 0.055f),
-            ),
-            startY = size.height * 0.72f,
-            endY = size.height,
-        ),
-    )
-
     val bobberMotionActive = emptyHomeMotionActive(
         running = motionState.running,
         reduceMotion = motionState.reduceMotion,
@@ -158,6 +157,26 @@ private fun DrawScope.drawRuntimeOverlays(
     } else {
         0f
     }
+    val bobberSplit = calculateBobberWaterSplit(
+        bitmapHeight = assets.bobber.height,
+        bobberTopY = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
+        waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
+    )
+
+    // Keep V2.2's narrow optical continuation separate from the bobber body.
+    // This layer is independently faint/faded and never renders a second float.
+    drawReferenceBitmap(
+        bitmap = assets.bobberReflection,
+        x = EMPTY_HOME_V2_REFLECTION_X,
+        y = EMPTY_HOME_V2_REFLECTION_Y,
+        width = assets.bobberReflection.width.toFloat(),
+        height = assets.bobberReflection.height.toFloat(),
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+
     drawReferenceBitmap(
         bitmap = assets.ripple,
         x = EMPTY_HOME_V2_RIPPLE_X,
@@ -182,12 +201,31 @@ private fun DrawScope.drawRuntimeOverlays(
         x = EMPTY_HOME_V2_BOBBER_X,
         y = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
         width = assets.bobber.width.toFloat(),
-        height = assets.bobber.height.toFloat(),
+        height = bobberSplit.splitY.toFloat(),
         alpha = 1f,
         transform = transform,
         paint = paint,
         destination = destination,
+        source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY),
     )
+}
+
+internal data class BobberWaterSplit(
+    val splitY: Int,
+    val underwaterHeight: Int,
+    val underwaterAlpha: Float,
+)
+
+internal fun calculateBobberWaterSplit(
+    bitmapHeight: Int,
+    bobberTopY: Float,
+    waterContactY: Float,
+): BobberWaterSplit {
+    require(bitmapHeight > 0)
+    val splitY = (waterContactY - bobberTopY).roundToInt().coerceIn(0, bitmapHeight)
+    // The reflection is a separate low-alpha layer; the body is clipped at the
+    // fixed water plane and no submerged copy is composited.
+    return BobberWaterSplit(splitY = splitY, underwaterHeight = 0, underwaterAlpha = 0f)
 }
 
 private fun DrawScope.drawFrozenFishingLine(
@@ -197,7 +235,7 @@ private fun DrawScope.drawFrozenFishingLine(
     fun sy(value: Float): Float = transform.offsetY + value * transform.scale
 
     val linePath = Path().apply {
-        moveTo(sx(EMPTY_HOME_V2_ROD_TIP_X), sy(EMPTY_HOME_V2_ROD_TIP_Y))
+        moveTo(sx(EMPTY_HOME_V2_LINE_START_X), sy(EMPTY_HOME_V2_LINE_START_Y))
         cubicTo(
             sx(EMPTY_HOME_V2_LINE_C1_X),
             sy(EMPTY_HOME_V2_LINE_C1_Y),
@@ -210,13 +248,8 @@ private fun DrawScope.drawFrozenFishingLine(
 
     drawPath(
         path = linePath,
-        color = YuJianColors.DeepInk.copy(alpha = 0.12f),
-        style = Stroke(width = 2.25f * transform.scale, cap = StrokeCap.Round),
-    )
-    drawPath(
-        path = linePath,
-        color = Color.White.copy(alpha = 0.64f),
-        style = Stroke(width = 1.15f * transform.scale, cap = StrokeCap.Round),
+        color = Color(0xFFD5E1E3).copy(alpha = 0.78f),
+        style = Stroke(width = 1.35f * transform.scale, cap = StrokeCap.Round),
     )
 }
 
@@ -261,6 +294,7 @@ private fun DrawScope.drawReferenceBitmap(
     pivotX: Float = x + width / 2f,
     pivotY: Float = y + height / 2f,
     colorFilter: ColorMatrixColorFilter? = null,
+    source: Rect? = null,
 ) {
     if (alpha <= 0f) return
     val scaledWidth = width * scale
@@ -276,7 +310,7 @@ private fun DrawScope.drawReferenceBitmap(
     paint.alpha = (alpha.coerceIn(0f, 1f) * 255f).roundToInt()
     paint.colorFilter = colorFilter
     drawIntoCanvas { canvas ->
-        canvas.nativeCanvas.drawBitmap(bitmap, null, destination, paint)
+        canvas.nativeCanvas.drawBitmap(bitmap, source, destination, paint)
     }
     paint.colorFilter = null
 }

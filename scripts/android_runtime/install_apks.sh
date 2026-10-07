@@ -135,7 +135,7 @@ android_runtime_install_apks() {
     runtime_set_failure "INSTALL" "ADB_VERIFY_APP_TIMEOUT"
     return "$EXIT_BLOCKED_INFRA"
   fi
-  if (( verify_rc != 0 )) || grep -Eiq 'offline|no devices|transport|closed' "$verify_log"; then
+  if (( verify_rc != 0 )) || runtime_is_transport_failure_file "$verify_log"; then
     runtime_set_failure "INSTALL" "ADB_TRANSPORT_AFTER_INSTALL"
     return "$EXIT_BLOCKED_INFRA"
   fi
@@ -151,7 +151,7 @@ android_runtime_install_apks() {
     runtime_set_failure "INSTALL" "ADB_VERIFY_TEST_TIMEOUT"
     return "$EXIT_BLOCKED_INFRA"
   fi
-  if (( verify_rc != 0 )) || grep -Eiq 'offline|no devices|transport|closed' "$verify_log"; then
+  if (( verify_rc != 0 )) || runtime_is_transport_failure_file "$verify_log"; then
     runtime_set_failure "INSTALL" "ADB_TRANSPORT_AFTER_INSTALL"
     return "$EXIT_BLOCKED_INFRA"
   fi

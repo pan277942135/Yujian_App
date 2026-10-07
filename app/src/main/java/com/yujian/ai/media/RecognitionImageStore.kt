@@ -16,8 +16,16 @@ import java.util.UUID
 object RecognitionImageStore {
     data class CameraTarget(val file: File, val uri: Uri)
 
+    data class CameraNormalizationResult(
+        val selectedImage: SelectedImage,
+        val rotationDegrees: Int,
+        val decodedWidth: Int,
+        val decodedHeight: Int,
+    )
+
     fun createCameraTarget(context: Context): CameraTarget {
         val dir = File(context.cacheDir, "camera").apply { mkdirs() }
+        require(dir.isDirectory && dir.canWrite()) { "相机临时目录不可写" }
         val file = File(dir, "capture_${UUID.randomUUID()}.jpg")
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         return CameraTarget(file, uri)
@@ -41,8 +49,33 @@ object RecognitionImageStore {
     }
 
     suspend fun normalizeCameraFile(context: Context, file: File): SelectedImage = withContext(Dispatchers.IO) {
+        normalizeCameraFileWithDetails(context, file).selectedImage
+    }
+
+    suspend fun normalizeCameraFileWithDetails(
+        context: Context,
+        file: File,
+    ): CameraNormalizationResult = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
-        normalizeLocalFile(context, file, "camera", "拍照文件无法解析，请重新拍摄")
+
+        val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "拍照文件无法解析，请重新拍摄" }
+
+        var sample = 1
+        val maxDimension = maxOf(bounds.outWidth, bounds.outHeight)
+        while (maxDimension / sample > 2048) sample *= 2
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
+            ?: error("拍照文件无法解析，请重新拍摄")
+        val selected = persistNormalized(context, decoded, rotation, "camera")
+        CameraNormalizationResult(
+            selectedImage = selected,
+            rotationDegrees = rotation,
+            decodedWidth = selected.bitmap.width,
+            decodedHeight = selected.bitmap.height,
+        )
     }
 
     private fun normalizeLocalFile(
@@ -84,6 +117,7 @@ object RecognitionImageStore {
         normalized.outputStream().use { output ->
             check(oriented.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
         }
+        check(normalized.exists() && normalized.length() > 0L) { "无法保存识别照片" }
         return SelectedImage(filePath = normalized.absolutePath, bitmap = oriented, source = source)
     }
 }

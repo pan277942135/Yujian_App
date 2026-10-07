@@ -47,14 +47,18 @@ Required runtime artifacts:
 2. `02_image_recognizing_late.png`
 3. `03_fish_located.png`
 4. `04_species_recognizing.png`
-5. `05_result_high.png`
-6. `06_result_medium.png`
-7. `07_result_low.png`
-8. `08_issue_no_fish.png`
-9. `09_issue_image_quality.png`
-10. `10_issue_technical_failure.png`
-11. `recognition_visual_parity_v1_2.json`
-12. `recognition_visual_parity_contact_sheet_v1_2.png`
+5. `05_resolve.png`
+6. `05_result_high.png`
+7. `06_result_medium.png`
+8. `07_result_low.png`
+9. `08_issue_no_fish.png`
+10. `09_issue_image_quality.png`
+11. `10_issue_technical_failure.png`
+12. `06_edge_field_crop.png`
+13. `07_fish_focus_crop.png`
+14. `08_contour_closeup.png`
+15. `recognition_visual_parity_v1_2.json`
+16. `recognition_visual_parity_contact_sheet_v1_2.png`
 
 Rules:
 

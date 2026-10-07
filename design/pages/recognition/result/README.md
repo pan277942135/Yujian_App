@@ -1,4 +1,4 @@
-# Recognition Result V1
+# Recognition Result V1.1
 
 Role: **Capture → Record Bridge**
 
@@ -152,13 +152,16 @@ It must not become:
 Resolved species:
 
 - `保存本次鱼获` → create FishRecord → Normal Home
-- `继续记录记忆` → create FishRecord first → FishRecordDetail(recordId, initialSection=MEMORY)
+- `继续记忆` → create FishRecord first → FishRecordDetail(recordId, initialSection=MEMORY)
 
 Low initial state:
 
 - `手动选择鱼种`
 - `重新拍摄`
+- vertical Metadata and Story remain visible before species resolution
+- unresolved Dual CTA remembers destination and opens Species Selector with LOW_MANUAL
 
-A Low result does not create an unknown/pending-species FishRecord in V1.
+A Low result does not create an unknown/pending-species FishRecord. Returning
+unconfirmed preserves draft fields and clears the pending destination.
 
 A FishRecord must exist before memory-media operations begin.

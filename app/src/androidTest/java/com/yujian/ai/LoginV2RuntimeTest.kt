@@ -1,16 +1,23 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.graphics.Rect
+import android.os.ParcelFileDescriptor
 import androidx.activity.ComponentActivity
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performScrollTo
@@ -26,6 +33,9 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleActionsTopBar
@@ -40,20 +50,95 @@ import com.yujian.ai.ui.auth.RegisterV2Screen
 import java.io.File
 import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
 class LoginV2RuntimeTest {
+    private fun primaryButton(text: String) = composeRule.onNode(
+        hasText(text) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button),
+    )
+
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
+    private var originalImeWithHardwareKeyboard: String? = null
+    private var imeWithHardwareKeyboardChanged = false
+
+    @After
+    fun restoreHardwareKeyboardImeSetting() {
+        if (!imeWithHardwareKeyboardChanged) return
+        try {
+            val setting = originalImeWithHardwareKeyboard
+            if (setting == "0" || setting == "1") {
+                runShellCommand("settings put secure show_ime_with_hard_keyboard $setting")
+            } else {
+                runShellCommand("settings delete secure show_ime_with_hard_keyboard")
+            }
+        } finally {
+            imeWithHardwareKeyboardChanged = false
+        }
+    }
+
+    private fun runShellCommand(command: String): String {
+        val output = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand(command)
+        return ParcelFileDescriptor.AutoCloseInputStream(output).bufferedReader().use {
+            it.readText().trim()
+        }
+    }
+
+    private fun showSoftwareKeyboardForEmulator() {
+        if (imeWithHardwareKeyboardChanged) return
+        originalImeWithHardwareKeyboard = runShellCommand(
+            "settings get secure show_ime_with_hard_keyboard",
+        )
+        imeWithHardwareKeyboardChanged = true
+        runShellCommand("settings put secure show_ime_with_hard_keyboard 1")
+    }
+
+    private fun awaitImeVisible() {
+        val activity = composeRule.activity
+        val decorView = activity.window.decorView
+        val visibleFrameBeforeIme = Rect()
+        decorView.getWindowVisibleDisplayFrame(visibleFrameBeforeIme)
+        val imeVisibilityThresholdPx = (100 * activity.resources.displayMetrics.density).toInt()
+
+        activity.runOnUiThread {
+            WindowInsetsControllerCompat(activity.window, decorView)
+                .show(WindowInsetsCompat.Type.ime())
+        }
+
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            val insets = decorView.rootWindowInsets
+            val imeInsetsVisible = insets?.let {
+                WindowInsetsCompat.toWindowInsetsCompat(it).isVisible(WindowInsetsCompat.Type.ime())
+            } ?: false
+            val visibleFrame = Rect()
+            decorView.getWindowVisibleDisplayFrame(visibleFrame)
+            val keyboardReducedVisibleFrame =
+                visibleFrameBeforeIme.bottom - visibleFrame.bottom > imeVisibilityThresholdPx
+            imeInsetsVisible || keyboardReducedVisibleFrame
+        }
+    }
+
+    private fun assertInsideCompactViewport(node: SemanticsNodeInteraction) {
+        val viewport = composeRule.onNodeWithTag("auth_compact_viewport")
+            .fetchSemanticsNode().boundsInRoot
+        val bounds = node.fetchSemanticsNode().boundsInRoot
+        assertTrue("node is clipped above the compact viewport", bounds.top >= viewport.top)
+        assertTrue("node is clipped below the compact viewport", bounds.bottom <= viewport.bottom)
+    }
+
     @Test
     fun idle_matchesFrozenStructure() {
+        var loginCalls = 0
         composeRule.setContent {
             LoginV2Screen(
                 loading = false,
                 error = null,
-                onLogin = { _, _ -> },
+                onLogin = { _, _ -> loginCalls += 1 },
                 onRegister = {},
                 onForgotPassword = {},
                 onBack = {},
@@ -65,7 +150,9 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithTag("login_password").assertExists()
         composeRule.onNodeWithText("忘记密码？").assertExists()
         composeRule.onNodeWithText("创建账号").assertExists()
-        composeRule.onNodeWithTag("login_submit").assertIsNotEnabled()
+        primaryButton("登录").assertIsNotEnabled()
+        primaryButton("登录").performTouchInput { down(center); up() }
+        composeRule.runOnIdle { assertEquals(0, loginCalls) }
         saveScreenshot("login_v2_idle.png")
     }
 
@@ -85,9 +172,9 @@ class LoginV2RuntimeTest {
         }
         composeRule.onNodeWithTag("login_username").performTextInput("fisher001")
         composeRule.onNodeWithTag("login_password").performTextInput("123456")
-        composeRule.onNodeWithTag("login_submit").assertIsEnabled()
+        primaryButton("登录").assertIsEnabled()
         saveScreenshot("login_v2_filled.png")
-        composeRule.onNodeWithTag("login_submit").performClick()
+        primaryButton("登录").performClick()
         composeRule.runOnIdle {
             assertEquals("fisher001", username)
             assertEquals("123456", password)
@@ -195,6 +282,37 @@ class LoginV2RuntimeTest {
     }
 
     @Test
+    fun login_invalidUsernameWithIme_keepsErrorVisibleAndLaterActionsReachable() {
+        composeRule.setContent {
+            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
+                LoginV2Screen(
+                    loading = false,
+                    error = null,
+                    onLogin = { _, _ -> },
+                    onRegister = {},
+                    onForgotPassword = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        val username = composeRule.onNodeWithTag("login_username")
+        showSoftwareKeyboardForEmulator()
+        username.performClick()
+        awaitImeVisible()
+        username.performTextInput("x")
+        composeRule.onNodeWithText("账号").assertIsDisplayed()
+        username.assertIsFocused().assertTextContains("x").assertIsDisplayed()
+        val error = composeRule.onNodeWithText("请输入 3–32 位字母、数字、_ 或 - 组成的账号")
+        error.assertIsDisplayed()
+        assertInsideCompactViewport(error)
+
+        composeRule.onNodeWithTag("login_password").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("login_submit").performScrollTo().assertIsDisplayed()
+        saveScreenshot("login_v2_invalid_username_ime_compact.png")
+    }
+
+    @Test
     fun register_smallScreen_keepsSubmitReachableByScrolling() {
         composeRule.setContent {
             Box(Modifier.width(360.dp).height(560.dp)) {
@@ -211,7 +329,83 @@ class LoginV2RuntimeTest {
     }
 
     @Test
+    fun register_helpers_areVisibleAndScrollableOnCompactScreen() {
+        composeRule.setContent {
+            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
+                RegisterV2Screen(
+                    loading = false,
+                    error = null,
+                    onRegister = { _, _, _ -> },
+                    onBackToLogin = {},
+                )
+            }
+        }
+
+        val usernameHelper = composeRule.onNodeWithText("3–32 位字母、数字、_ 或 -")
+        usernameHelper.assertIsDisplayed()
+        assertInsideCompactViewport(usernameHelper)
+        val passwordHelper = composeRule.onNodeWithText("至少 6 位")
+        passwordHelper.performScrollTo().assertIsDisplayed()
+        assertInsideCompactViewport(passwordHelper)
+        composeRule.onNodeWithTag("register_nickname").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
+        saveScreenshot("register_v2_helpers_compact.png")
+    }
+
+    @Test
+    fun register_invalidFieldsWithIme_showFullErrorsWithoutOverlapAndKeepSubmitReachable() {
+        composeRule.setContent {
+            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
+                RegisterV2Screen(
+                    loading = false,
+                    error = null,
+                    onRegister = { _, _, _ -> },
+                    onBackToLogin = {},
+                )
+            }
+        }
+
+        val usernameError = "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
+        val username = composeRule.onNodeWithTag("register_username")
+        showSoftwareKeyboardForEmulator()
+        username.performClick()
+        awaitImeVisible()
+        username.performTextInput("x")
+        composeRule.onNodeWithText("账号").assertIsDisplayed()
+        username.assertIsFocused().assertTextContains("x").assertIsDisplayed()
+        val usernameErrorNode = composeRule.onNodeWithText(usernameError)
+        usernameErrorNode.assertIsDisplayed()
+        assertInsideCompactViewport(usernameErrorNode)
+        val usernameErrorBottom = usernameErrorNode.fetchSemanticsNode().boundsInRoot.bottom
+        val passwordTop = composeRule.onNodeWithTag("register_password")
+            .fetchSemanticsNode().boundsInRoot.top
+        assertTrue("username error overlaps the password field", usernameErrorBottom < passwordTop)
+
+        val password = composeRule.onNodeWithTag("register_password")
+        password.performScrollTo().performClick().performTextInput("1")
+        password.assertIsFocused().assertTextContains("1").assertIsDisplayed()
+        val passwordErrorNode = composeRule.onNodeWithText("密码长度需要为 6–72 位")
+        passwordErrorNode.assertIsDisplayed()
+        assertInsideCompactViewport(passwordErrorNode)
+        val passwordErrorBottom = passwordErrorNode.fetchSemanticsNode().boundsInRoot.bottom
+        val nicknameTop = composeRule.onNodeWithTag("register_nickname")
+            .fetchSemanticsNode().boundsInRoot.top
+        assertTrue("password error overlaps the nickname field", passwordErrorBottom < nicknameTop)
+
+        val nickname = composeRule.onNodeWithTag("register_nickname")
+        nickname.performScrollTo().performClick().performTextInput(" ")
+        composeRule.onNodeWithText("昵称").assertIsDisplayed()
+        nickname.assertIsFocused().assertIsDisplayed()
+        val nicknameError = composeRule.onNodeWithText("请输入 1–20 个字符的昵称")
+        nicknameError.assertIsDisplayed()
+        assertInsideCompactViewport(nicknameError)
+        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
+        saveScreenshot("register_v2_invalid_fields_ime_compact.png")
+    }
+
+    @Test
     fun p0SharedComponents_renderFrozenVariantsAndButtonStates() {
+        var disabledButtonClicks = 0
         composeRule.setContent {
             Column {
                 YuJianTitleOnlyTopBar("标题")
@@ -238,7 +432,7 @@ class LoginV2RuntimeTest {
                 YuJianPrimaryButton("按下", onClick = {}, modifier = Modifier.testTag("p0_button_pressed"))
                 YuJianPrimaryButton(
                     "禁用",
-                    onClick = {},
+                    onClick = { disabledButtonClicks += 1 },
                     modifier = Modifier.testTag("p0_button_disabled"),
                     enabled = false,
                 )
@@ -250,8 +444,10 @@ class LoginV2RuntimeTest {
                 )
             }
         }
-        composeRule.onNodeWithTag("p0_button_default").assertIsEnabled()
-        composeRule.onNodeWithTag("p0_button_disabled").assertIsNotEnabled()
+        primaryButton("默认").assertIsEnabled()
+        primaryButton("禁用").assertIsNotEnabled()
+        primaryButton("禁用").performTouchInput { down(center); up() }
+        composeRule.runOnIdle { assertEquals(0, disabledButtonClicks) }
         composeRule.onNodeWithText("文字操作").assertExists()
         composeRule.onNodeWithContentDescription("独立图标操作").assertExists()
         saveScreenshot("p0_shared_components_default.png")
@@ -298,7 +494,7 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithTag("register_nickname").assertExists()
         composeRule.onNodeWithText("注册并登录").assertExists()
         composeRule.onNodeWithText("去登录").assertExists()
-        composeRule.onNodeWithTag("register_submit").assertIsNotEnabled()
+        primaryButton("注册并登录").assertIsNotEnabled()
         saveScreenshot("register_v2_idle.png")
     }
 
@@ -322,9 +518,9 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithTag("register_username").performTextInput("fisher002")
         composeRule.onNodeWithTag("register_password").performTextInput("123456")
         composeRule.onNodeWithTag("register_nickname").performTextInput("angler")
-        composeRule.onNodeWithTag("register_submit").assertIsEnabled()
+        primaryButton("注册并登录").assertIsEnabled()
         saveScreenshot("register_v2_filled.png")
-        composeRule.onNodeWithTag("register_submit").performClick()
+        primaryButton("注册并登录").performClick()
         composeRule.runOnIdle {
             assertEquals("fisher002", username)
             assertEquals("123456", password)
@@ -334,10 +530,11 @@ class LoginV2RuntimeTest {
 
     @Test
     fun register_errorAndLoading_areVisibleAndStable() {
+        val loading = mutableStateOf(false)
         composeRule.setContent {
             RegisterV2Screen(
-                loading = false,
-                error = "账号已存在",
+                loading = loading.value,
+                error = if (loading.value) null else "账号已存在",
                 onRegister = { _, _, _ -> },
                 onBackToLogin = {},
             )
@@ -345,15 +542,8 @@ class LoginV2RuntimeTest {
         composeRule.onNodeWithText("账号已存在").assertExists()
         saveScreenshot("register_v2_error.png")
 
-        composeRule.setContent {
-            RegisterV2Screen(
-                loading = true,
-                error = null,
-                onRegister = { _, _, _ -> },
-                onBackToLogin = {},
-            )
-        }
-        composeRule.onNodeWithTag("register_submit").assertIsNotEnabled()
+        composeRule.runOnIdle { loading.value = true }
+        primaryButton("注册并登录").assertIsNotEnabled()
         saveScreenshot("register_v2_loading.png")
     }
 

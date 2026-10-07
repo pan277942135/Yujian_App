@@ -2,7 +2,7 @@
   "version": "1.0",
   "status": "ACTIVE",
   "governance": "design/governance/YuJian_Experience_Source_of_Truth_V1.md",
-  "authority_note": "This registry inventories current repository authority. It does not replace feature-local contracts.",
+  "authority_note": "This registry inventories current repository authority. Frozen raster assets record exact path, dimensions, byte size, SHA-256, and authority spec. It does not replace feature-local contracts.",
   "status_vocabulary": [
     "FROZEN",
     "ACTIVE_CLOSURE",
@@ -12,7 +12,9 @@
     "MISSING",
     "DEPRECATED",
     "DEFERRED",
-    "BLOCKED_INTEGRITY"
+    "BLOCKED_INTEGRITY",
+    "SPEC_FROZEN",
+    "VISUAL_MISSING"
   ],
   "features": [
     {
@@ -3090,6 +3092,20 @@
         {
           "id": "icon_action_v1",
           "note": "Icon Action V1：TopBar Back=NAVIGATION；Fish Guide/Share=UTILITY/ON_LIGHT；B-side card_flip=UTILITY/ON_MEDIA，仅 B-side 已存在时显示。"
+        },
+        {
+          "id": "yu_jian_catch_hero_card_v1",
+          "variants": [
+            "HOME",
+            "DETAIL"
+          ]
+        },
+        {
+          "id": "fish_memory_capture_v1",
+          "variants": [
+            "PHOTO",
+            "VIDEO"
+          ]
         }
       ],
       "navigation_model": "fish_record_detail_compact_menu_v2",
@@ -3146,7 +3162,7 @@
           "render_mode": "repo_image",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_B_Side_Visual_Authority_V1.md",
           "authority_type": "visual",
-          "summary": "B 面 V1 已冻结。它是同一 FishRecord 的独立鱼体与安静自然水体视觉；A 面页面壳、字段、记录内容和媒体区保持不变。唯一视觉 Authority 为批准的原始 PNG。",
+          "summary": "B-side READY remains the canonical generated-memory authority; populated user media is a child state under the same 02 entry.",
           "menu_points": [
             "Same FishRecord · same independent fish body",
             "Calm natural water environment",
@@ -3157,7 +3173,36 @@
           ],
           "visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
           "image": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
-          "visual_authority_manifest": "design/pages/fish_record/detail/frozen/manifest.json"
+          "visual_authority_manifest": "design/pages/fish_record/detail/frozen/manifest.json",
+          "children": [
+            {
+              "id": "populated_memory_media",
+              "title": "鱼获记忆 · 已有照片 / 视频",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "state",
+              "render_mode": "repo_image",
+              "visual_authority": "design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_Populated_Memory_V1_Frozen.png",
+              "image": "design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_Populated_Memory_V1_Frozen.png",
+              "authority": "design/pages/fish_record/detail/FishRecordDetail_Populated_Media_Spec_V1.md",
+              "visual_authority_manifest": "design/pages/fish_record/detail/frozen/states/populated_media_manifest.json",
+              "visual_authority_dimensions": {
+                "width": 1840,
+                "height": 1240
+              },
+              "visual_authority_bytes": 391197,
+              "visual_authority_sha256": "d1e688916c3c1e61f7023f8e0fa11f05bf8077fa08c553b638810e6ebfdcab41",
+              "summary": "1 张照片 / 多张照片 / 照片+视频 / 网格继续；媒体保持用户原始来源。",
+              "menu_points": [
+                "1 photo",
+                "multiple photos",
+                "photos + video",
+                "overflow / grid continuation",
+                "counts derive from attached originals",
+                "no social gallery"
+              ]
+            }
+          ]
         },
         {
           "id": "asset_generation",
@@ -3166,7 +3211,7 @@
           "render_mode": "authority_index",
           "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md",
           "authority_type": "behavior",
-          "summary": "FROZEN：NOT_GENERATED / GENERATING / FAILED 合并为一个生成场景板；A 面始终可用；禁止伪造百分比/ETA；成功统一交接 READY，并服从首次一次性 A→B reveal。",
+          "summary": "NOT_GENERATED / GENERATING / FAILED 的场景板已冻结；AUTH_REQUIRED 仅为 action-availability variant；READY 仍由 02 · B 面呈现。",
           "menu_points": [
             "NOT_GENERATED · 生成鱼获记忆",
             "GENERATING · A-side remains usable",
@@ -3177,6 +3222,35 @@
             "READY presentation owned by 02",
             "First READY Reveal · Auto A → B Once",
             "Reduce Motion / Accessibility"
+          ],
+          "visual_status": "FROZEN",
+          "children": [
+            {
+              "id": "asset_generation_states_visual",
+              "title": "资产生成状态 · NOT_GENERATED / GENERATING / FAILED",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "visual",
+              "render_mode": "repo_image",
+              "visual_authority": "design/pages/fish_record/detail/frozen/generation/FishRecordDetail_Asset_Generation_States_V1_Frozen.png",
+              "image": "design/pages/fish_record/detail/frozen/generation/FishRecordDetail_Asset_Generation_States_V1_Frozen.png",
+              "authority": "design/pages/fish_record/detail/FishRecordDetail_Asset_Generation_Spec_V1.md",
+              "visual_authority_manifest": "design/pages/fish_record/detail/frozen/generation/manifest.json",
+              "visual_authority_dimensions": {
+                "width": 1680,
+                "height": 1220
+              },
+              "visual_authority_bytes": 295408,
+              "visual_authority_sha256": "6ae96ce7ca8883d427f3c62d20f9184d444a1851b36f0bca2bef5738701e635a",
+              "summary": "One scenario board. AUTH_REQUIRED is action availability only; READY remains owned by 02.",
+              "menu_points": [
+                "NOT_GENERATED",
+                "GENERATING",
+                "FAILED",
+                "AUTH_REQUIRED · action availability only",
+                "READY owned by 02"
+              ]
+            }
           ]
         },
         {
@@ -6800,7 +6874,7 @@
         },
         "runtime": {
           "status": "RUNTIME_ONLY",
-          "authority": "app/src/main/java/com/yujian/ai/ui/screens/AuthScreens.kt"
+          "authority": "app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt"
         },
         "evidence": {
           "status": "MISSING",

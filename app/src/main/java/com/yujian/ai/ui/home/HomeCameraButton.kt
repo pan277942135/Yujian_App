@@ -26,6 +26,7 @@ internal interface HomeCameraRasterAssets {
 internal fun HomeCameraButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     motionState: HomeMotionState = rememberHomeMotionState(),
     runtimeAssets: HomeCameraRasterAssets? = null,
     visualSize: Dp? = null,
@@ -49,6 +50,7 @@ internal fun HomeCameraButton(
     YuJianCaptureButton(
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled,
         motionEnabled = active,
         rasterAssets = rasterAssets,
         rasterMotion = YuJianCaptureButtonRasterMotion(

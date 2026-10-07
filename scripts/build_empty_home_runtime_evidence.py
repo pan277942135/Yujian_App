@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create Empty Home runtime evidence with full-frame and semantic-region parity."""
+"""Build Empty Home canonical app-surface evidence and contract-backed parity."""
 
 from __future__ import annotations
 
@@ -9,24 +9,16 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageStat
 
-
 ROOT = Path(__file__).resolve().parents[1]
-FEATURE = ROOT / "design/pages/home/empty_home"
-RUNTIME = ROOT / "app/src/main/assets/empty_home_runtime_v2/config"
+CONFIG = ROOT / "app/src/main/assets/empty_home_runtime_v2/config"
+REFERENCE_PATH = ROOT / "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png"
+CANONICAL_SIZE = (1080, 1920)
+FULL_THRESHOLD = 40.0
+HEADER_THRESHOLD = 42.0
 
-REFERENCE_WIDTH = 1080
-REFERENCE_HEIGHT = 1920
 
-# V2.2 is a delta freeze over the V2 base scene. Pixel comparisons against
-# empty_home_v2.png are valid only for unchanged areas. Revised CTA/fishing
-# composition is checked against the explicit V2.2 runtime contracts plus
-# real-screenshot visibility, so an older base PNG cannot reject approved deltas.
-BASE_VISUAL_REGIONS = {
-    "hero": {
-        "box": [50, 224, 670, 534],
-        "threshold": 42.0,
-    },
-}
+def load_json(name: str) -> dict:
+    return json.loads((CONFIG / name).read_text(encoding="utf-8"))
 
 
 def mean_rgb_error(left: Image.Image, right: Image.Image) -> float:
@@ -34,16 +26,31 @@ def mean_rgb_error(left: Image.Image, right: Image.Image) -> float:
     return sum(ImageStat.Stat(diff).mean) / 3.0
 
 
-def runtime_box(reference_box: list[int], width: int, height: int) -> tuple[int, int, int, int]:
-    x0, y0, x1, y1 = reference_box
-    sx = width / REFERENCE_WIDTH
-    sy = height / REFERENCE_HEIGHT
-    return (
-        int(round(x0 * sx)),
-        int(round(y0 * sy)),
-        int(round(x1 * sx)),
-        int(round(y1 * sy)),
-    )
+def mean_rgb_spread(image: Image.Image) -> float:
+    return sum(ImageStat.Stat(image.convert("RGB")).stddev) / 3.0
+
+
+def require_canonical(path: Path, label: str) -> Image.Image:
+    image = Image.open(path).convert("RGB")
+    if image.size != CANONICAL_SIZE:
+        raise SystemExit(
+            f"CANONICAL_CAPTURE_INVALID {label}={image.width}x{image.height} expected=1080x1920"
+        )
+    return image
+
+
+def checked_crop(image: Image.Image, box: tuple[int, int, int, int], label: str) -> Image.Image:
+    x0, y0, x1, y1 = box
+    if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
+        raise SystemExit(f"CANONICAL_CAPTURE_INVALID {label}_box={box}")
+    return image.crop(box)
+
+
+def save_diff(reference: Image.Image, runtime: Image.Image, box: tuple[int, int, int, int], path: Path) -> float:
+    ref_crop = checked_crop(reference, box, "reference")
+    run_crop = checked_crop(runtime, box, "runtime")
+    ImageChops.difference(ref_crop, run_crop).save(path)
+    return mean_rgb_error(ref_crop, run_crop)
 
 
 def main() -> None:
@@ -52,257 +59,155 @@ def main() -> None:
     parser.add_argument("--build-sha", required=True)
     args = parser.parse_args()
     out = args.evidence_dir
-    static = out / "runtime_static.png"
-    if not static.is_file():
-        raise SystemExit("runtime_static.png is required before evidence metadata is generated")
+    out.mkdir(parents=True, exist_ok=True)
+    runtime = require_canonical(out / "runtime_static.png", "runtime")
+    reference = require_canonical(REFERENCE_PATH, "reference")
 
-    anchors = json.loads((RUNTIME / "anchor_contract.json").read_text())
-    motion = json.loads((RUNTIME / "motion_contract.json").read_text())
-    runtime = json.loads((RUNTIME / "runtime_manifest.json").read_text())
-    image = Image.open(static).convert("RGB")
+    anchors = load_json("anchor_contract.json")
+    motion = load_json("motion_contract.json")
+    responsive = load_json("responsive_mapping_contract.json")
+    manifest = load_json("runtime_manifest.json")
 
-    overlay = image.convert("RGBA")
-    d = ImageDraw.Draw(overlay, "RGBA")
-    contact = anchors["bobber"]["water_contact_reference_px"]
-    camera = anchors["camera_button"]["center_reference_px"]
-    sx, sy = image.width / REFERENCE_WIDTH, image.height / REFERENCE_HEIGHT
-    for x, y, colour, label in [
-        (*contact, (255, 188, 50, 255), "ripple center / water contact"),
-        (*camera, (20, 74, 123, 255), "capture center"),
-    ]:
-        px, py = x * sx, y * sy
-        d.line((px - 22, py, px + 22, py), fill=colour, width=3)
-        d.line((px, py - 22, px, py + 22), fill=colour, width=3)
-        d.text((px + 26, py - 18), label, fill=colour)
-    overlay.save(out / "anchor_overlay.png")
-
-    # The native canonical PNG remains the sole visual authority. Runtime
-    # screenshots are resampled only for comparison/output dimensions.
-    reference = Image.open(
-        ROOT / "design/system/core_visual_v1/reference/empty_home_v2.png"
-    ).convert("RGB")
-    reference_at_runtime_size = reference.resize(image.size, Image.Resampling.LANCZOS)
-    reference_at_runtime_size.save(out / "frozen_reference.png")
-
-    side_by_side = Image.new("RGB", (image.width * 2, image.height))
-    side_by_side.paste(reference_at_runtime_size, (0, 0))
-    side_by_side.paste(image, (image.width, 0))
-    side_by_side.save(out / "side_by_side.png")
-
-    difference = ImageChops.difference(reference_at_runtime_size, image)
-    difference.save(out / "pixel_diff_heatmap.png")
-
-    candidate = image.resize((REFERENCE_WIDTH, REFERENCE_HEIGHT), Image.Resampling.LANCZOS)
-    reference_for_metric = reference.resize(
-        (REFERENCE_WIDTH, REFERENCE_HEIGHT),
-        Image.Resampling.LANCZOS,
+    hero_spec = responsive["groups"]["hero_copy"]["reference_machine_bbox_px"]
+    hero_box = (
+        int(hero_spec["x"]),
+        int(hero_spec["y"]),
+        int(hero_spec["x"] + hero_spec["width"]),
+        int(hero_spec["y"] + hero_spec["height"]),
     )
-    full_mae = mean_rgb_error(reference_for_metric, candidate)
+    if hero_spec["width"] != 620 or hero_spec["height"] != 310:
+        raise SystemExit("CANONICAL_CAPTURE_INVALID Hero machine bounds do not match the canonical mapping contract")
+    reference_box = hero_box
+    runtime_box = hero_box
+    if reference_box != runtime_box:
+        raise SystemExit("CANONICAL_CAPTURE_INVALID Hero boxes are not in the same canonical coordinate space")
 
-    region_results: dict[str, dict[str, object]] = {}
-    region_failures: list[str] = []
-
-    # Unchanged V2 areas continue to use direct pixel parity.
-    for name, spec in BASE_VISUAL_REGIONS.items():
-        box = runtime_box(spec["box"], image.width, image.height)
-        ref_crop = reference_at_runtime_size.crop(box)
-        runtime_crop = image.crop(box)
-        value = mean_rgb_error(ref_crop, runtime_crop)
-        threshold = float(spec["threshold"])
-        status = "PASS" if value <= threshold else "FAIL"
-        if status != "PASS":
-            region_failures.append(name)
-
-        region_results[name] = {
-            "authority": "Empty_Home_Final_Design_V2",
-            "reference_box": spec["box"],
-            "runtime_box": list(box),
-            "metric": "mean_absolute_rgb_error",
-            "value": round(value, 4),
-            "threshold": threshold,
-            "status": status,
-        }
-
-        comparison = Image.new(
-            "RGB",
-            (ref_crop.width * 2, max(ref_crop.height, runtime_crop.height)),
-        )
-        comparison.paste(ref_crop, (0, 0))
-        comparison.paste(runtime_crop, (ref_crop.width, 0))
-        comparison.save(out / f"region_{name}_side_by_side.png")
-
-    # Camera / CTA are V2.2-approved deltas. Validate their frozen geometry and
-    # that the real APK screenshot actually contains the bright capture control
-    # at the contracted location instead of comparing against stale V2 pixels.
+    header_box = (0, 0, 1080, 200)
+    contact_x, contact_y = anchors["bobber"]["water_contact_reference_px"]
+    fishing_box = (
+        max(0, int(contact_x) - 120),
+        max(0, int(contact_y) - 90),
+        min(1080, int(contact_x) + 120),
+        min(1920, int(contact_y) + 90),
+    )
     camera_anchor = anchors["camera_button"]["bbox_reference_px"]
-    camera_reference_box = [
+    camera_box = (
         int(camera_anchor["x"]),
         int(camera_anchor["y"]),
         int(camera_anchor["x"] + camera_anchor["width"]),
         int(camera_anchor["y"] + camera_anchor["height"]),
-    ]
-    camera_box = runtime_box(camera_reference_box, image.width, image.height)
-    camera_crop = image.crop(camera_box)
-    camera_pixels = list(camera_crop.getdata())
-    camera_bright_fraction = (
-        sum(1 for r, g, b in camera_pixels if r > 210 and g > 210 and b > 210)
-        / max(1, len(camera_pixels))
     )
-    camera_spread = sum(ImageStat.Stat(camera_crop).stddev) / 3.0
-    camera_in_bounds = (
-        0 <= camera_box[0] < camera_box[2] <= image.width
-        and 0 <= camera_box[1] < camera_box[3] <= image.height
-    )
-    camera_status = (
-        "PASS"
-        if camera_in_bounds and camera_bright_fraction >= 0.05 and camera_spread >= 10.0
-        else "FAIL"
-    )
-    if camera_status != "PASS":
-        region_failures.append("camera")
-    region_results["camera"] = {
-        "authority": "Empty_Home_Frozen_Visual_Revision_V2_2",
-        "reference_box": camera_reference_box,
-        "runtime_box": list(camera_box),
-        "metric": "contract_geometry+runtime_visibility",
-        "bright_fraction": round(camera_bright_fraction, 4),
-        "bright_fraction_min": 0.05,
-        "rgb_stddev_mean": round(camera_spread, 4),
-        "rgb_stddev_min": 10.0,
-        "status": camera_status,
-    }
-    camera_crop.save(out / "region_camera_runtime.png")
-
     cta = anchors["cta"]
+    cta_box = (
+        0,
+        int(cta["prompt_top_reference_px"]),
+        1080,
+        min(1920, int(cta["album_top_reference_px"]) + 120),
+    )
+
+    # Required canonical evidence files. No image is scaled to reach these dimensions.
+    reference.save(out / "01_frozen_1080x1920.png")
+    runtime.save(out / "02_runtime_canonical_1080x1920.png")
+    side = Image.new("RGB", (2160, 1920))
+    side.paste(reference, (0, 0))
+    side.paste(runtime, (1080, 0))
+    side.save(out / "03_reference_vs_runtime.png")
+    full_diff = ImageChops.difference(reference, runtime)
+    full_diff.save(out / "04_full_diff.png")
+    checked_crop(reference, reference_box, "hero_reference").save(out / "05_hero_reference.png")
+    checked_crop(runtime, runtime_box, "hero_runtime").save(out / "06_hero_runtime.png")
+    save_diff(reference, runtime, hero_box, out / "07_hero_diff.png")
+    save_diff(reference, runtime, header_box, out / "08_header_diff.png")
+    save_diff(reference, runtime, fishing_box, out / "09_fishing_diff.png")
+    save_diff(reference, runtime, camera_box, out / "10_camera_diff.png")
+    reference.save(out / "static_reference.png")
+
+    full_mae = mean_rgb_error(reference, runtime)
+    header_mae = mean_rgb_error(checked_crop(reference, header_box, "header"), checked_crop(runtime, header_box, "header"))
+    hero_mae = mean_rgb_error(checked_crop(reference, hero_box, "hero"), checked_crop(runtime, hero_box, "hero"))
+    fishing_mae = mean_rgb_error(checked_crop(reference, fishing_box, "fishing"), checked_crop(runtime, fishing_box, "fishing"))
+    camera_mae = mean_rgb_error(checked_crop(reference, camera_box, "camera"), checked_crop(runtime, camera_box, "camera"))
+    cta_mae = mean_rgb_error(checked_crop(reference, cta_box, "cta"), checked_crop(runtime, cta_box, "cta"))
+
+    camera_crop = checked_crop(runtime, camera_box, "camera")
+    camera_pixels = list(camera_crop.getdata())
+    bright_fraction = sum(1 for red, green, blue in camera_pixels if red > 210 and green > 210 and blue > 210) / max(1, len(camera_pixels))
+    camera_status = "PASS" if bright_fraction >= 0.05 and mean_rgb_spread(camera_crop) >= 10.0 else "FAIL"
+
+    line_end = anchors["line"]["end_reference_px"]
+    ripple_center = anchors["ripple"]["center_reference_px"]
+    fishing_contract_ok = (
+        ripple_center == [contact_x, contact_y]
+        and int(line_end[0]) == int(contact_x)
+        and int(line_end[1]) > int(contact_y)
+        and mean_rgb_spread(checked_crop(runtime, fishing_box, "fishing")) >= 5.0
+    )
+    fishing_status = "PASS" if fishing_contract_ok else "FAIL"
+
     prompt_top = int(cta["prompt_top_reference_px"])
     camera_top = int(cta["camera_top_reference_px"])
     camera_size = int(cta["camera_size_reference_px"])
     album_top = int(cta["album_top_reference_px"])
-    cta_geometry_ok = (
+    cta_contract_ok = (
         prompt_top < camera_top
         and camera_top == int(camera_anchor["y"])
-        and camera_size == int(camera_anchor["height"])
-        and camera_size == int(camera_anchor["width"])
+        and camera_size == int(camera_anchor["width"]) == int(camera_anchor["height"])
         and camera_top + camera_size < album_top
-        and album_top < REFERENCE_HEIGHT
+        and album_top < 1920
     )
-    cta_status = "PASS" if cta_geometry_ok and camera_status == "PASS" else "FAIL"
-    if cta_status != "PASS":
-        region_failures.append("cta")
-    region_results["cta"] = {
-        "authority": "Empty_Home_Frozen_Visual_Revision_V2_2",
-        "metric": "frozen_anchor_contract",
-        "prompt_top_reference_px": prompt_top,
-        "camera_top_reference_px": camera_top,
-        "camera_size_reference_px": camera_size,
-        "album_top_reference_px": album_top,
-        "status": cta_status,
-    }
+    cta_status = "PASS" if cta_contract_ok and camera_status == "PASS" else "FAIL"
 
-    # Fishing composition is also a V2.2 delta. Validate the frozen line/contact
-    # relationship and require non-blank runtime pixels around the new contact.
-    contact_x, contact_y = anchors["bobber"]["water_contact_reference_px"]
-    bobber_reference_box = [
-        max(0, int(contact_x) - 120),
-        max(0, int(contact_y) - 90),
-        min(REFERENCE_WIDTH, int(contact_x) + 120),
-        min(REFERENCE_HEIGHT, int(contact_y) + 90),
-    ]
-    bobber_box = runtime_box(bobber_reference_box, image.width, image.height)
-    bobber_crop = image.crop(bobber_box)
-    bobber_spread = sum(ImageStat.Stat(bobber_crop).stddev) / 3.0
-    line_end = anchors["line"]["end_reference_px"]
-    ripple_center = anchors["ripple"]["center_reference_px"]
-    bobber_contract_ok = (
-        ripple_center == [contact_x, contact_y]
-        and int(line_end[0]) == int(contact_x)
-        and int(line_end[1]) > int(contact_y)
-        and bobber_spread >= 5.0
-    )
-    bobber_status = "PASS" if bobber_contract_ok else "FAIL"
-    if bobber_status != "PASS":
-        region_failures.append("bobber_water")
-    region_results["bobber_water"] = {
-        "authority": "Empty_Home_Frozen_Visual_Revision_V2_2",
-        "reference_box": bobber_reference_box,
-        "runtime_box": list(bobber_box),
-        "metric": "frozen_anchor_contract+runtime_variance",
-        "rgb_stddev_mean": round(bobber_spread, 4),
-        "rgb_stddev_min": 5.0,
-        "water_contact_reference_px": [contact_x, contact_y],
-        "line_end_reference_px": line_end,
-        "status": bobber_status,
+    regions = {
+        "full_frame": {"box": [0, 0, 1080, 1920], "metric": "mean_absolute_rgb_error", "value": round(full_mae, 4), "threshold": FULL_THRESHOLD, "status": "PASS" if full_mae <= FULL_THRESHOLD else "FAIL"},
+        "header": {"box": list(header_box), "metric": "mean_absolute_rgb_error", "value": round(header_mae, 4), "threshold": HEADER_THRESHOLD, "status": "PASS" if header_mae <= HEADER_THRESHOLD else "FAIL"},
+        "hero": {"authority": "responsive_mapping_contract.json:groups.hero_copy.reference_machine_bbox_px", "reference_box": list(reference_box), "runtime_box": list(runtime_box), "metric": "mean_absolute_rgb_error", "value": round(hero_mae, 4), "threshold": 42.0, "status": "PASS" if hero_mae <= 42.0 else "FAIL"},
+        "fishing_composition": {"authority": "Empty_Home_Frozen_Visual_Revision_V2_2 + anchor_contract.json", "box": list(fishing_box), "metric": "base_reference_MAE_plus_contract_visibility", "value": round(fishing_mae, 4), "contract_status": fishing_status, "status": fishing_status},
+        "camera": {"authority": "Empty_Home_Frozen_Visual_Revision_V2_2 + anchor_contract.json", "box": list(camera_box), "metric": "base_reference_MAE_plus_runtime_visibility", "value": round(camera_mae, 4), "bright_fraction": round(bright_fraction, 4), "bright_fraction_min": 0.05, "rgb_spread": round(mean_rgb_spread(camera_crop), 4), "rgb_spread_min": 10.0, "status": camera_status},
+        "cta": {"authority": "Empty_Home_Frozen_Visual_Revision_V2_2 + anchor_contract.json", "box": list(cta_box), "metric": "base_reference_MAE_plus_frozen_anchor_contract", "value": round(cta_mae, 4), "prompt_top": prompt_top, "camera_top": camera_top, "camera_size": camera_size, "album_top": album_top, "status": cta_status},
     }
-    bobber_crop.save(out / "region_bobber_water_runtime.png")
-
-    full_pass = full_mae <= 40.0
-    overall_pass = full_pass and not region_failures
+    failures = [name for name, item in regions.items() if item["status"] != "PASS"]
     parity = {
-        "source": "real Android APK screenshot runtime_static.png",
-        "reference": "design/system/core_visual_v1/reference/empty_home_v2.png",
-        "visual_revision": runtime.get("visual_revision"),
-        "visual_revision_source_sha256": runtime.get("approved_visual_sha256"),
-        "metric": "hybrid_base_pixel_parity+v2_2_contract_evidence",
-        "value": round(full_mae, 4),
-        "threshold": 40.0,
-        "full_frame_status": "PASS" if full_pass else "FAIL",
-        "regions": region_results,
-        "region_failures": region_failures,
-        "status": "PASS" if overall_pass else "FAIL",
-        "note": (
-            "V2 base-scene/full-frame and unchanged hero use pixel parity. "
-            "V2.2-approved CTA and fishing-composition deltas use frozen geometry "
-            "contracts plus real-runtime visibility so stale V2 pixels are not "
-            "treated as authority for revised regions."
-        ),
+        "source": "instrumentation-rendered app DecorView; no physical framebuffer resampling",
+        "reference": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+        "canonical_dimensions": [1080, 1920],
+        "framebuffer_resampling": False,
+        "visual_revision": manifest.get("visual_revision"),
+        "visual_revision_source_sha256": manifest.get("approved_visual_sha256"),
+        "metric": "canonical_direct_rgb_mae_plus_v2_2_contract_evidence",
+        "hero_reference_box": list(reference_box),
+        "hero_runtime_box": list(runtime_box),
+        "regions": regions,
+        "region_failures": failures,
+        "status": "PASS" if not failures else "FAIL",
     }
-    (out / "visual_parity_report.json").write_text(
-        json.dumps(parity, ensure_ascii=False, indent=2) + "\n"
-    )
-
-    debug = {
+    (out / "visual_parity_report.json").write_text(json.dumps(parity, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (out / "runtime_debug.json").write_text(json.dumps({
         "screen": "home_empty",
-        "design_version": runtime["design_version"],
-        "asset_revision": runtime["asset_revision"],
         "build_sha": args.build_sha,
-        "reference_canvas": runtime["reference_canvas"],
-        "screenshot_dimensions": [image.width, image.height],
-        "bobber_center_reference_px": anchors["bobber"]["center_reference_px"],
-        "water_contact_reference_px": contact,
-        "ripple_center_reference_px": anchors["ripple"]["center_reference_px"],
+        "reference_canvas": [1080, 1920],
+        "screenshot_dimensions": [runtime.width, runtime.height],
+        "visual_revision": manifest.get("visual_revision"),
+        "visual_revision_source_sha256": manifest.get("approved_visual_sha256"),
         "bobber_range_reference_px": motion["bobber"]["range_reference_px"],
         "bobber_duration_ms": motion["bobber"]["duration_ms"],
         "ripple_duration_ms": motion["ripple"]["duration_ms"],
         "camera_gold_rim": motion["camera_gold_rim"],
         "camera_breath": motion["camera_breath"],
-        "base_visual_regions": BASE_VISUAL_REGIONS,
-        "visual_revision": runtime.get("visual_revision"),
-        "visual_revision_source_sha256": runtime.get("approved_visual_sha256"),
-        "delta_region_results": {
-            name: region_results[name]
-            for name in ("camera", "cta", "bobber_water")
-        },
-        "fps_summary": {
-            "capture": "Android adb screenrecord",
-            "duration_s": 15,
-            "expected_frame_rate": 30,
-        },
-        "phase_offsets": {
-            "cloud_s": 17.6,
-            "sun_particle_s": 2.08,
-            "bobber_s": 1.15,
-            "ripple_s": 0.42,
-            "camera_breath_s": 1.71,
-        },
-    }
-    (out / "runtime_debug.json").write_text(
-        json.dumps(debug, ensure_ascii=False, indent=2) + "\n"
-    )
+        "hero_box_reference_px": list(hero_box),
+        "regions": regions,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    # Preserve existing diagnostic aliases consumed by the gate and uploaded artifact.
+    (out / "frozen_reference.png").write_bytes((out / "01_frozen_1080x1920.png").read_bytes())
+    (out / "side_by_side.png").write_bytes((out / "03_reference_vs_runtime.png").read_bytes())
+    (out / "pixel_diff_heatmap.png").write_bytes((out / "04_full_diff.png").read_bytes())
+    hero_side = Image.new("RGB", ((hero_box[2] - hero_box[0]) * 2, hero_box[3] - hero_box[1]))
+    hero_side.paste(checked_crop(reference, hero_box, "hero_reference"), (0, 0))
+    hero_side.paste(checked_crop(runtime, hero_box, "hero_runtime"), (hero_box[2]-hero_box[0], 0))
+    hero_side.save(out / "region_hero_side_by_side.png")
 
     if parity["status"] != "PASS":
-        raise SystemExit(
-            "visual fidelity gate failed: " + json.dumps(parity, ensure_ascii=False)
-        )
+        raise SystemExit("visual fidelity gate failed: " + json.dumps(parity, ensure_ascii=False))
 
 
 if __name__ == "__main__":

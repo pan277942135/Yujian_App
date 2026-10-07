@@ -102,7 +102,10 @@ fun RemoteCatchDetailScreen(
                 url = imageUrl, authToken = accessToken,
                 modifier = Modifier.fillMaxSize().padding(10.dp).graphicsLayer { rotationY = rotation; cameraDistance = 12f * density },
                 contentDescription = "${presentationSpeciesName(catch.speciesName)} 鱼获照片", contentScale = ContentScale.Fit,
-            ) { Image(painter = painterResource(R.drawable.image_error_v12), contentDescription = "图片加载失败", modifier = Modifier.size(56.dp)) }
+                placeholder = {
+                    Image(painter = painterResource(R.drawable.image_error_v12), contentDescription = "图片加载失败", modifier = Modifier.size(56.dp))
+                },
+            )
             if (!bsideUrl.isNullOrBlank()) {
                 RemoteImage(
                     url = bsideUrl, authToken = accessToken,

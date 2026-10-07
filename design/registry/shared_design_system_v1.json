@@ -987,6 +987,92 @@
         }
       ],
       "notes": "共享法律文档页面壳。页面视觉可冻结，正文 Legal Copy 独立治理；Legal Copy 未审批不得因 Shell Frozen 而标记为最终生效文本。"
+    },
+    {
+      "id": "yu_jian_catch_hero_card_v1",
+      "display_name": "YuJianCatchHeroCard",
+      "category": "component",
+      "overall": "FROZEN",
+      "current_version": "MEDIA_EDGE_STATES_V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/components/Hero_Card.md",
+        "design/system/core_visual_v1/components/YuJianCatchHeroCard_Media_Edge_States_V1.md",
+        "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.png",
+        "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.manifest.json"
+      ],
+      "preview": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.png",
+      "preview_type": "shared_hero_media_edge_states",
+      "variants": [
+        {
+          "id": "HOME",
+          "name": "Home Hero",
+          "usage": "Normal Home record card",
+          "status": "FROZEN",
+          "visual_authority": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.png"
+        },
+        {
+          "id": "DETAIL",
+          "name": "Detail Hero",
+          "usage": "FishRecordDetail record Hero",
+          "status": "FROZEN",
+          "visual_authority": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.png"
+        }
+      ],
+      "visual_authority": {
+        "path": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.png",
+        "dimensions_px": {
+          "width": 1760,
+          "height": 1370
+        },
+        "bytes": 579925,
+        "sha256": "7a944491130d624554fbbe86a4b6c272a708b86ef719a8a5212314cca421d84a",
+        "authority_spec": "design/system/core_visual_v1/components/YuJianCatchHeroCard_Media_Edge_States_V1.md",
+        "status": "FROZEN"
+      },
+      "note": "One shared component; HOME and DETAIL use the same landscape / portrait / extreme portrait / embedded letterbox media rules."
+    },
+    {
+      "id": "fish_memory_capture_v1",
+      "display_name": "Fish Memory Capture",
+      "category": "component",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "authority_paths": [
+        "design/system/core_visual_v1/components/Camera_Button.md",
+        "design/system/core_visual_v1/components/Fish_Memory_Capture_V1.md",
+        "design/system/core_visual_v1/components/assets/Fish_Memory_Capture_V1_Frozen.png",
+        "design/system/core_visual_v1/components/assets/Fish_Memory_Capture_V1_Frozen.manifest.json"
+      ],
+      "preview": "design/system/core_visual_v1/components/assets/Fish_Memory_Capture_V1_Frozen.png",
+      "preview_type": "shared_existing_record_capture",
+      "variants": [
+        {
+          "id": "PHOTO",
+          "name": "Photo mode",
+          "usage": "Attach photo to current FishRecord",
+          "status": "FROZEN",
+          "visual_authority": "design/system/core_visual_v1/components/assets/Fish_Memory_Capture_V1_Frozen.png"
+        },
+        {
+          "id": "VIDEO",
+          "name": "Video mode",
+          "usage": "Attach video to current FishRecord",
+          "status": "FROZEN",
+          "visual_authority": "design/system/core_visual_v1/components/assets/Fish_Memory_Capture_V1_Frozen.png"
+        }
+      ],
+      "visual_authority": {
+        "path": "design/system/core_visual_v1/components/assets/Fish_Memory_Capture_V1_Frozen.png",
+        "dimensions_px": {
+          "width": 1540,
+          "height": 1050
+        },
+        "bytes": 512557,
+        "sha256": "5c6e773fb1e569c4f2bb2aa02045ac21ab89e1d9359535b6e17762c175b3ebad",
+        "authority_spec": "design/system/core_visual_v1/components/Fish_Memory_Capture_V1.md",
+        "status": "FROZEN"
+      },
+      "note": "Capture attaches source media to an existing FishRecord. Recognition UI is excluded."
     }
   ],
   "navigation_groups": [
@@ -1010,6 +1096,8 @@
     "top_navigation_v1",
     "mist_glass_surface_v1",
     "color_typography_v1",
-    "spacing_radius_v1"
+    "spacing_radius_v1",
+    "yu_jian_catch_hero_card_v1",
+    "fish_memory_capture_v1"
   ]
 }

@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalView
 object YuJianHaptic {
     enum class Feedback {
         Light,
+        LightImpact,
         Medium,
         Success,
     }
@@ -19,6 +20,7 @@ object YuJianHaptic {
     internal fun perform(view: View, feedback: Feedback) {
         val constant = when (feedback) {
             Feedback.Light -> HapticFeedbackConstants.KEYBOARD_TAP
+            Feedback.LightImpact -> HapticFeedbackConstants.CONTEXT_CLICK
             Feedback.Medium -> HapticFeedbackConstants.CONTEXT_CLICK
             Feedback.Success -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 HapticFeedbackConstants.CONFIRM

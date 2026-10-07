@@ -1,4 +1,4 @@
-# Recognition Result Behavior Spec V1
+# Recognition Result Behavior Spec V1.1
 
 ## 1. Entry
 
@@ -61,7 +61,14 @@ Initial state:
 - show `无法确认是什么鱼`;
 - show `手动选择鱼种`;
 - show `重新拍摄`;
-- hide normal catch metadata/save controls.
+- show vertical metadata and Story as editable draft state;
+- show the shared Dual CTA, but gate unresolved save behind LOW_MANUAL.
+
+Unresolved save:
+- remember whether the user requested Continue Memory or Save Catch;
+- open the shared Species Selector with `LOW_MANUAL`;
+- after a species is selected, commit the species and resume the requested destination;
+- returning unconfirmed preserves draft fields and clears the pending destination.
 
 Manual selection:
 - resolves the species;

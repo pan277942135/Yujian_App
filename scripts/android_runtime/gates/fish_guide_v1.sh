@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.FishGuideRuntimeTest'
+  printf '%s\n' 'com.yujian.ai.FishGuideRuntimeTest,com.yujian.ai.FishKnowledgeContractTest'
 }
 
 gate_collect_evidence() {
@@ -19,7 +19,13 @@ gate_collect_evidence() {
   }
 
   local missing=0 file
-  for file in     fish_guide_lit.png     fish_guide_unlit.png     fish_guide_error.png     fish_species_detail.png     fish_species_detail_catch.png
+  for file in \
+    fish_guide_lit.png \
+    fish_guide_unlit.png \
+    fish_guide_error.png \
+    fish_species_detail.png \
+    fish_species_detail_catch.png \
+    fish_species_detail_zero_catch.png
   do
     if [[ ! -s "$out/$file" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$out/$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"

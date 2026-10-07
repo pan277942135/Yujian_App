@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.LoginV2RuntimeTest'
+  printf '%s\n' 'com.yujian.ai.LoginV2RuntimeTest,com.yujian.ai.AccountPrivacyRuntimeTest,com.yujian.ai.ui.recorddetail.FishRecordDetailRuntimeTest,com.yujian.ai.ui.designsystem.DesignSystemComponentPreviewTest'
 }
 
 gate_collect_evidence() {
@@ -39,7 +39,13 @@ gate_collect_evidence() {
     p0_shared_components_default.png \
     p0_button_pressed.png \
     p0_button_disabled.png \
-    p0_button_loading.png
+    p0_button_loading.png \
+    account_profile_idle.png \
+    account_profile_invalid_nickname.png \
+    account_avatar_source_sheet.png \
+    account_change_password_visible.png \
+    shared_components_accessibility.png \
+    shared_components_compact_large_font.png
   do
     if [[ ! -s "$login_dir/$file" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$login_dir/$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"

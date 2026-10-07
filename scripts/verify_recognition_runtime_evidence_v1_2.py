@@ -13,12 +13,16 @@ REQUIRED = [
     "02_image_recognizing_late.png",
     "03_fish_located.png",
     "04_species_recognizing.png",
+    "05_resolve.png",
     "05_result_high.png",
     "06_result_medium.png",
     "07_result_low.png",
     "08_issue_no_fish.png",
     "09_issue_image_quality.png",
     "10_issue_technical_failure.png",
+    "06_edge_field_crop.png",
+    "07_fish_focus_crop.png",
+    "08_contour_closeup.png",
     "recognition_processing_v1_2.mp4",
     "recognition_processing_timing_v1_2.txt",
     "recognition_motion_trace_v1_2.json",
@@ -32,6 +36,8 @@ REQUIRED = [
     "recognition_production_flow_trace_v1_2.json",
     "level_a_real_contour.png",
     "fish_focus_bbox_mapping.json",
+    "recognition_visual_parity_v1_2.json",
+    "recognition_visual_parity_contact_sheet_v1_2.png",
 ]
 MANIFEST = "runtime_evidence_manifest_v1_2.json"
 
@@ -96,11 +102,20 @@ def main() -> None:
         raise SystemExit(f"production pipeline trace mismatch: {flow.get('pipeline_phases')}")
     events = flow.get("presentation_events", [])
     if [item.get("state") for item in events] != [
-        "IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING", "RESULT"
+        "IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING", "RESOLVE", "RESULT"
     ]:
         raise SystemExit("presentation trace is not the three-state product flow")
+    if int(events[-1].get("at_ms", 0)) - int(events[-2].get("at_ms", 0)) < 200:
+        raise SystemExit("presentation trace does not preserve the Resolve fade")
     if flow.get("result_ready") is not True:
         raise SystemExit("production flow did not reach a ready Result")
+    source = flow.get("source", {})
+    if source.get("width", 0) <= 0 or source.get("height", 0) <= 0:
+        raise SystemExit("production flow is missing source dimensions")
+    if flow.get("quality_gate", {}).get("classifier_eligible") is not True:
+        raise SystemExit("production flow quality gate did not admit the fixture")
+    if flow.get("focus", {}).get("level") != "A":
+        raise SystemExit("production flow did not record Level A focus")
 
     accessibility = json.loads(
         (root / "recognition_accessibility_trace_v1_2.json").read_text(encoding="utf-8")

@@ -17,8 +17,15 @@ class EmptyHomeV2RuntimeContractTest {
         assertTrue(files.containsAll(setOf("static", "dynamic", "camera", "config")))
         val motion = assets.open("$root/config/motion_contract.json").bufferedReader().use { JSONObject(it.readText()) }
         val anchors = assets.open("$root/config/anchor_contract.json").bufferedReader().use { JSONObject(it.readText()) }
+        val authority = assets.open("$root/config/authority_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
+        val responsive = assets.open("$root/config/responsive_mapping_contract.json").bufferedReader().use { JSONObject(it.readText()) }
         val runtime = assets.open("$root/config/runtime_manifest.json").bufferedReader().use { JSONObject(it.readText()) }
+        val layers = assets.open("$root/config/layer_contract.json").bufferedReader().use { JSONObject(it.readText()) }
 
+        assertEquals("CURRENT", authority.getString("authority_status"))
+        assertEquals("V2.2", authority.getString("visual_revision"))
+        assertEquals("UNIFORM_COVER_COMPOSITION_AWARE", responsive.getJSONObject("groups").getJSONObject("scene_space").getString("strategy"))
+        assertEquals(620, responsive.getJSONObject("groups").getJSONObject("hero_copy").getJSONObject("reference_machine_bbox_px").getInt("width"))
         assertEquals("Empty_Home_Final_Design_V2", runtime.getString("design_version"))
         assertEquals("V2.2", runtime.getString("visual_revision"))
         assertEquals("3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec", runtime.getString("approved_visual_sha256"))
@@ -35,14 +42,34 @@ class EmptyHomeV2RuntimeContractTest {
         assertEquals(3200, ripple.getInt("duration_ms"))
         assertEquals(1.22, ripple.getDouble("scale_to"), 0.0001)
         assertEquals(0.30, ripple.getDouble("alpha_from"), 0.0001)
-        assertEquals("ripple_below_bobber", ripple.getString("z_order"))
-        assertEquals(
-            anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString(),
-            anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString(),
-        )
-        assertEquals("[560,1320]", anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px").toString())
-        assertEquals("[335,1180]", anchors.getJSONObject("line").getJSONArray("start_reference_px").toString())
-        assertEquals("[560,1328]", anchors.getJSONObject("line").getJSONArray("end_reference_px").toString())
+        assertEquals("below_bobber_above_water", ripple.getString("z_order"))
+        val contact = anchors.getJSONObject("bobber").getJSONArray("water_contact_reference_px")
+        val rippleCenter = anchors.getJSONObject("ripple").getJSONArray("center_reference_px")
+        assertEquals(1, rippleCenter.getInt(0) - contact.getInt(0))
+        assertEquals(-3, rippleCenter.getInt(1) - contact.getInt(1))
+        assertEquals("[561,1323]", contact.toString())
+        assertEquals("[550, 1250, 24, 78]", listOf("x", "y", "width", "height").map {
+            anchors.getJSONObject("bobber").getJSONObject("bbox_reference_px").getInt(it)
+        }.toString())
+        assertEquals("[337,1184]", anchors.getJSONObject("line").getJSONArray("start_reference_px").toString())
+        assertEquals("[560,1326]", anchors.getJSONObject("line").getJSONArray("end_reference_px").toString())
+        assertEquals("[562,1320]", anchors.getJSONObject("ripple").getJSONArray("center_reference_px").toString())
+        assertFalse(layers.getJSONArray("order").toString().contains("bobber_underwater"))
+        val treatment = motion.getJSONObject("bobber_water_treatment")
+        assertEquals("single_body_plus_separate_faded_reflection", treatment.getString("mode"))
+        assertEquals(0, treatment.getInt("underwater_visible_height_reference_px"))
+        assertEquals(0.0, treatment.getDouble("underwater_alpha"), 0.0001)
+        assertEquals(0.32, treatment.getDouble("reflection_max_alpha"), 0.0001)
+        assertTrue(files.contains("dynamic"))
+        val dynamicFiles = assets.list("$root/dynamic")?.toSet().orEmpty()
+        assertTrue(dynamicFiles.containsAll(setOf("rod.png", "bobber.png", "bobber_reflection.png")))
+        assertEquals(1, layers.getJSONObject("rules").getInt("bobber_body_render_count"))
+        assertEquals(1, layers.getJSONObject("rules").getInt("ripple_count"))
+        assertTrue(layers.getJSONObject("rules").getBoolean("reflection_is_separate_asset"))
+        assertEquals("single_pale_stroke_without_outline", layers.getJSONObject("rules").getString("line_stroke_model"))
+        val fishingBounds = responsive.getJSONObject("groups").getJSONObject("scene_space").getJSONObject("fishing_protected_bounds_reference_px")
+        assertEquals(0, fishingBounds.getInt("left"))
+        assertEquals(660, fishingBounds.getInt("right"))
         assertEquals(220, anchors.getJSONObject("cta").getInt("camera_size_reference_px"))
 
         assets.open("$root/camera/camera_button_base.png").use { stream ->

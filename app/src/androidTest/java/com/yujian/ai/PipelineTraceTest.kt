@@ -19,6 +19,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileOutputStream
 
 @RunWith(AndroidJUnit4::class)
 class PipelineTraceTest {
@@ -100,6 +102,78 @@ class PipelineTraceTest {
             assertReportContains(report, "crop_pixels=${cropPixels.contentToString()}")
             assertReportContains(report, "classifier_source=DETECTOR_CROP")
             assertReportContains(report, "preprocess=FISH_CROP_LETTERBOX")
+        } finally {
+            if (!bitmap.isRecycled) bitmap.recycle()
+        }
+    }
+
+    @Test
+    fun portraitLowConfidenceCaseExportsExactProductionReplayEvidence() = runBlocking {
+        val sourceBytes = readTestAssetBytes("recognition_real_catch_fixture.jpg")
+        val bitmap = decodeOrientedTestAsset("recognition_real_catch_fixture.jpg")
+        try {
+            val result = FishRecognitionPipeline(appContext).use { pipeline ->
+                pipeline.recognize(bitmap)
+            }
+            assertTrue("portrait replay must reach the production classifier", result.ready)
+            val prediction = requireNotNull(result.prediction)
+            assertTrue(
+                "the registered portrait low-confidence fixture changed: ${prediction.top1.confidence}",
+                prediction.top1.confidence < 0.45f,
+            )
+            val cropPixels = requireNotNull(result.cropPixels)
+            val crop = Bitmap.createBitmap(
+                bitmap,
+                cropPixels[0],
+                cropPixels[1],
+                cropPixels[2] - cropPixels[0],
+                cropPixels[3] - cropPixels[1],
+            )
+            val evidence = File(appContext.cacheDir, "recognition-evidence").apply { mkdirs() }
+            File(evidence, "portrait_low_confidence_original.jpg").writeBytes(sourceBytes)
+            FileOutputStream(File(evidence, "portrait_low_confidence_classifier_crop.png")).use {
+                crop.compress(Bitmap.CompressFormat.PNG, 100, it)
+            }
+            if (!crop.isRecycled) crop.recycle()
+            val modelInput = requireNotNull(prediction.modelInputBitmap)
+            FileOutputStream(File(evidence, "portrait_low_confidence_model_input_224.png")).use {
+                modelInput.compress(Bitmap.CompressFormat.PNG, 100, it)
+            }
+            val report = InferenceTrace.lastReport
+            assertReportContains(report, "pipeline=DETECTOR_CROP_CLASSIFIER")
+            assertReportContains(report, "classifier_source=DETECTOR_CROP")
+            assertReportContains(report, "detector_bbox_normalized=")
+            assertReportContains(report, "crop_pixels=${cropPixels.contentToString()}")
+            assertReportContains(report, "top3=[")
+            File(evidence, "portrait_low_confidence_inference_report.txt").writeText(report)
+            appContext.assets.open("class_map.json").use { input ->
+                File(evidence, "portrait_low_confidence_class_map.json").outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            val box = requireNotNull(result.assessment.primary).box.normalized()
+            val diagnostic = JSONObject()
+                .put("fixture", "recognition_real_catch_fixture.jpg")
+                .put("model_version", prediction.modelVersion)
+                .put("top1_species_key", prediction.top1.speciesKey)
+                .put("top1_confidence", prediction.top1.confidence.toDouble())
+                .put("low_confidence_threshold", 0.45)
+                .put("detector_bbox_normalized", org.json.JSONArray(listOf(box.x1, box.y1, box.x2, box.y2)))
+                .put("crop_pixels", org.json.JSONArray(cropPixels.toList()))
+                .put("crop_size", "${cropPixels[2] - cropPixels[0]}x${cropPixels[3] - cropPixels[1]}")
+                .put("classifier_input", "portrait_low_confidence_model_input_224.png")
+                .put("class_mapping", "portrait_low_confidence_class_map.json")
+                .put(
+                    "top3",
+                    org.json.JSONArray(prediction.candidates.take(3).map { candidate ->
+                        JSONObject()
+                            .put("class_index", candidate.classIndex)
+                            .put("species_key", candidate.speciesKey)
+                            .put("confidence", candidate.confidence.toDouble())
+                    }),
+                )
+            File(evidence, "portrait_low_confidence_diagnostic.json").writeText(diagnostic.toString(2))
+            println("PORTRAIT_LOW_CONFIDENCE_DIAGNOSTIC\n${diagnostic.toString(2)}\n$report")
         } finally {
             if (!bitmap.isRecycled) bitmap.recycle()
         }

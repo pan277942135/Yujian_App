@@ -10,7 +10,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
@@ -21,12 +20,96 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlin.math.PI
 import kotlin.math.sin
 
+internal fun recognitionOutlineHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return .15f
+    val elapsed = phaseElapsedMs.coerceAtLeast(0L)
+    val envelope = when {
+        elapsed < OUTLINE_HALO_ATTACK_MS -> smoothFraction(elapsed.toFloat() / OUTLINE_HALO_ATTACK_MS)
+        elapsed < OUTLINE_HALO_SETTLE_MS -> 1f - smoothFraction(
+            (elapsed - OUTLINE_HALO_ATTACK_MS).toFloat() /
+                (OUTLINE_HALO_SETTLE_MS - OUTLINE_HALO_ATTACK_MS),
+        )
+        else -> 0f
+    }
+    return .10f + .08f * envelope
+}
+internal fun recognitionLevelBHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return .28f
+    val elapsed = phaseElapsedMs.coerceAtLeast(0L)
+    val envelope = when {
+        elapsed < LEVEL_B_HALO_ATTACK_MS -> smoothFraction(elapsed.toFloat() / LEVEL_B_HALO_ATTACK_MS)
+        elapsed < LEVEL_B_HALO_SETTLE_MS -> 1f - smoothFraction(
+            (elapsed - LEVEL_B_HALO_ATTACK_MS).toFloat() /
+                (LEVEL_B_HALO_SETTLE_MS - LEVEL_B_HALO_ATTACK_MS),
+        )
+        else -> 0f
+    }
+    return .24f + .12f * envelope
+}
+
+internal fun recognitionLevelBPerimeterAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return .48f
+    val elapsed = phaseElapsedMs.coerceAtLeast(0L)
+    val envelope = when {
+        elapsed < LEVEL_B_HALO_ATTACK_MS -> smoothFraction(elapsed.toFloat() / LEVEL_B_HALO_ATTACK_MS)
+        elapsed < LEVEL_B_HALO_SETTLE_MS -> 1f - smoothFraction(
+            (elapsed - LEVEL_B_HALO_ATTACK_MS).toFloat() /
+                (LEVEL_B_HALO_SETTLE_MS - LEVEL_B_HALO_ATTACK_MS),
+        )
+        else -> 0f
+    }
+    return .42f + .14f * envelope
+}
+
+internal fun recognitionDisplayedFishFocusLevel(
+    requestedLevel: RecognitionFishFocusLevel,
+    levelAAvailable: Boolean,
+    phaseElapsedMs: Long,
+    phaseOverrideActive: Boolean,
+): RecognitionFishFocusLevel = when {
+    requestedLevel == RecognitionFishFocusLevel.C -> RecognitionFishFocusLevel.C
+    requestedLevel == RecognitionFishFocusLevel.B -> RecognitionFishFocusLevel.B
+    !levelAAvailable -> RecognitionFishFocusLevel.B
+    phaseOverrideActive || phaseElapsedMs >= FISH_FOCUS_A_PROMOTION_DELAY_MS ->
+        RecognitionFishFocusLevel.A
+    else -> RecognitionFishFocusLevel.B
+}
+
+private fun smoothFraction(value: Float): Float {
+    val t = value.coerceIn(0f, 1f)
+    return t * t * (3f - 2f * t)
+}
+
+private const val OUTLINE_HALO_ATTACK_MS = 120L
+private const val OUTLINE_HALO_SETTLE_MS = 420L
+private const val LEVEL_B_HALO_ATTACK_MS = 120L
+private const val LEVEL_B_HALO_SETTLE_MS = 420L
+internal const val FISH_FOCUS_A_PROMOTION_DELAY_MS = 420L
+
 data class RecognitionContourSegment(
     val startX: Float,
     val startY: Float,
     val endX: Float,
     val endY: Float,
 )
+
+internal data class RecognitionFishFocusRadii(
+    val radiusX: Float,
+    val radiusY: Float,
+)
+
+internal fun recognitionFishFocusRadii(
+    transform: RecognitionImageTransform,
+    focusBox: NormalizedFishBox,
+    focusLevel: RecognitionFishFocusLevel,
+    paddingPx: Float,
+): RecognitionFishFocusRadii {
+    val mapped = transform.mapBoxRect(focusBox.normalized())
+    return RecognitionFishFocusRadii(
+        radiusX = mapped.width * (if (focusLevel == RecognitionFishFocusLevel.B) .54f else .62f) + paddingPx,
+        radiusY = mapped.height * (if (focusLevel == RecognitionFishFocusLevel.B) .60f else .72f) + paddingPx,
+    )
+}
 
 /**
  * Fish Focus A/B/C renderer.
@@ -85,15 +168,18 @@ fun RecognitionFishFocus(
             .testTag(focusTag),
     ) {
         val normalized = focusBox.normalized()
-        val mapped = transform.mapBox(normalized)
-        val center = Offset(mapped.x, mapped.y)
-
-        val baseRadiusX = transform.drawnWidth * normalized.width *
-            if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
-        val baseRadiusY = transform.drawnHeight * normalized.height *
-            if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
-        val visualRadiusX = baseRadiusX + 8.dp.toPx()
-        val visualRadiusY = baseRadiusY + 8.dp.toPx()
+        val mappedRect = transform.mapBoxRect(normalized)
+        val center = Offset(mappedRect.center.x, mappedRect.center.y)
+        val radii = recognitionFishFocusRadii(
+            transform = transform,
+            focusBox = normalized,
+            focusLevel = effectiveLevel,
+            paddingPx = 14.dp.toPx(),
+        )
+        val baseRadiusX = mappedRect.width * if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
+        val baseRadiusY = mappedRect.height * if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
+        val visualRadiusX = radii.radiusX
+        val visualRadiusY = radii.radiusY
 
         val remaining =
             1f - resolveProgress.coerceIn(0f, 1f)
@@ -127,10 +213,16 @@ fun RecognitionFishFocus(
                 .5f
             }
 
-        val haloTarget = when {
-            reduceMotion -> .15f
-            phase == RecognitionPhase.OUTLINE -> .16f
-            else -> .12f + .06f * wave
+        val haloTarget = if (phase == RecognitionPhase.OUTLINE) {
+            if (effectiveLevel == RecognitionFishFocusLevel.B) {
+                recognitionLevelBHaloAlpha(phaseElapsedMs, reduceMotion)
+            } else {
+                recognitionOutlineHaloAlpha(phaseElapsedMs, reduceMotion)
+            }
+        } else if (reduceMotion) {
+            .15f
+        } else {
+            .12f + .06f * wave
         }
         val contourCoreTarget = when {
             reduceMotion -> .39f
@@ -141,7 +233,15 @@ fun RecognitionFishFocus(
         // A real detector box is already enough to acknowledge the fish. Show
         // its local receiving halo on the first OUTLINE frame; contour detail
         // continues to reveal independently as Level A data arrives.
-        val haloReveal = if (phase == RecognitionPhase.OUTLINE) maxOf(.72f, reveal) else reveal
+        val haloReveal = if (
+            phase == RecognitionPhase.OUTLINE && effectiveLevel == RecognitionFishFocusLevel.B
+        ) {
+            1f
+        } else if (phase == RecognitionPhase.OUTLINE) {
+            reveal.coerceAtLeast(.72f)
+        } else {
+            reveal
+        }
         val haloAlpha = haloTarget * haloReveal * resolveStrength
 
         val radiusScale =
@@ -174,8 +274,13 @@ fun RecognitionFishFocus(
         if (effectiveLevel == RecognitionFishFocusLevel.B) {
             drawOval(
                 color = Color(0xFFFFE7AE).copy(
-                    alpha = (.22f * reveal * resolveStrength)
-                        .coerceAtMost(.22f),
+                    alpha = (
+                        if (phase == RecognitionPhase.OUTLINE) {
+                            recognitionLevelBPerimeterAlpha(phaseElapsedMs, reduceMotion)
+                        } else {
+                            .30f + .12f * wave
+                        }
+                    ) * haloReveal * resolveStrength,
                 ),
                 topLeft = Offset(
                     center.x - baseRadiusX,
@@ -187,13 +292,6 @@ fun RecognitionFishFocus(
                 ),
                 style = Stroke(
                     width = 1.2.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(
-                        floatArrayOf(
-                            maxOf(baseRadiusX, baseRadiusY) * 1.95f,
-                            maxOf(baseRadiusX, baseRadiusY) * 4.55f,
-                        ),
-                        0f,
-                    ),
                 ),
             )
         }
@@ -224,20 +322,20 @@ fun RecognitionFishFocus(
             drawPath(
                 realContour,
                 Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .20f).coerceAtMost(.09f),
+                    alpha = (coreAlpha * .30f).coerceAtMost(.12f),
                 ),
                 style = Stroke(
-                    width = 9.dp.toPx(),
+                    width = 11.dp.toPx(),
                     cap = StrokeCap.Round,
                 ),
             )
             drawPath(
                 realContour,
-                Color(0xFFFFDE9B).copy(
-                    alpha = (coreAlpha * .50f).coerceAtMost(.21f),
+                Color(0xFFFFD887).copy(
+                    alpha = (coreAlpha * .68f).coerceAtMost(.24f),
                 ),
                 style = Stroke(
-                    width = 3.6.dp.toPx(),
+                    width = 4.dp.toPx(),
                     cap = StrokeCap.Round,
                 ),
             )
@@ -247,7 +345,7 @@ fun RecognitionFishFocus(
                     alpha = coreAlpha.coerceAtMost(.42f),
                 ),
                 style = Stroke(
-                    width = 1.4.dp.toPx(),
+                    width = 1.5.dp.toPx(),
                     cap = StrokeCap.Round,
                 ),
             )

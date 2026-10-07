@@ -42,7 +42,7 @@
         "鱼种 + 修改鱼种",
         "轻量鱼获信息",
         "鱼获感言",
-        "继续记录记忆 / 保存本次鱼获",
+        "继续记忆 / 保存本次鱼获",
         "Implementation-ready Engineering Contracts V1"
       ]
     },
@@ -79,7 +79,7 @@
         "Hero Media Contract V1",
         "手动选择鱼种",
         "重新拍摄",
-        "选择前不展示正常 Metadata / Save",
+        "选择前保留 Metadata / Story；Save 先进入 LOW_MANUAL",
         "Implementation-ready Engineering Contracts V1"
       ]
     },

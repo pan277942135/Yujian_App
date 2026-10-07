@@ -81,7 +81,7 @@ fun LoginV2Screen(
     AuthV2Scaffold(
         title = "欢迎回来",
         subtitle = "继续记录你的每一次渔获",
-        environmentFraction = 0.34f,
+        environmentFraction = 0.435f,
     ) {
         AuthV2Field(
             label = "账号",

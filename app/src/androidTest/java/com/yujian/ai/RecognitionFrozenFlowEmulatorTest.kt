@@ -6,8 +6,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
+import android.view.View
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
@@ -21,16 +23,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.compose.NavHost
@@ -49,6 +58,7 @@ import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
+import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -60,6 +70,7 @@ import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
+import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.screens.extractContour
 import com.yujian.ai.ui.theme.YujianTheme
 import org.junit.Assert.assertEquals
@@ -76,6 +87,7 @@ import java.util.Collections
 import java.util.LinkedHashMap
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.withContext
 
 /**
@@ -85,6 +97,7 @@ import kotlinx.coroutines.withContext
 class RecognitionFrozenFlowEmulatorTest {
     private companion object {
         const val FROZEN_GATE_LOG_TAG = "RecognitionFrozenGate"
+        const val SCREENSHOT_SCALE_TOLERANCE = 0.01f
 
         // Manual ground-truth annotation in source-photo pixel coordinates.
         // Clockwise from the mouth around the actual carp silhouette.
@@ -183,11 +196,16 @@ class RecognitionFrozenFlowEmulatorTest {
         render(state, FrozenState.FISH_LOCATED, "已定位到鱼体", "03_fish_located.png")
         assertVisible("正在分析这次鱼获")
 
-        render(state, FrozenState.SPECIES_RECOGNIZING, "鱼种识别中", "04_species_recognizing.png")
-        assertVisible("正在分析鱼体特征")
+        render(state, FrozenState.SPECIES_RECOGNIZING, "正在认识这条鱼", "04_species_recognizing.png")
+        assertVisible("分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.RESULT_HIGH, "修改鱼种 ›", "05_result_high.png")
+        render(state, FrozenState.RESOLVE, "正在认识这条鱼", "05_resolve.png")
+        cropEvidence("02_image_recognizing_late.png", "06_edge_field_crop.png", 0f, 0f, 1f, .44f)
+        cropEvidence("03_fish_located.png", "07_fish_focus_crop.png", .04f, .16f, .96f, .90f)
+        cropEvidence("03_fish_located.png", "08_contour_closeup.png", .18f, .22f, .82f, .82f)
+
+        render(state, FrozenState.RESULT_HIGH, "修改鱼种", "05_result_high.png")
         assertVisible("草鱼")
         composeRule.onNodeWithText("保存本次鱼获").assertIsEnabled()
 
@@ -206,17 +224,545 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("手动选择鱼种").performClick()
         assertVisible("选择鱼种")
 
-        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_issue_no_fish.png")
+        render(state, FrozenState.ERROR_NO_FISH, "没有找到可识别的鱼", "08_error_no_fish.png")
         assertVisible("从相册选择")
         assertVisible("重新拍摄")
 
-        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_issue_image_quality.png")
+        render(state, FrozenState.ERROR_IMAGE_QUALITY, "照片不够清晰，无法识别", "09_error_image_quality.png")
         assertVisible("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。")
         assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
 
         render(state, FrozenState.TECHNICAL_FAILURE, "识别没有完成", "10_issue_technical_failure.png")
         assertVisible("请重新拍摄或选择照片。")
         assertNoDirtyTechnicalUi()
+    }
+
+    @Test
+    fun screenshotCoordinateConversionMapsLogicalSurfaceToPhysicalPixels() {
+        assertEquals(
+            Rect(0, 0, 640, 1256),
+            screenshotCropBounds(640, 1280, 320, 640, Rect(0, 0, 320, 628)),
+        )
+        assertEquals(
+            Rect(0, 0, 1080, 1920),
+            screenshotCropBounds(1080, 1920, 1080, 1920, Rect(0, 0, 1080, 1920)),
+        )
+        assertEquals(
+            Rect(20, 40, 620, 1240),
+            screenshotCropBounds(640, 1280, 320, 640, Rect(10, 20, 310, 620)),
+        )
+        assertEquals(
+            Rect(0, 0, 640, 1232),
+            screenshotCropBounds(640, 1280, 320, 640, Rect(0, 0, 320, 616)),
+        )
+    }
+
+    @Test
+    fun measuredSourceSurfaceMapsToTargetCaptureWithoutStretching() {
+        val mapping = captureSurfaceMapping(
+            sourceBitmapWidth = 640,
+            sourceBitmapHeight = 1280,
+            sourceBounds = Rect(0, 0, 320, 628),
+            targetBitmapWidth = 640,
+            targetBitmapHeight = 1280,
+            targetBounds = Rect(0, 24, 640, 1280),
+        )
+        assertEquals(Rect(0, 0, 320, 628), mapping.sourceBitmapBounds)
+        assertEquals(Rect(0, 24, 640, 1280), mapping.targetBitmapBounds)
+        assertEquals(2f, mapping.scaleX, 0.001f)
+        assertEquals(2f, mapping.scaleY, 0.001f)
+    }
+
+    @Test
+    fun physicalDisplayMappingConvertsMeasuredLogicalViewToRawSourcePixels() {
+        val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
+            sourceBounds = Rect(0, 24, 640, 1280),
+            logicalDisplayWidth = 640,
+            logicalDisplayHeight = 1280,
+            physicalDisplayWidth = 320,
+            physicalDisplayHeight = 640,
+            bitmapWidth = 640,
+            bitmapHeight = 1280,
+        )
+        assertEquals(Rect(0, 12, 320, 640), sourceBitmapBounds)
+
+        val mapping = captureSurfaceMapping(
+            sourceBitmapWidth = 640,
+            sourceBitmapHeight = 1280,
+            sourceBounds = sourceBitmapBounds,
+            targetBitmapWidth = 640,
+            targetBitmapHeight = 1280,
+            targetBounds = Rect(0, 24, 640, 1280),
+        )
+        assertEquals(2f, mapping.scaleX, 0.001f)
+        assertEquals(2f, mapping.scaleY, 0.001f)
+        assertEquals(640, mapping.targetBitmapBounds.width())
+        assertEquals(1256, mapping.targetBitmapBounds.height())
+    }
+    @Test
+    fun backingOutCancelsRecognitionWithoutReportingTechnicalFailure() {
+        val processingVisible = mutableStateOf(true)
+        val recognizeStarted = CountDownLatch(1)
+        val failureCount = java.util.concurrent.atomic.AtomicInteger(0)
+
+        composeRule.setContent {
+            YujianTheme {
+                if (processingVisible.value) {
+                    RecognitionProcessingScene(
+                        image = photo,
+                        onBack = { processingVisible.value = false },
+                        recognize = {
+                            recognizeStarted.countDown()
+                            awaitCancellation()
+                        },
+                        onFinished = {},
+                        onFailure = { failureCount.incrementAndGet() },
+                    )
+                }
+            }
+        }
+
+        assertTrue("recognition coroutine did not start", recognizeStarted.await(2, TimeUnit.SECONDS))
+        val backNodes = composeRule.onAllNodesWithContentDescription("返回")
+        val lastBackIndex = backNodes.fetchSemanticsNodes().lastIndex
+        assertTrue("active overlay Back action must exist", lastBackIndex >= 0)
+        backNodes[lastBackIndex].performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) { !processingVisible.value }
+        composeRule.waitForIdle()
+
+        assertEquals("user Back must not be routed as recognition failure", 0, failureCount.get())
+    }
+
+    @Test
+    fun highResultKeepsResolvedSpeciesAndBothRecordActions() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("修改鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("长度").assertIsDisplayed()
+        composeRule.onNodeWithText("重量").assertIsDisplayed()
+        composeRule.onNodeWithText("地点").assertIsDisplayed()
+        composeRule.onNodeWithText("写下这次鱼获的故事").assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("已识别").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun resultVisibleHierarchyRemainsReachableOnCanonicalNormalViewport() {
+        val stage = mutableStateOf("high")
+        composeRule.setContent {
+            YujianTheme {
+                key(stage.value) {
+                    when (stage.value) {
+                        "high" -> RecognitionResultScreen(
+                            image = photo,
+                            prediction = requireNotNull(high.prediction),
+                            productionResult = high,
+                            onBack = {},
+                            onRetry = {},
+                            onSave = { _, _, _ -> },
+                        )
+                        "low" -> RecognitionResultScreen(
+                            image = photo,
+                            prediction = requireNotNull(low.prediction),
+                            productionResult = low,
+                            onBack = {},
+                            onRetry = {},
+                            onSave = { _, _, _ -> },
+                        )
+                        else -> RecognitionIssueScreen(
+                            image = photo,
+                            result = noFish,
+                            onBack = {},
+                            onChooseAnother = {},
+                            onChooseGallery = {},
+                        )
+                    }
+                }
+            }
+        }
+
+        fun reach(text: String) {
+            composeRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+        }
+
+        // High: every frozen Result section, including both terminal actions,
+        // must remain reachable after the Result glass has been measured.
+        composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-result-species").performScrollTo().assertIsDisplayed()
+        reach("草鱼")
+        reach("长度")
+        reach("写下这次鱼获的故事")
+        reach("继续记忆")
+        reach("保存本次鱼获")
+
+        // Low before manual selection: the recovery actions are visible.
+        stage.value = "low"
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+        reach("无法确认是什么鱼")
+        reach("手动选择鱼种")
+        reach("重新拍摄")
+        assertFalse(composeRule.onAllNodesWithText("长度").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("写下这次鱼获的故事").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("继续记忆").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        // Low after explicit selection: the shared species/metadata/story/CTA
+        // hierarchy must become reachable rather than being pushed out.
+        composeRule.onNodeWithText("手动选择鱼种").performClick()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("ji yu")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-crucian_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-crucian_carp").performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("修改鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        reach("鲫鱼")
+        reach("修改鱼种")
+        reach("长度")
+        reach("写下这次鱼获的故事")
+        reach("继续记忆")
+        reach("保存本次鱼获")
+
+        // Recovery states use their own readable surface and preserve the
+        // centered title/guidance plus both icon-bearing actions.
+        stage.value = "recovery"
+        composeRule.waitForIdle()
+        reach("没有找到可识别的鱼")
+        reach("请让鱼完整出现在画面中，再试一次。")
+        reach("重新拍摄")
+        reach("从相册选择")
+    }
+
+    @Test
+    fun mediumResultRequiresExplicitCandidateChoiceBeforeRecordActionsAppear() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(medium.prediction),
+                    productionResult = medium,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("帮我确认一下，这条鱼更像哪一种？").assertIsDisplayed()
+        composeRule.onNodeWithText("都不是？选择其他鱼种").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("继续记忆").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+        val suggestedTree = composeRule.onRoot(useUnmergedTree = true).printToString()
+        assertTrue("Top-1 must be exposed as a suggestion", suggestedTree.contains("模型建议"))
+        assertFalse("Top-1 must not be preselected", suggestedTree.contains("Selected = true"))
+
+        val candidate = composeRule.onNode(hasText("鲫鱼") and hasClickAction())
+        assertFalse(
+            "suggested candidate must not be preselected",
+            candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true,
+        )
+        candidate.performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true
+        }
+        assertTrue(
+            "explicit candidate tap must create a selected state",
+            candidate.fetchSemanticsNode().config[SemanticsProperties.Selected] == true,
+        )
+
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun mediumOtherSelectorSearchesAliasesAndCommitsOnlyAfterSelection() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(medium.prediction),
+                    productionResult = medium,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("都不是？选择其他鱼种").performClick()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("鲤拐子")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-common_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-common_carp").performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("修改鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun unresolvedMediumAndLowCanReturnWithoutCreatingRecordActions() {
+        val showLow = mutableStateOf(false)
+        composeRule.setContent {
+            YujianTheme {
+                if (showLow.value) {
+                    RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(low.prediction),
+                        productionResult = low,
+                        onBack = {},
+                        onRetry = {},
+                        onSave = { _, _, _ -> },
+                    )
+                } else {
+                    RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(medium.prediction),
+                        productionResult = medium,
+                        onBack = {},
+                        onRetry = {},
+                        onSave = { _, _, _ -> },
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithText("都不是？选择其他鱼种").performClick()
+        composeRule.onNodeWithText("暂不确认鱼种").performClick()
+        composeRule.onNodeWithText("都不是？选择其他鱼种").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.runOnIdle { showLow.value = true }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("手动选择鱼种").performClick()
+        composeRule.onNodeWithText("暂不确认鱼种").performClick()
+        composeRule.onNodeWithText("手动选择鱼种").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun confirmedSpeciesEditHidesUnconfirmedActionAndBackKeepsSelection() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+        composeRule.onNodeWithText("修改鱼种").performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodesWithText("选择鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        assertFalse(composeRule.onAllNodesWithText("暂不确认鱼种").fetchSemanticsNodes().isNotEmpty())
+        val backNodes = composeRule.onAllNodesWithContentDescription("返回")
+        val lastBackIndex = backNodes.fetchSemanticsNodes().lastIndex
+        assertTrue("active species selector Back action must exist", lastBackIndex >= 0)
+        backNodes[lastBackIndex].performClick()
+        composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+    }
+
+    @Test
+    fun numericEditorValidatesWithFrozenGentleCopyAndSaveErrorsStaySafe() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    saveError = "backend stack trace: private detail",
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+        composeRule.onNodeWithText("保存鱼获失败，请重试").performScrollTo().assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("backend stack trace: private detail").fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.onNodeWithText("长度").performClick()
+        val lengthField = composeRule.onNodeWithTag("recognition-numeric-长度")
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodesWithTag("recognition-numeric-长度").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithContentDescription("清除输入").performClick()
+        lengthField.performTextInput("0")
+        lengthField.performImeAction()
+        composeRule.onNodeWithText("请输入有效的长度").assertIsDisplayed()
+    }
+
+    @Test
+    fun resultSaveActionRejectsDuplicateSubmitsUntilParentStateChanges() {
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> saveCalls.incrementAndGet() },
+                )
+            }
+        }
+
+        val saveButton = composeRule.onNodeWithText("保存本次鱼获").performScrollTo()
+        saveButton.performClick()
+        saveButton.performClick()
+        assertEquals("one resolved Result may submit only once while saving", 1, saveCalls.get())
+    }
+
+    @Test
+    fun resultStoryIsIncludedInTheCatchSavePayload() {
+        val submittedDraft = java.util.concurrent.atomic.AtomicReference<CatchSaveDraft?>(null)
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { draft, _, _ -> submittedDraft.set(draft) },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recognition-story-input")
+            .performScrollTo()
+            .performTextInput("第一条黑鱼。")
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+
+        val classifierResult = requireNotNull(submittedDraft.get()?.classifierResult)
+        assertEquals("第一条黑鱼。", classifierResult.optString("story"))
+    }
+
+    @Test
+    fun resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading() {
+        val saving = mutableStateOf(false)
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val memoryLoading = hasText("继续记忆") and hasStateDescription("正在加载")
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    saving = saving.value,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, destination ->
+                        assertEquals(RecognitionSaveDestination.HOME, destination)
+                        saveCalls.incrementAndGet()
+                        saving.value = true
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+        assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            saveCalls.get() == 1
+        }
+        assertEquals(1, saveCalls.get())
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun lowResultHidesRecordControlsUntilManualSpeciesSelection() {
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(low.prediction),
+                    productionResult = low,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("无法确认是什么鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("手动选择鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("重新拍摄").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("长度").fetchSemanticsNodes().isNotEmpty())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        composeRule.onNodeWithText("手动选择鱼种").performClick()
+        composeRule.onNodeWithText("选择鱼种").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("ji yu")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-crucian_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-crucian_carp").performClick()
+
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("修改鱼种").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("修改鱼种").assertIsDisplayed()
+        composeRule.onNodeWithText("长度").assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun noFishAndImageQualityKeepDistinctRecoveryCopyAndActions() {
+        val shownResult = mutableStateOf(noFish)
+        val recoveryActions = Collections.synchronizedList(mutableListOf<String>())
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionIssueScreen(
+                    image = photo,
+                    result = shownResult.value,
+                    onBack = {},
+                    onChooseAnother = { recoveryActions += "camera" },
+                    onChooseGallery = { recoveryActions += "gallery" },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("没有找到可识别的鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("请让鱼完整出现在画面中，再试一次。").assertIsDisplayed()
+        composeRule.onNodeWithText("重新拍摄").performClick()
+        composeRule.onNodeWithText("从相册选择").performClick()
+        assertEquals(listOf("camera", "gallery"), recoveryActions.toList())
+        assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+
+        shownResult.value = imageQuality
+        composeRule.onNodeWithText("照片不够清晰，无法识别").assertIsDisplayed()
+        composeRule.onNodeWithText("请拍摄更清晰的照片，确保鱼的整体轮廓清晰、没有遮挡。").assertIsDisplayed()
+        assertFalse(composeRule.onAllNodesWithText("没有找到可识别的鱼").fetchSemanticsNodes().isNotEmpty())
     }
 
 
@@ -329,6 +875,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val speciesRecognizingMs = finishedAtMs - classifyingAt
         val totalMs = finishedAtMs - imageRecognizingAt
         val fishFocusStableMs = speciesRecognizingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+        val resolveAtMs = finishedAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS
         // These markers are delivered by separate Compose effects. Frame scheduling can
         // make their observed interval shorter than the controller's exact minimum;
         // controller unit tests continue to assert the frozen 900/600/1250ms contract.
@@ -373,6 +920,7 @@ class RecognitionFrozenFlowEmulatorTest {
                 "Runtime IMAGE_RECOGNIZING duration: ${imageRecognizingMs}ms\n" +
                 "Runtime FISH_LOCATED duration: ${fishLocatedMs}ms\n" +
                 "Runtime SPECIES_RECOGNIZING duration: ${speciesRecognizingMs}ms\n" +
+                "Runtime RESOLVE duration: ${RecognitionVisualStateController.RESOLVE_FADE_MS}ms\n" +
                 "Runtime TOTAL duration: ${totalMs}ms\n" +
                 "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
         )
@@ -409,15 +957,26 @@ class RecognitionFrozenFlowEmulatorTest {
             "IMAGE_RECOGNIZING" to imageRecognizingAt,
             "FISH_LOCATED" to outlineAt,
             "SPECIES_RECOGNIZING" to classifyingAt,
+            "RESOLVE" to resolveAtMs,
             "RESULT" to finishedAtMs,
         )
+        val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
+        val mappedRect = transform.mapBoxRect(primary.box)
+        val cropPixelsJson = result.cropPixels?.joinToString(prefix = "[", postfix = "]") ?: "null"
         File(evidenceDir, "recognition_production_flow_trace_v1_2.json").writeText(
             "{\"contract_version\":\"RECOGNITION_PRESENTATION_v1_3\"," +
                 "\"pipeline_phases\":[${actualPipeline.joinToString(",") { "\"$it\"" }}]," +
                 "\"presentation_events\":[${presentationEvents.joinToString(",") { (state, at) -> "{\"state\":\"$state\",\"at_ms\":$at}" }}]," +
-                "\"result_ready\":${result.ready},\"bbox\":{\"x1\":${box.x1},\"y1\":${box.y1},\"x2\":${box.x2},\"y2\":${box.y2}}}\n",
+                "\"result_ready\":${result.ready}," +
+                "\"source\":{\"width\":${photo.bitmap.width},\"height\":${photo.bitmap.height},\"orientation\":\"portrait\"}," +
+                "\"detector\":{\"model\":\"${result.detectorRun.modelVersion}\",\"detections\":${result.detectorRun.detections.size},\"confidence\":${primary.confidence}}," +
+                "\"bbox\":{\"x1\":${box.x1},\"y1\":${box.y1},\"x2\":${box.x2},\"y2\":${box.y2},\"area_ratio\":${box.areaRatio}}," +
+                "\"quality_gate\":{\"status\":\"${result.assessment.status}\",\"level\":\"${result.assessment.qualityLevel}\",\"reason\":\"${result.assessment.qualityReason}\",\"classifier_eligible\":${result.assessment.isClassifierEligible}}," +
+                "\"crop\":{\"pixels\":$cropPixelsJson,\"expand_ratio\":${FishDetectionQualityGate.CROP_EXPAND_RATIO}}," +
+                "\"mapped_bbox_screen\":{\"left\":${mappedRect.left},\"top\":${mappedRect.top},\"right\":${mappedRect.right},\"bottom\":${mappedRect.bottom}}," +
+                "\"subject\":{\"status\":\"${subject.status}\",\"quality\":\"${subject.quality}\",\"mask_area\":${subject.maskAreaRatio},\"contour_segments\":$contourSegments}," +
+                "\"focus\":{\"level\":\"A\",\"degradation\":\"D0\"},\"route\":\"RESULT\"}\n",
         )
-        val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
         val mappedCenter = transform.mapBox(primary.box)
         val crop = primary.box.expand(.12f).normalized()
         File(evidenceDir, "fish_focus_bbox_mapping.json").writeText(
@@ -530,8 +1089,8 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        assertVisible("鱼种识别中")
-        assertVisible("正在分析鱼体特征")
+        assertVisible("正在认识这条鱼")
+        assertVisible("分析鱼体特征")
         composeRule.onNodeWithTag("recognition-ambient-reduced-motion-low-performance").assertIsDisplayed()
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             runCatching {
@@ -543,13 +1102,18 @@ class RecognitionFrozenFlowEmulatorTest {
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         composeRule.waitForIdle()
+        val appSurfaceBounds = composeSurfaceBoundsOnScreen()
         val first = File(evidenceDir, "_reduce_motion_a.png")
         val second = File(evidenceDir, "_reduce_motion_b.png")
         assertTrue(device.takeScreenshot(first))
         Thread.sleep(350L)
         assertTrue(device.takeScreenshot(second))
-        val firstBitmap = requireNotNull(BitmapFactory.decodeFile(first.absolutePath))
-        val secondBitmap = requireNotNull(BitmapFactory.decodeFile(second.absolutePath))
+        val firstRaw = requireNotNull(BitmapFactory.decodeFile(first.absolutePath))
+        val secondRaw = requireNotNull(BitmapFactory.decodeFile(second.absolutePath))
+        val firstBitmap = cropToComposeRoot(firstRaw, appSurfaceBounds)
+        val secondBitmap = cropToComposeRoot(secondRaw, appSurfaceBounds)
+        firstRaw.recycle()
+        secondRaw.recycle()
         val diffRatio = bitmapDifferenceRatio(firstBitmap, secondBitmap, topSkipPx = 80)
         firstBitmap.recycle()
         secondBitmap.recycle()
@@ -645,7 +1209,7 @@ class RecognitionFrozenFlowEmulatorTest {
             """{"quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
         )
         File(evidenceDir, "recognition_visual_qa_v1_3.json").writeText(
-            """{"version":"1.3","review_status":"VISUAL_FAIL","reviewed_artifact_id":"11074493735","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"FAIL","evidence":[{"file":"01_image_recognizing_early.png","note":"B_UR companion and micro read as parallel railroad hairlines at the top-right edge."}]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"FAIL","evidence":[{"file":"01_image_recognizing_early.png","note":"The edge field reads as a few faint lines; local receiving light and four-island identity are not clear."},{"file":"quality_full.png","note":"FULL, BALANCED, and LITE are not clearly distinguishable."},{"file":"quality_balanced.png","note":"FULL, BALANCED, and LITE are not clearly distinguishable."},{"file":"quality_lite.png","note":"LITE does not retain a clearly recognizable four-island field."}]}}}""",
+            """{"version":"1.3","review_status":"PENDING_PHYSICAL_REVIEW","reviewed_artifact_id":"pending-runtime-capture","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png"]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png","quality_full.png","quality_balanced.png","quality_lite.png"]}}}""",
         )
     }
 
@@ -873,15 +1437,102 @@ class RecognitionFrozenFlowEmulatorTest {
         val bitmap = BitmapFactory.decodeFile(raw.absolutePath)
         assertTrue("unreadable screenshot: $name", bitmap != null && bitmap.width > 0 && bitmap.height > 0)
         val decoded = requireNotNull(bitmap)
-        val canonical = canonicalizeApi28Screenshot(decoded)
+        val logicalDisplayWidth = device.displayWidth
+        val logicalDisplayHeight = device.displayHeight
+        val logicalRootBounds = composeSurfaceBoundsOnScreen()
+        val sourceSurface = measureCaptureSourceSurface()
+        val targetBitmapBounds = screenshotCropBounds(
+            sourceWidth = decoded.width,
+            sourceHeight = decoded.height,
+            logicalDisplayWidth = logicalDisplayWidth,
+            logicalDisplayHeight = logicalDisplayHeight,
+            logicalBounds = logicalRootBounds,
+        )
+        trace(
+            "SCREENSHOT_CAPTURE_FORENSICS name=" + name + " " +
+                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
+                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
+                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
+                sourceSurface.physicalDisplayHeightPx + " " +
+                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
+                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
+                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
+                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
+                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
+                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
+                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
+                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
+                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
+                "target_bitmap_crop_px=" + targetBitmapBounds.left + "," + targetBitmapBounds.top + "," +
+                targetBitmapBounds.right + "," + targetBitmapBounds.bottom + " " +
+                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi,
+        )
+        val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
+            sourceBounds = sourceSurface.viewBoundsOnScreenPx,
+            logicalDisplayWidth = logicalDisplayWidth,
+            logicalDisplayHeight = logicalDisplayHeight,
+            physicalDisplayWidth = sourceSurface.physicalDisplayWidthPx,
+            physicalDisplayHeight = sourceSurface.physicalDisplayHeightPx,
+            bitmapWidth = decoded.width,
+            bitmapHeight = decoded.height,
+        )
+        val mapping = captureSurfaceMapping(
+            sourceBitmapWidth = decoded.width,
+            sourceBitmapHeight = decoded.height,
+            sourceBounds = sourceBitmapBounds,
+            targetBitmapWidth = decoded.width,
+            targetBitmapHeight = decoded.height,
+            targetBounds = targetBitmapBounds,
+        )
+        val sourceSurfaceBitmap = Bitmap.createBitmap(
+            decoded,
+            mapping.sourceBitmapBounds.left,
+            mapping.sourceBitmapBounds.top,
+            mapping.sourceBitmapBounds.width(),
+            mapping.sourceBitmapBounds.height(),
+        )
+        val appSurface = Bitmap.createBitmap(
+            mapping.targetBitmapBounds.width(),
+            mapping.targetBitmapBounds.height(),
+            Bitmap.Config.ARGB_8888,
+        )
+        val canvas = Canvas(appSurface)
+        canvas.scale(mapping.scaleX, mapping.scaleY)
+        canvas.drawBitmap(sourceSurfaceBitmap, 0f, 0f, null)
         output.outputStream().use { stream ->
-            check(canonical.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         trace(
-            "SCREENSHOT_CANONICALIZED name=$name raw=${decoded.width}x${decoded.height} " +
-                "output=${canonical.width}x${canonical.height}",
+            "SCREENSHOT_APP_SURFACE_ONLY name=" + name + " " +
+                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
+                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
+                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
+                sourceSurface.physicalDisplayHeightPx + " " +
+                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
+                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
+                "source_view_class=" + sourceSurface.viewClassName + " " +
+                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
+                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
+                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
+                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
+                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
+                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
+                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
+                "source_bitmap_crop_px=" + mapping.sourceBitmapBounds.left + "," +
+                mapping.sourceBitmapBounds.top + "," + mapping.sourceBitmapBounds.right + "," +
+                mapping.sourceBitmapBounds.bottom + " " +
+                "target_bitmap_crop_px=" + mapping.targetBitmapBounds.left + "," +
+                mapping.targetBitmapBounds.top + "," + mapping.targetBitmapBounds.right + "," +
+                mapping.targetBitmapBounds.bottom + " " +
+                "view_origin_in_bitmap_px=" + mapping.sourceBitmapBounds.left + "," +
+                mapping.sourceBitmapBounds.top + " " +
+                "canvas_initial_transform=identity " +
+                "canvas_transform=scale(" + mapping.scaleX + "," + mapping.scaleY + ") " +
+                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi + " " +
+                "output_px=" + appSurface.width + "x" + appSurface.height,
         )
-        if (canonical !== decoded) canonical.recycle()
+        if (sourceSurfaceBitmap !== decoded) sourceSurfaceBitmap.recycle()
+        appSurface.recycle()
         decoded.recycle()
         raw.delete()
 
@@ -897,52 +1548,256 @@ class RecognitionFrozenFlowEmulatorTest {
         // CI exports it after the test through adb run-as; do not make the
         // instrumentation process depend on writing /data/local/tmp.
     }
-
-    /**
-     * API28 UiDevice can return a 2x backing bitmap whose real display occupies
-     * only the upper-left quadrant; the unused right/bottom halves are pure
-     * black. Screenrecord and the actual user-visible surface use the real
-     * viewport. Remove only that exact padding signature, never arbitrary dark
-     * product pixels.
-     */
-    private fun canonicalizeApi28Screenshot(source: Bitmap): Bitmap {
-        if (source.width < 2 || source.height < 2 ||
-            source.width % 2 != 0 || source.height % 2 != 0
-        ) return source
-        val halfWidth = source.width / 2
-        val halfHeight = source.height / 2
-        // On the first API28 frame the unused upper-right quadrant can still
-        // contain stale launcher pixels while the entire lower half is black.
-        // A black lower half is the stable doubled-backing-buffer signature;
-        // the Recognition surface itself always fills the real viewport.
-        if (!isBlackPadding(source, 0, halfHeight, source.width, source.height)) {
-            return source
+    private fun cropEvidence(
+        sourceName: String,
+        targetName: String,
+        left: Float,
+        top: Float,
+        right: Float,
+        bottom: Float,
+    ) {
+        val source = requireNotNull(BitmapFactory.decodeFile(File(evidenceDir, sourceName).absolutePath)) {
+            "missing source evidence for crop: $sourceName"
         }
-        return Bitmap.createBitmap(source, 0, 0, halfWidth, halfHeight)
+        val cropLeft = (source.width * left).toInt().coerceIn(0, source.width - 1)
+        val cropTop = (source.height * top).toInt().coerceIn(0, source.height - 1)
+        val cropWidth = (source.width * (right - left)).toInt()
+            .coerceAtLeast(1)
+            .coerceAtMost(source.width - cropLeft)
+        val cropHeight = (source.height * (bottom - top)).toInt()
+            .coerceAtLeast(1)
+            .coerceAtMost(source.height - cropTop)
+        val crop = Bitmap.createBitmap(source, cropLeft, cropTop, cropWidth, cropHeight)
+        File(evidenceDir, targetName).outputStream().use { output ->
+            check(crop.compress(Bitmap.CompressFormat.PNG, 100, output))
+        }
+        crop.recycle()
+        source.recycle()
     }
 
-    private fun isBlackPadding(
-        bitmap: Bitmap,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
-    ): Boolean {
-        val stepX = ((right - left) / 24).coerceAtLeast(1)
-        val stepY = ((bottom - top) / 24).coerceAtLeast(1)
-        var y = top
-        while (y < bottom) {
-            var x = left
-            while (x < right) {
-                val pixel = bitmap.getPixel(x, y)
-                if (Color.red(pixel) > 3 || Color.green(pixel) > 3 || Color.blue(pixel) > 3) {
-                    return false
-                }
-                x += stepX
+    private data class CaptureSourceSurface(
+        val viewBoundsOnScreenPx: Rect,
+        val viewWidthPx: Int,
+        val viewHeightPx: Int,
+        val windowWidthPx: Int,
+        val windowHeightPx: Int,
+        val decorWidthPx: Int,
+        val decorHeightPx: Int,
+        val contentWidthPx: Int,
+        val contentHeightPx: Int,
+        val viewClassName: String,
+        val physicalDisplayWidthPx: Int,
+        val physicalDisplayHeightPx: Int,
+        val density: Float,
+        val densityDpi: Int,
+    )
+
+    private data class CaptureSurfaceMapping(
+        val sourceBitmapBounds: Rect,
+        val targetBitmapBounds: Rect,
+        val scaleX: Float,
+        val scaleY: Float,
+    )
+
+    private fun measureCaptureSourceSurface(): CaptureSourceSurface {
+        val measured = AtomicReference<CaptureSourceSurface?>()
+        composeRule.runOnUiThread {
+            val decor = composeRule.activity.window.decorView
+            val content = composeRule.activity.findViewById<View>(android.R.id.content)
+                ?: error("Recognition capture content View is unavailable")
+            val sourceView = findComposeSourceView(content) ?: content
+            val display = decor.display ?: error("Recognition capture display is unavailable")
+            val displayMode = display.mode
+            check(displayMode.physicalWidth > 0 && displayMode.physicalHeight > 0) {
+                "Recognition capture display mode has invalid size ${displayMode.physicalWidth}x${displayMode.physicalHeight}"
             }
-            y += stepY
+            val location = IntArray(2)
+            sourceView.getLocationOnScreen(location)
+            check(sourceView.width > 0 && sourceView.height > 0) {
+                "Recognition capture source View has invalid size ${sourceView.width}x${sourceView.height}"
+            }
+            measured.set(
+                CaptureSourceSurface(
+                    viewBoundsOnScreenPx = Rect(
+                        location[0],
+                        location[1],
+                        location[0] + sourceView.width,
+                        location[1] + sourceView.height,
+                    ),
+                    viewWidthPx = sourceView.width,
+                    viewHeightPx = sourceView.height,
+                    windowWidthPx = decor.width,
+                    windowHeightPx = decor.height,
+                    decorWidthPx = decor.width,
+                    decorHeightPx = decor.height,
+                    contentWidthPx = content.width,
+                    contentHeightPx = content.height,
+                    viewClassName = sourceView.javaClass.name,
+                    physicalDisplayWidthPx = displayMode.physicalWidth,
+                    physicalDisplayHeightPx = displayMode.physicalHeight,
+                    density = sourceView.resources.displayMetrics.density,
+                    densityDpi = sourceView.resources.displayMetrics.densityDpi,
+                ),
+            )
         }
-        return true
+        return requireNotNull(measured.get()) {
+            "Recognition capture source View bounds were not measured"
+        }
+    }
+
+    private fun findComposeSourceView(view: View): View? {
+        var candidate: View? = if (view.javaClass.name.contains("Compose")) view else null
+        if (view is android.view.ViewGroup) {
+            for (index in 0 until view.childCount) {
+                candidate = findComposeSourceView(view.getChildAt(index)) ?: candidate
+            }
+        }
+        return candidate
+    }
+
+    private fun mapSourceViewBoundsToBitmap(
+        sourceBounds: Rect,
+        logicalDisplayWidth: Int,
+        logicalDisplayHeight: Int,
+        physicalDisplayWidth: Int,
+        physicalDisplayHeight: Int,
+        bitmapWidth: Int,
+        bitmapHeight: Int,
+    ): Rect {
+        require(logicalDisplayWidth > 0 && logicalDisplayHeight > 0) {
+            "Logical display must have positive dimensions: ${logicalDisplayWidth}x${logicalDisplayHeight}"
+        }
+        require(physicalDisplayWidth > 0 && physicalDisplayHeight > 0) {
+            "Physical display must have positive dimensions: ${physicalDisplayWidth}x${physicalDisplayHeight}"
+        }
+        require(bitmapWidth > 0 && bitmapHeight > 0) {
+            "Capture bitmap must have positive dimensions: ${bitmapWidth}x${bitmapHeight}"
+        }
+        val scaleX = physicalDisplayWidth / logicalDisplayWidth.toFloat()
+        val scaleY = physicalDisplayHeight / logicalDisplayHeight.toFloat()
+        require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
+            "Logical-to-physical display mapping is non-uniform: scaleX=$scaleX scaleY=$scaleY"
+        }
+        val left = kotlin.math.floor(sourceBounds.left * scaleX).toInt().coerceIn(0, bitmapWidth)
+        val top = kotlin.math.floor(sourceBounds.top * scaleY).toInt().coerceIn(0, bitmapHeight)
+        val right = kotlin.math.ceil(sourceBounds.right * scaleX).toInt().coerceIn(0, bitmapWidth)
+        val bottom = kotlin.math.ceil(sourceBounds.bottom * scaleY).toInt().coerceIn(0, bitmapHeight)
+        val physicalBounds = Rect(left, top, right, bottom)
+        require(physicalBounds.width() > 0 && physicalBounds.height() > 0) {
+            "Mapped physical source bounds are empty: logical=$sourceBounds physical=$physicalBounds"
+        }
+        return physicalBounds
+    }
+    private fun captureSurfaceMapping(
+        sourceBitmapWidth: Int,
+        sourceBitmapHeight: Int,
+        sourceBounds: Rect,
+        targetBitmapWidth: Int,
+        targetBitmapHeight: Int,
+        targetBounds: Rect,
+    ): CaptureSurfaceMapping {
+        require(sourceBitmapWidth > 0 && sourceBitmapHeight > 0) {
+            "Source capture bitmap must have positive dimensions: ${sourceBitmapWidth}x${sourceBitmapHeight}"
+        }
+        require(targetBitmapWidth > 0 && targetBitmapHeight > 0) {
+            "Target capture bitmap must have positive dimensions: ${targetBitmapWidth}x${targetBitmapHeight}"
+        }
+        require(sourceBounds.left >= 0 && sourceBounds.top >= 0 &&
+            sourceBounds.right <= sourceBitmapWidth && sourceBounds.bottom <= sourceBitmapHeight) {
+            "Source View bounds exceed capture bitmap: bounds=$sourceBounds bitmap=${sourceBitmapWidth}x${sourceBitmapHeight}"
+        }
+        require(targetBounds.left >= 0 && targetBounds.top >= 0 &&
+            targetBounds.right <= targetBitmapWidth && targetBounds.bottom <= targetBitmapHeight) {
+            "Target crop bounds exceed capture bitmap: bounds=$targetBounds bitmap=${targetBitmapWidth}x${targetBitmapHeight}"
+        }
+        require(sourceBounds.width() > 0 && sourceBounds.height() > 0) {
+            "Source View bounds must be non-empty: $sourceBounds"
+        }
+        require(targetBounds.width() > 0 && targetBounds.height() > 0) {
+            "Target crop bounds must be non-empty: $targetBounds"
+        }
+        val scaleX = targetBounds.width() / sourceBounds.width().toFloat()
+        val scaleY = targetBounds.height() / sourceBounds.height().toFloat()
+        require(scaleX > 0f && scaleY > 0f) {
+            "Capture surface scale must be positive: $scaleX,$scaleY"
+        }
+        require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
+            "Capture surface mapping would stretch the source: source=$sourceBounds target=$targetBounds scaleX=$scaleX scaleY=$scaleY"
+        }
+        return CaptureSurfaceMapping(Rect(sourceBounds), Rect(targetBounds), scaleX, scaleY)
+    }
+    private fun composeSurfaceBoundsOnScreen(): Rect {
+        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+        val windowOrigin = IntArray(2)
+        composeRule.runOnUiThread {
+            composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
+        }
+        return Rect(
+            kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
+            kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
+            kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
+            kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
+        )
+    }
+
+    private fun cropToComposeRoot(
+        source: Bitmap,
+        bounds: Rect = composeSurfaceBoundsOnScreen(),
+    ): Bitmap {
+        val physicalBounds = screenshotCropBounds(
+            sourceWidth = source.width,
+            sourceHeight = source.height,
+            logicalDisplayWidth = device.displayWidth,
+            logicalDisplayHeight = device.displayHeight,
+            logicalBounds = bounds,
+        )
+        return Bitmap.createBitmap(
+            source,
+            physicalBounds.left,
+            physicalBounds.top,
+            physicalBounds.width(),
+            physicalBounds.height(),
+        )
+    }
+
+    private fun screenshotCropBounds(
+        sourceWidth: Int,
+        sourceHeight: Int,
+        logicalDisplayWidth: Int,
+        logicalDisplayHeight: Int,
+        logicalBounds: Rect,
+    ): Rect {
+        require(sourceWidth > 0 && sourceHeight > 0) {
+            "Screenshot must have positive dimensions: ${sourceWidth}x${sourceHeight}"
+        }
+        require(logicalDisplayWidth > 0 && logicalDisplayHeight > 0) {
+            "Logical display must have positive dimensions: ${logicalDisplayWidth}x${logicalDisplayHeight}"
+        }
+        val scaleX = sourceWidth / logicalDisplayWidth.toFloat()
+        val scaleY = sourceHeight / logicalDisplayHeight.toFloat()
+        require(scaleX > 0f && scaleY > 0f) {
+            "Screenshot pixel scale must be positive: $scaleX,$scaleY"
+        }
+        require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
+            "Non-uniform screenshot scaling is not supported without explicit runtime evidence: " +
+                "scaleX=$scaleX scaleY=$scaleY"
+        }
+
+        val left = kotlin.math.floor(logicalBounds.left * scaleX).toInt().coerceIn(0, sourceWidth)
+        val top = kotlin.math.floor(logicalBounds.top * scaleY).toInt().coerceIn(0, sourceHeight)
+        val right = kotlin.math.ceil(logicalBounds.right * scaleX).toInt().coerceIn(0, sourceWidth)
+        val bottom = kotlin.math.ceil(logicalBounds.bottom * scaleY).toInt().coerceIn(0, sourceHeight)
+        val physicalBounds = Rect(left, top, right, bottom)
+        require(physicalBounds.width() > 0 && physicalBounds.height() > 0) {
+            "Physical screenshot crop is empty: logical=$logicalBounds physical=$physicalBounds"
+        }
+        require(
+            physicalBounds.left >= 0 && physicalBounds.top >= 0 &&
+                physicalBounds.right <= sourceWidth && physicalBounds.bottom <= sourceHeight
+        ) {
+            "Physical screenshot crop exceeds ${sourceWidth}x${sourceHeight}: $physicalBounds"
+        }
+        return physicalBounds
     }
 
     private fun assertVisible(text: String) {
@@ -989,12 +1844,12 @@ class RecognitionFrozenFlowEmulatorTest {
         return RecognitionPrediction("fixture-model", "fixture", top, listOf(top, second), 1L)
     }
 }
-
 private enum class FrozenState {
     IMAGE_RECOGNIZING_EARLY,
     IMAGE_RECOGNIZING_LATE,
     FISH_LOCATED,
     SPECIES_RECOGNIZING,
+    RESOLVE,
     RESULT_HIGH,
     RESULT_MEDIUM,
     RESULT_LOW,
@@ -1020,7 +1875,8 @@ private fun FrozenRecognitionHarness(
         FrozenState.IMAGE_RECOGNIZING_EARLY,
         FrozenState.IMAGE_RECOGNIZING_LATE,
         FrozenState.FISH_LOCATED,
-        FrozenState.SPECIES_RECOGNIZING -> {
+        FrozenState.SPECIES_RECOGNIZING,
+        FrozenState.RESOLVE -> {
             RecognitionProcessingScene(
                 image = photo,
                 onBack = {},
@@ -1040,7 +1896,8 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
                     FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING
                     FrozenState.FISH_LOCATED -> RecognitionPhase.OUTLINE
-                    FrozenState.SPECIES_RECOGNIZING -> RecognitionPhase.CLASSIFYING
+                    FrozenState.SPECIES_RECOGNIZING,
+                    FrozenState.RESOLVE -> RecognitionPhase.CLASSIFYING
                     else -> RecognitionPhase.CAPTURED
                 },
                 visualClockOverrideMs = when (stateValue) {
@@ -1048,6 +1905,7 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_LATE -> 720L
                     else -> 3_200L
                 },
+                resolveProgressOverride = if (stateValue == FrozenState.RESOLVE) .72f else null,
             )
         }
         FrozenState.RESULT_HIGH,

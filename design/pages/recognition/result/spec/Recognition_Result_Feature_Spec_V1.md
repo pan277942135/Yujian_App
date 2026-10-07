@@ -1,4 +1,4 @@
-# Recognition Result Feature Spec V1
+# Recognition Result Feature Spec V1.1
 
 ## Scope
 
@@ -48,8 +48,9 @@ Product intent:
 - say clearly that the species cannot be confirmed
 - offer manual species selection
 - offer retake
-- do not show normal metadata/save controls until species is manually resolved
-- do not invent an unknown/pending-species persistence model
+- keep vertical metadata and Story editable as local draft before species resolution
+- if a Dual CTA is tapped unresolved, remember the destination and enter LOW_MANUAL
+- commit only after species selection; never invent an unknown/pending-species record
 
 ### ERROR_NO_FISH
 
@@ -86,6 +87,7 @@ For unresolved Low:
 1. real catch photo
 2. unable-to-confirm message
 3. manual selection / retake
+4. vertical metadata / Story / Dual CTA
 
 For recovery states:
 

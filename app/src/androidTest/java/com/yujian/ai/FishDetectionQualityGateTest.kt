@@ -66,7 +66,7 @@ class FishDetectionQualityGateTest {
     }
 
     @Test
-    fun multipleStrongFish_isExplicitStatus() {
+    fun multipleStrongFish_keepsPrimaryClassifierEligible() {
         val result = FishDetectionQualityGate.assess(
             listOf(
                 det(.95f, .1f, .2f, .45f, .7f),
@@ -74,8 +74,9 @@ class FishDetectionQualityGateTest {
             ),
         )
         assertEquals(FishInputStatus.MULTIPLE_FISH, result.status)
-        assertEquals(FishQualityLevel.INVALID, result.qualityLevel)
-        assertEquals(false, result.isClassifierEligible)
+        assertEquals(FishQualityLevel.WARNING, result.qualityLevel)
+        assertEquals(true, result.isClassifierEligible)
+        assertNotNull(result.cropBox)
         assertEquals(2, result.strongDetections.size)
     }
 

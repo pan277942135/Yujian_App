@@ -17,10 +17,10 @@ from typing import Iterable
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 FILES = [
-    ("01_capture_transition.png", "01_Capture_Transition_Frozen.png", "processing_card"),
-    ("02_ai_understanding.png", "02_AI_Understanding_Frozen.png", "processing_light"),
-    ("03_fish_highlight.png", "03_Fish_Highlight_Frozen.png", "processing_card"),
-    ("04_fish_identifying.png", "04_Fish_Identifying_Frozen.png", "processing_card"),
+    ("01_image_recognizing_early.png", "01_Capture_Transition_Frozen.png", "processing_card"),
+    ("02_image_recognizing_late.png", "02_AI_Understanding_Frozen.png", "processing_light"),
+    ("03_fish_located.png", "03_Fish_Highlight_Frozen.png", "processing_card"),
+    ("04_species_recognizing.png", "04_Fish_Identifying_Frozen.png", "processing_card"),
     ("05_result_high.png", "05_Result_High_Frozen.png", "result"),
     ("06_result_medium.png", "06_Result_Medium_Frozen.png", "result"),
     ("07_result_low.png", "07_Result_Low_Frozen.png", "result"),
@@ -224,7 +224,7 @@ def main() -> None:
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    result = {"version": "RECOGNITION_VISUAL_PARITY_v1_1", "states": [], "classification": "PASS"}
+    result = {"version": "RECOGNITION_VISUAL_PARITY_v1_2", "states": [], "classification": "PASS"}
     contact_rows = []
 
     for runtime_name, frozen_name, kind in FILES:
@@ -248,7 +248,7 @@ def main() -> None:
         passed = state_score >= state_minimum and all(item["pass"] for item in roi_results)
 
         focus = None
-        if runtime_name in {"03_fish_highlight.png", "04_fish_identifying.png"}:
+        if runtime_name in {"03_fish_located.png", "04_species_recognizing.png"}:
             focus_box = (0.08, 0.16, 0.92, 0.74)
             run_gold = categories(crop_norm(runtime, focus_box))["gold"]
             ref_gold = categories(crop_norm(frozen, focus_box))["gold"]
@@ -280,11 +280,11 @@ def main() -> None:
             "runtime": annotate(runtime, rois),
         })
 
-    (args.output_dir / "recognition_visual_parity.json").write_text(
+    (args.output_dir / "recognition_visual_parity_v1_2.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    make_contact(contact_rows, args.output_dir / "recognition_visual_parity_contact_sheet.png")
+    make_contact(contact_rows, args.output_dir / "recognition_visual_parity_contact_sheet_v1_2.png")
 
     print("RECOGNITION_VISUAL_PARITY classification=%s" % result["classification"])
     for state in result["states"]:

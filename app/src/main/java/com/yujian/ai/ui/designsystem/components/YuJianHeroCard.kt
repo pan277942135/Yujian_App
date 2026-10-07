@@ -66,6 +66,7 @@ fun YuJianHeroCard(
     semanticsTag: String? = null,
     decoration: YuJianHeroDecoration = YuJianHeroDecoration(),
     footerContent: (@Composable ColumnScope.() -> Unit)? = null,
+    mediaAction: (@Composable BoxScope.() -> Unit)? = null,
     media: @Composable BoxScope.() -> Unit = { YuJianHeroPlaceholder() },
 ) {
     val haptic = rememberYuJianHaptic()
@@ -103,6 +104,7 @@ fun YuJianHeroCard(
                     ),
                 ),
             )
+            mediaAction?.invoke(this)
             Column(
                 modifier = Modifier.align(Alignment.BottomStart).padding(footerPadding),
             ) {
