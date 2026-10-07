@@ -114,7 +114,7 @@ fun YuJianFishGuideCard(
             )
     } else Modifier
     val unlitImageFilter = remember(isUnlit) {
-        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.66f) }) else null
+        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.84f) }) else null
     }
     YuJianGlassCard(
         modifier = modifier.then(interactionModifier),
@@ -128,7 +128,10 @@ fun YuJianFishGuideCard(
                     url = item.imageUrl,
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
+                    // The physical UNLIT capture showed a portrait cover centered in a
+                    // landscape card. Crop its empty top/bottom margins instead of
+                    // exposing the cover's rectangular canvas as a second panel.
+                    contentScale = if (isUnlit) ContentScale.Crop else ContentScale.Fit,
                     colorFilter = unlitImageFilter,
                     placeholder = { MissingSpeciesArtwork(item, isUnlit) },
                 )
@@ -140,7 +143,7 @@ fun YuJianFishGuideCard(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.20f * (1f - settledEncounter))),
+                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.08f * (1f - settledEncounter))),
                 )
             }
             Box(
@@ -151,7 +154,7 @@ fun YuJianFishGuideCard(
                             0f to Color.Transparent,
                             0.56f to Color.Transparent,
                             1f to YuJianColors.DeepOverlay.copy(
-                            alpha = if (isUnlit) 0.48f + settledEncounter * 0.04f else 0.78f + settledEncounter * 0.12f,
+                                alpha = if (isUnlit) 0.20f + settledEncounter * 0.03f else 0.78f + settledEncounter * 0.12f,
                             ),
                         ),
                 ),

@@ -81,7 +81,9 @@ fun LoginV2Screen(
     AuthV2Scaffold(
         title = "欢迎回来",
         subtitle = "继续记录你的每一次渔获",
-        environmentFraction = 0.435f,
+        // Frozen Login title anchor: y=697 on an 864 px raster at a 360 dp width;
+        // the shared scaffold's 8 dp top inset is included in this 298 dp height.
+        environmentHeight = 298.dp,
     ) {
         AuthV2Field(
             label = "账号",
