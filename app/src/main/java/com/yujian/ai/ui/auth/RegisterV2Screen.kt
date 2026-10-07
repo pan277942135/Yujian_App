@@ -84,16 +84,15 @@ fun RegisterV2Screen(
     AuthV2Scaffold(
         title = "创建账号",
         subtitle = "用一个账号，留住你的钓鱼轨迹",
-        environmentFraction = 0.36f,
-        subtitleBottomSpacing = 24.dp,
-        bottomContentSpacing = 80.dp,
+        // Frozen Register title anchor: y=675 on the same 864 px raster; only the
+        // shorter environment lead-in differs to make room for the extra field.
+        environmentHeight = 289.dp,
     ) {
         AuthV2Field(
             label = "账号",
             value = username,
             onValueChange = { username = it; usernameTouched = true; onFieldEdited() },
-            placeholder = "请输入账号",
-            helperText = "3–32 位字母、数字、_ 或 -",
+            placeholder = "3–32 位字母、数字、_ 或 -",
             enabled = !loading,
             leadingIcon = Icons.Rounded.PersonOutline,
             focusRequester = usernameFocus,
@@ -112,8 +111,7 @@ fun RegisterV2Screen(
             label = "密码",
             value = password,
             onValueChange = { password = it; passwordTouched = true; onFieldEdited() },
-            placeholder = "请输入密码",
-            helperText = "至少 6 位",
+            placeholder = "至少 6 位",
             enabled = !loading,
             leadingIcon = Icons.Rounded.Lock,
             focusRequester = passwordFocus,

@@ -134,7 +134,11 @@ fun YuJianPrimaryButton(
     }
     val labelColor = if (!enabled && !loading) disabledContent else content
     val borderColor = when {
-        !enabled && !loading -> YuJianColors.ActionDisabledBorder
+        !enabled && !loading -> if (resolvedVariant == YuJianActionButtonVariant.PRIMARY) {
+            YuJianColors.PrimaryActionDisabledBorder
+        } else {
+            YuJianColors.ActionDisabledBorder
+        }
         resolvedVariant == YuJianActionButtonVariant.PRIMARY -> Color.White.copy(alpha = 0.10f)
         resolvedVariant == YuJianActionButtonVariant.SECONDARY_STRONG -> primary.copy(alpha = if (pressed) 0.36f else 0.26f)
         resolvedVariant == YuJianActionButtonVariant.SECONDARY_MUTED -> YuJianColors.MistBlueGray.copy(alpha = 0.18f)

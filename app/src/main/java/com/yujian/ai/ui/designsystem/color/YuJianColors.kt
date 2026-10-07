@@ -24,8 +24,9 @@ object YuJianColors {
     val ActiveAccent = Color(0xFF168B88)
     val ActionDisabledSurface = Color(0xFFF2F5F5)
     val ActionDisabledContent = Color(0xFFA0ADAF)
-    val PrimaryActionDisabledSurface = Color(0xFFD9E4E3)
-    val PrimaryActionDisabledContent = Color(0xFF91A5A6)
+    val PrimaryActionDisabledSurface = Color(0xFFBFD8D4)
+    val PrimaryActionDisabledContent = Color(0xFF355C5B)
+    val PrimaryActionDisabledBorder = Color(0xFF8EAFAB)
     val ActionDisabledBorder = Color(0xFFE3E9E9)
 
     val GlassWhite = Color(0xC2FFFFFF)

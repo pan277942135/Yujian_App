@@ -81,9 +81,7 @@ internal fun AuthV2Scaffold(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    environmentFraction: Float,
-    subtitleBottomSpacing: androidx.compose.ui.unit.Dp = 34.dp,
-    bottomContentSpacing: androidx.compose.ui.unit.Dp = 96.dp,
+    environmentHeight: androidx.compose.ui.unit.Dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     BoxWithConstraints(
@@ -96,12 +94,11 @@ internal fun AuthV2Scaffold(
             maxHeight >= 640.dp -> AuthHeightBand.COMPACT
             else -> AuthHeightBand.VERY_COMPACT
         }
-        val environmentMinimum = when (heightBand) {
-            AuthHeightBand.STANDARD -> 188.dp
-            AuthHeightBand.COMPACT -> 184.dp
+        val resolvedEnvironmentHeight = when (heightBand) {
+            AuthHeightBand.STANDARD -> environmentHeight
+            AuthHeightBand.COMPACT -> minOf(environmentHeight, 248.dp)
             AuthHeightBand.VERY_COMPACT -> 144.dp
         }
-        val environmentHeight = (maxHeight * environmentFraction).coerceAtLeast(environmentMinimum)
         val titleScale = (maxWidth / 320.dp).coerceIn(1f, 1.57f)
         val subtitleScale = (maxWidth / 320.dp).coerceIn(1f, 1.43f)
         val headerInset = (maxWidth * (26f / 320f) - 24.dp).coerceAtLeast(0.dp)
@@ -113,19 +110,19 @@ internal fun AuthV2Scaffold(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(environmentHeight),
+                .height(resolvedEnvironmentHeight),
         )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(environmentHeight)
+                .height(resolvedEnvironmentHeight)
                 .background(Color.White.copy(alpha = 0.18f)),
         )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(92.dp)
-                .offset(y = environmentHeight - 76.dp)
+                .offset(y = resolvedEnvironmentHeight - 76.dp)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -155,8 +152,8 @@ internal fun AuthV2Scaffold(
                 .padding(
                     start = 24.dp,
                     end = 24.dp,
-                    top = environmentHeight - 8.dp,
-                    bottom = if (imeVisible || heightBand == AuthHeightBand.VERY_COMPACT) 24.dp else bottomContentSpacing,
+                    top = resolvedEnvironmentHeight - 8.dp,
+                    bottom = if (imeVisible || heightBand == AuthHeightBand.VERY_COMPACT) 24.dp else 80.dp,
                 ),
         ) {
             Column(
@@ -182,7 +179,10 @@ internal fun AuthV2Scaffold(
                     color = YuJianColors.MistBlueGray,
                     fontSize = 14.sp * subtitleScale,
                     lineHeight = 20.sp * subtitleScale,
-                    modifier = Modifier.padding(top = 6.dp, bottom = subtitleBottomSpacing),
+                    // Frozen Login/Register rasters differ by ~19 px in their measured
+                    // subtitle-to-form gap after viewport normalization; 13 dp resolves
+                    // both to the shared ≈42 px target on the 694 px runtime capture.
+                    modifier = Modifier.padding(top = 6.dp, bottom = 13.dp),
                 )
             }
             content()

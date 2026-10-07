@@ -32,7 +32,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -40,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.PhotoLibrary
@@ -621,7 +621,19 @@ private fun SpeciesIdentityRow(speciesName: String, sideMargin: Dp, widthDp: Int
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(resultSpeciesDisplayName(speciesName), modifier = Modifier.weight(1f), color = DeepInk, fontSize = if (compactTitle) 28.sp else 30.sp, lineHeight = if (compactTitle) 34.sp else 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        YuJianTextAction(text = "修改鱼种", onClick = onChange, role = YuJianTextActionRole.NORMAL, enabled = enabled, showChevron = true)
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(Color.White.copy(alpha = 0.82f), RoundedCornerShape(50))
+                .border(1.dp, Color.White.copy(alpha = 0.94f), RoundedCornerShape(50))
+                .clickable(enabled = enabled, role = Role.Button, onClick = onChange)
+                .padding(horizontal = 12.dp, vertical = 7.dp)
+                .testTag("recognition-result-species-edit"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("修改鱼种", color = DeepInk, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text("›", color = DeepInk.copy(alpha = 0.82f), fontSize = 20.sp, lineHeight = 20.sp, modifier = Modifier.padding(start = 4.dp))
+        }
     }
 }
 
@@ -630,16 +642,32 @@ private fun ResultMetadataStrip(
     length: String, weight: String, location: String, resolvingLocation: Boolean,
     modifier: Modifier, accessibilityFontScale: Boolean = false, enabled: Boolean = true, onField: (ResultEditableField) -> Unit,
 ) {
-    ResultInformationGlass(
+    ResultMetadataSurface(
         modifier = modifier.testTag("recognition-result-metadata"),
     ) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-            MetadataField(Icons.Rounded.Straighten, "长度", if (length.isBlank()) "请输入" else "$length cm", enabled, accessibilityFontScale) { onField(ResultEditableField.LENGTH) }
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0x2674898D))
-            MetadataField(Icons.Rounded.Scale, "重量", if (weight.isBlank()) "请输入" else "$weight kg", enabled, accessibilityFontScale) { onField(ResultEditableField.WEIGHT) }
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0x2674898D))
-            MetadataField(Icons.Rounded.LocationOn, "地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "请选择" }, enabled, accessibilityFontScale) { onField(ResultEditableField.LOCATION) }
+        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            CatchFactRow(Icons.Rounded.Straighten, "长度", if (length.isBlank()) "请输入" else "$length cm", enabled, accessibilityFontScale) { onField(ResultEditableField.LENGTH) }
+            CatchFactRow(Icons.Rounded.Scale, "重量", if (weight.isBlank()) "请输入" else "$weight kg", enabled, accessibilityFontScale) { onField(ResultEditableField.WEIGHT) }
+            CatchFactRow(Icons.Rounded.LocationOn, "地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "请选择" }, enabled, accessibilityFontScale) { onField(ResultEditableField.LOCATION) }
         }
+    }
+}
+
+@Composable
+private fun ResultMetadataSurface(modifier: Modifier, content: @Composable () -> Unit) {
+    val shape = YuJianRadius.resultGlass
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color.White.copy(alpha = 0.78f), Color.White.copy(alpha = 0.72f)),
+                ),
+                shape,
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.72f), shape),
+    ) {
+        content()
     }
 }
 
@@ -715,7 +743,7 @@ private fun ResultContentDrivenSurface(
 }
 
 @Composable
-private fun MetadataField(
+private fun CatchFactRow(
     icon: ImageVector,
     label: String,
     value: String,
@@ -733,26 +761,32 @@ private fun MetadataField(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MutedInk)
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = DeepInk.copy(alpha = 0.72f))
             Text(
                 label,
-                color = DeepInk,
-                fontSize = 18.sp,
-                lineHeight = 24.sp,
+                color = MutedInk,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(start = 12.dp),
+                modifier = Modifier.padding(start = 10.dp),
             )
             Spacer(Modifier.weight(1f))
+            val placeholder = value == "请输入" || value == "请选择" || value == "正在获取位置…"
             Text(
                 value,
-                color = if (value == "请输入" || value == "请选择" || value == "正在获取位置…") MutedInk else DeepInk,
-                fontSize = 16.sp,
+                color = if (placeholder) MutedInk else DeepInk,
+                fontSize = if (placeholder) 15.sp else 17.sp,
                 lineHeight = 22.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text("›", color = DeepInk, fontSize = 22.sp, modifier = Modifier.padding(start = 8.dp))
+            Icon(
+                Icons.Rounded.Edit,
+                contentDescription = null,
+                modifier = Modifier.padding(start = 8.dp).size(16.dp),
+                tint = MutedInk.copy(alpha = 0.72f),
+            )
         }
     }
 }
