@@ -5,6 +5,7 @@ import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -26,6 +27,18 @@ import kotlin.math.min
  * - confidence = objectness * fish_probability
  * - weak threshold filtering before NMS
  */
+enum class DetectorOrientationAttempt(val wireName: String, val rotationDegrees: Float) {
+    ORIGINAL("ORIGINAL", 0f),
+    CW90("CW90", 90f),
+    CCW90("CCW90", -90f),
+}
+
+data class DetectorAttemptTrace(
+    val orientationAttempt: String,
+    val detectionCount: Int,
+    val topConfidence: Float?,
+)
+
 class FishDetectorEngine(private val context: Context) : AutoCloseable {
     data class DetectorRun(
         val modelVersion: String,
@@ -36,6 +49,12 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val inputDrawHeight: Int,
         val latencyMs: Long,
         val detections: List<FishDetection>,
+        val originalWidth: Int = 0,
+        val originalHeight: Int = 0,
+        val orientationAttempt: String = DetectorOrientationAttempt.ORIGINAL.wireName,
+        val selectedAttempt: String = DetectorOrientationAttempt.ORIGINAL.wireName,
+        val attemptTrace: List<DetectorAttemptTrace> = emptyList(),
+        val retryPolicyVersion: String = ORIENTATION_RETRY_POLICY_VERSION,
     )
 
     private data class PreparedInput(
@@ -82,6 +101,42 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         require(bitmap.width > 0 && bitmap.height > 0) { "鱼体检测输入图片尺寸无效" }
         val started = System.nanoTime()
         val model = verifiedModel
+        val attempts = mutableListOf<DetectorAttemptTrace>()
+        var selectedRun: DetectorRun? = null
+
+        for (orientation in ORIENTATION_ATTEMPTS) {
+            val attemptBitmap = orientBitmap(bitmap, orientation)
+            val attemptRun = try {
+                detectOnce(attemptBitmap, model)
+            } finally {
+                if (attemptBitmap !== bitmap && !attemptBitmap.isRecycled) attemptBitmap.recycle()
+            }
+            val originalCoordinates = attemptRun.detections.map { detection ->
+                detection.copy(box = mapBoxToOriginal(detection.box, orientation))
+            }
+            val assessment = FishDetectionQualityGate.assess(originalCoordinates)
+            attempts += DetectorAttemptTrace(
+                orientationAttempt = orientation.wireName,
+                detectionCount = attemptRun.detections.size,
+                topConfidence = attemptRun.detections.maxOfOrNull { it.confidence },
+            )
+            selectedRun = attemptRun.copy(
+                detections = originalCoordinates,
+                originalWidth = bitmap.width,
+                originalHeight = bitmap.height,
+                orientationAttempt = orientation.wireName,
+                selectedAttempt = if (assessment.status == FishInputStatus.NO_FISH) "NONE" else orientation.wireName,
+                attemptTrace = attempts.toList(),
+                retryPolicyVersion = ORIENTATION_RETRY_POLICY_VERSION,
+            )
+            if (!shouldRetryAfter(assessment)) break
+        }
+
+        requireNotNull(selectedRun).copy(latencyMs = (System.nanoTime() - started) / 1_000_000)
+    }
+
+    private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
+        val attemptStarted = System.nanoTime()
         val prepared = prepareInput(bitmap, model.inputSize)
         val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
 
@@ -101,16 +156,22 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             minConfidence = FishDetectionQualityGate.WEAK_CONFIDENCE,
             nmsIou = FishDetectionQualityGate.NMS_IOU,
         )
-        DetectorRun(
+        return DetectorRun(
             modelVersion = MODEL_VERSION,
             onnxSha256 = model.sha256,
             inputSize = model.inputSize,
             inputScale = prepared.scale,
             inputDrawWidth = prepared.drawWidth,
             inputDrawHeight = prepared.drawHeight,
-            latencyMs = (System.nanoTime() - started) / 1_000_000,
+            latencyMs = (System.nanoTime() - attemptStarted) / 1_000_000,
             detections = detections,
         )
+    }
+
+    private fun orientBitmap(bitmap: Bitmap, orientation: DetectorOrientationAttempt): Bitmap {
+        if (orientation == DetectorOrientationAttempt.ORIGINAL) return bitmap
+        val matrix = Matrix().apply { postRotate(orientation.rotationDegrees) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     private fun verifyModelBundle(): VerifiedModel {
@@ -317,6 +378,12 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val CONTRACT_FILE = "recognition_pipeline_v1.json"
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
+        const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v1"
+        val ORIENTATION_ATTEMPTS = listOf(
+            DetectorOrientationAttempt.ORIGINAL,
+            DetectorOrientationAttempt.CW90,
+            DetectorOrientationAttempt.CCW90,
+        )
         private const val PILLOW_PRECISION_BITS = 22
         private const val PILLOW_PRECISION_SCALE = 1 shl PILLOW_PRECISION_BITS
         private const val PILLOW_ROUNDING = 1 shl (PILLOW_PRECISION_BITS - 1)
@@ -351,6 +418,31 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             }
             return nms(decoded, nmsIou)
         }
+
+        internal fun mapBoxToOriginal(
+            box: NormalizedFishBox,
+            orientation: DetectorOrientationAttempt,
+        ): NormalizedFishBox {
+            val b = box.normalized()
+            return when (orientation) {
+                DetectorOrientationAttempt.ORIGINAL -> b
+                DetectorOrientationAttempt.CW90 -> NormalizedFishBox(
+                    x1 = b.y1,
+                    y1 = 1f - b.x2,
+                    x2 = b.y2,
+                    y2 = 1f - b.x1,
+                ).normalized()
+                DetectorOrientationAttempt.CCW90 -> NormalizedFishBox(
+                    x1 = 1f - b.y2,
+                    y1 = b.x1,
+                    x2 = 1f - b.y1,
+                    y2 = b.x2,
+                ).normalized()
+            }
+        }
+
+        internal fun shouldRetryAfter(assessment: FishInputAssessment): Boolean =
+            assessment.status == FishInputStatus.NO_FISH
 
         internal fun nms(detections: List<FishDetection>, iouThreshold: Float): List<FishDetection> {
             val kept = mutableListOf<FishDetection>()
