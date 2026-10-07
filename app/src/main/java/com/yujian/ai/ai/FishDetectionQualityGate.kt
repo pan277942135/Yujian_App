@@ -94,7 +94,7 @@ object FishDetectionQualityGate {
     const val INCOMPLETE_EDGE_MARGIN_RATIO = 0.015f
     const val CROP_EXPAND_RATIO = 0.15f
 
-    private fun rankScore(detection: FishDetection): Float =
+    internal fun rankScore(detection: FishDetection): Float =
         detection.confidence.coerceAtLeast(0f) * sqrt(detection.areaRatio.coerceAtLeast(0f))
 
     fun assess(detections: List<FishDetection>): FishInputAssessment {

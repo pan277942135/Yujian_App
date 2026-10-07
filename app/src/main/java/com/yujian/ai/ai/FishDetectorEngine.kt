@@ -37,6 +37,13 @@ data class DetectorAttemptTrace(
     val orientationAttempt: String,
     val detectionCount: Int,
     val topConfidence: Float?,
+    val qualityStatus: String,
+    val qualityLevel: String,
+)
+
+internal data class DetectorAssessmentCandidate(
+    val orientation: DetectorOrientationAttempt,
+    val assessment: FishInputAssessment,
 )
 
 class FishDetectorEngine(private val context: Context) : AutoCloseable {
@@ -53,6 +60,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val originalHeight: Int = 0,
         val orientationAttempt: String = DetectorOrientationAttempt.ORIGINAL.wireName,
         val selectedAttempt: String = DetectorOrientationAttempt.ORIGINAL.wireName,
+        val selectionReason: String = "ORIGINAL_ASSESSMENT_PRESERVED",
         val attemptTrace: List<DetectorAttemptTrace> = emptyList(),
         val retryPolicyVersion: String = ORIENTATION_RETRY_POLICY_VERSION,
     )
@@ -102,9 +110,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val started = System.nanoTime()
         val model = verifiedModel
         val attempts = mutableListOf<DetectorAttemptTrace>()
-        var selectedRun: DetectorRun? = null
 
-        for (orientation in ORIENTATION_ATTEMPTS) {
+        fun evaluate(orientation: DetectorOrientationAttempt): Pair<DetectorRun, FishInputAssessment> {
             val attemptBitmap = orientBitmap(bitmap, orientation)
             val attemptRun = try {
                 detectOnce(attemptBitmap, model)
@@ -119,20 +126,58 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
                 orientationAttempt = orientation.wireName,
                 detectionCount = attemptRun.detections.size,
                 topConfidence = attemptRun.detections.maxOfOrNull { it.confidence },
+                qualityStatus = assessment.status.wireName,
+                qualityLevel = assessment.qualityLevel.wireName,
             )
-            selectedRun = attemptRun.copy(
+            val mappedRun = attemptRun.copy(
                 detections = originalCoordinates,
                 originalWidth = bitmap.width,
                 originalHeight = bitmap.height,
                 orientationAttempt = orientation.wireName,
-                selectedAttempt = if (assessment.status == FishInputStatus.NO_FISH) "NONE" else orientation.wireName,
-                attemptTrace = attempts.toList(),
                 retryPolicyVersion = ORIENTATION_RETRY_POLICY_VERSION,
             )
-            if (!shouldRetryAfter(assessment)) break
+            return mappedRun to assessment
         }
 
-        requireNotNull(selectedRun).copy(latencyMs = (System.nanoTime() - started) / 1_000_000)
+        val (originalRun, originalAssessment) = evaluate(DetectorOrientationAttempt.ORIGINAL)
+        val plannedAttempts = attemptsForOriginalAssessment(originalAssessment)
+        if (plannedAttempts.size == 1) {
+            return@withContext originalRun.copy(
+                latencyMs = (System.nanoTime() - started) / 1_000_000,
+                selectedAttempt = DetectorOrientationAttempt.ORIGINAL.wireName,
+                selectionReason = "ORIGINAL_ASSESSMENT_PRESERVED",
+                attemptTrace = attempts.toList(),
+            )
+        }
+
+        val recovered = plannedAttempts.drop(1).map { orientation ->
+            val (run, assessment) = evaluate(orientation)
+            Triple(orientation, run, assessment)
+        }
+        val selected = selectRecoveredAssessment(
+            recovered.map { (orientation, _, assessment) ->
+                DetectorAssessmentCandidate(orientation, assessment)
+            },
+        )
+        val selectedRun = if (selected == null) {
+            recovered.last().second.copy(
+                detections = emptyList(),
+                orientationAttempt = DetectorOrientationAttempt.CCW90.wireName,
+                selectedAttempt = "NONE",
+                selectionReason = "NO_FISH_AFTER_BOUNDED_RETRIES",
+            )
+        } else {
+            val (_, run, assessment) = recovered.first { it.first == selected.orientation }
+            run.copy(
+                detections = run.detections,
+                selectedAttempt = selected.orientation.wireName,
+                selectionReason = selectionReasonFor(assessment),
+            )
+        }
+        selectedRun.copy(
+            latencyMs = (System.nanoTime() - started) / 1_000_000,
+            attemptTrace = attempts.toList(),
+        )
     }
 
     private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
@@ -378,7 +423,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val CONTRACT_FILE = "recognition_pipeline_v1.json"
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
-        const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v1"
+        const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v2"
         val ORIENTATION_ATTEMPTS = listOf(
             DetectorOrientationAttempt.ORIGINAL,
             DetectorOrientationAttempt.CW90,
@@ -443,6 +488,39 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
 
         internal fun shouldRetryAfter(assessment: FishInputAssessment): Boolean =
             assessment.status == FishInputStatus.NO_FISH
+
+        internal fun attemptsForOriginalAssessment(assessment: FishInputAssessment): List<DetectorOrientationAttempt> =
+            if (shouldRetryAfter(assessment)) ORIENTATION_ATTEMPTS else listOf(DetectorOrientationAttempt.ORIGINAL)
+
+        internal fun selectRecoveredAssessment(
+            candidates: List<DetectorAssessmentCandidate>,
+        ): DetectorAssessmentCandidate? = candidates
+            .filter { it.assessment.status != FishInputStatus.NO_FISH }
+            .sortedWith(
+                compareByDescending<DetectorAssessmentCandidate> { assessmentPriority(it.assessment) }
+                    .thenByDescending { assessmentRankScore(it.assessment) }
+                    .thenBy { it.orientation.ordinal },
+            )
+            .firstOrNull()
+
+        internal fun selectionReasonFor(assessment: FishInputAssessment): String = when {
+            assessment.isClassifierEligible && assessment.qualityLevel == FishQualityLevel.GOOD ->
+                "GOOD_HIGHEST_RANK_SCORE"
+            assessment.isClassifierEligible && assessment.qualityLevel == FishQualityLevel.WARNING ->
+                "WARNING_HIGHEST_RANK_SCORE"
+            assessment.primary != null -> "FISH_PRESENT_HIGHEST_RANK_SCORE"
+            else -> "NO_FISH_AFTER_BOUNDED_RETRIES"
+        }
+
+        private fun assessmentPriority(assessment: FishInputAssessment): Int = when {
+            assessment.isClassifierEligible && assessment.qualityLevel == FishQualityLevel.GOOD -> 4
+            assessment.isClassifierEligible && assessment.qualityLevel == FishQualityLevel.WARNING -> 3
+            assessment.primary != null -> 2
+            else -> 0
+        }
+
+        private fun assessmentRankScore(assessment: FishInputAssessment): Float =
+            assessment.primary?.let(FishDetectionQualityGate::rankScore) ?: 0f
 
         internal fun nms(detections: List<FishDetection>, iouThreshold: Float): List<FishDetection> {
             val kept = mutableListOf<FishDetection>()

@@ -37,6 +37,7 @@ object InferenceTrace {
         val detectorRetryPolicyVersion: String = FishDetectorEngine.ORIENTATION_RETRY_POLICY_VERSION,
         val detectorAttempts: List<DetectorAttemptTrace> = emptyList(),
         val detectorSelectedAttempt: String = "ORIGINAL",
+        val detectorSelectionReason: String = "ORIGINAL_ASSESSMENT_PRESERVED",
     )
 
     @Volatile
@@ -71,10 +72,13 @@ object InferenceTrace {
             appendLine("detector_retry_policy_version=${run.retryPolicyVersion}")
             run.attemptTrace.forEach { attempt ->
                 appendLine("orientation_attempt=${attempt.orientationAttempt}")
-                appendLine("attempt_detection_count=${attempt.detectionCount}")
-                appendLine("attempt_top_confidence=${attempt.topConfidence?.let(::formatFloat) ?: "NA"}")
+                appendLine("detection_count=${attempt.detectionCount}")
+                appendLine("top_confidence=${attempt.topConfidence?.let(::formatFloat) ?: "NA"}")
+                appendLine("quality_status=${attempt.qualityStatus}")
+                appendLine("quality_level=${attempt.qualityLevel}")
             }
             appendLine("selected_attempt=${run.selectedAttempt}")
+            appendLine("selection_reason=${run.selectionReason}")
             appendLine("detector_bbox_normalized=${finalBox?.let { formatFloatArray(floatArrayOf(it.x1, it.y1, it.x2, it.y2)) } ?: "NA"}")
             appendLine("=== YUJIAN_DETECTOR_TRACE_END ===")
         }
@@ -144,10 +148,13 @@ object InferenceTrace {
                 appendLine("detector_retry_policy_version=${pipelineContext.detectorRetryPolicyVersion}")
                 pipelineContext.detectorAttempts.forEach { attempt ->
                     appendLine("orientation_attempt=${attempt.orientationAttempt}")
-                    appendLine("attempt_detection_count=${attempt.detectionCount}")
-                    appendLine("attempt_top_confidence=${attempt.topConfidence?.let(::formatFloat) ?: "NA"}")
+                    appendLine("detection_count=${attempt.detectionCount}")
+                    appendLine("top_confidence=${attempt.topConfidence?.let(::formatFloat) ?: "NA"}")
+                    appendLine("quality_status=${attempt.qualityStatus}")
+                    appendLine("quality_level=${attempt.qualityLevel}")
                 }
                 appendLine("selected_attempt=${pipelineContext.detectorSelectedAttempt}")
+                appendLine("selection_reason=${pipelineContext.detectorSelectionReason}")
                 appendLine("detector_confidence=${formatFloat(pipelineContext.detectorConfidence)}")
                 appendLine("detector_bbox_normalized=${formatFloatArray(pipelineContext.detectorBox)}")
                 appendLine("quality_gate_version=${FishDetectionQualityGate.QUALITY_GATE_VERSION}")

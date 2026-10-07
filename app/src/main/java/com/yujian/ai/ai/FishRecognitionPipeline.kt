@@ -107,6 +107,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             detectorRetryPolicyVersion = detectorRun.retryPolicyVersion,
             detectorAttempts = detectorRun.attemptTrace,
             detectorSelectedAttempt = detectorRun.selectedAttempt,
+            detectorSelectionReason = detectorRun.selectionReason,
             detectorConfidence = primary.confidence,
             detectorBox = floatArrayOf(box.x1, box.y1, box.x2, box.y2),
             cropExpandRatio = FishDetectionQualityGate.CROP_EXPAND_RATIO,

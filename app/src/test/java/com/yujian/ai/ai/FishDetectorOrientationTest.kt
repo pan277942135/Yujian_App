@@ -75,8 +75,87 @@ class FishDetectorOrientationTest {
             FishDetectorEngine.ORIENTATION_ATTEMPTS.map { it.wireName },
         )
         assertEquals(
-            "DETECTOR_ORIENTATION_RETRY_v1",
+            "DETECTOR_ORIENTATION_RETRY_v2",
             FishDetectorEngine.ORIENTATION_RETRY_POLICY_VERSION,
         )
+    }
+
+    @Test
+    fun originalNoFishRunsBothRotationsAndSelectsGoodOverEarlierWarning() {
+        val original = FishDetectionQualityGate.assess(emptyList())
+        val cwWarning = FishDetectionQualityGate.assess(
+            listOf(FishDetection(0.23f, NormalizedFishBox(0.2f, 0.2f, 0.8f, 0.8f))),
+        )
+        val ccwGood = FishDetectionQualityGate.assess(
+            listOf(FishDetection(0.71f, NormalizedFishBox(0.2f, 0.2f, 0.8f, 0.8f))),
+        )
+
+        assertEquals(
+            listOf(DetectorOrientationAttempt.ORIGINAL, DetectorOrientationAttempt.CW90, DetectorOrientationAttempt.CCW90),
+            FishDetectorEngine.attemptsForOriginalAssessment(original),
+        )
+        assertEquals(FishQualityLevel.WARNING, cwWarning.qualityLevel)
+        assertTrue(cwWarning.isClassifierEligible)
+        assertEquals(FishQualityLevel.GOOD, ccwGood.qualityLevel)
+        val selected = FishDetectorEngine.selectRecoveredAssessment(
+            listOf(
+                DetectorAssessmentCandidate(DetectorOrientationAttempt.CW90, cwWarning),
+                DetectorAssessmentCandidate(DetectorOrientationAttempt.CCW90, ccwGood),
+            ),
+        )
+
+        assertEquals(DetectorOrientationAttempt.CCW90, selected?.orientation)
+        assertEquals("GOOD_HIGHEST_RANK_SCORE", FishDetectorEngine.selectionReasonFor(requireNotNull(selected).assessment))
+    }
+
+    @Test
+    fun sameQualityClassSelectsHigherExistingRankScoreDeterministically() {
+        val cwGood = FishDetectionQualityGate.assess(
+            listOf(FishDetection(0.55f, NormalizedFishBox(0.2f, 0.2f, 0.8f, 0.8f))),
+        )
+        val ccwGood = FishDetectionQualityGate.assess(
+            listOf(FishDetection(0.70f, NormalizedFishBox(0.2f, 0.2f, 0.8f, 0.8f))),
+        )
+
+        val selected = FishDetectorEngine.selectRecoveredAssessment(
+            listOf(
+                DetectorAssessmentCandidate(DetectorOrientationAttempt.CW90, cwGood),
+                DetectorAssessmentCandidate(DetectorOrientationAttempt.CCW90, ccwGood),
+            ),
+        )
+
+        assertEquals(DetectorOrientationAttempt.CCW90, selected?.orientation)
+    }
+
+    @Test
+    fun originalReadyKeepsOnlyOriginalAttempt() {
+        val ready = FishDetectionQualityGate.assess(
+            listOf(FishDetection(0.9f, NormalizedFishBox(0.2f, 0.2f, 0.8f, 0.8f))),
+        )
+
+        assertEquals(
+            listOf(DetectorOrientationAttempt.ORIGINAL),
+            FishDetectorEngine.attemptsForOriginalAssessment(ready),
+        )
+    }
+
+    @Test
+    fun allAttemptsNoFishSelectNoneAndPreserveNoFishAssessment() {
+        val noFish = FishDetectionQualityGate.assess(emptyList())
+
+        assertEquals(
+            listOf(DetectorOrientationAttempt.ORIGINAL, DetectorOrientationAttempt.CW90, DetectorOrientationAttempt.CCW90),
+            FishDetectorEngine.attemptsForOriginalAssessment(noFish),
+        )
+        assertEquals(
+            null,
+            FishDetectorEngine.selectRecoveredAssessment(
+                listOf(
+                    DetectorAssessmentCandidate(DetectorOrientationAttempt.CW90, noFish),
+                    DetectorAssessmentCandidate(DetectorOrientationAttempt.CCW90, noFish),
+                ),
+            ),
+        )
+        assertEquals(FishInputStatus.NO_FISH, noFish.status)
     }
 }
