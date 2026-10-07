@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -78,10 +79,10 @@ import com.yujian.ai.ui.designsystem.components.YuJianAchievementAnnotation
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
 import com.yujian.ai.ui.designsystem.components.YuJianBackAction
-import com.yujian.ai.ui.designsystem.components.YuJianBackCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianFishRecordRowCard
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
+import com.yujian.ai.ui.designsystem.components.YuJianTitleOnlyTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
 import com.yujian.ai.ui.home.HomeCameraButton
@@ -127,7 +128,6 @@ fun MyScreen(
     onCatch: (String) -> Unit,
     onRetry: () -> Unit,
     onCapture: () -> Unit,
-    onBack: () -> Unit,
     onDayDetail: (MyCatchesDayGroup) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -243,8 +243,13 @@ fun MyScreen(
                         onCancel = ::exitSearch,
                     )
                 } else {
-                    MainHeader(
-                        onBack = onBack,
+                    MainHeader()
+                }
+            }
+
+            if (!searchMode) {
+                item(key = "archive-search-filter") {
+                    ArchiveSearchAndFilter(
                         filterActive = filter.isActive || filterExpanded,
                         onSearch = { searchMode = true },
                         onFilter = { filterExpanded = !filterExpanded },
@@ -412,19 +417,46 @@ fun MyCatchesDayDetailScreen(
 }
 
 @Composable
-private fun MainHeader(onBack: () -> Unit, filterActive: Boolean, onSearch: () -> Unit, onFilter: () -> Unit) {
-    Box(Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        YuJianBackCenterTitleTopBar(
-            title = "我的鱼获",
-            onBack = onBack,
-            modifier = Modifier.fillMaxWidth(),
-            statusBarInset = false,
-        )
-        Row(Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
-            YuJianIconAction(icon = Icons.Rounded.Search, contentDescription = "搜索", onClick = onSearch)
-            Box {
-                YuJianIconAction(icon = Icons.Rounded.FilterList, contentDescription = "筛选", onClick = onFilter)
-                if (filterActive) Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp).background(WaterTeal, CircleShape))
+private fun MainHeader() {
+    YuJianTitleOnlyTopBar(
+        title = "我的鱼获",
+        modifier = Modifier.fillMaxWidth(),
+        horizontalPadding = 0.dp,
+        statusBarInset = false,
+    )
+}
+
+@Composable
+private fun ArchiveSearchAndFilter(filterActive: Boolean, onSearch: () -> Unit, onFilter: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .height(44.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color.White.copy(alpha = 0.80f))
+                .border(1.dp, Hairline, RoundedCornerShape(14.dp))
+                .clickable(role = Role.Button, onClick = onSearch)
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Rounded.Search, contentDescription = null, tint = DeepInk.copy(alpha = 0.72f), modifier = Modifier.size(19.dp))
+            Spacer(Modifier.width(7.dp))
+            Text("搜索鱼种、地点或日期", color = MutedInk, fontSize = 14.sp, maxLines = 1)
+        }
+        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            YuJianIconAction(
+                icon = Icons.Rounded.FilterList,
+                contentDescription = "筛选",
+                onClick = onFilter,
+                family = YuJianIconActionFamily.UTILITY,
+            )
+            if (filterActive) {
+                Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp).background(WaterTeal, CircleShape))
             }
         }
     }

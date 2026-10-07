@@ -854,7 +854,6 @@ fun YujianApp() {
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
                         onCapture = { nav.navigate("identify") },
-                        onBack = { nav.popBackStack() },
                         onDayDetail = { day ->
                             val dayKey = day.key
                             nav.currentBackStackEntry?.savedStateHandle?.set("my_catches_day_ids", day.catches.map { it.id }.toTypedArray())
