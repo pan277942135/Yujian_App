@@ -13,6 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.security.MessageDigest
+import kotlin.math.abs
 
 /** Held-out Case B detector regression; the source file is copied byte-for-byte. */
 @RunWith(AndroidJUnit4::class)
@@ -60,7 +61,7 @@ class DetectorOrientationRetryRuntimeTest {
         assertEquals(0.147351f, requireNotNull(result.assessment.bboxAreaRatio), 0.02f)
         val actualCrop = requireNotNull(result.cropPixels)
         intArrayOf(349, 429, 743, 1536).forEachIndexed { index, expected ->
-            assertEquals(expected, actualCrop[index], 24)
+            assertTrue(abs(expected - actualCrop[index]) <= 24)
         }
         assertTrue("Classifier pipeline did not reach CLASSIFYING", phases.contains(RecognitionPhase.CLASSIFYING))
 
