@@ -70,10 +70,10 @@ private const val NormalHomeRecentHeaderHeight = 70f
 private const val NormalHomeCardY = 596f
 private const val NormalHomeCardWidth = 740f
 private const val NormalHomeCardHeight = 880f
-private const val NormalHomeCtaY = 1504f
-private const val NormalHomeCameraY = 1582f
-private const val NormalHomeCameraSize = 200f
-private const val NormalHomeCameraTouchSize = 208f
+private const val NormalHomeCtaY = 1495f
+private const val NormalHomeCameraY = 1548f
+private const val NormalHomeCameraSize = 224f
+private const val NormalHomeCameraTouchSize = 232f
 
 /**
  * Real-data Normal Home mapped onto the 1080-wide Frozen authority.
