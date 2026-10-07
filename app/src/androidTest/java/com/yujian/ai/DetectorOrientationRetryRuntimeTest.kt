@@ -20,8 +20,10 @@ import kotlin.math.abs
 class DetectorOrientationRetryRuntimeTest {
     @Test
     fun caseBNightFlashSelectsCcwMapsBackAndReachesClassifier() = runBlocking {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val bytes = context.assets.open(FIXTURE).use { it.readBytes() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val testContext = instrumentation.context
+        val targetContext = instrumentation.targetContext
+        val bytes = testContext.assets.open(FIXTURE).use { it.readBytes() }
         assertEquals(CASE_B_SOURCE_SHA256, bytes.sha256())
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         assertNotNull(bitmap)
@@ -30,7 +32,7 @@ class DetectorOrientationRetryRuntimeTest {
         assertEquals(1536, source.height)
 
         val phases = mutableListOf<RecognitionPhase>()
-        val pipeline = FishRecognitionPipeline(context)
+        val pipeline = FishRecognitionPipeline(targetContext)
         val result = try {
             pipeline.recognize(source) { phases += it.phase }
         } finally {
