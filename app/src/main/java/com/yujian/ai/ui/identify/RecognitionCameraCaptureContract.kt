@@ -49,3 +49,40 @@ object RecognitionCameraCaptureContract {
 
     fun completeError(): RecognitionCameraCaptureState = RecognitionCameraCaptureState.ERROR
 }
+
+
+/**
+ * Independent viewport anchors for live Recognition camera controls.
+ * The gallery width affects only its end-anchored center; it never moves the shutter.
+ */
+data class RecognitionCameraControlsPlacement(
+    val shutterCenterXDp: Float,
+    val galleryCenterXDp: Float,
+    val galleryEndInsetDp: Float,
+    val bottomInsetDp: Float,
+)
+
+object RecognitionCameraControlsGeometry {
+    fun resolve(
+        viewportWidthDp: Float,
+        galleryWidthDp: Float,
+        rightSafeInsetDp: Float,
+        bottomSafeInsetDp: Float,
+        galleryEdgeSpacingDp: Float = 16f,
+        bottomSpacingDp: Float = 18f,
+    ): RecognitionCameraControlsPlacement {
+        require(viewportWidthDp > 0f)
+        require(galleryWidthDp >= 0f)
+        require(rightSafeInsetDp >= 0f)
+        require(bottomSafeInsetDp >= 0f)
+        require(galleryEdgeSpacingDp >= 0f)
+        require(bottomSpacingDp >= 0f)
+        val galleryEndInset = rightSafeInsetDp + galleryEdgeSpacingDp
+        return RecognitionCameraControlsPlacement(
+            shutterCenterXDp = viewportWidthDp / 2f,
+            galleryCenterXDp = viewportWidthDp - galleryEndInset - galleryWidthDp / 2f,
+            galleryEndInsetDp = galleryEndInset,
+            bottomInsetDp = bottomSafeInsetDp + bottomSpacingDp,
+        )
+    }
+}

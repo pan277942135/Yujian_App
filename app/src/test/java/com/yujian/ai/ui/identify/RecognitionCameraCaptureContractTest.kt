@@ -87,4 +87,40 @@ class RecognitionCameraCaptureContractTest {
         // fallback when camera capture is unavailable.
         assertTrue(RecognitionCameraCaptureContract.canStartCapture(RecognitionCameraCaptureState.ERROR))
     }
+
+    @Test
+    fun shutterIsViewportCenteredAndGalleryStaysInsideRightSafeInset() {
+        val layout = RecognitionCameraControlsGeometry.resolve(
+            viewportWidthDp = 360f,
+            galleryWidthDp = 54f,
+            rightSafeInsetDp = 10f,
+            bottomSafeInsetDp = 24f,
+        )
+
+        assertEquals(180f, layout.shutterCenterXDp, 0f)
+        assertTrue(layout.galleryCenterXDp > layout.shutterCenterXDp)
+        assertTrue(layout.galleryCenterXDp + 27f <= 360f - 10f)
+        assertEquals(42f, layout.bottomInsetDp, 0f)
+    }
+
+    @Test
+    fun shutterCenterDoesNotDependOnGalleryWidthOrVisibility() {
+        val withoutGallery = RecognitionCameraControlsGeometry.resolve(
+            viewportWidthDp = 360f,
+            galleryWidthDp = 0f,
+            rightSafeInsetDp = 0f,
+            bottomSafeInsetDp = 0f,
+        )
+        val withGallery = RecognitionCameraControlsGeometry.resolve(
+            viewportWidthDp = 360f,
+            galleryWidthDp = 72f,
+            rightSafeInsetDp = 0f,
+            bottomSafeInsetDp = 0f,
+        )
+
+        assertEquals(180f, withoutGallery.shutterCenterXDp, 0f)
+        assertEquals(withoutGallery.shutterCenterXDp, withGallery.shutterCenterXDp, 0f)
+        assertTrue(withGallery.galleryCenterXDp > withGallery.shutterCenterXDp)
+    }
+
 }

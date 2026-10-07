@@ -15,11 +15,10 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,14 +39,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -57,8 +63,8 @@ import androidx.lifecycle.Observer
 import com.yujian.ai.R
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
-import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureContract
+import com.yujian.ai.ui.identify.RecognitionCameraControlsGeometry
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureOutput
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureState
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
@@ -572,7 +578,17 @@ fun IdentifyScreen(
         // Keep the bound CameraX surface alive until the request has a terminal result.
     }
 
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
+        val layoutDirection = LocalLayoutDirection.current
+        val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
+            RecognitionCameraControlsGeometry.resolve(
+                viewportWidthDp = maxWidth.value,
+                galleryWidthDp = 54f,
+                rightSafeInsetDp = safeInsets.calculateRightPadding(layoutDirection).value,
+                bottomSafeInsetDp = safeInsets.calculateBottomPadding().value,
+            )
+        }
+
         val displayedPhoto = handoffImage
         if (displayedPhoto != null) {
             BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -664,30 +680,56 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = safeInsets.calculateBottomPadding() + 18.dp),
-            horizontalArrangement = Arrangement.spacedBy(34.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
             Box(
-                Modifier
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = captureControlsPlacement.bottomInsetDp.dp)
+                    .size(76.dp)
+                    .clickable(
+                        enabled = cameraCanCapture() &&
+                            RecognitionCameraCaptureContract.canStartCapture(captureState),
+                        role = Role.Button,
+                        onClick = ::capture,
+                    )
+                    .testTag("recognition-camera-shutter")
+                    .semantics { contentDescription = "拍摄" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    Modifier
+                        .size(70.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .border(3.dp, Color.White.copy(alpha = 0.94f), CircleShape),
+                )
+                Box(
+                    Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Color.White),
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(
+                        end = captureControlsPlacement.galleryEndInsetDp.dp,
+                        bottom = captureControlsPlacement.bottomInsetDp.dp,
+                    )
                     .size(54.dp)
-                    .clickable(onClick = ::openGallery),
+                    .clip(CircleShape)
+                    .clickable(role = Role.Button, onClick = ::openGallery)
+                    .testTag("recognition-camera-gallery")
+                    .semantics { contentDescription = "从相册选择" },
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
                     painter = painterResource(R.drawable.album_icon_v12),
-                    contentDescription = "从相册选择",
+                    contentDescription = null,
                     modifier = Modifier.size(30.dp),
                 )
             }
-            HomeCameraButton(
-                onClick = ::capture,
-                enabled = cameraCanCapture() &&
-                    RecognitionCameraCaptureContract.canStartCapture(captureState),
-            )
         }
     }
 }
