@@ -40,10 +40,16 @@ android_runtime_run_instrumentation() {
   # markers first, then require a positive completion marker below.
   if grep -Eiq 'INSTRUMENTATION_FAILED|FAILURES!!!|Process (crashed|has died)|Process .* (crashed|has died)|Assertion(Error|FailedError)|There were test failures|test failure' "$log"; then
     runtime_set_failure "INSTRUMENTATION" "TEST_ASSERTION_FAILED"
+    printf 'ANDROID_RUNTIME_INSTRUMENTATION_LOG_BEGIN reason=TEST_ASSERTION_FAILED\\n' >&2
+    cat "$log" >&2
+    printf 'ANDROID_RUNTIME_INSTRUMENTATION_LOG_END\\n' >&2
     return "$EXIT_FAIL_TEST"
   fi
   if (( runner_rc != 0 )); then
     runtime_set_failure "INSTRUMENTATION" "TEST_RUNNER_FAILED"
+    printf 'ANDROID_RUNTIME_INSTRUMENTATION_LOG_BEGIN reason=TEST_RUNNER_FAILED\\n' >&2
+    cat "$log" >&2
+    printf 'ANDROID_RUNTIME_INSTRUMENTATION_LOG_END\\n' >&2
     return "$EXIT_FAIL_TEST"
   fi
   if ! grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \([0-9]+ test' "$log"; then
