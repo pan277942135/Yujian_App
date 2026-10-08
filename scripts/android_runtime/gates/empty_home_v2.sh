@@ -94,10 +94,31 @@ PY
     "${YUJIAN_ADB_BIN}" shell am force-stop "$YUJIAN_APP_PACKAGE"
     "${YUJIAN_ADB_BIN}" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
     sleep 4
-    python3 "$YUJIAN_REPO_ROOT/scripts/hifi_acceptance/capture_verified_surface.py" \
-      --adb "$YUJIAN_ADB_BIN" --package "$YUJIAN_APP_PACKAGE" \
-      --build-sha "$YUJIAN_BUILD_SHA" \
-      --output "$home_dir/verified_runtime.png" --width 1080 --height 1920
+    # App launch can briefly expose a blank DecorView before Compose draws the Home screen.
+    # Retry only that transient blank-frame result; all provenance checks remain fail-closed.
+    capture_log="$home_dir/verified_runtime.capture.log"
+    capture_status=1
+    for attempt in $(seq 1 12); do
+      if python3 "$YUJIAN_REPO_ROOT/scripts/hifi_acceptance/capture_verified_surface.py" \
+        --adb "$YUJIAN_ADB_BIN" --package "$YUJIAN_APP_PACKAGE" \
+        --build-sha "$YUJIAN_BUILD_SHA" \
+        --output "$home_dir/verified_runtime.png" --width 1080 --height 1920 \
+        2>"$capture_log"; then
+        capture_status=0
+        break
+      fi
+      if ! grep -Fq 'FAIL_EVIDENCE: SCREENSHOT_BLANK_OR_INVALID' "$capture_log"; then
+        cat "$capture_log" >&2
+        exit 1
+      fi
+      printf 'EMPTY_HOME_CAPTURE_RENDER_WAIT attempt=%s reason=SCREENSHOT_BLANK_OR_INVALID\\n' "$attempt"
+      sleep 1
+    done
+    if (( capture_status != 0 )); then
+      cat "$capture_log" >&2
+      rm -f "$home_dir/verified_runtime.png" "$home_dir/verified_runtime.png.provenance.json"
+      exit 1
+    fi
     cp "$home_dir/verified_runtime.png" "$home_dir/runtime_4s.png"
 
     # The frozen parity layout uses a 1080x1920 logical wm size on the
