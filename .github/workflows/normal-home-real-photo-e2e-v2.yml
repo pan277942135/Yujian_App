@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: normal-home-real-photo-e2e-v2-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   real-photo-e2e:
@@ -45,12 +45,13 @@ jobs:
           if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then fail RUNNER "checkout did not produce a git worktree"; fi
           validation_head=$(git rev-parse HEAD)
           if [[ "$validation_head" != "$GITHUB_SHA" ]]; then fail RUNNER "checked out HEAD $validation_head does not match event SHA $GITHUB_SHA"; fi
-          parent_sha=$(git rev-parse HEAD^ 2>/dev/null || true)
           printf '%s\n' "$validation_head" > evidence/validation_head.txt
-          printf '%s\n' "$parent_sha" > evidence/product_baseline_sha.txt
-          printf 'validation_head=%s\nproduct_baseline_sha=%s\n' "$validation_head" "$parent_sha"
           expected_main=3cd0753be926c3a8cc94ac56c97c9103febc6663
-          if [[ "$parent_sha" != "$expected_main" ]]; then fail RUNNER "validation HEAD parent was $parent_sha, expected exact main $expected_main"; fi
+          if ! git cat-file -e "$expected_main^{commit}"; then fail RUNNER "authoritative main commit $expected_main is missing from checkout"; fi
+          merge_base=$(git merge-base "$expected_main" "$validation_head" 2>/dev/null || true)
+          if [[ "$merge_base" != "$expected_main" ]]; then fail RUNNER "validation branch is not based on exact authoritative main $expected_main"; fi
+          printf '%s\n' "$expected_main" > evidence/product_baseline_sha.txt
+          printf 'validation_head=%s\nproduct_baseline_sha=%s\n' "$validation_head" "$expected_main"
           changed=$(git diff --name-only "$expected_main" "$validation_head" | sort)
           printf '%s\n' "$changed" > evidence/validation_changed_files.txt
           printf 'changed_files:\n%s\n' "$changed"
@@ -61,10 +62,41 @@ jobs:
           if [[ ! -x "$adb_bin" ]]; then fail RUNNER "ADB is missing at $adb_bin"; fi
           export ANDROID_ADB="$adb_bin"
           "$adb_bin" start-server
-          "$adb_bin" wait-for-device
           mapfile -t attached < <("$adb_bin" devices | awk 'NR > 1 && $2 == "device" {print $1}')
-          if [[ ${#attached[@]} -ne 1 ]]; then fail RUNNER "expected exactly one connected Android device, got ${#attached[@]}"; fi
+          if [[ ${#attached[@]} -gt 1 ]]; then fail RUNNER "expected at most one connected Android device, got ${#attached[@]}"; fi
+          if [[ ${#attached[@]} -eq 0 ]]; then
+            emulator_bin=/opt/android-sdk/emulator/emulator
+            if [[ ! -x "$emulator_bin" || ! -e /dev/kvm ]]; then fail RUNNER "API 28 emulator binary or KVM device is unavailable"; fi
+            avd_list=$("$emulator_bin" -list-avds 2>&1) || fail RUNNER "Android AVD inventory could not be read: $avd_list"
+            avd_name=$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')
+            if [[ -z "$avd_name" ]]; then avd_name=$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}'); fi
+            if [[ -z "$avd_name" ]]; then fail RUNNER "no Android virtual device is configured on this runner"; fi
+            printf 'selected_avd=%s\n' "$avd_name" | tee -a evidence/logs/runner.log
+            if ! pgrep -f -- "$emulator_bin -avd" >/dev/null 2>&1; then
+              nohup "$emulator_bin" -avd "$avd_name" -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920 > evidence/logs/emulator.log 2>&1 &
+              printf 'emulator_pid=%s\n' "$!" | tee -a evidence/logs/runner.log
+            fi
+          fi
+          ready=0
+          for wait_attempt in 1 2; do
+            if timeout 90s "$adb_bin" wait-for-device; then ready=1; break; fi
+            "$adb_bin" kill-server || true
+            "$adb_bin" start-server
+          done
+          if [[ "$ready" != 1 ]]; then fail RUNNER "ADB did not connect to the runner emulator after two bounded waits"; fi
+          mapfile -t attached < <("$adb_bin" devices | awk 'NR > 1 && $2 == "device" {print $1}')
+          if [[ ${#attached[@]} -ne 1 ]]; then fail RUNNER "expected exactly one booted Android device, got ${#attached[@]}"; fi
           serial=${attached[0]}
+          booted=0
+          for boot_attempt in $(seq 1 60); do
+            state=$("$adb_bin" -s "$serial" get-state 2>/dev/null | tr -d '\r' || true)
+            boot=$("$adb_bin" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)
+            api=$("$adb_bin" -s "$serial" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)
+            printf 'android_readiness attempt=%s state=%s boot=%s api=%s\n' "$boot_attempt" "$state" "$boot" "$api" | tee -a evidence/logs/runner.log
+            if [[ "$state" == device && "$boot" == 1 && "$api" == 28 ]]; then booted=1; break; fi
+            sleep 2
+          done
+          if [[ "$booted" != 1 ]]; then fail RUNNER "API 28 Android device did not finish booting in 120 seconds"; fi
           export DEVICE_SERIAL="$serial"
           "$adb_bin" -s "$serial" shell getprop ro.build.version.sdk > evidence/device_api.txt
           api=$(tr -d '\r\n' < evidence/device_api.txt)
