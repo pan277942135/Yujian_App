@@ -47,6 +47,16 @@ data class FishKnowledgeCard(
     val content: FishKnowledgeCardContent = FishKnowledgeCardContent(),
 )
 
+/** Public ACTIVE media metadata returned by the CMS detail endpoint, keyed by asset role. */
+data class FishKnowledgeAsset(
+    val role: String,
+    val imageUrl: String,
+    val version: String? = null,
+    val resourceId: String? = null,
+    val status: String? = null,
+    val speciesId: String? = null,
+)
+
 data class FishKnowledgeFeature(
     val title: String,
     val text: String,
@@ -163,6 +173,7 @@ data class FishKnowledgeDetail(
     val similarity: List<FishKnowledgeSimilarity>,
     val knowledge: FishKnowledgeStructured = FishKnowledgeStructured(),
     val dynamicAvailable: Boolean = false,
+    val knowledgeAssets: Map<String, FishKnowledgeAsset> = emptyMap(),
 )
 
 fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {

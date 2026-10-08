@@ -126,7 +126,38 @@ class FishKnowledgeRepository(
             similarity = parseSimilarity(root.optJSONArray("similarity")),
             knowledge = parseKnowledge(root.optJSONObject("knowledge")),
             dynamicAvailable = root.optJSONObject("dynamic")?.length()?.let { it > 0 } ?: false,
+            knowledgeAssets = parseKnowledgeAssets(root.optJSONObject("knowledge_assets")),
         )
+    }
+
+    private fun parseKnowledgeAssets(assets: JSONObject?): Map<String, FishKnowledgeAsset> {
+        if (assets == null) return emptyMap()
+        val keys = assets.keys().asSequence().toList().sortedWith(
+            compareBy<String>({ normalizeCardType(it) == it.trim().uppercase() }, { it }),
+        )
+        return buildMap {
+            keys.forEach { key ->
+                val role = normalizeCardType(key)
+                if (role !in KNOWLEDGE_ASSET_ROLES) return@forEach
+                val item = assets.optJSONObject(key) ?: return@forEach
+                val imageUrl = item.optString("image_url").cleanJsonString() ?: return@forEach
+                val assetRole = item.optString("asset_role").cleanJsonString()?.let(::normalizeCardType) ?: role
+                if (assetRole != role) return@forEach
+                put(
+                    role,
+                    FishKnowledgeAsset(
+                        role = assetRole,
+                        imageUrl = imageUrl,
+                        version = (item.optString("version").cleanJsonString()
+                            ?: item.optString("asset_version").cleanJsonString()),
+                        resourceId = (item.optString("asset_id").cleanJsonString()
+                            ?: item.optString("id").cleanJsonString()),
+                        status = item.optString("status").cleanJsonString()?.uppercase(),
+                        speciesId = item.optString("species_id").cleanJsonString(),
+                    ),
+                )
+            }
+        }
     }
 
     private fun parseCards(array: JSONArray?): List<FishKnowledgeCard> = (0 until (array?.length() ?: 0)).map { index ->
@@ -137,7 +168,7 @@ class FishKnowledgeRepository(
             speciesId = item.optString("species_id"),
             cardType = normalizeCardType(cardType),
             title = item.optString("title"),
-            imageUrl = item.optString("image_url"),
+            imageUrl = item.optString("image_url").cleanJsonString().orEmpty(),
             description = item.optString("description"),
             content = parseCardContent(item.optJSONObject("content"), cardType),
             sortOrder = item.optInt("sort_order"),
@@ -254,5 +285,11 @@ class FishKnowledgeRepository(
         "FISHING" -> "SKILL"
         "RECORD" -> "GEAR"
         else -> value.trim().uppercase()
+    }
+
+    private fun String.cleanJsonString(): String? = trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) }
+
+    private companion object {
+        val KNOWLEDGE_ASSET_ROLES = setOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL")
     }
 }

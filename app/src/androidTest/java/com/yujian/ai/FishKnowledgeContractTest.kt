@@ -1,6 +1,7 @@
 package com.yujian.ai
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.knowledge.FishKnowledgeRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -77,6 +78,28 @@ class FishKnowledgeContractTest {
         assertEquals(1, detail.gallery.size)
         assertEquals("HOW_TO_FISH", detail.videos.single().type)
         assertFalse(detail.dynamicAvailable)
+        assertTrue(detail.knowledgeAssets.isEmpty())
+    }
+
+    @Test
+    fun cms_v13_active_asset_fixture_parses_role_version_and_legacy_cards() {
+        val fixture = InstrumentationRegistry.getInstrumentation().context.assets
+            .open("fixtures/fish_knowledge_detail_v13_active_assets.json")
+            .bufferedReader()
+            .use { it.readText() }
+        val repository = FishKnowledgeRepository("https://api.example")
+        val detail = repository.parseDetailJson(fixture)
+
+        assertEquals("/api/v1/fish/knowledge-media/grass_carp/hero/v2.webp", detail.knowledgeAssets["HERO"]?.imageUrl)
+        assertEquals("grass-hero-2", detail.knowledgeAssets["HERO"]?.resourceId)
+        assertEquals("v2", detail.knowledgeAssets["HERO"]?.version)
+        assertEquals("ACTIVE", detail.knowledgeAssets["HERO"]?.status)
+        assertEquals(5, detail.knowledgeAssets.size)
+        assertEquals(listOf("DRAFT", "ACTIVE"), detail.cards.map { it.status })
+        assertEquals(
+            "https://api.example/api/v1/fish/knowledge-media/grass_carp/hero/v2.webp",
+            repository.resolveAssetUrl(detail.knowledgeAssets.getValue("HERO").imageUrl),
+        )
     }
 
     @Test

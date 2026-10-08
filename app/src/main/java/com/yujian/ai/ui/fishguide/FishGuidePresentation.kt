@@ -2,6 +2,7 @@ package com.yujian.ai.ui.fishguide
 
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.knowledge.FishKnowledgeAsset
 import com.yujian.ai.knowledge.FishKnowledgeCard
 import com.yujian.ai.knowledge.FishKnowledgeDetail
 
@@ -26,7 +27,8 @@ data class FishGuideKnowledgeCardPresentation(
     val label: String,
     val title: String,
     val summary: String?,
-    val subjectImageUrl: String?,
+    val imageUrl: String?,
+    val imageCacheIdentity: String?,
     val facts: List<FishGuideKnowledgeFact>,
     val available: Boolean,
 ) {
@@ -91,16 +93,20 @@ fun savedRecordsForSpecies(species: FishGuideItem, records: List<RemoteCatch>): 
         .sortedByDescending { it.capturedAt.ifBlank { it.createdAt } }
         .toList()
 
-fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeCardPresentation> {
+fun FishKnowledgeDetail.toKnowledgeCardPresentations(
+    resolveAssetUrl: (String?) -> String? = { it },
+): List<FishGuideKnowledgeCardPresentation> {
     val activeCards = cards.asSequence()
         .filter { it.status.equals("ACTIVE", ignoreCase = true) }
         .filter { it.speciesId.equals(species.id, ignoreCase = true) }
-        .sortedBy { it.sortOrder }
-        .distinctBy { normalizeKnowledgeCardType(it.cardType) }
-        .associateBy { normalizeKnowledgeCardType(it.cardType) }
+        .sortedWith(compareBy<FishKnowledgeCard>({ it.sortOrder }, { it.id }, { it.imageUrl }))
+        .filter { normalizeKnowledgeCardType(it.cardType) in knowledgeCardOrder }
+        .groupBy { normalizeKnowledgeCardType(it.cardType) }
 
+    val usedImageUrls = mutableSetOf<String>()
     return knowledgeCardOrder.mapIndexed { index, type ->
-        val card = activeCards[type]
+        val cardCandidates = activeCards[type].orEmpty()
+        val card = cardCandidates.firstOrNull()
         val facts = when (type) {
             "HERO" -> buildList {
                 species.scientificName.cleanOrNull()?.let { add(FishGuideKnowledgeFact("学名", it)) }
@@ -121,7 +127,20 @@ fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeC
             else -> card?.content?.description.cleanOrNull()
                 ?: card?.description.cleanOrNull()
         }
-        val image = if (type == "HERO") species.coverImage.cleanOrNull() else null
+        val primaryAsset = knowledgeAssets[type]?.takeIf { it.isUsableFor(species.id, type) }
+        val imageCandidates = buildList {
+            primaryAsset?.let { add(it.imageUrl to imageIdentity(species.id, type, it)) }
+            cardCandidates.forEach { candidate ->
+                if (candidate.imageUrl.isUsableImageAddress()) {
+                    add(candidate.imageUrl to imageIdentity(species.id, type, candidate.imageUrl, candidate.id.toString()))
+                }
+            }
+        }.mapNotNull { (rawUrl, identity) ->
+            resolveAssetUrl(rawUrl)?.trim()?.takeIf(String::isNotBlank)
+                ?.takeIf(String::isUsableImageAddress)
+                ?.let { it to identity }
+        }.distinctBy { it.first }
+        val selectedImage = imageCandidates.firstOrNull { (url, _) -> usedImageUrls.add(url) }
         val title = if (type == "HERO") species.nameCn else knowledgeCardLabels.getValue(type)
         FishGuideKnowledgeCardPresentation(
             position = index + 1,
@@ -129,11 +148,38 @@ fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeC
             label = knowledgeCardLabels.getValue(type),
             title = title,
             summary = summary,
-            subjectImageUrl = image,
+            imageUrl = selectedImage?.first,
+            imageCacheIdentity = selectedImage?.second,
             facts = facts,
-            available = (type == "HERO" && image != null) || facts.isNotEmpty() || summary != null,
+            available = selectedImage != null,
         )
     }
+}
+
+private fun FishKnowledgeAsset.isUsableFor(speciesId: String, role: String): Boolean =
+    normalizeKnowledgeCardType(this.role) == role &&
+        (status.isNullOrBlank() || status.equals("ACTIVE", ignoreCase = true)) &&
+        (this.speciesId.isNullOrBlank() || this.speciesId.equals(speciesId, ignoreCase = true)) &&
+        imageUrl.isUsableImageAddress()
+
+private fun imageIdentity(speciesId: String, role: String, asset: FishKnowledgeAsset): String =
+    imageIdentity(speciesId, role, asset.imageUrl, asset.resourceId, asset.version)
+
+private fun imageIdentity(
+    speciesId: String,
+    role: String,
+    imageUrl: String,
+    resourceId: String? = null,
+    version: String? = null,
+): String = listOf(speciesId, role, resourceId.cleanOrNull(), version.cleanOrNull(), imageUrl)
+    .joinToString("|") { it.orEmpty() }
+
+private fun String.isUsableImageAddress(): Boolean {
+    val value = trim()
+    if (value.isBlank()) return false
+    if (value.startsWith("https://", ignoreCase = true) || value.startsWith("http://", ignoreCase = true)) return true
+    if (value.startsWith("//")) return false
+    return !Regex("^[A-Za-z][A-Za-z0-9+.-]*:").containsMatchIn(value)
 }
 
 private fun FishKnowledgeDetail.identificationFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> = buildList {
