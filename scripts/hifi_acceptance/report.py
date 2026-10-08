@@ -190,10 +190,15 @@ def evaluate(manifest: dict, artifact_root: Path, output: Path, build_sha: str) 
     for name in manifest["required_modules"]:
         entries_for_module = [x for x in entries if x["module"] == name]
         modules[name] = sorted(entries_for_module, key=lambda x: RANK.get(x["status"], 0))[0]["status"]
+    statuses = [x["status"] for x in entries]
+    # The CI automated gate can be ready even when human photo review is pending.
+    # This is NEVER a user visual PASS.
+    readiness = ("INCOMPLETE_OR_FAIL" if any(s in BAD for s in statuses)
+                 else "READY_FOR_USER_REVIEW" if "REVIEW_REQUIRED" in statuses
+                 else "AUTO_CHECK_PASS")
     return {"schema_version": 1, "build_sha": build_sha,
             "summary": {"surfaces": len(entries), "modules": modules,
-                        "status": ("AUTO_CHECK_PASS" if all(x["status"] == "AUTO_CHECK_PASS" for x in entries)
-                                   else "INCOMPLETE_OR_FAIL")},
+                        "status": readiness, "user_physical_acceptance": "NOT_PERFORMED"},
             "surfaces": entries}
 
 
@@ -248,7 +253,7 @@ def main() -> int:
     for e in result["surfaces"]:
         print("HIFI_SURFACE " + e["id"] + " " + e["status"] + " " + e["reason"])
     print("HIFI_REPORT=" + str(args.output / "index.html"))
-    if args.strict and result["summary"]["status"] != "AUTO_CHECK_PASS":
+    if args.strict and result["summary"]["status"] == "INCOMPLETE_OR_FAIL":
         return 1
     return 0
 

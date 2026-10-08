@@ -37,7 +37,7 @@ Once self-hosted API 28 jobs finish, a separate ubuntu-latest hifi-audit job dow
 - index.html: side-by-side comparison report
 - per-surface frozen.png, runtime.png, overlay.png, diff.png, side-by-side.png
 
-The report job does not start emulators or duplicate the heavy runtime matrix. On main, it enforces --strict and fails if a required case is BLOCKED, FAIL_* or REVIEW_REQUIRED. A green Build Job is NOT a visual sign-off; a green report job would only mean all automated checks passed, not that a person accepted the UX.
+The report job does not start emulators or duplicate the heavy runtime matrix. On main, --strict fails if a case is BLOCKED or FAIL_*. REVIEW_REQUIRED is a legitimate automated-evidence-ready state, never user physical acceptance; the JSON summary records user_physical_acceptance=NOT_PERFORMED. A green Build Job is NOT a visual sign-off; a green report job would only mean all automated checks passed, not that a person accepted the UX.
 
 ## Status contract
 

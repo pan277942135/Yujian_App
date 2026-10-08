@@ -106,6 +106,15 @@ class HiFiEvidenceTest(unittest.TestCase):
         self.screenshot()
         self.assertEqual(self.status()["status"], "AUTO_CHECK_PASS")
 
+    def test_photo_surface_requires_user_review_not_fake_pass(self):
+        self.gate_result()
+        self.screenshot()
+        self.manifest["surfaces"][0]["mode"] = "review"
+        result = hifi.evaluate(self.manifest, self.artifacts, self.output, self.sha)
+        self.assertEqual(result["surfaces"][0]["status"], "REVIEW_REQUIRED")
+        self.assertEqual(result["summary"]["status"], "READY_FOR_USER_REVIEW")
+        self.assertEqual(result["summary"]["user_physical_acceptance"], "NOT_PERFORMED")
+
     def test_visual_drift_is_a_failure(self):
         self.gate_result()
         image = Image.open(self.ref).convert("RGB")
