@@ -140,6 +140,27 @@ jobs:
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
 
+      # A readable report must exist even when self-hosted API 28 is queued.
+      - name: Produce Hi-Fi preflight report before device jobs
+        if: always()
+        run: |
+          mkdir -p build/hifi-preflight-evidence build/hifi-preflight-report
+          python3 scripts/hifi_acceptance/report.py \
+            --artifacts build/hifi-preflight-evidence \
+            --output build/hifi-preflight-report \
+            --build-sha "$GITHUB_SHA"
+          echo "## Hi-Fi preflight (NOT device acceptance)" >> "$GITHUB_STEP_SUMMARY"
+          cat build/hifi-preflight-report/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Hi-Fi preflight report even when runner is queued
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-HiFi-Preflight-${{ github.sha }}
+          path: build/hifi-preflight-report
+          if-no-files-found: warn
+          retention-days: 14
+
       # Build Once contract: the two files below are the only APK pair any
       # Android Runtime job is allowed to install.
       - name: Stage frozen runtime APK pair
