@@ -37,7 +37,8 @@ class RecognitionCameraRuntimeTest {
     private val trace = StringBuilder()
 
     companion object {
-        private const val CAMERA_BUTTON = "开始识鱼"
+        private const val HOME_CAPTURE = "开始识鱼"
+        private const val CAMERA_SHUTTER = "拍摄"
         private const val BACK_BUTTON = "返回"
         private const val ALBUM_BUTTON = "从相册选择"
         private const val RECOGNITION_IMAGE = "正在识别的鱼获照片"
@@ -109,9 +110,9 @@ class RecognitionCameraRuntimeTest {
         context.startActivity(launchIntent)
 
         assertTrue("Home did not expose the production Recognition Camera control", device.wait(
-            Until.hasObject(By.desc(CAMERA_BUTTON)), 30_000L,
+            Until.hasObject(By.desc(HOME_CAPTURE)), 30_000L,
         ))
-        val homeCapture = device.findObject(By.desc(CAMERA_BUTTON))
+        val homeCapture = device.findObject(By.desc(HOME_CAPTURE))
         assertNotNull("Home capture control disappeared", homeCapture)
         homeCapture!!.click()
         assertTrue("Production camera route did not open", device.wait(
@@ -166,7 +167,7 @@ class RecognitionCameraRuntimeTest {
 
         // Tap the real production Compose control exactly once, only after all
         // production READY signals and the enabled UI control have been verified.
-        val captureButtonAtReady = device.findObject(By.desc(CAMERA_BUTTON))
+        val captureButtonAtReady = device.findObject(By.desc(CAMERA_SHUTTER))
         assertNotNull("Production capture control disappeared at READY", captureButtonAtReady)
         assertTrue("Production capture control is disabled at READY", captureButtonAtReady!!.isEnabled)
         captureButtonAtReady.click()
@@ -302,7 +303,7 @@ class RecognitionCameraRuntimeTest {
             val cameraWasHealthy = errorLine.contains("camera_ready_for_retry=true")
             if (cameraWasHealthy) {
                 assertTrue("Healthy CameraX must remain retryable after onError", device.wait(
-                    Until.findObject(By.desc(CAMERA_BUTTON)), 5_000L,
+                    Until.findObject(By.desc(CAMERA_SHUTTER)), 5_000L,
                 )?.isEnabled == true)
             }
             record("CAMERA_ERROR_RECOVERY", if (cameraWasHealthy) "RETRYABLE_NO_NAVIGATION" else "REBIND_REQUESTED_NO_NAVIGATION")
@@ -470,7 +471,7 @@ class RecognitionCameraRuntimeTest {
         val imageCaptureReady = lines.any {
             it.contains("event=preview_stream_state") && it.contains("image_capture_ready=true")
         }
-        val button = device.findObject(By.desc(CAMERA_BUTTON))
+        val button = device.findObject(By.desc(CAMERA_SHUTTER))
         return ReadySnapshot(
             providerBound = providerBound,
             previewStreaming = previewStreaming,
@@ -529,7 +530,7 @@ class RecognitionCameraRuntimeTest {
     }
 
     private fun saveCaptureInvocationFailureDiagnostics(logs: String) {
-        val button = device.findObject(By.desc(CAMERA_BUTTON))
+        val button = device.findObject(By.desc(CAMERA_SHUTTER))
         val state = if (button == null) "missing" else if (button.isEnabled) "enabled" else "disabled"
         write(
             "capture_invocation_failure.txt",
