@@ -50,6 +50,11 @@ jobs:
       - name: Install Pillow for asset verification
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
 
+      - name: Validate high-fidelity authority map and fail-closed tests
+        run: |
+          python3 scripts/hifi_acceptance/report.py --validate-manifest
+          python3 -m unittest discover -s scripts/hifi_acceptance/tests -p 'test_*.py' -v
+
       - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_empty_home_runtime_v2.py
@@ -470,3 +475,59 @@ jobs:
             echo "Runtime gate failed: classification=$classification action_outcome=${{ steps.runtime_gate.outcome }}"
             exit 1
           fi
+
+  # Reuse existing device artifacts; this job never launches a second emulator.
+  # Build success does not imply Hi-Fi acceptance.
+  hifi-audit:
+    name: Frozen vs Android evidence
+    needs: [build, android-runtime]
+    if: ${{ always() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact tested SHA
+        uses: actions/checkout@v4
+
+      - name: Set up image comparison dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Download all runtime gate evidence
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: runtime-gate-*
+          path: build/hifi-runtime
+          merge-multiple: false
+
+      - name: Build Frozen vs Android visual report
+        run: |
+          mkdir -p build/hifi-runtime build/hifi-report
+          python3 scripts/hifi_acceptance/report.py \
+            --manifest design/qa/android_hifi_manifest_v1.json \
+            --artifacts build/hifi-runtime \
+            --output build/hifi-report \
+            --build-sha "$GITHUB_SHA"
+          cat build/hifi-report/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Frozen, Runtime, Overlay, Diff and classifications
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-HiFi-Acceptance-${{ github.sha }}
+          path: build/hifi-report
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce honest Hi-Fi gate on main
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          python3 scripts/hifi_acceptance/report.py \
+            --manifest design/qa/android_hifi_manifest_v1.json \
+            --artifacts build/hifi-runtime \
+            --output build/hifi-report \
+            --build-sha "$GITHUB_SHA" --strict

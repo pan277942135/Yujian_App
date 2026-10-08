@@ -1,0 +1,288 @@
+{
+  "schema_version": 1,
+  "package": "com.yujian.ai",
+  "required_modules": [
+    "Camera",
+    "Result",
+    "FishRecordDetail",
+    "Auth",
+    "Home",
+    "MyCatches"
+  ],
+  "policy": "Source authority is the current immutable Git commit. Any missing Frozen file, provenance, screen or gate is BLOCKED, never PASS. Automated scores do not replace user physical acceptance.",
+  "surfaces": [
+    {
+      "id": "camera_capture",
+      "module": "Camera",
+      "gate": "camera-runtime-v1",
+      "reference": null,
+      "screenshot": "camera/01_camera_idle.png",
+      "mode": "review",
+      "rois": [],
+      "note": "No verified still-camera Frozen screen authority mapped. Do not repurpose Capture Transition visual as Camera reference."
+    },
+    {
+      "id": "result_high",
+      "module": "Result",
+      "gate": "recognition-frozen",
+      "reference": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "screenshot": "recognition_v1_2/05_result_high.png",
+      "mode": "review",
+      "rois": [
+        {
+          "name": "heading",
+          "rect": [
+            0.05,
+            0.02,
+            0.9,
+            0.2
+          ],
+          "max_mae": 42
+        },
+        {
+          "name": "footer",
+          "rect": [
+            0.05,
+            0.76,
+            0.9,
+            0.2
+          ],
+          "max_mae": 42
+        }
+      ],
+      "note": "Hero contains variable catch photography; image ROIs are advisory, manual review required."
+    },
+    {
+      "id": "result_no_fish",
+      "module": "Result",
+      "gate": "recognition-frozen",
+      "reference": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+      "screenshot": "recognition_v1_2/08_error_no_fish.png",
+      "mode": "review",
+      "rois": [
+        {
+          "name": "copy",
+          "rect": [
+            0.05,
+            0.3,
+            0.9,
+            0.4
+          ],
+          "max_mae": 42
+        }
+      ]
+    },
+    {
+      "id": "record_detail",
+      "module": "FishRecordDetail",
+      "gate": "login-v2",
+      "reference": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
+      "screenshot": "record-detail/record_detail_a.png",
+      "mode": "review",
+      "rois": [
+        {
+          "name": "metadata",
+          "rect": [
+            0.06,
+            0.55,
+            0.88,
+            0.22
+          ],
+          "max_mae": 40
+        }
+      ],
+      "note": "Dynamic fish image must not be treated as immutable raster."
+    },
+    {
+      "id": "auth_login",
+      "module": "Auth",
+      "gate": "login-v2",
+      "reference": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+      "screenshot": "login-v2/login_v2_idle.png",
+      "mode": "auto",
+      "rois": [
+        {
+          "name": "title",
+          "rect": [
+            0.05,
+            0.3,
+            0.9,
+            0.16
+          ],
+          "max_mae": 62
+        },
+        {
+          "name": "form",
+          "rect": [
+            0.05,
+            0.43,
+            0.9,
+            0.37
+          ],
+          "max_mae": 62
+        },
+        {
+          "name": "footer",
+          "rect": [
+            0.04,
+            0.8,
+            0.92,
+            0.18
+          ],
+          "max_mae": 65
+        }
+      ]
+    },
+    {
+      "id": "auth_register",
+      "module": "Auth",
+      "gate": "login-v2",
+      "reference": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+      "screenshot": "login-v2/register_v2_idle.png",
+      "mode": "auto",
+      "rois": [
+        {
+          "name": "title",
+          "rect": [
+            0.05,
+            0.3,
+            0.9,
+            0.16
+          ],
+          "max_mae": 62
+        },
+        {
+          "name": "form",
+          "rect": [
+            0.05,
+            0.43,
+            0.9,
+            0.37
+          ],
+          "max_mae": 62
+        },
+        {
+          "name": "footer",
+          "rect": [
+            0.04,
+            0.8,
+            0.92,
+            0.18
+          ],
+          "max_mae": 65
+        }
+      ]
+    },
+    {
+      "id": "home_empty",
+      "module": "Home",
+      "gate": "empty-home-v2",
+      "reference": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
+      "screenshot": "home-evidence/runtime_static.png",
+      "mode": "auto",
+      "rois": [
+        {
+          "name": "header",
+          "rect": [
+            0.03,
+            0.04,
+            0.94,
+            0.2
+          ],
+          "max_mae": 42
+        },
+        {
+          "name": "fishing",
+          "rect": [
+            0.1,
+            0.32,
+            0.8,
+            0.38
+          ],
+          "max_mae": 40
+        },
+        {
+          "name": "camera",
+          "rect": [
+            0.3,
+            0.7,
+            0.4,
+            0.26
+          ],
+          "max_mae": 40
+        }
+      ]
+    },
+    {
+      "id": "home_normal",
+      "module": "Home",
+      "gate": "normal-home-v1",
+      "reference": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "screenshot": "normal-home-v1/04_normal_home_runtime_1080x1920.png",
+      "mode": "review",
+      "rois": [
+        {
+          "name": "header",
+          "rect": [
+            0.04,
+            0.03,
+            0.92,
+            0.13
+          ],
+          "max_mae": 42
+        },
+        {
+          "name": "stats",
+          "rect": [
+            0.06,
+            0.13,
+            0.88,
+            0.12
+          ],
+          "max_mae": 42
+        },
+        {
+          "name": "card_frame",
+          "rect": [
+            0.12,
+            0.26,
+            0.76,
+            0.52
+          ],
+          "max_mae": 45
+        }
+      ]
+    },
+    {
+      "id": "my_catches",
+      "module": "MyCatches",
+      "gate": null,
+      "reference": "design/pages/fish_records/list/frozen/timeline_v1/My_Catches_Timeline_Final_Board.png",
+      "screenshot": "my-catches/timeline.png",
+      "mode": "review",
+      "rois": [
+        {
+          "name": "navigation",
+          "rect": [
+            0.04,
+            0.04,
+            0.92,
+            0.12
+          ],
+          "max_mae": 40
+        },
+        {
+          "name": "timeline",
+          "rect": [
+            0.06,
+            0.17,
+            0.89,
+            0.66
+          ],
+          "max_mae": 42
+        }
+      ],
+      "note": "PA-06 Frozen reference retained; manual review of date rails, timeline and horizontal thumbnail required."
+    }
+  ]
+}
