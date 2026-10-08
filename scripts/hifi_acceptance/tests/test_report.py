@@ -138,6 +138,25 @@ class HiFiEvidenceTest(unittest.TestCase):
         )
         self.assertEqual(self.status()["reason"], "INVALID_CAPTURE_PROVENANCE")
 
+    def test_cropped_recognition_proof_requires_surface_mapping(self):
+        self.gate_result()
+        self.screenshot(proof=False)
+        proof = {
+            "package": "com.yujian.ai", "build_sha": self.sha,
+            "foreground_verified": True,
+            "resumed_activity": "com.yujian.ai/androidx.activity.ComponentActivity",
+            "activity_window_focus": True, "test_assertions_passed": True,
+            "capture_method": "instrumentation-uiautomator-cropped",
+            "source_surface_mapped": True,
+            "screenshot_sha256": hashlib.sha256(self.screen.read_bytes()).hexdigest(),
+        }
+        sidecar = self.gate / "runtime.png.provenance.json"
+        sidecar.write_text(json.dumps(proof), encoding="utf-8")
+        self.assertEqual(self.status()["status"], "AUTO_CHECK_PASS")
+        proof["source_surface_mapped"] = False
+        sidecar.write_text(json.dumps(proof), encoding="utf-8")
+        self.assertEqual(self.status()["reason"], "INVALID_CAPTURE_PROVENANCE")
+
     def test_visual_drift_is_a_failure(self):
         self.gate_result()
         image = Image.open(self.ref).convert("RGB")

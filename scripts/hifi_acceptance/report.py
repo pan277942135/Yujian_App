@@ -87,6 +87,10 @@ def provenance_valid(screen: Path, expected_sha: str, package: str) -> tuple[boo
             or (method == "instrumentation-ui-automation"
                 and doc.get("activity_window_focus") is True
                 and doc.get("test_assertions_passed") is True)
+            or (method == "instrumentation-uiautomator-cropped"
+                and doc.get("activity_window_focus") is True
+                and doc.get("test_assertions_passed") is True
+                and doc.get("source_surface_mapped") is True)
         )
         if (doc.get("package") != package or doc.get("build_sha") != expected_sha
                 or doc.get("foreground_verified") is not True

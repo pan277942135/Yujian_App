@@ -81,6 +81,8 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.security.MessageDigest
+import org.json.JSONObject
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.Collections
@@ -1543,6 +1545,31 @@ class RecognitionFrozenFlowEmulatorTest {
             verified != null && verified.width > 0 && verified.height > 0,
         )
         verified?.recycle()
+
+        // The generated image is the actual Compose app surface mapped from
+        // UiAutomator's raw screenshot; never label a desktop as Result proof.
+        val commit = InstrumentationRegistry.getArguments().getString("buildSha").orEmpty()
+        val activity = composeRule.activity
+        if (Regex("^[a-f0-9]{40}$").matches(commit) &&
+            activity.packageName == "com.yujian.ai" && activity.hasWindowFocus() &&
+            name in setOf("05_result_high.png", "08_error_no_fish.png")
+        ) {
+            val digest = MessageDigest.getInstance("SHA-256").digest(output.readBytes())
+                .joinToString("") { "%02x".format(it) }
+            val proof = JSONObject().apply {
+                put("package", activity.packageName)
+                put("build_sha", commit)
+                put("foreground_verified", true)
+                put("resumed_activity", activity.packageName + "/" + activity.javaClass.name)
+                put("activity_window_focus", true)
+                put("test_assertions_passed", true)
+                put("source_surface_mapped", true)
+                put("capture_method", "instrumentation-uiautomator-cropped")
+                put("screenshot_sha256", digest)
+                put("capture_epoch_ms", System.currentTimeMillis())
+            }
+            File(evidenceDir, "$name.provenance.json").writeText(proof.toString(2))
+        }
 
         // Evidence remains in the target app cache during instrumentation.
         // CI exports it after the test through adb run-as; do not make the
