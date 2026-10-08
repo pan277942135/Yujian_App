@@ -90,7 +90,9 @@ PY
 
 normal_home_capture_exact() {
   local path="$1" width="$2" height="$3"
-  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$path"
+  python3 "$YUJIAN_REPO_ROOT/scripts/hifi_acceptance/capture_verified_surface.py" \
+    --adb "$YUJIAN_ADB_BIN" --package "$YUJIAN_APP_PACKAGE" \
+    --build-sha "$YUJIAN_BUILD_SHA" --output "$path" --width "$width" --height "$height"
   python3 - "$path" "$width" "$height" <<'PY'
 from PIL import Image
 import sys

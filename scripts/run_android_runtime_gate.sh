@@ -9,7 +9,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage:
   bash scripts/run_android_runtime_gate.sh \
-    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|fish-guide-v1|runtime-parity|camera-runtime-v1|camera-runtime-smoke \
+    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|hifi-pages-v1|fish-guide-v1|runtime-parity|camera-runtime-v1|camera-runtime-smoke \
     --app-apk path/to/app-debug.apk \
     --test-apk path/to/app-debug-androidTest.apk \
     --evidence-dir evidence/runtime/<gate> \
@@ -76,6 +76,9 @@ case "$GATE" in
     ;;
   login-v2)
     source "$RUNTIME_DIR/gates/login_v2.sh"
+    ;;
+  hifi-pages-v1)
+    source "$RUNTIME_DIR/gates/hifi_pages_v1.sh"
     ;;
   fish-guide-v1)
     source "$RUNTIME_DIR/gates/fish_guide_v1.sh"

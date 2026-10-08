@@ -50,6 +50,12 @@ jobs:
       - name: Install Pillow for asset verification
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
 
+      - name: Validate high-fidelity authority map and fail-closed tests
+        run: |
+          python3 scripts/hifi_acceptance/report.py --validate-manifest
+          python3 scripts/verify_final_android_matrix.py
+          python3 -m unittest discover -s scripts/hifi_acceptance/tests -p 'test_*.py' -v
+
       - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_empty_home_runtime_v2.py
@@ -135,6 +141,27 @@ jobs:
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
 
+      # A readable report must exist even when self-hosted API 28 is queued.
+      - name: Produce Hi-Fi preflight report before device jobs
+        if: always()
+        run: |
+          mkdir -p build/hifi-preflight-evidence build/hifi-preflight-report
+          python3 scripts/hifi_acceptance/report.py \
+            --artifacts build/hifi-preflight-evidence \
+            --output build/hifi-preflight-report \
+            --build-sha "$GITHUB_SHA"
+          echo "## Hi-Fi preflight (NOT device acceptance)" >> "$GITHUB_STEP_SUMMARY"
+          cat build/hifi-preflight-report/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Hi-Fi preflight report even when runner is queued
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-HiFi-Preflight-${{ github.sha }}
+          path: build/hifi-preflight-report
+          if-no-files-found: warn
+          retention-days: 14
+
       # Build Once contract: the two files below are the only APK pair any
       # Android Runtime job is allowed to install.
       - name: Stage frozen runtime APK pair
@@ -210,7 +237,7 @@ jobs:
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs: build
     runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 60
@@ -232,6 +259,10 @@ jobs:
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: login-v2
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          - gate: hifi-pages-v1
             api_level: 28
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
@@ -278,7 +309,7 @@ jobs:
         if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get -o DPkg::Lock::Timeout=300 install -y ffmpeg
           # Ubuntu 24.04 marks its system Python as externally managed
           # (PEP 668). Pillow is an evidence-only user dependency; keep the
           # runner image untouched and opt in explicitly to the user install.
@@ -470,3 +501,59 @@ jobs:
             echo "Runtime gate failed: classification=$classification action_outcome=${{ steps.runtime_gate.outcome }}"
             exit 1
           fi
+
+  # Reuse existing device artifacts; this job never launches a second emulator.
+  # Build success does not imply Hi-Fi acceptance.
+  hifi-audit:
+    name: Frozen vs Android evidence
+    needs: [build, android-runtime]
+    if: ${{ always() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact tested SHA
+        uses: actions/checkout@v4
+
+      - name: Set up image comparison dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Download all runtime gate evidence
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: runtime-gate-*
+          path: build/hifi-runtime
+          merge-multiple: false
+
+      - name: Build Frozen vs Android visual report
+        run: |
+          mkdir -p build/hifi-runtime build/hifi-report
+          python3 scripts/hifi_acceptance/report.py \
+            --manifest design/qa/android_hifi_manifest_v1.json \
+            --artifacts build/hifi-runtime \
+            --output build/hifi-report \
+            --build-sha "$GITHUB_SHA"
+          cat build/hifi-report/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Frozen, Runtime, Overlay, Diff and classifications
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-HiFi-Acceptance-${{ github.sha }}
+          path: build/hifi-report
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce honest Hi-Fi gate on main
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          python3 scripts/hifi_acceptance/report.py \
+            --manifest design/qa/android_hifi_manifest_v1.json \
+            --artifacts build/hifi-runtime \
+            --output build/hifi-report \
+            --build-sha "$GITHUB_SHA" --strict

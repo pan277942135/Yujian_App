@@ -101,6 +101,15 @@ gate_collect_evidence() {
     rm -f "$output_dir/recognition_production_flow_trace_v1_2.json"
   fi
 
+  # Authenticated provenance from the Compose / UiAutomator app-surface capture.
+  # Do not manufacture attestations from a later host-side desktop screenshot.
+  for name in 05_result_high.png 08_error_no_fish.png; do
+    "$YUJIAN_ADB_BIN" exec-out run-as "$YUJIAN_APP_PACKAGE" \
+      cat "cache/recognition-evidence/${name}.provenance.json" \
+      > "$output_dir/${name}.provenance.json" 2>/dev/null || \
+      rm -f "$output_dir/${name}.provenance.json"
+  done
+
   for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
