@@ -1,0 +1,98 @@
+name: Normal Home Typography Device Audit V1
+on:
+  push:
+    branches:
+      - test/normal-home-typography-device-audit-v1
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: [self-hosted, yujian-android, api28]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Collect Android scaling metrics
+        continue-on-error: true
+        env:
+          PRODUCT_BASELINE_SHA: 3cd0753be926c3a8cc94ac56c97c9103febc6663
+        run: |
+          set -uo pipefail
+          mkdir -p evidence/devices evidence/logs
+          adb=/opt/android-sdk/platform-tools/adb
+          if [[ ! -x "$adb" ]]; then adb=$(command -v adb || true); fi
+          if [[ -z "$adb" || ! -x "$adb" ]]; then echo ADB_UNAVAILABLE > evidence/failure.txt; exit 1; fi
+          "$adb" start-server || true
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || { echo HEAD_MISMATCH > evidence/failure.txt; exit 1; }
+          test "$(git merge-base "$PRODUCT_BASELINE_SHA" HEAD)" = "$PRODUCT_BASELINE_SHA" || { echo BASELINE_MISMATCH > evidence/failure.txt; exit 1; }
+          changed=$(git diff --name-only "$PRODUCT_BASELINE_SHA" HEAD | sort)
+          test "$changed" = ".github/workflows/normal-home-typography-device-audit-v1.yml" || { echo UNEXPECTED_DIFF > evidence/failure.txt; exit 1; }
+          export ANDROID_ADB="$adb"
+          python3 - <<'PY'
+          import datetime,hashlib,json,os,re,socket,struct,subprocess,time
+          from pathlib import Path
+          adb=os.environ["ANDROID_ADB"];app="com.yujian.ai.uiv2"
+          def run(args):return subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+          def sh(s,c):return run([adb,"-s",s,"shell",*c.split()]).stdout.decode("utf-8","replace").replace("\r","")
+          listing=run([adb,"devices","-l"]).stdout.decode("utf-8","replace").replace("\r","")
+          Path("evidence/logs/adb-devices.txt").write_text(listing,encoding="utf-8")
+          report={"created_at_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"product_baseline_sha":os.getenv("PRODUCT_BASELINE_SHA"),"validation_head":os.getenv("GITHUB_SHA"),"runner":{"name":os.getenv("RUNNER_NAME"),"host":socket.gethostname()},"devices":[]}
+          for line in listing.splitlines()[1:]:
+              p=line.split()
+              if len(p)<2 or p[1]!="device":continue
+              serial=p[0];safe=re.sub(r"[^A-Za-z0-9_.-]","_",serial);d=Path("evidence/devices")/safe;d.mkdir(parents=True,exist_ok=True)
+              def val(c):return sh(serial,c).strip()
+              keys=["ro.build.version.sdk","ro.build.version.release","ro.product.model","ro.product.manufacturer","ro.kernel.qemu"]
+              props={k:val("getprop "+k) for k in keys}
+              wm=val("wm size");denraw=val("wm density");fr=val("settings get system font_scale")
+              activity=val("dumpsys activity activities");windows=val("dumpsys window windows")
+              for n,v in [("wm_size.txt",wm),("wm_density.txt",denraw),("font_scale_system.txt",fr),("activity.txt",activity),("windows.txt",windows)]: (d/n).write_text(v+"\n",encoding="utf-8")
+              cfgs=re.findall(r"(?:mGlobalConfiguration|mFullConfiguration|mLastReportedConfiguration)=\{([^}]+)\}",activity+"\n"+windows)
+              cfg=next((x for x in cfgs if "dp" in x and "dpi" in x),None)
+              mfont=re.search(r"^\s*(\d+(?:\.\d+)?)\s",cfg or "");mdp=re.search(r"\bw(\d+)dp h(\d+)dp\b",cfg or "")
+              dens=re.findall(r"(?:Override|Physical) density: (\d+)",denraw);dpi=int(dens[-1]) if dens else None
+              font=float(fr) if re.fullmatch(r"\d+(?:\.\d+)?",fr) else (float(mfont.group(1)) if mfont else None)
+              fm=re.search(r"mCurrentFocus=(.*)",windows);focus=fm.group(1).strip() if fm else None
+              pkg=val("pm path "+app);xml=None;shot=None;uistatus="NOT_CAPTURED"
+              emulator=props["ro.kernel.qemu"]=="1" and props["ro.build.version.sdk"]=="28"
+              if emulator and pkg.startswith("package:"):
+                  run([adb,"-s",serial,"shell","am","start","-n",app+"/com.yujian.ai.MainActivity"]);time.sleep(3)
+                  for attempt in range(2):
+                      run([adb,"-s",serial,"shell","uiautomator","dump","/sdcard/nh_typography.xml"])
+                      raw=run([adb,"-s",serial,"shell","cat","/sdcard/nh_typography.xml"]).stdout.decode("utf-8","replace")
+                      if "最近鱼获" in raw:xml=raw;uistatus="HOME_CONFIRMED";break
+                      if attempt==0 and app in val("dumpsys window windows"):
+                          run([adb,"-s",serial,"shell","input","keyevent","4"]);time.sleep(3)
+              elif props["ro.kernel.qemu"]!="1" and app in (focus or ""):
+                  run([adb,"-s",serial,"shell","uiautomator","dump","/sdcard/nh_typography.xml"])
+                  raw=run([adb,"-s",serial,"shell","cat","/sdcard/nh_typography.xml"]).stdout.decode("utf-8","replace")
+                  if "最近鱼获" in raw:xml=raw;uistatus="HOME_CONFIRMED_READ_ONLY"
+              nodes=[]
+              if xml:
+                  (d/"ui_hierarchy.xml").write_text(xml,encoding="utf-8")
+                  import xml.etree.ElementTree as ET
+                  for node in ET.fromstring(xml).iter("node"):
+                      t=node.attrib.get("text","");desc=node.attrib.get("content-desc","")
+                      if t or desc:
+                          b=node.attrib.get("bounds","");bm=re.search(r"\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]",b);bounds=None
+                          if bm:
+                              x1,y1,x2,y2=map(int,bm.groups());bounds={"left":x1,"top":y1,"right":x2,"bottom":y2,"width":x2-x1,"height":y2-y1}
+                          nodes.append({"text":t,"description":desc,"resource_id":node.attrib.get("resource-id"),"bounds_px":bounds})
+              (d/"visible_text_nodes.json").write_text(json.dumps(nodes,ensure_ascii=False,indent=2),encoding="utf-8")
+              if xml and app in val("dumpsys window windows"):
+                  b=run([adb,"-s",serial,"exec-out","screencap","-p"]).stdout
+                  if b[:8]==bytes([137,80,78,71,13,10,26,10]):
+                      f=d/"normal_home_runtime.png";f.write_bytes(b);w,h=struct.unpack(">II",b[16:24]);shot={"file":str(f),"width_px":w,"height_px":h,"sha256":hashlib.sha256(b).hexdigest(),"bytes":len(b)}
+              report["devices"].append({"serial":serial,"device_type":"EMULATOR" if props["ro.kernel.qemu"]=="1" else "PHYSICAL","model":props["ro.product.model"],"manufacturer":props["ro.product.manufacturer"],"api":props["ro.build.version.sdk"],"release":props["ro.build.version.release"],"props":props,"wm_size_raw":wm,"wm_density_raw":denraw,"font_scale_settings_raw":fr,"density_dpi":dpi,"density":dpi/160 if dpi else None,"font_scale":font,"font_scale_config":float(mfont.group(1)) if mfont else None,"scaled_density_calculated":dpi/160*font if dpi and font is not None else None,"screen_width_dp":int(mdp.group(1)) if mdp else None,"screen_height_dp":int(mdp.group(2)) if mdp else None,"configuration_source":"framework dumpsys; Compose LocalDensity not directly instrumented","app_installed":pkg.startswith("package:"),"installed_apk_path":pkg,"current_focus":focus,"home_confirmed":bool(xml),"hierarchy_status":uistatus,"text_nodes":nodes,"screenshot":shot})
+          Path("evidence/device_metrics.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Normal-Home-Typography-Device-Audit
+          path: evidence/
+          if-no-files-found: warn
+          retention-days: 30
