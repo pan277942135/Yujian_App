@@ -237,7 +237,7 @@ jobs:
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs: build
     runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 60
