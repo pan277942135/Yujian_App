@@ -60,7 +60,7 @@ internal fun resolveHomeStatValues(
 }
 
 @Composable
-fun HomeStats(
+internal fun HomeStats(
     statistics: CatchStatistics,
     catches: List<RemoteCatch>,
     onSpeciesClick: () -> Unit,
