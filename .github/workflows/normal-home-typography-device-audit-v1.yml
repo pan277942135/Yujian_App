@@ -76,6 +76,20 @@ jobs:
               dens=re.findall(r"(?:Override|Physical) density: (\d+)",denraw);dpi=int(dens[-1]) if dens else None
               font=float(fr) if re.fullmatch(r"\d+(?:\.\d+)?",fr) else (float(mfont.group(1)) if mfont else None)
               fm=re.search(r"mCurrentFocus=(.*)",windows);focus=fm.group(1).strip() if fm else None
+              size_rows=re.findall(r"(?:Override|Physical) size: (\d+)x(\d+)",wm);display_w,display_h=map(int,size_rows[-1]) if size_rows else (None,None)
+              blocks=re.split(r"(?=  Window #\d+ Window\{)",windows)
+              appblock=next((b for b in blocks if app in b and "MainActivity" in b),None)
+              appmatch=re.search(r"mFrame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]",appblock or "")
+              appframe=list(map(int,appmatch.groups())) if appmatch else None
+              barframes={}
+              for label in ["StatusBar","NavigationBar"]:
+                  block=next((b for b in blocks if label in b and "com.android.systemui" in b),None)
+                  bm=re.search(r"mFrame=\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]",block or "")
+                  barframes[label]=list(map(int,bm.groups())) if bm else None
+              safe_insets={"left":0,"top":0,"right":0,"bottom":0}
+              sf=barframes["StatusBar"];nf=barframes["NavigationBar"]
+              if sf:safe_insets["top"]=max(0,sf[3]-sf[1])
+              if nf and display_h:safe_insets["bottom"]=max(0,display_h-nf[1])
               pkg=val("pm path "+app);xml=None;shot=None;uistatus="NOT_CAPTURED"
               emulator=props["ro.kernel.qemu"]=="1" and props["ro.build.version.sdk"]=="28"
               if emulator and pkg.startswith("package:"):
@@ -106,8 +120,10 @@ jobs:
                   b=run([adb,"-s",serial,"exec-out","screencap","-p"]).stdout
                   if b[:8]==bytes([137,80,78,71,13,10,26,10]):
                       f=d/"normal_home_runtime.png";f.write_bytes(b);w,h=struct.unpack(">II",b[16:24]);shot={"file":str(f),"width_px":w,"height_px":h,"sha256":hashlib.sha256(b).hexdigest(),"bytes":len(b)}
-              report["devices"].append({"serial":serial,"device_type":"EMULATOR" if props["ro.kernel.qemu"]=="1" else "PHYSICAL","model":props["ro.product.model"],"manufacturer":props["ro.product.manufacturer"],"api":props["ro.build.version.sdk"],"release":props["ro.build.version.release"],"props":props,"wm_size_raw":wm,"wm_density_raw":denraw,"font_scale_settings_raw":fr,"density_dpi":dpi,"density":dpi/160 if dpi else None,"font_scale":font,"font_scale_config":float(mfont.group(1)) if mfont else None,"scaled_density_calculated":dpi/160*font if dpi and font is not None else None,"screen_width_dp":int(mdp.group(1)) if mdp else None,"screen_height_dp":int(mdp.group(2)) if mdp else None,"configuration_source":"framework dumpsys; Compose LocalDensity not directly instrumented","app_installed":pkg.startswith("package:"),"installed_apk_path":pkg,"current_focus":focus,"home_confirmed":bool(xml),"hierarchy_status":uistatus,"text_nodes":nodes,"screenshot":shot})
+              report["devices"].append({"serial":serial,"device_type":"EMULATOR" if props["ro.kernel.qemu"]=="1" else "PHYSICAL","model":props["ro.product.model"],"manufacturer":props["ro.product.manufacturer"],"api":props["ro.build.version.sdk"],"release":props["ro.build.version.release"],"props":props,"wm_size_raw":wm,"wm_density_raw":denraw,"font_scale_settings_raw":fr,"display_width_px":display_w,"display_height_px":display_h,"app_window_frame_px":appframe,"app_window_width_px":(appframe[2]-appframe[0]) if appframe else None,"app_window_height_px":(appframe[3]-appframe[1]) if appframe else None,"system_bar_frames_px":barframes,"safe_drawing_insets_framework_px":safe_insets,"density_dpi":dpi,"density":dpi/160 if dpi else None,"font_scale":font,"font_scale_config":float(mfont.group(1)) if mfont else None,"scaled_density_calculated":dpi/160*font if dpi and font is not None else None,"screen_width_dp":int(mdp.group(1)) if mdp else None,"screen_height_dp":int(mdp.group(2)) if mdp else None,"configuration_source":"framework dumpsys; Compose LocalDensity not directly instrumented","app_installed":pkg.startswith("package:"),"installed_apk_path":pkg,"current_focus":focus,"home_confirmed":bool(xml),"hierarchy_status":uistatus,"text_nodes":nodes,"screenshot":shot})
+              print("AUDIT_DEVICE="+json.dumps(report["devices"][-1],ensure_ascii=False))
           Path("evidence/device_metrics.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print("AUDIT_SUMMARY="+json.dumps(report,ensure_ascii=False))
           PY
       - name: Upload diagnostic evidence
         if: always()
