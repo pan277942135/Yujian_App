@@ -9,6 +9,9 @@ app/src/main/assets/detector_metadata.json
 app/src/main/assets/recognition_pipeline_v1.json
 app/src/androidTest/assets/detector/golden_cases.json
 app/src/androidTest/assets/detector/golden/
+app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/
+app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/
+app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixture_manifest.json
 
 # Local Gradle and QA outputs.
 .gradle/

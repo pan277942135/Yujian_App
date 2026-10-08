@@ -50,6 +50,9 @@ jobs:
       - name: Install Pillow for asset verification
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
 
+      - name: Fetch licensed Catch Hero photographs and build AndroidTest fixtures
+        run: python3 scripts/prepare_catch_hero_adaptive_fixtures.py
+
       - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_empty_home_runtime_v2.py
@@ -284,6 +287,10 @@ jobs:
           # runner image untouched and opt in explicitly to the user install.
           python3 -m pip install --user --break-system-packages Pillow
           python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
+
+      - name: Prepare Catch Hero V1.1 real-photo fixtures for runtime evidence
+        if: ${{ matrix.gate == 'normal-home-v1' }}
+        run: python3 scripts/prepare_catch_hero_adaptive_fixtures.py
 
       - name: Prepare GCP self-hosted Android runtime
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}

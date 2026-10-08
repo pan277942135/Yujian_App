@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.presentation.presentationSpeciesName
+import com.yujian.ai.ui.components.CatchHeroVariant
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
@@ -67,16 +69,18 @@ fun FishRecordHeroCard(
             .fillMaxWidth()
             .height(heroHeight)
             .clip(heroShape)
+            .testTag("fish-record-hero-card")
             .clickable(onClick = onEdit),
     ) {
         RemoteImage(
             url = displayedUrl,
             authToken = accessToken,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag("fish-record-hero-media"),
             contentDescription = if (showBside) "$speciesName 鱼获记忆" else "$speciesName 鱼获照片",
             contentScale = ContentScale.Crop,
-            preservePortraitWithFitBackdrop = !showBside,
+            preservePortraitWithFitBackdrop = false,
             trimVerifiedLetterbox = !showBside,
+            adaptiveHeroVariant = if (showBside) null else CatchHeroVariant.DETAIL_A,
             reloadToken = if (showBside) bsideReloadToken else 0,
             onLoadResult = if (showBside) onBsideLoadResult else null,
             placeholder = {
@@ -133,6 +137,7 @@ fun FishRecordHeroCard(
                         .background(Color(0x33202E38))
                         .border(1.dp, YuJianColors.MorningGold.copy(alpha = 0.96f), editShape)
                         .clickable(onClick = onEdit)
+                        .testTag("fish-record-hero-edit-entry")
                         .padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

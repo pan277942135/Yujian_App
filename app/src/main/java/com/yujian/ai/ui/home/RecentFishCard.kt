@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.components.CatchHeroVariant
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianHeroCard
@@ -67,9 +68,9 @@ internal fun RecentFishCard(
                 url = imageUrl,
                 modifier = Modifier.fillMaxSize().testTag("normal-home-catch-media-${item.id}"),
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 authToken = accessToken,
-                trimVerifiedLetterbox = true,
+                adaptiveHeroVariant = CatchHeroVariant.HOME,
                 placeholder = {
                     Box(
                         modifier = Modifier

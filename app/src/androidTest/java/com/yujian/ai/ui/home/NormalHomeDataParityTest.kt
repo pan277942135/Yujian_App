@@ -5,15 +5,14 @@ import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -39,7 +38,7 @@ class NormalHomeDataParityTest {
     val compose = createComposeRule()
 
     @Test
-    fun differentPortraitRatiosShareCoverViewportAndPreserveHomeDataAndRoutes() {
+    fun differentPortraitRatiosUseEvidenceFitAndPreserveHomeDataAndRoutes() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val narrowPortrait = createPortraitFixture(context, "normal-home-9x16.png", 360, 640, AndroidColor.rgb(214, 53, 81))
         val broadPortrait = createPortraitFixture(context, "normal-home-4x5.png", 640, 800, AndroidColor.rgb(46, 126, 184))
@@ -151,6 +150,9 @@ class NormalHomeDataParityTest {
             val pager = compose.onNodeWithTag("normal-home-catch-pager")
             firstCard.assertIsDisplayed()
             secondCard.assertIsDisplayed()
+            compose.waitUntil(timeoutMillis = 10_000) {
+                compose.onAllNodesWithTag("catch-hero-mode-EVIDENCE_FIT", useUnmergedTree = true).fetchSemanticsNodes().size == 2
+            }
             val firstCardBounds = firstCard.fetchSemanticsNode().boundsInRoot
             val firstMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-snakehead", useUnmergedTree = true)
                 .fetchSemanticsNode().boundsInRoot
@@ -187,7 +189,6 @@ class NormalHomeDataParityTest {
                 layoutResults.single().getLineEnd(0, visibleEnd = true) > metaText.indexOf("21:50 · ") + 7,
             )
 
-            assertCoveredCard(firstCard)
             firstCard.performClick()
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
@@ -207,7 +208,6 @@ class NormalHomeDataParityTest {
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
-            assertCoveredCard(secondCard)
 
             allAction.performClick()
             compose.runOnIdle { assertEquals(1, allClicks) }
@@ -226,26 +226,6 @@ class NormalHomeDataParityTest {
             narrowPortrait.delete()
             broadPortrait.delete()
         }
-    }
-
-    private fun assertCoveredCard(card: androidx.compose.ui.test.SemanticsNodeInteraction) {
-        val pixels = card.captureToImage().toPixelMap()
-        val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
-        val edge = pixels[(pixels.width * 0.02f).toInt().coerceIn(0, pixels.width - 1), y]
-        assertTrue(
-            "The viewport edge should show the source image's side marker, not a fitted-image pillar",
-            edge.red > 0.78f && edge.green > 0.68f && edge.blue < 0.42f,
-        )
-        val quietTop = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.30f).toInt()]
-        val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
-        val topBrightness = quietTop.red + quietTop.green + quietTop.blue
-        val bottomBrightness = readableBottom.red + readableBottom.green + readableBottom.blue
-        assertTrue("A subtle local bottom treatment keeps card text readable", topBrightness - bottomBrightness > 0.12f)
-        val roundedCorner = pixels[(pixels.width * 0.02f).toInt(), (pixels.height * 0.02f).toInt()]
-        assertTrue(
-            "The source image must not show through the rounded card corner",
-            !(roundedCorner.red > 0.78f && roundedCorner.green > 0.68f && roundedCorner.blue < 0.42f),
-        )
     }
 
     private fun createPortraitFixture(

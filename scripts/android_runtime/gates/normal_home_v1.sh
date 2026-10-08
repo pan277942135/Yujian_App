@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest'
+  printf '%s\n' 'com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.components.CatchHeroAdaptiveRuntimeMatrixTest,com.yujian.ai.ui.recorddetail.FishRecordDetailRuntimeTest'
 }
 
 normal_home_run_seed() {
@@ -110,6 +110,71 @@ normal_home_blocked_dimension() {
   return "$EXIT_BLOCKED_INFRA"
 }
 
+normal_home_capture_adaptive_2340() {
+  local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
+  local adaptive_out="$out/catch_hero_adaptive_v1_1"
+  local capture="$YUJIAN_INFRA_DIR/catch_hero_preflight_1080x2340.png"
+  local log="$adaptive_out/androidtest_1080x2340.log"
+  local remote="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/catch_hero_adaptive_v1_1/matrix_1080x2340"
+  mkdir -p "$adaptive_out"
+
+  "$YUJIAN_ADB_BIN" shell wm size 1080x2340 >/dev/null
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$capture"
+  if ! python3 - "$capture" <<'PY'
+from PIL import Image
+import sys
+with Image.open(sys.argv[1]) as image:
+    if image.size != (1080, 2340):
+        raise SystemExit(f"DEVICE_CANNOT_CAPTURE_1080X2340 actual={image.size}")
+PY
+  then
+    normal_home_blocked_dimension "1080X2340"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+
+  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r \
+    -e catch_hero_profile 1080x2340 \
+    -e class com.yujian.ai.ui.components.CatchHeroAdaptiveRuntimeMatrixTest \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$log" 2>&1
+  local rc=$?
+  if (( rc != 0 )) || grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process (crashed|has died)' "$log"; then
+    cat "$log" >&2
+    runtime_set_failure "INSTRUMENTATION" "CATCH_HERO_ADAPTIVE_1080X2340_TEST_FAILED"
+    "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null || true
+    return "$EXIT_FAIL_TEST"
+  fi
+  if ! grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \([0-9]+ test' "$log"; then
+    runtime_set_failure "INSTRUMENTATION" "CATCH_HERO_ADAPTIVE_1080X2340_NO_COMPLETION"
+    "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null || true
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+
+  local pulled="$adaptive_out/device_output_1080x2340"
+  "$YUJIAN_ADB_BIN" pull "$remote" "$pulled" >/dev/null || {
+    runtime_set_failure "EVIDENCE" "CATCH_HERO_ADAPTIVE_1080X2340_PULL_FAILED"
+    "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null || true
+    return "$EXIT_FAIL_EVIDENCE"
+  }
+  local matrix_manifest
+  matrix_manifest="$(find "$pulled" -name android_runtime_manifest.json -print -quit)"
+  if [[ -z "$matrix_manifest" ]]; then
+    runtime_set_failure "EVIDENCE" "CATCH_HERO_ADAPTIVE_1080X2340_MANIFEST_MISSING"
+    "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null || true
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  local matrix_dir="$(dirname "$matrix_manifest")"
+  python3 "$YUJIAN_REPO_ROOT/scripts/verify_catch_hero_adaptive_android_evidence.py" \
+    --matrix-dir "$matrix_dir" --git-head "$YUJIAN_BUILD_SHA" \
+    --adb "$YUJIAN_ADB_BIN" --expected-size 1080x2340 || {
+      runtime_set_failure "EVIDENCE" "CATCH_HERO_ADAPTIVE_1080X2340_MATRIX_INVALID"
+      "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null || true
+      return "$EXIT_FAIL_EVIDENCE"
+    }
+  cp "$log" "$matrix_dir/androidtest_1080x2340.log"
+  "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null
+  return "$EXIT_PASS"
+}
+
 gate_collect_evidence() {
   local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
   mkdir -p "$out"
@@ -118,6 +183,32 @@ gate_collect_evidence() {
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 || true
 
   local rc
+  local adaptive_out="$out/catch_hero_adaptive_v1_1"
+  mkdir -p "$adaptive_out"
+  "$YUJIAN_ADB_BIN" pull "/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/catch_hero_adaptive_v1_1" "$adaptive_out/device_output" >/dev/null || {
+    runtime_set_failure "EVIDENCE" "CATCH_HERO_MATRIX_PULL_FAILED"
+    return "$EXIT_FAIL_EVIDENCE"
+  }
+  cp -R "$YUJIAN_REPO_ROOT/app/src/androidTest/assets/catch_hero_adaptive_v1_1" "$adaptive_out/test_assets"
+  local matrix_manifest
+  matrix_manifest="$(find "$adaptive_out/device_output" -name android_runtime_manifest.json -print -quit)"
+  if [[ -z "$matrix_manifest" ]]; then
+    runtime_set_failure "EVIDENCE" "CATCH_HERO_MATRIX_MANIFEST_MISSING"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  python3 "$YUJIAN_REPO_ROOT/scripts/verify_catch_hero_adaptive_android_evidence.py" \
+    --matrix-dir "$(dirname "$matrix_manifest")" --git-head "$YUJIAN_BUILD_SHA" \
+    --adb "$YUJIAN_ADB_BIN" --expected-size 1080x1920
+  rc=$?
+  if (( rc != 0 )); then
+    runtime_set_failure "EVIDENCE" "CATCH_HERO_MATRIX_SCREENSHOTS_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
+  normal_home_capture_adaptive_2340
+  rc=$?
+  if (( rc != EXIT_PASS )); then return "$rc"; fi
+
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920
   normal_home_run_seed seedTwoAspectPortraitGuestCatches "$out/seed_two_aspect_portraits.log" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
@@ -158,7 +249,7 @@ PY
   }
 
   printf '%s\n' \
-    'NormalHomeDataParityTest: deterministic 9:16 and 4:5 portraits share one cover viewport; card content, long locations, stats, header, carousel and navigation remain visible and actionable.' \
+    'NormalHomeDataParityTest: deterministic 9:16 and 4:5 portraits take safe Evidence Fit when no trusted subject box exists; card content, long locations, stats, header, carousel and navigation remain visible and actionable.' \
     'HomeStatsSemanticsTest: recordDays has no OnClick; fish species and catch totals navigate.' \
     'NormalHomeHeroBehaviorTest: one catch is centered; tap opens the matching recordId; multiple catches remain manual and swipeable.' \
     'Home state, responsive measurement profiles, valid-record filtering, timestamp ordering and Reduce Motion: covered by JVM and Android semantics tests.' \
