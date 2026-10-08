@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "package": "com.yujian.ai",
+  "package": "com.yujian.ai.uiv2",
   "required_modules": [
     "Camera",
     "Result",
