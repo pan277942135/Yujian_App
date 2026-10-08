@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: normal-home-real-photo-e2e-v2-${{ github.ref }}
@@ -169,20 +170,18 @@ jobs:
           PY
           touch evidence/.photo_ok
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Download APK pair from verified run 37770419113
+        id: prior_apks
+        uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: '17'
+          name: YuJian-Normal-Home-Real-Photo-E2E-APK-Pair-15897af7422b4fe4dedd464880caff5be7f21cc1
+          run-id: 37770419113
+          repository: pan277942135/Yujian_App
+          github-token: ${{ github.token }}
+          path: evidence/reused-apk
         continue-on-error: true
 
-      - name: Set up Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-        continue-on-error: true
-
-      - name: Build matching app and AndroidTest APK pair
+      - name: Verify prior-run APK hashes and test source identity
         id: build
         continue-on-error: true
         run: |
@@ -190,22 +189,33 @@ jobs:
           if [[ ! -f evidence/.photo_ok ]]; then exit 0; fi
           fail() { printf '%s\n' APK_BUILD > evidence/failure_step.txt; echo "BLOCKED_AT_EXACT_STEP=APK_BUILD: $1"; exit 1; }
           exec > >(tee -a evidence/logs/apk_build.log) 2>&1
-          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2" || fail 'stable Android aapt2 is missing'
-          export YUJIAN_AAPT2="$ANDROID_HOME/build-tools/35.0.0/aapt2"
-          python3 scripts/bootstrap_android_recognition_assets.py || fail 'verified recognition model bootstrap failed'
-          python3 scripts/verify_production_model.py || fail 'production recognition model contract failed'
-          mkdir -p app/src/androidTest/java/com/yujian/ai
-          cp validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt
-          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2 || fail 'debug APK or matching AndroidTest APK assembly failed'
           mkdir -p evidence/apk
-          cp app/build/outputs/apk/debug/app-debug.apk evidence/apk/app-debug.apk
-          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk evidence/apk/app-debug-androidTest.apk
-          python3 - <<'PY'
-          import hashlib,json,os
+          cp evidence/reused-apk/app-debug.apk evidence/apk/app-debug.apk || fail 'prior run did not provide app-debug.apk'
+          cp evidence/reused-apk/app-debug-androidTest.apk evidence/apk/app-debug-androidTest.apk || fail 'prior run did not provide app-debug-androidTest.apk'
+          python3 - <<'PY' || fail 'prior APK hash or test source identity verification failed'
+          import hashlib,json,subprocess
           from pathlib import Path
-          root=Path('evidence/apk')
+          root=Path('evidence/apk'); source=Path('validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt')
+          previous='15897af7422b4fe4dedd464880caff5be7f21cc1'
+          git_blob=lambda revision: subprocess.check_output(['git','rev-parse',f'{revision}:validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt'],text=True).strip()
+          if git_blob(previous)!=git_blob('HEAD') or git_blob('HEAD')!='108931ed9542a9372ff55ddb00535cc361e9c7d2':
+              raise SystemExit('instrumentation source differs from the exact source used to build Run 37770419113 APK pair')
           def row(p): return {'file':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'byte_size':p.stat().st_size}
-          value={'product_baseline_sha':'3cd0753be926c3a8cc94ac56c97c9103febc6663','validation_head':Path('evidence/validation_head.txt').read_text().strip(),'package':'com.yujian.ai.uiv2','test_package':'com.yujian.ai.uiv2.test','app_apk':row(root/'app-debug.apk'),'android_test_apk':row(root/'app-debug-androidTest.apk')}
+          app=row(root/'app-debug.apk'); test=row(root/'app-debug-androidTest.apk')
+          expected={'app-debug.apk':('1d0cb6f396b580c14c8b90f61ea327384ce3930f31b3afb906ae6a503dd0fe1c',108061139),'app-debug-androidTest.apk':('ad3d5ed4959a6cd421fcbe30f38b68e577da17dca52e0353350b525829071eae',2573344)}
+          for item in (app,test):
+              digest,size=expected[item['file']]
+              if item['sha256']!=digest or item['byte_size']!=size: raise SystemExit(f"pinned APK artifact identity mismatch: {item}")
+          dex=subprocess.check_output(['unzip','-Z1',str(root/'app-debug-androidTest.apk')],text=True).splitlines()
+          dex=[name for name in dex if name.startswith('classes') and name.endswith('.dex')]
+          if not dex: raise SystemExit('AndroidTest APK has no DEX payload')
+          source_present=False
+          for name in dex:
+              raw=subprocess.check_output(['unzip','-p',str(root/'app-debug-androidTest.apk'),name])
+              if b'NormalHomeRealPhotoE2ETest' in raw and b'savesCommonsCarpThroughGalleryRecognitionAndHomeDetail' in raw:
+                  source_present=True
+          if not source_present: raise SystemExit('AndroidTest APK does not contain the requested real-photo test class and method')
+          value={'product_baseline_sha':'3cd0753be926c3a8cc94ac56c97c9103febc6663','apk_build_head':previous,'validation_head':Path('evidence/validation_head.txt').read_text().strip(),'artifact_source_run_id':37770419113,'test_source_git_blob_sha':git_blob('HEAD'),'package':'com.yujian.ai.uiv2','test_package':'com.yujian.ai.uiv2.test','app_apk':app,'android_test_apk':test}
           Path('evidence/apk_provenance.json').write_text(json.dumps(value,indent=2)+'\n')
           print(json.dumps(value,indent=2))
           PY
@@ -220,8 +230,38 @@ jobs:
           fail() { if [[ ! -f evidence/failure_step.txt ]]; then printf '%s\n' APK_INSTALL > evidence/failure_step.txt; fi; echo "BLOCKED_AT_EXACT_STEP=APK_INSTALL: $1"; exit 1; }
           adb=/opt/android-sdk/platform-tools/adb
           serial=$(python3 -c "import json;print(json.load(open('evidence/device_info.json'))['serial'])")
-          "$adb" -s "$serial" install -r evidence/apk/app-debug.apk || fail 'production APK installation failed'
-          "$adb" -s "$serial" install -r evidence/apk/app-debug-androidTest.apk || fail 'matching AndroidTest APK installation failed'
+          python3 - "$serial" <<'PY' || fail 'uninstall refused because target is not the isolated API 28 test emulator'
+          import json,subprocess,sys
+          serial=sys.argv[1]; info=json.load(open('evidence/device_info.json'))
+          adb='/opt/android-sdk/platform-tools/adb'
+          devices=subprocess.check_output([adb,'devices'],text=True).splitlines()
+          online=[line.split()[0] for line in devices[1:] if len(line.split())>=2 and line.split()[1]=='device']
+          qemu=subprocess.check_output([adb,'-s',serial,'shell','getprop','ro.kernel.qemu'],text=True).strip()
+          api=subprocess.check_output([adb,'-s',serial,'shell','getprop','ro.build.version.sdk'],text=True).strip()
+          if info.get('device_type')!='EMULATOR' or info.get('api_level')!=28 or not serial.startswith('emulator-') or qemu!='1' or api!='28' or online!=[serial]:
+              raise SystemExit(f'refuse destructive package cleanup: serial={serial} api={api} qemu={qemu} online={online} info={info}')
+          print(json.dumps({'isolated_emulator_cleanup_authorized':True,'serial':serial,'api_level':28,'device_type':'EMULATOR','online_devices':online}))
+          PY
+          {
+            echo 'APK_INSTALL_PRESTATE_BEGIN'
+            echo 'previous_failure=INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package com.yujian.ai.uiv2 signatures do not match previously installed version; ignoring!'
+            echo "target_serial=$serial"
+            for package in com.yujian.ai.uiv2.test com.yujian.ai.uiv2; do
+              echo "PACKAGE=$package"
+              "$adb" -s "$serial" shell pm path "$package" 2>&1 || true
+              "$adb" -s "$serial" shell dumpsys package "$package" 2>&1 | grep -E 'versionCode=|versionName=|userId=|codePath=|installerPackageName=|signatures=' | head -n 12 || true
+            done
+            echo 'APK_INSTALL_PRESTATE_END'
+          } | tee -a evidence/logs/runner.log
+          "$adb" -s "$serial" uninstall com.yujian.ai.uiv2.test > evidence/logs/uninstall-test-package.log 2>&1 || true
+          "$adb" -s "$serial" uninstall com.yujian.ai.uiv2 > evidence/logs/uninstall-app-package.log 2>&1 || true
+          cat evidence/logs/uninstall-test-package.log evidence/logs/uninstall-app-package.log | tee -a evidence/logs/runner.log
+          remaining=$("$adb" -s "$serial" shell pm path com.yujian.ai.uiv2 2>&1 || true)
+          if [[ "$remaining" == package:* ]]; then fail 'old production package remained after isolated-emulator uninstall'; fi
+          remaining=$("$adb" -s "$serial" shell pm path com.yujian.ai.uiv2.test 2>&1 || true)
+          if [[ "$remaining" == package:* ]]; then fail 'old AndroidTest package remained after isolated-emulator uninstall'; fi
+          "$adb" -s "$serial" install evidence/apk/app-debug.apk || fail 'production APK installation failed after clean uninstall'
+          "$adb" -s "$serial" install evidence/apk/app-debug-androidTest.apk || fail 'matching AndroidTest APK installation failed after clean uninstall'
           "$adb" -s "$serial" shell pm clear com.yujian.ai.uiv2 || fail 'could not reset isolated app data before the test'
           "$adb" -s "$serial" shell pm grant com.yujian.ai.uiv2 android.permission.CAMERA || fail 'camera runtime permission grant failed'
           "$adb" -s "$serial" shell mkdir -p /sdcard/Pictures/YuJianRealPhotoE2E || fail 'could not prepare Android media folder'
