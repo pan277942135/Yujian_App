@@ -48,11 +48,10 @@ class NormalHomeRealPhotoE2ETest {
 
     private lateinit var instrumentation: android.app.Instrumentation
     private lateinit var appContext: android.content.Context
-    private lateinit var testContext: android.content.Context
     private lateinit var device: UiDevice
     private lateinit var evidenceDir: File
     private val screenshotRows = JSONArray()
-    private var currentStep = "APK_INSTALL"
+    private var currentStep = "TEST_HARNESS_SETUP"
     private var recordId: String? = null
     private var savedSpeciesName: String? = null
     private var manualSpeciesConfirmation = false
@@ -62,27 +61,61 @@ class NormalHomeRealPhotoE2ETest {
     fun setUp() {
         instrumentation = InstrumentationRegistry.getInstrumentation()
         appContext = instrumentation.targetContext
-        testContext = instrumentation.context
         device = UiDevice.getInstance(instrumentation)
-        val externalFiles = requireNotNull(testContext.getExternalFilesDir(null)) {
-            "Instrumentation external files directory is unavailable"
-        }
-        evidenceDir = File(externalFiles, "normal-home-real-photo-e2e-v2")
-        evidenceDir.deleteRecursively()
-        evidenceDir.mkdirs()
+        currentStep = "TEST_HARNESS_SETUP"
         outcome = JSONObject()
             .put("test", "NormalHomeRealPhotoE2ETest")
             .put("started_at_utc", Instant.now().toString())
             .put("package", APP_ID)
-            .put("save_mode", "GUEST_LOCAL_SAVE")
             .put("expected_species_id", "common_carp")
             .put("photo_sha256_from_runner", InstrumentationRegistry.getArguments().getString("photo_sha256", "MISSING"))
+
+        try {
+            assertEquals("Evidence directory must use the target application context", APP_ID, appContext.packageName)
+            val externalFiles = requireNotNull(appContext.getExternalFilesDir(null)) {
+                "Target application external evidence directory unavailable"
+            }
+            evidenceDir = File(externalFiles, "normal-home-real-photo-e2e-v2")
+            evidenceDir.deleteRecursively()
+            check(evidenceDir.mkdirs() || evidenceDir.isDirectory) {
+                "Target application evidence directory could not be created: ${evidenceDir.absolutePath}"
+            }
+
+            val probe = File(evidenceDir, ".evidence-write-read-delete-probe")
+            val probeValue = "yujian-evidence-context-ok"
+            probe.writeText(probeValue, Charsets.UTF_8)
+            check(probe.readText(Charsets.UTF_8) == probeValue) {
+                "Target application evidence directory write/read probe failed"
+            }
+            check(probe.delete() && !probe.exists()) {
+                "Target application evidence directory delete probe failed"
+            }
+
+            println("$LOG_TAG CHECKPOINT=SETUP_OK package=${appContext.packageName} evidence_dir=${evidenceDir.absolutePath}")
+            currentStep = "APP_LAUNCH"
+        } catch (failure: Throwable) {
+            System.err.println("$LOG_TAG CHECKPOINT=SETUP_FAILED failure=${failure.javaClass.name}: ${failure.message ?: ""}")
+            if (this::evidenceDir.isInitialized && evidenceDir.isDirectory) {
+                runCatching {
+                    outcome.put("status", "BLOCKED_AT_EXACT_STEP")
+                        .put("failure_step", "TEST_HARNESS_SETUP")
+                        .put("failure_class", failure.javaClass.name)
+                        .put("failure_message", failure.message ?: "")
+                        .put("current_step", "TEST_HARNESS_SETUP")
+                        .put("finished_at_utc", Instant.now().toString())
+                    File(evidenceDir, "e2e-result.json").writeText(outcome.toString(2), Charsets.UTF_8)
+                }.onFailure { writeFailure ->
+                    System.err.println("$LOG_TAG SETUP_FAILURE_EVIDENCE_WRITE_FAILED ${writeFailure.javaClass.name}: ${writeFailure.message ?: ""}")
+                }
+            }
+            throw failure
+        }
     }
 
     @Test
     fun savesCommonsCarpThroughGalleryRecognitionAndHomeDetail() {
         try {
-            currentStep = "APK_INSTALL"
+            currentStep = "APP_LAUNCH"
             val launchIntent = appContext.packageManager.getLaunchIntentForPackage(APP_ID)
             assertNotNull("Production launcher activity is unavailable", launchIntent)
             launchIntent!!.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -108,6 +141,7 @@ class NormalHomeRealPhotoE2ETest {
                 capture("gallery-picker-failed.png", expectAppForeground = false)
                 failHere("GALLERY", "System picker did not show the imported original Common_Carp.jpg")
             }
+            println("$LOG_TAG CHECKPOINT=GALLERY picker=OPEN file=$COMMON_CARP_FILENAME")
             dumpHierarchy("gallery-picker-window.xml")
             capture("gallery-selection.png", expectAppForeground = false)
             selectedImageNode.click()
@@ -139,6 +173,7 @@ class NormalHomeRealPhotoE2ETest {
             }
             dumpHierarchy("recognition-result-window.xml")
             capture("recognition-result.png", expectAppForeground = true)
+            println("$LOG_TAG CHECKPOINT=RECOGNITION")
             println("$LOG_TAG CHECKPOINT=RECOGNITION_RESULT")
 
             currentStep = "RECOGNITION"
@@ -173,7 +208,9 @@ class NormalHomeRealPhotoE2ETest {
                 ?: scrollAndFind(SAVE_CATCH)
             assertNotNull("Save Catch CTA was not visible after species confirmation", saveButton)
             saveButton!!.click()
+            println("$LOG_TAG CHECKPOINT=SAVE")
             println("$LOG_TAG CHECKPOINT=SAVE_TAPPED")
+            outcome.put("save_mode", "GUEST_LOCAL_SAVE")
             if (awaitText("保存鱼获失败，请重试", 5_000L) != null) {
                 failHere("SAVE", "Production UI reported save failure")
             }
@@ -249,7 +286,7 @@ class NormalHomeRealPhotoE2ETest {
             capture("runtime_real_photo.png", expectAppForeground = true)
             println("$LOG_TAG CHECKPOINT=HOME_RENDER record_id=$recordId stats=1,1,1 hero_species=$COMMON_CARP_NAME")
 
-            currentStep = "HOME_RENDER"
+            currentStep = "FISH_RECORD_DETAIL"
             val card = awaitText(COMMON_CARP_NAME, 10_000L)
             assertNotNull("Saved Common Carp card is not tappable from Home", card)
             card!!.click()
@@ -269,7 +306,9 @@ class NormalHomeRealPhotoE2ETest {
             outcome.put("detail_record_id", record.id)
                 .put("detail_face", "A")
                 .put("detail_state", "SUCCESS")
+            println("$LOG_TAG CHECKPOINT=FISH_RECORD_DETAIL record_id=$recordId face=A")
             println("$LOG_TAG CHECKPOINT=DETAIL_A record_id=$recordId")
+            println("$LOG_TAG CHECKPOINT=SCREENSHOT files=runtime_real_photo.png,fish-record-detail-a.png")
             outcome.put("status", "PASS_REAL_PHOTO_E2E")
                 .put("failure_step", JSONObject.NULL)
                 .put("finished_at_utc", Instant.now().toString())

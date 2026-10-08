@@ -102,7 +102,7 @@ def build_report(root: Path, repo: Path) -> dict[str, Any]:
     device_info = load_json(root / "device_info.json")
     apk_info = load_json(root / "apk_provenance.json")
     failure_step = (root / "failure_step.txt").read_text(encoding="utf-8").strip() if (root / "failure_step.txt").exists() else ""
-    if run_result.get("failure_step"):
+    if run_result.get("failure_step") and not failure_step:
         failure_step = str(run_result["failure_step"])
 
     frozen = repo / FROZEN_REL
@@ -292,7 +292,7 @@ def build_report(root: Path, repo: Path) -> dict[str, Any]:
         "screenshot_evidence": "PASS" if screenshots_pass else "FAIL",
         "visual_parity": visual["classification"],
         "physical_device": "PASS" if device_info.get("device_type") == "PHYSICAL" else "PENDING",
-        "save_mode": run_result.get("save_mode", "GUEST_LOCAL_SAVE"),
+        "save_mode": run_result.get("save_mode", "NOT_REACHED"),
         "photo": photo_meta,
         "photo_saved_image_comparison": image_comparison,
         "apk": apk_info,
@@ -330,6 +330,7 @@ def build_report(root: Path, repo: Path) -> dict[str, Any]:
         (root / "logs" / "apk_build.log", "apk_build.log"),
         (root / "logs" / "workflow_context.txt", "workflow_context.txt"),
         (root / "photo" / "photo_provenance.json", "photo_provenance.json"),
+        (root / "evidence_collection.json", "evidence_collection.json"),
     ]:
         if source.is_file():
             shutil.copy2(source, dirs["evidence"] / target_name)

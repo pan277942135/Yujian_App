@@ -181,7 +181,22 @@ jobs:
           path: evidence/reused-apk
         continue-on-error: true
 
-      - name: Verify prior-run APK hashes and test source identity
+      - name: Set up JDK 17 for AndroidTest compile
+        if: steps.photo.outcome == 'success' && steps.prior_apks.outcome == 'success'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+        continue-on-error: true
+
+      - name: Set up Gradle 8.9 for AndroidTest compile
+        if: steps.photo.outcome == 'success' && steps.prior_apks.outcome == 'success'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+        continue-on-error: true
+
+      - name: Rebuild only the AndroidTest APK and verify preserved product APK
         id: build
         continue-on-error: true
         run: |
@@ -189,35 +204,68 @@ jobs:
           if [[ ! -f evidence/.photo_ok ]]; then exit 0; fi
           fail() { printf '%s\n' APK_BUILD > evidence/failure_step.txt; echo "BLOCKED_AT_EXACT_STEP=APK_BUILD: $1"; exit 1; }
           exec > >(tee -a evidence/logs/apk_build.log) 2>&1
-          mkdir -p evidence/apk
-          cp evidence/reused-apk/app-debug.apk evidence/apk/app-debug.apk || fail 'prior run did not provide app-debug.apk'
-          cp evidence/reused-apk/app-debug-androidTest.apk evidence/apk/app-debug-androidTest.apk || fail 'prior run did not provide app-debug-androidTest.apk'
-          python3 - <<'PY' || fail 'prior APK hash or test source identity verification failed'
-          import hashlib,json,subprocess
+          source_rel=validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt
+          source_copy=app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt
+          mkdir -p evidence/apk "$(dirname "$source_copy")"
+          cp evidence/reused-apk/app-debug.apk evidence/apk/app-debug.apk || fail 'verified prior production APK is missing'
+          source_blob=$(git rev-parse "HEAD:$source_rel") || fail 'test source is not tracked at validation HEAD'
+          worktree_blob=$(git hash-object "$source_rel")
+          [[ "$source_blob" == "$worktree_blob" ]] || fail 'working instrumentation source differs from validation HEAD'
+          cp "$source_rel" "$source_copy" || fail 'could not stage updated AndroidTest source'
+          printf 'validation_head=%s\ntest_source_blob_sha=%s\nproduct_apk_source_run=37770419113\n' "$GITHUB_SHA" "$source_blob"
+          gradle :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2 || fail 'AndroidTest-only APK assembly failed'
+          test_apk=app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          [[ -s "$test_apk" ]] || fail 'AndroidTest APK output is missing'
+          cp "$test_apk" evidence/apk/app-debug-androidTest.apk || fail 'could not stage rebuilt AndroidTest APK'
+          python3 - <<'PY' || fail 'APK hash, manifest compatibility, or instrumentation source verification failed'
+          import hashlib,json,os,subprocess
           from pathlib import Path
-          root=Path('evidence/apk'); source=Path('validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt')
-          previous='15897af7422b4fe4dedd464880caff5be7f21cc1'
-          git_blob=lambda revision: subprocess.check_output(['git','rev-parse',f'{revision}:validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt'],text=True).strip()
-          if git_blob(previous)!=git_blob('HEAD') or git_blob('HEAD')!='108931ed9542a9372ff55ddb00535cc361e9c7d2':
-              raise SystemExit('instrumentation source differs from the exact source used to build Run 37770419113 APK pair')
+          root=Path('evidence/apk')
+          app_path=root/'app-debug.apk'
+          test_path=root/'app-debug-androidTest.apk'
           def row(p): return {'file':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'byte_size':p.stat().st_size}
-          app=row(root/'app-debug.apk'); test=row(root/'app-debug-androidTest.apk')
-          expected={'app-debug.apk':('1d0cb6f396b580c14c8b90f61ea327384ce3930f31b3afb906ae6a503dd0fe1c',108061139),'app-debug-androidTest.apk':('ad3d5ed4959a6cd421fcbe30f38b68e577da17dca52e0353350b525829071eae',2573344)}
-          for item in (app,test):
-              digest,size=expected[item['file']]
-              if item['sha256']!=digest or item['byte_size']!=size: raise SystemExit(f"pinned APK artifact identity mismatch: {item}")
-          dex=subprocess.check_output(['unzip','-Z1',str(root/'app-debug-androidTest.apk')],text=True).splitlines()
+          app=row(app_path); test=row(test_path)
+          expected_app=('1d0cb6f396b580c14c8b90f61ea327384ce3930f31b3afb906ae6a503dd0fe1c',108061139)
+          expected_old_test='ad3d5ed4959a6cd421fcbe30f38b68e577da17dca52e0353350b525829071eae'
+          if (app['sha256'],app['byte_size'])!=expected_app:
+              raise SystemExit(f'preserved production APK identity mismatch: {app}')
+          if test['sha256']==expected_old_test:
+              raise SystemExit('AndroidTest APK is the stale APK from Run 37770419113')
+          aapt=Path(os.environ['ANDROID_HOME'])/'build-tools'/'35.0.0'/'aapt'
+          if not aapt.is_file(): raise SystemExit(f'aapt is missing: {aapt}')
+          app_badging=subprocess.check_output([str(aapt),'dump','badging',str(app_path)],text=True)
+          test_badging=subprocess.check_output([str(aapt),'dump','badging',str(test_path)],text=True)
+          if "package: name='com.yujian.ai.uiv2'" not in app_badging:
+              raise SystemExit('preserved production APK package id mismatch')
+          if "package: name='com.yujian.ai.uiv2.test'" not in test_badging:
+              raise SystemExit('rebuilt AndroidTest APK package id mismatch')
+          manifest=subprocess.check_output([str(aapt),'dump','xmltree',str(test_path),'AndroidManifest.xml'],text=True)
+          if 'targetPackage' not in manifest or 'com.yujian.ai.uiv2' not in manifest:
+              raise SystemExit('AndroidTest manifest does not target the preserved production package')
+          dex=subprocess.check_output(['unzip','-Z1',str(test_path)],text=True).splitlines()
           dex=[name for name in dex if name.startswith('classes') and name.endswith('.dex')]
-          if not dex: raise SystemExit('AndroidTest APK has no DEX payload')
+          if not dex: raise SystemExit('rebuilt AndroidTest APK has no DEX payload')
           source_present=False
           for name in dex:
-              raw=subprocess.check_output(['unzip','-p',str(root/'app-debug-androidTest.apk'),name])
-              if b'NormalHomeRealPhotoE2ETest' in raw and b'savesCommonsCarpThroughGalleryRecognitionAndHomeDetail' in raw:
+              raw=subprocess.check_output(['unzip','-p',str(test_path),name])
+              if b'NormalHomeRealPhotoE2ETest' in raw and b'savesCommonsCarpThroughGalleryRecognitionAndHomeDetail' in raw and b'CHECKPOINT=SETUP_OK' in raw:
                   source_present=True
-          if not source_present: raise SystemExit('AndroidTest APK does not contain the requested real-photo test class and method')
-          value={'product_baseline_sha':'3cd0753be926c3a8cc94ac56c97c9103febc6663','apk_build_head':previous,'validation_head':Path('evidence/validation_head.txt').read_text().strip(),'artifact_source_run_id':37770419113,'test_source_git_blob_sha':git_blob('HEAD'),'package':'com.yujian.ai.uiv2','test_package':'com.yujian.ai.uiv2.test','app_apk':app,'android_test_apk':test}
-          Path('evidence/apk_provenance.json').write_text(json.dumps(value,indent=2)+'\n')
-          print(json.dumps(value,indent=2))
+          if not source_present: raise SystemExit('rebuilt AndroidTest APK does not contain the updated test source/checkpoint')
+          provenance={
+            'product_baseline_sha':'3cd0753be926c3a8cc94ac56c97c9103febc6663',
+            'validation_head':os.environ['GITHUB_SHA'],
+            'app_apk_build_head':'15897af7422b4fe4dedd464880caff5be7f21cc1',
+            'app_apk_artifact_source_run_id':37770419113,
+            'android_test_apk_build_head':os.environ['GITHUB_SHA'],
+            'test_source_git_blob_sha':subprocess.check_output(['git','rev-parse','HEAD:validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt'],text=True).strip(),
+            'package':'com.yujian.ai.uiv2',
+            'test_package':'com.yujian.ai.uiv2.test',
+            'compatibility':{'app_package_verified':True,'test_package_verified':True,'test_target_package_verified':True,'updated_test_dex_verified':True},
+            'app_apk':app,
+            'android_test_apk':test
+          }
+          Path('evidence/apk_provenance.json').write_text(json.dumps(provenance,indent=2)+'\n')
+          print(json.dumps(provenance,indent=2))
           PY
           touch evidence/.build_ok
 
@@ -289,15 +337,78 @@ jobs:
           "$adb" -s "$serial" shell dumpsys activity activities > evidence/logs/activity_focus.txt || true
           "$adb" -s "$serial" shell dumpsys window windows >> evidence/logs/activity_focus.txt || true
           mkdir -p evidence/screenshots/pulled
-          "$adb" -s "$serial" pull /sdcard/Android/data/com.yujian.ai.uiv2.test/files/normal-home-real-photo-e2e-v2 evidence/screenshots/pulled > evidence/logs/runner.log.pull 2>&1 || true
+          remote_evidence="/sdcard/Android/data/com.yujian.ai.uiv2/files/normal-home-real-photo-e2e-v2"
+          "$adb" -s "$serial" pull "$remote_evidence" evidence/screenshots/pulled > evidence/logs/runner.log.pull 2>&1 || true
           find evidence/screenshots/pulled -type f \( -name '*.png' -o -name '*.xml' \) -print0 | while IFS= read -r -d '' p; do cp "$p" evidence/screenshots/; done
           find evidence/screenshots/pulled -name e2e-result.json -type f -exec cp '{}' evidence/e2e-result.json \; 2>/dev/null || true
+          python3 - "$remote_evidence" <<'PY'
+          import hashlib,json,sys
+          from pathlib import Path
+          root=Path('evidence'); pulled=root/'screenshots'/'pulled'
+          files=sorted(p for p in pulled.rglob('*') if p.is_file()) if pulled.exists() else []
+          rows=[{'path':str(p.relative_to(pulled)),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'byte_size':p.stat().st_size} for p in files]
+          collection={
+            'source':'adb pull',
+            'remote_directory':sys.argv[1],
+            'collected_files':len(rows),
+            'png_files':[x['path'] for x in rows if x['path'].lower().endswith('.png')],
+            'xml_files':[x['path'] for x in rows if x['path'].lower().endswith('.xml')],
+            'result_json_files':[x['path'] for x in rows if x['path'].endswith('e2e-result.json')],
+            'files':rows
+          }
+          (root/'evidence_collection.json').write_text(json.dumps(collection,indent=2)+'\n')
+          print(json.dumps({k:v for k,v in collection.items() if k!='files'},indent=2))
+          PY
           if [[ ! -s evidence/e2e-result.json ]]; then
-            printf 'BLOCKED_AT_EXACT_STEP=RECOGNITION\n' > evidence/failure_step.txt
-            echo '{"status":"BLOCKED_AT_EXACT_STEP","failure_step":"RECOGNITION","failure_message":"Instrumentation did not write an outcome file; see instrumentation.log"}' > evidence/e2e-result.json
+            if [[ -s evidence/failure_step.txt ]]; then
+              step=$(tr -d '\r\n' < evidence/failure_step.txt)
+            elif ! grep -q 'CHECKPOINT=SETUP_OK' evidence/logs/instrumentation.log; then
+              step=TEST_HARNESS_SETUP
+            elif ! grep -q 'CHECKPOINT=APP_LAUNCHED' evidence/logs/instrumentation.log; then
+              step=APP_LAUNCH
+            elif ! grep -q 'CHECKPOINT=GALLERY' evidence/logs/instrumentation.log; then
+              step=GALLERY
+            elif ! grep -q 'CHECKPOINT=RECOGNITION' evidence/logs/instrumentation.log; then
+              step=RECOGNITION
+            elif ! grep -q 'CHECKPOINT=SPECIES_CONFIRMED' evidence/logs/instrumentation.log; then
+              step=RECOGNITION
+            elif ! grep -q 'CHECKPOINT=SAVE_SUCCESS' evidence/logs/instrumentation.log; then
+              step=SAVE
+            elif ! grep -q 'CHECKPOINT=HOME_RENDER' evidence/logs/instrumentation.log; then
+              step=HOME_RENDER
+            elif ! grep -q 'CHECKPOINT=FISH_RECORD_DETAIL' evidence/logs/instrumentation.log; then
+              step=FISH_RECORD_DETAIL
+            else
+              step=SCREENSHOT
+            fi
+            if [[ ! -s evidence/failure_step.txt ]]; then printf '%s\n' "$step" > evidence/failure_step.txt; fi
+            python3 - "$step" <<'PY'
+          import json,sys
+          from pathlib import Path
+          step=sys.argv[1]
+          Path('evidence/e2e-result.json').write_text(json.dumps({
+            'status':'BLOCKED_AT_EXACT_STEP',
+            'failure_step':step,
+            'failure_message':'Instrumentation produced no e2e-result.json; failure stage inferred from the last verified checkpoint. See instrumentation.log and logcat.txt.'
+          },indent=2)+'\n')
+          PY
+          fi
+          outcome=$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('evidence/e2e-result.json').read_text())
+          print(r.get('status','BLOCKED_AT_EXACT_STEP'))
+          print(r.get('failure_step') or '')
+          PY
+          )
+          status=$(printf '%s\n' "$outcome" | sed -n '1p')
+          step=$(printf '%s\n' "$outcome" | sed -n '2p')
+          if [[ "$status" != PASS_REAL_PHOTO_E2E ]]; then
+            if [[ ! -s evidence/failure_step.txt ]]; then printf '%s\n' "${step:-TEST_HARNESS_SETUP}" > evidence/failure_step.txt; fi
+            exit 1
           fi
           if [[ $result -ne 0 ]] || ! grep -q 'OK (' evidence/logs/instrumentation.log; then
-            if [[ ! -s evidence/failure_step.txt ]]; then printf 'RECOGNITION\n' > evidence/failure_step.txt; fi
+            if [[ ! -s evidence/failure_step.txt ]]; then printf '%s\n' TEST_RUNNER > evidence/failure_step.txt; fi
             exit 1
           fi
           touch evidence/.e2e_ok
@@ -315,6 +426,15 @@ jobs:
           from PIL import Image
           root=Path('evidence'); shots=root/'screenshots'; result=json.loads((root/'e2e-result.json').read_text())
           rows=result.get('screenshots',[]); by={x.get('file'):x for x in rows if isinstance(x,dict)}
+          collection=json.loads((root/'evidence_collection.json').read_text())
+          expected_remote='/sdcard/Android/data/com.yujian.ai.uiv2/files/normal-home-real-photo-e2e-v2'
+          if collection.get('remote_directory')!=expected_remote: raise SystemExit('evidence was not pulled from the target application external-files directory')
+          collected_json={Path(x).name for x in collection.get('result_json_files',[])}
+          if 'e2e-result.json' not in collected_json: raise SystemExit('instrumentation result JSON was not collected from the target application external-files directory')
+          if result.get('status')=='PASS_REAL_PHOTO_E2E':
+              required_xml={'gallery-picker-window.xml','recognition-result-window.xml','recognition-confirmed-window.xml','fish-record-detail-a-window.xml'}
+              collected_xml={Path(x).name for x in collection.get('xml_files',[])}
+              if not required_xml.issubset(collected_xml): raise SystemExit('one or more Android UI hierarchy XML files were not collected: '+str(sorted(required_xml-collected_xml)))
           required=['gallery-selection.png','recognition-result.png','save-return-home.png','runtime_real_photo.png','fish-record-detail-a.png']
           for name in required:
               p=shots/name
@@ -358,9 +478,19 @@ jobs:
           if [[ ! -s evidence/e2e-result.json ]]; then
             step=RUNNER
             [[ -s evidence/failure_step.txt ]] && step=$(cat evidence/failure_step.txt)
-            printf '{"status":"BLOCKED_AT_EXACT_STEP","failure_step":"%s","save_mode":"GUEST_LOCAL_SAVE"}\n' "$step" > evidence/e2e-result.json
+            printf '{"status":"BLOCKED_AT_EXACT_STEP","failure_step":"%s","save_mode":"NOT_REACHED"}\n' "$step" > evidence/e2e-result.json
           fi
           python3 validation_v2/scripts/hifi_acceptance/compare_normal_home_real_photo_v2.py --evidence-root evidence --repository-root . | tee evidence/logs/report_generator.log
+          python3 - <<'PY' | tee -a evidence/logs/report_generator.log
+          import json
+          from pathlib import Path
+          report=json.loads(Path('evidence/package/04_report/report.json').read_text())
+          visual=report.get('visual_comparison',{})
+          if visual.get('images_generated'):
+              print('CHECKPOINT=VISUAL_COMPARE status='+str(visual.get('status'))+' images='+','.join(visual['images_generated']))
+          else:
+              print('VISUAL_COMPARE=NOT_RUN failure_step='+str(report.get('failure_step')))
+          PY
 
       - name: Upload complete Normal Home evidence ZIP and diagnostics
         if: always()
