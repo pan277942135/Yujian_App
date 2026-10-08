@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -51,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -92,7 +94,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.tween
 
-private val knowledgeCardGold = YuJianColors.SoftGold
 private val knowledgeCardShape = RoundedCornerShape(24.dp)
 
 @Composable
@@ -170,7 +171,7 @@ private fun SpeciesDetailContent(
         )
     }
     val records = remember(guideIdentity, savedCatches) { savedRecordsForSpecies(guideIdentity, savedCatches) }
-    val cards = remember(detail) { detail.toKnowledgeCardPresentations() }
+    val cards = remember(detail, resolveAssetUrl) { detail.toKnowledgeCardPresentations(resolveAssetUrl) }
     val activePageStore = rememberSaveable(species.id) { mutableIntStateOf(0) }
     val initialPage = activePageStore.intValue.coerceIn(0, cards.lastIndex)
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { cards.size })
@@ -228,7 +229,6 @@ private fun SpeciesDetailContent(
                 pagerState = pagerState,
                 settledPage = settledPage,
                 reduceMotion = reduceMotion,
-                resolveAssetUrl = resolveAssetUrl,
                 onAdjacentTap = { page ->
                     scope.launch {
                         if (reduceMotion) pagerState.scrollToPage(page)
@@ -318,7 +318,6 @@ private fun SpeciesKnowledgeCarousel(
     pagerState: androidx.compose.foundation.pager.PagerState,
     settledPage: Int,
     reduceMotion: Boolean,
-    resolveAssetUrl: (String?) -> String?,
     onAdjacentTap: (Int) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -351,7 +350,6 @@ private fun SpeciesKnowledgeCarousel(
             ) {
                 KnowledgeCardSurface(
                     card = cards[page],
-                    resolveAssetUrl = resolveAssetUrl,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = if (page == pagerState.currentPage) null else ({ onAdjacentTap(page) }),
                 )
@@ -363,7 +361,6 @@ private fun SpeciesKnowledgeCarousel(
 @Composable
 private fun KnowledgeCardSurface(
     card: FishGuideKnowledgeCardPresentation,
-    resolveAssetUrl: (String?) -> String?,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
@@ -376,116 +373,67 @@ private fun KnowledgeCardSurface(
             onClick = onClick,
         )
     } else Modifier
-    Column(
+    var imageLoaded by remember(card.imageUrl, card.imageCacheIdentity) { mutableStateOf<Boolean?>(null) }
+    Box(
         modifier = modifier
             .defaultMinSize(minHeight = 390.dp)
             .clip(knowledgeCardShape)
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF090B0B), Color(0xFF17191A), Color(0xFF070808)),
-                ),
-            )
-            .border(1.dp, knowledgeCardGold.copy(alpha = 0.82f), knowledgeCardShape)
+            .background(Color(0xFFDCE7E3))
             .then(clickableModifier)
-            .padding(horizontal = 18.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+            .testTag("fish_knowledge_card_v2_${card.type}")
+            .semantics {
+                stateDescription = when {
+                    card.imageUrl == null -> "图片暂不可用"
+                    imageLoaded == false -> "图片暂不可用"
+                    imageLoaded == true -> "图片已加载"
+                    else -> "正在加载图片"
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        val imageUrl = card.imageUrl
+        if (imageUrl.isNullOrBlank()) {
+            KnowledgeCardImagePlaceholder(
+                text = "图片暂不可用",
+                modifier = Modifier.testTag("fish_knowledge_card_v2_missing_${card.type}"),
+            )
+        } else {
+            RemoteImage(
+                url = imageUrl,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .testTag("fish_knowledge_card_v2_image_${card.type}"),
+                contentDescription = "${card.title}知识卡",
+                contentScale = ContentScale.Fit,
+                cacheIdentity = card.imageCacheIdentity,
+                onLoadResult = { imageLoaded = it },
+                placeholder = {
+                    KnowledgeCardImagePlaceholder(
+                        text = if (imageLoaded == false) "图片暂不可用" else "正在加载图片",
+                        modifier = Modifier.testTag(
+                            if (imageLoaded == false) "fish_knowledge_card_v2_error_${card.type}"
+                            else "fish_knowledge_card_v2_loading_${card.type}",
+                        ),
+                    )
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun KnowledgeCardImagePlaceholder(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize().background(Color(0xFFDCE7E3)),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = card.label.uppercase(),
-            color = knowledgeCardGold.copy(alpha = 0.88f),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.1.sp,
+            text = text,
+            color = Color(0xFF52655F),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
         )
-        Box(Modifier.fillMaxWidth().height(1.dp).background(knowledgeCardGold.copy(alpha = 0.38f)))
-        Text(
-            text = card.title,
-            color = Color(0xFFF4DB9C),
-            fontSize = 25.sp,
-            lineHeight = 32.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-
-        if (card.type == "HERO") {
-            val imageUrl = resolveAssetUrl(card.subjectImageUrl).takeIf { !it.isNullOrBlank() }
-            if (imageUrl != null) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 96.dp, max = 178.dp)
-                        .background(Color(0xFF0C1111), RoundedCornerShape(14.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    RemoteImage(
-                        url = imageUrl,
-                        modifier = Modifier.fillMaxSize().padding(6.dp),
-                        contentDescription = "${card.title}鱼种影像",
-                        contentScale = ContentScale.Fit,
-                        placeholder = { Text("鱼种影像暂不可用", color = Color(0xFFBFC5C0), fontSize = 13.sp) },
-                    )
-                }
-            }
-        }
-
-        card.summary?.let { summary ->
-            Text(
-                text = summary,
-                color = Color(0xFFE5E4DD),
-                fontSize = 15.sp,
-                lineHeight = 23.sp,
-            )
-        }
-
-        if (card.facts.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                card.facts.forEach { fact ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Box(
-                            Modifier
-                                .padding(top = 7.dp)
-                                .size(5.dp)
-                                .background(knowledgeCardGold, RoundedCornerShape(50)),
-                        )
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = fact.label,
-                                color = knowledgeCardGold,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                text = fact.value,
-                                color = Color(0xFFF0F0EB),
-                                fontSize = 14.sp,
-                                lineHeight = 21.sp,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!card.available) {
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "内容暂不可用",
-                color = Color(0xFFE4DABF),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-            )
-            Text(
-                text = "该卡片资料正在完善",
-                color = Color(0xFFB7B9B3),
-                fontSize = 13.sp,
-                lineHeight = 19.sp,
-            )
-        }
     }
 }
 
