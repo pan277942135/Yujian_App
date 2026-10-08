@@ -31,8 +31,11 @@ def foreground(adb: str, package: str) -> str:
         raise RuntimeError("NO_FOREGROUND_ACTIVITY_OR_WINDOW")
     activity = activity_lines[0]
     focus = next((x for x in focused_lines if "mCurrentFocus" in x), focused_lines[0])
-    # Both Android activity and window ownership must be the requested package.
-    pattern = re.escape(package) + r"/(?:\.[A-Za-z0-9_.$]+|" + re.escape(package) + r"\.[A-Za-z0-9_.$]+)"
+    # Android applicationIdSuffix variants can launch a class from the base
+    # package (for example com.yujian.ai.uiv2/com.yujian.ai.MainActivity).
+    # Foreground ownership is the component package before "/", not the class
+    # package after it.
+    pattern = re.escape(package) + r"/([A-Za-z0-9_.$]+)"
     match = re.search(pattern, activity)
     if match is None or re.search(pattern, focus) is None:
         raise RuntimeError("WRONG_FOREGROUND_APP activity=" + activity + " focus=" + focus)
