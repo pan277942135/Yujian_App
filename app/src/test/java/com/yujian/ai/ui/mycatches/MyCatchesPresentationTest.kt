@@ -16,7 +16,19 @@ class MyCatchesPresentationTest {
 
         assertEquals("千岛湖 · 2条鱼获 · 2种鱼", summary)
         assertEquals("2条鱼获 · 2种鱼", daySummary(listOf(grass.copy(location = null), carp.copy(location = "钱塘江"))))
+        assertEquals("2条鱼获 · 2种鱼", daySummary(listOf(grass.copy(location = "千岛湖"), carp.copy(location = "钱塘江"))))
+        assertEquals(2, daySpeciesCount(listOf(grass, carp, grass.copy(id = "blank", speciesId = "", speciesName = " "))))
         assertEquals(null, grass.copy(location = "null").toFishRecordPresentation(null).location)
+    }
+
+    @Test
+    fun archiveRecordDaysCountDistinctValidCatchDatesOnly() {
+        val sameDay = catchRecord("same-day-2", day = 23)
+        val nextDay = catchRecord("next-day", day = 24)
+        val invalidDate = catchRecord("invalid", day = 25).copy(capturedAt = "bad", createdAt = "also bad")
+
+        assertEquals(2, archiveRecordDayCount(listOf(catchRecord("same-day-1", day = 23), sameDay, nextDay, invalidDate)))
+        assertEquals(0, archiveRecordDayCount(listOf(invalidDate)))
     }
 
     @Test

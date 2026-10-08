@@ -89,13 +89,31 @@ fun groupCatchesByMonthAndDay(catches: List<RemoteCatch>): List<MyCatchesMonthGr
 }
 
 fun daySummary(catches: List<RemoteCatch>): String {
-    val sanitizedLocations = catches.map { sanitizeOptionalText(it.location) }
-    val singleLocation = sanitizedLocations.firstOrNull()?.takeIf { location ->
-        sanitizedLocations.all { it == location }
-    }
-    val countLabel = "${catches.size}条鱼获 · ${catches.map { it.speciesKey() }.distinct().size}种鱼"
-    return singleLocation?.let { "$it · $countLabel" } ?: countLabel
+    val countLabel = "${catches.size}条鱼获 · ${daySpeciesCount(catches)}种鱼"
+    return sharedDayLocation(catches)?.let { "$it · $countLabel" } ?: countLabel
 }
+
+/** A shared location is shown only when every record has the same usable value. */
+fun sharedDayLocation(catches: List<RemoteCatch>): String? {
+    if (catches.isEmpty()) return null
+    val locations = catches.map { sanitizeOptionalText(it.location) }
+    if (locations.any { it == null }) return null
+    val usable = locations.filterNotNull()
+    if (usable.map { it.lowercase(Locale.ROOT) }.distinct().size != 1) return null
+    return usable.first()
+}
+
+fun daySpeciesCount(catches: List<RemoteCatch>): Int = catches
+    .map { it.speciesKey().trim() }
+    .filter(String::isNotEmpty)
+    .distinct()
+    .size
+
+/** Counts only distinct days backed by a parseable catch timestamp. */
+fun archiveRecordDayCount(catches: List<RemoteCatch>): Int = catches
+    .mapNotNull { record -> resolveCatchTimestamp(record).takeIf { it.isKnown }?.dayKey }
+    .distinct()
+    .size
 
 fun filterAndSortCatches(
     catches: List<RemoteCatch>,

@@ -851,6 +851,7 @@ fun YujianApp() {
                             if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
                         },
                         accessToken = active?.accessToken.orEmpty(),
+                        onBack = { nav.popBackStack() },
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
                         onCapture = { nav.navigate("identify") },
