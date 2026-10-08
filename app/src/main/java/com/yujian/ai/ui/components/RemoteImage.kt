@@ -79,8 +79,8 @@ fun RemoteImage(
 ) {
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
-        val viewportWidthPx = with(density) { maxWidth.toFinitePxOrZero() }
-        val viewportHeightPx = with(density) { maxHeight.toFinitePxOrZero() }
+        val viewportWidthPx = with(density) { maxWidth.toFinitePxOrZero(maxWidth) }
+        val viewportHeightPx = with(density) { maxHeight.toFinitePxOrZero(maxHeight) }
         val shouldTrimVerifiedLetterbox = trimVerifiedLetterbox || adaptiveHeroVariant != null
         val bitmapState = remember(url, authToken, reloadToken, viewportWidthPx, viewportHeightPx, shouldTrimVerifiedLetterbox) {
             mutableStateOf<LoadedHeroMedia?>(null)
