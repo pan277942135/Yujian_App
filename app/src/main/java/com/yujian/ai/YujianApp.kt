@@ -103,6 +103,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
+internal fun recognitionSavedCatchRoute(
+    recordId: String,
+    destination: RecognitionSaveDestination,
+): String {
+    val detailRoute = "catch/${Uri.encode(recordId)}"
+    return if (destination == RecognitionSaveDestination.MEMORY) {
+        "$detailRoute?section=memory"
+    } else {
+        detailRoute
+    }
+}
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -725,13 +736,9 @@ fun YujianApp() {
                                                 guestRegistrationPromptVisible = true
                                             }
                                             catchSaving = false
-                                            if (destination == RecognitionSaveDestination.MEMORY) {
-                                                nav.navigate("catch/${Uri.encode(createdRecord.id)}?section=memory") {
-                                                    popUpTo("result") { inclusive = true }
-                                                    launchSingleTop = true
-                                                }
-                                            } else {
-                                                nav.navigate("home") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
+                                            nav.navigate(recognitionSavedCatchRoute(createdRecord.id, destination)) {
+                                                popUpTo("result") { inclusive = true }
+                                                launchSingleTop = true
                                             }
                                         } else {
                                             val error = requireNotNull(saveResult.exceptionOrNull())

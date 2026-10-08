@@ -230,6 +230,7 @@ fun RecognitionResultScreen(
     var locationText by remember(prediction) { mutableStateOf("") }
     var storyText by remember(prediction) { mutableStateOf("") }
     var saveRequested by remember(prediction) { mutableStateOf(false) }
+    var saveRequestObservedSaving by remember(prediction) { mutableStateOf(false) }
     var requestedSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
     var pendingSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
     var purposeVisible by remember(prediction) { mutableStateOf(false) }
@@ -271,8 +272,11 @@ fun RecognitionResultScreen(
     }
     val currentTime = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date()) }
     LaunchedEffect(saving, saveError) {
-        if (!saving && saveRequested) {
+        if (saveRequested && saving) {
+            saveRequestObservedSaving = true
+        } else if (saveRequested && !saving && (saveError != null || saveRequestObservedSaving)) {
             saveRequested = false
+            saveRequestObservedSaving = false
             requestedSaveDestination = null
         }
     }
@@ -288,6 +292,7 @@ fun RecognitionResultScreen(
             return
         }
         saveRequested = true
+        saveRequestObservedSaving = false
         requestedSaveDestination = destination
         val corrected = selectedKey != prediction.top1.speciesKey
         val detector = productionResult?.assessment?.primary?.let {

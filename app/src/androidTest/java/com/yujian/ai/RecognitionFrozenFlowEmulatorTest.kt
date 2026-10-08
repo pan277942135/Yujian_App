@@ -684,6 +684,8 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("继续记忆").assertIsEnabled()
+        composeRule.onNodeWithText("保存本次鱼获").assertIsEnabled()
         assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
         assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
 
@@ -696,6 +698,120 @@ class RecognitionFrozenFlowEmulatorTest {
             composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
         }
         assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun lowResultActionsStayIdleUntilSaveTapAndRejectRepeatedSubmission() {
+        val saving = mutableStateOf(false)
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(low.prediction),
+                    productionResult = low,
+                    saving = saving.value,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, destination ->
+                        assertEquals(RecognitionSaveDestination.HOME, destination)
+                        saveCalls.incrementAndGet()
+                        saving.value = true
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("手动选择鱼种").assertIsEnabled().performClick()
+        composeRule.onNodeWithTag("recognition-species-selector-search").performTextInput("ji yu")
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithTag("recognition-species-result-crucian_carp").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("recognition-species-result-crucian_carp").performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        val saveButton = composeRule.onNodeWithText("保存本次鱼获").performScrollTo()
+        saveButton.assertIsEnabled()
+        assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
+
+        saveButton.performClick()
+        saveButton.performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 1 }
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals(1, saveCalls.get())
+    }
+
+    @Test
+    fun saveFailureClearsOnlyTheRequestedLoadingStateAndAllowsRetry() {
+        val saving = mutableStateOf(false)
+        val saveError = mutableStateOf<String?>(null)
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    saving = saving.value,
+                    saveError = saveError.value,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ ->
+                        saveCalls.incrementAndGet()
+                        saving.value = true
+                    },
+                )
+            }
+        }
+
+        val saveButton = composeRule.onNodeWithText("保存本次鱼获").performScrollTo()
+        saveButton.assertIsEnabled()
+        assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
+        saveButton.performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 1 }
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.runOnIdle {
+            saving.value = false
+            saveError.value = "network failure"
+        }
+        composeRule.onNodeWithText("保存鱼获失败，请重试").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            !composeRule.onNodeWithText("保存本次鱼获").fetchSemanticsNode().config
+                .contains(SemanticsProperties.Disabled)
+        }
+        saveButton.assertIsEnabled()
+        assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
+
+        saveButton.performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 2 }
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals(2, saveCalls.get())
+    }
+
+    @Test
+    fun successfulSaveRouteUsesReturnedRecordIdAndDefaultsToDetailASide() {
+        val savedRecordId = "record/created-42"
+        assertEquals(
+            "catch/record%2Fcreated-42",
+            recognitionSavedCatchRoute(savedRecordId, RecognitionSaveDestination.HOME),
+        )
+        assertEquals(
+            "catch/record%2Fcreated-42?section=memory",
+            recognitionSavedCatchRoute(savedRecordId, RecognitionSaveDestination.MEMORY),
+        )
     }
 
     @Test
