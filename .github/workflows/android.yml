@@ -309,7 +309,7 @@ jobs:
         if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get -o DPkg::Lock::Timeout=300 install -y ffmpeg
           # Ubuntu 24.04 marks its system Python as externally managed
           # (PEP 668). Pillow is an evidence-only user dependency; keep the
           # runner image untouched and opt in explicitly to the user install.
