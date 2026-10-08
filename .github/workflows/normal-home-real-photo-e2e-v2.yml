@@ -360,37 +360,51 @@ jobs:
           print(json.dumps({k:v for k,v in collection.items() if k!='files'},indent=2))
           PY
           if [[ ! -s evidence/e2e-result.json ]]; then
+            checkpoint_seen() {
+              grep -q "$1" evidence/logs/instrumentation.log evidence/logs/logcat.txt 2>/dev/null
+            }
             if [[ -s evidence/failure_step.txt ]]; then
               step=$(tr -d '\r\n' < evidence/failure_step.txt)
-            elif ! grep -q 'CHECKPOINT=SETUP_OK' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=SETUP_OK'; then
               step=TEST_HARNESS_SETUP
-            elif ! grep -q 'CHECKPOINT=APP_LAUNCHED' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=APP_LAUNCHED'; then
               step=APP_LAUNCH
-            elif ! grep -q 'CHECKPOINT=GALLERY' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=GALLERY'; then
               step=GALLERY
-            elif ! grep -q 'CHECKPOINT=RECOGNITION' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=RECOGNITION'; then
               step=RECOGNITION
-            elif ! grep -q 'CHECKPOINT=SPECIES_CONFIRMED' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=SPECIES_CONFIRMED'; then
               step=RECOGNITION
-            elif ! grep -q 'CHECKPOINT=SAVE_SUCCESS' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=SAVE_SUCCESS'; then
               step=SAVE
-            elif ! grep -q 'CHECKPOINT=HOME_RENDER' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=HOME_RENDER'; then
               step=HOME_RENDER
-            elif ! grep -q 'CHECKPOINT=FISH_RECORD_DETAIL' evidence/logs/instrumentation.log; then
+            elif ! checkpoint_seen 'CHECKPOINT=FISH_RECORD_DETAIL'; then
               step=FISH_RECORD_DETAIL
             else
               step=SCREENSHOT
             fi
             if [[ ! -s evidence/failure_step.txt ]]; then printf '%s\n' "$step" > evidence/failure_step.txt; fi
             python3 - "$step" <<'PY'
-          import json,sys
+          import json,re,sys
           from pathlib import Path
           step=sys.argv[1]
-          Path('evidence/e2e-result.json').write_text(json.dumps({
+          result={
             'status':'BLOCKED_AT_EXACT_STEP',
             'failure_step':step,
-            'failure_message':'Instrumentation produced no e2e-result.json; failure stage inferred from the last verified checkpoint. See instrumentation.log and logcat.txt.'
-          },indent=2)+'\n')
+            'failure_message':'Instrumentation produced no e2e-result.json; failure stage inferred from the last verified checkpoint. See instrumentation.log and logcat.txt.',
+            'save_mode':'NOT_REACHED'
+          }
+          checkpoint_logs='\n'.join(
+            path.read_text(errors='replace')
+            for path in [Path('evidence/logs/instrumentation.log'),Path('evidence/logs/logcat.txt')]
+            if path.is_file()
+          )
+          save=re.search(r'CHECKPOINT=SAVE_SUCCESS mode=(\S+) record_id=(\S+)',checkpoint_logs)
+          if save:
+            result['save_mode']=save.group(1)
+            result['record_id']=save.group(2)
+          Path('evidence/e2e-result.json').write_text(json.dumps(result,indent=2)+'\n')
           PY
           fi
           outcome=$(python3 - <<'PY'
