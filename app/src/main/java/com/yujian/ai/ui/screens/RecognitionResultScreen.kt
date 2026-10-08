@@ -1137,6 +1137,9 @@ internal fun ResultSurfaceActionButton(
             .border(if (emphasized) 1.4.dp else 1.dp, edge, shape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .testTag(testTag)
+            .semantics {
+                if (loading) stateDescription = "正在加载"
+            }
             .padding(horizontal = if (compactLayout) 8.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,

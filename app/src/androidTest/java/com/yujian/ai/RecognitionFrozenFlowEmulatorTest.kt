@@ -24,6 +24,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasStateDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -661,8 +662,8 @@ class RecognitionFrozenFlowEmulatorTest {
     fun resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading() {
         val saving = mutableStateOf(false)
         val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
-        val memoryLoading = hasText("继续记忆") and hasStateDescription("正在加载")
-        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+        val memoryLoading = hasTestTag("recognition-result-continue") and hasStateDescription("正在加载")
+        val homeLoading = hasTestTag("recognition-result-save") and hasStateDescription("正在加载")
 
         composeRule.setContent {
             YujianTheme {
@@ -684,12 +685,12 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("继续记忆").assertIsEnabled()
-        composeRule.onNodeWithText("保存本次鱼获").assertIsEnabled()
+        composeRule.onNodeWithTag("recognition-result-continue").assertIsEnabled()
+        composeRule.onNodeWithTag("recognition-result-save").assertIsEnabled()
         assertFalse(composeRule.onAllNodes(memoryLoading).fetchSemanticsNodes().isNotEmpty())
         assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
 
-        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+        composeRule.onNodeWithTag("recognition-result-save").performScrollTo().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) {
             saveCalls.get() == 1
         }
@@ -752,7 +753,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val saving = mutableStateOf(false)
         val saveError = mutableStateOf<String?>(null)
         val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
-        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+        val homeLoading = hasTestTag("recognition-result-save") and hasStateDescription("正在加载")
 
         composeRule.setContent {
             YujianTheme {
@@ -772,7 +773,7 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        val saveButton = composeRule.onNodeWithText("保存本次鱼获").performScrollTo()
+        val saveButton = composeRule.onNodeWithTag("recognition-result-save").performScrollTo()
         saveButton.assertIsEnabled()
         assertFalse(composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty())
         saveButton.performClick()
@@ -787,7 +788,7 @@ class RecognitionFrozenFlowEmulatorTest {
         }
         composeRule.onNodeWithText("保存鱼获失败，请重试").assertIsDisplayed()
         composeRule.waitUntil(timeoutMillis = 2_000L) {
-            !composeRule.onNodeWithText("保存本次鱼获").fetchSemanticsNode().config
+            !composeRule.onNodeWithTag("recognition-result-save").fetchSemanticsNode().config
                 .contains(SemanticsProperties.Disabled)
         }
         saveButton.assertIsEnabled()
