@@ -19,7 +19,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.RemoteImage
@@ -42,6 +41,11 @@ internal fun RecentFishCard(
     onClick: () -> Unit,
     cardHeight: Dp,
     runtimeAssets: NormalHomeRuntimeAssets? = null,
+    typography: NormalHomeTypographyContract,
+    cornerRadius: Dp,
+    footerPaddingHorizontal: Dp,
+    footerPaddingVertical: Dp,
+    metadataSpacing: Dp,
 ) {
     YuJianHeroCard(
         title = presentationSpeciesName(item.speciesName),
@@ -49,18 +53,21 @@ internal fun RecentFishCard(
         variant = YuJianHeroVariant.HOME,
         modifier = Modifier.fillMaxSize(),
         heightOverride = cardHeight,
-        contentInsetHorizontal = 2.dp,
-        contentInsetVertical = 4.dp,
-        footerPadding = 12.dp,
+        contentInsetHorizontal = 0.dp,
+        contentInsetVertical = 0.dp,
+        cornerRadius = cornerRadius,
+        footerPaddingHorizontal = footerPaddingHorizontal,
+        footerPaddingVertical = footerPaddingVertical,
         onClick = onClick,
         semanticsTag = "normal-home-catch-card-${item.id}",
+        footerTag = "normal-home-catch-footer-${item.id}",
         decoration = YuJianHeroDecoration(
             shadow = runtimeAssets?.fishCardShadow?.asImageBitmap(),
             gradient = runtimeAssets?.fishCardGradient?.asImageBitmap(),
             outline = runtimeAssets?.fishCardOutline?.asImageBitmap(),
         ),
         footerContent = {
-            HomeCatchFooter(item)
+            HomeCatchFooter(item, typography, metadataSpacing)
         },
         media = {
             RemoteImage(
@@ -91,13 +98,17 @@ internal fun RecentFishCard(
 }
 
 @Composable
-private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
+private fun ColumnScope.HomeCatchFooter(
+    item: RemoteCatch,
+    typography: NormalHomeTypographyContract,
+    metadataSpacing: Dp,
+) {
     Text(
         text = presentationSpeciesName(item.speciesName),
         style = YuJianTypography.sectionTitle.copy(
             color = YuJianColors.OnDark,
-            fontSize = 32.sp,
-            lineHeight = 38.sp,
+            fontSize = typography.heroTitle.fontSize,
+            lineHeight = typography.heroTitle.lineHeight,
         ),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -108,12 +119,12 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
             text = value,
             style = YuJianTypography.body.copy(
                 color = YuJianColors.OnDark.copy(alpha = 0.94f),
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
+                fontSize = typography.measurement.fontSize,
+                lineHeight = typography.measurement.lineHeight,
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 5.dp).testTag("normal-home-catch-measurement-${item.id}"),
+            modifier = Modifier.padding(top = metadataSpacing).testTag("normal-home-catch-measurement-${item.id}"),
         )
     }
     formatCatchMeta(item)?.let { value ->
@@ -121,13 +132,13 @@ private fun ColumnScope.HomeCatchFooter(item: RemoteCatch) {
             text = value,
             style = YuJianTypography.caption.copy(
                 color = YuJianColors.OnDark.copy(alpha = 0.88f),
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
+                fontSize = typography.metadata.fontSize,
+                lineHeight = typography.metadata.lineHeight,
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .padding(top = 5.dp)
+                .padding(top = metadataSpacing)
                 .testTag("normal-home-catch-meta-${item.id}"),
         )
     }
