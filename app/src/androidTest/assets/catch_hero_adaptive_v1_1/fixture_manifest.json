@@ -1,0 +1,245 @@
+{
+  "purpose": "Android runtime visual matrix for YuJianCatchHeroCard Adaptive Media V1.1",
+  "synthetic_ai_images": false,
+  "notes": [
+    "All visual test content is a real photograph from the repository or a public source listed below.",
+    "Files labeled derived_fixture are explicitly transformed from the named original and must not be described as unmodified originals.",
+    "No fixture claims a trusted fish detector box. Runtime RemoteCatch does not persist or expose one.",
+    "CC BY-SA adaptations remain available under the corresponding ShareAlike license; source attribution is retained here."
+  ],
+  "sources": {
+    "repo": {
+      "file": "yujian_repo_sample_recent_catch.jpg",
+      "title": "Yujian repository bundled sample_recent_catch.jpg",
+      "author": "Repository asset; external author metadata is not present in the repository",
+      "source_url": "https://github.com/pan277942135/Yujian_App/blob/main/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+      "license": "Repository-authorized test sample; redistribution outside this repository is not independently licensed",
+      "license_url": "",
+      "expected_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+      "expected_bytes": 292222,
+      "download_url": "",
+      "path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/yujian_repo_sample_recent_catch.jpg",
+      "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+      "bytes": 292222,
+      "raw_pixel_dimensions": [
+        1152,
+        1536
+      ],
+      "exif_orientation": 1,
+      "display_dimensions_after_exif": [
+        1152,
+        1536
+      ]
+    },
+    "gambia": {
+      "file": "gambia_rod_caught_original.jpg",
+      "title": "Fish caught with a rod in Gambia.jpg",
+      "author": "Peter van der Sluijs",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Fish_caught_with_a_rod_in_Gambia.jpg",
+      "license": "CC BY-SA 3.0 (or GFDL, as offered on the source page)",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "expected_sha256": "6117d964dd10ee8f3f38d82b78441c7e03a2402cbfd623e6d05d9d2d75685581",
+      "expected_bytes": 999273,
+      "bundled_path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/gambia_rod_caught_original.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Fish_caught_with_a_rod_in_Gambia.jpg",
+      "path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/gambia_rod_caught_original.jpg",
+      "sha256": "6117d964dd10ee8f3f38d82b78441c7e03a2402cbfd623e6d05d9d2d75685581",
+      "bytes": 999273,
+      "raw_pixel_dimensions": [
+        1600,
+        1200
+      ],
+      "exif_orientation": 1,
+      "display_dimensions_after_exif": [
+        1600,
+        1200
+      ]
+    },
+    "auckland": {
+      "file": "auckland_portrait_caught_fish_original.jpg",
+      "title": "Portrait of man on boat holding a caught fish (AM 81857-1).jpg",
+      "author": "Photograph by Collins; Auckland War Memorial Museum collection",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Portrait_of_man_on_boat_holding_a_caught_fish_(AM_81857-1).jpg",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "expected_sha256": "d806491e4711a58aa242c8ef3feb6fcc0e9b13c56c5db5e7808203134b3c1ffa",
+      "expected_bytes": 626677,
+      "bundled_path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/auckland_portrait_caught_fish_original.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Portrait_of_man_on_boat_holding_a_caught_fish_%28AM_81857-1%29.jpg",
+      "path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/auckland_portrait_caught_fish_original.jpg",
+      "sha256": "d806491e4711a58aa242c8ef3feb6fcc0e9b13c56c5db5e7808203134b3c1ffa",
+      "bytes": 626677,
+      "raw_pixel_dimensions": [
+        936,
+        1275
+      ],
+      "exif_orientation": 1,
+      "display_dimensions_after_exif": [
+        936,
+        1275
+      ]
+    }
+  },
+  "fixtures": [
+    {
+      "id": "landscape_4_3_gambia_original",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/landscape_4_3_gambia_original.jpg",
+      "sha256": "6117d964dd10ee8f3f38d82b78441c7e03a2402cbfd623e6d05d9d2d75685581",
+      "bytes": 999273,
+      "dimensions": [
+        1600,
+        1200
+      ],
+      "test_use": "horizontal 4:3",
+      "provenance": "original",
+      "source_key": "gambia",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Fish_caught_with_a_rod_in_Gambia.jpg",
+      "source_author": "Peter van der Sluijs",
+      "source_license": "CC BY-SA 3.0 (or GFDL, as offered on the source page)",
+      "transformation": "Original public photograph, no pixel transformation.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "landscape_16_9_gambia_ambient_fixture",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/landscape_16_9_gambia_ambient_fixture.jpg",
+      "sha256": "4203e99f310a6f0374b0bcd3ad5b74e4a31959a6ba14d8ec53a2f700f2acc8b8",
+      "bytes": 552995,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "test_use": "horizontal 16:9",
+      "provenance": "derived_fixture",
+      "source_key": "gambia",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Fish_caught_with_a_rod_in_Gambia.jpg",
+      "source_author": "Peter van der Sluijs",
+      "source_license": "CC BY-SA 3.0 (or GFDL, as offered on the source page)",
+      "transformation": "Derived fixture: full source photo contained over a softened same-source ambient canvas; no subject crop.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "portrait_3_4_repo_original",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/portrait_3_4_repo_original.jpg",
+      "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+      "bytes": 292222,
+      "dimensions": [
+        1152,
+        1536
+      ],
+      "test_use": "vertical 3:4",
+      "provenance": "original",
+      "source_key": "repo",
+      "source_url": "https://github.com/pan277942135/Yujian_App/blob/main/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+      "source_author": "Repository asset; external author metadata is not present in the repository",
+      "source_license": "Repository-authorized test sample; redistribution outside this repository is not independently licensed",
+      "transformation": "Original repository photograph, no pixel transformation.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "portrait_9_16_repo_ambient_fixture",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/portrait_9_16_repo_ambient_fixture.jpg",
+      "sha256": "7397b73e0a6acc219e13152a26017245b9b9d0c145eefe6f7326da0eb5022776",
+      "bytes": 449107,
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "test_use": "vertical 9:16",
+      "provenance": "derived_fixture",
+      "source_key": "repo",
+      "source_url": "https://github.com/pan277942135/Yujian_App/blob/main/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+      "source_author": "Repository asset; external author metadata is not present in the repository",
+      "source_license": "Repository-authorized test sample; redistribution outside this repository is not independently licensed",
+      "transformation": "Derived fixture: full source photo contained over a softened same-source ambient canvas; no subject crop.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "portrait_extreme_1_3_auckland_fixture",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/portrait_extreme_1_3_auckland_fixture.jpg",
+      "sha256": "d1342406f8f3e0ac38e54fec0f58d051b410014a4dbaa9813e984ec7e2630159",
+      "bytes": 167019,
+      "dimensions": [
+        600,
+        1800
+      ],
+      "test_use": "extreme vertical 1:3",
+      "provenance": "derived_fixture",
+      "source_key": "auckland",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Portrait_of_man_on_boat_holding_a_caught_fish_(AM_81857-1).jpg",
+      "source_author": "Photograph by Collins; Auckland War Memorial Museum collection",
+      "source_license": "CC BY 4.0",
+      "transformation": "Derived 1:3 canvas fixture: full source photo contained over a softened same-source ambient canvas; no generated content.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "fish_near_left_edge_auckland_crop_fixture",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/fish_near_left_edge_auckland_crop_fixture.jpg",
+      "sha256": "560ed2f996cfbc1875efb8d785edd9069d1ea05163bdbb69d3ee4592bdd0e3cb",
+      "bytes": 111171,
+      "dimensions": [
+        500,
+        785
+      ],
+      "test_use": "fish near frame edge",
+      "provenance": "derived_fixture",
+      "source_key": "auckland",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Portrait_of_man_on_boat_holding_a_caught_fish_(AM_81857-1).jpg",
+      "source_author": "Photograph by Collins; Auckland War Memorial Museum collection",
+      "source_license": "CC BY 4.0",
+      "transformation": "Derived crop fixture from the real photograph. The complete fish silhouette is retained with its tail close to the left frame edge. No detector box is claimed.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "portrait_black_bars_repo_fixture",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/portrait_black_bars_repo_fixture.jpg",
+      "sha256": "7ad9a1a2057019cd76e297749ef351779b5d769d44782cd9f92535f820acf98f",
+      "bytes": 430719,
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "test_use": "black bars present",
+      "provenance": "derived_fixture",
+      "source_key": "repo",
+      "source_url": "https://github.com/pan277942135/Yujian_App/blob/main/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+      "source_author": "Repository asset; external author metadata is not present in the repository",
+      "source_license": "Repository-authorized test sample; redistribution outside this repository is not independently licensed",
+      "transformation": "Derived black-bar fixture: original photo centered without scaling distortion on explicit pure-black top and bottom bars; original is preserved separately.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    },
+    {
+      "id": "no_trusted_bbox_gambia_original",
+      "file": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/fixtures/no_trusted_bbox_gambia_original.jpg",
+      "sha256": "6117d964dd10ee8f3f38d82b78441c7e03a2402cbfd623e6d05d9d2d75685581",
+      "bytes": 999273,
+      "dimensions": [
+        1600,
+        1200
+      ],
+      "test_use": "no trusted fish box",
+      "provenance": "original",
+      "source_key": "gambia",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Fish_caught_with_a_rod_in_Gambia.jpg",
+      "source_author": "Peter van der Sluijs",
+      "source_license": "CC BY-SA 3.0 (or GFDL, as offered on the source page)",
+      "transformation": "Original public photograph; no trusted fish detection box is available or asserted.",
+      "trusted_fish_box": false,
+      "expected_home_mode": "EVIDENCE_FIT",
+      "expected_detail_mode": "EVIDENCE_FIT"
+    }
+  ]
+}

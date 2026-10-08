@@ -6,7 +6,6 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
-from urllib.request import Request, urlopen
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
@@ -37,6 +36,7 @@ SOURCES = {
         "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
         "expected_sha256": "6117d964dd10ee8f3f38d82b78441c7e03a2402cbfd623e6d05d9d2d75685581",
         "expected_bytes": 999273,
+        "bundled_path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/gambia_rod_caught_original.jpg",
         "download_url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Fish_caught_with_a_rod_in_Gambia.jpg",
     },
     "auckland": {
@@ -48,19 +48,10 @@ SOURCES = {
         "license_url": "https://creativecommons.org/licenses/by/4.0/",
         "expected_sha256": "d806491e4711a58aa242c8ef3feb6fcc0e9b13c56c5db5e7808203134b3c1ffa",
         "expected_bytes": 626677,
+        "bundled_path": "app/src/androidTest/assets/catch_hero_adaptive_v1_1/source_photos/auckland_portrait_caught_fish_original.jpg",
         "download_url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Portrait_of_man_on_boat_holding_a_caught_fish_%28AM_81857-1%29.jpg",
     },
-    "flounder": {
-        "file": "flounder_angler_netherlands_original.jpg",
-        "title": "Flounder in the hand of an angler caught in the Netherlands.jpg",
-        "author": "Peter van der Sluijs",
-        "source_url": "https://commons.wikimedia.org/wiki/File:Flounder_in_the_hand_of_a_angler_caught_in_the_Netherlands.jpg",
-        "license": "CC BY-SA 4.0",
-        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "expected_sha256": "e0af65b36ff40f68fe1f7a0adafc8a3a6121e83262de46189e48d9d341a9e217",
-        "expected_bytes": 8883277,
-        "download_url": "https://upload.wikimedia.org/wikipedia/commons/a/af/Flounder_in_the_hand_of_a_angler_caught_in_the_Netherlands.jpg",
-    },
+
 }
 
 
@@ -85,13 +76,10 @@ def ensure_source_photos() -> None:
         if not path.is_file():
             if key == "repo":
                 shutil.copyfile(repo_source, path)
+            elif source.get("bundled_path"):
+                shutil.copyfile(ROOT / source["bundled_path"], path)
             else:
-                request = Request(
-                    source["download_url"],
-                    headers={"User-Agent": "YuJianCatchHeroAdaptiveMediaV1.1/1.0 (photo-fixture source verification)"},
-                )
-                with urlopen(request, timeout=60) as response, path.open("wb") as output:
-                    shutil.copyfileobj(response, output)
+                raise FileNotFoundError(f"source photo is not bundled: {source['file']}")
         actual_hash = sha256(path)
         if actual_hash != source["expected_sha256"] or path.stat().st_size != source["expected_bytes"]:
             raise ValueError(
@@ -128,17 +116,37 @@ def fit_canvas(source: Image.Image, size: tuple[int, int], black_bars: bool = Fa
 def main() -> None:
     ensure_source_photos()
     FIXTURE_ROOT.mkdir(parents=True, exist_ok=True)
-    images = {key: load_oriented(key) for key in SOURCES}
     fixture_specs = [
-        ("landscape_4_3_gambia_original.jpg", images["gambia"], "Original public photograph, no pixel transformation.", "gambia", "horizontal 4:3"),
-        ("landscape_16_9_flounder_ambient_fixture.jpg", fit_canvas(images["flounder"], (1920, 1080)), "Derived fixture: full source photo contained over a softened same-source ambient canvas; no subject crop.", "flounder", "horizontal 16:9"),
-        ("portrait_3_4_repo_original.jpg", images["repo"], "Original repository photograph, no pixel transformation.", "repo", "vertical 3:4"),
-        ("portrait_9_16_repo_ambient_fixture.jpg", fit_canvas(images["repo"], (1080, 1920)), "Derived fixture: full source photo contained over a softened same-source ambient canvas; no subject crop.", "repo", "vertical 9:16"),
-        ("portrait_extreme_1_3_auckland_fixture.jpg", fit_canvas(images["auckland"], (600, 1800)), "Derived 1:3 canvas fixture: full source photo contained over a softened same-source ambient canvas; no generated content.", "auckland", "extreme vertical 1:3"),
-        ("fish_near_right_edge_flounder_crop_fixture.jpg", images["flounder"].crop((1350, 450, 3350, 2050)), "Derived crop fixture from the real photograph. Full fish silhouette retained; its nose is approximately 5% from the right frame edge. No detector box is claimed.", "flounder", "fish near frame edge"),
-        ("portrait_black_bars_repo_fixture.jpg", fit_canvas(images["repo"], (1080, 1920), black_bars=True), "Derived black-bar fixture: original photo centered without scaling distortion on explicit pure-black top and bottom bars; original is preserved separately.", "repo", "black bars present"),
-        ("no_trusted_bbox_flounder_original.jpg", images["flounder"], "Original public photograph; no trusted fish detection box is available or asserted.", "flounder", "no trusted fish box"),
+        ("landscape_4_3_gambia_original.jpg", None, "Original public photograph, no pixel transformation.", "gambia", "horizontal 4:3"),
+        ("landscape_16_9_gambia_ambient_fixture.jpg", None, "Derived fixture: full source photo contained over a softened same-source ambient canvas; no subject crop.", "gambia", "horizontal 16:9"),
+        ("portrait_3_4_repo_original.jpg", None, "Original repository photograph, no pixel transformation.", "repo", "vertical 3:4"),
+        ("portrait_9_16_repo_ambient_fixture.jpg", None, "Derived fixture: full source photo contained over a softened same-source ambient canvas; no subject crop.", "repo", "vertical 9:16"),
+        ("portrait_extreme_1_3_auckland_fixture.jpg", None, "Derived 1:3 canvas fixture: full source photo contained over a softened same-source ambient canvas; no generated content.", "auckland", "extreme vertical 1:3"),
+        ("fish_near_left_edge_auckland_crop_fixture.jpg", None, "Derived crop fixture from the real photograph. The complete fish silhouette is retained with its tail close to the left frame edge. No detector box is claimed.", "auckland", "fish near frame edge"),
+        ("portrait_black_bars_repo_fixture.jpg", None, "Derived black-bar fixture: original photo centered without scaling distortion on explicit pure-black top and bottom bars; original is preserved separately.", "repo", "black bars present"),
+        ("no_trusted_bbox_gambia_original.jpg", None, "Original public photograph; no trusted fish detection box is available or asserted.", "gambia", "no trusted fish box"),
     ]
+    expected_fixtures = {item[0] for item in fixture_specs}
+    for stale in FIXTURE_ROOT.glob("*.jpg"):
+        if stale.name not in expected_fixtures:
+            stale.unlink()
+    expected_sources = {source["file"] for source in SOURCES.values()}
+    for stale in SOURCE_ROOT.glob("*"):
+        if stale.is_file() and stale.name not in expected_sources:
+            stale.unlink()
+
+    images = {key: load_oriented(key) for key in SOURCES}
+
+    fixture_images = {
+        "landscape_4_3_gambia_original.jpg": images["gambia"],
+        "landscape_16_9_gambia_ambient_fixture.jpg": fit_canvas(images["gambia"], (1920, 1080)),
+        "portrait_3_4_repo_original.jpg": images["repo"],
+        "portrait_9_16_repo_ambient_fixture.jpg": fit_canvas(images["repo"], (1080, 1920)),
+        "portrait_extreme_1_3_auckland_fixture.jpg": fit_canvas(images["auckland"], (600, 1800)),
+        "fish_near_left_edge_auckland_crop_fixture.jpg": images["auckland"].crop((235, 325, 735, 1110)),
+        "portrait_black_bars_repo_fixture.jpg": fit_canvas(images["repo"], (1080, 1920), black_bars=True),
+        "no_trusted_bbox_gambia_original.jpg": images["gambia"],
+    }
 
     manifest = {
         "purpose": "Android runtime visual matrix for YuJianCatchHeroCard Adaptive Media V1.1",
@@ -169,7 +177,8 @@ def main() -> None:
             "display_dimensions_after_exif": normalized_size,
         }
 
-    for filename, image, transformation, source_key, use in fixture_specs:
+    for filename, _, transformation, source_key, use in fixture_specs:
+        image = fixture_images[filename]
         path = FIXTURE_ROOT / filename
         if transformation.startswith("Original"):
             shutil.copyfile(SOURCE_ROOT / SOURCES[source_key]["file"], path)
