@@ -25,6 +25,27 @@ jobs:
           if [[ ! -x "$adb" ]]; then adb=$(command -v adb || true); fi
           if [[ -z "$adb" || ! -x "$adb" ]]; then echo ADB_UNAVAILABLE > evidence/failure.txt; exit 1; fi
           "$adb" start-server || true
+          emulator_bin=/opt/android-sdk/emulator/emulator
+          connected_emulator=$("$adb" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ {print $1; exit}')
+          if [[ -z "$connected_emulator" && -x "$emulator_bin" && -e /dev/kvm ]]; then
+            avd_list=$("$emulator_bin" -list-avds 2>/dev/null || true)
+            avd_name=$(printf '%s\n' "$avd_list" | awk 'tolower($0) ~ /28/ {print; exit}')
+            if [[ -z "$avd_name" ]]; then avd_name=$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}'); fi
+            if [[ -n "$avd_name" ]]; then
+              echo "starting isolated API 28 AVD=$avd_name"
+              nohup "$emulator_bin" -avd "$avd_name" -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920 > evidence/logs/emulator.log 2>&1 &
+              for attempt in $(seq 1 75); do
+                "$adb" start-server >/dev/null 2>&1 || true
+                serial=$("$adb" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ {print $1; exit}')
+                if [[ -n "$serial" ]]; then
+                  boot=$("$adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+                  api=$("$adb" -s "$serial" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r')
+                  if [[ "$boot" == "1" && "$api" == "28" ]]; then echo "isolated emulator ready serial=$serial api=$api"; break; fi
+                fi
+                sleep 2
+              done
+            fi
+          fi
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || { echo HEAD_MISMATCH > evidence/failure.txt; exit 1; }
           test "$(git merge-base "$PRODUCT_BASELINE_SHA" HEAD)" = "$PRODUCT_BASELINE_SHA" || { echo BASELINE_MISMATCH > evidence/failure.txt; exit 1; }
           changed=$(git diff --name-only "$PRODUCT_BASELINE_SHA" HEAD | sort)
