@@ -17,7 +17,8 @@ object HiFiRuntimeCapture {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val commit = InstrumentationRegistry.getArguments().getString("buildSha").orEmpty()
         check(Regex("^[a-f0-9]{40}$").matches(commit)) { "HIFI_BUILD_SHA_NOT_PROVIDED" }
-        check(activity.packageName == "com.yujian.ai") { "HIFI_WRONG_PACKAGE" }
+        val targetPackage = instrumentation.targetContext.packageName
+        check(activity.packageName == targetPackage) { "HIFI_WRONG_PACKAGE" }
         check(activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             "HIFI_ACTIVITY_NOT_RESUMED"
         }

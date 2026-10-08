@@ -1550,8 +1550,9 @@ class RecognitionFrozenFlowEmulatorTest {
         // UiAutomator's raw screenshot; never label a desktop as Result proof.
         val commit = InstrumentationRegistry.getArguments().getString("buildSha").orEmpty()
         val activity = composeRule.activity
+        val targetPackage = InstrumentationRegistry.getInstrumentation().targetContext.packageName
         if (Regex("^[a-f0-9]{40}$").matches(commit) &&
-            activity.packageName == "com.yujian.ai" && activity.hasWindowFocus() &&
+            activity.packageName == targetPackage && activity.hasWindowFocus() &&
             name in setOf("05_result_high.png", "08_error_no_fish.png")
         ) {
             val digest = MessageDigest.getInstance("SHA-256").digest(output.readBytes())
