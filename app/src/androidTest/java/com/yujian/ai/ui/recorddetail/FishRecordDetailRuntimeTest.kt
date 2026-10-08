@@ -34,6 +34,7 @@ class FishRecordDetailRuntimeTest {
     @Test
     fun noUploadedMemoryKeepsThreeActionsAndDoesNotExposeFlipBeforeReady() {
         val calls = mutableListOf<String>()
+        val navigationCalls = mutableListOf<String>()
         composeRule.setContent {
             YujianTheme {
                 Box(Modifier.size(360.dp, 640.dp)) {
@@ -45,8 +46,8 @@ class FishRecordDetailRuntimeTest {
                         accessToken = "",
                         onBack = {},
                         onRetry = {},
-                        onOpenFishGuide = {},
-                        onShare = {},
+                        onOpenFishGuide = { navigationCalls += "guide" },
+                        onShare = { navigationCalls += "share" },
                         onEditRecord = {},
                         onAddMedia = { calls += "add" },
                         onContinuePhoto = { calls += "photo" },
@@ -60,6 +61,12 @@ class FishRecordDetailRuntimeTest {
 
         composeRule.onNodeWithText("鱼获记忆").assertIsDisplayed()
         composeRule.onNodeWithText("还没有留下影像").assertIsDisplayed()
+        composeRule.onNodeWithText("鱼获详情").assertIsDisplayed()
+        composeRule.onNodeWithText("鱼鉴").assertIsDisplayed()
+        composeRule.onNodeWithText("分享").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("鱼鉴").performClick()
+        composeRule.onNodeWithContentDescription("分享").performClick()
+        composeRule.runOnIdle { assertEquals(listOf("guide", "share"), navigationCalls) }
         assertTrue(composeRule.onAllNodesWithContentDescription("切换鱼获记忆").fetchSemanticsNodes().isEmpty())
         composeRule.onNodeWithText("添加照片/视频").performClick()
         composeRule.onNodeWithText("继续拍照").performClick()

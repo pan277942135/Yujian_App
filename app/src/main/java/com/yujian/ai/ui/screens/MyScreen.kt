@@ -34,11 +34,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -59,30 +64,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import com.yujian.ai.ui.components.FishIllustration
+import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.ui.designsystem.components.YuJianAchievementAnnotation
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
 import com.yujian.ai.ui.designsystem.components.YuJianBackAction
 import com.yujian.ai.ui.designsystem.components.YuJianFishRecordRowCard
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
-import com.yujian.ai.ui.designsystem.components.YuJianTitleOnlyTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
 import com.yujian.ai.ui.home.HomeCameraButton
@@ -95,12 +102,16 @@ import com.yujian.ai.ui.mycatches.MyCatchesEmptyState
 import com.yujian.ai.ui.mycatches.MyCatchesFilterState
 import com.yujian.ai.ui.mycatches.MyCatchesMonthGroup
 import com.yujian.ai.ui.mycatches.SpecialCatchMark
+import com.yujian.ai.ui.mycatches.archiveRecordDayCount
 import com.yujian.ai.ui.mycatches.commitRecentSearch
+import com.yujian.ai.ui.mycatches.daySpeciesCount
 import com.yujian.ai.ui.mycatches.filterAndSortCatches
 import com.yujian.ai.ui.mycatches.groupCatchesByMonthAndDay
 import com.yujian.ai.ui.mycatches.isValidCatchDate
 import com.yujian.ai.ui.mycatches.resolveMyCatchesEmptyState
 import com.yujian.ai.ui.mycatches.rowGrowthMark
+import com.yujian.ai.ui.mycatches.resolveCatchTimestamp
+import com.yujian.ai.ui.mycatches.sharedDayLocation
 import com.yujian.ai.ui.mycatches.speciesKey
 import com.yujian.ai.ui.mycatches.toFishRecordPresentation
 import com.yujian.ai.presentation.presentationSpeciesName
@@ -111,6 +122,7 @@ import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.flow.collect
+import java.util.Calendar
 import java.util.Locale
 
 private const val RECENT_SEARCH_PREFERENCES = "my_catches_search_v1"
@@ -125,6 +137,7 @@ fun MyScreen(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     initialSpeciesFilterId: String? = null,
+    onBack: () -> Unit,
     onCatch: (String) -> Unit,
     onRetry: () -> Unit,
     onCapture: () -> Unit,
@@ -155,6 +168,7 @@ fun MyScreen(
     val listState = rememberLazyListState()
     var preSearchPosition by remember { mutableStateOf(0 to 0) }
     var pendingSearchRestore by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var skipNextArchiveScroll by remember { mutableStateOf(false) }
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val growthMarks = remember(catches) { GrowthMarkResolver.resolve(catches) }
     val filtered = remember(catches, query, filter) { filterAndSortCatches(catches, query, filter) }
@@ -177,6 +191,7 @@ fun MyScreen(
     fun exitSearch() {
         if (query.isNotBlank() && filtered.isNotEmpty()) saveRecentSearch(query)
         pendingSearchRestore = preSearchPosition
+        skipNextArchiveScroll = true
         query = ""
         searchMode = false
         focusManager.clearFocus()
@@ -199,7 +214,11 @@ fun MyScreen(
     LaunchedEffect(query, filter) {
         expandedDays = emptyList()
         visibleMonthCount = 3
-        listState.scrollToItem(0)
+        if (skipNextArchiveScroll) {
+            skipNextArchiveScroll = false
+        } else {
+            listState.scrollToItem(0)
+        }
     }
     LaunchedEffect(monthGroups.size, visibleMonthCount) {
         if (visibleMonthCount < monthGroups.size) {
@@ -243,13 +262,8 @@ fun MyScreen(
                         onCancel = ::exitSearch,
                     )
                 } else {
-                    MainHeader()
-                }
-            }
-
-            if (!searchMode) {
-                item(key = "archive-search-filter") {
-                    ArchiveSearchAndFilter(
+                    MainHeader(
+                        onBack = onBack,
                         filterActive = filter.isActive || filterExpanded,
                         onSearch = { searchMode = true },
                         onFilter = { filterExpanded = !filterExpanded },
@@ -276,12 +290,7 @@ fun MyScreen(
 
             if (!searchMode) {
                 item(key = "archive-summary") {
-                    Text(
-                        text = "${filtered.size} 次鱼获 · ${filtered.map { it.speciesKey() }.distinct().size} 种鱼",
-                        color = MutedInk,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 1.dp, bottom = 2.dp),
-                    )
+                    ArchiveSummary(filtered)
                 }
                 if (filterExpanded) {
                     item(key = "filter-panel") {
@@ -313,40 +322,31 @@ fun MyScreen(
                     visibleMonthGroups.forEach { month ->
                         stickyHeader(key = "month-${month.key}") { MonthHeader(month) }
                         month.days.forEach { day ->
-                            item(key = "day-${day.key}") { DayHeader(day) }
                             val isExpanded = day.key in expandedDays
                             val collapsed = day.catches.size > 5
                             val visibleRecords = if (collapsed && !isExpanded) day.catches.take(5) else day.catches
-                            items(visibleRecords, key = { "catch-${it.id}" }) { record ->
-                                val allMarks = growthMarks[record.id].orEmpty()
-                                YuJianFishRecordRowCard(
-                                    record = record,
-                                    presentation = record.toFishRecordPresentation(
-                                        imageUrl = resolveImageUrl(record.imageUrl),
-                                        annotations = listOfNotNull(allMarks.rowGrowthMark()),
-                                    ),
+                            item(key = "day-${day.key}") {
+                                DayTimelineGroup(
+                                    day = day,
+                                    records = visibleRecords,
+                                    growthMarks = growthMarks,
                                     accessToken = accessToken,
-                                    onClick = {
+                                    resolveImageUrl = resolveImageUrl,
+                                    foldCount = day.catches.size.takeIf { collapsed },
+                                    expanded = isExpanded,
+                                    opensDayDetail = day.catches.size > 10,
+                                    onRecordClick = { record ->
                                         if (query.isNotBlank()) saveRecentSearch(query)
                                         onCatch(record.id)
                                     },
+                                    onFoldClick = {
+                                        when {
+                                            day.catches.size > 10 -> onDayDetail(day)
+                                            isExpanded -> expandedDays = expandedDays - day.key
+                                            else -> expandedDays = expandedDays + day.key
+                                        }
+                                    },
                                 )
-                            }
-                            if (collapsed) {
-                                item(key = "day-fold-${day.key}") {
-                                    DayFoldAction(
-                                        count = day.catches.size,
-                                        expanded = isExpanded,
-                                        opensDayDetail = day.catches.size > 10,
-                                        onClick = {
-                                            when {
-                                                day.catches.size > 10 -> onDayDetail(day)
-                                                isExpanded -> expandedDays = expandedDays - day.key
-                                                else -> expandedDays = expandedDays + day.key
-                                            }
-                                        },
-                                    )
-                                }
                             }
                         }
                     }
@@ -417,48 +417,237 @@ fun MyCatchesDayDetailScreen(
 }
 
 @Composable
-private fun MainHeader() {
-    YuJianTitleOnlyTopBar(
-        title = "我的鱼获",
-        modifier = Modifier.fillMaxWidth(),
-        horizontalPadding = 0.dp,
-        statusBarInset = false,
+private fun MainHeader(
+    onBack: () -> Unit,
+    filterActive: Boolean,
+    onSearch: () -> Unit,
+    onFilter: () -> Unit,
+) {
+    Box(Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        Text(
+            text = "我的鱼获",
+            color = DeepInk,
+            fontSize = 23.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            modifier = Modifier.align(Alignment.Center),
+        )
+        YuJianBackAction(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart))
+        Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            YuJianIconAction(
+                icon = Icons.Rounded.Search,
+                contentDescription = "搜索鱼获",
+                onClick = onSearch,
+                family = YuJianIconActionFamily.UTILITY,
+            )
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                YuJianIconAction(
+                    icon = Icons.Rounded.FilterList,
+                    contentDescription = "筛选",
+                    onClick = onFilter,
+                    family = YuJianIconActionFamily.UTILITY,
+                )
+                if (filterActive) {
+                    Box(
+                        Modifier.align(Alignment.TopEnd)
+                            .padding(top = 6.dp, end = 6.dp)
+                            .size(7.dp)
+                            .background(Color(0xFFB88A3D), CircleShape),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ArchiveSummary(catches: List<RemoteCatch>) {
+    val speciesCount = catches.map { it.speciesKey().trim() }.filter(String::isNotEmpty).distinct().size
+    Text(
+        text = "${catches.size} 次鱼获 · $speciesCount 种鱼 · ${archiveRecordDayCount(catches)} 记录天数",
+        color = MutedInk,
+        fontSize = 12.sp,
+        modifier = Modifier.fillMaxWidth().padding(top = 1.dp, bottom = 8.dp),
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
     )
 }
 
 @Composable
-private fun ArchiveSearchAndFilter(filterActive: Boolean, onSearch: () -> Unit, onFilter: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .height(44.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(Color.White.copy(alpha = 0.80f))
-                .border(1.dp, Hairline, RoundedCornerShape(14.dp))
-                .clickable(role = Role.Button, onClick = onSearch)
-                .padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Rounded.Search, contentDescription = null, tint = DeepInk.copy(alpha = 0.72f), modifier = Modifier.size(19.dp))
-            Spacer(Modifier.width(7.dp))
-            Text("搜索鱼种、地点或日期", color = MutedInk, fontSize = 14.sp, maxLines = 1)
-        }
-        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-            YuJianIconAction(
-                icon = Icons.Rounded.FilterList,
-                contentDescription = "筛选",
-                onClick = onFilter,
-                family = YuJianIconActionFamily.UTILITY,
+private fun DayTimelineGroup(
+    day: MyCatchesDayGroup,
+    records: List<RemoteCatch>,
+    growthMarks: Map<String, List<com.yujian.ai.ui.mycatches.GrowthMark>>,
+    accessToken: String,
+    resolveImageUrl: (String?) -> String?,
+    foldCount: Int?,
+    expanded: Boolean,
+    opensDayDetail: Boolean,
+    onRecordClick: (RemoteCatch) -> Unit,
+    onFoldClick: () -> Unit,
+) {
+    Box(
+        Modifier.fillMaxWidth().drawBehind {
+            val axisX = 52.dp.toPx()
+            val axisY = 15.dp.toPx()
+            drawLine(
+                color = Color(0x80667B89),
+                start = Offset(axisX, axisY),
+                end = Offset(axisX, size.height),
+                strokeWidth = 1.dp.toPx(),
             )
-            if (filterActive) {
-                Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp).background(WaterTeal, CircleShape))
+            drawCircle(Color.White.copy(alpha = 0.95f), radius = 5.dp.toPx(), center = Offset(axisX, axisY))
+            drawCircle(Color(0xFFC49A4A), radius = 3.dp.toPx(), center = Offset(axisX, axisY))
+        },
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            DateRail(day, Modifier.width(40.dp))
+            Spacer(Modifier.width(24.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                DaySummaryRow(day)
+                records.forEach { record ->
+                    val annotation = growthMarks[record.id].orEmpty().rowGrowthMark()
+                    CompactMyCatchRow(
+                        presentation = record.toFishRecordPresentation(
+                            imageUrl = resolveImageUrl(record.imageUrl),
+                            annotations = listOfNotNull(annotation),
+                        ),
+                        accessToken = accessToken,
+                        onClick = { onRecordClick(record) },
+                    )
+                }
+                if (foldCount != null) {
+                    DayFoldAction(
+                        count = foldCount,
+                        expanded = expanded,
+                        opensDayDetail = opensDayDetail,
+                        onClick = onFoldClick,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun DateRail(day: MyCatchesDayGroup, modifier: Modifier = Modifier) {
+    val timestamp = remember(day.key) { day.catches.firstOrNull()?.let(::resolveCatchTimestamp) }
+    val weekday = remember(timestamp?.millis) {
+        timestamp?.millis?.let { millis ->
+            val dayOfWeek = Calendar.getInstance().apply { timeInMillis = millis }.get(Calendar.DAY_OF_WEEK)
+            listOf("周日", "周一", "周二", "周三", "周四", "周五", "周六")[dayOfWeek - 1]
+        }
+    }
+    Column(
+        modifier = modifier.padding(top = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = timestamp?.takeIf { it.isKnown }?.day?.let { "%02d".format(Locale.US, it) } ?: "—",
+            color = DeepInk,
+            fontSize = 29.sp,
+            lineHeight = 31.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            text = timestamp?.takeIf { it.isKnown }?.month?.let { "${it}月" } ?: "—",
+            color = DeepInk.copy(alpha = 0.86f),
+            fontSize = 10.sp,
+        )
+        Text(weekday ?: "未知", color = DeepInk.copy(alpha = 0.86f), fontSize = 11.sp)
+    }
+}
+
+@Composable
+private fun DaySummaryRow(day: MyCatchesDayGroup) {
+    val location = remember(day.key, day.catches) { sharedDayLocation(day.catches) }
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 30.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        if (location != null) {
+            Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = MutedInk, modifier = Modifier.size(15.dp))
+            Text(location, color = DeepInk, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            Text("·", color = MutedInk, fontSize = 12.sp)
+        }
+        Text(
+            "${day.catches.size} 条鱼获 · ${daySpeciesCount(day.catches)} 种鱼",
+            color = DeepInk,
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun CompactMyCatchRow(
+    presentation: com.yujian.ai.ui.mycatches.FishRecordPresentation,
+    accessToken: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(13.dp))
+            .background(Color.White.copy(alpha = 0.76f))
+            .border(1.dp, Color.White.copy(alpha = 0.78f), RoundedCornerShape(13.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.width(98.dp).height(49.dp).clip(RoundedCornerShape(9.dp)).background(SoftWater),
+            contentAlignment = Alignment.Center,
+        ) {
+            RemoteImage(
+                url = presentation.imageUrl,
+                authToken = accessToken,
+                modifier = Modifier.fillMaxSize(),
+                contentDescription = "${presentation.speciesName} 鱼获照片",
+                contentScale = ContentScale.Crop,
+                placeholder = { FishIllustration(size = 34.dp, bodyColor = Color(0xFF82978E).copy(alpha = 0.64f)) },
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    presentation.speciesName,
+                    color = DeepInk,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                presentation.annotations.firstOrNull()?.let { GrowthMarkBadge(it) }
+            }
+            presentation.measurementLabel?.let {
+                Text(it, color = DeepInk.copy(alpha = 0.84f), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = DeepInk.copy(alpha = 0.78f), modifier = Modifier.size(20.dp))
+    }
+}
+
+@Composable
+private fun GrowthMarkBadge(mark: com.yujian.ai.ui.mycatches.GrowthMark) {
+    val (icon, background, foreground) = when (mark.type) {
+        com.yujian.ai.ui.mycatches.GrowthMarkType.CountMilestone -> Triple(Icons.Rounded.EmojiEvents, Color(0xFFFFE9B5), Color(0xFF805919))
+        com.yujian.ai.ui.mycatches.GrowthMarkType.FirstSpecies -> Triple(Icons.Rounded.Star, Color(0xFF536E80), Color(0xFFFFE8AD))
+        com.yujian.ai.ui.mycatches.GrowthMarkType.Longest,
+        com.yujian.ai.ui.mycatches.GrowthMarkType.Heaviest -> Triple(Icons.Rounded.BarChart, Color(0xFF536E80), Color(0xFFFFE8AD))
+    }
+    Row(
+        Modifier.background(background.copy(alpha = 0.92f), CircleShape).padding(horizontal = 5.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Icon(icon, contentDescription = null, tint = foreground, modifier = Modifier.size(11.dp))
+        Text(mark.text, color = foreground, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -784,25 +973,19 @@ private fun CustomSizeDialog(
 
 @Composable
 private fun MonthHeader(month: MyCatchesMonthGroup) {
-    Surface(color = Color.White.copy(alpha = 0.66f), shape = RoundedCornerShape(12.dp)) {
-        Text(month.label, color = DeepInk, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp))
-    }
-}
-
-@Composable
-private fun DayHeader(day: MyCatchesDayGroup) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 3.dp, bottom = 2.dp)) {
-        Box(Modifier.size(8.dp).background(WaterTeal, CircleShape))
-        Spacer(Modifier.size(8.dp))
-        Text(day.label, color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-        Text(day.summary, color = MutedInk, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 7.dp).weight(1f))
-    }
+    Text(
+        month.label,
+        color = DeepInk,
+        fontSize = 21.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 5.dp, bottom = 4.dp),
+    )
 }
 
 @Composable
 private fun DayFoldAction(count: Int, expanded: Boolean, opensDayDetail: Boolean, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 42.dp).clickable(onClick = onClick).padding(start = 100.dp, end = 12.dp),
+        Modifier.fillMaxWidth().heightIn(min = 38.dp).clickable(onClick = onClick).padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
