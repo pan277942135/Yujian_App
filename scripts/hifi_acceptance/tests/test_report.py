@@ -115,6 +115,29 @@ class HiFiEvidenceTest(unittest.TestCase):
         self.assertEqual(result["summary"]["status"], "READY_FOR_USER_REVIEW")
         self.assertEqual(result["summary"]["user_physical_acceptance"], "NOT_PERFORMED")
 
+    def test_instrumentation_capture_with_foreground_assertions(self):
+        self.gate_result()
+        self.screenshot(proof=False)
+        proof = {
+            "package": "com.yujian.ai",
+            "build_sha": self.sha,
+            "foreground_verified": True,
+            "resumed_activity": "com.yujian.ai/androidx.activity.ComponentActivity",
+            "activity_window_focus": True,
+            "test_assertions_passed": True,
+            "capture_method": "instrumentation-ui-automation",
+            "screenshot_sha256": hashlib.sha256(self.screen.read_bytes()).hexdigest(),
+        }
+        (self.gate / "runtime.png.provenance.json").write_text(
+            json.dumps(proof), encoding="utf-8"
+        )
+        self.assertEqual(self.status()["status"], "AUTO_CHECK_PASS")
+        proof["activity_window_focus"] = False
+        (self.gate / "runtime.png.provenance.json").write_text(
+            json.dumps(proof), encoding="utf-8"
+        )
+        self.assertEqual(self.status()["reason"], "INVALID_CAPTURE_PROVENANCE")
+
     def test_visual_drift_is_a_failure(self):
         self.gate_result()
         image = Image.open(self.ref).convert("RGB")

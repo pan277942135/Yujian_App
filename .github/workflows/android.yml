@@ -53,6 +53,7 @@ jobs:
       - name: Validate high-fidelity authority map and fail-closed tests
         run: |
           python3 scripts/hifi_acceptance/report.py --validate-manifest
+          python3 scripts/verify_final_android_matrix.py
           python3 -m unittest discover -s scripts/hifi_acceptance/tests -p 'test_*.py' -v
 
       - name: Verify Android runtime asset contracts
@@ -258,6 +259,10 @@ jobs:
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: login-v2
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          - gate: hifi-pages-v1
             api_level: 28
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096

@@ -16,7 +16,7 @@
       "module": "Camera",
       "gate": "camera-runtime-v1",
       "reference": null,
-      "screenshot": "camera/01_camera_idle.png",
+      "screenshot": "camera_runtime_v1/01_camera_open.png",
       "mode": "review",
       "rois": [],
       "note": "No verified still-camera Frozen screen authority mapped. Do not repurpose Capture Transition visual as Camera reference."
@@ -75,9 +75,9 @@
     {
       "id": "record_detail",
       "module": "FishRecordDetail",
-      "gate": "login-v2",
+      "gate": "hifi-pages-v1",
       "reference": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
-      "screenshot": "record-detail/record_detail_a.png",
+      "screenshot": "hifi-pages/record_detail_a.png",
       "mode": "review",
       "rois": [
         {
@@ -91,7 +91,7 @@
           "max_mae": 40
         }
       ],
-      "note": "Dynamic fish image must not be treated as immutable raster."
+      "note": "Actual full-screen FishRecordDetail from instrumented production Compose with test fish photo; physical Hero picture fit and B-side remain manual review."
     },
     {
       "id": "auth_login",
@@ -178,7 +178,7 @@
       "module": "Home",
       "gate": "empty-home-v2",
       "reference": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
-      "screenshot": "home-evidence/runtime_static.png",
+      "screenshot": "home-evidence/verified_runtime.png",
       "mode": "auto",
       "rois": [
         {
@@ -256,9 +256,9 @@
     {
       "id": "my_catches",
       "module": "MyCatches",
-      "gate": null,
+      "gate": "hifi-pages-v1",
       "reference": "design/pages/fish_records/list/frozen/timeline_v1/My_Catches_Timeline_Final_Board.png",
-      "screenshot": "my-catches/timeline.png",
+      "screenshot": "hifi-pages/my_catches_timeline.png",
       "mode": "review",
       "rois": [
         {
@@ -282,7 +282,7 @@
           "max_mae": 42
         }
       ],
-      "note": "PA-06 Frozen reference retained; manual review of date rails, timeline and horizontal thumbnail required."
+      "note": "PA-06 timeline captured as a real Compose view with two stable catch records; manual review of title, day rail, thumbnails and spacing required."
     }
   ]
 }

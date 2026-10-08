@@ -16,6 +16,7 @@ android_runtime_run_instrumentation() {
     -w \
     -r \
     -e class "$test_classes" \
+    -e buildSha "$YUJIAN_BUILD_SHA" \
     "$YUJIAN_INSTRUMENTATION_TARGET" >> "$log" 2>&1
   local runner_rc=$?
   if (( runner_rc == 124 )); then

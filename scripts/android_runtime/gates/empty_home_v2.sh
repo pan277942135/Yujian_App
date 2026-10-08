@@ -89,8 +89,16 @@ PY
     "${YUJIAN_ADB_BIN}" shell settings put global animator_duration_scale 1.0 || true
     "${YUJIAN_ADB_BIN}" shell settings put global transition_animation_scale 1.0 || true
     "${YUJIAN_ADB_BIN}" shell settings put global window_animation_scale 1.0 || true
+    # Canonical instrumentation may leave the launcher in front. Relaunch the
+    # real product before taking visual evidence; never accept a desktop image.
+    "${YUJIAN_ADB_BIN}" shell am force-stop "$YUJIAN_APP_PACKAGE"
+    "${YUJIAN_ADB_BIN}" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
     sleep 4
-    "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_4s.png"
+    python3 "$YUJIAN_REPO_ROOT/scripts/hifi_acceptance/capture_verified_surface.py" \
+      --adb "$YUJIAN_ADB_BIN" --package "$YUJIAN_APP_PACKAGE" \
+      --build-sha "$YUJIAN_BUILD_SHA" \
+      --output "$home_dir/verified_runtime.png" --width 1080 --height 1920
+    cp "$home_dir/verified_runtime.png" "$home_dir/runtime_4s.png"
 
     # The frozen parity layout uses a 1080x1920 logical wm size on the
     # 320x640 API 28 emulator. API 28 screenrecord otherwise keeps the

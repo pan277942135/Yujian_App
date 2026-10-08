@@ -10,7 +10,7 @@ This directory is the implementation of Frozen Design -> Real Android Render -> 
 - A screenshot and an APK build are not evidence of visual parity unless their provenance and matching commit SHA are established.
 - No fake, resized or assistant-generated screenshots may be used as runtime input. The reference may be scaled for a matching aspect ratio; runtime input is never resized.
 - The Camera capture screen has no confirmed static Frozen authority mapping; V1 deliberately reports FAIL_AUTHORITY until its correct visual authority is mapped. Capture Transition is NOT an acceptable Camera surrogate.
-- My Catches PA-06 has a Frozen image but no included runtime screenshot producer; this is BLOCKED, not PASS.
+- My Catches PA-06 and FishRecordDetail now have independently instrumented full-screen production Compose evidence on the hifi-pages-v1 gate; no reference raster is reused as runtime. A failed or queued emulator remains BLOCKED, and a legitimate photographic surface remains REVIEW_REQUIRED until user sign-off.
 
 ## Capture rule
 
@@ -62,3 +62,7 @@ The six required modules are Camera, Result, FishRecordDetail, Auth, Home and My
       --build-sha <40-character-commit-sha>
 
 Outputs are inspectable offline; index.html uses only relative assets. For manually reviewed states, the user owns the final PASS/FAIL decision and a separate signed/annotated acceptance record must be retained with device information, screenshots and the exact APK SHA-256.
+
+## Dedicated capture gate
+
+The additional `hifi-pages-v1` API 28 matrix row runs `HiFiPagesRuntimeTest` independently of Auth, captures FishRecordDetail A and My Catches with production composables and image data, and uploads screenshots plus attestations. `run_instrumentation.sh` passes the exact build SHA as a test argument. Auth Login/Register idle frames also produce attested screenshots; Empty Home re-launches the app after canonical instrumentation and captures a foreground-verified frame. Camera lacks a confirmed frozen still-page authority; this remains `FAIL_AUTHORITY` pending design approval. Recognition screenshot capture provenance is not yet wired; do not mark that module PASS. For page content including live fish photography, automatic ROI flags must be reviewed rather than changing reference thresholds ad hoc.

@@ -48,6 +48,7 @@ import com.yujian.ai.ui.designsystem.components.YuJianTopBarAction
 import com.yujian.ai.ui.auth.LoginV2Screen
 import com.yujian.ai.ui.auth.RegisterV2Screen
 import java.io.File
+import com.yujian.ai.ui.hifi.HiFiRuntimeCapture
 import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -567,6 +568,13 @@ class LoginV2RuntimeTest {
     private fun saveScreenshot(name: String) {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val sha = InstrumentationRegistry.getArguments().getString("buildSha").orEmpty()
+        if ((name == "login_v2_idle.png" || name == "register_v2_idle.png") &&
+            Regex("^[a-f0-9]{40}$").matches(sha)
+        ) {
+            HiFiRuntimeCapture.save(composeRule.activity, "login_v2", name)
+            return
+        }
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
         val root = File(instrumentation.targetContext.getExternalFilesDir(null), "login_v2")
         check(root.exists() || root.mkdirs())

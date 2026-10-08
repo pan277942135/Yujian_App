@@ -81,9 +81,16 @@ def provenance_valid(screen: Path, expected_sha: str, package: str) -> tuple[boo
         return False, "MISSING_CAPTURE_PROVENANCE"
     try:
         doc = json.loads(proof.read_text(encoding="utf-8"))
+        method = doc.get("capture_method")
+        valid_capture = (
+            method == "adb-exec-out-screencap"
+            or (method == "instrumentation-ui-automation"
+                and doc.get("activity_window_focus") is True
+                and doc.get("test_assertions_passed") is True)
+        )
         if (doc.get("package") != package or doc.get("build_sha") != expected_sha
                 or doc.get("foreground_verified") is not True
-                or doc.get("capture_method") != "adb-exec-out-screencap"
+                or not valid_capture
                 or not str(doc.get("resumed_activity", "")).startswith(package + "/")
                 or doc.get("screenshot_sha256") != sha256(screen)):
             return False, "INVALID_CAPTURE_PROVENANCE"
