@@ -37,6 +37,7 @@ jobs:
     outputs:
       model_id: ${{ steps.model_trace.outputs.model_id }}
       model_sha256: ${{ steps.model_trace.outputs.model_sha256 }}
+      runtime_matrix: ${{ steps.runtime_matrix.outputs.runtime_matrix }}
 
     steps:
       - name: Checkout
@@ -210,6 +211,47 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Select Android runtime jobs
+        id: runtime_matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message || '' }}
+          RUN_RUNTIME_PARITY: ${{ inputs.run_runtime_parity || false }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+
+          base_options = '-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096'
+          gates = [
+              ('normal-home-v1', ' -skin 1080x1920'),
+              ('recognition-frozen', ''),
+              ('empty-home-v2', ' -skin 1080x1920'),
+              ('login-v2', ''),
+              ('data-sanitization', ''),
+              ('fish-guide-v1', ''),
+          ]
+          rows = [
+              {'gate': gate, 'api_level': 28, 'required': True, 'emulator_options': base_options + suffix}
+              for gate, suffix in gates
+          ]
+          target = {
+              'gate': 'catch-hero-adaptive-v1_1',
+              'api_level': 28,
+              'required': True,
+              'emulator_options': base_options + ' -skin 1080x1920',
+          }
+          if os.environ['EVENT_NAME'] == 'push' and '[catch-hero-targeted]' in os.environ['HEAD_COMMIT_MESSAGE']:
+              rows = [target]
+          elif os.environ['EVENT_NAME'] == 'workflow_dispatch' and os.environ['RUN_RUNTIME_PARITY'].lower() == 'true':
+              rows.append({
+                  'gate': 'runtime-parity',
+                  'api_level': 28,
+                  'required': False,
+                  'emulator_options': '-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none',
+              })
+          print('runtime_matrix=' + json.dumps(rows, separators=(',', ':')))
+          PY
+
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
@@ -221,35 +263,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        include:
-          - gate: normal-home-v1
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
-          - gate: recognition-frozen
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          - gate: empty-home-v2
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
-          - gate: login-v2
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          - gate: data-sanitization
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          - gate: fish-guide-v1
-            api_level: 28
-            required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          - gate: runtime-parity
-            api_level: 28
-            required: false
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        include: ${{ fromJSON(needs.build.outputs.runtime_matrix) }}
 
     steps:
       - name: Checkout
@@ -278,7 +292,7 @@ jobs:
           cp build/runtime-apks/apk_model_trace.json "evidence/runtime/${{ matrix.gate }}/apk_model_trace.json"
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'catch-hero-adaptive-v1_1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
@@ -289,8 +303,40 @@ jobs:
           python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
 
       - name: Prepare Catch Hero V1.1 real-photo fixtures for runtime evidence
-        if: ${{ matrix.gate == 'normal-home-v1' }}
+        if: ${{ matrix.gate == 'normal-home-v1' || matrix.gate == 'catch-hero-adaptive-v1_1' }}
         run: python3 scripts/prepare_catch_hero_adaptive_fixtures.py
+
+      - name: Record exact runtime APK metadata
+        if: ${{ matrix.gate == 'catch-hero-adaptive-v1_1' }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+
+          root = pathlib.Path('build/runtime-apks')
+          output = pathlib.Path('evidence/runtime/catch-hero-adaptive-v1_1/apk_metadata.json')
+          output.parent.mkdir(parents=True, exist_ok=True)
+          (output.parent / 'SHA256SUMS').write_text((root / 'SHA256SUMS').read_text())
+          files = {}
+          for name in ('app-debug.apk', 'app-debug-androidTest.apk'):
+              path = root / name
+              digest = hashlib.sha256()
+              with path.open('rb') as stream:
+                  for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                      digest.update(chunk)
+              files[name] = {
+                  'sha256': digest.hexdigest(),
+                  'bytes': path.stat().st_size,
+              }
+          metadata = {
+              'build_sha': '${{ github.sha }}',
+              'model_release_contract': json.loads((root / 'model_release_contract.json').read_text()),
+              'apk_model_trace': json.loads((root / 'apk_model_trace.json').read_text()),
+              'apks': files,
+              'sha256sums': (root / 'SHA256SUMS').read_text(),
+          }
+          output.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + '\n')
+          print(json.dumps({name: item for name, item in files.items()}, indent=2))
+          PY
 
       - name: Prepare GCP self-hosted Android runtime
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}

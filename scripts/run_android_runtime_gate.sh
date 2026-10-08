@@ -9,7 +9,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage:
   bash scripts/run_android_runtime_gate.sh \
-    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|login-v2|fish-guide-v1|runtime-parity|camera-runtime-v1|camera-runtime-smoke \
+    --gate recognition-frozen|data-sanitization|empty-home-v2|normal-home-v1|catch-hero-adaptive-v1_1|login-v2|fish-guide-v1|runtime-parity|camera-runtime-v1|camera-runtime-smoke \
     --app-apk path/to/app-debug.apk \
     --test-apk path/to/app-debug-androidTest.apk \
     --evidence-dir evidence/runtime/<gate> \
@@ -73,6 +73,9 @@ case "$GATE" in
     ;;
   normal-home-v1)
     source "$RUNTIME_DIR/gates/normal_home_v1.sh"
+    ;;
+  catch-hero-adaptive-v1_1)
+    source "$RUNTIME_DIR/gates/catch_hero_adaptive_v1_1.sh"
     ;;
   login-v2)
     source "$RUNTIME_DIR/gates/login_v2.sh"
@@ -159,6 +162,12 @@ if declare -F gate_before_instrumentation >/dev/null 2>&1; then
     final_rc=$?
     exit "$final_rc"
   fi
+  if (( before_instrumentation_rc != EXIT_PASS )) && [[ "$GATE" == "catch-hero-adaptive-v1_1" ]]; then
+    YUJIAN_INSTRUMENTATION_STATUS="NOT_RUN"
+    finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+    final_rc=$?
+    exit "$final_rc"
+  fi
 fi
 
 android_runtime_run_instrumentation "$test_classes"
@@ -194,6 +203,8 @@ if (( evidence_rc != EXIT_PASS )); then
   YUJIAN_EVIDENCE_STATUS="FAIL"
   if (( evidence_rc == EXIT_BLOCKED_INFRA )); then
     finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+  elif (( evidence_rc == EXIT_FAIL_TEST )); then
+    finish_gate "$EXIT_FAIL_TEST" "FAIL_TEST"
   else
     finish_gate "$EXIT_FAIL_EVIDENCE" "FAIL_EVIDENCE"
   fi

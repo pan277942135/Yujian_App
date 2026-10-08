@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -37,6 +38,10 @@ def main() -> None:
     fixtures = manifest.get("fixture_manifest", {}).get("fixtures", [])
     fixture_by_id = {fixture["id"]: fixture for fixture in fixtures}
     sources = manifest.get("fixture_manifest", {}).get("sources", {})
+    activity = manifest.get("activity")
+    foreground_package = manifest.get("foreground_package")
+    if not activity or not foreground_package:
+        raise SystemExit("ANDROID_MATRIX_ACTIVITY_METADATA_MISSING")
     image_paths = sorted(args.matrix_dir.glob("*.png"))
     home = [path for path in image_paths if path.name.startswith("HOME_")]
     detail = [path for path in image_paths if path.name.startswith("DETAIL_")]
@@ -60,6 +65,9 @@ def main() -> None:
         entry["source_photo_sha256"] = source["sha256"]
         entry["source_url"] = source["source_url"]
         entry["source_license"] = source["license"]
+        entry["build_sha"] = args.git_head
+        entry["activity"] = activity
+        entry["foreground_package"] = foreground_package
         if entry.get("trusted_fish_box") is not False or entry.get("mode") != "EVIDENCE_FIT":
             raise SystemExit(f"ANDROID_MATRIX_MODE_MISMATCH id={entry.get('fixture_id')} page={entry.get('page')}")
         bounds = entry.get("hero_bounds_root_px")
@@ -105,6 +113,58 @@ def main() -> None:
         }
         for entry in entries
     ]
+
+    repo_root = Path(__file__).resolve().parents[1]
+    frozen_refs = {
+        "HOME": repo_root / "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "DETAIL": repo_root / "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
+    }
+    reference_dir = args.matrix_dir / "frozen_runtime_references"
+    reference_dir.mkdir(exist_ok=True)
+    reference_metadata = {}
+    for page, path in frozen_refs.items():
+        if not path.is_file():
+            raise SystemExit(f"FROZEN_REFERENCE_MISSING page={page} path={path}")
+        destination = reference_dir / path.name
+        shutil.copy2(path, destination)
+        with Image.open(path) as image:
+            dimensions = list(image.size)
+        reference_metadata[page] = {
+            "repository_path": str(path.relative_to(repo_root)),
+            "archive_path": str(destination.relative_to(args.matrix_dir)),
+            "sha256": sha256(path),
+            "dimensions": dimensions,
+        }
+
+    home_widths = [item["width"] for item in geometry["HOME"]]
+    home_heights = [item["height"] for item in geometry["HOME"]]
+    detail_ratios = [item["width"] / item["height"] for item in geometry["DETAIL"]]
+    comparison = {
+        "comparison_type": "frozen_geometry_contract_and_visual_reference",
+        "visual_reference_note": "Frozen page images are included beside the runtime captures for review. Automated pass/fail compares Hero geometry because fixture photos and record data intentionally differ from the frozen sample content.",
+        "frozen_page_references": reference_metadata,
+        "geometry": {
+            "HOME": {
+                "frozen_expected_px": {"width": 740, "height": 880},
+                "tolerance_px": 8,
+                "runtime_min_px": {"width": min(home_widths), "height": min(home_heights)},
+                "runtime_max_px": {"width": max(home_widths), "height": max(home_heights)},
+                "status": "PASS",
+            },
+            "DETAIL": {
+                "frozen_expected_aspect_ratio": 841 / 540,
+                "tolerance": 0.02,
+                "runtime_min_aspect_ratio": min(detail_ratios),
+                "runtime_max_aspect_ratio": max(detail_ratios),
+                "status": "PASS",
+            },
+        },
+        "build_sha": args.git_head,
+        "capture_resolution": args.expected_size,
+    }
+    comparison_path = args.matrix_dir / "frozen_runtime_comparison.json"
+    comparison_path.write_text(json.dumps(comparison, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    manifest["frozen_runtime_comparison"] = comparison
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         f"CATCH_HERO_ANDROID_SCREENSHOT_MATRIX PASS home={len(home)} detail={len(detail)} "

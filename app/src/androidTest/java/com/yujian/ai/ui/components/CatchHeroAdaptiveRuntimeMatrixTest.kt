@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -67,6 +68,62 @@ class CatchHeroAdaptiveRuntimeMatrixTest {
         val screenshotEntries = JSONArray()
         val homeModes = mutableSetOf<String>()
         val detailModes = mutableSetOf<String>()
+        val activeRecord = mutableStateOf<RemoteCatch?>(null)
+        val showDetail = mutableStateOf(false)
+        var openedRecordId: String? = null
+        var editClicks = 0
+
+        compose.setContent {
+            val currentRecord = activeRecord.value
+            if (currentRecord != null) {
+                YujianTheme {
+                    if (showDetail.value) {
+                        FishRecordDetailScreen(
+                            uiState = FishRecordDetailUiState.Success(currentRecord.copy(bsideStatus = BsideStatus.NONE)),
+                            imageUrlFor = { activeRecord.value?.imageUrl.orEmpty() },
+                            bsideUrlFor = { null },
+                            accessToken = "",
+                            onBack = {},
+                            onRetry = {},
+                            onOpenFishGuide = {},
+                            onShare = {},
+                            onEditRecord = { editClicks++ },
+                            onAddMedia = {},
+                            onContinuePhoto = {},
+                            onRecordVideo = {},
+                            onGenerateMemory = null,
+                            onRefreshBsideStatus = { false },
+                        )
+                    } else {
+                        Box(Modifier.fillMaxSize()) {
+                            Image(
+                                bitmap = normalHomeAssets.sceneBase.asImageBitmap(),
+                                modifier = Modifier.fillMaxSize(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                            )
+                            NormalHomeContent(
+                                statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                                recentCatches = listOf(currentRecord),
+                                resolveImageUrl = { it },
+                                accessToken = "",
+                                isLoggedIn = false,
+                                avatarUrl = null,
+                                onIdentify = {},
+                                onSpeciesClick = {},
+                                onCatchesClick = {},
+                                onProfileClick = {},
+                                onCatchClick = { openedRecordId = it },
+                                motionState = HomeMotionState(),
+                                runtimeAssets = normalHomeAssets,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         for (index in 0 until fixtures.length()) {
             val fixture = fixtures.getJSONObject(index)
             val id = fixture.getString("id")
@@ -77,35 +134,11 @@ class CatchHeroAdaptiveRuntimeMatrixTest {
             val record = sampleRecord("adaptive-$id", inputUri)
             val modeTag = "catch-hero-mode-EVIDENCE_FIT"
 
-            var openedRecordId: String? = null
-            compose.setContent {
-                YujianTheme {
-                    Box(Modifier.fillMaxSize()) {
-                        Image(
-                            bitmap = normalHomeAssets.sceneBase.asImageBitmap(),
-                            modifier = Modifier.fillMaxSize(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                        )
-                        NormalHomeContent(
-                            statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
-                            recentCatches = listOf(record),
-                            resolveImageUrl = { it },
-                            accessToken = "",
-                            isLoggedIn = false,
-                            avatarUrl = null,
-                            onIdentify = {},
-                            onSpeciesClick = {},
-                            onCatchesClick = {},
-                            onProfileClick = {},
-                            onCatchClick = { openedRecordId = it },
-                            motionState = HomeMotionState(),
-                            runtimeAssets = normalHomeAssets,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                }
-            }
+            activeRecord.value = record
+            showDetail.value = false
+            openedRecordId = null
+            editClicks = 0
+            compose.waitForIdle()
             awaitMode(modeTag)
             val homeBounds = compose.onNodeWithTag("normal-home-catch-card-${record.id}").fetchSemanticsNode().boundsInRoot
             assertEquals("HOME Hero width stays at the frozen 740px reference geometry", 740f, homeBounds.width, 8f)
@@ -125,27 +158,8 @@ class CatchHeroAdaptiveRuntimeMatrixTest {
             compose.runOnIdle { assertEquals(record.id, openedRecordId) }
             screenshotEntries.put(screenshotEntry("HOME", fixture, "EVIDENCE_FIT", "HOME_$id.png", homeBounds))
 
-            var editClicks = 0
-            compose.setContent {
-                YujianTheme {
-                    FishRecordDetailScreen(
-                        uiState = FishRecordDetailUiState.Success(record.copy(bsideStatus = BsideStatus.NONE)),
-                        imageUrlFor = { inputUri },
-                        bsideUrlFor = { null },
-                        accessToken = "",
-                        onBack = {},
-                        onRetry = {},
-                        onOpenFishGuide = {},
-                        onShare = {},
-                        onEditRecord = { editClicks++ },
-                        onAddMedia = {},
-                        onContinuePhoto = {},
-                        onRecordVideo = {},
-                        onGenerateMemory = null,
-                        onRefreshBsideStatus = { false },
-                    )
-                }
-            }
+            showDetail.value = true
+            compose.waitForIdle()
             awaitMode(modeTag)
             compose.onNodeWithText("草鱼").assertIsDisplayed()
             compose.onNodeWithText("42.6 cm · 1.28 kg · 浙江 · 千岛湖").assertIsDisplayed()
@@ -208,6 +222,7 @@ class CatchHeroAdaptiveRuntimeMatrixTest {
 
     private fun saveRuntimeScreenshot(directory: File, filename: String) {
         compose.waitForIdle()
+        assertTrue("The rendered Catch Hero page Activity must be in the foreground", compose.activity.window.decorView.hasWindowFocus())
         val screenshot = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
         File(directory, filename).outputStream().use { stream ->
             assertTrue("Android screenshot should encode as PNG", screenshot.compress(Bitmap.CompressFormat.PNG, 100, stream))
@@ -273,6 +288,8 @@ class CatchHeroAdaptiveRuntimeMatrixTest {
             .put("display_resolution", "${metrics.widthPixels}x${metrics.heightPixels}")
             .put("requested_profile", profile)
             .put("density_dpi", metrics.densityDpi)
+            .put("activity", compose.activity.javaClass.name)
+            .put("foreground_package", target.packageName)
             .put("screenshots", screenshots)
             .put("fixture_manifest", fixtureManifest)
         File(output, "android_runtime_manifest.json").writeText(runtimeManifest.toString(2))
