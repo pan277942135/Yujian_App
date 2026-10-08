@@ -1,0 +1,322 @@
+name: Normal Home Real Photo E2E V2
+
+on:
+  push:
+    branches:
+      - test/normal-home-real-photo-e2e-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: normal-home-real-photo-e2e-v2-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  real-photo-e2e:
+    name: Real photo Normal Home E2E (API 28 only)
+    runs-on: [self-hosted, yujian-android, api28]
+    timeout-minutes: 75
+    env:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout validation HEAD
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        continue-on-error: true
+
+      - name: Record runner and verify exact validation scope
+        id: preflight
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          mkdir -p evidence/logs evidence/photo evidence/screenshots
+          exec > >(tee -a evidence/logs/runner.log) 2>&1
+          fail() { printf '%s\n' "$1" > evidence/failure_step.txt; echo "BLOCKED_AT_EXACT_STEP=$1: $2"; exit 1; }
+          echo "runner_name=$RUNNER_NAME"
+          echo "hostname=$(hostname)"
+          echo "runner_os=$RUNNER_OS"
+          if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then fail RUNNER "checkout did not produce a git worktree"; fi
+          validation_head=$(git rev-parse HEAD)
+          if [[ "$validation_head" != "$GITHUB_SHA" ]]; then fail RUNNER "checked out HEAD $validation_head does not match event SHA $GITHUB_SHA"; fi
+          parent_sha=$(git rev-parse HEAD^ 2>/dev/null || true)
+          printf '%s\n' "$validation_head" > evidence/validation_head.txt
+          printf '%s\n' "$parent_sha" > evidence/product_baseline_sha.txt
+          printf 'validation_head=%s\nproduct_baseline_sha=%s\n' "$validation_head" "$parent_sha"
+          expected_main=3cd0753be926c3a8cc94ac56c97c9103febc6663
+          if [[ "$parent_sha" != "$expected_main" ]]; then fail RUNNER "validation HEAD parent was $parent_sha, expected exact main $expected_main"; fi
+          changed=$(git diff --name-only "$expected_main" "$validation_head" | sort)
+          printf '%s\n' "$changed" > evidence/validation_changed_files.txt
+          printf 'changed_files:\n%s\n' "$changed"
+          expected=$(printf '%s\n' '.github/workflows/normal-home-real-photo-e2e-v2.yml' 'validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt' 'validation_v2/scripts/hifi_acceptance/compare_normal_home_real_photo_v2.py' | sort)
+          if [[ "$changed" != "$expected" ]]; then fail RUNNER "validation diff contains unexpected or missing files"; fi
+          printf '%s\n' "$validation_head" > evidence/harness_sha.txt
+          adb_bin=/opt/android-sdk/platform-tools/adb
+          if [[ ! -x "$adb_bin" ]]; then fail RUNNER "ADB is missing at $adb_bin"; fi
+          export ANDROID_ADB="$adb_bin"
+          "$adb_bin" start-server
+          "$adb_bin" wait-for-device
+          mapfile -t attached < <("$adb_bin" devices | awk 'NR > 1 && $2 == "device" {print $1}')
+          if [[ ${#attached[@]} -ne 1 ]]; then fail RUNNER "expected exactly one connected Android device, got ${#attached[@]}"; fi
+          serial=${attached[0]}
+          export DEVICE_SERIAL="$serial"
+          "$adb_bin" -s "$serial" shell getprop ro.build.version.sdk > evidence/device_api.txt
+          api=$(tr -d '\r\n' < evidence/device_api.txt)
+          if [[ "$api" != 28 ]]; then fail RUNNER "runner device API was $api, expected API 28"; fi
+          python3 - <<'PY'
+          import json, os, re, subprocess, socket
+          adb=os.environ['ANDROID_ADB']; serial=os.environ['DEVICE_SERIAL']
+          def shell(command):
+              return subprocess.check_output([adb,'-s',serial,'shell',*command.split()],text=True,stderr=subprocess.STDOUT).strip().replace('\r','')
+          def prop(key): return shell('getprop '+key)
+          size=shell('wm size')
+          match=re.search(r'(\d+)x(\d+)',size)
+          qemu=prop('ro.kernel.qemu') == '1'
+          info={
+            'runner_name':os.environ.get('RUNNER_NAME'), 'runner_hostname':socket.gethostname(),
+            'serial':serial, 'model':prop('ro.product.model'), 'manufacturer':prop('ro.product.manufacturer'),
+            'api_level':int(prop('ro.build.version.sdk')), 'release':prop('ro.build.version.release'),
+            'device_type':'EMULATOR' if qemu else 'PHYSICAL', 'ro_kernel_qemu':prop('ro.kernel.qemu'),
+            'native_width':int(match.group(1)) if match else None, 'native_height':int(match.group(2)) if match else None,
+            'wm_size_output':size, 'wm_density_output':shell('wm density'),
+          }
+          with open('evidence/device_info.json','w',encoding='utf-8') as f: json.dump(info,f,ensure_ascii=False,indent=2)
+          print(json.dumps(info,ensure_ascii=False))
+          PY
+          touch evidence/.preflight_ok
+
+      - name: Set up Python and Pillow
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+        continue-on-error: true
+
+      - name: Install visual report dependency
+        continue-on-error: true
+        run: |
+          if [[ -f evidence/failure_step.txt ]]; then exit 0; fi
+          python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Download and authenticate licensed Commons original
+        id: photo
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ ! -f evidence/.preflight_ok ]]; then exit 0; fi
+          fail() { printf '%s\n' PHOTO_DOWNLOAD > evidence/failure_step.txt; echo "BLOCKED_AT_EXACT_STEP=PHOTO_DOWNLOAD: $1"; exit 1; }
+          exec > >(tee -a evidence/logs/runner.log) 2>&1
+          photo=evidence/photo/Common_Carp.jpg
+          curl --fail --location --retry 3 --retry-delay 2 'https://upload.wikimedia.org/wikipedia/commons/c/ca/Common_Carp.jpg' --output "$photo" || fail "Commons original download failed"
+          python - <<'PY' || fail "Commons source JPEG identity did not match the licensed original"
+          import hashlib,json
+          from datetime import datetime,timezone
+          from pathlib import Path
+          from PIL import Image
+          p=Path('evidence/photo/Common_Carp.jpg'); data=p.read_bytes()
+          with Image.open(p) as im:
+              dims=list(im.size); fmt=im.format
+          sha1=hashlib.sha1(data).hexdigest()
+          if fmt!='JPEG' or dims != [2048,1536] or len(data)!=877945 or sha1!='18b0f4ff8d6a6c8791230020c90c8e4a7bbc84a9':
+              raise SystemExit(f'original identity mismatch: format={fmt} dimensions={dims} bytes={len(data)} sha1={sha1}')
+          result={
+            'source_page':'https://commons.wikimedia.org/wiki/File:Common_Carp.jpg',
+            'original_file_url':'https://upload.wikimedia.org/wikipedia/commons/c/ca/Common_Carp.jpg',
+            'author':'Gavin Bradley','license':'CC BY-SA 3.0','license_url':'https://creativecommons.org/licenses/by-sa/3.0/',
+            'download_timestamp_utc':datetime.now(timezone.utc).isoformat(), 'file_name':p.name,
+            'format':fmt,'original_dimensions':dims,'byte_size':len(data),'sha1':sha1,'sha256':hashlib.sha256(data).hexdigest(),
+            'genuine_photo_review':'Wikimedia Commons describes the source as a Michigan angler holding a common carp; source marked own work.'
+          }
+          Path('evidence/photo/photo_provenance.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(result,ensure_ascii=False))
+          PY
+          touch evidence/.photo_ok
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+        continue-on-error: true
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+        continue-on-error: true
+
+      - name: Build matching app and AndroidTest APK pair
+        id: build
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ ! -f evidence/.photo_ok ]]; then exit 0; fi
+          fail() { printf '%s\n' APK_BUILD > evidence/failure_step.txt; echo "BLOCKED_AT_EXACT_STEP=APK_BUILD: $1"; exit 1; }
+          exec > >(tee -a evidence/logs/apk_build.log) 2>&1
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2" || fail 'stable Android aapt2 is missing'
+          export YUJIAN_AAPT2="$ANDROID_HOME/build-tools/35.0.0/aapt2"
+          python3 scripts/bootstrap_android_recognition_assets.py || fail 'verified recognition model bootstrap failed'
+          python3 scripts/verify_production_model.py || fail 'production recognition model contract failed'
+          mkdir -p app/src/androidTest/java/com/yujian/ai
+          cp validation_v2/app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt app/src/androidTest/java/com/yujian/ai/NormalHomeRealPhotoE2ETest.kt
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2 || fail 'debug APK or matching AndroidTest APK assembly failed'
+          mkdir -p evidence/apk
+          cp app/build/outputs/apk/debug/app-debug.apk evidence/apk/app-debug.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk evidence/apk/app-debug-androidTest.apk
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path('evidence/apk')
+          def row(p): return {'file':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'byte_size':p.stat().st_size}
+          value={'product_baseline_sha':'3cd0753be926c3a8cc94ac56c97c9103febc6663','validation_head':Path('evidence/validation_head.txt').read_text().strip(),'package':'com.yujian.ai.uiv2','test_package':'com.yujian.ai.uiv2.test','app_apk':row(root/'app-debug.apk'),'android_test_apk':row(root/'app-debug-androidTest.apk')}
+          Path('evidence/apk_provenance.json').write_text(json.dumps(value,indent=2)+'\n')
+          print(json.dumps(value,indent=2))
+          PY
+          touch evidence/.build_ok
+
+      - name: Install app, reset isolated state, and import original photo
+        id: install
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ ! -f evidence/.build_ok ]]; then exit 0; fi
+          fail() { if [[ ! -f evidence/failure_step.txt ]]; then printf '%s\n' APK_INSTALL > evidence/failure_step.txt; fi; echo "BLOCKED_AT_EXACT_STEP=APK_INSTALL: $1"; exit 1; }
+          adb=/opt/android-sdk/platform-tools/adb
+          serial=$(python3 -c "import json;print(json.load(open('evidence/device_info.json'))['serial'])")
+          "$adb" -s "$serial" install -r evidence/apk/app-debug.apk || fail 'production APK installation failed'
+          "$adb" -s "$serial" install -r evidence/apk/app-debug-androidTest.apk || fail 'matching AndroidTest APK installation failed'
+          "$adb" -s "$serial" shell pm clear com.yujian.ai.uiv2 || fail 'could not reset isolated app data before the test'
+          "$adb" -s "$serial" shell pm grant com.yujian.ai.uiv2 android.permission.CAMERA || fail 'camera runtime permission grant failed'
+          "$adb" -s "$serial" shell mkdir -p /sdcard/Pictures/YuJianRealPhotoE2E || fail 'could not prepare Android media folder'
+          "$adb" -s "$serial" push evidence/photo/Common_Carp.jpg /sdcard/Pictures/YuJianRealPhotoE2E/Common_Carp.jpg || fail 'could not copy original JPEG onto Android'
+          "$adb" -s "$serial" shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Pictures/YuJianRealPhotoE2E/Common_Carp.jpg || fail 'Android media scan failed'
+          "$adb" -s "$serial" shell am force-stop com.yujian.ai.uiv2
+          touch evidence/.install_ok
+
+      - name: Run only NormalHomeRealPhotoE2ETest
+        id: e2e
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          if [[ ! -f evidence/.install_ok ]]; then exit 0; fi
+          adb=/opt/android-sdk/platform-tools/adb
+          serial=$(python3 -c "import json;print(json.load(open('evidence/device_info.json'))['serial'])")
+          photo_sha=$(python3 -c "import json;print(json.load(open('evidence/photo/photo_provenance.json'))['sha256'])")
+          "$adb" -s "$serial" logcat -c || true
+          set +e
+          "$adb" -s "$serial" shell am instrument -w -e class 'com.yujian.ai.NormalHomeRealPhotoE2ETest#savesCommonsCarpThroughGalleryRecognitionAndHomeDetail' -e photo_sha256 "$photo_sha" com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner > evidence/logs/instrumentation.log 2>&1
+          result=$?
+          set -e
+          echo "instrumentation_exit_code=$result" | tee -a evidence/logs/instrumentation.log
+          "$adb" -s "$serial" logcat -d -v threadtime > evidence/logs/logcat.txt || true
+          "$adb" -s "$serial" shell dumpsys activity activities > evidence/logs/activity_focus.txt || true
+          "$adb" -s "$serial" shell dumpsys window windows >> evidence/logs/activity_focus.txt || true
+          mkdir -p evidence/screenshots/pulled
+          "$adb" -s "$serial" pull /sdcard/Android/data/com.yujian.ai.uiv2.test/files/normal-home-real-photo-e2e-v2 evidence/screenshots/pulled > evidence/logs/runner.log.pull 2>&1 || true
+          find evidence/screenshots/pulled -type f \( -name '*.png' -o -name '*.xml' \) -print0 | while IFS= read -r -d '' p; do cp "$p" evidence/screenshots/; done
+          find evidence/screenshots/pulled -name e2e-result.json -type f -exec cp '{}' evidence/e2e-result.json \; 2>/dev/null || true
+          if [[ ! -s evidence/e2e-result.json ]]; then
+            printf 'BLOCKED_AT_EXACT_STEP=RECOGNITION\n' > evidence/failure_step.txt
+            echo '{"status":"BLOCKED_AT_EXACT_STEP","failure_step":"RECOGNITION","failure_message":"Instrumentation did not write an outcome file; see instrumentation.log"}' > evidence/e2e-result.json
+          fi
+          if [[ $result -ne 0 ]] || ! grep -q 'OK (' evidence/logs/instrumentation.log; then
+            if [[ ! -s evidence/failure_step.txt ]]; then printf 'RECOGNITION\n' > evidence/failure_step.txt; fi
+            exit 1
+          fi
+          touch evidence/.e2e_ok
+
+      - name: Verify captured screenshot hashes and foreground provenance
+        id: screenshot_verify
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [[ ! -f evidence/.install_ok ]]; then exit 0; fi
+          fail() { if [[ ! -f evidence/failure_step.txt ]]; then printf 'SCREENSHOT\n' > evidence/failure_step.txt; fi; echo "BLOCKED_AT_EXACT_STEP=SCREENSHOT: $1"; exit 1; }
+          python3 - <<'PY' || fail 'native Android screenshots or provenance did not validate'
+          import hashlib,json
+          from pathlib import Path
+          from PIL import Image
+          root=Path('evidence'); shots=root/'screenshots'; result=json.loads((root/'e2e-result.json').read_text())
+          rows=result.get('screenshots',[]); by={x.get('file'):x for x in rows if isinstance(x,dict)}
+          required=['gallery-selection.png','recognition-result.png','save-return-home.png','runtime_real_photo.png','fish-record-detail-a.png']
+          for name in required:
+              p=shots/name
+              if not p.is_file(): raise SystemExit('missing screenshot '+name)
+              with Image.open(p) as im:
+                  im.verify()
+              with Image.open(p) as im:
+                  if im.format!='PNG': raise SystemExit('not PNG '+name)
+                  row=by.get(name,{})
+                  digest=hashlib.sha256(p.read_bytes()).hexdigest()
+                  if digest!=row.get('sha256') or list(im.size)!=[row.get('native_width'),row.get('native_height')]: raise SystemExit('capture hash/native dimensions mismatch '+name)
+                  if name in ('runtime_real_photo.png','save-return-home.png','fish-record-detail-a.png'):
+                      if row.get('expected_app_foreground') is not True or 'com.yujian.ai.uiv2' not in str(row.get('foreground_package')) or 'com.yujian.ai.uiv2' not in str(row.get('focused_window')): raise SystemExit('app focus mismatch '+name)
+          with open(root/'screenshot_capture_manifest.json','w') as f:
+              json.dump({'verified_at_utc':__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),'screenshots':[{**by[n],'host_verified_sha256':hashlib.sha256((shots/n).read_bytes()).hexdigest()} for n in required]},f,indent=2)
+          print('SCREENSHOT_PROVENANCE_PASS')
+          PY
+          touch evidence/.screenshots_ok
+
+      - name: Collect final Android diagnostics
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p evidence/logs
+          adb=/opt/android-sdk/platform-tools/adb
+          if [[ -f evidence/device_info.json && -x "$adb" ]]; then
+            serial=$(python3 -c "import json;print(json.load(open('evidence/device_info.json'))['serial'])")
+            "$adb" -s "$serial" shell dumpsys activity activities > evidence/logs/activity_focus_final.txt 2>&1 || true
+            "$adb" -s "$serial" shell dumpsys window windows >> evidence/logs/activity_focus_final.txt 2>&1 || true
+            "$adb" -s "$serial" logcat -d -v threadtime > evidence/logs/logcat_final.txt 2>&1 || true
+          fi
+
+      - name: Generate Frozen comparison and complete evidence ZIP
+        if: always()
+        id: report
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/logs
+          if [[ ! -f evidence/validation_head.txt ]]; then printf '%s\n' "$GITHUB_SHA" > evidence/validation_head.txt; fi
+          if [[ ! -s evidence/e2e-result.json ]]; then
+            step=RUNNER
+            [[ -s evidence/failure_step.txt ]] && step=$(cat evidence/failure_step.txt)
+            printf '{"status":"BLOCKED_AT_EXACT_STEP","failure_step":"%s","save_mode":"GUEST_LOCAL_SAVE"}\n' "$step" > evidence/e2e-result.json
+          fi
+          python3 validation_v2/scripts/hifi_acceptance/compare_normal_home_real_photo_v2.py --evidence-root evidence --repository-root . | tee evidence/logs/report_generator.log
+
+      - name: Upload complete Normal Home evidence ZIP and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Normal-Home-Real-Photo-E2E-V2-${{ github.sha }}
+          path: |
+            evidence/YuJian_Normal_Home_Real_Photo_E2E_V2.zip
+            evidence/logs/**
+            evidence/failure_step.txt
+            evidence/validation_head.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload exact app and AndroidTest APK pair
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Normal-Home-Real-Photo-E2E-APK-Pair-${{ github.sha }}
+          path: evidence/apk/*.apk
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce evidence result
+        if: always()
+        run: |
+          set -euo pipefail
+          status=$(python3 -c "import json;print(json.load(open('evidence/package/04_report/report.json'))['final_status'])" 2>/dev/null || echo BLOCKED_AT_EXACT_STEP)
+          screenshot=$(python3 -c "import json;print(json.load(open('evidence/package/04_report/report.json'))['screenshot_evidence'])" 2>/dev/null || echo FAIL)
+          echo "REAL_PHOTO_E2E=$status SCREENSHOT_EVIDENCE=$screenshot"
+          if [[ "$status" != PASS_REAL_PHOTO_E2E || "$screenshot" != PASS ]]; then exit 1; fi
