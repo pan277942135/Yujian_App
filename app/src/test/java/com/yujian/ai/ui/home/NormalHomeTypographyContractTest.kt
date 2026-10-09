@@ -51,23 +51,64 @@ class NormalHomeTypographyContractTest {
     fun systemFontScaleRemainsAnIndependentAccessibilityMultiplier() {
         val widthDp = 1080f / 2.75f
         val contract = normalHomeTypographyContract(widthDp, density = 2.75f)
-        val standardPx = with(Density(density = 2.75f, fontScale = 1f)) {
+        val standardDensity = Density(density = 2.75f, fontScale = 1f)
+        val standardPx = with(standardDensity) {
             contract.metadata.fontSize.toPx()
         }
-        val standardLineHeightPx = with(Density(density = 2.75f, fontScale = 1f)) {
+        val standardLineHeightPx = with(standardDensity) {
             contract.metadata.lineHeight.toPx()
         }
+        assertEquals("Frozen metadata font size remains exact at standard scale", 36f, standardPx, 0.01f)
+        assertEquals("Frozen metadata line height remains exact at standard scale", 42f, standardLineHeightPx, 0.01f)
 
-        fontScales.forEach { fontScale ->
-            val effectivePx = with(Density(density = 2.75f, fontScale = fontScale)) {
+        val standardSpacing = normalHomeSpacingContract(widthDp)
+        val spacingValues = listOf(
+            standardSpacing.recentHeaderHorizontalInset,
+            standardSpacing.statVerticalPadding,
+            standardSpacing.statLabelSpacing,
+            standardSpacing.heroMetadataSpacing,
+            standardSpacing.pagerSpacing,
+            standardSpacing.recentActionSpacing,
+            standardSpacing.recentChevronSize,
+        )
+        var previousFontPx = standardPx
+        var previousLineHeightPx = standardLineHeightPx
+
+        fontScales.filter { it > 1f }.forEach { fontScale ->
+            val scaledDensity = Density(density = 2.75f, fontScale = fontScale)
+            // Compose Density owns the platform font-scaling conversion. Do
+            // not predict the result with a linear fontScale multiplier.
+            val effectivePx = with(scaledDensity) {
                 contract.metadata.fontSize.toPx()
             }
-            val effectiveLineHeightPx = with(Density(density = 2.75f, fontScale = fontScale)) {
+            val effectiveLineHeightPx = with(scaledDensity) {
                 contract.metadata.lineHeight.toPx()
             }
-            assertEquals(36f * fontScale, effectivePx, 0.01f)
-            assertEquals(standardPx * fontScale, effectivePx, 0.01f)
-            assertEquals(standardLineHeightPx * fontScale, effectiveLineHeightPx, 0.01f)
+
+            assertTrue("Compose-scaled font size must be finite and positive", effectivePx.isFinite() && effectivePx > 0f)
+            assertTrue("Compose-scaled line height must be finite and positive", effectiveLineHeightPx.isFinite() && effectiveLineHeightPx > 0f)
+            assertTrue("Font size must grow at fontScale=$fontScale", effectivePx > previousFontPx)
+            assertTrue("Line height must grow at fontScale=$fontScale", effectiveLineHeightPx > previousLineHeightPx)
+            previousFontPx = effectivePx
+            previousLineHeightPx = effectiveLineHeightPx
+
+            val scaledSpacing = normalHomeSpacingContract(widthDp)
+            assertEquals("fontScale must not alter the dp spacing contract", standardSpacing, scaledSpacing)
+            val scaledSpacingPx = with(scaledDensity) {
+                listOf(
+                    scaledSpacing.recentHeaderHorizontalInset,
+                    scaledSpacing.statVerticalPadding,
+                    scaledSpacing.statLabelSpacing,
+                    scaledSpacing.heroMetadataSpacing,
+                    scaledSpacing.pagerSpacing,
+                    scaledSpacing.recentActionSpacing,
+                    scaledSpacing.recentChevronSize,
+                ).map { it.toPx() }
+            }
+            val standardSpacingPx = with(standardDensity) { spacingValues.map { it.toPx() } }
+            standardSpacingPx.zip(scaledSpacingPx).forEachIndexed { index, (standard, scaled) ->
+                assertEquals("fontScale must not alter dp spacing px at index $index", standard, scaled, 0.01f)
+            }
         }
     }
 
