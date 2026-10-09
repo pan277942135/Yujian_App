@@ -447,7 +447,20 @@ class NormalHomeDataParityTest {
         )
         assertEquals("$tag follows the Normal Home single-line contract", 1, layout.lineCount)
         if (!tag.contains("-meta-")) {
-            assertTrue("$tag has horizontal overflow: didOverflowWidth=${layout.didOverflowWidth}", !layout.didOverflowWidth)
+            // Compose can report width overflow for an exact-integer two-glyph
+            // intrinsic width even when every glyph is visible and in bounds.
+            // Accept this only for the brand when the measured geometry proves
+            // no character was ellipsized or clipped. Other text remains strict.
+            val brandIntrinsicRoundingOnly = tag == "normal-home-brand-title" &&
+                layout.didOverflowWidth &&
+                visibleEnd == text.length &&
+                glyphOutlineInsideLayout &&
+                glyphOutlineInsideNode &&
+                glyphOutlineInsideParent
+            assertTrue(
+                "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth} visible=$visibleEnd/${text.length}",
+                !layout.didOverflowWidth || brandIntrinsicRoundingOnly,
+            )
             assertTrue("$tag has vertical overflow: didOverflowHeight=${layout.didOverflowHeight}", !layout.didOverflowHeight)
         }
         assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
