@@ -64,6 +64,43 @@ class FishGuidePresentationTest {
     }
 
     @Test
+    fun homeCardUsesOnlyActiveVersionedCoverHeroAndNeverLegacyCoverImage() {
+        val items = listOf(
+            FishGuideItem(
+                id = "published",
+                nameCn = "已发布鱼",
+                coverImage = "https://cdn.example/legacy.webp",
+                coverHeroImage = "/api/v1/fish/knowledge-media/published/cover_hero/v3.webp",
+                coverHeroVersionId = 301,
+                coverHeroStatus = "ACTIVE",
+            ),
+            FishGuideItem(
+                id = "draft",
+                nameCn = "仅有草稿鱼",
+                coverImage = "https://cdn.example/legacy-draft.webp",
+                coverHeroImage = "/api/v1/fish/knowledge-media/draft/cover_hero/v2.webp",
+                coverHeroVersionId = 202,
+                coverHeroStatus = "DRAFT",
+            ),
+            FishGuideItem(
+                id = "legacy-api",
+                nameCn = "旧接口鱼",
+                coverImage = "https://cdn.example/legacy-api.webp",
+                coverHeroStatus = "LEGACY_API",
+            ),
+        ).toFishGuidePresentation { value -> value?.let { "resolved:$it" } }
+
+        assertEquals("resolved:/api/v1/fish/knowledge-media/published/cover_hero/v3.webp", items[0].imageUrl)
+        assertEquals(301, items[0].imageVersionId)
+        assertEquals("ACTIVE", items[0].imageStatus)
+        assertNull(items[1].imageUrl)
+        assertNull(items[1].imageVersionId)
+        assertEquals("DRAFT", items[1].imageStatus)
+        assertNull(items[2].imageUrl)
+        assertEquals("LEGACY_API", items[2].imageStatus)
+    }
+
+    @Test
     fun savedRecordAssociationUsesStableSpeciesIdAndRecentFirst() {
         val matching = listOf(
             catch("legacy-new", "", "草鱼", "2026-09-28", "2026-09-28"),
