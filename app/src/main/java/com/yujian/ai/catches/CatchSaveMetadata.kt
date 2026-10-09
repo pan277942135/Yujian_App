@@ -27,13 +27,13 @@ object CatchSaveMetadataParser {
         if (trimmed.isEmpty()) return null
         val normalized = when {
             trimmed.count { it == ',' } == 1 && '.' !in trimmed -> trimmed.replace(',', '.')
-            ',' in trimmed -> throw IllegalArgumentException("$label格式不正确，请使用一个小数点")
+            ',' in trimmed -> throw IllegalArgumentException("${label}格式不正确，请使用一个小数点")
             else -> trimmed
         }
         val number = normalized.toDoubleOrNull()
-            ?: throw IllegalArgumentException("$label格式不正确，请重新输入")
+            ?: throw IllegalArgumentException("${label}格式不正确，请重新输入")
         require(number.isFinite() && number > 0.0 && number <= 1000.0) {
-            "$label需大于 0，且不能超过 1000"
+            "${label}需大于 0，且不能超过 1000"
         }
         return number
     }
