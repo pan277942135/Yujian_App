@@ -1,0 +1,197 @@
+name: Normal Home Exclusive Runtime Acceptance
+
+on:
+  push:
+    branches:
+      - test/normal-home-exclusive-runtime-v1
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  normal-home-api28:
+    runs-on: [self-hosted, yujian-android, api28]
+    timeout-minutes: 90
+    env:
+      PRODUCT_HEAD: 041038be62a0efee6c0f65b2a3c2e884bede2274
+      PRODUCT_BUILD_RUN_ID: 37868268845
+      PRODUCT_APK_ARTIFACT: YuJian-runtime-apks-041038be62a0efee6c0f65b2a3c2e884bede2274-MODEL_CROP_M1_v0.2
+      API_LEVEL: '28'
+      ADB: /opt/android-sdk/platform-tools/adb
+      APP_APK: build/runtime-apks/app-debug.apk
+      TEST_APK: build/runtime-apks/app-debug-androidTest.apk
+      EVIDENCE_DIR: evidence/runtime/normal-home-brand-title-v1
+
+    steps:
+      - name: Checkout validation harness
+        uses: actions/checkout@v4
+
+      - name: Download exact candidate APK pair from existing CI build
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PRODUCT_APK_ARTIFACT }}
+          repository: pan277942135/Yujian_App
+          run-id: ${{ env.PRODUCT_BUILD_RUN_ID }}
+          github-token: ${{ github.token }}
+          path: build/runtime-apks
+
+      - name: Verify candidate APK pair and product identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$APP_APK"
+          test -s "$TEST_APK"
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          python3 - <<'PY'
+          import json, os, pathlib
+          root = pathlib.Path("build/runtime-apks")
+          product_head = os.environ["PRODUCT_HEAD"]
+          contract = json.loads((root / "model_release_contract.json").read_text())
+          trace = json.loads((root / "apk_model_trace.json").read_text())
+          assert contract.get("build_sha") == product_head, contract.get("build_sha")
+          assert trace.get("build_sha") == product_head, trace.get("build_sha")
+          print("PRODUCT_APK_SOURCE_HEAD=" + product_head)
+          PY
+
+      - name: Install runtime evidence dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m pip install --user --break-system-packages Pillow
+          python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
+
+      - name: Prepare API 28 self-hosted emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          test -e /dev/kvm
+          adb=/opt/android-sdk/platform-tools/adb
+          emulator=/opt/android-sdk/emulator/emulator
+          evidence="$EVIDENCE_DIR/infra"
+          mkdir -p "$evidence"
+          test -x "$adb"
+          test -x "$emulator"
+          timeout 30s "$adb" start-server > "$evidence/adb-start.log" 2>&1
+
+          existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
+          if [[ -n "$existing_device" ]]; then
+            existing_api="$("$adb" -s "$existing_device" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+            if [[ "$existing_api" != "28" ]]; then
+              "$adb" -s "$existing_device" emu kill >> "$evidence/adb-start.log" 2>&1 || true
+              for attempt in $(seq 1 30); do
+                if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then break; fi
+                sleep 1
+              done
+              existing_device=""
+            fi
+          fi
+
+          if [[ -z "$existing_device" ]]; then
+            avd_list="$("$emulator" -list-avds 2>&1)"
+            avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+            if [[ -z "$avd_name" ]]; then
+              printf 'No API 28 AVD found:\n%s\n' "$avd_list" | tee "$evidence/avd-list.log"
+              exit 1
+            fi
+            nohup "$emulator" -avd "$avd_name" -no-snapshot -no-window \
+              -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
+              -partition-size 4096 -skin 1080x1920 > "$evidence/emulator.log" 2>&1 &
+          fi
+
+          timeout 120s "$adb" wait-for-device
+          ready=0
+          for attempt in $(seq 1 60); do
+            state="$("$adb" get-state 2>/dev/null | tr -d '\r' || true)"
+            boot="$("$adb" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+            api="$("$adb" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+            printf 'READINESS attempt=%s state=%s boot=%s api=%s\n' "$attempt" "$state" "$boot" "$api" | tee -a "$evidence/runner-readiness.log"
+            if [[ "$state" == "device" && "$boot" == "1" && "$api" == "28" ]]; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          "$adb" shell wm size 1080x1920 | tee "$evidence/wm-size-before-test.log"
+          "$adb" shell wm density | tee "$evidence/wm-density-before-test.log"
+          "$adb" shell settings get system font_scale | tee "$evidence/font-scale-before-test.log"
+          "$adb" devices -l | tee "$evidence/adb-devices.log"
+
+      - name: Run title overflow test, 11 Normal Home tests, and native captures
+        id: validation
+        continue-on-error: true
+        env:
+          BUILD_SHA: 041038be62a0efee6c0f65b2a3c2e884bede2274
+        run: bash scripts/android_runtime/run_normal_home_brand_title_validation.sh
+
+      - name: Record product, harness, device, and screenshot identity
+        if: ${{ always() }}
+        env:
+          VALIDATION_HEAD: ${{ github.sha }}
+        run: |
+          mkdir -p "$EVIDENCE_DIR"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          root = pathlib.Path(os.environ["EVIDENCE_DIR"])
+          def digest(path):
+              p = pathlib.Path(path)
+              return hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
+          test_source = "app/src/androidTest/java/com/yujian/ai/ui/home/NormalHomeDataParityTest.kt"
+          frozen_source = "design/system/core_visual_v1/reference/normal_home_v1.png"
+          identity = {
+              "product_head": os.environ["PRODUCT_HEAD"],
+              "validation_head": os.environ["VALIDATION_HEAD"],
+              "product_build_run_id": os.environ["PRODUCT_BUILD_RUN_ID"],
+              "app_apk_sha256": digest(os.environ["APP_APK"]),
+              "android_test_apk_sha256": digest(os.environ["TEST_APK"]),
+              "test_source_blob_sha": subprocess.check_output(["git", "hash-object", test_source], text=True).strip(),
+              "frozen_reference_sha256": digest(frozen_source),
+              "device_metrics": json.loads((root / "device_metrics.json").read_text()) if (root / "device_metrics.json").is_file() else None,
+          }
+          (root / "validation_identity.json").write_text(json.dumps(identity, ensure_ascii=False, indent=2) + "\n")
+          PY
+
+      - name: Generate Frozen comparison images and report
+        if: ${{ always() }}
+        env:
+          VALIDATION_HEAD: ${{ github.sha }}
+        run: python3 scripts/android_runtime/build_normal_home_exclusive_report.py "$EVIDENCE_DIR"
+
+      - name: Upload Normal Home runtime acceptance evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: normal-home-exclusive-runtime-v1-${{ env.PRODUCT_HEAD }}-${{ github.run_attempt }}
+          path: ${{ env.EVIDENCE_DIR }}
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce test and evidence results
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$EVIDENCE_DIR/normal_home_brand_title_result.json"
+          report="$EVIDENCE_DIR/report.json"
+          test -s "$result"
+          test -s "$report"
+          python3 - "$result" "$report" <<'PY'
+          import json, pathlib, sys
+          result = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          report = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          assert result.get("status") == "PASS", result
+          assert result.get("targeted_exit_code") == 0, result
+          assert result.get("normal_home_suite_exit_code") == 0, result
+          assert result.get("visual_evidence_exit_code") == 0, result
+          classes = report.get("classifications", {})
+          assert classes.get("title_overflow") == "PASS", classes.get("title_overflow")
+          assert classes.get("screenshot_evidence") == "PASS", classes.get("screenshot_evidence")
+          assert report.get("comparison", {}).get("all_required_images_generated") is True
+          assert len(report.get("text_layout_measurements", [])) >= 13
+          print("NORMAL_HOME_EXCLUSIVE_ACCEPTANCE=PASS")
+          PY
+          if [[ "${{ steps.validation.outcome }}" != "success" ]]; then
+            echo "Instrumentation/evidence script failed: ${{ steps.validation.outcome }}"
+            exit 1
+          fi
