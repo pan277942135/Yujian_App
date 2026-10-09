@@ -59,15 +59,15 @@ fun FishMediaPicker(
 ) {
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        level = YuJianGlassLevel.Strong,
+        level = YuJianGlassLevel.Medium,
         shape = RoundedCornerShape(20.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Text("鱼获记忆", style = YuJianTypography.sectionTitle)
+            Text(FishMemoryEmptyStateCopy.title, style = YuJianTypography.sectionTitle)
             if (media.isEmpty()) {
                 Text(
-                    "还没有留下影像",
+                    FishMemoryEmptyStateCopy.hint,
                     style = YuJianTypography.caption.copy(fontSize = 13.sp, lineHeight = 18.sp),
                     color = YuJianColors.MistBlueGray,
                     modifier = Modifier.padding(top = 4.dp),
@@ -97,12 +97,12 @@ fun FishMediaPicker(
                             )
                         }
                         Text(
-                            "留下这次鱼获的画面",
+                            FishMemoryEmptyStateCopy.titleLine,
                             style = YuJianTypography.sectionTitle.copy(fontSize = 19.sp, lineHeight = 24.sp),
                             textAlign = TextAlign.Center,
                         )
                         Text(
-                            "照片和视频，会让这一刻更完整。",
+                            FishMemoryEmptyStateCopy.helper,
                             style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 20.sp),
                             color = YuJianColors.MistBlueGray,
                             textAlign = TextAlign.Center,
@@ -144,23 +144,23 @@ fun FishMediaPicker(
                 }
             }
             BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                if (maxWidth < 282.dp || fontScale >= 1.3f) {
+                if (FishMemoryActionLayout.resolve(maxWidth.value, fontScale) == FishMemoryActionsArrangement.STACKED) {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         MemoryMediaAction(
-                            label = "添加照片/视频",
+                            label = FishMemoryEmptyStateCopy.addMedia,
                             icon = Icons.Outlined.Image,
                             onClick = onAddPhotosOrVideos,
                             modifier = Modifier.fillMaxWidth(),
                             primary = true,
                         )
                         MemoryMediaAction(
-                            label = "继续拍照",
+                            label = FishMemoryEmptyStateCopy.continuePhoto,
                             icon = Icons.Rounded.CameraAlt,
                             onClick = onContinuePhoto,
                             modifier = Modifier.fillMaxWidth(),
                         )
                         MemoryMediaAction(
-                            label = "录制视频",
+                            label = FishMemoryEmptyStateCopy.recordVideo,
                             icon = Icons.Rounded.Videocam,
                             onClick = onRecordVideo,
                             modifier = Modifier.fillMaxWidth(),
@@ -169,23 +169,23 @@ fun FishMediaPicker(
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         MemoryMediaAction(
-                            label = "添加照片/视频",
+                            label = FishMemoryEmptyStateCopy.addMedia,
                             icon = Icons.Outlined.Image,
                             onClick = onAddPhotosOrVideos,
-                            modifier = Modifier.weight(1.3f),
+                            modifier = Modifier.weight(1.5f),
                             primary = true,
                         )
                         MemoryMediaAction(
-                            label = "继续拍照",
+                            label = FishMemoryEmptyStateCopy.continuePhoto,
                             icon = Icons.Rounded.CameraAlt,
                             onClick = onContinuePhoto,
                             modifier = Modifier.weight(1f),
                         )
                         MemoryMediaAction(
-                            label = "录制视频",
+                            label = FishMemoryEmptyStateCopy.recordVideo,
                             icon = Icons.Rounded.Videocam,
                             onClick = onRecordVideo,
                             modifier = Modifier.weight(1f),
@@ -257,7 +257,7 @@ private fun MemoryMediaAction(
         Text(
             label,
             modifier = Modifier.padding(start = 4.dp),
-            style = YuJianTypography.caption.copy(fontSize = 12.sp, lineHeight = 16.sp),
+            style = YuJianTypography.caption.copy(fontSize = 13.sp, lineHeight = 18.sp),
             color = YuJianColors.DeepInk,
             maxLines = 1,
         )

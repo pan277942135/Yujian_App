@@ -29,6 +29,25 @@ class FishRecordDetailGeometryTest {
     }
 
     @Test
+    fun frozenReferenceGeometryIsExplicitAndResponsiveMappingKeepsItsProportions() {
+        assertEquals(941, FishRecordDetailFrozenGeometry.canvasWidthPx)
+        assertEquals(1672, FishRecordDetailFrozenGeometry.canvasHeightPx)
+        assertEquals(50, FishRecordDetailFrozenGeometry.heroLeftPx)
+        assertEquals(159, FishRecordDetailFrozenGeometry.heroTopPx)
+        assertEquals(891, FishRecordDetailFrozenGeometry.heroRightPx)
+        assertEquals(699, FishRecordDetailFrozenGeometry.heroBottomPx)
+        assertEquals(841, FishRecordDetailFrozenGeometry.heroWidthPx)
+        assertEquals(540, FishRecordDetailFrozenGeometry.heroHeightPx)
+
+        val expected = mapOf(320 to (288 to 185), 360 to (320 to 205), 393 to (353 to 227), 411 to (363 to 233))
+        expected.forEach { (width, size) ->
+            val geometry = FishRecordDetailGeometryResolver.resolve(width)
+            assertEquals(size.first, geometry.heroWidthDp)
+            assertEquals(size.second, geometry.heroHeightDp)
+        }
+    }
+
+    @Test
     fun safeInsetsAndLargeFontScaleDoNotChangeHeroAspectOrEscapeSafeWidth() {
         val profile = resolveAdaptiveLayoutProfile(
             windowWidthDp = 393f,

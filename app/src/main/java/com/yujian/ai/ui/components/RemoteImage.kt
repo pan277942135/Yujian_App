@@ -38,6 +38,7 @@ fun RemoteImage(
     reloadToken: Int = 0,
     onLoadResult: ((Boolean) -> Unit)? = null,
     preservePortraitWithFitBackdrop: Boolean = false,
+    preserveEvidenceWithFitBackdrop: Boolean = false,
     colorFilter: ColorFilter? = null,
     trimVerifiedLetterbox: Boolean = false,
 ) {
@@ -58,7 +59,27 @@ fun RemoteImage(
     }
     val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
     if (imageBitmap != null) {
-        if (preservePortraitWithFitBackdrop && bitmap?.let { it.height > it.width } == true) {
+        if (preserveEvidenceWithFitBackdrop) {
+            // The original image is both the blurred cover and the fitted evidence.
+            // The opaque base keeps transparent source pixels from exposing the page behind the Hero.
+            Box(modifier = modifier) {
+                Box(Modifier.fillMaxSize().background(Color(0xFF16242C)))
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().blur(22.dp).alpha(0.82f),
+                    contentScale = ContentScale.Crop,
+                )
+                Box(Modifier.fillMaxSize().background(Color(0xFF16242C).copy(alpha = 0.14f)))
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                    colorFilter = colorFilter,
+                )
+            }
+        } else if (preservePortraitWithFitBackdrop && bitmap?.let { it.height > it.width } == true) {
             Box(modifier = modifier) {
                 Image(
                     bitmap = imageBitmap,

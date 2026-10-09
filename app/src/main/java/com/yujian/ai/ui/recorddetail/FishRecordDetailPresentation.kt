@@ -3,8 +3,15 @@ package com.yujian.ai.ui.recorddetail
 import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.presentation.PresentationSanitizer
+import com.yujian.ai.presentation.presentationSpeciesName
 import com.yujian.ai.presentation.sanitizeOptionalText
 import java.util.Locale
+
+data class FishRecordHeroMetadata(
+    val speciesName: String,
+    val measurement: String?,
+    val location: String?,
+)
 
 /** Pure presentation decisions kept separate from Compose for deterministic tests. */
 object FishRecordDetailPresentation {
@@ -22,6 +29,12 @@ object FishRecordDetailPresentation {
         }
         return FishRecordDetailUiState.Empty
     }
+
+    fun heroMetadata(record: RemoteCatch): FishRecordHeroMetadata = FishRecordHeroMetadata(
+        speciesName = presentationSpeciesName(record.speciesName),
+        measurement = measurement(record),
+        location = location(record),
+    )
 
     fun measurement(record: RemoteCatch): String? = listOfNotNull(
         record.lengthCm?.takeIf { it.isFinite() && it > 0f }?.let { "${formatNumber(it)} cm" },
