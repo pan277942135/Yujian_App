@@ -359,7 +359,7 @@ private fun LoadingDetailState(heroHeight: Dp) {
 private fun AboutCatchSection(story: String?, onEdit: () -> Unit) {
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        level = com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel.Strong,
+        level = com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel.Medium,
         shape = RoundedCornerShape(20.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
     ) {
