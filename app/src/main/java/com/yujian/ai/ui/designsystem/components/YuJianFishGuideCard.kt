@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -114,8 +116,9 @@ fun YuJianFishGuideCard(
             )
     } else Modifier
     val unlitImageFilter = remember(isUnlit) {
-        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.84f) }) else null
+        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.78f) }) else null
     }
+    var imageLoaded by remember(item.imageUrl, item.imageCacheIdentity) { mutableStateOf<Boolean?>(null) }
     YuJianGlassCard(
         modifier = modifier.then(interactionModifier),
         level = if (isUnlit) YuJianGlassLevel.Light else YuJianGlassLevel.Medium,
@@ -128,15 +131,21 @@ fun YuJianFishGuideCard(
                     url = item.imageUrl,
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = null,
-                    // The physical UNLIT capture showed a portrait cover centered in a
-                    // landscape card. Crop its empty top/bottom margins instead of
-                    // exposing the cover's rectangular canvas as a second panel.
-                    contentScale = if (isUnlit) ContentScale.Crop else ContentScale.Fit,
+                    contentScale = ContentScale.Fit,
+                    cacheIdentity = item.imageCacheIdentity,
+                    onLoadResult = { imageLoaded = it },
                     colorFilter = unlitImageFilter,
-                    placeholder = { MissingSpeciesArtwork(item, isUnlit) },
+                    placeholder = {
+                        MissingSpeciesArtwork(
+                            item = item,
+                            isUnlit = isUnlit,
+                            loading = imageLoaded != false,
+                            loadFailed = imageLoaded == false,
+                        )
+                    },
                 )
             } else {
-                MissingSpeciesArtwork(item, isUnlit)
+                MissingSpeciesArtwork(item, isUnlit, loading = false, loadFailed = false)
             }
 
             if (isUnlit || animateEncounterTransition) {
@@ -252,7 +261,12 @@ fun YuJianFishGuideCard(
 }
 
 @Composable
-private fun MissingSpeciesArtwork(item: FishGuidePresentationItem, isUnlit: Boolean) {
+private fun MissingSpeciesArtwork(
+    item: FishGuidePresentationItem,
+    isUnlit: Boolean,
+    loading: Boolean,
+    loadFailed: Boolean,
+) {
     val baseColor = if (isUnlit) YuJianColors.MistBlueGray else YuJianColors.LakeBlue
     Box(
         modifier = Modifier
@@ -269,7 +283,16 @@ private fun MissingSpeciesArtwork(item: FishGuidePresentationItem, isUnlit: Bool
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
-                text = "${item.name} · 鱼种影像暂不可用",
+                text = when {
+                    loading -> "${item.name} · 正在加载鱼鉴主视觉"
+                    loadFailed -> "${item.name} · 鱼鉴主视觉加载失败"
+                    item.imageStatus == "DRAFT" || item.imageStatus == "PENDING" -> "${item.name} · 鱼鉴主视觉尚未发布"
+                    item.imageStatus == "ARCHIVED" -> "${item.name} · 暂无当前版本主视觉"
+                    item.imageStatus == "LEGACY_API" -> "${item.name} · 鱼鉴主视觉发布状态暂不可用"
+                    item.imageStatus == "INVALID_URL" || item.imageStatus == "URL_UNRESOLVED" -> "${item.name} · 鱼鉴主视觉地址无效"
+                    item.imageStatus == "MISSING_VERSION" -> "${item.name} · 鱼鉴主视觉版本信息缺失"
+                    else -> "${item.name} · 鱼鉴主视觉暂不可用"
+                },
                 style = YuJianTypography.caption.copy(color = YuJianColors.TextSecondary),
             )
         }

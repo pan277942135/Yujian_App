@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -215,6 +216,7 @@ fun FishGuideCarousel(
                 modifier = Modifier
                     .width(cardWidth)
                     .height(cardHeight)
+                    .testTag("fish_guide_card_${item.id}")
                     .graphicsLayer {
                         scaleX = if (reduceMotion && !pagerState.isScrollInProgress) 1f else emphasis
                         scaleY = if (reduceMotion && !pagerState.isScrollInProgress) 1f else emphasis

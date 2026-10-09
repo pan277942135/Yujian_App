@@ -40,10 +40,11 @@ fun RemoteImage(
     preservePortraitWithFitBackdrop: Boolean = false,
     colorFilter: ColorFilter? = null,
     trimVerifiedLetterbox: Boolean = false,
+    cacheIdentity: String? = null,
 ) {
-    val bitmapState = remember(url, authToken, reloadToken) { mutableStateOf<Bitmap?>(null) }
+    val bitmapState = remember(url, authToken, reloadToken, cacheIdentity) { mutableStateOf<Bitmap?>(null) }
     val latestOnLoadResult = rememberUpdatedState(onLoadResult)
-    LaunchedEffect(url, authToken, reloadToken) {
+    LaunchedEffect(url, authToken, reloadToken, cacheIdentity) {
         if (url.isNullOrBlank()) {
             bitmapState.value = null
             return@LaunchedEffect

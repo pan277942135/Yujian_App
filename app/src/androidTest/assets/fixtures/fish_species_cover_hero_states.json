@@ -1,0 +1,7 @@
+[
+  {"id": "active", "name_cn": "已发布鱼", "cover_image": "https://cdn.example/legacy.webp", "cover_hero_image": "/media/active.webp", "cover_hero_version_id": 10, "cover_hero_status": "ACTIVE", "status": "ACTIVE"},
+  {"id": "draft", "name_cn": "草稿鱼", "cover_image": "https://cdn.example/draft-legacy.webp", "cover_hero_image": "/media/draft.webp", "cover_hero_version_id": 11, "cover_hero_status": "DRAFT", "status": "ACTIVE"},
+  {"id": "archived", "name_cn": "归档鱼", "cover_hero_image": "/media/archived.webp", "cover_hero_version_id": 12, "cover_hero_status": "ARCHIVED", "status": "ACTIVE"},
+  {"id": "no-image", "name_cn": "缺图鱼", "cover_hero_version_id": 13, "cover_hero_status": "ACTIVE", "status": "ACTIVE"},
+  {"id": "legacy-api", "name_cn": "旧接口鱼", "cover_image": "https://cdn.example/legacy-api.webp", "status": "ACTIVE"}
+]

@@ -1,9 +1,11 @@
 package com.yujian.ai
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.knowledge.FishKnowledgeRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -84,6 +86,76 @@ class FishKnowledgeContractTest {
         val repository = FishKnowledgeRepository("https://api.example/")
         assertEquals("https://api.example/api/v1/fish/gallery/9/media", repository.resolveAssetUrl("/api/v1/fish/gallery/9/media"))
         assertEquals("https://cdn.example/image.png", repository.resolveAssetUrl("https://cdn.example/image.png"))
+        assertNull(repository.resolveAssetUrl("//cdn.example/image.png"))
+        assertNull(repository.resolveAssetUrl("javascript:alert(1)"))
         assertTrue(repository.isConfigured())
     }
+
+    @Test
+    fun cms_v13_fixture_parses_public_five_role_assets_and_keeps_legacy_cards_separate() {
+        val detail = repository().parseDetailJson(fixture("fish_knowledge_detail_v13_active_assets.json"))
+
+        assertTrue(detail.knowledgeAssetsContractPresent)
+        assertEquals(listOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL"), detail.knowledgeAssets.keys.sortedBy {
+            listOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL").indexOf(it)
+        })
+        assertTrue(detail.knowledgeAssets.values.all { it.status == "ACTIVE" && it.speciesId == "grass_carp" })
+        assertEquals("v2", detail.knowledgeAssets.getValue("HERO").version)
+        assertEquals(listOf("DRAFT", "ACTIVE"), detail.cards.map { it.status })
+    }
+
+    @Test
+    fun cms_v14_fixture_parses_active_hero_and_versioned_asset_identity() {
+        val detail = repository().parseDetailJson(fixture("fish_knowledge_detail_v14_versioned_active.json"))
+
+        assertEquals("/api/v1/fish/knowledge-media/grass_carp/cover_hero/43.webp", detail.coverHeroImage)
+        assertEquals(4301, detail.coverHeroVersionId)
+        assertEquals("ACTIVE", detail.coverHeroStatus)
+        assertEquals("9101", detail.knowledgeAssets.getValue("HERO").versionId)
+        assertEquals("ca-hero-91", detail.knowledgeAssets.getValue("HERO").resourceId)
+        assertTrue(detail.knowledgeAssets.values.all { it.status == "ACTIVE" && it.speciesId == "grass_carp" })
+    }
+
+    @Test
+    fun legacy_api_fixture_does_not_promote_cover_image_or_draft_card() {
+        val detail = repository().parseDetailJson(fixture("fish_knowledge_detail_legacy_api.json"))
+
+        assertFalse(detail.knowledgeAssetsContractPresent)
+        assertEquals("https://cdn.example/legacy-only.webp", detail.species.coverImage)
+        assertEquals("LEGACY_API", detail.coverHeroStatus)
+        assertNull(detail.coverHeroImage)
+        assertEquals(listOf("ACTIVE", "DRAFT"), detail.cards.map { it.status })
+    }
+
+    @Test
+    fun asset_edge_fixture_keeps_published_state_and_rejects_unrecognized_roles() {
+        val detail = repository().parseDetailJson(fixture("fish_knowledge_detail_asset_edge_cases.json"))
+
+        assertTrue(detail.knowledgeAssetsContractPresent)
+        assertEquals("DRAFT", detail.knowledgeAssets.getValue("HERO").status)
+        assertEquals("ARCHIVED", detail.knowledgeAssets.getValue("IDENTIFICATION").status)
+        assertFalse(detail.knowledgeAssets.containsKey("ECO"))
+        assertEquals("another-fish", detail.knowledgeAssets.getValue("GEAR").speciesId)
+        assertNull(detail.knowledgeAssets.getValue("SKILL").versionId)
+        assertEquals("javascript:alert(1)", detail.knowledgeAssets.getValue("SKILL").imageUrl)
+        assertFalse(detail.knowledgeAssets.containsKey("UNEXPECTED"))
+    }
+
+    @Test
+    fun species_list_fixture_preserves_cover_hero_states_without_legacy_promotion() {
+        val species = repository().parseSpeciesJson(fixture("fish_species_cover_hero_states.json"))
+
+        assertEquals(listOf("ACTIVE", "DRAFT", "ARCHIVED", "ACTIVE", "LEGACY_API"), species.map { it.coverHeroStatus })
+        assertNull(species.last().coverHeroImage)
+        assertEquals("https://cdn.example/legacy-api.webp", species.last().coverImage)
+        assertEquals(10, species.first().coverHeroVersionId)
+        assertNull(species[3].coverHeroImage)
+    }
+
+    private fun repository() = FishKnowledgeRepository("https://api.example")
+
+    private fun fixture(name: String): String = InstrumentationRegistry.getInstrumentation().context.assets
+        .open("fixtures/$name")
+        .bufferedReader()
+        .use { it.readText() }
 }
