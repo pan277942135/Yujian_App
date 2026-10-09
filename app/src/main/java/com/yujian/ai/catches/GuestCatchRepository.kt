@@ -19,17 +19,11 @@ internal fun guestMigrationDraft(sourceGuestId: String, finalView: RemoteCatch):
         location = finalView.location,
         story = finalView.story,
     )
-    val classifier = JSONObject()
-        .put("length_cm", metadata.lengthCm ?: JSONObject.NULL)
-        .put("weight_kg", metadata.weightKg ?: JSONObject.NULL)
-        .put("location", metadata.location ?: JSONObject.NULL)
-        .put("story", metadata.story ?: JSONObject.NULL)
     return CatchSaveDraft(
         speciesId = finalView.speciesId,
         speciesName = finalView.speciesName,
         confidence = finalView.confidence,
         modelVersion = finalView.modelVersion,
-        classifierResult = classifier,
         metadata = metadata,
         clientRecordId = sourceGuestId,
         capturedAt = finalView.capturedAt,
