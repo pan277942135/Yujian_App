@@ -37,6 +37,8 @@ data class FishGuideKnowledgeCardPresentation(
 data class FishGuidePresentationItem(
     val source: FishGuideItem,
     val imageUrl: String?,
+    val imageVersionId: Int? = null,
+    val imageStatus: String = "MISSING",
 ) {
     val id: String get() = source.id
     val name: String get() = source.nameCn
@@ -50,7 +52,13 @@ data class FishGuidePresentationItem(
 fun List<FishGuideItem>.toFishGuidePresentation(
     resolveAssetUrl: (String?) -> String?,
 ): List<FishGuidePresentationItem> = map { item ->
-    FishGuidePresentationItem(item, resolveAssetUrl(item.coverImage))
+    val publishedHero = item.coverHeroImage.takeIf { item.coverHeroStatus.equals("ACTIVE", ignoreCase = true) }
+    FishGuidePresentationItem(
+        source = item,
+        imageUrl = resolveAssetUrl(publishedHero),
+        imageVersionId = item.coverHeroVersionId.takeIf { publishedHero != null },
+        imageStatus = item.coverHeroStatus,
+    )
 }
 
 fun List<FishGuideItem>.litCount(): Int = count { it.discovered }

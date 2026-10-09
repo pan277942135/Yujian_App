@@ -8,6 +8,10 @@ data class FishGuideItem(
     val category: String = "",
     val summary: String = "",
     val coverImage: String? = null,
+    /** Versioned, published COVER_HERO only. Never inferred from legacy cover_image. */
+    val coverHeroImage: String? = null,
+    val coverHeroVersionId: Int? = null,
+    val coverHeroStatus: String = "MISSING",
     val discovered: Boolean = false,
     val catches: Int = 0,
     val pinyin: String? = null,
@@ -26,6 +30,9 @@ data class FishKnowledgeSpecies(
     val summary: String,
     val status: String,
     val coverImage: String?,
+    val coverHeroImage: String? = null,
+    val coverHeroVersionId: Int? = null,
+    val coverHeroStatus: String = "MISSING",
 )
 
 data class FishKnowledgeCover(
@@ -163,6 +170,9 @@ data class FishKnowledgeDetail(
     val similarity: List<FishKnowledgeSimilarity>,
     val knowledge: FishKnowledgeStructured = FishKnowledgeStructured(),
     val dynamicAvailable: Boolean = false,
+    val coverHeroImage: String? = null,
+    val coverHeroVersionId: Int? = null,
+    val coverHeroStatus: String = "MISSING",
 )
 
 fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
@@ -179,6 +189,9 @@ fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
             summary = summary,
             status = catalogStatus,
             coverImage = coverImage,
+            coverHeroImage = coverHeroImage,
+            coverHeroVersionId = coverHeroVersionId,
+            coverHeroStatus = coverHeroStatus,
         ),
         cover = null,
         cards = emptyList(),

@@ -217,7 +217,7 @@ private fun FishGuideProgressHeader(species: List<FishGuideItem>, reduceMotion: 
         )
         FishGuideProgress(
             fraction = species.progressFraction(),
-            modifier = Modifier.fillMaxWidth(0.42f),
+            modifier = Modifier.fillMaxWidth(0.39f).testTag("fish_guide_progress"),
             reduceMotion = reduceMotion,
             durationMillis = progressDuration,
         )
@@ -249,7 +249,7 @@ private fun FishGuideLoadingState(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs),
         ) {
             Box(Modifier.fillMaxWidth(0.26f).height(14.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.30f), RoundedCornerShape(7.dp)))
-            Box(Modifier.fillMaxWidth(0.42f).height(6.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.24f), RoundedCornerShape(4.dp)))
+            Box(Modifier.fillMaxWidth(0.39f).height(6.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.24f), RoundedCornerShape(4.dp)))
         }
         BoxWithConstraints(
             Modifier.fillMaxWidth().padding(

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.Text
@@ -61,9 +62,13 @@ fun YuJianHeroCard(
     contentInsetHorizontal: Dp = 0.dp,
     contentInsetVertical: Dp = 0.dp,
     footerPadding: Dp = YuJianSpacing.md,
+    cornerRadius: Dp = YuJianRadius.extraLarge,
+    footerPaddingHorizontal: Dp? = null,
+    footerPaddingVertical: Dp? = null,
     editLabel: String? = if (variant == YuJianHeroVariant.DETAIL) "编辑 >" else null,
     onClick: (() -> Unit)? = null,
     semanticsTag: String? = null,
+    footerTag: String? = null,
     decoration: YuJianHeroDecoration = YuJianHeroDecoration(),
     footerContent: (@Composable ColumnScope.() -> Unit)? = null,
     mediaAction: (@Composable BoxScope.() -> Unit)? = null,
@@ -79,6 +84,7 @@ fun YuJianHeroCard(
         Modifier
     }
     val tagModifier = semanticsTag?.let { Modifier.testTag(it) } ?: Modifier
+    val footerTagModifier = footerTag?.let { Modifier.testTag(it) } ?: Modifier
     val height = heightOverride ?: if (variant == YuJianHeroVariant.HOME) HomeHeroHeight else DetailHeroHeight
     Box(modifier = modifier.fillMaxWidth().height(height).then(interactionModifier).then(tagModifier)) {
         decoration.shadow?.let { shadow ->
@@ -88,7 +94,7 @@ fun YuJianHeroCard(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = contentInsetHorizontal, vertical = contentInsetVertical)
-                .clip(YuJianRadius.heroCard),
+                .clip(RoundedCornerShape(cornerRadius)),
         ) {
             media()
             decoration.gradient?.let { gradient ->
@@ -106,7 +112,13 @@ fun YuJianHeroCard(
             )
             mediaAction?.invoke(this)
             Column(
-                modifier = Modifier.align(Alignment.BottomStart).padding(footerPadding),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(
+                        horizontal = footerPaddingHorizontal ?: footerPadding,
+                        vertical = footerPaddingVertical ?: footerPadding,
+                    )
+                    .then(footerTagModifier),
             ) {
                 if (footerContent != null) {
                     footerContent()

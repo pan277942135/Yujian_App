@@ -22,6 +22,30 @@ class FishKnowledgeContractTest {
     }
 
     @Test
+    fun species_list_contract_reads_active_cover_hero_without_replacing_legacy_cover_field() {
+        val item = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
+            """[{"id":"grass_carp","name_cn":"草鱼","cover_image":"/legacy.webp","cover_hero_image":"/cover_hero/v7.webp","cover_hero_version_id":77,"cover_hero_status":"ACTIVE"}]""",
+        ).single()
+
+        assertEquals("/legacy.webp", item.coverImage)
+        assertEquals("/cover_hero/v7.webp", item.coverHeroImage)
+        assertEquals(77, item.coverHeroVersionId)
+        assertEquals("ACTIVE", item.coverHeroStatus)
+    }
+
+    @Test
+    fun old_species_list_payload_does_not_promote_cover_image_to_cover_hero() {
+        val item = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
+            """[{"id":"grass_carp","name_cn":"草鱼","cover_image":"/legacy.webp"}]""",
+        ).single()
+
+        assertEquals("/legacy.webp", item.coverImage)
+        assertEquals(null, item.coverHeroImage)
+        assertEquals(null, item.coverHeroVersionId)
+        assertEquals("LEGACY_API", item.coverHeroStatus)
+    }
+
+    @Test
     fun species_list_parser_excludes_non_active_catalog_entries() {
         val items = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
             """[
@@ -51,6 +75,9 @@ class FishKnowledgeContractTest {
                 "status": "ACTIVE",
                 "cover_image": "https://cdn.example/baitiao-cover.png"
               },
+              "cover_hero_image": "https://cdn.example/baitiao-hero-v4.png",
+              "cover_hero_version_id": 404,
+              "cover_hero_status": "ACTIVE",
               "cover": {"image_url":"https://cdn.example/baitiao-cover.png","style":"ANIME_CARD","title":"白条图鉴卡","status":"ACTIVE"},
               "cards": [
                 {"id":2,"species_id":"sharpbelly","type":"IDENTIFICATION","title":"识别卡","image_url":"https://cdn.example/id.png","description":"","content":{"type":"IDENTIFICATION","features":[{"title":"体色","text":"银白"}],"similar":[{"name":"翘嘴","difference":"更大"}]},"sort_order":1,"status":"ACTIVE"},
@@ -68,6 +95,9 @@ class FishKnowledgeContractTest {
         )
 
         assertEquals("sharpbelly", detail.species.id)
+        assertEquals("https://cdn.example/baitiao-hero-v4.png", detail.coverHeroImage)
+        assertEquals(404, detail.coverHeroVersionId)
+        assertEquals("ACTIVE", detail.coverHeroStatus)
         assertEquals("Hemiculter leucisculus", detail.species.scientificName)
         assertEquals(listOf("HERO", "IDENTIFICATION"), detail.cards.map { it.cardType })
         assertEquals("中上层快鱼", detail.cards.first().content.tag)
