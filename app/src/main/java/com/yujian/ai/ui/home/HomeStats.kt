@@ -15,7 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.catches.CatchStatistics
@@ -58,16 +60,24 @@ internal fun resolveHomeStatValues(
 }
 
 @Composable
-fun HomeStats(
+internal fun HomeStats(
     statistics: CatchStatistics,
     catches: List<RemoteCatch>,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
     isResolving: Boolean = false,
     dividerHeight: Dp = YuJianSpacing.xl,
+    dividerWidth: Dp = 1.dp,
     horizontalPadding: Dp = YuJianSpacing.lg,
+    verticalPadding: Dp = YuJianSpacing.xs,
+    labelSpacing: Dp = 0.dp,
+    typography: NormalHomeTypographyContract? = null,
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
+    val density = LocalDensity.current
+    val type = typography ?: remember(density.density) {
+        normalHomeTypographyContract(1080f / density.density, density.density)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,10 +91,13 @@ fun HomeStats(
             "鱼种",
             onClick = onSpeciesClick.takeUnless { isResolving },
             semanticsTag = "normal-home-stat-species",
+            verticalPadding = verticalPadding,
+            labelSpacing = labelSpacing,
+            typography = type,
         )
         Box(
             Modifier
-                .width(1.dp)
+                .width(dividerWidth)
                 .height(dividerHeight)
                 .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f))
                 .testTag("normal-home-stat-divider-1"),
@@ -95,10 +108,13 @@ fun HomeStats(
             "鱼获",
             onClick = onCatchesClick.takeUnless { isResolving },
             semanticsTag = "normal-home-stat-catches",
+            verticalPadding = verticalPadding,
+            labelSpacing = labelSpacing,
+            typography = type,
         )
         Box(
             Modifier
-                .width(1.dp)
+                .width(dividerWidth)
                 .height(dividerHeight)
                 .background(YuJianColors.MistBlueGray.copy(alpha = 0.32f))
                 .testTag("normal-home-stat-divider-2"),
@@ -109,6 +125,9 @@ fun HomeStats(
             "记录天数",
             onClick = null,
             semanticsTag = "normal-home-stat-record-days",
+            verticalPadding = verticalPadding,
+            labelSpacing = labelSpacing,
+            typography = type,
         )
     }
 }
@@ -120,22 +139,39 @@ internal fun HomeStat(
     label: String,
     onClick: (() -> Unit)?,
     semanticsTag: String,
+    verticalPadding: Dp,
+    labelSpacing: Dp,
+    typography: NormalHomeTypographyContract,
 ) {
     Column(
         modifier = (if (onClick == null) modifier else modifier.clickable(onClick = onClick))
-            .padding(vertical = YuJianSpacing.xs)
+            .padding(vertical = verticalPadding)
             .testTag(semanticsTag),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = value,
-            style = YuJianTypography.dataNumber.copy(color = YuJianColors.TextPrimary),
+            style = YuJianTypography.dataNumber.copy(
+                color = YuJianColors.TextPrimary,
+                fontSize = typography.statValue.fontSize,
+                lineHeight = typography.statValue.lineHeight,
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.testTag("$semanticsTag-value"),
         )
         Text(
             text = label,
-            style = YuJianTypography.caption.copy(color = YuJianColors.TextPrimary.copy(alpha = 0.78f)),
-            modifier = Modifier.testTag("$semanticsTag-label"),
+            style = YuJianTypography.caption.copy(
+                color = YuJianColors.TextPrimary.copy(alpha = 0.78f),
+                fontSize = typography.statLabel.fontSize,
+                lineHeight = typography.statLabel.lineHeight,
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .padding(top = labelSpacing)
+                .testTag("$semanticsTag-label"),
         )
     }
 }

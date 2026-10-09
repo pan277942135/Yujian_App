@@ -3,8 +3,11 @@ package com.yujian.ai.ui.home
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -14,6 +17,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -63,7 +67,7 @@ class NormalHomeDataParityTest {
                 capturedAt = "2026-10-04T21:50:00+08:00",
                 lengthCm = 28f,
                 weightKg = 2.6f,
-                location = "江苏省苏州市吴中区太湖国家湿地公园东岸",
+                location = "江苏省苏州市吴中区太湖国家湿地公园东岸东岸东岸国家级风景区游客中心北侧临水平台",
             ),
         )
         var allClicks = 0
@@ -88,7 +92,7 @@ class NormalHomeDataParityTest {
                     onCatchClick = { openedCatch = it },
                     motionState = HomeMotionState(),
                     runtimeAssets = null,
-                    modifier = Modifier.size(360.dp, 760.dp),
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
 
@@ -158,8 +162,12 @@ class NormalHomeDataParityTest {
             assertEquals(740f / 1080f, firstCardBounds.width / pagerBounds.width, 0.015f)
             assertEquals(880f / 1080f, firstCardBounds.height / pagerBounds.width, 0.02f)
             assertTrue("The next card remains visible as an adjacent-page peek", secondCard.fetchSemanticsNode().boundsInRoot.left < pagerBounds.right)
-            assertTrue(firstMediaBounds.width < firstCardBounds.width)
-            assertTrue(firstMediaBounds.height < firstCardBounds.height)
+            assertEquals("HOME media and outer card share one horizontal boundary", firstCardBounds.width, firstMediaBounds.width, 1.5f)
+            assertEquals("HOME media and outer card share one vertical boundary", firstCardBounds.height, firstMediaBounds.height, 1.5f)
+            val footerBounds = compose.onNodeWithTag("normal-home-catch-footer-catch-snakehead", useUnmergedTree = true)
+                .fetchSemanticsNode().boundsInRoot
+            assertEquals(56f / 740f, (footerBounds.left - firstCardBounds.left) / firstCardBounds.width, 0.025f)
+            assertEquals(32f / 740f, (firstCardBounds.bottom - footerBounds.bottom) / firstCardBounds.width, 0.025f)
 
             compose.onNodeWithTag("normal-home-catch-species-catch-snakehead", useUnmergedTree = true).assertTextEquals("黑鱼")
             compose.onNodeWithTag("normal-home-catch-measurement-catch-snakehead", useUnmergedTree = true).assertTextEquals("28 cm · 2.6 kg")
@@ -173,7 +181,7 @@ class NormalHomeDataParityTest {
             val longMeta = compose.onNodeWithTag("normal-home-catch-meta-catch-snakehead", useUnmergedTree = true).fetchSemanticsNode()
             val metaText = longMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue("The timestamp and separator stay before the long location", metaText.contains("21:50 · "))
-            assertTrue(metaText.contains("江苏省苏州市吴中区太湖国家湿地公园东岸"))
+            assertTrue(metaText.contains("江苏省苏州市吴中区太湖国家湿地公园东岸东岸东岸国家级风景区游客中心北侧临水平台"))
             assertTrue("Long location stays on one constrained line", longMeta.boundsInRoot.height < firstCardBounds.height / 8f)
             assertTrue("Metadata stays inside the card", longMeta.boundsInRoot.right <= firstCardBounds.right + 1f)
             val layoutResults = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
@@ -186,6 +194,18 @@ class NormalHomeDataParityTest {
                 "The time and separator remain before the visible ellipsis",
                 layoutResults.single().getLineEnd(0, visibleEnd = true) > metaText.indexOf("21:50 · ") + 7,
             )
+
+            logTextLayoutMetric("normal-home-brand-title", "normal-home-header", referenceFontPx = 72f)
+            listOf("species", "catches", "record-days").forEach { stat ->
+                logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontPx = 36f)
+                logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontPx = 28f)
+            }
+            logTextLayoutMetric("normal-home-recent-title", "normal-home-recent-header", referenceFontPx = 48f)
+            logTextLayoutMetric("normal-home-recent-all-label", "normal-home-recent-header", referenceFontPx = 40f)
+            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
+            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
+            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
+            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
 
             assertCoveredCard(firstCard)
             firstCard.performClick()
@@ -228,6 +248,99 @@ class NormalHomeDataParityTest {
         }
     }
 
+    @Test
+    fun realSamplePhotoSharesFullHeroBoundsAndClipsAtAllFourRoundedCorners() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val photo = File(context.cacheDir, "normal-home-real-photo.jpg")
+        val backdrop = AndroidColor.rgb(11, 23, 31)
+        context.assets.open("home_normal/fish_record/sample_recent_catch.jpg").use { input ->
+            photo.outputStream().use { output -> input.copyTo(output) }
+        }
+        try {
+            compose.setContent {
+                Box(Modifier.fillMaxSize().background(Color(backdrop))) {
+                    NormalHomeContent(
+                        statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                        recentCatches = listOf(
+                            record(
+                                id = "real-photo-catch",
+                                image = photo,
+                                speciesId = "grass-carp",
+                                speciesName = "草鱼",
+                                capturedAt = "2026-10-04T18:20:00+08:00",
+                                lengthCm = 42.6f,
+                                weightKg = 1.28f,
+                                location = "浙江省杭州市淳安县千岛湖",
+                            ),
+                        ),
+                        resolveImageUrl = { it },
+                        accessToken = "",
+                        isLoggedIn = false,
+                        avatarUrl = null,
+                        onIdentify = {},
+                        onSpeciesClick = {},
+                        onCatchesClick = {},
+                        onProfileClick = {},
+                        onCatchClick = {},
+                        motionState = HomeMotionState(),
+                        runtimeAssets = null,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            compose.waitUntil(timeoutMillis = 10_000) {
+                compose.onAllNodesWithContentDescription("草鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
+            }
+            val card = compose.onNodeWithTag("normal-home-catch-card-real-photo-catch")
+            val media = compose.onNodeWithTag("normal-home-catch-media-real-photo-catch", useUnmergedTree = true)
+            val cardBounds = card.fetchSemanticsNode().boundsInRoot
+            val mediaBounds = media.fetchSemanticsNode().boundsInRoot
+            assertEquals(cardBounds.left, mediaBounds.left, 1f)
+            assertEquals(cardBounds.top, mediaBounds.top, 1f)
+            assertEquals(cardBounds.width, mediaBounds.width, 1f)
+            assertEquals(cardBounds.height, mediaBounds.height, 1f)
+            assertEquals(1, compose.onAllNodesWithTag("normal-home-catch-card-real-photo-catch").fetchSemanticsNodes().size)
+            println(
+                "NORMAL_HOME_HERO_MEDIA_BOUNDS " +
+                    "card=${cardBounds.left},${cardBounds.top},${cardBounds.right},${cardBounds.bottom} " +
+                    "media=${mediaBounds.left},${mediaBounds.top},${mediaBounds.right},${mediaBounds.bottom} " +
+                    "expectedFrozenCornerRadiusPx=32"
+            )
+
+            val root = compose.onNodeWithTag("normal-home-content-root").fetchSemanticsNode().boundsInRoot
+            val pixels = compose.onNodeWithTag("normal-home-content-root").captureToImage().toPixelMap()
+            val cardLeft = cardBounds.left - root.left
+            val cardTop = cardBounds.top - root.top
+            val photoSamples = listOf(
+                pixels[(cardLeft + cardBounds.width / 2).toInt(), (cardTop + cardBounds.height / 5).toInt()],
+                pixels[(cardLeft + cardBounds.width / 3).toInt(), (cardTop + cardBounds.height / 3).toInt()],
+                pixels[(cardLeft + cardBounds.width * 2 / 3).toInt(), (cardTop + cardBounds.height / 2).toInt()],
+                pixels[(cardLeft + cardBounds.width / 4).toInt(), (cardTop + cardBounds.height * 3 / 5).toInt()],
+            )
+            val redSpread = photoSamples.maxOf { it.red } - photoSamples.minOf { it.red }
+            val greenSpread = photoSamples.maxOf { it.green } - photoSamples.minOf { it.green }
+            assertTrue("A decoded photographic image, not a flat fallback, fills the Hero", redSpread > 0.12f || greenSpread > 0.12f)
+
+            val cornerSamples = listOf(
+                pixels[(cardLeft + cardBounds.width * 0.005f).toInt(), (cardTop + cardBounds.height * 0.005f).toInt()],
+                pixels[(cardLeft + cardBounds.width * 0.995f).toInt(), (cardTop + cardBounds.height * 0.005f).toInt()],
+                pixels[(cardLeft + cardBounds.width * 0.005f).toInt(), (cardTop + cardBounds.height * 0.995f).toInt()],
+                pixels[(cardLeft + cardBounds.width * 0.995f).toInt(), (cardTop + cardBounds.height * 0.995f).toInt()],
+            )
+            cornerSamples.forEachIndexed { index, color ->
+                assertTrue(
+                    "The real photo and card share the rounded clip at corner $index (root=${root.width}x${root.height})",
+                    kotlin.math.abs(color.red * 255f - AndroidColor.red(backdrop)) < 4f &&
+                        kotlin.math.abs(color.green * 255f - AndroidColor.green(backdrop)) < 4f &&
+                        kotlin.math.abs(color.blue * 255f - AndroidColor.blue(backdrop)) < 4f,
+                )
+            }
+        } finally {
+            photo.delete()
+        }
+    }
+
     private fun assertCoveredCard(card: androidx.compose.ui.test.SemanticsNodeInteraction) {
         val pixels = card.captureToImage().toPixelMap()
         val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
@@ -241,11 +354,119 @@ class NormalHomeDataParityTest {
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
         val bottomBrightness = readableBottom.red + readableBottom.green + readableBottom.blue
         assertTrue("A subtle local bottom treatment keeps card text readable", topBrightness - bottomBrightness > 0.12f)
-        val roundedCorner = pixels[(pixels.width * 0.02f).toInt(), (pixels.height * 0.02f).toInt()]
-        assertTrue(
-            "The source image must not show through the rounded card corner",
-            !(roundedCorner.red > 0.78f && roundedCorner.green > 0.68f && roundedCorner.blue < 0.42f),
+        val corners = listOf(
+            pixels[(pixels.width * 0.01f).toInt(), (pixels.height * 0.01f).toInt()],
+            pixels[(pixels.width * 0.99f).toInt(), (pixels.height * 0.01f).toInt()],
+            pixels[(pixels.width * 0.01f).toInt(), (pixels.height * 0.99f).toInt()],
+            pixels[(pixels.width * 0.99f).toInt(), (pixels.height * 0.99f).toInt()],
         )
+        corners.forEachIndexed { index, color ->
+            assertTrue(
+                "The synthetic edge marker stays clipped outside shared rounded corner $index",
+                !(color.red > 0.78f && color.green > 0.68f && color.blue < 0.42f),
+            )
+        }
+    }
+
+    private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontPx: Float) {
+        val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        val parent = compose.onNodeWithTag(parentTag, useUnmergedTree = true).fetchSemanticsNode()
+        val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+        val action = node.config[SemanticsActions.GetTextLayoutResult].action
+        assertTrue("$tag exposes TextLayoutResult", action != null)
+        assertTrue(action!!.invoke(layouts))
+        val layout = layouts.single()
+        val text = node.config[SemanticsProperties.Text].joinToString("") { it.text }
+        val nodeBounds = node.boundsInRoot
+        val parentBounds = parent.boundsInRoot
+        val density = layout.layoutInput.density.density
+        val fontScale = layout.layoutInput.density.fontScale
+        val visibleEnd = if (layout.lineCount > 0) layout.getLineEnd(0, visibleEnd = true).coerceIn(0, text.length) else 0
+        val visibleGlyphBounds = if (visibleEnd > 0) {
+            val glyphs = (0 until visibleEnd).map(layout::getBoundingBox)
+            androidx.compose.ui.geometry.Rect(
+                left = glyphs.minOf { it.left },
+                top = glyphs.minOf { it.top },
+                right = glyphs.maxOf { it.right },
+                bottom = glyphs.maxOf { it.bottom },
+            )
+        } else {
+            androidx.compose.ui.geometry.Rect.Zero
+        }
+        val glyphOutlineBounds = if (visibleEnd > 0) {
+            layout.getPathForRange(0, visibleEnd).getBounds()
+        } else {
+            androidx.compose.ui.geometry.Rect.Zero
+        }
+        val layoutBounds = androidx.compose.ui.geometry.Rect(0f, 0f, layout.size.width.toFloat(), layout.size.height.toFloat())
+        val glyphOutlineInsideLayout = glyphOutlineBounds.left >= layoutBounds.left - 0.5f &&
+            glyphOutlineBounds.top >= layoutBounds.top - 0.5f &&
+            glyphOutlineBounds.right <= layoutBounds.right + 0.5f &&
+            glyphOutlineBounds.bottom <= layoutBounds.bottom + 0.5f
+        val glyphOutlineRootBounds = androidx.compose.ui.geometry.Rect(
+            nodeBounds.left + glyphOutlineBounds.left,
+            nodeBounds.top + glyphOutlineBounds.top,
+            nodeBounds.left + glyphOutlineBounds.right,
+            nodeBounds.top + glyphOutlineBounds.bottom,
+        )
+        val glyphOutlineInsideNode = glyphOutlineBounds.left >= -0.5f &&
+            glyphOutlineBounds.top >= -0.5f &&
+            glyphOutlineBounds.right <= nodeBounds.width + 0.5f &&
+            glyphOutlineBounds.bottom <= nodeBounds.height + 0.5f
+        val glyphOutlineInsideParent = glyphOutlineRootBounds.left >= parentBounds.left - 0.5f &&
+            glyphOutlineRootBounds.top >= parentBounds.top - 0.5f &&
+            glyphOutlineRootBounds.right <= parentBounds.right + 0.5f &&
+            glyphOutlineRootBounds.bottom <= parentBounds.bottom + 0.5f
+        val lineBounds = if (layout.lineCount > 0) {
+            "${layout.getLineLeft(0)},${layout.getLineTop(0)}..${layout.getLineRight(0)},${layout.getLineBottom(0)}"
+        } else {
+            "unavailable"
+        }
+        println(
+            "NORMAL_HOME_TEXT_LAYOUT " +
+                "tag=$tag parent=$parentTag referenceFontPx=$referenceFontPx " +
+                "actualFontSize=${layout.layoutInput.style.fontSize} " +
+                "lineHeight=${layout.layoutInput.style.lineHeight} " +
+                "density=$density fontScale=$fontScale " +
+                "effectiveFontPx=${layout.layoutInput.style.fontSize.value * density * fontScale} " +
+                "nodeBoundsPx=${nodeBounds.left},${nodeBounds.top}..${nodeBounds.right},${nodeBounds.bottom} " +
+                "nodeSizePx=${nodeBounds.width}x${nodeBounds.height} " +
+                "glyphLayoutBoundsPx=${visibleGlyphBounds.left},${visibleGlyphBounds.top}..${visibleGlyphBounds.right},${visibleGlyphBounds.bottom} " +
+                "glyphOutlineBoundsPx=${glyphOutlineBounds.left},${glyphOutlineBounds.top}..${glyphOutlineBounds.right},${glyphOutlineBounds.bottom} " +
+                "glyphOutlineRootBoundsPx=${glyphOutlineRootBounds.left},${glyphOutlineRootBounds.top}..${glyphOutlineRootBounds.right},${glyphOutlineRootBounds.bottom} " +
+                "glyphOutlineInsideLayout=$glyphOutlineInsideLayout glyphOutlineInsideNode=$glyphOutlineInsideNode " +
+                "glyphOutlineInsideParent=$glyphOutlineInsideParent " +
+                "lineBoundsPx=$lineBounds visibleTextEnd=$visibleEnd/${text.length} " +
+                "parentBoundsPx=${parentBounds.width}x${parentBounds.height} " +
+                "parentRectPx=${parentBounds.left},${parentBounds.top}..${parentBounds.right},${parentBounds.bottom} " +
+                "textParentWidthRatio=${nodeBounds.width / parentBounds.width} " +
+                "layoutSizePx=${layout.size.width}x${layout.size.height} " +
+                "lineCount=${layout.lineCount} didOverflowWidth=${layout.didOverflowWidth} " +
+                "didOverflowHeight=${layout.didOverflowHeight} visualOverflow=${layout.hasVisualOverflow} " +
+                "textLength=${text.length}",
+        )
+        assertEquals("$tag follows the Normal Home single-line contract", 1, layout.lineCount)
+        if (!tag.contains("-meta-")) {
+            // Compose can report width overflow for an exact-integer two-glyph
+            // intrinsic width even when every glyph is visible and in bounds.
+            // Accept this only for the brand when the measured geometry proves
+            // no character was ellipsized or clipped. Other text remains strict.
+            val brandIntrinsicRoundingOnly = tag == "normal-home-brand-title" &&
+                layout.didOverflowWidth &&
+                visibleEnd == text.length &&
+                glyphOutlineInsideLayout &&
+                glyphOutlineInsideNode &&
+                glyphOutlineInsideParent
+            assertTrue(
+                "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth} visible=$visibleEnd/${text.length}",
+                !layout.didOverflowWidth || brandIntrinsicRoundingOnly,
+            )
+            assertTrue("$tag has vertical overflow: didOverflowHeight=${layout.didOverflowHeight}", !layout.didOverflowHeight)
+        }
+        assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
+        assertTrue("$tag remains inside its measured parent", nodeBounds.top >= parentBounds.top - 1f)
+        assertTrue("$tag remains inside its measured parent", nodeBounds.right <= parentBounds.right + 1f)
+        assertTrue("$tag remains inside its measured parent", nodeBounds.bottom <= parentBounds.bottom + 1f)
     }
 
     private fun createPortraitFixture(

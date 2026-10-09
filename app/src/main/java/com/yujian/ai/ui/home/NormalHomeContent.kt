@@ -22,9 +22,11 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,25 +42,21 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.radius.YuJianRadius
-import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 
-private const val GUEST_AVATAR = "normal_home_runtime_v1/avatar/guest_avatar.png"
 private const val NormalHomeReferenceWidth = 1080f
 private const val NormalHomeHeaderX = 88f
 private const val NormalHomeHeaderY = 104f
@@ -74,6 +72,9 @@ private const val NormalHomeCtaY = 1495f
 private const val NormalHomeCameraY = 1564f
 private const val NormalHomeCameraSize = 200f
 private const val NormalHomeCameraTouchSize = 208f
+private const val NormalHomeHeroCornerRadius = 32f
+private const val NormalHomeFooterHorizontalInset = 56f
+private const val NormalHomeFooterVerticalInset = 32f
 
 /**
  * Real-data Normal Home mapped onto the 1080-wide Frozen authority.
@@ -105,9 +106,14 @@ internal fun NormalHomeContent(
         orderedHomeRecords(recentCatches)
     }
 
-    BoxWithConstraints(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier.testTag("normal-home-content-root")) {
         val referenceScale = maxWidth / NormalHomeReferenceWidth
-        fun ref(value: Float): Dp = referenceScale * value
+        fun ref(value: Float): Dp = normalHomeReferenceDp(value, maxWidth.value).dp
+        val density = LocalDensity.current
+        val typography = remember(maxWidth.value, density.density) {
+            normalHomeTypographyContract(maxWidth.value, density.density)
+        }
+        val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, maxHeight.value).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
@@ -119,7 +125,8 @@ internal fun NormalHomeContent(
             modifier = Modifier
                 .offset(x = ref(NormalHomeHeaderX), y = refY(NormalHomeHeaderY))
                 .width(ref(NormalHomeHeaderWidth))
-                .height(ref(NormalHomeHeaderHeight)),
+                .height(ref(NormalHomeHeaderHeight))
+                .testTag("normal-home-header"),
         ) {
             NormalHomeHeader(
                 isLoggedIn = isLoggedIn,
@@ -127,15 +134,16 @@ internal fun NormalHomeContent(
                 resolveImageUrl = resolveImageUrl,
                 accessToken = accessToken,
                 onProfileClick = onProfileClick,
-                runtimeAssets = runtimeAssets,
                 avatarSize = ref(92f),
+                typography = typography,
             )
         }
 
         Box(
             modifier = Modifier
                 .offset(y = refY(NormalHomeStatsY))
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .testTag("normal-home-stats"),
             contentAlignment = Alignment.Center,
         ) {
             HomeStats(
@@ -145,7 +153,11 @@ internal fun NormalHomeContent(
                 onCatchesClick = onCatchesClick,
                 isResolving = isResolving,
                 dividerHeight = ref(56f),
+                dividerWidth = ref(1f),
                 horizontalPadding = ref(150f),
+                verticalPadding = spacing.statVerticalPadding,
+                labelSpacing = spacing.statLabelSpacing,
+                typography = typography,
             )
         }
 
@@ -156,7 +168,7 @@ internal fun NormalHomeContent(
                     .offset(y = refY(NormalHomeCardY))
                     .width(cardWidth)
                     .height(cardHeight)
-                    .clip(YuJianRadius.heroCard)
+                    .clip(RoundedCornerShape(ref(NormalHomeHeroCornerRadius)))
                     .background(YuJianColors.MistWhite.copy(alpha = 0.24f))
                     .testTag("normal-home-resolving-hero"),
             )
@@ -169,7 +181,13 @@ internal fun NormalHomeContent(
                     .testTag("normal-home-recent-header"),
                 contentAlignment = Alignment.Center,
             ) {
-                RecentCatchSectionHeader(onCatchesClick = onCatchesClick)
+                RecentCatchSectionHeader(
+                    onCatchesClick = onCatchesClick,
+                    typography = typography,
+                    horizontalPadding = spacing.recentHeaderHorizontalInset,
+                    actionSpacing = spacing.recentActionSpacing,
+                    chevronSize = spacing.recentChevronSize,
+                )
             }
 
             RecentCatchPager(
@@ -182,6 +200,13 @@ internal fun NormalHomeContent(
                 onCatchClick = onCatchClick,
                 motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
                 runtimeAssets = runtimeAssets,
+                typography = typography,
+                cornerRadius = ref(NormalHomeHeroCornerRadius),
+                footerPaddingHorizontal = ref(NormalHomeFooterHorizontalInset),
+                footerPaddingVertical = ref(NormalHomeFooterVerticalInset),
+                metadataSpacing = spacing.heroMetadataSpacing,
+                pageSpacing = spacing.pagerSpacing,
+                referenceScale = referenceScale.value,
                 modifier = Modifier.offset(y = refY(NormalHomeCardY)),
             )
 
@@ -190,17 +215,21 @@ internal fun NormalHomeContent(
                     .align(Alignment.TopCenter)
                     .offset(y = refY(NormalHomeCtaY))
                     .height(ref(58f))
-                    .width(ref(420f)),
+                    .width(ref(420f))
+                    .testTag("normal-home-capture-cta"),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "记录下一条鱼",
                     style = YuJianTypography.body.copy(
                         color = YuJianColors.OnDark.copy(alpha = 0.92f),
-                        fontSize = 20.sp,
-                        lineHeight = 28.sp,
+                        fontSize = typography.captureCta.fontSize,
+                        lineHeight = typography.captureCta.lineHeight,
                         shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
                     ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag("normal-home-capture-cta-text"),
                 )
             }
         }
@@ -233,9 +262,12 @@ private fun NormalHomeHeader(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     onProfileClick: () -> Unit,
-    runtimeAssets: NormalHomeRuntimeAssets?,
     avatarSize: Dp,
+    typography: NormalHomeTypographyContract,
 ) {
+    val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
+    val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
+    val avatarState = normalHomeAvatarState(isLoggedIn, resolvedAvatarUrl, avatarLoadResult.value)
     Row(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
@@ -245,66 +277,76 @@ private fun NormalHomeHeader(
             text = "渔见",
             style = YuJianTypography.brand.copy(
                 color = YuJianColors.TextPrimary.copy(alpha = 0.94f),
-                fontSize = 32.sp,
-                lineHeight = 40.sp,
+                fontSize = typography.brand.fontSize,
+                lineHeight = typography.brand.lineHeight,
             ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.testTag("normal-home-brand-title"),
         )
         if (isLoggedIn) {
             Box(
                 modifier = Modifier
                     .size(avatarSize)
-                    .clip(CircleShape)
                     .semantics {
                         contentDescription = "个人中心"
                         role = Role.Button
                     }
                     .clickable(onClick = onProfileClick),
             ) {
-                RemoteImage(
-                    url = resolveImageUrl(avatarUrl),
-                    authToken = accessToken,
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    placeholder = {
-                        Image(
-                            painter = painterResource(R.drawable.profile_fallback_v13),
+                NormalHomeDefaultAvatar(Modifier.fillMaxSize())
+                if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||
+                    avatarState == NormalHomeAvatarState.PROFILE_IMAGE
+                ) {
+                    Box(Modifier.fillMaxSize().clip(CircleShape)) {
+                        RemoteImage(
+                            url = resolvedAvatarUrl,
+                            authToken = accessToken,
+                            modifier = Modifier.fillMaxSize(),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().testTag("normal-home-default-profile-avatar"),
+                            contentScale = ContentScale.Crop,
+                            onLoadResult = { avatarLoadResult.value = it },
+                            placeholder = { Box(Modifier.fillMaxSize()) },
                         )
-                    },
-                )
+                    }
+                }
             }
         } else {
-            runtimeAssets?.guestAvatar?.let { avatar ->
-                Image(
-                    bitmap = avatar.asImageBitmap(),
-                    modifier = Modifier
-                        .size(avatarSize)
-                        .clip(CircleShape)
-                        .clickable(role = Role.Button, onClick = onProfileClick),
-                    contentDescription = "登录或注册",
-                    contentScale = ContentScale.Crop,
-                )
-            } ?: AssetImage(
-                GUEST_AVATAR,
+            Image(
+                painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+                contentDescription = "登录或注册",
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .size(avatarSize)
-                    .clip(CircleShape)
-                    .clickable(role = Role.Button, onClick = onProfileClick),
-                contentDescription = "登录或注册",
-                contentScale = ContentScale.Crop,
+                    .clickable(role = Role.Button, onClick = onProfileClick)
+                    .testTag("normal-home-default-profile-avatar"),
             )
         }
     }
 }
 
 @Composable
-private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
+private fun NormalHomeDefaultAvatar(modifier: Modifier) {
+    Image(
+        painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+        contentDescription = null,
+        modifier = modifier.testTag("normal-home-default-profile-avatar"),
+        contentScale = ContentScale.Fit,
+    )
+}
+
+@Composable
+private fun RecentCatchSectionHeader(
+    onCatchesClick: () -> Unit,
+    typography: NormalHomeTypographyContract,
+    horizontalPadding: Dp,
+    actionSpacing: Dp,
+    chevronSize: Dp,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = YuJianSpacing.lg),
+            .padding(horizontal = horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -312,10 +354,12 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
             text = "最近鱼获",
             style = YuJianTypography.sectionTitle.copy(
                 color = YuJianColors.OnDark,
-                fontSize = 24.sp,
-                lineHeight = 30.sp,
+                fontSize = typography.sectionTitle.fontSize,
+                lineHeight = typography.sectionTitle.lineHeight,
                 shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.30f), blurRadius = 3f),
             ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.testTag("normal-home-recent-title"),
         )
         Row(
@@ -328,21 +372,24 @@ private fun RecentCatchSectionHeader(onCatchesClick: () -> Unit) {
                 .clickable(role = Role.Button, onClick = onCatchesClick)
                 .testTag("normal-home-recent-all"),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(YuJianSpacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(actionSpacing),
         ) {
             Text(
                 text = "全部",
                 style = YuJianTypography.body.copy(
                     color = YuJianColors.OnDark,
-                    fontSize = 18.sp,
-                    lineHeight = 24.sp,
+                    fontSize = typography.action.fontSize,
+                    lineHeight = typography.action.lineHeight,
                     shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.30f), blurRadius = 3f),
                 ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.testTag("normal-home-recent-all-label"),
             )
             Image(
                 painter = painterResource(R.drawable.all_chevron_v12),
                 contentDescription = null,
-                modifier = Modifier.size(YuJianSpacing.sm),
+                modifier = Modifier.size(chevronSize),
             )
         }
     }
@@ -359,6 +406,13 @@ private fun RecentCatchPager(
     onCatchClick: (String) -> Unit,
     motionEnabled: Boolean,
     runtimeAssets: NormalHomeRuntimeAssets?,
+    typography: NormalHomeTypographyContract,
+    cornerRadius: Dp,
+    footerPaddingHorizontal: Dp,
+    footerPaddingVertical: Dp,
+    metadataSpacing: Dp,
+    pageSpacing: Dp,
+    referenceScale: Float,
     modifier: Modifier = Modifier,
 ) {
     if (catches.isEmpty()) return
@@ -386,7 +440,7 @@ private fun RecentCatchPager(
                 launch {
                     activeCardOffset.animateTo(0f, keyframes {
                         durationMillis = 6_000
-                        -2f at 3_000
+                        (-2f * referenceScale) at 3_000
                     })
                 }
             }
@@ -401,7 +455,7 @@ private fun RecentCatchPager(
             .testTag("normal-home-catch-pager"),
         pageSize = PageSize.Fixed(cardWidth),
         contentPadding = PaddingValues(horizontal = sidePadding),
-        pageSpacing = YuJianSpacing.sm,
+        pageSpacing = pageSpacing,
         beyondViewportPageCount = if (catches.size > 1) 1 else 0,
     ) { page ->
         val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
@@ -412,7 +466,7 @@ private fun RecentCatchPager(
                 .fillMaxSize()
                 .graphicsLayerForPagerCard(
                     scale = if (selected) activeCardScale.value else 1f - distance * 0.055f,
-                    translationY = if (selected) activeCardOffset.value else 4f * distance,
+                    translationY = if (selected) activeCardOffset.value else 4f * distance * referenceScale,
                     alpha = 1f - distance * 0.12f,
                     density = density,
                 ),
@@ -425,6 +479,11 @@ private fun RecentCatchPager(
                 onClick = { onCatchClick(item.id) },
                 cardHeight = cardHeight,
                 runtimeAssets = runtimeAssets,
+                typography = typography,
+                cornerRadius = cornerRadius,
+                footerPaddingHorizontal = footerPaddingHorizontal,
+                footerPaddingVertical = footerPaddingVertical,
+                metadataSpacing = metadataSpacing,
             )
         }
     }
