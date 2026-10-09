@@ -70,11 +70,14 @@ internal fun HomeStats(
     dividerWidth: Dp = 1.dp,
     horizontalPadding: Dp = YuJianSpacing.lg,
     verticalPadding: Dp = YuJianSpacing.xs,
+    labelSpacing: Dp = 0.dp,
     typography: NormalHomeTypographyContract? = null,
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     val density = LocalDensity.current
-    val type = typography ?: remember(density.density) { normalHomeTypographyContract(1f, density.density) }
+    val type = typography ?: remember(density.density) {
+        normalHomeTypographyContract(1080f / density.density, density.density)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -89,6 +92,7 @@ internal fun HomeStats(
             onClick = onSpeciesClick.takeUnless { isResolving },
             semanticsTag = "normal-home-stat-species",
             verticalPadding = verticalPadding,
+            labelSpacing = labelSpacing,
             typography = type,
         )
         Box(
@@ -105,6 +109,7 @@ internal fun HomeStats(
             onClick = onCatchesClick.takeUnless { isResolving },
             semanticsTag = "normal-home-stat-catches",
             verticalPadding = verticalPadding,
+            labelSpacing = labelSpacing,
             typography = type,
         )
         Box(
@@ -121,6 +126,7 @@ internal fun HomeStats(
             onClick = null,
             semanticsTag = "normal-home-stat-record-days",
             verticalPadding = verticalPadding,
+            labelSpacing = labelSpacing,
             typography = type,
         )
     }
@@ -134,6 +140,7 @@ internal fun HomeStat(
     onClick: (() -> Unit)?,
     semanticsTag: String,
     verticalPadding: Dp,
+    labelSpacing: Dp,
     typography: NormalHomeTypographyContract,
 ) {
     Column(
@@ -162,7 +169,9 @@ internal fun HomeStat(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.testTag("$semanticsTag-label"),
+            modifier = Modifier
+                .padding(top = labelSpacing)
+                .testTag("$semanticsTag-label"),
         )
     }
 }

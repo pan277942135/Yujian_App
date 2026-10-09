@@ -195,17 +195,17 @@ class NormalHomeDataParityTest {
                 layoutResults.single().getLineEnd(0, visibleEnd = true) > metaText.indexOf("21:50 · ") + 7,
             )
 
-            logTextLayoutMetric("normal-home-brand-title", "normal-home-header", referenceFontSp = 32f)
+            logTextLayoutMetric("normal-home-brand-title", "normal-home-header", referenceFontPx = 72f)
             listOf("species", "catches", "record-days").forEach { stat ->
-                logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontSp = 22f)
-                logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontSp = 12f)
+                logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontPx = 36f)
+                logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontPx = 28f)
             }
-            logTextLayoutMetric("normal-home-recent-title", "normal-home-recent-header", referenceFontSp = 24f)
-            logTextLayoutMetric("normal-home-recent-all-label", "normal-home-recent-header", referenceFontSp = 18f)
-            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontSp = 32f)
-            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontSp = 22f)
-            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontSp = 16f)
-            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontSp = 20f)
+            logTextLayoutMetric("normal-home-recent-title", "normal-home-recent-header", referenceFontPx = 48f)
+            logTextLayoutMetric("normal-home-recent-all-label", "normal-home-recent-header", referenceFontPx = 40f)
+            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
+            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
+            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
+            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
 
             assertCoveredCard(firstCard)
             firstCard.performClick()
@@ -368,7 +368,7 @@ class NormalHomeDataParityTest {
         }
     }
 
-    private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontSp: Float) {
+    private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontPx: Float) {
         val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
         val parent = compose.onNodeWithTag(parentTag, useUnmergedTree = true).fetchSemanticsNode()
         val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
@@ -424,7 +424,7 @@ class NormalHomeDataParityTest {
         }
         println(
             "NORMAL_HOME_TEXT_LAYOUT " +
-                "tag=$tag parent=$parentTag referenceFontSp=$referenceFontSp " +
+                "tag=$tag parent=$parentTag referenceFontPx=$referenceFontPx " +
                 "actualFontSize=${layout.layoutInput.style.fontSize} " +
                 "lineHeight=${layout.layoutInput.style.lineHeight} " +
                 "density=$density fontScale=$fontScale " +

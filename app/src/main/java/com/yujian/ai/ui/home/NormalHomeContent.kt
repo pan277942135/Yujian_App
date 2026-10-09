@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,17 +49,14 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
-import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.min
 
-private const val GUEST_AVATAR = "normal_home_runtime_v1/avatar/guest_avatar.png"
 private const val NormalHomeReferenceWidth = 1080f
 private const val NormalHomeHeaderX = 88f
 private const val NormalHomeHeaderY = 104f
@@ -110,11 +108,12 @@ internal fun NormalHomeContent(
 
     BoxWithConstraints(modifier = modifier.testTag("normal-home-content-root")) {
         val referenceScale = maxWidth / NormalHomeReferenceWidth
-        fun ref(value: Float): Dp = referenceScale * value
+        fun ref(value: Float): Dp = normalHomeReferenceDp(value, maxWidth.value).dp
         val density = LocalDensity.current
-        val typography = remember(referenceScale.value, density.density) {
-            normalHomeTypographyContract(referenceScale.value, density.density)
+        val typography = remember(maxWidth.value, density.density) {
+            normalHomeTypographyContract(maxWidth.value, density.density)
         }
+        val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, maxHeight.value).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
@@ -135,7 +134,6 @@ internal fun NormalHomeContent(
                 resolveImageUrl = resolveImageUrl,
                 accessToken = accessToken,
                 onProfileClick = onProfileClick,
-                runtimeAssets = runtimeAssets,
                 avatarSize = ref(92f),
                 typography = typography,
             )
@@ -157,7 +155,8 @@ internal fun NormalHomeContent(
                 dividerHeight = ref(56f),
                 dividerWidth = ref(1f),
                 horizontalPadding = ref(150f),
-                verticalPadding = ref(8f),
+                verticalPadding = spacing.statVerticalPadding,
+                labelSpacing = spacing.statLabelSpacing,
                 typography = typography,
             )
         }
@@ -185,9 +184,9 @@ internal fun NormalHomeContent(
                 RecentCatchSectionHeader(
                     onCatchesClick = onCatchesClick,
                     typography = typography,
-                    horizontalPadding = ref(32f),
-                    actionSpacing = ref(8f),
-                    chevronSize = ref(16f),
+                    horizontalPadding = spacing.recentHeaderHorizontalInset,
+                    actionSpacing = spacing.recentActionSpacing,
+                    chevronSize = spacing.recentChevronSize,
                 )
             }
 
@@ -205,8 +204,8 @@ internal fun NormalHomeContent(
                 cornerRadius = ref(NormalHomeHeroCornerRadius),
                 footerPaddingHorizontal = ref(NormalHomeFooterHorizontalInset),
                 footerPaddingVertical = ref(NormalHomeFooterVerticalInset),
-                metadataSpacing = ref(5f),
-                pageSpacing = ref(16f),
+                metadataSpacing = spacing.heroMetadataSpacing,
+                pageSpacing = spacing.pagerSpacing,
                 referenceScale = referenceScale.value,
                 modifier = Modifier.offset(y = refY(NormalHomeCardY)),
             )
@@ -263,10 +262,12 @@ private fun NormalHomeHeader(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     onProfileClick: () -> Unit,
-    runtimeAssets: NormalHomeRuntimeAssets?,
     avatarSize: Dp,
     typography: NormalHomeTypographyContract,
 ) {
+    val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
+    val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
+    val avatarState = normalHomeAvatarState(isLoggedIn, resolvedAvatarUrl, avatarLoadResult.value)
     Row(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
@@ -287,50 +288,51 @@ private fun NormalHomeHeader(
             Box(
                 modifier = Modifier
                     .size(avatarSize)
-                    .clip(CircleShape)
                     .semantics {
                         contentDescription = "个人中心"
                         role = Role.Button
                     }
                     .clickable(onClick = onProfileClick),
             ) {
-                RemoteImage(
-                    url = resolveImageUrl(avatarUrl),
-                    authToken = accessToken,
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    placeholder = {
-                        Image(
-                            painter = painterResource(R.drawable.profile_fallback_v13),
+                NormalHomeDefaultAvatar(Modifier.fillMaxSize())
+                if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||
+                    avatarState == NormalHomeAvatarState.PROFILE_IMAGE
+                ) {
+                    Box(Modifier.fillMaxSize().clip(CircleShape)) {
+                        RemoteImage(
+                            url = resolvedAvatarUrl,
+                            authToken = accessToken,
+                            modifier = Modifier.fillMaxSize(),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().testTag("normal-home-default-profile-avatar"),
+                            contentScale = ContentScale.Crop,
+                            onLoadResult = { avatarLoadResult.value = it },
+                            placeholder = { Box(Modifier.fillMaxSize()) },
                         )
-                    },
-                )
+                    }
+                }
             }
         } else {
-            runtimeAssets?.guestAvatar?.let { avatar ->
-                Image(
-                    bitmap = avatar.asImageBitmap(),
-                    modifier = Modifier
-                        .size(avatarSize)
-                        .clip(CircleShape)
-                        .clickable(role = Role.Button, onClick = onProfileClick),
-                    contentDescription = "登录或注册",
-                    contentScale = ContentScale.Crop,
-                )
-            } ?: AssetImage(
-                GUEST_AVATAR,
+            Image(
+                painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+                contentDescription = "登录或注册",
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .size(avatarSize)
-                    .clip(CircleShape)
-                    .clickable(role = Role.Button, onClick = onProfileClick),
-                contentDescription = "登录或注册",
-                contentScale = ContentScale.Crop,
+                    .clickable(role = Role.Button, onClick = onProfileClick)
+                    .testTag("normal-home-default-profile-avatar"),
             )
         }
     }
+}
+
+@Composable
+private fun NormalHomeDefaultAvatar(modifier: Modifier) {
+    Image(
+        painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+        contentDescription = null,
+        modifier = modifier.testTag("normal-home-default-profile-avatar"),
+        contentScale = ContentScale.Fit,
+    )
 }
 
 @Composable
