@@ -65,6 +65,28 @@ class FishRecordDetailPresentationTest {
     }
 
     @Test
+    fun hero_metadata_keeps_long_location_separate_from_measurements() {
+        val longLocation = "上海市青浦区华新镇淀山湖沿岸靠近北侧木栈道入口"
+        val metadata = FishRecordDetailPresentation.heroMetadata(
+            record.copy(location = longLocation, speciesName = "鲤鱼"),
+        )
+
+        assertEquals("鲤鱼", metadata.speciesName)
+        assertEquals("42.6 cm · 1.28 kg", metadata.measurement)
+        assertEquals(longLocation, metadata.location)
+    }
+
+    @Test
+    fun hero_metadata_omits_each_missing_optional_field() {
+        val metadata = FishRecordDetailPresentation.heroMetadata(
+            record.copy(lengthCm = null, weightKg = null, location = "null"),
+        )
+
+        assertEquals(null, metadata.measurement)
+        assertEquals(null, metadata.location)
+    }
+
+    @Test
     fun fields_render_measurement_combinations_without_placeholders() {
         assertEquals("42.6 cm · 1.28 kg", FishRecordDetailPresentation.measurement(record))
         assertEquals("42.6 cm", FishRecordDetailPresentation.measurement(record.copy(weightKg = null)))
