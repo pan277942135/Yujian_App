@@ -53,7 +53,7 @@ def image_info(path: Path):
 
 def parse_text_metrics():
     metrics = {}
-    for log_name in ("targeted-instrumentation.log", "normal-home-suite-instrumentation.log"):
+    for log_name in ("targeted-instrumentation.log", "normal-home-suite-instrumentation.log", "android-logcat-measurements.log"):
         log = EVIDENCE / log_name
         if not log.is_file():
             continue
@@ -107,6 +107,10 @@ photo_meta = json_file(EVIDENCE / "photo_provenance.json")
 
 runtime_src = HOME / "04_normal_home_runtime_1080x1920.png"
 frozen_src = HOME / "03_normal_home_frozen_1080x1920.png"
+frozen_source_kind = "gate-copied"
+if not frozen_src.is_file():
+    frozen_src = Path("design/system/core_visual_v1/reference/normal_home_v1.png")
+    frozen_source_kind = "repository-frozen-authority"
 runtime_out = EVIDENCE / "runtime.png"
 frozen_out = EVIDENCE / "frozen.png"
 if runtime_src.is_file():
@@ -116,7 +120,13 @@ if frozen_src.is_file():
 
 runtime_info = image_info(runtime_out)
 frozen_info = image_info(frozen_out)
-comparison = {"generated": [], "coordinate_transform": "none", "source_images_resized": False}
+comparison = {
+    "generated": [],
+    "coordinate_transform": "none",
+    "source_images_resized": False,
+    "frozen_source_kind": frozen_source_kind,
+    "frozen_source_path": frozen_src.as_posix(),
+}
 visual_classification = "REVIEW_REQUIRED"
 if runtime_info and frozen_info and not runtime_info.get("invalid") and not frozen_info.get("invalid"):
     with Image.open(frozen_out) as frozen_image, Image.open(runtime_out) as runtime_image:
@@ -262,6 +272,7 @@ report = {
         "Compose TextLayoutResult bounds are recorded in the test root coordinate space. They are not projected onto the full-screen screenshot without a measured inset transform.",
         "Synthetic portrait fixtures are confined to the instrumented cover-viewport geometry test. The production Home runtime capture is separately seeded with the packaged sample_recent_catch.jpg asset and its provenance is recorded.",
         "Visual parity remains REVIEW_REQUIRED pending human inspection of the generated comparison.",
+        "If the existing gate exits before staging its frozen copy, frozen.png is copied byte-for-byte from the authoritative repository Frozen path; runtime evidence remains the native Android capture.",
     ],
 }
 (EVIDENCE / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
