@@ -383,9 +383,13 @@ class NormalHomeDataParityTest {
         val fontScale = layout.layoutInput.density.fontScale
         val visibleEnd = if (layout.lineCount > 0) layout.getLineEnd(0, visibleEnd = true).coerceIn(0, text.length) else 0
         val visibleGlyphBounds = if (visibleEnd > 0) {
-            (0 until visibleEnd)
-                .map(layout::getBoundingBox)
-                .reduce { bounds, next -> bounds.union(next) }
+            val glyphs = (0 until visibleEnd).map(layout::getBoundingBox)
+            androidx.compose.ui.geometry.Rect(
+                left = glyphs.minOf { it.left },
+                top = glyphs.minOf { it.top },
+                right = glyphs.maxOf { it.right },
+                bottom = glyphs.maxOf { it.bottom },
+            )
         } else {
             androidx.compose.ui.geometry.Rect.Zero
         }
