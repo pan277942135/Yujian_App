@@ -128,10 +128,9 @@ fun YuJianFishGuideCard(
                     url = item.imageUrl,
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = null,
-                    // The physical UNLIT capture showed a portrait cover centered in a
-                    // landscape card. Crop its empty top/bottom margins instead of
-                    // exposing the cover's rectangular canvas as a second panel.
-                    contentScale = if (isUnlit) ContentScale.Crop else ContentScale.Fit,
+                    // LIT and UNLIT share one published COVER_HERO source and geometry.
+                    // Fit preserves the entire authored image in both states.
+                    contentScale = ContentScale.Fit,
                     colorFilter = unlitImageFilter,
                     placeholder = { MissingSpeciesArtwork(item, isUnlit) },
                 )
@@ -269,7 +268,7 @@ private fun MissingSpeciesArtwork(item: FishGuidePresentationItem, isUnlit: Bool
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
-                text = "${item.name} · 鱼种影像暂不可用",
+                text = "${item.name} · 鱼鉴主视觉暂不可用",
                 style = YuJianTypography.caption.copy(color = YuJianColors.TextSecondary),
             )
         }

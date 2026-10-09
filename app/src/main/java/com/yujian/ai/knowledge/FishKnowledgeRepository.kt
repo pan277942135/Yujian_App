@@ -29,6 +29,11 @@ class FishKnowledgeRepository(
                 summary = item.optString("summary"),
                 category = item.optString("category"),
                 coverImage = item.optString("cover_image").ifBlank { null },
+                coverHeroImage = item.optString("cover_hero_image").ifBlank { null },
+                coverHeroVersionId = item.optInt("cover_hero_version_id").takeIf { item.has("cover_hero_version_id") && it > 0 },
+                coverHeroStatus = item.optString("cover_hero_status").trim().uppercase().ifBlank {
+                    if (item.has("cover_hero_image")) "MISSING" else "LEGACY_API"
+                },
                 pinyin = item.optString("pinyin").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
                 pinyinInitials = item.optString("pinyin_initials").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
                 catalogStatus = item.optString("status", "ACTIVE").trim().uppercase().ifBlank { "ACTIVE" },
@@ -97,6 +102,11 @@ class FishKnowledgeRepository(
                 summary = speciesJson.optString("summary"),
                 status = speciesJson.optString("status"),
                 coverImage = speciesJson.optString("cover_image").ifBlank { null },
+                coverHeroImage = root.optString("cover_hero_image").ifBlank { null },
+                coverHeroVersionId = root.optInt("cover_hero_version_id").takeIf { root.has("cover_hero_version_id") && it > 0 },
+                coverHeroStatus = root.optString("cover_hero_status").trim().uppercase().ifBlank {
+                    if (root.has("cover_hero_image")) "MISSING" else "LEGACY_API"
+                },
             ),
             cover = coverJson?.takeIf { it.length() > 0 }?.let {
                 FishKnowledgeCover(
@@ -126,6 +136,11 @@ class FishKnowledgeRepository(
             similarity = parseSimilarity(root.optJSONArray("similarity")),
             knowledge = parseKnowledge(root.optJSONObject("knowledge")),
             dynamicAvailable = root.optJSONObject("dynamic")?.length()?.let { it > 0 } ?: false,
+            coverHeroImage = root.optString("cover_hero_image").ifBlank { null },
+            coverHeroVersionId = root.optInt("cover_hero_version_id").takeIf { root.has("cover_hero_version_id") && it > 0 },
+            coverHeroStatus = root.optString("cover_hero_status").trim().uppercase().ifBlank {
+                if (root.has("cover_hero_image")) "MISSING" else "LEGACY_API"
+            },
         )
     }
 
