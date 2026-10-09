@@ -174,6 +174,12 @@ suite_rc=$?
 
 gate_collect_evidence > "$EVIDENCE_DIR/normal-home-evidence-collection.log" 2>&1
 evidence_rc=$?
+if [[ -s "$EVIDENCE_DIR/normal-home-evidence-collection.log" ]]; then
+  printf '%s\n' 'NORMAL_HOME_EVIDENCE_COLLECTION_LOG_BEGIN'
+  cat "$EVIDENCE_DIR/normal-home-evidence-collection.log"
+  printf '%s\n' 'NORMAL_HOME_EVIDENCE_COLLECTION_LOG_END'
+fi
+"$adb_bin" logcat -d -v raw | grep -E 'NORMAL_HOME_TEXT_LAYOUT|NORMAL_HOME_HERO_MEDIA_BOUNDS|NORMAL_HOME_PAGER_CAPTURE_MAE' > "$EVIDENCE_DIR/android-logcat-measurements.log" || true
 if (( evidence_rc == 0 )); then YUJIAN_EVIDENCE_STATUS="PASS"; else YUJIAN_EVIDENCE_STATUS="FAIL"; fi
 
 if (( target_rc != 0 || suite_rc != 0 || evidence_rc != 0 )); then
