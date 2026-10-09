@@ -119,7 +119,8 @@ gate_collect_evidence() {
 
   local rc
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920
-  normal_home_run_seed seedTwoAspectPortraitGuestCatches "$out/seed_two_aspect_portraits.log" || return "$EXIT_FAIL_EVIDENCE"
+  local seed_method="${NORMAL_HOME_EVIDENCE_SEED_METHOD:-seedTwoAspectPortraitGuestCatches}"
+  normal_home_run_seed "$seed_method" "$out/seed_${seed_method}.log" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 1920
   rc=$?

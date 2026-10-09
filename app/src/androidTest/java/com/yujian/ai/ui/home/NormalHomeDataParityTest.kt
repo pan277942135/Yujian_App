@@ -376,19 +376,48 @@ class NormalHomeDataParityTest {
         assertTrue("$tag exposes TextLayoutResult", action != null)
         assertTrue(action!!.invoke(layouts))
         val layout = layouts.single()
-        assertEquals("$tag follows the Normal Home single-line contract", 1, layout.lineCount)
-        if (!tag.contains("-meta-")) {
-            assertTrue("$tag fits without clipping", !layout.hasVisualOverflow)
-        }
         val text = node.config[SemanticsProperties.Text].joinToString("") { it.text }
         val nodeBounds = node.boundsInRoot
         val parentBounds = parent.boundsInRoot
-        assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
-        assertTrue("$tag remains inside its measured parent", nodeBounds.top >= parentBounds.top - 1f)
-        assertTrue("$tag remains inside its measured parent", nodeBounds.right <= parentBounds.right + 1f)
-        assertTrue("$tag remains inside its measured parent", nodeBounds.bottom <= parentBounds.bottom + 1f)
         val density = layout.layoutInput.density.density
         val fontScale = layout.layoutInput.density.fontScale
+        val visibleEnd = if (layout.lineCount > 0) layout.getLineEnd(0, visibleEnd = true).coerceIn(0, text.length) else 0
+        val visibleGlyphBounds = if (visibleEnd > 0) {
+            (0 until visibleEnd)
+                .map(layout::getBoundingBox)
+                .reduce { bounds, next -> bounds.union(next) }
+        } else {
+            androidx.compose.ui.geometry.Rect.Zero
+        }
+        val glyphOutlineBounds = if (visibleEnd > 0) {
+            layout.getPathForRange(0, visibleEnd).getBounds()
+        } else {
+            androidx.compose.ui.geometry.Rect.Zero
+        }
+        val layoutBounds = androidx.compose.ui.geometry.Rect(0f, 0f, layout.size.width.toFloat(), layout.size.height.toFloat())
+        val glyphOutlineInsideLayout = glyphOutlineBounds.left >= layoutBounds.left - 0.5f &&
+            glyphOutlineBounds.top >= layoutBounds.top - 0.5f &&
+            glyphOutlineBounds.right <= layoutBounds.right + 0.5f &&
+            glyphOutlineBounds.bottom <= layoutBounds.bottom + 0.5f
+        val glyphOutlineRootBounds = androidx.compose.ui.geometry.Rect(
+            nodeBounds.left + glyphOutlineBounds.left,
+            nodeBounds.top + glyphOutlineBounds.top,
+            nodeBounds.left + glyphOutlineBounds.right,
+            nodeBounds.top + glyphOutlineBounds.bottom,
+        )
+        val glyphOutlineInsideNode = glyphOutlineBounds.left >= -0.5f &&
+            glyphOutlineBounds.top >= -0.5f &&
+            glyphOutlineBounds.right <= nodeBounds.width + 0.5f &&
+            glyphOutlineBounds.bottom <= nodeBounds.height + 0.5f
+        val glyphOutlineInsideParent = glyphOutlineRootBounds.left >= parentBounds.left - 0.5f &&
+            glyphOutlineRootBounds.top >= parentBounds.top - 0.5f &&
+            glyphOutlineRootBounds.right <= parentBounds.right + 0.5f &&
+            glyphOutlineRootBounds.bottom <= parentBounds.bottom + 0.5f
+        val lineBounds = if (layout.lineCount > 0) {
+            "${layout.getLineLeft(0)},${layout.getLineTop(0)}..${layout.getLineRight(0)},${layout.getLineBottom(0)}"
+        } else {
+            "unavailable"
+        }
         println(
             "NORMAL_HOME_TEXT_LAYOUT " +
                 "tag=$tag parent=$parentTag referenceFontSp=$referenceFontSp " +
@@ -396,13 +425,31 @@ class NormalHomeDataParityTest {
                 "lineHeight=${layout.layoutInput.style.lineHeight} " +
                 "density=$density fontScale=$fontScale " +
                 "effectiveFontPx=${layout.layoutInput.style.fontSize.value * density * fontScale} " +
-                "textBoundsPx=${nodeBounds.width}x${nodeBounds.height} " +
+                "nodeBoundsPx=${nodeBounds.left},${nodeBounds.top}..${nodeBounds.right},${nodeBounds.bottom} " +
+                "nodeSizePx=${nodeBounds.width}x${nodeBounds.height} " +
+                "glyphLayoutBoundsPx=${visibleGlyphBounds.left},${visibleGlyphBounds.top}..${visibleGlyphBounds.right},${visibleGlyphBounds.bottom} " +
+                "glyphOutlineBoundsPx=${glyphOutlineBounds.left},${glyphOutlineBounds.top}..${glyphOutlineBounds.right},${glyphOutlineBounds.bottom} " +
+                "glyphOutlineRootBoundsPx=${glyphOutlineRootBounds.left},${glyphOutlineRootBounds.top}..${glyphOutlineRootBounds.right},${glyphOutlineRootBounds.bottom} " +
+                "glyphOutlineInsideLayout=$glyphOutlineInsideLayout glyphOutlineInsideNode=$glyphOutlineInsideNode " +
+                "glyphOutlineInsideParent=$glyphOutlineInsideParent " +
+                "lineBoundsPx=$lineBounds visibleTextEnd=$visibleEnd/${text.length} " +
                 "parentBoundsPx=${parentBounds.width}x${parentBounds.height} " +
+                "parentRectPx=${parentBounds.left},${parentBounds.top}..${parentBounds.right},${parentBounds.bottom} " +
                 "textParentWidthRatio=${nodeBounds.width / parentBounds.width} " +
                 "layoutSizePx=${layout.size.width}x${layout.size.height} " +
-                "lineCount=${layout.lineCount} visualOverflow=${layout.hasVisualOverflow} " +
+                "lineCount=${layout.lineCount} didOverflowWidth=${layout.didOverflowWidth} " +
+                "didOverflowHeight=${layout.didOverflowHeight} visualOverflow=${layout.hasVisualOverflow} " +
                 "textLength=${text.length}",
         )
+        assertEquals("$tag follows the Normal Home single-line contract", 1, layout.lineCount)
+        if (!tag.contains("-meta-")) {
+            assertTrue("$tag has horizontal overflow: didOverflowWidth=${layout.didOverflowWidth}", !layout.didOverflowWidth)
+            assertTrue("$tag has vertical overflow: didOverflowHeight=${layout.didOverflowHeight}", !layout.didOverflowHeight)
+        }
+        assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
+        assertTrue("$tag remains inside its measured parent", nodeBounds.top >= parentBounds.top - 1f)
+        assertTrue("$tag remains inside its measured parent", nodeBounds.right <= parentBounds.right + 1f)
+        assertTrue("$tag remains inside its measured parent", nodeBounds.bottom <= parentBounds.bottom + 1f)
     }
 
     private fun createPortraitFixture(
