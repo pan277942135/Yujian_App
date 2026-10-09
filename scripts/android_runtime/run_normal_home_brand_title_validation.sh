@@ -3,7 +3,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RUNTIME_DIR="$SCRIPT_DIR/android_runtime"
+RUNTIME_DIR="$SCRIPT_DIR"
 export EVIDENCE_DIR="${EVIDENCE_DIR:-evidence/runtime/normal-home-brand-title-v1}"
 export API_LEVEL="${API_LEVEL:-28}"
 export BUILD_SHA="${BUILD_SHA:-${GITHUB_SHA:-unknown}}"
