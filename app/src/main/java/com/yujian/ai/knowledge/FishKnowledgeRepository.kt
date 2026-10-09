@@ -28,7 +28,10 @@ class FishKnowledgeRepository(
                 aliases = stringList(item.optJSONArray("alias")),
                 summary = item.optString("summary"),
                 category = item.optString("category"),
-                coverImage = item.optString("cover_image").ifBlank { null },
+                coverImage = item.optString("cover_image").cleanJsonString(),
+                coverHeroImage = item.optString("cover_hero_image").cleanJsonString(),
+                coverHeroVersionId = positiveInt(item, "cover_hero_version_id"),
+                coverHeroStatus = publishedStatus(item, "cover_hero_status"),
                 pinyin = item.optString("pinyin").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
                 pinyinInitials = item.optString("pinyin_initials").trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) },
                 catalogStatus = item.optString("status", "ACTIVE").trim().uppercase().ifBlank { "ACTIVE" },
@@ -46,9 +49,11 @@ class FishKnowledgeRepository(
     fun resolveAssetUrl(asset: String?): String? {
         val value = asset?.trim().orEmpty()
         if (value.isBlank()) return null
-        if (value.startsWith("https://") || value.startsWith("http://")) return value
+        if (value.startsWith("//")) return null
+        if (value.startsWith("https://", ignoreCase = true) || value.startsWith("http://", ignoreCase = true)) return value
+        if (Regex("^[A-Za-z][A-Za-z0-9+.-]*:").containsMatchIn(value)) return null
         val base = baseUrl.trimEnd('/')
-        if (base.isBlank()) return null
+        if (base.isBlank() || !(base.startsWith("https://", ignoreCase = true) || base.startsWith("http://", ignoreCase = true))) return null
         return if (value.startsWith('/')) "$base$value" else "$base/$value"
     }
 
@@ -85,9 +90,20 @@ class FishKnowledgeRepository(
         val fishingJson = root.optJSONObject("fishing") ?: JSONObject()
         val galleryJson = root.optJSONObject("gallery") ?: JSONObject()
         val coverJson = root.optJSONObject("cover")
+        val coverHeroImage = root.optString("cover_hero_image").cleanJsonString()
+            ?: speciesJson.optString("cover_hero_image").cleanJsonString()
+        val coverHeroVersionId = positiveInt(root, "cover_hero_version_id")
+            ?: positiveInt(speciesJson, "cover_hero_version_id")
+        val coverHeroStatus = when {
+            root.has("cover_hero_status") -> publishedStatus(root, "cover_hero_status")
+            speciesJson.has("cover_hero_status") -> publishedStatus(speciesJson, "cover_hero_status")
+            root.has("cover_hero_image") || speciesJson.has("cover_hero_image") -> "MISSING"
+            else -> "LEGACY_API"
+        }
+        val speciesId = speciesJson.optString("id").cleanJsonString().orEmpty()
         return FishKnowledgeDetail(
             species = FishKnowledgeSpecies(
-                id = speciesJson.optString("id"),
+                id = speciesId,
                 nameCn = speciesJson.optString("name_cn"),
                 aliases = stringList(speciesJson.optJSONArray("alias")),
                 scientificName = speciesJson.optString("scientific_name").ifBlank { null },
@@ -96,7 +112,10 @@ class FishKnowledgeRepository(
                 genus = speciesJson.optString("genus").ifBlank { null },
                 summary = speciesJson.optString("summary"),
                 status = speciesJson.optString("status"),
-                coverImage = speciesJson.optString("cover_image").ifBlank { null },
+                coverImage = speciesJson.optString("cover_image").cleanJsonString(),
+                coverHeroImage = coverHeroImage,
+                coverHeroVersionId = coverHeroVersionId,
+                coverHeroStatus = coverHeroStatus,
             ),
             cover = coverJson?.takeIf { it.length() > 0 }?.let {
                 FishKnowledgeCover(
@@ -126,7 +145,49 @@ class FishKnowledgeRepository(
             similarity = parseSimilarity(root.optJSONArray("similarity")),
             knowledge = parseKnowledge(root.optJSONObject("knowledge")),
             dynamicAvailable = root.optJSONObject("dynamic")?.length()?.let { it > 0 } ?: false,
+            coverHeroImage = coverHeroImage,
+            coverHeroVersionId = coverHeroVersionId,
+            coverHeroStatus = coverHeroStatus,
+            knowledgeAssets = parseKnowledgeAssets(root.optJSONObject("knowledge_assets"), speciesId),
+            knowledgeAssetsContractPresent = root.has("knowledge_assets"),
         )
+    }
+
+    private fun parseKnowledgeAssets(assets: JSONObject?, detailSpeciesId: String): Map<String, FishKnowledgeAsset> {
+        if (assets == null) return emptyMap()
+        val keys = assets.keys().asSequence().toList().sortedWith(
+            compareBy<String>({ it.trim().uppercase() != normalizeCardType(it) }, { it }),
+        )
+        return buildMap {
+            keys.forEach { key ->
+                val role = normalizeCardType(key)
+                if (role !in KNOWLEDGE_ASSET_ROLES) return@forEach
+                if (containsKey(role)) return@forEach
+                val item = assets.optJSONObject(key) ?: return@forEach
+                val declaredRole = item.optString("asset_role").cleanJsonString()
+                    ?: item.optString("role").cleanJsonString()
+                    ?: role
+                if (normalizeCardType(declaredRole) != role) return@forEach
+                val imageUrl = item.optString("image_url").cleanJsonString()
+                    ?: item.optString("url").cleanJsonString()
+                    ?: return@forEach
+                put(
+                    role,
+                    FishKnowledgeAsset(
+                        role = normalizeCardType(declaredRole),
+                        imageUrl = imageUrl,
+                        version = item.optString("version").cleanJsonString()
+                            ?: item.optString("asset_version").cleanJsonString(),
+                        versionId = item.optString("version_id").cleanJsonString()
+                            ?: item.optString("asset_version_id").cleanJsonString(),
+                        resourceId = item.optString("asset_id").cleanJsonString()
+                            ?: item.optString("id").cleanJsonString(),
+                        status = item.optString("status").cleanJsonString()?.uppercase(),
+                        speciesId = item.optString("species_id").cleanJsonString() ?: detailSpeciesId,
+                    ),
+                )
+            }
+        }
     }
 
     private fun parseCards(array: JSONArray?): List<FishKnowledgeCard> = (0 until (array?.length() ?: 0)).map { index ->
@@ -137,11 +198,13 @@ class FishKnowledgeRepository(
             speciesId = item.optString("species_id"),
             cardType = normalizeCardType(cardType),
             title = item.optString("title"),
-            imageUrl = item.optString("image_url"),
+            imageUrl = item.optString("image_url").cleanJsonString().orEmpty(),
             description = item.optString("description"),
             content = parseCardContent(item.optJSONObject("content"), cardType),
             sortOrder = item.optInt("sort_order"),
             status = item.optString("status"),
+            versionId = item.optString("version_id").cleanJsonString(),
+            version = item.optString("version").cleanJsonString(),
         )
     }.sortedBy { it.sortOrder }
 
@@ -254,5 +317,19 @@ class FishKnowledgeRepository(
         "FISHING" -> "SKILL"
         "RECORD" -> "GEAR"
         else -> value.trim().uppercase()
+    }
+
+    private fun positiveInt(item: JSONObject, key: String): Int? =
+        item.optString(key).cleanJsonString()?.toIntOrNull()?.takeIf { it > 0 }
+
+    private fun publishedStatus(item: JSONObject, key: String): String {
+        if (item.has(key)) return item.optString(key).cleanJsonString()?.uppercase() ?: "MISSING"
+        return if (item.has("cover_hero_image") || item.has("cover_hero_version_id")) "MISSING" else "LEGACY_API"
+    }
+
+    private fun String.cleanJsonString(): String? = trim().takeUnless { it.isBlank() || it.equals("null", ignoreCase = true) }
+
+    private companion object {
+        val KNOWLEDGE_ASSET_ROLES = setOf("HERO", "IDENTIFICATION", "ECO", "GEAR", "SKILL")
     }
 }
