@@ -4,9 +4,25 @@ import com.yujian.ai.ui.adaptive.AdaptiveLayoutProfile
 import kotlin.math.roundToInt
 
 /**
- * Responsive mapping measured from fish_record_detail_v2.png (941 × 1672).
- * The source Hero frame is approximately x=50..891, y=159..699 px; page
- * content remains proportional and grows vertically by scrolling.
+ * Frozen source measurements from fish_record_detail_v2.png (941 × 1672).
+ * These are source pixels. Runtime layout resolves them proportionally into dp.
+ */
+object FishRecordDetailFrozenGeometry {
+    const val canvasWidthPx = 941
+    const val canvasHeightPx = 1672
+    const val heroLeftPx = 50
+    const val heroTopPx = 159
+    const val heroRightPx = 891
+    const val heroBottomPx = 699
+    const val heroWidthPx = heroRightPx - heroLeftPx
+    const val heroHeightPx = heroBottomPx - heroTopPx
+    val heroAspectRatio: Float
+        get() = heroWidthPx.toFloat() / heroHeightPx.toFloat()
+}
+
+/**
+ * Responsive mapping measured from the frozen reference. Runtime content remains proportional
+ * and grows vertically by scrolling; source pixels are never treated as device dp directly.
  */
 data class FishRecordDetailGeometry(
     val horizontalMarginDp: Int,
@@ -17,9 +33,7 @@ data class FishRecordDetailGeometry(
 )
 
 object FishRecordDetailGeometryResolver {
-    private const val SOURCE_HERO_WIDTH_PX = 841f
-    private const val SOURCE_HERO_HEIGHT_PX = 540f
-    private const val HERO_ASPECT = SOURCE_HERO_WIDTH_PX / SOURCE_HERO_HEIGHT_PX
+    private val HERO_ASPECT = FishRecordDetailFrozenGeometry.heroAspectRatio
 
     fun resolve(profile: AdaptiveLayoutProfile): FishRecordDetailGeometry = resolve(profile.safeWidthDp.roundToInt())
 

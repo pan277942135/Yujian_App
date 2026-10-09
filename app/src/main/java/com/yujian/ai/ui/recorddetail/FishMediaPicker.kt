@@ -172,20 +172,20 @@ fun FishMediaPicker(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         MemoryMediaAction(
-                            label = "添加照片/视频",
+                            label = FishMemoryEmptyStateCopy.addMedia,
                             icon = Icons.Outlined.Image,
                             onClick = onAddPhotosOrVideos,
                             modifier = Modifier.weight(1.5f),
                             primary = true,
                         )
                         MemoryMediaAction(
-                            label = "继续拍照",
+                            label = FishMemoryEmptyStateCopy.continuePhoto,
                             icon = Icons.Rounded.CameraAlt,
                             onClick = onContinuePhoto,
                             modifier = Modifier.weight(1f),
                         )
                         MemoryMediaAction(
-                            label = "录制视频",
+                            label = FishMemoryEmptyStateCopy.recordVideo,
                             icon = Icons.Rounded.Videocam,
                             onClick = onRecordVideo,
                             modifier = Modifier.weight(1f),
