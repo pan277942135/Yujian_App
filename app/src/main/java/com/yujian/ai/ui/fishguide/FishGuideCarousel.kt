@@ -215,6 +215,7 @@ fun FishGuideCarousel(
                 modifier = Modifier
                     .width(cardWidth)
                     .height(cardHeight)
+                    .testTag("fish_guide_card_${item.id}")
                     .graphicsLayer {
                         scaleX = if (reduceMotion && !pagerState.isScrollInProgress) 1f else emphasis
                         scaleY = if (reduceMotion && !pagerState.isScrollInProgress) 1f else emphasis

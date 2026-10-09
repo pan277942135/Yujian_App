@@ -145,6 +145,8 @@ fun YujianApp() {
     var guideOfflinePreview by remember { mutableStateOf(false) }
     var guideError by remember { mutableStateOf<String?>(null) }
     var guideRetry by remember { mutableIntStateOf(0) }
+    var guideInitialLoadComplete by remember { mutableStateOf(false) }
+    var guideWasVisible by remember { mutableStateOf(false) }
     var comingSoon by remember { mutableStateOf<ComingSoonKind?>(null) }
     var promptFrequency by remember { mutableStateOf(promptFrequencyStore.load()) }
     var correctionPromptVisible by remember { mutableStateOf(false) }
@@ -274,6 +276,15 @@ fun YujianApp() {
                 guideError = error.message ?: "Fish Knowledge API 暂不可用"
             }
         guideLoading = false
+        guideInitialLoadComplete = true
+    }
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == "guide") {
+            if (guideWasVisible && guideInitialLoadComplete) guideRetry++
+            guideWasVisible = true
+        } else {
+            guideWasVisible = false
+        }
     }
     LaunchedEffect(session?.accessToken, catchReload, guestMigrationPending) {
         val active = session

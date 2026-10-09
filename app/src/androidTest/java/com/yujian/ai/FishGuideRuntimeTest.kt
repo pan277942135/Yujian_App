@@ -2,8 +2,11 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.Settings
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.geometry.Offset
@@ -38,7 +41,10 @@ import com.yujian.ai.knowledge.FishKnowledgeStructured
 import com.yujian.ai.ui.screens.FishGuideHomeScreen
 import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.security.MessageDigest
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -58,6 +64,7 @@ class FishGuideRuntimeTest {
             scientificName = "Ctenopharyngodon idella",
             category = "鲤科",
             summary = "常见大型淡水鱼。",
+            coverImage = "https://cdn.example/legacy-black-gold.webp",
             discovered = true,
             catches = 2,
         ),
@@ -105,10 +112,11 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithText("已点亮 2 / 3 种").assertIsDisplayed()
         composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
+        composeRule.onNodeWithText("草鱼 · 鱼鉴主视觉暂不可用").assertIsDisplayed()
         val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
         val speciesTitleBounds = composeRule.onNodeWithText("草鱼").fetchSemanticsNode().boundsInRoot
         assertTrue("Species title must anchor the upper card hierarchy", speciesTitleBounds.center.y < carouselBounds.center.y)
-        saveScreenshot("fish_guide_lit.png")
+        saveScreenshot("fish_guide_lit.png", selectedSpeciesId = "grass_carp")
 
         swipeCarouselToSelectedSpecies(
             fromName = "草鱼",
@@ -116,7 +124,7 @@ class FishGuideRuntimeTest {
             expectedPage = 1,
         )
         composeRule.onNodeWithText("尚未点亮").assertIsDisplayed()
-        saveScreenshot("fish_guide_unlit.png")
+        saveScreenshot("fish_guide_unlit.png", selectedSpeciesId = "crucian_carp")
         composeRule.onNodeWithText("鲫鱼").performClick()
         composeRule.runOnIdle { assertEquals("crucian_carp", opened) }
     }
@@ -437,21 +445,118 @@ class FishGuideRuntimeTest {
         dynamicAvailable = true,
     )
 
-    private fun saveScreenshot(name: String) {
+    private fun saveScreenshot(name: String, selectedSpeciesId: String? = null) {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val rawBitmap = instrumentation.uiAutomation.takeScreenshot()
         val appSurface = cropToComposeRoot(rawBitmap)
         try {
-            val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
+            val context = instrumentation.targetContext
+            val root = File(context.getExternalFilesDir(null), "fish_guide_v1")
             check(root.exists() || root.mkdirs())
-            FileOutputStream(File(root, name)).use { out ->
+            val nativeScreenshot = File(root, name)
+            FileOutputStream(nativeScreenshot).use { out ->
+                check(rawBitmap.compress(Bitmap.CompressFormat.PNG, 100, out))
+            }
+            val appScreenshot = File(root, name.removeSuffix(".png") + "_app_surface.png")
+            FileOutputStream(appScreenshot).use { out ->
                 check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, out))
+            }
+            val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+            fun boundsForTag(tag: String): JSONObject? = runCatching {
+                val bounds = composeRule.onNodeWithTag(tag).fetchSemanticsNode().boundsInWindow
+                JSONObject()
+                    .put("left", bounds.left)
+                    .put("top", bounds.top)
+                    .put("right", bounds.right)
+                    .put("bottom", bounds.bottom)
+            }.getOrNull()
+            val geometry = JSONObject()
+            boundsForTag("fish_guide_carousel")?.let { geometry.put("carousel_bounds_in_window", it) }
+            boundsForTag("fish_guide_progress")?.let { geometry.put("progress_bounds_in_window", it) }
+            selectedSpeciesId?.let { id ->
+                boundsForTag("fish_guide_card_$id")?.let { geometry.put("selected_card_bounds_in_window", it) }
+                geometry.put("selected_species_id", id)
+            }
+            val selectedItem = selectedSpeciesId?.let { id -> species.firstOrNull { it.id == id } }
+            val windowOrigin = IntArray(2)
+            var insetLeft = 0
+            var insetTop = 0
+            var insetRight = 0
+            var insetBottom = 0
+            var activityName = "unknown"
+            composeRule.runOnUiThread {
+                val decor = composeRule.activity.window.decorView
+                decor.getLocationOnScreen(windowOrigin)
+                val compatInsets = ViewCompat.getRootWindowInsets(decor)
+                    ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+                if (compatInsets != null) {
+                    insetLeft = compatInsets.left
+                    insetTop = compatInsets.top
+                    insetRight = compatInsets.right
+                    insetBottom = compatInsets.bottom
+                }
+                activityName = composeRule.activity.javaClass.name
+            }
+            val apkSha256 = FileInputStream(context.packageCodePath).use { input ->
+                val digest = MessageDigest.getInstance("SHA-256")
+                val buffer = ByteArray(64 * 1024)
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    digest.update(buffer, 0, read)
+                }
+                digest.digest().joinToString("") { byte -> "%02x".format(byte) }
+            }
+            val metadata = JSONObject().apply {
+                put("package_name", context.packageName)
+                put("activity", activityName)
+                put("device_model", Build.MODEL)
+                put("sdk", Build.VERSION.SDK_INT)
+                put("screenshot_width_px", rawBitmap.width)
+                put("screenshot_height_px", rawBitmap.height)
+                put("density", context.resources.displayMetrics.density)
+                put("density_dpi", context.resources.displayMetrics.densityDpi)
+                put("font_scale", context.resources.configuration.fontScale)
+                put("insets_px", JSONObject().put("left", insetLeft).put("top", insetTop).put("right", insetRight).put("bottom", insetBottom))
+                put("compose_root_bounds_in_window", JSONObject()
+                    .put("left", rootBounds.left).put("top", rootBounds.top)
+                    .put("right", rootBounds.right).put("bottom", rootBounds.bottom))
+                put("window_origin_on_screen_px", JSONObject().put("x", windowOrigin[0]).put("y", windowOrigin[1]))
+                put("safe_coordinate_map", JSONObject()
+                    .put("origin_x_px", windowOrigin[0] + rootBounds.left)
+                    .put("origin_y_px", windowOrigin[1] + rootBounds.top)
+                    .put("width_px", rootBounds.width)
+                    .put("height_px", rootBounds.height)
+                    .put("source", "Compose semantics root bounds mapped to native screenshot pixels"))
+                put("geometry_bounds", geometry)
+                put("selected_cover_hero_status", selectedItem?.coverHeroStatus ?: JSONObject.NULL)
+                put("selected_cover_hero_version_id", selectedItem?.coverHeroVersionId ?: JSONObject.NULL)
+                put("selected_cover_hero_image_url", selectedItem?.coverHeroImage ?: JSONObject.NULL)
+                put("native_screenshot", nativeScreenshot.name)
+                put("native_screenshot_sha256", sha256(nativeScreenshot))
+                put("app_surface_screenshot", appScreenshot.name)
+                put("app_surface_screenshot_sha256", sha256(appScreenshot))
+                put("apk_sha256", apkSha256)
+            }
+            FileOutputStream(File(root, name.removeSuffix(".png") + "_metadata.json")).use { out ->
+                out.write(metadata.toString(2).toByteArray(Charsets.UTF_8))
             }
         } finally {
             if (appSurface !== rawBitmap) appSurface.recycle()
             rawBitmap.recycle()
         }
+    }
+
+    private fun sha256(file: File): String = FileInputStream(file).use { input ->
+        val digest = MessageDigest.getInstance("SHA-256")
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            digest.update(buffer, 0, read)
+        }
+        digest.digest().joinToString("") { byte -> "%02x".format(byte) }
     }
 
     private fun cropToComposeRoot(source: Bitmap): Bitmap {
