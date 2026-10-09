@@ -86,6 +86,7 @@ class FishGuidePresentationTest {
                 id = "legacy-api",
                 nameCn = "旧接口鱼",
                 coverImage = "https://cdn.example/legacy-api.webp",
+                coverHeroStatus = "LEGACY_API",
             ),
         ).toFishGuidePresentation { value -> value?.let { "resolved:$it" } }
 
