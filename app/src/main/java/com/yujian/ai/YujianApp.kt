@@ -199,18 +199,19 @@ fun YujianApp() {
         if (!guestCatchRepository.hasRecords()) return
         guestMigrationPending = true
         scope.launch {
-            runCatching { guestCatchRepository.migrateToRemote(loggedIn.accessToken, catchRepository) }
+            runCatching {
+                guestCatchRepository.migrateToRemote(loggedIn.accessToken, catchRepository, localCatchOverlays)
+            }
                 .onSuccess {
                     guestMigrationPending = false
                     catchReload++
                 }
                 .onFailure {
-                    // Keep the local archive visible after a partial migration. The
-                    // account API has no idempotent migration key, so don't retry
-                    // automatically in this session and risk duplicate remote catches.
+                    // Each verified record is removed individually. Failed rows and
+                    // their photos stay local; the server client key makes retries safe.
                     Toast.makeText(
                         activityContext,
-                        "游客鱼获迁移未完成；本机原记录仍保留，暂不自动重试以避免重复记录。",
+                        "部分游客鱼获尚未完成迁移；未验证的本机记录和照片仍保留，可稍后重试。",
                         Toast.LENGTH_LONG,
                     ).show()
                 }

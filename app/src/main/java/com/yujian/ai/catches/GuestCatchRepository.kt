@@ -11,6 +11,54 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
+internal fun guestMigrationDraft(sourceGuestId: String, finalView: RemoteCatch): CatchSaveDraft {
+    require(sourceGuestId.isNotBlank()) { "游客鱼获标识缺失" }
+    val metadata = CatchSaveMetadata(
+        lengthCm = finalView.lengthCm?.toDouble(),
+        weightKg = finalView.weightKg?.toDouble(),
+        location = finalView.location,
+        story = finalView.story,
+    )
+    return CatchSaveDraft(
+        speciesId = finalView.speciesId,
+        speciesName = finalView.speciesName,
+        confidence = finalView.confidence,
+        modelVersion = finalView.modelVersion,
+        metadata = metadata,
+        clientRecordId = sourceGuestId,
+        capturedAt = finalView.capturedAt,
+    )
+}
+
+internal fun guestMigrationMatches(source: RemoteCatch, remote: RemoteCatch): Boolean =
+    remote.id.isNotBlank() &&
+        remote.imageUrl.endsWith("/api/v1/catches/${remote.id}/media") &&
+        remote.clientRecordId == source.id &&
+        remote.speciesId == source.speciesId &&
+        remote.speciesName == source.speciesName &&
+        sameMeasurement(remote.lengthCm, source.lengthCm) &&
+        sameMeasurement(remote.weightKg, source.weightKg) &&
+        remote.location == source.location &&
+        remote.story == source.story &&
+        remote.modelVersion == source.modelVersion &&
+        remote.confidence == source.confidence &&
+        sameTimestamp(remote.capturedAt, source.capturedAt)
+
+private fun sameMeasurement(remote: Float?, local: Float?): Boolean = when {
+    remote == null -> local == null
+    local == null -> false
+    else -> kotlin.math.abs(remote - local) <= 0.0001f
+}
+
+private fun sameTimestamp(remote: String, local: String): Boolean {
+    fun millis(value: String): Long? = runCatching {
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(value)?.time
+    }.getOrNull()
+    val remoteMillis = millis(remote)
+    val localMillis = millis(local)
+    return remoteMillis != null && remoteMillis == localMillis
+}
+
 /**
  * App-private archive used while the user is a guest.
  *
@@ -33,8 +81,9 @@ class GuestCatchRepository(context: Context) {
         val destination = File(imageDirectory, "$id.$extension")
         source.copyTo(destination, overwrite = true)
 
-        val timestamp = nowIso()
+        val timestamp = draft.capturedAt ?: nowIso()
         val classifier = draft.classifierResult
+        val metadata = draft.metadata
         val record = RemoteCatch(
             id = id,
             imageUrl = destination.absolutePath,
@@ -44,10 +93,14 @@ class GuestCatchRepository(context: Context) {
             modelVersion = draft.modelVersion,
             capturedAt = timestamp,
             createdAt = timestamp,
-            lengthCm = classifier?.takeIf { it.has("length_cm") && !it.isNull("length_cm") }?.optDouble("length_cm")?.toFloat(),
-            weightKg = classifier?.takeIf { it.has("weight_kg") && !it.isNull("weight_kg") }?.optDouble("weight_kg")?.toFloat(),
-            location = classifier?.takeIf { it.has("location") && !it.isNull("location") }
+            lengthCm = metadata?.lengthCm?.toFloat()
+                ?: if (metadata == null) classifier?.takeIf { it.has("length_cm") && !it.isNull("length_cm") }?.optDouble("length_cm")?.toFloat() else null,
+            weightKg = metadata?.weightKg?.toFloat()
+                ?: if (metadata == null) classifier?.takeIf { it.has("weight_kg") && !it.isNull("weight_kg") }?.optDouble("weight_kg")?.toFloat() else null,
+            location = if (metadata != null) metadata.location else classifier?.takeIf { it.has("location") && !it.isNull("location") }
                 ?.optString("location")?.takeIf(String::isNotBlank),
+            story = if (metadata != null) metadata.story else classifier?.takeIf { it.has("story") && !it.isNull("story") }
+                ?.optString("story")?.takeIf(String::isNotBlank),
         )
         val records = JSONArray(preferences.getString(KEY_RECORDS, "[]") ?: "[]")
         records.put(record.toJson())
@@ -55,32 +108,68 @@ class GuestCatchRepository(context: Context) {
         record
     }
 
-    suspend fun migrateToRemote(token: String, remote: CatchRepository) = withContext(Dispatchers.IO) {
+    suspend fun migrateToRemote(
+        token: String,
+        remote: CatchRepository,
+        overlays: CatchLocalOverlayStore,
+    ) = withContext(Dispatchers.IO) {
+        remote.requireMetadataMigrationSupport(token)
         val records = readCatches()
         records.forEach { record ->
-            val image = File(record.imageUrl)
-            require(image.exists() && image.length() > 0L) { "游客鱼获照片不存在：${record.id}" }
-            val upload = remote.uploadImage(token, image)
-            remote.saveCatch(
-                token,
-                upload,
-                CatchSaveDraft(
-                    speciesId = record.speciesId,
-                    speciesName = record.speciesName,
-                    confidence = record.confidence,
-                    modelVersion = record.modelVersion,
-                ),
-            )
+            val effective = overlays.apply(record)
+            val previousCatchId = readMigrationMappings().optString(record.id).takeIf(String::isNotBlank)
+            var saved = previousCatchId?.let { id ->
+                try {
+                    remote.getCatch(token, id)
+                } catch (error: com.yujian.ai.auth.ApiException) {
+                    if (error.statusCode == 404) null else throw error
+                }
+            } ?: remote.findByClientRecordId(token, record.id)
+            if (saved == null) {
+                val image = File(record.imageUrl)
+                require(image.exists() && image.length() > 0L) { "游客鱼获照片不存在：${record.id}" }
+                val upload = remote.uploadImage(token, image)
+                saved = remote.saveCatch(
+                    token,
+                    upload,
+                    guestMigrationDraft(record.id, effective),
+                )
+            }
+            require(guestMigrationMatches(effective, saved)) { "迁移后的鱼获数据、照片或映射不一致" }
+            val reread = remote.getCatch(token, saved.id)
+            require(guestMigrationMatches(effective, reread)) { "重新读取后的鱼获数据、照片或映射不一致" }
+            require(reread.id == saved.id) { "迁移后的鱼获标识不一致" }
+
+            // Store the source-to-server mapping before dropping this local row.
+            val mappings = readMigrationMappings().put(record.id, reread.id)
+            check(preferences.edit().putString(KEY_MIGRATIONS, mappings.toString()).commit()) {
+                "游客鱼获迁移映射保存失败"
+            }
+            removeMigratedRecord(record)
         }
-        clear()
     }
 
     fun hasRecords(): Boolean = readCatches().isNotEmpty()
 
-    private fun clear() {
-        readCatches().forEach { File(it.imageUrl).delete() }
-        preferences.edit().remove(KEY_RECORDS).apply()
+    private fun removeMigratedRecord(record: RemoteCatch) {
+        val current = runCatching { JSONArray(preferences.getString(KEY_RECORDS, "[]") ?: "[]") }
+            .getOrDefault(JSONArray())
+        val retained = JSONArray()
+        for (index in 0 until current.length()) {
+            val item = runCatching { current.getJSONObject(index) }.getOrNull()
+            if (item == null || item.optString("id") != record.id) {
+                retained.put(item ?: current.opt(index))
+            }
+        }
+        check(preferences.edit().putString(KEY_RECORDS, retained.toString()).commit()) {
+            "游客鱼获源记录没有安全清理，请保留并重试"
+        }
+        File(record.imageUrl).delete()
     }
+
+    private fun readMigrationMappings(): JSONObject = runCatching {
+        JSONObject(preferences.getString(KEY_MIGRATIONS, "{}") ?: "{}")
+    }.getOrDefault(JSONObject())
 
     fun statistics(catches: List<RemoteCatch>): CatchStatistics {
         val species = catches.groupingBy { it.speciesId.ifBlank { it.speciesName } }.eachCount()
@@ -114,17 +203,19 @@ class GuestCatchRepository(context: Context) {
         createdAt = optString("created_at"),
         lengthCm = optionalFloat("length_cm", "length"),
         weightKg = optionalFloat("weight_kg", "weight"),
-        location = optString("location").ifBlank { optString("location_name") }
-            .takeIf(String::isNotBlank),
+        location = catchStoryFromWire(optString("location"))
+            ?: catchStoryFromWire(optString("location_name")),
         bsideStatus = BsideStatus.fromWire(optString("bside_status")),
         bsideUri = optString("bside_uri").takeIf(String::isNotBlank),
+        story = catchStoryFromWire(optString("story")),
+        clientRecordId = optString("client_record_id").takeIf(String::isNotBlank),
     )
 
     private fun JSONObject.optionalFloat(vararg keys: String): Float? {
         keys.forEach { key ->
             if (has(key) && !isNull(key)) {
                 val value = optDouble(key, Double.NaN)
-                if (!value.isNaN()) return value.toFloat()
+                if (value.isFinite()) return value.toFloat()
             }
         }
         return null
@@ -142,6 +233,8 @@ class GuestCatchRepository(context: Context) {
         .put("length_cm", lengthCm ?: JSONObject.NULL)
         .put("weight_kg", weightKg ?: JSONObject.NULL)
         .put("location", location ?: JSONObject.NULL)
+        .put("story", story ?: JSONObject.NULL)
+        .put("client_record_id", clientRecordId ?: JSONObject.NULL)
         .put("bside_status", bsideStatus.name)
         .put("bside_uri", bsideUri ?: JSONObject.NULL)
 
@@ -150,5 +243,6 @@ class GuestCatchRepository(context: Context) {
     private companion object {
         const val PREFERENCES = "yujian_guest_archive"
         const val KEY_RECORDS = "records"
+        const val KEY_MIGRATIONS = "record_migrations"
     }
 }

@@ -56,6 +56,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -105,6 +106,7 @@ import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
+import com.yujian.ai.catches.CatchSaveMetadataParser
 import com.yujian.ai.feedback.FeedbackDraft
 import com.yujian.ai.knowledge.FishGuideItem
 import com.yujian.ai.model.DemoData
@@ -230,6 +232,8 @@ fun RecognitionResultScreen(
     var locationText by remember(prediction) { mutableStateOf("") }
     var storyText by remember(prediction) { mutableStateOf("") }
     var saveRequested by remember(prediction) { mutableStateOf(false) }
+    var metadataValidationError by remember(prediction) { mutableStateOf<String?>(null) }
+    val clientRecordId = rememberSaveable(prediction) { java.util.UUID.randomUUID().toString() }
     var requestedSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
     var pendingSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
     var purposeVisible by remember(prediction) { mutableStateOf(false) }
@@ -287,6 +291,13 @@ fun RecognitionResultScreen(
             selectorVisible = true
             return
         }
+        val metadata = try {
+            CatchSaveMetadataParser.parse(lengthText, weightText, locationText, storyText)
+        } catch (error: IllegalArgumentException) {
+            metadataValidationError = error.message ?: "鱼获数据格式不正确，请检查后重试"
+            return
+        }
+        metadataValidationError = null
         saveRequested = true
         requestedSaveDestination = destination
         val corrected = selectedKey != prediction.top1.speciesKey
@@ -300,19 +311,29 @@ fun RecognitionResultScreen(
             feedbackType = recognitionFeedbackType(prediction.top1.speciesKey, selectedKey),
             modelVersion = prediction.modelVersion, predictedSpecies = prediction.top1.speciesName,
             confidence = prediction.top1.confidence, correctedSpecies = selectedName.takeIf { corrected },
-            userNote = "ui_state=${uiState.name};length_cm=$lengthText;weight_kg=$weightText;location=$locationText;story=$storyText",
+            userNote = "ui_state=${uiState.name};has_length=${metadata.lengthCm != null};has_weight=${metadata.weightKg != null};has_location=${metadata.location != null};has_story=${metadata.story != null}",
         )
         val classifier = JSONObject()
             .put("ui_state", uiState.name).put("model_version", prediction.modelVersion)
             .put("prediction_species", prediction.top1.speciesKey).put("confidence", prediction.top1.confidence.toDouble())
             .put("user_selected_species", selectedKey)
-            .put("length_cm", lengthText.toDoubleOrNull() ?: JSONObject.NULL)
-            .put("weight_kg", weightText.toDoubleOrNull() ?: JSONObject.NULL)
-            .put("location", locationText.ifBlank { JSONObject.NULL })
-            .put("story", storyText.ifBlank { JSONObject.NULL })
-            .put("created_at", currentTime).put("photo_url", image?.filePath ?: "")
+            .put("length_cm", metadata.lengthCm ?: JSONObject.NULL)
+            .put("weight_kg", metadata.weightKg ?: JSONObject.NULL)
+            .put("location", metadata.location ?: JSONObject.NULL)
+            .put("story", metadata.story ?: JSONObject.NULL)
+            .put("created_at", currentTime)
         onSave(
-            CatchSaveDraft(selectedKey, selectedName, prediction.top1.confidence, prediction.modelVersion, detector, classifier),
+            CatchSaveDraft(
+                speciesId = selectedKey,
+                speciesName = selectedName,
+                confidence = prediction.top1.confidence,
+                modelVersion = prediction.modelVersion,
+                detectorResult = detector,
+                classifierResult = classifier,
+                metadata = metadata,
+                clientRecordId = clientRecordId,
+                capturedAt = currentTime,
+            ),
             feedback,
             destination,
         )
@@ -389,7 +410,7 @@ fun RecognitionResultScreen(
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                         )
                         Spacer(Modifier.height(16.dp))
-                        ResultInlineError(saveError, sideMargin)
+                        ResultInlineError(saveError ?: metadataValidationError, sideMargin)
                         ResultDualActions(
                             useResultSurfaceActions = true,
                             saving = saving,
@@ -441,7 +462,7 @@ fun RecognitionResultScreen(
                             Spacer(Modifier.height(12.dp))
                             ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                             Spacer(Modifier.height(16.dp))
-                            ResultInlineError(saveError, sideMargin)
+                            ResultInlineError(saveError ?: metadataValidationError, sideMargin)
                             ResultDualActions(
                                 saving = saving,
                                 loadingDestination = activeLoadingDestination,
@@ -481,7 +502,7 @@ fun RecognitionResultScreen(
                                 SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving) { openSpeciesSelector() }
                                 ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
                                 ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                                ResultInlineError(saveError, 0.dp)
+                                ResultInlineError(saveError ?: metadataValidationError, 0.dp)
                                 ResultDualActions(
                                     saving = saving, sideMargin = 0.dp,
                                     loadingDestination = activeLoadingDestination,
