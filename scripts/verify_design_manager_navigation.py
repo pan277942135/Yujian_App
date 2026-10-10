@@ -99,7 +99,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         if not guest or not (root / guest).exists():
             fail("NH07 Guest must resolve to separate registered source")
 
-    # Record Date V2 is design-only but both committed original images are byte-identified.
+    # Record Date V2 originals and user-approved design layout are FROZEN; runtime remains unverified.
     record = next((f for f in registry.get("features", []) if f.get("id") == "record_date_v2"), None)
     if record is None or record.get("display_name") != "记录日期":
         fail("Record Date V2 top-level navigation missing")
@@ -112,8 +112,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     ]:
         entry = record_manifest[entry_key]
         view = next(v for v in record["hifi_views"] if v["id"] == view_id)
-        if view.get("status") != "ACTIVE_CLOSURE" or view.get("image") != entry["path"]:
-            fail(f"Record Date {view_id} must render registered pending-review PNG")
+        if view.get("status") != "FROZEN" or view.get("image") != entry["path"] or entry.get("status") != "FROZEN":
+            fail(f"Record Date {view_id} must render registered frozen original PNG")
         data_path = root / entry["path"]
         if not data_path.is_file():
             fail(f"Record Date V2 source PNG absent: {entry['path']}")
@@ -123,8 +123,27 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         width, height = struct.unpack(">II", data[16:24])
         if (width, height) != dim or hashlib.sha256(data).hexdigest() != entry["sha256"]:
             fail(f"Record Date image SHA256/dimensions mismatch: {view_id}")
-    if record.get("design_overall") != "ACTIVE_CLOSURE":
-        fail("Record Date images must remain un-frozen until design review")
+    if record.get("design_overall") != "FROZEN":
+        fail("Record Date images must remain approved FROZEN")
+
+    if record_manifest.get("status") != "FROZEN":
+        fail("Record Date PNG manifest is not frozen")
+    record_status = load_json(design / "pages/record_date/v2/status.json")
+    record_nav = load_json(design / "pages/record_date/v2/navigation.json")
+    if record_status.get("design_overall") != "FROZEN" or not record_status.get("frozen"):
+        fail("Record Date feature status does not record approved freeze")
+    if record_nav.get("status") != "FROZEN" or [v.get("status") for v in record_nav.get("level_2", [])] != ["FROZEN"] * 3:
+        fail("Record Date navigation freeze status inconsistent")
+    if any(v.get("status") != "FROZEN" for v in record.get("hifi_views", [])):
+        fail("Record Date month/year/interaction must be frozen")
+    if record.get("modalities", {}).get("runtime", {}).get("status") != "MISSING":
+        fail("Record Date Android runtime cannot become validated as a side effect of design freeze")
+    decision_path = design / "pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md"
+    if not decision_path.is_file():
+        fail("Record Date V2 freeze decision missing")
+    decision = decision_path.read_text(encoding="utf-8")
+    if not all(token in decision for token in ("68", "59", "BG_DATA", "FishRecord")):
+        fail("Record Date known data/background exceptions must be documented")
 
     app = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
     required_logic = '(selectedKey === key || selectedKey.startsWith(key + "/"))'

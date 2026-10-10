@@ -1,8 +1,8 @@
 {
   "schema": "record_date_v2_asset_manifest",
   "version": "2.0",
-  "status": "ACTIVE_CLOSURE",
-  "review_status": "GENERATED_VISUAL_CANDIDATE_NOT_FROZEN",
+  "status": "FROZEN",
+  "review_status": "FROZEN_COMPOSITION_WITH_EXPLICIT_EXCEPTIONS",
   "image_policy": "Original generated PNG binary unchanged; no compression, resampling, cropping or replacement. Images are design mockups, not authenticated FishRecord photography.",
   "month": {
     "id": "RD01",
@@ -13,8 +13,10 @@
     "bytes": 1654955,
     "sha256": "20977c8128c997221c044df8cc67d19daad4fcca92fd0466c9a0a200a819c4d5",
     "git_blob_sha": "7ea2795c2961412a73858644e6e912ff85450b57",
-    "status": "ACTIVE_CLOSURE",
-    "role": "REVIEW_CANDIDATE"
+    "status": "FROZEN",
+    "role": "FROZEN_HIFI_COMPOSITION",
+    "data_authority": false,
+    "frozen_scope": "visual layout and component geometry"
   },
   "year": {
     "id": "RD02",
@@ -25,8 +27,15 @@
     "bytes": 1827402,
     "sha256": "4a785c36d6de008cef05bff821e593767ad2ea3b7849bde8cf0ead5fc93cfaeb",
     "git_blob_sha": "c37e5538b27bd2ce50897ac8187f15358ad5dbc1",
-    "status": "ACTIVE_CLOSURE",
-    "role": "REVIEW_CANDIDATE"
+    "status": "FROZEN",
+    "role": "FROZEN_HIFI_COMPOSITION",
+    "data_authority": false,
+    "frozen_scope": "visual layout and component geometry",
+    "demo_data_exception": {
+      "header": 68,
+      "monthly_sum": 59,
+      "issue": "sample mismatch, runtime always derives from FishRecord"
+    }
   },
   "background_contract": {
     "master": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
@@ -36,7 +45,9 @@
     "contrast_relative": 0.78,
     "brightness_relative": 1.06,
     "global_blur": false,
-    "note": "Runtime must composite canonical source, not crop scenery from generated mockups. Current PNGs have not passed pixel-exact background parity."
+    "note": "Current mockup lake pixels not verified. Production uses canonical Morning_Lake_Master_V1/BG_DATA; mockup scenery not source authority."
   },
-  "supersedes": "historical 2026-09-04 12-mini-calendar year designs and later 4×3 month-card historical boards remain references only; no historical file overwritten."
+  "supersedes": "historical 2026-09-04 12-mini-calendar year designs and later 4×3 month-card historical boards remain references only; no historical file overwritten.",
+  "freeze_date": "2026-10-10",
+  "freeze_decision": "design/pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md"
 }

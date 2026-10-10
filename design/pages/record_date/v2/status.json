@@ -1,12 +1,17 @@
 {
   "feature_id": "record_date_v2",
-  "design_overall": "ACTIVE_CLOSURE",
-  "visual": "ACTIVE_CLOSURE",
-  "behavior": "ACTIVE_CLOSURE",
+  "design_overall": "FROZEN",
+  "visual": "FROZEN",
+  "behavior": "FROZEN",
   "runtime": "MISSING",
   "source_assets": "COMMITTED_ORIGINAL_PNG_BYTES",
-  "background": "BG_DATA_CANDIDATE_PENDING_PIXEL_PARITY",
-  "frozen": false,
-  "year_demo_data_inconsistency": "header 68 versus monthly total 59",
-  "android_modified": false
+  "background": "CANONICAL_BG_DATA_OVERRIDES_UNVERIFIED_MOCKUP_SCENERY",
+  "frozen": true,
+  "year_demo_data_inconsistency": "KNOWN_EXCEPTION: year header 68 versus 12 monthly total 59; illustrative only",
+  "android_modified": false,
+  "assets": "FROZEN",
+  "motion": "PARTIAL",
+  "freeze_date": "2026-10-10",
+  "frozen_scope": "VISUAL_COMPOSITION_AND_DESIGN_BEHAVIOR_ONLY",
+  "freeze_decision": "design/pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md"
 }

@@ -1,6 +1,6 @@
 # 记录日期 V2 · 导航 / 数据 / 状态合同（拟定版）
 
-**Status: ACTIVE_CLOSURE / DESIGN TARGET（不代表 Kotlin 已落地）**
+**Status: FROZEN / DESIGN TARGET（不代表 Kotlin 已落地）**
 
 ## 1. 首页入口与状态冲突
 User-approved design target：从有数据首页统计条中的 **「记录天数」** 点击进入 `record_date_v2`，默认月视图。首页原工程合同 `design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md` 描述当时运行时「记录天数不点击」，属于 **existing runtime contract**；此处是**新版产品导航要求**，需在独立 Android 任务中修改和验收。**不许把设计已更新等同 Android 已实现。**
@@ -44,3 +44,7 @@ Use a single state owner:
 
 ## 6. 权威边界
 该合同优先说明 V2 导航**目标行为**；若与当前 Android 代码或旧 Home V1 合同冲突，提交单独实现/版本修订，不得隐式覆盖既有 Kotlin。
+
+## 7. 设计冻结
+
+用户已批准此导航/数据设计目标。年图静态示例的68次与各月合计59次互相矛盾；永远以真实FishRecord聚合计算为准，不能当做测试通过或固化数字。Android的当前入口仍需单独开发与验收。详见 [视觉冻结决定](../review/Record_Date_V2_Freeze_Decision_20261010.md)。

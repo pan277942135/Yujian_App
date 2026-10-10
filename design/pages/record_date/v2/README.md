@@ -1,6 +1,6 @@
 # 记录日期 V2 · Record Date / Calendar Archive
 
-**Design Manager 一级菜单：记录日期**  |  **设计阶段：ACTIVE_CLOSURE / 原始高保候选**  |  **更新时间：2026-10-10**
+**Design Manager 一级菜单：记录日期**  |  **设计阶段：FROZEN（月／年视觉版式 + 设计交互；Runtime 另验）**  |  **更新时间：2026-10-10**
 
 此模块由 Normal Home「记录天数」进入，使用独立的「月 / 年」切换。现有 Android 的 Record Days CTA 可能仍未跳转，本仓库更新属于**设计系统交付，不代表 Android 已实现或验收**。
 
@@ -22,6 +22,6 @@
 
 复用 [Background System V1](../../../system/backgrounds/morning_lake_v1/Background_System_Spec_V1.md) 的 **Morning_Lake_Master_V1 → BG_DATA**：30% MistWhite、79% saturation、78% contrast、106% brightness、Global Blur OFF。无太阳公共母版唯一权威；PNG 中湖景只是待校验的合成视觉，不是需要另生成一套湖景背景。
 
-## 冻结边界
+## 冻结边界 · 已批准 2026-10-10
 
-两张原始 PNG 已入 GitHub。**资产字节校验通过 ≠ 页面视觉设计已获批准，也不等于 Android Runtime PASS**。当前图中所有鱼获数量、鱼种照片、日期文字仅作表现样例，见审议清单。对照新背景与真实 FishRecord 数据进行校正、通过用户验收后方可将 `ACTIVE_CLOSURE` 改为 `FROZEN`。
+两张原始 PNG 已入 GitHub。**两张原始 PNG 的视觉版式与 RD03 设计交互已按用户批准 FROZEN，但不等于 Android Runtime PASS**。生成图的年度数字68与月卡合计59矛盾，属于非权威示意数据；生成湖景未通过 BG_DATA 像素同源验收；示例鱼照片不是真实 FishRecord。实际界面须根据共享背景和真实鱼获数据重建；不得修改当前原图。详见 [V2 冻结决定](review/Record_Date_V2_Freeze_Decision_20261010.md)。
