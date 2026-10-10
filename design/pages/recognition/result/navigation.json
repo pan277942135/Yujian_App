@@ -18,6 +18,7 @@
       "status": "FROZEN",
       "page": "design/pages/recognition/result/00_overview/README.md",
       "contains": [
+        "3+2 决策链：检测/质量/分类/技术异常优先级（现行阈值与候选调整分开）",
         "3+2 状态关系",
         "共用视觉规则",
         "Hero Media Contract V1",
@@ -25,7 +26,9 @@
         "Motion / Adaptive / Accessibility",
         "最终闭环",
         "Implementation-ready Engineering Contracts V1"
-      ]
+      ],
+      "decision_spec": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+      "decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json"
     },
     {
       "order": 2,
@@ -161,5 +164,6 @@
         "RR06"
       ]
     }
-  ]
+  ],
+  "decision_authority_status": "AS_IMPLEMENTED_DOCUMENTED / NEXT_VERSION_PROPOSAL_UNAPPROVED"
 }
