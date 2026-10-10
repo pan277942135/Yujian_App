@@ -64,4 +64,4 @@ Historical design-state package remains linked in ../README.md; frozen PNGs, man
 
 ## Repeatable static governance gate
 
-Run from repository root: python3 scripts/design/verify_normal_home_contract_v1.py. This checks document pointers, authority priorities, 38 distinct test IDs, statuses and *actual checked-out Frozen PNG* hash/dimensions. A static gate PASS does NOT prove Android runtime behavior. Runtime requirements must still be implemented and measured against an exact APK SHA.
+Run from repository root: python3 scripts/design/verify_normal_home_contract_v1.py. An isolated .github/workflows/normal-home-spec-governance.yml job runs this same static check for matching branch pushes and PRs. This checks document pointers, authority priorities, 38 distinct test IDs, statuses and *actual checked-out Frozen PNG* hash/dimensions. A static gate PASS does NOT prove Android runtime behavior. Runtime requirements must still be implemented and measured against an exact APK SHA.
