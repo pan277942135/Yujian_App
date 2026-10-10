@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">重量</title>
+  <path d="M9.25 8.2V6.95a2.75 2.75 0 1 1 5.5 0V8.2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.2 8.2H15.8C17.79 8.2 19.4 9.81 19.4 11.8V14.9C19.4 17.16 17.56 19 15.3 19H8.7C6.44 19 4.6 17.16 4.6 14.9V11.8C4.6 9.81 6.21 8.2 8.2 8.2Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 11.2V14.6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M10.8 12.4H13.2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
