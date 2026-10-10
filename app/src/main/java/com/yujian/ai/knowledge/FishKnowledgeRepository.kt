@@ -182,7 +182,9 @@ class FishKnowledgeRepository(
                             ?: item.optString("asset_version_id").cleanJsonString(),
                         resourceId = item.optString("asset_id").cleanJsonString()
                             ?: item.optString("id").cleanJsonString(),
-                        status = item.optString("status").cleanJsonString()?.uppercase(),
+                        // CMS v1.4 emits asset_status; status is retained for v1.3 fixtures.
+                        status = (item.optString("asset_status").cleanJsonString()
+                            ?: item.optString("status").cleanJsonString())?.uppercase(),
                         speciesId = item.optString("species_id").cleanJsonString() ?: detailSpeciesId,
                     ),
                 )
@@ -203,7 +205,8 @@ class FishKnowledgeRepository(
             content = parseCardContent(item.optJSONObject("content"), cardType),
             sortOrder = item.optInt("sort_order"),
             status = item.optString("status"),
-            versionId = item.optString("version_id").cleanJsonString(),
+            versionId = item.optString("asset_version_id").cleanJsonString()
+                ?: item.optString("version_id").cleanJsonString(),
             version = item.optString("version").cleanJsonString(),
         )
     }.sortedBy { it.sortOrder }

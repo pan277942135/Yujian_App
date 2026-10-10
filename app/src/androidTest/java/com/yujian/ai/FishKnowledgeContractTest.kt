@@ -3,6 +3,7 @@ package com.yujian.ai
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.knowledge.FishKnowledgeRepository
+import com.yujian.ai.ui.fishguide.toKnowledgeCardPresentations
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -113,7 +114,12 @@ class FishKnowledgeContractTest {
         assertEquals("ACTIVE", detail.coverHeroStatus)
         assertEquals("9101", detail.knowledgeAssets.getValue("HERO").versionId)
         assertEquals("ca-hero-91", detail.knowledgeAssets.getValue("HERO").resourceId)
+        assertEquals("9101", detail.cards.single().versionId)
         assertTrue(detail.knowledgeAssets.values.all { it.status == "ACTIVE" && it.speciesId == "grass_carp" })
+        val presentations = detail.toKnowledgeCardPresentations(repository()::resolveAssetUrl)
+        assertEquals(5, presentations.size)
+        assertTrue(presentations.all { it.available && it.imageStatus == "ACTIVE" })
+        assertEquals("https://api.example/media/grass/hero-91.webp", presentations.first().imageUrl)
     }
 
     @Test
