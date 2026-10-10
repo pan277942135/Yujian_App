@@ -2,6 +2,7 @@ package com.yujian.ai.ui.home
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -127,7 +128,9 @@ class NormalHomeHeroBehaviorTest {
     @Test
     fun loggedInDefaultAvatarKeepsProfileButtonSemanticsAndAction() {
         var profileClicks = 0
+        var densityScale = 1f
         compose.setContent {
+            densityScale = LocalDensity.current.density
             NormalHomeContent(
                 statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
                 recentCatches = listOf(record("profile-fallback")),
@@ -146,11 +149,48 @@ class NormalHomeHeroBehaviorTest {
             )
         }
 
-        compose.onNodeWithContentDescription("个人中心")
-            .assertHasClickAction()
-            .performClick()
+        val profileButton = compose.onNodeWithContentDescription("个人中心")
+        val profileBounds = profileButton.fetchSemanticsNode().boundsInRoot
+        assertTrue("Profile hitbox width must remain at least 48dp", profileBounds.width / densityScale >= 48f)
+        assertTrue("Profile hitbox height must remain at least 48dp", profileBounds.height / densityScale >= 48f)
+        profileButton.assertHasClickAction().performClick()
         compose.onNodeWithTag("normal-home-default-profile-avatar", useUnmergedTree = true).assertIsDisplayed()
         compose.runOnIdle { assertEquals(1, profileClicks) }
+    }
+
+    @Test
+    fun guestAvatarUsesSeparateArtworkAndOpensLoginRegister() {
+        var loginClicks = 0
+        var densityScale = 1f
+        compose.setContent {
+            densityScale = LocalDensity.current.density
+            NormalHomeContent(
+                statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                recentCatches = listOf(record("guest-entry")),
+                resolveImageUrl = { null },
+                accessToken = "",
+                isLoggedIn = false,
+                avatarUrl = null,
+                onIdentify = {},
+                onSpeciesClick = {},
+                onCatchesClick = {},
+                onProfileClick = { loginClicks++ },
+                onCatchClick = {},
+                motionState = HomeMotionState(),
+                runtimeAssets = null,
+                modifier = Modifier.size(360.dp, 640.dp),
+            )
+        }
+
+        val guestButton = compose.onNodeWithContentDescription("登录或注册")
+        val bounds = guestButton.fetchSemanticsNode().boundsInRoot
+        assertTrue("Guest entry width must remain at least 48dp", bounds.width / densityScale >= 48f)
+        assertTrue("Guest entry height must remain at least 48dp", bounds.height / densityScale >= 48f)
+        guestButton.assertHasClickAction().performClick()
+        compose.onNodeWithTag("normal-home-guest-avatar", useUnmergedTree = true).assertIsDisplayed()
+        assertTrue(compose.onAllNodesWithTag("normal-home-default-profile-avatar", useUnmergedTree = true)
+            .fetchSemanticsNodes().isEmpty())
+        compose.runOnIdle { assertEquals(1, loginClicks) }
     }
 
     @Test

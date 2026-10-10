@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import com.yujian.ai.ui.components.AssetImage
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -300,40 +301,53 @@ private fun NormalHomeHeader(
         if (isLoggedIn) {
             Box(
                 modifier = Modifier
-                    .size(avatarSize)
+                    .requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
                     .semantics {
                         contentDescription = "个人中心"
                         role = Role.Button
                     }
                     .clickable(onClick = onProfileClick),
+                contentAlignment = Alignment.Center,
             ) {
-                NormalHomeDefaultAvatar(Modifier.fillMaxSize())
-                if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||
-                    avatarState == NormalHomeAvatarState.PROFILE_IMAGE
-                ) {
-                    Box(Modifier.fillMaxSize().clip(CircleShape)) {
-                        RemoteImage(
-                            url = resolvedAvatarUrl,
-                            authToken = accessToken,
-                            modifier = Modifier.fillMaxSize(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            onLoadResult = { avatarLoadResult.value = it },
-                            placeholder = { Box(Modifier.fillMaxSize()) },
-                        )
+                Box(Modifier.size(avatarSize)) {
+                    NormalHomeDefaultAvatar(Modifier.fillMaxSize())
+                    if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||
+                        avatarState == NormalHomeAvatarState.PROFILE_IMAGE
+                    ) {
+                        Box(Modifier.fillMaxSize().clip(CircleShape)) {
+                            RemoteImage(
+                                url = resolvedAvatarUrl,
+                                authToken = accessToken,
+                                modifier = Modifier.fillMaxSize(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                onLoadResult = { avatarLoadResult.value = it },
+                                placeholder = { Box(Modifier.fillMaxSize()) },
+                            )
+                        }
                     }
                 }
             }
         } else {
-            Image(
-                painter = painterResource(R.drawable.normal_home_default_avatar_v2),
-                contentDescription = "登录或注册",
-                contentScale = ContentScale.Fit,
+            Box(
                 modifier = Modifier
-                    .size(avatarSize)
-                    .clickable(role = Role.Button, onClick = onProfileClick)
-                    .testTag("normal-home-default-profile-avatar"),
-            )
+                    .requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .semantics {
+                        contentDescription = "登录或注册"
+                        role = Role.Button
+                    }
+                    .clickable(onClick = onProfileClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                AssetImage(
+                    assetPath = NORMAL_HOME_GUEST_AVATAR_ASSET_PATH,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(avatarSize)
+                        .testTag("normal-home-guest-avatar"),
+                )
+            }
         }
     }
 }

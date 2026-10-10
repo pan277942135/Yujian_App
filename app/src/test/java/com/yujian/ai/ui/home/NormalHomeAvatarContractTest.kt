@@ -5,7 +5,7 @@ import org.junit.Test
 
 class NormalHomeAvatarContractTest {
     @Test
-    fun guestAlwaysUsesTheNormalHomeDefaultAvatar() {
+    fun guestUsesTheDistinctGuestEntryState() {
         assertEquals(
             NormalHomeAvatarState.GUEST_DEFAULT,
             normalHomeAvatarState(isLoggedIn = false, avatarUrl = null, loadSucceeded = null),

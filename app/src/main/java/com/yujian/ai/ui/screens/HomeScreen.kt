@@ -174,7 +174,7 @@ fun HomeScreen(
                 onIdentify = onIdentify,
                 onSpeciesClick = onSpeciesClick,
                 onCatchesClick = onCatchesClick,
-                onProfileClick = onProfileClick,
+                onProfileClick = if (isLoggedIn) onProfileClick else onLoginClick,
                 onCatchClick = onCatchClick,
                 isResolving = isResolving,
                 motionState = homeMotionState,

@@ -1,28 +1,50 @@
 package com.yujian.ai.ui.home
 
-/** Normal Home only; shared/profile avatar contracts remain unchanged. */
-internal enum class NormalHomeAvatarState {
-    GUEST_DEFAULT,
-    PROFILE_DEFAULT,
-    PROFILE_LOADING,
-    PROFILE_IMAGE,
-}
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
-/**
- * A remote avatar is rendered only for an authenticated profile with a URL.
- * While loading it uses the same local V2 image as its placeholder; a failed
- * request falls back to that image without a blank or intermediate icon.
- */
-internal fun normalHomeAvatarState(
-    isLoggedIn: Boolean,
-    avatarUrl: String?,
-    loadSucceeded: Boolean?,
-): NormalHomeAvatarState {
-    if (!isLoggedIn) return NormalHomeAvatarState.GUEST_DEFAULT
-    if (avatarUrl.isNullOrBlank()) return NormalHomeAvatarState.PROFILE_DEFAULT
-    return when (loadSucceeded) {
-        true -> NormalHomeAvatarState.PROFILE_IMAGE
-        false -> NormalHomeAvatarState.PROFILE_DEFAULT
-        null -> NormalHomeAvatarState.PROFILE_LOADING
+class NormalHomeAvatarContractTest {
+    @Test
+    fun guestUsesTheDistinctGuestEntryState() {
+        assertEquals(
+            "normal_home_runtime_v1/avatar/guest_avatar.png",
+            NORMAL_HOME_GUEST_AVATAR_ASSET_PATH,
+        )
+        assertEquals(
+            NormalHomeAvatarState.GUEST_DEFAULT,
+            normalHomeAvatarState(isLoggedIn = false, avatarUrl = null, loadSucceeded = null),
+        )
+        assertEquals(
+            NormalHomeAvatarState.GUEST_DEFAULT,
+            normalHomeAvatarState(isLoggedIn = false, avatarUrl = "https://example.test/avatar.png", loadSucceeded = true),
+        )
+    }
+
+    @Test
+    fun loggedInProfileUsesDefaultWhileMissingLoadingOrFailed() {
+        assertEquals(
+            NormalHomeAvatarState.PROFILE_DEFAULT,
+            normalHomeAvatarState(isLoggedIn = true, avatarUrl = null, loadSucceeded = null),
+        )
+        assertEquals(
+            NormalHomeAvatarState.PROFILE_DEFAULT,
+            normalHomeAvatarState(isLoggedIn = true, avatarUrl = " ", loadSucceeded = null),
+        )
+        assertEquals(
+            NormalHomeAvatarState.PROFILE_LOADING,
+            normalHomeAvatarState(isLoggedIn = true, avatarUrl = "https://example.test/avatar.png", loadSucceeded = null),
+        )
+        assertEquals(
+            NormalHomeAvatarState.PROFILE_DEFAULT,
+            normalHomeAvatarState(isLoggedIn = true, avatarUrl = "https://example.test/avatar.png", loadSucceeded = false),
+        )
+    }
+
+    @Test
+    fun loggedInProfileUsesRemoteImageOnlyAfterSuccessfulLoad() {
+        assertEquals(
+            NormalHomeAvatarState.PROFILE_IMAGE,
+            normalHomeAvatarState(isLoggedIn = true, avatarUrl = "https://example.test/avatar.png", loadSucceeded = true),
+        )
     }
 }
