@@ -63,6 +63,7 @@ fi
   printf 'TEST_APK=%s\nTEST_APK_SHA256=%s\nTEST_APK_BYTES=%s\n' \
     "$YUJIAN_TEST_APK" "$(sha256_file "$YUJIAN_TEST_APK")" "$(stat -c '%s' "$YUJIAN_TEST_APK")"
 } > "$EVIDENCE_DIR/apk_provenance.txt"
+cat "$EVIDENCE_DIR/apk_provenance.txt"
 
 android_runtime_preflight
 preflight_rc=$?
@@ -115,6 +116,7 @@ pathlib.Path(path).write_text(json.dumps({
     "original_wm_size": original_size,
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
+cat "$METRICS"
 python3 - "$YUJIAN_REPO_ROOT/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg" \
   "$EVIDENCE_DIR/photo_provenance.json" <<'PY'
 import hashlib, json, pathlib, sys
@@ -157,6 +159,7 @@ with Image.open(image_path) as image:
     payload["dimensions"] = list(image.size)
 pathlib.Path(output).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 PY
+cat "$EVIDENCE_DIR/runtime_screenshot.json"
 if (( seed_rc != 0 || launch_rc != 0 )); then
   printf 'SEED_EXIT_CODE=%s\nAPP_LAUNCH_EXIT_CODE=%s\n' "$seed_rc" "$launch_rc" > "$EVIDENCE_DIR/infra/screenshot_setup_failure.log"
 fi
@@ -166,6 +169,7 @@ timeout 180s "$adb_bin" shell am instrument -w -r -e class "$target_class" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$TARGET_LOG" 2>&1
 target_rc=$?
 if (( target_rc == 0 )); then YUJIAN_INSTRUMENTATION_STATUS="PASS"; else YUJIAN_INSTRUMENTATION_STATUS="FAIL"; fi
+grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$TARGET_LOG" || true
 if (( target_rc != 0 )); then
   printf 'NORMAL_HOME_TARGET_INSTRUMENTATION_LOG_BEGIN\n'
   tail -n 120 "$TARGET_LOG"
@@ -211,6 +215,7 @@ if (( target_rc != 0 || suite_rc != 0 || evidence_rc != 0 )); then
 fi
 write_result "$target_rc" "$suite_rc" "$evidence_rc" "$status"
 android_runtime_write_result
+cat "$EVIDENCE_DIR/normal_home_brand_title_result.json"
 
 python3 - "$EVIDENCE_DIR" <<'PY'
 import hashlib, pathlib, sys
