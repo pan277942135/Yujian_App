@@ -1,0 +1,34 @@
+name: Normal Home Spec Governance
+
+on:
+  push:
+    paths:
+      - 'design/pages/home/normal_home/**'
+      - 'scripts/design/verify_normal_home_contract_v1.py'
+      - 'scripts/design/measure_normal_home_frozen_roi_v1.py'
+      - 'scripts/design/audit_normal_home_real_media_v1.py'
+      - 'design/system/core_visual_v1/reference/normal_home_v1.png'
+      - 'design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png'
+  pull_request:
+    paths:
+      - 'design/pages/home/normal_home/**'
+      - 'scripts/design/verify_normal_home_contract_v1.py'
+      - 'design/system/core_visual_v1/reference/normal_home_v1.png'
+      - 'design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-normal-home-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact commit and immutable source pixels
+        uses: actions/checkout@v4
+      - name: Check Normal Home authority, source SHA and 38-case matrix
+        run: python3 scripts/design/verify_normal_home_contract_v1.py
+      - name: Measure verified Frozen CTA and Camera pixel candidates
+        run: python3 scripts/design/measure_normal_home_frozen_roi_v1.py
+      - name: Inventory available original fish photograph candidates
+        run: python3 scripts/design/audit_normal_home_real_media_v1.py

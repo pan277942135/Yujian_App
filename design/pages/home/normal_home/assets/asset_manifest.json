@@ -20,11 +20,14 @@
     },
     {
       "id": "default_profile_avatar",
-      "classification": "DESIGN_FROZEN_FALLBACK_RUNTIME_VECTOR",
-      "design_authority": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
-      "android_implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
+      "classification": "PAGE_APPROVED_HOME_V2_FALLBACK",
+      "design_authority": "design/pages/home/normal_home/assets/normal_home_default_avatar_v2_manifest.json",
+      "android_implementation_reference": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
       "usage": "Logged-in Home account avatar when avatar media is absent or fails to load",
-      "guest_equivalent": false
+      "guest_equivalent": false,
+      "source_sha256": "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528",
+      "shared_semantics_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+      "page_visual_version_date": "2026-10-09"
     }
   ],
   "shared_components": [
@@ -65,5 +68,10 @@
     "page-local fork of shared capture button",
     "use guest avatar as logged-in default profile avatar",
     "use initials/random colors/generated faces as Normal Home default avatar"
-  ]
+  ],
+  "guest_identity": {
+    "path": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
+    "semantic_role": "GUEST_LOGIN_ENTRY",
+    "must_differ_from_signed_in_default": true
+  }
 }

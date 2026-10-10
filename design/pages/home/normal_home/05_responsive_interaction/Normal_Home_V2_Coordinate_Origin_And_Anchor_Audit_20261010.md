@@ -1,3 +1,5 @@
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL DESIGN AUDIT. The resolved window origin is adopted by the new engineering layout contract; raster optical proof remains pending. Current Work/Validation entry: [Normal Home Engineering Authority](../engineering/README.md). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home V2 — Coordinate Origin and CTA/Camera Anchor Audit
 
 **Date:** 2026-10-10  

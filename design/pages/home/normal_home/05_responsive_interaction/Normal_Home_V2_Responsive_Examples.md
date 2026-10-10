@@ -1,3 +1,5 @@
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL CALCULATIONS / NON-NORMATIVE. B seven-bucket redistribution REJECTED. Numerical examples are not real runtime screenshots or approved implementation targets. Current Work/Validation entry: [Normal Home Engineering Authority](../engineering/README.md). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home V2 — Responsive Calculations & Device Examples
 
 > **STATUS: FONT A + LONG-SCREEN NH05 A APPROVED (2026-10-10); BASELINE COORDINATES / INSET ORIGIN PENDING.** See `Normal_Home_V2_Decision_Record_20261010.md`. Any B distributed-gap figures below are rejected historical comparisons, NOT implementation targets.

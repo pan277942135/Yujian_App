@@ -1,3 +1,5 @@
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL RUNTIME GATE TARGETS / NOT A CURRENT VISUAL PASS. Exact-SHA device evidence must be assessed under the new engineering acceptance contract. Current Work/Validation entry: [Normal Home Engineering Authority](engineering/README.md). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home V1.1 Runtime Closure
 
 Frozen authority: `design/system/core_visual_v1/reference/normal_home_v1.png`  
