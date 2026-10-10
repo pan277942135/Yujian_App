@@ -1,6 +1,6 @@
 # Normal Home V2 — Authority Conflict Matrix
 
-> **STATUS: DESIGN_REVIEW_PENDING.** This is an audit of source contracts; it does not change the authority of NH05, Frozen PNG, or the V1.1 typography contract. Never implement a row tagged **USER_DECISION_REQUIRED** until approved.
+> **STATUS: PARTIALLY_APPROVED / COORDINATE_REVIEW_PENDING (2026-10-10).** User has approved Font A (V1.1 frozen values) and NH05 long-screen A (one-piece offset). See `Normal_Home_V2_Decision_Record_20261010.md`. Other baseline coordinates, safe-area origin and test evidence remain unresolved.
 
 ## Source register
 
@@ -23,14 +23,14 @@
 | C-02 | Where is camera visual top? | R1: y=1582 | R2/R3: y=1564 | **DESIGN_AUTHORITY_CONFLICT** | measure R0 camera visual circle vs hit rect and approve |
 | C-03 | Hero→CTA / CTA→Camera gaps | R1 implies 28 / 20 if CTA h58 | R3 implies 19 / 11; R0 needs image measurement | **DERIVED_CONFLICT** | derive from resolved component rectangles, don't separately free-tune |
 | C-04 | How tall is Statistics? | R1: y304 h116; bottom420 | R2 abbreviated anchor often says y304 only; R3 height results from contents | **RESOLVED SOURCE FACT / RUNTIME_PENDING** | use R1's 116px as reference, verify dynamic Compose measured rect |
-| C-05 | Long-screen vertical adaptation | R1: `offsetY=min(E×0.36,180×S)` moves entire page, no independent region stretch | new proposed V2: bounded inter-region elastic gaps; owner selected Option B at the architectural level, not numerical weights | **USER_DECISION_REQUIRED** | approve V2 amendment and per-gap pixel allocations before implementation |
+| C-05 | Long-screen vertical adaptation | R1: `offsetY=min(E×0.36,180×S)` moves entire page, no independent region stretch | earlier V2 option B proposed separate elastic gaps | **APPROVED A / B REJECTED (2026-10-10)** | keep unchanged NH05 one-piece offset and frozen gaps; E uses measured usable height after safe insets |
 | C-06 | Safe inset origin | R1: resolve safe insets before content math | R4 passes safeDrawing padding and R3 applies absolute window design Y; coordinate origin unclear | **HYPOTHESIS_NEEDS_MEASUREMENT** | define one origin and no duplicate top inset; verify against runtime metrics |
-| C-07 | Height budget | R1 calls `usableHeight − 1920S` excess; R3 receives `maxHeight` after R4 padding | proposed V2 uses full-window H for one physical origin and tests insets as constraints | **PROPOSED CONTRACT CHANGE** | approve coordinate definition; show H and actual inset examples |
+| C-07 | Height budget | R1 requires `usableHeight − 1920S`; R3 receives height already reduced by R4 padding | previous draft full-window H for E is NOT user-approved | **NH05 E FORMULA APPROVED / ORIGIN AUDIT PENDING** | implement `E=max(0,usableHeight−1920S)` once; independently diagnose whether safe-top padding duplicates the coordinate origin |
 | C-08 | Brand clipping | R0 text visual target; R2 brand 72/80; R6 brand text glyph outline y≈211 while parent ends 208 | previous instrumentation 11 tests, 1 fail | **CONFIRMED OBSERVED TEST FAILURE** | resolve font metrics/container without unapproved font-size reduction or assertion bypass |
-| C-09 | Frozen reference vs user-perceived typography size | R0 visual glyph statistics label height ≈23px, R2 font 28px reference | R5 at 1080 physical px and density 3 maps stat label to **9.33sp**, stats value **12sp**, Hero metadata **12sp**; screenshots show text perceived small | **POTENTIAL DESIGN / READABILITY CONFLICT** | owner must decide whether to preserve the Frozen pixels or approve a new font visual authority; modifying px contract secretly is forbidden |
+| C-09 | Frozen reference vs user-perceived typography size | R0 visual glyph stats label height ≈23px; R2 font28px | R5 at 1080 physical px / density3 maps stats label to **9.33sp**, stats value **12sp**, Hero metadata **12sp** | **FONT A APPROVED (2026-10-10)** | retain V1.1 reference fonts and no visual B/C enlargement; still verify actual glyph rendering and mapping against Frozen |
 | C-10 | Screen evidence completeness | R6 instrumented 11/1 but image evidence did not complete | prior Run report had fallback infra classification text on outer workflow logs | **EVIDENCE GAP** | classify from artifact JSON and instrumentation log first; do not claim Screenshot PASS |
 | C-11 | Avatar tap target vs visual size on narrow devices | R3 visual avatar ref92px × S | 720px at density2 implies visual≈30.7dp, below recommended 48dp touch target if hit box equals visual | **RUNTIME / ACCESSIBILITY_RISK** | preserve frozen visual but design separate invisible ≥48dp hit rect, measure no overlap |
-| C-12 | Text size conversion at different densities | R2 explicitly defines reference physical px → sp formula | At 1080px width, density1 and density3 produce identical glyph physical sizes but sp values differ 3× | **TECHNICALLY CONSISTENT / PRODUCT_DECISION_PENDING** | verify on real device before treating visually small text as implementation failure alone |
+| C-12 | Text size conversion at different densities | R2 defines reference physical px → sp | At 1080px physical width, density1 and density3 can produce same glyph physical pixels but different sp values | **A FONT AUTHORITY APPROVED / RUNTIME VERIFICATION PENDING** | retain exact V1.1 formula, measure actual TextLayoutResult and physical glyph bounds |
 
 ## Typography implication (crucial; not an authorization to edit values)
 
@@ -58,13 +58,13 @@ This arithmetic is **not a bug in sp conversion**: it follows the frozen physica
 
 **Not proven:** exactly how much of the user's visual complaint is caused by safe insets, font geometry, the Frozen baseline itself, or the long-screen offset; no native user device density or insets have been measured; the draft has not pixel-inspected R0 and therefore does not claim to have settled C-01/C-02.
 
-## Required decision record before product code
+## Decision record: two choices approved, remaining questions pending
 
 | Decision ID | Reviewer / selection | State |
 |---|---|---|
 | D1: CTA / Camera true Frozen visual bounds | user / designer after R0 measurement | **PENDING** |
-| D2: Replace NH05 single shift with bounded V2 gap scheme | user approves numerical candidate | **PENDING** |
-| D3: Preserve V1.1 font physical pixels vs exact, newly approved readability role values | user | **PENDING** |
+| D2: Retain NH05 one-piece vertical shift; reject B elastic gaps | user, 2026-10-10 | **APPROVED A** |
+| D3: Preserve all V1.1 physical-pixel font/line values (Font A) | user, 2026-10-10 | **APPROVED A** |
 | D4: Short-screen reachable fallback / minimum touch rect | user | **PENDING** |
 | D5: Allowed raster measurement tolerance and rounding policy | user | **PENDING** |
 
