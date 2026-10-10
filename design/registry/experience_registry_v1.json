@@ -4287,7 +4287,7 @@
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",
-      "note": "Core My Catches V2 design and listed authorities are preserved; whole experience remains PARTIAL. Current Filter V1 is four dimensions with F1 inline and immediate apply. F2 multi-select, Timeline visual closure, and loading / error high-fidelity remain open.",
+      "note": "Core My Catches V2 design and listed authorities are preserved; whole experience remains PARTIAL. Current Filter V1 is four dimensions with F1 inline and immediate apply. F2 multi-select, Timeline visual closure, and loading / error high-fidelity remain open. 我的渔境高保源图已建立 Design Manager 分组和检索目录：圆缸3/景观缸4/自然鱼塘3为Library源文件登记待二进制入库；原仓库鱼塘5级/湖泊7级两张正常显示；仅设计不涉及Android。",
       "freeze_review": {
         "state": "IN_REVIEW",
         "title": "我的鱼获 V2 · 设计冻结检查",
@@ -5329,14 +5329,142 @@
           "authority": "design/pages/fish_records/list/habitat/README.md",
           "behavior_authority": "design/pages/fish_records/list/habitat/My_Habitat_Spec_V1.md",
           "authority_type": "group",
-          "summary": "与我的鱼获共用同一批 FishRecord 的水域视图。入口、FishInstance、2.5D 渲染与鱼缸→鱼塘→湖泊进阶规则已写入规范；主页面高保真待用户选版。阶段板仅作形态参考。",
+          "summary": "已恢复历史圆缸3张、横屏景观缸4张、自然鱼塘3张的来源登记；2张已入GitHub的鱼塘/湖泊阶段原图继续可点开。未取得原始字节的10张标为待导入而不冒充视觉预览；尚未选定主页面Frozen高保。",
           "menu_points": [
-            "同一鱼获数据的视图切换",
-            "真实鱼获对应独立 FishInstance",
-            "鱼缸 3 级 → 鱼塘 5 级 → 湖泊 7 级",
-            "首期只实现一个代表性阶段"
+            "鱼缸：圆缸 3 张历史高保（原图待导入）",
+            "鱼缸：横屏景观缸 4 张历史高保（原图待导入）",
+            "鱼塘：自然水域 3 张历史高保（原图待导入）",
+            "鱼塘 1–5 · 已入库可预览阶段参考",
+            "湖泊 1–7 · 已入库可预览阶段参考",
+            "主页面视觉 Authority 未选版；历史图不自动冻结"
           ],
           "children": [
+            {
+              "id": "tank_round_hifi",
+              "title": "鱼缸 · 圆缸竖屏高保",
+              "status": "DESIGN_ONLY",
+              "render_mode": "habitat_source_catalog",
+              "authority": "design/pages/fish_records/list/habitat/Recovered_Habitat_Hifi_Catalog_V1.md",
+              "source_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json",
+              "source_candidates": [
+                {
+                  "id": "tank_round_mobile_a",
+                  "name": "晨雾湖畔我的渔境.png",
+                  "width": 853,
+                  "height": 1844,
+                  "note": "竖屏圆缸，5条鱼获/3种鱼，整页氛围、草鱼主鱼",
+                  "source_library_path": "/Catcher/晨雾湖畔我的渔境.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "tank_round_mobile_b",
+                  "name": "晨光湖畔的我的渔境.png",
+                  "width": 1024,
+                  "height": 1536,
+                  "note": "竖屏圆缸、鱼体标签、底部鱼获托盘",
+                  "source_library_path": "/Catcher/晨光湖畔的我的渔境.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "tank_round_mobile_c",
+                  "name": "晨光鱼境：湖畔水族界面.png",
+                  "width": 941,
+                  "height": 1672,
+                  "note": "竖屏圆缸视觉、底部鱼种统计区、玻璃材料",
+                  "source_library_path": "/Catcher/晨光鱼境：湖畔水族界面.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                }
+              ],
+              "summary": "历史竖屏圆形玻璃鱼缸设计 3 张；展示各自来源/尺寸。源PNG原始字节未入库，尚不可点击预览。",
+              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)"
+            },
+            {
+              "id": "tank_landscape_hifi",
+              "title": "鱼缸 · 横屏景观缸高保",
+              "status": "DESIGN_ONLY",
+              "render_mode": "habitat_source_catalog",
+              "authority": "design/pages/fish_records/list/habitat/Recovered_Habitat_Hifi_Catalog_V1.md",
+              "source_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json",
+              "source_candidates": [
+                {
+                  "id": "tank_landscape_a",
+                  "name": "我的渔境：晨光水族馆.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "横屏五鱼景观方缸，有鱼体高亮点击状态",
+                  "source_library_path": "/Catcher/我的渔境：晨光水族馆.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "tank_landscape_b",
+                  "name": "湖畔晨光中的我的渔境.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "横屏景观方缸，鱼群、TopBar和完整水线/玻璃边界",
+                  "source_library_path": "/Catcher/湖畔晨光中的我的渔境.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "tank_landscape_c",
+                  "name": "晨光湖畔水族馆.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "横屏高密度景观鱼缸、28条鱼获/8鱼种的演示状态",
+                  "source_library_path": "/Catcher/晨光湖畔水族馆.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "tank_landscape_d",
+                  "name": "晨光水境：五鱼沉浸式水族景致.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "横屏五鱼开放景观缸，大尺度玻璃壁与沉浸水体",
+                  "source_library_path": "/Catcher/晨光水境：五鱼沉浸式水族景致.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                }
+              ],
+              "summary": "历史横屏方形景观缸 4 张；五鱼、28鱼获等不同密度探索。原始PNG当前无法从 Project 导出，暂不伪造缩略图。",
+              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)"
+            },
+            {
+              "id": "pond_landscape_hifi",
+              "title": "鱼塘 · 自然水域高保",
+              "status": "DESIGN_ONLY",
+              "render_mode": "habitat_source_catalog",
+              "authority": "design/pages/fish_records/list/habitat/Recovered_Habitat_Hifi_Catalog_V1.md",
+              "source_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json",
+              "source_candidates": [
+                {
+                  "id": "pond_landscape_a",
+                  "name": "晨雾渔境：清晨池塘与鱼群.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "自然鱼塘的水上与水下剖面，无鱼缸玻璃壁",
+                  "source_library_path": "/Catcher/晨雾渔境：清晨池塘与鱼群.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "pond_landscape_b",
+                  "name": "晨曦下的我的渔境.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "横屏自然鱼塘、水下鱼群、自然岸边纵深",
+                  "source_library_path": "/Catcher/晨曦下的我的渔境.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                },
+                {
+                  "id": "pond_landscape_c",
+                  "name": "晨雾晨光下的我的渔境.png",
+                  "width": 1672,
+                  "height": 941,
+                  "note": "横屏清晨自然鱼塘，完整水平面、鱼体远近层级",
+                  "source_library_path": "/Catcher/晨雾晨光下的我的渔境.png",
+                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                }
+              ],
+              "summary": "历史横屏自然鱼塘设计 3 张；展示水上/水下关系。原始字节待导入；可另查看已入库的鱼塘1–5阶段图。",
+              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)"
+            },
             {
               "id": "pond_levels_1_5",
               "title": "鱼塘 1–5 · 阶段参考",
@@ -5375,7 +5503,9 @@
               "visual_authority_bytes": 2904628,
               "visual_authority_sha256": "ebdb3455ef78326eeab44c309c00eb05bea8f907e595f7667bf28938a9853de3"
             }
-          ]
+          ],
+          "visual_catalog_authority": "design/pages/fish_records/list/habitat/Recovered_Habitat_Hifi_Catalog_V1.md",
+          "machine_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json"
         }
       ],
       "hifi_source_inventory": {
