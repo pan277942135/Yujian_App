@@ -60,7 +60,7 @@ SAFE_OVERFLOW mode activates ONLY when NORMAL_FIXED cannot meet the above actual
 3. Make Header + Stats + Recent + Hero a vertically reachable, bounded scrollable content area between the top safe inset and reserved action group, with enough bottom padding to prevent hidden card content; the same card order, no new UI chrome and no new navigation. In this conditional mode the common frozen Y offsets are no longer claimed as exact reference parity (label mode SAFE_OVERFLOW in evidence).
 4. Never let Pager's horizontal drag hijack a vertical scroll. Touch slop follows platform nested scroll/gesture direction.
 5. Do not reduce system fontScale or hide required fields to fit; optional missing metadata may be omitted only according to NH04 rules.
-6. If an app window is physically too small even for the ≥48dp capture target plus a usable content viewport, return UNSUPPORTED_WINDOW / BLOCKED_CONSTRAINT evidence rather than pretending PASS. Work must report concrete W,H,insets,collision rectangles; no custom third design invented.
+6. If an app window is physically too small even for the ≥48dp capture target plus a usable content viewport, return mode UNSUPPORTED_WINDOW and acceptance status FAIL with reason CONSTRAINT_UNMET (or BLOCKED_INFRA only if the target window could not be created/tested), rather than pretending PASS. Work must report concrete W,H,insets,collision rectangles; no custom third design invented.
 
 SAFE_OVERFLOW is a defined accessibility fallback for feasibility, not permission to substitute an alternative NH01 Frozen image or to reposition Normal Home on a normally fitting tall phone. If a product-specific visual decision is later desired, version the contract explicitly; no new A/B candidate workflow.
 
