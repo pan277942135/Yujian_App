@@ -91,5 +91,19 @@
     "NH04": "design/pages/home/normal_home/04_component_content_states/README.md",
     "NH05": "design/pages/home/normal_home/05_responsive_interaction/README.md",
     "NH06": "design/pages/home/normal_home/06_background_authority/README.md"
+  },
+  "normal_home_avatar_authority": {
+    "signed_in_default": {
+      "path": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
+      "sha256": "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528",
+      "scope": "HOME_ONLY_LATER_VISUAL_OVERRIDE",
+      "origin_commit": "fefb95953d17"
+    },
+    "guest": {
+      "path": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
+      "git_blob_sha": "f58549babb41aaedb5ee2590e6d48bceda19d05a"
+    },
+    "semantic_owner": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+    "rule": "Later Home V2 signed-in visual uses page-approved PNG, shared state semantics remain; Guest is distinct asset."
   }
 }
