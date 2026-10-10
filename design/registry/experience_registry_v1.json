@@ -460,7 +460,7 @@
           "authority_type": "visual",
           "image": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
           "visual_authority": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
-          "visual_status": "DESIGN_ASSET_REGISTERED",
+          "visual_status": "PARTIAL",
           "authority": "design/pages/home/normal_home/07_avatar_states/README.md",
           "behavior_authority": "design/pages/home/normal_home/07_avatar_states/README.md",
           "machine_authority": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
