@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "status": "FROZEN",
   "page_id": "normal_home_v1",
   "precedence": [
@@ -10,41 +10,51 @@
     },
     {
       "priority": 2,
+      "authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "scope": "NH02 single-record visible raster; does not override NH01 or background source"
+    },
+    {
+      "priority": 3,
       "authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "scope": "Normal Home background bitmap only; composition remains governed by the frozen page reference"
     },
     {
-      "priority": 3,
+      "priority": 4,
+      "authority": "design/pages/home/normal_home/engineering/README.md",
+      "scope": "Engineering and acceptance authoritative binding; approved A1/A2 window mapping; short-screen safe mode and independent evidence gates. Never replaces Frozen bitmap visual composition."
+    },
+    {
+      "priority": 5,
       "authority": "design/pages/home/normal_home/spec/",
       "scope": "page behavior, visual interpretation and acceptance"
     },
     {
-      "priority": 4,
+      "priority": 6,
       "authority": "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md",
       "scope": "page motion"
     },
     {
-      "priority": 5,
+      "priority": 7,
       "authority": "design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md",
       "scope": "page haptic behavior"
     },
     {
-      "priority": 6,
+      "priority": 8,
       "authority": "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md",
       "scope": "page sound behavior"
     },
     {
-      "priority": 7,
+      "priority": 9,
       "authority": "design/system/core_visual_v1/YuJian_Core_Visual_System_V1.md",
       "scope": "cross-page visual language, BG_ENV_HERO, shared hierarchy and guardrails"
     },
     {
-      "priority": 8,
+      "priority": 10,
       "authority": "design/system/core_visual_v1/validation/component_map.json",
       "scope": "shared component contracts"
     },
     {
-      "priority": 9,
+      "priority": 11,
       "authority": "design/system/core_visual_v1/tokens/",
       "scope": "shared tokens"
     }
@@ -60,6 +70,40 @@
     "Do not silently redesign frozen information architecture in implementation.",
     "Shared components must not fork to match page-local approximations.",
     "Runtime data replaces example content but not frozen hierarchy.",
-    "A missing source may not be replaced by a generated or screenshot-cropped substitute."
-  ]
+    "A missing source may not be replaced by a generated or screenshot-cropped substitute.",
+    "Engineering README owns current coordinate-origin/safety and independent validation; older V2 Draft/Example/Conflict files are historical only.",
+    "CTA/Camera legacy visual-y and touch-box-y are distinct anchor kinds; require checksum-verified raster proof before claiming optical PASS."
+  ],
+  "engineering_binding": {
+    "status": "ACTIVE",
+    "entry": "design/pages/home/normal_home/engineering/README.md",
+    "layout": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+    "state": "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+    "motion_feedback": "design/pages/home/normal_home/engineering/Motion_Feedback_Contract_V1.md",
+    "acceptance": "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+    "machine_matrix": "design/pages/home/normal_home/engineering/normal_home_acceptance_matrix_v1.json",
+    "historical_ledger": "design/pages/home/normal_home/engineering/Archive_And_Supersession_V1.md"
+  },
+  "page_state_authorities": {
+    "NH01": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "NH02": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+    "NH03": "design/pages/home/normal_home/03_page_states/README.md",
+    "NH04": "design/pages/home/normal_home/04_component_content_states/README.md",
+    "NH05": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+    "NH06": "design/pages/home/normal_home/06_background_authority/README.md"
+  },
+  "normal_home_avatar_authority": {
+    "signed_in_default": {
+      "path": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
+      "sha256": "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528",
+      "scope": "HOME_ONLY_LATER_VISUAL_OVERRIDE",
+      "origin_commit": "fefb95953d17"
+    },
+    "guest": {
+      "path": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
+      "git_blob_sha": "f58549babb41aaedb5ee2590e6d48bceda19d05a"
+    },
+    "semantic_owner": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
+    "rule": "Later Home V2 signed-in visual uses page-approved PNG, shared state semantics remain; Guest is distinct asset."
+  }
 }
