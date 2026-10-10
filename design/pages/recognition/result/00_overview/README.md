@@ -40,3 +40,13 @@ Placeholder: 记录这一刻的感受……
 Limit: 300 Unicode code points with {count}/300 live counter.
 
 Final physical/visual acceptance belongs to the User.
+
+## Design-system scoped exceptions (audit 2026-10-10)
+
+The five Frozen Result pages use a viewport-centered `BACK_CENTER_TITLE` composition, while the global Top Navigation V1 still has exactly three frozen generic variants; Species Selector stays `BACK_TITLE`. Confirmed Result dual CTA surfaces/widths are governed by Result V1.1 instead of shared-button historical example mapping. Neither exception becomes a new global component variant.
+
+- `design/pages/recognition/result/review/Recognition_Result_Design_Audit_20261010.md`
+- `design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md`
+- `design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md`
+
+Runtime parity and physical screenshot acceptance are separately pending. The five state PNG assets and two edit boards are unchanged.
