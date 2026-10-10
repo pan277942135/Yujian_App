@@ -51,3 +51,7 @@ Renamed/moved frozen binaries: NONE.
 Design behavior revisions: NONE.
 Archive strategy: preserve current path + explicit status, not another duplicated design package.
 Out-of-scope: Empty Home, global typography, Recognition, FishRecordDetail, backend, model, PR #128 and main.
+
+## Finalized specialized normatives
+
+2026-10-10 post-audit bindings: Visual_Anchor_Asset_Resolution_V1.md; Short_Window_Adaptive_Freeze_V1.md; Hero_Real_Photo_EvidenceFit_Contract_V1.md; Quantitative_Visual_Acceptance_Contract_V1.md. These are *active*, not historical. An interim statement that Frozen CTA/Camera ROI bytes could not be inspected is superseded by verified GitHub Actions ROI decoding. Existing legacy assets and rejected alternatives remain physically present and must not be deleted merely to silence an inconsistency. The Android runtime correction for Guest/default avatar and real photo acceptance is independent, still unverified.
