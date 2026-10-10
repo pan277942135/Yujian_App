@@ -1,0 +1,137 @@
+{
+  "version": "V1",
+  "status": "FROZEN_DESIGN",
+  "scope": "real_photo_css_containers_not_runtime_screenshots",
+  "fixture": {
+    "path": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
+    "description": "仓库既有真实鱼获测试照片；同源用于 HOME/DETAIL 共享 Hero 冻结边界展示",
+    "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "bytes": 292222,
+    "source_manifest": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.manifest.json",
+    "fish_bbox_available": false,
+    "original_repository_path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+    "publication": "identical_git_blob_copy_within_design_directory_for_GitHub_Pages"
+  },
+  "examples": [
+    {
+      "id": "F01",
+      "variant": "FIT_EVIDENCE",
+      "page": "选择图片进行识别",
+      "title": "竖向预览容器（9:16）",
+      "frame": "portrait",
+      "mode": "fit",
+      "explanation": "用户选择的整张实拍照片保持完整，四边全部可见；剩余部分使用中性底色。",
+      "qualification": "9:16 指预览容器，非原图宽高比"
+    },
+    {
+      "id": "F02",
+      "variant": "FIT_EVIDENCE",
+      "page": "选择图片进行识别",
+      "title": "横向预览容器（16:9）",
+      "frame": "landscape",
+      "mode": "fit",
+      "explanation": "容器变化不应导致鱼头、鱼尾或任何原图边缘被裁切。",
+      "qualification": "只改变容器比例"
+    },
+    {
+      "id": "R01",
+      "variant": "CROP_RESULT",
+      "page": "识别结果 High/Medium/Low",
+      "title": "结果 Hero — 受控 Fill 示意",
+      "frame": "hero",
+      "mode": "crop",
+      "explanation": "以真实照片展示铺满容器的几何效果；正式版本必须先通过 FishSafeRect/12dp 检查，否则改用 Safe Fit。",
+      "qualification": "仅视觉示意：测试图片无可靠 bbox，不能把本图当作安全裁切通过证据"
+    },
+    {
+      "id": "R02",
+      "variant": "CROP_RESULT",
+      "page": "识别结果 / 无 bbox 或失败",
+      "title": "结果 Hero — 安全回退",
+      "frame": "hero",
+      "mode": "fit",
+      "explanation": "无可靠 bbox 回退整图 Fit；No Fish/Image Quality 始终只使用此模式。",
+      "qualification": "这是无 bbox 的规范结果"
+    },
+    {
+      "id": "D01",
+      "variant": "ADAPTIVE_DETAIL",
+      "page": "详情 A 面／有数据首页 Hero",
+      "title": "主图完整 + 同源柔化环境",
+      "frame": "hero",
+      "mode": "adaptive",
+      "explanation": "安全 Fill 不可行时，前景真实照片完整显示，留空区域由同一原图的低对比 ambient 填充。",
+      "qualification": "背景只是 presentation，不是第二张照片"
+    },
+    {
+      "id": "D02",
+      "variant": "ADAPTIVE_DETAIL",
+      "page": "详情 A 面／有数据首页 Hero",
+      "title": "安全铺满候选",
+      "frame": "landscape",
+      "mode": "crop",
+      "explanation": "鱼体与安全区域完整时可以优先铺满；不能证明安全时回退 D01。",
+      "qualification": "仅容器几何示意，非 bbox 验证截图"
+    },
+    {
+      "id": "M01",
+      "variant": "CROP_THUMBNAIL",
+      "page": "我的鱼获 V2",
+      "title": "1:1 方形缩略图",
+      "frame": "square",
+      "mode": "crop",
+      "explanation": "82dp×82dp、R14dp；无可靠 bbox 时按冻结规范中心裁切；不能保留鱼体时退回 Fit/SoftWater。",
+      "qualification": "本次实际照片无 bbox，示范中心裁切"
+    },
+    {
+      "id": "M02",
+      "variant": "CROP_THUMBNAIL",
+      "page": "我的鱼获 V2",
+      "title": "主体被截断时的 Fit 回退",
+      "frame": "square",
+      "mode": "fit",
+      "explanation": "当裁切损害鱼头或鱼尾时，完整照片优先于填满正方形。",
+      "qualification": "回退方案"
+    },
+    {
+      "id": "E01",
+      "variant": "EDGE_STATES",
+      "page": "跨页面检查",
+      "title": "宽容器下的 Fit",
+      "frame": "landscape",
+      "mode": "fit",
+      "explanation": "同源照片展示不同显示面积，不与照片原生比例混淆。",
+      "qualification": "几何演示"
+    },
+    {
+      "id": "E02",
+      "variant": "EDGE_STATES",
+      "page": "跨页面检查",
+      "title": "方形 Crop / 失败回退对照",
+      "frame": "square",
+      "mode": "crop",
+      "explanation": "实际安全裁切必须由可靠 bbox 决定，不能以美观代替证据。",
+      "qualification": "未标注 bbox 的视觉对照"
+    },
+    {
+      "id": "E03",
+      "variant": "EDGE_STATES",
+      "page": "跨页面检查",
+      "title": "详情的同源 Adaptive",
+      "frame": "hero",
+      "mode": "adaptive",
+      "explanation": "同一照片作为清晰主图与柔化底图，没有生成新环境。",
+      "qualification": "环境图只在 Detail/HOME 允许"
+    }
+  ],
+  "pending_real_source_coverage": [
+    "原图超长竖拍",
+    "原图超宽横拍",
+    "原图鱼体贴边",
+    "原图嵌入黑边",
+    "真实夜景",
+    "EXIF 旋转",
+    "无鱼",
+    "低清晰度"
+  ]
+}

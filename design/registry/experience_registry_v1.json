@@ -296,6 +296,11 @@
           "id": "default_profile_avatar_v1",
           "variant": "DEFAULT_PROFILE_AVATAR",
           "note": "登录用户头像缺失或加载失败使用 Shared Default Profile Avatar V1；NH02/NH04 仅消费或展示，不得重新定义。"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "ADAPTIVE_DETAIL",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。 NH07 头像状态已建立独立 SPEC_FROZEN 菜单与透明资产（Android 尚未变更，待整页视觉验收）。",
@@ -546,6 +551,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "FIT_EVIDENCE",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "hifi_views": [
@@ -2858,6 +2868,11 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：修改鱼种=NORMAL/LIGHT + separate chevron。"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "CROP_RESULT",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "navigation_model": "recognition_result_3plus2_menu_v1",
@@ -3137,6 +3152,11 @@
             "PHOTO",
             "VIDEO"
           ]
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "ADAPTIVE_DETAIL",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "navigation_model": "fish_record_detail_compact_menu_v2",
@@ -3955,6 +3975,11 @@
         {
           "id": "icon_action_v1",
           "note": "Icon Action V1：独立 Filter trigger=UTILITY/ON_LIGHT；Search Field 内不可点击放大镜仅为 decoration，不属于 Icon Action。"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "CROP_THUMBNAIL",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",

@@ -138,6 +138,69 @@
       "show_variant_index": false
     },
     {
+      "id": "fish_media_display_v1",
+      "display_name": "鱼获图片自适应显示设计",
+      "category": "foundation",
+      "overall": "FROZEN",
+      "current_version": "V1",
+      "navigation_mode": "submenu_direct",
+      "show_variant_index": false,
+      "preview": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
+      "preview_note": "真实鱼获素材来自原始仓库 fixture，按 Git blob 字节完全一致的副本发布至 design 供 GitHub Pages 预览；容器比例是展示测试，非安全 bbox 验收。",
+      "note": "Fit 保护整张原图；Result Crop 必须通过 FishSafeRect 安全裁切；Detail/HOME 采用同源 Adaptive；我的鱼获沿用 82dp 方形主体裁切。页面专属冻结合同优先。设计 FROZEN，不代表运行已验收。",
+      "authority_paths": [
+        "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
+        "design/system/fish_media_display_v1/usage_map.json",
+        "design/system/fish_media_display_v1/real_photo_cases.json",
+        "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+        "design/pages/recognition/result/media/hero_media_contract.json",
+        "design/system/core_visual_v1/components/YuJianCatchHeroCard_Media_Edge_States_V1.md",
+        "design/pages/fish_records/list/My_Catches_List_Image_Spec_V1.md"
+      ],
+      "variants": [
+        {
+          "id": "FIT_EVIDENCE",
+          "name": "01 · Fit｜选择图片识别",
+          "status": "FROZEN",
+          "usage": "选择图库图片后进入识别前，原图 100% 完整显示。",
+          "note": "EVIDENCE_FIT：contain，不裁切照片四边，留白用中性背景；相机实时 Preview 不在本合同中。",
+          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
+        },
+        {
+          "id": "CROP_RESULT",
+          "name": "02 · Crop｜识别结果",
+          "status": "FROZEN",
+          "usage": "High / Medium / Low 优先安全 Fill；No Fish / Image Quality 强制完整 Fit。",
+          "note": "真实 bbox → FishSafeRect（0.14 横向、0.18 纵向扩展；12dp 安全边距）；不能证明安全则 SUBJECT_SAFE_FIT；结果页禁止 blur ambient。",
+          "authority_path": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+        },
+        {
+          "id": "ADAPTIVE_DETAIL",
+          "name": "03 · Adaptive｜鱼获详情 A 面",
+          "status": "FROZEN",
+          "usage": "鱼获详情 A 面与有数据首页共用 Hero；安全 Fill 优先，必要时完整前景 + 同源柔化背景。",
+          "note": "沿用 YuJianCatchHeroCard Frozen 外框；不能裁断鱼体，不能出现硬黑边。",
+          "authority_path": "design/system/core_visual_v1/components/YuJianCatchHeroCard_Media_Edge_States_V1.md"
+        },
+        {
+          "id": "CROP_THUMBNAIL",
+          "name": "04 · Crop｜我的鱼获",
+          "status": "FROZEN",
+          "usage": "V2 时间线 FishRecordRowCard 的真实照片方形缩略图。",
+          "note": "82dp × 82dp；R14dp；真实鱼体锚点优先、无 bbox 时中心裁切；主体不能完整保留时回退 Fit/SoftWater。",
+          "authority_path": "design/pages/fish_records/list/My_Catches_List_Image_Spec_V1.md"
+        },
+        {
+          "id": "EDGE_STATES",
+          "name": "05 · 边界案例与验收",
+          "status": "FROZEN",
+          "usage": "跨页面方向、比例、贴边、无 bbox、黑边及图片异常的设计验收矩阵。",
+          "note": "案例区展示的是同一张真实照片映射至不同容器的差异；无真实原图对应的极端拍摄比例仍列待实测，不得冒充通过。",
+          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
+        }
+      ]
+    },
+    {
       "id": "primary_capture_button_v1",
       "display_name": "主拍摄按钮",
       "category": "component",
@@ -1092,6 +1155,7 @@
   ],
   "navigation_order": [
     "background_system_v1",
+    "fish_media_display_v1",
     "group:button_spec",
     "top_navigation_v1",
     "mist_glass_surface_v1",
