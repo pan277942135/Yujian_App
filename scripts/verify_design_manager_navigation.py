@@ -93,7 +93,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         master_raw = master_file.read_bytes()
         if len(master_raw) != 1255352 or hashlib.sha256(master_raw).hexdigest() != expected_master_sha:
             fail("NH07 original mother SHA/byte count mismatch")
-        if master_raw[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or struct.unpack(">II", master_raw[16:24]) != (1254, 1254):
+        if master_raw[:8] != b"\x89PNG\r\n\x1a\n" or struct.unpack(">II", master_raw[16:24]) != (1254, 1254):
             fail("NH07 mother file is not an original 1254px PNG")
         guest = manifest.get("states", {}).get("GUEST", "")
         if not guest or not (root / guest).exists():
