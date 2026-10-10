@@ -181,6 +181,8 @@ timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
 grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
+"$adb_bin" logcat -d -v brief -s NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I > "$EVIDENCE_DIR/normal-home-measurement-logcat.log" 2>&1 || true
+cat "$EVIDENCE_DIR/normal-home-measurement-logcat.log"
 if (( suite_rc != 0 )); then
   printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_BEGIN\n'
   tail -n 120 "$SUITE_LOG"
@@ -189,6 +191,7 @@ fi
 
 gate_collect_evidence > "$EVIDENCE_DIR/normal-home-evidence-collection.log" 2>&1
 evidence_rc=$?
+cat "$EVIDENCE_DIR/normal-home-evidence-collection.log"
 if (( evidence_rc == 0 )); then YUJIAN_EVIDENCE_STATUS="PASS"; else YUJIAN_EVIDENCE_STATUS="FAIL"; fi
 
 if (( target_rc != 0 || suite_rc != 0 || evidence_rc != 0 )); then

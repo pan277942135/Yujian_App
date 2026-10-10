@@ -427,8 +427,9 @@ class NormalHomeDataParityTest {
         } else {
             "unavailable"
         }
-        println(
-            "NORMAL_HOME_TEXT_LAYOUT " +
+        android.util.Log.i(
+            "NORMAL_HOME_TEXT_LAYOUT",
+            
                 "tag=$tag parent=$parentTag referenceFontPx=$referenceFontPx " +
                 "actualFontSize=${layout.layoutInput.style.fontSize} " +
                 "lineHeight=${layout.layoutInput.style.lineHeight} " +
@@ -527,8 +528,9 @@ class NormalHomeDataParityTest {
         val offsetYpx = normalHomeVerticalOffset(scaleDp, usableHeightDp) * density
         val expectedHeaderWindowY = composeWindow.top + (104f * scaleDp * density) + offsetYpx
 
-        println(
-            "NORMAL_HOME_WINDOW_METRICS " +
+        android.util.Log.i(
+            "NORMAL_HOME_WINDOW_METRICS",
+            
                 "density=$density fontScale=$fontScale safeInsetsPx=" +
                 "${insets.start.value * density},${insets.top.value * density}," +
                 "${insets.end.value * density},${insets.bottom.value} " +
