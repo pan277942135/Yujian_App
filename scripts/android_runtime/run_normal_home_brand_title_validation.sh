@@ -7,7 +7,7 @@ RUNTIME_DIR="$SCRIPT_DIR"
 export EVIDENCE_DIR="${EVIDENCE_DIR:-evidence/runtime/normal-home-brand-title-v1}"
 export API_LEVEL="${API_LEVEL:-28}"
 export BUILD_SHA="${BUILD_SHA:-${GITHUB_SHA:-unknown}}"
-export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedMultipleGuestCatches"
+export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedTwoAspectPortraitGuestCatches"
 mkdir -p "$EVIDENCE_DIR/infra"
 
 source "$RUNTIME_DIR/common.sh"
@@ -50,6 +50,20 @@ pathlib.Path(path).write_text(json.dumps({
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 }
+instrumentation_log_passed() {
+  local log_file="$1"
+  if grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_STATUS_CODE:[[:space:]]*-2|INSTRUMENTATION_RESULT:[[:space:]]*shortMsg=' "$log_file"; then
+    return 1
+  fi
+  local completion_line
+  completion_line="$(grep -Eo 'OK \([1-9][0-9]* tests?\)' "$log_file" | tail -n 1 || true)"
+  if [[ -n "$completion_line" ]]; then
+    printf 'NORMAL_HOME_JUNIT_RESULT=%s\n' "$completion_line"
+    return 0
+  fi
+  return 1
+}
+
 
 if [[ ! -s "$YUJIAN_APP_APK" || ! -s "$YUJIAN_TEST_APK" ]]; then
   printf 'APK_MISSING app=%s test=%s\n' "$YUJIAN_APP_APK" "$YUJIAN_TEST_APK" > "$EVIDENCE_DIR/infra/preflight.log"
@@ -63,6 +77,7 @@ fi
   printf 'TEST_APK=%s\nTEST_APK_SHA256=%s\nTEST_APK_BYTES=%s\n' \
     "$YUJIAN_TEST_APK" "$(sha256_file "$YUJIAN_TEST_APK")" "$(stat -c '%s' "$YUJIAN_TEST_APK")"
 } > "$EVIDENCE_DIR/apk_provenance.txt"
+cat "$EVIDENCE_DIR/apk_provenance.txt"
 
 android_runtime_preflight
 preflight_rc=$?
@@ -115,6 +130,7 @@ pathlib.Path(path).write_text(json.dumps({
     "original_wm_size": original_size,
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
+cat "$METRICS"
 python3 - "$YUJIAN_REPO_ROOT/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg" \
   "$EVIDENCE_DIR/photo_provenance.json" <<'PY'
 import hashlib, json, pathlib, sys
@@ -157,6 +173,7 @@ with Image.open(image_path) as image:
     payload["dimensions"] = list(image.size)
 pathlib.Path(output).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 PY
+cat "$EVIDENCE_DIR/runtime_screenshot.json"
 if (( seed_rc != 0 || launch_rc != 0 )); then
   printf 'SEED_EXIT_CODE=%s\nAPP_LAUNCH_EXIT_CODE=%s\n' "$seed_rc" "$launch_rc" > "$EVIDENCE_DIR/infra/screenshot_setup_failure.log"
 fi
@@ -165,15 +182,32 @@ target_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#differentPortraitRa
 timeout 180s "$adb_bin" shell am instrument -w -r -e class "$target_class" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$TARGET_LOG" 2>&1
 target_rc=$?
+if (( target_rc == 0 )) && ! instrumentation_log_passed "$TARGET_LOG"; then target_rc=30; fi
 if (( target_rc == 0 )); then YUJIAN_INSTRUMENTATION_STATUS="PASS"; else YUJIAN_INSTRUMENTATION_STATUS="FAIL"; fi
+grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$TARGET_LOG" || true
+if (( target_rc != 0 )); then
+  printf 'NORMAL_HOME_TARGET_INSTRUMENTATION_LOG_BEGIN\n'
+  tail -n 120 "$TARGET_LOG"
+  printf 'NORMAL_HOME_TARGET_INSTRUMENTATION_LOG_END\n'
+fi
 
 suite_classes="$(gate_test_classes)"
 timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
+if (( suite_rc == 0 )) && ! instrumentation_log_passed "$SUITE_LOG"; then suite_rc=30; fi
+grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
+"$adb_bin" logcat -d -v brief -s NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I > "$EVIDENCE_DIR/normal-home-measurement-logcat.log" 2>&1 || true
+cat "$EVIDENCE_DIR/normal-home-measurement-logcat.log"
+if (( suite_rc != 0 )); then
+  printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_BEGIN\n'
+  tail -n 120 "$SUITE_LOG"
+  printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_END\n'
+fi
 
 gate_collect_evidence > "$EVIDENCE_DIR/normal-home-evidence-collection.log" 2>&1
 evidence_rc=$?
+cat "$EVIDENCE_DIR/normal-home-evidence-collection.log"
 if (( evidence_rc == 0 )); then YUJIAN_EVIDENCE_STATUS="PASS"; else YUJIAN_EVIDENCE_STATUS="FAIL"; fi
 
 if (( target_rc != 0 || suite_rc != 0 || evidence_rc != 0 )); then
@@ -201,6 +235,7 @@ if (( target_rc != 0 || suite_rc != 0 || evidence_rc != 0 )); then
 fi
 write_result "$target_rc" "$suite_rc" "$evidence_rc" "$status"
 android_runtime_write_result
+cat "$EVIDENCE_DIR/normal_home_brand_title_result.json"
 
 python3 - "$EVIDENCE_DIR" <<'PY'
 import hashlib, pathlib, sys
