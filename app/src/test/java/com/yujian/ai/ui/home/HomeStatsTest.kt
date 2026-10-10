@@ -133,6 +133,10 @@ class HomeStatsTest {
         assertEquals(0f, normalHomeVerticalOffset(scale, usableHeight = 640f), 0.01f)
         assertEquals(57.6f, normalHomeVerticalOffset(scale, usableHeight = 800f), 0.01f)
         assertEquals(60f, normalHomeVerticalOffset(scale, usableHeight = 900f), 0.01f)
+        // 1080x2340 at density 1 has the approved 151.2px NH05 offset.
+        assertEquals(151.2f, normalHomeVerticalOffset(1f, usableHeight = 2340f), 0.01f)
+        // With 80px top and 90px bottom safe insets, subtract height once; do not add top again.
+        assertEquals(30f, normalHomeVerticalOffset(scale, usableHeight = 2170f / 3f), 0.01f)
     }
 
     private fun catchRecord(id: String, speciesName: String, capturedAt: String): RemoteCatch = RemoteCatch(

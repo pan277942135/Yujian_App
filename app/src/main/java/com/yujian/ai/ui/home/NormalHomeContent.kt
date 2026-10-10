@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
@@ -100,6 +101,7 @@ internal fun NormalHomeContent(
     isResolving: Boolean = false,
     motionState: HomeMotionState,
     runtimeAssets: NormalHomeRuntimeAssets?,
+    safeInsets: SafeDrawingInsetsDp = SafeDrawingInsetsDp(),
     modifier: Modifier = Modifier,
 ) {
     val recent = remember(recentCatches) {
@@ -114,7 +116,8 @@ internal fun NormalHomeContent(
             normalHomeTypographyContract(maxWidth.value, density.density)
         }
         val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
-        val verticalOffset = normalHomeVerticalOffset(referenceScale.value, maxHeight.value).dp
+        val usableHeight = (maxHeight.value - safeInsets.top.value - safeInsets.bottom.value).coerceAtLeast(0f)
+        val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
         val cardWidth = ref(NormalHomeCardWidth)
