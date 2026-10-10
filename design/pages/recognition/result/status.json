@@ -74,5 +74,10 @@
   "design_system_scoped_exceptions": [
     "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md",
     "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
-  ]
+  ],
+  "state_decision_documented": true,
+  "state_decision_spec": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+  "state_decision_machine_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+  "proposed_state_threshold_changes_approved": false,
+  "state_decision_implementation_modified": false
 }
