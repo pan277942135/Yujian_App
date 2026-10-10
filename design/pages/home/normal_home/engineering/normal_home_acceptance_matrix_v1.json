@@ -192,232 +192,255 @@
     {
       "id": "S01",
       "category": "state",
-      "scenario": "state/navigation event 1",
+      "scenario": "initial unresolved archive",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S01",
+      "assertion": "SHOW_NH03_RESOLVING; stats dashes; capture available; no fake Empty",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S02",
       "category": "state",
-      "scenario": "state/navigation event 2",
+      "scenario": "resolved zero valid records",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S02",
+      "assertion": "SHOW_EMPTY_HOME; only successful resolved zero may trigger",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S03",
       "category": "state",
-      "scenario": "state/navigation event 3",
+      "scenario": "save first valid record",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S03",
+      "assertion": "SHOW_NH02; one centered card and stats derived 1/1/1 fixture",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S04",
       "category": "state",
-      "scenario": "state/navigation event 4",
+      "scenario": "add second valid record",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S04",
+      "assertion": "SHOW_NH01; adjacent card peeks and manual paging",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S05",
       "category": "state",
-      "scenario": "state/navigation event 5",
+      "scenario": "delete final valid record",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S05",
+      "assertion": "SHOW_EMPTY_HOME after successful data resolution, never while pending",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S06",
       "category": "state",
-      "scenario": "state/navigation event 6",
+      "scenario": "refresh error with previous snapshot",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S06",
+      "assertion": "KEEP_PREVIOUS_NORMAL_HOME and same stats/card identity; no blank/error overlay",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S07",
       "category": "state",
-      "scenario": "state/navigation event 7",
+      "scenario": "media load fails then recovers",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S07",
+      "assertion": "KEEP_RECORD_AND_CARD_ID; replace media region only",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S08",
       "category": "state",
-      "scenario": "state/navigation event 8",
+      "scenario": "refresh inserts/reorders with selected ID present",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S08",
+      "assertion": "PRESERVE_SELECTED_FISHRECORD_ID regardless of index shift",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S09",
       "category": "state",
-      "scenario": "state/navigation event 9",
+      "scenario": "selected ID removed on refresh",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S09",
+      "assertion": "SELECT_MOST_RECENT_SURVIVING_VALID_ID or resolved Empty",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S10",
       "category": "state",
-      "scenario": "state/navigation event 10",
+      "scenario": "statistics server precedence/local fallback",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S10",
+      "assertion": "POSITIVE_SERVER_TOTALS primary; otherwise valid local, distinct record days",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S11",
       "category": "state",
-      "scenario": "state/navigation event 11",
+      "scenario": "routes and record ID",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S11",
+      "assertion": "STAT_SPECIES->FISH_GUIDE; STAT_CATCHES/ALL->MY_CATCHES; HERO->DETAIL_ID; CAPTURE->IDENTIFY; DAYS->NONE",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S12",
       "category": "state",
-      "scenario": "state/navigation event 12",
+      "scenario": "single-record pager stability",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S12",
+      "assertion": "NO_FAKE_NEIGHBOR; no page transition; Hero tap still works",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S13",
       "category": "state",
-      "scenario": "state/navigation event 13",
+      "scenario": "multi-record pager interaction",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S13",
+      "assertion": "MANUAL_SWIPE only; NO_AUTO_ADVANCE/CIRCULAR_WRAP; preserve correct selected ID",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S14",
       "category": "state",
-      "scenario": "state/navigation event 14",
+      "scenario": "optional/long hero metadata",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S14",
+      "assertion": "OMIT_MISSING; preserve time; ellipsize location; never truncate after layout boundary",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "S15",
       "category": "state",
-      "scenario": "state/navigation event 15",
+      "scenario": "identity and avatar failure",
       "method": "unit+instrumentation",
-      "assertion": "assert per State_Interaction_Contract_V1 S15",
+      "assertion": "SIGNED_IN_REAL/DEFAULT_FAILURE/GUEST distinct appearance, correct click routing and >=48dp target",
       "implementation_coverage": "partial_existing",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "deterministic fake FishRecord repository + navigation callbacks"
     },
     {
       "id": "M01",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 1",
+      "scenario": "selected Hero keyframes",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M01",
+      "assertion": "6000ms scale 1.0/1.008/1.0; y 0/-2dp/0; no idle opacity/rotation",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M02",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 2",
+      "scenario": "manual pager normalized distance",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M02",
+      "assertion": "q in 0,0.5,1; scale=1-0.055q translationY=4dp*q alpha=1-0.12q",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M03",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 3",
+      "scenario": "capture breathing and gold sweep",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M03",
+      "assertion": "5000ms <=1.015 breathing; gold sweep at about 3s, 1.4s duration, repeats every 9s; 16s native video",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M04",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 4",
+      "scenario": "Reduce Motion",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M04",
+      "assertion": "selected Hero 1x/y0, capture no breathing/sweep, user swipe remains",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M05",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 5",
+      "scenario": "foreground/pause/resume lifecycle",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M05",
+      "assertion": "no decorative loop while paused; neutral reset on motion disable; no reentry burst",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M06",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 6",
+      "scenario": "haptic eligibility",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M06",
+      "assertion": "ONE shared LightImpact per Capture tap; no page-authored haptic on entry/scroll/card/stats/error",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M07",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 7",
+      "scenario": "sound prohibition",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M07",
+      "assertion": "NO page-authored playback wiring or audio cues on any Normal Home state",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     },
     {
       "id": "M08",
       "category": "motion_feedback",
-      "scenario": "motion/feedback case 8",
+      "scenario": "single-record motion",
       "method": "instrumentation+video",
-      "assertion": "assert per Motion_Feedback_Contract_V1 M08",
+      "assertion": "selected micro-breath allowed; no adjacent transform and no fake page",
       "implementation_coverage": "needs_new_test",
       "acceptance_status": "NOT_RUN",
-      "evidence_refs": []
+      "evidence_refs": [],
+      "fixture": "test clock + device capture/settings as applicable"
     }
   ]
 }
