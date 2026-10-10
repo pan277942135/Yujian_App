@@ -1,0 +1,70 @@
+{
+  "name": "YuJian Frozen Shared SVG Icons",
+  "version": "V1",
+  "status": "FROZEN_DESIGN_ASSETS",
+  "date": "2026-10-10",
+  "source": "YuJian_Icon_Frozen_Batch_Staging_V1",
+  "count": 6,
+  "git_integrity": "All Git blobs verified identical to approved frozen local SVG source",
+  "svg_spec": {
+    "view_box": "0 0 24 24",
+    "stroke_width": 1.75,
+    "stroke_linecap": "round",
+    "stroke_linejoin": "round",
+    "color": "currentColor",
+    "background": "transparent",
+    "sizing": "Rendered per page Frozen Geometry"
+  },
+  "android_status": "NOT_IMPLEMENTED",
+  "assets": [
+    {
+      "icon_id": "ic_length",
+      "name": "长度",
+      "path": "design/system/icon_library_v0_1/assets/ic_length_v1.svg",
+      "sha256": "7b34302b330a869b1dd5cf2170035c19e6f85c7c2978dc0b7a058d42cb5fbedc",
+      "bytes": 558,
+      "status": "FROZEN"
+    },
+    {
+      "icon_id": "ic_weight",
+      "name": "重量",
+      "path": "design/system/icon_library_v0_1/assets/ic_weight_v1.svg",
+      "sha256": "ff9692ec1492dbd74edf3f2d70af6461f046d07ccf02a2171387305cad52bd2f",
+      "bytes": 812,
+      "status": "FROZEN"
+    },
+    {
+      "icon_id": "ic_location",
+      "name": "地点",
+      "path": "design/system/icon_library_v0_1/assets/ic_location_v1.svg",
+      "sha256": "cefb2c24e7d8a53b2af4cda9eaae1b3e89b91cb8eff2072dfa447c79123952a8",
+      "bytes": 540,
+      "status": "FROZEN"
+    },
+    {
+      "icon_id": "ic_date",
+      "name": "日期",
+      "path": "design/system/icon_library_v0_1/assets/ic_date_v1.svg",
+      "sha256": "934e3887ca403b58269616ee765d5e36c7f2fd23bd4be0f69d6b10d207020b84",
+      "bytes": 697,
+      "status": "FROZEN"
+    },
+    {
+      "icon_id": "ic_time",
+      "name": "时间",
+      "path": "design/system/icon_library_v0_1/assets/ic_time_v1.svg",
+      "sha256": "f360aac0b6bb2e0cfa8597e86c58c84aa94724737643c1c967ad66d878aeee59",
+      "bytes": 529,
+      "status": "FROZEN"
+    },
+    {
+      "icon_id": "ic_weather",
+      "name": "天气",
+      "path": "design/system/icon_library_v0_1/assets/ic_weather_v1.svg",
+      "sha256": "5a76b80bc159471879d61acdada1111abc9e31c1783b5856882d6a57cc2b6b03",
+      "bytes": 931,
+      "status": "FROZEN"
+    }
+  ],
+  "excluded": "ic_note remains candidate, not approved"
+}

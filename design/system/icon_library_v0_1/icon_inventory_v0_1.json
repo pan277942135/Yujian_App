@@ -1,6 +1,6 @@
 {
-  "version": "V0.1",
-  "status": "AUDIT_ONLY_NOT_VISUAL_FROZEN",
+  "version": "V0.2",
+  "status": "PARTIAL_WITH_6_FROZEN_DESIGN_ASSETS",
   "date": "2026-10-10",
   "scope": "14 design page modules + reviewed key Android UI surfaces; semantic deduplication, provisional not exhaustive",
   "counts": {
@@ -14,13 +14,15 @@
       "STATUS": 6
     },
     "by_asset_state": {
-      "RUNTIME_MATERIAL": 17,
-      "MIXED_LEGACY": 6,
-      "SPEC_ONLY": 3,
+      "RUNTIME_MATERIAL": 16,
+      "FROZEN_DESIGN": 6,
       "ACTION_CONTRACT": 14,
       "PROPOSED": 2,
+      "MIXED_LEGACY": 3,
+      "SPEC_ONLY": 1,
       "RUNTIME_RESOURCE": 1
-    }
+    },
+    "frozen_svg_assets": 6
   },
   "groups": [
     {
@@ -71,76 +73,130 @@
       "id": "LENGTH",
       "name": "长度",
       "group": "FACTS",
-      "asset_state": "MIXED_LEGACY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Straighten",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
       "legacy_asset_path": "app/src/main/assets/identify/icons/length.svg",
       "usage": "识别结果 / 详情编辑",
       "note": "旧 identify/icons/length.svg 是字母 L 占位；不得作为正式图标",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_length_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "7b34302b330a869b1dd5cf2170035c19e6f85c7c2978dc0b7a058d42cb5fbedc",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      }
     },
     {
       "id": "WEIGHT",
       "name": "重量",
       "group": "FACTS",
-      "asset_state": "MIXED_LEGACY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Scale",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
       "legacy_asset_path": "app/src/main/assets/identify/icons/weight.svg",
       "usage": "识别结果 / 详情编辑",
       "note": "旧 identify/icons/weight.svg 是字母 W 占位",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_weight_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "ff9692ec1492dbd74edf3f2d70af6461f046d07ccf02a2171387305cad52bd2f",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      }
     },
     {
       "id": "LOCATION",
       "name": "地点",
       "group": "FACTS",
-      "asset_state": "MIXED_LEGACY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.LocationOn / Place",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
       "legacy_asset_path": "app/src/main/assets/identify/icons/location.svg",
       "usage": "识别结果 / 详情编辑 / 我的鱼获 / 账户",
       "note": "统一 LocationOn 和 Place 两种现行用法",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_location_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "cefb2c24e7d8a53b2af4cda9eaae1b3e89b91cb8eff2072dfa447c79123952a8",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      }
     },
     {
       "id": "DATE",
       "name": "日期",
       "group": "FACTS",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.CalendarMonth",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
       "usage": "详情编辑 / 档案时间",
       "note": "日期与时间区分",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_date_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "934e3887ca403b58269616ee765d5e36c7f2fd23bd4be0f69d6b10d207020b84",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      }
     },
     {
       "id": "TIME",
       "name": "时间",
       "group": "FACTS",
-      "asset_state": "SPEC_ONLY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待绘制时钟",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
       "usage": "鱼获拍摄时间 / 日期时间表单",
       "note": "不要求每个时间文本都显示图标",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_time_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "f360aac0b6bb2e0cfa8597e86c58c84aa94724737643c1c967ad66d878aeee59",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      }
     },
     {
       "id": "WEATHER",
       "name": "天气",
       "group": "FACTS",
-      "asset_state": "SPEC_ONLY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待定义天气语义",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
       "usage": "鱼获详情编辑未来可选字段",
       "note": "天气属支持后可见字段，不应虚构已上线状态",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_weather_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "5a76b80bc159471879d61acdada1111abc9e31c1783b5856882d6a57cc2b6b03",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      }
     },
     {
       "id": "NOTE",
@@ -613,7 +669,7 @@
       "why": "未授权的社交徽章/成就化资产，禁止加入"
     }
   ],
-  "validation_boundary": "Only semantic inventory and navigation are registered; no icon art was newly drawn or frozen and no Android implementation was modified.",
+  "validation_boundary": "6 approved SVG assets FROZEN and byte-verified; no Android runtime replacement. Other 37 semantic candidates remain provisional.",
   "group_page_usage": {
     "ALL": [
       "home_empty_v2",
@@ -685,6 +741,12 @@
       "fish_memory_bside_v1",
       "my_catches_v2",
       "fish_guide_v2"
+    ],
+    "FROZEN": [
+      "home_normal_v1",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "my_catches_v2"
     ]
   }
 }

@@ -36,3 +36,6 @@
 - `design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md`
 - `design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md`
 - Android 代码证据详见 `icon_inventory_v0_1.json`。
+
+## 首批 SVG 设计冻结（2026-10-10）
+已完成 6 个原样上传并经 Git blob 校验；资产权威见 `frozen_assets_v1.json`，43 个语义候选中剩余 37 个尚待确认。Android 未接入。
