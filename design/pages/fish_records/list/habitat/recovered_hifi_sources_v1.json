@@ -16,7 +16,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "tank_round_mobile_b",
@@ -30,7 +34,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "tank_round_mobile_c",
@@ -44,7 +52,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "tank_landscape_a",
@@ -58,7 +70,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "tank_landscape_b",
@@ -72,7 +88,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "tank_landscape_c",
@@ -86,7 +106,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "tank_landscape_d",
@@ -100,7 +124,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "pond_landscape_a",
@@ -114,7 +142,11 @@
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "pond_landscape_b",
@@ -124,11 +156,15 @@
       "source_library_path": "/Catcher/晨曦下的我的渔境.png",
       "width": 1672,
       "height": 941,
-      "size_bytes": null,
+      "size_bytes": 2733212,
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     },
     {
       "id": "pond_landscape_c",
@@ -138,11 +174,15 @@
       "source_library_path": "/Catcher/晨雾晨光下的我的渔境.png",
       "width": 1672,
       "height": 941,
-      "size_bytes": null,
+      "size_bytes": 2804285,
       "image": null,
       "git_asset_path": null,
       "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
-      "visual_status": "DESIGN_ONLY"
+      "visual_status": "DESIGN_ONLY",
+      "sha256": null,
+      "git_blob_sha": null,
+      "original_bytes_verified": false,
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
     }
   ],
   "committed_reference_assets": [
@@ -164,6 +204,14 @@
   "notes": [
     "Binary import pending authorized raw-byte export of historical Project files.",
     "No original PNG, no authentic image bytes/sha for new sources; do not invent.",
-    "Past design references do not freeze current visual authority."
+    "Past design references do not freeze current visual authority.",
+    "Raw bytes denied during 2026-10-10 recheck for multiple library images; Git blob cannot be synthesized from the thumbnail."
+  ],
+  "asset_governance_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
+  "original_pngs_confirmed_retrievable": 0,
+  "original_pngs_pending_raw_import": 10,
+  "verified_from": [
+    "Library metadata: filename, dimensions, bytes",
+    "Vision inspection: existing preview; no binary export"
   ]
 }

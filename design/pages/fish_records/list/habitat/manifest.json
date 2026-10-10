@@ -21,10 +21,14 @@
       "sha256": "ebdb3455ef78326eeab44c309c00eb05bea8f907e595f7667bf28938a9853de3"
     }
   ],
-  "note": "Original PNG bytes preserved. Neither image is selected as the habitat screen's frozen visual authority. 新恢复圆缸3、景观缸4、自然鱼塘3张的文件来源和规格；新源图原始二进制尚未授权导出，未提交到仓库、未冒充预览。",
+  "note": "Original PNG bytes preserved. Neither image is selected as the habitat screen's frozen visual authority. 新恢复圆缸3、景观缸4、自然鱼塘3张的文件来源和规格；新源图原始二进制尚未授权导出，未提交到仓库、未冒充预览。 V1.1 补充原图完整性门槛/视觉差异审核；10张Source PNG原始字节仍无法导出，不声称已上传。",
   "recovered_hifi_catalog": "design/pages/fish_records/list/habitat/Recovered_Habitat_Hifi_Catalog_V1.md",
   "recovered_hifi_machine_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json",
   "recovered_original_sources": 10,
   "recovered_original_binary_uploaded": 0,
-  "reference_pngs_committed": 2
+  "reference_pngs_committed": 2,
+  "asset_governance_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
+  "original_raw_source_materialization": "DENIED",
+  "pending_original_png_sha256": 10,
+  "original_bytes_last_rechecked": "2026-10-10"
 }
