@@ -133,3 +133,9 @@ Do not dynamically add actions to BACK_TITLE and silently turn it into the third
 - divider by default;
 - reducing title font size on narrow devices;
 - placing page subtitle inside the top navigation.
+
+## Appendix · Result page-scoped override (2026-10-10)
+
+The global `BACK_TITLE` geometry, left alignment and the three-variant Top Navigation V1 family remain **FROZEN**. Section 8's original Recognition Result example is historical and **does not apply to the current RR01–RR05 Result V1.1 Frozen visual authorities**. For these five Result pages, use the registered viewport-centered `BACK_CENTER_TITLE` page composition, retaining the shared Icon Action Back; this is not a general Top Navigation variant. The separate Species Selector V1 **still uses BACK_TITLE**.
+
+Authority: `design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md`. All other shared `BACK_TITLE` consumers are unchanged.
