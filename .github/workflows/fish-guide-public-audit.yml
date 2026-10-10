@@ -1,0 +1,44 @@
+name: Fish Guide Public 120-slot Audit
+on:
+  push:
+    branches:
+      - fix/fish-guide-public-contract-asset-status-p0-20261010
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Probe public catalog, roles, versions, and image bytes (read-only)
+        id: audit
+        shell: bash
+        env:
+          YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+        run: |
+          set +e
+          python3 scripts/audit_fish_guide_public_contract.py \
+            --base-url "$YUJIAN_FISH_KNOWLEDGE_BASE_URL" \
+            --output fish-guide-public-audit.json
+          result=$?
+          echo "exit_code=$result" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload public audit evidence (even on publication failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fish-guide-public-120-slot-audit
+          path: fish-guide-public-audit.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Enforce publication contract
+        if: steps.audit.outputs.exit_code != '0'
+        run: exit 1
