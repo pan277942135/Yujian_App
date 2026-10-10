@@ -139,6 +139,7 @@ internal fun NormalHomeContent(
                 accessToken = accessToken,
                 onProfileClick = onProfileClick,
                 avatarSize = ref(92f),
+                guestAvatar = runtimeAssets?.guestAvatar,
                 typography = typography,
                 brandMinWidth = ref(148f),
             )
@@ -269,6 +270,7 @@ private fun NormalHomeHeader(
     accessToken: String,
     onProfileClick: () -> Unit,
     avatarSize: Dp,
+    guestAvatar: android.graphics.Bitmap?,
     typography: NormalHomeTypographyContract,
     brandMinWidth: Dp,
 ) {
@@ -323,15 +325,26 @@ private fun NormalHomeHeader(
                 }
             }
         } else {
-            Image(
-                painter = painterResource(R.drawable.normal_home_default_avatar_v2),
-                contentDescription = "登录或注册",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .size(avatarSize)
-                    .clickable(role = Role.Button, onClick = onProfileClick)
-                    .testTag("normal-home-default-profile-avatar"),
-            )
+            val guestModifier = Modifier
+                .size(avatarSize)
+                .clickable(role = Role.Button, onClick = onProfileClick)
+                .testTag("normal-home-guest-avatar")
+            if (guestAvatar != null) {
+                Image(
+                    bitmap = guestAvatar.asImageBitmap(),
+                    contentDescription = "登录或注册",
+                    contentScale = ContentScale.Fit,
+                    modifier = guestModifier,
+                )
+            } else {
+                // Only while the registered guest bitmap is loading.
+                Image(
+                    painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+                    contentDescription = "登录或注册",
+                    contentScale = ContentScale.Fit,
+                    modifier = guestModifier,
+                )
+            }
         }
     }
 }
