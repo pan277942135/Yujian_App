@@ -666,13 +666,13 @@ function iconLibraryOverviewHtml(item) {
   const data = iconLibraryInventory;
   if (!data) return '<div class="preview-empty">图标资产数据暂不可用；请查看权威文件。</div>';
   return '<section class="icon-library-overview">' +
-    '<strong>全局图标 · V0.2</strong>' +
+    '<strong>全局图标 · V1</strong>' +
     '<div class="icon-library-total"><b>' + esc(data.counts.total_unique_semantic_candidates) +
-    '</b><span>个候选语义（6 个 SVG 已冻结 / 37 个待设计）</span></div>' +
+    '</b><span>个去重语义（43 张 SVG 已全部冻结）</span></div>' +
     '<div class="icon-library-group-summary">' + data.groups.map(g =>
       '<div><strong>' + esc(iconInventoryCount(g.id)) + '</strong><span>' + esc(g.name) + '</span></div>'
     ).join("") + '</div>' +
-    '<p>首批长度、重量、地点、日期、时间、天气 SVG V1 已正式冻结。其他图标仍为候选；Icon Action V1 行为合同保持原样。</p>' +
+    '<p>全套 43 张 SVG V1 已完成设计冻结；六分类完整覆盖，点击任意图标可查看其 SVG 源文件。Icon Action V1 的点击热区与动作合同保持原样。</p>' +
     '<p><b>Android 未接入，显示大小依各页面 Frozen Geometry 控制。</b></p></section>';
 }
 function iconLibraryCatalogHtml(groupId) {
@@ -683,7 +683,7 @@ function iconLibraryCatalogHtml(groupId) {
   const source=e=>e.evidence_path
     ? '<a href="' + esc('https://github.com/pan277942135/Yujian_App/blob/main/' + e.evidence_path) + '" target="_blank" rel="noreferrer">代码来源 ↗</a>' : '';
   return '<section class="icon-library-catalog">' +
-    '<div class="icon-library-catalog-heading"><strong>' + esc(groupId === "ALL" ? "全部图标语义" : (groupId === "FROZEN" ? "已冻结 SVG V1" : (data.groups.find(g=>g.id===groupId)?.name || groupId))) + '</strong>' +
+    '<div class="icon-library-catalog-heading"><strong>' + esc(groupId === "ALL" ? "全部图标语义" : (groupId === "FROZEN" ? "全部冻结 SVG · V1" : (data.groups.find(g=>g.id===groupId)?.name || groupId))) + '</strong>' +
     '<span>' + esc(selected.length) + ' 项 · ' + esc(selected.filter(e=>e.approved_visual).length) + ' 个已冻结 SVG</span></div>' +
     '<div class="icon-library-cards">' + selected.map(e =>
       '<article class="icon-library-item"><div class="icon-library-item-head"><b>' + esc(e.name) +
@@ -700,7 +700,7 @@ function iconLibraryCatalogHtml(groupId) {
       (e.legacy_asset_path ? '<span>旧 SVG 字母占位不可作为正式图形</span>' : '') +
       '</div></article>'
     ).join("") + '</div>' +
-    '<div class="icon-library-warning">已冻结：长度、重量、地点、日期、时间、天气。未批准的候选不标 FROZEN。Android 代码没有更新。</div></section>';
+    '<div class="icon-library-warning">全部 43 个图标均已完成 SVG 设计冻结。Android 代码尚未替换；各页面显示大小仍由其 Frozen Geometry 合同控制。</div></section>';
 }
 function sharedPreviewHtml(item) {
   if (item.id === "icon_library_v0_1") return iconLibraryOverviewHtml(item);
