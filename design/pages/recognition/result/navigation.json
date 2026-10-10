@@ -7,7 +7,7 @@
     "label_en": "Recognition Result",
     "path": "design/pages/recognition/result/"
   },
-  "principle": "产品状态仍为 3 类识别结果 + 2 类恢复状态；RR00–RR05 承载总览与五个独立高保页面，RR06 集中索引已冻结的内容修改 Authority，不新增 Result 状态。Frozen 资产只保留一份 canonical 文件，菜单页直接引用。",
+  "principle": "产品状态仍为 3 类识别结果 + 2 类恢复状态；RR00–RR05 承载总览与五个独立高保页面，RR06 集中索引已冻结的内容修改 Authority，不新增 Result 状态。Frozen 资产只保留一份 canonical 文件，菜单页直接引用。 RR07 为独立行为/工程判定逻辑菜单，非第六个结果状态；现行数值来自 Kotlin，只读展示，优化建议不构成已批准新阈值。",
   "level_2": [
     {
       "order": 1,
@@ -136,6 +136,26 @@
         "Metadata Edit Flow V1 · 长度 / 重量 / 地点修改（FROZEN）",
         "分别保留现有冻结规范、契约、视觉资产与 manifest",
         "不新增 Result 产品状态，不改变 3+2 状态模型"
+      ]
+    },
+    {
+      "order": 8,
+      "id": "RR07",
+      "label_zh": "识别过程 · 07 · 判定逻辑",
+      "label_en": "Recognition Decision Logic",
+      "output_policy": "ENGINEERING_BEHAVIOR_WORKSPACE",
+      "status": "ACTIVE_CLOSURE",
+      "page": "design/pages/recognition/result/07_decision_logic/README.md",
+      "decision_spec": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+      "decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+      "contains": [
+        "3+2 five product states + separate technical failure",
+        "Detector 0.20 weak / 0.35 strong / NMS 0.45",
+        "bbox area 0.08 / border 0.015 / crop expand 0.15",
+        "GOOD/WARNING/INVALID gate and branch-order exceptions",
+        "Classifier top1<0.45→LOW; else top1-top2<0.12→MEDIUM; else HIGH",
+        "First-match routing and examples with valid softmax scores",
+        "Current truth separate from proposed calibrations; no Android changes"
       ]
     }
   ],
