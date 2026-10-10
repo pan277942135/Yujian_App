@@ -63,8 +63,15 @@ CI build/unit/lint/model trace PASS is prerequisite engineering hygiene, never s
 
 ## Quality goals with objective decisions
 
-Metrics: all required targets accessible, all page regions visible/reachable, source hashes exact, normal-mode shared shift exact, card geometry/ref proportion exact in synthetic fixture, non-transient real-device actual px bounds reported, motion numerical keyframes match frozen tokens and unapproved sound/haptic absent. Optical tolerance is explicitly UNSET until hash-verified reference ROI and repeatable measurement method; therefore optical criterion remains REVIEW_REQUIRED instead of inventing ±px thresholds.
+Metrics: all required targets accessible, all page regions visible/reachable, source hashes exact, normal-mode shared shift exact, card geometry/ref proportion exact in synthetic fixture, non-transient real-device actual px bounds reported, motion numerical keyframes match frozen tokens and unapproved sound/haptic absent. Optical tolerance and classification method are now specified in Quantitative_Visual_Acceptance_Contract_V1.md with source pixel bounds in Visual_Anchor_Asset_Resolution_V1.md. These are acceptance policies, not claims that any existing APK has passed. Runtime without exact-SHA native output remains NOT_RUN.
 
 ## Pre-flight static governance test
 
 Before device tests run python3 scripts/design/verify_normal_home_contract_v1.py from the repository root. Its PASS certifies references, matrix structure and Frozen source files in that checkout only. It is explicitly **not** a surrogate for G/V/S/M Android runtime PASS. CI integration of each runtime case is a separate implementation task, tracked as implementation_coverage in the JSON matrix.
+
+## Final closure acceptance bindings
+
+- [Quantitative_Visual_Acceptance_Contract_V1.md](Quantitative_Visual_Acceptance_Contract_V1.md) owns numeric tolerances and same-kind bboxes.
+- [Visual_Anchor_Asset_Resolution_V1.md](Visual_Anchor_Asset_Resolution_V1.md) owns source pixel measurements, background and avatar provenance.
+- [Short_Window_Adaptive_Freeze_V1.md](Short_Window_Adaptive_Freeze_V1.md) owns the exception-state layout and minimum certification envelope.
+- [Hero_Real_Photo_EvidenceFit_Contract_V1.md](Hero_Real_Photo_EvidenceFit_Contract_V1.md) owns F01–F08. Actual independent licensed photo evidence and Android HOME+DETAIL screenshots must exist before a case is PASS.
