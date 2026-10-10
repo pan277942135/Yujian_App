@@ -242,3 +242,9 @@ The complete V1.1 static UI authority is the following six-reference set. Each r
 6. `visual/authority/06_SECONDARY_MUTED_States.svg` — Normal / Pressed / Disabled / Focus; Loading = N/A.
 
 The historical `visual/Action_Button_V1_1_Frozen_Visual.svg` is retained as an overview only and does not supersede this six-reference authority set.
+
+## Appendix · Result V1.1 page-scoped override (2026-10-10)
+
+This shared system's three-level taxonomy, state visuals and historical six mappings remain frozen. The 44/56 Recognition Result example in Sections 6 and 11 is **not the current RR01–RR03 confirmed dual-CTA authority**: the later page-specific Result V1.1 Frozen states / geometry contract specify equal-width dual CTAs and 12dp gap, a light `RESULT_SAVE` primary-meaning surface, and a muted `继续记忆` secondary visual. These are Result-only exceptions, not new generic button variants.
+
+Authority: `design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md`. Other consumers of PRIMARY / SECONDARY_STRONG / SECONDARY_MUTED remain unchanged. Do not apply this appendix outside Recognition Result.
