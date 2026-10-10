@@ -5336,7 +5336,8 @@
             "鱼塘：自然水域 3 张历史高保（原图待导入）",
             "鱼塘 1–5 · 已入库可预览阶段参考",
             "湖泊 1–7 · 已入库可预览阶段参考",
-            "主页面视觉 Authority 未选版；历史图不自动冻结"
+            "主页面视觉 Authority 未选版；历史图不自动冻结",
+            "高保源图 V1.1 校验规则：未取得完整PNG不得标记COMMITTED或FROZEN"
           ],
           "children": [
             {
@@ -5376,7 +5377,8 @@
                 }
               ],
               "summary": "历史竖屏圆形玻璃鱼缸设计 3 张；展示各自来源/尺寸。源PNG原始字节未入库，尚不可点击预览。",
-              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)"
+              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)",
+              "secondary_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md"
             },
             {
               "id": "tank_landscape_hifi",
@@ -5424,7 +5426,8 @@
                 }
               ],
               "summary": "历史横屏方形景观缸 4 张；五鱼、28鱼获等不同密度探索。原始PNG当前无法从 Project 导出，暂不伪造缩略图。",
-              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)"
+              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)",
+              "secondary_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md"
             },
             {
               "id": "pond_landscape_hifi",
@@ -5463,7 +5466,8 @@
                 }
               ],
               "summary": "历史横屏自然鱼塘设计 3 张；展示水上/水下关系。原始字节待导入；可另查看已入库的鱼塘1–5阶段图。",
-              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)"
+              "visual_role": "SOURCE METADATA ONLY (NO IMAGE AUTHORITY)",
+              "secondary_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md"
             },
             {
               "id": "pond_levels_1_5",
@@ -5505,7 +5509,14 @@
             }
           ],
           "visual_catalog_authority": "design/pages/fish_records/list/habitat/Recovered_Habitat_Hifi_Catalog_V1.md",
-          "machine_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json"
+          "machine_catalog": "design/pages/fish_records/list/habitat/recovered_hifi_sources_v1.json",
+          "supporting_visual_references": [
+            {
+              "path": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
+              "label": "Habitat Hifi Asset Governance V1.1 / original source integrity"
+            }
+          ],
+          "visual_review_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md"
         }
       ],
       "hifi_source_inventory": {

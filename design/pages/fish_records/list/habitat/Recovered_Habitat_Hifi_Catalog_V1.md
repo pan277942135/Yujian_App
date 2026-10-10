@@ -1,6 +1,8 @@
 # 我的渔境 · 历史高保原图检索与资产登记 V1
 
-**设计审议日期：2026-10-10** · **范围：仅设计** · **当前状态：原图已找到；未导入部分不冒充已上传**
+**设计审议日期：2026-10-10** · **范围：仅设计** · **当前状态：原图已找到；原始字节受权限限制，10张待导入**
+
+**当前设计与原始PNG验收规范：** [高保资产与视觉审议 V1.1](Habitat_Hifi_Asset_Governance_V1_1.md)。
 
 本目录收集圆形鱼缸、横屏方形景观缸、自然鱼塘的历史独立高保真与已经进入仓库的鱼塘/湖泊阶段图。下列源图均属于历史视觉探索，未选择主页面 Frozen Authority。
 
@@ -34,3 +36,10 @@
 - **进阶阶段图 2 张**：鱼塘 1–5 与湖泊 1–7 已在 GitHub，可作为 Design Manager 图片预览。
 
 **优先关系**：`My_Habitat_Spec_V1.md` 的真实 FishInstance / 3+5+7 阶段语义优先。图中太阳、鱼体高亮描边、皇冠、虚构鱼种、夸张景物是历史探索，**不属于新 Background System / Core Visual V1 权威**，不得直接冻结成现行页。未冻结主页面，不开 Android 或动态渲染实现。
+
+
+## 2026-10-10 原始字节复核
+
+全部10张均从 Library `/Catcher/` 定位，现有项目型图片只提供预览。尝试使用 `raw_file`、省略输出参数两种导出方式，均返回 `This Project file does not have an authorized raw-byte materialization path`。本轮没有可核验的完整原始文件字节。更新两张自然鱼塘图片资料库大小为 2,733,212 与 2,804,285 bytes（仅元数据，未完成文件哈希）；其它八张元数据原值不变。
+
+正式入库/视觉采用限制详见 [Habitat Hifi Asset Governance V1.1](Habitat_Hifi_Asset_Governance_V1_1.md)。未获原图不得给设计系统添加虚假的PNG预览链接或更改 `DESIGN_ONLY`。
