@@ -656,7 +656,53 @@ function fishMediaExamplesHtml(item, variant) {
   '</div>';
 }
 
+
+/* Icon Library V0.1 — text-backed inventory. No approved glyph art exists yet. */
+let iconLibraryInventory = null;
+function iconInventoryCount(groupId) {
+  return (iconLibraryInventory?.entries || []).filter(x=>groupId==="ALL"||x.group===groupId).length;
+}
+function iconLibraryOverviewHtml(item) {
+  const data=iconLibraryInventory;
+  if (!data) return '<div class="preview-empty">图标盘点数据未加载；请查看下方 Authority。</div>';
+  return '<section class="icon-library-overview">' +
+    '<strong>全局图标盘点 · V0.1</strong>' +
+    '<div class="icon-library-total"><b>' + esc(data.counts.total_unique_semantic_candidates) +
+    '</b><span>个去重候选语义（不是已完成的 SVG 资产）</span></div>' +
+    '<div class="icon-library-group-summary">' + data.groups.map(g=>
+      '<div><strong>' + esc(iconInventoryCount(g.id)) + '</strong><span>' + esc(g.name) + '</span></div>'
+    ).join("") + '</div>' +
+    '<p>已冻结的 Icon Action V1 继续负责可点击图标的行为、热区和状态；本菜单先收集静态 glyph 类型、开发来源与尚缺资产。</p>' +
+    '<p><b>当前状态：PARTIAL / INVENTORY ONLY</b>。尚无新图标的视觉冻结，也未修改 Android。</p>' +
+    '</section>';
+}
+function iconLibraryCatalogHtml(groupId) {
+ const data=iconLibraryInventory;
+ if (!data) return '<div class="preview-empty">图标清单暂不可用；请查看权威 JSON 文件。</div>';
+ const selected=(data.entries || []).filter(x=>groupId==="ALL"||x.group===groupId);
+ const label={ACTION_CONTRACT:"沿用 Action 合同",RUNTIME_MATERIAL:"Android Material 实现",RUNTIME_RESOURCE:"已存在 Drawable",MIXED_LEGACY:"旧 SVG 仅占位",SPEC_ONLY:"规范候选",PROPOSED:"待确认新图标"};
+ const origin=e=>e.evidence_path
+  ? '<a href="' + esc('https://github.com/pan277942135/Yujian_App/blob/main/' + e.evidence_path) +
+      '" target="_blank" rel="noreferrer">查看来源 ↗</a>' : '';
+ return '<section class="icon-library-catalog">' +
+  '<div class="icon-library-catalog-heading"><strong>' + esc(groupId==="ALL"?"全部图标语义":(data.groups.find(g=>g.id===groupId)?.name||groupId)) +
+  '</strong><span>' + esc(selected.length) + ' 个候选 · 0 个本轮新增冻结图标</span></div>' +
+  '<div class="icon-library-cards">' + selected.map(e=>
+    '<article class="icon-library-item"><div class="icon-library-item-head"><b>' + esc(e.name) +
+    '</b><span>' + esc(e.id) + '</span></div>' +
+    '<p><b>现状：</b>' + esc(label[e.asset_state]||e.asset_state) + '</p>' +
+    '<p><b>现有实现：</b>' + esc(e.existing_implementation) + '</p>' +
+    '<p><b>使用场景：</b>' + esc(e.usage) + '</p>' +
+    '<p><b>审计说明：</b>' + esc(e.note) + '</p>' +
+    '<div class="icon-library-item-foot">' + origin(e) +
+    (e.legacy_asset_path ? '<span>旧字母占位，不得交付正式资源</span>' : '') +
+    '</div></article>'
+  ).join("") + '</div>' +
+  '<div class="icon-library-warning">阶段一仅统计图标语义、使用位置和资源状态；页面展示中不使用 emoji、字母或临时图形冒充正式图标。</div>' +
+  '</section>';
+}
 function sharedPreviewHtml(item) {
+  if (item.id === "icon_library_v0_1") return iconLibraryOverviewHtml(item);
   if (item.id === "fish_media_display_v1") return fishMediaOverviewHtml(item);
   if (item.id === "background_system_v1") {
     return backgroundSystemOverviewHtml(item);
@@ -967,7 +1013,11 @@ function renderSharedDirectVariantWorkspace(item, variantId) {
   const visualRefs = variant.visual_authority_set || [];
   const visualWrap = el("sharedDirectVariantVisualWrap");
   const mediaDemo = item.id === "fish_media_display_v1" ? fishMediaExamplesHtml(item, variant) : null;
-  if (mediaDemo) {
+  const iconCatalog = item.id === "icon_library_v0_1" ? iconLibraryCatalogHtml(variant.id) : null;
+  if (iconCatalog) {
+    visualWrap.classList.remove("hidden");
+    el("sharedDirectVariantVisual").innerHTML = iconCatalog;
+  } else if (mediaDemo) {
     visualWrap.classList.remove("hidden");
     el("sharedDirectVariantVisual").innerHTML = mediaDemo;
   } else if (visualRefs.length) {
@@ -3204,6 +3254,15 @@ async function init() {
         );
         if (mediaResponse.ok) fishMediaCases = await mediaResponse.json();
       } catch (_) { fishMediaCases = null; }
+    }
+
+    if (sharedRegistry.items.some(x => x.id === "icon_library_v0_1")) {
+      try {
+        const iconsResponse = await fetch(
+          repoHref("design/system/icon_library_v0_1/icon_inventory_v0_1.json"), {cache:"no-store"}
+        );
+        if (iconsResponse.ok) iconLibraryInventory = await iconsResponse.json();
+      } catch (_) { iconLibraryInventory = null; }
     }
 
     const backgroundItem = sharedRegistry.items.find(x => x.id === "background_system_v1");
