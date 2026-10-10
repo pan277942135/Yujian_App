@@ -312,8 +312,8 @@ internal fun NormalHomeContent(
             touchTargetSize = cameraTouchSize,
             rasterArtworkScaleX = NormalHomeCameraArtworkScaleX,
             rasterArtworkScaleY = NormalHomeCameraArtworkScaleY,
-            rasterArtworkOffsetX = ref(NormalHomeCameraArtworkOffsetX),
-            rasterArtworkOffsetY = ref(NormalHomeCameraArtworkOffsetY),
+            rasterArtworkOffsetX = (NormalHomeCameraArtworkOffsetX * referenceScale.value).dp,
+            rasterArtworkOffsetY = (NormalHomeCameraArtworkOffsetY * referenceScale.value).dp,
         )
         }
     }
@@ -588,8 +588,8 @@ private fun NormalHomeSafeOverflow(
                     touchTargetSize = cameraTouchSize,
                     rasterArtworkScaleX = NormalHomeCameraArtworkScaleX,
                     rasterArtworkScaleY = NormalHomeCameraArtworkScaleY,
-                    rasterArtworkOffsetX = ref(NormalHomeCameraArtworkOffsetX),
-                    rasterArtworkOffsetY = ref(NormalHomeCameraArtworkOffsetY),
+                    rasterArtworkOffsetX = (NormalHomeCameraArtworkOffsetX * referenceScale).dp,
+                    rasterArtworkOffsetY = (NormalHomeCameraArtworkOffsetY * referenceScale).dp,
                 )
             }
         }
