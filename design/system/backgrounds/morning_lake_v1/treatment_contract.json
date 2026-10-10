@@ -69,7 +69,8 @@
       "status": "FROZEN",
       "use": [
         "my_catches_v2",
-        "fish_guide_v2"
+        "fish_guide_v2",
+        "record_date_v2"
       ],
       "default_master": "Morning_Lake_Master_V1",
       "mist_white_veil_alpha": 0.3,
