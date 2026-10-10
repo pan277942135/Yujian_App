@@ -3,14 +3,52 @@
   "version": "V1.1",
   "status": "FROZEN",
   "shared": {
-    "result_top_navigation": { "component": "top_navigation_v1", "variant": "BACK_CENTER_TITLE" },
-    "species_selector_top_navigation": { "component": "top_navigation_v1", "variant": "BACK_TITLE" },
-    "continue_memory": { "component": "action_button_v1", "variant": "SECONDARY_MUTED" },
-    "save_catch": { "component": "action_button_v1", "variant": "RESULT_SAVE" },
-    "recovery_retake": { "component": "action_button_v1", "variant": "SECONDARY_STRONG" },
-    "recovery_gallery": { "component": "action_button_v1", "variant": "SECONDARY_MUTED" },
-    "glass": { "component": "mist_glass_surface_v1", "variant": "RESULT_RESTRAINED" },
-    "background": { "component": "background_system", "variant": "BG_CONTENT" }
+    "result_top_navigation": {
+      "component": "top_navigation_v1",
+      "variant": "BACK_CENTER_TITLE",
+      "variant_scope": "result_page_composition_not_global_shared_variant",
+      "exception_authority": "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
+    },
+    "species_selector_top_navigation": {
+      "component": "top_navigation_v1",
+      "variant": "BACK_TITLE",
+      "variant_scope": "global_shared_variant"
+    },
+    "continue_memory": {
+      "component": "action_button_v1",
+      "variant": "SECONDARY_MUTED",
+      "variant_scope": "result_page_visual_override",
+      "exception_authority": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
+    },
+    "save_catch": {
+      "component": "action_button_v1",
+      "variant": "RESULT_SAVE",
+      "variant_scope": "result_page_profile_semantic_primary",
+      "exception_authority": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
+    },
+    "recovery_retake": {
+      "component": "action_button_v1",
+      "variant": "SECONDARY_STRONG"
+    },
+    "recovery_gallery": {
+      "component": "action_button_v1",
+      "variant": "SECONDARY_MUTED"
+    },
+    "glass": {
+      "component": "mist_glass_surface_v1",
+      "variant": "RESULT_RESTRAINED"
+    },
+    "background": {
+      "component": "background_system",
+      "variant": "BG_CONTENT"
+    },
+    "confirmed_dual_cta": {
+      "layout": "equal_width",
+      "gap_dp": 12,
+      "scope": "Result V1.1",
+      "override_of": "shared_action_button_v1_1_44_56_usage_example",
+      "authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json"
+    }
   },
   "private": [
     "ResultHeroViewport",
@@ -25,11 +63,36 @@
     "ResultLocationPickerSheet"
   ],
   "state_composition": {
-    "HIGH": ["hero", "species_identity", "metadata_vertical", "story", "dual_cta"],
-    "MEDIUM": ["hero", "candidate_glass_panel", "metadata_after_selection", "story_after_selection", "dual_cta_after_selection"],
-    "LOW": ["hero", "message", "manual_or_retake", "metadata_vertical", "story", "dual_cta"],
-    "NO_FISH": ["hero_evidence_fit", "recovery_glass_panel"],
-    "IMAGE_QUALITY": ["hero_evidence_fit", "recovery_glass_panel"]
+    "HIGH": [
+      "hero",
+      "species_identity",
+      "metadata_vertical",
+      "story",
+      "dual_cta"
+    ],
+    "MEDIUM": [
+      "hero",
+      "candidate_glass_panel",
+      "metadata_after_selection",
+      "story_after_selection",
+      "dual_cta_after_selection"
+    ],
+    "LOW": [
+      "hero",
+      "message",
+      "manual_or_retake",
+      "metadata_vertical",
+      "story",
+      "dual_cta"
+    ],
+    "NO_FISH": [
+      "hero_evidence_fit",
+      "recovery_glass_panel"
+    ],
+    "IMAGE_QUALITY": [
+      "hero_evidence_fit",
+      "recovery_glass_panel"
+    ]
   },
   "prohibited": [
     "universal_hero_aspect",

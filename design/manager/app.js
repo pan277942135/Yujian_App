@@ -30,6 +30,7 @@ let pageRegistry = null;
 let sharedRegistry = null;
 let backgroundContract = null;
 let backgroundUsage = null;
+let recognitionDecisionContract = null;
 let selectedKey = null;
 let expandedLevelOne = new Set();
 
@@ -1224,7 +1225,7 @@ function renderSharedRefs(feature) {
     return '<button class="shared-ref-card" data-shared-id="' + esc(item.id) + '">' +
       '<div class="shared-ref-head"><strong>' + esc(item.display_name) + '</strong>' +
       statusBadge(item.overall) + '</div>' +
-      '<div class="shared-ref-variant">' + esc(ref.variant || "默认规则") + '</div>' +
+      '<div class="shared-ref-variant">' + esc(ref.exception_profile ? ref.exception_profile + " · 页面例外" : (ref.variant || "默认规则")) + '</div>' +
       (ref.master ? '<div class="shared-ref-master">母版：' + esc(ref.master) + '</div>' : '') +
       (ref.note ? '<div class="shared-ref-note">' + esc(ref.note) + '</div>' : '') +
       '</button>';
@@ -1974,7 +1975,106 @@ function nh07AvatarStatesCanvas(view) {
     '<p class="nh07-workspace-disclaimer">该工作区为设计资产和状态合同，非 Android 实施或完整页面像素验收的证明。NH01/NH02/NH04 原冻结图保持不变。</p></div>';
 }
 
+/** RR07 — explanatory Design Manager workspace driven exclusively by the versioned machine contract. */
+function recognitionDecisionLogicCanvas(view) {
+  const data = recognitionDecisionContract;
+  if (!data) {
+    return '<div class="recognition-rule"><strong>判定逻辑数据尚未载入</strong>' +
+      '<span>检查 RR07 machine decision contract 路径与发布状态；不允许用推测阈值替代当前代码。</span>' +
+      '<a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">查看权威 JSON</a></div>';
+  }
+  const stateNames = {
+    RESULT_HIGH: "HIGH · 高置信", RESULT_MEDIUM: "MEDIUM · 中置信",
+    RESULT_LOW: "LOW · 低置信", ERROR_NO_FISH: "NO FISH · 未检测到鱼",
+    ERROR_IMAGE_QUALITY: "IMAGE QUALITY · 图片质量不足",
+    TECHNICAL_FAILURE: "TECHNICAL FAILURE · 技术异常"
+  };
+  const det = data.current_observed_runtime.detector;
+  const cls = data.current_observed_runtime.classifier;
+  const gates = [
+    ["01 · 无强检测 / 仅弱检测", "UNCERTAIN · WARNING", "有鱼体线索，继续分类；当前可能跳过面积门。"],
+    ["02 · 无强检测 / 无弱检测", "NO_FISH · INVALID", "所有允许的方向重试完成后进入 No Fish，不分类。"],
+    ["03 · 多个强检测", "MULTIPLE_FISH · WARNING", "以主检测框裁剪后分类；目前可能跳过 8% 面积门。"],
+    ["04 · 单个强检测贴边", "INCOMPLETE_FISH · WARNING", "保留真实野外不完整入画的鱼获；目前可能跳过 8% 面积门。"],
+    ["05 · 单个强检测 / 面积不足", "FISH_TOO_SMALL · INVALID", "鱼体框不足整图 8%，拦截分类，进入 Image Quality。"],
+    ["06 · 其他单个强检测", "READY · GOOD", "鱼体可分类，进入 Classifier。"]
+  ];
+  const metric = (label, value, description) =>
+    '<article class="rr-decision-metric"><span>' + esc(label) + '</span>' +
+      '<strong>' + esc(value) + '</strong><small>' + esc(description) + '</small></article>';
+  const code = [
+    '01  failureCode != null                         → TECHNICAL_FAILURE',
+    '02  status == NO_FISH                          → ERROR_NO_FISH',
+    '03  !isClassifierEligible || prediction == null → ERROR_IMAGE_QUALITY',
+    '04  p1 < ' + cls.top1_low_below.toFixed(2) + '                                → RESULT_LOW',
+    '05  p2 exists && (p1 − p2) < ' + cls.medium_margin_below.toFixed(2) + '         → RESULT_MEDIUM',
+    '06  otherwise                                  → RESULT_HIGH'
+  ].join('\n');
+  const rows = (data.current_observed_runtime.precedence || []).map(item =>
+    '<tr><td>' + esc(String(item.order).padStart(2, "0")) + '</td>' +
+    '<td><code>' + esc(item.condition) + '</code></td><td><strong>' +
+      esc(stateNames[item.result] || item.result) + '</strong></td></tr>'
+  ).join("");
+  const cases = (data.verified_examples || []).map(example =>
+    '<tr><td>' + esc(example.detector.replaceAll("_", " ")) + '</td>' +
+      '<td>' + esc(example.p1 == null ? "—" : example.p1.toFixed(2)) + '</td>' +
+      '<td>' + esc(example.p2 == null ? "—" : example.p2.toFixed(2)) + '</td>' +
+      '<td><strong>' + esc(stateNames[example.result] || example.result) + '</strong></td>' +
+      '<td>' + (example.risk
+        ? '<span class="rr-decision-risk">' + esc(example.risk === "quality_warning_ignored" ?
+          "警示：WARNING 也可 High" : "警示：绝对分数较低仍可能 High") + '</span>'
+        : "—") + '</td></tr>'
+  ).join("");
+  const review = (data.proposed_design_review.gates || []).map(item =>
+    '<article class="rr-decision-review"><b>' + esc(item.severity) + ' · ' + esc(item.id) +
+    '</b><span>' + esc(item.proposal) + '</span></article>'
+  ).join("");
+  return '<div class="rr-decision-workspace">' +
+    '<div class="rr-decision-intro"><div><span>RECOGNITION PROCESS / RR07</span>' +
+    '<h3>3+2 判定逻辑 · 当前程序</h3><p>检测器确认是否有可信鱼体 → Quality Gate 判断是否可裁剪分类 → 分类器按 Top-1 与 Top-2 决定 High / Medium / Low。技术故障独立处理。</p></div>' +
+    '<div class="rr-decision-identity"><strong>AS-IS / 已核对</strong><span>不是新算法 · 阈值未更改</span></div></div>' +
+    '<div class="rr-decision-status"><strong>3 个鱼种结果</strong><span>HIGH · 自动建议</span><span>MEDIUM · 用户确认</span><span>LOW · 手动选鱼</span>' +
+    '<strong>2 个输入恢复</strong><span>NO FISH</span><span>IMAGE QUALITY</span></div>' +
+    '<div class="rr-decision-note"><b>注意</b>：3+2 不是按一个概率切成五档。TECHNICAL_FAILURE 是独立异常回退。Detector 的置信度与 Classifier 的 Softmax 分数不是同一个指标。</div>' +
+    '<h4 class="rr-decision-title">01 · Detector & Quality Gate · 检测阈值</h4>' +
+    '<div class="rr-decision-metrics">' +
+    metric("WEAK ≥", det.weak_confidence_inclusive.toFixed(2), "弱鱼体检测，WARNING / 可分类") +
+    metric("STRONG ≥", det.strong_confidence_inclusive.toFixed(2), "强鱼体检测，进入质量门") +
+    metric("NMS · IoU", det.nms_iou.toFixed(2), "检测框去重阈值") +
+    metric("FISH AREA <", (det.min_primary_bbox_area_ratio * 100).toFixed(0) + "%", "单强鱼面积不足时拦截，部分分支绕过") +
+    metric("EDGE ≤", (det.incomplete_edge_margin_ratio * 100).toFixed(1) + "%", "靠任意边，WARNING，但不阻止分类") +
+    metric("CROP +", (det.crop_expand_ratio * 100).toFixed(0) + "%", "鱼体框宽高向四周各扩 15%，限制在原图") +
+    '</div>' +
+    '<div class="rr-decision-note"><b>Detector Retry</b>：原图被判 NO_FISH 时重试顺时针 / 逆时针各 90°，按结果择优；非 NO_FISH 不触发方向重试。仅 GOOD、WARNING 有裁剪框才允许分类；INVALID 阻止分类。</div>' +
+    '<h4 class="rr-decision-title">02 · Quality Gate · 实际分支顺序</h4>' +
+    '<div class="rr-decision-steps">' + gates.map(g =>
+      '<article><b>' + esc(g[0]) + '</b><strong>' + esc(g[1]) +
+      '</strong><p>' + esc(g[2]) + '</p></article>'
+    ).join("") + '</div>' +
+    '<h4 class="rr-decision-title">03 · Classifier · Top-1 / Top-2 分级公式</h4>' +
+    '<div class="rr-decision-formulas">' +
+      '<article><span>LOW · 无可信鱼种结论</span><b>p1 &lt; ' + cls.top1_low_below.toFixed(2) + '</b><small>低于 0.45 才是 Low；恰好 0.45 不属于 Low。</small></article>' +
+      '<article><span>MEDIUM · 候选不够区分</span><b>p1 ≥ ' + cls.top1_low_below.toFixed(2) + ' 且 Δ &lt; ' + cls.medium_margin_below.toFixed(2) + '</b><small>Δ = p1 − p2；p2 必须存在，恰好 0.12 不属于 Medium。</small></article>' +
+      '<article><span>HIGH · 默认推荐 Top-1</span><b>p1 ≥ ' + cls.top1_low_below.toFixed(2) + ' 且 Δ ≥ ' + cls.medium_margin_below.toFixed(2) + '</b><small>无第二候选时也进入 High；目前不要求 Detector GOOD。</small></article>' +
+    '</div>' +
+    '<div class="rr-decision-note"><b>p1 / p2</b> 是在已知鱼种类别上的 Softmax 分数，未经正确率校准；也不能可靠识别目录外鱼种。不要将 0.45 理解为“正确率 45%”。</div>' +
+    '<h4 class="rr-decision-title">04 · First-match routing · 五态路由优先级</h4>' +
+    '<pre class="rr-decision-code">' + esc(code) + '</pre>' +
+    '<div class="rr-decision-table"><table><thead><tr><th>序号</th><th>真实 Kotlin 判定条件</th><th>状态</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<h4 class="rr-decision-title">05 · 开发验证样例</h4>' +
+    '<div class="rr-decision-table"><table><thead><tr><th>检测质量</th><th>p1</th><th>p2</th><th>当前结果</th><th>关注点</th></tr></thead><tbody>' + cases + '</tbody></table></div>' +
+    '<div class="rr-decision-note"><b>结果页面行为</b>：High 预选 Top-1，可修改；Medium 必须显式确认；Low 可先编辑草稿，未选鱼种点击保存先进入 LOW_MANUAL；No Fish / Image Quality 只提供恢复，不可创建鱼获。</div>' +
+    '<h4 class="rr-decision-title">06 · 待优化 / 不可误认为已实施</h4>' +
+    '<div class="rr-decision-reviews">' + review + '</div>' +
+    '<div class="rr-decision-footer"><strong>现行阈值未经新版本批准调整。</strong> 下一版需依据真实鱼获留出集校准 High 精度/覆盖率、候选覆盖率与误拒率，单独评审后再版本化。<p>Sources: ' +
+      '<a href="' + esc(repoHref(view.authority)) + '" target="_blank" rel="noreferrer">RR07 开发速查</a> · ' +
+      '<a href="' + esc(repoHref(view.behavior_authority)) + '" target="_blank" rel="noreferrer">完整判定规范</a> · ' +
+      '<a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">JSON 决策合同</a></p></div>' +
+  '</div>';
+}
+
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "recognition_decision_logic") return recognitionDecisionLogicCanvas(view);
   if (view.render_mode === "nh07_avatar_states") return nh07AvatarStatesCanvas(view);
   if (view.render_mode === "authority_gallery") {
     const visualRefs = (view.supporting_visual_references || [])
@@ -3028,6 +3128,24 @@ async function init() {
     if (!pageResponse.ok || !sharedResponse.ok) throw new Error("Registry HTTP error");
     pageRegistry = await pageResponse.json();
     sharedRegistry = await sharedResponse.json();
+    // RR07 loads the machine contract once; lack of deployment never breaks other pages.
+    const rr07 = pageRegistry.features.find(x => x.id === "recognition_result_v1")
+      ?.hifi_views?.find(x => x.id === "decision_logic");
+    if (rr07?.machine_authority) {
+      try {
+        const decisionResponse = await fetch(repoHref(rr07.machine_authority), { cache: "no-store" });
+        if (!decisionResponse.ok) throw new Error("RR07 contract HTTP " + decisionResponse.status);
+        recognitionDecisionContract = await decisionResponse.json();
+        if (recognitionDecisionContract.contract !== "recognition_result_3plus2_decision_contract") {
+          throw new Error("RR07 wrong contract ID");
+        }
+      } catch (decisionError) {
+        recognitionDecisionContract = null;
+        console.warn("RR07 decision contract unavailable:", decisionError);
+      }
+    }
+
+
 
     // Media demo is an optional versioned fixture manifest. Keep other
     // Design Manager modules accessible if the preview data cannot load.

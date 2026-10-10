@@ -8,7 +8,16 @@
       "titles": [
         "识别结果"
       ],
-      "background": "BG_CONTENT"
+      "background": "BG_CONTENT",
+      "scope": "species_selector_only",
+      "not_for_result_states": [
+        "RR01",
+        "RR02",
+        "RR03",
+        "RR04",
+        "RR05"
+      ],
+      "note": "Result states use the registered BACK_CENTER_TITLE page-scoped exception; only Species Selector V1 inherits shared BACK_TITLE."
     },
     {
       "page": "account_privacy_v1",
@@ -32,8 +41,9 @@
     }
   ],
   "runtime_alignment_notes": [
-    "RecognitionResult legacy 25sp/Bold centered title and text glyph back are not authority.",
     "Account PageScaffold legacy 20sp/Bold, 58dp height and 10dp padding are not authority.",
-    "Target is 20sp/Medium, 56dp min height, 8dp outer padding, 44dp Icon Action Back and 8dp gap."
-  ]
+    "Target is 20sp/Medium, 56dp min height, 8dp outer padding, 44dp Icon Action Back and 8dp gap.",
+    "Recognition Result 05–09 centered-title design is a page-scoped Frozen authority; do not force global BACK_TITLE left alignment onto the Result screen."
+  ],
+  "page_exception_authority": "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
 }

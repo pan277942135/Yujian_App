@@ -2848,8 +2848,9 @@
         },
         {
           "id": "top_navigation_v1",
-          "variant": "BACK_TITLE",
-          "note": "Top Navigation V1 / BACK_TITLE / FROZEN：Back=Icon Action NAVIGATION；56dp min；20sp/Medium title；左排；旧居中 25sp/Bold 实现需在 runtime closure 对齐。"
+          "note": "RR01–RR05 采用按视口居中的识别结果标题 + 公共 Icon Action Back（Result V1.1 页面例外，非全局 Top Navigation 新变体）；Species Selector 仍使用公共 BACK_TITLE。五张 Frozen 高保图与 Layout Geometry V1.1 为权威。",
+          "exception_profile": "BACK_CENTER_TITLE",
+          "exception_contract": "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
         },
         {
           "id": "mist_glass_surface_v1",
@@ -2863,7 +2864,9 @@
         },
         {
           "id": "action_button_v1",
-          "note": "页面引用完整 Action Button V1；保存本次鱼获=PRIMARY，继续记录记忆/手动选择=SECONDARY_STRONG，重新拍摄=SECONDARY_MUTED。"
+          "note": "Result V1.1 页面例外：保存本次鱼获=RESULT_SAVE 浅色金边/深湖蓝文字；继续记忆=低调次操作；确认态双 CTA 等宽/12dp gap。低置信初始可编辑草稿，未选鱼种点击 CTA 必须 LOW_MANUAL；公共 Action Button V1.1 的 44/56 用例不得直接覆盖页面冻结合同。",
+          "exception_profile": "RESULT_SAVE / RESULT_CONTINUE_MUTED",
+          "exception_contract": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
         },
         {
           "id": "text_action_v1",
@@ -2881,7 +2884,18 @@
         "state_pages": "RR01–RR05 each directly preview one canonical Frozen Hi-Fi reference; RR06 is a separate content-edit Authority index and not a product state.",
         "authority": "05–09 state Frozen PNG > Result package spec > Core Visual recognition_result_v1 > runtime implementation.",
         "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager.",
-        "content_edit": "RR06 consolidates links to Species Selector V1 and Metadata Edit Flow V1 visual/specification authorities without changing their individual contracts or the 3+2 state model."
+        "content_edit": "RR06 consolidates links to Species Selector V1 and Metadata Edit Flow V1 visual/specification authorities without changing their individual contracts or the 3+2 state model.",
+        "contract_revision": "Result V1.1 (7 Frozen visual authorities)",
+        "exceptions": [
+          "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md",
+          "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
+        ],
+        "layout": "High 322×210 / Medium & Low 322×178 / No Fish 322×245 / Image Quality 322×214 at 360dp.",
+        "audit": "design/pages/recognition/result/review/Recognition_Result_Design_Audit_20261010.md",
+        "state_decision_audit": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+        "state_decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+        "state_thresholds": "AS_IMPLEMENTED_RUNTIME_AUDIT_NOT_NEW_FROZEN_VALUES",
+        "state_decision_submenu": "RR07 · 识别过程 · 07 · 判定逻辑"
       },
       "hifi_views": [
         {
@@ -2892,18 +2906,45 @@
           "render_mode": "authority_index",
           "authority_type": "group",
           "authority": "design/pages/recognition/result/00_overview/README.md",
-          "summary": "Recognition Result V1 的 3+2 总览：High / Medium / Low + No Fish / Image Quality。汇总共用视觉、CTA、Motion、Adaptive、Accessibility 与 Authority；不新增第六张高保图。",
+          "summary": "识别结果 V1.1 · 3+2 冻结设计：五张状态高保 + Species Selector / Metadata Edit 两张覆盖层 Authority。页面 Hero 按状态分别定尺寸；Result 居中标题为明确页面例外；Low 可先编辑草稿，保存前必须确认鱼种；Runtime 独立验收。",
           "menu_points": [
-            "3+2 State Model",
-            "Frozen Authority 05–09",
-            "BG_CONTENT / Real Capture First",
-            "Result ≠ Processing",
-            "CTA Map",
-            "Motion / Reduce Motion",
-            "Adaptive / Accessibility",
-            "Final Design Closure"
+            "3+2 State Model · RR01–RR05",
+            "3+2 决策优先级 · Detector GOOD/WARNING/INVALID → Classifier High/Medium/Low",
+            "7 Frozen Assets · 5 States + 2 Edit Boards",
+            "Result V1.1 Layout Geometry · Hero 322dp wide",
+            "Centered Result Title · Page Exception",
+            "Result Action Surface & Equal Dual CTA · Page Exception",
+            "Low editable draft + LOW_MANUAL save gating",
+            "Motion / Reduce Motion / Accessibility",
+            "Visual Authority ≠ Android Runtime"
           ],
-          "freeze_date": "2026-09-30"
+          "freeze_date": "2026-09-30",
+          "supporting_visual_references": [
+            {
+              "path": "design/pages/recognition/result/review/Recognition_Result_Design_Audit_20261010.md",
+              "label": "2026-10-10 Design System Audit"
+            },
+            {
+              "path": "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md",
+              "label": "Result Centered Title Scoped Exception"
+            },
+            {
+              "path": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md",
+              "label": "Result Action Button Scoped Exceptions"
+            },
+            {
+              "path": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+              "label": "Frozen V1.1 State Geometry"
+            },
+            {
+              "path": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+              "label": "3+2 判定规则：现行实现 / 风险 / 设计建议"
+            },
+            {
+              "path": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+              "label": "3+2 判定矩阵 · 机器可读 / 非新阈值"
+            }
+          ]
         },
         {
           "id": "high",
@@ -2915,16 +2956,16 @@
           "image": "design/pages/recognition/design/05_Result_High_Frozen.png",
           "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
           "authority": "design/pages/recognition/result/01_high/README.md",
-          "summary": "High V1 已冻结：真实鱼获 Hero；鱼种 + 修改鱼种同行；长度/重量/地点轻量记录；鱼获感言；继续记录记忆 + 保存本次鱼获双 CTA；无“已识别”徽章、无置信百分比。",
+          "summary": "High V1.1 冻结：322×210dp 原始鱼获 Hero（鱼体安全裁切）；鱼种身份与修改；长度/重量/地点竖向三行；故事（300 字符）；继续记忆 / 保存本次鱼获等宽双 CTA。保存使用 Result 浅色金边例外，无置信百分比或首帧加载。",
           "menu_points": [
-            "Real Catch Hero",
-            "Species Identity + 修改鱼种",
-            "Lightweight Metadata",
-            "留下本次鱼获感言",
-            "继续记录记忆 / 保存本次鱼获",
-            "Shared Top Navigation",
-            "Adaptive / IME",
-            "Rejected Alternatives"
+            "Hero · 322×210dp · Subject Crop Fill → Safe Fit",
+            "Species Identity / 修改鱼种",
+            "Vertical Metadata · Length / Weight / Location",
+            "Story · 300 Unicode Code Points + Counter",
+            "Continue Memory / Save Catch · Equal Dual CTA",
+            "RESULT_SAVE · Light Gold-Edge Surface",
+            "Centered Result Top Title · Scoped Exception",
+            "Saving Only After Tap / Prevent Duplicates"
           ],
           "freeze_date": "2026-09-30"
         },
@@ -2938,16 +2979,16 @@
           "image": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
           "visual_authority": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
           "authority": "design/pages/recognition/result/02_medium/README.md",
-          "summary": "Medium V1 已冻结：保留真实 Hero；单行“帮我确认一下，这条鱼更像哪一种？”；候选横排；Top-1 只是模型建议，用户显式确认后复用正常记录与双 CTA 流。",
+          "summary": "Medium V1.1 冻结：322×178dp 原图 Hero；统一候选玻璃面板；Top-1 仅为建议，必须用户显式确认；确认后显示竖向 Metadata / 故事 / 等宽双 CTA。候选高亮为克制金色，选择器状态为 Teal。",
           "menu_points": [
-            "Real Catch Hero",
-            "One-line Confirmation Prompt",
-            "Horizontal Candidate Row",
-            "Suggested ≠ Confirmed",
-            "都不是？选择其他鱼种",
-            "Post-confirmation Record Flow",
-            "No Auto Candidate",
-            "Adaptive"
+            "Hero · 322×178dp · Original Source",
+            "Unified Candidate Glass Panel",
+            "Suggested ≠ User-Confirmed",
+            "Horizontal Candidate Row / Other Species",
+            "Medium Selected · Restrained Gold",
+            "Selector Selected · Teal",
+            "After Confirmation · Metadata / Story / Dual CTA",
+            "No Automatic Save or Initial Selection"
           ],
           "freeze_date": "2026-09-30"
         },
@@ -2961,15 +3002,16 @@
           "image": "design/pages/recognition/design/07_Result_Low_Frozen.png",
           "visual_authority": "design/pages/recognition/design/07_Result_Low_Frozen.png",
           "authority": "design/pages/recognition/result/03_low/README.md",
-          "summary": "Low V1 已冻结：无法确认是什么鱼；手动选择鱼种 / 重新拍摄。选择鱼种前不展示正常 Metadata / Save，不新增 pending/unknown species 持久化能力。",
+          "summary": "Low V1.1 冻结：322×178dp 原始 Hero；无法确认是什么鱼；手动选择鱼种 / 重新拍摄；初始即展示可编辑的竖向 Metadata、故事与双 CTA。未选鱼种时点击 CTA 进入 LOW_MANUAL 并保留草稿；不创建未知鱼种 FishRecord。",
           "menu_points": [
+            "Hero · 322×178dp · Subject Safe",
             "无法确认是什么鱼",
-            "手动选择鱼种",
-            "重新拍摄",
-            "No Metadata Before Resolution",
-            "No Save Before Resolution",
-            "Manual Recovery → Normal Record Flow",
-            "No Pending Species State"
+            "手动选择鱼种 / 重新拍摄",
+            "Editable Metadata Before Species Resolution",
+            "Editable Story + Dual CTA Before Resolution",
+            "Unresolved CTA → LOW_MANUAL",
+            "Selection Resumes Requested Destination",
+            "No Unknown-Species FishRecord / Draft Preserved"
           ],
           "freeze_date": "2026-09-30"
         },
@@ -2983,15 +3025,15 @@
           "image": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
           "visual_authority": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
           "authority": "design/pages/recognition/result/04_no_fish/README.md",
-          "summary": "No Fish V1 已冻结：没有找到可识别的鱼；重新拍摄为 Primary，从相册选择为 Secondary；无 FishRecord / Metadata / Save；保持平静恢复语气。",
+          "summary": "No Fish V1.1 冻结：322×245dp Hero 保留完整原图 Evidence Fit；一个统一 Recovery Glass Panel 内含未检测到鱼、拍摄建议、重新拍摄和相册选择。无 Metadata / Story / FishRecord。",
           "menu_points": [
+            "Hero · 322×245dp · Full-Source Evidence Fit",
             "没有找到可识别的鱼",
-            "Capture Guidance",
-            "重新拍摄",
-            "从相册选择",
-            "Back = Tertiary",
-            "No FishRecord",
-            "Calm Recovery Visual"
+            "请让鱼完整出现在画面中",
+            "One Unified Recovery Glass Panel",
+            "重新拍摄 / 从相册选择 · Non-Teal Solid",
+            "No Metadata / Story / FishRecord",
+            "Back Remains Available"
           ],
           "freeze_date": "2026-09-30"
         },
@@ -3005,15 +3047,15 @@
           "image": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
           "visual_authority": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
           "authority": "design/pages/recognition/result/05_image_quality/README.md",
-          "summary": "Image Quality V1 已冻结：照片不够清晰，无法识别；给出清晰度/遮挡指导；重新拍摄 + 从相册选择；与 No Fish 共用恢复家族但状态语义独立。",
+          "summary": "Image Quality V1.1 冻结：322×214dp Hero 完整原图 Evidence Fit；一个统一 Recovery Glass Panel，说明清晰度与遮挡问题；重新拍摄 / 从相册选择。与 No Fish 原因和文案不同，无记录创建。",
           "menu_points": [
+            "Hero · 322×214dp · Full-Source Evidence Fit",
             "照片不够清晰，无法识别",
             "Clear Outline / No Occlusion Guidance",
-            "重新拍摄",
-            "从相册选择",
-            "No Metadata / Save",
+            "One Unified Recovery Glass Panel",
+            "重新拍摄 / 从相册选择 · Non-Teal Solid",
             "Distinct from No Fish",
-            "Shared Recovery Family"
+            "No Metadata / Story / FishRecord"
           ],
           "freeze_date": "2026-09-30"
         },
@@ -3057,6 +3099,38 @@
             {
               "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
               "label": "Metadata Edit Flow V1 Frozen Contract"
+            }
+          ]
+        },
+        {
+          "id": "decision_logic",
+          "code": "RR07",
+          "title": "识别过程 · 07 · 判定逻辑",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "recognition_decision_logic",
+          "authority_type": "behavior",
+          "authority": "design/pages/recognition/result/07_decision_logic/README.md",
+          "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+          "machine_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+          "summary": "开发判定依据速查 · 当前程序 AS-IS：Detector 0.20/0.35、鱼体面积 8%、贴边 1.5%、NMS 0.45、Crop 15%，以及 Classifier Top-1 0.45 / Top-1−Top-2 0.12。包含 3+2 五态路由优先级、边界测试、WARNING 例外、技术异常与待优化清单。标明哪些是已执行条件、哪些是未批准建议；不增加第六种结果状态。",
+          "menu_points": [
+            "3+2 = High / Medium / Low + No Fish / Image Quality；技术异常独立",
+            "Detector · 0.20 Weak / 0.35 Strong / NMS 0.45",
+            "Quality Gate · 8% Area / 1.5% Edge / Crop 15% · Branch Order",
+            "Classifier · Low p1 < 0.45；Medium margin < 0.12；其余 High",
+            "First Match Route · Tech → No Fish → Input Invalid → Low → Medium → High",
+            "GOOD / WARNING / INVALID · 是否可分类与误分流边界",
+            "有效 Softmax 例子与开发测试向量",
+            "已运行逻辑 vs 待验证优化 · 不直接调整 Android 阈值"
+          ],
+          "supporting_visual_references": [
+            {
+              "path": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+              "label": "3+2 Decision Spec · current truth + review"
+            },
+            {
+              "path": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+              "label": "3+2 Machine Readable Routing and Thresholds"
             }
           ]
         }

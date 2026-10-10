@@ -24,7 +24,10 @@
       "copy": "保存本次鱼获",
       "variant": "PRIMARY",
       "layout": "paired_trailing",
-      "width_ratio_pct": 56
+      "width_ratio_pct": 56,
+      "global_example_only": true,
+      "result_v1_1_override_authority": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md",
+      "note": "Current RR01–RR03 confirmed Result presentation is page-scoped; see Result V1.1 contract for button surface and equal-width layout."
     },
     {
       "page": "recognition_result_v1",
@@ -33,7 +36,10 @@
       "variant": "SECONDARY_STRONG",
       "layout": "paired_leading",
       "width_ratio_pct": 44,
-      "behavior": "Create FishRecord first, then open FishRecordDetail(recordId, initialSection=MEMORY)."
+      "behavior": "Create FishRecord first, then open FishRecordDetail(recordId, initialSection=MEMORY).",
+      "global_example_only": true,
+      "result_v1_1_override_authority": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md",
+      "note": "Current RR01–RR03 confirmed Result presentation is page-scoped; see Result V1.1 contract for button surface and equal-width layout."
     },
     {
       "page": "recognition_result_v1",
@@ -61,5 +67,14 @@
       "手动选择",
       "重新拍摄"
     ]
+  },
+  "result_current_page_exception": {
+    "authority": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md",
+    "version": "Result V1.1",
+    "confirmed_cta_widths": "equal",
+    "gap_dp": 12,
+    "save_profile": "RESULT_SAVE",
+    "continue_profile": "RESULT_CONTINUE_MUTED",
+    "scope": "page_only"
   }
 }
