@@ -3,12 +3,14 @@
   "status": "FROZEN_DESIGN",
   "scope": "real_photo_css_containers_not_runtime_screenshots",
   "fixture": {
-    "path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+    "path": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
     "description": "仓库既有真实鱼获测试照片；同源用于 HOME/DETAIL 共享 Hero 冻结边界展示",
     "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
     "bytes": 292222,
     "source_manifest": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.manifest.json",
-    "fish_bbox_available": false
+    "fish_bbox_available": false,
+    "original_repository_path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+    "publication": "identical_git_blob_copy_within_design_directory_for_GitHub_Pages"
   },
   "examples": [
     {

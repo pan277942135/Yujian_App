@@ -52,7 +52,7 @@ Crop 的源矩形应限制在 oriented-source 边界内，并完整覆盖所有�
 裁切只影响 presentation；原图和检测 bbox 不能被这个 sourceRect 覆盖。初次定稿后同一 Result Hero 不发生 Crop Jump。
 
 ## 8. 真实素材案例
-演示媒体源：`app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg`，原始 SHA-256:
+演示媒体源（公开站点可访问）：`design/system/fish_media_display_v1/assets/real_catch_source.jpg`；原始仓库 fixture 为 `app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg`，二者为**同一 Git Blob 的字节完全一致副本**，原始 SHA-256:
 `6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef`。
 由现有冻结 Hero manifest 登记为真实仓库鱼获测试照片；同一张照片分别展示在不同目标容器中。**演示中的 object-fit:cover 是视觉几何比较，并非已通过检测框完整性验证的实际裁切。** 真实启用 Crop 前仍须 FishSafeRect 验收。不要把“演示容器为 9:16”说成“原图本身为 9:16”。
 案例数据：`real_photo_cases.json`。网页只引用原素材路径，不改写源文件。

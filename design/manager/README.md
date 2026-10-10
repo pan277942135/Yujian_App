@@ -176,3 +176,5 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 - 四页面及 HOME 共享 Hero 映射：`design/system/fish_media_display_v1/usage_map.json`。
 - 真实照片演示：`design/system/fish_media_display_v1/real_photo_cases.json`。使用仓库已有 `sample_recent_catch.jpg` 原始 JPEG；真实鱼获、同源不同容器，不是 AI 合成，也不声称无 bbox Crop 的视觉示意为安全裁切实测 PASS。
 - 外层冻结页面 Geometry 和独立媒体合同不变；设计冻结不表示 Android runtime 已完成验收。
+
+GitHub Pages 仅复制 `design/`，因此真实照片展示资产固定为 `design/system/fish_media_display_v1/assets/real_catch_source.jpg`（与原始 app 测试照片字节相同）。

@@ -7,3 +7,5 @@ Status: **FROZEN / 公共设计系统 V1**（2026-10-10）
 - 既有三份专项媒体 FROZEN Authority 继续有效；若冲突，以状态专属合同为准。
 - 只改变**图片如何映射到已冻结容器**，不重开页面外框、字体、CTA、动画或 Android。
 - 视觉对照是设计演示，不是设备截图；没有真实 bbox 时无法宣称 Crop 保留鱼体的自动化验收已经通过。
+
+GitHub Pages 仅发布 `design/`。真实鱼获照片通过原始 Git Blob `674bbe8eb1985702aa61c2aeca32579690ab068f` 在 `design/system/fish_media_display_v1/assets/real_catch_source.jpg` 复用，不进行重编码；原始测试素材保留在 `app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg`。

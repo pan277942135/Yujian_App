@@ -145,8 +145,8 @@
       "current_version": "V1",
       "navigation_mode": "submenu_direct",
       "show_variant_index": false,
-      "preview": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
-      "preview_note": "同一张仓库真实鱼获照片用于不同容器的显示几何对照；页面冻结外框不变；并非通过 bbox 的 Android 运行证据。",
+      "preview": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
+      "preview_note": "真实鱼获素材来自原始仓库 fixture，按 Git blob 字节完全一致的副本发布至 design 供 GitHub Pages 预览；容器比例是展示测试，非安全 bbox 验收。",
       "note": "Fit 保护整张原图；Result Crop 必须通过 FishSafeRect 安全裁切；Detail/HOME 采用同源 Adaptive；我的鱼获沿用 82dp 方形主体裁切。页面专属冻结合同优先。设计 FROZEN，不代表运行已验收。",
       "authority_paths": [
         "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
