@@ -613,5 +613,78 @@
       "why": "未授权的社交徽章/成就化资产，禁止加入"
     }
   ],
-  "validation_boundary": "Only semantic inventory and navigation are registered; no icon art was newly drawn or frozen and no Android implementation was modified."
+  "validation_boundary": "Only semantic inventory and navigation are registered; no icon art was newly drawn or frozen and no Android implementation was modified.",
+  "group_page_usage": {
+    "ALL": [
+      "home_empty_v2",
+      "home_normal_v1",
+      "recognition_flow_v1_2",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "my_catches_v2",
+      "fish_guide_v2",
+      "account_privacy_v1",
+      "auth_login_v2",
+      "auth_register_v2",
+      "profile_edit_v1",
+      "share_templates_v1",
+      "user_agreement_v1"
+    ],
+    "FACTS": [
+      "home_normal_v1",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "my_catches_v2"
+    ],
+    "MEDIA": [
+      "home_empty_v2",
+      "recognition_flow_v1_2",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "account_privacy_v1",
+      "profile_edit_v1"
+    ],
+    "NAV": [
+      "home_empty_v2",
+      "home_normal_v1",
+      "recognition_flow_v1_2",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "my_catches_v2",
+      "fish_guide_v2",
+      "account_privacy_v1",
+      "auth_login_v2",
+      "auth_register_v2",
+      "profile_edit_v1",
+      "share_templates_v1",
+      "user_agreement_v1"
+    ],
+    "UTILITY": [
+      "home_normal_v1",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "my_catches_v2",
+      "fish_guide_v2",
+      "account_privacy_v1",
+      "share_templates_v1"
+    ],
+    "ACCOUNT": [
+      "home_empty_v2",
+      "home_normal_v1",
+      "account_privacy_v1",
+      "auth_login_v2",
+      "auth_register_v2",
+      "profile_edit_v1"
+    ],
+    "STATUS": [
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "my_catches_v2",
+      "fish_guide_v2"
+    ]
+  }
 }

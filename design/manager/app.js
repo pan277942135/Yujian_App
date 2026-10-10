@@ -953,6 +953,10 @@ function topNavigationOverviewHtml(item) {
 }
 
 function directSharedVariantPages(sharedId, variantId) {
+  if (sharedId === "icon_library_v0_1") {
+    const pages = iconLibraryInventory?.group_page_usage?.[variantId] || [];
+    return pageRegistry.features.filter(page => pages.includes(page.id));
+  }
   if (sharedId === "fish_media_display_v1" && variantId === "EDGE_STATES") return pagesUsing(sharedId);
   return pageRegistry.features.filter(page =>
     (page.shared_system_refs || []).some(ref =>
