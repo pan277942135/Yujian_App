@@ -19,10 +19,10 @@
   },
   "display_states": {
     "logged_in_with_loadable_avatar": "remote_avatar",
-    "logged_in_without_avatar": "shared_default_profile_avatar_v1",
-    "logged_in_avatar_loading": "shared_default_profile_avatar_v1",
-    "logged_in_avatar_load_failed": "shared_default_profile_avatar_v1",
-    "guest": "guest_account_entry"
+    "logged_in_without_avatar": "normal_home_default_avatar_v2",
+    "logged_in_avatar_loading": "normal_home_default_avatar_v2_placeholder",
+    "logged_in_avatar_load_failed": "normal_home_default_avatar_v2",
+    "guest": "normal_home_runtime_v1/avatar/guest_avatar.png"
   },
   "interactions": {
     "logged_in_click": "profile_center",
@@ -37,12 +37,13 @@
     "logged_in_avatar_load_failed": "normal_home_default_avatar_v2",
     "guest": "normal_home_default_avatar_v2"
   },
-  "status": "LEGACY_ASSET_RECORD__NOT_RUNTIME_IDENTITY_AUTHORITY",
+  "status": "FROZEN_HOME_V2_VISUAL_CONSUMER__GUEST_SOURCE_SEPARATE",
   "runtime_semantic_authority": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
   "authoritative_runtime_avatar_sources": {
-    "signed_in_default": "app/src/main/res/drawable/profile_fallback_v13.xml",
+    "signed_in_default": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
     "guest": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
     "signed_in_real": "account avatar media"
   },
-  "superseded_note": "Original V2 PNG retained unchanged, but previous display_states used same picture for Guest and signed-in fallback, violating Shared Default Profile Avatar V1. This file is now a historical asset registration; it is NOT approval to replace the shared default identity. Kotlin may still reference V2; that is a tracked runtime discrepancy, not a re-frozen design."
+  "superseded_note": "The 2026-10-09 fefb959 Home V2 PNG is the later approved Home-specific optical bitmap for signed-in fallback. It does not change the shared logged-in vs guest state semantics. Original V2 manifest reused V2 for both Guest and logged-in; Guest is now mapped to distinct registered guest asset. Existing Kotlin still needs to follow this mapping.",
+  "authority_precedence_note": "Normal Home specific later-frozen V2 fallback raster outranks older shared V1 optical fallback FOR HOME ONLY, while shared account identity semantics remain authoritative."
 }
