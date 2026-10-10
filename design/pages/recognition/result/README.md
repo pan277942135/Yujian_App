@@ -15,6 +15,7 @@ Second-level pages:
 - `04_no_fish/` — No Fish / 未检测到鱼
 - `05_image_quality/` — Image Quality / 图片质量不足
 - `06_content_edit/` — RR06 · 内容修改（Species Selector V1 + Metadata Edit Flow V1 Authority 索引）
+- `07_decision_logic/` — **RR07 · 识别过程 · 07 · 判定逻辑**（现行 Detector / Classifier 判定链及门槛说明，不增加产品状态）
 
 Machine-readable menu:
 
@@ -172,3 +173,7 @@ A FishRecord must exist before memory-media operations begin.
 Result V1.1 page-level Frozen authorities have priority over the conflicting historical Top Navigation / Action Button usage examples. The current Result centered title and light Result Save/Continue composition are registered as **scoped exceptions**, leaving globally frozen component variants untouched. RR03 Low keeps editable metadata, Story and visible dual CTAs before species confirmation; saving is gated by LOW_MANUAL. The 3+2 model, seven Frozen visual boards and metadata/selector boundaries are unchanged.
 
 See `review/Recognition_Result_Design_Audit_20261010.md`. Runtime parity remains separate and pending.
+
+## Recognition Decision Logic · RR07
+
+`07_decision_logic/README.md` 是单独的 Design Manager 行为/工程子菜单。交互展示当前代码阈值、质量门分支优先级、五态映射、有效 Softmax 测试向量及待校准风险；机器合同是 `spec/recognition_result_3plus2_decision_contract_v1_1.json`。**当前代码与未经批准的优化建议严格分离。**
