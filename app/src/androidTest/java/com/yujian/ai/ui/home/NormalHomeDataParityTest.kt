@@ -6,6 +6,7 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
@@ -21,6 +22,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -29,6 +31,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
+import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
+import com.yujian.ai.ui.screens.HomeScreen
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -467,6 +472,79 @@ class NormalHomeDataParityTest {
         assertTrue("$tag remains inside its measured parent", nodeBounds.top >= parentBounds.top - 1f)
         assertTrue("$tag remains inside its measured parent", nodeBounds.right <= parentBounds.right + 1f)
         assertTrue("$tag remains inside its measured parent", nodeBounds.bottom <= parentBounds.bottom + 1f)
+    }
+
+    @Test
+    fun edgeToEdgeNormalHomeUsesOneWindowOriginAndReportsInsets() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        var observedInsets: SafeDrawingInsetsDp? = null
+
+        compose.setContent {
+            val safeInsets = rememberSafeDrawingInsets()
+            SideEffect { observedInsets = safeInsets }
+            HomeScreen(
+                nickname = "访客",
+                statistics = CatchStatistics(totalCatches = 0, speciesCount = 0),
+                recentCatches = emptyList(),
+                resolveImageUrl = { null },
+                accessToken = "",
+                isLoggedIn = false,
+                avatarUrl = null,
+                showEmptyState = false,
+                onIdentify = {},
+                onAlbumClick = {},
+                onLoginClick = {},
+                onSpeciesClick = {},
+                onCatchesClick = {},
+                onProfileClick = {},
+                onCatchClick = {},
+            )
+        }
+
+        compose.waitUntil(timeoutMillis = 10_000) {
+            observedInsets != null &&
+                compose.onAllNodesWithTag("normal-home-content-root").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.waitForIdle()
+
+        val insets = checkNotNull(observedInsets)
+        val density = context.resources.displayMetrics.density
+        val fontScale = context.resources.configuration.fontScale
+        val composeWindow = compose.onRoot().fetchSemanticsNode().boundsInWindow
+        val contentWindow = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
+        val headerWindow = compose.onNodeWithTag("normal-home-header", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
+        val ctaContainerWindow = compose.onNodeWithTag("normal-home-capture-cta", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
+        val ctaTextWindow = compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
+        val cameraTouchWindow = compose.onNodeWithTag("normal-home-camera", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
+
+        val scaleDp = contentWindow.width / density / 1080f
+        val usableHeightDp = composeWindow.height / density - insets.top.value - insets.bottom.value
+        val offsetYpx = normalHomeVerticalOffset(scaleDp, usableHeightDp) * density
+        val expectedHeaderWindowY = composeWindow.top + (104f * scaleDp * density) + offsetYpx
+
+        println(
+            "NORMAL_HOME_WINDOW_METRICS " +
+                "density=$density fontScale=$fontScale safeInsetsPx=" +
+                "${insets.start.value * density},${insets.top.value * density}," +
+                "${insets.end.value * density},${insets.bottom.value} " +
+                "composeWindowBounds=$composeWindow contentBoundsInWindow=$contentWindow " +
+                "headerBoundsInWindow=$headerWindow ctaContainerBoundsInWindow=$ctaContainerWindow " +
+                "ctaTextBoundsInWindow=$ctaTextWindow cameraTouchBoundsInWindow=$cameraTouchWindow " +
+                "scalePhysical=${scaleDp * density} offsetYPhysical=$offsetYpx",
+        )
+        assertEquals("The composition root must begin at the edge-to-edge window origin", 0f, composeWindow.top, 1f)
+        assertEquals("Normal Home must retain the same window Y origin", composeWindow.top, contentWindow.top, 1f)
+        assertEquals(
+            "Normal Home header uses one safe-height adjustment and no extra top-inset translation",
+            expectedHeaderWindowY,
+            headerWindow.top,
+            1f,
+        )
     }
 
     private fun createPortraitFixture(

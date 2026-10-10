@@ -166,11 +166,21 @@ timeout 180s "$adb_bin" shell am instrument -w -r -e class "$target_class" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$TARGET_LOG" 2>&1
 target_rc=$?
 if (( target_rc == 0 )); then YUJIAN_INSTRUMENTATION_STATUS="PASS"; else YUJIAN_INSTRUMENTATION_STATUS="FAIL"; fi
+if (( target_rc != 0 )); then
+  printf 'NORMAL_HOME_TARGET_INSTRUMENTATION_LOG_BEGIN\n'
+  tail -n 120 "$TARGET_LOG"
+  printf 'NORMAL_HOME_TARGET_INSTRUMENTATION_LOG_END\n'
+fi
 
 suite_classes="$(gate_test_classes)"
 timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
+if (( suite_rc != 0 )); then
+  printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_BEGIN\n'
+  tail -n 120 "$SUITE_LOG"
+  printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_END\n'
+fi
 
 gate_collect_evidence > "$EVIDENCE_DIR/normal-home-evidence-collection.log" 2>&1
 evidence_rc=$?

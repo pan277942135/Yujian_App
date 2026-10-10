@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -139,6 +140,7 @@ internal fun NormalHomeContent(
                 onProfileClick = onProfileClick,
                 avatarSize = ref(92f),
                 typography = typography,
+                brandMinWidth = ref(148f),
             )
         }
 
@@ -242,7 +244,8 @@ internal fun NormalHomeContent(
             onClick = onIdentify,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = refY(NormalHomeCameraY)),
+                .offset(y = refY(NormalHomeCameraY))
+                .testTag("normal-home-camera"),
             motionState = motionState,
             runtimeAssets = runtimeAssets,
             visualSize = cameraSize,
@@ -267,6 +270,7 @@ private fun NormalHomeHeader(
     onProfileClick: () -> Unit,
     avatarSize: Dp,
     typography: NormalHomeTypographyContract,
+    brandMinWidth: Dp,
 ) {
     val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
     val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
@@ -285,7 +289,11 @@ private fun NormalHomeHeader(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.testTag("normal-home-brand-title"),
+            // Preserve the 72 px glyph contract while giving Android's measured
+            // two-glyph outline room for its reported 3 px intrinsic overhang.
+            modifier = Modifier
+                .widthIn(min = brandMinWidth)
+                .testTag("normal-home-brand-title"),
         )
         if (isLoggedIn) {
             Box(
