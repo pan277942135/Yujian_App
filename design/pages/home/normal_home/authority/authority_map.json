@@ -90,7 +90,8 @@
     "NH03": "design/pages/home/normal_home/03_page_states/README.md",
     "NH04": "design/pages/home/normal_home/04_component_content_states/README.md",
     "NH05": "design/pages/home/normal_home/05_responsive_interaction/README.md",
-    "NH06": "design/pages/home/normal_home/06_background_authority/README.md"
+    "NH06": "design/pages/home/normal_home/06_background_authority/README.md",
+    "NH07": "design/pages/home/normal_home/07_avatar_states/README.md"
   },
   "normal_home_avatar_authority": {
     "signed_in_default": {
@@ -105,5 +106,15 @@
     },
     "semantic_owner": "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json",
     "rule": "Later Home V2 signed-in visual uses page-approved PNG, shared state semantics remain; Guest is distinct asset."
+  },
+  "nh07_avatar_revision": {
+    "status": "SPEC_FROZEN_ASSET_REGISTERED__NOT_APP_IMPLEMENTED",
+    "visual_asset": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+    "visual_sha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2",
+    "states": "design/pages/home/normal_home/07_avatar_states/README.md",
+    "scope": "Normal Home signed-in avatar missing/loading/failure visual only",
+    "replaces_after_page_review": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
+    "guest_remains": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
+    "preserves_page_frozen_sha": true
   }
 }

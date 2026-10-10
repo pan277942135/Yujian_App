@@ -586,7 +586,78 @@ function backgroundSystemOverviewHtml(item) {
   '</div>';
 }
 
+/**
+ * Fish media V1: real-source display examples only.
+ * CSS geometry demonstrates Fit/Crop/Adaptive; it does NOT attest safe fish-bbox cropping.
+ */
+let fishMediaCases = null;
+
+function fishMediaFrameHtml(photoPath, mode, frame) {
+  const safeModes = ["fit", "crop", "adaptive"];
+  const safeFrames = ["portrait", "landscape", "hero", "square"];
+  const m = safeModes.includes(mode) ? mode : "fit";
+  const f = safeFrames.includes(frame) ? frame : "hero";
+  const url = esc(repoHref(photoPath));
+  return '<div class="fish-media-frame fish-media-frame-' + f + ' fish-media-mode-' + m + '">' +
+    (m === "adaptive"
+      ? '<img class="fish-media-ambient" src="' + url + '" alt="" aria-hidden="true" loading="lazy">'
+      : '') +
+    '<img class="fish-media-foreground" src="' + url + '" alt="仓库真实鱼获原始照片，容器内显示效果" loading="lazy">' +
+    '</div>';
+}
+
+function fishMediaOverviewHtml(item) {
+  const photo = item.preview;
+  const definitions = [
+    {mode:"fit", name:"FIT", usage:"图片选择 · 完整原图", frame:"portrait"},
+    {mode:"crop", name:"CROP", usage:"识别结果 / 我的鱼获 · 有条件的主体裁切", frame:"square"},
+    {mode:"adaptive", name:"ADAPTIVE", usage:"详情 A 面 / HOME · 同源柔化环境", frame:"hero"}
+  ];
+  return '<div class="fish-media-overview">' +
+    '<div class="fish-media-overview-title">同一真实鱼获照片 · 三种容器内部显示方案</div>' +
+    '<div class="fish-media-overview-grid">' + definitions.map(x =>
+      '<article class="fish-media-demo">' +
+        '<h4>' + esc(x.name) + '</h4>' +
+        fishMediaFrameHtml(photo, x.mode, x.frame) +
+        '<p>' + esc(x.usage) + '</p>' +
+      '</article>'
+    ).join("") + '</div>' +
+    '<p class="fish-media-disclaimer">真实素材来自仓库既有 sample_recent_catch.jpg；容器比例是展示测试，不代表原图比例。Crop 图像仅说明铺满效果，未经鱼体 bbox 安全裁切验证。</p>' +
+    '<a class="fish-media-source-link" href="' + esc(repoHref(photo)) + '" target="_blank" rel="noreferrer">查看原始真实鱼获照片 ↗</a>' +
+  '</div>';
+}
+
+function fishMediaExamplesHtml(item, variant) {
+  const fixture = fishMediaCases?.fixture;
+  const cases = (fishMediaCases?.examples || []).filter(x => x.variant === variant.id);
+  if (!fixture?.path || !cases.length) {
+    return '<div class="preview-empty">真实图片案例正在读取。可查看已归档的 real_photo_cases.json 和原始鱼获样本。</div>';
+  }
+  const link = esc(repoHref(fixture.path));
+  const pending = variant.id === "EDGE_STATES"
+    ? '<div class="fish-media-disclaimer"><b>真实场景待补齐：</b>' +
+      (fishMediaCases.pending_real_source_coverage || []).map(esc).join("、") +
+      '。仅展示已存在照片，不把变形的测试容器冒充真实极端比例的原图。</div>'
+    : '';
+  return '<div class="fish-media-case-workspace">' +
+    '<div class="fish-media-source-row"><span>真实照片源 · sample_recent_catch.jpg</span>' +
+      '<a href="' + link + '" target="_blank" rel="noreferrer">查看未裁切原图 ↗</a>' +
+      '<small>SHA-256：' + esc(fixture.sha256) + '</small></div>' +
+    '<div class="fish-media-case-grid">' + cases.map(c =>
+      '<article class="fish-media-case-card">' +
+        '<div class="fish-media-case-header"><b>' + esc(c.id) + ' · ' + esc(c.title) + '</b>' +
+          '<span>' + esc(c.mode.toUpperCase()) + '</span></div>' +
+        '<div class="fish-media-stage">' + fishMediaFrameHtml(fixture.path,c.mode,c.frame) + '</div>' +
+        '<div class="fish-media-case-note">' + esc(c.explanation) + '</div>' +
+        '<div class="fish-media-case-caution">' + esc(c.qualification || "") + '</div>' +
+      '</article>'
+    ).join("") + '</div>' + pending +
+    '<p class="fish-media-disclaimer">本页面展示原始真实鱼获素材的 CSS 容器映射；未修改原图字节，也不是 Android 设备运行截图。正式运行需按原有 FishSafeRect、Safe Fit、Hero/列表合同验收。</p>' +
+  '</div>';
+}
+
 function sharedPreviewHtml(item) {
+  if (item.id === "fish_media_display_v1") return fishMediaOverviewHtml(item);
   if (item.id === "background_system_v1") {
     return backgroundSystemOverviewHtml(item);
   }
@@ -836,6 +907,7 @@ function topNavigationOverviewHtml(item) {
 }
 
 function directSharedVariantPages(sharedId, variantId) {
+  if (sharedId === "fish_media_display_v1" && variantId === "EDGE_STATES") return pagesUsing(sharedId);
   return pageRegistry.features.filter(page =>
     (page.shared_system_refs || []).some(ref =>
       ref.id === sharedId && ref.variant === variantId
@@ -894,7 +966,11 @@ function renderSharedDirectVariantWorkspace(item, variantId) {
 
   const visualRefs = variant.visual_authority_set || [];
   const visualWrap = el("sharedDirectVariantVisualWrap");
-  if (visualRefs.length) {
+  const mediaDemo = item.id === "fish_media_display_v1" ? fishMediaExamplesHtml(item, variant) : null;
+  if (mediaDemo) {
+    visualWrap.classList.remove("hidden");
+    el("sharedDirectVariantVisual").innerHTML = mediaDemo;
+  } else if (visualRefs.length) {
     visualWrap.classList.remove("hidden");
     el("sharedDirectVariantVisual").innerHTML = visualRefs.map(ref =>
       '<article class="direct-variant-visual-card">' +
@@ -1866,6 +1942,38 @@ function fishGuideMotionCanvas(view) {
   '</div>';
 }
 
+function nh07AvatarStatesCanvas(view) {
+  const avatar = repoHref(view.image || view.visual_authority);
+  const guest = repoHref(view.guest_image);
+  const realSource = repoHref(view.real_sample_image);
+  const image = (src, extra = "") =>
+    '<span class="nh07-avatar-thumb' + extra + '"><img src="' + esc(src) + '" alt="" loading="lazy"></span>';
+  const card = (code, label, artwork, state, note, action) =>
+    '<article class="nh07-state-card">' +
+      '<span class="nh07-state-index">' + esc(code) + '</span>' +
+      '<div class="nh07-avatar-stage">' + artwork + '</div>' +
+      '<strong>' + esc(label) + '</strong><span class="nh07-state-kind">' + esc(state) + '</span>' +
+      '<p>' + esc(note) + '</p><span class="nh07-state-action">' + esc(action) + '</span></article>';
+  const real = '<span class="nh07-avatar-thumb nh07-real-avatar" role="img" aria-label="NH01 样例真实头像" ' +
+    'style="background-image:url(\'' + esc(realSource) + '\')"></span>';
+  const loading = '<span class="nh07-avatar-loading">' + image(avatar) +
+    '<i class="nh07-avatar-spinner" aria-label="加载中"></i></span>';
+  return '<div class="nh07-workspace">' +
+    '<div class="nh07-workspace-head"><div><b>NH07 · 头像状态</b><p>仅更新头像局部设计，晨湖页面布局和冻结组件不变。</p></div>' +
+    '<a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">资产 Manifest ↗</a></div>' +
+    '<div class="nh07-state-grid">' +
+      card("01","已登录 · 真实头像",real,"REAL","显示用户已上传并解码成功的照片，圆形裁切。","点击 → 我的 / 个人中心") +
+      card("02","已登录 · 默认头像",image(avatar),"DEFAULT","晨湖垂钓者，替代无头像时的页面局部视觉。","点击 → 我的 / 个人中心") +
+      card("03","远程头像加载中",loading,"LOADING","使用同一默认图作占位；完成后才切换真实头像。","点击 → 我的 / 个人中心") +
+      card("04","加载失败 / 无效",image(avatar),"FAILURE","退回默认图，无错误红点、无自动编辑。","点击 → 我的 / 个人中心") +
+      card("05","游客 / 未登录",image(guest),"GUEST","使用独立 Guest 资源，不冒充已登录个人头像。","点击 → 登录 / 注册") +
+    '</div>' +
+    '<div class="nh07-asset-export"><div><strong>前端资产 · 同源透明 PNG</strong><p>视觉基准：64px 单元，@1x/@2x/@3x；NH01 页面中显示直径仍受 92px 参考尺寸约束。点击区域另须 ≥48dp。</p></div><div class="nh07-asset-links">' +
+      [['1x · 64px',view.default_avatar_sources?.one_x],['2x · 128px',view.default_avatar_sources?.two_x],['3x · 192px',view.default_avatar_sources?.three_x]]
+        .filter(x=>x[1]).map(x=>'<a href="' + esc(repoHref(x[1])) + '" target="_blank" rel="noreferrer">' + esc(x[0]) + ' ↗</a>').join('') +
+    '</div></div>' +
+    '<p class="nh07-workspace-disclaimer">该工作区为设计资产和状态合同，非 Android 实施或完整页面像素验收的证明。NH01/NH02/NH04 原冻结图保持不变。</p></div>';
+}
 
 /** RR07 — explanatory Design Manager workspace driven exclusively by the versioned machine contract. */
 function recognitionDecisionLogicCanvas(view) {
@@ -1967,6 +2075,7 @@ function recognitionDecisionLogicCanvas(view) {
 
 function genericSpecHifiCanvas(feature, view) {
   if (view.render_mode === "recognition_decision_logic") return recognitionDecisionLogicCanvas(view);
+  if (view.render_mode === "nh07_avatar_states") return nh07AvatarStatesCanvas(view);
   if (view.render_mode === "authority_gallery") {
     const visualRefs = (view.supporting_visual_references || [])
       .map(ref => typeof ref === "string" ? { path: ref, label: ref } : ref)
@@ -3036,6 +3145,19 @@ async function init() {
       }
     }
 
+
+
+    // Media demo is an optional versioned fixture manifest. Keep other
+    // Design Manager modules accessible if the preview data cannot load.
+    if (sharedRegistry.items.some(x => x.id === "fish_media_display_v1")) {
+      try {
+        const mediaResponse = await fetch(
+          repoHref("design/system/fish_media_display_v1/real_photo_cases.json"),
+          { cache: "no-store" }
+        );
+        if (mediaResponse.ok) fishMediaCases = await mediaResponse.json();
+      } catch (_) { fishMediaCases = null; }
+    }
 
     const backgroundItem = sharedRegistry.items.find(x => x.id === "background_system_v1");
     if (backgroundItem?.contract_path && backgroundItem?.usage_map_path) {

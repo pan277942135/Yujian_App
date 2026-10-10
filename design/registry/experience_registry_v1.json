@@ -296,13 +296,18 @@
           "id": "default_profile_avatar_v1",
           "variant": "DEFAULT_PROFILE_AVATAR",
           "note": "登录用户头像缺失或加载失败使用 Shared Default Profile Avatar V1；NH02/NH04 仅消费或展示，不得重新定义。"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "ADAPTIVE_DETAIL",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
-      "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。",
+      "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。 NH07 头像状态已建立独立 SPEC_FROZEN 菜单与透明资产（Android 尚未变更，待整页视觉验收）。",
       "navigation_model": "normal_home_secondary_menu_v1",
       "design_manager_view_rules": {
         "overview": "页面总览保留当前 Normal Home Closure / shared refs / modalities。",
-        "state_pages": "NH01–NH06 作为左侧二级菜单直接进入各自 Authority 工作区。",
+        "state_pages": "NH01–NH07 左侧二级菜单直达；NH07 是头像状态规范预览，不替代 NH01 全屏视觉。",
         "authority": "NH01 Frozen 页面 > Normal Home package spec > shared system > runtime implementation。",
         "output_principle": "关键内容独立出图；辅助状态、组件状态、边界状态按内容合并出图。"
       },
@@ -450,6 +455,37 @@
           "visual_caption": "NH06 · Background & Environment Authority V1 · Frozen Visual Authority",
           "visual_authority_manifest": "design/pages/home/normal_home/06_background_authority/frozen/manifest.json",
           "source": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png"
+        },
+        {
+          "id": "NH07",
+          "code": "NH07",
+          "title": "NH07 · 头像状态",
+          "status": "SPEC_FROZEN",
+          "render_mode": "nh07_avatar_states",
+          "authority_type": "visual",
+          "image": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+          "visual_authority": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+          "visual_status": "PARTIAL",
+          "authority": "design/pages/home/normal_home/07_avatar_states/README.md",
+          "behavior_authority": "design/pages/home/normal_home/07_avatar_states/README.md",
+          "machine_authority": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
+          "summary": "五态独立工作区：真实头像、登录默认（晨湖垂钓者）、加载、失败与游客入口。NH07 只修订 Header 头像局部；NH01 冻结整页不变。",
+          "menu_points": [
+            "A · 已登录真实头像",
+            "B · 已登录默认头像（NH07 方案）",
+            "C · 头像加载中",
+            "D · 头像加载失败",
+            "E · 游客 / 未登录"
+          ],
+          "default_avatar_sources": {
+            "one_x": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_1x_64.png",
+            "two_x": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_2x_128.png",
+            "three_x": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png"
+          },
+          "guest_image": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
+          "real_sample_image": "design/system/core_visual_v1/reference/normal_home_v1.png",
+          "visual_caption": "NH07 · Avatar States Design Contract V1 · design asset preview, not frozen whole-page raster",
+          "visual_authority_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
         }
       ]
     },
@@ -515,6 +551,11 @@
         },
         {
           "id": "spacing_radius_v1"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "FIT_EVIDENCE",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "hifi_views": [
@@ -2830,6 +2871,11 @@
         {
           "id": "text_action_v1",
           "note": "Text Action V1：修改鱼种=NORMAL/LIGHT + separate chevron。"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "CROP_RESULT",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "navigation_model": "recognition_result_3plus2_menu_v1",
@@ -3180,6 +3226,11 @@
             "PHOTO",
             "VIDEO"
           ]
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "ADAPTIVE_DETAIL",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "navigation_model": "fish_record_detail_compact_menu_v2",
@@ -3998,6 +4049,11 @@
         {
           "id": "icon_action_v1",
           "note": "Icon Action V1：独立 Filter trigger=UTILITY/ON_LIGHT；Search Field 内不可点击放大镜仅为 decoration，不属于 Icon Action。"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "CROP_THUMBNAIL",
+          "note": "仅图片容器内部适配；外层页面 Geometry/冻结视觉保持不变。"
         }
       ],
       "design_audit": "design/pages/fish_records/list/MY_CATCHES_DESIGN_AUDIT_V1.md",

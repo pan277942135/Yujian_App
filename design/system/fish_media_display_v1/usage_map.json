@@ -1,0 +1,36 @@
+{
+  "version": "V1",
+  "status": "FROZEN",
+  "system_id": "fish_media_display_v1",
+  "mappings": {
+    "recognition_flow_v1_2": {
+      "variant": "FIT_EVIDENCE",
+      "usage": "选择图库原图与已提交识别照片预览"
+    },
+    "recognition_result_v1": {
+      "variant": "CROP_RESULT",
+      "recovery_override": "EVIDENCE_FIT"
+    },
+    "fish_record_detail_v2": {
+      "variant": "ADAPTIVE_DETAIL",
+      "surface": "A_SIDE"
+    },
+    "home_normal_v1": {
+      "variant": "ADAPTIVE_DETAIL",
+      "surface": "SHARED_HERO"
+    },
+    "my_catches_v2": {
+      "variant": "CROP_THUMBNAIL",
+      "size_dp": [
+        82,
+        82
+      ],
+      "radius_dp": 14
+    }
+  },
+  "excluded": [
+    "FishRecordDetail B_SIDE",
+    "Fish Guide knowledge assets"
+  ],
+  "geometry_policy": "existing_page_frozen_geometry_unchanged"
+}

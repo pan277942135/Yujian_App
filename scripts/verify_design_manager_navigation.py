@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
+import struct
 from pathlib import Path
 import sys
 
-EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06"]
+EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06", "NH07"]
 
 
 def fail(message: str) -> None:
@@ -46,6 +48,37 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     nav_ids = [x.get("id") for x in nav.get("level_2", [])]
     if nav_ids != EXPECTED_NORMAL_HOME:
         fail(f"Normal Home navigation changed: {nav_ids} != {EXPECTED_NORMAL_HOME}")
+
+    # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
+    if not built:
+        nh07 = feature["hifi_views"][-1]
+        if nh07.get("id") != "NH07" or nh07.get("render_mode") != "nh07_avatar_states":
+            fail("NH07 must be registered as its own avatar state workspace")
+        manifest_path = root / "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
+        manifest = load_json(manifest_path)
+        expected = [(64, "1x"), (128, "2x"), (192, "3x")]
+        exports = manifest.get("exports", [])
+        if len(exports) != 3:
+            fail("NH07 requires exactly three registered avatar density exports")
+        if nh07.get("image") != exports[-1].get("path"):
+            fail("NH07 registry preview must use the registered 3x avatar")
+        for asset, (side, scale) in zip(exports, expected):
+            if asset.get("scale") != scale or asset.get("width") != side or asset.get("height") != side:
+                fail(f"NH07 density manifest ordering/dimensions incorrect for {scale}")
+            file_path = root / asset["path"]
+            if not file_path.exists():
+                fail(f"NH07 asset missing: {file_path}")
+            raw = file_path.read_bytes()
+            if len(raw) != asset["bytes"] or hashlib.sha256(raw).hexdigest() != asset["sha256"]:
+                fail(f"NH07 PNG bytes/hash mismatch: {file_path}")
+            if raw[:8] != b"\x89PNG\r\n\x1a\n" or len(raw) < 24:
+                fail(f"NH07 invalid PNG header: {file_path}")
+            width, height = struct.unpack(">II", raw[16:24])
+            if (width, height) != (side, side):
+                fail(f"NH07 actual PNG dimensions mismatch: {file_path}")
+        guest = manifest.get("states", {}).get("GUEST", "")
+        if not guest or not (root / guest).exists():
+            fail("NH07 Guest must resolve to separate registered source")
 
     app = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
     required_logic = '(selectedKey === key || selectedKey.startsWith(key + "/"))'
