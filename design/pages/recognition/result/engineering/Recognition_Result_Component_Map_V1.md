@@ -53,3 +53,12 @@ an unknown-species FishRecord.
 - automatic Medium selection;
 - no-op voice controls;
 - detector/classifier crops or Frozen screenshot crops as runtime media.
+
+## Page-scoped shared-component exceptions · 2026-10-10 design audit
+
+The machine-map keys `BACK_CENTER_TITLE` and `RESULT_SAVE` are **Result page composition profiles**, not additional globally frozen Top Navigation or Action Button variants. The generic systems keep their three variant definitions each. See:
+
+- `design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md`
+- `design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md`
+
+At the current Result V1.1 authority, `继续记忆` has the Result-muted treatment; `保存本次鱼获` uses Result Save's light/gold-edge treatment. Confirmed dual CTAs are equal width with 12dp gap as the Result geometry contract specifies, **not** the historical shared button usage example 44/56. Global buttons and Species Selector's left-title navigation retain their preexisting Frozen contracts.
