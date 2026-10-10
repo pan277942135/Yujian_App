@@ -2845,7 +2845,10 @@
           "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
         ],
         "layout": "High 322×210 / Medium & Low 322×178 / No Fish 322×245 / Image Quality 322×214 at 360dp.",
-        "audit": "design/pages/recognition/result/review/Recognition_Result_Design_Audit_20261010.md"
+        "audit": "design/pages/recognition/result/review/Recognition_Result_Design_Audit_20261010.md",
+        "state_decision_audit": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+        "state_decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+        "state_thresholds": "AS_IMPLEMENTED_RUNTIME_AUDIT_NOT_NEW_FROZEN_VALUES"
       },
       "hifi_views": [
         {
@@ -2859,6 +2862,7 @@
           "summary": "识别结果 V1.1 · 3+2 冻结设计：五张状态高保 + Species Selector / Metadata Edit 两张覆盖层 Authority。页面 Hero 按状态分别定尺寸；Result 居中标题为明确页面例外；Low 可先编辑草稿，保存前必须确认鱼种；Runtime 独立验收。",
           "menu_points": [
             "3+2 State Model · RR01–RR05",
+            "3+2 决策优先级 · Detector GOOD/WARNING/INVALID → Classifier High/Medium/Low",
             "7 Frozen Assets · 5 States + 2 Edit Boards",
             "Result V1.1 Layout Geometry · Hero 322dp wide",
             "Centered Result Title · Page Exception",
@@ -2884,6 +2888,14 @@
             {
               "path": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
               "label": "Frozen V1.1 State Geometry"
+            },
+            {
+              "path": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+              "label": "3+2 判定规则：现行实现 / 风险 / 设计建议"
+            },
+            {
+              "path": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+              "label": "3+2 判定矩阵 · 机器可读 / 非新阈值"
             }
           ]
         },
