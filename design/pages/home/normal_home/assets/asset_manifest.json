@@ -73,5 +73,14 @@
     "path": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
     "semantic_role": "GUEST_LOGIN_ENTRY",
     "must_differ_from_signed_in_default": true
+  },
+  "page_scoped_avatar_nh07_candidate": {
+    "status": "DESIGN_ASSET_REGISTERED__ANDROID_PENDING",
+    "consumer": "NORMAL_HOME_SIGNED_IN_DEFAULT",
+    "source_asset": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+    "manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
+    "source_sha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2",
+    "supersedes_after_page_approval": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
+    "guest_is_separate": true
   }
 }

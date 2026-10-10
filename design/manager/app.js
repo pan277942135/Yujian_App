@@ -585,7 +585,6 @@ function backgroundSystemOverviewHtml(item) {
   '</div>';
 }
 
-
 /**
  * Fish media V1: real-source display examples only.
  * CSS geometry demonstrates Fit/Crop/Adaptive; it does NOT attest safe fish-bbox cropping.
@@ -1942,7 +1941,41 @@ function fishGuideMotionCanvas(view) {
   '</div>';
 }
 
+function nh07AvatarStatesCanvas(view) {
+  const avatar = repoHref(view.image || view.visual_authority);
+  const guest = repoHref(view.guest_image);
+  const realSource = repoHref(view.real_sample_image);
+  const image = (src, extra = "") =>
+    '<span class="nh07-avatar-thumb' + extra + '"><img src="' + esc(src) + '" alt="" loading="lazy"></span>';
+  const card = (code, label, artwork, state, note, action) =>
+    '<article class="nh07-state-card">' +
+      '<span class="nh07-state-index">' + esc(code) + '</span>' +
+      '<div class="nh07-avatar-stage">' + artwork + '</div>' +
+      '<strong>' + esc(label) + '</strong><span class="nh07-state-kind">' + esc(state) + '</span>' +
+      '<p>' + esc(note) + '</p><span class="nh07-state-action">' + esc(action) + '</span></article>';
+  const real = '<span class="nh07-avatar-thumb nh07-real-avatar" role="img" aria-label="NH01 样例真实头像" ' +
+    'style="background-image:url(\'' + esc(realSource) + '\')"></span>';
+  const loading = '<span class="nh07-avatar-loading">' + image(avatar) +
+    '<i class="nh07-avatar-spinner" aria-label="加载中"></i></span>';
+  return '<div class="nh07-workspace">' +
+    '<div class="nh07-workspace-head"><div><b>NH07 · 头像状态</b><p>仅更新头像局部设计，晨湖页面布局和冻结组件不变。</p></div>' +
+    '<a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">资产 Manifest ↗</a></div>' +
+    '<div class="nh07-state-grid">' +
+      card("01","已登录 · 真实头像",real,"REAL","显示用户已上传并解码成功的照片，圆形裁切。","点击 → 我的 / 个人中心") +
+      card("02","已登录 · 默认头像",image(avatar),"DEFAULT","晨湖垂钓者，替代无头像时的页面局部视觉。","点击 → 我的 / 个人中心") +
+      card("03","远程头像加载中",loading,"LOADING","使用同一默认图作占位；完成后才切换真实头像。","点击 → 我的 / 个人中心") +
+      card("04","加载失败 / 无效",image(avatar),"FAILURE","退回默认图，无错误红点、无自动编辑。","点击 → 我的 / 个人中心") +
+      card("05","游客 / 未登录",image(guest),"GUEST","使用独立 Guest 资源，不冒充已登录个人头像。","点击 → 登录 / 注册") +
+    '</div>' +
+    '<div class="nh07-asset-export"><div><strong>前端资产 · 同源透明 PNG</strong><p>视觉基准：64px 单元，@1x/@2x/@3x；NH01 页面中显示直径仍受 92px 参考尺寸约束。点击区域另须 ≥48dp。</p></div><div class="nh07-asset-links">' +
+      [['1x · 64px',view.default_avatar_sources?.one_x],['2x · 128px',view.default_avatar_sources?.two_x],['3x · 192px',view.default_avatar_sources?.three_x]]
+        .filter(x=>x[1]).map(x=>'<a href="' + esc(repoHref(x[1])) + '" target="_blank" rel="noreferrer">' + esc(x[0]) + ' ↗</a>').join('') +
+    '</div></div>' +
+    '<p class="nh07-workspace-disclaimer">该工作区为设计资产和状态合同，非 Android 实施或完整页面像素验收的证明。NH01/NH02/NH04 原冻结图保持不变。</p></div>';
+}
+
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "nh07_avatar_states") return nh07AvatarStatesCanvas(view);
   if (view.render_mode === "authority_gallery") {
     const visualRefs = (view.supporting_visual_references || [])
       .map(ref => typeof ref === "string" ? { path: ref, label: ref } : ref)
@@ -2996,8 +3029,8 @@ async function init() {
     pageRegistry = await pageResponse.json();
     sharedRegistry = await sharedResponse.json();
 
-    // Media demo uses a versioned repository fixture manifest; an unavailable
-    // optional preview must not prevent access to the rest of Design Manager.
+    // Media demo is an optional versioned fixture manifest. Keep other
+    // Design Manager modules accessible if the preview data cannot load.
     if (sharedRegistry.items.some(x => x.id === "fish_media_display_v1")) {
       try {
         const mediaResponse = await fetch(
