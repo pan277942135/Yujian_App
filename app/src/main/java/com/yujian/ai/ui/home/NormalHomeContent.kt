@@ -87,7 +87,6 @@ private const val NormalHomeCameraTouchSize = 208f
 private const val NormalHomeHeroCornerRadius = 32f
 private const val NormalHomeFooterHorizontalInset = 56f
 private const val NormalHomeFooterVerticalInset = 32f
-private const val NORMAL_HOME_GUEST_AVATAR_ASSET_PATH = "normal_home_runtime_v1/avatar/guest_avatar.png"
 
 /**
  * Real-data Normal Home mapped onto the 1080-wide Frozen authority.
@@ -455,6 +454,7 @@ private fun NormalHomeSafeOverflow(
                         avatarSize = ref(92f),
                         typography = typography,
                         brandMinWidth = ref(148f),
+                        onBrandTextLayout = {},
                     )
                 }
 
@@ -583,7 +583,7 @@ private fun NormalHomeHeader(
     avatarSize: Dp,
     typography: NormalHomeTypographyContract,
     brandMinWidth: Dp,
-    onBrandTextLayout: (TextLayoutResult) -> Unit = {},
+    onBrandTextLayout: (TextLayoutResult) -> Unit,
 ) {
     val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
     val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }

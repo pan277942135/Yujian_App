@@ -275,7 +275,10 @@ def main() -> int:
         if route not in avatar_contract:
             failures.append(f"Normal Home avatar state route is missing: {route}")
 
-    if "normal_home_runtime_v1/avatar/guest_avatar.png" not in home_content:
+    if (
+        "NORMAL_HOME_GUEST_AVATAR_ASSET_PATH" not in home_content
+        or 'NORMAL_HOME_GUEST_AVATAR_ASSET_PATH = "normal_home_runtime_v1/avatar/guest_avatar.png"' not in avatar_contract
+    ):
         failures.append("Normal Home guest avatar is not wired to the separately registered guest asset")
     if "guestAvatar" in runtime_loader:
         failures.append("Normal Home guest avatar was incorrectly added to the runtime illustration loader")
