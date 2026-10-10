@@ -479,13 +479,30 @@ class NormalHomeDataParityTest {
                 rasterInkBounds.top >= parentBounds.top &&
                 rasterInkBounds.right <= parentBounds.right &&
                 rasterInkBounds.bottom <= parentBounds.bottom
+            // Compose can flag a tight intrinsic Text width as overflow after
+            // fractional glyph advance rounding even with all characters present.
+            // Test the concrete character rectangles, not the boolean alone.
+            // The brand has a stronger actual-pixel ink containment check above.
+            val characterBoxesInsideNode = visibleEnd == text.length &&
+                characterBoxBounds.left >= -0.5f &&
+                characterBoxBounds.top >= -0.5f &&
+                characterBoxBounds.right <= nodeBounds.width + 0.5f &&
+                characterBoxBounds.bottom <= nodeBounds.height + 0.5f
+            val characterBoxesInsideParent = 
+                nodeBounds.left + characterBoxBounds.left >= parentBounds.left - 0.5f &&
+                nodeBounds.top + characterBoxBounds.top >= parentBounds.top - 0.5f &&
+                nodeBounds.left + characterBoxBounds.right <= parentBounds.right + 0.5f &&
+                nodeBounds.top + characterBoxBounds.bottom <= parentBounds.bottom + 0.5f
+            val measuredGlyphsFit = characterBoxesInsideNode && characterBoxesInsideParent
             assertTrue(
-                "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth}",
-                !layout.didOverflowWidth || brandRasterFitsContainers,
+                "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth} " +
+                    "characterBoxes=$characterBoxBounds node=$nodeBounds",
+                !layout.didOverflowWidth || brandRasterFitsContainers || measuredGlyphsFit,
             )
             assertTrue(
-                "$tag has vertical overflow outside its raster container: didOverflowHeight=${layout.didOverflowHeight}",
-                !layout.didOverflowHeight || brandRasterFitsContainers,
+                "$tag has vertical overflow outside its raster container: didOverflowHeight=${layout.didOverflowHeight} " +
+                    "characterBoxes=$characterBoxBounds node=$nodeBounds",
+                !layout.didOverflowHeight || brandRasterFitsContainers || measuredGlyphsFit,
             )
         }
         assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
@@ -553,6 +570,10 @@ class NormalHomeDataParityTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         var observedInsets: SafeDrawingInsetsDp? = null
 
+        // The Home scene has a perpetual frame clock for decorative motion.
+        // Freeze test-frame advancement while asserting static window geometry;
+        // otherwise Espresso waits for an animation that intentionally never ends.
+        compose.mainClock.autoAdvance = false
         compose.setContent {
             val safeInsets = rememberSafeDrawingInsets()
             SideEffect { observedInsets = safeInsets }
