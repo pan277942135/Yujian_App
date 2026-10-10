@@ -22,12 +22,13 @@
     "logged_in_without_avatar": "normal_home_default_avatar_v2",
     "logged_in_avatar_loading": "normal_home_default_avatar_v2_placeholder",
     "logged_in_avatar_load_failed": "normal_home_default_avatar_v2",
-    "guest": "normal_home_default_avatar_v2"
+    "guest": "normal_home_runtime_v1/avatar/guest_avatar.png"
   },
   "interactions": {
     "logged_in_click": "profile_center",
     "guest_click": "login_or_register",
     "auto_edit_on_failure": false
   },
-  "authority_note": "This page-scoped consumer mapping does not replace the Shared Default Profile Avatar V1 authority used by other pages."
+  "authority_note": "V2 is the signed-in empty/loading/failure fallback only. Guest Home uses the separately registered runtime guest avatar. This page-scoped consumer mapping does not replace the Shared Default Profile Avatar V1 authority used by other pages."
 }
+

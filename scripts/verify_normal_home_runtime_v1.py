@@ -178,7 +178,7 @@ def main() -> int:
             "logged_in_without_avatar": "normal_home_default_avatar_v2",
             "logged_in_avatar_loading": "normal_home_default_avatar_v2_placeholder",
             "logged_in_avatar_load_failed": "normal_home_default_avatar_v2",
-            "guest": "normal_home_default_avatar_v2",
+            "guest": "normal_home_runtime_v1/avatar/guest_avatar.png",
         }
         if avatar_manifest.get("asset_id") != "normal_home_default_avatar_v2":
             failures.append("default avatar manifest asset_id mismatch")
@@ -254,8 +254,8 @@ def main() -> int:
             guest_body = guest_branch[0]
         if "NormalHomeDefaultAvatar(Modifier.fillMaxSize())" not in logged_in_body:
             failures.append("logged-in avatar does not keep the V2 default drawable underneath remote loading")
-        if "Image(" not in guest_body or "painterResource(R.drawable.normal_home_default_avatar_v2)" not in guest_body or "ContentScale.Fit" not in guest_body:
-            failures.append("guest branch does not render the V2 drawable with Fit")
+        if "AssetImage(" not in guest_body or "NORMAL_HOME_GUEST_AVATAR_ASSET_PATH" not in guest_body or "ContentScale.Fit" not in guest_body:
+            failures.append("guest branch does not render its separately registered guest asset with Fit")
         if "R.drawable.normal_home_default_avatar_v2" not in default_avatar_body or "ContentScale.Fit" not in default_avatar_body:
             failures.append("logged-in default/failure avatar does not use the V2 drawable with Fit")
         remote_guard = logged_in_body.find("if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||")
@@ -275,9 +275,10 @@ def main() -> int:
         if route not in avatar_contract:
             failures.append(f"Normal Home avatar state route is missing: {route}")
 
-    for path, text in (("NormalHomeContent.kt", home_content), ("NormalHomeRuntimeAssets.kt", runtime_loader)):
-        if "normal_home_runtime_v1/avatar/guest_avatar.png" in text or "guestAvatar" in text:
-            failures.append(f"legacy guest avatar is still wired as a runtime default in {path}")
+    if "normal_home_runtime_v1/avatar/guest_avatar.png" not in home_content:
+        failures.append("Normal Home guest avatar is not wired to the separately registered guest asset")
+    if "guestAvatar" in runtime_loader:
+        failures.append("Normal Home guest avatar was incorrectly added to the runtime illustration loader")
 
     if failures:
         for failure in failures:
@@ -289,3 +290,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
