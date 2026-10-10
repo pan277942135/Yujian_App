@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">密码锁</title>
+  <!-- YuJian Design Candidate V0.1 | 24x24 | stroke=1.75 | not frozen -->
+  <g stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5.35" y="10.7" width="13.3" height="10.15" rx="2"/><path d="M8.05 10.7V7.25C8.05 5.05 9.8 3.25 12 3.25C14.2 3.25 15.95 5.05 15.95 7.25V10.7"/><path d="M12 14.45V17.3"/>
+  </g>
+</svg>

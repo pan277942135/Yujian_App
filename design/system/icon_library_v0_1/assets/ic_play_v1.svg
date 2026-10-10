@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">播放</title>
+  <!-- YuJian ic_play V0.1 CANDIDATE — NOT FROZEN. Shared 24-unit SVG source, 1.75 rounded outline, currentColor. -->
+  <!-- Standalone play action: circle plus triangular play glyph, no video camera or add sign. -->
+  <circle cx="12" cy="12" r="8.55" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M10.15 8.55L15.4 11.3C15.93 11.59 15.93 12.41 15.4 12.7L10.15 15.45C9.58 15.75 9.1 15.4 9.1 14.77V9.23C9.1 8.6 9.58 8.25 10.15 8.55Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

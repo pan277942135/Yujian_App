@@ -39,3 +39,6 @@
 
 ## 首批 SVG 设计冻结（2026-10-10）
 已完成 6 个原样上传并经 Git blob 校验；资产权威见 `frozen_assets_v1.json`，43 个语义候选中剩余 37 个尚待确认。Android 未接入。
+
+## 43 图标 SVG V1 正式冻结（2026-10-10）
+原 43 个候选语义已全部拥有权威 SVG V1 母版，按用户批准的审稿包原样冻结；43/43 Git blob 文件完全一致。请以 `frozen_assets_v1.json` / `Frozen_Icon_Assets_V1.md` 为权威。Android 尚未替换。

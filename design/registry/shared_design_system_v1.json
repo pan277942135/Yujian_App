@@ -684,12 +684,12 @@
       "id": "icon_library_v0_1",
       "display_name": "图标",
       "category": "foundation",
-      "overall": "PARTIAL",
-      "current_version": "V0.2",
+      "overall": "FROZEN",
+      "current_version": "V1",
       "navigation_mode": "submenu_direct",
       "show_variant_index": false,
-      "preview_note": "6 个冻结 SVG：长度、重量、地点、日期、时间、天气。可在「01 · 鱼获字段」或「07 · 已冻结 SVG」查看源文件并放大。",
-      "note": "全局图标库共 43 个语义候选。当前 6 个 SVG V1 设计已冻结并验证 Git Blob 字节一致；其余 37 个仍待设计。Android 未接入。",
+      "preview_note": "43/43 个 SVG 母版全部冻结并可预览、点开原始 SVG；按六分类浏览或进入 07 · 已冻结 SVG。Android 未接入。",
+      "note": "43 个独立语义 SVG 母版已全部正式设计冻结，统一 24×24 viewBox、1.75 线宽、currentColor；SVG 完整性 43/43 验证。冻结范围仅限设计资源，不代表 Android 已改造或页面验收。",
       "authority_paths": [
         "design/system/icon_library_v0_1/Icon_Library_Audit_V0_1.md",
         "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
@@ -703,75 +703,112 @@
         "design/system/icon_library_v0_1/assets/ic_location_v1.svg",
         "design/system/icon_library_v0_1/assets/ic_date_v1.svg",
         "design/system/icon_library_v0_1/assets/ic_time_v1.svg",
-        "design/system/icon_library_v0_1/assets/ic_weather_v1.svg"
+        "design/system/icon_library_v0_1/assets/ic_weather_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_species_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_note_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_add_media_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_add_photo_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_add_video_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_camera_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_gallery_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_photo_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_video_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_play_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_voice_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_back_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_close_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_expand_more_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_expand_less_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_flip_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_share_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_fish_guide_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_search_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_filter_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_more_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_edit_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_retry_refresh_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_save_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_person_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_lock_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_visibility_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_visibility_off_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_clear_field_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_logout_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_success_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_warning_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_error_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_help_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_image_missing_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_selected_check_v1.svg"
       ],
       "variants": [
         {
           "id": "ALL",
           "name": "00 · 全局清单",
-          "status": "PARTIAL",
-          "usage": "43 个候选语义 ID，全局按六类去重。",
+          "status": "FROZEN",
+          "usage": "43 个去重语义，43 张独立 SVG V1 母版全部冻结",
           "authority_path": "design/system/icon_library_v0_1/Icon_Library_Audit_V0_1.md",
-          "note": "43 项总览，其中 6 个 SVG 已冻结，37 个仍为候选。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "FACTS",
           "name": "01 · 鱼获字段",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "usage": "鱼种、长度、重量、地点、时间、天气、笔记",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "8 个鱼获字段；长度、重量、地点、日期、时间、天气的 SVG V1 已冻结，鱼种和笔记待设计确认。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "MEDIA",
           "name": "02 · 照片与视频",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "usage": "添加照片/视频、相机、图库、视频、播放、语音",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "NAV",
           "name": "03 · 导航与层级",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "usage": "返回、关闭、进入、展开、收起",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "UTILITY",
           "name": "04 · 页面工具",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "usage": "翻面、分享、鱼鉴、搜索、筛选、更多、编辑、重试、保存",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "ACCOUNT",
           "name": "05 · 账户与输入",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "usage": "用户、密码、可见性、清空、退出",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "STATUS",
           "name": "06 · 状态与反馈",
-          "status": "PARTIAL",
+          "status": "FROZEN",
           "usage": "成功、警告、错误、帮助、缺图、选中",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。"
         },
         {
           "id": "FROZEN",
-          "name": "07 · 已冻结 SVG",
+          "name": "07 · 全部已冻结 SVG",
           "status": "FROZEN",
-          "usage": "长度、重量、地点、日期、时间、天气 6 个 24×24 矢量母版，可点开 SVG 原图",
-          "note": "仅 SVG 设计资产 FROZEN，整套 Icon Library 仍 PARTIAL，Android 未验收",
+          "usage": "全部 43 张矢量母版，可预览并打开原始 SVG 文件",
+          "note": "本分类中的全部 SVG 母版于 2026-10-10 正式冻结；Android 页面实现仍须遵循各页面高保合同。",
           "authority_path": "design/system/icon_library_v0_1/Frozen_Icon_Assets_V1.md"
         }
       ],
-      "preview": "design/system/icon_library_v0_1/assets/ic_length_v1.svg"
+      "preview": "design/system/icon_library_v0_1/assets/ic_species_v1.svg"
     },
     {
       "id": "top_navigation_v1",

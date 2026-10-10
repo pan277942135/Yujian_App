@@ -1,6 +1,6 @@
 {
-  "version": "V0.2",
-  "status": "PARTIAL_WITH_6_FROZEN_DESIGN_ASSETS",
+  "version": "V1",
+  "status": "FROZEN_DESIGN_43_SVG",
   "date": "2026-10-10",
   "scope": "14 design page modules + reviewed key Android UI surfaces; semantic deduplication, provisional not exhaustive",
   "counts": {
@@ -14,15 +14,10 @@
       "STATUS": 6
     },
     "by_asset_state": {
-      "RUNTIME_MATERIAL": 16,
-      "FROZEN_DESIGN": 6,
-      "ACTION_CONTRACT": 14,
-      "PROPOSED": 2,
-      "MIXED_LEGACY": 3,
-      "SPEC_ONLY": 1,
-      "RUNTIME_RESOURCE": 1
+      "FROZEN_DESIGN": 43
     },
-    "frozen_svg_assets": 6
+    "frozen_svg_assets": 43,
+    "remaining_unfrozen_svg_assets": 0
   },
   "groups": [
     {
@@ -61,13 +56,24 @@
       "id": "SPECIES",
       "name": "鱼种",
       "group": "FACTS",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.SetMeal",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
       "usage": "识别结果 / 详情编辑",
       "note": "统一真实鱼种字段图标，不替代知识卡鱼种照片",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_species_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "b51dfda9a060cacae1df54d133335629d77f955e10c79d4068f6aea77ad8947f",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "LENGTH",
@@ -89,7 +95,9 @@
         "stroke_width": 1.75,
         "color": "currentColor",
         "render_size": "PER_PAGE_FROZEN_GEOMETRY"
-      }
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "WEIGHT",
@@ -111,7 +119,9 @@
         "stroke_width": 1.75,
         "color": "currentColor",
         "render_size": "PER_PAGE_FROZEN_GEOMETRY"
-      }
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "LOCATION",
@@ -133,7 +143,9 @@
         "stroke_width": 1.75,
         "color": "currentColor",
         "render_size": "PER_PAGE_FROZEN_GEOMETRY"
-      }
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "DATE",
@@ -154,7 +166,9 @@
         "stroke_width": 1.75,
         "color": "currentColor",
         "render_size": "PER_PAGE_FROZEN_GEOMETRY"
-      }
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "TIME",
@@ -175,7 +189,9 @@
         "stroke_width": 1.75,
         "color": "currentColor",
         "render_size": "PER_PAGE_FROZEN_GEOMETRY"
-      }
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "WEATHER",
@@ -196,443 +212,841 @@
         "stroke_width": 1.75,
         "color": "currentColor",
         "render_size": "PER_PAGE_FROZEN_GEOMETRY"
-      }
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "NOTE",
       "name": "感言 / 笔记",
       "group": "FACTS",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.EditNote",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
       "usage": "鱼获故事 / 详情编辑",
       "note": "信息性 note 与动作 Edit 应区分",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_note_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "1d6b0284a79011bc9984a823a8720792e30e684e4100b73311449ba3fcc98418",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "ADD_MEDIA",
       "name": "添加照片/视频",
       "group": "MEDIA",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icon Action CONTEXT add_media",
       "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
       "usage": "鱼获详情 · 无上传记忆",
       "note": "现有 Frozen Context 家族语义；需要单独批准最终实体 glyph",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_add_media_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "844ed4c546d77e60951c14d0276e3406ef95e68609625b643a2446ab883b7141",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "ADD_PHOTO",
       "name": "添加照片",
       "group": "MEDIA",
-      "asset_state": "PROPOSED",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待设计 Image+",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
       "usage": "记忆相册 / 添加照片",
       "note": "区分照片添加与普通展示图片",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_add_photo_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "a26b99da4b287f9fd349713312deb7642c36185c5bf4d052b3bcbc989fcfaa44",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "ADD_VIDEO",
       "name": "添加视频",
       "group": "MEDIA",
-      "asset_state": "PROPOSED",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待设计 Video+",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
       "usage": "记忆相册 / 视频添加",
       "note": "与录制视频行为不可混同",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_add_video_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "6697b99f8dbb29354fb710a7143ae08650a4acd906fd8179469fbb2795e7f5ba",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "CAMERA",
       "name": "拍照 / 继续拍照",
       "group": "MEDIA",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.CameraAlt",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemoryCaptureScreen.kt",
       "usage": "图片识别 / 鱼获记忆 / 头像更换",
       "note": "主拍摄按钮自身品牌形态仍属独立冻结系统",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_camera_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "5b1f27e123bbf47824bc62883708782a23d27c6dbf679daa35b99b66bbf50965",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "GALLERY",
       "name": "从相册选择",
       "group": "MEDIA",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.PhotoLibrary",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
       "usage": "识别失败重选 / 相册 / 头像",
       "note": "图库入口和展示图像不等同",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_gallery_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "5798abbdaad45305fe9ed5a578868247925d2d95644c8ea2559f446c1f069fda",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "PHOTO",
       "name": "照片",
       "group": "MEDIA",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Outlined.Image",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
       "usage": "记忆照片网格 / 相册底部弹层",
       "note": "表示媒体种类，不应表现为相机动作",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_photo_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "cb99c08f0ba8405be876a44396d53c1e6f21929cbfe33226fad5f385d94e6551",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "VIDEO",
       "name": "视频 / 录制",
       "group": "MEDIA",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Videocam",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
       "usage": "鱼获记忆 / 摄像录制模式",
       "note": "媒体类型与触发拍摄的 Action 使用不同热区",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_video_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "60b3c0ca1f5eec18a5165e8422918888429d84b842b94b94888c9ba749828272",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "PLAY",
       "name": "播放视频",
       "group": "MEDIA",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Outlined.PlayCircleOutline",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
       "usage": "视频缩略图",
       "note": "播放叠加图标需独立状态规范",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_play_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "d7911ef4faf912e4137d51f8ea735bf350f04a5bb3fc7585d309bcc9d79d7a14",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "VOICE",
       "name": "语音输入",
       "group": "MEDIA",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icon Action CONTEXT voice",
       "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
       "usage": "识别结果故事输入（能力支持时）",
       "note": "Frozen 合同列候选但语音功能未被证明已上线",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_voice_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "3803cec2a271b9d6ec24f629711991f6fa055b864a2932bf0ff825967abf0ba1",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "BACK",
       "name": "返回",
       "group": "NAV",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.ArrowBack",
       "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
       "usage": "各二级页面顶部",
       "note": "复用 Icon Action V1 / NAVIGATION",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_back_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "51c04e3263258f75a239392e7292d205ba1af83292f7bd11c104637d41f44d61",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "CLOSE",
       "name": "关闭",
       "group": "NAV",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Close",
       "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
       "usage": "弹层、媒体选择与编辑",
       "note": "与清除文本的 X 语义分离",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_close_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "afce0cfd4c1a8cb627a3494b2b118849452c8ba872921221de2eae60d2b78156",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "CHEVRON_RIGHT",
       "name": "进入 / 详情箭头",
       "group": "NAV",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.ChevronRight",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
       "usage": "我的鱼获列表 / 选择器 / 详情入口",
       "note": "尾随 Text Action Chevron 须继续服从 Text Action 合同",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "EXPAND_MORE",
       "name": "展开",
       "group": "NAV",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.ExpandMore",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
       "usage": "我的鱼获日期分组",
       "note": "展开/收起可设计为一个可变换资源状态",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_expand_more_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "e21f71b5ecffcdfff55304d9f3b64d4ce337e9d07ecb8c680b495d8c48f35ffc",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "EXPAND_LESS",
       "name": "收起",
       "group": "NAV",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.ExpandLess",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
       "usage": "我的鱼获日期分组",
       "note": "不同于返回箭头",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_expand_less_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "984e7ba7f64ec6e51fb23b774ab5201beac6af2d0ccb7ae91f95c41825b7fa4b",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "FLIP",
       "name": "翻面",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Flip",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordHeroCard.kt",
       "usage": "详情 A/B 面 READY 后",
       "note": "图标本身不旋转，卡片内容执行翻面",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_flip_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "dab0e34e23431364e25b2e2f7be5f497e365f5a476a2ffdfe38477e5dd8729c8",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "SHARE",
       "name": "分享",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Share / IosShare",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt",
       "usage": "详情顶部 / 分享中心",
       "note": "需要确定统一 Android 分享 glyph",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_share_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "2d3c3db43439d3df3c49ba6c474504ca375db2b976b9b19318753a255166e0b4",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "FISH_GUIDE",
       "name": "鱼鉴入口",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.MenuBook",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt",
       "usage": "鱼获详情 / 鱼鉴入口",
       "note": "普通说明书图标与鱼鉴品牌语义需审核",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_fish_guide_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "bb07ef265d14b45ae931eeb5db280c20a2a83f2ba1f0c65a312e25543456bd63",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "SEARCH",
       "name": "搜索",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Search",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
       "usage": "我的鱼获 / 鱼鉴 / 鱼种选择",
       "note": "可点击搜索工具与输入框前缀装饰共享图形但不同动作",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_search_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "b14a1d4fe0b9322be3db62390fd017b0e665ef82de951b44daff3a4452cc25c3",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "FILTER",
       "name": "筛选",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.FilterList",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
       "usage": "我的鱼获筛选",
       "note": "Selected 由功能状态管理，非全局 Icon Action 新状态",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_filter_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "c1f58a519a74a87175bccbdbc88c723221f88f18c1c00167fd372a568fba0f82",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "MORE",
       "name": "更多",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icon Action UTILITY more",
       "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
       "usage": "顶部工具溢出",
       "note": "已冻结工具语义，但不代表已存在独立 Android 资源",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_more_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "43ef383a057db30ede0d7a5796799fa60e33e80dd0900c61f6eb93338a90042d",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "EDIT",
       "name": "编辑",
       "group": "UTILITY",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Edit",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt",
       "usage": "详情编辑 / 账户 / 记录",
       "note": "详情 Hero 当前 编辑> 文本入口不许被图标替换",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_edit_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "4a300476710448993c2d508e3252989c3f1312c3eb45b68bb847087e8d8d053b",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "RETRY_REFRESH",
       "name": "重试 / 刷新",
       "group": "UTILITY",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Refresh",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/FishSpeciesDetailScreen.kt",
       "legacy_asset_path": "app/src/main/assets/identify/icons/retry.svg",
       "usage": "鱼鉴加载失败 / 图像问题重试",
       "note": "旧 identify/icons/retry.svg 的 R 字符为占位",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_retry_refresh_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "90331e7d5815f1ab79d1aa82ee275ef5a92b90b22a695aa26ebf077eef6c2fc8",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "SAVE",
       "name": "保存",
       "group": "UTILITY",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Save",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
       "usage": "识别结果保存行为",
       "note": "主 CTA 文字优先，不强制每处显示保存图标",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_save_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "bb31e111d340636e7baf454ea5ccc108f5476a217eff99846c521698f2cbb1d3",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "PERSON",
       "name": "个人 / 用户",
       "group": "ACCOUNT",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.PersonOutline",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt",
       "usage": "登录 / 编辑个人信息",
       "note": "照片头像与默认头像资产不是此小 glyph",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_person_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "e2dbc2eb3111622590836fd1cda051736dc75611d041f17c6ae1b46aff22d189",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "LOCK",
       "name": "密码锁",
       "group": "ACCOUNT",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Lock",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
       "usage": "登录 / 注册表单",
       "note": "不与字段可见性混淆",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_lock_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "4b0bac26e9c7b8c24f91effbd15e3a987b93cd4b146d17919e265ef33eed00cd",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "VISIBILITY",
       "name": "显示密码",
       "group": "ACCOUNT",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Visibility",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
       "usage": "密码输入框尾部",
       "note": "状态动作有明确 a11y 描述",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_visibility_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "5c05ab9421590ae2b02c46f68b3adf9261ff7d10758db9b9371d80eb310e3cbe",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "VISIBILITY_OFF",
       "name": "隐藏密码",
       "group": "ACCOUNT",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.VisibilityOff",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
       "usage": "密码输入框尾部",
       "note": "与显示密码组成同一切换组",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_visibility_off_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "6e12ca6dcc7316e9ba323c0c64f1d81b1a2a72f3fb858a9f25337ecdb1c41dfe",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "CLEAR_FIELD",
       "name": "清空输入",
       "group": "ACCOUNT",
-      "asset_state": "ACTION_CONTRACT",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Close",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
       "usage": "搜索 / 昵称 / 地点字段",
       "note": "虽然 glyph 类似 Close，但属 CONTEXT 不是 NAVIGATION",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_clear_field_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "742958678686749e99cfa97142eee476460d9ec1898b59d67cb6472707262b6a",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "LOGOUT",
       "name": "退出登录",
       "group": "ACCOUNT",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Logout",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt",
       "usage": "账户和隐私",
       "note": "危险性来源操作语义，不是错误状态图标",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_logout_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "b12c5245f54a1a4806278560b88e043f832d272e2513ff0b89631a4ee4592dd3",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "SUCCESS",
       "name": "成功 / 完成",
       "group": "STATUS",
-      "asset_state": "MIXED_LEGACY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Check（选中场景）",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
       "legacy_asset_path": "app/src/main/assets/identify/icons/success.svg",
       "usage": "识别成功 / 操作成功 / 确认",
       "note": "旧 identify/icons/success.svg 的 S 字母非产品正式资源",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_success_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "de9b1147dcfa61fb90d1feea4af85e2031f6d4101e77f835bd5984545aea2920",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "WARNING",
       "name": "警告",
       "group": "STATUS",
-      "asset_state": "MIXED_LEGACY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待定警告图形",
       "evidence_path": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
       "legacy_asset_path": "app/src/main/assets/identify/icons/warning.svg",
       "usage": "图片质量 / 部分能力受限",
       "note": "旧 identify/icons/warning.svg 的 W 字母非正式资源",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_warning_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "17682316ce79b506a3dd1f32d54f4ecfbe32c0bec27d0d29d40abff66b26f2c1",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "ERROR",
       "name": "错误 / 失败",
       "group": "STATUS",
-      "asset_state": "SPEC_ONLY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待定错误图形",
       "evidence_path": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
       "usage": "网络错误 / 保存失败 / 识别技术失败",
       "note": "错误色彩按系统语义，而非全部染红",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_error_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "b06fabf0d270e6173e10d7eb40d32c2f21a18713c1c7895de3a2e3f7f955c704",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "HELP",
       "name": "说明 / 疑问",
       "group": "STATUS",
-      "asset_state": "MIXED_LEGACY",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "待定问号轮廓",
       "evidence_path": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
       "legacy_asset_path": "app/src/main/assets/identify/icons/question.svg",
       "usage": "引导、原因说明",
       "note": "旧 identify/icons/question.svg 的 Q 字母非正式资源",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_help_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "d894b0a88a0d4ca63641b170747fe1447b4736b89a4040b3f245bd288a27f542",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "IMAGE_MISSING",
       "name": "图片不可用",
       "group": "STATUS",
-      "asset_state": "RUNTIME_RESOURCE",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "R.drawable.image_error_v12",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt",
       "usage": "首页图片加载失败 / 详情兜底",
       "note": "中性占位不得猜测鱼种",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_image_missing_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "9013cd2734c3472cfe0aa4aafa44398b3de4682d86b7c10dd1f38730ea765dc5",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     },
     {
       "id": "SELECTED_CHECK",
       "name": "已选中",
       "group": "STATUS",
-      "asset_state": "RUNTIME_MATERIAL",
+      "asset_state": "FROZEN_DESIGN",
       "existing_implementation": "Icons.Rounded.Check",
       "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
       "usage": "鱼种选择器",
       "note": "区分成功状态与选择标记",
-      "asset_path": null,
-      "approved_visual": false
+      "asset_path": "design/system/icon_library_v0_1/assets/ic_selected_check_v1.svg",
+      "approved_visual": true,
+      "asset_sha256": "ba92645ccfbbd517e586012c47578c4ef6b4e0f919bcf92f0ec8875df1e52ea8",
+      "asset_version": "V1",
+      "android_status": "NOT_APPLIED",
+      "asset_geometry": {
+        "view_box": "0 0 24 24",
+        "stroke_width": 1.75,
+        "color": "currentColor",
+        "render_size": "PER_PAGE_FROZEN_GEOMETRY"
+      },
+      "freeze_date": "2026-10-10",
+      "frozen_scope": "SVG_VISUAL_MASTER_ONLY"
     }
   ],
   "status_semantics": {
@@ -641,7 +1055,8 @@
     "RUNTIME_RESOURCE": "现有 Android drawable 资源，需审查语义与尺寸",
     "MIXED_LEGACY": "当前界面使用现成 Material 形状，仓库旧 SVG 为字母占位，不可直接作为正式资产",
     "SPEC_ONLY": "在产品规范中出现，未确认全链路实现；后续决定是否绘制",
-    "PROPOSED": "针对需求提出的候选语义，需确认最终界面是否独立需要该 glyph"
+    "PROPOSED": "针对需求提出的候选语义，需确认最终界面是否独立需要该 glyph",
+    "FROZEN_DESIGN": "Approval covers canonical SVG visual resource, not Android implementation"
   },
   "out_of_scope": [
     {
@@ -669,7 +1084,7 @@
       "why": "未授权的社交徽章/成就化资产，禁止加入"
     }
   ],
-  "validation_boundary": "6 approved SVG assets FROZEN and byte-verified; no Android runtime replacement. Other 37 semantic candidates remain provisional.",
+  "validation_boundary": "43/43 SVG masters FROZEN by explicit user approval; Git Blob SHA1 parity checked against batch review original files. Android VectorDrawable conversion and runtime integration are NOT done. Independent page geometry remains authoritative.",
   "group_page_usage": {
     "ALL": [
       "home_empty_v2",

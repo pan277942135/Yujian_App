@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">照片</title>
+  <!-- YuJian ic_photo V0.1 CANDIDATE — NOT FROZEN. Shared 24-unit SVG master, rounded outline, currentColor. -->
+  <!-- Single already-existing photo. No plus, camera lens or gallery stack. -->
+  <rect x="3.1" y="4.65" width="17.8" height="14.7" rx="2.3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="15.65" cy="9.2" r="1.18" fill="currentColor"/>
+  <path d="M5.65 16.45L9.4 12.6L12.2 15.5L14.05 13.72L18.35 17.05" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
