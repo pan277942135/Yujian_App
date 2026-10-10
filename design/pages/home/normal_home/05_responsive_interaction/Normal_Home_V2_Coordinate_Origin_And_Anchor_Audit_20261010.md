@@ -1,3 +1,5 @@
+> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL DESIGN AUDIT. The resolved window origin is adopted by the new engineering layout contract; raster optical proof remains pending. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home V2 — Coordinate Origin and CTA/Camera Anchor Audit
 
 **Date:** 2026-10-10  
