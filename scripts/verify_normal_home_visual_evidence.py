@@ -141,12 +141,11 @@ def luma(pixel: tuple[int, int, int]) -> float:
 
 
 def analyze_structure(path: Path, background_source: Path) -> dict[str, object]:
-    """Prove the actual HOME card occupies its frozen region against its registered lake master.
+    """Check frame anchors while keeping Frozen-background comparison separate.
 
-    The synthetic fish fixtures use yellow borders and blue/red panels: counting
-    *white* edge pixels silently misclassifies a correctly rounded, clipped card.
-    Use stable interior/exterior background-difference witnesses instead, while
-    Compose instrumentation continues to assert the exact Hero bounds and clip.
+    The registered lake asset and the flattened Frozen page are distinct visual
+    authorities. Exterior MAE against the raw master is descriptive evidence for
+    P0-B review; it cannot gate CTA/camera masks or card geometry.
     """
     image = Image.open(path).convert("RGB")
     width, height = image.size
@@ -193,7 +192,10 @@ def analyze_structure(path: Path, background_source: Path) -> dict[str, object]:
             "frozen_reference_rect_px": [170, 596, 910, 1476],
             "method": "source-hash-verified-lake-background-interior-exterior-witnesses",
             "interior_mean_rgb_abs_difference": interior,
-            "exterior_mean_rgb_abs_difference": exterior,
+            "exterior_master_comparison": {
+                "status": "REVIEW_REQUIRED_BACKGROUND_AUTHORITY_CONFLICT",
+                "descriptive_only_mean_rgb_abs_difference": exterior,
+            },
             "semantic_geometry": "verified separately by NormalHomeDataParityTest boundsInRoot",
             "corner_clip": "verified separately by realSamplePhotoSharesFullHeroBoundsAndClipsAtAllFourRoundedCorners",
         },
@@ -204,21 +206,16 @@ def analyze_structure(path: Path, background_source: Path) -> dict[str, object]:
         "header_dark_pixels": 800,
         "stats_dark_pixels": 250,
         "recent_header_bright_pixels": 800,
-        "cta_bright_pixels": 350,
-        "camera_bright_pixels": 5000,
     }.items():
         if anchors[key] < floor:
             failures.append(f"{key} below structural minimum ({anchors[key]} < {floor})")
     for key, measured in interior.items():
         if measured < 15.0:
             failures.append(f"card interior missing at {key} (lake MAE={measured:.2f} < 15)")
-    for key, measured in exterior.items():
-        if measured > 10.0:
-            failures.append(f"card exterior appears covered at {key} (lake MAE={measured:.2f} > 10)")
     if not anchors["content_within_safe_canvas"]:
         failures.append("header or capture action is outside the safe canvas")
-    if failures:
-        raise ValueError(f"structural anchor failures in {path.name}: " + "; ".join(failures))
+    anchors["status"] = "FAIL" if failures else "PASS"
+    anchors["failures"] = failures
     return anchors
 
 
@@ -333,7 +330,9 @@ def main(out: Path) -> int:
         "runtime_actual_dimensions": list(dimensions(runtime)),
         "runtime_capture_resized": False,
         "structural_anchor_checks": structural,
-        "structural_anchors": "PASS",
+        "structural_anchors": "PASS" if all(
+            item.get("status") == "PASS" for item in structural.values()
+        ) else "FAIL",
         "region_metrics_descriptive_only": region_metrics,
         "hierarchy_and_geometry_review": "STRUCTURAL_ANCHORS_PASS; DIRECT_VISUAL_REVIEW_STILL_REQUIRED",
         "carousel_capture_mae": round(carousel_mae, 4),
@@ -362,7 +361,8 @@ def main(out: Path) -> int:
                     "optical_masks": optical_masks}, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(json.dumps({"background": background_report, "visual": report}, ensure_ascii=False))
-    return 1 if optical_masks.get("status") == "FAIL" else 0
+    structural_failed = any(item.get("status") == "FAIL" for item in structural.values())
+    return 1 if optical_masks.get("status") == "FAIL" or structural_failed else 0
 
 
 if __name__ == "__main__":

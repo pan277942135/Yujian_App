@@ -289,6 +289,9 @@ class NormalHomeHeroBehaviorTest {
     fun guestAvatarOnHomeScreenRoutesToLoginInsteadOfProfile() {
         var loginClicks = 0
         var profileClicks = 0
+        // Freeze the Compose test clock so HomeScreen's live camera motion does
+        // not keep Espresso waiting for a continuously animated frame.
+        compose.mainClock.autoAdvance = false
         compose.setContent {
             HomeScreen(
                 nickname = "访客",

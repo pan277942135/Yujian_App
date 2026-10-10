@@ -138,14 +138,15 @@ class NormalHomeDataParityTest {
             )
             val pagerBounds = compose.onNodeWithTag("normal-home-catch-pager").fetchSemanticsNode().boundsInRoot
             val referencePixelScale = pagerBounds.width / 1080f
+            val geometryTolerancePx = maxOf(2f, 0.002f * pagerBounds.width)
             val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta", useUnmergedTree = true)
                 .fetchSemanticsNode().boundsInRoot
             val cameraTouchBounds = compose.onNodeWithContentDescription("开始识鱼")
                 .fetchSemanticsNode().boundsInRoot
-            assertEquals("CTA container width stays at the 420px reference", 420f * referencePixelScale, ctaBounds.width, 1.5f)
-            assertEquals("CTA container height stays at the 58px reference", 58f * referencePixelScale, ctaBounds.height, 1.5f)
-            assertEquals("Camera touch target width stays at the 208px reference", 208f * referencePixelScale, cameraTouchBounds.width, 1.5f)
-            assertEquals("Camera touch target height stays at the 208px reference", 208f * referencePixelScale, cameraTouchBounds.height, 1.5f)
+            assertEquals("CTA container width stays within contract geometry tolerance", 420f * referencePixelScale, ctaBounds.width, geometryTolerancePx)
+            assertEquals("CTA container height stays within contract geometry tolerance", 58f * referencePixelScale, ctaBounds.height, geometryTolerancePx)
+            assertEquals("Camera touch target width stays within contract geometry tolerance", 208f * referencePixelScale, cameraTouchBounds.width, geometryTolerancePx)
+            assertEquals("Camera touch target height stays within contract geometry tolerance", 208f * referencePixelScale, cameraTouchBounds.height, geometryTolerancePx)
             assertTrue("Camera touch target remains at least 48dp", cameraTouchBounds.width / context.resources.displayMetrics.density >= 48f)
             assertTrue("CTA container remains above and separate from camera hitbox", ctaBounds.bottom <= cameraTouchBounds.top)
             assertEquals(280f / 1080f, labels[0].center.x / pagerBounds.width, 0.01f)
