@@ -12,7 +12,8 @@
     "03_low",
     "04_no_fish",
     "05_image_quality",
-    "06_content_edit"
+    "06_content_edit",
+    "07_decision_logic"
   ],
   "state_model": "3+2",
   "result_states": [
@@ -79,5 +80,9 @@
   "state_decision_spec": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
   "state_decision_machine_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
   "proposed_state_threshold_changes_approved": false,
-  "state_decision_implementation_modified": false
+  "state_decision_implementation_modified": false,
+  "decision_logic_menu_registered": true,
+  "decision_logic_menu_id": "RR07",
+  "decision_logic_menu_authority": "design/pages/recognition/result/07_decision_logic/README.md",
+  "decision_logic_menu_status": "CURRENT_RUNTIME_DOCUMENTED_PENDING_NEW_THRESHOLD_VALIDATION"
 }
