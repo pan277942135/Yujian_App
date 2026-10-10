@@ -1,4 +1,4 @@
-> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL DESIGN FREEZE RECORD / ACTIVE BACKGROUND SOURCE FACTS. Design frozen does NOT establish runtime PASS; current engineering acceptance is separate. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL DESIGN FREEZE RECORD / ACTIVE BACKGROUND SOURCE FACTS. Design frozen does NOT establish runtime PASS; current engineering acceptance is separate. Current Work/Validation entry: [Normal Home Engineering Authority](engineering/README.md). No historical evidence or original numbered rows below are deleted.
 
 # Normal Home Design Package Closure V1.1
 
