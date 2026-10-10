@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "feature_id": "record_date_v2",
-  "status": "ACTIVE_CLOSURE",
+  "status": "FROZEN",
   "entry": {
     "source": "home_normal_v1",
     "action": "tap_record_days",
@@ -16,7 +16,7 @@
       "view_id": "month_v2",
       "label_zh": "01 · 月视图 V2",
       "authority": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
-      "status": "ACTIVE_CLOSURE"
+      "status": "FROZEN"
     },
     {
       "order": 2,
@@ -24,7 +24,7 @@
       "view_id": "year_v2",
       "label_zh": "02 · 年视图 V2",
       "authority": "design/pages/record_date/v2/assets/Record_Date_Year_V2.png",
-      "status": "ACTIVE_CLOSURE"
+      "status": "FROZEN"
     },
     {
       "order": 3,
@@ -32,12 +32,14 @@
       "view_id": "interaction",
       "label_zh": "03 · 交互与数据规范",
       "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
-      "status": "ACTIVE_CLOSURE"
+      "status": "FROZEN"
     }
   ],
   "month_year_state": "same page / same selected year month",
   "warnings": [
-    "Generated PNG statistics are non-authoritative.",
-    "Do not mark visual as FROZEN until P0 gates pass."
-  ]
+    "Visual composition frozen, not runtime data nor Android implementation.",
+    "Year illustration 68 != monthly sum 59; data derives from FishRecord.",
+    "Canonical BG_DATA background overrides unverified scenery in generated PNGs."
+  ],
+  "freeze_decision": "design/pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md"
 }
