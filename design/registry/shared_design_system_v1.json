@@ -202,7 +202,8 @@
         "design/system/components/action_button/manifest.json",
         "design/system/components/action_button/visual_contract.json",
         "design/system/components/action_button/motion_contract.json",
-        "design/system/components/action_button/usage_map.json"
+        "design/system/components/action_button/usage_map.json",
+        "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
       ],
       "preview": "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
       "preview_type": "action_button_system",
@@ -258,7 +259,7 @@
           "page": "识别结果 · 低置信"
         }
       ],
-      "note": "V1.1 完整冻结：三档基础视觉、Login/Register 单按钮、两组双按钮、PRIMARY 五态、SECONDARY_STRONG 五态、SECONDARY_MUTED 四态；Muted Loading=N/A。",
+      "note": "V1.1 完整冻结：三档基础视觉、Login/Register 单按钮、两组双按钮、PRIMARY 五态、SECONDARY_STRONG 五态、SECONDARY_MUTED 四态；Muted Loading=N/A。 Recognition Result V1.1 的 RESULT_SAVE / muted Continue / equal dual CTA 为已登记的页面例外，优先于旧 44/56 使用示例，但不改变三档公共按钮冻结资产。",
       "revisions": [
         {
           "version": "V1",
@@ -365,6 +366,26 @@
           ],
           "status": "FROZEN",
           "version": "V1.1"
+        }
+      ],
+      "page_scoped_exceptions": [
+        {
+          "id": "RECOGNITION_RESULT_ACTION_SURFACES",
+          "page": "recognition_result_v1",
+          "states": [
+            "RR01",
+            "RR02",
+            "RR03",
+            "RR04",
+            "RR05"
+          ],
+          "profiles": [
+            "RESULT_SAVE",
+            "RESULT_CONTINUE_MUTED"
+          ],
+          "status": "FROZEN_PAGE_AUTHORITY",
+          "authority": "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md",
+          "globally_reusable": false
         }
       ]
     },
@@ -632,7 +653,8 @@
         "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
         "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
         "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
-        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg"
+        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
       ],
       "variants": [
         {
@@ -694,7 +716,7 @@
         {
           "id": "BACK_TITLE",
           "name": "02 · 返回 + 标题",
-          "usage": "识别结果、账号与隐私、设置/法律文档等二级页面",
+          "usage": "账号与隐私、编辑资料等标准二级页；Recognition Result 的 Species Selector。结果 05–09 主页面使用单独登记的居中标题例外。",
           "note": "二级页统一左排：56dp min height；8dp outer padding；Back=44dp target/22dp glyph；Back-title gap=8dp；标题20sp/Medium/26sp；单行 Ellipsis；不允许居中假平衡 spacer。",
           "status": "FROZEN",
           "authority_path": "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
@@ -817,9 +839,26 @@
           ]
         }
       ],
-      "note": "Top Navigation V1 已整体冻结：TITLE_ONLY、BACK_TITLE、BACK_TITLE_ACTIONS 三个组合均有独立 Frozen Spec 与 Visual Authority；左侧子菜单直达工作区。",
+      "note": "Top Navigation V1 已整体冻结：TITLE_ONLY、BACK_TITLE、BACK_TITLE_ACTIONS 三个组合均有独立 Frozen Spec 与 Visual Authority；左侧子菜单直达工作区。 Recognition Result 05–09 的居中标题仅为独立登记的页面例外，不新增第四种公共组合；Species Selector 仍属于 BACK_TITLE。",
       "navigation_mode": "submenu_direct",
-      "show_variant_index": false
+      "show_variant_index": false,
+      "page_scoped_exceptions": [
+        {
+          "id": "RECOGNITION_RESULT_BACK_CENTER_TITLE",
+          "page": "recognition_result_v1",
+          "states": [
+            "RR01",
+            "RR02",
+            "RR03",
+            "RR04",
+            "RR05"
+          ],
+          "composition": "BACK_CENTER_TITLE",
+          "status": "FROZEN_PAGE_AUTHORITY",
+          "authority": "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md",
+          "globally_reusable": false
+        }
+      ]
     },
     {
       "id": "mist_glass_surface_v1",
