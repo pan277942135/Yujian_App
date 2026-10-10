@@ -61,3 +61,7 @@ Product owner: only versioned design decisions / genuinely conflicting immutable
 - Archive_And_Supersession_V1.md — P2, legacy source status and non-destructive cleanup.
 
 Historical design-state package remains linked in ../README.md; frozen PNGs, manifests and historical commits remain immutable. 
+
+## Repeatable static governance gate
+
+Run from repository root: python3 scripts/design/verify_normal_home_contract_v1.py. This checks document pointers, authority priorities, 38 distinct test IDs, statuses and *actual checked-out Frozen PNG* hash/dimensions. A static gate PASS does NOT prove Android runtime behavior. Runtime requirements must still be implemented and measured against an exact APK SHA.
