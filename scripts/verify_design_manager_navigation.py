@@ -99,6 +99,33 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         if not guest or not (root / guest).exists():
             fail("NH07 Guest must resolve to separate registered source")
 
+    # Record Date V2 is design-only but both committed original images are byte-identified.
+    record = next((f for f in registry.get("features", []) if f.get("id") == "record_date_v2"), None)
+    if record is None or record.get("display_name") != "记录日期":
+        fail("Record Date V2 top-level navigation missing")
+    if [v.get("id") for v in record.get("hifi_views", [])] != ["month_v2", "year_v2", "interaction"]:
+        fail("Record Date V2 must register month/year/interaction direct submenus")
+    record_manifest = load_json(design / "pages/record_date/v2/assets/asset_manifest.json")
+    for view_id, entry_key, dim in [
+        ("month_v2", "month", (853, 1844)),
+        ("year_v2", "year", (935, 1683)),
+    ]:
+        entry = record_manifest[entry_key]
+        view = next(v for v in record["hifi_views"] if v["id"] == view_id)
+        if view.get("status") != "ACTIVE_CLOSURE" or view.get("image") != entry["path"]:
+            fail(f"Record Date {view_id} must render registered pending-review PNG")
+        data_path = root / entry["path"]
+        if not data_path.is_file():
+            fail(f"Record Date V2 source PNG absent: {entry['path']}")
+        data = data_path.read_bytes()
+        if data[:8] != b"\x89PNG\r\n\x1a\n" or len(data) != entry["bytes"]:
+            fail(f"Record Date PNG bytes/header mismatch: {view_id}")
+        width, height = struct.unpack(">II", data[16:24])
+        if (width, height) != dim or hashlib.sha256(data).hexdigest() != entry["sha256"]:
+            fail(f"Record Date image SHA256/dimensions mismatch: {view_id}")
+    if record.get("design_overall") != "ACTIVE_CLOSURE":
+        fail("Record Date images must remain un-frozen until design review")
+
     app = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
     required_logic = '(selectedKey === key || selectedKey.startsWith(key + "/"))'
     if required_logic not in app:

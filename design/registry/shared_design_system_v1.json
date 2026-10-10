@@ -66,7 +66,7 @@
         {
           "id": "BG_DATA",
           "name": "数据背景",
-          "usage": "我的鱼获 / 鱼鉴 / 高密度信息页",
+          "usage": "我的鱼获 / 鱼鉴 / 高密度信息页 / 记录日期 V2（页面复用，参数不变）",
           "note": "统一使用无太阳 Morning_Lake_Master_V1，背景存在感约为 Hero 的 48%。",
           "preview_treatment": {
             "saturation": 0.79,

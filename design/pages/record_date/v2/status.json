@@ -1,0 +1,12 @@
+{
+  "feature_id": "record_date_v2",
+  "design_overall": "ACTIVE_CLOSURE",
+  "visual": "ACTIVE_CLOSURE",
+  "behavior": "ACTIVE_CLOSURE",
+  "runtime": "MISSING",
+  "source_assets": "COMMITTED_ORIGINAL_PNG_BYTES",
+  "background": "BG_DATA_CANDIDATE_PENDING_PIXEL_PARITY",
+  "frozen": false,
+  "year_demo_data_inconsistency": "header 68 versus monthly total 59",
+  "android_modified": false
+}

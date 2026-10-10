@@ -1,0 +1,43 @@
+{
+  "version": "2.0",
+  "feature_id": "record_date_v2",
+  "status": "ACTIVE_CLOSURE",
+  "entry": {
+    "source": "home_normal_v1",
+    "action": "tap_record_days",
+    "target": "record_date_v2",
+    "runtime_status": "NOT_VERIFIED",
+    "design_decision": "APPROVED_USER_REQUEST_PENDING_ANDROID"
+  },
+  "level_2": [
+    {
+      "order": 1,
+      "id": "RD01",
+      "view_id": "month_v2",
+      "label_zh": "01 · 月视图 V2",
+      "authority": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
+      "status": "ACTIVE_CLOSURE"
+    },
+    {
+      "order": 2,
+      "id": "RD02",
+      "view_id": "year_v2",
+      "label_zh": "02 · 年视图 V2",
+      "authority": "design/pages/record_date/v2/assets/Record_Date_Year_V2.png",
+      "status": "ACTIVE_CLOSURE"
+    },
+    {
+      "order": 3,
+      "id": "RD03",
+      "view_id": "interaction",
+      "label_zh": "03 · 交互与数据规范",
+      "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+      "status": "ACTIVE_CLOSURE"
+    }
+  ],
+  "month_year_state": "same page / same selected year month",
+  "warnings": [
+    "Generated PNG statistics are non-authoritative.",
+    "Do not mark visual as FROZEN until P0 gates pass."
+  ]
+}

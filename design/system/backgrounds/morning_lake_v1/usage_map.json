@@ -14,7 +14,8 @@
     "auth_login_v2": "BG_CONTENT",
     "auth_register_v2": "BG_CONTENT",
     "profile_edit_v1": "BG_CONTENT",
-    "user_agreement_v1": "BG_CONTENT"
+    "user_agreement_v1": "BG_CONTENT",
+    "record_date_v2": "BG_DATA"
   },
   "master_by_page": {
     "home_empty_v2": "Morning_Lake_Sunrise_Hero_V1",
@@ -27,7 +28,8 @@
     "auth_login_v2": "Morning_Lake_Master_V1",
     "auth_register_v2": "Morning_Lake_Master_V1",
     "profile_edit_v1": "Morning_Lake_Master_V1",
-    "user_agreement_v1": "Morning_Lake_Master_V1"
+    "user_agreement_v1": "Morning_Lake_Master_V1",
+    "record_date_v2": "Morning_Lake_Master_V1"
   },
   "non_lake_sources": {
     "recognition_flow_v1_2": "current_user_photo",

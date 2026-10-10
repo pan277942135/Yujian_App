@@ -319,7 +319,8 @@
         "overview": "页面总览保留当前 Normal Home Closure / shared refs / modalities。",
         "state_pages": "NH01–NH07 左侧二级菜单直达；NH07 是头像状态规范预览，不替代 NH01 全屏视觉。",
         "authority": "NH01 Frozen 页面 > Normal Home package spec > shared system > runtime implementation。",
-        "output_principle": "关键内容独立出图；辅助状态、组件状态、边界状态按内容合并出图。"
+        "output_principle": "关键内容独立出图；辅助状态、组件状态、边界状态按内容合并出图。",
+        "record_days_navigation_v2": "NEW PRODUCT DESIGN 2026-10-10: 记录天数 → 记录日期(record_date_v2), Android pending; see design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md."
       },
       "hifi_views": [
         {
@@ -506,6 +507,168 @@
           "master_sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
           "master_bytes": 1255352,
           "master_preview_mode": "LIGHTBOX_OPEN_ORIGINAL"
+        }
+      ]
+    },
+    {
+      "id": "record_date_v2",
+      "display_name": "记录日期",
+      "owner_path": "design/pages/record_date/v2",
+      "overall": "ACTIVE_CLOSURE",
+      "design_overall": "ACTIVE_CLOSURE",
+      "modalities": {
+        "behavior": {
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+          "note": "首页记录天数点击→记录日期 V2 为设计决策；当前 Android 尚未证明实现。"
+        },
+        "visual": {
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
+          "note": "月/年两张原始 PNG 均已上传并有指纹，不代表已冻结；年图示例数字与月份汇总不一致，须修订后验收。"
+        },
+        "motion": {
+          "status": "PARTIAL",
+          "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Motion_Video_Contract.md"
+        },
+        "haptic": {
+          "status": "DEFERRED",
+          "authority": null
+        },
+        "sound": {
+          "status": "DEFERRED",
+          "authority": null
+        },
+        "runtime": {
+          "status": "MISSING",
+          "authority": null,
+          "note": "设计系统发布不等于Android导线已实现。"
+        },
+        "evidence": {
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/record_date/v2/review/Record_Date_V2_Visual_Audit.md"
+        },
+        "assets": {
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/record_date/v2/assets/asset_manifest.json",
+          "note": "两个原始 PNG 的确切字节/SHA256已经记录。"
+        }
+      },
+      "design_versions": [
+        {
+          "version": "V2",
+          "status": "ACTIVE_CLOSURE",
+          "current": true,
+          "visual_authority": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
+          "spec_authority": "design/pages/record_date/v2/spec/Record_Date_V2_Design_Spec.md",
+          "note": "原始月图为模块预览；年图为02子菜单。等待背景与数据一致性审议，禁止直接标 FROZEN。"
+        }
+      ],
+      "shared_system_refs": [
+        {
+          "id": "background_system_v1",
+          "variant": "BG_DATA",
+          "master": "Morning_Lake_Master_V1",
+          "note": "只引用 canonical 无太阳母版；两张静态渲染的背景一致性待人工对比。"
+        },
+        {
+          "id": "top_navigation_v1",
+          "variant": "BACK_TITLE_ACTIONS",
+          "note": "返回/记录/今天；顶部行为具体热区待设计复核。"
+        },
+        {
+          "id": "mist_glass_surface_v1",
+          "variant": "GLASS_A",
+          "note": "日历与月份索引主表面；统计条采用GLASS_B。"
+        },
+        {
+          "id": "color_typography_v1"
+        },
+        {
+          "id": "spacing_radius_v1"
+        },
+        {
+          "id": "fish_media_display_v1",
+          "variant": "CROP_THUMBNAIL",
+          "note": "参考真实鱼获缩略图体系，不使用AI生成示例代替运行时原图。"
+        }
+      ],
+      "note": "用户确认新增「记录日期」一级菜单，入口为 Normal Home「记录天数」。V2包含月历/当天鱼获与4×3年度月份/日期列表；两张原始高保 PNG 已入库、字节已校验。视觉仍为 ACTIVE_CLOSURE：待确认 BG_DATA 背景像素对齐和年图68次/月份合计59次矛盾；不代表 Android 已实现。",
+      "navigation_model": "record_date_v2_month_year_navigation",
+      "design_manager_view_rules": {
+        "menu": "Record Date 独立一级菜单，RD01/RD02/RD03 直接展开，月/年是同一页面的两种模式。点击图片可放大查看 GitHub 原始 PNG。",
+        "historical": "2026-09-04 12小日历年份旧稿和 2026-09-05 4×3 历史稿仅作参考，不能替代本次 V2 独立高保原图。",
+        "visual_status": "两张均为 ACTIVE_CLOSURE，未经用户视觉验收不得宣称 FROZEN。",
+        "android": "设计目标不修改 Android 运行时；旧 Home Contract 的记录天数不可点击是待实现差异，不是新页面未注册。"
+      },
+      "hifi_views": [
+        {
+          "id": "month_v2",
+          "code": "RD01",
+          "title": "01 · 月视图 V2",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Design_Spec.md",
+          "behavior_authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+          "visual_authority": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
+          "image": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
+          "visual_caption": "V2 原始月视图 PNG · 853 × 1844 · 点击查看原图 / ACTIVE_CLOSURE（未冻结）",
+          "summary": "月历／鱼获日期标记／选中9月3日／当天鱼获时间线。原始 PNG 未压缩，背景与数据仍待视觉审议。",
+          "supporting_visual_references": [
+            {
+              "label": "PNG SHA256/Dimensions",
+              "path": "design/pages/record_date/v2/assets/asset_manifest.json"
+            },
+            {
+              "label": "Visual review gate",
+              "path": "design/pages/record_date/v2/review/Record_Date_V2_Visual_Audit.md"
+            }
+          ]
+        },
+        {
+          "id": "year_v2",
+          "code": "RD02",
+          "title": "02 · 年视图 V2",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "repo_image",
+          "authority_type": "visual",
+          "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Design_Spec.md",
+          "behavior_authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+          "visual_authority": "design/pages/record_date/v2/assets/Record_Date_Year_V2.png",
+          "image": "design/pages/record_date/v2/assets/Record_Date_Year_V2.png",
+          "visual_caption": "V2 原始年视图 PNG · 935 × 1683 · 点击查看原图 / ACTIVE_CLOSURE（未冻结）",
+          "summary": "2026年度、4列×3行月份卡、9月选中、按日期列出鱼获。年图68总次数与月卡合计59不一致，属P0冻结阻塞，需校正。",
+          "supporting_visual_references": [
+            {
+              "label": "PNG SHA256/Dimensions",
+              "path": "design/pages/record_date/v2/assets/asset_manifest.json"
+            },
+            {
+              "label": "P0/背景/数据审核",
+              "path": "design/pages/record_date/v2/review/Record_Date_V2_Visual_Audit.md"
+            }
+          ]
+        },
+        {
+          "id": "interaction",
+          "code": "RD03",
+          "title": "03 · 交互与数据规范",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "authority_index",
+          "authority_type": "behavior",
+          "authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+          "secondary_authority": "design/pages/record_date/v2/spec/Record_Date_V2_Motion_Video_Contract.md",
+          "summary": "首页记录天数→记录日期；月年切换、今天、日期/鱼获导航、记录天数与鱼获次数区分、无记录/加载/异常状态，区分设计目标与当前Android。",
+          "menu_points": [
+            "首页记录天数 → 记录日期（设计目标，Android 未实施核验）",
+            "月/年单状态持有者 · 月历7列 / 年度月份4×3",
+            "按捕获当地有效日期归档；recordDayCount=去重自然日",
+            "Top calendar counts / monthly totals / year totals必须自洽",
+            "选中日鱼获 / 年度月份日期列表 / FishRecordDetail ID 路由",
+            "今天 / 跨月 / 跨年 / 闰年 / 空记录 / 加载与失败",
+            "BG_DATA + shared motion / 减弱动效；无独立视频背景"
+          ]
         }
       ]
     },
