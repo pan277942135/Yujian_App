@@ -73,6 +73,10 @@ fun YuJianCaptureButton(
     rasterMotion: YuJianCaptureButtonRasterMotion? = null,
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
+    rasterArtworkScaleX: Float = 1f,
+    rasterArtworkScaleY: Float = 1f,
+    rasterArtworkOffsetX: Dp = 0.dp,
+    rasterArtworkOffsetY: Dp = 0.dp,
 ) {
     val haptic = rememberYuJianHaptic()
     val effectiveMotionEnabled = motionEnabled && !rememberYuJianReduceMotion()
@@ -130,18 +134,33 @@ fun YuJianCaptureButton(
                 Image(
                     bitmap = rasterAssets.breathGlow,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = glowAlpha },
+                    modifier = Modifier.fillMaxSize().graphicsLayer {
+                        scaleX = rasterArtworkScaleX
+                        scaleY = rasterArtworkScaleY
+                        translationX = rasterArtworkOffsetX.toPx()
+                        translationY = rasterArtworkOffsetY.toPx()
+                        alpha = glowAlpha
+                    },
                 )
                 Image(
                     bitmap = rasterAssets.base,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().graphicsLayer {
+                        scaleX = rasterArtworkScaleX
+                        scaleY = rasterArtworkScaleY
+                        translationX = rasterArtworkOffsetX.toPx()
+                        translationY = rasterArtworkOffsetY.toPx()
+                    },
                 )
                 if (visibleSweepAlpha > 0f) {
                     Image(
                         bitmap = rasterAssets.goldRimSweep,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize().graphicsLayer {
+                            scaleX = rasterArtworkScaleX
+                            scaleY = rasterArtworkScaleY
+                            translationX = rasterArtworkOffsetX.toPx()
+                            translationY = rasterArtworkOffsetY.toPx()
                             alpha = visibleSweepAlpha
                             rotationZ = rasterMotion?.sweepRotationDegrees ?: (-110f + rimProgress * 360f)
                         },

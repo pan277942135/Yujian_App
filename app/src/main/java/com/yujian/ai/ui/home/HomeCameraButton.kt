@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -31,6 +32,10 @@ internal fun HomeCameraButton(
     runtimeAssets: HomeCameraRasterAssets? = null,
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
+    rasterArtworkScaleX: Float = 1f,
+    rasterArtworkScaleY: Float = 1f,
+    rasterArtworkOffsetX: Dp = 0.dp,
+    rasterArtworkOffsetY: Dp = 0.dp,
 ) {
     val active = emptyHomeMotionActive(
         running = motionState.running,
@@ -61,5 +66,9 @@ internal fun HomeCameraButton(
         ),
         visualSize = visualSize,
         touchTargetSize = touchTargetSize,
+        rasterArtworkScaleX = rasterArtworkScaleX,
+        rasterArtworkScaleY = rasterArtworkScaleY,
+        rasterArtworkOffsetX = rasterArtworkOffsetX,
+        rasterArtworkOffsetY = rasterArtworkOffsetY,
     )
 }

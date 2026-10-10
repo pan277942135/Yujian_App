@@ -84,6 +84,11 @@ private const val NormalHomeCtaHeight = 58f
 private const val NormalHomeCameraY = 1588f
 private const val NormalHomeCameraSize = 200f
 private const val NormalHomeCameraTouchSize = 208f
+// Calibrated from the native ROI masks: keep the 200px visual box and 208px hitbox unchanged.
+private const val NormalHomeCameraArtworkScaleX = 1.08f
+private const val NormalHomeCameraArtworkScaleY = 1.03f
+private const val NormalHomeCameraArtworkOffsetX = -1.5f
+private const val NormalHomeCameraArtworkOffsetY = -2.5f
 private const val NormalHomeHeroCornerRadius = 32f
 private const val NormalHomeFooterHorizontalInset = 56f
 private const val NormalHomeFooterVerticalInset = 32f
@@ -305,6 +310,10 @@ internal fun NormalHomeContent(
             runtimeAssets = runtimeAssets,
             visualSize = cameraSize,
             touchTargetSize = cameraTouchSize,
+            rasterArtworkScaleX = NormalHomeCameraArtworkScaleX,
+            rasterArtworkScaleY = NormalHomeCameraArtworkScaleY,
+            rasterArtworkOffsetX = ref(NormalHomeCameraArtworkOffsetX),
+            rasterArtworkOffsetY = ref(NormalHomeCameraArtworkOffsetY),
         )
         }
     }
@@ -577,6 +586,10 @@ private fun NormalHomeSafeOverflow(
                     runtimeAssets = runtimeAssets,
                     visualSize = cameraVisualSize,
                     touchTargetSize = cameraTouchSize,
+                    rasterArtworkScaleX = NormalHomeCameraArtworkScaleX,
+                    rasterArtworkScaleY = NormalHomeCameraArtworkScaleY,
+                    rasterArtworkOffsetX = ref(NormalHomeCameraArtworkOffsetX),
+                    rasterArtworkOffsetY = ref(NormalHomeCameraArtworkOffsetY),
                 )
             }
         }
