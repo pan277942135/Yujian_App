@@ -55,7 +55,13 @@ instrumentation_log_passed() {
   if grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_STATUS_CODE:[[:space:]]*-2|INSTRUMENTATION_RESULT:[[:space:]]*shortMsg=' "$log_file"; then
     return 1
   fi
-  grep -Eiq 'OK \([1-9][0-9]* tests?\)' "$log_file"
+  local completion_line
+  completion_line="$(grep -Eo 'OK \([1-9][0-9]* tests?\)' "$log_file" | tail -n 1 || true)"
+  if [[ -n "$completion_line" ]]; then
+    printf 'NORMAL_HOME_JUNIT_RESULT=%s\n' "$completion_line"
+    return 0
+  fi
+  return 1
 }
 
 
