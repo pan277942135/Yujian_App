@@ -30,5 +30,11 @@
   "asset_governance_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
   "original_raw_source_materialization": "DENIED",
   "pending_original_png_sha256": 10,
-  "original_bytes_last_rechecked": "2026-10-10"
+  "original_bytes_last_rechecked": "2026-10-10",
+  "current_conversation_attachments_received": 8,
+  "current_conversation_attachment_historical_design_count": 6,
+  "current_conversation_attachment_supplemental_board_count": 2,
+  "new_attachment_binary_committed": 0,
+  "new_attachment_manifest": "design/pages/fish_records/list/habitat/habitat_uploaded_attachment_manifest_20261010.json",
+  "binary_stage": "VERIFIED_IN_WORKSPACE_GITHUB_PENDING"
 }

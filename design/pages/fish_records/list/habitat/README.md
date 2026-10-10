@@ -17,3 +17,12 @@ Design Manager 当前仅收录已讨论的结构规范，以及鱼塘 1–5、�
 ### 高保资产及当前图源边界（V1.1）
 
 [Habitat Hifi Asset Governance V1.1](Habitat_Hifi_Asset_Governance_V1_1.md) 定义了已找回10张原始PNG的图库来源、尺寸和元数据，以及只有取得真实原始字节、完成SHA-256和Git blob校验后才允许在子菜单中标记 `COMMITTED_VERIFIED` 的规则。**目前10张仍为未上传的来源卡；现有两张阶段PNG在仓库可预览。**
+
+
+## 2026-10-10 · 新接收高保完整 PNG（附件指纹）
+
+已收到用户直接上传的**8 张完整 PNG 附件**，其中六张是已有鱼缸/鱼塘历史设计的同名对应版本，另外两张是鱼塘五级对比替代图。PNG结构、尺寸、完整文件SHA-256已在工作区核验。与先前资料库版本的字节大小不同，因此分别保留历史来源和本次附件版本身份。
+
+[8张高保附件清单及严格入库规范](Habitat_Hifi_Attachment_Import_Plan_20261010.md) · [附件机读哈希清单](habitat_uploaded_attachment_manifest_20261010.json)。
+
+**GitHub 远端二进制上传尚未完成，图像子菜单不可误标已上传；现有鱼塘1–5/湖泊1–7图照常保留。**

@@ -5329,7 +5329,7 @@
           "authority": "design/pages/fish_records/list/habitat/README.md",
           "behavior_authority": "design/pages/fish_records/list/habitat/My_Habitat_Spec_V1.md",
           "authority_type": "group",
-          "summary": "已恢复历史圆缸3张、横屏景观缸4张、自然鱼塘3张的来源登记；2张已入GitHub的鱼塘/湖泊阶段原图继续可点开。未取得原始字节的10张标为待导入而不冒充视觉预览；尚未选定主页面Frozen高保。",
+          "summary": "鱼缸/鱼塘历史原图10张中已有6张同名设计的完整PNG附件，通过原始附件哈希校验（历史资料库二进制同源尚未证明），另有鱼塘五级备选参考2张。共8张仍待GitHub二进制上传；现有两张阶段原图继续可预览。",
           "menu_points": [
             "鱼缸：圆缸 3 张历史高保（原图待导入）",
             "鱼缸：横屏景观缸 4 张历史高保（原图待导入）",
@@ -5355,7 +5355,12 @@
                   "height": 1844,
                   "note": "竖屏圆缸，5条鱼获/3种鱼，整页氛围、草鱼主鱼",
                   "source_library_path": "/Catcher/晨雾湖畔我的渔境.png",
-                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                  "raw_binary_status": "PENDING_RAW_IMPORT",
+                  "attachment_sha256": "40aa62b957b2c83117c5775ce37f944d96679d7c04a6afb384ed819bc8815d74",
+                  "attachment_bytes": 2989878,
+                  "attachment_original_filename": "晨雾湖畔我的渔境.png",
+                  "attachment_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_round_mobile_a.png",
+                  "attachment_status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING"
                 },
                 {
                   "id": "tank_round_mobile_b",
@@ -5364,7 +5369,12 @@
                   "height": 1536,
                   "note": "竖屏圆缸、鱼体标签、底部鱼获托盘",
                   "source_library_path": "/Catcher/晨光湖畔的我的渔境.png",
-                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                  "raw_binary_status": "PENDING_RAW_IMPORT",
+                  "attachment_sha256": "2a471a67ce15eaa51393696437bd187852f595c8d43706e9b726623053667d63",
+                  "attachment_bytes": 3098237,
+                  "attachment_original_filename": "晨光湖畔的我的渔境 (1).png",
+                  "attachment_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_round_mobile_b.png",
+                  "attachment_status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING"
                 },
                 {
                   "id": "tank_round_mobile_c",
@@ -5395,7 +5405,12 @@
                   "height": 941,
                   "note": "横屏五鱼景观方缸，有鱼体高亮点击状态",
                   "source_library_path": "/Catcher/我的渔境：晨光水族馆.png",
-                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                  "raw_binary_status": "PENDING_RAW_IMPORT",
+                  "attachment_sha256": "62ff20fac9f43142d7663db97fee0272d8369ff78728e283ed1b4106322a471d",
+                  "attachment_bytes": 3505490,
+                  "attachment_original_filename": "我的渔境：晨光水族馆 (1).png",
+                  "attachment_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_landscape_a.png",
+                  "attachment_status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING"
                 },
                 {
                   "id": "tank_landscape_b",
@@ -5404,7 +5419,12 @@
                   "height": 941,
                   "note": "横屏景观方缸，鱼群、TopBar和完整水线/玻璃边界",
                   "source_library_path": "/Catcher/湖畔晨光中的我的渔境.png",
-                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                  "raw_binary_status": "PENDING_RAW_IMPORT",
+                  "attachment_sha256": "70fc653c23762bf9affaf7b641d28cd140901da21c417fc7ea1b7d4f41d0c73f",
+                  "attachment_bytes": 3234263,
+                  "attachment_original_filename": "湖畔晨光中的我的渔境 (1).png",
+                  "attachment_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_landscape_b.png",
+                  "attachment_status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING"
                 },
                 {
                   "id": "tank_landscape_c",
@@ -5444,7 +5464,12 @@
                   "height": 941,
                   "note": "自然鱼塘的水上与水下剖面，无鱼缸玻璃壁",
                   "source_library_path": "/Catcher/晨雾渔境：清晨池塘与鱼群.png",
-                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                  "raw_binary_status": "PENDING_RAW_IMPORT",
+                  "attachment_sha256": "1d5ab79b74bbdfdeb8828e7fe06d3200c790f6ce234efb74c550514549142757",
+                  "attachment_bytes": 3518810,
+                  "attachment_original_filename": "晨雾渔境：清晨池塘与鱼群 (1).png",
+                  "attachment_target_path": "design/pages/fish_records/list/habitat/reference/recovered/pond_landscape_a.png",
+                  "attachment_status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING"
                 },
                 {
                   "id": "pond_landscape_b",
@@ -5453,7 +5478,12 @@
                   "height": 941,
                   "note": "横屏自然鱼塘、水下鱼群、自然岸边纵深",
                   "source_library_path": "/Catcher/晨曦下的我的渔境.png",
-                  "raw_binary_status": "PENDING_RAW_IMPORT"
+                  "raw_binary_status": "PENDING_RAW_IMPORT",
+                  "attachment_sha256": "e82c2b6735768ff1f5b9af7841eda5e92a4962aae7b4fea030f148e61fe3b59f",
+                  "attachment_bytes": 3830816,
+                  "attachment_original_filename": "晨曦下的我的渔境 (1).png",
+                  "attachment_target_path": "design/pages/fish_records/list/habitat/reference/recovered/pond_landscape_b.png",
+                  "attachment_status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING"
                 },
                 {
                   "id": "pond_landscape_c",
@@ -5514,9 +5544,19 @@
             {
               "path": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
               "label": "Habitat Hifi Asset Governance V1.1 / original source integrity"
+            },
+            {
+              "label": "8 PNG source integrity and GitHub import plan",
+              "path": "design/pages/fish_records/list/habitat/Habitat_Hifi_Attachment_Import_Plan_20261010.md"
+            },
+            {
+              "label": "8 PNG verified local attachment manifest",
+              "path": "design/pages/fish_records/list/habitat/habitat_uploaded_attachment_manifest_20261010.json"
             }
           ],
-          "visual_review_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md"
+          "visual_review_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
+          "attachment_manifest_authority": "design/pages/fish_records/list/habitat/habitat_uploaded_attachment_manifest_20261010.json",
+          "import_plan_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Attachment_Import_Plan_20261010.md"
         }
       ],
       "hifi_source_inventory": {
