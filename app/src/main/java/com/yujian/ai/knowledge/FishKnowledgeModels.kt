@@ -8,6 +8,10 @@ data class FishGuideItem(
     val category: String = "",
     val summary: String = "",
     val coverImage: String? = null,
+    /** Versioned COVER_HERO response only; never inferred from legacy cover_image. */
+    val coverHeroImage: String? = null,
+    val coverHeroVersionId: Int? = null,
+    val coverHeroStatus: String = "MISSING",
     val discovered: Boolean = false,
     val catches: Int = 0,
     val pinyin: String? = null,
@@ -26,6 +30,9 @@ data class FishKnowledgeSpecies(
     val summary: String,
     val status: String,
     val coverImage: String?,
+    val coverHeroImage: String? = null,
+    val coverHeroVersionId: Int? = null,
+    val coverHeroStatus: String = "MISSING",
 )
 
 data class FishKnowledgeCover(
@@ -45,6 +52,20 @@ data class FishKnowledgeCard(
     val sortOrder: Int,
     val status: String,
     val content: FishKnowledgeCardContent = FishKnowledgeCardContent(),
+    val versionId: String? = null,
+    val version: String? = null,
+)
+
+/** Public CMS asset metadata keyed by role. Status and provenance are retained for auditability. */
+data class FishKnowledgeAsset(
+    val role: String,
+    val imageUrl: String,
+    val version: String? = null,
+    val versionId: String? = null,
+    val resourceId: String? = null,
+    val status: String? = null,
+    val speciesId: String? = null,
+    val source: String = "VERSIONED_KNOWLEDGE_ASSET",
 )
 
 data class FishKnowledgeFeature(
@@ -163,6 +184,12 @@ data class FishKnowledgeDetail(
     val similarity: List<FishKnowledgeSimilarity>,
     val knowledge: FishKnowledgeStructured = FishKnowledgeStructured(),
     val dynamicAvailable: Boolean = false,
+    val coverHeroImage: String? = null,
+    val coverHeroVersionId: Int? = null,
+    val coverHeroStatus: String = "MISSING",
+    val knowledgeAssets: Map<String, FishKnowledgeAsset> = emptyMap(),
+    /** True when the API returned the versioned contract, even if it returned no usable roles. */
+    val knowledgeAssetsContractPresent: Boolean = false,
 )
 
 fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
@@ -179,6 +206,9 @@ fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
             summary = summary,
             status = catalogStatus,
             coverImage = coverImage,
+            coverHeroImage = coverHeroImage,
+            coverHeroVersionId = coverHeroVersionId,
+            coverHeroStatus = coverHeroStatus,
         ),
         cover = null,
         cards = emptyList(),
@@ -199,5 +229,8 @@ fun FishGuideItem.toFallbackDetail(): FishKnowledgeDetail {
         ),
         videos = emptyList(),
         similarity = emptyList(),
+        coverHeroImage = coverHeroImage,
+        coverHeroVersionId = coverHeroVersionId,
+        coverHeroStatus = coverHeroStatus,
     )
 }

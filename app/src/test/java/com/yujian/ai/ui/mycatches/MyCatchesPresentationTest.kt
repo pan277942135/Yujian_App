@@ -22,6 +22,19 @@ class MyCatchesPresentationTest {
     }
 
     @Test
+    fun catchListPresentationKeepsStoredMeasurementsAndClearMissingState() {
+        val saved = catchRecord("metadata", length = 32f, weight = 3.6f, location = "上海市青浦区")
+            .toFishRecordPresentation(imageUrl = "/api/v1/catches/metadata/media")
+        val empty = catchRecord("empty").toFishRecordPresentation(imageUrl = null)
+
+        assertEquals("32 cm · 3.6 kg", saved.measurementLabel)
+        assertEquals("上海市青浦区", saved.location)
+        assertEquals("/api/v1/catches/metadata/media", saved.imageUrl)
+        assertEquals(null, empty.measurementLabel)
+        assertEquals(null, empty.location)
+    }
+
+    @Test
     fun archiveRecordDaysCountDistinctValidCatchDatesOnly() {
         val sameDay = catchRecord("same-day-2", day = 23)
         val nextDay = catchRecord("next-day", day = 24)

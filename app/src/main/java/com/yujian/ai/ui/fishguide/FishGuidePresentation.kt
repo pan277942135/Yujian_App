@@ -2,6 +2,7 @@ package com.yujian.ai.ui.fishguide
 
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.knowledge.FishKnowledgeAsset
 import com.yujian.ai.knowledge.FishKnowledgeCard
 import com.yujian.ai.knowledge.FishKnowledgeDetail
 
@@ -26,7 +27,10 @@ data class FishGuideKnowledgeCardPresentation(
     val label: String,
     val title: String,
     val summary: String?,
-    val subjectImageUrl: String?,
+    val imageUrl: String?,
+    val imageCacheIdentity: String?,
+    val imageSource: String,
+    val imageStatus: String,
     val facts: List<FishGuideKnowledgeFact>,
     val available: Boolean,
 ) {
@@ -37,6 +41,9 @@ data class FishGuideKnowledgeCardPresentation(
 data class FishGuidePresentationItem(
     val source: FishGuideItem,
     val imageUrl: String?,
+    val imageVersionId: Int? = null,
+    val imageStatus: String = "MISSING",
+    val imageCacheIdentity: String? = null,
 ) {
     val id: String get() = source.id
     val name: String get() = source.nameCn
@@ -50,7 +57,26 @@ data class FishGuidePresentationItem(
 fun List<FishGuideItem>.toFishGuidePresentation(
     resolveAssetUrl: (String?) -> String?,
 ): List<FishGuidePresentationItem> = map { item ->
-    FishGuidePresentationItem(item, resolveAssetUrl(item.coverImage))
+    val rawImage = item.coverHeroImage.cleanOrNull()
+    val status = item.coverHeroStatus.cleanOrNull()?.uppercase() ?: "MISSING"
+    val versionId = item.coverHeroVersionId?.takeIf { it > 0 }
+    val eligible = status == "ACTIVE" && rawImage.isUsableImageAddress() && versionId != null
+    val resolvedImage = if (eligible) resolveAssetUrl(rawImage)?.trim()?.takeIf { it.isUsableImageAddress() } else null
+    val resolvedStatus = when {
+        status != "ACTIVE" -> status
+        rawImage == null -> "MISSING_URL"
+        !rawImage.isUsableImageAddress() -> "INVALID_URL"
+        versionId == null -> "MISSING_VERSION"
+        resolvedImage == null -> "URL_UNRESOLVED"
+        else -> "ACTIVE"
+    }
+    FishGuidePresentationItem(
+        source = item,
+        imageUrl = resolvedImage,
+        imageVersionId = versionId.takeIf { resolvedImage != null },
+        imageStatus = resolvedStatus,
+        imageCacheIdentity = resolvedImage?.let { listOf(item.id, "COVER_HERO", versionId, it).joinToString("|") },
+    )
 }
 
 fun List<FishGuideItem>.litCount(): Int = count { it.discovered }
@@ -91,16 +117,20 @@ fun savedRecordsForSpecies(species: FishGuideItem, records: List<RemoteCatch>): 
         .sortedByDescending { it.capturedAt.ifBlank { it.createdAt } }
         .toList()
 
-fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeCardPresentation> {
+fun FishKnowledgeDetail.toKnowledgeCardPresentations(
+    resolveAssetUrl: (String?) -> String? = { it },
+): List<FishGuideKnowledgeCardPresentation> {
     val activeCards = cards.asSequence()
         .filter { it.status.equals("ACTIVE", ignoreCase = true) }
         .filter { it.speciesId.equals(species.id, ignoreCase = true) }
-        .sortedBy { it.sortOrder }
-        .distinctBy { normalizeKnowledgeCardType(it.cardType) }
-        .associateBy { normalizeKnowledgeCardType(it.cardType) }
+        .sortedWith(compareBy<FishKnowledgeCard>({ it.sortOrder }, { it.id }, { it.imageUrl }))
+        .filter { normalizeKnowledgeCardType(it.cardType) in knowledgeCardOrder }
+        .groupBy { normalizeKnowledgeCardType(it.cardType) }
+    val useVersionedContract = knowledgeAssetsContractPresent || knowledgeAssets.isNotEmpty()
+    val usedImageUrls = mutableSetOf<String>()
 
     return knowledgeCardOrder.mapIndexed { index, type ->
-        val card = activeCards[type]
+        val card = activeCards[type].orEmpty().firstOrNull()
         val facts = when (type) {
             "HERO" -> buildList {
                 species.scientificName.cleanOrNull()?.let { add(FishGuideKnowledgeFact("学名", it)) }
@@ -121,7 +151,45 @@ fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeC
             else -> card?.content?.description.cleanOrNull()
                 ?: card?.description.cleanOrNull()
         }
-        val image = if (type == "HERO") species.coverImage.cleanOrNull() else null
+        val asset = if (useVersionedContract) {
+            knowledgeAssets[type]
+        } else {
+            card?.let {
+                FishKnowledgeAsset(
+                    role = type,
+                    imageUrl = it.imageUrl,
+                    version = it.version,
+                    versionId = it.versionId,
+                    resourceId = it.id.takeIf { id -> id > 0 }?.toString(),
+                    status = it.status,
+                    speciesId = it.speciesId,
+                    source = "LEGACY_ACTIVE_CARD",
+                )
+            }
+        }
+        val isValidAsset = asset?.isUsableFor(species.id, type, requireVersion = useVersionedContract) == true
+        val resolvedImage = asset?.takeIf { isValidAsset }
+            ?.let { resolveAssetUrl(it.imageUrl)?.trim()?.takeIf { url -> url.isUsableImageAddress() } }
+            ?.takeIf { usedImageUrls.add(it) }
+        val assetStatus = when {
+            asset == null -> if (useVersionedContract) "MISSING" else activeCards[type].orEmpty().firstOrNull()?.status?.uppercase() ?: "MISSING"
+            asset.status?.equals("ACTIVE", ignoreCase = true) != true -> asset.status?.uppercase() ?: "MISSING_STATUS"
+            asset.speciesId?.equals(species.id, ignoreCase = true) != true -> "SPECIES_MISMATCH"
+            normalizeKnowledgeCardType(asset.role) != type -> "ROLE_MISMATCH"
+            !asset.imageUrl.isUsableImageAddress() -> "INVALID_URL"
+            useVersionedContract && asset.versionId.cleanOrNull() == null && asset.version.cleanOrNull() == null -> "MISSING_VERSION"
+            resolvedImage == null -> "URL_UNRESOLVED_OR_DUPLICATE"
+            else -> "ACTIVE"
+        }
+        val cacheIdentity = if (resolvedImage == null || asset == null) null else listOf(
+            species.id,
+            type,
+            asset.source,
+            asset.resourceId.cleanOrNull(),
+            asset.versionId.cleanOrNull(),
+            asset.version.cleanOrNull(),
+            resolvedImage,
+        ).joinToString("|") { it.orEmpty() }
         val title = if (type == "HERO") species.nameCn else knowledgeCardLabels.getValue(type)
         FishGuideKnowledgeCardPresentation(
             position = index + 1,
@@ -129,11 +197,29 @@ fun FishKnowledgeDetail.toKnowledgeCardPresentations(): List<FishGuideKnowledgeC
             label = knowledgeCardLabels.getValue(type),
             title = title,
             summary = summary,
-            subjectImageUrl = image,
+            imageUrl = resolvedImage,
+            imageCacheIdentity = cacheIdentity,
+            imageSource = asset?.source ?: if (useVersionedContract) "VERSIONED_KNOWLEDGE_ASSET" else "LEGACY_ACTIVE_CARD",
+            imageStatus = assetStatus,
             facts = facts,
-            available = (type == "HERO" && image != null) || facts.isNotEmpty() || summary != null,
+            available = resolvedImage != null,
         )
     }
+}
+
+private fun FishKnowledgeAsset.isUsableFor(speciesId: String, role: String, requireVersion: Boolean): Boolean =
+    normalizeKnowledgeCardType(this.role) == role &&
+        status?.equals("ACTIVE", ignoreCase = true) == true &&
+        this.speciesId?.equals(speciesId, ignoreCase = true) == true &&
+        imageUrl.isUsableImageAddress() &&
+        (!requireVersion || versionId.cleanOrNull() != null || version.cleanOrNull() != null)
+
+private fun String?.isUsableImageAddress(): Boolean {
+    val value = this.cleanOrNull() ?: return false
+    if (value.startsWith("//")) return false
+    if (value.startsWith("http://", ignoreCase = true) || value.startsWith("https://", ignoreCase = true)) return true
+    if (Regex("^[A-Za-z][A-Za-z0-9+.-]*:").containsMatchIn(value)) return false
+    return true
 }
 
 private fun FishKnowledgeDetail.identificationFacts(card: FishKnowledgeCard?): List<FishGuideKnowledgeFact> = buildList {

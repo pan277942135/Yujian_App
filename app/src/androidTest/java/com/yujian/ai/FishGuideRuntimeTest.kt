@@ -230,7 +230,8 @@ class FishGuideRuntimeTest {
         }
 
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
-        composeRule.onNodeWithText("鱼种名片").assertExists()
+        composeRule.onNodeWithTag("fish_knowledge_card_v2_HERO").assertExists()
+        composeRule.onNodeWithContentDescription("鱼种名片，草鱼").assertExists()
         assertTrue(composeRule.onAllNodesWithText("英雄卡").fetchSemanticsNodes().isEmpty())
         assertTrue(composeRule.onAllNodesWithText("稀有 2  ·  力量 3  ·  挑战 1").fetchSemanticsNodes().isEmpty())
         composeRule.onNodeWithText("01 / 05").assertIsDisplayed()

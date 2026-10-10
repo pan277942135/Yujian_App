@@ -1,5 +1,6 @@
 package com.yujian.ai.catches
 
+import android.net.Uri
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.auth.ApiException
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,8 @@ import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 data class UploadedCatchImage(val uploadId: String, val imageUrl: String)
@@ -58,6 +61,7 @@ data class RemoteCatch(
     val bsideStatus: BsideStatus = BsideStatus.NONE,
     val bsideUri: String? = null,
     val story: String? = null,
+    val clientRecordId: String? = null,
     val memoryMedia: List<CatchMemoryMedia> = emptyList(),
 ) {
     val confidencePercent: Int get() = (confidence * 100).roundToInt().coerceIn(0, 100)
@@ -79,6 +83,9 @@ data class CatchSaveDraft(
     val modelVersion: String,
     val detectorResult: JSONObject? = null,
     val classifierResult: JSONObject? = null,
+    val metadata: CatchSaveMetadata? = null,
+    val clientRecordId: String = UUID.randomUUID().toString(),
+    val capturedAt: String? = null,
 )
 
 /** Reserved domain object for the future First Journey memory entry. */
@@ -121,10 +128,8 @@ class CatchRepository(
 
     suspend fun saveCatch(token: String, upload: UploadedCatchImage, draft: CatchSaveDraft): RemoteCatch = withContext(Dispatchers.IO) {
         val classifier = draft.classifierResult
-        val length = classifier?.takeIf { it.has("length_cm") && !it.isNull("length_cm") }?.optDouble("length_cm")
-        val weight = classifier?.takeIf { it.has("weight_kg") && !it.isNull("weight_kg") }?.optDouble("weight_kg")
-        val location = classifier?.takeIf { it.has("location") && !it.isNull("location") }
-            ?.optString("location")?.takeIf(String::isNotBlank)
+        val metadata = draft.metadata ?: classifier?.toCatchSaveMetadata() ?: CatchSaveMetadata(null, null, null, null)
+        require(draft.clientRecordId.isNotBlank() && draft.clientRecordId.length <= 128) { "鱼获记录标识无效" }
         val body = JSONObject()
             .put("image_upload_id", upload.uploadId)
             .put("species_id", draft.speciesId)
@@ -133,16 +138,48 @@ class CatchRepository(
             .put("model_version", draft.modelVersion)
             .put("detector_result", draft.detectorResult ?: JSONObject.NULL)
             .put("classifier_result", draft.classifierResult ?: JSONObject.NULL)
-            .put("length_cm", length ?: JSONObject.NULL)
-            .put("weight_kg", weight ?: JSONObject.NULL)
-            .put("location", location ?: JSONObject.NULL)
+            .put("length_cm", metadata.lengthCm ?: JSONObject.NULL)
+            .put("weight_kg", metadata.weightKg ?: JSONObject.NULL)
+            .put("location", metadata.location ?: JSONObject.NULL)
+            .put("story", metadata.story ?: JSONObject.NULL)
+            .put("captured_at", draft.capturedAt ?: JSONObject.NULL)
+            .put("client_record_id", draft.clientRecordId)
         val response = json("POST", "/api/v1/catches", token, body)
-        return@withContext parseCatch(response.optJSONObject("catch") ?: throw IOException("保存响应缺少鱼获记录"))
+        if (!response.optBoolean("saved", false)) throw IOException("服务端未确认鱼获保存成功")
+        val catchId = response.optString("catch_id").takeIf(String::isNotBlank)
+            ?: throw IOException("保存响应缺少鱼获标识")
+        val returned = parseCatch(response.optJSONObject("catch") ?: throw IOException("保存响应缺少鱼获记录"))
+        if (returned.id != catchId) throw IOException("保存响应中的鱼获标识不一致")
+        validateSavedCatch(returned, draft, metadata)
+        val reread = getCatch(token, catchId)
+        validateSavedCatch(reread, draft, metadata)
+        if (reread.imageUrl != returned.imageUrl) throw IOException("重新读取后鱼获照片关联发生变化")
+        reread
     }
 
-    suspend fun listCatches(token: String): List<RemoteCatch> = withContext(Dispatchers.IO) {
-        val response = jsonArray("/api/v1/catches", token)
+    suspend fun listCatches(token: String, limit: Int = 100): List<RemoteCatch> = withContext(Dispatchers.IO) {
+        val response = jsonArray("/api/v1/catches?limit=${limit.coerceIn(1, 100)}", token)
         (0 until response.length()).map { parseCatch(response.getJSONObject(it)) }
+    }
+
+    suspend fun getCatch(token: String, catchId: String): RemoteCatch = withContext(Dispatchers.IO) {
+        parseCatch(json("GET", "/api/v1/catches/${Uri.encode(catchId)}", token, null))
+    }
+
+    suspend fun requireMetadataMigrationSupport(token: String) = withContext(Dispatchers.IO) {
+        val result = json("GET", "/api/v1/catches/capabilities", token, null)
+        if (result.optInt("metadata_version") < 1 ||
+            !result.optBoolean("idempotency_keys") ||
+            !result.optBoolean("lookup_by_client_record_id")
+        ) throw IOException("当前鱼获服务不支持安全迁移，请稍后重试")
+    }
+
+    suspend fun findByClientRecordId(token: String, clientRecordId: String): RemoteCatch? = withContext(Dispatchers.IO) {
+        try {
+            parseCatch(json("GET", "/api/v1/catches/by-client-record/${Uri.encode(clientRecordId)}", token, null))
+        } catch (error: ApiException) {
+            if (error.statusCode == 404) null else throw error
+        }
     }
 
     suspend fun statistics(token: String): CatchStatistics = withContext(Dispatchers.IO) {
@@ -186,11 +223,12 @@ class CatchRepository(
         createdAt = item.optString("created_at"),
         lengthCm = item.optionalFloat("length_cm", "length"),
         weightKg = item.optionalFloat("weight_kg", "weight"),
-        location = item.optString("location").ifBlank { item.optString("location_name") }
-            .takeIf(String::isNotBlank),
+        location = catchStoryFromWire(item.optString("location"))
+            ?: catchStoryFromWire(item.optString("location_name")),
         bsideStatus = BsideStatus.fromWire(item.optString("bside_status")),
         bsideUri = item.optString("bside_uri").takeIf(String::isNotBlank),
         story = catchStoryFromWire(item.optString("story")),
+        clientRecordId = item.optString("client_record_id").takeIf(String::isNotBlank),
     )
 
     private fun parseBsideGeneration(item: JSONObject): BsideGeneration = BsideGeneration(
@@ -203,10 +241,50 @@ class CatchRepository(
         keys.forEach { key ->
             if (has(key) && !isNull(key)) {
                 val value = optDouble(key, Double.NaN)
-                if (!value.isNaN()) return value.toFloat()
+                if (value.isFinite()) return value.toFloat()
             }
         }
         return null
+    }
+
+    private fun validateSavedCatch(record: RemoteCatch, draft: CatchSaveDraft, metadata: CatchSaveMetadata) {
+        val imageBelongsToRecord = record.imageUrl.endsWith("/api/v1/catches/${record.id}/media")
+        if (record.id.isBlank() || !imageBelongsToRecord || record.speciesId != draft.speciesId ||
+            record.speciesName != draft.speciesName || record.clientRecordId != draft.clientRecordId
+        ) throw IOException("保存响应中的鱼种、照片或迁移映射不完整")
+        if (!sameMeasurement(record.lengthCm, metadata.lengthCm) ||
+            !sameMeasurement(record.weightKg, metadata.weightKg) ||
+            record.location != metadata.location || record.story != metadata.story
+        ) throw IOException("服务端保存的鱼获元数据与输入不一致")
+    }
+
+    private fun sameMeasurement(actual: Float?, expected: Double?): Boolean = when {
+        actual == null -> expected == null
+        expected == null -> false
+        else -> abs(actual.toDouble() - expected) <= 0.0001
+    }
+
+    private fun JSONObject.toCatchSaveMetadata(): CatchSaveMetadata {
+        fun number(vararg keys: String): Double? {
+            keys.forEach { key ->
+                if (!has(key)) return@forEach
+                if (isNull(key)) return null
+                val value = when (val raw = opt(key)) {
+                    is Number -> raw.toDouble()
+                    is String -> raw.trim().replace(',', '.').toDoubleOrNull()
+                    else -> null
+                } ?: throw IllegalArgumentException("鱼获测量数据格式不正确")
+                require(value.isFinite() && value > 0.0 && value <= 1000.0) { "鱼获测量数据超出有效范围" }
+                return value
+            }
+            return null
+        }
+        return CatchSaveMetadata(
+            lengthCm = number("length_cm", "length"),
+            weightKg = number("weight_kg", "weight"),
+            location = optString("location").takeIf(String::isNotBlank),
+            story = optString("story").takeIf(String::isNotBlank),
+        )
     }
 
     private fun json(method: String, path: String, token: String, body: JSONObject?): JSONObject {

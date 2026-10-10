@@ -36,7 +36,7 @@ fun FishMemorySection(
 
     YuJianGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        level = YuJianGlassLevel.Strong,
+        level = YuJianGlassLevel.Medium,
         contentPadding = PaddingValues(16.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
