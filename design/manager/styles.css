@@ -2796,3 +2796,6 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
   .fish-media-stage {min-height:180px}
   .fish-media-demo {padding:10px}
 }
+
+/* Full-width real-photo case study inside the existing 2-column variant-grid wrapper */
+.direct-variant-visual-grid > .fish-media-case-workspace {grid-column:1/-1;min-width:0}

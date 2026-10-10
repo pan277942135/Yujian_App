@@ -165,3 +165,14 @@ V1 仍然只管理设计：
 - 权威与冻结状态
 
 Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
+
+## 鱼获图片自适应显示设计 V1（公共设计系统）
+
+设计冻结：2026-10-10。一级菜单：`#shared/fish_media_display_v1`（默认收起）。
+
+子菜单：01 Fit / 选择识别、02 Crop / 识别结果、03 Adaptive / 详情 A 面、04 Crop / 我的鱼获、05 边界案例与验收。
+
+- 规则主文档：`design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md`。
+- 四页面及 HOME 共享 Hero 映射：`design/system/fish_media_display_v1/usage_map.json`。
+- 真实照片演示：`design/system/fish_media_display_v1/real_photo_cases.json`。使用仓库已有 `sample_recent_catch.jpg` 原始 JPEG；真实鱼获、同源不同容器，不是 AI 合成，也不声称无 bbox Crop 的视觉示意为安全裁切实测 PASS。
+- 外层冻结页面 Geometry 和独立媒体合同不变；设计冻结不表示 Android runtime 已完成验收。
