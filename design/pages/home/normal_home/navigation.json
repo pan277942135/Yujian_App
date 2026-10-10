@@ -120,6 +120,24 @@
       "authority": "design/pages/home/normal_home/06_background_authority/README.md",
       "visual_authority": "design/pages/home/normal_home/06_background_authority/frozen/NH06_Background_Authority_V1_Frozen.png",
       "visual_manifest": "design/pages/home/normal_home/06_background_authority/frozen/manifest.json"
+    },
+    {
+      "order": 7,
+      "id": "NH07",
+      "label_zh": "头像状态",
+      "label_en": "Avatar States",
+      "output_policy": "DESIGN_ASSET_AND_STATE_WORKSPACE",
+      "status": "SPEC_FROZEN",
+      "contains": [
+        "已登录真实头像",
+        "已登录缺省头像（晨湖垂钓者）",
+        "登录头像加载中",
+        "登录头像加载失败",
+        "游客/未登录独立账户入口"
+      ],
+      "authority": "design/pages/home/normal_home/07_avatar_states/README.md",
+      "visual_authority": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+      "visual_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
     }
   ]
 }

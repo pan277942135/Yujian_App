@@ -165,3 +165,8 @@ V1 仍然只管理设计：
 - 权威与冻结状态
 
 Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
+
+
+## Normal Home · NH07 头像状态
+
+新增 `#page/home_normal_v1/hifi/NH07` 二级菜单，由 `design/registry/experience_registry_v1.json` 的 `home_normal_v1.hifi_views` 注册。五态独立预览：真实头像、默认头像、加载、失败、游客。读取 `07_avatar_states/README.md` 与 PNG SHA Manifest；Guest 资源和登录 fallback 分离。本工作区属于设计稿与规范展示，不包含 Android 代码改动。NH01 Frozen PNG 不重写。新菜单进入部署后才会出现在公开的 GitHub Pages 网站。

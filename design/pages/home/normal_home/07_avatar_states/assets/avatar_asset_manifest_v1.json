@@ -1,0 +1,74 @@
+{
+  "version": "1.0",
+  "id": "normal_home_avatar_default_nh07_v1",
+  "scope": "NORMAL_HOME_SIGNED_IN_MISSING_PROFILE_MEDIA",
+  "status": "DESIGN_ASSET_REGISTERED__ANDROID_NOT_IMPLEMENTED",
+  "source": {
+    "kind": "HIGH_RES_STANDALONE_FROM_APPROVED_NH07_DESIGN",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
+    "note": "Conceptually matched to approved whole-page avatar; not a byte-identical extraction of the 104px in-situ raster"
+  },
+  "reference": {
+    "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "reference_canvas": [
+      1080,
+      1920
+    ],
+    "visual_circle_diameter_reference_px": 92
+  },
+  "exports": [
+    {
+      "scale": "1x",
+      "width": 64,
+      "height": 64,
+      "format": "PNG",
+      "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_1x_64.png",
+      "bytes": 1311,
+      "sha256": "8fe5772bd85cfb55a9d607ecb1dd2e8f5510bb9c54870de7e2a254b0293a908b"
+    },
+    {
+      "scale": "2x",
+      "width": 128,
+      "height": 128,
+      "format": "PNG",
+      "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_2x_128.png",
+      "bytes": 2386,
+      "sha256": "0d2c0c29e957e899c0c94dff2a3cdfff1da62c25b8b38296ec6f9788ec08f860"
+    },
+    {
+      "scale": "3x",
+      "width": 192,
+      "height": 192,
+      "format": "PNG",
+      "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+      "bytes": 4101,
+      "sha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2"
+    }
+  ],
+  "pixel_policy": {
+    "background": "TRANSPARENT",
+    "format_note": "PNG indexed palette with alpha transparency, sRGB",
+    "shape": "CIRCULAR_WITH_BAKED_WHITE_RIM",
+    "container": "No additional white ring",
+    "tap_target_min_dp": 48
+  },
+  "states": {
+    "REAL": "PROFILE_MEDIA",
+    "DEFAULT": "NH07",
+    "LOADING": "NH07_WITH_SUBTLE_PROGRESS",
+    "FAILURE": "NH07",
+    "GUEST": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png"
+  },
+  "supersedes_visual_home_only": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
+  "guest_source_remains_separate": true,
+  "runtime": {
+    "status": "NOT_IMPLEMENTED",
+    "code_changes": false
+  },
+  "frozen_full_page_unchanged": true
+}

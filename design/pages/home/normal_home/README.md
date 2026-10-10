@@ -34,6 +34,7 @@ Machine-readable navigation: `navigation.json`
 | NH04 | 组件状态与内容边界 | 合并规范图 | **FROZEN · SPEC + VISUAL** |
 | NH05 | 响应式与交互 | 合并规范图 | **FROZEN · SPEC + VISUAL** |
 | NH06 | 背景与环境权威 | Authority 规范图 | **FROZEN · SPEC + VISUAL** |
+| NH07 | 头像状态 | 独立状态工作区 + 透明资产 | **SPEC_FROZEN · 整页复核待完成** |
 
 ### NH01｜主页面｜多鱼获状态
 
@@ -70,6 +71,10 @@ Machine-readable navigation: `navigation.json`
 
 Normal Home 背景明确冻结为 `Morning_Lake_Master_V1 → BG_ENV_HERO`。NH01/NH02 继续负责完整页面构图；NH06 只负责背景 Source / Treatment / Crop / Authority 边界，禁止从页面截图反向裁出背景母版。
 
+### NH07｜头像状态
+
+见 [`07_avatar_states/README.md`](07_avatar_states/README.md)。新增五态头像规则与 64/128/192px 透明素材；Signed-in fallback 与 Guest 来源严格区分。NH07 为后续 Header 局部视觉方案，旧 NH01/NH02/NH04 冻结 PNG 不重写；尚未影响 Android。
+
 ## Frozen hierarchy
 
 1. morning-lake environment
@@ -97,6 +102,8 @@ Real catch media must remain visually above statistics. The page must not drift 
 - NH04 Component & Content spec: `04_component_content_states/README.md`
 - NH05 Responsive & Interaction spec: `05_responsive_interaction/README.md`
 - NH06 Background Authority spec: `06_background_authority/README.md`
+- NH07 Avatar States spec: `07_avatar_states/README.md`
+- NH07 Avatar asset manifest: `07_avatar_states/assets/avatar_asset_manifest_v1.json`
 - Design Manager navigation: `navigation.json`
 - Closure record: `DESIGN_PACKAGE_CLOSURE_V1.md`
 - Runtime/background authority correction: `DESIGN_PACKAGE_CLOSURE_V1_1.md`
