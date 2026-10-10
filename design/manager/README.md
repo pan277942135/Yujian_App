@@ -187,3 +187,9 @@ GitHub Pages 仅复制 `design/`，因此真实照片展示资产固定为 `desi
 ## NH07 高清母图
 
 「有数据首页」→「NH07 · 头像状态」现提供已 SHA-256 校验的 **1254×1254 原始 RGBA PNG** 预览：点击可在 Design Manager 中放大，Esc / 关闭按钮返回；原图链接保留原始分辨率。该资产是 Design Source，不改 Android 运行时资源。请以 `design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json` 的 SHA 为准。
+
+## 图标系统 V0.1 · 全局小图标盘点
+- 公共一级菜单：`#shared/icon_library_v0_1`，默认收起。
+- 7 个入口：00 全局清单、01 鱼获字段、02 照片与视频、03 导航与层级、04 页面工具、05 账户与输入、06 状态与反馈。
+- 43 个候选小图标语义，详见 `design/system/icon_library_v0_1/icon_inventory_v0_1.json`。
+- V0.1 仅为资产盘点 / PARTIAL，不代表新 icon SVG、Android XML、冻结高保真素材已经完成。现有 Icon Action V1 继续冻结。

@@ -1,0 +1,690 @@
+{
+  "version": "V0.1",
+  "status": "AUDIT_ONLY_NOT_VISUAL_FROZEN",
+  "date": "2026-10-10",
+  "scope": "14 design page modules + reviewed key Android UI surfaces; semantic deduplication, provisional not exhaustive",
+  "counts": {
+    "total_unique_semantic_candidates": 43,
+    "by_group": {
+      "FACTS": 8,
+      "MEDIA": 9,
+      "NAV": 5,
+      "UTILITY": 9,
+      "ACCOUNT": 6,
+      "STATUS": 6
+    },
+    "by_asset_state": {
+      "RUNTIME_MATERIAL": 17,
+      "MIXED_LEGACY": 6,
+      "SPEC_ONLY": 3,
+      "ACTION_CONTRACT": 14,
+      "PROPOSED": 2,
+      "RUNTIME_RESOURCE": 1
+    }
+  },
+  "groups": [
+    {
+      "id": "FACTS",
+      "name": "01 · 鱼获字段",
+      "label": "鱼种、长度、重量、地点、时间、天气、笔记"
+    },
+    {
+      "id": "MEDIA",
+      "name": "02 · 照片与视频",
+      "label": "添加照片/视频、相机、图库、视频、播放、语音"
+    },
+    {
+      "id": "NAV",
+      "name": "03 · 导航与层级",
+      "label": "返回、关闭、进入、展开、收起"
+    },
+    {
+      "id": "UTILITY",
+      "name": "04 · 页面工具",
+      "label": "翻面、分享、鱼鉴、搜索、筛选、更多、编辑、重试、保存"
+    },
+    {
+      "id": "ACCOUNT",
+      "name": "05 · 账户与输入",
+      "label": "用户、密码、可见性、清空、退出"
+    },
+    {
+      "id": "STATUS",
+      "name": "06 · 状态与反馈",
+      "label": "成功、警告、错误、帮助、缺图、选中"
+    }
+  ],
+  "entries": [
+    {
+      "id": "SPECIES",
+      "name": "鱼种",
+      "group": "FACTS",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.SetMeal",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "usage": "识别结果 / 详情编辑",
+      "note": "统一真实鱼种字段图标，不替代知识卡鱼种照片",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "LENGTH",
+      "name": "长度",
+      "group": "FACTS",
+      "asset_state": "MIXED_LEGACY",
+      "existing_implementation": "Icons.Rounded.Straighten",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/length.svg",
+      "usage": "识别结果 / 详情编辑",
+      "note": "旧 identify/icons/length.svg 是字母 L 占位；不得作为正式图标",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "WEIGHT",
+      "name": "重量",
+      "group": "FACTS",
+      "asset_state": "MIXED_LEGACY",
+      "existing_implementation": "Icons.Rounded.Scale",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/weight.svg",
+      "usage": "识别结果 / 详情编辑",
+      "note": "旧 identify/icons/weight.svg 是字母 W 占位",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "LOCATION",
+      "name": "地点",
+      "group": "FACTS",
+      "asset_state": "MIXED_LEGACY",
+      "existing_implementation": "Icons.Rounded.LocationOn / Place",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/location.svg",
+      "usage": "识别结果 / 详情编辑 / 我的鱼获 / 账户",
+      "note": "统一 LocationOn 和 Place 两种现行用法",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "DATE",
+      "name": "日期",
+      "group": "FACTS",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.CalendarMonth",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
+      "usage": "详情编辑 / 档案时间",
+      "note": "日期与时间区分",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "TIME",
+      "name": "时间",
+      "group": "FACTS",
+      "asset_state": "SPEC_ONLY",
+      "existing_implementation": "待绘制时钟",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
+      "usage": "鱼获拍摄时间 / 日期时间表单",
+      "note": "不要求每个时间文本都显示图标",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "WEATHER",
+      "name": "天气",
+      "group": "FACTS",
+      "asset_state": "SPEC_ONLY",
+      "existing_implementation": "待定义天气语义",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
+      "usage": "鱼获详情编辑未来可选字段",
+      "note": "天气属支持后可见字段，不应虚构已上线状态",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "NOTE",
+      "name": "感言 / 笔记",
+      "group": "FACTS",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.EditNote",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordEditSheet.kt",
+      "usage": "鱼获故事 / 详情编辑",
+      "note": "信息性 note 与动作 Edit 应区分",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "ADD_MEDIA",
+      "name": "添加照片/视频",
+      "group": "MEDIA",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icon Action CONTEXT add_media",
+      "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "usage": "鱼获详情 · 无上传记忆",
+      "note": "现有 Frozen Context 家族语义；需要单独批准最终实体 glyph",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "ADD_PHOTO",
+      "name": "添加照片",
+      "group": "MEDIA",
+      "asset_state": "PROPOSED",
+      "existing_implementation": "待设计 Image+",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
+      "usage": "记忆相册 / 添加照片",
+      "note": "区分照片添加与普通展示图片",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "ADD_VIDEO",
+      "name": "添加视频",
+      "group": "MEDIA",
+      "asset_state": "PROPOSED",
+      "existing_implementation": "待设计 Video+",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
+      "usage": "记忆相册 / 视频添加",
+      "note": "与录制视频行为不可混同",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "CAMERA",
+      "name": "拍照 / 继续拍照",
+      "group": "MEDIA",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.CameraAlt",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemoryCaptureScreen.kt",
+      "usage": "图片识别 / 鱼获记忆 / 头像更换",
+      "note": "主拍摄按钮自身品牌形态仍属独立冻结系统",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "GALLERY",
+      "name": "从相册选择",
+      "group": "MEDIA",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.PhotoLibrary",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "usage": "识别失败重选 / 相册 / 头像",
+      "note": "图库入口和展示图像不等同",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "PHOTO",
+      "name": "照片",
+      "group": "MEDIA",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Outlined.Image",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
+      "usage": "记忆照片网格 / 相册底部弹层",
+      "note": "表示媒体种类，不应表现为相机动作",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "VIDEO",
+      "name": "视频 / 录制",
+      "group": "MEDIA",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.Videocam",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
+      "usage": "鱼获记忆 / 摄像录制模式",
+      "note": "媒体类型与触发拍摄的 Action 使用不同热区",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "PLAY",
+      "name": "播放视频",
+      "group": "MEDIA",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Outlined.PlayCircleOutline",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMediaPicker.kt",
+      "usage": "视频缩略图",
+      "note": "播放叠加图标需独立状态规范",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "VOICE",
+      "name": "语音输入",
+      "group": "MEDIA",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icon Action CONTEXT voice",
+      "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "usage": "识别结果故事输入（能力支持时）",
+      "note": "Frozen 合同列候选但语音功能未被证明已上线",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "BACK",
+      "name": "返回",
+      "group": "NAV",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.ArrowBack",
+      "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "usage": "各二级页面顶部",
+      "note": "复用 Icon Action V1 / NAVIGATION",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "CLOSE",
+      "name": "关闭",
+      "group": "NAV",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Close",
+      "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "usage": "弹层、媒体选择与编辑",
+      "note": "与清除文本的 X 语义分离",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "CHEVRON_RIGHT",
+      "name": "进入 / 详情箭头",
+      "group": "NAV",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.ChevronRight",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+      "usage": "我的鱼获列表 / 选择器 / 详情入口",
+      "note": "尾随 Text Action Chevron 须继续服从 Text Action 合同",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "EXPAND_MORE",
+      "name": "展开",
+      "group": "NAV",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.ExpandMore",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+      "usage": "我的鱼获日期分组",
+      "note": "展开/收起可设计为一个可变换资源状态",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "EXPAND_LESS",
+      "name": "收起",
+      "group": "NAV",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.ExpandLess",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+      "usage": "我的鱼获日期分组",
+      "note": "不同于返回箭头",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "FLIP",
+      "name": "翻面",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Flip",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordHeroCard.kt",
+      "usage": "详情 A/B 面 READY 后",
+      "note": "图标本身不旋转，卡片内容执行翻面",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "SHARE",
+      "name": "分享",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Share / IosShare",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt",
+      "usage": "详情顶部 / 分享中心",
+      "note": "需要确定统一 Android 分享 glyph",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "FISH_GUIDE",
+      "name": "鱼鉴入口",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.MenuBook",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt",
+      "usage": "鱼获详情 / 鱼鉴入口",
+      "note": "普通说明书图标与鱼鉴品牌语义需审核",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "SEARCH",
+      "name": "搜索",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Search",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+      "usage": "我的鱼获 / 鱼鉴 / 鱼种选择",
+      "note": "可点击搜索工具与输入框前缀装饰共享图形但不同动作",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "FILTER",
+      "name": "筛选",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.FilterList",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt",
+      "usage": "我的鱼获筛选",
+      "note": "Selected 由功能状态管理，非全局 Icon Action 新状态",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "MORE",
+      "name": "更多",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icon Action UTILITY more",
+      "evidence_path": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "usage": "顶部工具溢出",
+      "note": "已冻结工具语义，但不代表已存在独立 Android 资源",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "EDIT",
+      "name": "编辑",
+      "group": "UTILITY",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Edit",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt",
+      "usage": "详情编辑 / 账户 / 记录",
+      "note": "详情 Hero 当前 编辑> 文本入口不许被图标替换",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "RETRY_REFRESH",
+      "name": "重试 / 刷新",
+      "group": "UTILITY",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.Refresh",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/FishSpeciesDetailScreen.kt",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/retry.svg",
+      "usage": "鱼鉴加载失败 / 图像问题重试",
+      "note": "旧 identify/icons/retry.svg 的 R 字符为占位",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "SAVE",
+      "name": "保存",
+      "group": "UTILITY",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.Save",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "usage": "识别结果保存行为",
+      "note": "主 CTA 文字优先，不强制每处显示保存图标",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "PERSON",
+      "name": "个人 / 用户",
+      "group": "ACCOUNT",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.PersonOutline",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt",
+      "usage": "登录 / 编辑个人信息",
+      "note": "照片头像与默认头像资产不是此小 glyph",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "LOCK",
+      "name": "密码锁",
+      "group": "ACCOUNT",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.Lock",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
+      "usage": "登录 / 注册表单",
+      "note": "不与字段可见性混淆",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "VISIBILITY",
+      "name": "显示密码",
+      "group": "ACCOUNT",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Visibility",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
+      "usage": "密码输入框尾部",
+      "note": "状态动作有明确 a11y 描述",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "VISIBILITY_OFF",
+      "name": "隐藏密码",
+      "group": "ACCOUNT",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.VisibilityOff",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
+      "usage": "密码输入框尾部",
+      "note": "与显示密码组成同一切换组",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "CLEAR_FIELD",
+      "name": "清空输入",
+      "group": "ACCOUNT",
+      "asset_state": "ACTION_CONTRACT",
+      "existing_implementation": "Icons.Rounded.Close",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
+      "usage": "搜索 / 昵称 / 地点字段",
+      "note": "虽然 glyph 类似 Close，但属 CONTEXT 不是 NAVIGATION",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "LOGOUT",
+      "name": "退出登录",
+      "group": "ACCOUNT",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.Logout",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt",
+      "usage": "账户和隐私",
+      "note": "危险性来源操作语义，不是错误状态图标",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "SUCCESS",
+      "name": "成功 / 完成",
+      "group": "STATUS",
+      "asset_state": "MIXED_LEGACY",
+      "existing_implementation": "Icons.Rounded.Check（选中场景）",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/success.svg",
+      "usage": "识别成功 / 操作成功 / 确认",
+      "note": "旧 identify/icons/success.svg 的 S 字母非产品正式资源",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "WARNING",
+      "name": "警告",
+      "group": "STATUS",
+      "asset_state": "MIXED_LEGACY",
+      "existing_implementation": "待定警告图形",
+      "evidence_path": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/warning.svg",
+      "usage": "图片质量 / 部分能力受限",
+      "note": "旧 identify/icons/warning.svg 的 W 字母非正式资源",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "ERROR",
+      "name": "错误 / 失败",
+      "group": "STATUS",
+      "asset_state": "SPEC_ONLY",
+      "existing_implementation": "待定错误图形",
+      "evidence_path": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
+      "usage": "网络错误 / 保存失败 / 识别技术失败",
+      "note": "错误色彩按系统语义，而非全部染红",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "HELP",
+      "name": "说明 / 疑问",
+      "group": "STATUS",
+      "asset_state": "MIXED_LEGACY",
+      "existing_implementation": "待定问号轮廓",
+      "evidence_path": "design/pages/fish_record/detail/FishRecordDetail_Page_States_Spec_V1.md",
+      "legacy_asset_path": "app/src/main/assets/identify/icons/question.svg",
+      "usage": "引导、原因说明",
+      "note": "旧 identify/icons/question.svg 的 Q 字母非正式资源",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "IMAGE_MISSING",
+      "name": "图片不可用",
+      "group": "STATUS",
+      "asset_state": "RUNTIME_RESOURCE",
+      "existing_implementation": "R.drawable.image_error_v12",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt",
+      "usage": "首页图片加载失败 / 详情兜底",
+      "note": "中性占位不得猜测鱼种",
+      "asset_path": null,
+      "approved_visual": false
+    },
+    {
+      "id": "SELECTED_CHECK",
+      "name": "已选中",
+      "group": "STATUS",
+      "asset_state": "RUNTIME_MATERIAL",
+      "existing_implementation": "Icons.Rounded.Check",
+      "evidence_path": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
+      "usage": "鱼种选择器",
+      "note": "区分成功状态与选择标记",
+      "asset_path": null,
+      "approved_visual": false
+    }
+  ],
+  "status_semantics": {
+    "ACTION_CONTRACT": "现有 Icon Action 行为/几何权威已冻结，单个目标小图形不据此宣称已导出正式开发资源",
+    "RUNTIME_MATERIAL": "Android 中使用 Material Icon ImageVector；不等于已具备 YuJian 自有冻结 SVG / VectorDrawable",
+    "RUNTIME_RESOURCE": "现有 Android drawable 资源，需审查语义与尺寸",
+    "MIXED_LEGACY": "当前界面使用现成 Material 形状，仓库旧 SVG 为字母占位，不可直接作为正式资产",
+    "SPEC_ONLY": "在产品规范中出现，未确认全链路实现；后续决定是否绘制",
+    "PROPOSED": "针对需求提出的候选语义，需确认最终界面是否独立需要该 glyph"
+  },
+  "out_of_scope": [
+    {
+      "id": "PRIMARY_CAPTURE_BUTTON",
+      "why": "独立主拍摄按钮品牌资源，不能在小图标库重画"
+    },
+    {
+      "id": "PROFILE_AVATAR",
+      "why": "默认资料头像是图像资产，不是小型系统 pictogram"
+    },
+    {
+      "id": "GROWTH_MARK",
+      "why": "Frozen Growth Mark V1 明确默认无强 icon；最长/最重等为低权重文字印记，不擅自图标化"
+    },
+    {
+      "id": "FISH_SPECIES_PHOTO",
+      "why": "真实鱼获/鱼鉴物种图像为照片，不是图标"
+    },
+    {
+      "id": "SPINNER",
+      "why": "加载指示器属于进度/动效系统，非静态小图标"
+    },
+    {
+      "id": "SOCIAL_BADGES",
+      "why": "未授权的社交徽章/成就化资产，禁止加入"
+    }
+  ],
+  "validation_boundary": "Only semantic inventory and navigation are registered; no icon art was newly drawn or frozen and no Android implementation was modified.",
+  "group_page_usage": {
+    "ALL": [
+      "home_empty_v2",
+      "home_normal_v1",
+      "recognition_flow_v1_2",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "my_catches_v2",
+      "fish_guide_v2",
+      "account_privacy_v1",
+      "auth_login_v2",
+      "auth_register_v2",
+      "profile_edit_v1",
+      "share_templates_v1",
+      "user_agreement_v1"
+    ],
+    "FACTS": [
+      "home_normal_v1",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "my_catches_v2"
+    ],
+    "MEDIA": [
+      "home_empty_v2",
+      "recognition_flow_v1_2",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "account_privacy_v1",
+      "profile_edit_v1"
+    ],
+    "NAV": [
+      "home_empty_v2",
+      "home_normal_v1",
+      "recognition_flow_v1_2",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "my_catches_v2",
+      "fish_guide_v2",
+      "account_privacy_v1",
+      "auth_login_v2",
+      "auth_register_v2",
+      "profile_edit_v1",
+      "share_templates_v1",
+      "user_agreement_v1"
+    ],
+    "UTILITY": [
+      "home_normal_v1",
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "my_catches_v2",
+      "fish_guide_v2",
+      "account_privacy_v1",
+      "share_templates_v1"
+    ],
+    "ACCOUNT": [
+      "home_empty_v2",
+      "home_normal_v1",
+      "account_privacy_v1",
+      "auth_login_v2",
+      "auth_register_v2",
+      "profile_edit_v1"
+    ],
+    "STATUS": [
+      "recognition_result_v1",
+      "fish_record_detail_v2",
+      "fish_memory_bside_v1",
+      "my_catches_v2",
+      "fish_guide_v2"
+    ]
+  }
+}

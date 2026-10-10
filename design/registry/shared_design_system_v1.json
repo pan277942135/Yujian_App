@@ -681,6 +681,82 @@
       ]
     },
     {
+      "id": "icon_library_v0_1",
+      "display_name": "图标",
+      "category": "foundation",
+      "overall": "PARTIAL",
+      "current_version": "V0.1",
+      "navigation_mode": "submenu_direct",
+      "show_variant_index": false,
+      "preview_note": "全局图标资产盘点：43 个语义候选，尚未生成/冻结 43 份正式开发图标。已冻结的 Icon Action 不重复设计。",
+      "note": "第一阶段仅统计与归类；区分非交互数据图标、媒体功能图标和已冻结 Icon Action。后续完成草图对照、标准 SVG 与 Android VectorDrawable 后才升级 FROZEN。",
+      "authority_paths": [
+        "design/system/icon_library_v0_1/Icon_Library_Audit_V0_1.md",
+        "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+        "design/system/icon_library_v0_1/usage_map_v0_1.json",
+        "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+        "design/system/components/icon_action/visual_contract.json"
+      ],
+      "variants": [
+        {
+          "id": "ALL",
+          "name": "00 · 全局清单",
+          "status": "PARTIAL",
+          "usage": "43 个候选语义 ID，全局按六类去重。",
+          "authority_path": "design/system/icon_library_v0_1/Icon_Library_Audit_V0_1.md",
+          "note": "待统一绘制，现有实现并不等于已有正式 VectorDrawable 开发资源。"
+        },
+        {
+          "id": "FACTS",
+          "name": "01 · 鱼获字段",
+          "status": "PARTIAL",
+          "usage": "鱼种、长度、重量、地点、时间、天气、笔记",
+          "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        },
+        {
+          "id": "MEDIA",
+          "name": "02 · 照片与视频",
+          "status": "PARTIAL",
+          "usage": "添加照片/视频、相机、图库、视频、播放、语音",
+          "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        },
+        {
+          "id": "NAV",
+          "name": "03 · 导航与层级",
+          "status": "PARTIAL",
+          "usage": "返回、关闭、进入、展开、收起",
+          "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        },
+        {
+          "id": "UTILITY",
+          "name": "04 · 页面工具",
+          "status": "PARTIAL",
+          "usage": "翻面、分享、鱼鉴、搜索、筛选、更多、编辑、重试、保存",
+          "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        },
+        {
+          "id": "ACCOUNT",
+          "name": "05 · 账户与输入",
+          "status": "PARTIAL",
+          "usage": "用户、密码、可见性、清空、退出",
+          "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        },
+        {
+          "id": "STATUS",
+          "name": "06 · 状态与反馈",
+          "status": "PARTIAL",
+          "usage": "成功、警告、错误、帮助、缺图、选中",
+          "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        }
+      ]
+    },
+    {
       "id": "top_navigation_v1",
       "display_name": "顶部导航",
       "category": "component",
@@ -1196,6 +1272,7 @@
     "background_system_v1",
     "fish_media_display_v1",
     "group:button_spec",
+    "icon_library_v0_1",
     "top_navigation_v1",
     "mist_glass_surface_v1",
     "color_typography_v1",
