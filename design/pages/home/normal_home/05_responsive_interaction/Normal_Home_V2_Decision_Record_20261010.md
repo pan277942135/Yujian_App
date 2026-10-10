@@ -1,3 +1,5 @@
+> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL USER APPROVAL EVIDENCE. A1 font and A2 NH05 remain approved and are implemented in the new engineering binding. This historical STOP clause does not block unrelated compliant fixes. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home V2 — A/A Design Decision Record
 
 **Decision status:** FONT_A_AND_NH05_A_APPROVED / WINDOW_ORIGIN_DESIGN_RESOLVED / CTA_CAMERA_RASTER_MEASUREMENT_PENDING
