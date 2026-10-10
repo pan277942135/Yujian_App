@@ -74,3 +74,6 @@ Run from repository root: python3 scripts/design/verify_normal_home_contract_v1.
 - [Quantitative_Visual_Acceptance_Contract_V1.md](Quantitative_Visual_Acceptance_Contract_V1.md): measurable geometric and optical tolerances, role-matched bounds, exact SHA and independent acceptance format.
 
 These four are active specialized bindings and supersede any contrary interim statuses saying numeric optical tolerances or source CTA/Camera ROI are completely unavailable. Source verification PASS is **not** equivalent to Android visual parity or 8 genuine-photo run PASS.
+
+- [normal_home_visual_pixel_targets_v1.json](normal_home_visual_pixel_targets_v1.json): SHA-verified original CTA/Camera XY pixel mask boxes and explicit separation from Kotlin touch/container frames.
+- [hero_real_photo_fixture_register_v1.json](hero_real_photo_fixture_register_v1.json): eight required F01–F08 real-photo cases with source/provenance statuses; current repository images do not yet certify all eight independent photo sources.
