@@ -43,7 +43,7 @@ ENGINEERING_CONTRACT_ACTIVE means Work may implement deterministically using thi
 RUNTIME_PASS requires evidence satisfying the acceptance matrix at the tested HEAD.
 OPEN_VISUAL_EVIDENCE means screenshot/ROI/device proof still pending. It is never silently promoted to PASS.
 
-The only currently unmeasured visual source dispute is CTA/Camera visible anchor interpretation. Required source acquisition: original immutable PNG bytes, 1080x1920, exact registered SHA. A visually similar image or screenshot crop is not authority. Touch rect derives from interaction contract and actual Android bounds, not raster inspection.
+CTA/Camera source pixels have now been SHA-verified and measured with reproducible masks; optical comparison of a built Android APK remains pending. Required source acquisition: original immutable PNG bytes, 1080x1920, exact registered SHA. A visually similar image or screenshot crop is not authority. Authoritative original pixel candidate rows and mask thresholds are in Visual_Anchor_Asset_Resolution_V1.md. Touch rect derives from interaction contract and actual Android bounds, not raster inspection.
 
 ## Ownership
 
@@ -65,3 +65,12 @@ Historical design-state package remains linked in ../README.md; frozen PNGs, man
 ## Repeatable static governance gate
 
 Run from repository root: python3 scripts/design/verify_normal_home_contract_v1.py. An isolated .github/workflows/normal-home-spec-governance.yml job runs this same static check for matching branch pushes and PRs. This checks document pointers, authority priorities, 38 distinct test IDs, statuses and *actual checked-out Frozen PNG* hash/dimensions. A static gate PASS does NOT prove Android runtime behavior. Runtime requirements must still be implemented and measured against an exact APK SHA.
+
+## Final closure contract (2026-10-10)
+
+- [Visual_Anchor_Asset_Resolution_V1.md](Visual_Anchor_Asset_Resolution_V1.md): SHA-verified CTA/Camera source ROI, background single rendering stage, distinct Guest and profile avatar authorities.
+- [Short_Window_Adaptive_Freeze_V1.md](Short_Window_Adaptive_Freeze_V1.md): minimal tested envelope, measured SAFE_OVERFLOW trigger, scrollable content plus independent safe Capture dock.
+- [Hero_Real_Photo_EvidenceFit_Contract_V1.md](Hero_Real_Photo_EvidenceFit_Contract_V1.md): real-photo preservation, fish-safe cover versus EVIDENCE_FIT, provenance and eight fixture slots.
+- [Quantitative_Visual_Acceptance_Contract_V1.md](Quantitative_Visual_Acceptance_Contract_V1.md): measurable geometric and optical tolerances, role-matched bounds, exact SHA and independent acceptance format.
+
+These four are active specialized bindings and supersede any contrary interim statuses saying numeric optical tolerances or source CTA/Camera ROI are completely unavailable. Source verification PASS is **not** equivalent to Android visual parity or 8 genuine-photo run PASS.
