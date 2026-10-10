@@ -114,6 +114,19 @@ def main():
             if r-g>=18 and g-b>=5 and r>=125 and g>=105:gold+=1
             if min(r,g,b)>=210 and max(r,g,b)-min(r,g,b)<=46:white+=1
         print(f"  y={y} gold={gold} white={white}")
+    for label,(x0,y0,x1,y1),kind in [
+        ("CTA",(390,1510,700,1570),"white"),
+        ("CAMERA_CORE",(400,1580,680,1785),"white"),
+        ("CAMERA_GOLD",(400,1580,680,1800),"gold"),
+    ]:
+        xx=[];yy=[]
+        for y in range(y0,y1):
+            for x in range(x0,x1):
+                r,g,b=get(pix[y],x,bpp)
+                valid=(min(r,g,b)>=210 and max(r,g,b)-min(r,g,b)<=46) if kind=="white" else (r-g>=18 and g-b>=5 and r>=125 and g>=105)
+                if valid:xx.append(x);yy.append(y)
+        if xx:
+            print(f"FULL_MASK_CANDIDATE {label} bboxInclusive=({min(xx)},{min(yy)},{max(xx)},{max(yy)}) pixels={len(xx)}")
     print("NOTE: masks are reproducible threshold candidates. Flattened raster alone cannot establish invisible touch rectangle.")
 
 if __name__=="__main__":main()
