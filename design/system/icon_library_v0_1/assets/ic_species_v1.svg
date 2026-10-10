@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">鱼种</title>
+  <!-- YuJian Design Candidate V0.1 | 24x24 | stroke=1.75 | not frozen -->
+  <g stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5.3 12C7.65 8.9 10.75 7.25 14.4 7.7C17.25 8.05 19.15 10.15 20.4 12C19.15 13.85 17.25 15.95 14.4 16.3C10.75 16.75 7.65 15.1 5.3 12Z"/><path d="M5.3 12L2.7 8.4V15.6L5.3 12Z"/><path d="M14.65 7.9C13.9 10.15 13.9 13.85 14.65 16.1"/><circle cx="17.45" cy="11.2" r=".75" fill="currentColor" stroke="none"/>
+  </g>
+</svg>
