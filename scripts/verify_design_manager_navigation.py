@@ -118,7 +118,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         if not data_path.is_file():
             fail(f"Record Date V2 source PNG absent: {entry['path']}")
         data = data_path.read_bytes()
-        if data[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or len(data) != entry["bytes"]:
+        if data[:8] != b"\x89PNG\r\n\x1a\n" or len(data) != entry["bytes"]:
             fail(f"Record Date PNG bytes/header mismatch: {view_id}")
         width, height = struct.unpack(">II", data[16:24])
         if (width, height) != dim or hashlib.sha256(data).hexdigest() != entry["sha256"]:
