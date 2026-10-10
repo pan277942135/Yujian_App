@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
@@ -100,6 +102,7 @@ internal fun NormalHomeContent(
     isResolving: Boolean = false,
     motionState: HomeMotionState,
     runtimeAssets: NormalHomeRuntimeAssets?,
+    safeInsets: SafeDrawingInsetsDp = SafeDrawingInsetsDp(),
     modifier: Modifier = Modifier,
 ) {
     val recent = remember(recentCatches) {
@@ -114,7 +117,8 @@ internal fun NormalHomeContent(
             normalHomeTypographyContract(maxWidth.value, density.density)
         }
         val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
-        val verticalOffset = normalHomeVerticalOffset(referenceScale.value, maxHeight.value).dp
+        val usableHeight = (maxHeight.value - safeInsets.top.value - safeInsets.bottom.value).coerceAtLeast(0f)
+        val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
         val cardWidth = ref(NormalHomeCardWidth)
@@ -136,6 +140,7 @@ internal fun NormalHomeContent(
                 onProfileClick = onProfileClick,
                 avatarSize = ref(92f),
                 typography = typography,
+                brandMinWidth = ref(148f),
             )
         }
 
@@ -239,7 +244,8 @@ internal fun NormalHomeContent(
             onClick = onIdentify,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = refY(NormalHomeCameraY)),
+                .offset(y = refY(NormalHomeCameraY))
+                .testTag("normal-home-camera"),
             motionState = motionState,
             runtimeAssets = runtimeAssets,
             visualSize = cameraSize,
@@ -264,6 +270,7 @@ private fun NormalHomeHeader(
     onProfileClick: () -> Unit,
     avatarSize: Dp,
     typography: NormalHomeTypographyContract,
+    brandMinWidth: Dp,
 ) {
     val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
     val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
@@ -282,7 +289,11 @@ private fun NormalHomeHeader(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.testTag("normal-home-brand-title"),
+            // Preserve the 72 px glyph contract while giving Android's measured
+            // two-glyph outline room for its reported 3 px intrinsic overhang.
+            modifier = Modifier
+                .widthIn(min = brandMinWidth)
+                .testTag("normal-home-brand-title"),
         )
         if (isLoggedIn) {
             Box(
