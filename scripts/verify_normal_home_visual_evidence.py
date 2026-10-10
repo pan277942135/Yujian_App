@@ -35,6 +35,100 @@ def cover(image: Image.Image, size: tuple[int, int]) -> Image.Image:
 def mae(left: Image.Image, right: Image.Image) -> float:
     return sum(ImageStat.Stat(ImageChops.difference(left, right)).mean) / 3
 
+def analyze_optical_masks(runtime: Image.Image) -> dict[str, object]:
+    """Compare native NORMAL_FIXED screenshot visible-pixel masks to the immutable source masks."""
+    if runtime.size != (1080, 1920):
+        return {"status": "NOT_RUN", "reason": f"native_baseline_required:{runtime.size}"}
+    targets_path = ROOT / "design/pages/home/normal_home/engineering/normal_home_visual_pixel_targets_v1.json"
+    targets = json.loads(targets_path.read_text(encoding="utf-8"))
+    if sha256(ROOT / targets["source_file"]) != targets["source_sha256"]:
+        return {"status": "SOURCE_FAIL", "reason": "pixel_target_source_sha_mismatch"}
+    rois = {
+        "CTA_NEAR_WHITE": (390, 1510, 700, 1570),
+        "CAMERA_CORE_NEAR_WHITE": (400, 1580, 680, 1785),
+        "CAMERA_GOLD": (400, 1580, 680, 1800),
+    }
+    def matches(kind: str, pixel: tuple[int, int, int]) -> bool:
+        red, green, blue = pixel
+        if kind in ("CTA_NEAR_WHITE", "CAMERA_CORE_NEAR_WHITE"):
+            return min(red, green, blue) >= 210 and max(red, green, blue) - min(red, green, blue) <= 46
+        return red - green >= 18 and green - blue >= 5 and red >= 125 and green >= 105
+
+    results = []
+    target_width = runtime.width
+    tolerance = max(3.0, 0.003 * target_width)
+    for target in targets["visible_masks"]:
+        kind = target["id"]
+        left, top, right, bottom = rois[kind]
+        points = []
+        for y in range(top, bottom):
+            for x in range(left, right):
+                if matches(kind, runtime.getpixel((x, y))):
+                    points.append((x, y))
+        expected = target["bbox"]
+        actual = [min(p[0] for p in points), min(p[1] for p in points),
+                  max(p[0] for p in points), max(p[1] for p in points)] if points else None
+        delta = [actual[i] - expected[i] for i in range(4)] if actual else None
+        max_edge_error = max(abs(value) for value in delta) if delta else None
+        results.append({
+            "id": kind,
+            "threshold": target["threshold"],
+            "roi_inclusive": [left, top, right - 1, bottom - 1],
+            "expected_bbox_inclusive": expected,
+            "actual_bbox_inclusive": actual,
+            "delta_xyxy_px": delta,
+            "tolerance_px": round(tolerance, 3),
+            "pixel_count": len(points),
+            "status": "PASS" if max_edge_error is not None and max_edge_error <= tolerance else "FAIL",
+        })
+    return {
+        "status": "PASS" if all(row["status"] == "PASS" for row in results) else "FAIL",
+        "method": "normal_home_visual_pixel_targets_v1.json thresholds and original-source ROIs; native 1080x1920 only",
+        "frozen_sha256": targets["source_sha256"],
+        "runtime_dimensions_native": list(runtime.size),
+        "results": results,
+    }
+
+
+def analyze_background_composition(frozen: Image.Image, runtime: Image.Image, master: Image.Image) -> dict[str, object]:
+    """Report matched unobstructed RGB ROIs without conflating asset identity with page-scene parity."""
+    projected = cover(master.convert("RGB"), frozen.size)
+    rois = {
+        "upper_sky": (260, 0, 820, 80),
+        "left_mid": (0, 270, 160, 560),
+        "right_mid": (920, 270, 1080, 560),
+        "left_hero_margin": (0, 600, 160, 1476),
+        "right_hero_margin": (920, 600, 1080, 1476),
+        "lower_left": (0, 1500, 380, 1910),
+        "lower_right": (700, 1500, 1080, 1910),
+    }
+    source_width, source_height = master.size
+    scale = max(frozen.width / source_width, frozen.height / source_height)
+    scaled_width, scaled_height = round(source_width * scale), round(source_height * scale)
+    crop_left = (scaled_width - frozen.width) // 2
+    crop_top = (scaled_height - frozen.height) // 2
+    metrics = {}
+    for name, box in rois.items():
+        metrics[name] = {
+            "frozen_vs_projected_master_mae_rgb": round(mae(frozen.crop(box).convert("RGB"), projected.crop(box)), 4),
+            "runtime_vs_projected_master_mae_rgb": round(mae(runtime.crop(box).convert("RGB"), projected.crop(box)), 4),
+        }
+    return {
+        "status": "REVIEW_REQUIRED",
+        "reason": "Immutable background master and flattened Frozen page are distinct authorities; ROI deltas are evidence and do not authorize a tint, blur, crop replacement, or new lake scene.",
+        "same_color_space": "Pillow RGB decode for both PNG inputs; Android screenshot channel pipeline recorded separately",
+        "master_dimensions_px": [source_width, source_height],
+        "viewport_dimensions_px": list(frozen.size),
+        "centered_cover_mapping": {
+            "scale": scale,
+            "scaled_dimensions_px": [scaled_width, scaled_height],
+            "crop_left_px": crop_left,
+            "crop_top_px": crop_top,
+        },
+        "unobstructed_roi_metrics": metrics,
+    }
+
+
 
 def require_capture(path: Path, expected: tuple[int, int]) -> None:
     actual = dimensions(path)
@@ -177,7 +271,8 @@ def main(out: Path) -> int:
     if not negative_control_rejected:
         raise ValueError(f"Empty Home negative control was not rejected (MAE={negative_mae:.2f})")
     background_report = {
-        "status": "PASS",
+        "status": "PASS_ASSET_IDENTITY",
+        "scene_composition_status": "REVIEW_REQUIRED",
         "source_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
         "source_sha256": source_hash,
         "source_dimensions": list(dimensions(source_evidence)),
@@ -186,6 +281,7 @@ def main(out: Path) -> int:
         "runtime_dimensions": list(dimensions(runtime_evidence)),
         "transform_policy": "byte-identical source copy; Android centered ContentScale.Crop only",
         "source_runtime_pixel_identity": True,
+        "background_sha_is_not_visual_parity": True,
         "empty_home_negative_control": {
             "sha256": empty_hash,
             "source_comparison_mae_256x455": round(negative_mae, 4),
@@ -198,6 +294,12 @@ def main(out: Path) -> int:
 
     reference = Image.open(expected_frozen).convert("RGB")
     runtime_image = Image.open(runtime).convert("RGB")
+    optical_masks = analyze_optical_masks(runtime_image)
+    background_composition = analyze_background_composition(
+        reference,
+        runtime_image,
+        Image.open(source).convert("RGB"),
+    )
     # No resizing: both frozen and runtime screenshots were captured at true 1080×1920.
     regions = {
         "header": (0.04, 0.03, 0.92, 0.13),
@@ -237,7 +339,10 @@ def main(out: Path) -> int:
         "carousel_capture_mae": round(carousel_mae, 4),
         "carousel_pages_captured_at_native_dimensions": True,
         "native_capture_dimensions": list(dimensions(runtime)),
-        "background_parity": "PASS",
+        "background_asset_identity": "PASS",
+        "background_parity": "REVIEW_REQUIRED",
+        "background_scene_composition": background_composition,
+        "cta_camera_optical_masks": optical_masks,
         "frozen_hierarchy": "REVIEW_REQUIRED",
         "hero_geometry": "REVIEW_REQUIRED",
         "typography_readability": "REVIEW_REQUIRED",
@@ -252,8 +357,12 @@ def main(out: Path) -> int:
     (out / "visual_parity_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    (out / "10_normal_home_optical_background_report.json").write_text(
+        json.dumps({"background_asset": background_report, "background_composition": background_composition,
+                    "optical_masks": optical_masks}, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(json.dumps({"background": background_report, "visual": report}, ensure_ascii=False))
-    return 0
+    return 1 if optical_masks.get("status") == "FAIL" else 0
 
 
 if __name__ == "__main__":

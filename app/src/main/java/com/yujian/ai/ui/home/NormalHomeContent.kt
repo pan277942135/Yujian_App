@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
@@ -70,8 +71,8 @@ private const val NormalHomeRecentHeaderHeight = 70f
 private const val NormalHomeCardY = 596f
 private const val NormalHomeCardWidth = 740f
 private const val NormalHomeCardHeight = 880f
-private const val NormalHomeCtaY = 1495f
-private const val NormalHomeCameraY = 1564f
+private const val NormalHomeCtaY = 1512f
+private const val NormalHomeCameraY = 1588f
 private const val NormalHomeCameraSize = 200f
 private const val NormalHomeCameraTouchSize = 208f
 private const val NormalHomeHeroCornerRadius = 32f
@@ -230,6 +231,7 @@ internal fun NormalHomeContent(
                         color = YuJianColors.OnDark.copy(alpha = 0.92f),
                         fontSize = typography.captureCta.fontSize,
                         lineHeight = typography.captureCta.lineHeight,
+                        letterSpacing = (-4.2f / density.density).sp,
                         shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
                     ),
                     maxLines = 1,
