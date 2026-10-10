@@ -1,0 +1,169 @@
+{
+  "schema": "habitat_recovered_hifi_sources_v1",
+  "date": "2026-10-10",
+  "scope": "design_only",
+  "main_screen_visual_status": "PENDING_USER_SELECTION",
+  "sources": [
+    {
+      "id": "tank_round_mobile_a",
+      "stage": "FISH_TANK_ROUND",
+      "name": "晨雾湖畔我的渔境.png",
+      "scope": "竖屏圆缸，5条鱼获/3种鱼，整页氛围、草鱼主鱼",
+      "source_library_path": "/Catcher/晨雾湖畔我的渔境.png",
+      "width": 853,
+      "height": 1844,
+      "size_bytes": 2018995,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "tank_round_mobile_b",
+      "stage": "FISH_TANK_ROUND",
+      "name": "晨光湖畔的我的渔境.png",
+      "scope": "竖屏圆缸、鱼体标签、底部鱼获托盘",
+      "source_library_path": "/Catcher/晨光湖畔的我的渔境.png",
+      "width": 1024,
+      "height": 1536,
+      "size_bytes": 2257163,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "tank_round_mobile_c",
+      "stage": "FISH_TANK_ROUND",
+      "name": "晨光鱼境：湖畔水族界面.png",
+      "scope": "竖屏圆缸视觉、底部鱼种统计区、玻璃材料",
+      "source_library_path": "/Catcher/晨光鱼境：湖畔水族界面.png",
+      "width": 941,
+      "height": 1672,
+      "size_bytes": 1958612,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "tank_landscape_a",
+      "stage": "FISH_TANK_LANDSCAPE",
+      "name": "我的渔境：晨光水族馆.png",
+      "scope": "横屏五鱼景观方缸，有鱼体高亮点击状态",
+      "source_library_path": "/Catcher/我的渔境：晨光水族馆.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2439875,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "tank_landscape_b",
+      "stage": "FISH_TANK_LANDSCAPE",
+      "name": "湖畔晨光中的我的渔境.png",
+      "scope": "横屏景观方缸，鱼群、TopBar和完整水线/玻璃边界",
+      "source_library_path": "/Catcher/湖畔晨光中的我的渔境.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2165678,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "tank_landscape_c",
+      "stage": "FISH_TANK_LANDSCAPE",
+      "name": "晨光湖畔水族馆.png",
+      "scope": "横屏高密度景观鱼缸、28条鱼获/8鱼种的演示状态",
+      "source_library_path": "/Catcher/晨光湖畔水族馆.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2562982,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "tank_landscape_d",
+      "stage": "FISH_TANK_LANDSCAPE",
+      "name": "晨光水境：五鱼沉浸式水族景致.png",
+      "scope": "横屏五鱼开放景观缸，大尺度玻璃壁与沉浸水体",
+      "source_library_path": "/Catcher/晨光水境：五鱼沉浸式水族景致.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2566125,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "pond_landscape_a",
+      "stage": "FISH_POND_LANDSCAPE",
+      "name": "晨雾渔境：清晨池塘与鱼群.png",
+      "scope": "自然鱼塘的水上与水下剖面，无鱼缸玻璃壁",
+      "source_library_path": "/Catcher/晨雾渔境：清晨池塘与鱼群.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2466494,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "pond_landscape_b",
+      "stage": "FISH_POND_LANDSCAPE",
+      "name": "晨曦下的我的渔境.png",
+      "scope": "横屏自然鱼塘、水下鱼群、自然岸边纵深",
+      "source_library_path": "/Catcher/晨曦下的我的渔境.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": null,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    },
+    {
+      "id": "pond_landscape_c",
+      "stage": "FISH_POND_LANDSCAPE",
+      "name": "晨雾晨光下的我的渔境.png",
+      "scope": "横屏清晨自然鱼塘，完整水平面、鱼体远近层级",
+      "source_library_path": "/Catcher/晨雾晨光下的我的渔境.png",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": null,
+      "image": null,
+      "git_asset_path": null,
+      "raw_binary_status": "NOT_MATERIALIZABLE_NO_GIT_UPLOAD",
+      "visual_status": "DESIGN_ONLY"
+    }
+  ],
+  "committed_reference_assets": [
+    {
+      "path": "design/pages/fish_records/list/habitat/reference/Habitat_Pond_Levels_1-5_Reference.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "5c5698fd9057996759607937f7bc0824636a4aad1d3cd61480705b79d4d8db1c",
+      "status": "REPO_COMMITTED"
+    },
+    {
+      "path": "design/pages/fish_records/list/habitat/reference/Habitat_Lake_Levels_1-7_Reference.png",
+      "width": 821,
+      "height": 1916,
+      "sha256": "ebdb3455ef78326eeab44c309c00eb05bea8f907e595f7667bf28938a9853de3",
+      "status": "REPO_COMMITTED"
+    }
+  ],
+  "notes": [
+    "Binary import pending authorized raw-byte export of historical Project files.",
+    "No original PNG, no authentic image bytes/sha for new sources; do not invent.",
+    "Past design references do not freeze current visual authority."
+  ]
+}

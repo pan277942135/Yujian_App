@@ -48,3 +48,8 @@
 - 湖泊 1–7：`reference/Habitat_Lake_Levels_1-7_Reference.png`
 
 两张图均按原文件字节归档。其余早期单屏探索未列为当前菜单视觉权威，以免在主页面选版前造成误用。
+
+
+## 2026-10-10 历史高保源图归档
+
+Design Manager 已增加鱼缸圆缸3张、横屏景观缸4张、自然鱼塘3张的独立设计来源卡片；当前只确认素材库名称/尺寸与视觉类别，不将其冒充已入库 PNG 或选定主页面。**已在 Github 的两张阶段图可直接预览；新找回的10张原始 Project PNG 在读取原始字节受限时为 PENDING_RAW_IMPORT。** 索引：[Recovered Habitat Hifi Catalog](Recovered_Habitat_Hifi_Catalog_V1.md)。现有鱼缸→鱼塘→湖泊的3/5/7阶段结构、2.5D和真实鱼获约束保持不变。无 Android 开发。

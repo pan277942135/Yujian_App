@@ -1612,6 +1612,26 @@ function hifiSearchRulesBoard() {
 
 function myCatchesSearchChildCanvas(child) {
   if (!child) return '<div class="preview-empty">请选择 Search V1 子项。</div>';
+  if (child?.render_mode === "habitat_source_catalog") {
+    const candidates=child.source_candidates||[];
+    const cards=candidates.map(c =>
+      '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' + esc(c.name) + '</strong>' +
+        '<span class="status status-PARTIAL">待导入原图</span></div>' +
+      '<div class="authority-kind">HISTORICAL HI-FI / SOURCE ONLY</div>' +
+      '<p>' + esc(c.width + " × " + c.height + " · " + (c.note||"")) + '</p>' +
+      '<p>原图尚未授权提取并上传 GitHub；不提供失效图片链接，不构成 Frozen Authority。</p>' +
+      '</article>'
+    ).join("");
+    return '<div class="authority-index">' +
+      '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
+      '<span>' + esc(child.summary || "历史高保设计来源目录。") + '</span></div>' +
+      '<div class="authority-index-grid">' + cards + '</div>' +
+      '<div class="authority-index-intro"><strong>交付边界</strong>' +
+      '<span>已经登记原图源文件与尺寸，但二进制导入仍未完成；请勿将这些资料卡当成图片原件或最终页面设计。</span></div>' +
+      '</div>';
+  }
+
 
   const visualPath = child.image || child.visual_authority || null;
   if (child.render_mode === "frozen_image" && visualPath && isImage(visualPath)) {
