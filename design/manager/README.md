@@ -193,3 +193,6 @@ GitHub Pages 仅复制 `design/`，因此真实照片展示资产固定为 `desi
 - 7 个入口：00 全局清单、01 鱼获字段、02 照片与视频、03 导航与层级、04 页面工具、05 账户与输入、06 状态与反馈。
 - 43 个候选小图标语义，详见 `design/system/icon_library_v0_1/icon_inventory_v0_1.json`。
 - V0.1 仅为资产盘点 / PARTIAL，不代表新 icon SVG、Android XML、冻结高保真素材已经完成。现有 Icon Action V1 继续冻结。
+
+## 图标 V1 首批资产
+已上传 6 个经过确认的 SVG：长度、重量、地点、日期、时间、天气；原样冻结并登记 SHA-256。访问 `#shared/icon_library_v0_1` →「01 · 鱼获字段」或「07 · 已冻结 SVG」，点击 SVG 放大。其余 37 个尚在盘点设计阶段；Android 未修改。

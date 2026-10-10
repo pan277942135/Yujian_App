@@ -663,43 +663,44 @@ function iconInventoryCount(groupId) {
   return (iconLibraryInventory?.entries || []).filter(x=>groupId==="ALL"||x.group===groupId).length;
 }
 function iconLibraryOverviewHtml(item) {
-  const data=iconLibraryInventory;
-  if (!data) return '<div class="preview-empty">图标盘点数据未加载；请查看下方 Authority。</div>';
+  const data = iconLibraryInventory;
+  if (!data) return '<div class="preview-empty">图标资产数据暂不可用；请查看权威文件。</div>';
   return '<section class="icon-library-overview">' +
-    '<strong>全局图标盘点 · V0.1</strong>' +
+    '<strong>全局图标 · V0.2</strong>' +
     '<div class="icon-library-total"><b>' + esc(data.counts.total_unique_semantic_candidates) +
-    '</b><span>个去重候选语义（不是已完成的 SVG 资产）</span></div>' +
-    '<div class="icon-library-group-summary">' + data.groups.map(g=>
+    '</b><span>个候选语义（6 个 SVG 已冻结 / 37 个待设计）</span></div>' +
+    '<div class="icon-library-group-summary">' + data.groups.map(g =>
       '<div><strong>' + esc(iconInventoryCount(g.id)) + '</strong><span>' + esc(g.name) + '</span></div>'
     ).join("") + '</div>' +
-    '<p>已冻结的 Icon Action V1 继续负责可点击图标的行为、热区和状态；本菜单先收集静态 glyph 类型、开发来源与尚缺资产。</p>' +
-    '<p><b>当前状态：PARTIAL / INVENTORY ONLY</b>。尚无新图标的视觉冻结，也未修改 Android。</p>' +
-    '</section>';
+    '<p>首批长度、重量、地点、日期、时间、天气 SVG V1 已正式冻结。其他图标仍为候选；Icon Action V1 行为合同保持原样。</p>' +
+    '<p><b>Android 未接入，显示大小依各页面 Frozen Geometry 控制。</b></p></section>';
 }
 function iconLibraryCatalogHtml(groupId) {
- const data=iconLibraryInventory;
- if (!data) return '<div class="preview-empty">图标清单暂不可用；请查看权威 JSON 文件。</div>';
- const selected=(data.entries || []).filter(x=>groupId==="ALL"||x.group===groupId);
- const label={ACTION_CONTRACT:"沿用 Action 合同",RUNTIME_MATERIAL:"Android Material 实现",RUNTIME_RESOURCE:"已存在 Drawable",MIXED_LEGACY:"旧 SVG 仅占位",SPEC_ONLY:"规范候选",PROPOSED:"待确认新图标"};
- const origin=e=>e.evidence_path
-  ? '<a href="' + esc('https://github.com/pan277942135/Yujian_App/blob/main/' + e.evidence_path) +
-      '" target="_blank" rel="noreferrer">查看来源 ↗</a>' : '';
- return '<section class="icon-library-catalog">' +
-  '<div class="icon-library-catalog-heading"><strong>' + esc(groupId==="ALL"?"全部图标语义":(data.groups.find(g=>g.id===groupId)?.name||groupId)) +
-  '</strong><span>' + esc(selected.length) + ' 个候选 · 0 个本轮新增冻结图标</span></div>' +
-  '<div class="icon-library-cards">' + selected.map(e=>
-    '<article class="icon-library-item"><div class="icon-library-item-head"><b>' + esc(e.name) +
-    '</b><span>' + esc(e.id) + '</span></div>' +
-    '<p><b>现状：</b>' + esc(label[e.asset_state]||e.asset_state) + '</p>' +
-    '<p><b>现有实现：</b>' + esc(e.existing_implementation) + '</p>' +
-    '<p><b>使用场景：</b>' + esc(e.usage) + '</p>' +
-    '<p><b>审计说明：</b>' + esc(e.note) + '</p>' +
-    '<div class="icon-library-item-foot">' + origin(e) +
-    (e.legacy_asset_path ? '<span>旧字母占位，不得交付正式资源</span>' : '') +
-    '</div></article>'
-  ).join("") + '</div>' +
-  '<div class="icon-library-warning">阶段一仅统计图标语义、使用位置和资源状态；页面展示中不使用 emoji、字母或临时图形冒充正式图标。</div>' +
-  '</section>';
+  const data = iconLibraryInventory;
+  if (!data) return '<div class="preview-empty">清单暂不可用，请查看权威文件。</div>';
+  const selected = (data.entries || []).filter(x => groupId === "ALL" || (groupId === "FROZEN" ? x.approved_visual : x.group === groupId));
+  const names={ACTION_CONTRACT:"沿用操作合同",RUNTIME_MATERIAL:"Android Material 实现",RUNTIME_RESOURCE:"已有 Drawable",MIXED_LEGACY:"旧文件仅占位",SPEC_ONLY:"规范候选",PROPOSED:"待审议",FROZEN_DESIGN:"SVG V1 已冻结"};
+  const source=e=>e.evidence_path
+    ? '<a href="' + esc('https://github.com/pan277942135/Yujian_App/blob/main/' + e.evidence_path) + '" target="_blank" rel="noreferrer">代码来源 ↗</a>' : '';
+  return '<section class="icon-library-catalog">' +
+    '<div class="icon-library-catalog-heading"><strong>' + esc(groupId === "ALL" ? "全部图标语义" : (groupId === "FROZEN" ? "已冻结 SVG V1" : (data.groups.find(g=>g.id===groupId)?.name || groupId))) + '</strong>' +
+    '<span>' + esc(selected.length) + ' 项 · ' + esc(selected.filter(e=>e.approved_visual).length) + ' 个已冻结 SVG</span></div>' +
+    '<div class="icon-library-cards">' + selected.map(e =>
+      '<article class="icon-library-item"><div class="icon-library-item-head"><b>' + esc(e.name) +
+      '</b><span>' + esc(e.id) + '</span></div>' +
+      (e.approved_visual && e.asset_path ?
+        '<a class="icon-library-visual" href="' + esc(repoHref(e.asset_path)) + '" target="_blank" rel="noopener noreferrer" title="查看冻结 SVG">' +
+          '<img src="' + esc(repoHref(e.asset_path)) + '" alt="' + esc(e.name) + ' SVG V1" loading="lazy"/>' +
+          '<span>FROZEN SVG V1 · 点击放大</span></a>' : '') +
+      '<p><b>状态：</b>' + esc(names[e.asset_state] || e.asset_state) + '</p>' +
+      (e.asset_sha256 ? '<p><b>SHA-256：</b><code>' + esc(e.asset_sha256.slice(0,16)) + '…</code></p>' : '') +
+      '<p><b>原有实现：</b>' + esc(e.existing_implementation) + '</p>' +
+      '<p><b>使用场景：</b>' + esc(e.usage) + '</p>' +
+      '<p><b>说明：</b>' + esc(e.note) + '</p><div class="icon-library-item-foot">' + source(e) +
+      (e.legacy_asset_path ? '<span>旧 SVG 字母占位不可作为正式图形</span>' : '') +
+      '</div></article>'
+    ).join("") + '</div>' +
+    '<div class="icon-library-warning">已冻结：长度、重量、地点、日期、时间、天气。未批准的候选不标 FROZEN。Android 代码没有更新。</div></section>';
 }
 function sharedPreviewHtml(item) {
   if (item.id === "icon_library_v0_1") return iconLibraryOverviewHtml(item);

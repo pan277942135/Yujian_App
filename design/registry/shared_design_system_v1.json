@@ -685,17 +685,25 @@
       "display_name": "图标",
       "category": "foundation",
       "overall": "PARTIAL",
-      "current_version": "V0.1",
+      "current_version": "V0.2",
       "navigation_mode": "submenu_direct",
       "show_variant_index": false,
-      "preview_note": "全局图标资产盘点：43 个语义候选，尚未生成/冻结 43 份正式开发图标。已冻结的 Icon Action 不重复设计。",
-      "note": "第一阶段仅统计与归类；区分非交互数据图标、媒体功能图标和已冻结 Icon Action。后续完成草图对照、标准 SVG 与 Android VectorDrawable 后才升级 FROZEN。",
+      "preview_note": "6 个冻结 SVG：长度、重量、地点、日期、时间、天气。可在「01 · 鱼获字段」或「07 · 已冻结 SVG」查看源文件并放大。",
+      "note": "全局图标库共 43 个语义候选。当前 6 个 SVG V1 设计已冻结并验证 Git Blob 字节一致；其余 37 个仍待设计。Android 未接入。",
       "authority_paths": [
         "design/system/icon_library_v0_1/Icon_Library_Audit_V0_1.md",
         "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
         "design/system/icon_library_v0_1/usage_map_v0_1.json",
         "design/system/components/icon_action/Icon_Action_Spec_V1.md",
-        "design/system/components/icon_action/visual_contract.json"
+        "design/system/components/icon_action/visual_contract.json",
+        "design/system/icon_library_v0_1/frozen_assets_v1.json",
+        "design/system/icon_library_v0_1/Frozen_Icon_Assets_V1.md",
+        "design/system/icon_library_v0_1/assets/ic_length_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_weight_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_location_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_date_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_time_v1.svg",
+        "design/system/icon_library_v0_1/assets/ic_weather_v1.svg"
       ],
       "variants": [
         {
@@ -704,7 +712,7 @@
           "status": "PARTIAL",
           "usage": "43 个候选语义 ID，全局按六类去重。",
           "authority_path": "design/system/icon_library_v0_1/Icon_Library_Audit_V0_1.md",
-          "note": "待统一绘制，现有实现并不等于已有正式 VectorDrawable 开发资源。"
+          "note": "43 项总览，其中 6 个 SVG 已冻结，37 个仍为候选。"
         },
         {
           "id": "FACTS",
@@ -712,7 +720,7 @@
           "status": "PARTIAL",
           "usage": "鱼种、长度、重量、地点、时间、天气、笔记",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
-          "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+          "note": "8 个鱼获字段；长度、重量、地点、日期、时间、天气的 SVG V1 已冻结，鱼种和笔记待设计确认。"
         },
         {
           "id": "MEDIA",
@@ -753,8 +761,17 @@
           "usage": "成功、警告、错误、帮助、缺图、选中",
           "authority_path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
           "note": "本目录只登记本轮审计证据与资产缺口，未重新设计或冻结图形。"
+        },
+        {
+          "id": "FROZEN",
+          "name": "07 · 已冻结 SVG",
+          "status": "FROZEN",
+          "usage": "长度、重量、地点、日期、时间、天气 6 个 24×24 矢量母版，可点开 SVG 原图",
+          "note": "仅 SVG 设计资产 FROZEN，整套 Icon Library 仍 PARTIAL，Android 未验收",
+          "authority_path": "design/system/icon_library_v0_1/Frozen_Icon_Assets_V1.md"
         }
-      ]
+      ],
+      "preview": "design/system/icon_library_v0_1/assets/ic_length_v1.svg"
     },
     {
       "id": "top_navigation_v1",
