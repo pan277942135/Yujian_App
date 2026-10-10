@@ -121,6 +121,10 @@ class NormalHomeHeroBehaviorTest {
         }
 
         compose.onNodeWithTag("normal-home-catch-card-offline-image").assertIsDisplayed()
+        compose.onNodeWithTag(
+            "normal-home-catch-media-mode-evidence-fit-bbox-absent-offline-image",
+            useUnmergedTree = true,
+        ).assertIsDisplayed()
         compose.onNodeWithTag("normal-home-media-fallback", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithText("草鱼").assertIsDisplayed()
     }

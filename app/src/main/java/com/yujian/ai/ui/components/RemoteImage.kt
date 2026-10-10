@@ -2,6 +2,8 @@ package com.yujian.ai.ui.components
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.ByteArrayInputStream
 import java.io.File
 
 @Composable
@@ -40,15 +43,17 @@ fun RemoteImage(
     preservePortraitWithFitBackdrop: Boolean = false,
     colorFilter: ColorFilter? = null,
     trimVerifiedLetterbox: Boolean = false,
+    preserveEvidenceWithFitBackdrop: Boolean = false,
+    respectExifOrientation: Boolean = false,
 ) {
-    val bitmapState = remember(url, authToken, reloadToken) { mutableStateOf<Bitmap?>(null) }
+    val bitmapState = remember(url, authToken, reloadToken, respectExifOrientation) { mutableStateOf<Bitmap?>(null) }
     val latestOnLoadResult = rememberUpdatedState(onLoadResult)
-    LaunchedEffect(url, authToken, reloadToken) {
+    LaunchedEffect(url, authToken, reloadToken, respectExifOrientation) {
         if (url.isNullOrBlank()) {
             bitmapState.value = null
             return@LaunchedEffect
         }
-        val loaded = withContext(Dispatchers.IO) { loadBitmap(url, authToken) }
+        val loaded = withContext(Dispatchers.IO) { loadBitmap(url, authToken, respectExifOrientation) }
         bitmapState.value = loaded
         latestOnLoadResult.value?.invoke(loaded != null)
     }
@@ -58,7 +63,9 @@ fun RemoteImage(
     }
     val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
     if (imageBitmap != null) {
-        if (preservePortraitWithFitBackdrop && bitmap?.let { it.height > it.width } == true) {
+        if (preserveEvidenceWithFitBackdrop ||
+            (preservePortraitWithFitBackdrop && bitmap?.let { it.height > it.width } == true)
+        ) {
             Box(modifier = modifier) {
                 Image(
                     bitmap = imageBitmap,
@@ -89,12 +96,16 @@ fun RemoteImage(
     }
 }
 
-private fun loadBitmap(url: String, authToken: String?): Bitmap? = runCatching {
+private fun loadBitmap(url: String, authToken: String?, respectExifOrientation: Boolean): Bitmap? = runCatching {
     if (url.startsWith("file://")) {
-        return@runCatching BitmapFactory.decodeFile(Uri.parse(url).path)
+        val file = File(Uri.parse(url).path ?: return null)
+        return@runCatching if (respectExifOrientation) decodeExifOrientedBitmap(file.readBytes())
+        else BitmapFactory.decodeFile(file.absolutePath)
     }
     if (url.startsWith("/")) {
-        return@runCatching BitmapFactory.decodeFile(File(url).absolutePath)
+        val file = File(url)
+        return@runCatching if (respectExifOrientation) decodeExifOrientedBitmap(file.readBytes())
+        else BitmapFactory.decodeFile(file.absolutePath)
     }
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
         connectTimeout = 8_000
@@ -104,11 +115,54 @@ private fun loadBitmap(url: String, authToken: String?): Bitmap? = runCatching {
     }
     try {
         if (connection.responseCode !in 200..299) return null
-        connection.inputStream.use { BitmapFactory.decodeStream(it) }
+        connection.inputStream.use { input ->
+            if (respectExifOrientation) decodeExifOrientedBitmap(input.readBytes())
+            else BitmapFactory.decodeStream(input)
+        }
     } finally {
         connection.disconnect()
     }
 }.getOrNull()
+
+/** Applies EXIF orientation to a display bitmap only; the encoded source bytes remain untouched. */
+private fun decodeExifOrientedBitmap(encoded: ByteArray): Bitmap? {
+    val source = BitmapFactory.decodeByteArray(encoded, 0, encoded.size) ?: return null
+    val orientation = runCatching {
+        ExifInterface(ByteArrayInputStream(encoded)).getAttributeInt(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.ORIENTATION_NORMAL,
+        )
+    }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+    if (orientation == ExifInterface.ORIENTATION_NORMAL ||
+        orientation == ExifInterface.ORIENTATION_UNDEFINED
+    ) return source
+
+    val matrix = Matrix()
+    when (orientation) {
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
+            matrix.setRotate(180f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_TRANSPOSE -> {
+            matrix.setRotate(90f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+        ExifInterface.ORIENTATION_TRANSVERSE -> {
+            matrix.setRotate(-90f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+        else -> return source
+    }
+    val oriented = runCatching {
+        Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+    }.getOrDefault(source)
+    if (oriented !== source) source.recycle()
+    return oriented
+}
 
 /** Crop only verified, uniform near-black source margins for presentation. The source file/bytes are never edited. */
 private fun trimVerifiedSolidLetterbox(source: Bitmap): Bitmap {

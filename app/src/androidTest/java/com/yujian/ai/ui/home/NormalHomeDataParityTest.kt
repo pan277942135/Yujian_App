@@ -212,7 +212,7 @@ class NormalHomeDataParityTest {
             logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
 
-            assertCoveredCard(firstCard)
+            assertEvidenceFitCard(firstCard, sourceAspectRatio = 360f / 640f)
             firstCard.performClick()
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
@@ -232,7 +232,7 @@ class NormalHomeDataParityTest {
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
-            assertCoveredCard(secondCard)
+            assertEvidenceFitCard(secondCard, sourceAspectRatio = 640f / 800f)
 
             allAction.performClick()
             compose.runOnIdle { assertEquals(1, allClicks) }
@@ -261,6 +261,7 @@ class NormalHomeDataParityTest {
         context.assets.open("home_normal/fish_record/sample_recent_catch.jpg").use { input ->
             photo.outputStream().use { output -> input.copyTo(output) }
         }
+        val sourceShaBeforeDisplay = sha256(photo)
         try {
             compose.setContent {
                 Box(Modifier.fillMaxSize().background(Color(backdrop))) {
@@ -301,6 +302,10 @@ class NormalHomeDataParityTest {
             val media = compose.onNodeWithTag("normal-home-catch-media-real-photo-catch", useUnmergedTree = true)
             val cardBounds = card.fetchSemanticsNode().boundsInRoot
             val mediaBounds = media.fetchSemanticsNode().boundsInRoot
+            compose.onNodeWithTag(
+                "normal-home-catch-media-mode-evidence-fit-bbox-absent-real-photo-catch",
+                useUnmergedTree = true,
+            ).assertIsDisplayed()
             assertEquals(cardBounds.left, mediaBounds.left, 1f)
             assertEquals(cardBounds.top, mediaBounds.top, 1f)
             assertEquals(cardBounds.width, mediaBounds.width, 1f)
@@ -326,6 +331,7 @@ class NormalHomeDataParityTest {
             val redSpread = photoSamples.maxOf { it.red } - photoSamples.minOf { it.red }
             val greenSpread = photoSamples.maxOf { it.green } - photoSamples.minOf { it.green }
             assertTrue("A decoded photographic image, not a flat fallback, fills the Hero", redSpread > 0.12f || greenSpread > 0.12f)
+            assertEquals("EVIDENCE_FIT leaves the stored source bytes unchanged", sourceShaBeforeDisplay, sha256(photo))
 
             val cornerSamples = listOf(
                 pixels[(cardLeft + cardBounds.width * 0.005f).toInt(), (cardTop + cardBounds.height * 0.005f).toInt()],
@@ -346,14 +352,33 @@ class NormalHomeDataParityTest {
         }
     }
 
-    private fun assertCoveredCard(card: androidx.compose.ui.test.SemanticsNodeInteraction) {
+    private fun assertEvidenceFitCard(
+        card: androidx.compose.ui.test.SemanticsNodeInteraction,
+        sourceAspectRatio: Float,
+    ) {
         val pixels = card.captureToImage().toPixelMap()
+        val cardAspectRatio = pixels.width.toFloat() / pixels.height.toFloat()
+        val fittedWidthFraction = minOf(1f, sourceAspectRatio / cardAspectRatio)
+        val fittedLeft = (1f - fittedWidthFraction) / 2f
         val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
-        val edge = pixels[(pixels.width * 0.02f).toInt().coerceIn(0, pixels.width - 1), y]
-        assertTrue(
-            "The viewport edge should show the source image's side marker, not a fitted-image pillar",
-            edge.red > 0.78f && edge.green > 0.68f && edge.blue < 0.42f,
-        )
+        val leftMarkerX = (pixels.width * (fittedLeft + fittedWidthFraction * 0.05f)).toInt()
+        val rightMarkerX = (pixels.width * (fittedLeft + fittedWidthFraction * 0.95f)).toInt()
+        val leftMarker = pixels[leftMarkerX.coerceIn(0, pixels.width - 1), y]
+        val rightMarker = pixels[rightMarkerX.coerceIn(0, pixels.width - 1), y]
+        listOf(leftMarker, rightMarker).forEachIndexed { index, marker ->
+            assertTrue(
+                "EVIDENCE_FIT preserves source edge marker $index inside the full-image foreground",
+                marker.red > 0.78f && marker.green > 0.68f && marker.blue < 0.42f,
+            )
+        }
+        val leftBackdrop = pixels[(pixels.width * 0.01f).toInt(), y]
+        val rightBackdrop = pixels[(pixels.width * 0.99f).toInt(), y]
+        listOf(leftBackdrop, rightBackdrop).forEachIndexed { index, color ->
+            assertTrue(
+                "EVIDENCE_FIT fills unused space from the same photo instead of black bars ($index)",
+                color.red + color.green + color.blue > 0.12f,
+            )
+        }
         val quietTop = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.30f).toInt()]
         val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
