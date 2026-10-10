@@ -92,6 +92,28 @@ def main():
     print("NORMAL_HOME_FROZEN_SHA256",EXPECTED,"dimensions=1080x1920","RGBchannels",bpp)
     metrics(pix,bpp,(400,1492,680,1571),"CTA")
     metrics(pix,bpp,(400,1550,680,1820),"CAMERA")
-    print("NOTE: masks are pixel candidates, not certified CTA glyph or camera rim segmentation; independent optical review required.")
+    # Isolate camera pixels below CTA and near center; summarize exact threshold candidates.
+    print("CAMERA_EDGE_SCAN x=430..650, y=1560..1810")
+    for threshold in (12, 18, 25):
+        gold_rows=[]; white_rows=[]
+        for y in range(1560,1810):
+            gold=white=0
+            for x in range(430,651):
+                r,g,b=get(pix[y],x,bpp)
+                if r-g>=threshold and g-b>=5 and r>=125 and g>=105:gold+=1
+                if min(r,g,b)>=210 and max(r,g,b)-min(r,g,b)<=46:white+=1
+            if gold>=6:gold_rows.append(y)
+            if white>=12:white_rows.append(y)
+        print(f"  gold delta={threshold} rows=", (min(gold_rows),max(gold_rows)) if gold_rows else None,
+              "core-white rows=",(min(white_rows),max(white_rows)) if white_rows else None)
+    print("CAMERA_EDGE_PROBE per row y=1575..1610 and y=1770..1800")
+    for y in list(range(1575,1611,2))+list(range(1770,1801,2)):
+        gold=white=0
+        for x in range(430,651):
+            r,g,b=get(pix[y],x,bpp)
+            if r-g>=18 and g-b>=5 and r>=125 and g>=105:gold+=1
+            if min(r,g,b)>=210 and max(r,g,b)-min(r,g,b)<=46:white+=1
+        print(f"  y={y} gold={gold} white={white}")
+    print("NOTE: masks are reproducible threshold candidates. Flattened raster alone cannot establish invisible touch rectangle.")
 
 if __name__=="__main__":main()
