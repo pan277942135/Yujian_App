@@ -75,3 +75,5 @@ Before device tests run python3 scripts/design/verify_normal_home_contract_v1.py
 - [Visual_Anchor_Asset_Resolution_V1.md](Visual_Anchor_Asset_Resolution_V1.md) owns source pixel measurements, background and avatar provenance.
 - [Short_Window_Adaptive_Freeze_V1.md](Short_Window_Adaptive_Freeze_V1.md) owns the exception-state layout and minimum certification envelope.
 - [Hero_Real_Photo_EvidenceFit_Contract_V1.md](Hero_Real_Photo_EvidenceFit_Contract_V1.md) owns F01–F08. Actual independent licensed photo evidence and Android HOME+DETAIL screenshots must exist before a case is PASS.
+
+Measured immutable CTA/Camera XY boxes are in `normal_home_visual_pixel_targets_v1.json`; only image-mask/source verification is complete, never Android runtime parity by implication. Photo cases F01–F08 live in `hero_real_photo_fixture_register_v1.json` and require 16 HOME+DETAIL runtime screenshots when validated original photos exist.
