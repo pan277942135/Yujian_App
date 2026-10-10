@@ -3,12 +3,16 @@ package com.yujian.ai.ui.home
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
+import android.media.ExifInterface
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -27,6 +31,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.CatchStatistics
@@ -34,6 +39,7 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.screens.HomeScreen
+import com.yujian.ai.ui.components.RemoteImage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -41,6 +47,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(AndroidJUnit4::class)
 class NormalHomeDataParityTest {
@@ -129,6 +136,17 @@ class NormalHomeDataParityTest {
                 2f,
             )
             val pagerBounds = compose.onNodeWithTag("normal-home-catch-pager").fetchSemanticsNode().boundsInRoot
+            val referencePixelScale = pagerBounds.width / 1080f
+            val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta", useUnmergedTree = true)
+                .fetchSemanticsNode().boundsInRoot
+            val cameraTouchBounds = compose.onNodeWithContentDescription("开始识鱼")
+                .fetchSemanticsNode().boundsInRoot
+            assertEquals("CTA container width stays at the 420px reference", 420f * referencePixelScale, ctaBounds.width, 1.5f)
+            assertEquals("CTA container height stays at the 58px reference", 58f * referencePixelScale, ctaBounds.height, 1.5f)
+            assertEquals("Camera touch target width stays at the 208px reference", 208f * referencePixelScale, cameraTouchBounds.width, 1.5f)
+            assertEquals("Camera touch target height stays at the 208px reference", 208f * referencePixelScale, cameraTouchBounds.height, 1.5f)
+            assertTrue("Camera touch target remains at least 48dp", cameraTouchBounds.width / context.resources.displayMetrics.density >= 48f)
+            assertTrue("CTA container remains above and separate from camera hitbox", ctaBounds.bottom <= cameraTouchBounds.top)
             assertEquals(280f / 1080f, labels[0].center.x / pagerBounds.width, 0.01f)
             assertEquals(0.5f, labels[1].center.x / pagerBounds.width, 0.01f)
             assertEquals(800f / 1080f, labels[2].center.x / pagerBounds.width, 0.01f)
@@ -161,6 +179,7 @@ class NormalHomeDataParityTest {
             firstCard.assertIsDisplayed()
             secondCard.assertIsDisplayed()
             val firstCardBounds = firstCard.fetchSemanticsNode().boundsInRoot
+            assertTrue("Recent Hero stays clear of the CTA container", firstCardBounds.bottom <= ctaBounds.top)
             val firstMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-snakehead", useUnmergedTree = true)
                 .fetchSemanticsNode().boundsInRoot
             assertEquals(pagerBounds.center.x, firstCardBounds.center.x, 1.5f)
@@ -600,6 +619,7 @@ class NormalHomeDataParityTest {
     fun edgeToEdgeNormalHomeUsesOneWindowOriginAndReportsInsets() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         var observedInsets: SafeDrawingInsetsDp? = null
+        var observedLayoutDirection: LayoutDirection? = null
 
         // The Home scene has a perpetual frame clock for decorative motion.
         // Freeze test-frame advancement while asserting static window geometry;
@@ -607,7 +627,11 @@ class NormalHomeDataParityTest {
         compose.mainClock.autoAdvance = false
         compose.setContent {
             val safeInsets = rememberSafeDrawingInsets()
-            SideEffect { observedInsets = safeInsets }
+            val layoutDirection = LocalLayoutDirection.current
+            SideEffect {
+                observedInsets = safeInsets
+                observedLayoutDirection = layoutDirection
+            }
             HomeScreen(
                 nickname = "访客",
                 statistics = CatchStatistics(totalCatches = 0, speciesCount = 0),
@@ -634,6 +658,7 @@ class NormalHomeDataParityTest {
         compose.waitForIdle()
 
         val insets = checkNotNull(observedInsets)
+        val layoutDirection = checkNotNull(observedLayoutDirection)
         val density = context.resources.displayMetrics.density
         val fontScale = context.resources.configuration.fontScale
         val composeWindow = compose.onRoot().fetchSemanticsNode().boundsInWindow
@@ -652,17 +677,24 @@ class NormalHomeDataParityTest {
         val usableHeightDp = composeWindow.height / density - insets.top.value - insets.bottom.value
         val offsetYpx = normalHomeVerticalOffset(scaleDp, usableHeightDp) * density
         val expectedHeaderWindowY = composeWindow.top + (104f * scaleDp * density) + offsetYpx
+        val insetStartPx = insets.start.value * density
+        val insetTopPx = insets.top.value * density
+        val insetEndPx = insets.end.value * density
+        val insetBottomPx = insets.bottom.value * density
+        val insetLeftPx = if (layoutDirection == LayoutDirection.Ltr) insetStartPx else insetEndPx
+        val insetRightPx = if (layoutDirection == LayoutDirection.Ltr) insetEndPx else insetStartPx
 
         android.util.Log.i(
             "NORMAL_HOME_WINDOW_METRICS",
             
-                "density=$density fontScale=$fontScale safeInsetsPx=" +
-                "${insets.start.value * density},${insets.top.value * density}," +
-                "${insets.end.value * density},${insets.bottom.value} " +
+                "density=$density fontScale=$fontScale safeInsetsPhysicalPx=" +
+                "$insetLeftPx,$insetTopPx,$insetRightPx,$insetBottomPx " +
+                "safeInsetsLogicalPx=$insetStartPx,$insetTopPx,$insetEndPx,$insetBottomPx " +
+                "layoutDirection=$layoutDirection windowPx=${composeWindow.width}x${composeWindow.height} " +
                 "composeWindowBounds=$composeWindow contentBoundsInWindow=$contentWindow " +
                 "headerBoundsInWindow=$headerWindow ctaContainerBoundsInWindow=$ctaContainerWindow " +
                 "ctaTextBoundsInWindow=$ctaTextWindow cameraTouchBoundsInWindow=$cameraTouchWindow " +
-                "scalePhysical=${scaleDp * density} offsetYPhysical=$offsetYpx",
+                "scalePhysical=${scaleDp * density} verticalDeltaPx=$offsetYpx layoutMode=NORMAL_FIXED",
         )
         assertEquals("The composition root must begin at the edge-to-edge window origin", 0f, composeWindow.top, 1f)
         assertEquals("Normal Home must retain the same window Y origin", composeWindow.top, contentWindow.top, 1f)
@@ -672,6 +704,64 @@ class NormalHomeDataParityTest {
             headerWindow.top,
             1f,
         )
+    }
+
+    @Test
+    fun exifOrientationAffectsOnlyTheDisplayBitmapAndPreservesSourceSha() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val photo = createExifOrientationFixture(context, "normal-home-exif-rotate-90.jpg")
+        val originalSha = sha256(photo)
+        val imageLoaded = AtomicBoolean(false)
+        try {
+            compose.setContent {
+                Box(Modifier.size(240.dp)) {
+                    RemoteImage(
+                        url = photo.absolutePath,
+                        modifier = Modifier.fillMaxSize().testTag("normal-home-exif-oriented-image"),
+                        contentDescription = "EXIF orientation fixture",
+                        contentScale = ContentScale.Fit,
+                        authToken = "",
+                        preserveEvidenceWithFitBackdrop = true,
+                        respectExifOrientation = true,
+                        onLoadResult = { imageLoaded.set(it) },
+                    )
+                }
+            }
+            compose.waitUntil(timeoutMillis = 10_000) { imageLoaded.get() }
+            val image = compose.onNodeWithTag("normal-home-exif-oriented-image", useUnmergedTree = true)
+                .captureToImage().toPixelMap()
+            val rotatedTopLeft = image[(image.width * 0.25f).toInt(), (image.height * 0.17f).toInt()]
+            assertTrue("EXIF ROTATE_90 turns the original lower-left blue quadrant into displayed upper-left",
+                rotatedTopLeft.blue > rotatedTopLeft.red + 0.2f && rotatedTopLeft.blue > rotatedTopLeft.green + 0.2f)
+            assertEquals("Display orientation must never rewrite archived source bytes", originalSha, sha256(photo))
+            assertEquals(ExifInterface.ORIENTATION_ROTATE_90,
+                ExifInterface(photo.absolutePath).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED))
+        } finally {
+            photo.delete()
+        }
+    }
+
+    private fun createExifOrientationFixture(context: Context, name: String): File {
+        val file = File(context.cacheDir, name)
+        val colors = arrayOf(
+            AndroidColor.RED, AndroidColor.GREEN,
+            AndroidColor.BLUE, AndroidColor.YELLOW,
+        )
+        val bitmap = Bitmap.createBitmap(120, 80, Bitmap.Config.ARGB_8888)
+        for (y in 0 until bitmap.height) {
+            for (x in 0 until bitmap.width) {
+                val column = if (x < bitmap.width / 2) 0 else 1
+                val row = if (y < bitmap.height / 2) 0 else 1
+                bitmap.setPixel(x, y, colors[row * 2 + column])
+            }
+        }
+        file.outputStream().use { output -> check(bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output)) }
+        bitmap.recycle()
+        ExifInterface(file.absolutePath).apply {
+            setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_ROTATE_90.toString())
+            saveAttributes()
+        }
+        return file
     }
 
     private fun createPortraitFixture(

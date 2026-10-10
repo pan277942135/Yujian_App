@@ -108,6 +108,9 @@ restore_device_size() {
   else
     "$adb_bin" shell wm size reset >/dev/null 2>&1 || true
   fi
+  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 >/dev/null 2>&1 || true
+  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null 2>&1 || true
+  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null 2>&1 || true
 }
 trap restore_device_size EXIT
 
@@ -235,6 +238,15 @@ if (( target_rc != 0 || suite_rc != 0 || evidence_rc != 0 )); then
 fi
 write_result "$target_rc" "$suite_rc" "$evidence_rc" "$status"
 android_runtime_write_result
+if ! python3 "$YUJIAN_REPO_ROOT/scripts/android_runtime/report_normal_home_acceptance.py" \
+  "$EVIDENCE_DIR" "$YUJIAN_REPO_ROOT" "$BUILD_SHA"; then
+  status=FAIL
+  YUJIAN_CLASSIFICATION="FAIL_EVIDENCE"
+  YUJIAN_FAILURE_PHASE="EVIDENCE"
+  YUJIAN_FAILURE_REASON="NORMAL_HOME_ACCEPTANCE_REPORT_FAILED"
+  write_result "$target_rc" "$suite_rc" 30 "$status"
+  android_runtime_write_result
+fi
 cat "$EVIDENCE_DIR/normal_home_brand_title_result.json"
 
 python3 - "$EVIDENCE_DIR" <<'PY'
