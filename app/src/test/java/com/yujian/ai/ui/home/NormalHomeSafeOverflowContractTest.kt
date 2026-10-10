@@ -75,6 +75,19 @@ class NormalHomeSafeOverflowContractTest {
     }
 
     @Test
+    fun visibleSingleLineDoesNotOverflowForPlatformLineBoxOverhang() {
+        // Android reports lineBottom=107 for this title while the measured Text
+        // height is 104px and raster ink remains within the 104px header.
+        assertFalse(normalHomeTextIsActuallyTruncated(lineCount = 1, visibleEnd = 2, expectedCharacters = 2))
+    }
+
+    @Test
+    fun wrappedOrEllipsizedTextEntersOverflow() {
+        assertTrue(normalHomeTextIsActuallyTruncated(lineCount = 2, visibleEnd = 2, expectedCharacters = 2))
+        assertTrue(normalHomeTextIsActuallyTruncated(lineCount = 1, visibleEnd = 1, expectedCharacters = 2))
+    }
+
+    @Test
     fun clippedFixedTextAlsoEntersOverflow() {
         assertTrue(
             normalHomeRequiresSafeOverflow(

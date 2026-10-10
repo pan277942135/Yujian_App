@@ -359,12 +359,29 @@ internal fun normalHomeRequiresSafeOverflow(
 }
 
 private fun normalHomeTextIsClipped(layout: TextLayoutResult, expectedCharacters: Int): Boolean {
-    if (layout.lineCount != 1) return true
-    if (layout.getLineEnd(0, visibleEnd = true) < expectedCharacters) return true
-    // didOverflowWidth can be true for a tight intrinsic Text width even when
-    // every character is visible. The adaptive switch uses truncation and line
-    // box clipping, which are measurable content loss rather than that flag.
-    return layout.getLineTop(0) < -1f || layout.getLineBottom(0) > layout.size.height + 1f
+    val visibleEnd = if (layout.lineCount > 0) {
+        layout.getLineEnd(0, visibleEnd = true)
+    } else {
+        0
+    }
+    return normalHomeTextIsActuallyTruncated(layout.lineCount, visibleEnd, expectedCharacters)
+}
+
+/**
+ * A platform line box can extend a few pixels beyond Text's measured height
+ * while every glyph still paints inside its parent (the 72px NH05 brand title
+ * does this at the approved 1080 reference width). Switching to SAFE_OVERFLOW
+ * on that selection/line-box geometry moves the CTA and camera away from their
+ * Frozen optical coordinates. Detect user-visible wrapping or ellipsis here;
+ * geometric overlap and out-of-safe-area actions remain separate triggers.
+ */
+internal fun normalHomeTextIsActuallyTruncated(
+    lineCount: Int,
+    visibleEnd: Int,
+    expectedCharacters: Int,
+): Boolean {
+    if (lineCount != 1) return true
+    return visibleEnd < expectedCharacters
 }
 
 /** Scroll required top content while pinning capture actions within the safe area. */

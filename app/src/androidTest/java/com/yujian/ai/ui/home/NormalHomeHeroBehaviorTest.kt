@@ -312,6 +312,29 @@ class NormalHomeHeroBehaviorTest {
             )
         }
 
+        val overflowRoot = compose.onAllNodesWithTag(
+            "normal-home-safe-overflow-root",
+            useUnmergedTree = true,
+        ).fetchSemanticsNodes()
+        assertTrue(
+            "The 1080x1920 HomeScreen has no measured overlap or visible truncation and stays NORMAL_FIXED",
+            overflowRoot.isEmpty(),
+        )
+        val normalRoot = compose.onNodeWithTag(
+            "normal-home-content-root",
+            useUnmergedTree = true,
+        ).fetchSemanticsNode().boundsInRoot
+        val referenceScale = normalRoot.width / 1080f
+        val geometryTolerancePx = maxOf(2f, 0.002f * normalRoot.width)
+        val ctaBounds = compose.onNodeWithTag(
+            "normal-home-capture-cta",
+            useUnmergedTree = true,
+        ).fetchSemanticsNode().boundsInRoot
+        val cameraBounds = compose.onNodeWithContentDescription("开始识鱼")
+            .fetchSemanticsNode().boundsInRoot
+        assertEquals(normalRoot.top + 1512f * referenceScale, ctaBounds.top, geometryTolerancePx)
+        assertEquals(normalRoot.top + 1588f * referenceScale, cameraBounds.top, geometryTolerancePx)
+
         compose.onNodeWithContentDescription("登录或注册").assertHasClickAction().performClick()
         compose.runOnIdle {
             assertEquals(1, loginClicks)
