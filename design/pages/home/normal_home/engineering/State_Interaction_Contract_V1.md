@@ -4,7 +4,7 @@ Owners: NH01–NH04 visual states, Behavior Spec V1, shared avatar and HOME Hero
 
 ## Single source of truth for Home selection
 
-Use valid resolved FishRecords, not login state, server statistics, thumbnail availability or transient errors. A valid record has nonblank ID and either nonblank speciesId OR speciesName. Resolve timestamp priority capturedAt -> createdAt -> unknown; newest first, unknown last, stable tie-break by record ID for deterministic ordering. Ignore invalid records in Home counts. A user-visible error is not a zero-record result.
+Use valid resolved FishRecords, not login state, server statistics, thumbnail availability or transient errors. A valid record has nonblank ID and either nonblank speciesId OR speciesName. Resolve timestamp priority capturedAt -> createdAt -> unknown; newest first, unknown last, and preserve the established stable order for equal timestamps; do not invent a new secondary ranking key. Ignore invalid records in Home counts. A user-visible error is not a zero-record result.
 
 | Given state / event | Display | Reconciliation |
 |---|---|---|
