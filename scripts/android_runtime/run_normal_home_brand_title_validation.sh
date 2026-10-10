@@ -180,6 +180,7 @@ suite_classes="$(gate_test_classes)"
 timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
+grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
 if (( suite_rc != 0 )); then
   printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_BEGIN\n'
   tail -n 120 "$SUITE_LOG"
