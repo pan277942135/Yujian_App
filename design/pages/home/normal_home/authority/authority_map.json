@@ -10,46 +10,51 @@
     },
     {
       "priority": 2,
+      "authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "scope": "NH02 single-record visible raster; does not override NH01 or background source"
+    },
+    {
+      "priority": 3,
       "authority": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "scope": "Normal Home background bitmap only; composition remains governed by the frozen page reference"
     },
     {
-      "priority": 3,
+      "priority": 4,
       "authority": "design/pages/home/normal_home/engineering/README.md",
       "scope": "Engineering and acceptance authoritative binding; approved A1/A2 window mapping; short-screen safe mode and independent evidence gates. Never replaces Frozen bitmap visual composition."
     },
     {
-      "priority": 4,
+      "priority": 5,
       "authority": "design/pages/home/normal_home/spec/",
       "scope": "page behavior, visual interpretation and acceptance"
     },
     {
-      "priority": 5,
+      "priority": 6,
       "authority": "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md",
       "scope": "page motion"
     },
     {
-      "priority": 6,
+      "priority": 7,
       "authority": "design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md",
       "scope": "page haptic behavior"
     },
     {
-      "priority": 7,
+      "priority": 8,
       "authority": "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md",
       "scope": "page sound behavior"
     },
     {
-      "priority": 8,
+      "priority": 9,
       "authority": "design/system/core_visual_v1/YuJian_Core_Visual_System_V1.md",
       "scope": "cross-page visual language, BG_ENV_HERO, shared hierarchy and guardrails"
     },
     {
-      "priority": 9,
+      "priority": 10,
       "authority": "design/system/core_visual_v1/validation/component_map.json",
       "scope": "shared component contracts"
     },
     {
-      "priority": 10,
+      "priority": 11,
       "authority": "design/system/core_visual_v1/tokens/",
       "scope": "shared tokens"
     }
