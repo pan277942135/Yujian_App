@@ -475,7 +475,9 @@
             "B · 已登录默认头像（NH07 方案）",
             "C · 头像加载中",
             "D · 头像加载失败",
-            "E · 游客 / 未登录"
+            "E · 游客 / 未登录",
+            "1254×1254 高清母图（与 Manifest SHA 一致）",
+            "点击放大查看 / 查看原始 PNG"
           ],
           "default_avatar_sources": {
             "one_x": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_1x_64.png",
@@ -485,7 +487,15 @@
           "guest_image": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
           "real_sample_image": "design/system/core_visual_v1/reference/normal_home_v1.png",
           "visual_caption": "NH07 · Avatar States Design Contract V1 · design asset preview, not frozen whole-page raster",
-          "visual_authority_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
+          "visual_authority_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
+          "master_source": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png",
+          "master_dimensions": {
+            "width": 1254,
+            "height": 1254
+          },
+          "master_sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
+          "master_bytes": 1255352,
+          "master_preview_mode": "LIGHTBOX_OPEN_ORIGINAL"
         }
       ]
     },

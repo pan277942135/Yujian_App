@@ -82,5 +82,15 @@
     "source_sha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2",
     "supersedes_after_page_approval": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
     "guest_is_separate": true
+  },
+  "design_master_avatar_nh07": {
+    "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png",
+    "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1255352,
+    "status": "DESIGN_SOURCE_REGISTERED",
+    "runtime_replacement": false,
+    "click_to_enlarge": true
   }
 }

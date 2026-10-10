@@ -183,3 +183,7 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 - 外层冻结页面 Geometry 和独立媒体合同不变；设计冻结不表示 Android runtime 已完成验收。
 
 GitHub Pages 仅复制 `design/`，因此真实照片展示资产固定为 `design/system/fish_media_display_v1/assets/real_catch_source.jpg`（与原始 app 测试照片字节相同）。
+
+## NH07 高清母图
+
+「有数据首页」→「NH07 · 头像状态」现提供已 SHA-256 校验的 **1254×1254 原始 RGBA PNG** 预览：点击可在 Design Manager 中放大，Esc / 关闭按钮返回；原图链接保留原始分辨率。该资产是 Design Source，不改 Android 运行时资源。请以 `design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json` 的 SHA 为准。

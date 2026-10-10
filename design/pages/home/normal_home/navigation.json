@@ -133,11 +133,13 @@
         "已登录缺省头像（晨湖垂钓者）",
         "登录头像加载中",
         "登录头像加载失败",
-        "游客/未登录独立账户入口"
+        "游客/未登录独立账户入口",
+        "1254×1254 高分辨率原始母图，点击放大查看"
       ],
       "authority": "design/pages/home/normal_home/07_avatar_states/README.md",
       "visual_authority": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
-      "visual_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
+      "visual_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
+      "high_resolution_master": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png"
     }
   ]
 }

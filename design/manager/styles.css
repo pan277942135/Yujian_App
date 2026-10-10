@@ -2888,3 +2888,25 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
   .rr-decision-status strong:not(:first-child){margin-left:0}
   .rr-decision-code{font-size:11px}
 }
+
+/* NH07 original 1254px master: scaled preview with accessible click-to-enlarge dialog */
+.nh07-master-panel{display:grid;justify-items:center;gap:14px;padding:24px 18px;border:1px solid #dbe7ee;background:linear-gradient(150deg,#f6fafc,#ebf2f5);border-radius:16px}
+.nh07-master-heading{display:flex;flex-direction:column;gap:5px;text-align:center}
+.nh07-master-heading strong{font-size:17px;color:#1b3a4f}
+.nh07-master-heading span{font-size:11px;color:#647f8b;overflow-wrap:anywhere}
+.nh07-master-open{display:flex;align-items:center;flex-direction:column;gap:8px;max-width:min(100%,330px);border:1px solid #cbdde5;border-radius:16px;padding:14px;text-decoration:none;background:#f0f4f6;color:#22556c;cursor:zoom-in;box-shadow:0 8px 28px #1a3b5320}
+.nh07-master-open:focus-visible{outline:3px solid #2479ab;outline-offset:3px}
+.nh07-master-open img{display:block;width:100%;height:auto;max-width:300px;aspect-ratio:1/1;object-fit:contain}
+.nh07-master-open span{font-size:12px;font-weight:700}
+.nh07-master-links{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.nh07-master-links a{font-size:12px;color:#1a698d}
+.nh07-master-lightbox{max-width:min(94vw,1050px);max-height:96vh;padding:0;border:0;border-radius:18px;background:#f6fafc;box-shadow:0 16px 80px #0006;color:#243d4b;overflow:auto}
+.nh07-master-lightbox::backdrop{background:rgba(12,27,38,.81)}
+.nh07-lightbox-content{display:grid;gap:10px;padding:16px;justify-items:center}
+.nh07-lightbox-header,.nh07-lightbox-footer{width:100%;display:flex;gap:16px;align-items:center;justify-content:space-between}
+.nh07-lightbox-header strong{font-size:14px}
+.nh07-lightbox-close{border:1px solid #d4e2e9;background:white;color:#29495b;border-radius:9px;min-width:44px;min-height:44px;font-size:26px;cursor:pointer}
+.nh07-lightbox-content>img{display:block;max-width:100%;width:auto;height:auto;max-height:calc(96vh - 145px);object-fit:contain;border-radius:8px}
+.nh07-lightbox-footer{font-size:12px;color:#637986;flex-wrap:wrap}
+.nh07-lightbox-footer a{color:#16688b}
+@media(max-width:540px){.nh07-lightbox-content{padding:10px}.nh07-lightbox-header strong{font-size:12px}.nh07-master-panel{padding:15px 8px}}

@@ -1946,6 +1946,7 @@ function nh07AvatarStatesCanvas(view) {
   const avatar = repoHref(view.image || view.visual_authority);
   const guest = repoHref(view.guest_image);
   const realSource = repoHref(view.real_sample_image);
+  const masterSource = view.master_source ? repoHref(view.master_source) : null;
   const image = (src, extra = "") =>
     '<span class="nh07-avatar-thumb' + extra + '"><img src="' + esc(src) + '" alt="" loading="lazy"></span>';
   const card = (code, label, artwork, state, note, action) =>
@@ -1972,10 +1973,47 @@ function nh07AvatarStatesCanvas(view) {
       [['1x · 64px',view.default_avatar_sources?.one_x],['2x · 128px',view.default_avatar_sources?.two_x],['3x · 192px',view.default_avatar_sources?.three_x]]
         .filter(x=>x[1]).map(x=>'<a href="' + esc(repoHref(x[1])) + '" target="_blank" rel="noreferrer">' + esc(x[0]) + ' ↗</a>').join('') +
     '</div></div>' +
+    (masterSource ? '<section class="nh07-master-panel" aria-label="NH07 高清母图">' +
+      '<div class="nh07-master-heading"><strong>高清母图 · 1254 × 1254</strong><span>原始 RGBA PNG · 1,255,352 bytes · SHA-256 '+esc((view.master_sha256 || "").slice(0,16)) + '…</span></div>' +
+      '<a class="nh07-master-open" href="' + esc(masterSource) + '" aria-label="点击放大查看 NH07 高清母图">' +
+        '<img src="' + esc(masterSource) + '" alt="NH07 晨湖垂钓者默认头像 · 高清母图" loading="lazy" decoding="async">' +
+        '<span>点击图片放大查看原图</span></a>' +
+      '<div class="nh07-master-links"><a href="' + esc(masterSource) + '" target="_blank" rel="noreferrer">打开原始 PNG ↗</a>' +
+        '<a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">SHA / 尺寸 Manifest ↗</a></div>' +
+      '</section>' : "") +
     '<p class="nh07-workspace-disclaimer">该工作区为设计资产和状态合同，非 Android 实施或完整页面像素验收的证明。NH01/NH02/NH04 原冻结图保持不变。</p></div>';
 }
 
-/** RR07 — explanatory Design Manager workspace driven exclusively by the versioned machine contract. */
+
+function openNh07MasterLightbox(trigger, src) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "nh07-master-lightbox";
+  dialog.setAttribute("aria-label", "NH07 高清母图放大预览");
+  dialog.innerHTML =
+    '<div class="nh07-lightbox-content">' +
+      '<div class="nh07-lightbox-header"><strong>NH07 · 高清母图 · 1254 × 1254</strong>' +
+        '<button type="button" class="nh07-lightbox-close" aria-label="关闭放大预览">×</button></div>' +
+      '<img src="' + esc(src) + '" alt="NH07 晨湖垂钓者头像 1254 × 1254 高清原图">' +
+      '<div class="nh07-lightbox-footer"><span>设计源图 · 原始像素 · Esc 关闭</span>' +
+        '<a href="' + esc(src) + '" target="_blank" rel="noreferrer">在新标签页打开原始 PNG ↗</a></div>' +
+    '</div>';
+  if (typeof dialog.showModal !== "function") {
+    window.open(src, "_blank", "noopener,noreferrer");
+    return;
+  }
+  document.body.appendChild(dialog);
+  dialog.querySelector(".nh07-lightbox-close").addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    trigger.focus();
+  }, { once: true });
+  dialog.showModal();
+  dialog.querySelector(".nh07-lightbox-close").focus();
+}
+
 function recognitionDecisionLogicCanvas(view) {
   const data = recognitionDecisionContract;
   if (!data) {
@@ -2778,6 +2816,15 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewCanvas").innerHTML = child
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
+
+  if (!child && view.render_mode === "nh07_avatar_states") {
+    el("hifiViewCanvas").querySelectorAll(".nh07-master-open").forEach(anchor => {
+      anchor.addEventListener("click", event => {
+        event.preventDefault();
+        openNh07MasterLightbox(anchor, anchor.href);
+      });
+    });
+  }
 
   const sceneIds=child?.scenario_ids || view.scenario_ids || [];
   const scenes=sceneIds.map(id=>(feature.scenario_pages||[]).find(x=>x.id===id)).filter(Boolean);

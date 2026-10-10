@@ -10,7 +10,12 @@
       1254
     ],
     "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
-    "note": "Conceptually matched to approved whole-page avatar; not a byte-identical extraction of the 104px in-situ raster"
+    "note": "Exact registered 1254x1254 approved independent mother PNG is now stored at source.path; not enlarged from 192px, and not byte-identical to the in-situ NH01 104px raster.",
+    "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png",
+    "bytes": 1255352,
+    "format": "PNG",
+    "channels": "RGBA",
+    "role": "IMMUTABLE_HIGH_RES_DESIGN_MASTER"
   },
   "reference": {
     "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
@@ -70,5 +75,16 @@
     "status": "NOT_IMPLEMENTED",
     "code_changes": false
   },
-  "frozen_full_page_unchanged": true
+  "frozen_full_page_unchanged": true,
+  "high_resolution_master": {
+    "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1255352,
+    "format": "PNG",
+    "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
+    "click_to_enlarge": true,
+    "download_original": true,
+    "role": "DESIGN_SOURCE_NOT_ANDROID_RUNTIME"
+  }
 }
