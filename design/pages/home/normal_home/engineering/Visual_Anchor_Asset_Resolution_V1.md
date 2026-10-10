@@ -11,10 +11,11 @@ Physical size: 1080x1920. Exact SHA-256:
 Its **actual binary** was decoded inside GitHub Actions at [Run 38020083123](https://github.com/pan277942135/Yujian_App/actions/runs/38020083123) using `scripts/design/measure_normal_home_frozen_roi_v1.py`. This is source evidence, not a screenshot guessed from a JPEG.
 
 The decoded reference pixel observations are:
-- CTA white/near-white ink in ROI x400..680, y1492..1571: y **1527..1558** for thresholds 165–210 (RGB min and near-neutral chroma, >=3 row pixels); at stricter 225 threshold y1528..1557. Existing V1.1 Frozen glyph optical X range x433..647.
+- CTA white/near-white ink in ROI x400..680, y1492..1571: y **1527..1558** for thresholds 165–210 (RGB min and near-neutral chroma, >=3 row pixels); at stricter 225 threshold y1528..1557. Verified full-mask bbox x433..646 (inclusive) under the exact 210 RGB threshold (934 pixels).
 - Camera high-contrast near-white core in ROI x430..650,y1560..1810: significant rows **1590..1773** (RGB >=210, near-neutral, >=12 row pixels).
 - Camera warm-gold pixels in same near-center ROI: significant rows **1593..1789** (R−G>=18,G−B>=5,R>=125,G>=105,>=6 row pixels); 12/18/25 channel deltas all yielded same row bounds at this sample.
 - Combined salient camera evidence: y **1590..1789**, explicitly a thresholded **high-contrast/visible-pixel candidate**, not a claim to include every faint shadow or subpixel reflection.
+- Verified **full two-dimensional original-pixel mask rectangles** (inclusive): CTA near-white **(433,1527)–(646,1558)** (934 pixels); Camera core near-white **(450,1590)–(628,1773)** (19670 pixels); Camera warm gold **(439,1593)–(638,1789)** (2123 pixels). These are saved as structured `normal_home_visual_pixel_targets_v1.json` and reproduced by [Run 38020447518](https://github.com/pan277942135/Yujian_App/actions/runs/38020447518).
 - Full per-row tabulation and threshold method are reproducible in the immutable-source ROI script; results are sensitive to mask threshold and source antialiasing, so use the specified mask and report any threshold sensitivity rather than elevating a single sampled pixel to a universal boundary.
 
 ## Anchor type reconciliation (no invented equivalence)
