@@ -70,6 +70,11 @@ def main() -> int:
         "Visual_Runtime_Acceptance_V1.md",
         "Archive_And_Supersession_V1.md",
         "normal_home_acceptance_matrix_v1.json",
+        "hero_real_photo_fixture_register_v1.json",
+        "Visual_Anchor_Asset_Resolution_V1.md",
+        "Short_Window_Adaptive_Freeze_V1.md",
+        "Hero_Real_Photo_EvidenceFit_Contract_V1.md",
+        "Quantitative_Visual_Acceptance_Contract_V1.md",
     ]
     for name in expected_files:
         require((ENG / name).is_file(), f"Engineering file exists: {name}")
@@ -105,6 +110,19 @@ def main() -> int:
             "all matrix cases have runnable method/assertion/coverage and valid status")
     require(all(c.get("acceptance_status") == "NOT_RUN" and not c.get("evidence_refs")
                 for c in cases), "no unsupported PASS or fabricated evidence in baseline checklist")
+    fixtures = read_json(ENG / "hero_real_photo_fixture_register_v1.json")
+    entries=fixtures.get("fixtures") or []
+    require(len(entries)==8 and sorted(item.get("id") for item in entries)==[f"F{i:02d}" for i in range(1,9)],
+            "8 independent evidence slots identified")
+    require(all(item.get("status")=="NOT_RUN" and item.get("photo_provenance")=="NOT_VERIFIED"
+                and item.get("source_usage_rights")=="NOT_VERIFIED" for item in entries),
+            "candidate photos never misreported as verified independent sources")
+    for item in entries:
+        path=item.get("source_path")
+        if path:
+            f=ROOT/path
+            require(f.is_file() and sha256(f)==item.get("source_sha256"),
+                    f"photo candidate hash {item.get('id')}: {path}")
     require(matrix.get("baseline_source_sha256") == status.get("source_sha256"),
             "machine matrix and status Frozen source SHA agree")
 
@@ -120,6 +138,15 @@ def main() -> int:
     geo = (ENG / "Layout_Responsive_Contract_V1.md").read_text(encoding="utf-8")
     require("yWindow = yFrozen*S+delta" in geo and "SAFE_OVERFLOW" in geo
             and "NO +T" in geo, "single Y origin and safe compact fallback recorded")
+    final_visual=(ENG / "Visual_Anchor_Asset_Resolution_V1.md").read_text(encoding="utf-8")
+    require("1527..1558" in final_visual and "1590..1789" in final_visual,
+            "verified frozen source CTA Camera optical ROI evidence documented")
+    quant=(ENG / "Quantitative_Visual_Acceptance_Contract_V1.md").read_text(encoding="utf-8")
+    require("max(2px,0.002*Wsafe)" in quant and "max(3px,0.003*Wsafe)" in quant,
+            "numeric geometry and glyph tolerance contract registered")
+    short=(ENG / "Short_Window_Adaptive_Freeze_V1.md").read_text(encoding="utf-8")
+    require("320dp" in short and "480dp" in short and "160dp" in short,
+            "short-screen certified profile, pinned dock and reachable viewport frozen")
     motion = (ENG / "Motion_Feedback_Contract_V1.md").read_text(encoding="utf-8")
     require("6000ms" in motion and "16s" in motion and "FROZEN NONE" in motion,
             "motion, capture evidence, and no-audio policy recorded")
