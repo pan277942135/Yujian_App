@@ -1,0 +1,423 @@
+{
+  "schema_version": "1.0",
+  "page_id": "normal_home",
+  "status": "REQUIREMENTS_FROZEN_TEST_COVERAGE_INCOMPLETE",
+  "authority": "engineering/README.md",
+  "baseline_source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "mandatory_evidence": [
+    "commit_sha",
+    "apk_sha256",
+    "apk_bytes",
+    "test_apk_sha256",
+    "device_api",
+    "window_width_px",
+    "window_height_px",
+    "inset_left_px",
+    "inset_top_px",
+    "inset_right_px",
+    "inset_bottom_px",
+    "density",
+    "font_scale",
+    "mode",
+    "native_screenshot_sha256",
+    "source_frozen_sha256",
+    "assertion_log",
+    "status"
+  ],
+  "valid_status": [
+    "PASS",
+    "FAIL",
+    "BLOCKED_INFRA",
+    "NOT_RUN",
+    "REVIEW_REQUIRED"
+  ],
+  "status_semantics": {
+    "PASS": "Specific target tested, all assertions and required evidence satisfy authority",
+    "FAIL": "Verified violation of authority",
+    "BLOCKED_INFRA": "Attempted but unsupported target device / evidence collection with log",
+    "NOT_RUN": "No executable evidence",
+    "REVIEW_REQUIRED": "Unresolved independent visual authority such as CTA/camera optical bbox; no PASS"
+  },
+  "cases": [
+    {
+      "id": "G01",
+      "category": "geometry",
+      "scenario": "zero-inset 1080x1920 identity",
+      "method": "unit",
+      "assertion": "exact S=1 delta=0 and anchors",
+      "implementation_coverage": "unit_test_missing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G02",
+      "category": "geometry",
+      "scenario": "real 9:16 phone window insets",
+      "method": "instrumentation",
+      "assertion": "one window origin and safe bounds",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G03",
+      "category": "geometry",
+      "scenario": "19.5:9 20:9 21:9 physical profiles",
+      "method": "instrumentation+screenshot",
+      "assertion": "six regions share NH05 delta and native screenshots",
+      "implementation_coverage": "needs_device_profiles",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G04",
+      "category": "geometry",
+      "scenario": "1080x2340 zero inset arithmetic",
+      "method": "unit",
+      "assertion": "delta 151.2px; clearly synthetic",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G05",
+      "category": "geometry",
+      "scenario": "asymmetric left/right insets and RTL",
+      "method": "instrumentation",
+      "assertion": "physical-left L origin, no duplicate top safe padding",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G06",
+      "category": "typography",
+      "scenario": "360 393 480dp and density variants",
+      "method": "unit+instrumentation",
+      "assertion": "role size equals approved physical mapping; no clipping",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G07",
+      "category": "typography",
+      "scenario": "fontScale 1.0 1.15 1.3",
+      "method": "instrumentation",
+      "assertion": "TextLayoutResult and text-outline measured",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G08",
+      "category": "responsive",
+      "scenario": "short window SAFE_OVERFLOW",
+      "method": "instrumentation+screenshot",
+      "assertion": "scrollable body, safe pinned capture+CTA, no overlap",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "G09",
+      "category": "a11y",
+      "scenario": "all touch targets including avatar and camera",
+      "method": "instrumentation",
+      "assertion": "both dimensions >=48dp and within safe window",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "V01",
+      "category": "visual",
+      "scenario": "NH01 selected and adjacent cards",
+      "method": "screenshot",
+      "assertion": "frozen comparison with real photo, peeks, media card cover",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "V02",
+      "category": "visual",
+      "scenario": "NH02 single-record home",
+      "method": "screenshot+instrumentation",
+      "assertion": "single card centered, no fake neighbors",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "V03",
+      "category": "visual",
+      "scenario": "NH03 unresolved, media failure, refresh failure",
+      "method": "screenshot+instrumentation",
+      "assertion": "state preservation and neutral fallback",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "V04",
+      "category": "visual",
+      "scenario": "NH04 optional and long metadata",
+      "method": "instrumentation+screenshot",
+      "assertion": "one-line content, omitted missing fields, no clipping",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "V05",
+      "category": "asset",
+      "scenario": "NH06 Morning Lake asset",
+      "method": "asset_hash+screenshot",
+      "assertion": "exact SHA and centered Crop",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "V06",
+      "category": "visual",
+      "scenario": "CTA glyph and camera optical ROI",
+      "method": "verified_raster+screenshot",
+      "assertion": "like-kind visual match; never use screenshot for touch area",
+      "implementation_coverage": "requires_frozen_png",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S01",
+      "category": "state",
+      "scenario": "state/navigation event 1",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S01",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S02",
+      "category": "state",
+      "scenario": "state/navigation event 2",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S02",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S03",
+      "category": "state",
+      "scenario": "state/navigation event 3",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S03",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S04",
+      "category": "state",
+      "scenario": "state/navigation event 4",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S04",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S05",
+      "category": "state",
+      "scenario": "state/navigation event 5",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S05",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S06",
+      "category": "state",
+      "scenario": "state/navigation event 6",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S06",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S07",
+      "category": "state",
+      "scenario": "state/navigation event 7",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S07",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S08",
+      "category": "state",
+      "scenario": "state/navigation event 8",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S08",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S09",
+      "category": "state",
+      "scenario": "state/navigation event 9",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S09",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S10",
+      "category": "state",
+      "scenario": "state/navigation event 10",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S10",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S11",
+      "category": "state",
+      "scenario": "state/navigation event 11",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S11",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S12",
+      "category": "state",
+      "scenario": "state/navigation event 12",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S12",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S13",
+      "category": "state",
+      "scenario": "state/navigation event 13",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S13",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S14",
+      "category": "state",
+      "scenario": "state/navigation event 14",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S14",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "S15",
+      "category": "state",
+      "scenario": "state/navigation event 15",
+      "method": "unit+instrumentation",
+      "assertion": "assert per State_Interaction_Contract_V1 S15",
+      "implementation_coverage": "partial_existing",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M01",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 1",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M01",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M02",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 2",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M02",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M03",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 3",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M03",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M04",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 4",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M04",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M05",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 5",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M05",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M06",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 6",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M06",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M07",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 7",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M07",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    },
+    {
+      "id": "M08",
+      "category": "motion_feedback",
+      "scenario": "motion/feedback case 8",
+      "method": "instrumentation+video",
+      "assertion": "assert per Motion_Feedback_Contract_V1 M08",
+      "implementation_coverage": "needs_new_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": []
+    }
+  ]
+}
