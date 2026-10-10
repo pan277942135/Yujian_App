@@ -1,3 +1,5 @@
+> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL CONFLICT REGISTER. Many statuses refer to old SHAs; current decision/proof status is maintained by engineering/README.md and its acceptance matrix. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home V2 — Authority Conflict Matrix
 
 > **STATUS: PARTIALLY_APPROVED / COORDINATE_REVIEW_PENDING (2026-10-10).** User has approved Font A (V1.1 frozen values) and NH05 long-screen A (one-piece offset). See `Normal_Home_V2_Decision_Record_20261010.md`. Other baseline coordinates, safe-area origin and test evidence remain unresolved.
