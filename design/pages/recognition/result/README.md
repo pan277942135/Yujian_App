@@ -165,3 +165,10 @@ A Low result does not create an unknown/pending-species FishRecord. Returning
 unconfirmed preserves draft fields and clears the pending destination.
 
 A FishRecord must exist before memory-media operations begin.
+
+
+## Design-system registry audit · 2026-10-10
+
+Result V1.1 page-level Frozen authorities have priority over the conflicting historical Top Navigation / Action Button usage examples. The current Result centered title and light Result Save/Continue composition are registered as **scoped exceptions**, leaving globally frozen component variants untouched. RR03 Low keeps editable metadata, Story and visible dual CTAs before species confirmation; saving is gated by LOW_MANUAL. The 3+2 model, seven Frozen visual boards and metadata/selector boundaries are unchanged.
+
+See `review/Recognition_Result_Design_Audit_20261010.md`. Runtime parity remains separate and pending.
