@@ -1,5 +1,7 @@
 # Normal Home Acceptance Criteria V1
 
+> **Implementation and independent acceptance binding:** [engineering/Visual_Runtime_Acceptance_V1.md](../engineering/Visual_Runtime_Acceptance_V1.md) and its 38-case machine matrix own executable IDs, native evidence schema, profile matrix, and PASS/FAIL/BLOCKED_INFRA taxonomy. This V1 list is the design-level intent and must not independently imply runtime PASS.
+
 A design or implementation is conformant only when all applicable criteria pass.
 
 ## A. Authority
