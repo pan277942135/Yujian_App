@@ -64,3 +64,7 @@ CI build/unit/lint/model trace PASS is prerequisite engineering hygiene, never s
 ## Quality goals with objective decisions
 
 Metrics: all required targets accessible, all page regions visible/reachable, source hashes exact, normal-mode shared shift exact, card geometry/ref proportion exact in synthetic fixture, non-transient real-device actual px bounds reported, motion numerical keyframes match frozen tokens and unapproved sound/haptic absent. Optical tolerance is explicitly UNSET until hash-verified reference ROI and repeatable measurement method; therefore optical criterion remains REVIEW_REQUIRED instead of inventing ±px thresholds.
+
+## Pre-flight static governance test
+
+Before device tests run python3 scripts/design/verify_normal_home_contract_v1.py from the repository root. Its PASS certifies references, matrix structure and Frozen source files in that checkout only. It is explicitly **not** a surrogate for G/V/S/M Android runtime PASS. CI integration of each runtime case is a separate implementation task, tracked as implementation_coverage in the JSON matrix.
