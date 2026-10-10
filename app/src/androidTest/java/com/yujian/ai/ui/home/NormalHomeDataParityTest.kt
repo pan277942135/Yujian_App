@@ -97,7 +97,7 @@ class NormalHomeDataParityTest {
                     onCatchClick = { openedCatch = it },
                     motionState = HomeMotionState(),
                     runtimeAssets = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().background(Color.White),
                 )
             }
 
@@ -386,42 +386,53 @@ class NormalHomeDataParityTest {
         val parentBounds = parent.boundsInRoot
         val density = layout.layoutInput.density.density
         val fontScale = layout.layoutInput.density.fontScale
-        val visibleEnd = if (layout.lineCount > 0) layout.getLineEnd(0, visibleEnd = true).coerceIn(0, text.length) else 0
-        val visibleGlyphBounds = if (visibleEnd > 0) {
-            val glyphs = (0 until visibleEnd).map(layout::getBoundingBox)
+        val visibleEnd = if (layout.lineCount > 0) {
+            layout.getLineEnd(0, visibleEnd = true).coerceIn(0, text.length)
+        } else {
+            0
+        }
+        val characterBoxBounds = if (visibleEnd > 0) {
+            val boxes = (0 until visibleEnd).map(layout::getBoundingBox)
             androidx.compose.ui.geometry.Rect(
-                left = glyphs.minOf { it.left },
-                top = glyphs.minOf { it.top },
-                right = glyphs.maxOf { it.right },
-                bottom = glyphs.maxOf { it.bottom },
+                left = boxes.minOf { it.left },
+                top = boxes.minOf { it.top },
+                right = boxes.maxOf { it.right },
+                bottom = boxes.maxOf { it.bottom },
             )
         } else {
             androidx.compose.ui.geometry.Rect.Zero
         }
-        val glyphOutlineBounds = if (visibleEnd > 0) {
+        // getPathForRange returns selection geometry, not the rasterized glyph outline.
+        val selectionPathBounds = if (visibleEnd > 0) {
             layout.getPathForRange(0, visibleEnd).getBounds()
         } else {
             androidx.compose.ui.geometry.Rect.Zero
         }
-        val layoutBounds = androidx.compose.ui.geometry.Rect(0f, 0f, layout.size.width.toFloat(), layout.size.height.toFloat())
-        val glyphOutlineInsideLayout = glyphOutlineBounds.left >= layoutBounds.left - 0.5f &&
-            glyphOutlineBounds.top >= layoutBounds.top - 0.5f &&
-            glyphOutlineBounds.right <= layoutBounds.right + 0.5f &&
-            glyphOutlineBounds.bottom <= layoutBounds.bottom + 0.5f
-        val glyphOutlineRootBounds = androidx.compose.ui.geometry.Rect(
-            nodeBounds.left + glyphOutlineBounds.left,
-            nodeBounds.top + glyphOutlineBounds.top,
-            nodeBounds.left + glyphOutlineBounds.right,
-            nodeBounds.top + glyphOutlineBounds.bottom,
+        val layoutBounds = androidx.compose.ui.geometry.Rect(
+            0f,
+            0f,
+            layout.size.width.toFloat(),
+            layout.size.height.toFloat(),
         )
-        val glyphOutlineInsideNode = glyphOutlineBounds.left >= -0.5f &&
-            glyphOutlineBounds.top >= -0.5f &&
-            glyphOutlineBounds.right <= nodeBounds.width + 0.5f &&
-            glyphOutlineBounds.bottom <= nodeBounds.height + 0.5f
-        val glyphOutlineInsideParent = glyphOutlineRootBounds.left >= parentBounds.left - 0.5f &&
-            glyphOutlineRootBounds.top >= parentBounds.top - 0.5f &&
-            glyphOutlineRootBounds.right <= parentBounds.right + 0.5f &&
-            glyphOutlineRootBounds.bottom <= parentBounds.bottom + 0.5f
+        val selectionPathInsideLayout = selectionPathBounds.left >= layoutBounds.left - 0.5f &&
+            selectionPathBounds.top >= layoutBounds.top - 0.5f &&
+            selectionPathBounds.right <= layoutBounds.right + 0.5f &&
+            selectionPathBounds.bottom <= layoutBounds.bottom + 0.5f
+        val selectionPathRootBounds = androidx.compose.ui.geometry.Rect(
+            nodeBounds.left + selectionPathBounds.left,
+            nodeBounds.top + selectionPathBounds.top,
+            nodeBounds.left + selectionPathBounds.right,
+            nodeBounds.top + selectionPathBounds.bottom,
+        )
+        val selectionPathInsideParent = selectionPathRootBounds.left >= parentBounds.left - 0.5f &&
+            selectionPathRootBounds.top >= parentBounds.top - 0.5f &&
+            selectionPathRootBounds.right <= parentBounds.right + 0.5f &&
+            selectionPathRootBounds.bottom <= parentBounds.bottom + 0.5f
+        val rasterInkBounds = if (tag == "normal-home-brand-title") {
+            measureBrandRasterInk(nodeBounds, parentBounds)
+        } else {
+            null
+        }
         val lineBounds = if (layout.lineCount > 0) {
             "${layout.getLineLeft(0)},${layout.getLineTop(0)}..${layout.getLineRight(0)},${layout.getLineBottom(0)}"
         } else {
@@ -429,19 +440,21 @@ class NormalHomeDataParityTest {
         }
         android.util.Log.i(
             "NORMAL_HOME_TEXT_LAYOUT",
-            
-                "tag=$tag parent=$parentTag referenceFontPx=$referenceFontPx " +
+            "tag=$tag parent=$parentTag referenceFontPx=$referenceFontPx " +
                 "actualFontSize=${layout.layoutInput.style.fontSize} " +
                 "lineHeight=${layout.layoutInput.style.lineHeight} " +
                 "density=$density fontScale=$fontScale " +
                 "effectiveFontPx=${layout.layoutInput.style.fontSize.value * density * fontScale} " +
                 "nodeBoundsPx=${nodeBounds.left},${nodeBounds.top}..${nodeBounds.right},${nodeBounds.bottom} " +
                 "nodeSizePx=${nodeBounds.width}x${nodeBounds.height} " +
-                "glyphLayoutBoundsPx=${visibleGlyphBounds.left},${visibleGlyphBounds.top}..${visibleGlyphBounds.right},${visibleGlyphBounds.bottom} " +
-                "glyphOutlineBoundsPx=${glyphOutlineBounds.left},${glyphOutlineBounds.top}..${glyphOutlineBounds.right},${glyphOutlineBounds.bottom} " +
-                "glyphOutlineRootBoundsPx=${glyphOutlineRootBounds.left},${glyphOutlineRootBounds.top}..${glyphOutlineRootBounds.right},${glyphOutlineRootBounds.bottom} " +
-                "glyphOutlineInsideLayout=$glyphOutlineInsideLayout glyphOutlineInsideNode=$glyphOutlineInsideNode " +
-                "glyphOutlineInsideParent=$glyphOutlineInsideParent " +
+                "characterBoxBoundsPx=${characterBoxBounds.left},${characterBoxBounds.top}.." +
+                "${characterBoxBounds.right},${characterBoxBounds.bottom} " +
+                "selectionPathBoundsPx=${selectionPathBounds.left},${selectionPathBounds.top}.." +
+                "${selectionPathBounds.right},${selectionPathBounds.bottom} " +
+                "selectionPathRootBoundsPx=${selectionPathRootBounds.left},${selectionPathRootBounds.top}.." +
+                "${selectionPathRootBounds.right},${selectionPathRootBounds.bottom} " +
+                "selectionPathInsideLayout=$selectionPathInsideLayout selectionPathInsideParent=$selectionPathInsideParent " +
+                "rasterInkBoundsPx=$rasterInkBounds rasterInkMethod=white-probe-rgb-core-less-than-0.38-0.48-0.58 " +
                 "lineBoundsPx=$lineBounds visibleTextEnd=$visibleEnd/${text.length} " +
                 "parentBoundsPx=${parentBounds.width}x${parentBounds.height} " +
                 "parentRectPx=${parentBounds.left},${parentBounds.top}..${parentBounds.right},${parentBounds.bottom} " +
@@ -453,26 +466,86 @@ class NormalHomeDataParityTest {
         )
         assertEquals("$tag follows the Normal Home single-line contract", 1, layout.lineCount)
         if (!tag.contains("-meta-")) {
-            // Compose can report width overflow for an exact-integer two-glyph
-            // intrinsic width even when every glyph is visible and in bounds.
-            // Accept this only for the brand when the measured geometry proves
-            // no character was ellipsized or clipped. Other text remains strict.
-            val brandIntrinsicRoundingOnly = tag == "normal-home-brand-title" &&
-                layout.didOverflowWidth &&
-                visibleEnd == text.length &&
-                glyphOutlineInsideLayout &&
-                glyphOutlineInsideNode &&
-                glyphOutlineInsideParent
+            assertEquals("$tag keeps every character visible", text.length, visibleEnd)
+            // The brand's selection path includes line selection geometry below
+            // the Text node. Validate actual rendered ink against the measured boxes.
+            val brandRasterFitsContainers = tag == "normal-home-brand-title" &&
+                rasterInkBounds != null &&
+                rasterInkBounds.left >= nodeBounds.left &&
+                rasterInkBounds.top >= nodeBounds.top &&
+                rasterInkBounds.right <= nodeBounds.right &&
+                rasterInkBounds.bottom <= nodeBounds.bottom &&
+                rasterInkBounds.left >= parentBounds.left &&
+                rasterInkBounds.top >= parentBounds.top &&
+                rasterInkBounds.right <= parentBounds.right &&
+                rasterInkBounds.bottom <= parentBounds.bottom
             assertTrue(
-                "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth} visible=$visibleEnd/${text.length}",
-                !layout.didOverflowWidth || brandIntrinsicRoundingOnly,
+                "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth}",
+                !layout.didOverflowWidth || brandRasterFitsContainers,
             )
-            assertTrue("$tag has vertical overflow: didOverflowHeight=${layout.didOverflowHeight}", !layout.didOverflowHeight)
+            assertTrue(
+                "$tag has vertical overflow outside its raster container: didOverflowHeight=${layout.didOverflowHeight}",
+                !layout.didOverflowHeight || brandRasterFitsContainers,
+            )
         }
         assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
         assertTrue("$tag remains inside its measured parent", nodeBounds.top >= parentBounds.top - 1f)
         assertTrue("$tag remains inside its measured parent", nodeBounds.right <= parentBounds.right + 1f)
         assertTrue("$tag remains inside its measured parent", nodeBounds.bottom <= parentBounds.bottom + 1f)
+    }
+
+    private fun measureBrandRasterInk(
+        nodeBounds: androidx.compose.ui.geometry.Rect,
+        parentBounds: androidx.compose.ui.geometry.Rect,
+    ): androidx.compose.ui.geometry.Rect {
+        val root = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
+        val rootBounds = root.fetchSemanticsNode().boundsInRoot
+        val pixels = root.captureToImage().toPixelMap()
+        val scanLeft = ((nodeBounds.left - rootBounds.left).toInt() - 8).coerceAtLeast(0)
+        val scanTop = ((nodeBounds.top - rootBounds.top).toInt() - 8).coerceAtLeast(0)
+        val scanRight = ((nodeBounds.right - rootBounds.left).toInt() + 8).coerceAtMost(pixels.width)
+        val scanBottom = ((nodeBounds.bottom - rootBounds.top).toInt() + 8).coerceAtMost(pixels.height)
+        var minX = pixels.width
+        var minY = pixels.height
+        var maxX = -1
+        var maxY = -1
+        var corePixelCount = 0
+        for (y in scanTop until scanBottom) {
+            for (x in scanLeft until scanRight) {
+                val color = pixels[x, y]
+                // The probe canvas is white; this selects dark ink cores, not
+                // antialiased selection/layout bounds.
+                if (color.red < 0.38f && color.green < 0.48f && color.blue < 0.58f) {
+                    minX = minOf(minX, x)
+                    minY = minOf(minY, y)
+                    maxX = maxOf(maxX, x)
+                    maxY = maxOf(maxY, y)
+                    corePixelCount += 1
+                }
+            }
+        }
+        assertTrue("The brand Text node rendered no measurable ink-core pixels", corePixelCount > 0)
+        val rasterBounds = androidx.compose.ui.geometry.Rect(
+            rootBounds.left + minX,
+            rootBounds.top + minY,
+            rootBounds.left + maxX + 1f,
+            rootBounds.top + maxY + 1f,
+        )
+        assertTrue(
+            "Brand raster ink escapes its measured Text node: raster=$rasterBounds node=$nodeBounds",
+            rasterBounds.left >= nodeBounds.left &&
+                rasterBounds.top >= nodeBounds.top &&
+                rasterBounds.right <= nodeBounds.right &&
+                rasterBounds.bottom <= nodeBounds.bottom,
+        )
+        assertTrue(
+            "Brand raster ink escapes the measured header: raster=$rasterBounds header=$parentBounds",
+            rasterBounds.left >= parentBounds.left &&
+                rasterBounds.top >= parentBounds.top &&
+                rasterBounds.right <= parentBounds.right &&
+                rasterBounds.bottom <= parentBounds.bottom,
+        )
+        return rasterBounds
     }
 
     @Test

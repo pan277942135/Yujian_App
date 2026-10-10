@@ -7,7 +7,7 @@ RUNTIME_DIR="$SCRIPT_DIR"
 export EVIDENCE_DIR="${EVIDENCE_DIR:-evidence/runtime/normal-home-brand-title-v1}"
 export API_LEVEL="${API_LEVEL:-28}"
 export BUILD_SHA="${BUILD_SHA:-${GITHUB_SHA:-unknown}}"
-export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedMultipleGuestCatches"
+export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedTwoAspectPortraitGuestCatches"
 mkdir -p "$EVIDENCE_DIR/infra"
 
 source "$RUNTIME_DIR/common.sh"
@@ -50,6 +50,14 @@ pathlib.Path(path).write_text(json.dumps({
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 }
+instrumentation_log_passed() {
+  local log_file="$1"
+  if grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_STATUS_CODE:[[:space:]]*-2|INSTRUMENTATION_RESULT:[[:space:]]*shortMsg=' "$log_file"; then
+    return 1
+  fi
+  grep -Eiq 'OK \([1-9][0-9]* tests?\)' "$log_file"
+}
+
 
 if [[ ! -s "$YUJIAN_APP_APK" || ! -s "$YUJIAN_TEST_APK" ]]; then
   printf 'APK_MISSING app=%s test=%s\n' "$YUJIAN_APP_APK" "$YUJIAN_TEST_APK" > "$EVIDENCE_DIR/infra/preflight.log"
@@ -168,6 +176,7 @@ target_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#differentPortraitRa
 timeout 180s "$adb_bin" shell am instrument -w -r -e class "$target_class" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$TARGET_LOG" 2>&1
 target_rc=$?
+if (( target_rc == 0 )) && ! instrumentation_log_passed "$TARGET_LOG"; then target_rc=30; fi
 if (( target_rc == 0 )); then YUJIAN_INSTRUMENTATION_STATUS="PASS"; else YUJIAN_INSTRUMENTATION_STATUS="FAIL"; fi
 grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$TARGET_LOG" || true
 if (( target_rc != 0 )); then
@@ -180,6 +189,7 @@ suite_classes="$(gate_test_classes)"
 timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
+if (( suite_rc == 0 )) && ! instrumentation_log_passed "$SUITE_LOG"; then suite_rc=30; fi
 grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
 "$adb_bin" logcat -d -v brief -s NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I > "$EVIDENCE_DIR/normal-home-measurement-logcat.log" 2>&1 || true
 cat "$EVIDENCE_DIR/normal-home-measurement-logcat.log"
