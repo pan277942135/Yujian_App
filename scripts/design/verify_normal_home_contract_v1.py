@@ -93,9 +93,10 @@ def main() -> int:
         + [f"V{i:02d}" for i in range(1, 7)]
         + [f"S{i:02d}" for i in range(1, 16)]
         + [f"M{i:02d}" for i in range(1, 9)]
+        + [f"F{i:02d}" for i in range(1, 9)]
     )
-    require(len(cases) == 38 and sorted(ids) == sorted(expected_ids),
-            "38 unique required G/V/S/M acceptance cases")
+    require(len(cases) == 46 and sorted(ids) == sorted(expected_ids),
+            "46 unique required G/V/S/M/F acceptance cases")
     valid = set(matrix.get("valid_status") or [])
     require(valid == {"PASS", "FAIL", "BLOCKED_INFRA", "NOT_RUN", "REVIEW_REQUIRED"},
             "acceptance status taxonomy exact")
