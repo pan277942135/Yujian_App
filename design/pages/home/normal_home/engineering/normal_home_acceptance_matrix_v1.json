@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "page_id": "normal_home",
-  "status": "REQUIREMENTS_FROZEN_TEST_COVERAGE_INCOMPLETE",
+  "status": "46_CASES_REQUIRE_REAL_RUNTIME_EVIDENCE",
   "authority": "engineering/README.md",
   "baseline_source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
   "mandatory_evidence": [
@@ -441,6 +441,101 @@
       "acceptance_status": "NOT_RUN",
       "evidence_refs": [],
       "fixture": "test clock + device capture/settings as applicable"
+    },
+    {
+      "id": "F01",
+      "category": "hero_real_photo",
+      "scenario": "real 4:3 landscape catch photo",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F01"
+    },
+    {
+      "id": "F02",
+      "category": "hero_real_photo",
+      "scenario": "real 16:9 landscape catch photo",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F02"
+    },
+    {
+      "id": "F03",
+      "category": "hero_real_photo",
+      "scenario": "real 3:4 portrait catch photo",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F03"
+    },
+    {
+      "id": "F04",
+      "category": "hero_real_photo",
+      "scenario": "real 9:16 portrait catch photo",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F04"
+    },
+    {
+      "id": "F05",
+      "category": "hero_real_photo",
+      "scenario": "extreme vertical portrait <0.5 width/height",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F05"
+    },
+    {
+      "id": "F06",
+      "category": "hero_real_photo",
+      "scenario": "fish at image edge, crop may clip body",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F06"
+    },
+    {
+      "id": "F07",
+      "category": "hero_real_photo",
+      "scenario": "approved real photo with tagged derived technical black bars",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F07"
+    },
+    {
+      "id": "F08",
+      "category": "hero_real_photo",
+      "scenario": "real photo with no reliable bbox",
+      "method": "provenance_check + HOME/DETAIL Android runtime screenshot and bbox/CROP/EVIDENCE_FIT assertion",
+      "assertion": "Original fish identity and source hash preserved; no AI fish generation; no unsafe fish clipping; original Image displayed in detail; correct CROP/EVIDENCE_FIT mode, footer legible; cite matching fixture ID and authorization",
+      "implementation_coverage": "needs_original_provenance_and_device_test",
+      "acceptance_status": "NOT_RUN",
+      "evidence_refs": [],
+      "fixture_id": "F08"
     }
-  ]
+  ],
+  "photo_evidence_requirement": {
+    "case_prefix": "F",
+    "required_cases": 8,
+    "runtime_snapshots_min": 16,
+    "source_policy": "genuine source with permission/provenance; derivative flagged; no AI images or duplicate sources counted as independent",
+    "status": "NOT_RUN"
+  }
 }
