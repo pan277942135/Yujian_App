@@ -1,3 +1,5 @@
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL DESIGN BASELINE. V1 background absence superseded by V1.1; runtime safety/acceptance are now in engineering/README.md. Current Work/Validation entry: [Normal Home Engineering Authority](engineering/README.md). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home — Design Package Closure V1
 
 > Historical baseline. Background authority statements in this V1 document are superseded by `DESIGN_PACKAGE_CLOSURE_V1_1.md`. The canonical page image and all non-background design decisions remain in force.

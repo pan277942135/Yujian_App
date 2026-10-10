@@ -46,11 +46,21 @@ def luma(pixel: tuple[int, int, int]) -> float:
     return 0.2126 * pixel[0] + 0.7152 * pixel[1] + 0.0722 * pixel[2]
 
 
-def analyze_structure(path: Path) -> dict[str, object]:
+def analyze_structure(path: Path, background_source: Path) -> dict[str, object]:
+    """Prove the actual HOME card occupies its frozen region against its registered lake master.
+
+    The synthetic fish fixtures use yellow borders and blue/red panels: counting
+    *white* edge pixels silently misclassifies a correctly rounded, clipped card.
+    Use stable interior/exterior background-difference witnesses instead, while
+    Compose instrumentation continues to assert the exact Hero bounds and clip.
+    """
     image = Image.open(path).convert("RGB")
     width, height = image.size
-    if width != 1080:
-        raise ValueError(f"structural anchors require 1080px width: {path.name} is {width}px")
+    if (width, height) != (1080, 1920):
+        raise ValueError(f"structural witnesses require native 1080x1920: {path.name} is {width}x{height}")
+    if sha256(background_source) != BACKGROUND_SHA:
+        raise ValueError("card structure reference is not the registered Morning Lake master")
+    background = cover(Image.open(background_source).convert("RGB"), image.size)
 
     def count_dark(box: tuple[int, int, int, int]) -> int:
         return sum(r < 70 and g < 95 and b < 130 for r, g, b in image.crop(box).getdata())
@@ -58,26 +68,27 @@ def analyze_structure(path: Path) -> dict[str, object]:
     def count_bright(box: tuple[int, int, int, int]) -> int:
         return sum(luma(pixel) > 205 for pixel in image.crop(box).getdata())
 
-    left_candidates = [
-        (sum(luma(image.getpixel((x, y))) > 205 for y in range(630, 1445)), x)
-        for x in range(158, 184)
-    ]
-    right_candidates = [
-        (sum(luma(image.getpixel((x, y))) > 205 for y in range(630, 1445)), x)
-        for x in range(896, 922)
-    ]
-    top_candidates = [
-        (sum(luma(image.getpixel((x, y))) > 205 for x in range(190, 890)), y)
-        for y in range(580, 620)
-    ]
-    bottom_candidates = [
-        (sum(luma(image.getpixel((x, y))) > 205 for x in range(190, 890)), y)
-        for y in range(1458, 1490)
-    ]
-    left_score, left_x = max(left_candidates)
-    right_score, right_x = max(right_candidates)
-    top_score, top_y = max(top_candidates)
-    bottom_score, bottom_y = max(bottom_candidates)
+    def difference_mean(box: tuple[int, int, int, int]) -> float:
+        diff = ImageChops.difference(image.crop(box), background.crop(box))
+        return sum(ImageStat.Stat(diff).mean) / 3
+
+    # Exclude rounded corners, neighboring carousel card, text, and camera.
+    # The interior must be actual card pixels; exterior must be the real lake,
+    # including immediately beside the card, above and below its container.
+    interior_regions = {
+        "top_inside": (300, 630, 780, 650),
+        "left_inside": (180, 725, 210, 1300),
+        "right_inside": (870, 725, 900, 1300),
+        "bottom_inside": (300, 1410, 780, 1440),
+    }
+    exterior_regions = {
+        "left_outside": (130, 730, 148, 1200),
+        "right_outside": (925, 730, 943, 1200),
+        "above": (300, 525, 780, 550),
+        "below": (220, 1485, 320, 1505),
+    }
+    interior = {key: round(difference_mean(box), 3) for key, box in interior_regions.items()}
+    exterior = {key: round(difference_mean(box), 3) for key, box in exterior_regions.items()}
     anchors = {
         "header_dark_pixels": count_dark((70, 80, 350, 240)),
         "stats_dark_pixels": count_dark((230, 285, 850, 440)),
@@ -85,17 +96,14 @@ def analyze_structure(path: Path) -> dict[str, object]:
         "cta_bright_pixels": count_bright((350, 1500, 730, 1580)),
         "camera_bright_pixels": count_bright((420, 1580, 660, 1810)),
         "card_frame": {
-            "left_x": left_x,
-            "right_x": right_x,
-            "top_y": top_y,
-            "bottom_y": bottom_y,
-            "left_vertical_coverage": round(left_score / 815, 4),
-            "right_vertical_coverage": round(right_score / 815, 4),
-            "top_horizontal_coverage": round(top_score / 700, 4),
-            "bottom_horizontal_coverage": round(bottom_score / 700, 4),
+            "frozen_reference_rect_px": [170, 596, 910, 1476],
+            "method": "source-hash-verified-lake-background-interior-exterior-witnesses",
+            "interior_mean_rgb_abs_difference": interior,
+            "exterior_mean_rgb_abs_difference": exterior,
+            "semantic_geometry": "verified separately by NormalHomeDataParityTest boundsInRoot",
+            "corner_clip": "verified separately by realSamplePhotoSharesFullHeroBoundsAndClipsAtAllFourRoundedCorners",
         },
         "content_within_safe_canvas": 80 <= 104 < height and 1800 < height,
-        "card_not_clipped": 0 < top_y < bottom_y < height,
     }
     failures = []
     for key, floor in {
@@ -107,14 +115,14 @@ def analyze_structure(path: Path) -> dict[str, object]:
     }.items():
         if anchors[key] < floor:
             failures.append(f"{key} below structural minimum ({anchors[key]} < {floor})")
-    if not (160 <= left_x <= 184 and 896 <= right_x <= 922 and 585 <= top_y <= 608 and 1464 <= bottom_y <= 1484):
-        failures.append("hero card frame is outside the frozen geometry anchor tolerance")
-    if min(left_score / 815, right_score / 815, top_score / 700, bottom_score / 700) < 0.65:
-        failures.append("hero card frame is clipped or missing an edge")
+    for key, measured in interior.items():
+        if measured < 15.0:
+            failures.append(f"card interior missing at {key} (lake MAE={measured:.2f} < 15)")
+    for key, measured in exterior.items():
+        if measured > 10.0:
+            failures.append(f"card exterior appears covered at {key} (lake MAE={measured:.2f} > 10)")
     if not anchors["content_within_safe_canvas"]:
         failures.append("header or capture action is outside the safe canvas")
-    if not anchors["card_not_clipped"]:
-        failures.append("hero card overflows the captured canvas")
     if failures:
         raise ValueError(f"structural anchor failures in {path.name}: " + "; ".join(failures))
     return anchors
@@ -144,7 +152,7 @@ def main(out: Path) -> int:
     if carousel_mae < 6.0:
         raise ValueError(f"second carousel page did not produce a distinct capture (MAE={carousel_mae:.2f})")
 
-    structural = {runtime.name: analyze_structure(runtime)}
+    structural = {runtime.name: analyze_structure(runtime, source)}
 
     source_evidence = out / "06_normal_home_background_source.png"
     runtime_evidence = out / "07_normal_home_background_runtime.png"

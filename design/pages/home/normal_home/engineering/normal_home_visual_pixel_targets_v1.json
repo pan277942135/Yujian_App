@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "source_file": "design/system/core_visual_v1/reference/normal_home_v1.png",
+  "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "source_dimensions_px": [
+    1080,
+    1920
+  ],
+  "measurement_method": "scripts/design/measure_normal_home_frozen_roi_v1.py",
+  "ci_log": "https://github.com/pan277942135/Yujian_App/actions/runs/38020447518",
+  "bbox_coordinate": "inclusive original pixel indices",
+  "classification": "SOURCE_PXL_MASK_EVIDENCE_NOT_ANDROID_APK_PASS",
+  "visible_masks": [
+    {
+      "id": "CTA_NEAR_WHITE",
+      "threshold": "R,G,B minimum >=210; max(R,G,B)-min(R,G,B)<=46; ROI x390..699 y1510..1569",
+      "bbox": [
+        433,
+        1527,
+        646,
+        1558
+      ],
+      "pixels": 934
+    },
+    {
+      "id": "CAMERA_CORE_NEAR_WHITE",
+      "threshold": "minRGB>=210; maxRGB-minRGB<=46; ROI x400..679 y1580..1784",
+      "bbox": [
+        450,
+        1590,
+        628,
+        1773
+      ],
+      "pixels": 19670
+    },
+    {
+      "id": "CAMERA_GOLD",
+      "threshold": "R-G>=18 and G-B>=5 and R>=125 and G>=105; ROI x400..679 y1580..1799",
+      "bbox": [
+        439,
+        1593,
+        638,
+        1789
+      ],
+      "pixels": 2123
+    }
+  ],
+  "non_equivalent_implementation_rects": [
+    {
+      "kind": "CTA_CONTAINER_CURRENT_KOTLIN",
+      "top_y_px": 1495,
+      "dimensions_px": [
+        420,
+        58
+      ],
+      "status": "IMPLEMENTATION_FACT_ONLY"
+    },
+    {
+      "kind": "CAMERA_TOUCH_CURRENT_KOTLIN",
+      "top_y_px": 1564,
+      "dimensions_px": [
+        208,
+        208
+      ],
+      "status": "IMPLEMENTATION_FACT_ONLY"
+    },
+    {
+      "kind": "NH05_CTA_VISUAL_SHORTHAND",
+      "top_y_px": 1504,
+      "status": "HISTORICAL_SHORTHAND_NOT_GEOMETRY"
+    },
+    {
+      "kind": "NH05_CAMERA_VISUAL_SHORTHAND",
+      "top_y_px": 1582,
+      "status": "HISTORICAL_SHORTHAND_NOT_TOUCH"
+    }
+  ],
+  "runtime_parity_status": "NOT_RUN",
+  "confidence_scope": "source mask threshold only; antialias and faint visual edges below threshold not included"
+}

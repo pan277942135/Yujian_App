@@ -20,5 +20,24 @@
   "background_source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
   "runtime_root": "app/src/main/assets/normal_home_runtime_v1/",
   "runtime_gate": "normal-home-v1",
-  "closure_base_main_sha": "7c88d356bd9cc2aa178d5331d47882714b20bc1f"
+  "closure_base_main_sha": "7c88d356bd9cc2aa178d5331d47882714b20bc1f",
+  "engineering_contract_version": "V1.1_FINAL_CLOSURE",
+  "engineering_contract_entry": "design/pages/home/normal_home/engineering/README.md",
+  "engineering_contract_status": "ACTIVE",
+  "engineering_contract_scope": "P0 geometry/responsive safety, P1 state/motion/visual acceptance, P2 supersession",
+  "runtime_acceptance_status": "UNVERIFIED_IN_ENGINEERING_DOCS_PR",
+  "runtime_pass_is_independent_from_design_freeze": true,
+  "pending_evidence": [
+    "ANDROID_NATIVE_APK_CTA_CAMERA_OPTICAL_PARITY",
+    "SAFE_OVERFLOW_NATIVE_TEST",
+    "F01_F08_LICENSED_PROVENANCE_AND_HOME_DETAIL_CAPTURE",
+    "MOTION_AND_ACCESSIBILITY_DEVICE_TEST"
+  ],
+  "source_pixel_measurement_status": "SHA_VERIFIED_XY_MASK_CAPTURED",
+  "visual_apk_acceptance_status": "NOT_RUN",
+  "short_window_exception_status": "CONTRACT_FROZEN_RUNTIME_PENDING",
+  "hero_photo_policy_status": "CONTRACT_FROZEN_8_CASES_SOURCES_PARTIAL_RUNTIME_PENDING",
+  "background_runtime_policy": "BYTE_IDENTICAL_MASTER_PLUS_SINGLE_CENTER_CROP_NO_SECOND_GRADE",
+  "avatar_v2_page_authority_sha256": "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528",
+  "runtime_acceptance_matrix_cases": 46
 }

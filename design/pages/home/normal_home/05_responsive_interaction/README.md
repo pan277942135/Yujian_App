@@ -1,5 +1,7 @@
 # NH05 · Responsive & Interaction / 响应式与交互 · Design Spec V1
 
+> **Current engineering binding:** [../engineering/Layout_Responsive_Contract_V1.md](../engineering/Layout_Responsive_Contract_V1.md) implements approved NH05 A without a second Y safe-inset translation and defines conditional short-screen SAFE_OVERFLOW. Original CTA y1504 / Camera y1582 shorthand refer to unresolved visual anchor kinds; do not equate them with code CTA CONTAINER y1495 / Camera TOUCH y1564. The immutable Frozen pixels remain primary for visible optical targets; target runtime ROI proof is still pending.
+
 Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home phone adaptation / Pager / Reduce Motion**  
 Output policy: **COMBINED_BOARD**
