@@ -1,4 +1,4 @@
-> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL / NON-NORMATIVE. Its proposed coordinates, rejected elastic B, and STOP conditions do not override the 2026-10-10 approved engineering contract. Preserve original content as audit evidence. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL / NON-NORMATIVE. Its proposed coordinates, rejected elastic B, and STOP conditions do not override the 2026-10-10 approved engineering contract. Preserve original content as audit evidence. Current Work/Validation entry: [Normal Home Engineering Authority](../engineering/README.md). No historical evidence or original numbered rows below are deleted.
 
 # Normal Home Layout Geometry Contract V2 — DRAFT
 
