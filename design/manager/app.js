@@ -1617,10 +1617,11 @@ function myCatchesSearchChildCanvas(child) {
     const cards=candidates.map(c =>
       '<article class="authority-index-card">' +
       '<div class="authority-index-head"><strong>' + esc(c.name) + '</strong>' +
-        '<span class="status status-PARTIAL">待导入原图</span></div>' +
-      '<div class="authority-kind">HISTORICAL HI-FI / SOURCE ONLY</div>' +
+        '<span class="status status-PARTIAL">' + (c.attachment_sha256 ? '完整PNG附件已核验 · 待入GitHub' : '资料库原图待获取') + '</span></div>' +
+      '<div class="authority-kind">HISTORICAL HI-FI / DESIGN SOURCE ONLY</div>' +
       '<p>' + esc(c.width + " × " + c.height + " · " + (c.note||"")) + '</p>' +
-      '<p>原图尚未授权提取并上传 GitHub；不提供失效图片链接，不构成 Frozen Authority。</p>' +
+      (c.attachment_sha256 ? '<p>本次附件：' + esc(c.attachment_original_filename||"") + ' · ' + esc(c.attachment_bytes) + ' bytes · SHA-256 ' + esc(c.attachment_sha256) + '。GitHub PNG 尚未上传。</p>' :
+      '<p>资料库历史原图尚不可直接导出；不提供失效链接。</p>') +
       '</article>'
     ).join("");
     return '<div class="authority-index">' +

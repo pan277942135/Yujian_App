@@ -20,7 +20,19 @@
       "sha256": null,
       "git_blob_sha": null,
       "original_bytes_verified": false,
-      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION",
+      "received_attachment": {
+        "original_uploaded_filename": "晨雾湖畔我的渔境.png",
+        "expected_repo_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_round_mobile_a.png",
+        "sha256": "40aa62b957b2c83117c5775ce37f944d96679d7c04a6afb384ed819bc8815d74",
+        "size_bytes": 2989878,
+        "width": 853,
+        "height": 1844,
+        "source_role": "source_10",
+        "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+        "original_library_binary_identity_verified": false
+      },
+      "attachment_available_from_conversation": true
     },
     {
       "id": "tank_round_mobile_b",
@@ -38,7 +50,19 @@
       "sha256": null,
       "git_blob_sha": null,
       "original_bytes_verified": false,
-      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION",
+      "received_attachment": {
+        "original_uploaded_filename": "晨光湖畔的我的渔境 (1).png",
+        "expected_repo_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_round_mobile_b.png",
+        "sha256": "2a471a67ce15eaa51393696437bd187852f595c8d43706e9b726623053667d63",
+        "size_bytes": 3098237,
+        "width": 1024,
+        "height": 1536,
+        "source_role": "source_10",
+        "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+        "original_library_binary_identity_verified": false
+      },
+      "attachment_available_from_conversation": true
     },
     {
       "id": "tank_round_mobile_c",
@@ -74,7 +98,19 @@
       "sha256": null,
       "git_blob_sha": null,
       "original_bytes_verified": false,
-      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION",
+      "received_attachment": {
+        "original_uploaded_filename": "我的渔境：晨光水族馆 (1).png",
+        "expected_repo_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_landscape_a.png",
+        "sha256": "62ff20fac9f43142d7663db97fee0272d8369ff78728e283ed1b4106322a471d",
+        "size_bytes": 3505490,
+        "width": 1672,
+        "height": 941,
+        "source_role": "source_10",
+        "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+        "original_library_binary_identity_verified": false
+      },
+      "attachment_available_from_conversation": true
     },
     {
       "id": "tank_landscape_b",
@@ -92,7 +128,19 @@
       "sha256": null,
       "git_blob_sha": null,
       "original_bytes_verified": false,
-      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION",
+      "received_attachment": {
+        "original_uploaded_filename": "湖畔晨光中的我的渔境 (1).png",
+        "expected_repo_target_path": "design/pages/fish_records/list/habitat/reference/recovered/tank_landscape_b.png",
+        "sha256": "70fc653c23762bf9affaf7b641d28cd140901da21c417fc7ea1b7d4f41d0c73f",
+        "size_bytes": 3234263,
+        "width": 1672,
+        "height": 941,
+        "source_role": "source_10",
+        "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+        "original_library_binary_identity_verified": false
+      },
+      "attachment_available_from_conversation": true
     },
     {
       "id": "tank_landscape_c",
@@ -146,7 +194,19 @@
       "sha256": null,
       "git_blob_sha": null,
       "original_bytes_verified": false,
-      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION",
+      "received_attachment": {
+        "original_uploaded_filename": "晨雾渔境：清晨池塘与鱼群 (1).png",
+        "expected_repo_target_path": "design/pages/fish_records/list/habitat/reference/recovered/pond_landscape_a.png",
+        "sha256": "1d5ab79b74bbdfdeb8828e7fe06d3200c790f6ce234efb74c550514549142757",
+        "size_bytes": 3518810,
+        "width": 1672,
+        "height": 941,
+        "source_role": "source_10",
+        "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+        "original_library_binary_identity_verified": false
+      },
+      "attachment_available_from_conversation": true
     },
     {
       "id": "pond_landscape_b",
@@ -164,7 +224,19 @@
       "sha256": null,
       "git_blob_sha": null,
       "original_bytes_verified": false,
-      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION"
+      "original_png_binary_access": "DENIED_PROJECT_RAW_MATERIALIZATION",
+      "received_attachment": {
+        "original_uploaded_filename": "晨曦下的我的渔境 (1).png",
+        "expected_repo_target_path": "design/pages/fish_records/list/habitat/reference/recovered/pond_landscape_b.png",
+        "sha256": "e82c2b6735768ff1f5b9af7841eda5e92a4962aae7b4fea030f148e61fe3b59f",
+        "size_bytes": 3830816,
+        "width": 1672,
+        "height": 941,
+        "source_role": "source_10",
+        "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+        "original_library_binary_identity_verified": false
+      },
+      "attachment_available_from_conversation": true
     },
     {
       "id": "pond_landscape_c",
@@ -208,10 +280,39 @@
     "Raw bytes denied during 2026-10-10 recheck for multiple library images; Git blob cannot be synthesized from the thumbnail."
   ],
   "asset_governance_authority": "design/pages/fish_records/list/habitat/Habitat_Hifi_Asset_Governance_V1_1.md",
-  "original_pngs_confirmed_retrievable": 0,
-  "original_pngs_pending_raw_import": 10,
+  "original_pngs_confirmed_retrievable": 6,
+  "original_pngs_pending_raw_import": 4,
   "verified_from": [
     "Library metadata: filename, dimensions, bytes",
     "Vision inspection: existing preview; no binary export"
+  ],
+  "current_conversation_received_pngs": 8,
+  "received_historical_design_variants": 6,
+  "received_additional_pond_level_boards": 2,
+  "github_uploaded_from_new_attachments": 0,
+  "new_attachment_manifest": "design/pages/fish_records/list/habitat/habitat_uploaded_attachment_manifest_20261010.json",
+  "supplemental_attachment_candidates": [
+    {
+      "id": "pond_levels_alternative_a",
+      "user_attachment": "五级鱼塘自然生态进阶图 (1).png",
+      "sha256": "529a49fed1916ec3abbcb55d549c826e4eef5d46c63d106d6fad093a080cf576",
+      "target_repo_path": "design/pages/fish_records/list/habitat/reference/recovered/pond_levels_alternative_a.png",
+      "width": 1536,
+      "height": 1024,
+      "size_bytes": 4223164,
+      "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+      "not_replacing_existing_reference": true
+    },
+    {
+      "id": "pond_levels_alternative_b",
+      "user_attachment": "五级生态鱼塘演变全景图 (1).png",
+      "sha256": "85d7c116638524df0b62974e3f84c87645f4aa725605764333421d49e9fa1c99",
+      "target_repo_path": "design/pages/fish_records/list/habitat/reference/recovered/pond_levels_alternative_b.png",
+      "width": 1536,
+      "height": 1024,
+      "size_bytes": 4275390,
+      "status": "VERIFIED_LOCALLY_REMOTE_UPLOAD_PENDING",
+      "not_replacing_existing_reference": true
+    }
   ]
 }
