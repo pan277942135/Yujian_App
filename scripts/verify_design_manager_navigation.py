@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import sys
 
-EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06"]
+EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06", "NH07"]
 
 
 def fail(message: str) -> None:
