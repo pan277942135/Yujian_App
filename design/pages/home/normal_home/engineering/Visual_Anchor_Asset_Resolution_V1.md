@@ -41,15 +41,16 @@ The decoded reference pixel observations are:
 - This page-level runtime clarification does not revise the shared Background System's other pages or numeric metadata. Any future new mastered background/treatment pipeline requires a versioned shared change.
 - Source bitmap cropping shall not be copied from an NH01 page screenshot; Empty Home sunrise source prohibited.
 
-## Avatar — source identity and routing
+## Avatar — later approved Home V2 asset, shared semantics and Guest separation
 
-Authoritative semantic/visual fallbacks are OWNED by `design/system/components/profile_avatar_v1/default_profile_avatar_contract.json` (Shared Default Profile Avatar V1):
-1. Signed-in + valid remote photo: sanitized user avatar media; circular crop, same visual/touch geometry.
-2. Signed-in + no avatar, loading with no valid image, or load failure: canonical shared **Default Profile Avatar V1** person-outline fallback, implementation reference `app/src/main/res/drawable/profile_fallback_v13.xml`. User may approve a shared asset revision, but a page-local PNG is not an implicit override.
-3. Guest: **Guest Account Entry** independent identity, source asset `app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png` (Git blob `f58549babb41aaedb5ee2590e6d48bceda19d05a`); tap Login/Register, not Profile. Guest appearance must be optically different from logged-in fallback.
-4. Source `app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png` (SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528`) is preserved as a **page-specific legacy/alternative raster**, not promoted above canonical Shared Default Profile Avatar V1 merely because code currently references it. Do not delete bitmap or claim it is product-authoritative without a versioned shared identity revision.
+There is a time-ordered authority conflict: the 2026-09-30 Shared Default Profile Avatar V1 contract specified a reusable person-outline fallback, while later Normal Home-specific code + raster were committed in `fefb95953d17` on 2026-10-09 (`fix(home): restore Frozen typography scale and Normal Home avatar`). A later page-specific **approved visual identity for Normal Home** supersedes the older shared fallback's *Home optical artwork* without changing the shared fallback's account-state semantics elsewhere.
 
-**Observed implementation inconsistency:** some current NormalHomeContent.kt branches render `normal_home_default_avatar_v2` for both Guest and signed-in fallback. This violates the canonical identity distinction and is a Work A code issue, not a reason to recreate the shared avatar design. Build/CI alone cannot establish the corrected runtime pixels; acceptance compares logged-in vs guest actual captures.
+1. **Signed-in + loadable remote**: real account avatar; circular crop; tap Profile.
+2. **Signed-in + no media/loading/failure**: Normal Home-specific frozen V2 optical bitmap `app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png` (SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528`, 1254×1254); tap Profile. This is the later Home visual authority. Other pages still follow Shared Default Profile Avatar V1 unless separately versioned.
+3. **Guest**: independent `app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png` (Git blob `f58549babb41aaedb5ee2590e6d48bceda19d05a`); tap Login/Register. Guest must NOT reuse the signed-in V2 fallback image if doing so visually conflates identity.
+4. The older shared `app/src/main/res/drawable/profile_fallback_v13.xml` remains a cross-page V1 reference and historical fallback, not a reason to replace the later signed-in Normal Home V2 PNG. The original immutable V2 raster is retained and never regenerated.
+
+**Implementation mismatch to fix:** current NormalHomeContent.kt renders `normal_home_default_avatar_v2` in both Guest and signed-in fallback branches, and the older V2 manifest also mapped Guest to it. The Home-specific source mapping is now resolved as above; actual Android runtime still requires code changes and screenshot validation. Semantic distinction (Guest vs signed-in) derives from the shared contract, while the 2026-10-09 V2 bitmap determines the later page-specific optical fallback. This is a documented chronological exception; it does not authorize uncontrolled page-level forks elsewhere.
 
 ## Test and status
 
