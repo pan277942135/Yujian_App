@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -182,7 +183,7 @@ fun HomeScreen(
                 modifier = Modifier
                     // Normal Home keeps the Frozen window Y origin; only its horizontal
                     // canvas is inset to the safe drawing span.
-                    .offset(x = if (layoutDirection == LayoutDirection.Ltr) safeInsets.start else safeInsets.end)
+                    .absoluteOffset(x = if (layoutDirection == LayoutDirection.Ltr) safeInsets.start else safeInsets.end)
                     .width((maxWidth - safeInsets.start - safeInsets.end).coerceAtLeast(0.dp))
                     .height(maxHeight),
             )
