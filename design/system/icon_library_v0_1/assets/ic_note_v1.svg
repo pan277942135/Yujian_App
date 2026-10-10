@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">笔记 / 感言</title>
+  <!-- YuJian ic_note V0.1 CANDIDATE — NOT FROZEN; 24-unit viewBox; round outline 1.75. Non-interactive note field glyph, not the edit action. -->
+  <rect x="4.45" y="2.7" width="15.1" height="18.6" rx="2.45" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.15 8.15H15.85M8.15 12H15.85M8.15 15.85H13.4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
