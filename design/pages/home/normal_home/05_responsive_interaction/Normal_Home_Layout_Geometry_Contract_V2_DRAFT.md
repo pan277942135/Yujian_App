@@ -1,3 +1,5 @@
+> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL / NON-NORMATIVE. Its proposed coordinates, rejected elastic B, and STOP conditions do not override the 2026-10-10 approved engineering contract. Preserve original content as audit evidence. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+
 # Normal Home Layout Geometry Contract V2 — DRAFT
 
 > **STATUS: PARTIALLY_APPROVED / COORDINATE_REVIEW_PENDING (2026-10-10).** Typography A and long-screen NH05 A are approved in `Normal_Home_V2_Decision_Record_20261010.md`; CTA/Camera coordinates, inset origin and runtime evidence remain pending.
