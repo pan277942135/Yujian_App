@@ -20,5 +20,17 @@
   "background_source_sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
   "runtime_root": "app/src/main/assets/normal_home_runtime_v1/",
   "runtime_gate": "normal-home-v1",
-  "closure_base_main_sha": "7c88d356bd9cc2aa178d5331d47882714b20bc1f"
+  "closure_base_main_sha": "7c88d356bd9cc2aa178d5331d47882714b20bc1f",
+  "engineering_contract_version": "V1.0",
+  "engineering_contract_entry": "design/pages/home/normal_home/engineering/README.md",
+  "engineering_contract_status": "ACTIVE",
+  "engineering_contract_scope": "P0 geometry/responsive safety, P1 state/motion/visual acceptance, P2 supersession",
+  "runtime_acceptance_status": "UNVERIFIED_IN_ENGINEERING_DOCS_PR",
+  "runtime_pass_is_independent_from_design_freeze": true,
+  "pending_evidence": [
+    "CTA_CAMERA_FROZEN_RASTER_ROI",
+    "NORMAL_HOME_NATIVE_RUNTIME_SCREENSHOTS",
+    "SAFE_OVERFLOW_TEST",
+    "MOTION_REDUCE_MOTION_TEST"
+  ]
 }
