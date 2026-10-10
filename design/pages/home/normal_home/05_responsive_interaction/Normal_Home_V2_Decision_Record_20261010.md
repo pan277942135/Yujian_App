@@ -1,6 +1,6 @@
 # Normal Home V2 — A/A Design Decision Record
 
-**Decision status:** APPROVED_FOR_THE_TWO_EXPLICIT_CHOICES_ONLY
+**Decision status:** FONT_A_AND_NH05_A_APPROVED / WINDOW_ORIGIN_DESIGN_RESOLVED / CTA_CAMERA_RASTER_MEASUREMENT_PENDING
 
 **Decision authority:** user, 2026-10-10
 
@@ -65,7 +65,7 @@ The CTA and Camera baseline Y values above are only one **unresolved baseline va
 ## Non-approval items (must not be silently inferred)
 
 1. **CTA/Camera baseline conflict:** R1 NH05 y1504 / y1582 vs R2 V1.1 and code y1495 / y1564. Measure visual, container, text and touch rectangles directly from canonical Frozen image. Do not pick either version until grounded and reviewed.
-2. **Actual insets + coordinate origin:** verify full-window vs content origin; avoid duplicate inset offsets and improper height budgets while preserving approved NH05 behavior.
+2. **Actual insets + coordinate origin:** design-level interpretation is now resolved in `Normal_Home_V2_Coordinate_Origin_And_Anchor_Audit_20261010.md`: physical edge-to-edge window origin, `E=max(0,(H-T-B)-1920S)` for approved NH05, no extra `+T` in frozen Y placement. Real-device inset and `boundsInWindow` measurements must still confirm the implemented mapping before runtime PASS.
 3. **Brand glyph bounds:** integrated Runtime Run 37915120879 / artifact 11608748556 recorded ≈3px beyond Header for brand text. Repair the true glyph/container geometry without shrinking approved 72px font or removing genuine overflow assertions.
 4. **Short-screen fallback:** no new scroll/flex or touch compromise authorized here; prepare evidence if the unchanged Frozen-to-device mapping can't satisfy accessibility and safe-area constraints.
 5. **Font raster acceptance tolerances:** not approved here; report measured discrepancies, don't invent allowable errors.
@@ -73,8 +73,8 @@ The CTA and Camera baseline Y values above are only one **unresolved baseline va
 
 ## Implementation gate
 
-The two chosen design policies are now **APPROVED**. The overall V2 coordinate contract is **PARTIALLY_APPROVED / COORDINATE_REVIEW_PENDING**.
+The two chosen design policies are now **APPROVED**. The overall V2 coordinate contract is **PARTIALLY_APPROVED / CTA_CAMERA_RASTER_EVIDENCE_PENDING**. Window coordinate/inset design interpretation has a documented proposed resolution; runtime proof and final CTA/Camera frozen-image measurements are still required.
 
 Work A can prepare a mapping audit and Frozen measurement report. Do **not** treat this as permission to pick unresolved CTA/Camera coordinates, change Frozen PNG, adjust other pages, relax tests, merge main, or declare Visual PASS.
 
-Next required action: obtain and review Frozen CTA/Camera pixel evidence and resolve the window/safe inset reference origin; then implement the smallest Normal Home mapping fix and run true-device visual parity tests. Each correction must retain the exact A1/A2 numbers and report target-vs-actual delta.
+Next required action: obtain and review checksum-verified Frozen CTA/Camera pixel evidence, confirm the single-origin mapping in runtime measurements, then implement the smallest Normal Home mapping fix and run true-device visual parity tests. Each correction must retain the exact A1/A2 numbers and report target-vs-actual delta.
