@@ -76,6 +76,25 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
             width, height = struct.unpack(">II", raw[16:24])
             if (width, height) != (side, side):
                 fail(f"NH07 actual PNG dimensions mismatch: {file_path}")
+        # The source is a real 1254px original, never an enlarged 192px export.
+        master = manifest.get("high_resolution_master", {})
+        source = manifest.get("source", {})
+        master_path = master.get("path")
+        expected_master_sha = "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643"
+        if not master_path or source.get("path") != master_path or master.get("sha256") != expected_master_sha:
+            fail("NH07 mother path/identity must be recorded consistently in source/high_resolution_master")
+        if nh07.get("master_source") != master_path or nh07.get("master_sha256") != expected_master_sha:
+            fail("NH07 registry must expose exact high-resolution mother")
+        if (master.get("width"), master.get("height"), master.get("bytes")) != (1254, 1254, 1255352):
+            fail("NH07 mother metadata must match the approved source bytes")
+        master_file = root / master_path
+        if not master_file.exists():
+            fail(f"NH07 mother original missing: {master_path}")
+        master_raw = master_file.read_bytes()
+        if len(master_raw) != 1255352 or hashlib.sha256(master_raw).hexdigest() != expected_master_sha:
+            fail("NH07 original mother SHA/byte count mismatch")
+        if master_raw[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or struct.unpack(">II", master_raw[16:24]) != (1254, 1254):
+            fail("NH07 mother file is not an original 1254px PNG")
         guest = manifest.get("states", {}).get("GUEST", "")
         if not guest or not (root / guest).exists():
             fail("NH07 Guest must resolve to separate registered source")
@@ -84,6 +103,9 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     required_logic = '(selectedKey === key || selectedKey.startsWith(key + "/"))'
     if required_logic not in app:
         fail("selected page no longer auto-expands its submenu")
+
+    if "nh07-master-open" not in app or "openNh07MasterLightbox" not in app or "dialog.showModal" not in app:
+        fail("NH07 must provide a clickable modal preview of its verified mother image")
 
     index = index_path.read_text(encoding="utf-8") if index_path.exists() else ""
     if built:
