@@ -2848,7 +2848,8 @@
         "audit": "design/pages/recognition/result/review/Recognition_Result_Design_Audit_20261010.md",
         "state_decision_audit": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
         "state_decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
-        "state_thresholds": "AS_IMPLEMENTED_RUNTIME_AUDIT_NOT_NEW_FROZEN_VALUES"
+        "state_thresholds": "AS_IMPLEMENTED_RUNTIME_AUDIT_NOT_NEW_FROZEN_VALUES",
+        "state_decision_submenu": "RR07 · 识别过程 · 07 · 判定逻辑"
       },
       "hifi_views": [
         {
@@ -3052,6 +3053,38 @@
             {
               "path": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
               "label": "Metadata Edit Flow V1 Frozen Contract"
+            }
+          ]
+        },
+        {
+          "id": "decision_logic",
+          "code": "RR07",
+          "title": "识别过程 · 07 · 判定逻辑",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "recognition_decision_logic",
+          "authority_type": "behavior",
+          "authority": "design/pages/recognition/result/07_decision_logic/README.md",
+          "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+          "machine_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+          "summary": "开发判定依据速查 · 当前程序 AS-IS：Detector 0.20/0.35、鱼体面积 8%、贴边 1.5%、NMS 0.45、Crop 15%，以及 Classifier Top-1 0.45 / Top-1−Top-2 0.12。包含 3+2 五态路由优先级、边界测试、WARNING 例外、技术异常与待优化清单。标明哪些是已执行条件、哪些是未批准建议；不增加第六种结果状态。",
+          "menu_points": [
+            "3+2 = High / Medium / Low + No Fish / Image Quality；技术异常独立",
+            "Detector · 0.20 Weak / 0.35 Strong / NMS 0.45",
+            "Quality Gate · 8% Area / 1.5% Edge / Crop 15% · Branch Order",
+            "Classifier · Low p1 < 0.45；Medium margin < 0.12；其余 High",
+            "First Match Route · Tech → No Fish → Input Invalid → Low → Medium → High",
+            "GOOD / WARNING / INVALID · 是否可分类与误分流边界",
+            "有效 Softmax 例子与开发测试向量",
+            "已运行逻辑 vs 待验证优化 · 不直接调整 Android 阈值"
+          ],
+          "supporting_visual_references": [
+            {
+              "path": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+              "label": "3+2 Decision Spec · current truth + review"
+            },
+            {
+              "path": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+              "label": "3+2 Machine Readable Routing and Thresholds"
             }
           ]
         }
