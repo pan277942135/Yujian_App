@@ -71,7 +71,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
             raw = file_path.read_bytes()
             if len(raw) != asset["bytes"] or hashlib.sha256(raw).hexdigest() != asset["sha256"]:
                 fail(f"NH07 PNG bytes/hash mismatch: {file_path}")
-            if raw[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or len(raw) < 24:
+            if raw[:8] != b"\x89PNG\r\n\x1a\n" or len(raw) < 24:
                 fail(f"NH07 invalid PNG header: {file_path}")
             width, height = struct.unpack(">II", raw[16:24])
             if (width, height) != (side, side):
