@@ -1,5 +1,7 @@
 # Normal Home V1
 
+> **2026-10-10 Engineering Authority (ACTIVE):** For Work development and independent Validation Work, begin at [engineering/README.md](engineering/README.md), then follow its P0 Geometry/Responsive, P1 State/Motion/Acceptance, and P2 Archive contracts. This page remains the NH01–NH06 DESIGN catalogue; the Frozen raster and design freeze are unchanged. Design-freeze is not runtime PASS. Legacy V2 DRAFT / rejected B examples are non-normative.
+
 Role: **Home / Catch Baseline**  
 Status: **DESIGN FROZEN — NH01–NH06**
 Design package: **Closure V1 + V1.1 runtime/background authority correction**
