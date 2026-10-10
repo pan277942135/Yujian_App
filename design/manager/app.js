@@ -1148,7 +1148,7 @@ function renderSharedRefs(feature) {
     return '<button class="shared-ref-card" data-shared-id="' + esc(item.id) + '">' +
       '<div class="shared-ref-head"><strong>' + esc(item.display_name) + '</strong>' +
       statusBadge(item.overall) + '</div>' +
-      '<div class="shared-ref-variant">' + esc(ref.variant || "默认规则") + '</div>' +
+      '<div class="shared-ref-variant">' + esc(ref.exception_profile ? ref.exception_profile + " · 页面例外" : (ref.variant || "默认规则")) + '</div>' +
       (ref.master ? '<div class="shared-ref-master">母版：' + esc(ref.master) + '</div>' : '') +
       (ref.note ? '<div class="shared-ref-note">' + esc(ref.note) + '</div>' : '') +
       '</button>';
