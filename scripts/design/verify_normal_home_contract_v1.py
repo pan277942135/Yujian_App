@@ -70,6 +70,7 @@ def main() -> int:
         "Visual_Runtime_Acceptance_V1.md",
         "Archive_And_Supersession_V1.md",
         "normal_home_acceptance_matrix_v1.json",
+        "normal_home_visual_pixel_targets_v1.json",
         "hero_real_photo_fixture_register_v1.json",
         "Visual_Anchor_Asset_Resolution_V1.md",
         "Short_Window_Adaptive_Freeze_V1.md",
@@ -110,6 +111,21 @@ def main() -> int:
             "all matrix cases have runnable method/assertion/coverage and valid status")
     require(all(c.get("acceptance_status") == "NOT_RUN" and not c.get("evidence_refs")
                 for c in cases), "no unsupported PASS or fabricated evidence in baseline checklist")
+    pixels = read_json(ENG / "normal_home_visual_pixel_targets_v1.json")
+    require(pixels.get("source_sha256")==status.get("source_sha256"), "measured pixel targets bound to Frozen SHA")
+    masks={item.get("id"):item.get("bbox") for item in pixels.get("visible_masks",[])}
+    require(masks.get("CTA_NEAR_WHITE")==[433,1527,646,1558], "measured CTA glyph bbox verified")
+    require(masks.get("CAMERA_CORE_NEAR_WHITE")==[450,1590,628,1773], "measured camera core bbox verified")
+    require(masks.get("CAMERA_GOLD")==[439,1593,638,1789], "measured camera gold bbox verified")
+    avatar=read_json(PAGE / "assets/normal_home_default_avatar_v2_manifest.json")
+    avmap=avatar.get("display_states") or {}
+    require(avmap.get("logged_in_without_avatar")=="normal_home_default_avatar_v2" 
+            and avmap.get("guest")=="normal_home_runtime_v1/avatar/guest_avatar.png", 
+            "Home approved V2 signed-in avatar and distinct Guest resource identity")
+    bg=read_json(ROOT / "app/src/main/assets/normal_home_runtime_v1/config/runtime_manifest.json")
+    bgsrc=bg.get("background_provenance") or {}
+    require(bgsrc.get("source_sha256")==bgsrc.get("runtime_sha256")==status.get("background_source_sha256"),
+            "background runtime bitmap remains byte-equivalent with no extra processing")
     fixtures = read_json(ENG / "hero_real_photo_fixture_register_v1.json")
     entries=fixtures.get("fixtures") or []
     require(len(entries)==8 and sorted(item.get("id") for item in entries)==[f"F{i:02d}" for i in range(1,9)],
