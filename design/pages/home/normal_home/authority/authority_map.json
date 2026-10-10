@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "status": "FROZEN",
   "page_id": "normal_home_v1",
   "precedence": [
@@ -15,36 +15,41 @@
     },
     {
       "priority": 3,
+      "authority": "design/pages/home/normal_home/engineering/README.md",
+      "scope": "Engineering and acceptance authoritative binding; approved A1/A2 window mapping; short-screen safe mode and independent evidence gates. Never replaces Frozen bitmap visual composition."
+    },
+    {
+      "priority": 4,
       "authority": "design/pages/home/normal_home/spec/",
       "scope": "page behavior, visual interpretation and acceptance"
     },
     {
-      "priority": 4,
+      "priority": 5,
       "authority": "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md",
       "scope": "page motion"
     },
     {
-      "priority": 5,
+      "priority": 6,
       "authority": "design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md",
       "scope": "page haptic behavior"
     },
     {
-      "priority": 6,
+      "priority": 7,
       "authority": "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md",
       "scope": "page sound behavior"
     },
     {
-      "priority": 7,
+      "priority": 8,
       "authority": "design/system/core_visual_v1/YuJian_Core_Visual_System_V1.md",
       "scope": "cross-page visual language, BG_ENV_HERO, shared hierarchy and guardrails"
     },
     {
-      "priority": 8,
+      "priority": 9,
       "authority": "design/system/core_visual_v1/validation/component_map.json",
       "scope": "shared component contracts"
     },
     {
-      "priority": 9,
+      "priority": 10,
       "authority": "design/system/core_visual_v1/tokens/",
       "scope": "shared tokens"
     }
@@ -60,6 +65,26 @@
     "Do not silently redesign frozen information architecture in implementation.",
     "Shared components must not fork to match page-local approximations.",
     "Runtime data replaces example content but not frozen hierarchy.",
-    "A missing source may not be replaced by a generated or screenshot-cropped substitute."
-  ]
+    "A missing source may not be replaced by a generated or screenshot-cropped substitute.",
+    "Engineering README owns current coordinate-origin/safety and independent validation; older V2 Draft/Example/Conflict files are historical only.",
+    "CTA/Camera legacy visual-y and touch-box-y are distinct anchor kinds; require checksum-verified raster proof before claiming optical PASS."
+  ],
+  "engineering_binding": {
+    "status": "ACTIVE",
+    "entry": "design/pages/home/normal_home/engineering/README.md",
+    "layout": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+    "state": "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+    "motion_feedback": "design/pages/home/normal_home/engineering/Motion_Feedback_Contract_V1.md",
+    "acceptance": "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+    "machine_matrix": "design/pages/home/normal_home/engineering/normal_home_acceptance_matrix_v1.json",
+    "historical_ledger": "design/pages/home/normal_home/engineering/Archive_And_Supersession_V1.md"
+  },
+  "page_state_authorities": {
+    "NH01": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "NH02": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+    "NH03": "design/pages/home/normal_home/03_page_states/README.md",
+    "NH04": "design/pages/home/normal_home/04_component_content_states/README.md",
+    "NH05": "design/pages/home/normal_home/05_responsive_interaction/README.md",
+    "NH06": "design/pages/home/normal_home/06_background_authority/README.md"
+  }
 }
