@@ -1,6 +1,6 @@
 # Normal Home Layout Geometry Contract V2 — DRAFT
 
-> **STATUS: DESIGN_REVIEW_PENDING — NOT APPROVED FOR PRODUCT IMPLEMENTATION**
+> **STATUS: PARTIALLY_APPROVED / COORDINATE_REVIEW_PENDING (2026-10-10).** Typography A and long-screen NH05 A are approved in `Normal_Home_V2_Decision_Record_20261010.md`; CTA/Camera coordinates, inset origin and runtime evidence remain pending.
 >
 > This is a proposed single-coordinate-system design contract. It does not replace any Frozen image or existing NH05 rule until the product owner explicitly approves the differences documented here. No Kotlin, assets, tests or CI have been modified by this documentation submission.
 
@@ -19,7 +19,7 @@ Source `app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt` has Normal Hom
 
 The previously collected Normal Home instrumentation evidence (integrated Run `37915120879`, artifact ID `11608748556`) recorded **11 tests / 1 failure**, `FAIL_TEST`, failing on the brand title text bounds. The observed `glyphOutlineRootBounds.bottom ≈ 211 px` exceeded `Header.bottom = 208 px` by ≈3 px at density=1, fontScale=1. This is a separate clipping concern; it does not on its own prove why the user's long-screen page looks clustered.
 
-## 2. One coordinate reference — proposal requiring approval
+## 2. One coordinate reference — inset/origin implementation details still require approval
 
 ### Input values and units
 
@@ -32,7 +32,7 @@ The previously collected Normal Home instrumentation evidence (integrated Run `3
 | `W_safe` | `W − L − R` | physical px | derived, nonnegative |
 | `S` | `W_safe / 1080` | dimensionless | proposed width-first mapping |
 | `H_ref` | `1920 × S` | physical px | derived |
-| `E` | `max(0, H − H_ref)` | physical px | **proposal** for V2 whole-window budget |
+| `E` | **APPROVED NH05:** `max(0, usableHeightPhysicalPx − H_ref)` | physical px | safe-inset-aware usable height, not draft full-window H |
 
 A Frozen rectangle `(x,y,w,h)` is first mapped to the full-window coordinate system as `(L + xS, yS, wS, hS)`. Safe top/bottom insets **constrain** interactive objects but **do not automatically become another Y translation**. In other words, top `T` must never be both a layout origin and a second offset. Background remains edge-to-edge.
 
@@ -88,7 +88,7 @@ These are **reference physical pixels**, not Android dp/sp. Values from existing
 
 These are frozen **font/line design roles**, *not* visible glyph-bitmap heights. Preserve font family, weight, content and accessibility behavior.
 
-## 4. Responsive strategy — proposals, NOT authoritative until review
+## 4. Responsive strategy — NH05 A APPROVED; coordinate binding remains under review
 
 ### 4.1 Reference mode (1080×1920, S=1)
 
@@ -96,9 +96,9 @@ Use the exact Frozen values above, after resolving conflicting CTA/Camera bounds
 
 ### 4.2 Tall viewport (e.g. 1080×2340)
 
-NH05 V1 currently mandates `offsetY = min(E×0.36,180×S)` applied **uniformly** to the page; internal gaps remain unchanged. **V2 option B** proposes to use named elastic gaps and environment-only breathing room instead. This **conflicts with NH05 V1** and must not be implemented before approval.
+**APPROVED 2026-10-10:** NH05 A remains authoritative: `offsetY=min(E×0.36,180×S)` uniformly offsets the whole composition; component gaps stay unchanged. Here `E=max(0,usableHeightPhysicalPx−1920S)` after resolving safe insets exactly once. Previous V2 B elastic allocation is **REJECTED**; it remains only as historical comparison.
 
-At W=1080, H=2340, horizontal safe insets 0 and S=1: `E=420`. Option A (unchanged NH05) shifts everything by 151.2px; Option B is a separately listed candidate in `Normal_Home_V2_Responsive_Examples.md` allocating all 420px across top whitespace / bounded between-region gaps / bottom environment. The exact candidate values are not frozen authority. Do not bake them into code or tests before approval.
+At W=1080,H=2340, **zero** safe insets and S=1, `E=420`; approved NH05 A shifts all components by **151.2 physical px**. Rejected B allocation remains in `Normal_Home_V2_Responsive_Examples.md` solely for historical comparison. On real devices calculate from the measured `usableHeight`, not the zero-inset example.
 
 ### 4.3 Narrow/short viewport
 
@@ -117,8 +117,8 @@ This draft only calculates from documented source constants and explicitly named
 ## 6. Approval questions (blocking)
 
 1. Is Frozen PNG measurement approved as the arbiter between CTA y1495 vs y1504 and Camera y1564 vs y1582, with visual bounds distinguished from CTA text and touch areas?
-2. Does user approve **overriding NH05's uniform tall-screen shift** with V2 elastic-region allocation? If yes, which precisely named allocations in the examples document?
+2. **DECIDED 2026-10-10:** retain NH05 A unified vertical offset with frozen gaps; V2 B distributed allocation rejected. Only exact inset/origin measurement and mapping implementation remain under review.
 3. Are short-screen overflow/reachability fallbacks allowed, or must Work A propose a different product-specific layout?
 4. What measured tolerance, if any, may be applied to raster-vs-font-outline discrepancy? None is presumed.
 
-**STOP POINT: DESIGN_REVIEW_PENDING. No Kotlin, app assets, global design tokens, screenshot PASS claim, CI rerun, release candidate or main merge until explicit approval.**
+**STOP POINT: PARTIALLY_APPROVED / COORDINATE_REVIEW_PENDING.** A typography and A NH05 responsive policy are approved; do not perform unsanctioned Kotlin visual tuning, change app/global assets/tokens, claim screenshot PASS, create a release candidate or merge main before resolving coordinate conflicts and collecting runtime proof.
