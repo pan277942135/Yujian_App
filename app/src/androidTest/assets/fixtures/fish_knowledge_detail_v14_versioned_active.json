@@ -1,14 +1,14 @@
 {
-  "species": {"id": "grass_carp", "name_cn": "草鱼", "status": "ACTIVE"},
+  "species": {"id": "grass_carp", "name_cn": "草鱼", "asset_status": "ACTIVE"},
   "cover_hero_image": "/api/v1/fish/knowledge-media/grass_carp/cover_hero/43.webp",
   "cover_hero_version_id": 4301,
   "cover_hero_status": "ACTIVE",
   "knowledge_assets": {
-    "HERO": {"asset_role": "HERO", "species_id": "grass_carp", "asset_id": "ca-hero-91", "version_id": 9101, "asset_version": "91", "image_url": "/media/grass/hero-91.webp", "status": "ACTIVE"},
-    "IDENTIFICATION": {"asset_role": "IDENTIFICATION", "species_id": "grass_carp", "asset_id": "ca-id-92", "version_id": 9202, "image_url": "/media/grass/id-92.webp", "status": "ACTIVE"},
-    "ECO": {"asset_role": "ECO", "species_id": "grass_carp", "asset_id": "ca-eco-93", "version_id": 9303, "image_url": "/media/grass/eco-93.webp", "status": "ACTIVE"},
-    "GEAR": {"asset_role": "GEAR", "species_id": "grass_carp", "asset_id": "ca-gear-94", "version_id": 9404, "image_url": "/media/grass/gear-94.webp", "status": "ACTIVE"},
-    "SKILL": {"asset_role": "SKILL", "species_id": "grass_carp", "asset_id": "ca-skill-95", "version_id": 9505, "image_url": "/media/grass/skill-95.webp", "status": "ACTIVE"}
+    "HERO": {"asset_role": "HERO", "species_id": "grass_carp", "asset_id": "ca-hero-91", "version_id": 9101, "asset_version": "91", "image_url": "/media/grass/hero-91.webp", "asset_status": "ACTIVE"},
+    "IDENTIFICATION": {"asset_role": "IDENTIFICATION", "species_id": "grass_carp", "asset_id": "ca-id-92", "version_id": 9202, "image_url": "/media/grass/id-92.webp", "asset_status": "ACTIVE"},
+    "ECO": {"asset_role": "ECO", "species_id": "grass_carp", "asset_id": "ca-eco-93", "version_id": 9303, "image_url": "/media/grass/eco-93.webp", "asset_status": "ACTIVE"},
+    "GEAR": {"asset_role": "GEAR", "species_id": "grass_carp", "asset_id": "ca-gear-94", "version_id": 9404, "image_url": "/media/grass/gear-94.webp", "asset_status": "ACTIVE"},
+    "SKILL": {"asset_role": "SKILL", "species_id": "grass_carp", "asset_id": "ca-skill-95", "version_id": 9505, "image_url": "/media/grass/skill-95.webp", "asset_status": "ACTIVE"}
   },
-  "cards": [], "gallery": {"images": []}, "profile": {}, "fishing": {}, "videos": [], "similarity": [], "knowledge": {}
+  "cards": [{"id": 101, "species_id": "grass_carp", "card_type": "HERO", "status": "ACTIVE", "asset_version_id": 9101, "image_url": "/media/grass/hero-91.webp"}], "gallery": {"images": []}, "profile": {}, "fishing": {}, "videos": [], "similarity": [], "knowledge": {}
 }
