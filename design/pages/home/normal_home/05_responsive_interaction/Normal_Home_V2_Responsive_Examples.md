@@ -1,6 +1,6 @@
 # Normal Home V2 — Responsive Calculations & Device Examples
 
-> **STATUS: DESIGN_REVIEW_PENDING / NUMBERS ARE PROPOSALS, NOT FROZEN AUTHORITIES.**
+> **STATUS: FONT A + LONG-SCREEN NH05 A APPROVED (2026-10-10); BASELINE COORDINATES / INSET ORIGIN PENDING.** See `Normal_Home_V2_Decision_Record_20261010.md`. Any B distributed-gap figures below are rejected historical comparisons, NOT implementation targets.
 >
 > All measurements in this file are **physical px** unless clearly marked dp/sp. The values below are deterministic calculations from the existing documented reference anchors; they are **not screenshots or actual device telemetry**. The two CTA/Camera anchor versions are unresolved and must be approved after inspecting the canonical Frozen PNG.
 
@@ -8,11 +8,11 @@
 
 - Design canvas: 1080×1920 physical px.
 - Proposed V2 full-window inputs: window `W,H` physical px; safe inset `L,T,R,B` physical px; physical density `d`; Compose device fontScale.
-- `W_safe=W−L−R`, `S=W_safe/1080`, `H_ref=1920×S`, `E=max(0,H−H_ref)`. Geometry `x_window=L+x_frozen×S`; base `y_window=y_frozen×S` plus **exactly one** approved V2 arrangement of the excess height, if E>0.
+- `W_safe=W−L−R`, `S=W_safe/1080`, `H_ref=1920×S`, **approved NH05** `E=max(0,usableHeight−H_ref)` where `usableHeight` excludes actual safe top/bottom insets once. **Approved** `offsetY=min(E×0.36,180×S)` is shared across the whole composition. Proposed geometric reference `x_window=L+x_frozen×S`, and full-window vs content-origin placement of `y_frozen×S + offsetY` is still **COORDINATE_REVIEW_PENDING** (do not apply T twice).
 - Insets `T,B` are **constraints** for interactive bounds, not automatically another translation to the layout origin. The edge-to-edge scene background fills W×H.
 - Height/width layout in Compose dp divides physical px by d once. Frozen typography is a separately specified font px/sp mapping and must be verified with the real nonlinear Compose text layout.
 
-**The NH05 V1 rule differs:** `offsetY=min(max(0,usableHeight−1920S)×0.36,180S)` for the complete page. This file shows that original behavior separately from any V2 proposal.
+**User-approved rule (NH05 A, 2026-10-10):** `offsetY=min(max(0,usableHeight−1920S)×0.36,180S)` uniformly applies to the full page. Do NOT replace the usable-height budget with whole-window H, stretch intercomponent gaps or select B. The mapping between this local Y and the physical-window origin still needs proof.
 
 ## 2. Frozen 1080×1920 reference, zero safe insets — exact target
 
@@ -35,7 +35,7 @@ Top environment: 104 before Header. Bottom environment: 156 after the camera vis
 
 `W=1080,H=2340,L=R=T=B=0,S=1,H_ref=1920,E=420`.
 
-### A: CURRENT NH05 V1 (reference only; no extra gap stretching)
+### A: USER-APPROVED NH05 (zero-inset calculated example, NOT runtime evidence)
 
 `δ=min(420×0.36,180)=151.2px`. Everything gets the same y shift; all internal gaps unchanged.
 
@@ -50,9 +50,9 @@ Top environment: 104 before Header. Bottom environment: 156 after the camera vis
 
 Remaining bottom environment = `2340−1915.2=424.8px`; top environment =255.2px. Note R1/NH05's declared CTA/Camera anchor would result in y+9/+18px respectively; this example uses **current-code anchor variant** purely to isolate the responsive rule.
 
-### B: PROPOSED V2 distributed gaps (needs explicit user approval)
+### B: REJECTED — historical V2 distributed-gaps candidate (DO NOT IMPLEMENT)
 
-Allocate **E=420px** as the following **example**, not as a design authority:
+The following **E=420px** split was considered during review and **rejected** on 2026-10-10. It is retained strictly as a historical comparison, not as a design authority or test target:
 
 | Region carrying additional height | Proposed Δpx | Resulting gap or whitespace | Source status |
 |---|---:|---:|---|
@@ -76,13 +76,13 @@ The exact candidate top coordinates (for the current-code reference anchor varia
 | CTA | 1765 | 420×58 | 1823 |
 | Camera | 1859 | 200×200 | 2059 |
 
-Bottom environment =281px, top environment=184px. The extra 420px is accounted for once (80+60+60+35+35+25+125); no Hero/Camera/text stretching occurs. **There are no frozen min/max bounds or normalized weights for these seven buckets in NH05.** Do not encode this draft candidate until the product owner chooses exact values or requests a different distribution.
+Bottom environment =281px, top environment=184px. The extra 420px is accounted for once (80+60+60+35+35+25+125); no Hero/Camera/text stretching occurs. **There are no frozen min/max bounds or normalized weights for these seven buckets in NH05. This option was explicitly rejected. Never encode these values as a target.**
 
 ### C: Same tall window, hypothetical real-world insets
 
 Example **for math only**: `W=1080,H=2340,L=R=0,T=80,B=90,d=3,fontScale=1`. These inset numbers have **not** been read from the user's phone.
 
-Proposed B computes `S=1,E=420` from the **full window**; Header top184≥T80; Camera visual bottom2059≤H−B2250, leaving safe bottom clearance191px. The scene still fills 1080×2340.
+**Rejected B illustration only:** it previously computed `S=1,E=420` from full-window height. That conflicts with the now-approved NH05 **usableHeight** budget when insets are nonzero; its Header top184/Camera bottom2059 values have no standing as an implementation target. The scene still fills 1080×2340.
 
 **Existing implementation trace for comparison:** R4's safeDrawing padding creates content height `H−T−B=2170`, whose NH05 excess above 1920 is 250, so offset `δ=min(250×.36,180)=90`. The child also starts at y=T=80. Therefore prior composition predicts `y_window=T+y_frozen+δ`: Header top274, Hero top766, Camera top1734, Camera bottom1934. This prediction follows inspected code under the hypothetical insets and has **not** been confirmed from a real device. Its output is not the same as either zero-inset NH05 example or proposed V2.
 
@@ -146,9 +146,9 @@ For each runtime profile log exact measured `W,H,L,T,R,B,d,fontScale`, component
 ## 8. Blocking approval questions
 
 1. Which pixel anchors are canonical for CTA and Camera: code/V1.1 vs NH05 vs directly measured Frozen visual/interaction rectangles?
-2. Should the user approve the exact proposed **Option B** distribution, another numeric allocation, or retain NH05's unchanged Option A? Choosing architecture B alone does not authorize these bucket weights.
-3. Should current V1.1 font physical-pixel values remain unchanged even if they yield ≈9.33sp statistic labels on 360dp/density3 devices?
+2. **DECIDED:** user approved A — NH05 unchanged one-piece shift and frozen intercomponent gaps. The candidate seven-bucket B scheme was rejected.
+3. **DECIDED:** user approved Font A — keep all V1.1 reference physical-pixel font roles despite the mathematically equivalent ≈9.33sp stats labels for 1080px/density3. Runtime optical parity remains to be verified.
 4. On insufficient height / accessibility font scale, is a bounded vertical scroll layout permissible, and what region remains fixed?
 5. What measurable tolerance should apply to font outlines and raster anti-aliasing? Pending authority.
 
-**STOP HERE: No app implementation, no build or screenshot validation claim before documented approval.**
+**STOP HERE: A/A POLICY APPROVED; COORDINATE_REVIEW_PENDING.** No app implementation that guesses CTA/Camera baselines or duplicates safe insets, and no screenshot/CI visual PASS claim until reference measurements and runtime evidence exist.
