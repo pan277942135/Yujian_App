@@ -1,4 +1,4 @@
-> **SUPERCESSION NOTICE (2026-10-10):** HISTORICAL DESIGN BASELINE. V1 background absence superseded by V1.1; runtime safety/acceptance are now in engineering/README.md. Current Work/Validation entry: [Normal Home Engineering Authority](https://github.com/pan277942135/Yujian_App/tree/docs/normal-home-contract-closure-20261010/design/pages/home/normal_home/engineering). No historical evidence or original numbered rows below are deleted.
+> **SUPERSESSION NOTICE (2026-10-10):** HISTORICAL DESIGN BASELINE. V1 background absence superseded by V1.1; runtime safety/acceptance are now in engineering/README.md. Current Work/Validation entry: [Normal Home Engineering Authority](engineering/README.md). No historical evidence or original numbered rows below are deleted.
 
 # Normal Home — Design Package Closure V1
 
