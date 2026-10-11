@@ -20,7 +20,7 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 - B — product master flow, registry map, subflows and Design Manager PRD draft: complete.
 - C — asset integrity register, full design-system audit, and contract completeness matrix: complete; 658 design files inventoried, 579 raw SHA-256 values computed, 79 raw binaries blocked by the GitHub Contents API.
 - D — conflict and decision registers, 150-node readiness baseline, and preliminary API/data dependency map: complete.
-- E — repository-side verifier and design governance workflow integration: pending.
+- E — baseline asset verifier and Design Governance integration: added; the PR check recomputes all baseline hashes and validates the single recorded manager-index delta.
 
 ## Entry points
 
@@ -33,3 +33,4 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 - [Decisions Required](11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md)
 - [Design Readiness Baseline](11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json)
 - [Preliminary Dependency Map](11_Freeze_Governance/audits/Preliminary_Dependency_Map_V3_1.json)
+- [Phase 1 Asset Verifier](../../scripts/design/verify_system_v3_phase1.py)

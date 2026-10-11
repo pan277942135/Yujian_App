@@ -47,7 +47,9 @@
     "declaration_rule": "Only explicit current-content hash fields bound to the exact repository path are treated as current declarations. Historical source, previous_repository, and supersedes hashes are excluded from current-asset identity.",
     "raw_sha256": "Recomputed from raw bytes only. actual_sha256 is null where bytes were unavailable.",
     "raw_access_explanation": "For BLOCKED_ACCESS rows, GitHub Contents API omitted large binary bytes. Repository path, size, and Git blob SHA remain recorded.",
-    "license_scan": "No license declaration found in scanned repository authorities; provenance evidence is recorded per row when explicit."
+    "license_scan": "No license declaration found in scanned repository authorities; provenance evidence is recorded per row when explicit.",
+    "worktree_integrity": "The verifier compares every registered baseline file with its current checkout. Only explicit, content-addressed non-frozen worktree exceptions are allowed; frozen references cannot be allowlisted.",
+    "baseline_blob_integrity": "The verifier reads each file from baseline_commit_sha and independently recalculates size, Git blob SHA-1, and SHA-256."
   },
   "assets": [
     {
@@ -19103,6 +19105,15 @@
       "provenance_documents": [],
       "provenance_evidence": [],
       "provenance_status": "NOT_STATED_IN_SCANNED_AUTHORITY"
+    }
+  ],
+  "worktree_exceptions": [
+    {
+      "path": "design/manager/index.html",
+      "expected_current_git_blob_sha": "2244c5b3f0d24512bad28fa90dc398dbd6eafea8",
+      "source_commit_sha": "1830968bf8c234750e094564c11ce4c54b9beffd",
+      "reason": "Checkpoint B added the Phase 1 PRD entry point to the manager. This navigation-only index file is not a frozen product visual or authority asset.",
+      "is_frozen_asset": false
     }
   ]
 }
