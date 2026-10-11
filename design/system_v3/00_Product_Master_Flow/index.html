@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YuJian · 00 产品 PRD 总览 · V3.1 Audit Draft</title>
+<style>
+:root{color-scheme:light;--ink:#162e37;--muted:#627980;--line:#d9e5e3;--lake:#eaf3f0;--surface:#fff;--gold:#bd9050;--warn:#fff6df;--red:#fff0ed}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#e7f1ee 0%,#f5f8f7 44%,#f4f0e7 100%);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Noto Sans SC",sans-serif}
+main{max-width:1180px;margin:auto;padding:32px 22px 60px}.hero{padding:28px;border:1px solid #cbdcda;background:rgba(255,255,255,.78);border-radius:22px;box-shadow:0 16px 45px #183c4210}
+.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#557276}.title{display:flex;align-items:center;gap:14px;flex-wrap:wrap}h1{font-size:clamp(25px,4vw,40px);line-height:1.15;margin:8px 0 12px}.badge{border:1px solid #d3a857;background:#fff8e9;border-radius:999px;padding:4px 11px;color:#805d20;font-size:12px;font-weight:700}
+p{color:var(--muted);margin:8px 0}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:22px}.stat{background:#f6faf8;border:1px solid var(--line);padding:12px 14px;border-radius:14px}.stat b{display:block;font-size:23px}.stat span{font-size:12px;color:var(--muted)}
+section{margin-top:24px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:10px}h2{font-size:21px;margin:0}.card{background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:16px;padding:18px}
+.chain{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.step{background:#f5faf7;border:1px solid #d5e5dd;border-radius:13px;padding:13px}.step strong{display:block}.step small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.module,.flow{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px}.module h3,.flow h3{margin:0 0 5px;font-size:16px}.module-meta{font-size:12px;color:var(--muted);margin-bottom:10px}.links{display:flex;gap:8px;flex-wrap:wrap}a{color:#1d6065;text-decoration:none;font-weight:600}a:hover{text-decoration:underline}.link{border:1px solid #d2e1de;background:#f3faf8;padding:5px 9px;border-radius:9px;font-size:12px}
+.domain{margin-top:12px}.status{font-size:11px;padding:3px 8px;border-radius:999px;background:#eef3f2;color:#496264}.status.pending{background:var(--warn);color:#76551d}.status.recovery{background:var(--red);color:#883e30}
+.notice{background:#fff8e9;border:1px solid #ead6ad;padding:14px 16px;border-radius:12px;color:#594623}.footer{margin-top:28px;color:var(--muted);font-size:12px}
+@media(max-width:600px){main{padding:16px 12px 40px}.hero{padding:20px}.card{padding:14px}}
+</style>
+</head>
+<body><main>
+<header class="hero">
+<div class="kicker">YuJian Design System V3.1 · Audit Draft</div>
+<div class="title"><h1>00 · 产品 PRD 总览</h1><span class="badge">AUDIT_DRAFT</span></div>
+<p>产品主链、业务子流程、设计页面和状态使用同一组机器可读索引。Manager 链接用于回看原有 authority；实际 Android 可达性单独标注。</p>
+<div id="stats" class="stats"><div class="stat"><b>…</b><span>加载审计索引</span></div></div>
+</header>
+<section><div class="section-head"><h2>主产品链路</h2><a class="link" href="Product_Master_Flow_V3_1.md">打开完整 PRD 与 Mermaid 源文件</a></div><div class="card"><div id="chain" class="chain"></div><div class="notice" style="margin-top:14px">现行 Save Catch 回 Home；Continue Memory 才进入同一 FishRecordDetail 的 Memory 区。Record Date、My Habitat、T01/T02 template route 均保留为待确认或设计稿状态。</div></div></section>
+<section><div class="section-head"><h2>业务子流程</h2><span class="status">节点来自 master_flow_v3_1.json</span></div><div id="domains" class="grid"></div></section>
+<section><div class="section-head"><h2>模块与高保入口</h2><a class="link" href="../01_Page_Registry/Page_State_Hifi_Map_V3_1.md">完整页面映射</a></div><div id="modules" class="grid"></div></section>
+<section><div class="section-head"><h2>审计入口</h2></div><div class="card links">
+<a class="link" href="../README.md">V3.1 Index</a>
+<a class="link" href="../01_Page_Registry/Page_State_Hifi_Map_V3_1.md">Page / State / Hi-Fi Map</a>
+<a class="link" href="../06_Asset_System/Asset_Integrity_Register_V3_1.json">Asset Integrity Register</a>
+<a class="link" href="../11_Freeze_Governance/audits/Full_Design_System_Audit_V3_1.md">Full Design Audit</a>
+<a class="link" href="../11_Freeze_Governance/audits/Conflicts_And_Gaps_V3_1.md">Conflicts & Gaps</a>
+</div></section>
+<div class="footer">Source baseline: Yujian_App main · 7737f293ea3831aeea2c6f58308961cdb2ba7d01. The preview is a static audit surface; it does not change existing Manager routes or publish Pages.</div>
+</main>
+<script>
+const FLOW_URL="master_flow_v3_1.json",MAP_URL="../01_Page_Registry/page_state_authority_map_v3_1.json";
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const hrefFor=r=>r&&r.includes("#")?"../../manager/#"+r.split("#").slice(1).join("#"):"#";
+const linked=(n,label)=>n.manager_route?'<a class="link" href="'+esc(hrefFor(n.manager_route))+'">'+esc(label||"打开 Design Manager")+'</a>':"";
+const state=(n)=>{const s=n.verification_status||"";return /MISSING|BLOCKED|TO_CONFIRM|DESIGN_ONLY|PARTIAL|UNVERIFIED/.test(s)?"pending":""};
+async function boot(){try{
+ const [flow,map]=await Promise.all([fetch(FLOW_URL).then(r=>r.json()),fetch(MAP_URL).then(r=>r.json())]);
+ document.getElementById("stats").innerHTML=[["Features",map.counts.features],["Hi-Fi / Spec Views",map.counts.hifi_views],["Nested Items",map.counts.nested_children],["Scenario Pages",map.counts.scenario_pages],["Shared Systems",map.counts.shared_systems]].map(x=>'<div class="stat"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join("");
+ const ids=["app_home","home_empty","home_normal","capture_camera","capture_gallery","captured","detecting","outline","classifying","result_high","result_medium","result_low","species_confirm","save_home","save_memory","detail_a","detail_b"];
+ const byId=new Map(flow.nodes.map(n=>[n.flow_node_id,n]));
+ document.getElementById("chain").innerHTML=ids.map(id=>byId.get(id)).filter(Boolean).map(n=>'<div class="step"><strong>'+esc(n.title)+'</strong><small>'+esc(n.state_id||n.page_id||"")+' · '+esc(n.verification_status)+'</small><div class="links" style="margin-top:8px">'+linked(n,"查看设计")+'</div></div>').join("");
+ const domains=[
+  ["首页","subflows/Home_V3_1.md",["home_empty","home_normal","capture_camera","capture_gallery"]],
+  ["识别","subflows/Recognition_V3_1.md",["captured","detecting","outline","classifying","result_high","result_medium","result_low","no_fish","image_quality","technical_failure"]],
+  ["鱼获 / 记忆","subflows/Fish_Record_Memory_V3_1.md",["save_home","save_memory","detail_a","detail_b"]],
+  ["记录日期","subflows/Record_Date_V3_1.md",["record_date"]],
+  ["我的鱼获 / 渔境","subflows/My_Catches_Habitat_V3_1.md",["my_catches","habitat"]],
+  ["鱼鉴","subflows/Fish_Guide_V3_1.md",["fish_guide","fish_species"]],
+  ["账号与隐私","subflows/Account_Privacy_V3_1.md",["auth_login","auth_register","account_root","profile_edit","account_privacy","legal_docs"]],
+  ["分享","subflows/Sharing_V3_1.md",["detail_share_text","share_templates"]]
+ ];
+ document.getElementById("domains").innerHTML=domains.map(([title,doc,nodeIds])=>{
+  const rows=nodeIds.map(id=>byId.get(id)).filter(Boolean);
+  return '<article class="flow domain"><h3>'+esc(title)+'</h3><p>'+rows.length+' 个主流程节点</p><div class="links"><a class="link" href="'+esc(doc)+'">流程图与证据</a>'+rows.slice(0,4).map(n=>linked(n,n.title)).join("")+'</div></article>';
+ }).join("");
+ document.getElementById("modules").innerHTML=map.features.map(f=>{
+  const related=map.nodes.filter(n=>n.feature_id===f.id);
+  const first=related.find(n=>n.manager_route);
+  const route=first?.manager_route||f.manager_route;
+  return '<article class="module"><h3>'+esc(f.name)+' <span class="status">'+esc(f.design_overall||f.registry_status)+'</span></h3><div class="module-meta">'+esc(f.id)+' · '+f.hifi_count+' Hi-Fi / '+f.nested_count+' nested / '+f.scenario_count+' scenarios</div><div class="links">'+(route?'<a class="link" href="'+esc(hrefFor(route))+'">打开模块</a>':"")+'<a class="link" href="../01_Page_Registry/Page_State_Hifi_Map_V3_1.md">映射索引</a></div></article>';
+ }).join("");
+ }catch(error){document.getElementById("chain").innerHTML='<div class="notice">无法加载本地审计 JSON：'+esc(error.message)+'。请从产品 PRD 源文件或页面映射文件查看完整内容。</div>';}}
+boot();
+</script></body></html>
