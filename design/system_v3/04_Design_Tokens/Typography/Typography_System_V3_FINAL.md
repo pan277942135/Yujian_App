@@ -15,7 +15,7 @@ Brand art remains the exact registered Frozen Artwork Asset authority. Do not ex
 
 ## Font weights and token roles
 
-The platform weight catalog is Regular 400, Medium 500, SemiBold 600 and Bold 700. Nine tokens cover Display, Headline, Title, Subtitle, Body, Caption, Button, Numeric and Label. Label is a naming alias of Caption, not a second scale. Exact `sp`, line-height, tracking, color token and usage live in the canonical JSON.
+The platform weight catalog is Regular 400, Medium 500, SemiBold 600 and Bold 700. Ten tokens cover Display, Headline, Title, Subtitle, Body, Body Small, Caption, Button, Numeric and Label. Label is a naming alias of Caption, not a second scale. Exact `sp`, line-height, tracking, color token and usage live in the canonical JSON.
 
 ## Page override policy
 
@@ -25,6 +25,7 @@ Allowed and registered:
 - Fish Species Name: the cited page authority may set size and line height while retaining the platform family and shared weight catalog.
 - Normal Home Large Statistic: use its registered Font A physical-reference-pixel conversion and keep OS `fontScale`.
 - Recognition Result title: use the registered centered-title exception.
+- Recognition Processing subtitle: use type.body_small (14sp, Regular, secondary); no font family or page-private scale is added.
 
 Pages may not add private font families, select brand fonts, add unregistered fallback chains or size scales, use unregistered tracking, silently shrink, or cancel `fontScale`. Existing Frozen page authority wins where it owns geometry.
 
@@ -35,6 +36,7 @@ Pages may not add private font families, select brand fonts, add unregistered fa
 | Empty Home | Frozen brand composition remains authoritative; no typeface is inferred from pixels. | Use Brand Artwork Asset policy; page placement stays scoped. |
 | Normal Home | Font A is a registered page override; wordmark no longer has a dynamic-font role in the design contract. | Platform text and brand artwork are separated; runtime/page geometry is not certified here. |
 | Recognition Result | Centered title and state hierarchy have page authorities. | Preserve the registered page override. |
+| Recognition Processing | Frozen subtitle is 14sp secondary. | Use shared type.body_small through the registered processing.subtitle page override. |
 | FishRecordDetail | Shared family; media text hierarchy and A/B visuals remain page-scoped. | No private family. |
 | Fish Guide | Species title sizing is page-owned; larger text grows/reflows. | Preserve page size override and OS scaling. |
 

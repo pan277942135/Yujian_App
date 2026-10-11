@@ -1,43 +1,44 @@
 # Recognition Capture · Engineering Contract V3.1
 
-**Status:** REVIEW · contract is not implementation authorization.
+**Status:** FROZEN page contract; runtime implementation is not tested in this work.
 
 ## Page structure
-- Route family: existing Identify camera route and its Gallery-entry variant, as recorded by the canonical Master Flow.
-- Content roles: current camera preview, Gallery action, capture action, permission/provider recovery. No screenshot or new page visual is inferred here.
-- A readable normalized image is the only successful exit payload to Recognition Processing. This page does not persist a catch.
+- Route family: existing Identify camera route and its Gallery-entry variant.
+- The unique page visual/layout authority is Recognition_Capture_V3_Authority.md.
+- Content order is Camera Preview → Overlay Layer → fixed Bottom Action Area.
+- CAPTURE_SUCCESS hands one readable normalized image to Processing. Capture does not persist a record.
 
 ## Scroll, fixed and flexible
-- Camera preview is a flexible live viewport.
-- Capture action is a fixed action role; exact anchor, margin and size belong to a missing approved camera-page authority.
-- Gallery and permission affordances remain reachable across all registered 360/393/412/480dp widths.
-- Do not derive positions from the Processing PNG or from the 208px capture-button raster.
+- Camera Preview is flexible and preserves the oriented live stream ratio using the registered cover behavior.
+- Overlay controls use registered Navigation and Action components.
+- Bottom Action Area is fixed above the resolved navigation inset; Gallery remains separately actionable.
+- The capture-button PNG is a pixel master only; its 208×208px dimensions do not define dp size.
 
 ## Insets and system bars
-- Apply the Geometry System V3.1 screen → window insets → content root → component coordinate model.
-- Camera preview scaling must use the visible camera viewport after host insets are resolved.
-- Edge-to-edge/status-bar treatment and control safe-area anchors are unresolved because no camera-page visual contract is registered. Do not infer them.
+- Apply Screen → Window Insets → Content Root → Component Layout.
+- Preview uses available content bounds. Title, Back, Gallery and actions stay clear of status, cutout and navigation insets.
+- Do not exclude system edge gestures or change platform bar ownership.
 
 ## Keyboard
-- No page-owned text keyboard is defined.
-- System permission UI and Photo Picker keep platform ownership and must return to the same recoverable capture context.
+- No page-owned text field or keyboard is defined.
+- Permission and Photo Picker UI stay platform-owned and return to the same Capture context.
 
 ## Media Fit
-- BG_CAPTURE uses the current user camera/gallery image as its dynamic source and its registered crop policy.
-- A crop region/aspect implementation cannot be frozen until the referenced camera contract is located or approved.
-- Keep the capture-button artwork identity and its SHA from the Asset Registry; no recoloring, scaling derivation or alternate icon is introduced by this document.
+- BG_CAPTURE uses the current runtime image with its registered no-Morning-Lake rule.
+- Camera Preview follows the active stream ratio with cover and no distortion; no Frozen screenshot is a preview source.
+- Gallery media is normalized once before the Processing handoff.
 
 ## Shared component use
-- No Capture surface component is registered in the V3 component registry. Do not map the live camera preview to the video playback component and do not substitute a generic primary button for the frozen capture-button artwork.
-- CAP-002 records this registry gap. No component is added in this phase.
+- Use media.camera_preview and camera.capture_surface, plus navigation.top_title, navigation.back, action.primary_button and action.icon_action from the effective Component Registry.
+- Preserve the existing capture-button Asset Registry identity; no icon substitution, asset edit or system-icon replacement is allowed.
 
 ## Animation and interaction
-- Request permission only as a consequence of entering/using the camera route; permission denial must not produce a capture.
-- Disable repeated capture while one still-image request is pending.
-- Gallery cancellation is non-mutating.
-- No new haptic or sound treatment is prescribed here; use only a registered page/component authority once one exists.
+- Request permission only after entry/use of the camera route; never bind/capture before permission is granted.
+- Capture is disabled while one request is pending; exactly one normalized image enters Processing.
+- Gallery cancellation is non-mutating and works independently of camera permission.
+- The Capture host owns provider lifecycle; release on exit, backgrounding, permission loss and picker handoff.
 
 ## Error and recovery
-- Permission denied, camera unavailable, capture failure, picker cancellation and unreadable media are distinguishable states.
-- Gallery can recover from camera permission/provider unavailability when the platform picker is available.
-- A failed attempt does not create a record. Back returns to the invoking surface without saving.
+- CAPTURE_PERMISSION_DENIED never starts the camera and still offers Gallery/Back.
+- Provider, capture and unreadable-media failures map to CAPTURE_ERROR with retry/Gallery/Back recovery.
+- No failure creates a FishRecord; Back exits without persistence.

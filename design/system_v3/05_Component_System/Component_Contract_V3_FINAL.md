@@ -62,4 +62,26 @@ Each JSON entry contains purpose, visual rule, geometry boundary, state model, i
 
 ## Shared Foundation acceptance
 
-A component is frozen for reuse only when its declared shared core has resolvable token/asset references, explicit page variants, named states, interaction and responsive behavior, an accessibility rule, and checks a tester can execute without guessing. The aggregate Component system is READY when all 16 entries are FROZEN, their dependencies resolve, acceptance checks are executable, and each entry declares its page boundary. Page-specific control policies remain outside the shared freeze.
+A component is frozen for reuse only when its declared shared core has resolvable token/asset references, explicit page variants, named states, interaction and responsive behavior, an accessibility rule, and checks a tester can execute without guessing. The aggregate Component system is READY when all 18 entries are FROZEN, their dependencies resolve, acceptance checks are executable, and each entry declares its page boundary. Page-specific control policies remain outside the shared freeze.
+
+
+## Recognition Capture runtime surfaces · Phase 3-A closure
+
+### media.camera_preview
+
+- **Component ID / status:** media.camera_preview · FROZEN · type runtime_surface.
+- **Purpose / visual:** show only the live runtime camera provider stream. This surface is not Frozen Artwork and has no static asset SHA.
+- **Geometry / tokens:** follow the oriented stream ratio; use geometry.media.cover in a flexible preview box without distortion; use the registered dark fallback only when unavailable.
+- **State / responsive:** IDLE, STARTING, READY, SUSPENDED, ERROR, UNAVAILABLE; recalculate crop after viewport/inset changes.
+- **Lifecycle / accessibility:** Capture host owns the provider binding; release it on exit, backgrounding or permission loss. Announce state changes, not frames.
+- **Acceptance:** verify ratio, permission loss, lifecycle release and accessible status.
+
+### camera.capture_surface
+
+- **Component ID / status:** camera.capture_surface · FROZEN · type runtime_surface.
+- **Purpose / visual:** compose Camera Preview → Overlay Layer → Bottom Action Area with registered Navigation/Action components and the existing capture-button asset.
+- **Geometry / state:** flexible preview, inset-safe overlay, fixed action above navigation inset, target ≥ touch.minimum; CAPTURE_READY, CAPTURE_PERMISSION_REQUIRED, CAPTURE_PERMISSION_DENIED, CAPTURE_ERROR and CAPTURE_SUCCESS.
+- **Interaction:** no capture before permission; Gallery remains independent; no system-edge gesture exclusion; prevent duplicate capture while pending.
+- **Asset / acceptance:** preserve capture-button Asset Registry identity; 208×208px is not a dp size. Verify SHA, state guards, safe area, permission and lifecycle ownership.
+
+These two registered runtime surfaces extend the previously frozen 16 shared contracts for the Phase 3-A Capture page. The effective registry and validators now cover 18 public contracts; no Frozen PNG or application code changed.

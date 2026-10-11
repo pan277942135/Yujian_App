@@ -3,41 +3,37 @@
 PAGE_ID: recognition.capture.v3_1  
 PAGE_NAME: Recognition Capture  
 VERSION: 3.1  
-STATUS: REVIEW  
-AUTHORITY_SOURCE: design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json
+STATUS: FROZEN  
+AUTHORITY_SOURCE: design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md
 
 ## Page Purpose
-- **Goal:** provide the existing camera and Gallery entry points and yield one readable normalized image to Recognition Processing.
-- **User task:** take a new photo or choose one existing image.
-- **Entry condition:** the Home camera/gallery CTA opens the existing Identify route.
-- **Exit condition:** a normalized image is ready and handed to Recognition Processing, or the user returns without creating a FishRecord.
+- **Goal:** let the user capture a readable photo or choose one image for recognition.
+- **User task:** capture or select one image and enter Processing.
+- **Entry condition:** the existing Home camera/gallery action opens the Identify route.
+- **Exit condition:** one normalized image enters Recognition Processing, or the user leaves without saving. Capture never creates a FishRecord.
 
 ## User Flow
-Home camera CTA → permission/provider guard → live camera preview → Capture → normalized image → Recognition Processing.  
-Home Gallery CTA or Capture-page Gallery action → system picker → readable image normalization → Recognition Processing.  
-Permission denial, picker cancellation, provider failure and unreadable input remain recoverable. Save Catch and FishRecordDetail are outside this page.
+Entry → resolve camera permission/provider → CAPTURE_READY, CAPTURE_PERMISSION_REQUIRED, CAPTURE_PERMISSION_DENIED or CAPTURE_ERROR → Capture or Gallery → CAPTURE_SUCCESS → Recognition Processing. Back or picker cancellation exits/remains recoverable without persistence.
 
 ## Layout Contract
-- Machine-readable dependencies: Layout_Contract_V3_1.json.
-- BG_CAPTURE is the effective background contract; its source is the current user photo, with the registry-defined no-Morning-Lake rule.
-- The existing Frozen capture button asset is identified by Asset Registry path and SHA. It is not a Component Registry entry and is not converted into a new V3 component here.
-- The Master Flow's capture_camera/capture_gallery visual_authority currently points at 01_Capture_Transition_Frozen.png. Recognition Design Closure V1.2 remaps that exact PNG to Processing IMAGE_RECOGNIZING / Early. It is therefore not a camera-page visual. This conflict is recorded as CAP-001; no screenshot is changed.
-- No page-private tokens are added.
+- Recognition_Capture_V3_Authority.md is the unique page-level visual/layout source.
+- Page structure is Camera Preview → Overlay Layer → Bottom Action Area.
+- BG_CAPTURE uses the runtime user image. Camera Preview is a runtime surface, not Frozen Artwork and has no static SHA.
+- Public components and Foundation token/asset references resolve through Layout_Contract_V3_1.json and effective registries.
+- The existing capture-button asset remains unchanged; source pixel dimensions do not define runtime dp bounds.
+- No page-private token is added.
 
 ## State Machine Contract
-See State_Machine_V3_1.json for EMPTY, permission, provider, capture, Gallery and normalized-image states and guarded transitions. No capture state creates a FishRecord.
+State_Machine_V3_1.json freezes CAPTURE_READY, CAPTURE_PERMISSION_REQUIRED, CAPTURE_PERMISSION_DENIED, CAPTURE_ERROR and CAPTURE_SUCCESS, plus a separate CANCELLED exit. Permission, provider, Capture, Gallery and normalized-image handoff guards are explicit.
 
 ## Data Contract
-See Data_Contract_V3_1.json. The image is required only to enter Recognition Processing. Permission is required only for the camera route; the Gallery picker remains a separate user action. Empty, loading, error, partial and network-failure behavior are explicitly recorded.
+Data_Contract_V3_1.json defines the runtime stream, permission/provider result, Gallery media and normalized-image handoff. Empty, loading, error, partial and network-failure behavior is explicit; no FishRecord is created.
 
 ## Engineering Contract
-See Engineering_Contract_V3_1.md. The preview is flexible and the capture role is fixed; exact page coordinates, permission copy, page-level inset treatment and shared component mapping remain blocked until an approved camera-page authority and V3 component mapping exist.
+Preview is flexible and aspect-preserving; Overlay controls respect resolved system insets; Bottom Action Area is fixed above navigation inset. The Capture host owns camera lifecycle and permission handoff. Details are in Engineering_Contract_V3_1.md.
 
 ## Acceptance Contract
-See Acceptance_Contract_V3_1.json. State transitions are testable now; visual and touch-target checks remain blocked by CAP-001/CAP-002/CAP-003. The page is not FROZEN.
+Acceptance_Contract_V3_1.json and Capture_Accessibility_Responsive_Matrix.md define visual, interaction, error and accessibility checks, including 320/360/411dp, fontScale 1.0/1.3/2.0, TalkBack and 44×44dp targets. Contract result is PASS; runtime execution is NOT_RUN.
 
 ## Conflicts and Freeze Gate
-- **CAP-001:** Capture nodes point at a Processing keyframe instead of a camera screen authority.
-- **CAP-002:** existing Frozen capture-button artwork/spec is absent from the effective V3 component registry; do not add a component without approval.
-- **CAP-003 / C-008:** permission-denial, edge-to-edge and capture-specific accessibility/responsive rules lack an approved authority.
-- Result: REVIEW. Owner decision/authority is required; no Frozen raster, Shared Foundation token or Android code was changed.
+CAP-001 is closed by the unique written runtime-surface authority; the historical Processing keyframe is not a Capture visual. CAP-002 is closed by the frozen media.camera_preview / camera.capture_surface registry contracts and the existing capture-button asset mapping. CAP-003/C-008 is closed by the responsive/accessibility matrix. Frozen PNG bytes and Android/Backend implementation are unchanged.

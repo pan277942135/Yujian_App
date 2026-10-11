@@ -38,5 +38,7 @@
     "partial": "A picker selection that cannot be decoded is not treated as a usable partial image.",
     "network_failure": "NOT_APPLICABLE: Capture has no registered network data dependency. A later pipeline connectivity failure is handled by Processing as a technical failure only if reported by the pipeline."
   },
-  "field_lineage_status": "Camera runtime source is identified; Gallery/permission UX is not fully page-authorized."
+  "field_lineage_status": "Camera runtime source is identified; Gallery/permission UX is not fully page-authorized.",
+  "state_authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+  "policy": "System permission and Photo Picker remain platform-owned. Camera permission is required only for the camera stream; Gallery remains independent. No backend/API schema is asserted."
 }

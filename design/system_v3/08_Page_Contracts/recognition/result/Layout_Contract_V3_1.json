@@ -1,7 +1,7 @@
 {
   "schema_version": "3.1",
   "page_id": "recognition.result.v3_1",
-  "status": "REVIEW",
+  "status": "FROZEN",
   "component_refs": [
     {
       "component": "navigation.back",
@@ -424,25 +424,12 @@
     "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md",
     "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
     "design/pages/recognition/result/spec/Recognition_Result_Acceptance_Criteria_V1.md",
-    "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
+    "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+    "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json",
+    "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+    "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md"
   ],
-  "unresolved_dependencies": [
-    {
-      "id": "RES-001",
-      "type": "PRODUCT_ERROR_SEMANTICS",
-      "blocks_freeze": true
-    },
-    {
-      "id": "RES-002",
-      "type": "DATA_FIELD_LINEAGE",
-      "blocks_freeze": true
-    },
-    {
-      "id": "RES-003",
-      "type": "RESPONSIVE_ACCESSIBILITY_PAGE_MATRIX",
-      "blocks_freeze": true
-    }
-  ],
+  "unresolved_dependencies": [],
   "page_scoped_geometry": {
     "authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
     "canonical_width_dp": 360,

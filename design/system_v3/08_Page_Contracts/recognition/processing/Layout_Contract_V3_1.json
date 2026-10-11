@@ -1,7 +1,7 @@
 {
   "schema_version": "3.1",
   "page_id": "recognition.processing.v3_1",
-  "status": "REVIEW",
+  "status": "FROZEN",
   "component_refs": [
     {
       "component": "media.image",
@@ -83,6 +83,10 @@
       "token_id": "type.title",
       "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
       "token_group": "typography"
+    },
+    {
+      "token_id": "type.body_small",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json"
     }
   ],
   "background_refs": [
@@ -150,29 +154,22 @@
     "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
     "design/pages/recognition/spec/RecognitionStatusCard_V1.md",
     "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
-    "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md"
+    "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
+    "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
   ],
-  "unresolved_dependencies": [
-    {
-      "id": "PROC-001",
-      "type": "STATE_COPY_AUTHORITY_CONFLICT",
-      "blocks_freeze": true
-    },
-    {
-      "id": "PROC-002",
-      "type": "TYPOGRAPHY_TOKEN_MAPPING",
-      "blocks_freeze": true
-    }
-  ],
+  "unresolved_dependencies": [],
   "rules": {
     "visible_state_mapping": {
       "CAPTURED": "IMAGE_RECOGNIZING / Early reference",
       "DETECTING": "IMAGE_RECOGNIZING / Late reference",
-      "OUTLINE": "FISH_LOCATED",
-      "CLASSIFYING": "SPECIES_RECOGNIZING",
-      "RESULT": "exit to Recognition Result; not a Processing state"
+      "OUTLINE": "FISH_LOCATED / existing Frozen reference",
+      "CLASSIFYING": "SPECIES_RECOGNIZING / existing Frozen reference",
+      "RESULT_READY": "Immediate handoff to Recognition Result; not an additional Processing visual state"
     },
     "visual_scope": "Frozen keyframes are read-only; first two PNGs are one user-visible product state.",
-    "page_private_tokens": false
+    "page_private_tokens": false,
+    "canonical_state_machine": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
+    "legacy_stage_labels": "Legacy three-step Stage labels are deprecated and are not State IDs.",
+    "timeline_timing": "CAPTURED >=220ms; DETECTING >=320ms; OUTLINE >=350ms; CLASSIFYING >=250ms. Both the minimum beat and a real event are required."
   }
 }

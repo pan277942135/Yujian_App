@@ -3,40 +3,36 @@
 PAGE_ID: recognition.processing.v3_1  
 PAGE_NAME: Recognition Processing  
 VERSION: 3.1  
-STATUS: REVIEW  
-AUTHORITY_SOURCE: design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_2.json
+STATUS: FROZEN  
+AUTHORITY_SOURCE: design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json
 
 ## Page Purpose
-- **Goal:** communicate Recognition progress through three meaningful visible product states while preserving the actual user photo.
-- **User task:** wait for a real recognition result, or leave/recover from an actual issue.
-- **Entry condition:** Capture hands off a readable normalized image.
-- **Exit condition:** RESOLVE to Recognition Result, a distinct No Fish/Image Quality/Technical Failure issue route, or user Back.
+- **Goal:** communicate real Recognition progress while preserving the original user photo.
+- **User task:** wait for the real result, or follow a distinct issue/recovery route.
+- **Entry condition:** Capture hands off one readable normalized image.
+- **Exit condition:** the real result reaches RESULT_READY and is handed to Recognition Result; real No Fish, Invalid Quality or Technical Failure exits remain distinct; Back cancels.
 
 ## User Flow
-Capture normalized image → CAPTURED / DETECTING under one visible 图片识别中 state → OUTLINE / 已定位到鱼体 → CLASSIFYING / 鱼种识别中 → RESOLVE → Recognition Result.  
-No Fish, Image Quality and Technical Failure are issue exits; Back is a user exit.
+CAPTURED (minimum 220ms) → DETECTING (minimum 320ms) → OUTLINE (minimum 350ms) → CLASSIFYING (minimum 250ms) → RESULT_READY → Recognition Result. Each advance requires both the minimum beat and the corresponding real pipeline event. Legacy Stage 1 / Stage 2 / Stage 3 labels are deprecated.
 
 ## Layout Contract
-- Machine-readable dependencies: Layout_Contract_V3_1.json.
-- Four current Processing Frozen PNGs remain byte-identical. V1.2 assigns PNG 01 + 02 as Early/Late frames of the single IMAGE_RECOGNIZING state; 03 is FISH_LOCATED; 04 is SPECIES_RECOGNIZING.
-- The photo, Edge Field, Fish Focus, status UI and Back follow the named page visual/motion/accessibility authorities.
-- Colors use existing identity-preservation tokens only within source scope. No color or geometry token is added.
-- No page-private token is introduced.
+- State_Machine_V3_1.json is the sole effective Recognition Processing timeline/state authority.
+- Existing Frozen Processing PNGs remain read-only visual references: CAPTURED/DETECTING use Early/Late references; OUTLINE and CLASSIFYING use their existing references. No artwork or new screen is generated.
+- Photo, Edge Field, focus, status UI and Back remain within their existing page authorities.
+- processing.subtitle maps to type.body_small (14sp, secondary); no font or page-private typography scale is introduced.
+- Layout_Contract_V3_1.json resolves every component, token, asset, background and page authority.
 
 ## State Machine Contract
-See State_Machine_V3_1.json. Internal phases CAPTURED, DETECTING, OUTLINE, CLASSIFYING and RESULT remain explicit. The visible product model is exactly three Processing states; RESOLVE is a transition.
+State_Machine_V3_1.json is named Recognition Processing State Machine V3.1. Each state row contains only State ID, Duration, Visual Behavior and Transition Rule. The minimum durations are 220/320/350/250ms; RESULT_READY is an immediate handoff, not a timed visual state.
 
 ## Data Contract
-See Data_Contract_V3_1.json. Empty input, active work, partial focus/contour, issue exits and network/technical failure are mapped. Classifier/detector thresholds and output semantics are not changed.
+Data_Contract_V3_1.json maps the normalized image, real detector result, real focus region and classifier output. No candidate, focus, result, progress or error is fabricated.
 
 ## Engineering Contract
-See Engineering_Contract_V3_1.md for media transform, coordinate/inset ownership, state pacing, continuous motion, degraded modes, Back, and error routing.
+Preserve the original photo and existing Frozen layer stack; use one continuous Edge Field clock; apply the minimum-beat plus real-event gates; honor the registered 14sp subtitle token; keep Back/error behavior distinct. Runtime implementation and evidence are outside this freeze.
 
 ## Acceptance Contract
-See Acceptance_Contract_V3_1.json. Existing visual/motion/interaction checks are measurable. Copy/state reconciliation and a registered mapping for the Frozen 14sp subtitle remain blocked; the source Runtime/Evidence closure also remains independent.
+Acceptance_Contract_V3_1.json checks the state sequence, visual references, subtitle token and error/focus rules. Contract is READY to test; runtime/evidence execution is NOT_RUN.
 
 ## Conflicts and Freeze Gate
-- **PROC-001:** V1.3 three-state semantic timeline conflicts with the still-listed V1.1 per-phase copy table; V1.2 remaps keyframes but does not amend the old copy table.
-- **PROC-002:** Frozen 14sp status subtitle has no exact effective Typography token or registered Recognition Processing page override. Do not replace it with 12sp/16sp or create a private token.
-- **PROC-003:** Source design is FROZEN while Runtime/Evidence remain ACTIVE_CLOSURE; this is reported separately and is not a V3.1 page design decision.
-- Result: REVIEW until PROC-001/PROC-002 are resolved by the responsible design owner. Runtime/Evidence is not claimed as PASS.
+PROC-001 is closed: the V3.1 five-state sequence is the unique effective model and supersedes legacy three-step labels and competing timeline semantics while retaining Frozen visual references. PROC-002 is closed: the Frozen 14sp secondary subtitle maps to type.body_small through the Recognition Processing override. PROC-003 Runtime/Evidence remains a separate non-blocking follow-up and is not claimed as executed. Page Contract status is FROZEN.

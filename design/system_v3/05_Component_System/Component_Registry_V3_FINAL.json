@@ -5,7 +5,8 @@
   "source_authorities": [
     "design/system/components/**",
     "design/system/core_visual_v1/components/**",
-    "design/system/fish_media_display_v1/**"
+    "design/system/fish_media_display_v1/**",
+    "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md"
   ],
   "token_registry_refs": [
     "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
@@ -19,6 +20,10 @@
     {
       "id": "runtime.user_media",
       "source": "User capture/gallery media supplied at runtime; no static design file SHA exists."
+    },
+    {
+      "id": "runtime.camera_stream",
+      "source": "Ephemeral live Camera provider stream owned by Capture host; not repository artwork and has no static SHA-256."
     }
   ],
   "required_fields": [
@@ -1846,13 +1851,212 @@
         ],
         "unresolved_blockers": []
       }
+    },
+    {
+      "component_id": "media.camera_preview",
+      "name": "Camera Preview",
+      "status": "FROZEN",
+      "type": "runtime_surface",
+      "visual": "Recognition Capture V3 Authority; BG_CAPTURE",
+      "geometry": "Follow the oriented stream ratio; use geometry.media.cover in the available preview box without distortion; controls use inset-safe overlay bounds.",
+      "state": [
+        "IDLE",
+        "STARTING",
+        "READY",
+        "SUSPENDED",
+        "ERROR",
+        "UNAVAILABLE"
+      ],
+      "token_dependency": [
+        "geometry.media.cover",
+        "geometry.media.fit",
+        "color.capture_dark_fallback"
+      ],
+      "asset_dependency": [],
+      "responsive_rule": "Flexible viewport fills Capture content bounds at 320/360/411/480dp; preserve source ratio and recalculate crop after bounds/insets change.",
+      "acceptance_rule": "FROZEN: runtime source, ratio-preserving cover, lifecycle and error boundary are explicit; runtime rendering is separately tested.",
+      "category": "media",
+      "purpose": "Display the live camera stream inside the Capture preview viewport.",
+      "visual_rule": "Live preview only. Source is runtime.camera_stream; it is not Frozen Artwork, a static screenshot, a video playback surface, or a Processing frame.",
+      "component_dependency": [],
+      "registry_dependency": [
+        "background_registry_v3"
+      ],
+      "external_asset_dependency": [
+        "runtime.camera_stream"
+      ],
+      "authority_dependencies": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+        "design/system_v3/08_Background_System/Background_Registry_V3.json"
+      ],
+      "page_references": [
+        "recognition.capture.v3_1"
+      ],
+      "interaction": "No direct playback or capture gesture on preview pixels; controls are separate actions.",
+      "token_gap": [],
+      "visual_dependency_coverage": {
+        "tokenized_properties": [
+          "geometry.media.cover",
+          "geometry.media.fit",
+          "color.capture_dark_fallback"
+        ],
+        "authority_scoped_properties": [
+          "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+          "design/system_v3/08_Background_System/Background_Registry_V3.json"
+        ],
+        "unresolved_properties": []
+      },
+      "accessibility_rule": "Expose a labelled camera surface and announce state changes only; do not announce each changing frame.",
+      "component_contract": {
+        "shared_visual_core": "Live preview only. Source is runtime.camera_stream; it is not Frozen Artwork, a static screenshot, a video playback surface, or a Processing frame.",
+        "shared_geometry_boundary": "Follow the oriented stream ratio; use geometry.media.cover in the available preview box without distortion; controls use inset-safe overlay bounds.",
+        "state_model": {
+          "states": [
+            "IDLE",
+            "STARTING",
+            "READY",
+            "SUSPENDED",
+            "ERROR",
+            "UNAVAILABLE"
+          ],
+          "transitions": "IDLE→STARTING on an allowed camera entry; STARTING→READY or ERROR/UNAVAILABLE from provider; READY→SUSPENDED on host pause/permission loss; resume only after owner guards pass."
+        },
+        "page_variants": [
+          {
+            "page_id": "recognition.capture.v3_1",
+            "authority_paths": [
+              "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md"
+            ],
+            "scope": "Capture page authority sets page-specific placement; shared component core remains fixed."
+          }
+        ],
+        "responsive_rule": "Flexible viewport fills Capture content bounds at 320/360/411/480dp; preserve source ratio and recalculate crop after bounds/insets change.",
+        "accessibility_rule": "Expose a labelled camera surface and announce state changes only; do not announce each changing frame.",
+        "asset_rule": {
+          "registered_assets": [],
+          "external_assets": [
+            "runtime.camera_stream"
+          ],
+          "rule": "No static master artwork or SHA; display only the ephemeral runtime stream and registered dark fallback when unavailable."
+        },
+        "acceptance_checks": [
+          "Verify portrait/landscape/rotated streams preserve ratio with no stretch.",
+          "Verify permission loss, host pause/resume and provider failure follow the declared lifecycle states.",
+          "Verify accessibility announces state, not every preview frame."
+        ],
+        "unresolved_blockers": []
+      }
+    },
+    {
+      "component_id": "camera.capture_surface",
+      "name": "Capture Surface",
+      "status": "FROZEN",
+      "type": "runtime_surface",
+      "visual": "Recognition Capture V3 Authority and YuJian Primary Capture Button V1.1",
+      "geometry": "Preview is flexible; overlay respects resolved insets; Bottom Action Area is fixed above navigation inset. Capture target is centered in its action area; every target is at least touch.minimum.",
+      "state": [
+        "CAPTURE_READY",
+        "CAPTURE_PERMISSION_REQUIRED",
+        "CAPTURE_PERMISSION_DENIED",
+        "CAPTURE_ERROR",
+        "CAPTURE_SUCCESS"
+      ],
+      "token_dependency": [
+        "geometry.media.cover",
+        "color.capture_dark_fallback",
+        "touch.minimum"
+      ],
+      "asset_dependency": [
+        "system_components_primary_capture_button_assets_capture_button_main_v1_png"
+      ],
+      "responsive_rule": "Overlay stays inset-safe; preview flexes; bottom action stays above navigation inset. At 320dp controls do not overlap; larger viewports do not stretch media.",
+      "acceptance_rule": "FROZEN: runtime composition, safe-area, gesture, lifecycle, permission and capture-art identity rules are explicit and testable.",
+      "category": "camera",
+      "purpose": "Compose live preview, registered navigation, Gallery and primary capture controls.",
+      "visual_rule": "Compose Camera Preview → Overlay Layer → Bottom Action Area. The live preview is a runtime surface, never Frozen Artwork; capture-button pixels use the registered asset.",
+      "component_dependency": [
+        "media.camera_preview",
+        "navigation.top_title",
+        "navigation.back",
+        "action.primary_button",
+        "action.icon_action"
+      ],
+      "registry_dependency": [
+        "background_registry_v3"
+      ],
+      "external_asset_dependency": [],
+      "authority_dependencies": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+        "design/system/components/primary_capture_button/README.md",
+        "design/system/components/primary_capture_button/manifest.json",
+        "design/system/components/primary_capture_button/visual_contract.json"
+      ],
+      "page_references": [
+        "recognition.capture.v3_1"
+      ],
+      "interaction": "Gallery is an independent picker route; prevent duplicate capture; do not exclude system edge gestures.",
+      "token_gap": [],
+      "visual_dependency_coverage": {
+        "tokenized_properties": [
+          "geometry.media.cover",
+          "color.capture_dark_fallback",
+          "touch.minimum"
+        ],
+        "authority_scoped_properties": [
+          "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+          "design/system/components/primary_capture_button/README.md",
+          "design/system/components/primary_capture_button/manifest.json",
+          "design/system/components/primary_capture_button/visual_contract.json"
+        ],
+        "unresolved_properties": []
+      },
+      "accessibility_rule": "Back, Gallery and Capture expose name/role/state; every action target is at least 44×44dp; OS prompt/picker retain platform semantics.",
+      "component_contract": {
+        "shared_visual_core": "Compose Camera Preview → Overlay Layer → Bottom Action Area. The live preview is a runtime surface, never Frozen Artwork; capture-button pixels use the registered asset.",
+        "shared_geometry_boundary": "Preview is flexible; overlay respects resolved insets; Bottom Action Area is fixed above navigation inset. Capture target is centered in its action area; every target is at least touch.minimum.",
+        "state_model": {
+          "states": [
+            "CAPTURE_READY",
+            "CAPTURE_PERMISSION_REQUIRED",
+            "CAPTURE_PERMISSION_DENIED",
+            "CAPTURE_ERROR",
+            "CAPTURE_SUCCESS"
+          ],
+          "transitions": "Use the Capture State Machine guards; no camera action before permission; success hands one normalized image to Processing."
+        },
+        "page_variants": [
+          {
+            "page_id": "recognition.capture.v3_1",
+            "authority_paths": [
+              "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md"
+            ],
+            "scope": "Capture page authority sets page-specific placement; shared component core remains fixed."
+          }
+        ],
+        "responsive_rule": "Overlay stays inset-safe; preview flexes; bottom action stays above navigation inset. At 320dp controls do not overlap; larger viewports do not stretch media.",
+        "accessibility_rule": "Back, Gallery and Capture expose name/role/state; every action target is at least 44×44dp; OS prompt/picker retain platform semantics.",
+        "asset_rule": {
+          "registered_assets": [
+            "system_components_primary_capture_button_assets_capture_button_main_v1_png"
+          ],
+          "external_assets": [],
+          "rule": "The capture-button asset is the only static capture art. Its 208×208px master is not a dp size; preview is runtime.camera_stream with no artwork SHA."
+        },
+        "acceptance_checks": [
+          "Verify all five required states and the normalized-image handoff; no record is persisted.",
+          "Verify capture asset ID/path/SHA match Asset Registry.",
+          "Verify safe-area placement, 44×44dp minimum target and no system gesture exclusion.",
+          "Verify host lifecycle owns one provider binding and releases on exit/background/permission loss."
+        ],
+        "unresolved_blockers": []
+      }
     }
   ],
   "summary": {
-    "component_count": 16,
-    "frozen_count": 16,
+    "component_count": 18,
+    "frozen_count": 18,
     "review_count": 0,
-    "version": "V3.1 FINAL",
+    "version": "V3.1 FINAL + Phase 3-A Capture closure",
     "rule": "Shared components are frozen at their declared contract boundary. Page-specific variants still obey their own Frozen authority."
   }
 }

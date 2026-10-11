@@ -390,6 +390,13 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
         if "brand" in str(override.get("page", "")).lower() and override.get("status") not in {"FROZEN_ARTWORK_ASSET", "FROZEN_PAGE_OVERRIDE"}:
             issues.append(f"Typography: Brand page override is not artwork-backed: {override.get('page')}")
 
+    body_small = next((row for row in typography.get("tokens", []) if isinstance(row, dict) and row.get("id") == "type.body_small"), None)
+    if not body_small or body_small.get("size") != "14sp" or body_small.get("weight") != "Regular (400)" or body_small.get("color") != "color.mist_blue_gray":
+        issues.append("Typography: Recognition Processing body_small must be 14sp Regular secondary")
+    processing_override = next((row for row in typography.get("page_overrides", []) if isinstance(row, dict) and row.get("page") == "Recognition Processing" and row.get("role") == "processing.subtitle" and row.get("token") == "type.body_small" and row.get("status") == "FROZEN_PAGE_OVERRIDE"), None)
+    if not processing_override:
+        issues.append("Typography: processing.subtitle has no effective page override to type.body_small")
+
     # Color semantic roles must be fully tokenized; Danger has a separate page-only scope.
     color_fields = {"id", "hex", "rgba", "opacity", "usage", "forbidden_usage", "source_paths"}
     for token in color.get("tokens", []):
@@ -427,8 +434,8 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
     if "geometry.video.aspect_policy" not in geometry_ids:
         issues.append("Geometry: shared video aspect policy token is missing")
 
-    if len(component_rows) != 16:
-        issues.append(f"Components: expected 16 public component contracts; found {len(component_rows)}")
+    if len(component_rows) != 18:
+        issues.append(f"Components: expected 18 public component contracts; found {len(component_rows)}")
     for component in component_rows if isinstance(component_rows, list) else []:
         if isinstance(component, dict) and component.get("status") != "FROZEN":
             issues.append(f"{component.get('component_id')}: component must be FROZEN for READY")
@@ -436,6 +443,16 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
             contract = component.get("component_contract", {})
             if contract.get("unresolved_blockers") != []:
                 issues.append(f"{component.get('component_id')}: unresolved component blockers remain")
+    camera_preview = next((row for row in component_rows if isinstance(row, dict) and row.get("component_id") == "media.camera_preview"), {})
+    capture_surface = next((row for row in component_rows if isinstance(row, dict) and row.get("component_id") == "camera.capture_surface"), {})
+    if camera_preview.get("status") != "FROZEN" or camera_preview.get("type") != "runtime_surface":
+        issues.append("Components: media.camera_preview must be a FROZEN runtime_surface")
+    if capture_surface.get("status") != "FROZEN" or capture_surface.get("type") != "runtime_surface":
+        issues.append("Components: camera.capture_surface must be a FROZEN runtime_surface")
+    for item in (camera_preview, capture_surface):
+        if item.get("component_id") and item.get("component_contract", {}).get("unresolved_blockers") != []:
+            issues.append(f"Components: {item.get('component_id')} has unresolved blockers")
+
     selector = next((row for row in component_rows if isinstance(row, dict) and row.get("component_id") == "input.selector"), {})
     required_selector_states = {"CLOSED", "OPEN", "QUERY_INPUT", "SEARCHING", "RESULTS", "NO_RESULTS", "EMPTY_DATA", "ERROR", "SELECTED", "MULTI_SELECTED", "COMMITTED", "RETURNED", "CANCELLED"}
     if not required_selector_states.issubset(set(selector.get("state", []))):

@@ -75,3 +75,8 @@
 - C-008 is the remaining page-specific geometry/responsive check.
 - P2 C-013 remains Android SVG resource/hit-target runtime verification.
 - No unresolved shared-foundation blockers remain.
+
+
+## Phase 3-A additive component note
+
+The Phase 2 Shared Foundation report recorded 16 public contracts at that freeze point. Phase 3-A adds media.camera_preview and camera.capture_surface to the same effective Component Registry; the current registry contains 18 FROZEN public contracts. This additive registration does not alter the prior Phase 2 decision record, any Frozen PNG, or application code.

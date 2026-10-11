@@ -141,6 +141,17 @@
       "letterSpacing": "0sp",
       "color": "color.mist_blue_gray",
       "usage": "Alias of Caption; a naming alias only and introduces no additional scale."
+    },
+    {
+      "id": "type.body_small",
+      "name": "Body Small",
+      "family": "android_platform_sans_serif",
+      "size": "14sp",
+      "weight": "Regular (400)",
+      "lineHeight": "20sp",
+      "letterSpacing": "0sp",
+      "color": "color.mist_blue_gray",
+      "usage": "Recognition Processing status subtitle; 14sp secondary Platform Typography."
     }
   ],
   "override_policy": {
@@ -206,6 +217,17 @@
         "design/pages/home/empty_home/README.md",
         "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
       ]
+    },
+    {
+      "page": "Recognition Processing",
+      "role": "processing.subtitle",
+      "token": "type.body_small",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "The Frozen Processing subtitle is 14sp, Regular, 20sp line height, 0sp tracking and color.mist_blue_gray (secondary). This is a shared Platform Typography token, not a new font family or page-private scale.",
+      "source_paths": [
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
     }
   ],
   "page_audit": [
@@ -233,6 +255,11 @@
       "page": "Fish Guide",
       "status": "MAPPED_WITH_PAGE_OVERRIDE",
       "finding": "Species title sizing is page-owned; large text grows its container and keeps semantic order."
+    },
+    {
+      "page": "Recognition Processing",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "The Frozen 14sp status subtitle maps to type.body_small with secondary color; no new font or page-private type scale."
     }
   ],
   "tracking_rule": "0sp unless a page/component authority registers a specific override.",

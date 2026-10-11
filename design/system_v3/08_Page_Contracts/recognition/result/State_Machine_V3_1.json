@@ -29,12 +29,14 @@
     {
       "id": "NO_FISH",
       "kind": "recovery_state",
-      "record_creation": false
+      "record_creation": false,
+      "copy_source": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json#NO_FISH_FROZEN"
     },
     {
       "id": "IMAGE_QUALITY_WARNING",
       "kind": "recovery_state",
-      "record_creation": false
+      "record_creation": false,
+      "copy_source": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json#IMAGE_QUALITY_GENERIC_FROZEN"
     },
     {
       "id": "TECHNICAL_FAILURE",
@@ -214,5 +216,14 @@
     "Save Catch success routes Home; Detail is not the Save Catch destination.",
     "Continue Memory remains the separate FishRecordDetail(memory) action.",
     "Technical Failure is separate from the 3+2 product states."
-  ]
+  ],
+  "status": "FROZEN",
+  "quality_contract": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json",
+  "data_lineage": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+  "quality_gate_values": [
+    "GOOD",
+    "WARNING",
+    "INVALID"
+  ],
+  "quality_routing_policy": "QUALITY_GATE controls eligibility; NO_FISH routes to NO_FISH before Image Quality; WARNING alone does not route to Image Quality; INVALID routes to Image Quality unless its reason is NO_FISH."
 }

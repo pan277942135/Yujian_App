@@ -11,7 +11,7 @@
     },
     {
       "field": "recognition.pipeline_phase",
-      "source": "RecognitionStateMachine phase progression CAPTURED/DETECTING/OUTLINE/CLASSIFYING",
+      "source": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json#states",
       "required": "required while Processing",
       "fallback": "Stay in the current semantic state while the pipeline is active.",
       "error_behavior": "A reported pipeline exception exits as TECHNICAL_FAILURE."
@@ -32,18 +32,19 @@
     },
     {
       "field": "recognition.classifier_outcome",
-      "source": "Recognition pipeline result event; confidence thresholds remain current runtime authority and are not changed here",
-      "required": "required to emit RESULT",
+      "source": "Recognition Model output; design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json#RESULT_READY",
+      "required": "required to enter RESULT_READY",
       "fallback": "No candidate/confidence is shown during Processing.",
       "error_behavior": "A real classifier failure exits TECHNICAL_FAILURE."
     }
   ],
   "coverage": {
     "empty": "No normalized image means Processing is not entered; return to Capture.",
-    "loading": "CAPTURED/DETECTING share one visible IMAGE_RECOGNIZING state. No fake progress percentage, ETA or rotating copy.",
+    "loading": "CAPTURED, DETECTING, OUTLINE and CLASSIFYING each honor their >=220/320/350/250ms minimum and require a real event to advance; no fake progress, ETA or timer-only completion.",
     "error": "No Fish, Image Quality and Technical Failure use distinct exit contracts; no record is created in Processing.",
     "partial": "A valid detector bbox may use the registered degradation level when contour alpha is unavailable; classifier semantics do not change.",
     "network_failure": "If a real pipeline/network dependency reports failure, use TECHNICAL_FAILURE. Network errors are never represented as No Fish or Image Quality."
   },
-  "runtime_boundary": "Design/State contract only. Recognition Design Closure V1.2 records runtime/evidence ACTIVE_CLOSURE."
+  "runtime_boundary": "Page-level timeline/copy authority is FROZEN. Android runtime/evidence remains outside this work and is NOT_RUN.",
+  "state_machine_authority": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
 }

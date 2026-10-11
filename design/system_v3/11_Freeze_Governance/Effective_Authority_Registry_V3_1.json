@@ -159,7 +159,8 @@
         "design/system_v3/01_Shared_Foundation_V3_1/README.md",
         "Android Work input (downstream)",
         "Backend UI/Data alignment input (downstream)",
-        "Test Work acceptance input (downstream)"
+        "Test Work acceptance input (downstream)",
+        "design/system_v3/08_Page_Contracts/Page_Registry_V3_1.json"
       ]
     },
     {

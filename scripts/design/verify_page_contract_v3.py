@@ -80,8 +80,8 @@ def main() -> int:
     assets = {row.get("asset_id"): row for row in assets_doc.get("entries", []) if isinstance(row, dict)}
     assets_by_path = {row.get("path"): row for row in assets_doc.get("entries", []) if isinstance(row, dict)}
     backgrounds = {row.get("background_id"): row for row in backgrounds_doc.get("backgrounds", []) if isinstance(row, dict)}
-    if len(components) != 16:
-        issues.append(f"effective Component Registry expected 16 components, found {len(components)}")
+    if len(components) != 18:
+        issues.append(f"effective Component Registry expected 18 components, found {len(components)}")
     if len(assets) != 658:
         issues.append(f"effective Asset Registry expected 658 assets, found {len(assets)}")
 
@@ -184,6 +184,22 @@ def main() -> int:
         if not state_ids or len(state_ids) != len(set(state_ids)):
             issues.append(f"{page_id}: state IDs are empty or duplicated")
         state_set = set(state_ids)
+        if page_id == "recognition.capture.v3_1":
+            required_capture = {"CAPTURE_READY", "CAPTURE_PERMISSION_REQUIRED", "CAPTURE_PERMISSION_DENIED", "CAPTURE_ERROR", "CAPTURE_SUCCESS"}
+            if not required_capture.issubset(state_set):
+                issues.append(f"{page_id}: required Capture page states are incomplete")
+        if page_id == "recognition.processing.v3_1":
+            expected_processing = ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING", "RESULT_READY"]
+            if state_ids != expected_processing:
+                issues.append(f"{page_id}: canonical Processing state order is invalid")
+            expected_durations = {"CAPTURED": ">=220ms", "DETECTING": ">=320ms", "OUTLINE": ">=350ms", "CLASSIFYING": ">=250ms"}
+            for row in states:
+                if not isinstance(row, dict):
+                    continue
+                if not all(row.get(field) for field in ("duration", "visual_behavior", "transition_rule")):
+                    issues.append(f"{page_id}/{row.get('id')}: missing duration/visual_behavior/transition_rule")
+                if row.get("id") in expected_durations and row.get("duration") != expected_durations[row.get("id")]:
+                    issues.append(f"{page_id}/{row.get('id')}: duration does not match the frozen V3.1 minimum")
         for transition in state_doc.get("transitions", []):
             if not isinstance(transition, dict):
                 issues.append(f"{page_id}: malformed state transition")

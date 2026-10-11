@@ -1,218 +1,146 @@
 {
   "schema_version": "3.1",
+  "state_machine_id": "recognition_capture_state_machine_v3_1",
   "page_id": "recognition.capture.v3_1",
-  "entry_state": "EMPTY",
+  "status": "FROZEN",
+  "authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+  "entry_state": "CAPTURE_PERMISSION_REQUIRED",
+  "entry_resolution": {
+    "rule": "Resolve permission/provider before enabling actions: granted + provider ready → CAPTURE_READY; permission absent/requestable → CAPTURE_PERMISSION_REQUIRED; denied/not requestable → CAPTURE_PERMISSION_DENIED; provider failure → CAPTURE_ERROR."
+  },
   "states": [
     {
-      "id": "EMPTY",
-      "kind": "page_state",
-      "meaning": "No still image has been committed for this attempt."
-    },
-    {
-      "id": "REQUESTING_PERMISSION",
-      "kind": "permission_state",
-      "meaning": "Camera permission request is in progress."
-    },
-    {
-      "id": "PERMISSION_DENIED",
-      "kind": "permission_state",
-      "meaning": "Camera permission is unavailable; no preview/capture may start."
-    },
-    {
-      "id": "CAMERA_INITIALIZING",
-      "kind": "loading_state",
-      "meaning": "Camera provider is starting after permission."
-    },
-    {
-      "id": "READY",
+      "id": "CAPTURE_READY",
       "kind": "ready_state",
-      "meaning": "Camera preview is available and an image may be captured."
+      "meaning": "Camera permission and provider are ready; Capture and Gallery are available."
     },
     {
-      "id": "CAMERA_UNAVAILABLE",
+      "id": "CAPTURE_PERMISSION_REQUIRED",
+      "kind": "permission_state",
+      "meaning": "Camera permission is missing and a platform request is available; Gallery remains independently available."
+    },
+    {
+      "id": "CAPTURE_PERMISSION_DENIED",
+      "kind": "permission_state",
+      "meaning": "Permission was denied or is no longer requestable; camera capture is unavailable and Gallery remains available."
+    },
+    {
+      "id": "CAPTURE_ERROR",
       "kind": "error_state",
-      "meaning": "Camera provider is unavailable; use an allowed Gallery route or return."
+      "meaning": "Provider, capture or media normalization failed; the page remains recoverable."
     },
     {
-      "id": "CAPTURING",
-      "kind": "loading_state",
-      "meaning": "Still capture is in progress; prevent duplicate capture."
-    },
-    {
-      "id": "OPENING_GALLERY",
-      "kind": "loading_state",
-      "meaning": "System photo picker/gallery handoff is in progress."
-    },
-    {
-      "id": "GALLERY_EMPTY",
-      "kind": "empty_state",
-      "meaning": "Picker returned no selected image; remain on capture."
-    },
-    {
-      "id": "GALLERY_ERROR",
-      "kind": "error_state",
-      "meaning": "Selected image could not be read; remain recoverable."
-    },
-    {
-      "id": "IMAGE_READY",
-      "kind": "exit_state",
-      "meaning": "Normalized image is ready for Recognition Processing."
+      "id": "CAPTURE_SUCCESS",
+      "kind": "handoff_state",
+      "meaning": "One readable normalized image is ready and handed to Recognition Processing."
     },
     {
       "id": "CANCELLED",
       "kind": "exit_state",
-      "meaning": "User leaves without creating a catch record."
+      "meaning": "The user leaves without creating a FishRecord."
     }
   ],
   "transitions": [
     {
-      "current_state": "EMPTY",
-      "action": "Enter Capture",
-      "guard": "Camera permission already granted and provider ready",
-      "next_state": "READY"
+      "current_state": "CAPTURE_PERMISSION_REQUIRED",
+      "action": "Permission granted and provider ready",
+      "guard": "Camera request completed and provider can stream",
+      "next_state": "CAPTURE_READY"
     },
     {
-      "current_state": "EMPTY",
-      "action": "Enter Capture",
-      "guard": "Camera permission missing and runtime request is allowed",
-      "next_state": "REQUESTING_PERMISSION"
+      "current_state": "CAPTURE_PERMISSION_REQUIRED",
+      "action": "Permission denied/not requestable",
+      "guard": "No camera session may start",
+      "next_state": "CAPTURE_PERMISSION_DENIED"
     },
     {
-      "current_state": "EMPTY",
-      "action": "Enter Capture",
-      "guard": "Permission denied or no longer requestable",
-      "next_state": "PERMISSION_DENIED"
+      "current_state": "CAPTURE_PERMISSION_REQUIRED",
+      "action": "Provider initialization fails",
+      "guard": "No usable preview",
+      "next_state": "CAPTURE_ERROR"
     },
     {
-      "current_state": "REQUESTING_PERMISSION",
-      "action": "Permission granted",
-      "guard": "Camera provider may start",
-      "next_state": "CAMERA_INITIALIZING"
+      "current_state": "CAPTURE_READY",
+      "action": "Capture succeeds",
+      "guard": "Exactly one readable normalized image exists",
+      "next_state": "CAPTURE_SUCCESS"
     },
     {
-      "current_state": "REQUESTING_PERMISSION",
-      "action": "Permission denied",
-      "guard": "No camera capture may start",
-      "next_state": "PERMISSION_DENIED"
+      "current_state": "CAPTURE_READY",
+      "action": "Capture/provider failure",
+      "guard": "No normalized image exists",
+      "next_state": "CAPTURE_ERROR"
     },
     {
-      "current_state": "CAMERA_INITIALIZING",
-      "action": "Provider ready",
-      "guard": "CameraX reports usable preview",
-      "next_state": "READY"
+      "current_state": "CAPTURE_READY",
+      "action": "Open Gallery; readable image selected",
+      "guard": "Picker is independent of camera permission and image normalizes",
+      "next_state": "CAPTURE_SUCCESS"
     },
     {
-      "current_state": "CAMERA_INITIALIZING",
-      "action": "Provider failure",
-      "guard": "Camera cannot provide preview",
-      "next_state": "CAMERA_UNAVAILABLE"
+      "current_state": "CAPTURE_PERMISSION_DENIED",
+      "action": "Open Gallery; readable image selected",
+      "guard": "System picker is available and image normalizes",
+      "next_state": "CAPTURE_SUCCESS"
     },
     {
-      "current_state": "READY",
-      "action": "Capture",
-      "guard": "Capture action enabled; no capture already pending",
-      "next_state": "CAPTURING"
+      "current_state": "CAPTURE_ERROR",
+      "action": "Retry camera; permission/provider ready",
+      "guard": "Capture host can resume",
+      "next_state": "CAPTURE_READY"
     },
     {
-      "current_state": "CAPTURING",
-      "action": "Still image normalized",
-      "guard": "Readable normalized image exists",
-      "next_state": "IMAGE_READY"
+      "current_state": "CAPTURE_ERROR",
+      "action": "Open Gallery; readable image selected",
+      "guard": "System picker is available and image normalizes",
+      "next_state": "CAPTURE_SUCCESS"
     },
     {
-      "current_state": "CAPTURING",
-      "action": "Capture failure",
-      "guard": "No valid normalized image",
-      "next_state": "CAMERA_UNAVAILABLE"
+      "current_state": "CAPTURE_PERMISSION_DENIED",
+      "action": "Retry permission",
+      "guard": "System allows another request or settings return",
+      "next_state": "CAPTURE_PERMISSION_REQUIRED"
     },
     {
-      "current_state": "EMPTY",
-      "action": "Open Gallery",
-      "guard": "System picker route is available",
-      "next_state": "OPENING_GALLERY"
-    },
-    {
-      "current_state": "READY",
-      "action": "Open Gallery",
-      "guard": "System picker route is available",
-      "next_state": "OPENING_GALLERY"
-    },
-    {
-      "current_state": "PERMISSION_DENIED",
-      "action": "Open Gallery",
-      "guard": "Picker access is allowed independently of camera permission",
-      "next_state": "OPENING_GALLERY"
-    },
-    {
-      "current_state": "CAMERA_UNAVAILABLE",
-      "action": "Open Gallery",
-      "guard": "Picker route is available",
-      "next_state": "OPENING_GALLERY"
-    },
-    {
-      "current_state": "OPENING_GALLERY",
-      "action": "No image selected",
-      "guard": "Picker cancelled without selection",
-      "next_state": "GALLERY_EMPTY"
-    },
-    {
-      "current_state": "OPENING_GALLERY",
-      "action": "Unreadable image selected",
-      "guard": "Image cannot be normalized",
-      "next_state": "GALLERY_ERROR"
-    },
-    {
-      "current_state": "OPENING_GALLERY",
-      "action": "Readable image selected",
-      "guard": "Selected image normalized",
-      "next_state": "IMAGE_READY"
-    },
-    {
-      "current_state": "GALLERY_EMPTY",
-      "action": "Return to capture",
-      "guard": "No image was committed",
-      "next_state": "READY"
-    },
-    {
-      "current_state": "GALLERY_ERROR",
-      "action": "Retry Gallery or camera",
-      "guard": "No image was committed",
-      "next_state": "READY"
-    },
-    {
-      "current_state": "PERMISSION_DENIED",
+      "current_state": "CAPTURE_READY",
       "action": "Back",
-      "guard": "No record has been created",
+      "guard": "No record was created",
       "next_state": "CANCELLED"
     },
     {
-      "current_state": "READY",
+      "current_state": "CAPTURE_PERMISSION_REQUIRED",
       "action": "Back",
-      "guard": "No record has been created",
+      "guard": "No record was created",
       "next_state": "CANCELLED"
     },
     {
-      "current_state": "CAMERA_UNAVAILABLE",
+      "current_state": "CAPTURE_PERMISSION_DENIED",
       "action": "Back",
-      "guard": "No record has been created",
+      "guard": "No record was created",
+      "next_state": "CANCELLED"
+    },
+    {
+      "current_state": "CAPTURE_ERROR",
+      "action": "Back",
+      "guard": "No record was created",
       "next_state": "CANCELLED"
     }
   ],
   "terminal_states": [
-    "IMAGE_READY",
+    "CAPTURE_SUCCESS",
     "CANCELLED"
   ],
   "external_handoffs": [
     {
-      "from": "IMAGE_READY",
+      "from": "CAPTURE_SUCCESS",
       "to_page": "recognition.processing.v3_1",
       "payload": "normalized_image"
     }
   ],
   "policy": [
-    "Camera permission is a precondition; never open camera capture without it.",
-    "Camera permission denial does not imply the user cannot use the system Photo Picker.",
-    "No capture state creates a FishRecord; Save Catch belongs to Result.",
-    "Exact denial copy and camera page visuals remain blocked by CAP-001/CAP-003."
+    "Camera permission is required only for the camera stream; denial never blocks the independent system Photo Picker.",
+    "The Capture host owns the camera lifecycle and releases it on exit, backgrounding or permission loss.",
+    "System permission and Photo Picker UI remain platform-owned; no system-icon replacement or frozen camera screenshot is introduced.",
+    "No Capture state creates a FishRecord; Save Catch belongs to Recognition Result."
   ]
 }

@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "image_quality_copy_v1",
+  "status": "FROZEN",
+  "authority": "design/pages/recognition/result/05_image_quality/README.md",
+  "frozen_visual_asset": {
+    "asset_id": "pages_recognition_design_09_error_image_quality_frozen_png",
+    "path": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+    "sha256": "965be5b37ce4c41e8a5b758f2f94bac16fa0b99dc135e25b114c2943d35b1a0d",
+    "copy_is_pixel_frozen": true
+  },
+  "no_fish_visual_asset": {
+    "asset_id": "pages_recognition_design_08_error_no_fish_frozen_png",
+    "path": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+    "sha256": "3952e2f8eb8e42124e8554f6c1481351ff7cb7bb200180613787c4448bf2d8d2",
+    "copy_is_pixel_frozen": true
+  },
+  "quality_gate": {
+    "values": {
+      "GOOD": {
+        "meaning": "Input passes the current gate; continue the real Recognition flow.",
+        "result_policy": "Do not display Image Quality recovery."
+      },
+      "WARNING": {
+        "meaning": "A warning signal exists but classification may remain eligible according to the real gate output.",
+        "result_policy": "Do not route to Image Quality solely because the value is WARNING."
+      },
+      "INVALID": {
+        "meaning": "Input is not classifier-eligible according to the real gate output.",
+        "result_policy": "Route NO_FISH first when reason is NO_FISH; otherwise use IMAGE_QUALITY_WARNING. Do not create a FishRecord."
+      }
+    },
+    "precedence": "QUALITY_GATE controls eligibility. A reason cannot override a GOOD/WARNING/INVALID value. NO_FISH has its own Result state."
+  },
+  "copy_catalog": {
+    "IMAGE_QUALITY_GENERIC_FROZEN": {
+      "title": "照片不够清晰，无法识别",
+      "body": "请拍摄更清晰的照片，确保鱼的整体轮廓清晰，没有遮挡",
+      "primary_action": "重新拍摄",
+      "secondary_action": "从相册选择",
+      "source_asset_id": "pages_recognition_design_09_error_image_quality_frozen_png",
+      "source_path": "design/pages/recognition/result/05_image_quality/README.md",
+      "source_rule": "Use exact existing Frozen wording and Recovery Panel; no reason-specific message, paraphrase or dynamic claim."
+    },
+    "NO_FISH_FROZEN": {
+      "title": "没有找到可识别的鱼",
+      "body": "请让鱼完整出现在画面中，再试一次",
+      "primary_action": "重新拍摄",
+      "secondary_action": "从相册选择",
+      "source_asset_id": "pages_recognition_design_08_error_no_fish_frozen_png",
+      "source_path": "design/pages/recognition/result/04_no_fish/README.md",
+      "source_rule": "No Fish copy/state stays separate from Image Quality."
+    }
+  },
+  "reason_taxonomy": [
+    {
+      "reason": "LOW_LIGHT",
+      "source_owner": "QUALITY_GATE",
+      "emission_rule": "Only emit when the upstream quality source has measured low-light evidence; otherwise do not diagnose.",
+      "copy_id": "IMAGE_QUALITY_GENERIC_FROZEN",
+      "display_condition": "Only when quality=INVALID and Result state=IMAGE_QUALITY_WARNING; no reason-specific text."
+    },
+    {
+      "reason": "BLUR",
+      "source_owner": "QUALITY_GATE",
+      "emission_rule": "Only emit when the upstream quality source has measured blur evidence; otherwise do not diagnose.",
+      "copy_id": "IMAGE_QUALITY_GENERIC_FROZEN",
+      "display_condition": "Only when quality=INVALID and Result state=IMAGE_QUALITY_WARNING; no reason-specific text."
+    },
+    {
+      "reason": "NO_FISH",
+      "source_owner": "QUALITY_GATE",
+      "emission_rule": "Use only for a true no-eligible-fish outcome.",
+      "quality": "INVALID",
+      "result_state": "NO_FISH",
+      "copy_id": "NO_FISH_FROZEN",
+      "display_condition": "Always the separate NO_FISH recovery; never Image Quality."
+    },
+    {
+      "reason": "MULTI_FISH",
+      "source_owner": "QUALITY_GATE",
+      "emission_rule": "Use only for a real multi-fish signal.",
+      "quality": "WARNING",
+      "result_state": "Recognition outcome follows actual classifier eligibility; no Image Quality recovery solely from this reason.",
+      "copy_id": null,
+      "display_condition": "No new reason-specific copy or page; preserve existing Result behavior."
+    },
+    {
+      "reason": "FISH_TOO_SMALL",
+      "source_owner": "QUALITY_GATE",
+      "emission_rule": "Use only when the current size/geometry gate emits a measured small-subject reason.",
+      "quality": "INVALID",
+      "result_state": "IMAGE_QUALITY_WARNING",
+      "copy_id": "IMAGE_QUALITY_GENERIC_FROZEN",
+      "display_condition": "Use exact generic Frozen Recovery copy; do not claim blur or measured optical quality."
+    },
+    {
+      "reason": "BAD_ANGLE",
+      "source_owner": "QUALITY_GATE",
+      "emission_rule": "Only emit when the upstream quality source has measured angle evidence; otherwise do not diagnose.",
+      "copy_id": "IMAGE_QUALITY_GENERIC_FROZEN",
+      "display_condition": "Only when quality=INVALID and Result state=IMAGE_QUALITY_WARNING; no reason-specific text."
+    }
+  ],
+  "display_invariants": [
+    "The UI resolves copy through this registry and uses exact existing Frozen wording.",
+    "No custom Android copy, paraphrase, reason-specific diagnosis or Frozen PNG modification is authorized.",
+    "Unmeasured LOW_LIGHT, BLUR or BAD_ANGLE must not be emitted or asserted.",
+    "Image Quality and No Fish remain distinct; Technical Failure uses neither recovery copy."
+  ]
+}
