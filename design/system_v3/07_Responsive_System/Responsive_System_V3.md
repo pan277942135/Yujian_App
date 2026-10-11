@@ -1,3 +1,5 @@
+> **DEPRECATED_NON_EFFECTIVE** — Historical responsive system — use `Geometry_System_V3_FINAL.md`, `Geometry_Tokens_V3_FINAL.json`, and `Responsive_Rules_V3_FINAL.md` only.
+
 # Responsive System V3
 
 **状态：REVIEW；只冻结设计规则，不修代码。** 基准宽度 360 / 393 / 412 / 480dp；参考画布 1080×1920 px 不等同设备 dp。所有 layout 用 dp、文字用 sp；页面冻结 raster 转换使用页面自己的公式。

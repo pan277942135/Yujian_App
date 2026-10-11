@@ -1,6 +1,6 @@
 # Component Contract V3.1 Final
 
-**Aggregate status: REVIEW.** The existing public registry has 16 entries: 14 FROZEN and 2 REVIEW. No new component was added. Frozen page visuals and assets were not modified.
+**Aggregate status: READY · 16/16 FROZEN.** The existing public registry has 16 entries; no new component was added. Frozen page visuals and assets were not modified.
 
 FROZEN means the shared contract boundary below is explicit. A page-owned size, radius, crop, placement, or interaction remains governed by its cited page authority; the shared contract does not overwrite it. Component freeze is a design contract, not runtime acceptance.
 
@@ -18,10 +18,10 @@ Each JSON entry contains purpose, visual rule, geometry boundary, state model, i
 | `surface.card` | home_normal_v1, recognition_result_v1, fish_record_detail_v2, my_catches_v2, fish_guide_v2 | **FROZEN** | For every registered page variant, identify its Frozen authority before rendering. |
 | `media.hero` | home_normal_v1, fish_record_detail_v2, my_catches_v2 | **FROZEN** | Verify source bytes unchanged, approved frame, safe Fill or Safe Fit, and no crop outside FishSafeRect. |
 | `media.image` | recognition_flow_v1_2, recognition_result_v1, fish_record_detail_v2, my_catches_v2, fish_guide_v2 | **FROZEN** | Verify declared mode, source preservation, loading/ready/fallback/error and no non-uniform stretch. |
-| `media.video` | fish_record_detail_v2 | **REVIEW** | Confirm a video tile retains the FishRecordDetail grid and attached-media counting semantics. |
+| `media.video` | fish_record_detail_v2 | **FROZEN** | Verify source ratio, contain/letterbox behavior, six states, accessible state announcements, and no focus trap; page controls remain page-owned. |
 | `data.metadata_row` | recognition_result_v1, fish_record_detail_v2 | **FROZEN** | Trace every displayed value to its source/field contract. |
 | `data.statistic_card` | home_normal_v1 | **FROZEN** | Compare the statistic group to NH04 and the Normal Home spec. |
-| `input.selector` | recognition_result_v1, fish_record_detail_v2, my_catches_v2 | **REVIEW** | Verify Recognition Result single-select against its eight-state spec at 320/360/393/411dp. |
+| `input.selector` | recognition_result_v1, fish_record_detail_v2, my_catches_v2 | **FROZEN** | Verify 320dp two-column grid/search, ≥360dp common grid, 300ms search, single/multi-select commits, keyboard/focus, 44dp targets and fontScale. |
 | `input.search` | my_catches_v2 | **FROZEN** | Verify B1–B5 against the frozen search spec: focused/recent, results, empty, search+filter, detail return. |
 | `input.bottom_sheet` | profile_edit_v1, recognition_result_v1, account_privacy_v1 | **FROZEN** | Avatar: options are Camera / Photo Picker / Cancel; cancel leaves state unchanged; choosing/cropping does not upload until explicit profile Save. |
 
@@ -34,16 +34,32 @@ Each JSON entry contains purpose, visual rule, geometry boundary, state model, i
 - An unlisted state is not implied. Review entries must not be implemented from guessed geometry or behavior.
 - Android must use the registered SVG identity; system-icon substitution is not permitted.
 
-## Remaining component review items
+## Selector Core + Species Picker Variant — FROZEN
 
-### `media.video` — REVIEW
+**Component ID:** `input.selector`
 
-FishRecordDetail freezes video as an attached-media grid item and preserves media counts. It does not freeze a shared video frame/aspect, playback controls, focus order, accessibility description, or play/pause/failure presentation. Keep the shared video component REVIEW until a page contract closes those fields.
+- **Purpose:** search and choose a declared species/option across Recognition Result, FishRecordDetail and My Catches.
+- **Visual:** reuse `design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png` and the frozen Recognition Result selector board. Species picture/name and page-declared category/information/special-card slots remain sourced by the cited page authority. No new screen or alternative picker is introduced.
+- **Geometry:** 320dp uses a 2×3 Common grid and one-column All list; ≥360dp uses three Common columns; Search remains full width. Row/media measurements stay in the frozen selector contract. Minimum actionable target is `touch.minimum` = 44×44dp.
+- **States:** CLOSED, OPEN, QUERY_INPUT, SEARCHING, RESULTS, NO_RESULTS, EMPTY_DATA, ERROR, SELECTED, MULTI_SELECTED, COMMITTED, RETURNED, CANCELLED.
+- **Interaction:** search Chinese formal name/pinyin/initials/aliases with 300ms debounce. Single-select tap commits `species_id` and returns immediately. Multi-select toggles persist while browsing, then return to F1 with OR semantics. Back dismisses IME before leaving; cancel does not alter the prior single-select value.
+- **Tokens/assets:** `type.body`, `color.deep_lake_blue`, `color.action_primary`, `touch.minimum`, registered search/check SVGs, Fish Knowledge species media identity.
+- **Responsive / accessibility:** search remains visible around IME; content may scroll. At larger `fontScale`, names wrap and containers grow; never shrink. Expose roles, selected state, results/empty/error announcements and deterministic focus order; no focus trap.
+- **Acceptance:** verify 320/360/393/411dp, search/clear/debounce, single and multi-select commit/return behavior, 44×44dp targets, IME/back, accessibility focus and fontScale 1.0/1.15/1.3.
+- **Boundary:** My Catches F2 reuses the same frozen picker and selection styling; no F2-specific bitmap was created. Its page shell and data-filter contract remain page-owned.
 
-### `input.selector` — REVIEW · C-014
+## Shared Video Surface + Page Video Experience — FROZEN
 
-Recognition Result single-select has a frozen visual baseline. FishRecordDetail uses the same shared picker. My Catches F2 requires multi-select, but its visual contract remains partial. Shared focus/TalkBack and acceptance coverage also remain open. Keep one shared Species Picker authority; do not fork a duplicate picker.
+**Component ID:** `media.video`
+
+- **Purpose:** display attached user video and expose its state without defining player controls.
+- **Visual:** source-preserving media surface for Idle, Loading, Playing, Paused, Error and Unavailable. Use registered status/surface tokens; no shared player buttons.
+- **Geometry:** preserve oriented intrinsic source ratio unless a cited page supplies an approved frame ratio; contain the entire source and letterbox. No forced 16:9, stretch or crop. Page placement and frame geometry remain page-owned.
+- **Interaction:** Shared Video Surface reports media state. Page Video Experience owns buttons, focusable actions, autoplay/retry strategy, playback policy and business logic.
+- **Tokens/assets:** `geometry.video.aspect_policy`, `geometry.media.contain`, `geometry.media.letterbox`, semantic Info/Error; attached media uses `runtime.user_media`.
+- **Accessibility / focus:** expose title/description and current state; Loading/Error/Unavailable are polite status updates. Surface is not a focus stop by default; page-owned controls provide labels and focus order; never trap focus.
+- **Acceptance:** exercise all six states, landscape/portrait/rotated media, source preservation, letterbox behavior, status announcements and focus traversal without adding page controls.
 
 ## Shared Foundation acceptance
 
-A component is frozen for reuse only when its declared shared core has resolvable token/asset references, explicit page variants, named states, interaction and responsive behavior, an accessibility rule, and checks a tester can execute without guessing. The aggregate Component system remains REVIEW while either review entry is open.
+A component is frozen for reuse only when its declared shared core has resolvable token/asset references, explicit page variants, named states, interaction and responsive behavior, an accessibility rule, and checks a tester can execute without guessing. The aggregate Component system is READY when all 16 entries are FROZEN, their dependencies resolve, acceptance checks are executable, and each entry declares its page boundary. Page-specific control policies remain outside the shared freeze.

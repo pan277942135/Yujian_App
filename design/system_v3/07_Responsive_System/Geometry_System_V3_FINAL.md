@@ -36,3 +36,7 @@ Fill, Fit, Cover, Contain, Evidence Fit, Letterbox and Blur Background are defin
 ## Acceptance
 
 A design contract passes when it names a reference width, safe-area origin, one responsive class per layout slot, fontScale behavior, and a registered media mode. The documented rules are ready to reference; page-level measurements/runtime remain separate.
+
+## Video aspect policy
+
+`geometry.video.aspect_policy` preserves the oriented source aspect ratio unless a page authority supplies a frame ratio. Video uses contain plus registered letterbox; it is never stretched or cropped. This token defines source/frame fitting only, not player controls or page playback strategy.

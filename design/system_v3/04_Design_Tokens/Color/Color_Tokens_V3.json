@@ -1,7 +1,7 @@
 {
   "schema_version": "3.0",
   "system_id": "color_v3",
-  "status": "REVIEW",
+  "status": "DEPRECATED_NON_EFFECTIVE",
   "sources": [
     "core_visual_v1/tokens/color_tokens.json",
     "YuJianColors.kt",
@@ -316,5 +316,6 @@
       "source": "No shared status color token found in audited core palette or runtime mapping.",
       "status": "MISSING"
     }
-  ]
+  ],
+  "superseded_by": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
 }

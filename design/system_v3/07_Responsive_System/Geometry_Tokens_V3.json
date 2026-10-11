@@ -1,7 +1,7 @@
 {
   "schema_version": "3.0",
   "system_id": "geometry_v3",
-  "status": "REVIEW",
+  "status": "DEPRECATED_NON_EFFECTIVE",
   "reference_canvas": {
     "width_px": 1080,
     "height_px": 1920,
@@ -108,5 +108,6 @@
       "rule": "Dynamic IME inset + resize/scroll; focused input and primary action reachable.",
       "status": "Page contract review required."
     }
-  ]
+  ],
+  "superseded_by": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
 }

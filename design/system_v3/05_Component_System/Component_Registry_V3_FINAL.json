@@ -1,7 +1,7 @@
 {
   "schema_version": "3.1",
   "system_id": "component_v3_1",
-  "status": "REVIEW",
+  "status": "READY",
   "source_authorities": [
     "design/system/components/**",
     "design/system/core_visual_v1/components/**",
@@ -1180,27 +1180,31 @@
     {
       "component_id": "media.video",
       "name": "Video",
-      "status": "REVIEW",
+      "status": "FROZEN",
       "visual": "FishRecordDetail media contracts; Fish Media Display V1",
-      "geometry": "Frame/aspect remains page-owned; the shared video component is not frozen pending playback and control geometry.",
+      "geometry": "Use oriented intrinsic source ratio unless the page supplies an approved frame ratio. Preserve the full source with geometry.media.contain and registered letterbox; never stretch or crop. No universal fixed ratio is imposed.",
       "state": [
-        "not_added",
-        "attached",
-        "grid_overflow",
-        "supplemental_media_unavailable"
+        "IDLE",
+        "LOADING",
+        "PLAYING",
+        "PAUSED",
+        "ERROR",
+        "UNAVAILABLE"
       ],
       "token_dependency": [
+        "geometry.video.aspect_policy",
         "geometry.media.fit",
-        "geometry.media.cover",
         "geometry.media.contain",
-        "geometry.media.letterbox"
+        "geometry.media.letterbox",
+        "color.status_info_foreground",
+        "color.status_error_foreground"
       ],
       "asset_dependency": [],
-      "responsive_rule": "Fit/cover and controls per page contract; respect Insets.",
-      "acceptance_rule": "REVIEW: the frozen media board establishes video as a grid item, but no shared frame/aspect, playback controls, focus order or play/pause/failure presentation is approved.",
+      "responsive_rule": "The surface follows the oriented source ratio or a page-approved frame ratio and stays inside the caller bounds; contain/letterbox preserves full video content. Page controls/strategy remain page-owned.",
+      "acceptance_rule": "FROZEN: shared Video Surface state, aspect preservation, content-fit, status semantics, accessibility and focus boundary are explicit. Page player buttons, playback strategy and business logic remain outside this component.",
       "category": "media",
       "purpose": "Present page-owned video media and playback states.",
-      "visual_rule": "Page-scoped video frame and controls; generic aspect/control contract remains open.",
+      "visual_rule": "A media surface only: preserve source pixels and display one of Idle, Loading, Playing, Paused, Error or Unavailable. Do not add page playback buttons or a fixed 16:9 assumption.",
       "component_dependency": [],
       "registry_dependency": [],
       "external_asset_dependency": [
@@ -1213,10 +1217,8 @@
       "page_references": [
         "fish_record_detail_v2"
       ],
-      "interaction": "Tap/playback controls are not frozen in FishRecordDetail media contract; do not invent shared controls.",
-      "token_gap": [
-        "No frozen playback state/control/accessible focus contract; no shared video frame/aspect authority."
-      ],
+      "interaction": "The Shared Video Surface exposes media state only. Page Video Experience owns play/pause controls, retry affordance, autoplay and business policy; no global control or page behavior is inferred.",
+      "token_gap": [],
       "visual_dependency_coverage": {
         "tokenized_properties": [
           "geometry.media.fit",
@@ -1232,18 +1234,20 @@
           "No frozen playback state/control/accessible focus contract; no shared video frame/aspect authority."
         ]
       },
-      "accessibility_rule": "Playback semantics and reachable labelled controls are unresolved with the shared video contract.",
+      "accessibility_rule": "Expose video title/description and current state to accessibility services; announce Loading/Error/Unavailable politely. The surface is not a keyboard-focus stop unless it has an approved page action. Page controls own their labels and focus order; never trap focus.",
       "component_contract": {
-        "shared_visual_core": "Page-scoped video frame and controls; generic aspect/control contract remains open.",
-        "shared_geometry_boundary": "Frame/aspect remains page-owned; the shared video component is not frozen pending playback and control geometry.",
+        "shared_visual_core": "Source-preserving video viewport with six states: Idle, Loading, Playing, Paused, Error, Unavailable. State feedback uses registered semantic tokens and the caller surface; no shared player controls are drawn.",
+        "shared_geometry_boundary": "Aspect ratio follows oriented source metadata unless a cited page authority supplies a frame ratio. Use geometry.media.contain and geometry.media.letterbox; no stretch, crop, forced 16:9, or source-byte rewrite. Page frame placement remains page-owned.",
         "state_model": {
           "states": [
-            "not_added",
-            "attached",
-            "grid_overflow",
-            "supplemental_media_unavailable"
+            "IDLE",
+            "LOADING",
+            "PLAYING",
+            "PAUSED",
+            "ERROR",
+            "UNAVAILABLE"
           ],
-          "transitions": "Tap/playback controls are not frozen in FishRecordDetail media contract; do not invent shared controls."
+          "transitions": "The host supplies state. Loading resolves to Playing, Paused, Error or Unavailable. Idle may remain until a page-owned playback action. Retry and autoplay policy belong to Page Video Experience."
         },
         "page_variants": [
           {
@@ -1255,22 +1259,23 @@
             "scope": "page authority supplies the visual/geometry variant; shared contract applies only within its declared boundary"
           }
         ],
-        "responsive_rule": "Fit/cover and controls per page contract; respect Insets.",
-        "accessibility_rule": "Playback semantics and reachable labelled controls are unresolved with the shared video contract.",
+        "responsive_rule": "Clamp to available caller bounds while preserving the selected source/caller ratio; show the entire video using contain and letterbox. Page controls and responsive placement remain page-owned.",
+        "accessibility_rule": "Expose a labelled media object and current state. Loading/Error/Unavailable announcements are polite status updates. Do not focus the surface by default; page controls provide keyboard order, labels and actions. No focus trap.",
         "asset_rule": {
           "registered_assets": [],
           "external_assets": [
             "runtime.user_media"
           ],
-          "rule": "Use only the listed asset identities and registries; no Android system-icon substitution."
+          "rule": "Video bytes come only from attached user media. Preserve source identity and oriented intrinsic aspect; no generated/fallback substitute media."
         },
         "acceptance_checks": [
-          "Confirm a video tile retains the FishRecordDetail grid and attached-media counting semantics.",
-          "Keep media.video REVIEW until a page authority defines frame/aspect, controls, keyboard/focus, alternative text, and play/pause/failure states."
+          "Given landscape, portrait and rotated videos, confirm the oriented source ratio is preserved with no distortion or crop; caller frame mismatch is letterboxed.",
+          "Drive Idle, Loading, Playing, Paused, Error and Unavailable and confirm correct state semantics without adding shared playback buttons.",
+          "Confirm title/description and current state are exposed to accessibility services; Loading/Error/Unavailable are announced as status updates.",
+          "Confirm the surface does not create an unapproved keyboard stop or trap; page-owned controls retain their declared focus order.",
+          "Confirm original media identity/counting in the FishRecordDetail grid is unchanged; page controls, playback policy and business logic remain outside the shared contract."
         ],
-        "unresolved_blockers": [
-          "No frozen playback state/control/accessible focus contract; no shared video frame/aspect authority."
-        ]
+        "unresolved_blockers": []
       }
     },
     {
@@ -1469,32 +1474,39 @@
     {
       "component_id": "input.selector",
       "name": "Selector",
-      "status": "REVIEW",
+      "status": "FROZEN",
       "visual": "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md",
-      "geometry": "Single-select visual is frozen for its caller sizes; the My Catches multi-select variant has no approved visual authority.",
+      "geometry": "Reference widths 320/360/393/411dp. At 320dp Common species is 2 columns × 3 rows and All Species is one column; at ≥360dp Common is 3 columns. Search remains complete and available in results/empty states. Use the frozen single-select board; F2 multi-select changes selection persistence only and introduces no new screen design.",
       "state": [
-        "closed",
-        "open",
-        "searching",
-        "selected",
-        "multi_selected",
-        "no_results",
-        "empty_data",
-        "error_when_page_defined"
+        "CLOSED",
+        "OPEN",
+        "QUERY_INPUT",
+        "SEARCHING",
+        "RESULTS",
+        "NO_RESULTS",
+        "EMPTY_DATA",
+        "ERROR",
+        "SELECTED",
+        "MULTI_SELECTED",
+        "COMMITTED",
+        "RETURNED",
+        "CANCELLED"
       ],
       "token_dependency": [
         "type.body",
-        "color.deep_lake_blue"
+        "color.deep_lake_blue",
+        "color.action_primary",
+        "touch.minimum"
       ],
       "asset_dependency": [
         "system_icon_library_v0_1_assets_ic_selected_check_v1_svg",
         "system_icon_library_v0_1_assets_ic_search_v1_svg"
       ],
-      "responsive_rule": "Use Species Picker frozen single-select rules at 320/360/393/411dp. My Catches multi-select visual/responsive state remains blocked.",
-      "acceptance_rule": "REVIEW: Recognition Result single-select has a frozen baseline; cross-caller focus/accessibility and My Catches multi-select visual/runtime contract remain open under C-014.",
+      "responsive_rule": "Use the Frozen Species Picker authority at 320/360/393/411dp. Search stays full width; at 320dp the Common grid is two columns × three rows and All Species one column; at ≥360dp Common uses three columns. Keep layout scrollable when fontScale grows.",
+      "acceptance_rule": "FROZEN: shared Selector Core and Species Picker Variant are complete. Verify all declared states, 300ms search debounce, tap-commit-return single-select, persistent multi-select with OR semantics on return, 44×44dp minimum targets, IME/back behavior, and fontScale at 320/360/393/411dp.",
       "category": "input",
       "purpose": "Choose a species or other declared option using the registered picker authority.",
-      "visual_rule": "Selector visual uses Species Picker authority; shared focus, accessibility and empty/error contract remains open.",
+      "visual_rule": "Reuse the single approved Species Picker visual authority. Species image, category, species information and special cards may appear only where the named page authority declares them; do not add them to the Recognition Result baseline or alter its Frozen board.",
       "component_dependency": [
         "action.primary_button",
         "action.text_action",
@@ -1515,14 +1527,14 @@
         "fish_record_detail_v2",
         "my_catches_v2"
       ],
-      "interaction": "Single-select commits to caller; My Catches F2 multi-select persists while browsing and returns to F1 with OR semantics. Caller owns commit/cancel.",
-      "token_gap": [
-        "C-014: My Catches MULTI_SELECT visual plus shared focus/accessibility acceptance remain open."
-      ],
+      "interaction": "Search Chinese formal name, pinyin, initials and aliases with 300ms debounce; clear restores the empty-query sections. Single-select Tap Commit + Return. Multi-select toggles and persists while browsing; Return restores the caller with selected species combined by OR. Back first dismisses IME, then exits without a single-select commit; multi-select returns the retained set.",
+      "token_gap": [],
       "visual_dependency_coverage": {
         "tokenized_properties": [
           "type.body",
-          "color.deep_lake_blue"
+          "color.deep_lake_blue",
+          "color.action_primary",
+          "touch.minimum"
         ],
         "authority_scoped_properties": [
           "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md",
@@ -1530,26 +1542,29 @@
           "design/pages/fish_record/detail/FishRecordDetail_Editing_Spec_V1.md",
           "design/pages/fish_records/list/My_Catches_Filter_Spec_V2.md"
         ],
-        "unresolved_properties": [
-          "C-014: My Catches MULTI_SELECT visual plus shared focus/accessibility acceptance remain open."
-        ]
+        "unresolved_properties": []
       },
-      "accessibility_rule": "Expose group/options and selected state to accessibility services; the multi-select and focus semantics remain blocked by C-014.",
+      "accessibility_rule": "Expose the search field, option/group roles, species names and selected state to accessibility services. Preserve logical search→section→option focus order, announce result/empty/error/selection changes, do not trap keyboard or screen-reader focus. Every actionable target meets touch.minimum (44×44dp). Honor OS fontScale; allow names to wrap and rows/cards to grow.",
       "component_contract": {
-        "shared_visual_core": "Selector visual uses Species Picker authority; shared focus, accessibility and empty/error contract remains open.",
-        "shared_geometry_boundary": "Single-select visual is frozen for its caller sizes; the My Catches multi-select variant has no approved visual authority.",
+        "shared_visual_core": "One shared Selector Core using the approved Species Picker board: full-width search, Recent/Common/All sections for empty query, search-only result state, explicit selected styling, and clear-search empty result. Species images use the registered Fish Knowledge species_id cover. Categories, species information and special cards render only when the cited page authority calls for those fields.",
+        "shared_geometry_boundary": "Recognition Result frozen geometry is authoritative: 320dp Common 2×3 and All one-column; ≥360dp Common 3 columns; row and fish-media dimensions remain those in Species_Selector_Spec_V1. Touch targets are at least geometry.touch.minimum (44×44dp). Page filter shells remain page-owned.",
         "state_model": {
           "states": [
-            "closed",
-            "open",
-            "searching",
-            "selected",
-            "multi_selected",
-            "no_results",
-            "empty_data",
-            "error_when_page_defined"
+            "CLOSED",
+            "OPEN",
+            "QUERY_INPUT",
+            "SEARCHING",
+            "RESULTS",
+            "NO_RESULTS",
+            "EMPTY_DATA",
+            "ERROR",
+            "SELECTED",
+            "MULTI_SELECTED",
+            "COMMITTED",
+            "RETURNED",
+            "CANCELLED"
           ],
-          "transitions": "Single-select commits to caller; My Catches F2 multi-select persists while browsing and returns to F1 with OR semantics. Caller owns commit/cancel."
+          "transitions": "Open focuses search only when the caller requests it. Query is debounced 300ms. Single-select tap commits species_id and returns. Multi-select toggles persist while browsing and returns the selected set to F1 with OR semantics. Back dismisses IME first; a single-select cancel leaves the prior caller value unchanged."
         },
         "page_variants": [
           {
@@ -1577,24 +1592,24 @@
             "scope": "page authority supplies the visual/geometry variant; shared contract applies only within its declared boundary"
           }
         ],
-        "responsive_rule": "Use Species Picker frozen single-select rules at 320/360/393/411dp. My Catches multi-select visual/responsive state remains blocked.",
-        "accessibility_rule": "Expose group/options and selected state to accessibility services; the multi-select and focus semantics remain blocked by C-014.",
+        "responsive_rule": "At 320dp use the frozen 2-column Common grid and one-column All list. At ≥360dp use 3-column Common. Search remains full width. Larger fontScale may wrap names and grow rows/cards; no shrink; content scrolls.",
+        "accessibility_rule": "Search is labelled and IME action filters without committing a selection. Expose groups/options, selected state and result counts/empty/error state; maintain deterministic focus order and no focus trap. Back first closes IME. All actionable targets are at least 44×44dp via touch.minimum.",
         "asset_rule": {
           "registered_assets": [
             "system_icon_library_v0_1_assets_ic_selected_check_v1_svg",
             "system_icon_library_v0_1_assets_ic_search_v1_svg"
           ],
           "external_assets": [],
-          "rule": "Use only the listed asset identities and registries; no Android system-icon substitution."
+          "rule": "Species media resolves by species_id through the registered Fish Knowledge cover authority. Do not substitute, generate or crop a frozen screenshot; Android must use registered SVG identity, not a system icon."
         },
         "acceptance_checks": [
-          "Verify Recognition Result single-select against its eight-state spec at 320/360/393/411dp.",
-          "Do not fork Species Picker for My Catches F2.",
-          "Keep shared selector REVIEW until MULTI_SELECT visual, focus/TalkBack and acceptance are approved under C-014."
+          "At 320dp verify search is fully visible, Common is 2×3 and All is one column; at 360/393/411dp verify Common is 3 columns and no content overlaps system/IME insets.",
+          "Verify Chinese name, pinyin, initials and alias search with a 300ms debounce; clear restores Recent/Common/All; no result offers the registered clear-search action.",
+          "Single-select tap shows the frozen selected state, commits species_id and returns to caller; Back/Cancel leaves the prior value unchanged.",
+          "Multi-select toggles selected options while browsing and returns the retained set to F1; selected species within the species dimension combine with OR.",
+          "Verify 44×44dp minimum targets, screen-reader option/selected announcements, logical focus, back/IME behavior, and fontScale growth without shrink at 1.0/1.15/1.3."
         ],
-        "unresolved_blockers": [
-          "C-014: My Catches MULTI_SELECT visual plus shared focus/accessibility acceptance remain open."
-        ]
+        "unresolved_blockers": []
       }
     },
     {
@@ -1832,5 +1847,12 @@
         "unresolved_blockers": []
       }
     }
-  ]
+  ],
+  "summary": {
+    "component_count": 16,
+    "frozen_count": 16,
+    "review_count": 0,
+    "version": "V3.1 FINAL",
+    "rule": "Shared components are frozen at their declared contract boundary. Page-specific variants still obey their own Frozen authority."
+  }
 }

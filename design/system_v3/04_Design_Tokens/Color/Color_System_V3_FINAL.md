@@ -1,38 +1,39 @@
 # Color System V3.1 Final
 
-**System status: REVIEW.** All 64 previously unregistered explicit source literals are now mapped to identity-only legacy tokens. The shared Brand role mapping and global Success / Warning / Error / Info palette are not approved; D-015 remains open.
+**System status: READY.** The sole effective semantic color source is `Color_Tokens_V3_FINAL.json` as selected by the D-015 decision. Existing Frozen page colors retain their source-local legacy identities. No page may add an unregistered literal.
 
-## D-015 review package
+## Frozen semantic roles
 
-Owner approval is required before global semantic roles can be frozen. The complete candidates, contrast contexts, owner fields and static review swatches are in [D-015 Approval Packet](../../11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md), [structured candidate data](../../11_Freeze_Governance/reviews/Color_Semantic_Candidates_V3_1.json), and [review preview](../../11_Freeze_Governance/reviews/Color_D015_Review_V3_1.html). These are explicitly review-only; no candidate has been added to the canonical token registry.
-
-## Palette authority
-
-| Group | Mapping | Rule |
+| Class | Effective mapping | Rule |
 |---|---|---|
-| Brand | Primary and Secondary are review candidates; MorningGold is the sourced Accent. | Do not promote a page-scoped candidate into a global role without approval. |
-| Background | Resolve through Background Registry V3. | No page-local background color. |
-| Surface | LakeWhite and MistWhite. | Use the registered opaque/translucent surface role. |
-| Glass | GlassWhite, GlassBorder and DeepOverlay; GLASS_A/B/C treatment remains in its source authority. | Preserve existing Glass treatment and page geometry. |
-| Text | Primary, Secondary, Disabled and Inverse references are registered. | Use semantic token references only. |
-| Border | Existing action borders are registered; Account/Privacy D5DFE6 is page-scope only. | A page border literal does not become a global border. |
-| Status | Success, Warning and Info are missing. Error has an unapproved page-scoped Danger candidate. | No status color may be selected from a Frozen image or by convention. |
+| Brand Primary | `color.action_primary` on `color.lake_white` | Brand emphasis and core CTA. |
+| Brand Secondary | `color.lake_blue` on `color.lake_white` | Secondary brand emphasis. |
+| Brand Accent | `color.morning_gold` | Restricted to brand, important moments and meaningful catches; not normal text/status. |
+| Success | `color.status_success_foreground` / `color.status_success_surface` | Completion, successful save, successful operation. |
+| Warning | `color.status_warning_foreground` / `color.status_warning_surface` | Attention and non-blocking risk. |
+| Error | `color.status_error_foreground` / `color.status_error_surface` | System, AI, network or upload failure. |
+| Info | `color.status_info_foreground` / `color.status_info_surface` | Information and guidance. |
+| Danger | `color.legacy_e66b61ff`, page-scoped | User-initiated destructive action only. Never promote to global semantic. |
 
-## Literal scan and legacy conflicts
+## Semantic boundary
 
-The audit scanned 618 design sources: 478 text/spec/token/SVG files and 139 raster images for explicit metadata literals. It found 94 distinct RGBA literals: 30 already matched a shared token and 64 did not. The 0 explicit PNG metadata color literals were found.
+`Error` means a system or operation failure. `Danger` means a user-initiated destructive action such as account/data deletion or clearing records. Danger remains Page Scoped. It is not an alias for Error.
 
-The 64 uncovered values are registered in Color_Tokens_V3_FINAL.json as LegacyFrozen identity mappings with exact source paths, RGBA, opacity and a no-new-use rule. This preserves old Frozen SVG/page authorities without rewriting them. After the mapping, uncovered literal count is 0 within this scan scope. Tokenization records identity; it does not approve broader semantic use.
+The approved solid-surface candidate pairs meet the packet's computed normal-text contrast threshold of 4.5:1. This is a static color-pair calculation; photography, gradients, and composed glass remain subject to consuming-page contrast acceptance. The recommendation pair and contrast context are recorded in the D-015 review packet.
 
-## Conflict record
+## Other color groups
 
-Existing Frozen component/page authorities contain explicit color values outside the shared V1 palette. The V3.1 registry maps each exact value as a source-local compatibility token. No Frozen PNG/SVG was recolored, and no new semantic role was inferred.
+- Background resolves only through `Background_Registry_V3.json`.
+- Surface: LakeWhite / MistWhite. Glass: GlassWhite / GlassBorder / DeepOverlay, with page-owned GLASS_A/B/C treatment.
+- Text: Primary, Secondary, Disabled and Inverse use registered token IDs.
+- Border: shared action borders are registered; Account & Privacy `#D5DFE6` remains page-scope identity only.
+- The 64 legacy identity tokens preserve source authorities with `NO_NEW_USE`; they do not authorize broader use.
 
 ## Acceptance
 
-- Every scanned explicit production color literal resolves to a Color token.
-- Every token declares HEX, RGBA, opacity, usage, forbidden usage and source paths.
-- A missing semantic role blocks use; developers must not substitute a visually similar color.
-- The registry scan can be rerun with verify_shared_foundation_v3.py.
+1. Every production HEX/RGB/RGBA literal resolves to a Color token; current orphan count is 0.
+2. Every token declares ID, HEX, RGBA, opacity, usage, forbidden usage and source.
+3. Each semantic role resolves through this registry. Danger is absent from global semantic status and is marked page-scoped.
+4. Run `scripts/design/verify_shared_foundation_v3.py` for static token, reference, orphan and gate validation.
 
-**Freeze decision:** Color remains REVIEW until D-015 approves the global brand and status roles.
+D-015 is RESOLVED. The FINAL token registry is the only effective development source; candidate alternatives are historical and non-effective.

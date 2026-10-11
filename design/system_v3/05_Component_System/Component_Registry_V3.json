@@ -1,7 +1,7 @@
 {
   "schema_version": "3.0",
   "system_id": "component_v3",
-  "status": "REVIEW",
+  "status": "DEPRECATED_NON_EFFECTIVE",
   "source_authorities": [
     "design/system/components/**",
     "design/system/core_visual_v1/components/**",
@@ -367,5 +367,6 @@
       "responsive_rule": "Respect bottom gesture inset and IME; internal content scrolls.",
       "acceptance_rule": "Do not reuse cross-page until snap, dismissal, focus and IME behavior are approved."
     }
-  ]
+  ],
+  "superseded_by": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json"
 }

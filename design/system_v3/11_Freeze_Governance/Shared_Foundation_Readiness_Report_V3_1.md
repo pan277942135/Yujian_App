@@ -1,42 +1,77 @@
 # Shared Foundation Readiness Report V3.1
 
-**Audit state: NOT READY · 4/7 systems READY.** This report records a design-only Phase 2 checkpoint; it does not authorize Phase 3, Android implementation, or runtime acceptance.
+**Certification:** `SHARED_FOUNDATION_READY = PASS` · **7/7 READY** · 2026-10-11
 
-## A. Phase 1 closure
+## A. Decision closure / Phase 1
 
-- P0: **0**.
-- Closed decision: `DECISION_SAVE_CATCH_NAVIGATION_V1` — Recognition Result → Save Catch → Home; Recent Catch/My Catches and other registered entries open FishRecordDetail. Save Catch completes a fish record and does not enter detail.
-- C-012 / D-012: **closed**, 658/658 assets have real file SHA-256 values.
-- Canonical Master Flow: **35 nodes, 56 edges, 15 registered features**; secondary audit indexes now agree on the node/edge counts.
-- Remaining Phase 1 findings: **P1 = 10** (C-002–C-011); **P2 = 2** (C-013, C-014).
+- P0: **0**; `DECISION_SAVE_CATCH_NAVIGATION_V1` remains RESOLVED: Recognition Result → Save Catch → Home; Save Catch completes a record and does not enter detail.
+- **D-007: RESOLVED.** Dynamic UI text uses Platform Typography. Brand Typography is a `FROZEN_ARTWORK_ASSET` (`dynamic_text=false`, `font_dependency=none`).
+- **D-015: RESOLVED.** Approved recommended Brand Primary/Secondary and Success/Warning/Error/Info pairs are canonical tokens.
+- **Danger: Page Scoped.** Error is a system/AI/network/upload failure; Danger is a user-initiated destructive operation and is not global.
+- **D-014 / C-014: RESOLVED.** Selector Core + Species Picker Variant are frozen against the existing visual authority.
+- P1 remaining: **9** — C-002–C-006 and C-008–C-011.
+- P2 remaining: **1** — C-013 (Android SVG mapping / runtime target verification). C-008 is a Page Contract finding; neither blocks this shared gate.
 
-## B. Shared Foundation status
+## B. Shared Foundation final matrix
 
-| System | Before | Current | Evidence / gate |
+| System | Before | After |
+|---|---|---|
+| Typography | REVIEW | READY |
+| Color | REVIEW | READY |
+| Geometry | READY | READY |
+| Background | READY | READY |
+| Icon | READY | READY |
+| Component | REVIEW | READY |
+| Asset | READY | READY |
+
+## C. Component closure — 16/16 FROZEN
+
+| Component ID | Status | Contract | Acceptance |
 |---|---|---|---|
-| Typography | REVIEW | REVIEW | 9 tokens, Android platform mapping, weight map, page override and fontScale rule are recorded. D-007 remains partially resolved because Normal Home dynamic 渔见 conflicts with the calligraphic brand role and has no approved source. |
-| Color | REVIEW | REVIEW | 92 canonical tokens, zero unregistered production color literals. D-015 packet is review-only; semantic/brand roles have not been approved. |
-| Geometry | REVIEW | READY | 31 geometry tokens, coordinate/inset/media/responsive rules frozen; C-008 page-specific verification remains outside this shared gate. |
-| Background | READY | READY | 5 roles, source SHA, treatments and page inheritance remain registered. |
-| Icon | READY | READY | 43/43 SVG masters and SHA are registered; C-013 is later Android mapping/hit-target acceptance. |
-| Component | REVIEW | REVIEW | 16 existing entries now have purpose, visual and geometry boundary, states, interactions, token/asset dependencies, page variants, responsive/accessibility rules and tester checks. 14 FROZEN; 2 REVIEW. |
-| Asset | REVIEW | READY | 658/658 raw-byte SHA-256 and size identity verified; statuses remain per asset. |
+| `navigation.top_title` | FROZEN | Component_Contract_V3_FINAL.md · Top Title | At each referenced viewport, the title uses remaining width, remains clear of system insets, and follows registered ellipsis/fontScale behavior. |
+| `navigation.back` | FROZEN | Component_Contract_V3_FINAL.md · Back | Verify 56dp minimum bar, 44×44dp target, 22dp glyph, 8dp gap, registered SVG, and immediate-parent navigation. |
+| `navigation.action` | FROZEN | Component_Contract_V3_FINAL.md · Top Navigation Action | Verify action order and declared icon identity at each page; no extra action or default glass pill; title may ellipsize. |
+| `action.primary_button` | FROZEN | Component_Contract_V3_FINAL.md · Primary Button | Verify each declared normal/pressed/loading/disabled/focus state, 28dp radius exception, label token, and disabled non-activation. |
+| `action.text_action` | FROZEN | Component_Contract_V3_FINAL.md · Text Action | Verify 44×44dp target, no visible container, declared tone/chevron and 90ms pressed transition. |
+| `action.icon_action` | FROZEN | Component_Contract_V3_FINAL.md · Icon Action | Verify registered SVG, 24×24 viewBox source, 44dp target and declared normal/pressed/disabled/focus state. |
+| `surface.glass_surface` | FROZEN | Component_Contract_V3_FINAL.md · Glass Surface | Resolve GLASS_A/B/C, border, opacity, blur and shadow to the glass token registry. Compare each registered consumer against its named page authority for padding/radius/placement… |
+| `surface.card` | FROZEN | Component_Contract_V3_FINAL.md · Card | For every registered page variant, identify its Frozen authority before rendering. Compare card geometry and media treatment only to that page authority. Verify no unregistered … |
+| `media.hero` | FROZEN | Component_Contract_V3_FINAL.md · Hero | Verify source bytes unchanged, approved frame, safe Fill or Safe Fit, and no crop outside FishSafeRect. |
+| `media.image` | FROZEN | Component_Contract_V3_FINAL.md · Image | Verify declared mode, source preservation, loading/ready/fallback/error and no non-uniform stretch. |
+| `media.video` | FROZEN | Component_Contract_V3_FINAL.md · Video | Given landscape, portrait and rotated videos, confirm the oriented source ratio is preserved with no distortion or crop; caller frame mismatch is letterboxed. Drive Idle, Loadin… |
+| `data.metadata_row` | FROZEN | Component_Contract_V3_FINAL.md · Metadata Row | Trace every displayed value to its source/field contract. Check populated, optional-empty and long-value behavior against that field’s page rule. Check row alignment against the… |
+| `data.statistic_card` | FROZEN | Component_Contract_V3_FINAL.md · Statistic Card | Compare the statistic group to NH04 and the Normal Home spec. Verify numeric values retain Numeric role and labels retain Caption role. Verify Font A remains page-scoped and fol… |
+| `input.selector` | FROZEN | Component_Contract_V3_FINAL.md · Selector | At 320dp verify search is fully visible, Common is 2×3 and All is one column; at 360/393/411dp verify Common is 3 columns and no content overlaps system/IME insets. Verify Chine… |
+| `input.search` | FROZEN | Component_Contract_V3_FINAL.md · Search | Verify B1–B5 against the frozen search spec: focused/recent, results, empty, search+filter, detail return. Verify exact bar geometry and token/icon identities at registered widt… |
+| `input.bottom_sheet` | FROZEN | Component_Contract_V3_FINAL.md · Bottom Sheet | Avatar: options are Camera / Photo Picker / Cancel; cancel leaves state unchanged; choosing/cropping does not upload until explicit profile Save. Recognition metadata: numeric s… |
 
-### Component review items
+**Selector:** 320dp Common grid is 2×3, full Search is retained, search debounce is 300ms, Tap Commit + Return for single-select, persistent multi-select OR return, 44×44dp minimum targets, IME/back/focus rules, and fontScale growth. No new screen was generated.
 
-- `media.video`: FishRecordDetail establishes attached video as a media-grid item, but not shared aspect/frame, playback control, keyboard/focus, alternative text, or play/pause/failure states.
-- `input.selector` / C-014: single-select visual baseline is frozen; My Catches F2 multi-select visual and shared focus/TalkBack acceptance remain open. No duplicate picker authority is allowed.
+**Video:** Idle / Loading / Playing / Paused / Error / Unavailable; oriented intrinsic or page-approved frame ratio, contain/letterbox, accessible state, no focus trap. Page player controls, playback strategy and business logic remain page-owned.
 
-## C. Unresolved decisions and blocking items
+## D. Authority report
 
-- **P1 C-002–C-011 (10):** Record Date route/sample authority; Habitat product scope; T01/T02 share outputs; sync semantics for edits/media; D-007 brand typography source/intent; D-008 common responsive/accessibility matrix; Image Quality copy/semantics; deferred account lifecycle scope; dynamic field lineage; plus remaining linked audit items as listed in the Decisions Required register. C-008 specifically includes page anchor, Result Glass and Login IME checks.
-- **P2 C-013:** Android SVG resource mapping and 44dp target verification; intentionally deferred to implementation/test work.
-- **P2 C-014:** Species Picker scope/states/accessibility and My Catches multi-select visual.
-- **D-015:** awaits owner approval of exact Brand Primary/Secondary and Success/Warning/Error/Info color roles and restricted contexts. Account & Privacy Danger remains page-scoped in the candidate packet.
-- **Component contract:** shared video playback contract remains missing. This is an explicit Component REVIEW blocker, not a new product decision and not auto-classified as P1/P2.
+`Effective_Authority_Registry_V3_1.json` is the single lookup. Typography effective token path is `design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json`; the former `Typography_Tokens_V3.json` is marked `DEPRECATED_NON_EFFECTIVE` and superseded. Color effective path is `Color_Tokens_V3_FINAL.json`; non-final V3 token files are non-effective. Registry consumer references point Android Work, Backend UI/Data alignment and Test Work to the same V3.1 foundation.
 
-## D. Phase 3 readiness
+## E. Gate result and Phase 3 readiness
 
-**Page Contract Freeze: NOT READY.** 4/7 systems pass. No page enters formal Page Contract Freeze. Geometry, Background, Icon and verified Asset identities are stable preparation inputs. Typography, Color and Component remain REVIEW. The Effective Authority Registry defines the canonical source and conflict precedence; D-015 candidate files remain non-normative.
+```json
+{"gate":"SHARED_FOUNDATION_READY","status":"PASS"}
+```
 
-No Android/Kotlin/Compose, Backend/API/database changes, Android build, APK, device acceptance, Frozen PNG modification, or merge to main was performed. Android CI auto-triggered by the PR checkpoint was cancelled before APK assembly; it is not counted as design validation.
+**Page Contract Freeze: READY TO BEGIN.** This report only certifies shared inputs; no page contract, state machine, engineering contract, Android code, test execution, backend, APK, device acceptance, Frozen artwork edit, or Pages publication occurred.
+
+| System | Token / entry count |
+|---|---:|
+| Typography | 9 |
+| Color | 100 |
+| Geometry | 32 |
+| Component | 16 |
+| Asset | 658 |
+
+### Remaining issues
+
+- P1 C-002–C-006 and C-009–C-011 remain product/data/page-level decisions.
+- C-008 is the remaining page-specific geometry/responsive check.
+- P2 C-013 remains Android SVG resource/hit-target runtime verification.
+- No unresolved shared-foundation blockers remain.

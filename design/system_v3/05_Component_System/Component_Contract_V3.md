@@ -1,3 +1,5 @@
+> **DEPRECATED_NON_EFFECTIVE** — Historical Component Contract — use `Component_Registry_V3_FINAL.json` and `Component_Contract_V3_FINAL.md` only.
+
 # Component Contract V3
 
 **状态：REVIEW。** Registry 每条均含 ID、Visual、Geometry、State、Token dependency、Asset dependency、Responsive rule、Acceptance rule。

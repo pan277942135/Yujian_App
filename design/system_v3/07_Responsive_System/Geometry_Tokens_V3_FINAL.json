@@ -224,6 +224,13 @@
       "value": "50% of min(width,height)",
       "unit": "ratio",
       "usage": "Circular avatar/camera geometry when the source component declares a circle."
+    },
+    {
+      "id": "geometry.video.aspect_policy",
+      "name": "Video aspect ratio policy",
+      "value": "ORIENTED_SOURCE_OR_CALLER_FRAME",
+      "unit": "policy",
+      "usage": "Preserve the oriented source aspect ratio. A caller may supply a frozen page frame; the shared video surface contains the full source and letterboxes unused area. Never stretch or crop video pixels."
     }
   ],
   "coordinate_system": [

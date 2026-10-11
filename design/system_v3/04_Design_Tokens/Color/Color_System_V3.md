@@ -1,3 +1,5 @@
+> **DEPRECATED_NON_EFFECTIVE** — Historical Color system — use `Color_System_V3_FINAL.md` and `Color_Tokens_V3_FINAL.json` only.
+
 # Color System V3
 
 **状态：REVIEW。** Core Visual V1 palette、Android semantic mapping、Frozen Action / Text Action / Icon Action colors 已合并登记到 `Color_Tokens_V3.json`。每项包含 HEX、RGBA、opacity、usage 和来源。

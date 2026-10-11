@@ -1,7 +1,7 @@
 {
   "schema_version": "3.1",
   "system_id": "color_v3_1",
-  "status": "REVIEW",
+  "status": "READY",
   "sources": [
     "design/system/core_visual_v1/tokens/color_tokens.json",
     "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
@@ -1628,30 +1628,149 @@
         "design/system/components/action_button/visual_contract.json"
       ],
       "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.status_success_foreground",
+      "name": "StatusSuccessForeground",
+      "hex": "#216B4A",
+      "rgba": "rgba(33,107,74,1)",
+      "opacity": 1,
+      "usage": "Foreground for successful completion and save confirmation.",
+      "forbidden_usage": "Do not use for errors, warnings, or unrelated brand emphasis.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_success_surface",
+      "name": "StatusSuccessSurface",
+      "hex": "#E6F2EB",
+      "rgba": "rgba(230,242,235,1)",
+      "opacity": 1,
+      "usage": "Surface paired with StatusSuccessForeground.",
+      "forbidden_usage": "Do not treat as a general page background or a stand-alone success signal.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_warning_foreground",
+      "name": "StatusWarningForeground",
+      "hex": "#735000",
+      "rgba": "rgba(115,80,0,1)",
+      "opacity": 1,
+      "usage": "Foreground for non-blocking risk and attention notices.",
+      "forbidden_usage": "Do not use for system failures or destructive actions.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_warning_surface",
+      "name": "StatusWarningSurface",
+      "hex": "#FFF1CC",
+      "rgba": "rgba(255,241,204,1)",
+      "opacity": 1,
+      "usage": "Surface paired with StatusWarningForeground.",
+      "forbidden_usage": "Do not use as a global page background.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_error_foreground",
+      "name": "StatusErrorForeground",
+      "hex": "#8F2D25",
+      "rgba": "rgba(143,45,37,1)",
+      "opacity": 1,
+      "usage": "Foreground for system, AI, network, and upload failures.",
+      "forbidden_usage": "Do not use for user-initiated destructive actions; Danger is page-scoped.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_error_surface",
+      "name": "StatusErrorSurface",
+      "hex": "#FCE8E6",
+      "rgba": "rgba(252,232,230,1)",
+      "opacity": 1,
+      "usage": "Surface paired with StatusErrorForeground.",
+      "forbidden_usage": "Do not promote page Danger color to global Error.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_info_foreground",
+      "name": "StatusInfoForeground",
+      "hex": "#245D73",
+      "rgba": "rgba(36,93,115,1)",
+      "opacity": 1,
+      "usage": "Foreground for informational and guidance messages.",
+      "forbidden_usage": "Do not use as a success, warning, error, or destructive-action color.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
+    },
+    {
+      "id": "color.status_info_surface",
+      "name": "StatusInfoSurface",
+      "hex": "#E8F2F6",
+      "rgba": "rgba(232,242,246,1)",
+      "opacity": 1,
+      "usage": "Surface paired with StatusInfoForeground.",
+      "forbidden_usage": "Do not use as a general page background.",
+      "source": "D-015 approved recommended mapping; recorded in the Phase 2 Final Freeze decision log.",
+      "source_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md"
+      ]
     }
   ],
   "semantic_role_mapping": {
     "Brand": {
       "Primary": {
         "token_ref": "color.action_primary",
-        "status": "REVIEW",
-        "source": "Account & Privacy V1 names Primary / Lake Teal; this is page evidence and is not a global Brand Primary approval."
+        "foreground_token_ref": "color.action_primary",
+        "surface_token_ref": "color.lake_white",
+        "status": "READY",
+        "usage": "Brand emphasis and core CTA.",
+        "decision_id": "D-015"
       },
       "Secondary": {
         "token_ref": "color.lake_blue",
-        "status": "REVIEW",
-        "source": "Core Visual names Secondary Lake Blue; global Brand Secondary role is not explicit."
+        "foreground_token_ref": "color.lake_blue",
+        "surface_token_ref": "color.lake_white",
+        "status": "READY",
+        "usage": "Secondary brand emphasis.",
+        "decision_id": "D-015"
       },
       "Accent": {
         "token_ref": "color.morning_gold",
-        "status": "MAPPED",
-        "source": "Core Visual explicitly reserves MorningGold for brand, important moments and meaningful records."
+        "status": "FROZEN_RESTRICTED",
+        "usage": "Brand, important moments, and meaningful catch only; not normal text/status.",
+        "decision_id": "CORE_VISUAL_V1"
       }
     },
     "Background": {
       "token_ref": "background_registry_v3",
-      "status": "MAPPED",
-      "rule": "Page background role resolves through Background_Registry_V3; do not substitute a page-local color."
+      "status": "READY",
+      "rule": "Resolve page background through Background_Registry_V3; no page-local color."
     },
     "Surface": {
       "primary": "color.lake_white",
@@ -1672,7 +1791,7 @@
       "Default": {
         "token_ref": "color.legacy_d5dfe6ff",
         "status": "PAGE_SCOPE_ONLY",
-        "source": "Account Privacy V1 explicitly labels #D5DFE6 Border."
+        "source": "Account Privacy V1 authority only."
       },
       "ActionDisabled": "color.action_disabled_border",
       "PrimaryDisabled": "color.primary_action_disabled_border"
@@ -1680,55 +1799,53 @@
     "Status": [
       {
         "role": "Success",
-        "token_ref": null,
-        "status": "MISSING",
-        "hex": null,
-        "rgba": null,
-        "opacity": null,
-        "usage": "Shared success-state foreground/surface",
-        "forbidden_usage": "Do not pick a color from a screenshot or reuse a page color without approval."
+        "foreground_token_ref": "color.status_success_foreground",
+        "surface_token_ref": "color.status_success_surface",
+        "status": "READY",
+        "usage": "Completion, successful save, and successful operation.",
+        "forbidden_usage": "Not for failure or destructive action."
       },
       {
         "role": "Warning",
-        "token_ref": null,
-        "status": "MISSING",
-        "hex": null,
-        "rgba": null,
-        "opacity": null,
-        "usage": "Shared warning-state foreground/surface",
-        "forbidden_usage": "Do not pick a color from a screenshot or reuse a page color without approval."
+        "foreground_token_ref": "color.status_warning_foreground",
+        "surface_token_ref": "color.status_warning_surface",
+        "status": "READY",
+        "usage": "Attention, risk warning, and non-blocking notice.",
+        "forbidden_usage": "Not for system failure or destructive action."
       },
       {
         "role": "Error",
-        "token_ref": null,
-        "status": "REVIEW",
-        "candidate_token_ref": "color.legacy_e66b61ff",
-        "candidate_hex": "#E66B61",
-        "candidate_rgba": "rgba(230,107,97,1)",
-        "candidate_opacity": 1,
-        "source": "design/pages/account_privacy/spec/VISUAL_TOKENS.md labels this value Danger; global Error promotion is unapproved.",
-        "usage": "Shared error-state foreground/surface",
-        "forbidden_usage": "Do not promote page Danger to a global Error token until owner approval."
+        "foreground_token_ref": "color.status_error_foreground",
+        "surface_token_ref": "color.status_error_surface",
+        "status": "READY",
+        "usage": "System, AI, network, or upload failure.",
+        "forbidden_usage": "Not for user-initiated destructive actions; Danger is page-scoped."
       },
       {
         "role": "Info",
-        "token_ref": null,
-        "status": "MISSING",
-        "hex": null,
-        "rgba": null,
-        "opacity": null,
-        "usage": "Shared informational-state foreground/surface",
-        "forbidden_usage": "Do not infer from ambient motion highlights or status icon glyphs."
+        "foreground_token_ref": "color.status_info_foreground",
+        "surface_token_ref": "color.status_info_surface",
+        "status": "READY",
+        "usage": "Information and user guidance.",
+        "forbidden_usage": "Not a substitute for Success, Warning, Error, or Danger."
       }
-    ]
+    ],
+    "Danger": {
+      "scope": "PAGE_SCOPED",
+      "token_ref": "color.legacy_e66b61ff",
+      "status": "PAGE_SCOPE_ONLY",
+      "definition": "User-initiated destructive action.",
+      "forbidden_global_promotion": true,
+      "rule": "Danger != Error. Keep existing Account & Privacy usage page-scoped."
+    }
   },
   "orphan_scan": {
-    "baseline_ref": "audit/design-system-v3-1-phase1-master-baseline at b0fd6e8",
-    "scope_file_count": 618,
-    "text_svg_spec_files_scanned": 478,
-    "raster_images_metadata_scanned": 139,
-    "distinct_rgba_literals": 94,
-    "matched_existing_tokens": 30,
+    "baseline_ref": "audit/design-system-v3-1-phase1-master-baseline at 376e61c",
+    "scope_file_count": 619,
+    "text_svg_spec_files_scanned": 494,
+    "raster_images_metadata_scanned": 125,
+    "distinct_rgba_literals": 102,
+    "matched_existing_tokens": 102,
     "unregistered_before_compatibility": 64,
     "registered_legacy_identity_tokens": 64,
     "unregistered_after_compatibility": 0,
@@ -1736,7 +1853,41 @@
     "method": "Exact normalized 8-bit RGBA literal scan over page specifications, component/system authorities, registries, SVG fill/stroke and explicit PNG metadata. Raster pixel palettes are not treated as semantic color tokens."
   },
   "unresolved": [
-    "D-015: approve shared Brand Primary/Secondary semantics and Success/Warning/Error/Info status colors. Error has only a page-scoped Danger candidate; no role is globally approved.",
-    "Legacy literal mappings preserve existing page/component authorities and do not authorize new use."
-  ]
+    "Legacy literal mappings preserve existing page/component authorities and do not authorize new use. Page-specific contrast on photography and composed glass remains a Page Contract acceptance item."
+  ],
+  "approval_record": {
+    "decision_id": "D-015",
+    "status": "APPROVED",
+    "approved_at": "2026-10-11",
+    "source": "Approved in the Phase 2 Final Freeze work instruction.",
+    "selected_mappings": {
+      "Brand Primary": {
+        "foreground": "color.action_primary",
+        "surface": "color.lake_white"
+      },
+      "Brand Secondary": {
+        "foreground": "color.lake_blue",
+        "surface": "color.lake_white"
+      },
+      "Success": {
+        "foreground": "color.status_success_foreground",
+        "surface": "color.status_success_surface"
+      },
+      "Warning": {
+        "foreground": "color.status_warning_foreground",
+        "surface": "color.status_warning_surface"
+      },
+      "Error": {
+        "foreground": "color.status_error_foreground",
+        "surface": "color.status_error_surface"
+      },
+      "Info": {
+        "foreground": "color.status_info_foreground",
+        "surface": "color.status_info_surface"
+      }
+    },
+    "contrast_context": "Exact opaque foreground/background candidate pairs from the approved recommendation; contrast is a static pair calculation, not device/page acceptance.",
+    "danger_global_error_decision": "Danger remains Page Scoped and is not promoted to Global Semantic.",
+    "notes": "Only recommended candidates were approved; listed alternatives remain non-effective."
+  }
 }

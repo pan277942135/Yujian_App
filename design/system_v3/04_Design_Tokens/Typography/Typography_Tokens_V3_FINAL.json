@@ -1,7 +1,7 @@
 {
   "schema_version": "3.1",
   "system_id": "typography_v3_1",
-  "status": "REVIEW",
+  "status": "READY",
   "sources": [
     "design/system/core_visual_v1/tokens/typography_tokens.json",
     "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
@@ -19,9 +19,9 @@
       "license": "No app-bundled font or repository-level font license artifact exists. The mapped face is supplied by Android; the repository does not pin a vendor face or redistribute a font.",
       "fallback": "Android OS script/locale-aware fallback for CJK and other missing glyphs; exact vendor face is intentionally not pinned.",
       "portability": "Android-specific mapping; other renderers require an explicit platform mapping and cannot infer a font from a screenshot.",
-      "status": "PLATFORM_POLICY_FROZEN_BRAND_SOURCE_OPEN",
+      "status": "FROZEN",
       "source_class": "PLATFORM_RESOLVED",
-      "resolution_scope": "Ordinary Chinese, English and numeric UI text only; this does not resolve the calligraphic brand role."
+      "resolution_scope": "All dynamic Chinese, English and numeric UI text; Brand Typography is a separate artwork asset role."
     }
   ],
   "weight_catalog": [
@@ -145,23 +145,24 @@
   ],
   "override_policy": {
     "allowed": [
-      "Brand Hero may refer only to an approved brand font source or existing frozen brand artwork; no new family is inferred.",
-      "Fish Species Name may use its registered page size/line-height while retaining the shared family and weight catalog.",
+      "Brand Hero / 渔见 wordmark may only reference brand_asset_contract; dynamic text, a new typeface, or a page-selected brand font is forbidden.",
+      "Fish Species Name may use its registered page size/line-height while retaining the shared platform family and weight catalog.",
       "Large Statistic may use the registered Normal Home Font A reference-pixel mapping, which converts to sp and continues to honor OS fontScale."
     ],
     "forbidden": [
-      "Page-private font family or unregistered fallback.",
+      "Page-private font family, page-selected brand font, or unregistered fallback.",
       "Page-defined private size scale outside a referenced page authority.",
+      "Dynamic brand text for the frozen 渔见 wordmark; do not simulate or redraw brand glyphs.",
       "Silent text shrink, canceled fontScale, unregistered letter spacing, or color literals."
     ],
-    "shared_family_change_requires": "Explicit owner decision D-007; do not replace a frozen page visual."
+    "shared_family_change_requires": "A platform family change requires a separately recorded owner decision; do not replace a Frozen page visual."
   },
   "page_overrides": [
     {
       "page": "Brand Hero / Normal Home wordmark",
-      "token": "type.display",
-      "status": "REVIEW",
-      "rule": "For frozen brand lettering, prefer the original approved visual asset. Normal Home currently renders 渔见 as dynamic text; Core Visual specifies a calligraphic brand role, while the current runtime maps SansSerif. No approved dynamic brand font source/license or replacement asset is registered. Keep this conflict open; do not infer from a screenshot, download a font, or change the frozen visual/runtime.",
+      "token": "brand_asset_contract",
+      "status": "FROZEN_ARTWORK_ASSET",
+      "rule": "Use the registered Frozen Artwork Asset reference only; dynamic_text=false and font_dependency=none. This policy does not authorize editing, cropping, extraction, or regeneration of the Frozen raster.",
       "source_paths": [
         "design/system/core_visual_v1/tokens/typography_tokens.json",
         "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
@@ -198,9 +199,9 @@
     },
     {
       "page": "Empty Home",
-      "token": "type.display",
-      "status": "FROZEN_ARTWORK_PREFERRED",
-      "rule": "The frozen visual and copy are authoritative. Reuse the approved original brand artwork when available; do not infer a typeface from the Frozen PNG. This does not authorize a page-private family.",
+      "token": "brand_asset_contract",
+      "status": "FROZEN_ARTWORK_ASSET",
+      "rule": "Use the registered Frozen Artwork Asset authority for brand lettering; retain the page Frozen composition and do not create a page-private font or artwork variant.",
       "source_paths": [
         "design/pages/home/empty_home/README.md",
         "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
@@ -210,13 +211,13 @@
   "page_audit": [
     {
       "page": "Empty Home",
-      "status": "FROZEN_VISUAL; FONT_ROLE_UNRESOLVED",
-      "finding": "Frozen brand copy and artwork remain authoritative; no font may be inferred from the PNG. Existing shared role names a calligraphic brand role, but no named source/license is registered."
+      "status": "MAPPED_WITH_FROZEN_ARTWORK_ASSET",
+      "finding": "Brand lettering is governed by the registered frozen artwork reference; no typeface is inferred from raster pixels. Page placement remains page-scoped."
     },
     {
       "page": "Normal Home",
-      "status": "MAPPED_WITH_PAGE_OVERRIDES; BRAND_CONFLICT_OPEN",
-      "finding": "Font A reference-pixel sizes use the registered width/density conversion and OS fontScale. The 渔见 wordmark is dynamic text mapped to SansSerif while brand intent is calligraphic; source/asset approval remains open."
+      "status": "MAPPED_WITH_FROZEN_ARTWORK_ASSET",
+      "finding": "Font A remains a registered page override with OS fontScale. The 渔见 wordmark role is an artwork asset, not dynamic text or a font choice; no bitmap content was changed."
     },
     {
       "page": "Recognition Result",
@@ -236,21 +237,29 @@
   ],
   "tracking_rule": "0sp unless a page/component authority registers a specific override.",
   "font_scale_rule": "Honor Android OS fontScale; expand containers and scroll when needed; never silently shrink or cancel scaling.",
-  "unresolved": [
-    "Normal Home renders 渔见 dynamically using SansSerif, while the brand role is calligraphic. No approved dynamic brand face/license or replacement asset exists. A design-system owner must resolve whether the current dynamic treatment is accepted or approve a source/asset; no screenshot inference or code change is permitted in this phase."
-  ],
+  "unresolved": [],
   "decision_records": [
     {
-      "id": "D-007-platform-policy",
-      "status": "POLICY_RESOLVED_BRAND_ROLE_OPEN",
-      "approved_policy": "Ordinary Chinese/English/numeric text maps to Android platform SansSerif; CJK fallback is OS script/locale resolved; no vendor face is pinned; honor fontScale; frozen calligraphic brand text prefers its original approved visual asset.",
-      "evidence": [
-        "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
-        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt",
-        "design/system/core_visual_v1/tokens/typography_tokens.json"
-      ],
-      "remaining_blocker": "Normal Home renders 渔见 dynamically using SansSerif, while the brand role is calligraphic. No approved dynamic brand face/license or replacement asset exists. A design-system owner must resolve whether the current dynamic treatment is accepted or approve a source/asset; no screenshot inference or code change is permitted in this phase.",
-      "gate_effect": "Typography remains REVIEW; SHARED_FOUNDATION_READY cannot be assigned."
+      "id": "D-007",
+      "status": "RESOLVED",
+      "approved_policy": "Dynamic UI text uses Android platform Typography Tokens with OS script/locale CJK fallback. Brand Typography uses a FROZEN_ARTWORK_ASSET with dynamic_text=false and font_dependency=none.",
+      "brand_asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+      "brand_asset_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "brand_asset_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "approved_at": "2026-10-11",
+      "source": "Approved in the Phase 2 Final Freeze work instruction.",
+      "forbidden": "No new calligraphic font, no Android simulated brand font, no page-selected brand font, and no logo glyph redraw."
     }
-  ]
+  ],
+  "brand_asset_contract": {
+    "type": "FROZEN_ARTWORK_ASSET",
+    "asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+    "source_asset": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "dynamic_text": false,
+    "font_dependency": "none",
+    "usage": "渔见 brand wordmark and special brand visual lettering only.",
+    "authority": "Frozen Normal Home artwork reference; the existing image bytes are unchanged.",
+    "boundary": "This is the registered frozen artwork authority, not an authorization to extract, crop, regenerate, redraw, or modify the bitmap. Page placement/geometry remains page-owned and is handled in Phase 3."
+  }
 }

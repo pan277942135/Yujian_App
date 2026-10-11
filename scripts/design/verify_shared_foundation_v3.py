@@ -360,6 +360,90 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
         row.get("id") for row in components.get("external_asset_dependencies", []) if isinstance(row, dict)
     }
     registry_ids = {"icon_registry_v3", "background_registry_v3"}
+    # Final-freeze semantics: registry completeness and the approved brand artwork contract.
+    type_fields = {"id", "name", "family", "size", "weight", "lineHeight", "letterSpacing", "color", "usage"}
+    for token in typography.get("tokens", []):
+        if not isinstance(token, dict):
+            continue
+        missing = sorted(field for field in type_fields if token.get(field) in (None, ""))
+        if missing:
+            issues.append(f"{token.get('id', '<unknown>')}: incomplete typography token fields {missing}")
+        if token.get("family") not in {row.get("id") for row in typography.get("font_families", []) if isinstance(row, dict)}:
+            issues.append(f"{token.get('id')}: family is not registered")
+    brand = typography.get("brand_asset_contract")
+    if not isinstance(brand, dict):
+        issues.append("Typography: missing brand_asset_contract")
+    else:
+        if brand.get("type") != "FROZEN_ARTWORK_ASSET" or brand.get("dynamic_text") is not False or brand.get("font_dependency") != "none":
+            issues.append("Typography: Brand Typography must be FROZEN_ARTWORK_ASSET, dynamic_text=false, font_dependency=none")
+        brand_row = next((row for row in assets.get("entries", []) if isinstance(row, dict) and row.get("asset_id") == brand.get("asset_id")), None)
+        if not brand_row or brand_row.get("path") != brand.get("source_asset") or brand_row.get("status") != "FROZEN" or brand_row.get("sha256") != brand.get("sha256"):
+            issues.append("Typography: brand artwork asset identity is missing, non-FROZEN, or SHA-mismatched")
+    allowed_families = {row.get("id") for row in typography.get("font_families", []) if isinstance(row, dict)}
+    for override in typography.get("page_overrides", []):
+        if not isinstance(override, dict):
+            issues.append("Typography: page override is not an object")
+            continue
+        family = override.get("family") or override.get("font_family")
+        if family and family not in allowed_families:
+            issues.append(f"Typography: illegal page font override {family!r} on {override.get('page')}")
+        if "brand" in str(override.get("page", "")).lower() and override.get("status") not in {"FROZEN_ARTWORK_ASSET", "FROZEN_PAGE_OVERRIDE"}:
+            issues.append(f"Typography: Brand page override is not artwork-backed: {override.get('page')}")
+
+    # Color semantic roles must be fully tokenized; Danger has a separate page-only scope.
+    color_fields = {"id", "hex", "rgba", "opacity", "usage", "forbidden_usage", "source_paths"}
+    for token in color.get("tokens", []):
+        if not isinstance(token, dict):
+            continue
+        missing = sorted(field for field in color_fields if token.get(field) in (None, "", []))
+        if missing:
+            issues.append(f"{token.get('id', '<unknown>')}: incomplete color token fields {missing}")
+    semantic = color.get("semantic_role_mapping", {})
+    brand_roles = semantic.get("Brand", {}) if isinstance(semantic, dict) else {}
+    for role in ("Primary", "Secondary"):
+        row = brand_roles.get(role, {})
+        if row.get("status") != "READY" or row.get("token_ref") not in color_ids:
+            issues.append(f"Color: Brand {role} has no effective token mapping")
+    status_roles = semantic.get("Status", []) if isinstance(semantic, dict) else []
+    status_by_role = {row.get("role"): row for row in status_roles if isinstance(row, dict)}
+    for role in ("Success", "Warning", "Error", "Info"):
+        row = status_by_role.get(role, {})
+        if row.get("status") != "READY":
+            issues.append(f"Color: {role} semantic role is not READY")
+        for ref_field in ("foreground_token_ref", "surface_token_ref"):
+            if row.get(ref_field) not in color_ids:
+                issues.append(f"Color: {role} {ref_field} is missing or unresolved")
+    danger = semantic.get("Danger", {}) if isinstance(semantic, dict) else {}
+    if danger.get("scope") != "PAGE_SCOPED" or danger.get("forbidden_global_promotion") is not True:
+        issues.append("Color: Danger must remain explicitly Page Scoped")
+    if danger.get("token_ref") in {status_by_role.get("Error", {}).get("foreground_token_ref"), status_by_role.get("Error", {}).get("surface_token_ref")} :
+        issues.append("Color: page Danger token has been promoted to global Error")
+    if color.get("orphan_scan", {}).get("unregistered_after_compatibility") != 0:
+        issues.append("Color: reported orphan literal count is not zero")
+
+    # Geometry baseline and shared video aspect behavior are part of the frozen contract.
+    if geometry.get("baseline_widths_dp") != [360, 393, 412, 480]:
+        issues.append("Geometry: reference widths must be [360, 393, 412, 480]dp")
+    if "geometry.video.aspect_policy" not in geometry_ids:
+        issues.append("Geometry: shared video aspect policy token is missing")
+
+    if len(component_rows) != 16:
+        issues.append(f"Components: expected 16 public component contracts; found {len(component_rows)}")
+    for component in component_rows if isinstance(component_rows, list) else []:
+        if isinstance(component, dict) and component.get("status") != "FROZEN":
+            issues.append(f"{component.get('component_id')}: component must be FROZEN for READY")
+        if isinstance(component, dict):
+            contract = component.get("component_contract", {})
+            if contract.get("unresolved_blockers") != []:
+                issues.append(f"{component.get('component_id')}: unresolved component blockers remain")
+    selector = next((row for row in component_rows if isinstance(row, dict) and row.get("component_id") == "input.selector"), {})
+    required_selector_states = {"CLOSED", "OPEN", "QUERY_INPUT", "SEARCHING", "RESULTS", "NO_RESULTS", "EMPTY_DATA", "ERROR", "SELECTED", "MULTI_SELECTED", "COMMITTED", "RETURNED", "CANCELLED"}
+    if not required_selector_states.issubset(set(selector.get("state", []))):
+        issues.append("Components: Selector Core state contract is incomplete")
+    video = next((row for row in component_rows if isinstance(row, dict) and row.get("component_id") == "media.video"), {})
+    if not {"IDLE", "LOADING", "PLAYING", "PAUSED", "ERROR", "UNAVAILABLE"}.issubset(set(video.get("state", []))):
+        issues.append("Components: Video Surface state contract is incomplete")
+
     for component in component_rows if isinstance(component_rows, list) else []:
         if not isinstance(component, dict):
             continue
@@ -448,6 +532,36 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
             if not safe_relative(path, {"design", "app"}) or not (root / path).is_file():
                 issues.append(f"{row.get('authority_id')}: authority path missing or unsafe: {path!r}")
 
+    shared_system_names = {"Typography", "Color", "Geometry", "Background", "Icon", "Component", "Asset"}
+    system_rows = [row for row in authority_rows if isinstance(row, dict) and row.get("system") in shared_system_names] if isinstance(authority_rows, list) else []
+    systems_seen = [row.get("system") for row in system_rows]
+    if set(systems_seen) != shared_system_names or len(systems_seen) != len(shared_system_names):
+        issues.append("Effective Authority Registry must contain exactly one entry per shared system")
+    effective_paths: set[str] = set()
+    for row in system_rows:
+        for field in ("effective_authority_path", "version", "status", "supersedes", "consumer_reference"):
+            if field not in row or row[field] in (None, "", []):
+                issues.append(f"{row.get('system')}: authority missing {field}")
+        path = row.get("effective_authority_path")
+        if path in effective_paths:
+            issues.append(f"Effective Authority Registry has duplicate effective path {path}")
+        effective_paths.add(path)
+        if path != row.get("canonical_path") or not isinstance(path, str) or not (root / path).is_file():
+            issues.append(f"{row.get('system')}: effective authority path is not the unique present canonical path")
+        if row.get("status") != "READY":
+            issues.append(f"{row.get('system')}: effective authority status is not READY")
+    expected_type_path = TYPE_PATH
+    type_auth = next((row for row in system_rows if row.get("system") == "Typography"), {})
+    if type_auth.get("effective_authority_path") != expected_type_path:
+        issues.append("Typography authority does not uniquely point to Typography_Tokens_V3_FINAL.json")
+    old_type_path = root / "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3.json"
+    try:
+        old_type_doc = json.loads(old_type_path.read_text(encoding="utf-8"))
+        if old_type_doc.get("status") != "DEPRECATED_NON_EFFECTIVE" or old_type_doc.get("superseded_by") != expected_type_path:
+            issues.append("Non-final Typography V3 token file is not marked deprecated/non-effective")
+    except (OSError, json.JSONDecodeError) as exc:
+        issues.append(f"Non-final Typography token registry cannot be checked: {exc}")
+
     # Product-flow count fields are derived from the canonical arrays; audit indexes must agree.
     flow_nodes = product_flow.get("nodes", [])
     flow_edges = product_flow.get("edges", [])
@@ -527,6 +641,13 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
             issues.append("Design Readiness Baseline gate state does not match Freeze Status")
         if readiness_gate.get("phase3_entry_allowed") is not (ready_count == 7):
             issues.append("Design Readiness Baseline Phase 3 flag does not match Freeze Status")
+        certification = readiness_gate.get("certification", {})
+        if ready_count == 7 and (certification.get("gate") != "SHARED_FOUNDATION_READY" or certification.get("status") != "PASS"):
+            issues.append("Design Readiness Baseline is missing the SHARED_FOUNDATION_READY PASS certificate")
+        report_path = root / "design/system_v3/11_Freeze_Governance/Shared_Foundation_Readiness_Report_V3_1.md"
+        report_text = report_path.read_text(encoding="utf-8")
+        if ready_count == 7 and '"gate":"SHARED_FOUNDATION_READY","status":"PASS"' not in report_text:
+            issues.append("Shared Foundation Readiness Report is missing the SHARED_FOUNDATION_READY PASS record")
     except (OSError, json.JSONDecodeError) as exc:
         issues.append(f"Design Readiness Baseline cannot be read: {exc}")
 

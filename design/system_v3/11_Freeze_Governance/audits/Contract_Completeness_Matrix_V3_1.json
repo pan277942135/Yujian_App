@@ -57,9 +57,9 @@
     },
     {
       "contract": "Shared components",
-      "status": "PARTIAL",
-      "evidence": "16 existing public components are queryable: 14 FROZEN shared contracts and 2 REVIEW entries.",
-      "gap": "media.video lacks an approved shared playback/frame/accessibility contract; Species Picker C-014 lacks the My Catches MULTI_SELECT visual and cross-caller accessibility/acceptance closure."
+      "status": "VERIFIED_COMPLETE",
+      "evidence": "Component_Registry_V3_FINAL.json and Component_Contract_V3_FINAL.md define 16/16 FROZEN components, dependencies, states, responsiveness, accessibility and acceptance.",
+      "gap": "All 16 registered shared component contracts are frozen; Page Video Experience controls and page-specific variants remain outside this shared component boundary."
     },
     {
       "contract": "Responsive layout / accessibility",

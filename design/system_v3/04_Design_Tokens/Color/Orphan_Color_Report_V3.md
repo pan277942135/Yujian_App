@@ -1,10 +1,10 @@
 # Orphan Color Report V3.1
 
-**Scan result:** 64 unique unregistered RGBA literals were found before compatibility mapping; 64 are now represented by identity-only legacy tokens. Uncovered count after mapping: 0. No PNG metadata color literals were found.
+**Current scan result:** 100 canonical color tokens (92 existing + 8 approved status tokens); 0 unregistered production color literals; 0 PNG metadata color literals. D-015 recommended mappings are frozen.
 
 ## Method
 
-Baseline: PR branch b0fd6e8. Scope: 618 page/system/component/registry files, including 478 text/spec/token/SVG sources and 139 raster files. The scanner reads explicit HEX/RGB/RGBA literals, SVG fill/stroke, and explicit PNG metadata. It does not sample raster pixels. Values are normalized to 8-bit RGBA before exact comparison.
+Baseline: PR 145 Phase 2 certification branch. The static scanner reads explicit HEX/RGB/RGBA literals, SVG fill/stroke, and explicit PNG metadata within registered page/system/component/registry roots. Raster pixels are not sampled. Values are normalized to 8-bit RGBA before exact token comparison. The scanner read 619 files (494 text/spec/token/SVG and 125 raster metadata files). It found 102 distinct RGBA literals; 102 currently match a production token and 0 remain unregistered. The 64 historic source literals retain identity-only tokens; eight approved D-015 tokens resolve shared status colors.
 
 ## Legacy literals
 
@@ -77,10 +77,14 @@ These values came from existing source authorities. Each value has a stable ID i
 | #FFFFFF2E | color.legacy_ffffff2e | 2 | design/system/components/icon_action/Icon_Action_Spec_V1.md<br>design/system/components/icon_action/visual_contract.json |
 | #FFFFFFA6 | color.legacy_ffffffa6 | 2 | design/system/components/action_button/Action_Button_Spec_V1_1.md<br>design/system/components/action_button/visual_contract.json |
 
-## Explicit status-color gap
+## Approved semantic roles
 
-- Success: no approved shared color token.
-- Warning: no approved shared color token.
-- Error: Account & Privacy V1 labels #E66B61 “Danger”; this remains a page-scoped candidate, not a global Error decision.
-- Info: no approved shared color token.
-- D-015 is open. Do not fill these values by convention or by sampling Frozen raster pixels.
+- Brand Primary: `color.action_primary` on `color.lake_white`.
+- Brand Secondary: `color.lake_blue` on `color.lake_white`.
+- Success: `color.status_success_foreground` / `color.status_success_surface`.
+- Warning: `color.status_warning_foreground` / `color.status_warning_surface`.
+- Error: `color.status_error_foreground` / `color.status_error_surface`.
+- Info: `color.status_info_foreground` / `color.status_info_surface`.
+- Danger remains Page Scoped through existing page identity `color.legacy_e66b61ff`; it is not global Error.
+
+D-015 is RESOLVED. Candidate alternatives are non-effective. See `Color_Tokens_V3_FINAL.json` for the only production mappings and `Color_System_V3_FINAL.md` for usage boundaries.

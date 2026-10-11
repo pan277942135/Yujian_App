@@ -1,26 +1,23 @@
 # Shared Foundation V3.1 — Freeze Status
 
-**Phase 1: CLOSED · P0 = 0.** `DECISION_SAVE_CATCH_NAVIGATION_V1` and C-012 / D-012 asset hash gap are closed. The canonical product flow is 35 nodes / 56 edges / 15 registered features.
+**Phase 1: CLOSED · P0 = 0.** `DECISION_SAVE_CATCH_NAVIGATION_V1`, D-007, D-014, D-015, C-007, C-012 and C-014 are resolved. Remaining findings: P1 = 9 (C-002–C-006, C-008–C-011); P2 = 1 (C-013).
 
-**Shared Foundation: REVIEW REQUIRED · 4/7 systems READY.**  
-**Phase 3: NOT READY; `SHARED_FOUNDATION_READY` is not assigned.**
+**Shared Foundation: `SHARED_FOUNDATION_READY` · 7/7 systems READY.**
 
-| System | Status | Blocker / scope |
+| System | Status | Effective authority |
 |---|---|---|
-| Typography | REVIEW | D-007 ordinary Android text mapping is frozen; Normal Home dynamic 渔见 still conflicts with the calligraphic brand role and has no approved font or asset source. |
-| Color | REVIEW | D-015 owner approval is pending for Brand Primary/Secondary and Success/Warning/Error/Info semantics; candidates are review-only. |
-| Geometry | READY | Shared coordinate, inset, spacing, radius, responsive and media rules are frozen; C-008 page-specific anchor/Result Glass/Login IME checks belong to Page Contract. |
-| Background | READY | Five background roles, SHA, treatments and page inheritance are registered. |
-| Icon | READY | 43/43 SVG identities and SHA are registered; C-013 Android resource mapping/44dp verification is later implementation acceptance. |
-| Component | REVIEW | 16 registered: 14 FROZEN, 2 REVIEW. Remaining entries are `media.video` playback/frame/accessibility and `input.selector` C-014 multi-select/accessibility. |
-| Asset | READY | 658/658 raw-byte SHA-256 and size identity verified; per-asset review statuses remain visible. |
+| Typography | READY | `Typography_Tokens_V3_FINAL.json` |
+| Color | READY | `Color_Tokens_V3_FINAL.json` |
+| Geometry | READY | `Geometry_Tokens_V3_FINAL.json` |
+| Background | READY | `Background_Registry_V3.json` |
+| Icon | READY | `Icon_Registry_V3.json` |
+| Component | READY | `Component_Registry_V3_FINAL.json` |
+| Asset | READY | `Asset_Registry_V3_FINAL.json` |
 
 ## Gate
 
-Only seven READY systems allow `SHARED_FOUNDATION_READY` and formal Phase 3. Current result is 4/7. Typography, Color and Component block Page Contract Freeze. Geometry READY means shared design rules are complete; it does not mean page runtime acceptance has passed.
+`SHARED_FOUNDATION_READY = PASS`. The seven systems each have one effective source in `Effective_Authority_Registry_V3_1.json`. Formal Page Contract Freeze may begin as the next phase; no Page Contract, State Machine or Engineering Contract was created here.
 
-Phase 1 P1 remains C-002–C-011 (10). P2 C-012 is closed; C-013 and C-014 remain open. D-007 is partially resolved; D-015 awaits the explicit owner choice documented in the approval packet. The two remaining component review items are listed above. No open decision was auto-approved.
+C-008 remains page-specific responsive/anchor work. C-013 remains downstream Android SVG-resource and 44dp runtime verification. These do not invalidate the shared design baseline and are not evidence of Android acceptance. Remaining P1/P2 product issues are listed in `Phase1_Decisions_Required_V3_1.md` and the readiness report.
 
-The Effective Authority Registry identifies the canonical source for each domain and the conflict precedence. Frozen page-level visual/geometry authority remains controlling within its declared scope; review-only candidates are not implementation inputs.
-
-This work only updates design standards, tokens, registries, contracts, reports, indexes and static validators. No Kotlin/Compose, Backend/API/database, Android build, APK, device acceptance, Frozen PNG content, or main merge was performed.
+No Kotlin/Compose, Backend/API/database, Android build, APK, device acceptance, Frozen PNG content, main merge or Pages publication was performed.

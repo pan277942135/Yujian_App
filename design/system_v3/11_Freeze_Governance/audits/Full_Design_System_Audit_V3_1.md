@@ -1,4 +1,4 @@
-> **Phase 1 closure update (2026-10-11):** P0 C-001 is resolved by `DECISION_SAVE_CATCH_NAVIGATION_V1`: ordinary Save Catch returns Home; detail is reached later through Recent Catch, My Catches, Fish Guide association or Share. P1 C-002–C-011 and P2 C-012–C-014 remain open. The Phase 2 Shared Foundation gate is tracked separately.
+> **Phase 1 closure update (2026-10-11):** P0 C-001 is resolved by `DECISION_SAVE_CATCH_NAVIGATION_V1`: ordinary Save Catch returns Home; detail is reached later through Recent Catch, My Catches, Fish Guide association or Share. C-007, C-012 and C-014 are resolved. Remaining P1: C-002–C-006 and C-008–C-011; remaining P2: C-013. The Phase 2 Shared Foundation gate passes 7/7.
 
 # Full Design System Audit V3.1 — Checkpoint C
 

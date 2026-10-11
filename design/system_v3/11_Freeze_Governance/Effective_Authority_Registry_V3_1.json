@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
   "registry_id": "effective_authority_registry_v3_1",
-  "version": "V3.1 Audit / Freeze",
-  "status": "ACTIVE_FOR_AUDIT_REVIEW",
-  "shared_foundation_status": "NOT_READY",
+  "version": "V3.1",
+  "status": "FROZEN",
+  "shared_foundation_status": "SHARED_FOUNDATION_READY",
   "updated_at": "2026-10-11",
   "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
   "entries": [
@@ -36,30 +36,54 @@
     {
       "authority_id": "typography",
       "domain": "Shared type tokens and Android font mapping",
-      "status": "REVIEW",
+      "status": "READY",
       "canonical_path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
       "supporting_paths": [
         "design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",
         "design/system_v3/04_Design_Tokens/Typography/Typography_Android_Mapping_V3.md",
         "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
       ],
-      "review_reason": "D-007 brand calligraphic role conflicts with dynamic Normal Home text; no approved source."
+      "system": "Typography",
+      "effective_authority_path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
     },
     {
       "authority_id": "color",
       "domain": "Canonical color roles and values",
-      "status": "REVIEW",
+      "status": "READY",
       "canonical_path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
       "supporting_paths": [
         "design/system_v3/04_Design_Tokens/Color/Color_System_V3_FINAL.md",
-        "design/system_v3/04_Design_Tokens/Color/Orphan_Color_Report_V3.md"
+        "design/system_v3/04_Design_Tokens/Color/Orphan_Color_Report_V3.md",
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
       ],
       "review_only_paths": [
         "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md",
         "design/system_v3/11_Freeze_Governance/reviews/Color_Semantic_Candidates_V3_1.json",
         "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Review_V3_1.html"
       ],
-      "review_reason": "D-015 candidate roles await explicit owner approval; none is a production mapping."
+      "system": "Color",
+      "effective_authority_path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ],
+      "non_normative_paths": [
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_Semantic_Candidates_V3_1.json",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Review_V3_1.html"
+      ]
     },
     {
       "authority_id": "geometry",
@@ -69,6 +93,16 @@
       "supporting_paths": [
         "design/system_v3/07_Responsive_System/Geometry_System_V3_FINAL.md",
         "design/system_v3/07_Responsive_System/Responsive_Rules_V3_FINAL.md"
+      ],
+      "system": "Geometry",
+      "effective_authority_path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
       ]
     },
     {
@@ -78,6 +112,16 @@
       "canonical_path": "design/system_v3/08_Background_System/Background_Registry_V3.json",
       "supporting_paths": [
         "design/system_v3/08_Background_System/Background_System_V3.md"
+      ],
+      "system": "Background",
+      "effective_authority_path": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "version": "V3.1",
+      "supersedes": "No earlier registered V3 authority",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
       ]
     },
     {
@@ -87,17 +131,36 @@
       "canonical_path": "design/system_v3/09_Icon_System/Icon_Registry_V3.json",
       "supporting_paths": [
         "design/system_v3/09_Icon_System/Icon_System_V3.md"
+      ],
+      "system": "Icon",
+      "effective_authority_path": "design/system_v3/09_Icon_System/Icon_Registry_V3.json",
+      "version": "V3.1",
+      "supersedes": "No earlier registered V3 authority",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
       ]
     },
     {
       "authority_id": "components",
       "domain": "Shared public component contracts and page variants",
-      "status": "REVIEW",
+      "status": "READY",
       "canonical_path": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
       "supporting_paths": [
         "design/system_v3/05_Component_System/Component_Contract_V3_FINAL.md"
       ],
-      "review_reason": "14 contracts frozen; media.video and input.selector remain REVIEW."
+      "system": "Component",
+      "effective_authority_path": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/05_Component_System/Component_Registry_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
     },
     {
       "authority_id": "assets",
@@ -107,6 +170,16 @@
       "supporting_paths": [
         "design/system_v3/06_Asset_System/Asset_SHA_Audit_FINAL.md",
         "design/system_v3/06_Asset_System/Missing_Asset_Report_FINAL.md"
+      ],
+      "system": "Asset",
+      "effective_authority_path": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/06_Asset_System/Asset_Registry_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
       ]
     },
     {

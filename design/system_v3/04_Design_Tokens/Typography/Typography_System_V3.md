@@ -1,3 +1,5 @@
+> **DEPRECATED_NON_EFFECTIVE** — Historical V3 baseline only. The sole effective typography authority is registered in `Effective_Authority_Registry_V3_1.json` and points to `Typography_Tokens_V3_FINAL.json`.
+
 # Typography System V3
 
 **状态：REVIEW · Android-first baseline；C-007 保持开放。** 字体来源来自设计源码和当前运行时映射，不从 Frozen 图片猜字体。

@@ -1,12 +1,12 @@
 {
   "schema_version": "3.1",
   "system_id": "color_d015_review_candidates_v3_1",
-  "status": "AWAITING_OWNER_APPROVAL",
+  "status": "APPROVED_DECISION_RECORDED_NON_EFFECTIVE",
   "decision_id": "D-015",
   "canonical_token_registry": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
-  "canonical_registry_status": "REVIEW",
-  "canonical_token_count": 92,
-  "rule": "This review-only proposal file is not a production token registry. No candidate may be used until the required owner records an approval and the canonical Color Token registry is updated.",
+  "canonical_registry_status": "READY",
+  "canonical_token_count": 100,
+  "rule": "Historical review evidence only. The approved recommended mappings are tokenized in the canonical FINAL registry; this candidate file and alternatives are not developer sources.",
   "review_standard": {
     "normal_text_min_ratio": 4.5,
     "large_text_min_ratio": 3.0,
@@ -73,7 +73,7 @@
         "normal_text_aa": true,
         "large_text_aa": true,
         "meaningful_non_text_aa": true,
-        "status": "PROPOSED_NOT_APPROVED",
+        "status": "APPROVED_RECOMMENDED_MAPPING",
         "role_scope": "text_and_surface",
         "source": "Existing color.action_primary (#0F7A78); shared action role is registered, but global brand role is not approved."
       },
@@ -94,12 +94,13 @@
           "normal_text_aa": true,
           "large_text_aa": true,
           "meaningful_non_text_aa": true,
-          "status": "PROPOSED_NOT_APPROVED",
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
           "role_scope": "text_and_surface",
           "source": "Existing color.deep_lake_blue (#0B2D4B); currently primary text / utility icon."
         }
       ],
-      "owner_choice_required": true
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
     },
     {
       "role": "Brand Secondary",
@@ -119,7 +120,7 @@
         "normal_text_aa": true,
         "large_text_aa": true,
         "meaningful_non_text_aa": true,
-        "status": "PROPOSED_NOT_APPROVED",
+        "status": "APPROVED_RECOMMENDED_MAPPING",
         "role_scope": "text_and_surface",
         "source": "Existing color.lake_blue (#34556F); Core Visual names Secondary Lake Blue, but global Brand Secondary is not explicit."
       },
@@ -140,12 +141,13 @@
           "normal_text_aa": false,
           "large_text_aa": true,
           "meaningful_non_text_aa": true,
-          "status": "PROPOSED_NOT_APPROVED",
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
           "role_scope": "large_text_or_meaningful_non_text_only",
           "source": "Existing color.active_accent (#168B88); selected accent / strong action. Contrast is below 4.5:1 for normal text on LakeWhite; would need a restricted non-text or large-text scope."
         }
       ],
-      "owner_choice_required": true
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
     },
     {
       "role": "Success",
@@ -165,7 +167,7 @@
         "normal_text_aa": true,
         "large_text_aa": true,
         "meaningful_non_text_aa": true,
-        "status": "PROPOSED_NOT_APPROVED",
+        "status": "APPROVED_RECOMMENDED_MAPPING",
         "role_scope": "text_and_surface",
         "source": "New semantic proposal only; not added to canonical Color Tokens."
       },
@@ -186,12 +188,13 @@
           "normal_text_aa": true,
           "large_text_aa": true,
           "meaningful_non_text_aa": true,
-          "status": "PROPOSED_NOT_APPROVED",
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
           "role_scope": "text_and_surface",
           "source": "Foreground uses existing color.action_primary; background is a proposed surface. This does not grant success semantics."
         }
       ],
-      "owner_choice_required": true
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
     },
     {
       "role": "Warning",
@@ -211,7 +214,7 @@
         "normal_text_aa": true,
         "large_text_aa": true,
         "meaningful_non_text_aa": true,
-        "status": "PROPOSED_NOT_APPROVED",
+        "status": "APPROVED_RECOMMENDED_MAPPING",
         "role_scope": "text_and_surface",
         "source": "New semantic proposal only; not added to canonical Color Tokens."
       },
@@ -232,12 +235,13 @@
           "normal_text_aa": true,
           "large_text_aa": true,
           "meaningful_non_text_aa": true,
-          "status": "PROPOSED_NOT_APPROVED",
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
           "role_scope": "text_and_surface",
           "source": "New semantic proposal only; not added to canonical Color Tokens."
         }
       ],
-      "owner_choice_required": true
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
     },
     {
       "role": "Error",
@@ -257,7 +261,7 @@
         "normal_text_aa": true,
         "large_text_aa": true,
         "meaningful_non_text_aa": true,
-        "status": "PROPOSED_NOT_APPROVED",
+        "status": "APPROVED_RECOMMENDED_MAPPING",
         "role_scope": "text_and_surface",
         "source": "New semantic proposal only; not added to canonical Color Tokens."
       },
@@ -278,7 +282,7 @@
           "normal_text_aa": true,
           "large_text_aa": true,
           "meaningful_non_text_aa": true,
-          "status": "PROPOSED_NOT_APPROVED",
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
           "role_scope": "text_and_surface",
           "source": "New semantic proposal only; not added to canonical Color Tokens."
         }
@@ -293,7 +297,8 @@
         "normal_text_aa": false,
         "allowed_scope": "Existing page authority only; do not use as shared error text without approval."
       },
-      "owner_choice_required": true
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
     },
     {
       "role": "Info",
@@ -313,7 +318,7 @@
         "normal_text_aa": true,
         "large_text_aa": true,
         "meaningful_non_text_aa": true,
-        "status": "PROPOSED_NOT_APPROVED",
+        "status": "APPROVED_RECOMMENDED_MAPPING",
         "role_scope": "text_and_surface",
         "source": "New semantic proposal only; not added to canonical Color Tokens."
       },
@@ -334,22 +339,49 @@
           "normal_text_aa": true,
           "large_text_aa": true,
           "meaningful_non_text_aa": true,
-          "status": "PROPOSED_NOT_APPROVED",
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
           "role_scope": "text_and_surface",
           "source": "Existing color.lake_blue (#34556F); this use still requires approval as the shared Info role."
         }
       ],
-      "owner_choice_required": true
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
     }
   ],
   "approval_record": {
     "approver_role": "Design system + Product/Accessibility owner",
-    "approved": false,
-    "approved_at": null,
-    "selected_mappings": null,
-    "contrast_context_accepted": null,
-    "danger_global_error_decision": null,
-    "notes": null
+    "approved": true,
+    "approved_at": "2026-10-11",
+    "source": "Phase 2 Final Freeze work instruction",
+    "selected_mappings": {
+      "Brand Primary": {
+        "foreground": "color.action_primary",
+        "surface": "color.lake_white"
+      },
+      "Brand Secondary": {
+        "foreground": "color.lake_blue",
+        "surface": "color.lake_white"
+      },
+      "Success": {
+        "foreground": "color.status_success_foreground",
+        "surface": "color.status_success_surface"
+      },
+      "Warning": {
+        "foreground": "color.status_warning_foreground",
+        "surface": "color.status_warning_surface"
+      },
+      "Error": {
+        "foreground": "color.status_error_foreground",
+        "surface": "color.status_error_surface"
+      },
+      "Info": {
+        "foreground": "color.status_info_foreground",
+        "surface": "color.status_info_surface"
+      }
+    },
+    "contrast_context_accepted": "Opaque recommended foreground/background pairs for solid UI surfaces; media and glass remain page-scoped contrast checks.",
+    "danger_global_error_decision": "Danger remains Page Scoped; Global Error uses distinct approved semantic tokens.",
+    "notes": "Alternatives were reviewed and not selected. Candidate registry remains non-effective."
   },
-  "gate_effect": "D-015 remains OPEN. Color stays REVIEW and SHARED_FOUNDATION_READY stays NOT_READY until owner approval, canonical mapping update, and static revalidation."
+  "gate_effect": "D-015 RESOLVED. Canonical Color Tokens V3_FINAL is the sole effective authority."
 }
