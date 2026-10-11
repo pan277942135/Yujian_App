@@ -27,7 +27,7 @@
   },
   "summary": {
     "phase1_gate": "PHASE1_CLOSED",
-    "phase1_gate_reason": "P0 C-001 is resolved. Phase 2 Shared Foundation is tracked separately; open P1/P2 design, data, responsive, accessibility and persistence findings remain. No Android or backend test was run.",
+    "phase1_gate_reason": "P0 C-001 is resolved. Phase 2 Shared Foundation is tracked separately; open P1/P2 design, data, responsive, accessibility and persistence findings remain. No Android/backend acceptance completed. The PR auto-triggered Android CI; its Unit tests step was cancelled before a complete result, and APK assembly was skipped.",
     "page_state_nodes": 150,
     "product_flow_nodes": 35,
     "features": 15,

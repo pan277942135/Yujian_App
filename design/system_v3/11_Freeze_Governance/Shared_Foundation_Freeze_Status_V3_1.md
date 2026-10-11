@@ -18,4 +18,6 @@
 
 只有七项全部为 READY 才增加当前 Design Readiness 状态 `SHARED_FOUNDATION_READY` 并允许 Phase 3。当前 2 项 READY、5 项 REVIEW，因此本轮不签发 Phase 3 ready。
 
-本轮只有设计治理、tokens、registries、contracts、Design Manager 内容变化；无 Kotlin / Compose / Backend / API / 数据库变更，无 Android build / APK / 真机验收，无 Frozen PNG 修改、main merge 或 Pages 发布。
+本轮只有设计治理、tokens、registries、contracts、Design Manager 内容变化；无 Kotlin / Compose / Backend / API / 数据库实现，无 Frozen PNG 修改、APK 组装/打包、真机验收、main merge 或 Pages 发布。
+
+PR 自动触发 Android CI：run #1691 在 Unit tests 步骤被取消且未产生完整结果；后续自动运行在 Gradle 或依赖设置阶段取消。Android CI 的 APK assembly、运行时 APK 与设备验收步骤均未执行。
