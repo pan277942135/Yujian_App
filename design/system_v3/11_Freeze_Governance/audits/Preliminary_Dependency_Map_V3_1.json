@@ -14,8 +14,9 @@
     "feature_nodes": 15,
     "shared_system_nodes": 16,
     "page_state_nodes": 150,
-    "product_flow_nodes": 34,
-    "visual_asset_nodes": 225
+    "product_flow_nodes": 35,
+    "visual_asset_nodes": 225,
+    "product_flow_edges": 56
   },
   "nodes": [
     {

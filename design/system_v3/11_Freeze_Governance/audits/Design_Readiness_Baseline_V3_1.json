@@ -51,7 +51,8 @@
     "p2_findings": [
       "C-013",
       "C-014"
-    ]
+    ],
+    "product_flow_edges": 56
   },
   "contract_catalog": [
     {
@@ -10694,7 +10695,8 @@
       "C-007",
       "D-007",
       "D-015",
-      "C-014"
+      "C-014",
+      "VIDEO_SHARED_PLAYBACK_CONTRACT"
     ],
     "page_contract_findings": [
       "C-008"

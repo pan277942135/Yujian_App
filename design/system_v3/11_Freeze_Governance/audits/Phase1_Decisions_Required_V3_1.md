@@ -36,11 +36,11 @@ Save Catch 完成鱼获记录，不代表进入详情。FishRecordDetail 定位�
 
 ## Ready-to-decide order
 
-2. D-002 / D-003 Record Date route and sample-data authority.
-3. D-004 / D-005 Habitat and share-template product scope.
-4. D-006 / D-011 persistence and dynamic-field lineage.
-5. D-007 / D-008 system type and accessibility gates.
-6. D-009 / D-010 error wording and account lifecycle scope.
+1. D-002 / D-003 Record Date route and sample-data authority.
+2. D-004 / D-005 Habitat and share-template product scope.
+3. D-006 / D-011 persistence and dynamic-field lineage.
+4. D-007 / D-008 system type and accessibility gates.
+5. D-009 / D-010 error wording and account lifecycle scope.
 
 Phase 2 Final Freeze recomputed all 658 baseline file SHA-256 values from raw bytes and closed D-012 / C-012. Other owner decisions remain open unless explicitly resolved.
 

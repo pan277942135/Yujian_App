@@ -16,8 +16,8 @@
     {
       "contract": "Product / canonical flow",
       "status": "PARTIAL",
-      "evidence": "Phase 1 master flow has 34 nodes and 55 edges; 15 registered features mapped.",
-      "gap": "The Save Catch target conflicts: current frozen result contract saves to Home; the requested master-flow shorthand says save then Detail A/B. Owner decision required before implementation."
+      "evidence": "Canonical master flow contains 35 nodes, 56 edges and 15 registered features. DECISION_SAVE_CATCH_NAVIGATION_V1 is RESOLVED: Save Catch returns Home; detail opens from Recent Catch/My Catches and other registered entries.",
+      "gap": "Other flow edges remain TO_CONFIRM, UNVERIFIED, or DESIGN_ONLY (including Record Date, share-template transition and Habitat route); see canonical Master Flow and the open P1 register."
     },
     {
       "contract": "Manager navigation and registry",
@@ -58,8 +58,8 @@
     {
       "contract": "Shared components",
       "status": "PARTIAL",
-      "evidence": "16 shared systems are registered; 15 are FROZEN and Species Picker is PARTIAL.",
-      "gap": "Frozen design is not shared-component runtime acceptance; cross-page collision and state parity evidence is uneven."
+      "evidence": "16 existing public components are queryable: 14 FROZEN shared contracts and 2 REVIEW entries.",
+      "gap": "media.video lacks an approved shared playback/frame/accessibility contract; Species Picker C-014 lacks the My Catches MULTI_SELECT visual and cross-caller accessibility/acceptance closure."
     },
     {
       "contract": "Responsive layout / accessibility",

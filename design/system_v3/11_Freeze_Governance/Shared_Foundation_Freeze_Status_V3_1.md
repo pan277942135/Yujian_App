@@ -1,23 +1,26 @@
 # Shared Foundation V3.1 — Freeze Status
 
-**Phase 1: CLOSED · P0 = 0.** C-012 / D-012 asset hash gap is resolved.  
-**Shared Foundation: REVIEW REQUIRED · 4/7 systems READY.**  
-**Phase 3: NOT READY; SHARED_FOUNDATION_READY is not assigned.**
+**Phase 1: CLOSED · P0 = 0.** `DECISION_SAVE_CATCH_NAVIGATION_V1` and C-012 / D-012 asset hash gap are closed. The canonical product flow is 35 nodes / 56 edges / 15 registered features.
 
-| 系统 | 状态 | 阻塞项 |
+**Shared Foundation: REVIEW REQUIRED · 4/7 systems READY.**  
+**Phase 3: NOT READY; `SHARED_FOUNDATION_READY` is not assigned.**
+
+| System | Status | Blocker / scope |
 |---|---|---|
-| Typography | REVIEW | C-007 / D-007：品牌书法意图、精确 CJK fallback/license 仍需 owner 决策 |
-| Color | REVIEW | D-015：品牌语义与全局 Success / Warning / Error / Info 颜色未批准；孤立字面值已身份化登记 |
-| Geometry | READY | 共享坐标/inset/media/token 规则冻结；C-008 页面锚点/Result Glass/Login IME 验收留给 Page Contract |
-| Background | READY | 5 类背景角色、SHA、treatment 与继承关系保持注册 |
-| Icon | READY | 43/43 SVG 与 SHA 已登记；C-013 是后续 Android 资源映射/44dp 验收 |
-| Component | REVIEW | 16 个现有条目字段完整；8 个跨页面合同仍 REVIEW，Species Picker C-014 未决 |
-| Asset | READY | 658/658 原始字节 SHA-256 与尺寸核验；重复 ID 已修正；条目审核状态保留 |
+| Typography | REVIEW | D-007 ordinary Android text mapping is frozen; Normal Home dynamic 渔见 still conflicts with the calligraphic brand role and has no approved font or asset source. |
+| Color | REVIEW | D-015 owner approval is pending for Brand Primary/Secondary and Success/Warning/Error/Info semantics; candidates are review-only. |
+| Geometry | READY | Shared coordinate, inset, spacing, radius, responsive and media rules are frozen; C-008 page-specific anchor/Result Glass/Login IME checks belong to Page Contract. |
+| Background | READY | Five background roles, SHA, treatments and page inheritance are registered. |
+| Icon | READY | 43/43 SVG identities and SHA are registered; C-013 Android resource mapping/44dp verification is later implementation acceptance. |
+| Component | REVIEW | 16 registered: 14 FROZEN, 2 REVIEW. Remaining entries are `media.video` playback/frame/accessibility and `input.selector` C-014 multi-select/accessibility. |
+| Asset | READY | 658/658 raw-byte SHA-256 and size identity verified; per-asset review statuses remain visible. |
 
 ## Gate
 
-只有七项全部 READY 才设为 SHARED_FOUNDATION_READY 并允许 Phase 3。当前 4/7 READY。Typography、Color、Component 阻塞正式 Page Contract Freeze。Geometry 的 READY 只表示共享设计规则完整，不表示页面运行时通过。
+Only seven READY systems allow `SHARED_FOUNDATION_READY` and formal Phase 3. Current result is 4/7. Typography, Color and Component block Page Contract Freeze. Geometry READY means shared design rules are complete; it does not mean page runtime acceptance has passed.
 
-Phase 1 P1 remains C-002–C-011 (10). Phase 2 closed P2 C-012; P2 C-013 and C-014 remain open. D-015 is a new open color-owner decision.
+Phase 1 P1 remains C-002–C-011 (10). P2 C-012 is closed; C-013 and C-014 remain open. D-007 is partially resolved; D-015 awaits the explicit owner choice documented in the approval packet. The two remaining component review items are listed above. No open decision was auto-approved.
 
-本轮仅更新设计规范、token、registry、合同、审计报告与静态校验；无 Kotlin/Compose、Backend/API/DB、Android build、APK、真机、Frozen PNG 内容或 main merge。
+The Effective Authority Registry identifies the canonical source for each domain and the conflict precedence. Frozen page-level visual/geometry authority remains controlling within its declared scope; review-only candidates are not implementation inputs.
+
+This work only updates design standards, tokens, registries, contracts, reports, indexes and static validators. No Kotlin/Compose, Backend/API/database, Android build, APK, device acceptance, Frozen PNG content, or main merge was performed.

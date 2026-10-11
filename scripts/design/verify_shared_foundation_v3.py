@@ -23,6 +23,8 @@ ICON_PATH = "design/system_v3/09_Icon_System/Icon_Registry_V3.json"
 BACKGROUND_PATH = "design/system_v3/08_Background_System/Background_Registry_V3.json"
 FREEZE_PATH = "design/system_v3/11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.json"
 PAGE_MAP_PATH = "design/system_v3/01_Page_Registry/page_state_authority_map_v3_1.json"
+AUTHORITY_PATH = "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
+FLOW_PATH = "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json"
 ASSET_STATUSES = {"FROZEN", "APPROVED", "REVIEW", "MISSING", "DEPRECATED"}
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -327,6 +329,8 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
         icons = load_json(root, ICON_PATH)
         backgrounds = load_json(root, BACKGROUND_PATH)
         freeze = load_json(root, FREEZE_PATH)
+        authorities = load_json(root, AUTHORITY_PATH)
+        product_flow = load_json(root, FLOW_PATH)
     except ValueError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
@@ -338,6 +342,10 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
     asset_ids, verified_assets = verify_assets(root, assets, issues)
     icon_ids = unique_ids(icons.get("entries"), "icon_id", "icons", issues)
     background_ids = unique_ids(backgrounds.get("backgrounds"), "background_id", "backgrounds", issues)
+
+    declared_component_fields = components.get("required_fields")
+    if not isinstance(declared_component_fields, list) or not declared_component_fields:
+        issues.append("components: required_fields must be a non-empty list")
 
     for token in typography.get("tokens", []):
         if isinstance(token, dict) and token.get("color") not in color_ids:
@@ -356,6 +364,9 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
         if not isinstance(component, dict):
             continue
         cid = component.get("component_id", "<unknown>")
+        for field in declared_component_fields if isinstance(declared_component_fields, list) else []:
+            if field not in component:
+                issues.append(f"{cid}: missing declared required field {field}")
         for dependency in component.get("token_dependency", []):
             if dependency not in token_ids:
                 issues.append(f"{cid}: orphan token reference {dependency!r}")
@@ -371,10 +382,39 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
         for dependency in component.get("registry_dependency", []):
             if dependency not in registry_ids:
                 issues.append(f"{cid}: unknown registry dependency {dependency!r}")
-        for field in ("purpose", "visual_rule", "geometry", "state", "interaction", "responsive_rule", "acceptance_rule"):
+        for field in ("purpose", "visual_rule", "geometry", "state", "interaction", "responsive_rule", "accessibility_rule", "acceptance_rule"):
             value = component.get(field)
             if not value:
                 issues.append(f"{cid}: missing component contract field {field}")
+        contract = component.get("component_contract")
+        if not isinstance(contract, dict):
+            issues.append(f"{cid}: component_contract must be an object")
+        else:
+            for field in ("shared_visual_core", "shared_geometry_boundary", "state_model", "page_variants", "responsive_rule", "accessibility_rule", "asset_rule", "acceptance_checks", "unresolved_blockers"):
+                if field not in contract or contract[field] is None or contract[field] == "":
+                    issues.append(f"{cid}: missing component_contract.{field}")
+            if not isinstance(contract.get("acceptance_checks"), list) or not contract.get("acceptance_checks"):
+                issues.append(f"{cid}: component_contract.acceptance_checks must be a non-empty list")
+            if not isinstance(contract.get("unresolved_blockers"), list):
+                issues.append(f"{cid}: component_contract.unresolved_blockers must be a list")
+            variants = contract.get("page_variants", [])
+            if not isinstance(variants, list) or not variants:
+                issues.append(f"{cid}: component_contract.page_variants must be a non-empty list")
+            else:
+                variant_ids = [variant.get("page_id") for variant in variants if isinstance(variant, dict)]
+                if sorted(variant_ids) != sorted(component.get("page_references", [])):
+                    issues.append(f"{cid}: page_variants do not match page_references")
+                for variant in variants:
+                    if not isinstance(variant, dict):
+                        issues.append(f"{cid}: page variant is not an object")
+                        continue
+                    paths = variant.get("authority_paths")
+                    if not isinstance(paths, list) or not paths:
+                        issues.append(f"{cid}: page variant {variant.get('page_id')} has no authority_paths")
+                        continue
+                    for path in paths:
+                        if not safe_relative(path, {"design", "app"}) or not (root / path).is_file():
+                            issues.append(f"{cid}: page variant authority missing or unsafe: {path!r}")
         if not isinstance(component.get("authority_dependencies"), list) or not component["authority_dependencies"]:
             issues.append(f"{cid}: no authority_dependencies")
         else:
@@ -387,6 +427,52 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
             issues.append(f"{cid}: no explicit page_references")
         if not isinstance(component.get("token_gap"), list):
             issues.append(f"{cid}: token_gap must be a list")
+
+    # Effective authority registry: every domain has one explicit canonical source;
+    # review-only candidates stay separately typed and all paths resolve in-repo.
+    authority_rows = authorities.get("entries")
+    authority_ids = unique_ids(authority_rows, "authority_id", "effective authorities", issues)
+    seen_domains: set[str] = set()
+    for row in authority_rows if isinstance(authority_rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        domain = row.get("domain")
+        if not isinstance(domain, str) or not domain:
+            issues.append(f"{row.get('authority_id')}: missing authority domain")
+        elif domain in seen_domains:
+            issues.append(f"effective authorities: duplicate domain {domain!r}")
+        else:
+            seen_domains.add(domain)
+        paths = [row.get("canonical_path"), *row.get("supporting_paths", []), *row.get("review_only_paths", [])]
+        for path in paths:
+            if not safe_relative(path, {"design", "app"}) or not (root / path).is_file():
+                issues.append(f"{row.get('authority_id')}: authority path missing or unsafe: {path!r}")
+
+    # Product-flow count fields are derived from the canonical arrays; audit indexes must agree.
+    flow_nodes = product_flow.get("nodes", [])
+    flow_edges = product_flow.get("edges", [])
+    flow_features = {row.get("feature_id") for row in flow_nodes if isinstance(row, dict) and row.get("feature_id")}
+    expected_flow_counts = {"nodes": len(flow_nodes), "edges": len(flow_edges), "registry_features": len(flow_features)}
+    if product_flow.get("counts") != expected_flow_counts:
+        issues.append(f"Master Flow counts do not match canonical arrays/features: expected {expected_flow_counts}")
+    readiness_path = root / "design/system_v3/11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json"
+    dependency_path = root / "design/system_v3/11_Freeze_Governance/audits/Preliminary_Dependency_Map_V3_1.json"
+    completeness_path = root / "design/system_v3/11_Freeze_Governance/audits/Contract_Completeness_Matrix_V3_1.json"
+    try:
+        readiness_counts = json.loads(readiness_path.read_text(encoding="utf-8")).get("summary", {})
+        dependency_counts = json.loads(dependency_path.read_text(encoding="utf-8")).get("counts", {})
+        completeness = json.loads(completeness_path.read_text(encoding="utf-8"))
+        if readiness_counts.get("product_flow_nodes") != len(flow_nodes) or readiness_counts.get("product_flow_edges") != len(flow_edges):
+            issues.append("Design Readiness Baseline flow counts do not match Master Flow")
+        if dependency_counts.get("product_flow_nodes") != len(flow_nodes) or dependency_counts.get("product_flow_edges") != len(flow_edges):
+            issues.append("Preliminary Dependency Map flow counts do not match Master Flow")
+        flow_row = next((row for row in completeness.get("contracts", []) if row.get("contract") == "Product / canonical flow"), None)
+        if not flow_row or f"{len(flow_nodes)} nodes, {len(flow_edges)} edges" not in flow_row.get("evidence", ""):
+            issues.append("Contract Completeness Matrix flow count does not match Master Flow")
+        if flow_row and "Save Catch target conflicts" in flow_row.get("gap", ""):
+            issues.append("Contract Completeness Matrix still lists the resolved Save Catch conflict")
+    except (OSError, json.JSONDecodeError) as exc:
+        issues.append(f"flow audit index cannot be read: {exc}")
 
     asset_by_path = {
         row.get("path"): row for row in assets.get("entries", []) if isinstance(row, dict)
@@ -460,6 +546,8 @@ def run(root: Path, *, strict_ready: bool = False) -> int:
     print(f"  Color tokens: {len(color_ids)}; unregistered color literals: {len(color_orphans)}")
     print(f"  Geometry tokens: {len(geometry_ids)}")
     print(f"  Components: {len(component_ids)}")
+    print(f"  Effective authorities: {len(authority_ids)}")
+    print(f"  Product flow: {len(flow_nodes)} nodes, {len(flow_edges)} edges, {len(flow_features)} registered features")
     print(f"  Assets: {asset_ids}; raw-byte SHA-256 verified: {verified_assets}")
     print(f"  Icons: {len(icon_ids)}; Backgrounds: {len(background_ids)}")
     print(f"  Color-scan sources: {literal_scanned}; PNG metadata color literals: {png_metadata_colors}")

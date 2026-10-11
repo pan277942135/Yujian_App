@@ -16,8 +16,8 @@
     "BLOCKED_ACCESS": "Raw source bytes could not be read through audit API; no screenshot/pre-encoded preview used as SHA source."
   },
   "counts": {
-    "nodes": 34,
-    "edges": 55,
+    "nodes": 35,
+    "edges": 56,
     "registry_features": 15
   },
   "evidence_sources": {

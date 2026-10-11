@@ -3,7 +3,7 @@
   "name": "YuJian Design System V3.1 Shared Foundation",
   "status": "FREEZE_BASELINE_REVIEW_REQUIRED",
   "source_branch": "audit/design-system-v3-1-phase1-master-baseline",
-  "source_commit": "b0fd6e852be294aefc41174475d0476667af2607",
+  "source_commit": "48921ae33f3b4e938067ca734581d1c4134bdeea",
   "updated_at": "2026-10-11",
   "phase1": {
     "status": "CLOSED",
@@ -46,7 +46,7 @@
           "C-007",
           "D-007"
         ],
-        "reason": "Role tokens and Android mapping exist; brand calligraphic intent, exact CJK fallback/license and shared family decision remain open."
+        "reason": "Ordinary text family, platform mapping, weights, token-to-sp mapping and fontScale rules are frozen. Typography remains REVIEW because the Normal Home dynamic 渔见 brand role conflicts with the calligraphic brand specification and no approved font/asset source exists."
       },
       {
         "id": "Color",
@@ -54,7 +54,7 @@
         "blocking": [
           "D-015"
         ],
-        "reason": "64 legacy literals are identity-tokenized and scan has zero uncovered values; Brand Primary/Secondary and shared Success/Warning/Info are not approved; Error has page-scoped Danger candidate only."
+        "reason": "92 canonical tokens and zero unregistered production color literals. Brand Primary/Secondary and shared Success/Warning/Error/Info roles remain owner-review candidates; no candidate is promoted."
       },
       {
         "id": "Geometry",
@@ -82,9 +82,9 @@
         "status": "REVIEW",
         "blocking": [
           "C-014",
-          "COMPONENT_SHARED_CONTRACT_GAPS"
+          "VIDEO_SHARED_PLAYBACK_CONTRACT"
         ],
-        "reason": "All 16 existing components have queryable contracts; eight still lack approved cross-page geometry or behavior."
+        "reason": "16 existing entries have complete queryable contracts: 14 FROZEN and 2 REVIEW. Selector remains open for C-014; Video lacks a frozen shared playback/frame/accessibility contract."
       },
       {
         "id": "Asset",
@@ -108,7 +108,7 @@
       "Background and Icon reference mapping",
       "Asset identities and page-family registry"
     ],
-    "block": "No module enters formal Page Contract Freeze before SHARED_FOUNDATION_READY."
+    "block": "No module enters formal Page Contract Freeze before SHARED_FOUNDATION_READY. D-015 owner approval, D-007 brand source/intent, and the two component review contracts remain open."
   },
   "boundaries": {
     "android": false,

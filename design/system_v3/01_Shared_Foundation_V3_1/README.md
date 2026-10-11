@@ -15,3 +15,5 @@
 | 07 | Freeze Status | [Status](../11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.md) · [JSON](../11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.json) · [Readiness Report](../11_Freeze_Governance/Shared_Foundation_Readiness_Report_V3_1.md) | NOT READY · Phase 3 closed |
 
 Phase 1 closure: DECISION_SAVE_CATCH_NAVIGATION_V1. Frozen page visuals remain their authority and were not edited. Earlier V3 registries remain as audit history; Phase 3 consumers must use the FINAL V3.1 links above.
+
+**Effective authority:** [Effective Authority Registry V3.1](../11_Freeze_Governance/Effective_Authority_Registry_V3_1.json) · defines canonical source per system, Frozen page precedence, and review-only boundaries.
