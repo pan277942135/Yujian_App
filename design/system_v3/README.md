@@ -19,7 +19,7 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 - A — repository tree and asset inventory: `11_Freeze_Governance/audits/Repository_Inventory_Checkpoint_A.json`.
 - B — product master flow, registry map, subflows and Design Manager PRD draft: complete.
 - C — asset integrity register, full design-system audit, and contract completeness matrix: complete; 658 design files inventoried, 579 raw SHA-256 values computed, 79 raw binaries blocked by the GitHub Contents API.
-- D — conflicts/gaps, decisions, readiness and dependency map: pending.
+- D — conflict and decision registers, 150-node readiness baseline, and preliminary API/data dependency map: complete.
 - E — repository-side verifier and design governance workflow integration: pending.
 
 ## Entry points
@@ -29,3 +29,7 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 - [Asset Integrity Register](06_Asset_System/Asset_Integrity_Register_V3_1.json)
 - [Full Design System Audit](11_Freeze_Governance/audits/Full_Design_System_Audit_V3_1.md)
 - [Contract Completeness Matrix](11_Freeze_Governance/audits/Contract_Completeness_Matrix_V3_1.json)
+- [Conflicts and Gaps](11_Freeze_Governance/audits/Conflicts_And_Gaps_V3_1.md)
+- [Decisions Required](11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md)
+- [Design Readiness Baseline](11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json)
+- [Preliminary Dependency Map](11_Freeze_Governance/audits/Preliminary_Dependency_Map_V3_1.json)
