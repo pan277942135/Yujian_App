@@ -16,6 +16,6 @@
 
 ## Gate
 
-只有七项全部为 READY 才增加当前 Design Readiness 状态 `SHARED_FOUNDATION_READY` 并允许 Phase 3。当前 3 项 READY、4 项 REVIEW，因此本轮不签发 Phase 3 ready。
+只有七项全部为 READY 才增加当前 Design Readiness 状态 `SHARED_FOUNDATION_READY` 并允许 Phase 3。当前 2 项 READY、5 项 REVIEW，因此本轮不签发 Phase 3 ready。
 
 本轮只有设计治理、tokens、registries、contracts、Design Manager 内容变化；无 Kotlin / Compose / Backend / API / 数据库变更，无 Android build / APK / 真机验收，无 Frozen PNG 修改、main merge 或 Pages 发布。
