@@ -19110,9 +19110,9 @@
   "worktree_exceptions": [
     {
       "path": "design/manager/index.html",
-      "expected_current_git_blob_sha": "2244c5b3f0d24512bad28fa90dc398dbd6eafea8",
+      "expected_current_git_blob_sha": "b795738780bb52c9655515f5e8a00906e2cc2d8e",
       "source_commit_sha": "1830968bf8c234750e094564c11ce4c54b9beffd",
-      "reason": "Checkpoint B added the Phase 1 PRD entry point to the manager. This navigation-only index file is not a frozen product visual or authority asset.",
+      "reason": "Checkpoint B added the Phase 1 PRD entry point and this commit added the Shared Foundation V3.1 audit/freeze entry to the manager. This navigation-only index file is not a frozen product visual or authority asset.",
       "is_frozen_asset": false
     }
   ]
