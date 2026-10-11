@@ -19110,9 +19110,9 @@
   "worktree_exceptions": [
     {
       "path": "design/manager/index.html",
-      "expected_current_git_blob_sha": "0387044364672b55973522552904837b8f986f5a",
-      "source_commit_sha": "1830968bf8c234750e094564c11ce4c54b9beffd",
-      "reason": "Checkpoint B/Phase 1 added the manager audit entry; Phase 2 updates only the Shared Foundation V3.1 status badge and label. The index remains navigation-only, is not a frozen product visual or authority asset, and the Phase 1 asset verifier allowlists this exact content.",
+      "expected_current_git_blob_sha": "4f58beb056fff0185ad28c89c86c7cb10b821586",
+      "source_commit_sha": "9276f968e1ccf44e9733c8204978d41cab1d562f",
+      "reason": "Phase 2 certified the Shared Foundation V3.1 status badge as READY · 7/7; Phase 3 adds the Page Contract V3.1 navigation and three Recognition contract links plus deferred-batch labels. This is a non-frozen Design Manager navigation index only; no page Frozen visual or product artwork changed.",
       "is_frozen_asset": false
     },
     {

@@ -1,0 +1,91 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.result.v3_1",
+  "fields": [
+    {
+      "field": "recognition.result_state",
+      "source": "Recognition Result State Matrix V1.1 and canonical Master Flow result nodes",
+      "required": "required",
+      "fallback": "The five page states stay distinct; no default state is fabricated.",
+      "error_behavior": "Technical Failure remains a separate issue route."
+    },
+    {
+      "field": "recognition.original_image",
+      "source": "Normalized user image handed off from Capture; Hero Media Contract owns its mapping inside the state-specific frame.",
+      "required": "required for all five visual states",
+      "fallback": "No substitute or generated image; return to recovery/capture if unavailable.",
+      "error_behavior": "Missing media does not create a FishRecord."
+    },
+    {
+      "field": "recognition.species_identity",
+      "source": "Pipeline top-1/candidate output plus explicit user correction per Recognition Result Behavior Spec; exact repository/API/database lineage remains C-011.",
+      "required": "Top-1 default for High; explicit confirmation for Medium; optional until manual selection for Low.",
+      "fallback": "Medium candidates stay suggestions; Low remains unconfirmed.",
+      "error_behavior": "Never invent an unknown species or persist an unconfirmed Low result."
+    },
+    {
+      "field": "recognition.candidate_list",
+      "source": "Classifier candidate output; Behavior Spec and Candidate Card Contract; C-011 field lineage is open.",
+      "required": "Conditional: Medium result only.",
+      "fallback": "Do not silently select Top-1. If explicit candidates are absent, no candidate is fabricated; current failure mapping is not expanded here.",
+      "error_behavior": "Keep on current Result/technical recovery according to the actual pipeline outcome; no guessed state mapping."
+    },
+    {
+      "field": "recognition.image_quality_reason",
+      "source": "Current Master Flow image_quality node and 3+2 decision contract; reason-level mapping is open under C-009.",
+      "required": "Conditional: IMAGE_QUALITY_WARNING only.",
+      "fallback": "Preserve current Frozen generic copy.",
+      "error_behavior": "Do not claim optical blur or distinguish blur/distance/occlusion until product/content decision."
+    },
+    {
+      "field": "catch.length",
+      "source": "User-entered draft field per Metadata Input Contract; storage/API lineage remains C-011.",
+      "required": "optional",
+      "fallback": "Display the Frozen empty placeholder and preserve the prior draft.",
+      "error_behavior": "Invalid numeric value remains editable with field error; does not block save merely by being absent."
+    },
+    {
+      "field": "catch.weight",
+      "source": "User-entered draft field per Metadata Input Contract; storage/API lineage remains C-011.",
+      "required": "optional",
+      "fallback": "Display the Frozen empty placeholder and preserve the prior draft.",
+      "error_behavior": "Invalid numeric value remains editable with field error; does not block save merely by being absent."
+    },
+    {
+      "field": "catch.location",
+      "source": "User action/selection per Metadata Input Contract; storage/API lineage remains C-011.",
+      "required": "optional",
+      "fallback": "Display the Frozen empty placeholder.",
+      "error_behavior": "Permission denial does not block save; location is requested only after an explicit action."
+    },
+    {
+      "field": "catch.story",
+      "source": "User-authored memory text per Metadata Input Contract; storage/API lineage remains C-011.",
+      "required": "optional",
+      "fallback": "Empty draft with Frozen placeholder and zero counter.",
+      "error_behavior": "Preserve draft; cap at 300 Unicode code points; voice input is absent unless transcript capability is real."
+    },
+    {
+      "field": "save.requested_destination",
+      "source": "Explicit Result CTA; DECISION_SAVE_CATCH_NAVIGATION_V1 and Master Flow save_home node.",
+      "required": "required when persisting",
+      "fallback": "No destination inferred from a prior unrelated flow.",
+      "error_behavior": "On failure remain on Result and preserve requested destination/draft for retry."
+    },
+    {
+      "field": "save.persisted_record_id",
+      "source": "Successful FishRecord creation; exact local/API/database mapping remains C-011.",
+      "required": "required before either successful exit",
+      "fallback": "No success route without a persisted record identity.",
+      "error_behavior": "Retry safely; no duplicate FishRecord."
+    }
+  ],
+  "coverage": {
+    "empty": "Optional metadata/story may be empty; species resolution is required before persistence for Low and explicit for Medium.",
+    "loading": "Recognition presentation arrives only after the real pipeline resolves; save loading preserves layout and prevents duplicate submission.",
+    "error": "No Fish/Image Quality create no record; save error stays on Result with all user fields; technical failure uses the separate issue route.",
+    "partial": "Missing optional length/weight/location/story stays empty; available user data is preserved. Partial model fields are never fabricated.",
+    "network_failure": "A reported save/network failure remains retryable on Result, preserves fields and requested destination, and avoids duplicate records; it is not relabeled as Image Quality."
+  },
+  "lineage_boundary": "These are product-level field names and authorities, not a claimed final mapping to Android repository/DTO, API response, database/local store, sorting or ownership. C-011 remains open."
+}

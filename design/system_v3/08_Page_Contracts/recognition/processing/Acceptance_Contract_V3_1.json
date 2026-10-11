@@ -1,0 +1,90 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.processing.v3_1",
+  "status": "REVIEW",
+  "visual": [
+    {
+      "id": "PROC-V-01",
+      "criterion": "Original user photo remains dominant, opaque and readable; Frozen layer stack and state keyframes match V1.2 authority.",
+      "method": "Compare each Processing state to the registered keyframe set and inspect layer ordering.",
+      "pass_condition": "Photo is unmodified/dominant; overlay layers, focus and copy do not exceed the named state authority.",
+      "status": "READY"
+    },
+    {
+      "id": "PROC-V-02",
+      "criterion": "CAPTURED/DETECTING map to one visible IMAGE_RECOGNIZING state; OUTLINE and CLASSIFYING map to the next two visible states.",
+      "method": "Drive each internal phase and inspect visible state identity.",
+      "pass_condition": "Exactly three user-visible Processing states; first two keyframes do not become two product pages.",
+      "status": "BLOCKED",
+      "blocked_by": [
+        "PROC-001"
+      ]
+    },
+    {
+      "id": "PROC-V-03",
+      "criterion": "Visible Processing copy and 14sp status subtitle have one authority and a registered token/override.",
+      "method": "Compare visible copy and typography against Timeline, Visual Spec and effective Typography Registry.",
+      "pass_condition": "No unapproved copy transition; every dynamic text role resolves to a token or approved page override.",
+      "status": "BLOCKED",
+      "blocked_by": [
+        "PROC-001",
+        "PROC-002"
+      ]
+    }
+  ],
+  "interaction": [
+    {
+      "id": "PROC-I-01",
+      "criterion": "State transitions follow real pipeline events and respect minimum visual beats without fake progress.",
+      "method": "Inspect deterministic event/state trace and visual timing.",
+      "pass_condition": "900ms/600ms/1250ms minimum beats and 200ms Resolve; no artificial ETA or auto-advance.",
+      "status": "READY"
+    },
+    {
+      "id": "PROC-I-02",
+      "criterion": "Back exits to the prior surface and never saves a catch.",
+      "method": "Activate Back in each active semantic state.",
+      "pass_condition": "Cancellation is a user exit, not an error or persistence path.",
+      "status": "READY"
+    },
+    {
+      "id": "PROC-I-03",
+      "criterion": "State transitions preserve the continuous Edge Field clock and current geometry identity.",
+      "method": "Compare segment phase/geometry before and after state transitions.",
+      "pass_condition": "No field reset, phase jump or new fake progress beat.",
+      "status": "READY"
+    }
+  ],
+  "accessibility": [
+    {
+      "id": "PROC-A-01",
+      "criterion": "Reduced Motion and degradation change visual activity only and retain the same semantic state order.",
+      "method": "Review FULL/BALANCED/LITE, Reduce Motion and D0-D4 output against semantic invariants.",
+      "pass_condition": "Three product states and status meaning remain available; no focus/contour appears without real detection.",
+      "status": "READY"
+    },
+    {
+      "id": "PROC-A-02",
+      "criterion": "Back is reachable with a registered 44×44dp target and state semantics.",
+      "method": "Measure Back hit target and inspect accessible name/state.",
+      "pass_condition": "Target meets touch.minimum and exits without saving.",
+      "status": "READY"
+    }
+  ],
+  "error": [
+    {
+      "id": "PROC-E-01",
+      "criterion": "No Fish, Image Quality and Technical Failure remain distinct; each exits Processing without creating a record.",
+      "method": "Inject each real issue event and trace the next page/state.",
+      "pass_condition": "Issue category and recovery path match the canonical flow; no relabeling between classes.",
+      "status": "READY"
+    },
+    {
+      "id": "PROC-E-02",
+      "criterion": "Network/pipeline failure does not display No Fish/Image Quality copy or a fabricated retry duration.",
+      "method": "Drive a reported technical failure and inspect the exit state.",
+      "pass_condition": "TECHNICAL_FAILURE route is used and remains separate from the 3+2 recovery states.",
+      "status": "READY"
+    }
+  ]
+}

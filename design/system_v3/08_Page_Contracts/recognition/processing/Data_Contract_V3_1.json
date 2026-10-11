@@ -1,0 +1,49 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.processing.v3_1",
+  "fields": [
+    {
+      "field": "recognition.normalized_image",
+      "source": "Identify normalized-image handoff and Recognition Processing Contract V1.2",
+      "required": "required",
+      "fallback": "No preview substitute; missing image returns to Capture.",
+      "error_behavior": "Do not start detector without image input."
+    },
+    {
+      "field": "recognition.pipeline_phase",
+      "source": "RecognitionStateMachine phase progression CAPTURED/DETECTING/OUTLINE/CLASSIFYING",
+      "required": "required while Processing",
+      "fallback": "Stay in the current semantic state while the pipeline is active.",
+      "error_behavior": "A reported pipeline exception exits as TECHNICAL_FAILURE."
+    },
+    {
+      "field": "recognition.detector_outcome",
+      "source": "Canonical Master Flow and recognition 3+2 decision authority",
+      "required": "required to leave DETECTING",
+      "fallback": "No fabricated fish focus or candidate.",
+      "error_behavior": "NO_FISH, IMAGE_QUALITY_WARNING or TECHNICAL_FAILURE remain distinct exits."
+    },
+    {
+      "field": "recognition.focus_region",
+      "source": "Real detector bbox through the displayed-photo transform; Processing Visual Spec V1.1",
+      "required": "required before fish-local focus appears",
+      "fallback": "If contour data is absent but bbox is valid, use only the source-authorized degraded level.",
+      "error_behavior": "No rectangle, halo or contour may imply a fish before a real focus region exists."
+    },
+    {
+      "field": "recognition.classifier_outcome",
+      "source": "Recognition pipeline result event; confidence thresholds remain current runtime authority and are not changed here",
+      "required": "required to emit RESULT",
+      "fallback": "No candidate/confidence is shown during Processing.",
+      "error_behavior": "A real classifier failure exits TECHNICAL_FAILURE."
+    }
+  ],
+  "coverage": {
+    "empty": "No normalized image means Processing is not entered; return to Capture.",
+    "loading": "CAPTURED/DETECTING share one visible IMAGE_RECOGNIZING state. No fake progress percentage, ETA or rotating copy.",
+    "error": "No Fish, Image Quality and Technical Failure use distinct exit contracts; no record is created in Processing.",
+    "partial": "A valid detector bbox may use the registered degradation level when contour alpha is unavailable; classifier semantics do not change.",
+    "network_failure": "If a real pipeline/network dependency reports failure, use TECHNICAL_FAILURE. Network errors are never represented as No Fish or Image Quality."
+  },
+  "runtime_boundary": "Design/State contract only. Recognition Design Closure V1.2 records runtime/evidence ACTIVE_CLOSURE."
+}

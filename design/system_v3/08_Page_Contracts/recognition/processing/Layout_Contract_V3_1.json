@@ -1,0 +1,178 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.processing.v3_1",
+  "status": "REVIEW",
+  "component_refs": [
+    {
+      "component": "media.image",
+      "variant": "ORIGINAL_PHOTO",
+      "scope": "Shared media component; page visual authority owns crop",
+      "token_refs": [
+        "geometry.media.fit",
+        "geometry.media.cover",
+        "geometry.media.contain",
+        "geometry.media.evidence_fit",
+        "geometry.media.letterbox",
+        "geometry.media.blur_background"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "navigation.back",
+      "variant": "PROCESSING_BACK",
+      "scope": "Shared Back semantics; exact placement follows the Frozen Processing visual",
+      "token_refs": [
+        "type.title",
+        "color.deep_lake_blue",
+        "touch.minimum",
+        "navigation.back_title.min_height"
+      ],
+      "asset_refs": [
+        "system_icon_library_v0_1_assets_ic_back_v1_svg"
+      ],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
+      "component_status": "FROZEN"
+    }
+  ],
+  "token_refs": [
+    {
+      "token_id": "color.legacy_1a2c35ff",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.legacy_bfd0d7ff",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.legacy_bfeaf2ff",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.legacy_d8f5faff",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.legacy_f6d99bff",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.legacy_ffe7aeff",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "geometry.media.cover",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "touch.minimum",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "type.title",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    }
+  ],
+  "background_refs": [
+    {
+      "background_id": "BG_CAPTURE",
+      "authority": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "source_asset": "Current user photo (runtime)",
+      "master_path": null,
+      "sha256": null,
+      "treatment": {
+        "opaque": true,
+        "content_scale": "Crop per camera contract",
+        "tint": "none",
+        "fallback": "#102D35",
+        "no_morning_lake_underlay": true
+      },
+      "status": "FROZEN"
+    }
+  ],
+  "asset_refs": [
+    {
+      "asset_id": "pages_recognition_design_01_capture_transition_frozen_png",
+      "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58",
+      "type": "PNG",
+      "size": 2204457,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "IMAGE_RECOGNIZING Early keyframe; Processing only"
+    },
+    {
+      "asset_id": "pages_recognition_design_02_ai_understanding_frozen_png",
+      "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+      "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
+      "type": "PNG",
+      "size": 2180190,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "IMAGE_RECOGNIZING Late keyframe; Processing only"
+    },
+    {
+      "asset_id": "pages_recognition_design_03_fish_highlight_frozen_png",
+      "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+      "sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284",
+      "type": "PNG",
+      "size": 1992970,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "FISH_LOCATED keyframe"
+    },
+    {
+      "asset_id": "pages_recognition_design_04_fish_identifying_frozen_png",
+      "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+      "sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+      "type": "PNG",
+      "size": 1940909,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "SPECIES_RECOGNIZING keyframe"
+    }
+  ],
+  "page_scoped_authorities": [
+    "design/pages/recognition/Recognition_Design_Closure_V1_2.md",
+    "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md",
+    "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+    "design/pages/recognition/spec/RecognitionStatusCard_V1.md",
+    "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
+    "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md"
+  ],
+  "unresolved_dependencies": [
+    {
+      "id": "PROC-001",
+      "type": "STATE_COPY_AUTHORITY_CONFLICT",
+      "blocks_freeze": true
+    },
+    {
+      "id": "PROC-002",
+      "type": "TYPOGRAPHY_TOKEN_MAPPING",
+      "blocks_freeze": true
+    }
+  ],
+  "rules": {
+    "visible_state_mapping": {
+      "CAPTURED": "IMAGE_RECOGNIZING / Early reference",
+      "DETECTING": "IMAGE_RECOGNIZING / Late reference",
+      "OUTLINE": "FISH_LOCATED",
+      "CLASSIFYING": "SPECIES_RECOGNIZING",
+      "RESULT": "exit to Recognition Result; not a Processing state"
+    },
+    "visual_scope": "Frozen keyframes are read-only; first two PNGs are one user-visible product state.",
+    "page_private_tokens": false
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.capture.v3_1",
+  "status": "REVIEW",
+  "component_refs": [],
+  "token_refs": [
+    {
+      "token_id": "color.capture_dark_fallback",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "touch.minimum",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "viewport.360",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "viewport.393",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "viewport.412",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "viewport.480",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    }
+  ],
+  "background_refs": [
+    {
+      "background_id": "BG_CAPTURE",
+      "authority": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "source_asset": "Current user photo (runtime)",
+      "master_path": null,
+      "sha256": null,
+      "treatment": {
+        "opaque": true,
+        "content_scale": "Crop per camera contract",
+        "tint": "none",
+        "fallback": "#102D35",
+        "no_morning_lake_underlay": true
+      },
+      "status": "FROZEN"
+    }
+  ],
+  "asset_refs": [
+    {
+      "asset_id": "system_components_primary_capture_button_assets_capture_button_main_v1_png",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "type": "PNG",
+      "size": 58154,
+      "dimensions": "208x208",
+      "registry_status": "FROZEN",
+      "role": "existing frozen capture-button artwork; not a V3 component registration"
+    }
+  ],
+  "page_scoped_authorities": [
+    "design/system/components/primary_capture_button/README.md",
+    "design/system/components/primary_capture_button/manifest.json",
+    "design/system/components/primary_capture_button/visual_contract.json"
+  ],
+  "unresolved_dependencies": [
+    {
+      "id": "CAP-001",
+      "type": "PAGE_VISUAL_AUTHORITY",
+      "blocks_freeze": true
+    },
+    {
+      "id": "CAP-002",
+      "type": "SHARED_COMPONENT_MAPPING",
+      "blocks_freeze": true
+    },
+    {
+      "id": "CAP-003",
+      "type": "RESPONSIVE_ACCESSIBILITY_PAGE_MATRIX",
+      "blocks_freeze": true
+    }
+  ],
+  "rules": {
+    "camera_preview": "Flexible live source; crop follows BG_CAPTURE and a camera-page contract that is not currently registered. Do not use the Processing Early keyframe as a camera preview.",
+    "capture_button": "Fixed action role per existing capture-button authority; exact screen coordinates and physical dp bounds are page-owned and currently unresolved.",
+    "gallery": "Existing capture/gallery handoff only; visual form and icon mapping remain unresolved.",
+    "page_private_tokens": false
+  }
+}

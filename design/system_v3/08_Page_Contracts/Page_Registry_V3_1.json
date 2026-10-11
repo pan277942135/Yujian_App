@@ -1,0 +1,170 @@
+{
+  "schema_version": "3.1",
+  "registry_id": "page_contract_registry_v3_1",
+  "status": "PHASE_3A_REVIEW",
+  "version": "V3.1",
+  "shared_foundation_authority": "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json",
+  "pages": [
+    {
+      "page_id": "recognition.capture.v3_1",
+      "name": "Recognition Capture",
+      "status": "REVIEW",
+      "contract": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md",
+      "layout_contract": "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json",
+      "state_machine": "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+      "data_contract": "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json",
+      "engineering_contract": "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md",
+      "acceptance": "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+      "authority": "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json",
+      "known_blockers": [
+        {
+          "id": "CAP-001",
+          "finding": "CAMERA_VISUAL_AUTHORITY_MISSING",
+          "owner": "Design / Product",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json#capture_camera",
+            "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json#capture_gallery",
+            "design/pages/recognition/Recognition_Design_Closure_V1_2.md",
+            "design/pages/recognition/design/01_Capture_Transition_Frozen.png"
+          ],
+          "detail": "The Master Flow capture_camera/capture_gallery nodes point to 01_Capture_Transition_Frozen.png, but the V1.2 Recognition closure remaps that exact asset as the IMAGE_RECOGNIZING Processing Early keyframe. No separate frozen Camera Preview/Gallery page visual authority was found. The existing file is not a camera screen."
+        },
+        {
+          "id": "CAP-002",
+          "finding": "CAPTURE_COMPONENT_NOT_IN_EFFECTIVE_COMPONENT_REGISTRY",
+          "owner": "Design System",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/system/components/primary_capture_button/README.md",
+            "design/system/components/primary_capture_button/manifest.json",
+            "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json"
+          ],
+          "detail": "A Frozen Primary Capture Button asset/spec exists, but it has no component_id entry in the effective 16-entry V3 component registry. The capture preview, Gallery affordance and permission UI also have no complete V3.1 component mapping. This contract cites the existing capture asset identity without introducing a component."
+        },
+        {
+          "id": "CAP-003",
+          "finding": "C-008_RESPONSIVE_ACCESSIBILITY_PAGE_MATRIX_OPEN",
+          "owner": "Design / Accessibility",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
+          ],
+          "detail": "Capture-specific edge-to-edge, permission-denial copy, camera-control placement and accessibility behavior are not resolved by an approved camera-page visual/interaction authority."
+        }
+      ]
+    },
+    {
+      "page_id": "recognition.processing.v3_1",
+      "name": "Recognition Processing",
+      "status": "REVIEW",
+      "contract": "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_1.md",
+      "layout_contract": "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json",
+      "state_machine": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
+      "data_contract": "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json",
+      "engineering_contract": "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_1.md",
+      "acceptance": "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json",
+      "authority": "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_2.json",
+      "known_blockers": [
+        {
+          "id": "PROC-001",
+          "finding": "STATE_TIMELINE_AND_VISUAL_COPY_NEED_RECONCILIATION",
+          "owner": "Recognition Design / Product",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md",
+            "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+            "design/pages/recognition/Recognition_Design_Closure_V1_2.md"
+          ],
+          "detail": "V1.3 freezes three visible product states and prohibits extra loading-copy rotation; the still-listed V1.1 visual spec names separate CAPTURED/DETECTING copy and phases. V1.2 closure maps the first two PNGs into one product state but does not amend the V1.1 copy table. The exact visible copy/timing treatment for the first state is not inferred here."
+        },
+        {
+          "id": "PROC-002",
+          "finding": "FROZEN_14SP_SUBTITLE_HAS_NO_REGISTERED_TYPE_TOKEN_OR_PAGE_OVERRIDE",
+          "owner": "Design System / Recognition Design",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+            "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+            "design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md"
+          ],
+          "detail": "The Frozen Processing status overlay declares a 14sp subtitle. The effective Typography registry has no 14sp token or registered Recognition Processing page override. Do not substitute type.body/type.caption or create a private token; the conflict requires an approved authority decision."
+        },
+        {
+          "id": "PROC-003",
+          "finding": "RUNTIME_AND_DEVICE_EVIDENCE_STILL_OPEN",
+          "owner": "Android / Test",
+          "blocks_freeze": false,
+          "evidence": [
+            "design/pages/recognition/Recognition_Design_Closure_V1_2.md",
+            "design/pages/recognition/evidence/Recognition_Runtime_Evidence_V1_2.md"
+          ],
+          "detail": "Source design is FROZEN; runtime/evidence status remains ACTIVE_CLOSURE. This V3.1 page contract does not claim Android runtime or device acceptance."
+        }
+      ]
+    },
+    {
+      "page_id": "recognition.result.v3_1",
+      "name": "Recognition Result",
+      "status": "REVIEW",
+      "contract": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+      "layout_contract": "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json",
+      "state_machine": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "data_contract": "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json",
+      "engineering_contract": "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md",
+      "acceptance": "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json",
+      "authority": "design/pages/recognition/result/authority/authority_map.json",
+      "known_blockers": [
+        {
+          "id": "RES-001",
+          "finding": "C-009_IMAGE_QUALITY_REASON_COPY_MAPPING_OPEN",
+          "owner": "Product / Content / Recognition",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+            "design/system_v3/11_Freeze_Governance/audits/Conflicts_And_Gaps_V3_1.md",
+            "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json#image_quality"
+          ],
+          "detail": "Frozen Image Quality surface is reachable for TOO_FAR/ineligible-input paths, while product has not chosen broad recovery guidance versus reliable reason-specific diagnosis. Preserve current Frozen copy; do not rewrite or invent a pixel-quality reason mapping."
+        },
+        {
+          "id": "RES-002",
+          "finding": "C-011_DYNAMIC_FIELD_LINEAGE_OPEN",
+          "owner": "Product / Android / Backend data owners",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+            "design/system_v3/11_Freeze_Governance/audits/Conflicts_And_Gaps_V3_1.md"
+          ],
+          "detail": "The page contract names product-level data fields and current behavior sources, but does not claim an audited mapping from each displayed field through repository/model/DTO/API/database or local storage, sorting/filtering and ownership."
+        },
+        {
+          "id": "RES-003",
+          "finding": "C-008_RESPONSIVE_ACCESSIBILITY_PAGE_MATRIX_OPEN",
+          "owner": "Design / Accessibility",
+          "blocks_freeze": true,
+          "evidence": [
+            "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
+          ],
+          "detail": "Global baseline viewports and shared Geometry are referenced, but final Result-specific large-text/compact-height and device acceptance evidence remains unapproved under C-008. Keep Frozen page-specific geometry intact."
+        }
+      ]
+    }
+  ],
+  "deferred_batches": [
+    {
+      "batch": "PHASE_3B",
+      "status": "NOT_STARTED",
+      "pages": [
+        "Home",
+        "Fish Record",
+        "My Catches",
+        "Record Date",
+        "Fish Guide",
+        "My Habitat",
+        "Account",
+        "Share"
+      ]
+    }
+  ]
+}

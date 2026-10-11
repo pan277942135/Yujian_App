@@ -1,0 +1,183 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.processing.v3_1",
+  "entry_state": "CAPTURED",
+  "states": [
+    {
+      "id": "CAPTURED",
+      "kind": "internal_pipeline_phase",
+      "visible_state": "IMAGE_RECOGNIZING",
+      "visual_reference_role": "EARLY"
+    },
+    {
+      "id": "DETECTING",
+      "kind": "internal_pipeline_phase",
+      "visible_state": "IMAGE_RECOGNIZING",
+      "visual_reference_role": "LATE"
+    },
+    {
+      "id": "OUTLINE",
+      "kind": "internal_pipeline_phase",
+      "visible_state": "FISH_LOCATED",
+      "visual_reference_role": "PRIMARY"
+    },
+    {
+      "id": "CLASSIFYING",
+      "kind": "internal_pipeline_phase",
+      "visible_state": "SPECIES_RECOGNIZING",
+      "visual_reference_role": "PRIMARY"
+    },
+    {
+      "id": "RESULT",
+      "kind": "handoff_state",
+      "visible_state": null,
+      "meaning": "Resolve transition exits to Recognition Result."
+    },
+    {
+      "id": "NO_FISH",
+      "kind": "issue_exit",
+      "visible_state": null,
+      "meaning": "Early issue exit; no FishRecord."
+    },
+    {
+      "id": "IMAGE_QUALITY_WARNING",
+      "kind": "issue_exit",
+      "visible_state": null,
+      "meaning": "Early issue exit; copy/reason semantics remain under C-009."
+    },
+    {
+      "id": "TECHNICAL_FAILURE",
+      "kind": "issue_exit",
+      "visible_state": null,
+      "meaning": "Independent technical recovery; not No Fish/Image Quality."
+    },
+    {
+      "id": "CANCELLED",
+      "kind": "user_exit",
+      "visible_state": null,
+      "meaning": "Back exits to the previous surface; not a recognition failure."
+    }
+  ],
+  "visible_product_states": [
+    {
+      "id": "IMAGE_RECOGNIZING",
+      "display_name": "图片识别中",
+      "internal_phases": [
+        "CAPTURED",
+        "DETECTING"
+      ],
+      "minimum_visual_beat_ms": 900
+    },
+    {
+      "id": "FISH_LOCATED",
+      "display_name": "已定位到鱼体",
+      "internal_phases": [
+        "OUTLINE"
+      ],
+      "minimum_visual_beat_ms": 600
+    },
+    {
+      "id": "SPECIES_RECOGNIZING",
+      "display_name": "鱼种识别中",
+      "internal_phases": [
+        "CLASSIFYING"
+      ],
+      "minimum_visual_beat_ms": 1250
+    }
+  ],
+  "transitions": [
+    {
+      "current_state": "CAPTURED",
+      "action": "DetectionStarted",
+      "guard": "A normalized selected image exists",
+      "next_state": "DETECTING"
+    },
+    {
+      "current_state": "DETECTING",
+      "action": "DetectionFinished(OUTLINE)",
+      "guard": "Classifier-eligible fish focus exists",
+      "next_state": "OUTLINE"
+    },
+    {
+      "current_state": "DETECTING",
+      "action": "DetectionFinished(NO_FISH)",
+      "guard": "No eligible fish",
+      "next_state": "NO_FISH"
+    },
+    {
+      "current_state": "DETECTING",
+      "action": "DetectionFinished(TOO_FAR_OR_INELIGIBLE)",
+      "guard": "Pipeline routes this issue without technical failure",
+      "next_state": "IMAGE_QUALITY_WARNING"
+    },
+    {
+      "current_state": "DETECTING",
+      "action": "Pipeline failure",
+      "guard": "A real failure code/exception is reported",
+      "next_state": "TECHNICAL_FAILURE"
+    },
+    {
+      "current_state": "OUTLINE",
+      "action": "ClassificationStarted",
+      "guard": "Valid fish focus remains available",
+      "next_state": "CLASSIFYING"
+    },
+    {
+      "current_state": "OUTLINE",
+      "action": "Crop/model failure",
+      "guard": "A real technical failure is reported",
+      "next_state": "TECHNICAL_FAILURE"
+    },
+    {
+      "current_state": "CLASSIFYING",
+      "action": "ClassificationResolved",
+      "guard": "The real classifier produces a Result outcome",
+      "next_state": "RESULT"
+    },
+    {
+      "current_state": "CLASSIFYING",
+      "action": "Classification failure",
+      "guard": "A real failure code/exception is reported",
+      "next_state": "TECHNICAL_FAILURE"
+    },
+    {
+      "current_state": "CAPTURED",
+      "action": "User Back",
+      "guard": "User cancels the current attempt",
+      "next_state": "CANCELLED"
+    },
+    {
+      "current_state": "DETECTING",
+      "action": "User Back",
+      "guard": "User cancels the current attempt",
+      "next_state": "CANCELLED"
+    },
+    {
+      "current_state": "OUTLINE",
+      "action": "User Back",
+      "guard": "User cancels the current attempt",
+      "next_state": "CANCELLED"
+    },
+    {
+      "current_state": "CLASSIFYING",
+      "action": "User Back",
+      "guard": "User cancels the current attempt",
+      "next_state": "CANCELLED"
+    }
+  ],
+  "resolve": {
+    "id": "RESOLVE",
+    "is_product_state": false,
+    "duration_ms": 200,
+    "next_page": "recognition.result.v3_1"
+  },
+  "exits": [
+    "RESULT",
+    "NO_FISH",
+    "IMAGE_QUALITY_WARNING",
+    "TECHNICAL_FAILURE",
+    "CANCELLED"
+  ],
+  "timeout_policy": "No numeric product timeout is authorized. Do not invent ETA, percentage or automatic state advancement. Remain in the current semantic state while work is active; a real pipeline timeout/failure uses TECHNICAL_FAILURE.",
+  "network_failure_policy": "If a genuine network/dependency failure is reported as a pipeline failure code, use TECHNICAL_FAILURE. Never relabel it as NO_FISH or IMAGE_QUALITY_WARNING."
+}

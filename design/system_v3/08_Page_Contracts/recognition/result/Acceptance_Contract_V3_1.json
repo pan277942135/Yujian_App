@@ -1,0 +1,113 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.result.v3_1",
+  "status": "REVIEW",
+  "visual": [
+    {
+      "id": "RES-V-01",
+      "criterion": "Render the five Frozen states with their correct state PNG, hierarchy, copy and state-specific Hero dimensions.",
+      "method": "Compare the state to its exact registered Frozen visual asset and layout geometry.",
+      "pass_condition": "High 322×210; Medium/Low 322×178; No Fish 322×245; Image Quality 322×214 at 360dp, with declared page-safe adaptation.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-V-02",
+      "criterion": "Hero media mode matches state: subject-safe for High/Medium/Low and complete Evidence Fit for No Fish/Image Quality.",
+      "method": "Inspect source orientation, safe rectangle and displayed crop.",
+      "pass_condition": "No stretch, generated fill, classifier crop or clipped evidence.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-V-03",
+      "criterion": "Image Quality recovery copy matches an owner-approved meaning for all mapped failure reasons.",
+      "method": "Compare actual issue reason codes to approved recovery copy decision.",
+      "pass_condition": "No optical-blur claim for an unmeasured reason; exact mapping is approved.",
+      "status": "BLOCKED",
+      "blocked_by": [
+        "RES-001"
+      ]
+    }
+  ],
+  "interaction": [
+    {
+      "id": "RES-I-01",
+      "criterion": "Medium candidate remains a suggestion until explicitly selected; selector returns to the same Result state.",
+      "method": "Open Medium, tap a candidate and separately exercise Other Species/cancel.",
+      "pass_condition": "No automatic confirmation; confirmed species is explicit; cancel preserves Result context.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-I-02",
+      "criterion": "Low unresolved CTA gates persistence through LOW_MANUAL; selection resumes only the requested action.",
+      "method": "Test Save and Continue Memory separately, then return unconfirmed.",
+      "pass_condition": "No unknown species record; draft preserved; pending destination cleared on unconfirmed return.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-I-03",
+      "criterion": "Successful Save Catch persists once then routes Home; Detail is opened later from an allowed entry point.",
+      "method": "Complete ordinary Save Catch and inspect route/record count.",
+      "pass_condition": "No direct Detail route from Save Catch; one persisted record.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-I-04",
+      "criterion": "Continue Memory remains a distinct action that enters Detail memory only after record persistence.",
+      "method": "Complete Continue Memory and inspect route and record identity.",
+      "pass_condition": "FishRecord exists before Detail; initial section is MEMORY.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-I-05",
+      "criterion": "Save error stays on Result, preserves all draft fields and prevents duplicate records.",
+      "method": "Fail persistence then retry.",
+      "pass_condition": "Fields and destination survive; one record maximum.",
+      "status": "READY"
+    }
+  ],
+  "accessibility": [
+    {
+      "id": "RES-A-01",
+      "criterion": "All shared actions/selector/search/sheets retain registered minimum hit target, focus and accessible state.",
+      "method": "Measure and inspect the shared component contracts at the registered viewports.",
+      "pass_condition": "At least touch.minimum where applicable; focus enters/restores from modal; control role/state is announced.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-A-02",
+      "criterion": "Font scale and compact-height layout preserve the active field and reachable actions.",
+      "method": "Inspect declared type scale and compact-height variant against the approved page matrix.",
+      "pass_condition": "No hidden CTA or unapproved typography override; approved behavior is documented.",
+      "status": "BLOCKED",
+      "blocked_by": [
+        "RES-003"
+      ]
+    }
+  ],
+  "error": [
+    {
+      "id": "RES-E-01",
+      "criterion": "No Fish and Image Quality recovery never creates a FishRecord; Retake/Gallery return to Capture.",
+      "method": "Trigger each issue state and each recovery action.",
+      "pass_condition": "No persistence; correct image-source handoff to Capture.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-E-02",
+      "criterion": "Network/persistence error preserves field values and requested destination and offers retry without duplicate creation.",
+      "method": "Simulate failure before record creation, then retry once.",
+      "pass_condition": "Result remains visible with saved draft and one record maximum.",
+      "status": "READY"
+    },
+    {
+      "id": "RES-E-03",
+      "criterion": "Dynamic field values have audited source and ownership mapping through storage/API.",
+      "method": "Trace each field through repository/model, DTO, API or local storage and ownership evidence.",
+      "pass_condition": "Every displayed field has a signed-off source/empty/error/sort mapping.",
+      "status": "BLOCKED",
+      "blocked_by": [
+        "RES-002"
+      ]
+    }
+  ]
+}
