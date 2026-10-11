@@ -27,7 +27,7 @@
   },
   "summary": {
     "phase1_gate": "PHASE1_CLOSED",
-    "phase1_gate_reason": "P0 C-001 is resolved. Phase 2 Shared Foundation is tracked separately; open P1/P2 design, data, responsive, accessibility and persistence findings remain. No Android/backend acceptance completed. The PR auto-triggered Android CI; its Unit tests step was cancelled before a complete result, and APK assembly was skipped.",
+    "phase1_gate_reason": "P0 C-001 is resolved. The Phase 2 asset hash gap C-012 is resolved by recording 658 raw-byte SHA-256 values. P1 C-002–C-011 and P2 C-013–C-014 remain open. No Android/backend acceptance completed; PR automation must not be treated as acceptance.",
     "page_state_nodes": 150,
     "product_flow_nodes": 35,
     "features": 15,
@@ -49,7 +49,6 @@
       "C-011"
     ],
     "p2_findings": [
-      "C-012",
       "C-013",
       "C-014"
     ]
@@ -10671,6 +10670,8 @@
     "current_state": "NOT_READY",
     "success_state": "SHARED_FOUNDATION_READY",
     "phase3_entry_allowed": false,
+    "ready_count": 4,
+    "review_count": 3,
     "phase3_entry_rule": [
       "Typography READY",
       "Color READY",
@@ -10683,12 +10684,32 @@
     "system_status": {
       "typography": "REVIEW",
       "color": "REVIEW",
-      "geometry": "REVIEW",
+      "geometry": "READY",
       "background": "READY",
       "icon": "READY",
       "component": "REVIEW",
-      "asset": "REVIEW"
+      "asset": "READY"
     },
+    "blocking_items": [
+      "C-007",
+      "D-007",
+      "D-015",
+      "C-014"
+    ],
+    "page_contract_findings": [
+      "C-008"
+    ],
     "source": "design/system_v3/11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.json"
-  }
+  },
+  "phase2_resolved_findings": [
+    "C-012"
+  ],
+  "phase2_open_decisions": [
+    "D-007",
+    "D-015"
+  ],
+  "phase2_open_findings": [
+    "C-008",
+    "C-014"
+  ]
 }

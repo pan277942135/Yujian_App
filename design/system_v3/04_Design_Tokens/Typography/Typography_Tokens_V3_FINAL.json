@@ -1,0 +1,228 @@
+{
+  "schema_version": "3.1",
+  "system_id": "typography_v3_1",
+  "status": "REVIEW",
+  "sources": [
+    "design/system/core_visual_v1/tokens/typography_tokens.json",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt",
+    "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md",
+    "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
+  ],
+  "font_families": [
+    {
+      "id": "android_platform_sans_serif",
+      "font_family_cn": "Android platform SansSerif; Compose FontFamily.SansSerif with OS CJK script/locale fallback",
+      "font_family_en": "Android platform SansSerif; Compose FontFamily.SansSerif",
+      "font_family_digits": "Android platform SansSerif; no tabular-digit face is declared",
+      "source": "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
+      "license": "No app-bundled font file or project-level font license artifact is present. Face and vendor license are supplied by the Android platform and are not pinned by this repository.",
+      "fallback": "Android OS locale/script-aware font fallback. The exact CJK face is device/vendor resolved and is not pinned.",
+      "portability": "Android-specific mapping; other renderers require an explicit platform mapping and cannot infer a font from a screenshot.",
+      "status": "REVIEW"
+    }
+  ],
+  "weight_catalog": [
+    {
+      "name": "Regular",
+      "weight": 400
+    },
+    {
+      "name": "Medium",
+      "weight": 500
+    },
+    {
+      "name": "SemiBold",
+      "weight": 600
+    },
+    {
+      "name": "Bold",
+      "weight": 700
+    }
+  ],
+  "tokens": [
+    {
+      "id": "type.display",
+      "name": "Display",
+      "family": "android_platform_sans_serif",
+      "size": "30sp",
+      "weight": "Medium (500)",
+      "lineHeight": "36sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Hero and editorial title; default shared role."
+    },
+    {
+      "id": "type.headline",
+      "name": "Headline",
+      "family": "android_platform_sans_serif",
+      "size": "28sp",
+      "weight": "Medium (500)",
+      "lineHeight": "34sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Page title unless a registered navigation/page exception applies."
+    },
+    {
+      "id": "type.title",
+      "name": "Title",
+      "family": "android_platform_sans_serif",
+      "size": "20sp",
+      "weight": "Medium (500)",
+      "lineHeight": "26sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Section title and BACK_TITLE."
+    },
+    {
+      "id": "type.subtitle",
+      "name": "Subtitle",
+      "family": "android_platform_sans_serif",
+      "size": "16sp",
+      "weight": "Medium (500)",
+      "lineHeight": "24sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Secondary heading."
+    },
+    {
+      "id": "type.body",
+      "name": "Body",
+      "family": "android_platform_sans_serif",
+      "size": "16sp",
+      "weight": "Regular (400)",
+      "lineHeight": "24sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Factual, explanatory and input text."
+    },
+    {
+      "id": "type.caption",
+      "name": "Caption",
+      "family": "android_platform_sans_serif",
+      "size": "12sp",
+      "weight": "Regular (400)",
+      "lineHeight": "18sp",
+      "letterSpacing": "0sp",
+      "color": "color.mist_blue_gray",
+      "usage": "Supporting label and metadata."
+    },
+    {
+      "id": "type.button",
+      "name": "Button",
+      "family": "android_platform_sans_serif",
+      "size": "16sp",
+      "weight": "Medium (500)",
+      "lineHeight": "20sp",
+      "letterSpacing": "0sp",
+      "color": "color.lake_white",
+      "usage": "Generic button label; component contract takes precedence."
+    },
+    {
+      "id": "type.numeric",
+      "name": "Numeric",
+      "family": "android_platform_sans_serif",
+      "size": "22sp",
+      "weight": "Medium (500)",
+      "lineHeight": "28sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "General numeric value for length, weight, dates and statistics; page data formatting remains page-owned."
+    },
+    {
+      "id": "type.label",
+      "name": "Label",
+      "family": "android_platform_sans_serif",
+      "size": "12sp",
+      "weight": "Regular (400)",
+      "lineHeight": "18sp",
+      "letterSpacing": "0sp",
+      "color": "color.mist_blue_gray",
+      "usage": "Alias of Caption; a naming alias only and introduces no additional scale."
+    }
+  ],
+  "override_policy": {
+    "allowed": [
+      "Brand Hero may refer only to an approved brand font source or existing frozen brand artwork; no new family is inferred.",
+      "Fish Species Name may use its registered page size/line-height while retaining the shared family and weight catalog.",
+      "Large Statistic may use the registered Normal Home Font A reference-pixel mapping, which converts to sp and continues to honor OS fontScale."
+    ],
+    "forbidden": [
+      "Page-private font family or unregistered fallback.",
+      "Page-defined private size scale outside a referenced page authority.",
+      "Silent text shrink, canceled fontScale, unregistered letter spacing, or color literals."
+    ],
+    "shared_family_change_requires": "Explicit owner decision D-007; do not replace a frozen page visual."
+  },
+  "page_overrides": [
+    {
+      "page": "Brand Hero",
+      "token": "type.display",
+      "status": "REVIEW",
+      "rule": "Only an approved brand font source or already frozen brand artwork can carry the calligraphic role. No font file/license is identified in the source; current Android mapping is SansSerif.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/typography_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt"
+      ]
+    },
+    {
+      "page": "Fish Guide · Fish Species Name",
+      "token": "type.display",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "Page authority may set size and line-height for species hierarchy; family and weight remain in shared catalog; preserve page authority.",
+      "source_paths": [
+        "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+      ]
+    },
+    {
+      "page": "Normal Home · Large Statistic",
+      "token": "type.numeric",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "Use Normal Home Font A reference-pixel contract and its explicit width/density conversion to sp. Keep the source values page-scoped; OS fontScale remains enabled.",
+      "source_paths": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt"
+      ]
+    },
+    {
+      "page": "Recognition Result",
+      "token": "type.headline",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "Use the registered centered-title exception and state-specific result contract; do not promote its geometry to a global navigation variant.",
+      "source_paths": [
+        "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
+      ]
+    }
+  ],
+  "page_audit": [
+    {
+      "page": "Empty Home",
+      "status": "CONFLICT_RECORDED",
+      "finding": "Core Visual names BRAND/DISPLAY/UI but no font face; runtime maps SansSerif. Keep as a source conflict; do not infer from Frozen PNG."
+    },
+    {
+      "page": "Normal Home",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "Approved Font A uses reference-pixel sizes and the registered conversion formula; do not translate raw px directly to sp."
+    },
+    {
+      "page": "Recognition Result",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "Centered title and state-specific result typography remain page authorities."
+    },
+    {
+      "page": "FishRecordDetail",
+      "status": "MAPPED",
+      "finding": "Shared family with page-scoped media text / ON_MEDIA color roles; A/B Frozen visuals remain authoritative."
+    },
+    {
+      "page": "Fish Guide",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "Species title sizing is page-owned; large text grows its container and keeps semantic order."
+    }
+  ],
+  "tracking_rule": "0sp unless a page/component authority registers a specific override.",
+  "font_scale_rule": "Honor Android OS fontScale; expand containers and scroll when needed; never silently shrink or cancel scaling.",
+  "unresolved": [
+    "C-007 / D-007: calligraphic brand intent conflicts with the current SansSerif runtime map; no named CJK face/license is pinned; owner approval is still required."
+  ]
+}

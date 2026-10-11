@@ -1,0 +1,509 @@
+#!/usr/bin/env python3
+"""Validate YuJian Design System V3.1 shared foundation registries and byte identities."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+import sys
+import zlib
+from collections import Counter
+from pathlib import Path, PurePosixPath
+from typing import Any
+
+TYPE_PATH = "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json"
+COLOR_PATH = "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+GEOMETRY_PATH = "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+COMPONENT_PATH = "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json"
+ASSET_PATH = "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json"
+ICON_PATH = "design/system_v3/09_Icon_System/Icon_Registry_V3.json"
+BACKGROUND_PATH = "design/system_v3/08_Background_System/Background_Registry_V3.json"
+FREEZE_PATH = "design/system_v3/11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.json"
+PAGE_MAP_PATH = "design/system_v3/01_Page_Registry/page_state_authority_map_v3_1.json"
+ASSET_STATUSES = {"FROZEN", "APPROVED", "REVIEW", "MISSING", "DEPRECATED"}
+SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+HEX_RE = re.compile(r"(?<![0-9A-Za-z])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})(?![0-9A-Za-z])")
+RGB_RE = re.compile(r"(?i)\brgba?\(\s*[^)]*?\s*\)")
+PNG_SIG = b"\x89PNG\r\n\x1a\n"
+
+
+def load_json(root: Path, relative: str) -> dict[str, Any]:
+    path = root / relative
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{relative}: cannot parse JSON: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ValueError(f"{relative}: root must be an object")
+    return value
+
+
+def unique_ids(rows: Any, field: str, label: str, issues: list[str]) -> set[str]:
+    if not isinstance(rows, list):
+        issues.append(f"{label}: expected a list")
+        return set()
+    seen: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            issues.append(f"{label}: row is not an object")
+            continue
+        value = row.get(field)
+        if not isinstance(value, str) or not value:
+            issues.append(f"{label}: missing {field}")
+            continue
+        if value in seen:
+            issues.append(f"{label}: duplicate {field} {value}")
+        seen.add(value)
+    return seen
+
+
+def safe_relative(value: Any, roots: set[str]) -> bool:
+    if not isinstance(value, str):
+        return False
+    path = PurePosixPath(value)
+    return (
+        not path.is_absolute()
+        and bool(path.parts)
+        and path.parts[0] in roots
+        and all(part not in {"", ".", ".."} for part in path.parts)
+    )
+
+
+def run_git(root: Path, args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[bytes]:
+    result = subprocess.run(["git", *args], cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    if check and result.returncode != 0:
+        message = result.stderr.decode("utf-8", errors="replace").strip()
+        raise RuntimeError(f"git {' '.join(args)} failed: {message}")
+    return result
+
+
+def ensure_commit(root: Path, commit: str) -> None:
+    if not SHA1_RE.fullmatch(commit):
+        raise ValueError(f"invalid baseline commit SHA: {commit!r}")
+    probe = run_git(root, ["cat-file", "-e", f"{commit}^{{commit}}"], check=False)
+    if probe.returncode == 0:
+        return
+    fetched = run_git(root, ["fetch", "--no-tags", "--depth=1", "origin", commit], check=False)
+    if fetched.returncode != 0:
+        message = fetched.stderr.decode("utf-8", errors="replace").strip()
+        raise RuntimeError(f"baseline commit unavailable: {message}")
+    if run_git(root, ["cat-file", "-e", f"{commit}^{{commit}}"], check=False).returncode != 0:
+        raise RuntimeError(f"baseline commit unavailable after fetch: {commit}")
+
+
+def git_show(root: Path, commit: str, relative: str) -> bytes:
+    result = run_git(root, ["show", f"{commit}:{relative}"], check=False)
+    if result.returncode != 0:
+        message = result.stderr.decode("utf-8", errors="replace").strip()
+        raise RuntimeError(f"cannot read baseline file {relative}: {message}")
+    return result.stdout
+
+
+def git_blob_sha1(data: bytes) -> str:
+    header = b"blob " + str(len(data)).encode("ascii") + b"\0"
+    return hashlib.sha1(header + data).hexdigest()
+
+
+def canonical_color(raw: str) -> str | None:
+    value = raw.strip().lower()
+    if value.startswith("#"):
+        digits = value[1:]
+        if len(digits) == 3:
+            digits = "".join(ch * 2 for ch in digits) + "ff"
+        elif len(digits) == 4:
+            digits = "".join(ch * 2 for ch in digits)
+        elif len(digits) == 6:
+            digits += "ff"
+        if len(digits) == 8:
+            return "#" + digits
+        return None
+    match = re.fullmatch(
+        r"rgba?\(\s*([+-]?[\d.]+)%?\s*,\s*([+-]?[\d.]+)%?\s*,\s*([+-]?[\d.]+)%?(?:\s*,\s*([+-]?[\d.]+)%?)?\s*\)",
+        value,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    channels = []
+    for raw_channel in match.groups()[:3]:
+        channel = float(raw_channel)
+        if "%" in value:
+            channel *= 2.55
+        channels.append(max(0, min(255, int(round(channel)))))
+    alpha_raw = match.groups()[3]
+    if alpha_raw is None:
+        alpha = 255
+    else:
+        alpha = float(alpha_raw)
+        if re.search(r",\s*[+-]?[\d.]+%\s*\)$", value):
+            alpha *= 2.55
+        else:
+            alpha *= 255
+        alpha = max(0, min(255, int(round(alpha))))
+    return "#" + "".join(f"{channel:02x}" for channel in channels) + f"{alpha:02x}"
+
+
+def extract_color_literals(text: str) -> list[str]:
+    values = [match.group(0) for match in HEX_RE.finditer(text)]
+    values.extend(match.group(0) for match in RGB_RE.finditer(text))
+    return values
+
+
+def png_metadata_bytes(data: bytes) -> bytes:
+    if not data.startswith(PNG_SIG):
+        return b""
+    result = bytearray()
+    offset = len(PNG_SIG)
+    while offset + 12 <= len(data):
+        length = int.from_bytes(data[offset:offset + 4], "big")
+        kind = data[offset + 4:offset + 8]
+        start = offset + 8
+        end = start + length
+        if end + 4 > len(data):
+            break
+        payload = data[start:end]
+        if kind == b"tEXt":
+            result.extend(payload.replace(b"\0", b" "))
+        elif kind == b"iTXt":
+            result.extend(payload.replace(b"\0", b" "))
+        elif kind == b"zTXt":
+            separator = payload.find(b"\0")
+            if separator >= 0 and separator + 2 <= len(payload):
+                try:
+                    result.extend(zlib.decompress(payload[separator + 2:]))
+                except zlib.error:
+                    pass
+        offset = end + 4
+        if kind == b"IEND":
+            break
+    return bytes(result)
+
+
+def scan_colors(root: Path, token_doc: dict[str, Any]) -> tuple[int, list[str], int]:
+    allowed: set[str] = set()
+    for token in token_doc.get("tokens", []):
+        if not isinstance(token, dict):
+            continue
+        for key in ("hex", "rgba"):
+            value = token.get(key)
+            if isinstance(value, str):
+                canonical = canonical_color(value)
+                if canonical:
+                    allowed.add(canonical)
+
+    source_roots = [
+        "design/pages",
+        "design/system/components",
+        "design/system/core_visual_v1",
+        "design/system/backgrounds",
+        "design/system/icon_library_v0_1",
+        "design/system/fish_media_display_v1",
+        "design/registry",
+        "design/system_v3/04_Design_Tokens",
+        "design/system_v3/05_Component_System",
+        "design/system_v3/08_Background_System",
+        "design/system_v3/09_Icon_System",
+    ]
+    text_ext = {".md", ".json", ".svg", ".css", ".html", ".xml", ".js", ".txt"}
+    raster_ext = {".png"}
+    found: set[str] = set()
+    png_metadata_count = 0
+    scanned = 0
+    for source_root in source_roots:
+        directory = root / source_root
+        if not directory.exists():
+            continue
+        for path in directory.rglob("*"):
+            if not path.is_file() or path.is_symlink():
+                continue
+            suffix = path.suffix.lower()
+            try:
+                if suffix in text_ext:
+                    text = path.read_text(encoding="utf-8")
+                    scanned += 1
+                elif suffix in raster_ext:
+                    metadata = png_metadata_bytes(path.read_bytes()).decode("utf-8", errors="ignore")
+                    scanned += 1
+                    text = metadata
+                else:
+                    continue
+            except (OSError, UnicodeDecodeError):
+                continue
+            for raw in extract_color_literals(text):
+                canonical = canonical_color(raw)
+                if not canonical:
+                    continue
+                if suffix == ".png":
+                    png_metadata_count += 1
+                if canonical not in allowed:
+                    found.add(f"{canonical} in {path.relative_to(root).as_posix()}")
+    return scanned, sorted(found), png_metadata_count
+
+
+def verify_assets(root: Path, registry: dict[str, Any], issues: list[str]) -> tuple[int, int]:
+    rows = registry.get("entries")
+    asset_ids = unique_ids(rows, "asset_id", "assets", issues)
+    paths: set[str] = set()
+    baseline = registry.get("baseline_commit_sha")
+    try:
+        ensure_commit(root, str(baseline or ""))
+    except (RuntimeError, ValueError) as exc:
+        issues.append(f"asset baseline: {exc}")
+        return len(asset_ids), 0
+    verified = 0
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        relative = row.get("path")
+        if not safe_relative(relative, {"design"}):
+            issues.append(f"asset has unsafe path: {relative!r}")
+            continue
+        if relative in paths:
+            issues.append(f"assets: duplicate path {relative}")
+            continue
+        paths.add(relative)
+        if row.get("status") not in ASSET_STATUSES:
+            issues.append(f"{relative}: invalid asset status {row.get('status')!r}")
+        if not isinstance(row.get("size"), int) or row["size"] < 0:
+            issues.append(f"{relative}: invalid byte size")
+        if not isinstance(row.get("dimensions"), str) or not row["dimensions"]:
+            issues.append(f"{relative}: missing dimensions field")
+        if not isinstance(row.get("source"), (str, list)) or not row.get("source"):
+            issues.append(f"{relative}: missing source")
+        if not isinstance(row.get("used_by"), list):
+            issues.append(f"{relative}: used_by must be a list")
+        recorded_sha256 = row.get("sha256")
+        if not isinstance(recorded_sha256, str) or not SHA256_RE.fullmatch(recorded_sha256):
+            issues.append(f"{relative}: missing/invalid SHA-256")
+            continue
+        worktree_file = root.joinpath(*PurePosixPath(relative).parts)
+        if worktree_file.is_symlink() or not worktree_file.is_file():
+            issues.append(f"{relative}: missing from current checkout or is a symlink")
+            continue
+        try:
+            data = git_show(root, str(baseline), relative)
+        except RuntimeError as exc:
+            issues.append(str(exc))
+            continue
+        actual_sha256 = hashlib.sha256(data).hexdigest()
+        if actual_sha256 != recorded_sha256:
+            issues.append(f"{relative}: raw-byte SHA-256 mismatch")
+        if len(data) != row.get("size"):
+            issues.append(f"{relative}: raw-byte size mismatch")
+        recorded_git_sha = row.get("git_blob_sha")
+        if not isinstance(recorded_git_sha, str) or not SHA1_RE.fullmatch(recorded_git_sha):
+            issues.append(f"{relative}: invalid separate Git blob identity")
+        elif git_blob_sha1(data) != recorded_git_sha:
+            issues.append(f"{relative}: Git blob identity mismatch")
+        if row.get("status") == "FROZEN":
+            current_data = worktree_file.read_bytes()
+            if current_data != data:
+                issues.append(f"{relative}: Frozen asset content differs from baseline")
+        verified += 1
+    summary = registry.get("summary", {})
+    if summary.get("total_files") != len(rows or []):
+        issues.append("asset summary total_files does not match entry count")
+    if len(rows or []) != 658:
+        issues.append(f"asset registry expected 658 rows; found {len(rows or [])}")
+    if len(asset_ids) != 658 or len(paths) != 658:
+        issues.append(f"asset identities are not unique: ids={len(asset_ids)}, paths={len(paths)}")
+    if verified != 658:
+        issues.append(f"raw-byte asset verification expected 658; verified {verified}")
+    return len(asset_ids), verified
+
+
+def run(root: Path, *, strict_ready: bool = False) -> int:
+    issues: list[str] = []
+    try:
+        typography = load_json(root, TYPE_PATH)
+        color = load_json(root, COLOR_PATH)
+        geometry = load_json(root, GEOMETRY_PATH)
+        components = load_json(root, COMPONENT_PATH)
+        assets = load_json(root, ASSET_PATH)
+        icons = load_json(root, ICON_PATH)
+        backgrounds = load_json(root, BACKGROUND_PATH)
+        freeze = load_json(root, FREEZE_PATH)
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
+
+    type_ids = unique_ids(typography.get("tokens"), "id", "typography tokens", issues)
+    color_ids = unique_ids(color.get("tokens"), "id", "color tokens", issues)
+    geometry_ids = unique_ids(geometry.get("tokens"), "id", "geometry tokens", issues)
+    component_ids = unique_ids(components.get("entries"), "component_id", "components", issues)
+    asset_ids, verified_assets = verify_assets(root, assets, issues)
+    icon_ids = unique_ids(icons.get("entries"), "icon_id", "icons", issues)
+    background_ids = unique_ids(backgrounds.get("backgrounds"), "background_id", "backgrounds", issues)
+
+    for token in typography.get("tokens", []):
+        if isinstance(token, dict) and token.get("color") not in color_ids:
+            issues.append(f"{token.get('id')}: unknown color token {token.get('color')!r}")
+
+    component_rows = components.get("entries", [])
+    token_ids = type_ids | color_ids | geometry_ids
+    registered_asset_ids = {
+        row.get("asset_id") for row in assets.get("entries", []) if isinstance(row, dict)
+    }
+    external_ids = {
+        row.get("id") for row in components.get("external_asset_dependencies", []) if isinstance(row, dict)
+    }
+    registry_ids = {"icon_registry_v3", "background_registry_v3"}
+    for component in component_rows if isinstance(component_rows, list) else []:
+        if not isinstance(component, dict):
+            continue
+        cid = component.get("component_id", "<unknown>")
+        for dependency in component.get("token_dependency", []):
+            if dependency not in token_ids:
+                issues.append(f"{cid}: orphan token reference {dependency!r}")
+        for dependency in component.get("component_dependency", []):
+            if dependency not in component_ids:
+                issues.append(f"{cid}: unknown component dependency {dependency!r}")
+        for dependency in component.get("asset_dependency", []):
+            if dependency not in registered_asset_ids:
+                issues.append(f"{cid}: unknown asset dependency {dependency!r}")
+        for dependency in component.get("external_asset_dependency", []):
+            if dependency not in external_ids:
+                issues.append(f"{cid}: unknown external asset dependency {dependency!r}")
+        for dependency in component.get("registry_dependency", []):
+            if dependency not in registry_ids:
+                issues.append(f"{cid}: unknown registry dependency {dependency!r}")
+        for field in ("purpose", "visual_rule", "geometry", "state", "interaction", "responsive_rule", "acceptance_rule"):
+            value = component.get(field)
+            if not value:
+                issues.append(f"{cid}: missing component contract field {field}")
+        if not isinstance(component.get("authority_dependencies"), list) or not component["authority_dependencies"]:
+            issues.append(f"{cid}: no authority_dependencies")
+        else:
+            for authority in component["authority_dependencies"]:
+                if not safe_relative(authority, {"design", "app"}):
+                    issues.append(f"{cid}: unsafe authority path {authority!r}")
+                elif not (root / authority).is_file():
+                    issues.append(f"{cid}: authority path not present {authority}")
+        if not isinstance(component.get("page_references"), list) or not component["page_references"]:
+            issues.append(f"{cid}: no explicit page_references")
+        if not isinstance(component.get("token_gap"), list):
+            issues.append(f"{cid}: token_gap must be a list")
+
+    asset_by_path = {
+        row.get("path"): row for row in assets.get("entries", []) if isinstance(row, dict)
+    }
+    for icon in icons.get("entries", []):
+        if not isinstance(icon, dict):
+            continue
+        asset = asset_by_path.get(icon.get("file"))
+        if not asset or asset.get("sha256") != icon.get("sha256"):
+            issues.append(f"icon {icon.get('icon_id')}: Asset Registry path/SHA mismatch")
+    if len(icon_ids) != 43:
+        issues.append(f"Icon Registry expected 43 entries; found {len(icon_ids)}")
+
+    for background in backgrounds.get("backgrounds", []):
+        if not isinstance(background, dict):
+            continue
+        for reference in [background, background.get("page_override", {})]:
+            path = reference.get("master_path")
+            digest = reference.get("sha256")
+            if path is None:
+                continue
+            asset = asset_by_path.get(path)
+            if not asset or asset.get("sha256") != digest:
+                issues.append(f"background {background.get('background_id')}: Asset Registry path/SHA mismatch for {path}")
+    if len(background_ids) != 5:
+        issues.append(f"Background Registry expected 5 rows; found {len(background_ids)}")
+
+    literal_scanned, color_orphans, png_metadata_colors = scan_colors(root, color)
+    if color_orphans:
+        for item in color_orphans[:100]:
+            issues.append(f"unregistered color literal: {item}")
+        if len(color_orphans) > 100:
+            issues.append(f"... {len(color_orphans) - 100} additional unregistered colors")
+
+    gate = freeze.get("shared_foundation", {})
+    systems = gate.get("systems", [])
+    statuses = {row.get("id"): row.get("status") for row in systems if isinstance(row, dict)}
+    required_systems = {"Typography", "Color", "Geometry", "Background", "Icon", "Component", "Asset"}
+    if set(statuses) != required_systems:
+        issues.append("freeze status must contain exactly the seven shared systems")
+    ready_count = sum(statuses.get(name) == "READY" for name in required_systems)
+    expected_state = "SHARED_FOUNDATION_READY" if ready_count == 7 else "NOT_READY"
+    if gate.get("state") != expected_state:
+        issues.append(f"freeze state {gate.get('state')!r} does not match system statuses ({ready_count}/7)")
+    if gate.get("phase3_allowed") is not (ready_count == 7):
+        issues.append("Phase 3 entry flag does not match seven-system readiness")
+    readiness_path = root / "design/system_v3/11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json"
+    try:
+        readiness = json.loads(readiness_path.read_text(encoding="utf-8"))
+        readiness_gate = readiness.get("shared_foundation_gate", {})
+        if readiness_gate.get("current_state") != expected_state:
+            issues.append("Design Readiness Baseline gate state does not match Freeze Status")
+        if readiness_gate.get("phase3_entry_allowed") is not (ready_count == 7):
+            issues.append("Design Readiness Baseline Phase 3 flag does not match Freeze Status")
+    except (OSError, json.JSONDecodeError) as exc:
+        issues.append(f"Design Readiness Baseline cannot be read: {exc}")
+
+    if strict_ready and ready_count != 7:
+        issues.append(f"strict readiness requested but only {ready_count}/7 systems are READY")
+
+    if issues:
+        print(f"FAIL: {len(issues)} shared foundation issue(s)")
+        for issue in issues[:150]:
+            print(f" - {issue}")
+        if len(issues) > 150:
+            print(f" - ... {len(issues) - 150} more")
+        return 1
+
+    print("PASS: Shared Foundation V3.1 structural validation")
+    print(f"  Typography tokens: {len(type_ids)}")
+    print(f"  Color tokens: {len(color_ids)}; unregistered color literals: {len(color_orphans)}")
+    print(f"  Geometry tokens: {len(geometry_ids)}")
+    print(f"  Components: {len(component_ids)}")
+    print(f"  Assets: {asset_ids}; raw-byte SHA-256 verified: {verified_assets}")
+    print(f"  Icons: {len(icon_ids)}; Backgrounds: {len(background_ids)}")
+    print(f"  Color-scan sources: {literal_scanned}; PNG metadata color literals: {png_metadata_colors}")
+    print(f"  Shared Foundation gate: {gate.get('state')} ({ready_count}/7 READY)")
+    return 0
+
+
+def self_test() -> int:
+    cases = {
+        "#ABC": "#aabbccff",
+        "#abcd": "#aabbccdd",
+        "#AABBCC": "#aabbccff",
+        "#AABBCC80": "#aabbcc80",
+        "rgba(255, 255, 255, 0.76)": "#ffffffc2",
+        "rgb(15, 122, 120)": "#0f7a78ff",
+    }
+    for raw, expected in cases.items():
+        if canonical_color(raw) != expected:
+            print(f"FAIL: canonical color {raw}: got {canonical_color(raw)} expected {expected}", file=sys.stderr)
+            return 1
+    if not safe_relative("design/pages/example.png", {"design"}):
+        print("FAIL: relative path self-test", file=sys.stderr)
+        return 1
+    if safe_relative("design/../outside", {"design"}) or safe_relative("/design/file", {"design"}):
+        print("FAIL: unsafe path self-test", file=sys.stderr)
+        return 1
+    sample = b"abc"
+    if hashlib.sha256(sample).hexdigest() != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad":
+        print("FAIL: SHA-256 self-test", file=sys.stderr)
+        return 1
+    print("PASS: color normalization, safe paths, and SHA-256 self-tests")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo-root", default=".", help="Repository checkout root.")
+    parser.add_argument("--strict-ready", action="store_true", help="Fail unless all seven systems are READY.")
+    parser.add_argument("--self-test", action="store_true", help="Run helper checks without repository data.")
+    args = parser.parse_args()
+    if args.self_test:
+        return self_test()
+    return run(Path(args.repo_root).resolve(), strict_ready=args.strict_ready)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

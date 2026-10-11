@@ -1,6 +1,6 @@
 # Phase 1 Decisions Required V3.1
 
-**Status:** PHASE 1 CLOSED · DEC-001 RESOLVED · Other decisions remain open.  
+**Status:** PHASE 1 CLOSED · DEC-001 RESOLVED · Phase 2 asset audit C-012 / D-012 RESOLVED; other decisions remain open.  
 **Baseline:** `7737f293ea3831aeea2c6f58308961cdb2ba7d01`
 
 This log records owner decisions and remaining owner decisions. Frozen page authority changes only through an explicit decision record.
@@ -18,7 +18,7 @@ This log records owner decisions and remaining owner decisions. Frozen page auth
 | D-009 | Product + content owner | Confirm the user-facing meaning of Image Quality recovery. | Use broad “retake” guidance that covers framing/eligibility; or distinguish blur, distance, occlusion and other machine-detected causes where reliable. | Before changing frozen copy or error mapping |
 | D-010 | Product + legal/privacy owner | Set scope and copy for deferred account lifecycle actions. | Keep password reset/export/delete deferred; or approve their user flows, legal copy, API, retention and error states. | Before enabling those controls |
 | D-011 | Android + backend + product owners | Close dynamic field lineage. | Map each displayed field to repository/model, request/response, database column or local store, sort/filter, ownership, empty/error state and evidence. | Before implementation acceptance |
-| D-012 | Design system + CI owner | Decide the final SHA-256 policy for assets with no recorded/direct value. | Materialize the missing SHA-256 values in the V3 registry; or explicitly accept Git blob identity plus checkout recomputation as sufficient. The new V3 registry keeps 50 values REVIEW until this decision is closed. | Before Asset Ready / Phase 3 |
+| D-012 | Design system + CI owner | **RESOLVED:** Materialize the missing SHA-256 values in the V3 registry. | All 658 baseline files now have raw-byte SHA-256 values and size verification; Git blob identity remains a separate field. | Closed in Phase 2 Final Freeze |
 | D-013 | Android UI owner | Define SVG icon conversion and hit-target verification. | Keep design masters with no Android change in Phase 1; plan an implementation mapping from SVG identifiers to Android resources and page-level 44dp checks. | Later implementation gate |
 | D-014 | Design system owner | Close the partial Species Picker contract. | Name complete visual, behavior, accessibility, runtime and acceptance states or keep it out of shared integration scope. | Before shared selector implementation |
 
@@ -42,4 +42,10 @@ Save Catch 完成鱼获记录，不代表进入详情。FishRecordDetail 定位�
 5. D-007 / D-008 system type and accessibility gates.
 6. D-009 / D-010 error wording and account lifecycle scope.
 
-Checkpoint E verified the baseline Git objects at checkout, but the V3 registry still lacks 50 SHA-256 values; D-012 / C-012 therefore remain open. Other decisions remain open unless a later owner decision explicitly resolves them.
+Phase 2 Final Freeze recomputed all 658 baseline file SHA-256 values from raw bytes and closed D-012 / C-012. Other owner decisions remain open unless explicitly resolved.
+
+## Phase 2 shared foundation decision
+
+| ID | Owner | Decision required | Choices / evidence needed | Gate |
+|---|---|---|---|---|
+| D-015 | Design system + Product/Accessibility owner | Approve global Brand Primary/Secondary and Success/Warning/Error/Info color semantics. | Provide or approve exact semantic token mappings and contrast contexts; confirm whether the page-scoped Account & Privacy Danger value is a global Error token. | Before Color READY / Phase 3 |

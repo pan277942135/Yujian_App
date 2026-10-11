@@ -1,0 +1,1742 @@
+{
+  "schema_version": "3.1",
+  "system_id": "color_v3_1",
+  "status": "REVIEW",
+  "sources": [
+    "design/system/core_visual_v1/tokens/color_tokens.json",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+    "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+    "design/system/components/text_action/Text_Action_Spec_V1.md",
+    "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+    "design/pages/account_privacy/spec/VISUAL_TOKENS.md"
+  ],
+  "categories": [
+    "Brand",
+    "Background",
+    "Surface",
+    "Glass",
+    "Text",
+    "Border",
+    "Status"
+  ],
+  "tokens": [
+    {
+      "id": "color.deep_lake_blue",
+      "name": "DeepLakeBlue",
+      "hex": "#0B2D4B",
+      "rgba": "rgba(11,45,75,1)",
+      "opacity": 1,
+      "usage": "Primary text and default utility icon",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.lake_blue",
+      "name": "LakeBlue",
+      "hex": "#34556F",
+      "rgba": "rgba(52,85,111,1)",
+      "opacity": 1,
+      "usage": "Secondary lake blue",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.mist_blue_gray",
+      "name": "MistBlueGray",
+      "hex": "#748897",
+      "rgba": "rgba(116,136,151,1)",
+      "opacity": 1,
+      "usage": "Secondary text and muted icon",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.lake_white",
+      "name": "LakeWhite",
+      "hex": "#F7FAFB",
+      "rgba": "rgba(247,250,251,1)",
+      "opacity": 1,
+      "usage": "Light surface / on-dark text",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.mist_white",
+      "name": "MistWhite",
+      "hex": "#FFFFFF",
+      "rgba": "rgba(255,255,255,0.68)",
+      "opacity": 0.68,
+      "usage": "Mist veil / translucent white",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.morning_gold",
+      "name": "MorningGold",
+      "hex": "#D6A541",
+      "rgba": "rgba(214,165,65,1)",
+      "opacity": 1,
+      "usage": "Brand, important moment, meaningful catch",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Ordinary edits, ordinary navigation, and generic statistics; preserve the source gold restriction.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.soft_gold",
+      "name": "SoftGold",
+      "hex": "#E5C77C",
+      "rgba": "rgba(229,199,124,1)",
+      "opacity": 1,
+      "usage": "Secondary meaningful-record accent",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.deep_overlay",
+      "name": "DeepOverlay",
+      "hex": "#081926",
+      "rgba": "rgba(8,25,38,0.26)",
+      "opacity": 0.26,
+      "usage": "Media readability overlay",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_primary",
+      "name": "ActionPrimary",
+      "hex": "#0F7A78",
+      "rgba": "rgba(15,122,120,1)",
+      "opacity": 1,
+      "usage": "Primary shared action",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_primary_pressed",
+      "name": "ActionPrimaryPressed",
+      "hex": "#0C6D6B",
+      "rgba": "rgba(12,109,107,1)",
+      "opacity": 1,
+      "usage": "Pressed primary / normal action",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.active_accent",
+      "name": "ActiveAccent",
+      "hex": "#168B88",
+      "rgba": "rgba(22,139,136,1)",
+      "opacity": 1,
+      "usage": "Selected accent / strong action",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_strong_pressed",
+      "name": "ActionStrongPressed",
+      "hex": "#117F7C",
+      "rgba": "rgba(17,127,124,1)",
+      "opacity": 1,
+      "usage": "Text Action STRONG pressed",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_muted_pressed",
+      "name": "ActionMutedPressed",
+      "hex": "#657D8A",
+      "rgba": "rgba(101,125,138,1)",
+      "opacity": 1,
+      "usage": "Text Action MUTED pressed",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_disabled_surface",
+      "name": "ActionDisabledSurface",
+      "hex": "#F2F5F5",
+      "rgba": "rgba(242,245,245,1)",
+      "opacity": 1,
+      "usage": "Disabled light action surface",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_disabled_content",
+      "name": "ActionDisabledContent",
+      "hex": "#A0ADAF",
+      "rgba": "rgba(160,173,175,1)",
+      "opacity": 1,
+      "usage": "Disabled action content",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.primary_action_disabled_surface",
+      "name": "PrimaryActionDisabledSurface",
+      "hex": "#BFD8D4",
+      "rgba": "rgba(191,216,212,1)",
+      "opacity": 1,
+      "usage": "Disabled primary action surface",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.primary_action_disabled_content",
+      "name": "PrimaryActionDisabledContent",
+      "hex": "#355C5B",
+      "rgba": "rgba(53,92,91,1)",
+      "opacity": 1,
+      "usage": "Disabled primary action content",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.primary_action_disabled_border",
+      "name": "PrimaryActionDisabledBorder",
+      "hex": "#8EAFAB",
+      "rgba": "rgba(142,175,171,1)",
+      "opacity": 1,
+      "usage": "Disabled primary border",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.action_disabled_border",
+      "name": "ActionDisabledBorder",
+      "hex": "#E3E9E9",
+      "rgba": "rgba(227,233,233,1)",
+      "opacity": 1,
+      "usage": "Secondary disabled border",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.glass_white",
+      "name": "GlassWhite",
+      "hex": "#FFFFFF",
+      "rgba": "rgba(255,255,255,0.761)",
+      "opacity": 0.7607843137254902,
+      "usage": "Glass white surface; GLASS_A/B/C controls treatment",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.glass_border",
+      "name": "GlassBorder",
+      "hex": "#FFFFFF",
+      "rgba": "rgba(255,255,255,0.541)",
+      "opacity": 0.5411764705882353,
+      "usage": "Glass border",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.capture_dark_fallback",
+      "name": "CaptureDarkFallback",
+      "hex": "#102D35",
+      "rgba": "rgba(16,45,53,1)",
+      "opacity": 1,
+      "usage": "Transient capture photo missing fallback",
+      "source": "See source list and semantic component contract.",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+        "design/system/backgrounds/morning_lake_v1/treatment_contract.json"
+      ]
+    },
+    {
+      "id": "color.on_media_label",
+      "name": "On Media Label",
+      "hex": "#F7FAFB",
+      "rgba": "rgba(247,250,251,0.94)",
+      "opacity": 0.94,
+      "usage": "Text Action label on image/media",
+      "source": "Text_Action_Spec_V1.md",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+        "design/system/components/text_action/Text_Action_Spec_V1.md"
+      ]
+    },
+    {
+      "id": "color.on_media_chevron",
+      "name": "On Media Chevron",
+      "hex": "#F7FAFB",
+      "rgba": "rgba(247,250,251,0.82)",
+      "opacity": 0.82,
+      "usage": "Text Action chevron on image/media",
+      "source": "Text_Action_Spec_V1.md",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+        "design/system/components/text_action/Text_Action_Spec_V1.md"
+      ]
+    },
+    {
+      "id": "color.on_media_disabled",
+      "name": "On Media Disabled",
+      "hex": "#F7FAFB",
+      "rgba": "rgba(247,250,251,0.38)",
+      "opacity": 0.38,
+      "usage": "Disabled media-surface action",
+      "source": "Text_Action_Spec_V1.md; Icon_Action_Spec_V1.md",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+        "design/system/components/text_action/Text_Action_Spec_V1.md"
+      ]
+    },
+    {
+      "id": "color.on_media_pressed",
+      "name": "On Media Pressed",
+      "hex": "#F7FAFB",
+      "rgba": "rgba(247,250,251,0.72)",
+      "opacity": 0.72,
+      "usage": "Pressed media-surface label",
+      "source": "Text_Action_Spec_V1.md",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+        "design/system/components/text_action/Text_Action_Spec_V1.md"
+      ]
+    },
+    {
+      "id": "color.icon_disabled",
+      "name": "Icon Disabled",
+      "hex": "#748897",
+      "rgba": "rgba(116,136,151,0.38)",
+      "opacity": 0.38,
+      "usage": "Disabled Icon Action",
+      "source": "Icon_Action_Spec_V1.md",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt"
+      ]
+    },
+    {
+      "id": "color.on_media_shadow",
+      "name": "On Media Shadow",
+      "hex": "#0B2D4B",
+      "rgba": "rgba(11,45,75,0.24)",
+      "opacity": 0.24,
+      "usage": "Optional media text shadow",
+      "source": "Text_Action_Spec_V1.md",
+      "forbidden_usage": "Any use outside the stated semantic usage; do not add page-local color literals or recolor Frozen assets.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/color_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+        "design/system/components/text_action/Text_Action_Spec_V1.md"
+      ]
+    },
+    {
+      "id": "color.legacy_06474814",
+      "name": "LegacyFrozen_06474814",
+      "hex": "#06474814",
+      "rgba": "rgba(6,71,72,0.078431)",
+      "opacity": 0.078431,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_064748ff",
+      "name": "LegacyFrozen_064748FF",
+      "hex": "#064748FF",
+      "rgba": "rgba(6,71,72,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_08192629",
+      "name": "LegacyFrozen_08192629",
+      "hex": "#08192629",
+      "rgba": "rgba(8,25,38,0.160784)",
+      "opacity": 0.160784,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+        "design/system/components/icon_action/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_0b2d4b0d",
+      "name": "LegacyFrozen_0B2D4B0D",
+      "hex": "#0B2D4B0D",
+      "rgba": "rgba(11,45,75,0.05098)",
+      "opacity": 0.05098,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_0b2d4b1a",
+      "name": "LegacyFrozen_0B2D4B1A",
+      "hex": "#0B2D4B1A",
+      "rgba": "rgba(11,45,75,0.101961)",
+      "opacity": 0.101961,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_0b2d4be0",
+      "name": "LegacyFrozen_0B2D4BE0",
+      "hex": "#0B2D4BE0",
+      "rgba": "rgba(11,45,75,0.878431)",
+      "opacity": 0.878431,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+        "design/system/components/icon_action/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_0f7a7842",
+      "name": "LegacyFrozen_0F7A7842",
+      "hex": "#0F7A7842",
+      "rgba": "rgba(15,122,120,0.258824)",
+      "opacity": 0.258824,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_0f7a7847",
+      "name": "LegacyFrozen_0F7A7847",
+      "hex": "#0F7A7847",
+      "rgba": "rgba(15,122,120,0.278431)",
+      "opacity": 0.278431,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_112222ff",
+      "name": "LegacyFrozen_112222FF",
+      "hex": "#112222FF",
+      "rgba": "rgba(17,34,34,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/normal_home/05_responsive_interaction/Normal_Home_V2_Coordinate_Origin_And_Anchor_Audit_20261010.md",
+        "design/pages/home/normal_home/engineering/README.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_112288ff",
+      "name": "LegacyFrozen_112288FF",
+      "hex": "#112288FF",
+      "rgba": "rgba(17,34,136,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/normal_home/05_responsive_interaction/Normal_Home_Layout_Geometry_Contract_V2_DRAFT.md",
+        "design/pages/home/normal_home/05_responsive_interaction/Normal_Home_V2_Authority_Conflict_Matrix.md",
+        "design/pages/home/normal_home/engineering/Archive_And_Supersession_V1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_123048ff",
+      "name": "LegacyFrozen_123048FF",
+      "hex": "#123048FF",
+      "rgba": "rgba(18,48,72,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/empty_home/shared/contracts/hero_asset_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_12364aff",
+      "name": "LegacyFrozen_12364AFF",
+      "hex": "#12364AFF",
+      "rgba": "rgba(18,54,74,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/account_privacy/Login/Login_V2_Closure.md",
+        "design/pages/account_privacy/Login/WORK_TASK_LOGIN_V2.md",
+        "design/pages/account_privacy/spec/VISUAL_TOKENS.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_18343aff",
+      "name": "LegacyFrozen_18343AFF",
+      "hex": "#18343AFF",
+      "rgba": "rgba(24,52,58,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_1a2c35ff",
+      "name": "LegacyFrozen_1A2C35FF",
+      "hex": "#1A2C35FF",
+      "rgba": "rgba(26,44,53,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_2.json",
+        "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_28474dff",
+      "name": "LegacyFrozen_28474DFF",
+      "hex": "#28474DFF",
+      "rgba": "rgba(40,71,77,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_294b5eff",
+      "name": "LegacyFrozen_294B5EFF",
+      "hex": "#294B5EFF",
+      "rgba": "rgba(41,75,94,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_30485aff",
+      "name": "LegacyFrozen_30485AFF",
+      "hex": "#30485AFF",
+      "rgba": "rgba(48,72,90,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority / existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/normal_home/02_first_catch/README.md",
+        "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+        "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_385c6cff",
+      "name": "LegacyFrozen_385C6CFF",
+      "hex": "#385C6CFF",
+      "rgba": "rgba(56,92,108,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_416b64ff",
+      "name": "LegacyFrozen_416B64FF",
+      "hex": "#416B64FF",
+      "rgba": "rgba(65,107,100,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_47697aff",
+      "name": "LegacyFrozen_47697AFF",
+      "hex": "#47697AFF",
+      "rgba": "rgba(71,105,122,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_5e747aff",
+      "name": "LegacyFrozen_5E747AFF",
+      "hex": "#5E747AFF",
+      "rgba": "rgba(94,116,122,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_61777cff",
+      "name": "LegacyFrozen_61777CFF",
+      "hex": "#61777CFF",
+      "rgba": "rgba(97,119,124,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_6bffffff",
+      "name": "LegacyFrozen_6BFFFFFF",
+      "hex": "#6BFFFFFF",
+      "rgba": "rgba(107,255,255,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority / existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/normal_home/02_first_catch/README.md",
+        "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+        "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_71868bff",
+      "name": "LegacyFrozen_71868BFF",
+      "hex": "#71868BFF",
+      "rgba": "rgba(113,134,139,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_74879aff",
+      "name": "LegacyFrozen_74879AFF",
+      "hex": "#74879AFF",
+      "rgba": "rgba(116,135,154,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/account_privacy/Login/Login_V2_Closure.md",
+        "design/pages/account_privacy/Login/WORK_TASK_LOGIN_V2.md",
+        "design/pages/account_privacy/spec/VISUAL_TOKENS.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_7488972e",
+      "name": "LegacyFrozen_7488972E",
+      "hex": "#7488972E",
+      "rgba": "rgba(116,136,151,0.180392)",
+      "opacity": 0.180392,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_7488973d",
+      "name": "LegacyFrozen_7488973D",
+      "hex": "#7488973D",
+      "rgba": "rgba(116,136,151,0.239216)",
+      "opacity": 0.239216,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_7a8f93ff",
+      "name": "LegacyFrozen_7A8F93FF",
+      "hex": "#7A8F93FF",
+      "rgba": "rgba(122,143,147,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_91a5a6ff",
+      "name": "LegacyFrozen_91A5A6FF",
+      "hex": "#91A5A6FF",
+      "rgba": "rgba(145,165,166,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1.md",
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_9effffff",
+      "name": "LegacyFrozen_9EFFFFFF",
+      "hex": "#9EFFFFFF",
+      "rgba": "rgba(158,255,255,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority / existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/normal_home/02_first_catch/README.md",
+        "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+        "design/system/components/profile_avatar_v1/default_profile_avatar_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_b6cbc6ff",
+      "name": "LegacyFrozen_B6CBC6FF",
+      "hex": "#B6CBC6FF",
+      "rgba": "rgba(182,203,198,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_bfd0d7ff",
+      "name": "LegacyFrozen_BFD0D7FF",
+      "hex": "#BFD0D7FF",
+      "rgba": "rgba(191,208,215,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+        "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_bfeaf2ff",
+      "name": "LegacyFrozen_BFEAF2FF",
+      "hex": "#BFEAF2FF",
+      "rgba": "rgba(191,234,242,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+        "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_cbd8e2ff",
+      "name": "LegacyFrozen_CBD8E2FF",
+      "hex": "#CBD8E2FF",
+      "rgba": "rgba(203,216,226,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_cfe1dcff",
+      "name": "LegacyFrozen_CFE1DCFF",
+      "hex": "#CFE1DCFF",
+      "rgba": "rgba(207,225,220,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_d5dfe6ff",
+      "name": "LegacyFrozen_D5DFE6FF",
+      "hex": "#D5DFE6FF",
+      "rgba": "rgba(213,223,230,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/account_privacy/Login/Login_V2_Closure.md",
+        "design/pages/account_privacy/Login/WORK_TASK_LOGIN_V2.md",
+        "design/pages/account_privacy/spec/VISUAL_TOKENS.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_d5e1e3ff",
+      "name": "LegacyFrozen_D5E1E3FF",
+      "hex": "#D5E1E3FF",
+      "rgba": "rgba(213,225,227,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/empty_home/shared/contracts/anchor_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_d8f5faff",
+      "name": "LegacyFrozen_D8F5FAFF",
+      "hex": "#D8F5FAFF",
+      "rgba": "rgba(216,245,250,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+        "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_d9e4e3ff",
+      "name": "LegacyFrozen_D9E4E3FF",
+      "hex": "#D9E4E3FF",
+      "rgba": "rgba(217,228,227,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1.md",
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_d9e6e2ff",
+      "name": "LegacyFrozen_D9E6E2FF",
+      "hex": "#D9E6E2FF",
+      "rgba": "rgba(217,230,226,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_daa02dff",
+      "name": "LegacyFrozen_DAA02DFF",
+      "hex": "#DAA02DFF",
+      "rgba": "rgba(218,160,45,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/home/empty_home/shared/contracts/hero_asset_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_dce7e3ff",
+      "name": "LegacyFrozen_DCE7E3FF",
+      "hex": "#DCE7E3FF",
+      "rgba": "rgba(220,231,227,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_dce8e8ff",
+      "name": "LegacyFrozen_DCE8E8FF",
+      "hex": "#DCE8E8FF",
+      "rgba": "rgba(220,232,232,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_dde9e7ff",
+      "name": "LegacyFrozen_DDE9E7FF",
+      "hex": "#DDE9E7FF",
+      "rgba": "rgba(221,233,231,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_dfe9e6ff",
+      "name": "LegacyFrozen_DFE9E6FF",
+      "hex": "#DFE9E6FF",
+      "rgba": "rgba(223,233,230,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_e2ebe8ff",
+      "name": "LegacyFrozen_E2EBE8FF",
+      "hex": "#E2EBE8FF",
+      "rgba": "rgba(226,235,232,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg",
+        "design/system/components/action_button/visual/authority/01_Base_Visual.svg",
+        "design/system/components/action_button/visual/authority/02_Single_Buttons.svg",
+        "design/system/components/action_button/visual/authority/03_Paired_Buttons.svg",
+        "design/system/components/action_button/visual/authority/04_PRIMARY_Five_States.svg",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/01_Families.svg",
+        "design/system/components/icon_action/visual/authority/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/authority/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/authority/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/authority/06_Real_Usage.svg",
+        "design/system/components/icon_action/visual/candidate/01_Families.svg",
+        "design/system/components/icon_action/visual/candidate/02_NAVIGATION_States.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/04_UTILITY_States.svg",
+        "design/system/components/icon_action/visual/candidate/05_CONTEXT_Library.svg",
+        "design/system/components/icon_action/visual/candidate/06_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/authority/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/authority/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/authority/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/authority/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/authority/06_ON_MEDIA_States.svg",
+        "design/system/components/text_action/visual/candidate/01_Semantic_Roles.svg",
+        "design/system/components/text_action/visual/candidate/02_Real_Usage.svg",
+        "design/system/components/text_action/visual/candidate/03_STRONG_States.svg",
+        "design/system/components/text_action/visual/candidate/04_NORMAL_States.svg",
+        "design/system/components/text_action/visual/candidate/05_MUTED_States.svg",
+        "design/system/components/text_action/visual/candidate/06_ON_MEDIA_States.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_e66b61ff",
+      "name": "LegacyFrozen_E66B61FF",
+      "hex": "#E66B61FF",
+      "rgba": "rgba(230,107,97,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/account_privacy/spec/VISUAL_TOKENS.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_e8f0efff",
+      "name": "LegacyFrozen_E8F0EFFF",
+      "hex": "#E8F0EFFF",
+      "rgba": "rgba(232,240,239,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_eaf1f1ff",
+      "name": "LegacyFrozen_EAF1F1FF",
+      "hex": "#EAF1F1FF",
+      "rgba": "rgba(234,241,241,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_eaf3f1ff",
+      "name": "LegacyFrozen_EAF3F1FF",
+      "hex": "#EAF3F1FF",
+      "rgba": "rgba(234,243,241,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1.md",
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual/authority/05_SECONDARY_STRONG_Five_States.svg",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_eaf4f1ff",
+      "name": "LegacyFrozen_EAF4F1FF",
+      "hex": "#EAF4F1FF",
+      "rgba": "rgba(234,244,241,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/Action_Button_V1_1_Frozen_Visual.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_eef4f2ff",
+      "name": "LegacyFrozen_EEF4F2FF",
+      "hex": "#EEF4F2FF",
+      "rgba": "rgba(238,244,242,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual/authority/06_SECONDARY_MUTED_States.svg",
+        "design/system/components/icon_action/visual/authority/03_UTILITY_Library.svg",
+        "design/system/components/icon_action/visual/candidate/03_UTILITY_Library.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_eef4f3ff",
+      "name": "LegacyFrozen_EEF4F3FF",
+      "hex": "#EEF4F3FF",
+      "rgba": "rgba(238,244,243,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/top_navigation/back_title/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title/visual/authority/03_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/02_Action_Count_Overflow.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/03_Real_Usage.svg",
+        "design/system/components/top_navigation/back_title_actions/visual/authority/04_Long_Title_Small_Screen.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/01_Base_Geometry.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/02_Real_Usage.svg",
+        "design/system/components/top_navigation/title_only/visual/authority/03_Long_Title_Small_Screen.svg"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_f4f8f7ff",
+      "name": "LegacyFrozen_F4F8F7FF",
+      "hex": "#F4F8F7FF",
+      "rgba": "rgba(244,248,247,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_f6d99bff",
+      "name": "LegacyFrozen_F6D99BFF",
+      "hex": "#F6D99BFF",
+      "rgba": "rgba(246,217,155,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+        "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_f7fafb73",
+      "name": "LegacyFrozen_F7FAFB73",
+      "hex": "#F7FAFB73",
+      "rgba": "rgba(247,250,251,0.45098)",
+      "opacity": 0.45098,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_f7fafbc7",
+      "name": "LegacyFrozen_F7FAFBC7",
+      "hex": "#F7FAFBC7",
+      "rgba": "rgba(247,250,251,0.780392)",
+      "opacity": 0.780392,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+        "design/system/components/icon_action/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_f7fafbe0",
+      "name": "LegacyFrozen_F7FAFBE0",
+      "hex": "#F7FAFBE0",
+      "rgba": "rgba(247,250,251,0.878431)",
+      "opacity": 0.878431,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_f7fafbe6",
+      "name": "LegacyFrozen_F7FAFBE6",
+      "hex": "#F7FAFBE6",
+      "rgba": "rgba(247,250,251,0.901961)",
+      "opacity": 0.901961,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_ffe7aeff",
+      "name": "LegacyFrozen_FFE7AEFF",
+      "hex": "#FFE7AEFF",
+      "rgba": "rgba(255,231,174,1)",
+      "opacity": 1,
+      "usage": "Identity-preservation mapping for existing page authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/pages/recognition/processing/contracts/Recognition_Processing_Contract_V1_1.json",
+        "design/pages/recognition/processing/motion/YuJian_Recognition_AI_Ambient_Field_Frozen_Spec_V1.md",
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_ffffff14",
+      "name": "LegacyFrozen_FFFFFF14",
+      "hex": "#FFFFFF14",
+      "rgba": "rgba(255,255,255,0.078431)",
+      "opacity": 0.078431,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_ffffff1a",
+      "name": "LegacyFrozen_FFFFFF1A",
+      "hex": "#FFFFFF1A",
+      "rgba": "rgba(255,255,255,0.101961)",
+      "opacity": 0.101961,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_ffffff2e",
+      "name": "LegacyFrozen_FFFFFF2E",
+      "hex": "#FFFFFF2E",
+      "rgba": "rgba(255,255,255,0.180392)",
+      "opacity": 0.180392,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+        "design/system/components/icon_action/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    },
+    {
+      "id": "color.legacy_ffffffa6",
+      "name": "LegacyFrozen_FFFFFFA6",
+      "hex": "#FFFFFFA6",
+      "rgba": "rgba(255,255,255,0.65098)",
+      "opacity": 0.65098,
+      "usage": "Identity-preservation mapping for existing component authority; only within the listed source paths.",
+      "forbidden_usage": "No new page/component use and no recoloring of a Frozen visual; owner approval is required for reuse.",
+      "source": "Existing literal retained without visual change.",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+        "design/system/components/action_button/visual_contract.json"
+      ],
+      "classification": "LEGACY_FROZEN_LITERAL_IDENTITY_ONLY"
+    }
+  ],
+  "semantic_role_mapping": {
+    "Brand": {
+      "Primary": {
+        "token_ref": "color.action_primary",
+        "status": "REVIEW",
+        "source": "Account & Privacy V1 names Primary / Lake Teal; this is page evidence and is not a global Brand Primary approval."
+      },
+      "Secondary": {
+        "token_ref": "color.lake_blue",
+        "status": "REVIEW",
+        "source": "Core Visual names Secondary Lake Blue; global Brand Secondary role is not explicit."
+      },
+      "Accent": {
+        "token_ref": "color.morning_gold",
+        "status": "MAPPED",
+        "source": "Core Visual explicitly reserves MorningGold for brand, important moments and meaningful records."
+      }
+    },
+    "Background": {
+      "token_ref": "background_registry_v3",
+      "status": "MAPPED",
+      "rule": "Page background role resolves through Background_Registry_V3; do not substitute a page-local color."
+    },
+    "Surface": {
+      "primary": "color.lake_white",
+      "translucent": "color.mist_white"
+    },
+    "Glass": {
+      "surface": "color.glass_white",
+      "border": "color.glass_border",
+      "overlay": "color.deep_overlay"
+    },
+    "Text": {
+      "Primary": "color.deep_lake_blue",
+      "Secondary": "color.mist_blue_gray",
+      "Disabled": "color.action_disabled_content",
+      "Inverse": "color.lake_white"
+    },
+    "Border": {
+      "Default": {
+        "token_ref": "color.legacy_d5dfe6ff",
+        "status": "PAGE_SCOPE_ONLY",
+        "source": "Account Privacy V1 explicitly labels #D5DFE6 Border."
+      },
+      "ActionDisabled": "color.action_disabled_border",
+      "PrimaryDisabled": "color.primary_action_disabled_border"
+    },
+    "Status": [
+      {
+        "role": "Success",
+        "token_ref": null,
+        "status": "MISSING",
+        "hex": null,
+        "rgba": null,
+        "opacity": null,
+        "usage": "Shared success-state foreground/surface",
+        "forbidden_usage": "Do not pick a color from a screenshot or reuse a page color without approval."
+      },
+      {
+        "role": "Warning",
+        "token_ref": null,
+        "status": "MISSING",
+        "hex": null,
+        "rgba": null,
+        "opacity": null,
+        "usage": "Shared warning-state foreground/surface",
+        "forbidden_usage": "Do not pick a color from a screenshot or reuse a page color without approval."
+      },
+      {
+        "role": "Error",
+        "token_ref": null,
+        "status": "REVIEW",
+        "candidate_token_ref": "color.legacy_e66b61ff",
+        "candidate_hex": "#E66B61",
+        "candidate_rgba": "rgba(230,107,97,1)",
+        "candidate_opacity": 1,
+        "source": "design/pages/account_privacy/spec/VISUAL_TOKENS.md labels this value Danger; global Error promotion is unapproved.",
+        "usage": "Shared error-state foreground/surface",
+        "forbidden_usage": "Do not promote page Danger to a global Error token until owner approval."
+      },
+      {
+        "role": "Info",
+        "token_ref": null,
+        "status": "MISSING",
+        "hex": null,
+        "rgba": null,
+        "opacity": null,
+        "usage": "Shared informational-state foreground/surface",
+        "forbidden_usage": "Do not infer from ambient motion highlights or status icon glyphs."
+      }
+    ]
+  },
+  "orphan_scan": {
+    "baseline_ref": "audit/design-system-v3-1-phase1-master-baseline at b0fd6e8",
+    "scope_file_count": 618,
+    "text_svg_spec_files_scanned": 478,
+    "raster_images_metadata_scanned": 139,
+    "distinct_rgba_literals": 94,
+    "matched_existing_tokens": 30,
+    "unregistered_before_compatibility": 64,
+    "registered_legacy_identity_tokens": 64,
+    "unregistered_after_compatibility": 0,
+    "png_metadata_color_literal_count": 0,
+    "method": "Exact normalized 8-bit RGBA literal scan over page specifications, component/system authorities, registries, SVG fill/stroke and explicit PNG metadata. Raster pixel palettes are not treated as semantic color tokens."
+  },
+  "unresolved": [
+    "D-015: approve shared Brand Primary/Secondary semantics and Success/Warning/Error/Info status colors. Error has only a page-scoped Danger candidate; no role is globally approved.",
+    "Legacy literal mappings preserve existing page/component authorities and do not authorize new use."
+  ]
+}

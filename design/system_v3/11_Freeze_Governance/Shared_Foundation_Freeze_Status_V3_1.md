@@ -1,23 +1,23 @@
 # Shared Foundation V3.1 — Freeze Status
 
-**Phase 1: CLOSED · P0 = 0.**  
-**Shared Foundation: baseline registered; REVIEW REQUIRED.**  
-**Phase 3: NOT READY; `SHARED_FOUNDATION_READY` is not assigned.**
+**Phase 1: CLOSED · P0 = 0.** C-012 / D-012 asset hash gap is resolved.  
+**Shared Foundation: REVIEW REQUIRED · 4/7 systems READY.**  
+**Phase 3: NOT READY; SHARED_FOUNDATION_READY is not assigned.**
 
 | 系统 | 状态 | 阻塞项 |
 |---|---|---|
-| Typography | REVIEW | C-007：品牌字体意图、SansSerif / OS fallback、页面 override 共同验收未决 |
-| Color | REVIEW | 全局与控件值已登记；Success/Warning/Error 缺少共用色，孤立字面颜色扫描未全量完成 |
-| Geometry | REVIEW | Normal Home runtime 锚点、Result Glass、Login IME 页面核对未完 |
-| Background | READY | 5 类 Morning Lake 背景、母版 SHA、页面继承明确 |
-| Icon | READY | 43/43 SVG 与 SHA 已登记；Android 映射不属于本轮 |
-| Component | REVIEW | 通用数据/输入组件不完整；Species Picker C-014 保留 |
-| Asset | REVIEW | 658 项 Git identity；50 项缺 SHA-256 记录 |
+| Typography | REVIEW | C-007 / D-007：品牌书法意图、精确 CJK fallback/license 仍需 owner 决策 |
+| Color | REVIEW | D-015：品牌语义与全局 Success / Warning / Error / Info 颜色未批准；孤立字面值已身份化登记 |
+| Geometry | READY | 共享坐标/inset/media/token 规则冻结；C-008 页面锚点/Result Glass/Login IME 验收留给 Page Contract |
+| Background | READY | 5 类背景角色、SHA、treatment 与继承关系保持注册 |
+| Icon | READY | 43/43 SVG 与 SHA 已登记；C-013 是后续 Android 资源映射/44dp 验收 |
+| Component | REVIEW | 16 个现有条目字段完整；8 个跨页面合同仍 REVIEW，Species Picker C-014 未决 |
+| Asset | READY | 658/658 原始字节 SHA-256 与尺寸核验；重复 ID 已修正；条目审核状态保留 |
 
 ## Gate
 
-只有七项全部为 READY 才增加当前 Design Readiness 状态 `SHARED_FOUNDATION_READY` 并允许 Phase 3。当前 2 项 READY、5 项 REVIEW，因此本轮不签发 Phase 3 ready。
+只有七项全部 READY 才设为 SHARED_FOUNDATION_READY 并允许 Phase 3。当前 4/7 READY。Typography、Color、Component 阻塞正式 Page Contract Freeze。Geometry 的 READY 只表示共享设计规则完整，不表示页面运行时通过。
 
-本轮只有设计治理、tokens、registries、contracts、Design Manager 内容变化；无 Kotlin / Compose / Backend / API / 数据库实现，无 Frozen PNG 修改、APK 组装/打包、真机验收、main merge 或 Pages 发布。
+Phase 1 P1 remains C-002–C-011 (10). Phase 2 closed P2 C-012; P2 C-013 and C-014 remain open. D-015 is a new open color-owner decision.
 
-PR 自动触发 Android CI：run #1691 在 Unit tests 步骤被取消且未产生完整结果；后续自动运行在 Gradle 或依赖设置阶段取消。Android CI 的 APK assembly、运行时 APK 与设备验收步骤均未执行。
+本轮仅更新设计规范、token、registry、合同、审计报告与静态校验；无 Kotlin/Compose、Backend/API/DB、Android build、APK、真机、Frozen PNG 内容或 main merge。

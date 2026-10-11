@@ -21,7 +21,7 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 
 - A — repository tree and asset inventory: `11_Freeze_Governance/audits/Repository_Inventory_Checkpoint_A.json`.
 - B — product master flow, registry map, subflows and Design Manager PRD draft: complete.
-- C — asset integrity register, full design-system audit, and contract completeness matrix: complete; 658 design files inventoried, 579 raw SHA-256 values computed, 79 raw binaries blocked by the GitHub Contents API.
+- C — 658 design files inventoried. Phase 1 recorded 579 raw SHA-256 values and 79 binary API gaps; Phase 2 Final Freeze recomputed and recorded 658/658 real-byte SHA-256 values, with 244 visual dimensions.
 - D — conflict and decision registers, 150-node readiness baseline, and preliminary API/data dependency map: complete.
 - E — baseline asset verifier and Design Governance integration: added; the PR check recomputes all baseline hashes and validates the single recorded manager-index delta.
 
@@ -29,7 +29,9 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 
 - [Product Master Flow](00_Product_Master_Flow/Product_Master_Flow_V3_1.md)
 - [Page / State / Hi-Fi Map](01_Page_Registry/Page_State_Hifi_Map_V3_1.md)
-- [Asset Integrity Register](06_Asset_System/Asset_Integrity_Register_V3_1.json)
+- [Shared Foundation V3.1 Final Freeze](01_Shared_Foundation_V3_1/README.md)
+- [Shared Foundation Readiness Report](11_Freeze_Governance/Shared_Foundation_Readiness_Report_V3_1.md)
+- [Phase 1 Asset Integrity Register](06_Asset_System/Asset_Integrity_Register_V3_1.json)
 - [Full Design System Audit](11_Freeze_Governance/audits/Full_Design_System_Audit_V3_1.md)
 - [Contract Completeness Matrix](11_Freeze_Governance/audits/Contract_Completeness_Matrix_V3_1.json)
 - [Conflicts and Gaps](11_Freeze_Governance/audits/Conflicts_And_Gaps_V3_1.md)

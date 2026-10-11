@@ -3,7 +3,7 @@
   "name": "YuJian Design System V3.1 Shared Foundation",
   "status": "FREEZE_BASELINE_REVIEW_REQUIRED",
   "source_branch": "audit/design-system-v3-1-phase1-master-baseline",
-  "source_commit": "c9c3c8830f43e2b7bb30ffb214229de8288963c4",
+  "source_commit": "b0fd6e852be294aefc41174475d0476667af2607",
   "updated_at": "2026-10-11",
   "phase1": {
     "status": "CLOSED",
@@ -24,75 +24,89 @@
       "C-011"
     ],
     "open_p2": [
-      "C-012",
       "C-013",
       "C-014"
+    ],
+    "resolved_audit_items": [
+      "C-012"
     ]
   },
   "shared_foundation": {
     "state": "NOT_READY",
     "success_state": "SHARED_FOUNDATION_READY",
     "phase3_allowed": false,
+    "ready_count": 4,
+    "review_count": 3,
     "rule": "All seven systems must be READY; REVIEW does not pass.",
     "systems": [
       {
         "id": "Typography",
         "status": "REVIEW",
         "blocking": [
-          "C-007"
+          "C-007",
+          "D-007"
         ],
-        "reason": "Brand calligraphic intent, Android SansSerif mapping, and OS fallback / page overrides require owner review."
+        "reason": "Role tokens and Android mapping exist; brand calligraphic intent, exact CJK fallback/license and shared family decision remain open."
       },
       {
         "id": "Color",
         "status": "REVIEW",
-        "blocking": [],
-        "reason": "Known global and shared component values are registered; shared Success/Warning/Error colors are missing and no exhaustive literal-color orphan scan is complete."
+        "blocking": [
+          "D-015"
+        ],
+        "reason": "64 legacy literals are identity-tokenized and scan has zero uncovered values; Brand Primary/Secondary and shared Success/Warning/Info are not approved; Error has page-scoped Danger candidate only."
       },
       {
         "id": "Geometry",
-        "status": "REVIEW",
-        "blocking": [
+        "status": "READY",
+        "blocking": [],
+        "page_contract_findings": [
           "C-008"
         ],
-        "reason": "Viewport / Insets / IME rules are documented; page-level Normal Home anchors, Result glass and Login IME remain review items."
+        "reason": "31 tokens and responsive/inset/media rules are frozen. C-008 runtime/page anchor checks remain outside Shared Foundation and have not been run."
       },
       {
         "id": "Background",
         "status": "READY",
         "blocking": [],
-        "reason": "Five V1 roles, master source, SHA, treatment and page inheritance are registered."
+        "reason": "Five registered roles, master hashes, treatment and page inheritance are preserved."
       },
       {
         "id": "Icon",
         "status": "READY",
         "blocking": [],
-        "reason": "43/43 SVG frozen masters and SHA are complete. C-013 tracks later Android resource mapping and 44dp target verification, outside this design-only freeze gate."
+        "reason": "43/43 SVG masters and hashes are registered. C-013 is later Android resource mapping/hit-target verification, outside this design-only gate."
       },
       {
         "id": "Component",
         "status": "REVIEW",
         "blocking": [
-          "C-014"
+          "C-014",
+          "COMPONENT_SHARED_CONTRACT_GAPS"
         ],
-        "reason": "Navigation / Actions / Media contracts mapped; shared data/input contracts remain page-scoped or partial."
+        "reason": "All 16 existing components have queryable contracts; eight still lack approved cross-page geometry or behavior."
       },
       {
         "id": "Asset",
-        "status": "REVIEW",
-        "blocking": [
-          "C-012"
-        ],
-        "reason": "658 files have Git object identity; 50 SHA-256 values are not present in the audited registry."
+        "status": "READY",
+        "blocking": [],
+        "reason": "658/658 baseline file SHA-256 values and sizes were recomputed from raw bytes; 244 visual dimensions recorded; duplicate IDs resolved. Per-entry review statuses are preserved."
       }
-    ]
+    ],
+    "phase2_open_decisions": [
+      "D-015"
+    ],
+    "phase2_resolved_audit_items": [
+      "C-012"
+    ],
+    "gate_count": "4/7 READY"
   },
   "phase3": {
     "formally_eligible_modules": [],
     "preparation_candidates": [
-      "Recognition capture / gallery flow",
-      "Fish Guide responsive contract",
-      "Background and icon reference mapping"
+      "Geometry coordinate/inset/media rules",
+      "Background and Icon reference mapping",
+      "Asset identities and page-family registry"
     ],
     "block": "No module enters formal Page Contract Freeze before SHARED_FOUNDATION_READY."
   },
