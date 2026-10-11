@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "name": "YuJian Design System V3.1 Shared Foundation",
+  "status": "FREEZE_BASELINE_REVIEW_REQUIRED",
+  "source_branch": "audit/design-system-v3-1-phase1-master-baseline",
+  "source_commit": "c9c3c8830f43e2b7bb30ffb214229de8288963c4",
+  "updated_at": "2026-10-11",
+  "phase1": {
+    "status": "CLOSED",
+    "p0_count": 0,
+    "resolved": [
+      "DECISION_SAVE_CATCH_NAVIGATION_V1"
+    ],
+    "open_p1": [
+      "C-002",
+      "C-003",
+      "C-004",
+      "C-005",
+      "C-006",
+      "C-007",
+      "C-008",
+      "C-009",
+      "C-010",
+      "C-011"
+    ],
+    "open_p2": [
+      "C-012",
+      "C-013",
+      "C-014"
+    ]
+  },
+  "shared_foundation": {
+    "state": "NOT_READY",
+    "success_state": "SHARED_FOUNDATION_READY",
+    "phase3_allowed": false,
+    "rule": "All seven systems must be READY; REVIEW does not pass.",
+    "systems": [
+      {
+        "id": "Typography",
+        "status": "REVIEW",
+        "blocking": [
+          "C-007"
+        ],
+        "reason": "Brand calligraphic intent, Android SansSerif mapping, and OS fallback / page overrides require owner review."
+      },
+      {
+        "id": "Color",
+        "status": "REVIEW",
+        "blocking": [],
+        "reason": "Known global and shared component values are registered; shared Success/Warning/Error colors are missing and no exhaustive literal-color orphan scan is complete."
+      },
+      {
+        "id": "Geometry",
+        "status": "REVIEW",
+        "blocking": [
+          "C-008"
+        ],
+        "reason": "Viewport / Insets / IME rules are documented; page-level Normal Home anchors, Result glass and Login IME remain review items."
+      },
+      {
+        "id": "Background",
+        "status": "READY",
+        "blocking": [],
+        "reason": "Five V1 roles, master source, SHA, treatment and page inheritance are registered."
+      },
+      {
+        "id": "Icon",
+        "status": "READY",
+        "blocking": [
+          "C-013"
+        ],
+        "reason": "43/43 SVG frozen masters and hashes complete; Android mapping is outside this design-only task."
+      },
+      {
+        "id": "Component",
+        "status": "REVIEW",
+        "blocking": [
+          "C-014"
+        ],
+        "reason": "Navigation / Actions / Media contracts mapped; shared data/input contracts remain page-scoped or partial."
+      },
+      {
+        "id": "Asset",
+        "status": "REVIEW",
+        "blocking": [
+          "C-012"
+        ],
+        "reason": "658 files have Git object identity; 50 SHA-256 values are not present in the audited registry."
+      }
+    ]
+  },
+  "phase3": {
+    "formally_eligible_modules": [],
+    "preparation_candidates": [
+      "Recognition capture / gallery flow",
+      "Fish Guide responsive contract",
+      "Background and icon reference mapping"
+    ],
+    "block": "No module enters formal Page Contract Freeze before SHARED_FOUNDATION_READY."
+  },
+  "boundaries": {
+    "android": false,
+    "compose": false,
+    "backend": false,
+    "api": false,
+    "database": false,
+    "apk": false,
+    "device_acceptance": false,
+    "frozen_png_changes": false,
+    "merge_main": false,
+    "publish_pages": false
+  }
+}

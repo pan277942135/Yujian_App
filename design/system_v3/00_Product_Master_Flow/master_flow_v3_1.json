@@ -449,7 +449,7 @@
       "trigger": "Save CTA success",
       "guard": "FishRecord created successfully",
       "entry": "Save fields and applicable correction feedback",
-      "exit": "Navigate Home",
+      "exit": "Navigate Home; open FishRecordDetail later through Recent Catch, My Catches, Fish Guide association or Share.",
       "manager_route": "design/manager/#page/recognition_result_v1/hifi/high",
       "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
       "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
@@ -457,13 +457,16 @@
         "action_button_v1"
       ],
       "design_status": "FROZEN",
-      "verification_status": "SPEC_AND_CODE_CONFIRMED; MAIN_CHAIN_CONFLICT",
+      "verification_status": "OWNER_DECISION_CONFIRMED",
       "evidence": [
         "app/src/main/java/com/yujian/ai/YujianApp.kt",
         "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
       ],
       "visual_authority_reference": "design/pages/recognition/result/01_high/README.md",
-      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER",
+      "decision_id": "DECISION_SAVE_CATCH_NAVIGATION_V1",
+      "product_definition": "完成鱼获记录，不代表进入详情；successful ordinary save returns Home.",
+      "destination": "home"
     },
     {
       "flow_node_id": "save_memory",
@@ -879,6 +882,31 @@
       ],
       "visual_authority_reference": "design/pages/share_templates/02_T01_Achievement_Card_Spec_V1.md",
       "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    },
+    {
+      "flow_node_id": "home_recent_catch",
+      "feature_id": "home_normal_v1",
+      "page_id": "home",
+      "state_id": "RECENT_CATCH",
+      "title": "Home 最近鱼获入口",
+      "trigger": "Tap a recent catch on Normal Home",
+      "guard": "A valid latest FishRecord is displayed",
+      "entry": "Normal Home renders the latest saved catch card",
+      "exit": "Open that FishRecordDetail in A-side",
+      "manager_route": "design/manager/#page/home_normal_v1/hifi/NH02",
+      "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "behavior_authority": "app/src/main/java/com/yujian/ai/YujianApp.kt",
+      "shared_dependencies": [
+        "yu_jian_catch_hero_card_v1",
+        "fish_media_display_v1",
+        "background_system_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_ROUTE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt: Home onCatchClick → catch/{id}",
+        "design/pages/home/normal_home/02_first_catch/README.md"
+      ]
     }
   ],
   "edges": [
@@ -1137,11 +1165,11 @@
     {
       "id": "E29",
       "from": "home_normal",
-      "to": "detail_a",
+      "to": "home_recent_catch",
       "status": "CONFIRMED_RUNTIME",
-      "relationship": "recent catch card",
+      "relationship": "Normal Home recent catch card",
       "evidence": "Home onCatchClick → catch/{id}",
-      "notes": null
+      "notes": "Recent Catch is the explicit entry; ordinary Save Catch does not navigate to detail."
     },
     {
       "id": "E30",
@@ -1375,6 +1403,15 @@
       "status": "CONFIRMED_RUNTIME",
       "relationship": "policy/agreement",
       "evidence": "Data privacy / About route",
+      "notes": null
+    },
+    {
+      "id": "E56",
+      "from": "home_recent_catch",
+      "to": "detail_a",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "open recent catch in FishRecordDetail A-side",
+      "evidence": "YujianApp Home onCatchClick → catch/{id}",
       "notes": null
     }
   ],

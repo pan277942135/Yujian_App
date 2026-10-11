@@ -15,7 +15,7 @@
 
 | ID | Priority | Topic | Finding | Required disposition |
 |---|---|---|---|---|
-| C-001 | P0 | Save Catch destination is inconsistent | The user-requested master-flow shorthand says Save Catch continues into Detail A/B. Current frozen Recognition Result behavior and Android source send ordinary Save Catch to Home; Continue Memory creates the record and opens Detail B. Either flow may be intentional, but implementation cannot choose without an owner decision. | Before implementation or changing frozen authority |
+| C-001 | P0 · RESOLVED | Save Catch destination | User selected the current frozen rule: ordinary Save Catch completes FishRecord and returns Home; detail is entered later from Recent Catch, My Catches, Fish Guide association or Share. Continue Memory remains a separate direct entry. | Closed by `DECISION_SAVE_CATCH_NAVIGATION_V1`; Frozen behavior unchanged |
 | C-002 | P1 | Record Date has no Android destination | RD01/RD02 visual and RD03 behavior contracts are frozen, while registry runtime is MISSING and no destination was found in the audited Android navigation graph. | Before implementation planning |
 | C-003 | P1 | Record Date annual example does not reconcile | The annual sample states 68 catches while its twelve monthly entries sum to 59. The authority labels values illustrative, so this is not a production-data discrepancy; however the visual cannot be used as a canonical acceptance fixture. | Before using the sample as data truth or test fixture |
 | C-004 | P1 | My Habitat is design-only | Pond / Lake levels are registered design assets under My Catches, but the product flow explicitly says no Android route/callback was located. | Before implementation planning |
@@ -30,11 +30,15 @@
 | C-013 | P2 | Frozen SVG icon assets are not Android resource parity evidence | 43 icons have frozen SVG masters and common 24×24 / 1.75 / currentColor rules, but resource conversion and per-page 44dp target verification are not part of this design audit. | During a later implementation phase |
 | C-014 | P2 | Species Picker is the only non-frozen shared system | 15/16 shared systems are marked FROZEN; species_picker_v1 remains PARTIAL and needs a defined integration acceptance boundary. | Before building shared selector behavior |
 
-## P0 implementation gate
+## P0 closure record
 
-### C-001 — Save Catch destination
+C-001 is resolved by `DECISION_SAVE_CATCH_NAVIGATION_V1`:
 
-The existing frozen result contract says the ordinary **Save Catch** action creates the record and returns to Home. **Continue Memory** saves and opens the Fish Record Detail B-side. The requested Phase 1 product shorthand says save then Detail A/B. These are different product outcomes. The audit records the current source behavior and leaves the requested flow unresolved; neither path was rewritten.
+```
+Recognition Result → Save Catch → Home → Recent Catch → FishRecordDetail A → B-side memory (when READY)
+```
+
+Save Catch completes the record and does not itself enter detail. Continue Memory remains a distinct direct memory entry. C-002–C-014 retain their recorded severities and owner gates; this closure does not auto-close them.
 
 ## Evidence notes
 

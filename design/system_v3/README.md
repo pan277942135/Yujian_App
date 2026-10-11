@@ -1,4 +1,7 @@
-# YuJian Design System V3.1 — Phase 1
+# YuJian Design System V3
+
+> **V3.1 Audit / Freeze:** [Shared Foundation V3.1](./01_Shared_Foundation_V3_1/index.html) is the entry point for typography, color, geometry, backgrounds, icons, components, assets, and the readiness gate.
+
 
 **Status: AUDIT_DRAFT.** This is a versioned audit index; it does not replace or rewrite existing frozen authorities.
 

@@ -24,7 +24,7 @@ section{margin-top:24px}.section-head{display:flex;justify-content:space-between
 <p>产品主链、业务子流程、设计页面和状态使用同一组机器可读索引。Manager 链接用于回看原有 authority；实际 Android 可达性单独标注。</p>
 <div id="stats" class="stats"><div class="stat"><b>…</b><span>加载审计索引</span></div></div>
 </header>
-<section><div class="section-head"><h2>主产品链路</h2><a class="link" href="Product_Master_Flow_V3_1.md">打开完整 PRD 与 Mermaid 源文件</a></div><div class="card"><div id="chain" class="chain"></div><div class="notice" style="margin-top:14px">现行 Save Catch 回 Home；Continue Memory 才进入同一 FishRecordDetail 的 Memory 区。Record Date、My Habitat、T01/T02 template route 均保留为待确认或设计稿状态。</div></div></section>
+<section><div class="section-head"><h2>主产品链路</h2><a class="link" href="Product_Master_Flow_V3_1.md">打开完整 PRD 与 Mermaid 源文件</a></div><div class="card"><div id="chain" class="chain"></div><div class="notice" style="margin-top:14px">DECISION_SAVE_CATCH_NAVIGATION_V1：Save Catch 完成记录并回 Home；最近鱼获进入详情 A 面；Continue Memory 是独立直接入口。Record Date、My Habitat、T01/T02 template route 均保留为待确认或设计稿状态。</div></div></section>
 <section><div class="section-head"><h2>业务子流程</h2><span class="status">节点来自 master_flow_v3_1.json</span></div><div id="domains" class="grid"></div></section>
 <section><div class="section-head"><h2>模块与高保入口</h2><a class="link" href="../01_Page_Registry/Page_State_Hifi_Map_V3_1.md">完整页面映射</a></div><div id="modules" class="grid"></div></section>
 <section><div class="section-head"><h2>审计入口</h2></div><div class="card links">
@@ -45,11 +45,11 @@ const state=(n)=>{const s=n.verification_status||"";return /MISSING|BLOCKED|TO_C
 async function boot(){try{
  const [flow,map]=await Promise.all([fetch(FLOW_URL).then(r=>r.json()),fetch(MAP_URL).then(r=>r.json())]);
  document.getElementById("stats").innerHTML=[["Features",map.counts.features],["Hi-Fi / Spec Views",map.counts.hifi_views],["Nested Items",map.counts.nested_children],["Scenario Pages",map.counts.scenario_pages],["Shared Systems",map.counts.shared_systems]].map(x=>'<div class="stat"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>').join("");
- const ids=["app_home","home_empty","home_normal","capture_camera","capture_gallery","captured","detecting","outline","classifying","result_high","result_medium","result_low","species_confirm","save_home","save_memory","detail_a","detail_b"];
+ const ids=["app_home","home_empty","home_normal","capture_camera","capture_gallery","captured","detecting","outline","classifying","result_high","result_medium","result_low","species_confirm","save_home","home_recent_catch","save_memory","detail_a","detail_b"];
  const byId=new Map(flow.nodes.map(n=>[n.flow_node_id,n]));
  document.getElementById("chain").innerHTML=ids.map(id=>byId.get(id)).filter(Boolean).map(n=>'<div class="step"><strong>'+esc(n.title)+'</strong><small>'+esc(n.state_id||n.page_id||"")+' · '+esc(n.verification_status)+'</small><div class="links" style="margin-top:8px">'+linked(n,"查看设计")+'</div></div>').join("");
  const domains=[
-  ["首页","subflows/Home_V3_1.md",["home_empty","home_normal","capture_camera","capture_gallery"]],
+  ["首页","subflows/Home_V3_1.md",["home_empty","home_normal","home_recent_catch","capture_camera","capture_gallery"]],
   ["识别","subflows/Recognition_V3_1.md",["captured","detecting","outline","classifying","result_high","result_medium","result_low","no_fish","image_quality","technical_failure"]],
   ["鱼获 / 记忆","subflows/Fish_Record_Memory_V3_1.md",["save_home","save_memory","detail_a","detail_b"]],
   ["记录日期","subflows/Record_Date_V3_1.md",["record_date"]],

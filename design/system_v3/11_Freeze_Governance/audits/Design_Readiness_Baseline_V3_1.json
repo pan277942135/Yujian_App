@@ -12,7 +12,8 @@
       "DESIGN_REVIEW_REQUIRED",
       "BLOCKED_DESIGN",
       "OUT_OF_SCOPE",
-      "NOT_YET_ASSESSED"
+      "NOT_YET_ASSESSED",
+      "SHARED_FOUNDATION_READY"
     ],
     "contract_statuses": [
       "VERIFIED_COMPLETE",
@@ -25,18 +26,16 @@
     ]
   },
   "summary": {
-    "phase1_gate": "BLOCKED_FOR_IMPLEMENTATION_HANDOFF",
-    "phase1_gate_reason": "Open P0 product-flow decision C-001; P1 runtime, data, API, typography, accessibility and persistence gaps remain. No Android or backend test was run.",
+    "phase1_gate": "PHASE1_CLOSED",
+    "phase1_gate_reason": "P0 C-001 is resolved. Phase 2 Shared Foundation is tracked separately; open P1/P2 design, data, responsive, accessibility and persistence findings remain. No Android or backend test was run.",
     "page_state_nodes": 150,
-    "product_flow_nodes": 34,
+    "product_flow_nodes": 35,
     "features": 15,
     "shared_systems": 16,
     "design_candidates": 31,
-    "blocked_design_nodes": 18,
-    "design_review_required_nodes": 101,
-    "p0_findings": [
-      "C-001"
-    ],
+    "blocked_design_nodes": 0,
+    "design_review_required_nodes": 119,
+    "p0_findings": [],
     "p1_findings": [
       "C-002",
       "C-003",
@@ -1978,7 +1977,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -1996,7 +1995,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2033,7 +2031,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2051,7 +2049,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2088,7 +2085,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2106,7 +2103,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2143,7 +2139,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2161,7 +2157,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2198,7 +2193,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2216,7 +2211,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2253,7 +2247,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2271,7 +2265,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2308,7 +2301,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2326,7 +2319,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2363,7 +2355,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -2381,7 +2373,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2419,7 +2410,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2437,7 +2428,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2475,7 +2465,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2493,7 +2483,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2531,7 +2520,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2549,7 +2538,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2587,7 +2575,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2605,7 +2593,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2643,7 +2630,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2661,7 +2648,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2699,7 +2685,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2717,7 +2703,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2755,7 +2740,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2773,7 +2758,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2811,7 +2795,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2829,7 +2813,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2867,7 +2850,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2885,7 +2868,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -2923,7 +2905,7 @@
         ],
         "status": "SOURCE_ROUTE_CONFIRMED"
       },
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -2941,7 +2923,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "entry_exit_interpretation": "REGISTRY_ENTRY_ONLY"
@@ -8518,7 +8499,7 @@
         "fish_media_display_v1",
         "action_button_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8536,7 +8517,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8569,7 +8549,7 @@
         "species_picker_v1",
         "action_button_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8587,7 +8567,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8620,7 +8599,7 @@
         "species_picker_v1",
         "action_button_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8638,7 +8617,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8670,7 +8648,7 @@
       "shared_dependencies": [
         "fish_media_display_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8688,7 +8666,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8721,7 +8698,7 @@
       "shared_dependencies": [
         "fish_media_display_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8739,7 +8716,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8819,7 +8795,7 @@
       "shared_dependencies": [
         "species_picker_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8837,7 +8813,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8868,7 +8843,7 @@
       "shared_dependencies": [
         "action_button_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8886,7 +8861,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8910,14 +8884,14 @@
       "entry": "Save fields and applicable correction feedback",
       "exit": "Navigate Home",
       "design_status": "FROZEN",
-      "verification_status": "SPEC_AND_CODE_CONFIRMED; MAIN_CHAIN_CONFLICT",
+      "verification_status": "OWNER_DECISION_CONFIRMED",
       "manager_route": "design/manager/#page/recognition_result_v1/hifi/high",
       "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
       "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
       "shared_dependencies": [
         "action_button_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "VERIFIED_COMPLETE",
@@ -8935,7 +8909,6 @@
         "acceptance": "PARTIAL"
       },
       "open_findings": [
-        "C-001",
         "C-009"
       ],
       "evidence": [
@@ -8946,7 +8919,8 @@
         "status": "SOURCE_ROUTE_OR_CALLBACK_CONFIRMED",
         "app_route": "home",
         "source": "app/src/main/java/com/yujian/ai/YujianApp.kt"
-      }
+      },
+      "decision_id": "DECISION_SAVE_CATCH_NAVIGATION_V1"
     },
     {
       "node_id": "save_memory",
@@ -8967,7 +8941,7 @@
         "yu_jian_catch_hero_card_v1",
         "fish_media_display_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -8985,7 +8959,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "evidence": [
@@ -9019,7 +8992,7 @@
         "fish_media_display_v1",
         "background_system_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -9037,7 +9010,6 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-001",
         "C-006"
       ],
       "evidence": [
@@ -9070,7 +9042,7 @@
         "fish_media_display_v1",
         "mist_glass_surface_v1"
       ],
-      "design_readiness": "BLOCKED_DESIGN",
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
       "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
       "contract_statuses": {
         "product_scope": "PARTIAL",
@@ -9088,8 +9060,7 @@
         "acceptance": "MISSING"
       },
       "open_findings": [
-        "C-006",
-        "C-001"
+        "C-006"
       ],
       "evidence": [
         "design/pages/fish_record/detail/README.md",
@@ -9744,6 +9715,56 @@
       "route_presence": {
         "status": "TEMPLATE_ROUTE_MISSING",
         "app_route": null,
+        "source": "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      }
+    },
+    {
+      "node_id": "home_recent_catch",
+      "feature_id": "home_normal_v1",
+      "page_id": "home",
+      "state_id": "RECENT_CATCH",
+      "title": "Home 最近鱼获入口",
+      "trigger": "Home records resolve",
+      "guard": "有效 FishRecord 数量 ≥ 1",
+      "entry": "Normal Home renders the latest saved catch card",
+      "exit": "Open the record in FishRecordDetail A-side",
+      "design_status": "FROZEN",
+      "verification_status": "CODE_ROUTE_CONFIRMED",
+      "manager_route": "design/manager/#page/home_normal_v1/hifi/NH02",
+      "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "behavior_authority": "design/pages/home/normal_home/spec/Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "primary_capture_button_v1",
+        "fish_media_display_v1"
+      ],
+      "design_readiness": "DESIGN_REVIEW_REQUIRED",
+      "implementation_readiness": "NOT_ASSESSED_PHASE1_DESIGN_ONLY",
+      "contract_statuses": {
+        "product_scope": "VERIFIED_COMPLETE",
+        "page_state": "VERIFIED_COMPLETE",
+        "visual_authority": "VERIFIED_COMPLETE",
+        "responsive": "PARTIAL",
+        "behavior": "VERIFIED_COMPLETE",
+        "state_machine": "VERIFIED_COMPLETE",
+        "asset_integrity": "PARTIAL",
+        "data": "UNVERIFIED",
+        "api": "NOT_APPLICABLE",
+        "motion": "VERIFIED_COMPLETE",
+        "accessibility": "PARTIAL",
+        "engineering": "UNVERIFIED",
+        "acceptance": "PARTIAL"
+      },
+      "open_findings": [
+        "C-007",
+        "C-008"
+      ],
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt: Home onCatchClick → catch/{id}"
+      ],
+      "route_presence": {
+        "status": "SOURCE_ROUTE_OR_CALLBACK_CONFIRMED",
+        "app_route": "home",
         "source": "app/src/main/java/com/yujian/ai/YujianApp.kt"
       }
     }
@@ -10645,5 +10666,29 @@
       ],
       "open_findings": []
     }
-  ]
+  ],
+  "shared_foundation_gate": {
+    "current_state": "NOT_READY",
+    "success_state": "SHARED_FOUNDATION_READY",
+    "phase3_entry_allowed": false,
+    "phase3_entry_rule": [
+      "Typography READY",
+      "Color READY",
+      "Geometry READY",
+      "Background READY",
+      "Icon READY",
+      "Component READY",
+      "Asset READY"
+    ],
+    "system_status": {
+      "typography": "REVIEW",
+      "color": "REVIEW",
+      "geometry": "REVIEW",
+      "background": "READY",
+      "icon": "READY",
+      "component": "REVIEW",
+      "asset": "REVIEW"
+    },
+    "source": "design/system_v3/11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.json"
+  }
 }

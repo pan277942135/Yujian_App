@@ -1,10 +1,12 @@
 # 产品主流程 · YuJian V3.1 Phase 1
 
-**状态：AUDIT_DRAFT** · 审计基线：`main@7737f293ea3831aeea2c6f58308961cdb2ba7d01` · 生成时间：2026-10-11T03:13:33.267Z
+**状态：PHASE1_CLOSED · SHARED_FOUNDATION_V3_1_REVIEW** · 审计基线：`main@7737f293ea3831aeea2c6f58308961cdb2ba7d01` · 生成时间：2026-10-11T03:13:33.267Z
 
 本图把已查证的 Android 当前路径、已冻结设计意图和待确认连接分开。Design Manager 跳转只表示可查看该设计项，不代表 Android 已实现该导航。
 
 ## 全局主链路
+
+P0 决策已关闭：`DECISION_SAVE_CATCH_NAVIGATION_V1`。普通保存与直接继续记忆是两种不同动作。
 
 ```mermaid
 flowchart TD
@@ -28,15 +30,15 @@ flowchart TD
   I -->|"模型 / 运行时失败"| T["Technical Failure · 独立恢复"]
   R2 --> S["确认鱼种"]
   R3 --> S
-  R1 -->|"Save Catch"| H1
-  R2 -->|"Save Catch"| H1
-  R3 -->|"选择鱼种后 Save"| H1
+  R1 -->|"Save Catch"| S0["Save Catch 完成记录"] --> H1
+  R2 -->|"Save Catch"| S0
+  R3 -->|"选择鱼种后 Save"| S0
   R1 -->|"Continue Memory"| A1["FishRecordDetail · 记忆区"]
   R2 -->|"Continue Memory"| A1
   R3 -->|"选择鱼种后 Continue Memory"| A1
   A1 --> A2["Detail A"]
   A2 -->|"B-side READY / 手动 Flip"| A3["Detail B · Memory"]
-  H1 -->|"最近鱼获"| A2
+  H1 -->|"最近鱼获"| RC["最近鱼获"] --> A2["FishRecordDetail · A 面"]
   H1 -->|"我的鱼获"| MC["My Catches"]
   H1 -->|"鱼鉴"| FG["Fish Guide"]
   H0 -->|"鱼鉴 / 我的鱼获"| FG
@@ -59,7 +61,7 @@ flowchart TD
   classDef pending fill:#fff6df,stroke:#b98924,color:#4b3510;
   classDef deferred fill:#f0f0f0,stroke:#888,color:#333;
   classDef recovery fill:#fff0ed,stroke:#b96251,color:#4a1f17;
-  class H0,H1,C,G,D,E,F,I,R1,R2,R3,R4,R5,A1,A2,A3,MC,FG,SD,SH,LG,RG,AC,PR confirmed;
+  class H0,H1,C,G,D,E,F,I,R1,R2,R3,R4,R5,S0,A1,A2,A3,RC,MC,FG,SD,SH,LG,RG,AC,PR confirmed;
   class RD,ST,HAB pending;
   class T recovery;
 ```
@@ -69,7 +71,7 @@ flowchart TD
 - Home 是同一个页面的 EMPTY / NORMAL 状态，登录状态与记录数量正交；用户动作连接在当前 `YujianApp.kt` 中可查。
 - Recognition 的代码状态顺序是 Captured → Detecting → Outline → Classifying；结果根据状态解析到 High / Medium / Low。No Fish 与 Image Quality 通过 `recognition_issue` 恢复；Technical Failure 由独立的失败字段与 UI 分支呈现，**不计入 3+2**。
 - 当前阈值来自现行代码：`p1 < 0.45 → Low`；否则若 `p1 - p2 < 0.12 → Medium`；否则 High。V1.1 Decision Spec 标明其变更建议尚未授权，不能当成新冻结规则。
-- 普通 **Save Catch** 按冻结行为合同与当前代码返回 Home；**Continue Memory** 创建 FishRecord 成功后进入同一详情页并聚焦记忆区。此现状与任务给出的简写主链“保存鱼获 → Detail A → Detail B”不一致，需要产品所有者确认普通保存是否应继续回 Home。
+- 普通 **Save Catch** 依 `DECISION_SAVE_CATCH_NAVIGATION_V1` 完成记录后返回 Home；Save Catch 本身不打开详情。Home 最近鱼获进入同一 FishRecordDetail A 面，B 面按 READY / 首次揭示规则展示。**Continue Memory** 仍是独立的直接记忆入口。
 - Record Date V2 的月 / 年视觉与交互设计目标已冻结，但当前 Android `NavHost` 没有对应 route 或 Home callback。My Habitat 的 level reference 已入库，但没有 runtime route。T01 / T02 分享设计存在，当前 Android 详情分享仍是 `text/plain` chooser。
 - `my_catches/day/{dayKey}` 是 My Catches 的日详情，不能等同于 Record Date V2。
 

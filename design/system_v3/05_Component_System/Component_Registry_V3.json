@@ -1,0 +1,371 @@
+{
+  "schema_version": "3.0",
+  "system_id": "component_v3",
+  "status": "REVIEW",
+  "source_authorities": [
+    "design/system/components/**",
+    "design/system/core_visual_v1/components/**",
+    "design/system/fish_media_display_v1/**"
+  ],
+  "entries": [
+    {
+      "component_id": "navigation.top_title",
+      "name": "Top Title",
+      "status": "FROZEN",
+      "visual": "design/system/components/top_navigation/title_only/Title_Only_Spec_V1.md",
+      "geometry": "Title Only V1; host owns safe inset.",
+      "state": [
+        "static",
+        "fontScale"
+      ],
+      "token_dependency": [
+        "type.title",
+        "color.deep_lake_blue"
+      ],
+      "asset_dependency": [],
+      "responsive_rule": "Remaining width; ellipsis per source contract; may grow for scaled text.",
+      "acceptance_rule": "Match Title Only authority and avoid status/cutout collisions."
+    },
+    {
+      "component_id": "navigation.back",
+      "name": "Back",
+      "status": "FROZEN",
+      "visual": "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
+      "geometry": "56dp min bar; 44×44dp target; 22dp glyph; 8dp gap.",
+      "state": [
+        "normal",
+        "pressed",
+        "disabled",
+        "focus"
+      ],
+      "token_dependency": [
+        "type.title",
+        "color.deep_lake_blue"
+      ],
+      "asset_dependency": [
+        "ic_back_v1.svg"
+      ],
+      "responsive_rule": "Keep target and 20sp BACK_TITLE; ellipsize at narrow widths.",
+      "acceptance_rule": "Return to immediate parent; use registered icon, no text-glyph substitute."
+    },
+    {
+      "component_id": "navigation.action",
+      "name": "Top Navigation Action",
+      "status": "FROZEN",
+      "visual": "design/system/components/top_navigation/back_title_actions/Back_Title_Actions_Spec_V1.md",
+      "geometry": "Page-specific utility order; title uses remaining width.",
+      "state": [
+        "normal",
+        "pressed",
+        "disabled",
+        "focus"
+      ],
+      "token_dependency": [
+        "icon_action_v1"
+      ],
+      "asset_dependency": [
+        "registered icon by page"
+      ],
+      "responsive_rule": "Do not reorder actions; title may ellipsize at larger scale.",
+      "acceptance_rule": "Preserve frozen action order; no default glass pill or extra action."
+    },
+    {
+      "component_id": "action.primary_button",
+      "name": "Primary Button",
+      "status": "FROZEN",
+      "visual": "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+      "geometry": "28dp radius; dimensions stable across states; Result uses explicit page exception.",
+      "state": [
+        "normal",
+        "pressed",
+        "loading",
+        "disabled",
+        "focus"
+      ],
+      "token_dependency": [
+        "color.action_primary",
+        "color.action_disabled_surface"
+      ],
+      "asset_dependency": [],
+      "responsive_rule": "Keep label and action reachable; width ratio belongs to consumer contract.",
+      "acceptance_rule": "Match semantic variant and state authority; no ad-hoc radius."
+    },
+    {
+      "component_id": "action.text_action",
+      "name": "Text Action",
+      "status": "FROZEN",
+      "visual": "design/system/components/text_action/Text_Action_Spec_V1.md",
+      "geometry": "Containerless text; 44×44dp minimum hit target.",
+      "state": [
+        "normal",
+        "pressed",
+        "disabled",
+        "accessibility_focus"
+      ],
+      "token_dependency": [
+        "color.active_accent",
+        "color.action_primary",
+        "color.mist_blue_gray"
+      ],
+      "asset_dependency": [
+        "ic_chevron_right_v1.svg where mapped"
+      ],
+      "responsive_rule": "Single line; retain invisible hit area, no visible pill.",
+      "acceptance_rule": "Use STRONG/NORMAL/MUTED/ON_MEDIA tone and 90ms press transition."
+    },
+    {
+      "component_id": "action.icon_action",
+      "name": "Icon Action",
+      "status": "FROZEN",
+      "visual": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "geometry": "24×24 viewBox; page-sized glyph; 44dp minimum target.",
+      "state": [
+        "normal",
+        "pressed",
+        "disabled",
+        "focus",
+        "selected (owner-owned)"
+      ],
+      "token_dependency": [
+        "color.deep_lake_blue",
+        "color.action_primary",
+        "color.action_disabled_content"
+      ],
+      "asset_dependency": [
+        "Icon Registry V3"
+      ],
+      "responsive_rule": "Keep touch target; page contract owns glyph scale.",
+      "acceptance_rule": "Use registered SVG; semantic selected state belongs to page."
+    },
+    {
+      "component_id": "surface.glass_surface",
+      "name": "Glass Surface",
+      "status": "REVIEW",
+      "visual": "design/system/core_visual_v1/tokens/glass_tokens.json; Recognition Result layout geometry",
+      "geometry": "GLASS_A/B/C opacity family; page owns padding/radius/height.",
+      "state": [
+        "static",
+        "pressed only through child control"
+      ],
+      "token_dependency": [
+        "glass_tokens.json",
+        "color.glass_white",
+        "color.glass_border"
+      ],
+      "asset_dependency": [],
+      "responsive_rule": "Intrinsic content height and scroll; no stretch to fill viewport.",
+      "acceptance_rule": "Preserve contrast and page geometry; shared generic padding/height contract remains open."
+    },
+    {
+      "component_id": "surface.card",
+      "name": "Card",
+      "status": "REVIEW",
+      "visual": "design/system/core_visual_v1/components/Fish_Card.md; Hero Card",
+      "geometry": "Outer geometry remains consumer/page-owned.",
+      "state": [
+        "default",
+        "empty",
+        "media fallback",
+        "selection if owner-defined"
+      ],
+      "token_dependency": [
+        "spacing_tokens.json",
+        "radius_tokens.json",
+        "glass_tokens.json"
+      ],
+      "asset_dependency": [
+        "page authority assets"
+      ],
+      "responsive_rule": "Grow with content; no universal ratio/crop.",
+      "acceptance_rule": "Use named page card contract; cross-page shared envelope is not established."
+    },
+    {
+      "component_id": "media.hero",
+      "name": "Hero",
+      "status": "FROZEN",
+      "visual": "design/system/core_visual_v1/components/Hero_Card.md; Fish Media Display V1",
+      "geometry": "Page Frozen outer frame; HOME/DETAIL use HERO_ADAPTIVE.",
+      "state": [
+        "ready",
+        "safe-fit",
+        "ambient fallback",
+        "unavailable"
+      ],
+      "token_dependency": [
+        "radius_tokens.json",
+        "background registry"
+      ],
+      "asset_dependency": [
+        "original FishRecord media"
+      ],
+      "responsive_rule": "Trusted safe Fill or same-source Safe Fit + ambient; no stretch.",
+      "acceptance_rule": "Preserve original bytes, FishSafeRect and frozen frame."
+    },
+    {
+      "component_id": "media.image",
+      "name": "Image",
+      "status": "FROZEN",
+      "visual": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
+      "geometry": "Consumer-owned content rect; no non-uniform scaling.",
+      "state": [
+        "loading",
+        "ready",
+        "fallback",
+        "error"
+      ],
+      "token_dependency": [
+        "page geometry",
+        "neutral SoftWater fallback"
+      ],
+      "asset_dependency": [
+        "registered media source"
+      ],
+      "responsive_rule": "Evidence Fit or subject-safe crop per media role.",
+      "acceptance_rule": "Use exact declared media mode; preserve source and safe subject."
+    },
+    {
+      "component_id": "media.video",
+      "name": "Video",
+      "status": "REVIEW",
+      "visual": "FishRecordDetail media contracts; Fish Media Display V1",
+      "geometry": "Container/aspect remains consumer-owned; no universal video ratio found.",
+      "state": [
+        "not_added",
+        "ready",
+        "playing",
+        "paused",
+        "failed"
+      ],
+      "token_dependency": [
+        "media image tokens"
+      ],
+      "asset_dependency": [
+        "original user video"
+      ],
+      "responsive_rule": "Fit/cover and controls per page contract; respect Insets.",
+      "acceptance_rule": "Do not fabricate video fixtures; generic playback behavior remains open."
+    },
+    {
+      "component_id": "data.metadata_row",
+      "name": "Metadata Row",
+      "status": "REVIEW",
+      "visual": "Recognition Result metadata + FishRecordDetail authority",
+      "geometry": "Row height, icon alignment, truncation page-specific.",
+      "state": [
+        "populated",
+        "missing",
+        "long value",
+        "loading"
+      ],
+      "token_dependency": [
+        "type.body",
+        "type.caption",
+        "color.deep_lake_blue",
+        "color.mist_blue_gray"
+      ],
+      "asset_dependency": [
+        "field icon IDs where registered"
+      ],
+      "responsive_rule": "Wrap or ellipsize only per field contract.",
+      "acceptance_rule": "Every field needs source/empty behavior; generic shared geometry open."
+    },
+    {
+      "component_id": "data.statistic_card",
+      "name": "Statistic Card",
+      "status": "REVIEW",
+      "visual": "Normal Home V1.1 typography / NH04 states",
+      "geometry": "Home statistic group geometry only; no shared card contract.",
+      "state": [
+        "value",
+        "empty",
+        "loading",
+        "error"
+      ],
+      "token_dependency": [
+        "type.numeric",
+        "type.caption",
+        "color.deep_lake_blue"
+      ],
+      "asset_dependency": [],
+      "responsive_rule": "Preserve Home groups and page-specific Font A.",
+      "acceptance_rule": "Keep record data authority; no cross-page contract yet."
+    },
+    {
+      "component_id": "input.selector",
+      "name": "Selector",
+      "status": "REVIEW",
+      "visual": "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md",
+      "geometry": "Species Picker PARTIAL; generic selector geometry absent.",
+      "state": [
+        "closed",
+        "open",
+        "searching",
+        "selected",
+        "empty",
+        "error"
+      ],
+      "token_dependency": [
+        "action_button_v1",
+        "text_action_v1",
+        "icon_action_v1"
+      ],
+      "asset_dependency": [
+        "ic_selected_check_v1.svg",
+        "ic_search_v1.svg"
+      ],
+      "responsive_rule": "Preserve result/feedback flow; accessibility states pending.",
+      "acceptance_rule": "Keep out of engineering freeze until C-014 scope is closed."
+    },
+    {
+      "component_id": "input.search",
+      "name": "Search",
+      "status": "REVIEW",
+      "visual": "design/pages/fish_records/list/My_Catches_Search_Spec_V1.md",
+      "geometry": "My Catches page-only; no shared geometry.",
+      "state": [
+        "idle",
+        "focused",
+        "typing",
+        "results",
+        "empty",
+        "clear",
+        "error"
+      ],
+      "token_dependency": [
+        "type.body",
+        "icon_action_v1",
+        "color.deep_lake_blue"
+      ],
+      "asset_dependency": [
+        "ic_search_v1.svg",
+        "ic_clear_field_v1.svg"
+      ],
+      "responsive_rule": "IME-aware; preserve query and visible content.",
+      "acceptance_rule": "Promote only after shared focus, clear, empty/error behavior is defined."
+    },
+    {
+      "component_id": "input.bottom_sheet",
+      "name": "Bottom Sheet",
+      "status": "REVIEW",
+      "visual": "design/pages/fish_records/list/F1_Filter_Panel_Spec_V1.md (page scope)",
+      "geometry": "No generic snap/dismiss geometry authority found.",
+      "state": [
+        "closed",
+        "open",
+        "dragging",
+        "submitting",
+        "error"
+      ],
+      "token_dependency": [
+        "color.lake_white",
+        "radius_tokens.json",
+        "type.body"
+      ],
+      "asset_dependency": [
+        "page-owned icons"
+      ],
+      "responsive_rule": "Respect bottom gesture inset and IME; internal content scrolls.",
+      "acceptance_rule": "Do not reuse cross-page until snap, dismissal, focus and IME behavior are approved."
+    }
+  ]
+}
