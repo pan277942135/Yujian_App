@@ -48,7 +48,7 @@ Phase 2 Final Freeze recomputed all 658 baseline file SHA-256 values from raw by
 
 | ID | Owner | Decision required | Choices / evidence needed | Gate |
 |---|---|---|---|---|
-| D-015 | Design system + Product/Accessibility owner | Approve global Brand Primary/Secondary and Success/Warning/Error/Info color semantics. | Provide or approve exact semantic token mappings and contrast contexts; confirm whether the page-scoped Account & Privacy Danger value is a global Error token. | Before Color READY / Phase 3 |
+| D-015 | Design system + Product/Accessibility owner | **AWAITING OWNER APPROVAL:** candidate packet is complete; no mapping is approved by this audit. | Select/replace exact Brand Primary/Secondary and Success/Warning/Error/Info mappings, approve contrast contexts, and decide whether Account & Privacy Danger remains page-only. | Before Color READY / Phase 3 |
 
 
 ## Decision Record — D-007 platform typography policy
@@ -58,3 +58,8 @@ Phase 2 Final Freeze recomputed all 658 baseline file SHA-256 values from raw by
 **Frozen policy:** ordinary Chinese, English and numeric Android UI text maps to the existing `FontFamily.SansSerif`; Android resolves CJK fallback by script/locale, and no vendor-specific face is pinned. The four shared weights, token-to-sp mapping, Normal Home Font A conversion, and OS `fontScale` behavior are recorded in the Typography final files. For frozen calligraphic brand lettering, prefer the original approved visual asset.
 
 **Remaining blocker:** `app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt` renders `渔见` as dynamic text, mapped through `YuJianTypography.brand` to SansSerif; Core Visual defines BRAND as calligraphic/brand-only. No approved dynamic typeface/license or replacement brand asset is registered. Resolve the mismatch by an owner decision or approved source/asset. Do not infer from PNG, download a font, edit Kotlin, or change a Frozen visual in this phase.
+
+
+## D-015 approval packet status
+
+A review-only package is available under `design/system_v3/11_Freeze_Governance/reviews/`: candidate JSON, owner decision packet and static swatch preview. The 92-token canonical Color registry was not changed and none of the review candidates is approved for production. D-015 remains open until an explicit owner choice is recorded.

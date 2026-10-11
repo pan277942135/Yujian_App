@@ -2,6 +2,10 @@
 
 **System status: REVIEW.** All 64 previously unregistered explicit source literals are now mapped to identity-only legacy tokens. The shared Brand role mapping and global Success / Warning / Error / Info palette are not approved; D-015 remains open.
 
+## D-015 review package
+
+Owner approval is required before global semantic roles can be frozen. The complete candidates, contrast contexts, owner fields and static review swatches are in [D-015 Approval Packet](../../11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md), [structured candidate data](../../11_Freeze_Governance/reviews/Color_Semantic_Candidates_V3_1.json), and [review preview](../../11_Freeze_Governance/reviews/Color_D015_Review_V3_1.html). These are explicitly review-only; no candidate has been added to the canonical token registry.
+
 ## Palette authority
 
 | Group | Mapping | Rule |
