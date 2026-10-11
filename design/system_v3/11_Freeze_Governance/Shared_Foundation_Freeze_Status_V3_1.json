@@ -66,10 +66,8 @@
       {
         "id": "Icon",
         "status": "READY",
-        "blocking": [
-          "C-013"
-        ],
-        "reason": "43/43 SVG frozen masters and hashes complete; Android mapping is outside this design-only task."
+        "blocking": [],
+        "reason": "43/43 SVG frozen masters and SHA are complete. C-013 tracks later Android resource mapping and 44dp target verification, outside this design-only freeze gate."
       },
       {
         "id": "Component",
