@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "audit_status": "AUDIT_DRAFT",
+  "generated_at": "2026-10-11",
+  "baseline_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
+  "status_vocabulary": [
+    "VERIFIED_COMPLETE",
+    "PARTIAL",
+    "MISSING",
+    "CONFLICT",
+    "UNVERIFIED",
+    "DEFERRED",
+    "NOT_APPLICABLE"
+  ],
+  "contracts": [
+    {
+      "contract": "Product / canonical flow",
+      "status": "PARTIAL",
+      "evidence": "Phase 1 master flow has 34 nodes and 55 edges; 15 registered features mapped.",
+      "gap": "The Save Catch target conflicts: current frozen result contract saves to Home; the requested master-flow shorthand says save then Detail A/B. Owner decision required before implementation."
+    },
+    {
+      "contract": "Manager navigation and registry",
+      "status": "VERIFIED_COMPLETE",
+      "evidence": "15 features, 62 top-level Hi-Fi views, 70 nested children, 13 scenarios, 16 shared systems; 150 map nodes. All registered Hi-Fi routes and manager route patterns exist.",
+      "gap": "Legacy/hidden compatibility entries are routeable and must stay labeled as aliases or hidden."
+    },
+    {
+      "contract": "Page/state and transitions",
+      "status": "PARTIAL",
+      "evidence": "A 150-node page/state map and feature-specific state specs are indexed.",
+      "gap": "No single page-independent schema proves every empty/loading/error/offline/permission/signed-in/guest branch or its exit behavior."
+    },
+    {
+      "contract": "Visual authority and provenance",
+      "status": "PARTIAL",
+      "evidence": "All 658 design/** files have path/size/Git blob identity; 248 image/vector candidates separated from documents.",
+      "gap": "Raw SHA-256 was recomputed for 579 files; 79 binaries were omitted by GitHub contents API. Five key images were visually sampled. External Library-only or upstream originals are outside this repository audit."
+    },
+    {
+      "contract": "Color / typography tokens",
+      "status": "PARTIAL",
+      "evidence": "Color, typography, spacing and radius token files are present; role-based color and scale usage exists.",
+      "gap": "Global font family, font weight mapping, line height, letter spacing, license/fallback, and system font scaling behavior are not declared as one resolved contract."
+    },
+    {
+      "contract": "Background system",
+      "status": "VERIFIED_COMPLETE",
+      "evidence": "Five frozen treatments and two canonical lake masters are registered with a usage map.",
+      "gap": "Page override and exception rules should remain explicit when a page uses the Sunrise Hero or dynamic capture photo."
+    },
+    {
+      "contract": "Icon system",
+      "status": "PARTIAL",
+      "evidence": "43 SVG masters are design-frozen at 24×24, 1.75 stroke, round caps/joins and currentColor.",
+      "gap": "Android VectorDrawable/resource mapping and page-level 44dp touch target verification are not established by the design-only checks."
+    },
+    {
+      "contract": "Shared components",
+      "status": "PARTIAL",
+      "evidence": "16 shared systems are registered; 15 are FROZEN and Species Picker is PARTIAL.",
+      "gap": "Frozen design is not shared-component runtime acceptance; cross-page collision and state parity evidence is uneven."
+    },
+    {
+      "contract": "Responsive layout / accessibility",
+      "status": "PARTIAL",
+      "evidence": "Feature-specific responsive/accessibility specs exist for Fish Guide and account flows; 44dp action targets are specified in common action components.",
+      "gap": "A global viewport, landscape/tablet, font-scaling, contrast, focus/order, and accessibility error-state matrix is not present across all 15 features."
+    },
+    {
+      "contract": "Behavior / state machine",
+      "status": "PARTIAL",
+      "evidence": "14/15 feature behavior modalities are marked FROZEN; recognition has a separate state timeline.",
+      "gap": "Feature status does not uniformly resolve route guards, loading, repeated entry, save failure, permission denial, offline, and retry outcomes."
+    },
+    {
+      "contract": "Motion / haptic / sound",
+      "status": "PARTIAL",
+      "evidence": "9/15 features have FROZEN motion, haptic and sound; some explicitly freeze NONE.",
+      "gap": "Record Date motion is PARTIAL; Detail and legacy B-side omit motion/haptic/sound specs; absence must not be interpreted as permission to invent behavior."
+    },
+    {
+      "contract": "Data / API / database mapping",
+      "status": "PARTIAL",
+      "evidence": "Android source and backend main commit 05554ce1b7104c7bce05610979dfc3478b6d24a5 expose catches, fish knowledge, auth/profile/privacy and inference upload route families.",
+      "gap": "Route existence is verified, not every displayed field → response field → database column → empty/error state; Record Date and Habitat UI routes are absent."
+    },
+    {
+      "contract": "Asset / media behavior",
+      "status": "PARTIAL",
+      "evidence": "Fish media fit/crop contracts and shared asset manifests exist.",
+      "gap": "79 raw binaries were inaccessible to direct SHA-256 calculation; 19 blocked frozen references have no direct current SHA-256 declaration in scanned authority. Their path and Git blob SHA remain recorded."
+    },
+    {
+      "contract": "Acceptance / test evidence",
+      "status": "PARTIAL",
+      "evidence": "Some features carry runtime/evidence manifests and explicit design closure records.",
+      "gap": "Evidence is modality-specific and uneven; this Phase 1 did not run Android, emulator, device, APK, backend, or database tests."
+    },
+    {
+      "contract": "Legal / consent / data lifecycle",
+      "status": "PARTIAL",
+      "evidence": "Privacy consent and legal shell/content structures exist.",
+      "gap": "External legal copy is gated; password reset, export, and account deletion are explicitly deferred/ComingSoon in current UI."
+    }
+  ],
+  "feature_modality_status_counts": {
+    "behavior": {
+      "FROZEN": 14,
+      "PARTIAL": 1
+    },
+    "visual": {
+      "FROZEN": 13,
+      "PARTIAL": 2
+    },
+    "motion": {
+      "FROZEN": 9,
+      "PARTIAL": 2,
+      "MISSING": 4
+    },
+    "haptic": {
+      "FROZEN": 9,
+      "DEFERRED": 1,
+      "MISSING": 4,
+      "PARTIAL": 1
+    },
+    "sound": {
+      "FROZEN": 9,
+      "DEFERRED": 1,
+      "MISSING": 4,
+      "PARTIAL": 1
+    },
+    "runtime": {
+      "FROZEN": 2,
+      "PARTIAL": 7,
+      "MISSING": 1,
+      "ACTIVE_CLOSURE": 1,
+      "RUNTIME_ONLY": 4
+    },
+    "evidence": {
+      "FROZEN": 4,
+      "PARTIAL": 4,
+      "ACTIVE_CLOSURE": 1,
+      "MISSING": 6
+    },
+    "assets": {
+      "FROZEN": 11,
+      "PARTIAL": 4
+    }
+  }
+}

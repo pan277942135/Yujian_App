@@ -1,0 +1,1388 @@
+{
+  "audit_version": "YuJian Design System V3.1 Phase 1",
+  "audit_status": "AUDIT_DRAFT",
+  "generated_at": "2026-10-11T03:12:21.543Z",
+  "source": {
+    "repository": "pan277942135/Yujian_App",
+    "main_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
+    "branch": "audit/design-system-v3-1-phase1-master-baseline"
+  },
+  "status_legend": {
+    "CONFIRMED_RUNTIME": "Current Android route/callback or state transition verified in main source.",
+    "CONFIRMED_DESIGN": "Authority confirms design intent; runtime may be absent.",
+    "TO_CONFIRM_RUNTIME": "Design intent exists without a matching Android route/callback.",
+    "DESIGN_ONLY": "Registered design surface; runtime route was not located.",
+    "DEFERRED": "Existing authority explicitly defers the capability.",
+    "BLOCKED_ACCESS": "Raw source bytes could not be read through audit API; no screenshot/pre-encoded preview used as SHA source."
+  },
+  "counts": {
+    "nodes": 34,
+    "edges": 55,
+    "registry_features": 15
+  },
+  "evidence_sources": {
+    "app": "app/src/main/java/com/yujian/ai/YujianApp.kt",
+    "recognize": "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+    "state": "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt",
+    "result": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionUiState.kt",
+    "issue": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+    "result_spec": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+    "decision_spec": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+    "detail": "design/pages/fish_record/detail/README.md",
+    "record_date": "design/pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md",
+    "manager": "design/manager/app.js"
+  },
+  "nodes": [
+    {
+      "flow_node_id": "app_home",
+      "feature_id": null,
+      "page_id": "home",
+      "state_id": "APP_START",
+      "title": "启动进入 Home",
+      "trigger": "App launches",
+      "guard": "NavHost startDestination = home",
+      "entry": "App starts on Home",
+      "exit": "Empty or Normal is derived after records resolve",
+      "manager_route": "design/manager/#page/null",
+      "visual_authority": null,
+      "behavior_authority": "app/src/main/java/com/yujian/ai/YujianApp.kt",
+      "shared_dependencies": [],
+      "design_status": "RUNTIME",
+      "verification_status": "CODE_ROUTE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt: NavHost startDestination and Home route"
+      ]
+    },
+    {
+      "flow_node_id": "home_empty",
+      "feature_id": "home_empty_v2",
+      "page_id": "home",
+      "state_id": "EMPTY",
+      "title": "Empty Home",
+      "trigger": "Home records resolve",
+      "guard": "有效 FishRecord 数量 = 0",
+      "entry": "Home resolves record list",
+      "exit": "Camera / Gallery / Guide / My Catches / Account actions",
+      "manager_route": "design/manager/#page/home_empty_v2",
+      "visual_authority": "design/system/core_visual_v1/reference/empty_home_v2.png",
+      "behavior_authority": "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "primary_capture_button_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_DESIGN_CONDITION_CONFIRMED; RAW_PNG_SHA_BLOCKED",
+      "evidence": [
+        "design/pages/home/empty_home/spec/Empty_Home_Spec_Closure_V1.md",
+        "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      ]
+    },
+    {
+      "flow_node_id": "home_normal",
+      "feature_id": "home_normal_v1",
+      "page_id": "home",
+      "state_id": "NORMAL",
+      "title": "Normal Home",
+      "trigger": "Home records resolve",
+      "guard": "有效 FishRecord 数量 ≥ 1",
+      "entry": "Home resolves record list",
+      "exit": "Camera / Gallery / Guide / My Catches / Account / catch details",
+      "manager_route": "design/manager/#page/home_normal_v1/hifi/NH02",
+      "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "behavior_authority": "design/pages/home/normal_home/spec/Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "primary_capture_button_v1",
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_DESIGN_CONDITION_CONFIRMED; RAW_PNG_SHA_BLOCKED",
+      "evidence": [
+        "design/pages/home/normal_home/02_first_catch/README.md",
+        "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      ]
+    },
+    {
+      "flow_node_id": "capture_camera",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "identify",
+      "state_id": "CAMERA",
+      "title": "Camera capture",
+      "trigger": "Home camera CTA",
+      "guard": "Camera permission and CameraX ready; fallback is offered when unavailable",
+      "entry": "Home → identify",
+      "exit": "Normalized image calls onImageReady",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/visual_states",
+      "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt",
+      "shared_dependencies": [
+        "fish_media_display_v1",
+        "icon_library_v0_1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_CALLBACK_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt:418",
+        "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt"
+      ]
+    },
+    {
+      "flow_node_id": "capture_gallery",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "identify?openGallery=true",
+      "state_id": "GALLERY",
+      "title": "Gallery select",
+      "trigger": "Home album CTA or Identify gallery action",
+      "guard": "Readable image selected",
+      "entry": "Home → identify?openGallery=true",
+      "exit": "Same normalized-image handoff as camera",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/visual_states",
+      "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_CALLBACK_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt:419,558-578",
+        "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt"
+      ]
+    },
+    {
+      "flow_node_id": "captured",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "recognizing",
+      "state_id": "CAPTURED",
+      "title": "Captured",
+      "trigger": "Camera/gallery onImageReady",
+      "guard": "Selected normalized image available",
+      "entry": "Identify stores SelectedImage and navigates recognizing",
+      "exit": "DetectionStarted",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/state_timeline",
+      "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_STATE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt:568-577",
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt"
+      ]
+    },
+    {
+      "flow_node_id": "detecting",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "recognizing",
+      "state_id": "DETECTING",
+      "title": "Detecting",
+      "trigger": "DetectionStarted event",
+      "guard": "Current phase = CAPTURED",
+      "entry": "Detector runs on normalized image",
+      "exit": "OUTLINE / NO_FISH / TOO_FAR / technical failure",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/state_timeline",
+      "visual_authority": null,
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt",
+      "shared_dependencies": [],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_STATE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt"
+      ]
+    },
+    {
+      "flow_node_id": "outline",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "recognizing",
+      "state_id": "OUTLINE",
+      "title": "Outline",
+      "trigger": "DetectionFinished(OUTLINE)",
+      "guard": "Classifier-eligible fish detection",
+      "entry": "Crop/outline visualization",
+      "exit": "CLASSIFYING or invalid crop failure",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/state_timeline",
+      "visual_authority": null,
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_STATE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt"
+      ]
+    },
+    {
+      "flow_node_id": "classifying",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "recognizing",
+      "state_id": "CLASSIFYING",
+      "title": "Classifying",
+      "trigger": "ClassificationStarted",
+      "guard": "Current phase = OUTLINE",
+      "entry": "Classifier runs on crop",
+      "exit": "SUCCESS / CONFIRM / UNKNOWN / technical failure",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/state_timeline",
+      "visual_authority": null,
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_STATE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt"
+      ]
+    },
+    {
+      "flow_node_id": "result_high",
+      "feature_id": "recognition_result_v1",
+      "page_id": "result",
+      "state_id": "RESULT_HIGH",
+      "title": "High",
+      "trigger": "Classifier eligible and p1 ≥ 0.45 with no medium tie condition",
+      "guard": "ready prediction",
+      "entry": "Result screen resolved to HIGH",
+      "exit": "Edit/select species; Save or Continue Memory; failure remains on Result",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/high",
+      "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "species_picker_v1",
+        "fish_media_display_v1",
+        "action_button_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_SPEC_CONFIRMED; ASSET_SHA_PARTIAL",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ui/identify/RecognitionUiState.kt",
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      ]
+    },
+    {
+      "flow_node_id": "result_medium",
+      "feature_id": "recognition_result_v1",
+      "page_id": "result",
+      "state_id": "RESULT_MEDIUM",
+      "title": "Medium",
+      "trigger": "p1 ≥ 0.45 and margin to candidate 2 < 0.12",
+      "guard": "Ready prediction; suggestions are not user confirmation",
+      "entry": "Result displays candidate suggestions",
+      "exit": "Require explicit species confirmation then continue to dual CTA",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/medium",
+      "visual_authority": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "species_picker_v1",
+        "action_button_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_SPEC_CONFIRMED; PRODUCT DECISION DOC ACTIVE_CLOSURE",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ui/identify/RecognitionUiState.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      ]
+    },
+    {
+      "flow_node_id": "result_low",
+      "feature_id": "recognition_result_v1",
+      "page_id": "result",
+      "state_id": "RESULT_LOW",
+      "title": "Low",
+      "trigger": "p1 < 0.45",
+      "guard": "Species cannot be claimed confirmed; save blocked until manual selection",
+      "entry": "Result keeps metadata/story as editable draft",
+      "exit": "LOW_MANUAL selection resumes requested destination; cancel preserves draft and clears pending destination",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/low",
+      "visual_authority": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "species_picker_v1",
+        "action_button_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_SPEC_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ui/identify/RecognitionUiState.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      ]
+    },
+    {
+      "flow_node_id": "no_fish",
+      "feature_id": "recognition_result_v1",
+      "page_id": "recognition_issue",
+      "state_id": "ERROR_NO_FISH",
+      "title": "No Fish",
+      "trigger": "Detector reports NO_FISH",
+      "guard": "No classifier-eligible detection",
+      "entry": "RecognitionIssue recovery screen",
+      "exit": "Retake or select gallery; no FishRecord",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/no_fish",
+      "visual_authority": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_SPEC_RECOVERY_CONFIRMED; SHA_BLOCKED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "app/src/main/java/com/yujian/ai/ai/RecognitionStateMachine.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      ]
+    },
+    {
+      "flow_node_id": "image_quality",
+      "feature_id": "recognition_result_v1",
+      "page_id": "recognition_issue",
+      "state_id": "ERROR_IMAGE_QUALITY",
+      "title": "Image Quality",
+      "trigger": "TOO_FAR or ineligible input without failure code",
+      "guard": "Recognition cannot safely proceed to classifier",
+      "entry": "RecognitionIssue recovery screen",
+      "exit": "Retake/gallery; no FishRecord; reason-specific semantics remain a gap",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/image_quality",
+      "visual_authority": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "CODE_AND_SPEC_RECOVERY_CONFIRMED; SEMANTIC_GAP_RECORDED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+        "app/src/main/java/com/yujian/ai/ui/identify/RecognitionUiState.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md"
+      ]
+    },
+    {
+      "flow_node_id": "technical_failure",
+      "feature_id": "recognition_flow_v1_2",
+      "page_id": "recognition_issue",
+      "state_id": "TECHNICAL_FAILURE",
+      "title": "Technical Failure (outside 3+2)",
+      "trigger": "Pipeline exception or failureCode",
+      "guard": "Technical/model/crop failure is not evidence of no fish or poor image",
+      "entry": "YujianApp routes issue with technicalFailure=true",
+      "exit": "Retry/retake/gallery recovery; never create record",
+      "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/degradation_accessibility",
+      "visual_authority": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
+      "behavior_authority": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+      "shared_dependencies": [
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "SEPARATE_RECOVERY_ROUTE_CONFIRMED; SHARED_IMAGE_QUALITY_GEOMETRY",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt:604-620",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md"
+      ]
+    },
+    {
+      "flow_node_id": "species_confirm",
+      "feature_id": "recognition_result_v1",
+      "page_id": "result",
+      "state_id": "SPECIES_CONFIRMED",
+      "title": "Species confirmation",
+      "trigger": "Medium candidate selection or Low manual picker",
+      "guard": "Medium/Low require explicit user selection before persistence",
+      "entry": "Selector returns to same Result screen",
+      "exit": "User can continue to Save or Continue Memory",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/decision_logic",
+      "visual_authority": "design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "species_picker_v1"
+      ],
+      "design_status": "ACTIVE_CLOSURE",
+      "verification_status": "CONTRACT_CONFIRMED; DECISION_AUTHORITY_ACTIVE_CLOSURE",
+      "evidence": [
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+        "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md"
+      ],
+      "visual_authority_reference": "design/pages/recognition/result/07_decision_logic/README.md",
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+    },
+    {
+      "flow_node_id": "save_failure",
+      "feature_id": "recognition_result_v1",
+      "page_id": "result",
+      "state_id": "SAVE_ERROR",
+      "title": "Save failure recovery",
+      "trigger": "Create/upload catch fails",
+      "guard": "No successful FishRecord creation",
+      "entry": "Remain on Result; preserve fields",
+      "exit": "Retry; avoid duplicate record",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/high",
+      "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "action_button_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "SPEC_AND_CODE_RECOVERY_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      ],
+      "visual_authority_reference": "design/pages/recognition/result/01_high/README.md",
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+    },
+    {
+      "flow_node_id": "save_home",
+      "feature_id": "recognition_result_v1",
+      "page_id": "home",
+      "state_id": "SAVE_TO_HOME",
+      "title": "Ordinary Save Catch outcome",
+      "trigger": "Save CTA success",
+      "guard": "FishRecord created successfully",
+      "entry": "Save fields and applicable correction feedback",
+      "exit": "Navigate Home",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/high",
+      "visual_authority": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "behavior_authority": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+      "shared_dependencies": [
+        "action_button_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "SPEC_AND_CODE_CONFIRMED; MAIN_CHAIN_CONFLICT",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      ],
+      "visual_authority_reference": "design/pages/recognition/result/01_high/README.md",
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+    },
+    {
+      "flow_node_id": "save_memory",
+      "feature_id": "fish_record_detail_v2",
+      "page_id": "catch/{catchId}?section=memory",
+      "state_id": "SAVE_TO_MEMORY",
+      "title": "Continue Memory outcome",
+      "trigger": "Continue Memory CTA success",
+      "guard": "FishRecord created successfully",
+      "entry": "Create record first, then open same FishRecordDetail focused at Memory",
+      "exit": "Detail page A/B model applies",
+      "manager_route": "design/manager/#page/fish_record_detail_v2/hifi/b_side",
+      "visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
+      "behavior_authority": "design/pages/fish_record/detail/README.md",
+      "shared_dependencies": [
+        "yu_jian_catch_hero_card_v1",
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "SPEC_AND_CODE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/fish_record/detail/README.md"
+      ]
+    },
+    {
+      "flow_node_id": "detail_a",
+      "feature_id": "fish_record_detail_v2",
+      "page_id": "catch/{catchId}",
+      "state_id": "A_SIDE",
+      "title": "FishRecord Detail A side",
+      "trigger": "Home recent catch / My Catches card / save route",
+      "guard": "FishRecord exists and resolves",
+      "entry": "Open one FishRecordDetail destination",
+      "exit": "Edit, share, guide, media actions; B flip only when READY",
+      "manager_route": "design/manager/#page/fish_record_detail_v2/hifi/a_side",
+      "visual_authority": "design/system/core_visual_v1/reference/fish_record_detail_v2.png",
+      "behavior_authority": "design/pages/fish_record/detail/README.md",
+      "shared_dependencies": [
+        "yu_jian_catch_hero_card_v1",
+        "top_navigation_v1",
+        "fish_media_display_v1",
+        "background_system_v1"
+      ],
+      "design_status": "FROZEN",
+      "verification_status": "DESIGN_FROZEN; RUNTIME_PARTIAL",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/fish_record/detail/README.md"
+      ]
+    },
+    {
+      "flow_node_id": "detail_b",
+      "feature_id": "fish_memory_bside_v1",
+      "page_id": "catch/{catchId}",
+      "state_id": "B_SIDE_LIFECYCLE",
+      "title": "Fish Memory B side",
+      "trigger": "First READY reveal once per record; later manual Flip",
+      "guard": "READY required for flip; generation success does not consume reveal until presented",
+      "entry": "Same detail destination, not a distinct Android route",
+      "exit": "A/B switch; FAILED/NOT_GENERATED keeps A usable; retry state",
+      "manager_route": "design/manager/#page/fish_memory_bside_v1",
+      "visual_authority": "design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png",
+      "behavior_authority": "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
+      "shared_dependencies": [
+        "yu_jian_catch_hero_card_v1",
+        "fish_media_display_v1",
+        "mist_glass_surface_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "DESIGN_LIFECYCLE_CONFIRMED; RUNTIME_GENERATION_PARTIAL",
+      "evidence": [
+        "design/pages/fish_record/detail/README.md",
+        "design/pages/fish_record/detail/FishRecordDetail_Overview_Authority_V1.md",
+        "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      ]
+    },
+    {
+      "flow_node_id": "my_catches",
+      "feature_id": "my_catches_v2",
+      "page_id": "my_catches",
+      "state_id": "TIMELINE",
+      "title": "My Catches",
+      "trigger": "Home catches CTA or Fish Guide species-catches action",
+      "guard": "Timeline has loading/error/empty/results; route also supports species filter",
+      "entry": "Home → my_catches; Fish Guide species → my_catches?speciesId",
+      "exit": "Record → Detail; Capture → Identify; >10/day → day detail",
+      "manager_route": "design/manager/#page/my_catches_v2/hifi/main",
+      "visual_authority": "design/system/core_visual_v1/reference/my_catches_v2.png",
+      "behavior_authority": "design/pages/fish_records/list/My_Catches_Timeline_Hifi_Audit_V1.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "primary_capture_button_v1",
+        "top_navigation_v1",
+        "fish_media_display_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "CODE_ROUTE_CONFIRMED; STATE_CONTRACT_PARTIAL",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md"
+      ],
+      "visual_authority_reference": "design/pages/fish_records/list/My_Catches_Scenario_Index_V1.md",
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+    },
+    {
+      "flow_node_id": "record_date",
+      "feature_id": "record_date_v2",
+      "page_id": "record_date_v2",
+      "state_id": "MONTH_YEAR",
+      "title": "Record Date V2",
+      "trigger": "Designed Normal Home record-days tap",
+      "guard": "Current Android app has no Record Date route/callback",
+      "entry": "Frozen month/year art; latest decision documents runtime pending",
+      "exit": "Date select/month-year movement and computed totals are design target only",
+      "manager_route": "design/manager/#page/record_date_v2/hifi/month_v2",
+      "visual_authority": "design/pages/record_date/v2/assets/Record_Date_Month_V2.png",
+      "behavior_authority": "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "top_navigation_v1",
+        "fish_media_display_v1"
+      ],
+      "design_status": "FROZEN_DESIGN/PARTIAL_PRODUCT",
+      "verification_status": "DESIGN_FROZEN; ANDROID_ROUTE_MISSING; RAW_SHA_BLOCKED",
+      "evidence": [
+        "design/pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md",
+        "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md",
+        "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      ]
+    },
+    {
+      "flow_node_id": "fish_guide",
+      "feature_id": "fish_guide_v2",
+      "page_id": "guide",
+      "state_id": "GUIDE_HOME",
+      "title": "Fish Guide home",
+      "trigger": "Home species action",
+      "guard": "Guide async loading/offline/error state handled by screen",
+      "entry": "Home → guide",
+      "exit": "Species selection → species detail",
+      "manager_route": "design/manager/#page/fish_guide_v2/hifi/home",
+      "visual_authority": "design/pages/fish_guide/design/Fish_Guide_Home_V2_Frozen.png",
+      "behavior_authority": "design/pages/fish_guide/README.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "top_navigation_v1",
+        "mist_glass_surface_v1"
+      ],
+      "design_status": "FROZEN_DESIGN/PARTIAL_RUNTIME",
+      "verification_status": "CODE_ROUTE_AND_BACKEND_LIST_API_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/fish_guide/README.md",
+        "pan277942135/Yujian@05554ce: app/fish_knowledge/api.py GET /api/v1/fish/species"
+      ]
+    },
+    {
+      "flow_node_id": "fish_species",
+      "feature_id": "fish_guide_v2",
+      "page_id": "species/{key}",
+      "state_id": "SPECIES_DETAIL",
+      "title": "Fish species detail / knowledge cards",
+      "trigger": "Select species from guide",
+      "guard": "Species key resolves; offline fallback possible",
+      "entry": "guide → species/{key}",
+      "exit": "Capture / catch detail / species-filtered catches",
+      "manager_route": "design/manager/#page/fish_guide_v2/hifi/species_detail",
+      "visual_authority": "design/pages/fish_guide/design/Fish_Guide_Species_Detail_V2_Frozen.png",
+      "behavior_authority": "design/pages/fish_guide/species_detail/README.md",
+      "shared_dependencies": [
+        "fish_media_display_v1",
+        "background_system_v1"
+      ],
+      "design_status": "FROZEN_DESIGN/PARTIAL_RUNTIME",
+      "verification_status": "CODE_ROUTE_AND_BACKEND_DETAIL_API_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/fish_guide/species_detail/README.md",
+        "pan277942135/Yujian@05554ce: app/fish_knowledge/api.py GET /api/v1/fish/species/{id}/detail"
+      ]
+    },
+    {
+      "flow_node_id": "habitat",
+      "feature_id": "my_catches_v2",
+      "page_id": null,
+      "state_id": "POND_3_5_LAKE_7",
+      "title": "My Habitat: Aquarium/Pond/Lake levels",
+      "trigger": "Registry design assets only",
+      "guard": "No Android route/callback located",
+      "entry": "Design Manager habitat view and reference assets",
+      "exit": "Runtime destination unverified; asset existence is not an app route",
+      "manager_route": "design/manager/#page/my_catches_v2/hifi/habitat",
+      "visual_authority": "design/pages/fish_records/list/habitat/reference/Habitat_Pond_Levels_1-5_Reference.png",
+      "behavior_authority": "design/pages/fish_records/list/habitat/README.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "fish_media_display_v1"
+      ],
+      "design_status": "DESIGN_ONLY",
+      "verification_status": "REGISTERED_DESIGN; ROUTE_MISSING; LARGE_PNG_RAW_SHA_BLOCKED",
+      "evidence": [
+        "design/pages/fish_records/list/habitat/README.md",
+        "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      ]
+    },
+    {
+      "flow_node_id": "account_root",
+      "feature_id": "account_privacy_v1",
+      "page_id": "my",
+      "state_id": "ACCOUNT_ROOT",
+      "title": "My / account root",
+      "trigger": "Home profile action",
+      "guard": "Signed-in required; guest goes Login",
+      "entry": "Home signed-in → my",
+      "exit": "Edit profile / account security / About",
+      "manager_route": "design/manager/#page/account_privacy_v1",
+      "visual_authority": null,
+      "behavior_authority": "design/pages/account_privacy/My/README.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "top_navigation_v1",
+        "default_profile_avatar_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "CODE_ROUTE_CONFIRMED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/account_privacy/My/README.md"
+      ],
+      "visual_authority_reference": "design/pages/account_privacy/My/README.md",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    },
+    {
+      "flow_node_id": "auth_login",
+      "feature_id": "auth_login_v2",
+      "page_id": "auth/login",
+      "state_id": "LOGIN",
+      "title": "Guest / Login",
+      "trigger": "Guest profile, protected routes, or explicit login",
+      "guard": "Signed-out session",
+      "entry": "Home guest profile → auth/login",
+      "exit": "Register / login success home / forgot-password ComingSoon",
+      "manager_route": "design/manager/#page/auth_login_v2",
+      "visual_authority": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+      "behavior_authority": "design/pages/account_privacy/Auth_Login/README.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "action_button_v1"
+      ],
+      "design_status": "ACTIVE_CLOSURE",
+      "verification_status": "CODE_AND_BACKEND_AUTH_ROUTES_CONFIRMED; EVIDENCE_PARTIAL",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/account_privacy/Auth_Login/README.md",
+        "pan277942135/Yujian@05554ce: app/auth_api.py"
+      ],
+      "visual_authority_reference": "design/pages/account_privacy/Auth_Login/README.md",
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+    },
+    {
+      "flow_node_id": "auth_register",
+      "feature_id": "auth_register_v2",
+      "page_id": "register",
+      "state_id": "REGISTER",
+      "title": "Register",
+      "trigger": "Login register action",
+      "guard": "Signed-out session",
+      "entry": "auth/login → register",
+      "exit": "Success → home; errors remain; back → login",
+      "manager_route": "design/manager/#page/auth_register_v2",
+      "visual_authority": "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png",
+      "behavior_authority": "design/pages/account_privacy/Auth_Register/README.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "action_button_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "CODE_AND_BACKEND_AUTH_ROUTES_CONFIRMED; DESIGNS_PARTIAL",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/account_privacy/Auth_Register/README.md",
+        "pan277942135/Yujian@05554ce: app/auth_api.py POST /api/v1/auth/register"
+      ],
+      "visual_authority_reference": "design/pages/account_privacy/Auth_Register/README.md",
+      "visual_verification_status": "PATH_PRESENT_SHA_STATUS_IN_ASSET_REGISTER"
+    },
+    {
+      "flow_node_id": "profile_edit",
+      "feature_id": "profile_edit_v1",
+      "page_id": "edit_profile",
+      "state_id": "PROFILE_EDIT",
+      "title": "Profile edit",
+      "trigger": "My → edit_profile",
+      "guard": "Signed-in session; expired session redirects Login",
+      "entry": "Edit avatar/nickname",
+      "exit": "Save applies profile; back returns",
+      "manager_route": "design/manager/#page/profile_edit_v1",
+      "visual_authority": null,
+      "behavior_authority": "design/pages/account_privacy/Edit_Profile/README.md",
+      "shared_dependencies": [
+        "default_profile_avatar_v1",
+        "top_navigation_v1"
+      ],
+      "design_status": "ACTIVE_CLOSURE",
+      "verification_status": "CODE_AND_PROFILE_API_CONFIRMED; EVIDENCE_MISSING",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/account_privacy/Edit_Profile/README.md"
+      ],
+      "visual_authority_reference": "design/pages/account_privacy/Edit_Profile/README.md",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    },
+    {
+      "flow_node_id": "account_privacy",
+      "feature_id": "account_privacy_v1",
+      "page_id": "data_privacy",
+      "state_id": "PRIVACY_SETTINGS",
+      "title": "Account security and privacy",
+      "trigger": "Account login settings",
+      "guard": "Signed-in session",
+      "entry": "my → account_login → password/privacy",
+      "exit": "Policy/agreement; consent setting; export/delete capabilities show Coming Soon",
+      "manager_route": "design/manager/#page/account_privacy_v1",
+      "visual_authority": null,
+      "behavior_authority": "design/pages/account_privacy/My/Account_Login/Data_Privacy/README.md",
+      "shared_dependencies": [
+        "legal_document_shell_v1",
+        "top_navigation_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "CODE_AND_BACKEND_PRIVACY_ENDPOINTS_CONFIRMED; DEFERRED_ACTIONS_PRESENT",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/account_privacy/My/Account_Login/Data_Privacy/README.md",
+        "pan277942135/Yujian@05554ce: app/auth_api.py"
+      ],
+      "visual_authority_reference": "design/pages/account_privacy/My/Account_Login/Data_Privacy/README.md",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    },
+    {
+      "flow_node_id": "legal_docs",
+      "feature_id": "user_agreement_v1",
+      "page_id": "user_agreement/privacy_policy",
+      "state_id": "LEGAL_DOCUMENT",
+      "title": "User agreement and privacy policy",
+      "trigger": "About / data privacy link",
+      "guard": "Opening the document is not itself consent",
+      "entry": "about → user_agreement/privacy_policy",
+      "exit": "Back to source page",
+      "manager_route": "design/manager/#page/user_agreement_v1",
+      "visual_authority": null,
+      "behavior_authority": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+      "shared_dependencies": [
+        "legal_document_shell_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "NAV_CONFIRMED; PAGE_VISUAL_CONTRACT_PARTIAL",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md"
+      ],
+      "visual_authority_reference": "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    },
+    {
+      "flow_node_id": "detail_share_text",
+      "feature_id": "share_templates_v1",
+      "page_id": "catch/{catchId}",
+      "state_id": "TEXT_SHARE",
+      "title": "Detail current share action",
+      "trigger": "Tap share in Detail",
+      "guard": "Record exists",
+      "entry": "Build text/plain with fish name and available metadata; Android chooser",
+      "exit": "User shares or dismisses; no template selection",
+      "manager_route": "design/manager/#page/share_templates_v1/hifi/01_overview",
+      "visual_authority": null,
+      "behavior_authority": "app/src/main/java/com/yujian/ai/YujianApp.kt",
+      "shared_dependencies": [
+        "icon_action_v1"
+      ],
+      "design_status": "PARTIAL",
+      "verification_status": "CURRENT_TEXT_SHARE_CONFIRMED; TEMPLATES_NOT_ROUTED",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/YujianApp.kt",
+        "design/pages/share_templates/01_Product_Model_V1.md"
+      ],
+      "visual_authority_reference": "design/pages/share_templates/01_Product_Model_V1.md",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    },
+    {
+      "flow_node_id": "share_templates",
+      "feature_id": "share_templates_v1",
+      "page_id": null,
+      "state_id": "T01_T02",
+      "title": "T01/T02 share templates",
+      "trigger": "No current Android route found",
+      "guard": "Time range/template rules need integration contract",
+      "entry": "Design product model and partial T01/T02 pages",
+      "exit": "Export/media selection/interruption/failure are unverified",
+      "manager_route": "design/manager/#page/share_templates_v1/hifi/02_t01",
+      "visual_authority": null,
+      "behavior_authority": "design/pages/share_templates/01_Product_Model_V1.md",
+      "shared_dependencies": [
+        "action_button_v1",
+        "icon_library_v0_1"
+      ],
+      "design_status": "PARTIAL_DESIGN_ONLY",
+      "verification_status": "DESIGN_PRESENT_RUNTIME_FLOW_MISSING",
+      "evidence": [
+        "design/pages/share_templates/01_Product_Model_V1.md",
+        "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      ],
+      "visual_authority_reference": "design/pages/share_templates/02_T01_Achievement_Card_Spec_V1.md",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY_DECLARED"
+    }
+  ],
+  "edges": [
+    {
+      "id": "E01",
+      "from": "app_home",
+      "to": "home_empty",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "record-count state",
+      "evidence": "YujianApp.kt:401-417; valid records = 0",
+      "notes": null
+    },
+    {
+      "id": "E02",
+      "from": "app_home",
+      "to": "home_normal",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "record-count state",
+      "evidence": "YujianApp.kt:401-417; valid records >= 1",
+      "notes": null
+    },
+    {
+      "id": "E03",
+      "from": "home_empty",
+      "to": "capture_camera",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "camera entry",
+      "evidence": "YujianApp.kt Home onIdentify → identify",
+      "notes": null
+    },
+    {
+      "id": "E04",
+      "from": "home_normal",
+      "to": "capture_camera",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "camera entry",
+      "evidence": "YujianApp.kt Home onIdentify → identify",
+      "notes": null
+    },
+    {
+      "id": "E05",
+      "from": "home_empty",
+      "to": "capture_gallery",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "gallery entry",
+      "evidence": "YujianApp.kt Home onAlbumClick → identify?openGallery=true",
+      "notes": null
+    },
+    {
+      "id": "E06",
+      "from": "home_normal",
+      "to": "capture_gallery",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "gallery entry",
+      "evidence": "YujianApp.kt Home onAlbumClick → identify?openGallery=true",
+      "notes": null
+    },
+    {
+      "id": "E07",
+      "from": "capture_camera",
+      "to": "captured",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "image handoff",
+      "evidence": "IdentifyScreen onImageReady",
+      "notes": null
+    },
+    {
+      "id": "E08",
+      "from": "capture_gallery",
+      "to": "captured",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "normalized image handoff",
+      "evidence": "Camera/gallery share SelectedImage handoff",
+      "notes": null
+    },
+    {
+      "id": "E09",
+      "from": "captured",
+      "to": "detecting",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "state transition",
+      "evidence": "RecognitionStateMachine CAPTURED → DETECTING",
+      "notes": null
+    },
+    {
+      "id": "E10",
+      "from": "detecting",
+      "to": "outline",
+      "status": "CONFIRMED_RUNTIME_CONDITIONAL",
+      "relationship": "classifier-eligible detection",
+      "evidence": "DetectionFinished(OUTLINE)",
+      "notes": null
+    },
+    {
+      "id": "E11",
+      "from": "outline",
+      "to": "classifying",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "state transition",
+      "evidence": "RecognitionStateMachine OUTLINE → CLASSIFYING",
+      "notes": null
+    },
+    {
+      "id": "E12",
+      "from": "classifying",
+      "to": "result_high",
+      "status": "CONFIRMED_RUNTIME_CONDITIONAL",
+      "relationship": "3+2 species result",
+      "evidence": "p1 >= .45 and not Medium tie route",
+      "notes": null
+    },
+    {
+      "id": "E13",
+      "from": "classifying",
+      "to": "result_medium",
+      "status": "CONFIRMED_RUNTIME_CONDITIONAL",
+      "relationship": "3+2 species result",
+      "evidence": "p1 >= .45 and margin < .12",
+      "notes": null
+    },
+    {
+      "id": "E14",
+      "from": "classifying",
+      "to": "result_low",
+      "status": "CONFIRMED_RUNTIME_CONDITIONAL",
+      "relationship": "3+2 species result",
+      "evidence": "p1 < .45",
+      "notes": null
+    },
+    {
+      "id": "E15",
+      "from": "detecting",
+      "to": "no_fish",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "2 recovery states",
+      "evidence": "NO_FISH terminal",
+      "notes": null
+    },
+    {
+      "id": "E16",
+      "from": "detecting",
+      "to": "image_quality",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "2 recovery states",
+      "evidence": "TOO_FAR/ineligible input; issue screen",
+      "notes": null
+    },
+    {
+      "id": "E17",
+      "from": "classifying",
+      "to": "technical_failure",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "separate technical failure",
+      "evidence": "Failure code/exception routes to issue with technicalFailure",
+      "notes": null
+    },
+    {
+      "id": "E18",
+      "from": "result_medium",
+      "to": "species_confirm",
+      "status": "CONFIRMED_DESIGN",
+      "relationship": "explicit species selection",
+      "evidence": "Result behavior and decision spec",
+      "notes": null
+    },
+    {
+      "id": "E19",
+      "from": "result_low",
+      "to": "species_confirm",
+      "status": "CONFIRMED_DESIGN",
+      "relationship": "LOW_MANUAL selection",
+      "evidence": "Save target resumes after selection",
+      "notes": null
+    },
+    {
+      "id": "E20",
+      "from": "result_high",
+      "to": "save_home",
+      "status": "CONFIRMED_SPEC_AND_RUNTIME",
+      "relationship": "ordinary Save outcome",
+      "evidence": "spec + YujianApp.onSave",
+      "notes": null
+    },
+    {
+      "id": "E21",
+      "from": "result_medium",
+      "to": "save_home",
+      "status": "CONFIRMED_DESIGN_RUNTIME_SHARED_HANDLER",
+      "relationship": "selected candidate then Save",
+      "evidence": "Medium adopts High dual CTA",
+      "notes": null
+    },
+    {
+      "id": "E22",
+      "from": "result_low",
+      "to": "species_confirm",
+      "status": "CONFIRMED_DESIGN",
+      "relationship": "manual species gates save",
+      "evidence": "No unknown species persistence",
+      "notes": null
+    },
+    {
+      "id": "E23",
+      "from": "species_confirm",
+      "to": "save_home",
+      "status": "CONFIRMED_DESIGN",
+      "relationship": "resume requested ordinary save",
+      "evidence": "LOW_MANUAL contract",
+      "notes": null
+    },
+    {
+      "id": "E24",
+      "from": "result_high",
+      "to": "save_memory",
+      "status": "CONFIRMED_SPEC_AND_RUNTIME",
+      "relationship": "Continue Memory outcome",
+      "evidence": "save then catch/{id}?section=memory",
+      "notes": null
+    },
+    {
+      "id": "E25",
+      "from": "result_medium",
+      "to": "save_memory",
+      "status": "CONFIRMED_DESIGN_RUNTIME_SHARED_HANDLER",
+      "relationship": "selected candidate then Continue Memory",
+      "evidence": "Medium adopts High dual CTA",
+      "notes": null
+    },
+    {
+      "id": "E26",
+      "from": "species_confirm",
+      "to": "save_memory",
+      "status": "CONFIRMED_DESIGN",
+      "relationship": "resume requested memory save",
+      "evidence": "LOW_MANUAL contract",
+      "notes": null
+    },
+    {
+      "id": "E27",
+      "from": "result_high",
+      "to": "save_failure",
+      "status": "CONFIRMED_SPEC_AND_RUNTIME",
+      "relationship": "save error",
+      "evidence": "failure remains on Result with fields preserved",
+      "notes": null
+    },
+    {
+      "id": "E28",
+      "from": "detail_a",
+      "to": "detail_b",
+      "status": "CONFIRMED_DESIGN_RUNTIME_PARTIAL",
+      "relationship": "A/B detail state",
+      "evidence": "first reveal only after READY displayed; later manual Flip",
+      "notes": null
+    },
+    {
+      "id": "E29",
+      "from": "home_normal",
+      "to": "detail_a",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "recent catch card",
+      "evidence": "Home onCatchClick → catch/{id}",
+      "notes": null
+    },
+    {
+      "id": "E30",
+      "from": "my_catches",
+      "to": "detail_a",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "catch row",
+      "evidence": "MyScreen onCatch → catch/{id}",
+      "notes": null
+    },
+    {
+      "id": "E31",
+      "from": "home_normal",
+      "to": "record_date",
+      "status": "TO_CONFIRM_RUNTIME",
+      "relationship": "record-days entry",
+      "evidence": "Design says Record Date; app route absent",
+      "notes": null
+    },
+    {
+      "id": "E32",
+      "from": "my_catches",
+      "to": "record_date",
+      "status": "UNVERIFIED",
+      "relationship": "date selection relationship",
+      "evidence": "Day detail route exists, but not Record Date V2",
+      "notes": null
+    },
+    {
+      "id": "E33",
+      "from": "home_empty",
+      "to": "fish_guide",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "Fish Guide entry",
+      "evidence": "Home onSpeciesClick → guide",
+      "notes": null
+    },
+    {
+      "id": "E34",
+      "from": "home_normal",
+      "to": "fish_guide",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "Fish Guide entry",
+      "evidence": "Home onSpeciesClick → guide",
+      "notes": null
+    },
+    {
+      "id": "E35",
+      "from": "fish_guide",
+      "to": "fish_species",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "species selection",
+      "evidence": "guide → species/{key}",
+      "notes": null
+    },
+    {
+      "id": "E36",
+      "from": "fish_species",
+      "to": "my_catches",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "species catch list",
+      "evidence": "onOpenSpeciesCatches → my_catches?speciesId",
+      "notes": null
+    },
+    {
+      "id": "E37",
+      "from": "fish_species",
+      "to": "capture_camera",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "record this species",
+      "evidence": "onRecordCatch → identify",
+      "notes": null
+    },
+    {
+      "id": "E38",
+      "from": "fish_species",
+      "to": "detail_a",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "linked catch",
+      "evidence": "onOpenCatch → catch/{id}",
+      "notes": null
+    },
+    {
+      "id": "E39",
+      "from": "home_empty",
+      "to": "auth_login",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "guest account entry",
+      "evidence": "Home profile when guest → auth/login",
+      "notes": null
+    },
+    {
+      "id": "E40",
+      "from": "home_normal",
+      "to": "account_root",
+      "status": "CONFIRMED_RUNTIME_CONDITIONAL",
+      "relationship": "profile entry",
+      "evidence": "logged-in → my; guest → login",
+      "notes": null
+    },
+    {
+      "id": "E41",
+      "from": "account_root",
+      "to": "profile_edit",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "edit profile",
+      "evidence": "my → edit_profile",
+      "notes": null
+    },
+    {
+      "id": "E42",
+      "from": "account_root",
+      "to": "account_privacy",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "account security/privacy",
+      "evidence": "my → account_login → password/privacy",
+      "notes": null
+    },
+    {
+      "id": "E43",
+      "from": "auth_login",
+      "to": "auth_register",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "register",
+      "evidence": "auth/login → register",
+      "notes": null
+    },
+    {
+      "id": "E44",
+      "from": "auth_register",
+      "to": "app_home",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "register success",
+      "evidence": "register success → home",
+      "notes": null
+    },
+    {
+      "id": "E45",
+      "from": "auth_login",
+      "to": "app_home",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "login success",
+      "evidence": "login success → home",
+      "notes": null
+    },
+    {
+      "id": "E46",
+      "from": "account_root",
+      "to": "legal_docs",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "legal docs",
+      "evidence": "about → user_agreement/privacy_policy",
+      "notes": null
+    },
+    {
+      "id": "E47",
+      "from": "detail_a",
+      "to": "detail_share_text",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "current text share",
+      "evidence": "Android system text chooser",
+      "notes": null
+    },
+    {
+      "id": "E48",
+      "from": "detail_share_text",
+      "to": "share_templates",
+      "status": "TO_CONFIRM_RUNTIME",
+      "relationship": "future template share",
+      "evidence": "No T01/T02 route found",
+      "notes": null
+    },
+    {
+      "id": "E49",
+      "from": "my_catches",
+      "to": "habitat",
+      "status": "DESIGN_ONLY",
+      "relationship": "Habitat levels",
+      "evidence": "Reference assets/registry only; no Android route",
+      "notes": null
+    },
+    {
+      "id": "E50",
+      "from": "home_empty",
+      "to": "my_catches",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "catches list entry",
+      "evidence": "Home onCatchesClick → my_catches",
+      "notes": null
+    },
+    {
+      "id": "E51",
+      "from": "home_normal",
+      "to": "my_catches",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "catches list entry",
+      "evidence": "Home onCatchesClick → my_catches",
+      "notes": null
+    },
+    {
+      "id": "E52",
+      "from": "my_catches",
+      "to": "capture_camera",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "archive capture",
+      "evidence": "MyScreen onCapture → identify",
+      "notes": null
+    },
+    {
+      "id": "E53",
+      "from": "detail_a",
+      "to": "fish_guide",
+      "status": "CONFIRMED_RUNTIME_CONDITIONAL",
+      "relationship": "open species knowledge",
+      "evidence": "Detail species link → species/{id}",
+      "notes": null
+    },
+    {
+      "id": "E54",
+      "from": "detail_b",
+      "to": "detail_share_text",
+      "status": "UNVERIFIED",
+      "relationship": "share from B-side",
+      "evidence": "B-side specific share layout/action not confirmed",
+      "notes": null
+    },
+    {
+      "id": "E55",
+      "from": "account_privacy",
+      "to": "legal_docs",
+      "status": "CONFIRMED_RUNTIME",
+      "relationship": "policy/agreement",
+      "evidence": "Data privacy / About route",
+      "notes": null
+    }
+  ],
+  "route_notes": [
+    "3+2 is three species result states plus two image-input recovery states. TECHNICAL_FAILURE is outside 3+2.",
+    "Current runtime assignment in RecognitionUiState.kt uses p1 < 0.45 → Low; p1 ≥ 0.45 and margin < 0.12 → Medium; otherwise High. Decision Spec V1.1 is explicitly CURRENT_RUNTIME_DOCUMENTED / DESIGN_CHANGE_PROPOSAL, not a new frozen threshold.",
+    "No Fish and Image Quality are presented by recognition_issue. Technical failure is passed separately; shared recovery layout geometry does not make it a sixth product result.",
+    "Current ordinary Save returns Home; Continue Memory opens Detail with section=memory. This conflicts with the directive's global-chain wording and remains a product decision."
+  ],
+  "registry_index": "../01_Page_Registry/page_state_authority_map_v3_1.json"
+}
