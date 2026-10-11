@@ -12,14 +12,16 @@
   "font_families": [
     {
       "id": "android_platform_sans_serif",
-      "font_family_cn": "Android platform SansSerif; Compose FontFamily.SansSerif with OS CJK script/locale fallback",
-      "font_family_en": "Android platform SansSerif; Compose FontFamily.SansSerif",
-      "font_family_digits": "Android platform SansSerif; no tabular-digit face is declared",
+      "font_family_cn": "Android platform SansSerif; Android OS resolves CJK by script and locale, with no vendor-specific face pinned.",
+      "font_family_en": "Android platform SansSerif; Compose FontFamily.SansSerif.",
+      "font_family_digits": "Android platform SansSerif; no tabular-digit face is declared.",
       "source": "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
-      "license": "No app-bundled font file or project-level font license artifact is present. Face and vendor license are supplied by the Android platform and are not pinned by this repository.",
-      "fallback": "Android OS locale/script-aware font fallback. The exact CJK face is device/vendor resolved and is not pinned.",
+      "license": "No app-bundled font or repository-level font license artifact exists. The mapped face is supplied by Android; the repository does not pin a vendor face or redistribute a font.",
+      "fallback": "Android OS script/locale-aware fallback for CJK and other missing glyphs; exact vendor face is intentionally not pinned.",
       "portability": "Android-specific mapping; other renderers require an explicit platform mapping and cannot infer a font from a screenshot.",
-      "status": "REVIEW"
+      "status": "PLATFORM_POLICY_FROZEN_BRAND_SOURCE_OPEN",
+      "source_class": "PLATFORM_RESOLVED",
+      "resolution_scope": "Ordinary Chinese, English and numeric UI text only; this does not resolve the calligraphic brand role."
     }
   ],
   "weight_catalog": [
@@ -156,12 +158,13 @@
   },
   "page_overrides": [
     {
-      "page": "Brand Hero",
+      "page": "Brand Hero / Normal Home wordmark",
       "token": "type.display",
       "status": "REVIEW",
-      "rule": "Only an approved brand font source or already frozen brand artwork can carry the calligraphic role. No font file/license is identified in the source; current Android mapping is SansSerif.",
+      "rule": "For frozen brand lettering, prefer the original approved visual asset. Normal Home currently renders 渔见 as dynamic text; Core Visual specifies a calligraphic brand role, while the current runtime maps SansSerif. No approved dynamic brand font source/license or replacement asset is registered. Keep this conflict open; do not infer from a screenshot, download a font, or change the frozen visual/runtime.",
       "source_paths": [
         "design/system/core_visual_v1/tokens/typography_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
         "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt"
       ]
     },
@@ -178,9 +181,10 @@
       "page": "Normal Home · Large Statistic",
       "token": "type.numeric",
       "status": "FROZEN_PAGE_OVERRIDE",
-      "rule": "Use Normal Home Font A reference-pixel contract and its explicit width/density conversion to sp. Keep the source values page-scoped; OS fontScale remains enabled.",
+      "rule": "Use Normal Home Font A reference-pixel mapping and its explicit width/density conversion to sp. Keep source values page-scoped; OS fontScale remains enabled.",
       "source_paths": [
-        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt"
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt",
+        "design/pages/home/normal_home/05_responsive_interaction/Normal_Home_Typography_Scaling_Contract_V1.md"
       ]
     },
     {
@@ -191,18 +195,28 @@
       "source_paths": [
         "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
       ]
+    },
+    {
+      "page": "Empty Home",
+      "token": "type.display",
+      "status": "FROZEN_ARTWORK_PREFERRED",
+      "rule": "The frozen visual and copy are authoritative. Reuse the approved original brand artwork when available; do not infer a typeface from the Frozen PNG. This does not authorize a page-private family.",
+      "source_paths": [
+        "design/pages/home/empty_home/README.md",
+        "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
+      ]
     }
   ],
   "page_audit": [
     {
       "page": "Empty Home",
-      "status": "CONFLICT_RECORDED",
-      "finding": "Core Visual names BRAND/DISPLAY/UI but no font face; runtime maps SansSerif. Keep as a source conflict; do not infer from Frozen PNG."
+      "status": "FROZEN_VISUAL; FONT_ROLE_UNRESOLVED",
+      "finding": "Frozen brand copy and artwork remain authoritative; no font may be inferred from the PNG. Existing shared role names a calligraphic brand role, but no named source/license is registered."
     },
     {
       "page": "Normal Home",
-      "status": "MAPPED_WITH_PAGE_OVERRIDE",
-      "finding": "Approved Font A uses reference-pixel sizes and the registered conversion formula; do not translate raw px directly to sp."
+      "status": "MAPPED_WITH_PAGE_OVERRIDES; BRAND_CONFLICT_OPEN",
+      "finding": "Font A reference-pixel sizes use the registered width/density conversion and OS fontScale. The 渔见 wordmark is dynamic text mapped to SansSerif while brand intent is calligraphic; source/asset approval remains open."
     },
     {
       "page": "Recognition Result",
@@ -223,6 +237,20 @@
   "tracking_rule": "0sp unless a page/component authority registers a specific override.",
   "font_scale_rule": "Honor Android OS fontScale; expand containers and scroll when needed; never silently shrink or cancel scaling.",
   "unresolved": [
-    "C-007 / D-007: calligraphic brand intent conflicts with the current SansSerif runtime map; no named CJK face/license is pinned; owner approval is still required."
+    "Normal Home renders 渔见 dynamically using SansSerif, while the brand role is calligraphic. No approved dynamic brand face/license or replacement asset exists. A design-system owner must resolve whether the current dynamic treatment is accepted or approve a source/asset; no screenshot inference or code change is permitted in this phase."
+  ],
+  "decision_records": [
+    {
+      "id": "D-007-platform-policy",
+      "status": "POLICY_RESOLVED_BRAND_ROLE_OPEN",
+      "approved_policy": "Ordinary Chinese/English/numeric text maps to Android platform SansSerif; CJK fallback is OS script/locale resolved; no vendor face is pinned; honor fontScale; frozen calligraphic brand text prefers its original approved visual asset.",
+      "evidence": [
+        "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt",
+        "design/system/core_visual_v1/tokens/typography_tokens.json"
+      ],
+      "remaining_blocker": "Normal Home renders 渔见 dynamically using SansSerif, while the brand role is calligraphic. No approved dynamic brand face/license or replacement asset exists. A design-system owner must resolve whether the current dynamic treatment is accepted or approve a source/asset; no screenshot inference or code change is permitted in this phase.",
+      "gate_effect": "Typography remains REVIEW; SHARED_FOUNDATION_READY cannot be assigned."
+    }
   ]
 }

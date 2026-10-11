@@ -13,7 +13,7 @@ This log records owner decisions and remaining owner decisions. Frozen page auth
 | D-004 | Product owner | Decide the My Habitat scope. | Keep design-only; or approve a product entry point, route, states, metric definitions and data source. | Before Habitat implementation |
 | D-005 | Product + design owner | Finalize T01/T02 share outputs. | Keep current text-only share and mark templates future; or approve visual output dimensions, content fields, privacy rules, export/share path and fallbacks. | Before template implementation |
 | D-006 | Product + backend owner | Define sync behavior for detail edits and memory media. | Keep app-private local overlay; or approve remote update/supplemental-media APIs, upload failure handling, and cross-device semantics. | Before promising synced records |
-| D-007 | Design system owner | Resolve the global typography token contract. | Specify family, weights, line-height, tracking, license, fallback and system scaling; identify explicitly page-local overrides. | Before shared type implementation |
+| D-007 | Design system owner | **PARTIALLY RESOLVED:** freeze ordinary text to Android platform SansSerif with OS CJK fallback, registered weights, page overrides and fontScale rules. | Dynamic Normal Home `渔见` still uses SansSerif while the brand role is calligraphic; approve that treatment or provide an approved type/asset source. | Before Typography READY / Phase 3 |
 | D-008 | Design + accessibility owner | Approve a common responsive and accessibility acceptance matrix. | Name supported viewports/orientations, large-text behavior, contrast, focus order, minimum touch targets and failure/permission-state checks. | Before declaring the full page set engineering-ready |
 | D-009 | Product + content owner | Confirm the user-facing meaning of Image Quality recovery. | Use broad “retake” guidance that covers framing/eligibility; or distinguish blur, distance, occlusion and other machine-detected causes where reliable. | Before changing frozen copy or error mapping |
 | D-010 | Product + legal/privacy owner | Set scope and copy for deferred account lifecycle actions. | Keep password reset/export/delete deferred; or approve their user flows, legal copy, API, retention and error states. | Before enabling those controls |
@@ -49,3 +49,12 @@ Phase 2 Final Freeze recomputed all 658 baseline file SHA-256 values from raw by
 | ID | Owner | Decision required | Choices / evidence needed | Gate |
 |---|---|---|---|---|
 | D-015 | Design system + Product/Accessibility owner | Approve global Brand Primary/Secondary and Success/Warning/Error/Info color semantics. | Provide or approve exact semantic token mappings and contrast contexts; confirm whether the page-scoped Account & Privacy Danger value is a global Error token. | Before Color READY / Phase 3 |
+
+
+## Decision Record — D-007 platform typography policy
+
+**Status:** `POLICY_RESOLVED_BRAND_ROLE_OPEN` — Typography remains `REVIEW`.
+
+**Frozen policy:** ordinary Chinese, English and numeric Android UI text maps to the existing `FontFamily.SansSerif`; Android resolves CJK fallback by script/locale, and no vendor-specific face is pinned. The four shared weights, token-to-sp mapping, Normal Home Font A conversion, and OS `fontScale` behavior are recorded in the Typography final files. For frozen calligraphic brand lettering, prefer the original approved visual asset.
+
+**Remaining blocker:** `app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt` renders `渔见` as dynamic text, mapped through `YuJianTypography.brand` to SansSerif; Core Visual defines BRAND as calligraphic/brand-only. No approved dynamic typeface/license or replacement brand asset is registered. Resolve the mismatch by an owner decision or approved source/asset. Do not infer from PNG, download a font, edit Kotlin, or change a Frozen visual in this phase.
