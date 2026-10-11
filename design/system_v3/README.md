@@ -17,12 +17,15 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 ## Checkpoint status
 
 - A — repository tree and asset inventory: `11_Freeze_Governance/audits/Repository_Inventory_Checkpoint_A.json`.
-- B — product master flow, registry map, subflows and Design Manager PRD draft: complete on the Phase 1 branch.
-- C–E — pending.
+- B — product master flow, registry map, subflows and Design Manager PRD draft: complete.
+- C — asset integrity register, full design-system audit, and contract completeness matrix: complete; 658 design files inventoried, 579 raw SHA-256 values computed, 79 raw binaries blocked by the GitHub Contents API.
+- D — conflicts/gaps, decisions, readiness and dependency map: pending.
+- E — repository-side verifier and design governance workflow integration: pending.
 
 ## Entry points
 
 - [Product Master Flow](00_Product_Master_Flow/Product_Master_Flow_V3_1.md)
 - [Page / State / Hi-Fi Map](01_Page_Registry/Page_State_Hifi_Map_V3_1.md)
-- Full Design Audit (Checkpoint C)
-- Conflicts and Gaps (Checkpoint D)
+- [Asset Integrity Register](06_Asset_System/Asset_Integrity_Register_V3_1.json)
+- [Full Design System Audit](11_Freeze_Governance/audits/Full_Design_System_Audit_V3_1.md)
+- [Contract Completeness Matrix](11_Freeze_Governance/audits/Contract_Completeness_Matrix_V3_1.json)
