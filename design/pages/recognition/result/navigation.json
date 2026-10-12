@@ -7,7 +7,7 @@
     "label_en": "Recognition Result",
     "path": "design/pages/recognition/result/"
   },
-  "principle": "产品状态仍为 3 类识别结果 + 2 类恢复状态；RR00–RR05 承载总览与五个独立高保页面，RR06 集中索引已冻结的内容修改 Authority，不新增 Result 状态。Frozen 资产只保留一份 canonical 文件，菜单页直接引用。 RR07 为独立行为/工程判定逻辑菜单，非第六个结果状态；现行数值来自 Kotlin，只读展示，优化建议不构成已批准新阈值。",
+  "principle": "产品状态仍为 3 类识别结果 + 2 类恢复状态；RR00–RR05 承载总览与五个独立高保页面，RR06 集中索引已冻结的内容修改 Authority，不新增 Result 状态。Frozen 资产只保留一份 canonical 文件，菜单页直接引用。 RR07 为独立行为/工程判定逻辑菜单，非第六个结果状态；现行数值来自 Kotlin，只读展示，优化建议不构成已批准新阈值。 RR08 为 Phase 3-B Recognition Result Visual Acceptance Contract V1，只定义后续截图验收依据，不增加产品状态，不覆盖 Page Contract 或 Shared Foundation。",
   "level_2": [
     {
       "order": 1,
@@ -157,6 +157,18 @@
         "First-match routing and examples with valid softmax scores",
         "Current truth separate from proposed calibrations; no Android changes"
       ]
+    },
+    {
+      "order": 9,
+      "id": "RR08",
+      "label_zh": "视觉验收",
+      "label_en": "Visual Acceptance Contract",
+      "output_policy": "CONTRACT_AUTHORITY",
+      "status": "READY_FOR_VISUAL_IMPLEMENTATION",
+      "page": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/index.html",
+      "contract": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md",
+      "registry": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_Registry_V1.json",
+      "acceptance": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Runtime_Gate_V1.md"
     }
   ],
   "status": "IMPLEMENTATION_READY",

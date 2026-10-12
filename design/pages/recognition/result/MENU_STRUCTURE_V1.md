@@ -34,3 +34,9 @@ Do not duplicate, crop, recompress or rename the five canonical Result-state PNG
 RR07 在识别结果下直接显示检测器质量门、分类阈值、first-match 五态路由、公式与边界样例。权威见 `07_decision_logic/README.md`、`spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md`、`spec/recognition_result_3plus2_decision_contract_v1_1.json`。
 
 **RR07 不增加产品状态，不更改 RR01–RR05 五张 Frozen PNG，不代表已调整 Kotlin 阈值。**
+
+| 08 | RR08 | Visual Acceptance / 视觉验收 | Recognition Result Visual Contract V1 + Pixel Targets + State Matrix + Anchor Map | READY_FOR_VISUAL_IMPLEMENTATION; runtime NOT_RUN |
+
+## RR08 · Visual Acceptance Contract V1
+
+RR08 links the canonical visual, pixel, state, anchor, motion, accessibility and runtime acceptance contracts. It is derived from the frozen Page Contract, adds no Result product state and leaves source artwork unchanged.
