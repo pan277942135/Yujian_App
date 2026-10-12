@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "registry_id": "android_implementation_contract_registry_v1",
+  "version": "V1",
+  "status": "READY_FOR_IMPLEMENTATION",
+  "design_contract": "PAGE_CONTRACT_READY",
+  "validation_status": "PASS",
+  "runtime_validation_status": "NOT_RUN",
+  "authority_registry": "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json",
+  "entries": [
+    {
+      "page": "RecognitionResult",
+      "page_id": "recognition.result.v3_1",
+      "contract_version": "V1",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "implementation_status": "READY_FOR_IMPLEMENTATION",
+      "design_contract": "PAGE_CONTRACT_READY",
+      "design_contract_status": "FROZEN",
+      "authority_source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+      "implementation_contract": "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Android_Contract_V1.md",
+      "state_binding": "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json",
+      "component_mapping": "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json",
+      "runtime_gate": "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md",
+      "validation_status": "PASS",
+      "validation_scope": "Structural contract validation only: registry, authority and shared-reference closure.",
+      "runtime_validation_status": "NOT_RUN",
+      "authority_id": "recognition_result_android_implementation",
+      "upstream_page_contract_commit": "a0621beb206bb3b92aa056784a62466879b41dfa",
+      "validator": "scripts/design/verify_android_implementation_contract_v1.py"
+    }
+  ]
+}

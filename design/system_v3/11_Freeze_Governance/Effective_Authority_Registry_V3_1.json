@@ -4,7 +4,7 @@
   "version": "V3.1",
   "status": "FROZEN",
   "shared_foundation_status": "SHARED_FOUNDATION_READY",
-  "updated_at": "2026-10-11",
+  "updated_at": "2026-10-12",
   "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
   "entries": [
     {
@@ -201,6 +201,29 @@
       "supporting_paths": [
         "design/system_v3/01_Shared_Foundation_V3_1/README.md"
       ]
+    },
+    {
+      "authority_id": "recognition_result_android_implementation",
+      "domain": "Recognition Result Android implementation bindings and runtime acceptance criteria",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "canonical_path": "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json",
+      "supporting_paths": [
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Android_Contract_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md",
+        "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+        "design/system_v3/08_Page_Contracts/Page_Registry_V3_1.json"
+      ],
+      "derived_from": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+      "implementation_status": "READY_FOR_IMPLEMENTATION",
+      "validation_status": "PASS",
+      "version": "V1",
+      "supersedes": "None; derived subordinate layer that does not replace the Page Contract",
+      "consumer_reference": [
+        "Android Work implementation input (Recognition Result only)",
+        "Test Work runtime acceptance input (Recognition Result only)"
+      ]
     }
   ],
   "precedence_rules": [
@@ -209,7 +232,8 @@
     "A page engineering/behavior contract supplies page-specific states and interaction; it may not silently alter a Frozen visual or shared token.",
     "When authorities conflict, record the exact sources and affected property in the conflict register and stop that property from becoming implementation-ready. Do not resolve the conflict automatically.",
     "D-015 candidate packet, preview, and candidate JSON are review-only. They are not valid production color authorities until an owner decision is recorded and canonical token files are updated.",
-    "Asset Registry SHA identifies bytes; it does not establish that an asset is approved for a page. Use the status and used_by fields as well."
+    "Asset Registry SHA identifies bytes; it does not establish that an asset is approved for a page. Use the status and used_by fields as well.",
+    "Recognition Result Android Implementation Contract is derived from the frozen Recognition Result Page Contract; it maps owners and runtime acceptance only and does not replace or redefine Page Contract visuals, states, tokens, components, data lineage or routes."
   ],
-  "consumer_rule": "Downstream Page Contract, Android and Test work must read the canonical_path for the domain and the cited page variant. Do not replace these files with local interpretations."
+  "consumer_rule": "Downstream Page Contract, Android and Test work must read the canonical_path for the domain and the cited page variant. Do not replace these files with local interpretations. For Recognition Result Android work, consult the registered Android implementation binding and runtime gate as implementation/test guidance; the frozen Page Contract remains the product and visual authority."
 }
