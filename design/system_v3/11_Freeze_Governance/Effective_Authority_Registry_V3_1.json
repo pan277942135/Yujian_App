@@ -224,6 +224,32 @@
         "Android Work implementation input (Recognition Result only)",
         "Test Work runtime acceptance input (Recognition Result only)"
       ]
+    },
+    {
+      "authority_id": "normal_home_android_implementation",
+      "domain": "Normal Home Android implementation bindings and runtime acceptance criteria",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "canonical_path": "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json",
+      "supporting_paths": [
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Compose_Guideline_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Window_Insets_Contract_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md",
+        "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md"
+      ],
+      "derived_from": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md",
+      "implementation_status": "READY_FOR_IMPLEMENTATION",
+      "validation_status": "PASS",
+      "version": "V1",
+      "supersedes": "None; derived subordinate layer that does not replace the Visual Contract or Phase 3-A Page Contract gate",
+      "consumer_reference": [
+        "Android Work implementation input (Normal Home only)",
+        "Test Work runtime acceptance input (Normal Home only)"
+      ]
     }
   ],
   "precedence_rules": [

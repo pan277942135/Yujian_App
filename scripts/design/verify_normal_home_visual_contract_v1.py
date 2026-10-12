@@ -79,8 +79,13 @@ def main() -> int:
           "Android aggregate is not falsely marked ready")
     check(reg.get("page_registry_status") == "HOME_DEFERRED_NOT_REGISTERED_IN_PAGE_REGISTRY_V3_1",
           "Normal Home Page Contract status is explicit")
-    check(reg.get("android_implementation_registry_status") == "NORMAL_HOME_ENTRY_NOT_REGISTERED",
-          "Normal Home Android Contract status is explicit")
+    android_registry = read_json(repo_file("design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json"),
+                                "Android_Implementation_Contract_Registry_V1.json")
+    android_entry = next((row for row in android_registry.get("entries", [])
+                          if isinstance(row, dict) and row.get("page_id") == "normal_home_v1"), None) if isinstance(android_registry, dict) else None
+    check(reg.get("android_implementation_registry_status") == "NORMAL_HOME_ENTRY_REGISTERED"
+          and android_entry is not None and android_entry.get("status") == "READY_FOR_IMPLEMENTATION",
+          "Normal Home Android Contract is registered without altering visual rules")
 
     required_docs = {
         "visual", "state_visual_matrix", "pixel_targets", "component_anchor_map",

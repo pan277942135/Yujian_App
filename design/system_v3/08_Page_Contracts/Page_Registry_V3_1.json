@@ -177,5 +177,17 @@
     "blocking_findings": 0,
     "closed_blockers": 8,
     "runtime_execution": "NOT_RUN"
-  }
+  },
+  "implementation_contract_bindings": [
+    {
+      "id": "normal_home_v1",
+      "visual_contract": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md",
+      "android_contract": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "visual_contract_status": "READY_FOR_VISUAL_IMPLEMENTATION",
+      "page_contract_status": "NOT_STARTED_PHASE_3B",
+      "scope": "ANDROID_IMPLEMENTATION_BINDING_ONLY; does not expand the Phase 3-A PAGE_CONTRACT_READY page list.",
+      "runtime_validation_status": "NOT_RUN"
+    }
+  ]
 }

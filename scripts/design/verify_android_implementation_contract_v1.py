@@ -83,9 +83,12 @@ def main() -> int:
         issues.append("Android Implementation Contract does not reference PAGE_CONTRACT_READY")
 
     entries = registry.get("entries")
-    if not isinstance(entries, list) or len(entries) != 1:
-        issues.append("registry must contain exactly one scoped page entry")
+    if not isinstance(entries, list) or not entries:
+        issues.append("registry must contain scoped page entries")
         entries = []
+    entry_page_ids = [row.get("page_id") for row in entries if isinstance(row, dict)]
+    if len(entry_page_ids) != len(set(entry_page_ids)):
+        issues.append("registry contains duplicate page_id values")
     entry = next((row for row in entries if isinstance(row, dict) and row.get("page") == "RecognitionResult"), None)
     if entry is None:
         issues.append("RecognitionResult registry entry is missing")

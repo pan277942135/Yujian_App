@@ -395,13 +395,12 @@
     ]
   },
   "page_registry_status": "HOME_DEFERRED_NOT_REGISTERED_IN_PAGE_REGISTRY_V3_1",
-  "android_implementation_registry_status": "NORMAL_HOME_ENTRY_NOT_REGISTERED",
+  "android_implementation_registry_status": "NORMAL_HOME_ENTRY_REGISTERED",
   "aggregate_implementation_readiness": {
     "status": "NOT_READY",
     "gate": "READY_FOR_ANDROID_IMPLEMENTATION",
     "blocking_reasons": [
       "Normal Home V3.1 Page Contract is not registered in Page_Registry_V3_1.json.",
-      "Normal Home has no entry in Android_Implementation_Contract_Registry_V1.json.",
       "NH07 avatar state assets are registered, but the Normal Home full-page avatar integration review is pending."
     ]
   },

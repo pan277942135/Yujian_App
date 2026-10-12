@@ -27,6 +27,34 @@
       "authority_id": "recognition_result_android_implementation",
       "upstream_page_contract_commit": "a0621beb206bb3b92aa056784a62466879b41dfa",
       "validator": "scripts/design/verify_android_implementation_contract_v1.py"
+    },
+    {
+      "page": "NormalHome",
+      "page_id": "normal_home_v1",
+      "contract_version": "V1",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "implementation_status": "READY_FOR_IMPLEMENTATION",
+      "design_contract": "NORMAL_HOME_VISUAL_CONTRACT_READY",
+      "design_contract_status": "READY_FOR_VISUAL_IMPLEMENTATION",
+      "authority_source": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md",
+      "implementation_contract": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md",
+      "state_binding": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json",
+      "component_mapping": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json",
+      "resource_binding": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json",
+      "compose_guideline": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Compose_Guideline_V1.md",
+      "window_insets_contract": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Window_Insets_Contract_V1.md",
+      "motion_runtime_binding": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md",
+      "runtime_gate": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md",
+      "validation_status": "PASS",
+      "validation_scope": "Static contract, authority, registry, token, asset identity and runtime-gate structure only.",
+      "runtime_validation_status": "NOT_RUN",
+      "authority_id": "normal_home_android_implementation",
+      "validator": "scripts/design/verify_normal_home_android_contract_v1.py"
     }
-  ]
+  ],
+  "normal_home_gate": {
+    "gate": "NORMAL_HOME_ANDROID_CONTRACT_READY",
+    "status": "PASS",
+    "scope": "Static authority/registry/token/component/resource/state/runtime-gate contract validation only; runtime NOT_RUN."
+  }
 }
