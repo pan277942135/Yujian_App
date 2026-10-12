@@ -19124,14 +19124,14 @@
     },
     {
       "path": "design/pages/recognition/result/navigation.json",
-      "expected_current_git_blob_sha": "1a60debc0b48094e3b64495783cc85ee74180ebe",
+      "expected_current_git_blob_sha": "8a99530d8ab787aaf05d37532d1e45f38277a3b0",
       "source_commit_sha": "1d3f88480e5b1538de945cfed9f7f881895c5677",
       "reason": "Phase 3-B adds the RR08 Visual Acceptance Contract V1 link and leaves existing RR00-RR07 entries and their authorities unchanged. This is an additive Design Manager navigation update; no Frozen page artwork or product visuals changed.",
       "is_frozen_asset": false
     },
     {
       "path": "design/pages/recognition/result/MENU_STRUCTURE_V1.md",
-      "expected_current_git_blob_sha": "0b60f7e353f66fc947f7d602ec45017bbe28e030",
+      "expected_current_git_blob_sha": "da4e545ba0382c1e936a6b00972e994be8a1ca4a",
       "source_commit_sha": "1d3f88480e5b1538de945cfed9f7f881895c5677",
       "reason": "Phase 3-B adds the RR08 Visual Acceptance Contract V1 menu row only; existing RR00-RR07 authority and status rows remain intact. No Frozen page artwork or product visuals changed.",
       "is_frozen_asset": false
