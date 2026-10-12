@@ -19110,9 +19110,9 @@
   "worktree_exceptions": [
     {
       "path": "design/manager/index.html",
-      "expected_current_git_blob_sha": "4f58beb056fff0185ad28c89c86c7cb10b821586",
+      "expected_current_git_blob_sha": "82170dc95f2b62dc17ddf5efc57152abd03715b6",
       "source_commit_sha": "9276f968e1ccf44e9733c8204978d41cab1d562f",
-      "reason": "Phase 2 certified the Shared Foundation V3.1 status badge as READY · 7/7; Phase 3 adds the Page Contract V3.1 navigation and three Recognition contract links plus deferred-batch labels. This is a non-frozen Design Manager navigation index only; no page Frozen visual or product artwork changed.",
+      "reason": "Phase 3-A Recognition Page Contract links and the Normal Home Visual Acceptance V1 link are additive Design Manager navigation only. Existing page menus remain; no Frozen page artwork or product asset changed.",
       "is_frozen_asset": false
     },
     {
