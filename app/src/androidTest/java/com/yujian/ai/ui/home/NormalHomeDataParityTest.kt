@@ -6,8 +6,11 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
@@ -26,6 +29,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -212,7 +216,7 @@ class NormalHomeDataParityTest {
             logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
 
-            assertCoveredCard(firstCard)
+            assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f)
             firstCard.performClick()
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
@@ -232,7 +236,7 @@ class NormalHomeDataParityTest {
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
-            assertCoveredCard(secondCard)
+            assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f)
 
             allAction.performClick()
             compose.runOnIdle { assertEquals(1, allClicks) }
@@ -346,14 +350,22 @@ class NormalHomeDataParityTest {
         }
     }
 
-    private fun assertCoveredCard(card: androidx.compose.ui.test.SemanticsNodeInteraction) {
+    private fun assertEvidenceFit(
+        card: androidx.compose.ui.test.SemanticsNodeInteraction,
+        expectedMarkerCenter: Float,
+    ) {
         val pixels = card.captureToImage().toPixelMap()
         val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
-        val edge = pixels[(pixels.width * 0.02f).toInt().coerceIn(0, pixels.width - 1), y]
-        assertTrue(
-            "The viewport edge should show the source image's side marker, not a fitted-image pillar",
-            edge.red > 0.78f && edge.green > 0.68f && edge.blue < 0.42f,
+        val markerSamples = listOf(
+            pixels[(pixels.width * expectedMarkerCenter).toInt().coerceIn(0, pixels.width - 1), y],
+            pixels[(pixels.width * (1f - expectedMarkerCenter)).toInt().coerceIn(0, pixels.width - 1), y],
         )
+        markerSamples.forEachIndexed { index, marker ->
+            assertTrue(
+                "EvidenceFit keeps source edge marker $index inside the fitted image bounds",
+                marker.red > 0.78f && marker.green > 0.68f && marker.blue < 0.42f,
+            )
+        }
         val quietTop = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.30f).toInt()]
         val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
@@ -367,7 +379,7 @@ class NormalHomeDataParityTest {
         )
         corners.forEachIndexed { index, color ->
             assertTrue(
-                "The synthetic edge marker stays clipped outside shared rounded corner $index",
+                "The synthetic source marker stays clipped outside shared rounded corner $index",
                 !(color.red > 0.78f && color.green > 0.68f && color.blue < 0.42f),
             )
         }
@@ -647,6 +659,88 @@ class NormalHomeDataParityTest {
             headerWindow.top,
             1f,
         )
+    }
+
+    @Test
+    fun shortScreenKeepsHeroAndCameraActionReachableAtLargeFontScale() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val photo = createPortraitFixture(
+            context,
+            "normal-home-short-screen-evidence.png",
+            360,
+            640,
+            AndroidColor.rgb(52, 119, 146),
+        )
+        try {
+            compose.setContent {
+                val currentDensity = LocalDensity.current
+                CompositionLocalProvider(
+                    LocalDensity provides Density(currentDensity.density, fontScale = 2f),
+                ) {
+                    Box(
+                        Modifier
+                            .requiredSize(320.dp, 480.dp)
+                            .background(Color.Black),
+                    ) {
+                        NormalHomeContent(
+                            statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                            recentCatches = listOf(
+                                record(
+                                    id = "short-screen-catch",
+                                    image = photo,
+                                    speciesId = "grass-carp",
+                                    speciesName = "草鱼",
+                                    capturedAt = "2026-10-04T18:20:00+08:00",
+                                    lengthCm = 42.6f,
+                                    weightKg = 1.28f,
+                                    location = "千岛湖",
+                                ),
+                            ),
+                            resolveImageUrl = { it },
+                            accessToken = "",
+                            isLoggedIn = false,
+                            avatarUrl = null,
+                            onIdentify = {},
+                            onSpeciesClick = {},
+                            onCatchesClick = {},
+                            onProfileClick = {},
+                            onCatchClick = {},
+                            motionState = HomeMotionState(),
+                            runtimeAssets = null,
+                            safeInsets = SafeDrawingInsetsDp(),
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+
+            compose.onNodeWithTag("normal-home-short-screen-scroll").fetchSemanticsNode()
+            compose.onNodeWithTag("normal-home-header").assertIsDisplayed()
+            compose.onNodeWithTag("normal-home-catch-pager").assertIsDisplayed()
+            compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true).fetchSemanticsNode()
+
+            val rootBounds = compose.onNodeWithTag("normal-home-content-root").fetchSemanticsNode().boundsInRoot
+            val camera = compose.onNodeWithTag("normal-home-camera")
+            val cameraBeforeScroll = camera.fetchSemanticsNode().boundsInRoot
+            val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
+            scroll.performTouchInput { swipeUp() }
+            compose.waitForIdle()
+
+            val cameraAfterScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
+                .fetchSemanticsNode().boundsInRoot
+            val density = context.resources.displayMetrics.density
+            assertTrue("Short screen mode scrolls the capture target into its safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom + 1f)
+            assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
+            assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= rootBounds.bottom + 1f)
+            assertTrue("The scroll reveals content instead of shrinking the entire page", cameraAfterScroll.top < cameraBeforeScroll.top)
+            assertTrue(
+                "Normal Home Hero remains registered during safe overflow",
+                compose.onAllNodesWithTag("normal-home-catch-pager").fetchSemanticsNodes().isNotEmpty(),
+            )
+        } finally {
+            photo.delete()
+        }
     }
 
     private fun createPortraitFixture(

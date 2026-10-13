@@ -56,4 +56,16 @@ class NormalHomeRuntimeContractTest {
             }
         }
     }
+    @Test
+    fun normalHomeSignedInDefaultAvatarUsesPackagedNh07Export() {
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true; inScaled = false }
+        BitmapFactory.decodeResource(resources, R.drawable.nh07_default_avatar_3x_192, options)
+        assertEquals(192, options.outWidth)
+        assertEquals(192, options.outHeight)
+        assertNotNull(
+            "NH07 drawable decodes from the packaged Android resource",
+            BitmapFactory.decodeResource(resources, R.drawable.nh07_default_avatar_3x_192),
+        )
+    }
 }
