@@ -9,3 +9,7 @@
 - Per-entry FROZEN / APPROVED / REVIEW states remain unchanged. Unmapped usage/provenance stays visible as review metadata.
 
 The Phase 1 Asset_Integrity_Register_V3_1.json remains an audit snapshot and is not the Phase 3 asset input.
+
+## A.3 Brand wordmark extension
+
+The original 658-row baseline remains byte-identical. The current branch registry adds 8 explicitly tracked Normal Home brand-title derivation and review-evidence files (666 rows total). The production artwork `brand_title_primary` is an approved 155×80 RGBA derivative of the frozen Normal Home raster; its source and extraction evidence are recorded in the adjacent manifest and audit.

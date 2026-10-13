@@ -6,11 +6,11 @@
   "baseline_branch": "main",
   "baseline_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
   "summary": {
-    "total_files": 658,
-    "raw_sha256_computed": 658,
+    "total_files": 666,
+    "raw_sha256_computed": 666,
     "sha256_declared_only": 0,
     "sha256_absent": 0,
-    "git_blob_identity_recorded": 658,
+    "git_blob_identity_recorded": 666,
     "status_vocabulary": [
       "FROZEN",
       "APPROVED",
@@ -21,12 +21,12 @@
     "source_frozen_reference_count": 101,
     "status_counts": {
       "REVIEW": 575,
-      "FROZEN": 82,
-      "APPROVED": 1
+      "FROZEN": 83,
+      "APPROVED": 8
     },
-    "unique_asset_ids": 658,
-    "unique_paths": 658,
-    "dimensions_verified": 244,
+    "unique_asset_ids": 666,
+    "unique_paths": 666,
+    "dimensions_verified": 248,
     "identity_verification_status": "READY"
   },
   "entries": [
@@ -5190,7 +5190,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_ai_v1_v1_md",
-      "path": "design/pages/recognition/processing/references/AI_\u8fb9\u7f18\u5149\u573a_V1_\u65e2\u6709\u89c6\u89c9\u590d\u7528\u6620\u5c04_V1.md",
+      "path": "design/pages/recognition/processing/references/AI_边缘光场_V1_既有视觉复用映射_V1.md",
       "type": "MARKDOWN",
       "size": 2390,
       "sha256": "64a348177fc8f68c0e11b32bd69ed703914b9e9936586deaf7b7bd04eaf13ebb",
@@ -5205,7 +5205,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_ai_v1_reference_set_generation_index_md",
-      "path": "design/pages/recognition/processing/references/AI_\u8fb9\u7f18\u5149\u573a_V1_\u89c6\u89c9\u53c2\u8003\u96c6_\u751f\u6210\u89c4\u8303\u7d22\u5f15_V1.md",
+      "path": "design/pages/recognition/processing/references/AI_边缘光场_V1_视觉参考集_生成规范索引_V1.md",
       "type": "MARKDOWN",
       "size": 1449,
       "sha256": "43c79ab9f042b187cde3fbda0143f97f4d6a4fb39b39b7470b80106c728e4ec7",
@@ -5220,7 +5220,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_r01_v1_md",
-      "path": "design/pages/recognition/processing/references/R01_\u4e3b\u89c6\u89c9\u7ec6\u8282_\u751f\u6210\u89c4\u8303_V1.md",
+      "path": "design/pages/recognition/processing/references/R01_主视觉细节_生成规范_V1.md",
       "type": "MARKDOWN",
       "size": 4606,
       "sha256": "236ebd94a759bd4cb483e095af7db1ca908223ace0eb6ef7ba3e559ef1c74348",
@@ -5235,7 +5235,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_r02_v1_md",
-      "path": "design/pages/recognition/processing/references/R02_\u80fd\u91cf\u5c9b\u62c6\u89e3_\u751f\u6210\u89c4\u8303_V1.md",
+      "path": "design/pages/recognition/processing/references/R02_能量岛拆解_生成规范_V1.md",
       "type": "MARKDOWN",
       "size": 3142,
       "sha256": "480cb08f9de63e0d4472d017517b9f66f42501d1ab84afe0dc4529601a1d1cbc",
@@ -5250,7 +5250,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_r03_v1_md",
-      "path": "design/pages/recognition/processing/references/R03_\u56db\u5c9b\u6784\u56fe_\u751f\u6210\u89c4\u8303_V1.md",
+      "path": "design/pages/recognition/processing/references/R03_四岛构图_生成规范_V1.md",
       "type": "MARKDOWN",
       "size": 6620,
       "sha256": "0062398967d20b75ce7197d7e6cb1f42bb2e9780b850eeee56a9b6e7a3d4311f",
@@ -5265,7 +5265,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_r04_v1_md",
-      "path": "design/pages/recognition/processing/references/R04_\u5149\u573a\u4e0e\u9c7c\u4f53\u805a\u7126_\u751f\u6210\u89c4\u8303_V1.md",
+      "path": "design/pages/recognition/processing/references/R04_光场与鱼体聚焦_生成规范_V1.md",
       "type": "MARKDOWN",
       "size": 2779,
       "sha256": "65db1bac314946db445294cb61ac175577b2cc057f54de183735043809386c09",
@@ -5280,7 +5280,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_r05_v1_md",
-      "path": "design/pages/recognition/processing/references/R05_\u5f3a\u5ea6\u6821\u51c6_\u751f\u6210\u89c4\u8303_V1.md",
+      "path": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
       "type": "MARKDOWN",
       "size": 3074,
       "sha256": "f8668450990b70b28f2db6a17d17d1c73abe9340bdbfa768c29a35f2f11ee208",
@@ -5295,7 +5295,7 @@
     },
     {
       "asset_id": "pages_recognition_processing_references_r06_v1_md",
-      "path": "design/pages/recognition/processing/references/R06_\u5931\u8d25\u8fb9\u754c_\u751f\u6210\u89c4\u8303_V1.md",
+      "path": "design/pages/recognition/processing/references/R06_失败边界_生成规范_V1.md",
       "type": "MARKDOWN",
       "size": 2133,
       "sha256": "5b1602168a6ce82f2d5f8f5ad7db101c01eae4770fb26d6fb32d796ff3da668d",
@@ -10947,6 +10947,216 @@
       "dimensions": "N/A (non-visual)"
     },
     {
+      "asset_id": "brand_title_source_extraction_audit_json",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+      "type": "JSON",
+      "size": 1863,
+      "sha256": "e0aa1e3505d9db0c9e8cd85e50058ed434ebc1e071675c6928cfb11006b6069a",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "172b64ae2d0ce5f9efa78ad45f5ed6226f4428f2",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "N/A (non-visual)",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_difference_report_json",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_difference_report.json",
+      "type": "JSON",
+      "size": 1055,
+      "sha256": "7da7535418c4659b03570b4e01ba3dd5fcbe42d45c90c81fc607ef26235ae099",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "4585cf9a0f896156cf2a659d826a3558eb89bddf",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "N/A (non-visual)",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_difference_visual_png",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_difference_visual.png",
+      "type": "PNG",
+      "size": 17140,
+      "sha256": "3160cac14df4e46705d6fecaeabe5bf07b6a28347ac31cda6363432a9305ea37",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "fe91f3dab6e1f9358f3d233f3dd06d3943f61387",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "465x240",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_extraction_preview_png",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_extraction_preview.png",
+      "type": "PNG",
+      "size": 17746,
+      "sha256": "bbb4e039c3df2bc79db3efcc28c59d7260de7234361d0d1ff9b369db272025fe",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "df91c6fb0fd5860e8984782f3b60a438eee9765e",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "620x320",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_overlay_comparison_png",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_overlay_comparison.png",
+      "type": "PNG",
+      "size": 51703,
+      "sha256": "68a50e23c14a248d9655e980cf14ca4fff1c8c0cb250585a0e3054ee1263167f",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "2056e44a471446c47efc39354ab5a79a4bbb8ce0",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "1395x240",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_primary",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "type": "PNG",
+      "size": 11763,
+      "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "f46ce96dd0d07780e61b97af50b77f402750886e",
+      "source": [
+        "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "status": "FROZEN",
+      "dimensions": "155x80",
+      "post_baseline_addition": {
+        "artifact_type": "DERIVED_FROM_FROZEN_RASTER",
+        "source_asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+        "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+        "approval_status": "APPROVED_VISUALLY",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_primary_manifest_json",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+      "type": "JSON",
+      "size": 1149,
+      "sha256": "b02573f09ebee2c39cf811f7487535e1b4a4a5c0c05a3f7efe7ae70688abc38b",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "e8de305271aaf4b6b0de14a8b6a8be8435dc8d4b",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "N/A (non-visual)",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
+      "asset_id": "brand_title_primary_sha256_txt",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_sha256.txt",
+      "type": "TEXT",
+      "size": 90,
+      "sha256": "894058493946de7e0bf9cf0bb3c64b9dc84f60709e189941ad19a980ffc8a238",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "bc8dda818f76ddf9a980090cfc0c5f147cdf72b6",
+      "source": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "used_by": [
+        "brand_title_primary"
+      ],
+      "status": "APPROVED",
+      "dimensions": "N/A (non-visual)",
+      "post_baseline_addition": {
+        "artifact_type": "BRAND_TITLE_EXTRACTION_EVIDENCE",
+        "source_asset_id": "brand_title_primary",
+        "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "source_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      }
+    },
+    {
       "asset_id": "templates_feature_experience_package_template_md",
       "path": "design/templates/FEATURE_EXPERIENCE_PACKAGE_TEMPLATE.md",
       "type": "MARKDOWN",
@@ -10965,13 +11175,17 @@
   "identity_verification": {
     "status": "READY",
     "source_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-    "algorithm": "SHA-256 over raw file bytes read from the baseline Git commit; Git blob SHA is separate provenance only.",
-    "total_files": 658,
-    "verified_sha256": 658,
-    "size_matches": 658,
-    "visual_dimensions_verified": 244,
+    "algorithm": "Original baseline files are verified against baseline Git bytes. Explicit post-baseline derivation/evidence additions are verified against worktree bytes, SHA-256, Git blob identity, and their registered source-asset SHA chain.",
+    "total_files": 666,
+    "verified_sha256": 666,
+    "size_matches": 666,
+    "visual_dimensions_verified": 248,
     "duplicate_asset_ids_corrected": 1,
     "source_of_asset_id_correction": "Original registry reused one slug for two distinct Unicode filenames; second path received a stable path-specific ID.",
-    "verification_tool": "scripts/design/verify_shared_foundation_v3.py"
+    "verification_tool": "scripts/design/verify_shared_foundation_v3.py",
+    "post_baseline_additions": 8,
+    "approved_derived_asset_ids": [
+      "brand_title_primary"
+    ]
   }
 }

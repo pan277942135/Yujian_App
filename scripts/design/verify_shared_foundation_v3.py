@@ -249,6 +249,8 @@ def scan_colors(root: Path, token_doc: dict[str, Any]) -> tuple[int, list[str], 
 def verify_assets(root: Path, registry: dict[str, Any], issues: list[str]) -> tuple[int, int]:
     rows = registry.get("entries")
     asset_ids = unique_ids(rows, "asset_id", "assets", issues)
+    rows = rows if isinstance(rows, list) else []
+    rows_by_id = {row.get("asset_id"): row for row in rows if isinstance(row, dict)}
     paths: set[str] = set()
     baseline = registry.get("baseline_commit_sha")
     try:
@@ -257,7 +259,7 @@ def verify_assets(root: Path, registry: dict[str, Any], issues: list[str]) -> tu
         issues.append(f"asset baseline: {exc}")
         return len(asset_ids), 0
     verified = 0
-    for row in rows if isinstance(rows, list) else []:
+    for row in rows:
         if not isinstance(row, dict):
             continue
         relative = row.get("path")
@@ -265,11 +267,12 @@ def verify_assets(root: Path, registry: dict[str, Any], issues: list[str]) -> tu
             issues.append(f"asset has unsafe path: {relative!r}")
             continue
         if relative in paths:
-            issues.append(f"assets: duplicate path {relative}")
-            continue
+            issues.append(f"duplicate asset path: {relative}")
         paths.add(relative)
         if row.get("status") not in ASSET_STATUSES:
             issues.append(f"{relative}: invalid asset status {row.get('status')!r}")
+        if not isinstance(row.get("type"), str) or not row["type"]:
+            issues.append(f"{relative}: missing type")
         if not isinstance(row.get("size"), int) or row["size"] < 0:
             issues.append(f"{relative}: invalid byte size")
         if not isinstance(row.get("dimensions"), str) or not row["dimensions"]:
@@ -286,11 +289,52 @@ def verify_assets(root: Path, registry: dict[str, Any], issues: list[str]) -> tu
         if worktree_file.is_symlink() or not worktree_file.is_file():
             issues.append(f"{relative}: missing from current checkout or is a symlink")
             continue
-        try:
-            data = git_show(root, str(baseline), relative)
-        except RuntimeError as exc:
-            issues.append(str(exc))
-            continue
+
+        baseline_path = f"{baseline}:{relative}"
+        in_baseline = run_git(root, ["cat-file", "-e", baseline_path], check=False).returncode == 0
+        if in_baseline:
+            try:
+                data = git_show(root, str(baseline), relative)
+            except RuntimeError as exc:
+                issues.append(str(exc))
+                continue
+        else:
+            addition = row.get("post_baseline_addition")
+            if not isinstance(addition, dict):
+                issues.append(f"{relative}: absent from baseline without explicit post_baseline_addition provenance")
+                continue
+            source_id = addition.get("source_asset_id")
+            source_path = addition.get("source_path")
+            source_sha = addition.get("source_sha256")
+            source_row = rows_by_id.get(source_id)
+            if not isinstance(source_row, dict):
+                issues.append(f"{relative}: post-baseline source asset is not registered: {source_id!r}")
+                continue
+            if source_row.get("path") != source_path or source_row.get("sha256") != source_sha:
+                issues.append(f"{relative}: post-baseline source path/SHA does not match its registry row")
+                continue
+            if addition.get("artifact_type") not in {"DERIVED_FROM_FROZEN_RASTER", "BRAND_TITLE_EXTRACTION_EVIDENCE"}:
+                issues.append(f"{relative}: unrecognized post-baseline addition type")
+                continue
+            try:
+                if run_git(root, ["cat-file", "-e", f"{baseline}:{source_path}"], check=False).returncode == 0:
+                    source_data = git_show(root, str(baseline), str(source_path))
+                else:
+                    source_file = root.joinpath(*PurePosixPath(str(source_path)).parts)
+                    if source_file.is_symlink() or not source_file.is_file():
+                        raise RuntimeError("source file is missing or is a symlink")
+                    source_data = source_file.read_bytes()
+            except RuntimeError as exc:
+                issues.append(f"{relative}: cannot verify post-baseline source: {exc}")
+                continue
+            if hashlib.sha256(source_data).hexdigest() != source_sha:
+                issues.append(f"{relative}: post-baseline source raw-byte SHA-256 mismatch")
+                continue
+            if addition.get("approval_status") not in {"APPROVED_VISUALLY", "APPROVED_AUDIT_EVIDENCE"}:
+                issues.append(f"{relative}: post-baseline addition is not approved")
+                continue
+            data = worktree_file.read_bytes()
+
         actual_sha256 = hashlib.sha256(data).hexdigest()
         if actual_sha256 != recorded_sha256:
             issues.append(f"{relative}: raw-byte SHA-256 mismatch")
@@ -303,18 +347,28 @@ def verify_assets(root: Path, registry: dict[str, Any], issues: list[str]) -> tu
             issues.append(f"{relative}: Git blob identity mismatch")
         if row.get("status") == "FROZEN":
             current_data = worktree_file.read_bytes()
-            if current_data != data:
-                issues.append(f"{relative}: Frozen asset content differs from baseline")
+            if in_baseline and current_data != data:
+                issues.append(f"{relative}: Frozen baseline asset content changed")
+            if not in_baseline and current_data != data:
+                issues.append(f"{relative}: Frozen derived asset differs from its verified worktree bytes")
+            if not in_baseline and row.get("post_baseline_addition", {}).get("approval_status") != "APPROVED_VISUALLY":
+                issues.append(f"{relative}: Frozen derived asset lacks visual approval")
         verified += 1
+
     summary = registry.get("summary", {})
-    if summary.get("total_files") != len(rows or []):
+    identity = registry.get("identity_verification", {})
+    expected_total = len(rows)
+    if summary.get("total_files") != expected_total:
         issues.append("asset summary total_files does not match entry count")
-    if len(rows or []) != 658:
-        issues.append(f"asset registry expected 658 rows; found {len(rows or [])}")
-    if len(asset_ids) != 658 or len(paths) != 658:
-        issues.append(f"asset identities are not unique: ids={len(asset_ids)}, paths={len(paths)}")
-    if verified != 658:
-        issues.append(f"raw-byte asset verification expected 658; verified {verified}")
+    if len(asset_ids) != expected_total or len(paths) != expected_total:
+        issues.append(f"asset identities are not unique: ids={len(asset_ids)}, paths={len(paths)}, expected={expected_total}")
+    if verified != expected_total:
+        issues.append(f"raw-byte asset verification expected {expected_total}; verified {verified}")
+    for field in ("total_files", "verified_sha256", "size_matches"):
+        if identity.get(field) != expected_total:
+            issues.append(f"asset identity_verification.{field} does not match {expected_total} entries")
+    if identity.get("source_commit_sha") != baseline:
+        issues.append("asset identity_verification source commit does not match baseline_commit_sha")
     return len(asset_ids), verified
 
 

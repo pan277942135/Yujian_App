@@ -189,6 +189,14 @@
       "status": "RUNTIME_USER_MEDIA_NOT_STATIC",
       "role": "FishRecord media selected by stable record ID; no repository binary SHA is applicable.",
       "asset_registry_status": "NOT_APPLICABLE"
+    },
+    {
+      "asset_id": "brand_title_primary",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "registry_source": "Asset_Registry_V3_FINAL.json + brand_title_primary_manifest.json",
+      "status": "FROZEN",
+      "role": "Frozen Normal Home header brand artwork; source is the approved deterministic raster derivation, not Compose text."
     }
   ],
   "frozen_visual_references": [
@@ -260,5 +268,37 @@
     "The Guest avatar has an exact checked path/SHA but is not in Asset_Registry_V3_FINAL.json; this is a WARNING, NOT BLOCKING for this static contract gate.",
     "Empty Home scene layer files remain REVIEW in the Asset Registry; identity is verified but registry status is not changed.",
     "Frozen full-page PNGs are contract evidence only. Android developers use this contract, Pixel Targets, Anchor Map, tokens and registered asset identities rather than inspecting PNGs for design values."
-  ]
+  ],
+  "brand_title_binding": {
+    "component": "brand_title",
+    "asset_id": "brand_title_primary",
+    "render": "image_asset",
+    "registry_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+    "android_resource_path": "app/src/main/res/drawable-nodpi/brand_title_primary.png",
+    "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+    "registry_source": "Asset_Registry_V3_FINAL.json",
+    "manifest_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+    "source_type": "DERIVED_FROM_FROZEN_RASTER",
+    "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "approval_status": "APPROVED_VISUALLY",
+    "status": "FROZEN",
+    "content_description": "渔见",
+    "content_scale": "Fit",
+    "reference_layout_px": [
+      148,
+      80
+    ],
+    "asset_canvas_px": [
+      155,
+      80
+    ],
+    "asset_x_offset_within_header_px": 7,
+    "visible_ink_bounds_in_source_px": [
+      103,
+      125,
+      242,
+      188
+    ]
+  }
 }

@@ -20,10 +20,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -59,7 +59,6 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -175,8 +174,10 @@ internal fun NormalHomeContent(
                         onProfileClick = onProfileClick,
                         avatarSize = ref(92f),
                         guestAvatar = runtimeAssets?.guestAvatar,
-                        typography = typography,
                         brandMinWidth = ref(148f),
+                        brandArtworkWidth = ref(155f),
+                        brandArtworkHeight = ref(80f),
+                        brandArtworkOffsetX = ref(7f),
                     )
                 }
 
@@ -321,8 +322,10 @@ private fun NormalHomeHeader(
     onProfileClick: () -> Unit,
     avatarSize: Dp,
     guestAvatar: android.graphics.Bitmap?,
-    typography: NormalHomeTypographyContract,
     brandMinWidth: Dp,
+    brandArtworkWidth: Dp,
+    brandArtworkHeight: Dp,
+    brandArtworkOffsetX: Dp,
 ) {
     val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
     val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
@@ -332,21 +335,22 @@ private fun NormalHomeHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = "渔见",
-            style = YuJianTypography.brand.copy(
-                color = YuJianColors.TextPrimary.copy(alpha = 0.94f),
-                fontSize = typography.brand.fontSize,
-                lineHeight = typography.brand.lineHeight,
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            // Preserve the 72 px glyph contract while giving Android's measured
-            // two-glyph outline room for its reported 3 px intrinsic overhang.
+        Box(
             modifier = Modifier
-                .widthIn(min = brandMinWidth)
+                .width(brandMinWidth)
+                .height(brandArtworkHeight)
                 .testTag("normal-home-brand-title"),
-        )
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.brand_title_primary),
+                contentDescription = "渔见",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .offset(x = brandArtworkOffsetX)
+                    .requiredSize(width = brandArtworkWidth, height = brandArtworkHeight),
+            )
+        }
         if (isLoggedIn) {
             Box(
                 modifier = Modifier

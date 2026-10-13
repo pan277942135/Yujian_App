@@ -205,7 +205,9 @@ class NormalHomeDataParityTest {
                 layoutResults.single().getLineEnd(0, visibleEnd = true) > metaText.indexOf("21:50 · ") + 7,
             )
 
-            logTextLayoutMetric("normal-home-brand-title", "normal-home-header", referenceFontPx = 72f)
+            compose.onNodeWithTag("normal-home-brand-title", useUnmergedTree = true).assertIsDisplayed()
+            compose.onNodeWithContentDescription("渔见", useUnmergedTree = true).assertIsDisplayed()
+            assertBrandArtworkAnchor()
             listOf("species", "catches", "record-days").forEach { stat ->
                 logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontPx = 36f)
                 logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontPx = 28f)
@@ -255,6 +257,59 @@ class NormalHomeDataParityTest {
         } finally {
             narrowPortrait.delete()
             broadPortrait.delete()
+        }
+    }
+
+    @Test
+    fun registeredBrandArtworkResourceMatchesFrozenRasterIdentity() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bytes = context.resources.openRawResource(com.yujian.ai.R.drawable.brand_title_primary).use { it.readBytes() }
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        assertEquals("2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc", digest)
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        assertEquals(155, bitmap.width)
+        assertEquals(80, bitmap.height)
+        assertEquals(0, android.graphics.Color.alpha(bitmap.getPixel(0, 0)))
+        assertTrue((0 until bitmap.height).any { y ->
+            (0 until bitmap.width).any { x -> android.graphics.Color.alpha(bitmap.getPixel(x, y)) > 0 }
+        })
+    }
+
+    private fun assertBrandArtworkAnchor() {
+        val root = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
+        val rootBounds = root.fetchSemanticsNode().boundsInRoot
+        val header = compose.onNodeWithTag("normal-home-header", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val pixels = root.captureToImage().toPixelMap()
+        val scale = header.width / 904f
+        val left = (header.left - rootBounds.left + 5f * scale).toInt().coerceAtLeast(0)
+        val top = (header.top - rootBounds.top + 5f * scale).toInt().coerceAtLeast(0)
+        val right = (header.left - rootBounds.left + 170f * scale).toInt().coerceAtMost(pixels.width)
+        val bottom = (header.top - rootBounds.top + 95f * scale).toInt().coerceAtMost(pixels.height)
+        var minX = pixels.width
+        var minY = pixels.height
+        var maxX = -1
+        var maxY = -1
+        for (y in top until bottom) for (x in left until right) {
+            val pixel = pixels[x, y]
+            if (pixel.red < 0.38f && pixel.green < 0.48f && pixel.blue < 0.58f) {
+                minX = minOf(minX, x)
+                minY = minOf(minY, y)
+                maxX = maxOf(maxX, x)
+                maxY = maxOf(maxY, y)
+            }
+        }
+        assertTrue("Frozen brand artwork produced no measurable ink", maxX >= minX && maxY >= minY)
+        val tolerance = maxOf(3f, 0.003f * (header.width * 1080f / 904f))
+        val expected = listOf(15f, 21f, 154f, 84f).map { it * scale }
+        val actual = listOf(
+            minX + rootBounds.left - header.left,
+            minY + rootBounds.top - header.top,
+            maxX + 1f + rootBounds.left - header.left,
+            maxY + 1f + rootBounds.top - header.top,
+        )
+        actual.zip(expected).forEachIndexed { index, (measured, target) ->
+            assertTrue("Brand artwork anchor[$index] measured=$measured target=$target tolerance=$tolerance", kotlin.math.abs(measured - target) <= tolerance)
         }
     }
 

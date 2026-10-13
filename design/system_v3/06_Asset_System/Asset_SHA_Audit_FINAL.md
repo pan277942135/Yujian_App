@@ -32,3 +32,7 @@ The V3.1 final registry records source path, type, byte size, dimensions, raw SH
 ## Reproduction
 
 Run scripts/design/verify_shared_foundation_v3.py from a repository checkout. The script resolves each path at the declared baseline commit, hashes raw bytes with SHA-256, checks size and compares the separately recorded Git object identity.
+
+## Phase 1 branch extension — brand title
+
+The original baseline SHA audit remains 658/658. The current branch adds 8 derivation/evidence files with raw-byte SHA-256 and Git blob identity recorded in the Asset Registry and Integrity Register (666 rows total). The derived RGBA asset is `2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc` (155×80); its frozen source SHA is `6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377`. The source raster remains unchanged.

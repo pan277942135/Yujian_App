@@ -1,43 +1,43 @@
 {
   "schema_version": "1.0",
   "audit_status": "AUDIT_DRAFT",
-  "generated_at": "2026-10-11",
+  "generated_at": "2026-10-13T14:28:59Z",
   "source_repository": "pan277942135/Yujian_App",
   "baseline_branch": "main",
   "baseline_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-  "scope": "All 658 files under design/** from the baseline commit. This lists repository assets and design authority files; it does not assert that every file is a canonical or approved asset.",
+  "scope": "All 658 original files under design/** from the baseline commit plus 8 explicitly identified Normal Home brand-title derivation and review-evidence files added on the Phase 1 branch. The original baseline remains unchanged.",
   "counts": {
-    "total_design_files": 658,
+    "total_design_files": 666,
     "by_file_type": {
       "MARKDOWN": 259,
       "JAVASCRIPT": 1,
       "HTML": 1,
       "CSS": 1,
-      "PNG": 146,
-      "JSON": 145,
+      "PNG": 150,
+      "JSON": 148,
       "WEBP": 10,
-      "TEXT": 2,
+      "TEXT": 3,
       "JPEG": 4,
       "OTHER": 1,
       "XML": 4,
       "SVG": 84
     },
     "by_verification_status": {
-      "SHA256_COMPUTED": 579,
-      "BLOCKED_ACCESS": 79
+      "SHA256_COMPUTED": 588,
+      "BLOCKED_ACCESS": 78
     },
     "visual_assets_by_review_status": {
-      "NOT_VISUALLY_INSPECTED": 243,
-      "REVIEWED_VISUALLY": 5
+      "NOT_VISUALLY_INSPECTED": 239,
+      "REVIEWED_VISUALLY": 9
     },
-    "declared_current_sha256_files": 144,
-    "frozen_refs_with_raw_bytes_blocked": 37,
+    "declared_current_sha256_files": 145,
+    "frozen_refs_with_raw_bytes_blocked": 36,
     "frozen_refs_blocked_without_direct_declared_sha256": 19,
-    "license_not_declared_files": 658,
+    "license_not_declared_files": 666,
     "provenance_status_counts": {
       "NOT_STATED_IN_SCANNED_AUTHORITY": 603,
       "SOURCE_ROLE_METADATA_ONLY": 30,
-      "EXPLICIT_SOURCE_OR_LINEAGE_FOUND": 25
+      "EXPLICIT_SOURCE_OR_LINEAGE_FOUND": 33
     }
   },
   "verification_method": {
@@ -16290,7 +16290,7 @@
       "size_bytes": 2157565,
       "dimensions": null,
       "viewBox": null,
-      "actual_sha256": null,
+      "actual_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
       "declared_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
       "declared_sha256_evidence": [
         {
@@ -16304,10 +16304,10 @@
           "context": "sha256"
         }
       ],
-      "declaration_status": "PRESENT_RAW_BYTES_BLOCKED",
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
       "git_blob_sha": "7b21b2b67bc09662ccfea7a15fafa13cb75e3ea8",
-      "raw_bytes_read": false,
-      "verification_status": "BLOCKED_ACCESS",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
       "visual_review_status": "NOT_VISUALLY_INSPECTED",
       "is_frozen_reference": true,
       "design_status": "FROZEN",
@@ -16326,10 +16326,17 @@
       ],
       "provenance_documents": [
         "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
-        "design/pages/home/normal_home/assets/asset_manifest.json"
+        "design/pages/home/normal_home/assets/asset_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
       ],
-      "missing_reason": "RAW_BYTES_NOT_RETURNED_BY_CONTENTS_API",
-      "provenance_evidence": [],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+          "classification": "DERIVATION_SOURCE_HASH_VERIFIED"
+        }
+      ],
       "provenance_status": "NOT_STATED_IN_SCANNED_AUTHORITY"
     },
     {
@@ -19082,6 +19089,351 @@
       "provenance_documents": [],
       "provenance_evidence": [],
       "provenance_status": "NOT_STATED_IN_SCANNED_AUTHORITY"
+    },
+    {
+      "asset_id": "brand_title_source_extraction_audit_json",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+      "file_type": "JSON",
+      "size_bytes": 1863,
+      "dimensions": null,
+      "viewBox": null,
+      "actual_sha256": "e0aa1e3505d9db0c9e8cd85e50058ed434ebc1e071675c6928cfb11006b6069a",
+      "declared_sha256": "e0aa1e3505d9db0c9e8cd85e50058ed434ebc1e071675c6928cfb11006b6069a",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "e0aa1e3505d9db0c9e8cd85e50058ed434ebc1e071675c6928cfb11006b6069a",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "172b64ae2d0ce5f9efa78ad45f5ed6226f4428f2",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "NOT_APPLICABLE",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_difference_report_json",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_difference_report.json",
+      "file_type": "JSON",
+      "size_bytes": 1055,
+      "dimensions": null,
+      "viewBox": null,
+      "actual_sha256": "7da7535418c4659b03570b4e01ba3dd5fcbe42d45c90c81fc607ef26235ae099",
+      "declared_sha256": "7da7535418c4659b03570b4e01ba3dd5fcbe42d45c90c81fc607ef26235ae099",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "7da7535418c4659b03570b4e01ba3dd5fcbe42d45c90c81fc607ef26235ae099",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "4585cf9a0f896156cf2a659d826a3558eb89bddf",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "NOT_APPLICABLE",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_difference_visual_png",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_difference_visual.png",
+      "file_type": "PNG",
+      "size_bytes": 17140,
+      "dimensions": {
+        "width": 465,
+        "height": 240,
+        "source": "measured from actual PNG bytes"
+      },
+      "viewBox": null,
+      "actual_sha256": "3160cac14df4e46705d6fecaeabe5bf07b6a28347ac31cda6363432a9305ea37",
+      "declared_sha256": "3160cac14df4e46705d6fecaeabe5bf07b6a28347ac31cda6363432a9305ea37",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "3160cac14df4e46705d6fecaeabe5bf07b6a28347ac31cda6363432a9305ea37",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "fe91f3dab6e1f9358f3d233f3dd06d3943f61387",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "REVIEWED_VISUALLY",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_extraction_preview_png",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_extraction_preview.png",
+      "file_type": "PNG",
+      "size_bytes": 17746,
+      "dimensions": {
+        "width": 620,
+        "height": 320,
+        "source": "measured from actual PNG bytes"
+      },
+      "viewBox": null,
+      "actual_sha256": "bbb4e039c3df2bc79db3efcc28c59d7260de7234361d0d1ff9b369db272025fe",
+      "declared_sha256": "bbb4e039c3df2bc79db3efcc28c59d7260de7234361d0d1ff9b369db272025fe",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "bbb4e039c3df2bc79db3efcc28c59d7260de7234361d0d1ff9b369db272025fe",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "df91c6fb0fd5860e8984782f3b60a438eee9765e",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "REVIEWED_VISUALLY",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_overlay_comparison_png",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_overlay_comparison.png",
+      "file_type": "PNG",
+      "size_bytes": 51703,
+      "dimensions": {
+        "width": 1395,
+        "height": 240,
+        "source": "measured from actual PNG bytes"
+      },
+      "viewBox": null,
+      "actual_sha256": "68a50e23c14a248d9655e980cf14ca4fff1c8c0cb250585a0e3054ee1263167f",
+      "declared_sha256": "68a50e23c14a248d9655e980cf14ca4fff1c8c0cb250585a0e3054ee1263167f",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "68a50e23c14a248d9655e980cf14ca4fff1c8c0cb250585a0e3054ee1263167f",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "2056e44a471446c47efc39354ab5a79a4bbb8ce0",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "REVIEWED_VISUALLY",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_primary",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "file_type": "PNG",
+      "size_bytes": 11763,
+      "dimensions": {
+        "width": 155,
+        "height": 80,
+        "source": "measured from actual PNG bytes"
+      },
+      "viewBox": null,
+      "actual_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "declared_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "f46ce96dd0d07780e61b97af50b77f402750886e",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "REVIEWED_VISUALLY",
+      "is_frozen_reference": false,
+      "design_status": "FROZEN",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_primary_manifest_json",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+      "file_type": "JSON",
+      "size_bytes": 1149,
+      "dimensions": null,
+      "viewBox": null,
+      "actual_sha256": "b02573f09ebee2c39cf811f7487535e1b4a4a5c0c05a3f7efe7ae70688abc38b",
+      "declared_sha256": "b02573f09ebee2c39cf811f7487535e1b4a4a5c0c05a3f7efe7ae70688abc38b",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "b02573f09ebee2c39cf811f7487535e1b4a4a5c0c05a3f7efe7ae70688abc38b",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "e8de305271aaf4b6b0de14a8b6a8be8435dc8d4b",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "NOT_APPLICABLE",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "brand_title_primary_sha256_txt",
+      "repository_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_sha256.txt",
+      "file_type": "TEXT",
+      "size_bytes": 90,
+      "dimensions": null,
+      "viewBox": null,
+      "actual_sha256": "894058493946de7e0bf9cf0bb3c64b9dc84f60709e189941ad19a980ffc8a238",
+      "declared_sha256": "894058493946de7e0bf9cf0bb3c64b9dc84f60709e189941ad19a980ffc8a238",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "894058493946de7e0bf9cf0bb3c64b9dc84f60709e189941ad19a980ffc8a238",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "bc8dda818f76ddf9a980090cfc0c5f147cdf72b6",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "NOT_APPLICABLE",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "brand_title_primary"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+        "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
+          "field": "source_sha256",
+          "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
     },
     {
       "asset_id": "templates_feature_experience_package_template_md",

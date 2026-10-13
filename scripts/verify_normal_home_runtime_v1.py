@@ -23,6 +23,14 @@ NH07_AVATAR_MANIFEST = ROOT / "design/pages/home/normal_home/07_avatar_states/as
 BACKGROUND_SHA256 = "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7"
 DEFAULT_AVATAR_SHA256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528"
 NH07_AVATAR_SHA256 = "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2"
+BRAND_TITLE_ASSET = ROOT / "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png"
+BRAND_TITLE_RUNTIME = ROOT / "app/src/main/res/drawable-nodpi/brand_title_primary.png"
+BRAND_TITLE_MANIFEST = ROOT / "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json"
+BRAND_TITLE_REGISTRY = ROOT / "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json"
+BRAND_TITLE_BINDING = ROOT / "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json"
+BRAND_TITLE_SHA256 = "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc"
+BRAND_TITLE_SOURCE_SHA256 = "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
+BRAND_TITLE_SOURCE = ROOT / "design/system/core_visual_v1/reference/normal_home_v1.png"
 
 EXPECTED = {
     "static/scene_base.png": "188593ed13b0fd6b9164aaba8632e783b8534d68",
@@ -83,6 +91,39 @@ def kotlin_block(source: str, opening_brace: int) -> tuple[str, int] | None:
 
 def main() -> int:
     failures: list[str] = []
+    try:
+        if not BRAND_TITLE_ASSET.is_file() or not BRAND_TITLE_RUNTIME.is_file():
+            failures.append("Brand Title master/runtime resource is missing")
+        else:
+            master_sha = sha256(BRAND_TITLE_ASSET)
+            runtime_sha = sha256(BRAND_TITLE_RUNTIME)
+            if master_sha != BRAND_TITLE_SHA256 or runtime_sha != BRAND_TITLE_SHA256:
+                failures.append(f"Brand Title SHA mismatch: master={master_sha} runtime={runtime_sha}")
+            with Image.open(BRAND_TITLE_ASSET) as image:
+                if image.format != "PNG" or image.mode != "RGBA" or image.size != (155, 80):
+                    failures.append(f"Brand Title raster format/mode/dimensions mismatch: {image.format}/{image.mode}/{image.size}")
+            source_sha = sha256(BRAND_TITLE_SOURCE)
+            if source_sha != BRAND_TITLE_SOURCE_SHA256:
+                failures.append(f"Frozen Normal Home source SHA mismatch: {source_sha}")
+        registry = json.loads(BRAND_TITLE_REGISTRY.read_text(encoding="utf-8"))
+        record = next(item for item in registry.get("entries", []) if item.get("asset_id") == "brand_title_primary")
+        if record.get("status") != "FROZEN" or record.get("sha256") != BRAND_TITLE_SHA256:
+            failures.append("Brand Title Asset Registry identity/status mismatch")
+        if record.get("path") != BRAND_TITLE_ASSET.relative_to(ROOT).as_posix():
+            failures.append("Brand Title Asset Registry path mismatch")
+        manifest = json.loads(BRAND_TITLE_MANIFEST.read_text(encoding="utf-8"))
+        if manifest.get("asset_id") != "brand_title_primary" or manifest.get("sha256") != BRAND_TITLE_SHA256:
+            failures.append("Brand Title extraction manifest identity mismatch")
+        if manifest.get("source_sha256") != BRAND_TITLE_SOURCE_SHA256:
+            failures.append("Brand Title extraction manifest source provenance mismatch")
+        binding = json.loads(BRAND_TITLE_BINDING.read_text(encoding="utf-8"))
+        title_binding = binding.get("brand_title_binding", {})
+        if title_binding.get("asset_id") != "brand_title_primary" or title_binding.get("sha256") != BRAND_TITLE_SHA256:
+            failures.append("Normal Home brand title resource binding identity mismatch")
+        if title_binding.get("status") != "FROZEN" or title_binding.get("render") != "image_asset":
+            failures.append("Normal Home brand title binding is not frozen image artwork")
+    except Exception as exc:
+        failures.append(f"Brand Title registry/binding validation failed: {exc}")
     try:
         data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -262,6 +303,10 @@ def main() -> int:
     if header_body is None or default_avatar_body is None:
         failures.append("Normal Home avatar composable bodies could not be verified")
     else:
+        if 'text = "渔见"' in header_body or 'Text("渔见")' in header_body:
+            failures.append("Normal Home brand title must not be rendered as dynamic Text")
+        if "R.drawable.brand_title_primary" not in header_body or "Image(" not in header_body or 'contentDescription = "渔见"' not in header_body:
+            failures.append("Normal Home brand title is not bound to the registered accessible artwork resource")
         login_branch_start = header_body.find("if (isLoggedIn)")
         login_branch_open = header_body.find("{", login_branch_start)
         login_branch = kotlin_block(header_body, login_branch_open)
@@ -315,6 +360,7 @@ def main() -> int:
         print(f"FAIL: {len(failures)} Normal Home runtime closure issue(s)", file=sys.stderr)
         return 1
     print("PASS: Normal Home runtime assets are independent and source wiring is closed")
+    print("BRAND_TITLE_ASSET_CHECK = PASS")
     return 0
 
 if __name__ == "__main__":

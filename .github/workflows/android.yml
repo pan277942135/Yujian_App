@@ -8,6 +8,7 @@ on:
       - 'feature/**'
       - 'refactor/**'
       - 'integration/**'
+      - audit/design-system-v3-1-phase1-master-baseline
   pull_request:
     branches: [main]
   workflow_dispatch:

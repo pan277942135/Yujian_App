@@ -22,3 +22,7 @@
 - My Habitat: reference assets remain associated with its design-only page scope; no route or product status is inferred.
 
 The baseline contains no missing repository file. Provenance and consumer mapping remain review metadata for rows whose source audit left it empty; those values are not fabricated to reach the identity gate.
+
+### A.3 branch addition
+
+Eight derived-artwork and review-evidence paths were added after the original 658-file baseline. All eight have registered paths and SHA-256; the production brand title PNG is 155×80 RGBA and matches the Android drawable bytes.
