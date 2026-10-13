@@ -139,8 +139,8 @@ python3 - "$METRICS" "$device_serial" "$device_api" "$device_model" "$build_fing
 import json, pathlib, sys
 path, serial, api, model, fingerprint, size, density, font_scale, original_size, original_density, original_font_scale, nav_mode, fsg_nav, policy_control, build_sha = sys.argv[1:]
 import re
-match = re.search(r"(?:Override|Physical) density: (\d+)", density)
-density_dpi = int(match.group(1)) if match else None
+density_values = re.findall(r"(?:Override|Physical) density: (\d+)", density)
+density_dpi = int(density_values[-1]) if density_values else None
 pathlib.Path(path).write_text(json.dumps({
     "build_sha": build_sha,
     "device_serial": serial,
@@ -162,7 +162,11 @@ pathlib.Path(path).write_text(json.dumps({
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 cat "$METRICS"
-if [[ "$device_api" != "$API_LEVEL" || "$font_scale" != "1.0" || "$wm_size" != *"Override size: 1080x1920"* || "$wm_density" != *"Override density: 480"* ]]; then
+size_matches=false
+if [[ "$wm_size" == *"Physical size: 1080x1920"* || "$wm_size" == *"Override size: 1080x1920"* ]]; then
+  size_matches=true
+fi
+if [[ "$device_api" != "$API_LEVEL" || "$font_scale" != "1.0" || "$size_matches" != "true" || "$wm_density" != *"Override density: 480"* ]]; then
   printf 'DEVICE_PROFILE_MISMATCH api=%s size=%s density=%s fontScale=%s\n' "$device_api" "$wm_size" "$wm_density" "$font_scale" > "$EVIDENCE_DIR/infra/device_profile_mismatch.log"
   runtime_set_failure "PREFLIGHT" "DEVICE_PROFILE_MISMATCH"
   YUJIAN_CLASSIFICATION="BLOCKED_INFRA"
