@@ -1,4 +1,340 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíïÎ6N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”()¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹…¹¥µ…Ñ¥½¸¹½É”¹¹¥µ…Ñ…‰±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹…¹¥µ…Ñ¥½¸¹½É”¹­•å™É…µ•Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹%µ…”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹‰…­É½Õ¹)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±¥­…‰±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹É•µ•µ‰•ÉMÉ½±±MÑ…Ñ”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Ù•ÉÑ¥…±MÉ½±°)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹ÉÉ…¹•µ•¹Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹	½à)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹	½á]¥Ñ¡½¹ÍÑÉ…¥¹ÑÌ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹½±Õµ¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹A…‘‘¥¹Y…±Õ•Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹I½Ü)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹™¥±±5…áM¥é”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹™¥±±5…á]¥‘Ñ )¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹¡•¥¡Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹½™™Í•Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹Á…‘‘¥¹œ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹Í¥é”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹É•ÅÕ¥É•‘M¥é•%¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹İ¥‘Ñ )¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹İ¥‘Ñ¡%¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Á…•È¹!½É¥é½¹Ñ…±A…•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Á…•È¹A…•M¥é”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Á…•È¹É•µ•µ‰•ÉA…•ÉMÑ…Ñ”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Í¡…Á”¹¥É±•M¡…Á”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Í¡…Á”¹I½Õ¹‘•‘½É¹•ÉM¡…Á”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹Q•áĞ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹½µÁ½Í…‰±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹1…Õ¹¡•‘™™•Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹µÕÑ…‰±•MÑ…Ñ•=˜)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹É•µ•µ‰•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹±¥¹µ•¹Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹5½‘¥™¥•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹‘É…Ü¹±¥À)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹M¡…‘½Ü)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹…Í%µ…•	¥Ñµ…À)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹É…Á¡¥Í1…å•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹±…å½ÕĞ¹½¹Ñ•¹ÑM…±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±•¹Í¥Ñä)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹Ñ•ÍÑQ…œ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É•Ì¹Á…¥¹Ñ•ÉI•Í½ÕÉ”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹I½±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹É½±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹Í•µ…¹Ñ¥Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•áĞ¹ÍÑå±”¹Q•áÑ=Ù•É™±½Ü)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ğ¹•¹Í¥Ñä)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ğ¹À)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ğ¹‘À)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹H)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹…Ñ¡•Ì¹…Ñ¡MÑ…Ñ¥ÍÑ¥Ì)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹…Ñ¡•Ì¹I•µ½Ñ•…Ñ )¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹…‘…ÁÑ¥Ù”¹M…™•É…İ¥¹%¹Í•ÑÍÀ)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹½µÁ½¹•¹ÑÌ¹I•µ½Ñ•%µ…”)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½±½È¹eÕ)¥…¹½±½ÉÌ)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹ÑåÁ½É…Á¡ä¹eÕ)¥…¹QåÁ½É…Á¡ä)¥µÁ½ÉĞ­½Ñ±¥¹à¹½É½ÕÑ¥¹•Ì¹½É½ÕÑ¥¹•M½Á”)¥µÁ½ÉĞ­½Ñ±¥¹à¹½É½ÕÑ¥¹•Ì¹±…Õ¹ )¥µÁ½ÉĞ­½Ñ±¥¸¹µ…Ñ ¹…‰Ì)¥µÁ½ÉĞ­½Ñ±¥¸¹µ…Ñ ¹µ¥¸()ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•I•™•É•¹•]¥‘Ñ €ô€ÄÀàÁ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•!•…‘•É`€ô€àá˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•!•…‘•Éd€ô€ÄÀÑ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•!•…‘•É]¥‘Ñ €ô€äÀÑ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•!•…‘•É!•¥¡Ğ€ô€ÄÀÑ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•MÑ…ÑÍd€ô€ÌÀÑ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•I••¹Ñ!•…‘•Éd€ô€ĞäÑ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•I••¹Ñ!•…‘•É!•¥¡Ğ€ô€ÜÁ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•…É‘d€ô€ÔäÙ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•…É‘]¥‘Ñ €ô€ÜĞÁ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•…É‘!•¥¡Ğ€ô€ààÁ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•Ñ…d€ô€ÄĞäÕ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•…µ•É…d€ô€ÄÔØÑ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•…µ•É…M¥é”€ô€ÈÀÁ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•…µ•É…Q½Õ¡M¥é”€ô€ÈÀá˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•!•É½½É¹•ÉI…‘¥ÕÌ€ô€ÌÉ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•½½Ñ•É!½É¥é½¹Ñ…±%¹Í•Ğ€ô€ÔÙ˜)ÁÉ¥Ù…Ñ”½¹ÍĞÙ…°9½Éµ…±!½µ•½½Ñ•ÉY•ÉÑ¥…±%¹Í•Ğ€ô€ÌÉ˜((¼¨¨(€¨I•…°µ‘…Ñ„9½Éµ…°!½µ”µ…ÁÁ•½¹Ñ¼Ñ¡”€ÄÀàÀµİ¥‘”É½é•¸…ÕÑ¡½É¥Ñä¸(€¨(€¨!½É¥é½¹Ñ…°•½µ•ÑÉä…¹ÁÉ¥µ…ÉäÙ•ÉÑ¥…°…¹¡½ÉÌ¥¹Ñ•¹Ñ¥½¹…±±äÕÍ”Ñ¡”(€¨…ÁÁÉ½Ù•€ÄÀàÁàÄäÈÀÉ•™•É•¹”ÍÁ…”¸Q…±±•È‘•Ù¥•Ì­••ÀÑ¡”Í…µ”Ù¥ÍÕ…°(€¨¡¥•É…É¡ä…¹…¥¸‰É•…Ñ¡¥¹œÉ½½´‰•±½ÜÑ¡”…ÁÑÕÉ”…Ñ¥½¸¥¹ÍÑ•…½˜(€¨ÍÑÉ•Ñ¡¥¹œÑ¡”…É½È½±±…ÁÍ¥¹œÑ¡”Ñ½ÀÍ•Ñ¥½¹Ì¸(€¨¼)½µÁ½Í…‰±”)¥¹Ñ•É¹…°™Õ¸9½Éµ…±!½µ•½¹Ñ•¹Ğ (€€€ÍÑ…Ñ¥ÍÑ¥Ìè…Ñ¡MÑ…Ñ¥ÍÑ¥Ì°(€€€É••¹Ñ…Ñ¡•Ìè1¥ÍĞñI•µ½Ñ•…Ñ ø°(€€€É•Í½±Ù•%µ…•UÉ°è€¡MÑÉ¥¹œü¤€´øMÑÉ¥¹œü°(€€€…•ÍÍQ½­•¸èMÑÉ¥¹œ°(€€€¥Í1½•‘%¸è	½½±•…¸°(€€€…Ù…Ñ…ÉUÉ°èMÑÉ¥¹œü°(€€€½¹%‘•¹Ñ¥™äè€ ¤€´øU¹¥Ğ°(€€€½¹MÁ•¥•Í±¥¬è€ ¤€´øU¹¥Ğ°(€€€½¹…Ñ¡•Í±¥¬è€ ¤€´øU¹¥Ğ°(€€€½¹AÉ½™¥±•±¥¬è€ ¤€´øU¹¥Ğ°(€€€½¹…Ñ¡±¥¬è€¡MÑÉ¥¹œ¤€´øU¹¥Ğ°(€€€¥ÍI•Í½±Ù¥¹œè	½½±•…¸€ô™…±Í”°(€€€µ½Ñ¥½¹MÑ…Ñ”è!½µ•5½Ñ¥½¹MÑ…Ñ”°(€€€ÉÕ¹Ñ¥µ•ÍÍ•ÑÌè9½Éµ…±!½µ•IÕ¹Ñ¥µ•ÍÍ•ÑÌü°(€€€Í…™•%¹Í•ÑÌèM…™•É…İ¥¹%¹Í•ÑÍÀ€ôM…™•É…İ¥¹%¹Í•ÑÍÀ ¤°(€€€µ½‘¥™¥•Èè5½‘¥™¥•È€ô5½‘¥™¥•È°(¤ì(€€€Ù…°É••¹Ğ€ôÉ•µ•µ‰•È¡É••¹Ñ…Ñ¡•Ì¤ì(€€€€€€€½É‘•É•‘!½µ•I•½É‘Ì¡É••¹Ñ…Ñ¡•Ì¤(€€€ô((€€€	½á]¥Ñ¡½¹ÍÑÉ…¥¹ÑÌ¡µ½‘¥™¥•È€ôµ½‘¥™¥•È¹Ñ•ÍÑQ…œ ‰¹½Éµ…°µ¡½µ”µ½¹Ñ•¹ĞµÉ½½Ğˆ¤¤ì(€€€€€€€Ù…°É•™•É•¹•M…±”€ôµ…á]¥‘Ñ €¼9½Éµ…±!½µ•I•™•É•¹•]¥‘Ñ (€€€€€€€™Õ¸É•˜¡Ù…±Õ”è±½…Ğ¤èÀ€ô¹½Éµ…±!½µ•I•™•É•¹•À¡Ù…±Õ”°µ…á]¥‘Ñ ¹Ù…±Õ”¤¹‘À(€€€€€€€Ù…°‘•¹Í¥Ñä€ô1½…±•¹Í¥Ñä¹ÕÉÉ•¹Ğ(€€€€€€€Ù…°ÑåÁ½É…Á¡ä€ôÉ•µ•µ‰•È¡µ…á]¥‘Ñ ¹Ù…±Õ”°‘•¹Í¥Ñä¹‘•¹Í¥Ñä¤ì(€€€€€€€€€€€¹½Éµ…±!½µ•QåÁ½É…Á¡å½¹ÑÉ…Ğ¡µ…á]¥‘Ñ ¹Ù…±Õ”°‘•¹Í¥Ñä¹‘•¹Í¥Ñä¤(€€€€€€€ô(€€€€€€€Ù…°ÍÁ…¥¹œ€ôÉ•µ•µ‰•È¡µ…á]¥‘Ñ ¹Ù…±Õ”¤ì¹½Éµ…±!½µ•MÁ…¥¹½¹ÑÉ…Ğ¡µ…á]¥‘Ñ ¹Ù…±Õ”¤ô(€€€€€€€Ù…°ÕÍ…‰±•!•¥¡Ğ€ô€¡µ…á!•¥¡Ğ¹Ù…±Õ”€´Í…™•%¹Í•ÑÌ¹Ñ½À¹Ù…±Õ”€´Í…™•%¹Í•ÑÌ¹‰½ÑÑ½´¹Ù…±Õ”¤¹½•É•Ñ1•…ÍĞ Á˜¤(€€€€€€€Ù…°Ù•ÉÑ¥…±=™™Í•Ğ€ô¹½Éµ…±!½µ•Y•ÉÑ¥…±=™™Í•Ğ¡É•™•É•¹•M…±”¹Ù…±Õ”°ÕÍ…‰±•!•¥¡Ğ¤¹‘À(€€€€€€€™Õ¸É•™d¡Ù…±Õ”è±½…Ğ¤èÀ€ôÉ•˜¡Ù…±Õ”¤€¬Ù•ÉÑ¥…±=™™Í•Ğ((€€€€€€€Ù…°…É‘]¥‘Ñ €ôÉ•˜¡9½Éµ…±!½µ•…É‘]¥‘Ñ ¤(€€€€€€€Ù…°…É‘!•¥¡Ğ€ôÉ•˜¡9½Éµ…±!½µ•…É‘!•¥¡Ğ¤(€€€€€€€Ù…°Á…•ÉM¥‘•A…‘‘¥¹œ€ô€¡µ…á]¥‘Ñ €´…É‘]¥‘Ñ ¤€¼€È(€€€€€€€Ù…°…µ•É…Q½Õ¡	½ÑÑ½´€ôÉ•™d¡9½Éµ…±!½µ•…µ•É…d¤¹Ù…±Õ”€¬É•˜¡9½Éµ…±!½µ•…µ•É…Q½Õ¡M¥é”¤¹Ù…±Õ”(€€€€€€€Ù…°Í¡½ÉÑMÉ••¹5½‘”€ô¹½Éµ…±!½µ•9••‘ÍM…™•=Ù•É™±½Ü (€€€€€€€€€€€…µ•É…Q½Õ¡	½ÑÑ½´€ô…µ•É…Q½Õ¡	½ÑÑ½´°(€€€€€€€€€€€İ¥¹‘½İ!•¥¡Ğ€ôµ…á!•¥¡Ğ¹Ù…±Õ”°(€€€€€€€€€€€Í…™•	½ÑÑ½´€ôÍ…™•%¹Í•ÑÌ¹‰½ÑÑ½´¹Ù…±Õ”°(€€€€€€€€¤(€€€€€€€Ù…°½¹Ñ•¹Ñ!•¥¡Ğ€ô¹½Éµ…±!½µ•MÉ½±±…‰±•½¹Ñ•¹Ñ!•¥¡Ğ (€€€€€€€€€€€İ¥¹‘½İ!•¥¡Ğ€ôµ…á!•¥¡Ğ¹Ù…±Õ”°(€€€€€€€€€€€…µ•É…Q½Õ¡	½ÑÑ½´€ô…µ•É…Q½Õ¡	½ÑÑ½´°(€€€€€€€€€€€Í…™•	½ÑÑ½´€ôÍ…™•%¹Í•ÑÌ¹‰½ÑÑ½´¹Ù…±Õ”°(€€€€€€€€¤¹‘À(€€€€€€€Ù…°ÍÉ½±±MÑ…Ñ”€ôÉ•µ•µ‰•ÉMÉ½±±MÑ…Ñ” ¤(€€€€€€€½±Õµ¸ (€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€¹™¥±±5…áM¥é” ¤(€€€€€€€€€€€€€€€€¹Ù•ÉÑ¥…±MÉ½±°¡ÍÉ½±±MÑ…Ñ”°•¹…‰±•€ôÍ¡½ÉÑMÉ••¹5½‘”¤(€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ¡¥˜€¡Í¡½ÉÑMÉ••¹5½‘”¤€‰¹½Éµ…°µ¡½µ”µÍ¡½ÉĞµÍÉ••¸µÍÉ½±°ˆ•±Í”€‰¹½Éµ…°µ¡½µ”µ™¥á•µ±…å½ÕĞˆ¤°(€€€€€€€€¤ì(€€€€€€€€€€€	½à¡5½‘¥™¥•È¹™¥±±5…á]¥‘Ñ  ¤¹¡•¥¡Ğ¡½¹Ñ•¹Ñ!•¥¡Ğ¤¤ì((€€€€€€€€€€€€€€€	½à (€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€€€€€¹½™™Í•Ğ¡à€ôÉ•˜¡9½Éµ…±!½µ•!•…‘•É`¤°ä€ôÉ•™d¡9½Éµ…±!½µ•!•…‘•Éd¤¤(€€€€€€€€€€€€€€€€€€€€€€€€¹İ¥‘Ñ ¡É•˜¡9½Éµ…±!½µ•!•…‘•É]¥‘Ñ ¤¤(€€€€€€€€€€€€€€€€€€€€€€€€¹¡•¥¡Ğ¡É•˜¡9½Éµ…±!½µ•!•…‘•É!•¥¡Ğ¤¤(€€€€€€€€€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ ‰¹½Éµ…°µ¡½µ”µ¡•…‘•Èˆ¤°(€€€€€€€€€€€€€€€€¤ì(€€€€€€€€€€€€€€€€€€€9½Éµ…±!½µ•!•…‘•È (€€€€€€€€€€€€€€€€€€€€€€€¥Í1½•‘%¸€ô¥Í1½•‘%¸°(€€€€€€€€€€€€€€€€€€€€€€€…Ù…Ñ…ÉUÉ°€ô…Ù…Ñ…ÉUÉ°°(€€€€€€€€€€€€€€€€€€€€€€€É•Í½±Ù•%µ…•UÉ°€ôÉ•Í½±Ù•%µ…•UÉ°°(€€€€€€€€€€€€€€€€€€€€€€€…•ÍÍQ½­•¸€ô…•ÍÍQ½­•¸°(€€€€€€€€€€€€€€€€€€€€€€€½¹AÉ½™¥±•±¥¬€ô½¹AÉ½™¥±•±¥¬°(€€€€€€€€€€€€€€€€€€€€€€€…Ù…Ñ…ÉM¥é”€ôÉ•˜ äÉ˜¤°(€€€€€€€€€€€€€€€€€€€€€€€Õ•ÍÑÙ…Ñ…È€ôÉÕ¹Ñ¥µ•ÍÍ•ÑÌü¹Õ•ÍÑÙ…Ñ…È°(€€€€€€€€€€€€€€€€€€€€€€€ÑåÁ½É…Á¡ä€ôÑåÁ½É…Á¡ä°(€€€€€€€€€€€€€€€€€€€€€€€‰É…¹‘5¥¹]¥‘Ñ €ôÉ•˜ ÄĞá˜¤°(€€€€€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€ô((€€€€€€€€€€€€€€€	½à (€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€€€€€¹½™™Í•Ğ¡ä€ôÉ•™d¡9½Éµ…±!½µ•MÑ…ÑÍd¤¤(€€€€€€€€€€€€€€€€€€€€€€€€¹™¥±±5…á]¥‘Ñ  ¤(€€€€€€€€€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ ‰¹½Éµ…°µ¡½µ”µÍÑ…ÑÌˆ¤°(€€€€€€€€€€€€€€€€€€€½¹Ñ•¹Ñ±¥¹µ•¹Ğ€ô±¥¹µ•¹Ğ¹•¹Ñ•È°(€€€€€€€€€€€€€€€€¤ì(€€€€€€€€€€€€€€€€€€€!½µ•MÑ…ÑÌ (€€€€€€€€€€€€€€€€€€€€€€€ÍÑ…Ñ¥ÍÑ¥Ì€ôÍÑ…Ñ¥ÍÑ¥Ì°(€€€€€€€€€€€€€€€€€€€€€€€…Ñ¡•Ì€ôÉ••¹Ğ°(€€€€€€€€€€€€€€€€€€€€€€€½¹MÁ•¥•Í±¥¬€ô½¹MÁ•¥•Í±¥¬°(€€€€€€€€€€€€€€€€€€€€€€€½¹…Ñ¡•Í±¥¬€ô½¹…Ñ¡•Í±¥¬°(€€€€€€€€€€€€€€€€€€€€€€€¥ÍI•Í½±Ù¥¹œ€ô¥ÍI•Í½±Ù¥¹œ°(€€€€€€€€€€€€€€€€€€€€€€€‘¥Ù¥‘•É!•¥¡Ğ€ôÉ•˜ ÔÙ˜¤°(€€€€€€€€€€€€€€€€€€€€€€€‘¥Ù¥‘•É]¥‘Ñ €ôÉ•˜ Å˜¤°(€€€€€€€€€€€€€€€€€€€€€€€¡½É¥é½¹Ñ…±A…‘‘¥¹œ€ôÉ•˜ ÄÔÁ˜¤°(€€€€€€€€€€€€€€€€€€€€€€€Ù•ÉÑ¥…±A…‘‘¥¹œ€ôÍÁ…¥¹œ¹ÍÑ…ÑY•ÉÑ¥…±A…‘‘¥¹œ°(€€€€€€€€€€€€€€€€€€€€€€€±…‰•±MÁ…¥¹œ€ôÍÁ…¥¹œ¹ÍÑ…Ñ1…‰•±MÁ…¥¹œ°(€€€€€€€€€€€€€€€€€€€€€€€ÑåÁ½É…Á¡ä€ôÑåÁ½É…Á¡ä°(€€€€€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€ô((€€€€€€€€€€€€€€€¥˜€¡¥ÍI•Í½±Ù¥¹œ¤ì(€€€€€€€€€€€€€€€€€€€	½à (€€€€€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹…±¥¸¡±¥¹µ•¹Ğ¹Q½Á•¹Ñ•È¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹½™™Í•Ğ¡ä€ôÉ•™d¡9½Éµ…±!½µ•…É‘d¤¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹İ¥‘Ñ ¡…É‘]¥‘Ñ ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹¡•¥¡Ğ¡…É‘!•¥¡Ğ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹±¥À¡I½Õ¹‘•‘½É¹•ÉM¡…Á”¡É•˜¡9½Éµ…±!½µ•!•É½½É¹•ÉI…‘¥ÕÌ¤¤¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹‰…­É½Õ¹¡eÕ)¥…¹½±½ÉÌ¹5¥ÍÑ]¡¥Ñ”¹½Áä¡…±Á¡„€ô€À¸ÈÑ›_8ÚÚ$z{-®éÜj×.copy(
+package com.yujian.ai.ui.home
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSizeIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.yujian.ai.R
+import com.yujian.ai.catches.CatchStatistics
+import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
+import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.min
+
+private const val NormalHomeReferenceWidth = 1080f
+private const val NormalHomeHeaderX = 88f
+private const val NormalHomeHeaderY = 104f
+private const val NormalHomeHeaderWidth = 904f
+private const val NormalHomeHeaderHeight = 104f
+private const val NormalHomeStatsY = 304f
+private const val NormalHomeRecentHeaderY = 494f
+private const val NormalHomeRecentHeaderHeight = 70f
+private const val NormalHomeCardY = 596f
+private const val NormalHomeCardWidth = 740f
+private const val NormalHomeCardHeight = 880f
+private const val NormalHomeCtaY = 1495f
+private const val NormalHomeCameraY = 1564f
+private const val NormalHomeCameraSize = 200f
+private const val NormalHomeCameraTouchSize = 208f
+private const val NormalHomeHeroCornerRadius = 32f
+private const val NormalHomeFooterHorizontalInset = 56f
+private const val NormalHomeFooterVerticalInset = 32f
+
+/**
+ * Real-data Normal Home mapped onto the 1080-wide Frozen authority.
+ *
+ * Horizontal geometry and primary vertical anchors intentionally use the
+ * approved 1080x1920 reference space. Taller devices keep the same visual
+ * hierarchy and gain breathing room below the capture action instead of
+ * stretching the card or collapsing the top sections.
+ */
+@Composable
+internal fun NormalHomeContent(
+    statistics: CatchStatistics,
+    recentCatches: List<RemoteCatch>,
+    resolveImageUrl: (String?) -> String?,
+    accessToken: String,
+    isLoggedIn: Boolean,
+    avatarUrl: String?,
+    onIdentify: () -> Unit,
+    onSpeciesClick: () -> Unit,
+    onCatchesClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onCatchClick: (String) -> Unit,
+    isResolving: Boolean = false,
+    motionState: HomeMotionState,
+    runtimeAssets: NormalHomeRuntimeAssets?,
+    safeInsets: SafeDrawingInsetsDp = SafeDrawingInsetsDp(),
+    modifier: Modifier = Modifier,
+) {
+    val recent = remember(recentCatches) {
+        orderedHomeRecords(recentCatches)
+    }
+
+    BoxWithConstraints(modifier = modifier.testTag("normal-home-content-root")) {
+        val referenceScale = maxWidth / NormalHomeReferenceWidth
+        fun ref(value: Float): Dp = normalHomeReferenceDp(value, maxWidth.value).dp
+        val density = LocalDensity.current
+        val typography = remember(maxWidth.value, density.density) {
+            normalHomeTypographyContract(maxWidth.value, density.density)
+        }
+        val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
+        val usableHeight = (maxHeight.value - safeInsets.top.value - safeInsets.bottom.value).coerceAtLeast(0f)
+        val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
+        fun refY(value: Float): Dp = ref(value) + verticalOffset
+
+        val cardWidth = ref(NormalHomeCardWidth)
+        val cardHeight = ref(NormalHomeCardHeight)
+        val pagerSidePadding = (maxWidth - cardWidth) / 2
+        val cameraTouchBottom = refY(NormalHomeCameraY).value + ref(NormalHomeCameraTouchSize).value
+        val shortScreenMode = normalHomeNeedsSafeOverflow(
+            cameraTouchBottom = cameraTouchBottom,
+            windowHeight = maxHeight.value,
+            safeBottom = safeInsets.bottom.value,
+        )
+        val contentHeight = normalHomeScrollableContentHeight(
+            windowHeight = maxHeight.value,
+            cameraTouchBottom = cameraTouchBottom,
+            safeBottom = safeInsets.bottom.value,
+        ).dp
+        val scrollState = rememberScrollState()
+        val initialEmptyResolution = remember { mutableStateOf(isResolving && recent.isEmpty()) }
+        val revealFirstResolvedCatch = initialEmptyResolution.value && !isResolving && recent.isNotEmpty()
+        SideEffect {
+            if (isResolving && recent.isEmpty() && !initialEmptyResolution.value) {
+                initialEmptyResolution.value = true
+            } else if (!isResolving && recent.isNotEmpty() && initialEmptyResolution.value) {
+                initialEmptyResolution.value = false
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState, enabled = shortScreenMode)
+                .testTag(if (shortScreenMode) "normal-home-short-screen-scroll" else "normal-home-fixed-layout"),
+        ) {
+            Box(Modifier.fillMaxWidth().height(contentHeight)) {
+
+                Box(
+                    modifier = Modifier
+                        .offset(x = ref(NormalHomeHeaderX), y = refY(NormalHomeHeaderY))
+                        .width(ref(NormalHomeHeaderWidth))
+                        .height(ref(NormalHomeHeaderHeight))
+                        .testTag("normal-home-header"),
+                ) {
+                    NormalHomeHeader(
+                        isLoggedIn = isLoggedIn,
+                        avatarUrl = avatarUrl,
+                        resolveImageUrl = resolveImageUrl,
+                        accessToken = accessToken,
+                        onProfileClick = onProfileClick,
+                        avatarSize = ref(92f),
+                        guestAvatar = runtimeAssets?.guestAvatar,
+                        typography = typography,
+                        brandMinWidth = ref(148f),
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .offset(y = refY(NormalHomeStatsY))
+                        .fillMaxWidth()
+                        .testTag("normal-home-stats"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    HomeStats(
+                        statistics = statistics,
+                        catches = recent,
+                        onSpeciesClick = onSpeciesClick,
+                        onCatchesClick = onCatchesClick,
+                        isResolving = isResolving,
+                        dividerHeight = ref(56f),
+                        dividerWidth = ref(1f),
+                        horizontalPadding = ref(150f),
+                        verticalPadding = spacing.statVerticalPadding,
+                        labelSpacing = spacing.statLabelSpacing,
+                        typography = typography,
+                    )
+                }
+
+                if (isResolving) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = refY(NormalHomeCardY))
+                            .width(cardWidth)
+                            .height(cardHeight)
+                            .clip(RoundedCornerShape(ref(NormalHomeHeroCornerRadius)))
+                            .background(YuJianColors.MistWhite.copy(alpha = 0.24f))
+                            .testTag("normal-home-resolving-hero"),
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .offset(y = refY(NormalHomeRecentHeaderY))
+                            .fillMaxWidth()
+                            .height(ref(NormalHomeRecentHeaderHeight))
+                            .testTag("normal-home-recent-header"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        RecentCatchSectionHeader(
+                            onCatchesClick = onCatchesClick,
+                            typography = typography,
+                            horizontalPadding = spacing.recentHeaderHorizontalInset,
+                            actionSpacing = spacing.recentActionSpacing,
+                            chevronSize = spacing.recentChevronSize,
+                        )
+                    }
+
+                    RecentCatchPager(
+                        catches = recent,
+                        cardWidth = cardWidth,
+                        cardHeight = cardHeight,
+                        sidePadding = pagerSidePadding,
+                        resolveImageUrl = resolveImageUrl,
+                        accessToken = accessToken,
+                        onCatchClick = onCatchClick,
+                        motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
+                        runtimeAssets = runtimeAssets,
+                        typography = typography,
+                        cornerRadius = ref(NormalHomeHeroCornerRadius),
+                        footerPaddingHorizontal = ref(NormalHomeFooterHorizontalInset),
+                        footerPaddingVertical = ref(NormalHomeFooterVerticalInset),
+                        metadataSpacing = spacing.heroMetadataSpacing,
+                        pageSpacing = spacing.pagerSpacing,
+                        referenceScale = referenceScale.value,
+                        revealInitialResolvedCatch = revealFirstResolvedCatch,
+                        modifier = Modifier.offset(y = refY(NormalHomeCardY)),
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = refY(NormalHomeCtaY))
+                            .height(ref(58f))
+                            .width(ref(420f))
+                            .testTag("normal-home-capture-cta"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "è®°å½•ä¸‹ä¸€æ¡é±¼",
+                            style = YuJianTypography.body.copy(
+                                color = YuJianColors.OnDark.copy(alpha = 0.92f),
+                                fontSize = typography.captureCta.fontSize,
+                                lineHeight = typography.captureCta.lineHeight,
+                                shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.testTag("normal-home-capture-cta-text"),
+                        )
+                    }
+                }
+
+                val cameraSize = ref(NormalHomeCameraSize)
+                HomeCameraButton(
+                    onClick = onIdentify,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = refY(NormalHomeCameraY))
+                        .testTag("normal-home-camera"),
+                    motionState = motionState,
+                    runtimeAssets = runtimeAssets,
+                    visualSize = cameraSize,
+                    touchTargetSize = ref(NormalHomeCameraTouchSize),
+                )
+            }
+        }
+    }
+}
+
+/** Applies the single NH05 vertical shift after safe-area insets are removed. */
+internal fun normalHomeVerticalOffset(referenceScale: Float, usableHeight: Float): Float {
+    val referenceHeight = 1920f * referenceScale
+    val excessHeight = (usableHeight - referenceHeight).coerceAtLeast(0f)
+    return min(excessHeight * 0.36f, 180f * referenceScale)
+}
+
+internal fun normalHomeNeedsSafeOverflow(
+    cameraTouchBottom: Float,
+    windowHeight: Float,
+    safeBottom: Float,
+): Boolean = cameraTouchBottom > (windowHeight - safeBottom).coerceAtLeast(0f)
+
+internal fun normalHomeScrollableContentHeight(
+    windowHeight: Float,
+    cameraTouchBottom: Float,
+    safeBottom: Float,
+): Float = maxOf(windowHeight, cameraTouchBottom + safeBottom)
+
+@Composable
+private fun NormalHomeHeader(
+    isLoggedIn: Boolean,
+    avatarUrl: String?,
+    resolveImageUrl: (String?) -> String?,
+    accessToken: String,
+    onProfileClick: () -> Unit,
+    avatarSize: Dp,
+    guestAvatar: android.graphics.Bitmap?,
+    typography: NormalHomeTypographyContract,
+    brandMinWidth: Dp,
+) {
+    val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
+    val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
+    val avatarState = normalHomeAvatarState(isLoggedIn, resolvedAvatarUrl, avatarLoadResult.value)
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = "æ¸”è§",
+            style = YuJianTypography.brand.copy(
                 color = YuJianColors.TextPrimary.copy(alpha = 0.94f),
                 fontSize = typography.brand.fontSize,
                 lineHeight = typography.brand.lineHeight,
@@ -51,12 +387,15 @@ YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíïÎ6N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”()¥µÁ
                     modifier = guestModifier,
                 )
             } else {
-                // Only while the registered guest bitmap is loading.
-                Image(
-                    painter = painterResource(R.drawable.normal_home_default_avatar_v2),
-                    contentDescription = "ç™»å½•æˆ–æ³¨å†Œ",
-                    contentScale = ContentScale.Fit,
-                    modifier = guestModifier,
+                // Keep the distinct Guest identity out of the signed-in fallback while its
+                // independently registered runtime bitmap is being decoded.
+                Box(
+                    guestModifier
+                        .semantics {
+                            contentDescription = "ç™»å½•æˆ–æ³¨å†Œ"
+                            role = Role.Button
+                        }
+                        .testTag("normal-home-guest-avatar-loading"),
                 )
             }
         }
@@ -66,7 +405,7 @@ YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíïÎ6N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”()¥µÁ
 @Composable
 private fun NormalHomeDefaultAvatar(modifier: Modifier) {
     Image(
-        painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+        painter = painterResource(R.drawable.nh07_default_avatar_3x_192),
         contentDescription = null,
         modifier = modifier.testTag("normal-home-default-profile-avatar"),
         contentScale = ContentScale.Fit,
@@ -151,6 +490,7 @@ private fun RecentCatchPager(
     metadataSpacing: Dp,
     pageSpacing: Dp,
     referenceScale: Float,
+    revealInitialResolvedCatch: Boolean,
     modifier: Modifier = Modifier,
 ) {
     if (catches.isEmpty()) return
@@ -159,7 +499,17 @@ private fun RecentCatchPager(
     val density = LocalDensity.current
     val activeCardScale = remember { Animatable(1f) }
     val activeCardOffset = remember { Animatable(0f) }
+    val initialRevealRequested = remember { revealInitialResolvedCatch }
+    val initialRevealAlpha = remember { Animatable(if (initialRevealRequested) 0f else 1f) }
     val selectedCatchId = catches.getOrNull(pagerState.currentPage)?.id ?: catches.first().id
+
+    LaunchedEffect(initialRevealRequested, motionEnabled) {
+        if (initialRevealRequested && motionEnabled) {
+            initialRevealAlpha.animateTo(1f, tween(durationMillis = 160, easing = LinearEasing))
+        } else {
+            initialRevealAlpha.snapTo(1f)
+        }
+    }
 
     LaunchedEffect(motionEnabled, pagerState.currentPage, selectedCatchId) {
         if (!motionEnabled) {
@@ -178,7 +528,7 @@ private fun RecentCatchPager(
                 launch {
                     activeCardOffset.animateTo(0f, keyframes {
                         durationMillis = 6_000
-                        (-2f * referenceScale) at 3_000
+                        (-2f) at 3_000
                     })
                 }
             }
@@ -205,7 +555,7 @@ private fun RecentCatchPager(
                 .graphicsLayerForPagerCard(
                     scale = if (selected) activeCardScale.value else 1f - distance * 0.055f,
                     translationY = if (selected) activeCardOffset.value else 4f * distance * referenceScale,
-                    alpha = 1f - distance * 0.12f,
+                    alpha = (1f - distance * 0.12f) * initialRevealAlpha.value,
                     density = density,
                 ),
         ) {

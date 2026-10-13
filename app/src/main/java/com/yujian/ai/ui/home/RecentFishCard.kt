@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,9 +73,8 @@ internal fun RecentFishCard(
                 url = imageUrl,
                 modifier = Modifier.fillMaxSize().testTag("normal-home-catch-media-${item.id}"),
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                contentScale = ContentScale.Crop,
+                preserveEvidenceWithFitBackdrop = true,
                 authToken = accessToken,
-                trimVerifiedLetterbox = true,
                 placeholder = {
                     Box(
                         modifier = Modifier
