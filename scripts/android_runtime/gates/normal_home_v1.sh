@@ -169,15 +169,15 @@ PY
   "$YUJIAN_ADB_BIN" shell wm size reset
   sleep 1
   "$YUJIAN_ADB_BIN" shell rm -f /sdcard/normal_home_motion.mp4
-  "$YUJIAN_ADB_BIN" shell screenrecord --time-limit 10 /sdcard/normal_home_motion.mp4 > "$out/screenrecord.log" 2>&1
-  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/11_Normal_Home_Runtime_10s.mp4" >/dev/null
+  "$YUJIAN_ADB_BIN" shell screenrecord --time-limit 16 /sdcard/normal_home_motion.mp4 > "$out/screenrecord.log" 2>&1
+  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/11_Normal_Home_Runtime_16s.mp4" >/dev/null
   local duration
-  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/11_Normal_Home_Runtime_10s.mp4")"
+  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/11_Normal_Home_Runtime_16s.mp4")"
   python3 - "$duration" <<'PY'
 import sys
 duration=float(sys.argv[1])
 print(f"NORMAL_HOME_MOTION_DURATION={duration:.3f}")
-if duration < 9.5:
+if duration < 15.5:
     raise SystemExit("NORMAL_HOME_MOTION_TOO_SHORT")
 PY
 
@@ -193,7 +193,7 @@ PY
     "$out/08_normal_home_background_parity_report.json" \
     "$out/09_normal_home_visual_parity_report.json" \
     "$out/10_normal_home_semantics_report.txt" \
-    "$out/11_Normal_Home_Runtime_10s.mp4"
+    "$out/11_Normal_Home_Runtime_16s.mp4"
   do
     if [[ ! -s "$file" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"

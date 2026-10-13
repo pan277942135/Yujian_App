@@ -59,6 +59,7 @@ import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
