@@ -17,8 +17,12 @@ BACKGROUND_SOURCE = ROOT / "design/system/backgrounds/morning_lake_v1/assets/Mor
 EMPTY_SCENE = ROOT / "app/src/main/assets/empty_home_runtime_v2/static/scene_base.webp"
 DEFAULT_AVATAR = ROOT / "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png"
 DEFAULT_AVATAR_MANIFEST = ROOT / "design/pages/home/normal_home/assets/normal_home_default_avatar_v2_manifest.json"
+NH07_AVATAR_EXPORT = ROOT / "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png"
+NH07_AVATAR_ANDROID = ROOT / "app/src/main/res/drawable-nodpi/nh07_default_avatar_3x_192.png"
+NH07_AVATAR_MANIFEST = ROOT / "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
 BACKGROUND_SHA256 = "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7"
 DEFAULT_AVATAR_SHA256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528"
+NH07_AVATAR_SHA256 = "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2"
 
 EXPECTED = {
     "static/scene_base.png": "188593ed13b0fd6b9164aaba8632e783b8534d68",
@@ -146,8 +150,8 @@ def main() -> int:
     except Exception as exc:
         failures.append(f"Design Package asset manifest is invalid: {exc}")
 
-    # Keep the old runtime asset registered and byte-verified as historical
-    # provenance, while validating the V2 drawable used by the current UI.
+    # Keep V2 registered and byte-verified as historical provenance. The
+    # current signed-in fallback is the separately registered NH07 export.
     if "avatar/guest_avatar.png" not in data.get("avatar", []):
         failures.append("historical guest avatar provenance is missing from runtime manifest")
     if not DEFAULT_AVATAR.is_file():
@@ -168,6 +172,31 @@ def main() -> int:
                     failures.append(f"normal_home_default_avatar_v2 dimensions mismatch: {avatar_image.size}")
         except Exception as exc:
             failures.append(f"normal_home_default_avatar_v2 PNG is invalid: {exc}")
+
+    for label, path in (("NH07 design export", NH07_AVATAR_EXPORT), ("NH07 Android resource", NH07_AVATAR_ANDROID)):
+        if not path.is_file():
+            failures.append(f"MISSING {label}: {path.relative_to(ROOT)}")
+            continue
+        actual_sha = sha256(path)
+        if actual_sha != NH07_AVATAR_SHA256:
+            failures.append(f"{label} SHA-256 mismatch: {actual_sha}")
+        try:
+            with Image.open(path) as avatar_image:
+                avatar_image.verify()
+            with Image.open(path) as avatar_image:
+                if avatar_image.format != "PNG" or avatar_image.size != (192, 192):
+                    failures.append(f"{label} format/dimensions mismatch: {avatar_image.format}/{avatar_image.size}")
+        except Exception as exc:
+            failures.append(f"{label} PNG is invalid: {exc}")
+    try:
+        nh07_manifest = json.loads(NH07_AVATAR_MANIFEST.read_text(encoding="utf-8"))
+        export = next(item for item in nh07_manifest.get("exports", []) if item.get("scale") == "3x")
+        if export.get("path") != "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png":
+            failures.append("NH07 3x export path mismatch")
+        if export.get("sha256") != NH07_AVATAR_SHA256 or [export.get("width"), export.get("height")] != [192, 192]:
+            failures.append("NH07 3x export identity mismatch")
+    except Exception as exc:
+        failures.append(f"NH07 avatar manifest is invalid: {exc}")
     try:
         avatar_manifest = json.loads(DEFAULT_AVATAR_MANIFEST.read_text(encoding="utf-8"))
         avatar_source = avatar_manifest.get("source", {})
@@ -253,16 +282,16 @@ def main() -> int:
             logged_in_body = login_branch[0]
             guest_body = guest_branch[0]
         if "NormalHomeDefaultAvatar(Modifier.fillMaxSize())" not in logged_in_body:
-            failures.append("logged-in avatar does not keep the V2 default drawable underneath remote loading")
+            failures.append("logged-in avatar does not keep the NH07 default drawable underneath remote loading")
         if "Image(" not in guest_body or "guestAvatar.asImageBitmap()" not in guest_body or "ContentScale.Fit" not in guest_body:
             failures.append("guest branch does not render the registered guest bitmap with Fit")
-        if "R.drawable.normal_home_default_avatar_v2" not in default_avatar_body or "ContentScale.Fit" not in default_avatar_body:
-            failures.append("logged-in default/failure avatar does not use the V2 drawable with Fit")
+        if "R.drawable.nh07_default_avatar_3x_192" not in default_avatar_body or "ContentScale.Fit" not in default_avatar_body:
+            failures.append("logged-in default/failure avatar does not use the registered NH07 drawable with Fit")
         remote_guard = logged_in_body.find("if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||")
         remote_image = logged_in_body.find("RemoteImage(")
         fallback = logged_in_body.find("NormalHomeDefaultAvatar(Modifier.fillMaxSize())")
         if fallback < 0 or remote_guard < fallback or remote_image < remote_guard:
-            failures.append("remote avatar is not layered over the default V2 fallback behind the load-state guard")
+            failures.append("remote avatar is not layered over the NH07 fallback behind the load-state guard")
 
     expected_state_routes = (
         "if (!isLoggedIn) return NormalHomeAvatarState.GUEST_DEFAULT",
