@@ -475,7 +475,7 @@ jobs:
   # A diagnostic-only commit can run the exact failing test first and then
   # the complete Normal Home suite without starting unrelated API 28 jobs.
   normal-home-brand-title-validation:
-    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[normal-home-brand-title-validation]') }}
+    if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'audit/design-system-v3-1-phase1-master-baseline') }}
     needs: build
     runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 90
