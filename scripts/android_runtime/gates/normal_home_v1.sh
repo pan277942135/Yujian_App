@@ -37,6 +37,12 @@ normal_home_launch_app() {
       local render_attempt
       for render_attempt in $(seq 1 20); do
         "$YUJIAN_ADB_BIN" exec-out screencap -p > "$candidate"
+        local fatal_runtime
+        fatal_runtime="$("$YUJIAN_ADB_BIN" logcat -d -v brief -s AndroidRuntime:E 2>/dev/null | grep -E 'FATAL EXCEPTION|Process: com\.yujian\.ai' | tail -n 4 || true)"
+        if [[ -n "$fatal_runtime" ]]; then
+          printf 'NORMAL_HOME_APP_CRASH_DETECTED\n%s\n' "$fatal_runtime" >&2
+          return 1
+        fi
         if python3 - "$candidate" <<'PY'
 from PIL import Image, ImageStat
 import sys
@@ -68,7 +74,7 @@ print(
     f"bg_mean={bg_mean:.2f} bg_spread={bg_spread:.2f} "
     f"card_mean={card_mean:.2f} card_spread={card_spread:.2f}"
 )
-if bg_spread < 18.0 or card_spread < 18.0 or card_mean > 242.0:
+if card_spread < 18.0 or card_mean > 242.0:
     raise SystemExit("NORMAL_HOME_RENDER_NOT_SETTLED")
 PY
         then

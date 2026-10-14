@@ -81,7 +81,7 @@ private const val NormalHomeCtaY = 1495f
 private const val NormalHomeCtaGlyphOffsetY = 17f
 // The source raster mask resolves visible ink; these are not historic touch-box coordinates.
 private const val NormalHomeCameraY = 1583f
-private const val NormalHomeCameraX = -1.5f
+private const val NormalHomeCameraCenterOffsetX = 1.5f
 private const val NormalHomeCameraSize = 208f
 private const val NormalHomeCameraTouchSize = 216f
 private const val NormalHomeHeroCornerRadius = 32f
@@ -310,7 +310,7 @@ internal fun NormalHomeContent(
                     onClick = onIdentify,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(x = ref(NormalHomeCameraX), y = cameraY)
+                        .offset(x = -ref(NormalHomeCameraCenterOffsetX), y = cameraY)
                         .testTag("normal-home-camera"),
                     motionState = motionState,
                     runtimeAssets = runtimeAssets,
