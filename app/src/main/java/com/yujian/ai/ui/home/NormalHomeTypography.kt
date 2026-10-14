@@ -96,7 +96,7 @@ internal fun normalHomeTypographyContract(
         measurement = type(referenceFontPx = 46f, referenceLineHeightPx = 52f, minimumFontPx = 16f),
         metadata = type(referenceFontPx = 36f, referenceLineHeightPx = 42f, minimumFontPx = 16f),
         // Frozen CTA glyph height is about 32 px.
-        captureCta = type(referenceFontPx = 40f, referenceLineHeightPx = 44f, minimumFontPx = 16f),
+        captureCta = type(referenceFontPx = 36f, referenceLineHeightPx = 40f, minimumFontPx = 16f),
     )
 }
 

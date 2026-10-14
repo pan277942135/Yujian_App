@@ -78,7 +78,7 @@ private const val NormalHomeCardY = 596f
 private const val NormalHomeCardWidth = 740f
 private const val NormalHomeCardHeight = 880f
 private const val NormalHomeCtaY = 1495f
-private const val NormalHomeCtaGlyphOffsetY = 17f
+private const val NormalHomeCtaGlyphOffsetY = 21f
 // The source raster mask resolves visible ink; these are not historic touch-box coordinates.
 private const val NormalHomeCameraY = 1583f
 private const val NormalHomeCameraCenterOffsetX = 1.5f
@@ -127,6 +127,9 @@ internal fun NormalHomeContent(
             normalHomeTypographyContract(maxWidth.value, density.density)
         }
         val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
+        val recentHeaderScale = maxOf(1f, density.fontScale)
+        val recentHeaderHeight = ref(NormalHomeRecentHeaderHeight * recentHeaderScale)
+        val recentHeaderExtra = if (isResolving) 0.dp else recentHeaderHeight - ref(NormalHomeRecentHeaderHeight)
         val usableHeight = (maxHeight.value - safeInsets.top.value - safeInsets.bottom.value).coerceAtLeast(0f)
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
@@ -134,7 +137,7 @@ internal fun NormalHomeContent(
         val captureCtaTextHeight = remember(maxWidth.value, density.fontScale) {
             mutableStateOf(ref(58f))
         }
-        // The frozen glyph anchor sits 17 reference px below the layout origin;
+        // The frozen glyph anchor sits below the layout origin;
         // include that placement in the measured parent so semantics and bounds
         // contain the rendered text at every system font scale.
         val captureCtaHeight = maxOf(
@@ -142,8 +145,8 @@ internal fun NormalHomeContent(
             captureCtaTextHeight.value + ref(NormalHomeCtaGlyphOffsetY),
         )
         val cameraY = maxOf(
-            refY(NormalHomeCameraY),
-            refY(NormalHomeCtaY) + captureCtaHeight + ref(8f),
+            refY(NormalHomeCameraY) + recentHeaderExtra,
+            refY(NormalHomeCtaY) + recentHeaderExtra + captureCtaHeight + ref(8f),
         )
 
         val cardWidth = ref(NormalHomeCardWidth)
@@ -239,7 +242,7 @@ internal fun NormalHomeContent(
                         modifier = Modifier
                             .offset(y = refY(NormalHomeRecentHeaderY))
                             .fillMaxWidth()
-                            .height(ref(NormalHomeRecentHeaderHeight))
+                            .height(recentHeaderHeight)
                             .testTag("normal-home-recent-header"),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -270,13 +273,13 @@ internal fun NormalHomeContent(
                         pageSpacing = spacing.pagerSpacing,
                         referenceScale = referenceScale.value,
                         revealInitialResolvedCatch = revealFirstResolvedCatch,
-                        modifier = Modifier.offset(y = refY(NormalHomeCardY)),
+                        modifier = Modifier.offset(y = refY(NormalHomeCardY) + recentHeaderExtra),
                     )
 
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .offset(y = refY(NormalHomeCtaY))
+                            .offset(y = refY(NormalHomeCtaY) + recentHeaderExtra)
                             .heightIn(min = captureCtaHeight)
                             .width(ref(420f))
                             .testTag("normal-home-capture-cta"),

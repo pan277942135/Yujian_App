@@ -463,6 +463,7 @@ class NormalHomeDataParityTest {
         val header = bounds.getValue("header")
         val title = bounds.getValue("brand_title")
         val avatar = bounds.getValue("guest_avatar")
+        val recentHeader = bounds.getValue("recent_header")
         val hero = bounds.getValue("hero")
         val media = bounds.getValue("hero_media")
         val footer = bounds.getValue("hero_footer")
@@ -472,6 +473,7 @@ class NormalHomeDataParityTest {
         assertTrue("Brand title stays inside the header", title.left >= header.left && title.right <= header.right)
         assertTrue("Avatar stays inside the header", avatar.left >= header.left && avatar.right <= header.right)
         assertTrue("Brand title and avatar do not overlap", title.right <= avatar.left || avatar.right <= title.left)
+        assertTrue("Recent header remains separated from Hero", recentHeader.bottom <= hero.top)
         assertTrue(
             "Hero media shares the rounded card bounds",
             kotlin.math.abs(hero.left - media.left) <= 1f &&
