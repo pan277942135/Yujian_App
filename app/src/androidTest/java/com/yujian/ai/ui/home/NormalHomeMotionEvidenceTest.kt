@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -62,7 +64,7 @@ class NormalHomeMotionEvidenceTest {
         compose.waitForIdle()
         compose.mainClock.advanceTimeByFrame()
 
-        val root = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
+        val root = compose.onRoot()
         val card = compose.onNodeWithTag("normal-home-catch-card-reveal-catch")
         card.assertIsDisplayed()
         val startBounds = card.fetchSemanticsNode().boundsInRoot
@@ -120,22 +122,25 @@ class NormalHomeMotionEvidenceTest {
             )
         }
         compose.mainClock.advanceTimeByFrame()
-        val root = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
-            .fetchSemanticsNode().boundsInRoot
+        val root = compose.onRoot()
+        val rootBounds = root.fetchSemanticsNode().boundsInRoot
         val neutralCardWidthPx = 740f * root.width / 1080f
         val card = compose.onNodeWithTag("normal-home-catch-card-breathing-catch")
         card.assertIsDisplayed()
         val atStart = card.fetchSemanticsNode().boundsInRoot
+        val renderedStartCenterY = renderedCardCenterY(root.captureToImage(), rootBounds, atStart)
         compose.mainClock.advanceTimeBy(3_000)
         val atPeak = card.fetchSemanticsNode().boundsInRoot
+        val renderedPeakCenterY = renderedCardCenterY(root.captureToImage(), rootBounds, atPeak)
         compose.mainClock.advanceTimeBy(3_000)
         val atEnd = card.fetchSemanticsNode().boundsInRoot
+        val renderedEndCenterY = renderedCardCenterY(root.captureToImage(), rootBounds, atEnd)
 
         val scaleAtStart = atStart.width / neutralCardWidthPx
         val scaleAtPeak = atPeak.width / neutralCardWidthPx
         val scaleAtEnd = atEnd.width / neutralCardWidthPx
-        val yAtPeakDp = (atPeak.center.y - atStart.center.y) / density
-        val yAtEndDp = (atEnd.center.y - atStart.center.y) / density
+        val yAtPeakDp = (renderedPeakCenterY - renderedStartCenterY) / density
+        val yAtEndDp = (renderedEndCenterY - renderedStartCenterY) / density
         assertTrue("Hero begins at neutral scale: $scaleAtStart", abs(scaleAtStart - 1f) <= 0.002f)
         assertTrue("Selected Hero scale at 3000ms must be 1.008: $scaleAtPeak", abs(scaleAtPeak - 1.008f) <= 0.002f)
         assertTrue("Selected Hero Y at 3000ms must be -2dp: $yAtPeakDp", abs(yAtPeakDp + 2f) <= 0.5f)
@@ -182,6 +187,7 @@ class NormalHomeMotionEvidenceTest {
         }
         compose.onNodeWithTag("normal-home-guest-avatar", useUnmergedTree = true).assertIsDisplayed()
         compose.runOnIdle { loggedIn.value = true }
+        compose.mainClock.advanceTimeByFrame()
         compose.waitForIdle()
         assertTrue(compose.onAllNodesWithTag("normal-home-guest-avatar", useUnmergedTree = true).fetchSemanticsNodes().isEmpty())
         compose.onNodeWithTag("normal-home-default-profile-avatar", useUnmergedTree = true).assertIsDisplayed()
@@ -213,6 +219,24 @@ class NormalHomeMotionEvidenceTest {
                 .coerceIn(0, root.fetchSemanticsNode().size.height - 1),
         ]
         return pixel
+    }
+
+    private fun renderedCardCenterY(
+        image: ImageBitmap,
+        rootBounds: androidx.compose.ui.geometry.Rect,
+        cardBounds: androidx.compose.ui.geometry.Rect,
+    ): Float {
+        val pixels = image.toPixelMap()
+        val x = (cardBounds.left + cardBounds.width * 0.12f - rootBounds.left)
+            .toInt().coerceIn(0, pixels.width - 1)
+        val top = (cardBounds.top - rootBounds.top - 40f).toInt().coerceAtLeast(0)
+        val bottom = (cardBounds.bottom - rootBounds.top + 40f).toInt().coerceAtMost(pixels.height)
+        val occupied = (top until bottom).filter { y ->
+            val pixel = pixels[x, y]
+            maxOf(1f - pixel.red, 1f - pixel.green, 1f - pixel.blue) > 0.035f
+        }
+        check(occupied.isNotEmpty()) { "Rendered Hero surface was not found at x=$x in the captured Compose root" }
+        return (occupied.first() + occupied.last()) / 2f + rootBounds.top
     }
 
     private fun estimateBlendAlpha(sample: Color, end: Color, base: Color): Float {
