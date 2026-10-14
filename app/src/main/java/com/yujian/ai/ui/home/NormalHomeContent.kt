@@ -280,7 +280,10 @@ internal fun NormalHomeContent(
                             .heightIn(min = captureCtaHeight)
                             .width(ref(420f))
                             .testTag("normal-home-capture-cta"),
-                        contentAlignment = Alignment.Center,
+                        // The measured parent includes the frozen 17px glyph
+                        // offset. Top alignment keeps that offset inside the
+                        // CTA's layout/semantics bounds at every font scale.
+                        contentAlignment = Alignment.TopCenter,
                     ) {
                         Text(
                             text = "记录下一条鱼",
