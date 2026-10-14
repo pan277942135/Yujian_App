@@ -124,7 +124,7 @@ class NormalHomeMotionEvidenceTest {
         compose.mainClock.advanceTimeByFrame()
         val root = compose.onRoot()
         val rootBounds = root.fetchSemanticsNode().boundsInRoot
-        val neutralCardWidthPx = 740f * root.width / 1080f
+        val neutralCardWidthPx = 740f * rootBounds.width / 1080f
         val card = compose.onNodeWithTag("normal-home-catch-card-breathing-catch")
         card.assertIsDisplayed()
         val atStart = card.fetchSemanticsNode().boundsInRoot

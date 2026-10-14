@@ -831,8 +831,8 @@ class NormalHomeDataParityTest {
             val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
             scroll.performTouchInput {
                 swipeUp(
-                    start = androidx.compose.ui.geometry.Offset(center.x, height * 0.92f),
-                    end = androidx.compose.ui.geometry.Offset(center.x, height * 0.08f),
+                    startY = height * 0.92f,
+                    endY = height * 0.08f,
                     durationMillis = 500,
                 )
             }
