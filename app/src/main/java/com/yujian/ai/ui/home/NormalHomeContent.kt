@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -77,9 +78,12 @@ private const val NormalHomeCardY = 596f
 private const val NormalHomeCardWidth = 740f
 private const val NormalHomeCardHeight = 880f
 private const val NormalHomeCtaY = 1495f
-private const val NormalHomeCameraY = 1564f
-private const val NormalHomeCameraSize = 200f
-private const val NormalHomeCameraTouchSize = 208f
+private const val NormalHomeCtaGlyphOffsetY = 17f
+// The source raster mask resolves visible ink; these are not historic touch-box coordinates.
+private const val NormalHomeCameraY = 1583f
+private const val NormalHomeCameraX = -1.5f
+private const val NormalHomeCameraSize = 208f
+private const val NormalHomeCameraTouchSize = 216f
 private const val NormalHomeHeroCornerRadius = 32f
 private const val NormalHomeFooterHorizontalInset = 56f
 private const val NormalHomeFooterVerticalInset = 32f
@@ -127,10 +131,19 @@ internal fun NormalHomeContent(
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
+        val captureCtaTextHeight = remember(maxWidth.value, density.fontScale) {
+            mutableStateOf(ref(58f))
+        }
+        val captureCtaHeight = maxOf(ref(58f), captureCtaTextHeight.value)
+        val cameraY = maxOf(
+            refY(NormalHomeCameraY),
+            refY(NormalHomeCtaY) + captureCtaHeight + ref(18f),
+        )
+
         val cardWidth = ref(NormalHomeCardWidth)
         val cardHeight = ref(NormalHomeCardHeight)
         val pagerSidePadding = (maxWidth - cardWidth) / 2
-        val cameraTouchBottom = refY(NormalHomeCameraY).value + ref(NormalHomeCameraTouchSize).value
+        val cameraTouchBottom = cameraY.value + ref(NormalHomeCameraTouchSize).value
         val shortScreenMode = normalHomeNeedsSafeOverflow(
             cameraTouchBottom = cameraTouchBottom,
             windowHeight = maxHeight.value,
@@ -258,7 +271,7 @@ internal fun NormalHomeContent(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .offset(y = refY(NormalHomeCtaY))
-                            .height(ref(58f))
+                            .heightIn(min = captureCtaHeight)
                             .width(ref(420f))
                             .testTag("normal-home-capture-cta"),
                         contentAlignment = Alignment.Center,
@@ -273,7 +286,15 @@ internal fun NormalHomeContent(
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.testTag("normal-home-capture-cta-text"),
+                            onTextLayout = { result ->
+                                val measuredHeight = with(density) { result.size.height.toDp() }
+                                if (measuredHeight != captureCtaTextHeight.value) {
+                                    captureCtaTextHeight.value = measuredHeight
+                                }
+                            },
+                            modifier = Modifier
+                                .offset(y = ref(NormalHomeCtaGlyphOffsetY))
+                                .testTag("normal-home-capture-cta-text"),
                         )
                     }
                 }
@@ -283,7 +304,7 @@ internal fun NormalHomeContent(
                     onClick = onIdentify,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = refY(NormalHomeCameraY))
+                        .offset(x = ref(NormalHomeCameraX), y = cameraY)
                         .testTag("normal-home-camera"),
                     motionState = motionState,
                     runtimeAssets = runtimeAssets,
