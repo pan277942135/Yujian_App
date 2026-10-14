@@ -134,10 +134,16 @@ internal fun NormalHomeContent(
         val captureCtaTextHeight = remember(maxWidth.value, density.fontScale) {
             mutableStateOf(ref(58f))
         }
-        val captureCtaHeight = maxOf(ref(58f), captureCtaTextHeight.value)
+        // The frozen glyph anchor sits 17 reference px below the layout origin;
+        // include that placement in the measured parent so semantics and bounds
+        // contain the rendered text at every system font scale.
+        val captureCtaHeight = maxOf(
+            ref(58f),
+            captureCtaTextHeight.value + ref(NormalHomeCtaGlyphOffsetY),
+        )
         val cameraY = maxOf(
             refY(NormalHomeCameraY),
-            refY(NormalHomeCtaY) + captureCtaHeight + ref(18f),
+            refY(NormalHomeCtaY) + captureCtaHeight + ref(8f),
         )
 
         val cardWidth = ref(NormalHomeCardWidth)
