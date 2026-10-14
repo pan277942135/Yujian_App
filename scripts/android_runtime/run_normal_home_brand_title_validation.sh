@@ -105,6 +105,9 @@ original_override="$("$adb_bin" shell wm size 2>&1 | awk -F': ' '/Override size:
 original_density="$("$adb_bin" shell wm density 2>&1 | tr -d '\r' | paste -sd ';' -)"
 original_density_override="$("$adb_bin" shell wm density 2>&1 | awk -F': ' '/Override density:/ {print $2}' | tr -d '\r')"
 original_font_scale="$("$adb_bin" shell settings get system font_scale 2>&1 | tr -d '\r')"
+original_animator_scale="$("$adb_bin" shell settings get global animator_duration_scale 2>&1 | tr -d '\r')"
+original_transition_scale="$("$adb_bin" shell settings get global transition_animation_scale 2>&1 | tr -d '\r')"
+original_window_scale="$("$adb_bin" shell settings get global window_animation_scale 2>&1 | tr -d '\r')"
 restore_device_profile() {
   if [[ -n "$original_override" ]]; then
     "$adb_bin" shell wm size "$original_override" >/dev/null 2>&1 || true
@@ -117,12 +120,18 @@ restore_device_profile() {
     "$adb_bin" shell wm density reset >/dev/null 2>&1 || true
   fi
   "$adb_bin" shell settings put system font_scale "$original_font_scale" >/dev/null 2>&1 || true
+  "$adb_bin" shell settings put global animator_duration_scale "$original_animator_scale" >/dev/null 2>&1 || true
+  "$adb_bin" shell settings put global transition_animation_scale "$original_transition_scale" >/dev/null 2>&1 || true
+  "$adb_bin" shell settings put global window_animation_scale "$original_window_scale" >/dev/null 2>&1 || true
 }
 trap restore_device_profile EXIT
 
 "$adb_bin" shell wm size 1080x1920 > "$EVIDENCE_DIR/infra/wm_size_setup.log" 2>&1
 "$adb_bin" shell wm density 480 > "$EVIDENCE_DIR/infra/wm_density_setup.log" 2>&1
 "$adb_bin" shell settings put system font_scale 1.0 > "$EVIDENCE_DIR/infra/font_scale_setup.log" 2>&1
+"$adb_bin" shell settings put global animator_duration_scale 1.0 > "$EVIDENCE_DIR/infra/animator_scale_setup.log" 2>&1
+"$adb_bin" shell settings put global transition_animation_scale 1.0 >> "$EVIDENCE_DIR/infra/animator_scale_setup.log" 2>&1
+"$adb_bin" shell settings put global window_animation_scale 1.0 >> "$EVIDENCE_DIR/infra/animator_scale_setup.log" 2>&1
 device_serial="$("$adb_bin" get-serialno 2>&1 | tr -d '\r')"
 device_api="$("$adb_bin" shell getprop ro.build.version.sdk 2>&1 | tr -d '\r')"
 device_model="$("$adb_bin" shell getprop ro.product.model 2>&1 | tr -d '\r')"
@@ -241,6 +250,8 @@ suite_rc=$?
 if (( suite_rc == 0 )) && ! instrumentation_log_passed "$SUITE_LOG"; then suite_rc=30; fi
 grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
 "$adb_bin" logcat -d -v brief -s NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I > "$EVIDENCE_DIR/normal-home-measurement-logcat.log" 2>&1 || true
+"$adb_bin" logcat -d -v brief -s NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \
+  > "$normal_home_out/normal-home-motion-instrumentation.log" 2>&1 || true
 cat "$EVIDENCE_DIR/normal-home-measurement-logcat.log"
 if (( suite_rc != 0 )); then
   printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_BEGIN\n'
