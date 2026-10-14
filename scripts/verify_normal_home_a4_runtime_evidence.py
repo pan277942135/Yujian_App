@@ -212,11 +212,22 @@ def main(out: Path) -> int:
     expected_header = [header_target[0], header_target[1], header_target[0] + header_target[2], header_target[1] + header_target[3]]
     expected_hero = [hero_target[0], hero_target[1], hero_target[0] + hero_target[2], hero_target[1] + hero_target[3]]
 
+    # Frozen anchors are page-local; retain raw boundsInWindow while subtracting
+    # the measured content origin for comparison against those anchors.
+    root = base_rects["root"]
+    content_origin = [root[0], root[1]]
+    def page_rect(raw: list[float]) -> list[float]:
+        return [round(raw[0] - content_origin[0], 2), round(raw[1] - content_origin[1], 2),
+                round(raw[2] - content_origin[0], 2), round(raw[3] - content_origin[1], 2)]
+    local_rects = {key: page_rect(value) for key, value in base_rects.items()}
+
     def rect_status(key: str, expected: list[float]) -> dict[str, Any]:
-        actual = base_rects[key]
+        actual_window = base_rects[key]
+        actual = local_rects[key]
         delta = [round(actual[i] - expected[i], 2) for i in range(4)]
-        return {"expected_px": expected, "runtime_boundsInWindow_px": actual, "edge_delta_px": delta,
-                "tolerance_px": geometry_tol,
+        return {"expected_page_local_px": expected, "runtime_boundsInWindow_px": actual_window,
+                "runtime_page_local_px": actual, "content_root_origin_boundsInWindow_px": content_origin,
+                "edge_delta_px": delta, "tolerance_px": geometry_tol,
                 "status": "PASS" if max(abs(value) for value in delta) <= geometry_tol else "FAIL"}
 
     header = rect_status("header", expected_header)
@@ -235,10 +246,15 @@ def main(out: Path) -> int:
         "avatar_inside_header": {"status": "PASS" if avatar[0] >= base_rects["header"][0] and avatar[2] <= base_rects["header"][2] else "FAIL", "runtime_px": avatar},
         "brand_title_avatar_non_overlap": {"status": "PASS" if title[2] <= avatar[0] or avatar[2] <= title[0] else "FAIL"},
         "hero_media_same_bounds_as_card": {"status": "PASS" if all(abs(media[i] - base_rects["hero"][i]) <= 1.0 for i in range(4)) else "FAIL", "hero_px": base_rects["hero"], "media_px": media},
-        "hero_footer_inside_card": {"status": "PASS" if footer[0] >= hero[0] and footer[1] >= hero[1] and footer[2] <= hero[2] and footer[3] <= hero[3] else "FAIL", "footer_px": footer},
+        "hero_footer_inside_card": {
+            "status": "PASS" if (local_rects["hero_footer"][0] >= local_rects["hero"][0]
+                and local_rects["hero_footer"][1] >= local_rects["hero"][1]
+                and local_rects["hero_footer"][2] <= local_rects["hero"][2]
+                and local_rects["hero_footer"][3] <= local_rects["hero"][3]) else "FAIL",
+            "footer_page_local_px": local_rects["hero_footer"], "hero_page_local_px": local_rects["hero"]},
         "cta_layout_separate_from_camera_touch": {"status": "PASS" if cta[3] <= camera[1] or camera[3] <= cta[1] else "FAIL", "cta_layout_px": cta, "camera_touch_px": camera},
         "camera_touch_minimum_48dp": {"status": "PASS" if camera[2] - camera[0] >= 144 and camera[3] - camera[1] >= 144 else "FAIL", "runtime_px": camera, "minimum_px_at_density_480": [144, 144]},
-        "camera_touch_inside_window": {"status": "PASS" if camera[0] >= 0 and camera[1] >= 0 and camera[2] <= root[2] and camera[3] <= root[3] else "FAIL", "runtime_px": camera, "root_px": root},
+        "camera_touch_inside_window": {"status": "PASS" if camera[0] >= root[0] and camera[1] >= root[1] and camera[2] <= root[2] and camera[3] <= root[3] else "FAIL", "runtime_boundsInWindow_px": camera, "root_boundsInWindow_px": root},
     }
     hierarchy_pass = all(value["status"] == "PASS" for value in hierarchy_checks.values())
     hierarchy_report = {
