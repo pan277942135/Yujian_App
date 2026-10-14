@@ -439,15 +439,6 @@ PY
   normal_home_capture_runtime_profile "1080x1920_fs1_0" "1080x1920" "1.0" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_runtime_profile "1080x1920_fs1_3" "1080x1920" "1.3" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_runtime_profile "1080x1920_fs1_5" "1080x1920" "1.5" || return "$EXIT_FAIL_EVIDENCE"
-  local long_profile_rc=0
-  normal_home_capture_runtime_profile "1080x2340_fs1_0" "1080x2340" "1.0" || long_profile_rc=$?
-  if (( long_profile_rc != 0 && long_profile_rc != EXIT_BLOCKED_INFRA )); then
-    return "$EXIT_FAIL_EVIDENCE"
-  fi
-
-  "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null
-  "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >/dev/null
   "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null
@@ -473,6 +464,15 @@ print(f"NORMAL_HOME_MOTION_DURATION={duration:.3f}")
 if duration < 16.0:
     raise SystemExit("NORMAL_HOME_MOTION_TOO_SHORT")
 PY
+
+  # The long-screen profile may require restarting the AVD with a native
+  # 1080x2340 skin. Capture it last so the base-size reduced-motion frame and
+  # motion recording above remain native 1080x1920 evidence.
+  local long_profile_rc=0
+  normal_home_capture_runtime_profile "1080x2340_fs1_0" "1080x2340" "1.0" || long_profile_rc=$?
+  if (( long_profile_rc != 0 && long_profile_rc != EXIT_BLOCKED_INFRA )); then
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
 
   python3 "$YUJIAN_REPO_ROOT/scripts/verify_normal_home_a4_runtime_evidence.py" "$out" || {
     runtime_set_failure "EVIDENCE" "NORMAL_HOME_A4_RUNTIME_EVIDENCE_INVALID"
