@@ -73,6 +73,10 @@ class NormalHomeMotionEvidenceTest {
         val middleBounds = card.fetchSemanticsNode().boundsInRoot
         val middleColor = sampleCardBackdrop(root, card)
         compose.mainClock.advanceTimeBy(80)
+        // Compose's test clock can start a LaunchedEffect one frame after the
+        // state change. Flush the first rendered frame at or beyond the 160ms
+        // tween endpoint before sampling the completed opacity.
+        compose.mainClock.advanceTimeByFrame()
         val at160Bounds = card.fetchSemanticsNode().boundsInRoot
         val at160Color = sampleCardBackdrop(root, card)
         compose.mainClock.advanceTimeBy(40)

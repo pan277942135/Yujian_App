@@ -842,13 +842,19 @@ class NormalHomeDataParityTest {
             val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
                 .fetchSemanticsNode().boundsInRoot
             val density = context.resources.displayMetrics.density
+            val wasOutsideViewport = cameraBeforeScroll.width <= 0f || cameraBeforeScroll.height <= 0f ||
+                cameraBeforeScroll.bottom > rootBounds.bottom + 1f
+            val expectedHeroHeightPx = 880f * rootBounds.width / 1080f
+            val heroAfterScroll = compose.onNodeWithTag("normal-home-catch-pager")
+                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            assertTrue("Short screen places the camera below the viewport before scrolling", wasOutsideViewport)
             assertTrue("Short screen mode scrolls the capture target into its safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom + 1f)
+            assertTrue("Short screen reveals a full-size Hero instead of shrinking it: bounds=$heroAfterScroll", kotlin.math.abs(heroAfterScroll.height - expectedHeroHeightPx) <= 2f)
             assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
             assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= rootBounds.bottom + 1f)
             assertTrue(
-                "The scroll reveals content instead of shrinking the entire page: " +
-                    "cameraBefore=$cameraBeforeScroll cameraAfter=$cameraAfterScroll root=$rootBounds",
-                cameraAfterScroll.top < cameraBeforeScroll.top,
+                "The scroll reveals an offscreen camera target with a nonzero runtime hit area",
+                cameraAfterScroll.width > 0f && cameraAfterScroll.height > 0f,
             )
             assertTrue(
                 "Normal Home Hero remains registered during safe overflow",
