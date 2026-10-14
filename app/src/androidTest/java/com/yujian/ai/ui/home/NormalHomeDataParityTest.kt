@@ -218,6 +218,7 @@ class NormalHomeDataParityTest {
             logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
             logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
+            logHierarchyEvidence()
 
             assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f)
             firstCard.performClick()
@@ -439,6 +440,53 @@ class NormalHomeDataParityTest {
                 !(color.red > 0.78f && color.green > 0.68f && color.blue < 0.42f),
             )
         }
+    }
+
+    private fun logHierarchyEvidence() {
+        fun rect(tag: String, unmerged: Boolean = true): androidx.compose.ui.geometry.Rect =
+            compose.onNodeWithTag(tag, useUnmergedTree = unmerged).fetchSemanticsNode().boundsInWindow
+
+        val bounds = linkedMapOf(
+            "root" to rect("normal-home-content-root"),
+            "header" to rect("normal-home-header"),
+            "brand_title" to rect("normal-home-brand-title"),
+            "guest_avatar" to rect("normal-home-guest-avatar"),
+            "stats" to rect("normal-home-stats"),
+            "recent_header" to rect("normal-home-recent-header"),
+            "hero" to rect("normal-home-catch-card-catch-snakehead"),
+            "hero_media" to rect("normal-home-catch-media-catch-snakehead"),
+            "hero_footer" to rect("normal-home-catch-footer-catch-snakehead"),
+            "cta_layout" to rect("normal-home-capture-cta"),
+            "cta_text" to rect("normal-home-capture-cta-text"),
+            "camera_touch" to rect("normal-home-camera", unmerged = false),
+        )
+        val header = bounds.getValue("header")
+        val title = bounds.getValue("brand_title")
+        val avatar = bounds.getValue("guest_avatar")
+        val hero = bounds.getValue("hero")
+        val media = bounds.getValue("hero_media")
+        val footer = bounds.getValue("hero_footer")
+        val cta = bounds.getValue("cta_layout")
+        val camera = bounds.getValue("camera_touch")
+
+        assertTrue("Brand title stays inside the header", title.left >= header.left && title.right <= header.right)
+        assertTrue("Avatar stays inside the header", avatar.left >= header.left && avatar.right <= header.right)
+        assertTrue("Brand title and avatar do not overlap", title.right <= avatar.left || avatar.right <= title.left)
+        assertTrue(
+            "Hero media shares the rounded card bounds",
+            kotlin.math.abs(hero.left - media.left) <= 1f &&
+                kotlin.math.abs(hero.top - media.top) <= 1f &&
+                kotlin.math.abs(hero.right - media.right) <= 1f &&
+                kotlin.math.abs(hero.bottom - media.bottom) <= 1f,
+        )
+        assertTrue("Hero footer remains over media and inside the Hero", footer.left >= hero.left && footer.top >= hero.top && footer.right <= hero.right && footer.bottom <= hero.bottom)
+        assertTrue("CTA layout remains outside the camera semantic target", cta.bottom <= camera.top || camera.bottom <= cta.top)
+        assertTrue("Camera touch target remains inside the window", camera.left >= 0f && camera.top >= 0f && camera.right <= bounds.getValue("root").right && camera.bottom <= bounds.getValue("root").bottom)
+
+        val payload = bounds.entries.joinToString(" ") { (name, rect) ->
+            "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
+        }
+        android.util.Log.i("NORMAL_HOME_HIERARCHY_EVIDENCE", payload)
     }
 
     private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontPx: Float) {

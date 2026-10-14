@@ -119,7 +119,10 @@ gate_collect_evidence() {
 
   local rc
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920
-  local seed_method="${NORMAL_HOME_EVIDENCE_SEED_METHOD:-seedTwoAspectPortraitGuestCatches}"
+  # Runtime screenshots must use the registered photo fixture. Synthetic
+  # aspect-ratio panels remain useful for layout tests, but are not fish-photo
+  # evidence and must never be used to close the visual Hero gate.
+  local seed_method="${NORMAL_HOME_EVIDENCE_SEED_METHOD:-seedMultipleGuestCatches}"
   normal_home_run_seed "$seed_method" "$out/seed_${seed_method}.log" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 1920

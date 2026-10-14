@@ -7,7 +7,7 @@ RUNTIME_DIR="$SCRIPT_DIR"
 export EVIDENCE_DIR="${EVIDENCE_DIR:-evidence/runtime/normal-home-brand-title-v1}"
 export API_LEVEL="${API_LEVEL:-28}"
 export BUILD_SHA="${BUILD_SHA:-${GITHUB_SHA:-unknown}}"
-export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedTwoAspectPortraitGuestCatches"
+export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedMultipleGuestCatches"
 mkdir -p "$EVIDENCE_DIR/infra"
 
 source "$RUNTIME_DIR/common.sh"
