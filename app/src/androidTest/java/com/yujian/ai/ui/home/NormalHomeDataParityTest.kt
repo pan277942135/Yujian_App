@@ -829,7 +829,13 @@ class NormalHomeDataParityTest {
             val camera = compose.onNodeWithTag("normal-home-camera")
             val cameraBeforeScroll = camera.fetchSemanticsNode().boundsInRoot
             val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
-            scroll.performTouchInput { swipeUp() }
+            scroll.performTouchInput {
+                swipeUp(
+                    start = androidx.compose.ui.geometry.Offset(center.x, height * 0.92f),
+                    end = androidx.compose.ui.geometry.Offset(center.x, height * 0.08f),
+                    durationMillis = 500,
+                )
+            }
             compose.waitForIdle()
 
             val cameraAfterScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
@@ -839,7 +845,11 @@ class NormalHomeDataParityTest {
             assertTrue("Short screen mode scrolls the capture target into its safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom + 1f)
             assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
             assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= rootBounds.bottom + 1f)
-            assertTrue("The scroll reveals content instead of shrinking the entire page", cameraAfterScroll.top < cameraBeforeScroll.top)
+            assertTrue(
+                "The scroll reveals content instead of shrinking the entire page: " +
+                    "cameraBefore=$cameraBeforeScroll cameraAfter=$cameraAfterScroll root=$rootBounds",
+                cameraAfterScroll.top < cameraBeforeScroll.top,
+            )
             assertTrue(
                 "Normal Home Hero remains registered during safe overflow",
                 compose.onAllNodesWithTag("normal-home-catch-pager").fetchSemanticsNodes().isNotEmpty(),
