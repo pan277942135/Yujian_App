@@ -347,6 +347,10 @@ internal fun normalHomeScrollableContentHeight(
     safeBottom: Float,
 ): Float = maxOf(windowHeight, cameraTouchBottom + safeBottom)
 
+/** Neighbor displacement is authored in dp by the frozen Home motion contract. */
+internal fun normalHomePagerNeighborTranslationYDp(distance: Float): Float =
+    4f * distance.coerceIn(0f, 1f)
+
 @Composable
 private fun NormalHomeHeader(
     isLoggedIn: Boolean,
@@ -592,7 +596,7 @@ private fun RecentCatchPager(
                 .fillMaxSize()
                 .graphicsLayerForPagerCard(
                     scale = if (selected) activeCardScale.value else 1f - distance * 0.055f,
-                    translationY = if (selected) activeCardOffset.value else 4f * distance * referenceScale,
+                    translationY = if (selected) activeCardOffset.value else normalHomePagerNeighborTranslationYDp(distance),
                     alpha = (1f - distance * 0.12f) * initialRevealAlpha.value,
                     density = density,
                 ),
