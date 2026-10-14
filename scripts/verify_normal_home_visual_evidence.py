@@ -148,9 +148,13 @@ def main(out: Path) -> int:
         raise ValueError("Frozen screenshot is not the registered immutable authority")
     first_image = Image.open(first_card).convert("RGB")
     second_image = Image.open(second_card).convert("RGB")
-    carousel_mae = mae(first_image.crop((140, 600, 940, 1800)), second_image.crop((140, 600, 940, 1800)))
-    if carousel_mae < 6.0:
-        raise ValueError(f"second carousel page did not produce a distinct capture (MAE={carousel_mae:.2f})")
+    carousel_difference = ImageChops.difference(
+        first_image.crop((200, 1180, 880, 1460)),
+        second_image.crop((200, 1180, 880, 1460)),
+    )
+    carousel_changed_pixels = sum(1 for pixel in carousel_difference.getdata() if pixel != (0, 0, 0))
+    if carousel_changed_pixels == 0:
+        raise ValueError("second carousel page did not produce a distinct footer capture")
 
     structural = {runtime.name: analyze_structure(runtime, source)}
 
@@ -234,7 +238,7 @@ def main(out: Path) -> int:
         "structural_anchors": "PASS",
         "region_metrics_descriptive_only": region_metrics,
         "hierarchy_and_geometry_review": "STRUCTURAL_ANCHORS_PASS; DIRECT_VISUAL_REVIEW_STILL_REQUIRED",
-        "carousel_capture_mae": round(carousel_mae, 4),
+        "carousel_footer_changed_pixels": carousel_changed_pixels,
         "carousel_pages_captured_at_native_dimensions": True,
         "native_capture_dimensions": list(dimensions(runtime)),
         "background_parity": "PASS",

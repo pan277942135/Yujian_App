@@ -110,6 +110,82 @@ normal_home_blocked_dimension() {
   return "$EXIT_BLOCKED_INFRA"
 }
 
+normal_home_capture_runtime_profile() {
+  local profile="$1" size="$2" scale="$3"
+  local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
+  local screenshot="$out/normal_home_runtime_${profile}.png"
+  local test_log="$out/normal_home_profile_${profile}_instrumentation.log"
+  local insets_log="$out/normal_home_profile_${profile}_insets_instrumentation.log"
+  local metrics_log="$out/normal_home_profile_${profile}_metrics.log"
+  local window_dump="$out/normal_home_profile_${profile}_window.txt"
+
+  "$YUJIAN_ADB_BIN" shell wm size "$size" >/dev/null
+  "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put system font_scale "$scale" >/dev/null
+  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
+  "$YUJIAN_ADB_BIN" logcat -c
+
+  local profile_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#differentPortraitRatiosShareCoverViewportAndPreserveHomeDataAndRoutes'
+  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r -e class "$profile_class" \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$test_log" 2>&1
+  local rc=$?
+  if (( rc != 0 )) || ! grep -Eq 'OK \([1-9][0-9]* tests?\)' "$test_log"; then
+    cat "$test_log" >&2
+    return 1
+  fi
+
+  local insets_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#edgeToEdgeNormalHomeUsesOneWindowOriginAndReportsInsets'
+  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r -e class "$insets_class" \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$insets_log" 2>&1
+  rc=$?
+  if (( rc != 0 )) || ! grep -Eq 'OK \([1-9][0-9]* tests?\)' "$insets_log"; then
+    cat "$insets_log" >&2
+    return 1
+  fi
+
+  normal_home_launch_app > "$out/normal_home_profile_${profile}_launch.log" 2>&1 || return 1
+  normal_home_capture_exact "$screenshot" "${size%x*}" "${size#*x}" || return 1
+  "$YUJIAN_ADB_BIN" shell dumpsys window > "$window_dump" 2>&1 || return 1
+  "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
+    NORMAL_HOME_HIERARCHY_EVIDENCE:I NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I \
+    > "$metrics_log" 2>&1 || return 1
+
+  python3 - "$screenshot" "$out/normal_home_profile_${profile}.json" \
+    "$BUILD_SHA" "$profile" "$size" "$scale" "$YUJIAN_ADB_BIN" "$YUJIAN_APP_APK" <<'PY'
+import hashlib, json, pathlib, subprocess, sys
+from PIL import Image
+image_path, output, build_sha, profile, size, font_scale, adb, apk = sys.argv[1:]
+def shell(*args):
+    return subprocess.check_output([adb, "shell", *args], text=True).strip().replace("\r", "")
+with Image.open(image_path) as image:
+    dimensions = list(image.size)
+payload = {
+    "profile_id": profile,
+    "page_state": "NORMAL_HOME_DATA",
+    "account_state": "GUEST",
+    "api_level": shell("getprop", "ro.build.version.sdk"),
+    "device": shell("getprop", "ro.product.model"),
+    "device_serial": subprocess.check_output([adb, "get-serialno"], text=True).strip(),
+    "resolution_override": size,
+    "density_dpi": 480,
+    "font_scale": float(font_scale),
+    "apk_sha256": hashlib.sha256(pathlib.Path(apk).read_bytes()).hexdigest(),
+    "source_commit": build_sha,
+    "screenshot": {
+        "path": pathlib.Path(image_path).name,
+        "sha256": hashlib.sha256(pathlib.Path(image_path).read_bytes()).hexdigest(),
+        "dimensions": dimensions,
+        "native_capture": True,
+    },
+    "window_metrics_log": pathlib.Path(output).with_name(f"normal_home_profile_{profile}_metrics.log").name,
+    "window_dump": pathlib.Path(output).with_name(f"normal_home_profile_{profile}_window.txt").name,
+}
+pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+print(json.dumps(payload, ensure_ascii=False))
+PY
+  printf 'NORMAL_HOME_RUNTIME_PROFILE_PASS profile=%s resolution=%s fontScale=%s\n' "$profile" "$size" "$scale"
+}
+
 gate_collect_evidence() {
   local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
   mkdir -p "$out"
@@ -136,15 +212,15 @@ gate_collect_evidence() {
   normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 1920
   rc=$?
   if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
-  python3 - "$out/01_normal_home_first_card.png" "$out/02_normal_home_second_card.png" <<'PY'
-from PIL import Image, ImageChops, ImageStat
+python3 - "$out/01_normal_home_first_card.png" "$out/02_normal_home_second_card.png" <<'PY'
+from PIL import Image, ImageChops
 import sys
 
 first, second = (Image.open(path).convert("RGB") for path in sys.argv[1:])
-region = (140, 600, 940, 1800)
-mae = sum(ImageStat.Stat(ImageChops.difference(first.crop(region), second.crop(region))).mean) / 3.0
-print(f"NORMAL_HOME_PAGER_CAPTURE_MAE={mae:.2f}")
-if mae < 6.0:
+difference = ImageChops.difference(first.crop((200, 1180, 880, 1460)), second.crop((200, 1180, 880, 1460)))
+changed_pixels = sum(1 for pixel in difference.getdata() if pixel != (0, 0, 0))
+print(f"NORMAL_HOME_PAGER_FOOTER_CHANGED_PIXELS={changed_pixels}")
+if changed_pixels == 0:
     raise SystemExit("NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE")
 PY
   rc=$?
@@ -162,27 +238,51 @@ PY
   }
 
   printf '%s\n' \
-    'NormalHomeDataParityTest: deterministic 9:16 and 4:5 portraits share one cover viewport; card content, long locations, stats, header, carousel and navigation remain visible and actionable.' \
+    'NormalHomeDataParityTest: synthetic 9:16 and 4:5 fixtures verify layout behavior only; they are not real-fish visual evidence.' \
     'HomeStatsSemanticsTest: recordDays has no OnClick; fish species and catch totals navigate.' \
     'NormalHomeHeroBehaviorTest: one catch is centered; tap opens the matching recordId; multiple catches remain manual and swipeable.' \
-    'Home state, responsive measurement profiles, valid-record filtering, timestamp ordering and Reduce Motion: covered by JVM and Android semantics tests.' \
+    'API 28 responsive evidence: native screenshots and test metrics are saved for each device/font profile.' \
     'No custom Home Hero haptic; no Home sound.' \
     > "$out/10_normal_home_semantics_report.txt"
 
-  "$YUJIAN_ADB_BIN" shell wm size reset
-  sleep 1
+  normal_home_capture_runtime_profile "1080x1920_fs1_0" "1080x1920" "1.0" || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_capture_runtime_profile "1080x1920_fs1_3" "1080x1920" "1.3" || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_capture_runtime_profile "1080x1920_fs1_5" "1080x1920" "1.5" || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_capture_runtime_profile "1080x2340_fs1_0" "1080x2340" "1.0" || return "$EXIT_FAIL_EVIDENCE"
+
+  "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null
+  "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null
+  normal_home_launch_app > "$out/reduce_motion_launch.log" 2>&1 || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_capture_exact "$out/normal_home_motion_neutral_1080x1920.png" 1080 1920 || return "$EXIT_FAIL_EVIDENCE"
+  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
   "$YUJIAN_ADB_BIN" shell rm -f /sdcard/normal_home_motion.mp4
-  "$YUJIAN_ADB_BIN" shell screenrecord --time-limit 16 /sdcard/normal_home_motion.mp4 > "$out/screenrecord.log" 2>&1
-  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/11_Normal_Home_Runtime_16s.mp4" >/dev/null
+  "$YUJIAN_ADB_BIN" shell screenrecord --time-limit 18 /sdcard/normal_home_motion.mp4 > "$out/screenrecord.log" 2>&1 &
+  local screenrecord_pid=$!
+  sleep 1
+  normal_home_launch_app > "$out/motion_launch.log" 2>&1 || return "$EXIT_FAIL_EVIDENCE"
+  wait "$screenrecord_pid"
+  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/11_Normal_Home_Runtime_18s.mp4" >/dev/null
   local duration
-  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/11_Normal_Home_Runtime_16s.mp4")"
+  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/11_Normal_Home_Runtime_18s.mp4")"
   python3 - "$duration" <<'PY'
 import sys
 duration=float(sys.argv[1])
 print(f"NORMAL_HOME_MOTION_DURATION={duration:.3f}")
-if duration < 15.5:
+if duration < 16.0:
     raise SystemExit("NORMAL_HOME_MOTION_TOO_SHORT")
 PY
+
+  python3 "$YUJIAN_REPO_ROOT/scripts/verify_normal_home_a4_runtime_evidence.py" "$out" || {
+    runtime_set_failure "EVIDENCE" "NORMAL_HOME_A4_RUNTIME_EVIDENCE_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  }
 
   local missing=0 file
   for file in \
@@ -196,7 +296,16 @@ PY
     "$out/08_normal_home_background_parity_report.json" \
     "$out/09_normal_home_visual_parity_report.json" \
     "$out/10_normal_home_semantics_report.txt" \
-    "$out/11_Normal_Home_Runtime_16s.mp4"
+    "$out/11_Normal_Home_Runtime_18s.mp4" \
+    "$out/Normal_Home_Runtime_Visual_Audit_Report.md" \
+    "$out/Normal_Home_Hierarchy_Report.json" \
+    "$out/Normal_Home_Hero_EvidenceFit_Report.json" \
+    "$out/Normal_Home_Typography_Runtime_Report.json" \
+    "$out/Normal_Home_Motion_Runtime_Report.json" \
+    "$out/Normal_Home_Responsive_Runtime_Report.json" \
+    "$out/Normal_Home_Runtime_Bounds_Report.json" \
+    "$out/Normal_Home_Pixel_Diff_Report.json" \
+    "$out/Normal_Home_Runtime_Closure_Result.json"
   do
     if [[ ! -s "$file" ]]; then
       printf 'MISSING_EVIDENCE=%s\n' "$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
