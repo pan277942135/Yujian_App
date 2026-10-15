@@ -88,6 +88,18 @@ flowchart TD
 | 账号与隐私 | [账号子流程](subflows/Account_Privacy_V3_1.md) | `#page/account_privacy_v1` · `#page/auth_login_v2` |
 | 分享 | [分享子流程](subflows/Sharing_V3_1.md) | `#page/share_templates_v1/hifi/01_overview` |
 
+### 拍照识鱼主链路交付契约
+
+拍照识鱼的业务与运行时交付规则单独维护在 [Recognition Main Journey Contract V1](subflows/Recognition_Main_Journey_Business_Contract_V1.md)。该契约覆盖权限与 Capture、首次拍摄引导、Processing 取消、3+2 识别结果与独立技术失败、草稿退出确认、幂等保存以及保存后的返回栈。它消费既有 V3.1 Frozen Capture / Processing / Result 视觉 authority，不改变模型阈值。
+
+- 总览图： [PNG](assets/Recognition_Main_Journey_Overview_V1.png) · [可编辑 SVG](assets/Recognition_Main_Journey_Overview_V1.svg)
+- 新增界面状态稿： [PNG 评审预览](assets/Recognition_New_States_HiFi_V1.png) · [可编辑 SVG](assets/Recognition_New_States_HiFi_V1.svg)
+- 机器可读流程：[Flow JSON](subflows/Recognition_Main_Journey_Flow_V1.json) · [Route Matrix](subflows/Recognition_Main_Journey_Route_Matrix_V1.md)
+- 验收：[Acceptance Matrix](subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.md) · [JSON](subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.json)
+- 资产来源与 SHA-256：[Asset Manifest](assets/Recognition_Main_Journey_Asset_Manifest_V1.json)
+
+总览图是业务沟通图，不是页面运行时视觉 authority。首次拍摄引导和草稿放弃确认是新增应用 UI，系统相机权限与 Photo Picker 仍使用 OS UI。
+
 ## 机器可读数据
 
 - 节点及连线：[`master_flow_v3_1.json`](master_flow_v3_1.json)（每个节点含 trigger、guard、entry/exit、Manager route、视觉 / 行为 authority、shared dependencies、设计与验证状态）。

@@ -125,10 +125,9 @@ class HomeVisualEvidenceSeedTest {
             }
         }
 
-        // GuestCatchRepository uses apply() for the product save path.  The
-        // evidence workflow immediately reinstalls and force-stops the app,
-        // so synchronously re-committing the already-written archive makes
-        // the seed durable before the launcher process reads it.
+        // GuestCatchRepository commits the archive before saveCatch returns.
+        // This follow-up commit persists the visual-only metadata added below
+        // before the launcher process reads the seed.
         val records = runBlocking { repository.listCatches() }
         assertEquals(count, records.size)
         val serializedRecords = preferences.getString(GUEST_RECORDS_KEY, null)

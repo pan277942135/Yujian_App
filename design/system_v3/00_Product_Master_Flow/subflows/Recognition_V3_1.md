@@ -35,3 +35,7 @@ flowchart TD
 3+2 定义为三种鱼种结果状态 + 两种图片输入恢复状态，Technical Failure 单独处理。当前 route / state 证据来自 `FishRecognitionPipeline.kt`、`RecognitionStateMachine.kt`、`RecognitionUiState.kt`、`YujianApp.kt`。当前赋值阈值为 p1 .45、候选 margin .12；V1.1 decision 文档写明新的行为建议需单独批准。Result spec 要求 Medium/Low 先明确确认鱼种；保存失败留在 Result 且保留字段。
 
 **语义缺口：** 当前 RR05 / Image Quality 映射含 TOO_FAR/小目标，但并非所有路由均由模糊、曝光等像素质量测量触发。已登记为 P1，需确保解释文本与真实失败原因一致。
+
+## 主链路交付契约
+
+完整 Capture → Processing → Result → FishRecord 行为、导航栈、恢复规则及 J01–J20 验收，见 [Recognition Main Journey Business Contract V1](Recognition_Main_Journey_Business_Contract_V1.md)、[流程总览图](../assets/Recognition_Main_Journey_Overview_V1.png)、[新增状态高保真](../assets/Recognition_New_States_HiFi_V1.png) 与 [Route Matrix](Recognition_Main_Journey_Route_Matrix_V1.md)。以上材料不修改本页所引用的 Frozen UI authority 或识别阈值。

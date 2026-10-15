@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "asset_id": "recognition_new_states_hifi_v1",
+  "status": "HI_FI_REVIEW_READY",
+  "runtime_visual_authority": false,
+  "surface_states": [
+    {
+      "id": "capture_first_guide_overlay",
+      "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.svg",
+      "artboard": {
+        "x": 72,
+        "y": 175,
+        "width": 1300,
+        "height": 1300
+      },
+      "status": "ADDITIVE_UI_REVIEW"
+    },
+    {
+      "id": "dirty_draft_discard_confirmation",
+      "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.svg",
+      "artboard": {
+        "x": 1428,
+        "y": 175,
+        "width": 1300,
+        "height": 1300
+      },
+      "status": "ADDITIVE_UI_REVIEW"
+    }
+  ],
+  "png": {
+    "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.png",
+    "sha256": "8cc7c04a4e15bf35ca0f307d0b95940d05901ead0cf6c66742a9f25d4d2e33e5",
+    "width": 2800,
+    "height": 1600,
+    "bytes": 649652
+  },
+  "svg": {
+    "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.svg",
+    "sha256": "c47c2fa800d201d331c72c3aa6037404887d2567d7526445ecd6cded9ca1b9de",
+    "width": 2800,
+    "height": 1600,
+    "bytes": 163765
+  },
+  "frozen_context_source": {
+    "path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+    "sha256": "f540ddc4b3844a453170537eaa70f506dc0eb1c312fc3410a960ad6cd87ba156",
+    "width": 941,
+    "height": 1672
+  },
+  "capture_background_is_live_context_placeholder": true,
+  "frozen_assets_modified": false,
+  "generated_by": "design/system_v3/00_Product_Master_Flow/tools/render_recognition_new_states_hifi_v1.py"
+}

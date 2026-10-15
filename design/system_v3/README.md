@@ -28,6 +28,8 @@ Build an evidence-backed product flow, page/state/visual authority map, asset in
 ## Entry points
 
 - [Product Master Flow](00_Product_Master_Flow/Product_Master_Flow_V3_1.md)
+- [Recognition Main Journey delivery contract and acceptance](00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md)
+- [Recognition Main Journey overview](00_Product_Master_Flow/index.html#recognition-main-journey)
 - [Page / State / Hi-Fi Map](01_Page_Registry/Page_State_Hifi_Map_V3_1.md)
 - [Shared Foundation V3.1 Final Freeze](01_Shared_Foundation_V3_1/README.md)
 - [Shared Foundation Readiness Report](11_Freeze_Governance/Shared_Foundation_Readiness_Report_V3_1.md)

@@ -15,7 +15,18 @@
       "supporting_paths": [
         "design/system_v3/11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json",
         "design/system_v3/11_Freeze_Governance/audits/Contract_Completeness_Matrix_V3_1.json",
-        "design/system_v3/11_Freeze_Governance/audits/Preliminary_Dependency_Map_V3_1.json"
+        "design/system_v3/11_Freeze_Governance/audits/Preliminary_Dependency_Map_V3_1.json",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Flow_V1.json",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Route_Matrix_V1.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.json",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Overview_V1.png",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Overview_V1.svg",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Asset_Manifest_V1.json",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.png",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.svg",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_Manifest_V1.json"
       ],
       "counts": {
         "nodes": 35,

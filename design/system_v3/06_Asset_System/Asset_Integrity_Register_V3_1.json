@@ -19592,9 +19592,9 @@
   "worktree_exceptions": [
     {
       "path": "design/manager/index.html",
-      "expected_current_git_blob_sha": "81c0a1beb4f1076c39e85dcde90f0653a74282f1",
+      "expected_current_git_blob_sha": "541adade2e71abbce8b01dc4ea00fc3aa39d4202",
       "source_commit_sha": "3230ca0ce696c99bbb03e5b23fcacf24bbd1dbf2",
-      "reason": "Phase 3-C Visual Acceptance and Phase 3-D Android Implementation links are additive Design Manager navigation only. Existing page menus remain; no Frozen page artwork or product asset changed.",
+      "reason": "Phase 3-C Visual Acceptance, Phase 3-D Android Implementation, and the Recognition Main Journey delivery contract links are additive Design Manager navigation only. Existing page menus remain; no Frozen page artwork or product asset changed.",
       "is_frozen_asset": false
     },
     {

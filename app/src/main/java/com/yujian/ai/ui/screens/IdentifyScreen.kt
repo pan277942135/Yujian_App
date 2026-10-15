@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -28,9 +29,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +73,7 @@ import com.yujian.ai.ui.identify.RecognitionCameraCaptureState
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
+import com.yujian.ai.ui.identify.shouldShowRecognitionFirstCaptureGuide
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
@@ -104,6 +108,7 @@ private fun logCapture(requestId: String, event: String, fields: String = "") {
 fun IdentifyScreen(
     image: SelectedImage?,
     autoOpenGallery: Boolean = false,
+    captureResetToken: Int = 0,
     onBack: () -> Unit,
     onImageReady: (SelectedImage) -> Unit,
 ) {
@@ -128,6 +133,11 @@ fun IdentifyScreen(
     var cameraBound by remember { mutableStateOf(false) }
     var imageCaptureReady by remember { mutableStateOf(false) }
     var previewStreaming by remember { mutableStateOf(false) }
+    var firstCaptureGuideVisible by remember { mutableStateOf(false) }
+    var firstCaptureGuidePresented by remember { mutableStateOf(false) }
+    var galleryAutoOpenPending by remember(autoOpenGallery, captureResetToken) {
+        mutableStateOf(autoOpenGallery)
+    }
     var captureState by remember { mutableStateOf(RecognitionCameraCaptureState.INITIALIZING) }
     var cameraRetry by remember { mutableStateOf(0) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
@@ -299,8 +309,9 @@ fun IdentifyScreen(
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent(),
+        ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
+        galleryAutoOpenPending = false
         if (uri == null) {
             galleryBusy = false
             return@rememberLauncherForActivityResult
@@ -326,7 +337,11 @@ fun IdentifyScreen(
         if (!galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
             galleryBusy = true
             error = null
-            runCatching { galleryLauncher.launch("image/*") }
+            runCatching {
+                galleryLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                )
+            }
                 .onFailure {
                     galleryBusy = false
                     error = GalleryUnavailableHint
@@ -566,12 +581,34 @@ fun IdentifyScreen(
         }
     }
 
-    LaunchedEffect(autoOpenGallery) {
+    LaunchedEffect(captureResetToken) {
+        // Re-entering Capture after a result must restore a live camera preview,
+        // never the last photo that was handed to Processing.
+        handoffImage = null
+        galleryBusy = false
+        error = null
+        galleryAutoOpenPending = autoOpenGallery
+    }
+
+    LaunchedEffect(autoOpenGallery, captureResetToken) {
         if (autoOpenGallery) openGallery()
         else if (!hasCameraPermission && !permissionRequested) {
             permissionRequested = true
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    LaunchedEffect(hasCameraPermission, cameraBound, imageCaptureReady, previewStreaming, galleryAutoOpenPending) {
+        if (firstCaptureGuidePresented || galleryAutoOpenPending || !cameraCanCapture()) return@LaunchedEffect
+        val completed = context.getSharedPreferences(CAPTURE_GUIDE_PREFERENCES, Activity.MODE_PRIVATE)
+            .getBoolean(CAPTURE_GUIDE_COMPLETED_KEY, false)
+        firstCaptureGuideVisible = shouldShowRecognitionFirstCaptureGuide(
+            cameraPermissionGranted = hasCameraPermission,
+            previewReady = cameraCanCapture(),
+            galleryPickerPending = galleryAutoOpenPending,
+            guideCompleted = completed,
+        )
+        firstCaptureGuidePresented = true
     }
 
     BackHandler(enabled = captureState == RecognitionCameraCaptureState.CAPTURING) {
@@ -650,7 +687,7 @@ fun IdentifyScreen(
             }
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !autoOpenGallery) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !galleryAutoOpenPending) {
             if (!hasCameraPermission) {
                 Button(
                     onClick = {
@@ -731,5 +768,34 @@ fun IdentifyScreen(
                 )
             }
         }
+
+        if (firstCaptureGuideVisible) {
+            val dismissGuide = {
+                val saved = context.getSharedPreferences(CAPTURE_GUIDE_PREFERENCES, Activity.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(CAPTURE_GUIDE_COMPLETED_KEY, true)
+                    .commit()
+                if (saved) firstCaptureGuideVisible = false
+            }
+            AlertDialog(
+                modifier = Modifier.testTag("recognition-capture-first-guide"),
+                onDismissRequest = dismissGuide,
+                title = { Text("开始拍照识鱼") },
+                text = { Text("尽量让鱼体轮廓清晰，手持鱼获也可以。拍摄后 AI 会自动识别，结果可确认或修改。") },
+                confirmButton = {
+                    TextButton(onClick = dismissGuide, modifier = Modifier.testTag("recognition-capture-guide-start")) {
+                        Text("开始拍照")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = dismissGuide, modifier = Modifier.testTag("recognition-capture-guide-skip")) {
+                        Text("跳过")
+                    }
+                },
+            )
+        }
     }
 }
+
+private const val CAPTURE_GUIDE_PREFERENCES = "yujian_capture_guide_v1"
+private const val CAPTURE_GUIDE_COMPLETED_KEY = "capture_guide_v1_completed"

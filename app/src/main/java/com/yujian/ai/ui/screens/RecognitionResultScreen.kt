@@ -3,6 +3,7 @@ package com.yujian.ai.ui.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -175,6 +176,8 @@ fun RecognitionResultScreen(
     onRetry: () -> Unit,
     saving: Boolean = false,
     saveError: String? = null,
+    saveRequiresLogin: Boolean = false,
+    onLoginRequired: () -> Unit = {},
     availableSpecies: List<FishGuideItem> = emptyList(),
     speciesCoverUrlFor: (String?) -> String? = { it },
     onSave: (CatchSaveDraft, FeedbackDraft, RecognitionSaveDestination) -> Unit,
@@ -214,10 +217,10 @@ fun RecognitionResultScreen(
     val speciesImages = remember(availableSpecies, speciesCoverUrlFor) {
         availableSpecies.associate { it.id to speciesCoverUrlFor(it.coverImage) }
     }
-    var selectedKey by remember(prediction, uiState) {
+    var selectedKey by rememberSaveable(prediction, uiState) {
         mutableStateOf(if (uiState == RecognitionUiState.RESULT_HIGH) prediction.top1.speciesKey else "")
     }
-    var selectedName by remember(prediction, uiState) {
+    var selectedName by rememberSaveable(prediction, uiState) {
         mutableStateOf(if (uiState == RecognitionUiState.RESULT_HIGH) prediction.top1.speciesName else "")
     }
     var selectorVisible by remember(prediction, uiState) { mutableStateOf(false) }
@@ -227,15 +230,18 @@ fun RecognitionResultScreen(
         else -> SpeciesSelectorEntryContext.EDIT_CONFIRMED
     }
     var editField by remember(prediction) { mutableStateOf<ResultEditableField?>(null) }
-    var lengthText by remember(prediction) { mutableStateOf("") }
-    var weightText by remember(prediction) { mutableStateOf("") }
-    var locationText by remember(prediction) { mutableStateOf("") }
-    var storyText by remember(prediction) { mutableStateOf("") }
+    var lengthText by rememberSaveable(prediction) { mutableStateOf("") }
+    var weightText by rememberSaveable(prediction) { mutableStateOf("") }
+    var locationText by rememberSaveable(prediction) { mutableStateOf("") }
+    var storyText by rememberSaveable(prediction) { mutableStateOf("") }
     var saveRequested by remember(prediction) { mutableStateOf(false) }
     var metadataValidationError by remember(prediction) { mutableStateOf<String?>(null) }
     val clientRecordId = rememberSaveable(prediction) { java.util.UUID.randomUUID().toString() }
     var requestedSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
+    var lastSaveDestination by rememberSaveable(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
     var pendingSaveDestination by remember(prediction) { mutableStateOf<RecognitionSaveDestination?>(null) }
+    var discardConfirmationVisible by remember(prediction) { mutableStateOf(false) }
+    var pendingExitAction by remember(prediction) { mutableStateOf<PendingExitAction?>(null) }
     var purposeVisible by remember(prediction) { mutableStateOf(false) }
     var resolvingLocation by remember(prediction) { mutableStateOf(false) }
     var locationError by remember(prediction) { mutableStateOf<String?>(null) }
@@ -300,6 +306,7 @@ fun RecognitionResultScreen(
         metadataValidationError = null
         saveRequested = true
         requestedSaveDestination = destination
+        lastSaveDestination = destination
         val corrected = selectedKey != prediction.top1.speciesKey
         val detector = productionResult?.assessment?.primary?.let {
             JSONObject().put("confidence", it.confidence.toDouble()).put("box", JSONObject()
@@ -351,11 +358,65 @@ fun RecognitionResultScreen(
         selectorVisible = true
     }
 
+    val inlineErrorAction: (() -> Unit)? = when {
+        saveRequiresLogin -> onLoginRequired
+        !saveError.isNullOrBlank() -> ({ lastSaveDestination?.let { save(it) } })
+        else -> null
+    }
+    val inlineErrorActionLabel = when {
+        saveRequiresLogin -> "重新登录"
+        !saveError.isNullOrBlank() -> "重试保存"
+        else -> null
+    }
+    val safeInlineErrorMessage = when {
+        saveRequiresLogin -> "登录已过期，请重新登录后继续保存。当前鱼获草稿仍保留。"
+        !saveError.isNullOrBlank() -> "保存鱼获失败，请重试"
+        else -> metadataValidationError
+    }
+
+    val baselineSpeciesKey = if (uiState == RecognitionUiState.RESULT_HIGH) prediction.top1.speciesKey else ""
+    val needsDiscardConfirmation = recognitionRequiresDiscardConfirmation(
+        speciesChanged = selectedKey != baselineSpeciesKey,
+        length = lengthText,
+        weight = weightText,
+        location = locationText,
+        story = storyText,
+        saveError = saveError,
+        saveRequested = saveRequested,
+        saving = saving,
+    )
+
+    fun requestExit(action: PendingExitAction) {
+        if (saving || saveRequested) return
+        if (needsDiscardConfirmation) {
+            pendingExitAction = action
+            discardConfirmationVisible = true
+        } else if (action == PendingExitAction.RETAKE) {
+            onRetry()
+        } else {
+            onBack()
+        }
+    }
+
+    BackHandler(enabled = true) {
+        when {
+            selectorVisible -> {
+                pendingSaveDestination = null
+                selectorVisible = false
+            }
+            editField != null -> editField = null
+            purposeVisible -> purposeVisible = false
+            saving || saveRequested -> Unit
+            else -> requestExit(PendingExitAction.BACK)
+        }
+    }
+
+    val saveBusy = saving || saveRequested
     val activeLoadingDestination = requestedSaveDestination.takeIf { saveRequested }
     Box(Modifier.fillMaxSize()) {
         BgContentSurface()
         Column(Modifier.fillMaxSize()) {
-            YuJianBackCenterTitleTopBar(title = "识别结果", onBack = onBack, backEnabled = !saving)
+            YuJianBackCenterTitleTopBar(title = "识别结果", onBack = { requestExit(PendingExitAction.BACK) }, backEnabled = !saving && !saveRequested)
             Column(
                 Modifier.weight(1f).fillMaxWidth()
                     .padding(start = safeInsets.start, end = safeInsets.end)
@@ -387,7 +448,7 @@ fun RecognitionResultScreen(
                             speciesName = selectedName,
                             sideMargin = sideMargin,
                             widthDp = geometry.heroWidthDp,
-                            enabled = !saving,
+                            enabled = !saveBusy,
                             onChange = { openSpeciesSelector() },
                         )
                         Spacer(Modifier.height(8.dp))
@@ -398,7 +459,7 @@ fun RecognitionResultScreen(
                             resolvingLocation = resolvingLocation,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            enabled = !saving,
+                            enabled = !saveBusy,
                             onField = { editField = it },
                         )
                         Spacer(Modifier.height(8.dp))
@@ -406,14 +467,20 @@ fun RecognitionResultScreen(
                             value = storyText,
                             onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                            enabled = !saving,
+                            enabled = !saveBusy,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                         )
                         Spacer(Modifier.height(16.dp))
-                        ResultInlineError(saveError ?: metadataValidationError, sideMargin)
+                        ResultInlineError(
+                            safeInlineErrorMessage,
+                            sideMargin,
+                            actionLabel = inlineErrorActionLabel,
+                            onAction = inlineErrorAction,
+                            enabled = !saveBusy,
+                        )
                         ResultDualActions(
                             useResultSurfaceActions = true,
-                            saving = saving,
+                            saving = saveBusy,
                             loadingDestination = activeLoadingDestination,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                             compactLayout = compactResultActions,
@@ -441,7 +508,7 @@ fun RecognitionResultScreen(
                                     selectedKey = selectedKey,
                                     widthDp = geometry.heroWidthDp,
                                     accessibilityFontScale = candidateFontScale,
-                                    saving = saving,
+                                    saving = saveBusy,
                                     speciesImages = speciesImages,
                                     onSelect = { candidate -> selectedKey = candidate.speciesKey; selectedName = candidate.speciesName },
                                 )
@@ -449,22 +516,28 @@ fun RecognitionResultScreen(
                                     text = "都不是？选择其他鱼种",
                                     onClick = { openSpeciesSelector() },
                                     role = YuJianTextActionRole.MUTED,
-                                    enabled = !saving,
+                                    enabled = !saveBusy,
                                     showChevron = true,
                                 )
                             }
                         }
                         if (selectedKey.isNotBlank()) {
                             Spacer(Modifier.height(12.dp))
-                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving, onChange = { openSpeciesSelector() })
+                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saveBusy, onChange = { openSpeciesSelector() })
                             Spacer(Modifier.height(8.dp))
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
+                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
                             Spacer(Modifier.height(12.dp))
-                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                             Spacer(Modifier.height(16.dp))
-                            ResultInlineError(saveError ?: metadataValidationError, sideMargin)
+                            ResultInlineError(
+                                safeInlineErrorMessage,
+                                sideMargin,
+                                actionLabel = inlineErrorActionLabel,
+                                onAction = inlineErrorAction,
+                                enabled = !saveBusy,
+                            )
                             ResultDualActions(
-                                saving = saving,
+                                saving = saveBusy,
                                 loadingDestination = activeLoadingDestination,
                                 accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                                 compactLayout = compactResultActions,
@@ -482,16 +555,16 @@ fun RecognitionResultScreen(
                                     YuJianPrimaryButton(
                                         text = "手动选择鱼种", onClick = { openSpeciesSelector() },
                                         modifier = Modifier.weight(1f),
-                                        enabled = !saving,
+                                        enabled = !saveBusy,
                                         variant = YuJianActionButtonVariant.RESULT_SAVE,
                                         leadingIcon = { Icon(Icons.Rounded.SetMeal, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
                                         contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
                                         leadingIconSpacing = 4.dp,
                                     )
                                     YuJianPrimaryButton(
-                                        text = "重新拍摄", onClick = onRetry,
+                                        text = "重新拍摄", onClick = { requestExit(PendingExitAction.RETAKE) },
                                         modifier = Modifier.weight(1f),
-                                        enabled = !saving,
+                                        enabled = !saveBusy,
                                         variant = YuJianActionButtonVariant.RESULT_CONTINUE,
                                         leadingIcon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
                                         contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
@@ -499,12 +572,18 @@ fun RecognitionResultScreen(
                                     )
                                 }
                             } else {
-                                SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saving) { openSpeciesSelector() }
-                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saving) { editField = it }
-                                ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saving, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                                ResultInlineError(saveError ?: metadataValidationError, 0.dp)
+                                SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saveBusy) { openSpeciesSelector() }
+                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
+                                ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                                ResultInlineError(
+                                    safeInlineErrorMessage,
+                                    0.dp,
+                                    actionLabel = inlineErrorActionLabel,
+                                    onAction = inlineErrorAction,
+                                    enabled = !saveBusy,
+                                )
                                 ResultDualActions(
-                                    saving = saving, sideMargin = 0.dp,
+                                    saving = saveBusy, sideMargin = 0.dp,
                                     loadingDestination = activeLoadingDestination,
                                     accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                                     compactLayout = compactResultActions,
@@ -582,10 +661,44 @@ fun RecognitionResultScreen(
         )
     }
 
+    if (discardConfirmationVisible) {
+        val exitingByRetake = pendingExitAction == PendingExitAction.RETAKE
+        AlertDialog(
+            modifier = Modifier.testTag("recognition-discard-confirmation"),
+            onDismissRequest = {
+                discardConfirmationVisible = false
+                pendingExitAction = null
+            },
+            title = { Text("放弃本次修改？") },
+            text = { Text("尚未保存的鱼种与鱼获信息会被清除。") },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.testTag("recognition-discard-confirm"),
+                    onClick = {
+                        val action = pendingExitAction
+                        discardConfirmationVisible = false
+                        pendingExitAction = null
+                        if (action == PendingExitAction.RETAKE) onRetry() else onBack()
+                    },
+                ) { Text(if (exitingByRetake) "放弃并重新拍摄" else "放弃并返回拍摄") }
+            },
+            dismissButton = {
+                TextButton(
+                    modifier = Modifier.testTag("recognition-discard-continue-editing"),
+                    onClick = {
+                        discardConfirmationVisible = false
+                        pendingExitAction = null
+                    },
+                ) { Text("继续编辑") }
+            },
+        )
+    }
+
 
 }
 
 private enum class ResultEditableField { LENGTH, WEIGHT, LOCATION }
+private enum class PendingExitAction { BACK, RETAKE }
 
 @Composable
 internal fun BgContentSurface() {
@@ -1186,11 +1299,23 @@ internal fun ResultSurfaceActionButton(
 }
 
 @Composable
-private fun ResultInlineError(message: String?, sideMargin: Dp) {
-    if (!message.isNullOrBlank()) Text(
-        "保存鱼获失败，请重试", modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin).padding(bottom = 8.dp),
-        color = Color(0xFF9E4035), fontSize = 13.sp, lineHeight = 18.sp,
-    )
+private fun ResultInlineError(
+    message: String?,
+    sideMargin: Dp,
+    actionLabel: String?,
+    onAction: (() -> Unit)?,
+    enabled: Boolean,
+) {
+    if (!message.isNullOrBlank()) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin).padding(bottom = 8.dp)) {
+            Text(message, color = Color(0xFF9E4035), fontSize = 13.sp, lineHeight = 18.sp)
+            if (actionLabel != null && onAction != null) {
+                TextButton(onClick = onAction, enabled = enabled, contentPadding = PaddingValues(0.dp)) {
+                    Text(actionLabel, color = YuJianColors.DeepLakeBlue, fontSize = 13.sp)
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

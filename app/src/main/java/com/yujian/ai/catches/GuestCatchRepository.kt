@@ -6,10 +6,11 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.IOException
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
 internal fun guestMigrationDraft(sourceGuestId: String, finalView: RemoteCatch): CatchSaveDraft {
     require(sourceGuestId.isNotBlank()) { "游客鱼获标识缺失" }
@@ -44,6 +45,14 @@ internal fun guestMigrationMatches(source: RemoteCatch, remote: RemoteCatch): Bo
         remote.confidence == source.confidence &&
         sameTimestamp(remote.capturedAt, source.capturedAt)
 
+internal fun guestCatchIdForClientRecord(clientRecordId: String): String {
+    require(clientRecordId.isNotBlank() && clientRecordId.length <= 128) { "鱼获记录标识无效" }
+    val digest = MessageDigest.getInstance("SHA-256")
+        .digest(clientRecordId.toByteArray(Charsets.UTF_8))
+        .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    return "guest_${digest.take(32)}"
+}
+
 private fun sameMeasurement(remote: Float?, local: Float?): Boolean = when {
     remote == null -> local == null
     local == null -> false
@@ -76,10 +85,10 @@ class GuestCatchRepository(context: Context) {
 
     suspend fun saveCatch(source: File, draft: CatchSaveDraft): RemoteCatch = withContext(Dispatchers.IO) {
         require(source.exists() && source.length() > 0L) { "待保存的鱼获照片不存在" }
-        val id = "guest_${UUID.randomUUID()}"
+        val clientRecordId = draft.clientRecordId
+        val id = guestCatchIdForClientRecord(clientRecordId)
         val extension = source.extension.lowercase(Locale.US).takeIf { it.isNotBlank() } ?: "jpg"
         val destination = File(imageDirectory, "$id.$extension")
-        source.copyTo(destination, overwrite = true)
 
         val timestamp = draft.capturedAt ?: nowIso()
         val classifier = draft.classifierResult
@@ -101,11 +110,43 @@ class GuestCatchRepository(context: Context) {
                 ?.optString("location")?.takeIf(String::isNotBlank),
             story = if (metadata != null) metadata.story else classifier?.takeIf { it.has("story") && !it.isNull("story") }
                 ?.optString("story")?.takeIf(String::isNotBlank),
+            clientRecordId = clientRecordId,
         )
-        val records = JSONArray(preferences.getString(KEY_RECORDS, "[]") ?: "[]")
-        records.put(record.toJson())
-        preferences.edit().putString(KEY_RECORDS, records.toString()).apply()
-        record
+        synchronized(preferences) {
+            val existing = readCatches().firstOrNull { it.clientRecordId == clientRecordId }
+            if (existing != null) {
+                requireSameSaveIntent(existing, draft, record)
+                return@synchronized existing
+            }
+            try {
+                source.copyTo(destination, overwrite = true)
+            } catch (error: Exception) {
+                destination.delete()
+                throw error
+            }
+            val records = JSONArray(preferences.getString(KEY_RECORDS, "[]") ?: "[]")
+            records.put(record.toJson())
+            if (!preferences.edit().putString(KEY_RECORDS, records.toString()).commit()) {
+                destination.delete()
+                throw IOException("游客鱼获没有持久化成功")
+            }
+            record
+        }
+    }
+
+    private fun requireSameSaveIntent(existing: RemoteCatch, draft: CatchSaveDraft, candidate: RemoteCatch) {
+        require(
+            existing.id == candidate.id &&
+                existing.speciesId == draft.speciesId &&
+                existing.speciesName == draft.speciesName &&
+                existing.modelVersion == draft.modelVersion &&
+                kotlin.math.abs(existing.confidence - draft.confidence) <= 0.0001f &&
+                existing.lengthCm == candidate.lengthCm &&
+                existing.weightKg == candidate.weightKg &&
+                existing.location == candidate.location &&
+                existing.story == candidate.story &&
+                (draft.capturedAt == null || sameTimestamp(existing.capturedAt, draft.capturedAt))
+        ) { "该 clientRecordId 已用于不同的鱼获草稿" }
     }
 
     suspend fun migrateToRemote(
