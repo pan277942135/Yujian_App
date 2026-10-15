@@ -5,16 +5,16 @@
   "source_repository": "pan277942135/Yujian_App",
   "baseline_branch": "main",
   "baseline_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-  "scope": "All 658 original files under design/** from the baseline commit plus 8 explicitly identified Normal Home brand-title derivation and review-evidence files added on the Phase 1 branch. The original baseline remains unchanged.",
+  "scope": "All 658 immutable baseline files, 8 approved brand-title derivations/evidence files, and 3 user-authorized Normal Home Camera derivation/evidence files. Existing baseline and brand assets remain unchanged.",
   "counts": {
-    "total_design_files": 666,
+    "total_design_files": 669,
     "by_file_type": {
       "MARKDOWN": 259,
       "JAVASCRIPT": 1,
       "HTML": 1,
       "CSS": 1,
-      "PNG": 150,
-      "JSON": 148,
+      "PNG": 151,
+      "JSON": 150,
       "WEBP": 10,
       "TEXT": 3,
       "JPEG": 4,
@@ -23,21 +23,21 @@
       "SVG": 84
     },
     "by_verification_status": {
-      "SHA256_COMPUTED": 588,
+      "SHA256_COMPUTED": 591,
       "BLOCKED_ACCESS": 78
     },
     "visual_assets_by_review_status": {
       "NOT_VISUALLY_INSPECTED": 239,
-      "REVIEWED_VISUALLY": 9
+      "REVIEWED_VISUALLY": 10
     },
-    "declared_current_sha256_files": 145,
+    "declared_current_sha256_files": 148,
     "frozen_refs_with_raw_bytes_blocked": 36,
     "frozen_refs_blocked_without_direct_declared_sha256": 19,
-    "license_not_declared_files": 666,
+    "license_not_declared_files": 669,
     "provenance_status_counts": {
       "NOT_STATED_IN_SCANNED_AUTHORITY": 603,
       "SOURCE_ROLE_METADATA_ONLY": 30,
-      "EXPLICIT_SOURCE_OR_LINEAGE_FOUND": 33
+      "EXPLICIT_SOURCE_OR_LINEAGE_FOUND": 36
     }
   },
   "verification_method": {
@@ -19430,6 +19430,136 @@
           "document": "design/system_v3/06_Asset_System/derived/brand_title_primary/Brand_Title_Source_Extraction_Audit.json",
           "field": "source_sha256",
           "value": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1_manifest",
+      "repository_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+      "file_type": "JSON",
+      "size_bytes": 1444,
+      "dimensions": null,
+      "viewBox": null,
+      "actual_sha256": "d404d4b793da34d1c6678bd60cffec66d7d677f6ea127decc236c2da5fa27feb",
+      "declared_sha256": "d404d4b793da34d1c6678bd60cffec66d7d677f6ea127decc236c2da5fa27feb",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "d404d4b793da34d1c6678bd60cffec66d7d677f6ea127decc236c2da5fa27feb",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "74dab30975ae1581a1607a4cf0c39be31ee46a0a",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "NOT_APPLICABLE",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json",
+          "field": "source_sha256",
+          "value": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1",
+      "repository_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "file_type": "PNG",
+      "size_bytes": 53887,
+      "dimensions": {
+        "width": 208,
+        "height": 208,
+        "source": "measured from approved PNG bytes"
+      },
+      "viewBox": null,
+      "actual_sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "declared_sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "005993edfb54561778d2f798878fd73d9c92a520",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "REVIEWED_VISUALLY",
+      "is_frozen_reference": false,
+      "design_status": "FROZEN",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json",
+          "field": "source_sha256",
+          "value": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+          "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
+        }
+      ],
+      "provenance_status": "EXPLICIT_SOURCE_OR_LINEAGE_FOUND"
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1_source_audit",
+      "repository_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json",
+      "file_type": "JSON",
+      "size_bytes": 1534,
+      "dimensions": null,
+      "viewBox": null,
+      "actual_sha256": "4a573a7e7fb5302cc0ed45423de0369a09b6a1f6d573c9488d1dedc0d001293b",
+      "declared_sha256": "4a573a7e7fb5302cc0ed45423de0369a09b6a1f6d573c9488d1dedc0d001293b",
+      "declared_sha256_evidence": [
+        {
+          "sha256": "4a573a7e7fb5302cc0ed45423de0369a09b6a1f6d573c9488d1dedc0d001293b",
+          "source": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+          "context": "sha256"
+        }
+      ],
+      "declaration_status": "PRESENT_AND_MATCHES_RAW_BYTES",
+      "git_blob_sha": "1006ec58bfdc0bc209bad08d5bdf3a522458d738",
+      "raw_bytes_read": true,
+      "verification_status": "SHA256_COMPUTED",
+      "visual_review_status": "NOT_APPLICABLE",
+      "is_frozen_reference": false,
+      "design_status": "APPROVED",
+      "owner": "normal_home_v1",
+      "referenced_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "provenance_documents": [
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      ],
+      "provenance_evidence": [
+        {
+          "document": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json",
+          "field": "source_sha256",
+          "value": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
           "classification": "EXPLICIT_DERIVATION_OR_REVIEW_LINEAGE"
         }
       ],

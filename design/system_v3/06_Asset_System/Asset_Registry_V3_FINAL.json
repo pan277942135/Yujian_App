@@ -6,11 +6,11 @@
   "baseline_branch": "main",
   "baseline_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
   "summary": {
-    "total_files": 666,
-    "raw_sha256_computed": 666,
+    "total_files": 669,
+    "raw_sha256_computed": 669,
     "sha256_declared_only": 0,
     "sha256_absent": 0,
-    "git_blob_identity_recorded": 666,
+    "git_blob_identity_recorded": 669,
     "status_vocabulary": [
       "FROZEN",
       "APPROVED",
@@ -21,12 +21,12 @@
     "source_frozen_reference_count": 101,
     "status_counts": {
       "REVIEW": 575,
-      "FROZEN": 83,
-      "APPROVED": 8
+      "FROZEN": 84,
+      "APPROVED": 10
     },
-    "unique_asset_ids": 666,
-    "unique_paths": 666,
-    "dimensions_verified": 248,
+    "unique_asset_ids": 669,
+    "unique_paths": 669,
+    "dimensions_verified": 249,
     "identity_verification_status": "READY"
   },
   "entries": [
@@ -11170,22 +11170,107 @@
       "used_by": [],
       "status": "REVIEW",
       "dimensions": "N/A (non-visual)"
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1",
+      "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "type": "PNG",
+      "size": 53887,
+      "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "005993edfb54561778d2f798878fd73d9c92a520",
+      "source": [
+        "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      ],
+      "used_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "status": "FROZEN",
+      "dimensions": "208x208",
+      "post_baseline_addition": {
+        "artifact_type": "DERIVED_FROM_FROZEN_RASTER",
+        "source_asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+        "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+        "approval_status": "APPROVED_VISUALLY",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      }
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1_manifest",
+      "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+      "type": "JSON",
+      "size": 1444,
+      "sha256": "d404d4b793da34d1c6678bd60cffec66d7d677f6ea127decc236c2da5fa27feb",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "74dab30975ae1581a1607a4cf0c39be31ee46a0a",
+      "source": [
+        "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      ],
+      "used_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "status": "APPROVED",
+      "dimensions": "N/A (non-visual)",
+      "post_baseline_addition": {
+        "artifact_type": "DERIVED_FROM_FROZEN_RASTER",
+        "source_asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+        "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      }
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1_source_audit",
+      "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json",
+      "type": "JSON",
+      "size": 1534,
+      "sha256": "4a573a7e7fb5302cc0ed45423de0369a09b6a1f6d573c9488d1dedc0d001293b",
+      "sha256_status": "COMPUTED_FROM_WORKTREE_DERIVATION",
+      "git_blob_sha": "1006ec58bfdc0bc209bad08d5bdf3a522458d738",
+      "source": [
+        "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+        "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      ],
+      "used_by": [
+        "normal_home_v1",
+        "normal_home_resource_binding_v1"
+      ],
+      "status": "APPROVED",
+      "dimensions": "N/A (non-visual)",
+      "post_baseline_addition": {
+        "artifact_type": "DERIVED_FROM_FROZEN_RASTER",
+        "source_asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+        "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+        "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+        "approval_status": "APPROVED_AUDIT_EVIDENCE",
+        "evidence_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json"
+      }
     }
   ],
   "identity_verification": {
     "status": "READY",
     "source_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
     "algorithm": "Original baseline files are verified against baseline Git bytes. Explicit post-baseline derivation/evidence additions are verified against worktree bytes, SHA-256, Git blob identity, and their registered source-asset SHA chain.",
-    "total_files": 666,
-    "verified_sha256": 666,
-    "size_matches": 666,
-    "visual_dimensions_verified": 248,
+    "total_files": 669,
+    "verified_sha256": 669,
+    "size_matches": 669,
+    "visual_dimensions_verified": 249,
     "duplicate_asset_ids_corrected": 1,
     "source_of_asset_id_correction": "Original registry reused one slug for two distinct Unicode filenames; second path received a stable path-specific ID.",
     "verification_tool": "scripts/design/verify_shared_foundation_v3.py",
-    "post_baseline_additions": 8,
+    "post_baseline_additions": 11,
     "approved_derived_asset_ids": [
-      "brand_title_primary"
+      "brand_title_primary",
+      "normal_home_camera_primary_v1"
     ]
   }
 }

@@ -125,6 +125,30 @@ def main() -> int:
     except Exception as exc:
         failures.append(f"Brand Title registry/binding validation failed: {exc}")
     try:
+        camera_id = "normal_home_camera_primary_v1"
+        camera_sha = "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2"
+        camera_master = ROOT / "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png"
+        camera_runtime = ROOT / "app/src/main/res/drawable-nodpi/normal_home_camera_primary_v1.png"
+        camera_row = next(item for item in registry["entries"] if item.get("asset_id") == camera_id)
+        camera_binding = binding.get("camera_primary_binding", {})
+        if camera_row.get("status") != "FROZEN" or camera_row.get("sha256") != camera_sha:
+            failures.append("Normal Home Camera registry identity/status mismatch")
+        if camera_binding.get("asset_id") != camera_id or camera_binding.get("sha256") != camera_sha:
+            failures.append("Normal Home Camera binding identity mismatch")
+        if camera_binding.get("android_resource_path") != camera_runtime.relative_to(ROOT).as_posix():
+            failures.append("Normal Home Camera drawable binding path mismatch")
+        for camera_path in (camera_master, camera_runtime):
+            if sha256(camera_path) != camera_sha:
+                failures.append(f"Normal Home Camera SHA mismatch: {camera_path}")
+            with Image.open(camera_path) as image:
+                if image.mode != "RGBA" or image.size != (208, 208):
+                    failures.append(f"Normal Home Camera format/dimensions mismatch: {camera_path}")
+        loader = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeRuntimeAssets.kt").read_text()
+        if "R.drawable.normal_home_camera_primary_v1" not in loader or "cameraBase = decodeNormalHomeCamera(context)" not in loader:
+            failures.append("Normal Home is not bound to the registered Camera drawable")
+    except Exception as exc:
+        failures.append(f"Normal Home Camera registry/binding validation failed: {exc}")
+    try:
         data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     except Exception as exc:
         print(f"INVALID Normal Home runtime manifest: {exc}", file=sys.stderr)

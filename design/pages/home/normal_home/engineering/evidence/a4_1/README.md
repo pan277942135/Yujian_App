@@ -1,7 +1,7 @@
 # A.4.1 checkpoint — actual evidence, not closure
 
 Base branch HEAD: `f9dd9777bfb7826b5ac9a871abbf1215fff7818a`.
-PR #145 remains Draft / Open / Unmerged. No product Kotlin, frozen raster,
+PR 145 remains Draft / Open / Unmerged. No product Kotlin, frozen raster,
 registered asset, pixel target, tolerance, or model changed in this checkpoint.
 
 ## Camera diagnosis

@@ -197,6 +197,14 @@
       "registry_source": "Asset_Registry_V3_FINAL.json + brand_title_primary_manifest.json",
       "status": "FROZEN",
       "role": "Frozen Normal Home header brand artwork; source is the approved deterministic raster derivation, not Compose text."
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1",
+      "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "registry_source": "Asset_Registry_V3_FINAL.json + manifest.json",
+      "status": "FROZEN",
+      "role": "Normal Home Camera base; authorized Frozen source derivative."
     }
   ],
   "frozen_visual_references": [
@@ -300,5 +308,17 @@
       242,
       188
     ]
+  },
+  "camera_primary_binding": {
+    "asset_id": "normal_home_camera_primary_v1",
+    "component": "camera_base",
+    "render": "image_asset",
+    "registry_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+    "android_resource_path": "app/src/main/res/drawable-nodpi/normal_home_camera_primary_v1.png",
+    "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+    "status": "FROZEN",
+    "manifest_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/manifest.json",
+    "audit_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/source_audit.json",
+    "scope": "Normal Home only; retain old shared Camera asset and motion layers unchanged"
   }
 }

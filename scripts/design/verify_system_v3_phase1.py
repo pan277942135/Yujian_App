@@ -17,7 +17,10 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 DEFAULT_REGISTER = "design/system_v3/06_Asset_System/Asset_Integrity_Register_V3_1.json"
 DEFAULT_ASSET_REGISTRY = "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json"
 EXPECTED_BASELINE_FILES = 658
-EXPECTED_APPROVED_DERIVATIONS = 8
+EXPECTED_APPROVED_DERIVATIONS = 11
+EXPECTED_BRAND_DERIVATIONS = 8
+CAMERA_DERIVED_ROOT = "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/"
+CAMERA_DERIVED_PATHS = {CAMERA_DERIVED_ROOT + name for name in ("normal_home_camera_primary_v1.png", "manifest.json", "source_audit.json")}
 DERIVED_ASSET_ROOT = "design/system_v3/06_Asset_System/derived/brand_title_primary/"
 
 
@@ -144,11 +147,12 @@ def verify_register(root: Path, register_path: Path, asset_registry_path: Path) 
             file=sys.stderr,
         )
         return 1
-    if len(approved_derivations) != EXPECTED_APPROVED_DERIVATIONS or any(
-        not isinstance(path, str) or not path.startswith(DERIVED_ASSET_ROOT)
-        for path in approved_derivations
-    ):
-        print("FAIL: post-baseline additions are not the exact registered brand extraction set", file=sys.stderr)
+    brand_paths = {path for path in approved_derivations if isinstance(path, str) and path.startswith(DERIVED_ASSET_ROOT)}
+    camera_paths = set(approved_derivations) - brand_paths
+    if (len(brand_paths) != EXPECTED_BRAND_DERIVATIONS
+            or camera_paths != CAMERA_DERIVED_PATHS
+            or len(approved_derivations) != EXPECTED_APPROVED_DERIVATIONS):
+        print("FAIL: additions must be the 8 brand derivations plus the exact 3 authorized Camera files", file=sys.stderr)
         return 1
     if recorded_count != len(entries):
         print("FAIL: integrity register current entry count is inconsistent", file=sys.stderr)

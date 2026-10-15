@@ -37,6 +37,14 @@ private fun decodeNormalHomeAsset(context: Context, path: String): Bitmap {
     }
 }
 
+private fun decodeNormalHomeCamera(context: Context): Bitmap =
+    context.resources.openRawResource(com.yujian.ai.R.drawable.normal_home_camera_primary_v1).use { stream ->
+        BitmapFactory.decodeStream(stream, null, BitmapFactory.Options().apply {
+            inScaled = false
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }) ?: error("Unable to decode registered Normal Home Camera source derivative")
+    }
+
 private fun loadNormalHomeRuntimeAssets(context: Context): NormalHomeRuntimeAssets =
     NormalHomeRuntimeAssets(
         sceneBase = decodeNormalHomeAsset(context, "static/scene_base.png"),
@@ -44,7 +52,7 @@ private fun loadNormalHomeRuntimeAssets(context: Context): NormalHomeRuntimeAsse
         fishCardGradient = decodeNormalHomeAsset(context, "fish_card/fish_card_gradient.png"),
         fishCardOutline = decodeNormalHomeAsset(context, "fish_card/fish_card_outline.png"),
         fishCardShadow = decodeNormalHomeAsset(context, "fish_card/fish_card_shadow.png"),
-        cameraBase = decodeNormalHomeAsset(context, "camera/camera_button_base.png"),
+        cameraBase = decodeNormalHomeCamera(context),
         cameraGoldRim = decodeNormalHomeAsset(context, "camera/camera_gold_rim_mask.png"),
         cameraBreathGlow = decodeNormalHomeAsset(context, "camera/camera_breath_glow.png"),
     )

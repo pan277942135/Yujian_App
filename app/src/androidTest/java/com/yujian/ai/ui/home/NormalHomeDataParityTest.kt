@@ -262,6 +262,20 @@ class NormalHomeDataParityTest {
     }
 
     @Test
+    fun registeredCameraArtworkResourceMatchesApprovedSourceIdentity() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bytes = context.resources.openRawResource(com.yujian.ai.R.drawable.normal_home_camera_primary_v1).use { it.readBytes() }
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        assertEquals("fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2", digest)
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        assertEquals(208, bitmap.width)
+        assertEquals(208, bitmap.height)
+        assertEquals(0, android.graphics.Color.alpha(bitmap.getPixel(0, 0)))
+        assertEquals(255, android.graphics.Color.alpha(bitmap.getPixel(104, 104)))
+        bitmap.recycle()
+    }
+
+    @Test
     fun registeredBrandArtworkResourceMatchesFrozenRasterIdentity() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val bytes = context.resources.openRawResource(com.yujian.ai.R.drawable.brand_title_primary).use { it.readBytes() }
