@@ -1,0 +1,912 @@
+{
+  "status": "FAIL",
+  "scope": "OPTICAL_MASK_ONLY; touch/layout bounds remain separate runtime evidence",
+  "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "screenshot_sha256": "9dc2c53d1c4cece2db4d80cf50cabd1be4ddfcbc42359317dd6015725b609a21",
+  "strict_frozen_masks": {
+    "CTA_NEAR_WHITE": {
+      "expected_bbox_inclusive_px": [
+        433,
+        1527,
+        646,
+        1558
+      ],
+      "runtime_bbox_inclusive_px": [
+        434,
+        1527,
+        644,
+        1560
+      ],
+      "edge_delta_px": [
+        1,
+        0,
+        -2,
+        2
+      ],
+      "tolerance_px": 3.24,
+      "status": "PASS",
+      "authority": "frozen Normal_Home_Pixel_Targets_V1 source mask",
+      "roi_px": [
+        390,
+        1510,
+        700,
+        1570
+      ]
+    },
+    "CAMERA_CORE_NEAR_WHITE": {
+      "expected_bbox_inclusive_px": [
+        450,
+        1590,
+        628,
+        1773
+      ],
+      "runtime_bbox_inclusive_px": [
+        452,
+        1591,
+        626,
+        1783
+      ],
+      "edge_delta_px": [
+        2,
+        1,
+        -2,
+        10
+      ],
+      "tolerance_px": 2.16,
+      "status": "FAIL",
+      "authority": "frozen Normal_Home_Pixel_Targets_V1 source mask",
+      "roi_px": [
+        400,
+        1580,
+        680,
+        1785
+      ]
+    },
+    "CAMERA_GOLD": {
+      "expected_bbox_inclusive_px": [
+        439,
+        1593,
+        638,
+        1789
+      ],
+      "runtime_bbox_inclusive_px": [
+        441,
+        1593,
+        637,
+        1788
+      ],
+      "edge_delta_px": [
+        2,
+        0,
+        -1,
+        -1
+      ],
+      "tolerance_px": 2.16,
+      "status": "PASS",
+      "authority": "frozen Normal_Home_Pixel_Targets_V1 source mask",
+      "roi_px": [
+        400,
+        1580,
+        680,
+        1800
+      ]
+    }
+  },
+  "diagnostics_only_not_alternative_gate": {
+    "connectivity": 4,
+    "source_components": [
+      {
+        "pixels": 16945,
+        "bbox_inclusive_px": [
+          455,
+          1607,
+          622,
+          1773
+        ]
+      },
+      {
+        "pixels": 1826,
+        "bbox_inclusive_px": [
+          506,
+          1662,
+          571,
+          1715
+        ]
+      },
+      {
+        "pixels": 594,
+        "bbox_inclusive_px": [
+          452,
+          1590,
+          627,
+          1645
+        ]
+      },
+      {
+        "pixels": 272,
+        "bbox_inclusive_px": [
+          529,
+          1684,
+          547,
+          1701
+        ]
+      },
+      {
+        "pixels": 8,
+        "bbox_inclusive_px": [
+          557,
+          1689,
+          557,
+          1696
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          537,
+          1683,
+          539,
+          1683
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          556,
+          1685,
+          556,
+          1687
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          556,
+          1697,
+          556,
+          1699
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          555,
+          1683,
+          555,
+          1684
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          555,
+          1700,
+          555,
+          1701
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          628,
+          1646,
+          628,
+          1647
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          450,
+          1645,
+          450,
+          1645
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          451,
+          1643,
+          451,
+          1643
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          552,
+          1704,
+          552,
+          1704
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          553,
+          1703,
+          553,
+          1703
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          554,
+          1702,
+          554,
+          1702
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          597,
+          1766,
+          597,
+          1766
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          598,
+          1765,
+          598,
+          1765
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          601,
+          1763,
+          601,
+          1763
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          602,
+          1762,
+          602,
+          1762
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          603,
+          1761,
+          603,
+          1761
+        ]
+      }
+    ],
+    "runtime_components": [
+      {
+        "pixels": 16499,
+        "bbox_inclusive_px": [
+          457,
+          1607,
+          621,
+          1771
+        ]
+      },
+      {
+        "pixels": 1582,
+        "bbox_inclusive_px": [
+          508,
+          1661,
+          571,
+          1713
+        ]
+      },
+      {
+        "pixels": 255,
+        "bbox_inclusive_px": [
+          453,
+          1591,
+          552,
+          1644
+        ]
+      },
+      {
+        "pixels": 130,
+        "bbox_inclusive_px": [
+          532,
+          1684,
+          546,
+          1699
+        ]
+      },
+      {
+        "pixels": 60,
+        "bbox_inclusive_px": [
+          597,
+          1611,
+          620,
+          1635
+        ]
+      },
+      {
+        "pixels": 19,
+        "bbox_inclusive_px": [
+          563,
+          1595,
+          577,
+          1599
+        ]
+      },
+      {
+        "pixels": 14,
+        "bbox_inclusive_px": [
+          534,
+          1681,
+          543,
+          1683
+        ]
+      },
+      {
+        "pixels": 14,
+        "bbox_inclusive_px": [
+          578,
+          1600,
+          587,
+          1604
+        ]
+      },
+      {
+        "pixels": 11,
+        "bbox_inclusive_px": [
+          531,
+          1685,
+          532,
+          1694
+        ]
+      },
+      {
+        "pixels": 7,
+        "bbox_inclusive_px": [
+          548,
+          1687,
+          548,
+          1693
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          546,
+          1684,
+          547,
+          1686
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          555,
+          1593,
+          558,
+          1593
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          559,
+          1594,
+          562,
+          1594
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          561,
+          1684,
+          564,
+          1684
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          588,
+          1605,
+          590,
+          1606
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          593,
+          1608,
+          595,
+          1609
+        ]
+      },
+      {
+        "pixels": 4,
+        "bbox_inclusive_px": [
+          621,
+          1636,
+          622,
+          1638
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          557,
+          1783,
+          559,
+          1783
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          565,
+          1781,
+          567,
+          1781
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          571,
+          1779,
+          573,
+          1779
+        ]
+      },
+      {
+        "pixels": 3,
+        "bbox_inclusive_px": [
+          576,
+          1777,
+          578,
+          1777
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          544,
+          1683,
+          545,
+          1683
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          547,
+          1694,
+          547,
+          1695
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          555,
+          1699,
+          555,
+          1700
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          555,
+          1703,
+          555,
+          1704
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          559,
+          1683,
+          560,
+          1683
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          562,
+          1782,
+          563,
+          1782
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          569,
+          1780,
+          570,
+          1780
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          574,
+          1778,
+          575,
+          1778
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          579,
+          1776,
+          580,
+          1776
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          581,
+          1775,
+          582,
+          1775
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          584,
+          1773,
+          585,
+          1773
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          586,
+          1772,
+          587,
+          1772
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          588,
+          1771,
+          589,
+          1771
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          591,
+          1607,
+          592,
+          1607
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          591,
+          1769,
+          592,
+          1769
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          594,
+          1767,
+          595,
+          1767
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          598,
+          1764,
+          599,
+          1764
+        ]
+      },
+      {
+        "pixels": 2,
+        "bbox_inclusive_px": [
+          625,
+          1642,
+          625,
+          1643
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          452,
+          1645,
+          452,
+          1645
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          501,
+          1777,
+          501,
+          1777
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          508,
+          1780,
+          508,
+          1780
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          523,
+          1702,
+          523,
+          1702
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          525,
+          1701,
+          525,
+          1701
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          526,
+          1702,
+          526,
+          1702
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          533,
+          1684,
+          533,
+          1684
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          542,
+          1684,
+          542,
+          1684
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          554,
+          1701,
+          554,
+          1701
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          556,
+          1702,
+          556,
+          1702
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          583,
+          1774,
+          583,
+          1774
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          590,
+          1770,
+          590,
+          1770
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          593,
+          1768,
+          593,
+          1768
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          596,
+          1610,
+          596,
+          1610
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          596,
+          1766,
+          596,
+          1766
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          597,
+          1765,
+          597,
+          1765
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          600,
+          1763,
+          600,
+          1763
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          601,
+          1762,
+          601,
+          1762
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          602,
+          1761,
+          602,
+          1761
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          603,
+          1760,
+          603,
+          1760
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          604,
+          1759,
+          604,
+          1759
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          605,
+          1758,
+          605,
+          1758
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          606,
+          1757,
+          606,
+          1757
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          607,
+          1756,
+          607,
+          1756
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          608,
+          1755,
+          608,
+          1755
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          609,
+          1754,
+          609,
+          1754
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          623,
+          1639,
+          623,
+          1639
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          624,
+          1641,
+          624,
+          1641
+        ]
+      },
+      {
+        "pixels": 1,
+        "bbox_inclusive_px": [
+          626,
+          1644,
+          626,
+          1644
+        ]
+      }
+    ],
+    "largest_component_edge_delta_px": [
+      2,
+      0,
+      -1,
+      -2
+    ],
+    "interpretation": "The full threshold includes disconnected rim highlights as well as the white core. Largest-component agreement does not override the full frozen mask."
+  },
+  "threshold_or_target_changes": false,
+  "next_action": "Inspect failed pixels against the registered camera raster and runtime motion state; retain FAIL until exact-mask parity is demonstrated."
+}
