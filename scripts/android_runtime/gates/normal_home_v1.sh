@@ -511,6 +511,8 @@ PY
     "$out/Normal_Home_Responsive_Runtime_Report.json" \
     "$out/Normal_Home_Runtime_Bounds_Report.json" \
     "$out/Normal_Home_Pixel_Diff_Report.json" \
+    "$out/Hero_Fixture_Preflight_Report.json" \
+    "$out/Camera_Core_Mask_Report.json" \
     "$out/Normal_Home_Runtime_Closure_Result.json"
   do
     if [[ ! -s "$file" ]]; then

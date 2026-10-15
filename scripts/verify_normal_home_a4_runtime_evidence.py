@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from PIL import Image, ImageChops
+from verify_normal_home_hero_fixtures import audit as audit_hero_fixtures
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = ROOT / "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Pixel_Targets_V1.json"
@@ -177,6 +178,8 @@ def changed_pixels(left: Image.Image, right: Image.Image, roi: tuple[int, int, i
 def main(out: Path) -> int:
     targets = load(TARGETS)
     fixtures = load(FIXTURES)
+    fixture_preflight = audit_hero_fixtures(fixtures)
+    write_json(out / "Hero_Fixture_Preflight_Report.json", fixture_preflight)
     frozen_sha = sha(FROZEN)
     profiles: dict[str, Any] = {}
     profile_logs: dict[str, str] = {}
@@ -336,6 +339,8 @@ def main(out: Path) -> int:
     source_ratio = source_dimensions[0] / source_dimensions[1]
     hero_report = {
         "status": "BLOCKED",
+        "fixture_preflight_status": fixture_preflight["status"],
+        "fixture_preflight_report": "Hero_Fixture_Preflight_Report.json",
         "runtime_fixture": {
             "fixture_id": "F03",
             "source_path": fixture_f03["source_path"],
@@ -609,6 +614,13 @@ def main(out: Path) -> int:
     write_json(out / "Normal_Home_Responsive_Runtime_Report.json", responsive_report)
     write_json(out / "Normal_Home_Runtime_Bounds_Report.json", bounds_report)
     write_json(out / "Normal_Home_Pixel_Diff_Report.json", pixel_report)
+    camera_audit = subprocess.run([
+        sys.executable, str(ROOT / "scripts/audit_normal_home_camera_mask.py"),
+        "--screenshot", str(runtime_screenshot),
+        "--output", str(out / "Camera_Core_Mask_Report.json"),
+    ], check=False)
+    if camera_audit.returncode not in (0, 1):
+        raise ValueError("Camera mask diagnostic failed to execute")
 
     blockers = []
     if not hierarchy_pass:
