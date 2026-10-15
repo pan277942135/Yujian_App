@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -64,6 +66,18 @@ class NormalHomeRealPhotoProbeTest {
             }
             val card = compose.onNodeWithTag("normal-home-catch-card-${record.id}")
                 .assertIsDisplayed().assertHasClickAction()
+            // Semantic readiness can precede the next Surface draw. Synchronize a real
+            // image readback before collecting the native device screenshot.
+            compose.waitForIdle()
+            val rendered = compose.onNodeWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
+                .captureToImage().toPixelMap()
+            if (!night) {
+                val edge = rendered[(rendered.width * 0.02f).toInt(), (rendered.height * 0.35f).toInt()]
+                val distanceFromPlaceholder = kotlin.math.abs(edge.red - 22f / 255f) +
+                    kotlin.math.abs(edge.green - 36f / 255f) + kotlin.math.abs(edge.blue - 44f / 255f)
+                assertTrue("Real-photo backdrop pixels must replace the temporary opaque base", distanceFromPlaceholder > 0.2f)
+            }
+            instrumentation.waitForIdleSync()
             val screenshot = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
             val directory = File(context.getExternalFilesDir(null), "normal-home-real-photo-probes").apply { mkdirs() }
             val screenshotFile = File(directory, "$id-home.png")
