@@ -248,6 +248,11 @@ timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
 if (( suite_rc == 0 )) && ! instrumentation_log_passed "$SUITE_LOG"; then suite_rc=30; fi
+# Keep native real-photo probe outputs distinct from approved fixture acceptance.
+mkdir -p "$EVIDENCE_DIR/real-photo-probes"
+"$adb_bin" pull "/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/normal-home-real-photo-probes/." \
+  "$EVIDENCE_DIR/real-photo-probes/" > "$EVIDENCE_DIR/real-photo-probes/pull.log" 2>&1 || true
+
 grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
 "$adb_bin" logcat -d -v brief -s NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I > "$EVIDENCE_DIR/normal-home-measurement-logcat.log" 2>&1 || true
 "$adb_bin" logcat -d -v brief -s NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \

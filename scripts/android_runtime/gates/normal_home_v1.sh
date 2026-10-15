@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.components.HomeEvidenceBitmapTest,com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.home.NormalHomeMotionEvidenceTest'
+  printf '%s\n' 'com.yujian.ai.ui.home.NormalHomeRealPhotoProbeTest,com.yujian.ai.ui.components.HomeEvidenceBitmapTest,com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.home.NormalHomeMotionEvidenceTest'
 }
 
 normal_home_run_seed() {
