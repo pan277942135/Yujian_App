@@ -70,7 +70,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     }
     expected_paths = {
         "p01": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-        "p02": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "p02": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
     }
     for child in guide.get("children", []):
         cid = child.get("id")
