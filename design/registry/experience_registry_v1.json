@@ -2997,7 +2997,7 @@
           "status": "FROZEN",
           "authority_type": "group",
           "render_mode": "authority_gallery",
-          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md",
+          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
           "summary": "三页首次相机进入教学：P01 竖屏手机+横向鱼体；P02 竖屏手机+竖直鱼体；P03 横屏手机+横向鱼体。每页 Hero 为唯一正确示范，下方固定三个错误示范。",
           "menu_points": [
             "P01 · 竖屏拍摄示意",

@@ -19634,9 +19634,9 @@
     },
     {
       "path": "design/registry/experience_registry_v1.json",
-      "expected_current_git_blob_sha": "31f90473ed64c74acdcbd9ad66bb0221219cd977",
+      "expected_current_git_blob_sha": "bd9d0bb0774832d256aeb72f3475abd9976dd507",
       "source_commit_sha": "8458e658da8ef0e72892d36b52a043718d7629d2",
-      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 imports the exact approved P01/P02/P03 Frozen PNG bytes. This additive Design Manager registration changes only first-use visual presence/import metadata; all existing Phase 1 Frozen artwork and bytes remain unchanged.",
+      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 imports the exact approved P01/P02/P03 Frozen PNG bytes. The active registry root now points to the V1 three-page guide authority; the original imported PNG bytes remain unchanged.",
       "is_frozen_asset": false
     },
     {

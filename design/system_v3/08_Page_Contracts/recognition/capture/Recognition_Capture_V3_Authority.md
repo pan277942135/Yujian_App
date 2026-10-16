@@ -55,14 +55,15 @@ The capture-button master remains the existing Asset Registry entry and SHA. Its
 
 ## Additive first-use guide authority
 
-The first-use camera guide is an additive overlay state inside Recognition Capture. Its frozen visual authority is:
+The first-use camera guide is a three-page additive overlay state inside Recognition Capture. Its active frozen visual authority is:
 
-- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md`
+- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md`
 - `design/pages/recognition/first_use_camera_guide/manifest.json`
 - `design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png`
 - `design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png`
+- `design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png`
 
-It does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker. P01 uses `下一张`; P02 uses `开始拍摄`. The final action only dismisses the guide and returns to Capture Ready; it never fires the shutter automatically.
+P01 is portrait phone + horizontal fish; P02 is portrait phone + vertical fish; P03 is landscape phone + horizontal fish. P01 and P02 advance with `下一张`; P02 and P03 expose `上一张`; P03 uses `开始拍摄`. Skip and final Start dismiss the guide, and Start never fires the shutter. This overlay does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker.
 
 ## Acceptance
 

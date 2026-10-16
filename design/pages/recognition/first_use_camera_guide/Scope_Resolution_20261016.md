@@ -17,6 +17,6 @@ The task requires the exact original P01/P02/P03 Frozen PNG bytes already regist
 
 ## Authority boundary
 
-`Freeze_Decision_20261016.md` records a later two-page alternative. It is retained for provenance, but is superseded for this specifically authorized V1 task. The three-page scope is not a visual redesign and does not alter Frozen artwork.
+`Freeze_Decision_20261016_V2.md` records the earlier two-page proposal. It is retained for provenance, but is superseded by the current three-page V1 scope. The three-page scope is not a visual redesign and does not alter Frozen artwork.
 
 Android Runtime must continue to rebuild the guide with Compose. Independent page-specific runtime photos remain a separate asset-source acceptance item; full-page Frozen screenshots are not runtime resources.

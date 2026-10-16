@@ -5,9 +5,9 @@
   "pull_request": 145,
   "branch": "audit/design-system-v3-1-phase1-master-baseline",
   "base_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-  "checkpoint_updated_at": "2026-10-16T08:15:38.232Z",
+  "checkpoint_updated_at": "2026-10-16T10:39:23Z",
   "stage": "E0",
-  "stage_status": "FIX_READY_FOR_EXACT_HEAD_CI",
+  "stage_status": "E0_SCOPED_GUIDE_RUNTIME_PASS_BROADER_ACCEPTANCE_OPEN",
   "baseline_sha": "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2",
   "baseline_runtime_run_id": 38765917873,
   "baseline_runtime_url": "https://github.com/pan277942135/Yujian_App/actions/runs/38765917873",
@@ -69,11 +69,11 @@
   },
   "completed_stages": [],
   "pending_stages": [
-    "E0 exact-head targeted and full Recognition runtime verification",
+    "E0 full Recognition Main Journey J01-J20 runtime verification (not claimed by Guide-scoped gates)",
     "E1 J01-J20 execution and persistence evidence",
     "E2 frozen visual, motion, responsive and device-boundary evidence",
     "E3 dependent runtime regression analysis and repair",
-    "E4 exact-head CI and machine-readable gate results",
+    "E4 close failed/blocked exact-head gates and record the resulting machine-readable disposition",
     "E5 final QA APK, provenance, evidence index and execution report"
   ],
   "journey_results": {
@@ -81,14 +81,14 @@
     "status": "NOT_CREATED",
     "J01-J20": "NOT_RUN"
   },
-  "next_action": "Work: run the three-page Design Governance and exact-head API28 runtime gates; verify independent runtime photo-source availability and report any remaining visual parity blocker.",
+  "next_action": "Continue only after the explicit task scope is accepted: preserve the scoped Guide PASS, then separately resolve Normal Home fixtures, Empty Home fontScale 1.3 evidence, Camera visual source assets, and the data-sanitization failure before claiming broader E0-E5/J01-J20 acceptance.",
   "external_blockers": [
     "Local Android build and emulator execution are unavailable in this checkout; use the configured self-hosted API 28 runner."
   ],
   "pr_state": "DRAFT_OPEN_UNMERGED",
   "first_use_camera_guide": {
     "task_id": "RECOGNITION-FIRST-USE-GUIDE-V1",
-    "status": "IMPLEMENTED_AWAITING_EXACT_HEAD_CI",
+    "status": "RUNTIME_INTERACTION_PASS_CAMERA_VISUAL_ASSET_BLOCKED",
     "task_doc": "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md",
     "scope": [
       "Android Compose three-page first-use guide overlay",
@@ -129,7 +129,32 @@
     "backend_dependency": "NONE",
     "runtime_rule": "Frozen PNGs are Design Manager visual authority only; Android runtime must use structured Compose UI and independent page-specific photo assets, not full-page screenshots.",
     "binary_import_status": "PASS",
-    "main_merge_forbidden": true
+    "main_merge_forbidden": true,
+    "runtime_acceptance": {
+      "status": "GUIDE_INTERACTION_PASS_CAMERA_VISUAL_PARITY_BLOCKED",
+      "tested_code_sha": "2f9d0c66c5bf818230fe0ee36ef9f5744d959475",
+      "android_ci_run_id": 38884262960,
+      "android_ci_url": "https://github.com/pan277942135/Yujian_App/actions/runs/38884262960",
+      "overall_run_conclusion": "failure",
+      "recognition_frozen": {
+        "classification": "PASS",
+        "test_classes": [
+          "RecognitionFirstCaptureGuideRuntimeTest",
+          "RecognitionFrozenFlowEmulatorTest"
+        ],
+        "evidence_artifact_id": 12039921401
+      },
+      "camera_runtime": {
+        "classification": "ASSET_SOURCE_BLOCKED",
+        "instrumentation": "PASS",
+        "test_classes": [
+          "RecognitionCameraRuntimeTest",
+          "RecognitionFirstCaptureGuideRuntimeTest"
+        ],
+        "evidence_artifact_id": 12039549810,
+        "blocker": "Independent page-specific runtime photo sources are unavailable; frozen full-page PNGs are not runtime resources."
+      }
+    }
   },
   "capture_permission_denied_visual": {
     "state_id": "recognition.capture.permission_denied.v1",
@@ -164,6 +189,22 @@
         "source_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18",
         "binary_import_status": "PENDING"
       }
+    }
+  },
+  "latest_exact_head_runtime": {
+    "tested_code_sha": "2f9d0c66c5bf818230fe0ee36ef9f5744d959475",
+    "run_id": 38884262960,
+    "run_url": "https://github.com/pan277942135/Yujian_App/actions/runs/38884262960",
+    "conclusion": "failure",
+    "gates": {
+      "normal-home-v1": "FAIL_EVIDENCE",
+      "recognition-frozen": "PASS",
+      "camera-runtime-v1": "ASSET_SOURCE_BLOCKED",
+      "empty-home-v2": "FAIL_EVIDENCE",
+      "login-v2": "PASS",
+      "data-sanitization": "FAIL_TEST",
+      "fish-guide-v1": "PASS",
+      "runtime-parity": "PASS"
     }
   }
 }
