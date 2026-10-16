@@ -128,3 +128,18 @@ P8 / N001 / READY
 
 N001 must resolve `G-API28-MATRIX` and execute against the tracked product/runtime
 baseline `e881c2a6772b418a49b6208ce44c8527fbeb97db`.
+
+
+## Open contract conflicts
+
+**1 P1 conflict remains explicitly surfaced:**
+
+- `C-FIRST-USE-GUIDE-PAGE-COUNT`
+- Live Design Registry / manifest / navigation currently describe P01/P02/P03.
+- PROJECT_MASTER_STATE B008 and Phase/Task N010 currently describe P01/P02.
+- The conflict is not silently resolved by this layer.
+- N010 remains READY in the execution state machine, but its contract resolution is
+  `NOT_CONFIRMED` until the authorities converge.
+
+This is a domain-authority conflict, not a structural failure of the Unified Contract
+Registry.
