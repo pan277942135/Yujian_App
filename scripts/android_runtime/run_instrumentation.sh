@@ -2,9 +2,13 @@
 
 android_runtime_run_instrumentation() {
   local test_classes="$1"
+  local append_log="${2:-0}"
+  local timeout_override="${3:-}"
   local log="$YUJIAN_EVIDENCE_DIR/instrumentation.log"
   mkdir -p "$YUJIAN_EVIDENCE_DIR"
-  : > "$log"
+  if [[ "$append_log" != "1" ]]; then
+    : > "$log"
+  fi
   {
     printf 'TEST_CLASSES=%s\n' "$test_classes"
     printf 'COMMAND=adb shell am instrument -w -r -e class %s %s\n' "$test_classes" "$YUJIAN_INSTRUMENTATION_TARGET"
@@ -14,13 +18,16 @@ android_runtime_run_instrumentation() {
   # measured suite to declare its own budget. Direct instrumentation still
   # runs exactly once; a failing assertion is never hidden by a rerun.
   local timeout_seconds=180
-  if declare -F gate_instrumentation_timeout_seconds >/dev/null 2>&1; then
+  if [[ -n "$timeout_override" ]]; then
+    timeout_seconds="$timeout_override"
+  elif declare -F gate_instrumentation_timeout_seconds >/dev/null 2>&1; then
     timeout_seconds="$(gate_instrumentation_timeout_seconds)"
   fi
   if [[ ! "$timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
     runtime_set_failure "CONFIG" "INSTRUMENTATION_TIMEOUT_INVALID"
     return "$EXIT_FAIL_ARTIFACT"
   fi
+  printf 'TIMEOUT_SECONDS=%s\n' "$timeout_seconds" >> "$log"
   timeout "${timeout_seconds}s" "${YUJIAN_ADB_BIN}" shell am instrument \
     -w \
     -r \

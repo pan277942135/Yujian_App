@@ -65,6 +65,50 @@ because none is defined by the frozen contract.
   production phase/motion callbacks instead of Compose idling/semantics queries;
   this correction remains unverified until the next API28 run. No PASS is
   claimed for this run.
+- Sixth exact-head Android CI run (`38964406494`,
+  `3c8ce2a6c6444dd55eee3ac0bf4c7eaa533f9f77`): build, unit tests, Camera
+  harness contract tests, APK assembly, AndroidTest compilation, packaged
+  asset checks, model trace, and lint passed. API28 `recognition-frozen`
+  preflight and APK install passed, but the optical-fidelity test again ended
+  `FAIL_TEST / INSTRUMENTATION_TIMEOUT` at 300 seconds on item 50/50; no
+  optical metrics or screenshots were emitted. The API28 `normal-home-v1` and
+  `camera-runtime-v1` gates were `FAIL_EVIDENCE`; the first reported
+  `NORMAL_HOME_RUNTIME_PARITY_BLOCKED`. Remaining matrix jobs were cancelled
+  after a newer exact-head run was dispatched to release the same-branch CI
+  concurrency slot. Those jobs are not counted as passes; the successor run
+  re-executes the matrix.
+- Filtered Recognition logcat from run `38964406494` shows repeated 77–81 frame
+  skips while the live scene was active. The test instrumentation's per-frame
+  callback scheduled a new `LaunchedEffect` for each clock update and scanned
+  its accumulating sample list when switching to LITE. The exact blocking call
+  remained unconfirmed, so this was treated as a test-overhead hypothesis.
+  Commit `b932ec84a47140dfde73a7c7388ea3bb62bcbe36` changes the opt-in sample
+  hook to a synchronous Compose `SideEffect`, uses atomic per-profile counters,
+  and emits milestone logs around scene presentation, screenshots, frame
+  sampling, and metrics output. Static contract and harness checks pass.
+- Seventh exact-head API28 run (`38967074082`,
+  `b932ec84a47140dfde73a7c7388ea3bb62bcbe36`): build and APK preparation
+  passed. Recognition preflight and APK install passed, but the combined 50-test
+  instrumentation command hit its 300-second timeout as the final optical test
+  began. The live scene reached CLASSIFYING and the FULL screenshot completed;
+  the 120 FULL intervals did not finish, so no FULL/LITE metrics or screenshots
+  were exported and this is not a PASS. The same run recorded the existing
+  Reduce Motion pixel assertion at `diffRatio=0.0305` and a Compose-idling
+  timeout after the Back action while a live frame loop remained active.
+- The filtered logcat recorded 118 `Skipped 74–82 frames` events after the
+  optical test started, with a median 1.329 s between reports. These are raw
+  API28 emulator diagnostics, not a newly imposed frame-time budget.
+- Follow-up harness change: keep the 49-test required Recognition suite in its
+  own 300-second invocation and run `RecognitionOpticalFidelityRuntimeTest` as
+  a second invocation on the same installed API28 APK pair, with its own
+  420-second bound. Both invocations append to one instrumentation log and a
+  failed first suite prevents the evidence-only test from running. The Back
+  test now relies on its explicit state assertion instead of waiting for an
+  intentionally live Compose tree to become idle. The reduced-motion visual
+  capture now pins its frame clock; a JVM test separately checks that the live
+  accumulator freezes the segment offset after the reduce-motion transition.
+  Static harness checks pass; API28 verification of this follow-up remains
+  pending.
 
 ## Independent check retained
 

@@ -65,6 +65,26 @@ run_case() {
       exit 1
     }
   fi
+  if [[ "$name" == "pass" ]]; then
+    mapfile -t instrumentation_classes < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
+    mapfile -t instrumentation_timeouts < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
+    [[ "${#instrumentation_classes[@]}" == "2" ]] || {
+      echo "expected the required suite and one additional evidence invocation" >&2
+      exit 1
+    }
+    [[ "${instrumentation_classes[0]}" == *"DetectorGoldenParityTest" ]] || {
+      echo "required Recognition suite was not run as the first invocation" >&2
+      exit 1
+    }
+    [[ "${instrumentation_classes[1]}" == "com.yujian.ai.RecognitionOpticalFidelityRuntimeTest" ]] || {
+      echo "live optical-fidelity evidence was not isolated into its own invocation" >&2
+      exit 1
+    }
+    [[ "${instrumentation_timeouts[*]}" == "300 420" ]] || {
+      echo "unexpected instrumentation timeout budgets: ${instrumentation_timeouts[*]}" >&2
+      exit 1
+    }
+  fi
   printf 'PASS fake-adb scenario=%s classification=%s exit=%s\n' "$name" "$expected_classification" "$rc"
   rm -rf "$tmp"
 }

@@ -360,7 +360,6 @@ class RecognitionFrozenFlowEmulatorTest {
         assertTrue("active overlay Back action must exist", lastBackIndex >= 0)
         backNodes[lastBackIndex].performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) { !processingVisible.value }
-        composeRule.waitForIdle()
 
         assertEquals("user Back must not be routed as recognition failure", 0, failureCount.get())
     }
@@ -1182,6 +1181,7 @@ class RecognitionFrozenFlowEmulatorTest {
                     generateSubject = { _, _ -> subject },
                     onFinished = {},
                     phaseOverride = RecognitionPhase.CLASSIFYING,
+                    visualClockOverrideMs = 1_000L,
                     motionPolicyOverride = RecognitionMotionPolicy(
                         reduceMotion = true,
                         lowPerformance = true,

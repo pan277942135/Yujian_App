@@ -54,4 +54,34 @@ class RecognitionAmbientFieldTest {
         assertTrue(settledOutlineClock.segmentSpeed > .62f)
         assertTrue(settledOutlineClock.segmentSpeed < 1f)
     }
+
+    @Test
+    fun reduceMotionFreezesSegmentPhaseAfterTransition() {
+        val clock = EdgeFieldMotionAccumulator()
+        clock.sample(
+            nowMs = 1_000L,
+            phase = RecognitionPhase.CLASSIFYING,
+            reduceMotionNow = false,
+        )
+        val moving = clock.sample(
+            nowMs = 2_000L,
+            phase = RecognitionPhase.CLASSIFYING,
+            reduceMotionNow = false,
+        )
+        val settled = clock.sample(
+            nowMs = 2_200L,
+            phase = RecognitionPhase.CLASSIFYING,
+            reduceMotionNow = true,
+        )
+        val later = clock.sample(
+            nowMs = 5_000L,
+            phase = RecognitionPhase.CLASSIFYING,
+            reduceMotionNow = true,
+        )
+
+        assertTrue(moving.cycleOffset != settled.cycleOffset)
+        assertEquals(0f, settled.segmentSpeed, .001f)
+        assertEquals(settled.cycleOffset, later.cycleOffset, .001f)
+        assertEquals(0f, later.segmentSpeed, .001f)
+    }
 }

@@ -8,7 +8,15 @@ gate_instrumentation_timeout_seconds() {
 }
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest,com.yujian.ai.RecognitionOpticalFidelityRuntimeTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+}
+
+gate_additional_test_classes() {
+  printf '%s\n' 'com.yujian.ai.RecognitionOpticalFidelityRuntimeTest'
+}
+
+gate_additional_test_timeout_seconds() {
+  printf '%s\n' '420'
 }
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
