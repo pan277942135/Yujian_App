@@ -36,6 +36,8 @@ source_of_truth:
   state_update_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
   work_log: "harness/build-log.md"
   current_work_state: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+  feature_matrix: "harness/FEATURE_MATRIX.yaml"
+  feature_matrix_validator: "scripts/validate_feature_matrix.py"
   design_authority: "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
   product_master_flow: "design/system_v3/00_Product_Master_Flow/"
   page_contracts: "design/system_v3/08_Page_Contracts/"
