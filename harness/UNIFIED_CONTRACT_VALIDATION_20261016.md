@@ -143,3 +143,14 @@ baseline `e881c2a6772b418a49b6208ce44c8527fbeb97db`.
 
 This is a domain-authority conflict, not a structural failure of the Unified Contract
 Registry.
+
+
+## Current authority observation
+
+At the validated branch checkpoint, the live Design Registry and guide artifacts are
+not uniformly converged on the first-use teaching-page set. The resolver records the
+disagreement explicitly as `C-FIRST-USE-GUIDE-PAGE-COUNT`.
+
+The current execution machine keeps N010 at READY and B008 at CLOSED. This layer does
+not override that execution state; it marks the affected contract resolution
+`NOT_CONFIRMED` until the authoritative design and execution records converge.
