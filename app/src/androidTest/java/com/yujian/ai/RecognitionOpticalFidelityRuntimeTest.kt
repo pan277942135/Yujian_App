@@ -10,13 +10,8 @@ import android.graphics.PorterDuffXfermode
 import android.view.Choreographer
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishDetection
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -104,7 +99,10 @@ class RecognitionOpticalFidelityRuntimeTest {
         composeRule.waitUntil(timeoutMillis = 8_000L) {
             composeRule.onAllNodesWithText("正在认识这条鱼").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("正在认识这条鱼").assertIsDisplayed()
+        assertTrue(
+            "CLASSIFYING status is missing from the live scene",
+            composeRule.onAllNodesWithText("正在认识这条鱼").fetchSemanticsNodes().isNotEmpty(),
+        )
 
         val refreshRateHz = composeRule.activity.windowManager.defaultDisplay.refreshRate.toDouble()
         saveScreenshot(outputDir, "optical_fidelity_full.png")
@@ -122,7 +120,10 @@ class RecognitionOpticalFidelityRuntimeTest {
                 motionSamples.count { it.qualityLevel.name == "LITE" } >= MIN_MOTION_SAMPLES
             }
         }
-        composeRule.onNodeWithText("正在认识这条鱼").assertIsDisplayed()
+        assertTrue(
+            "CLASSIFYING status disappeared in LITE profile",
+            composeRule.onAllNodesWithText("正在认识这条鱼").fetchSemanticsNodes().isNotEmpty(),
+        )
         saveScreenshot(outputDir, "optical_fidelity_lite.png")
         val liteIntervals = collectFrameIntervals(FRAME_INTERVAL_SAMPLES)
         val liteMotionSamples = synchronized(motionSamples) {
@@ -173,11 +174,21 @@ class RecognitionOpticalFidelityRuntimeTest {
     }
 
     private fun saveScreenshot(directory: File, name: String) {
-        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
-        File(directory, name).outputStream().use { stream ->
-            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream))
+        // captureToImage() waits for Compose idleness; the production animation
+        // is intentionally live for timing, so capture the rendered device
+        // surface directly through UiAutomation instead.
+        val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            ?: error("UiAutomation could not capture the live recognition surface: $name")
+        try {
+            require(bitmap.width >= 320 && bitmap.height >= 640) {
+                "live recognition screenshot has implausible dimensions: ${bitmap.width}x${bitmap.height}"
+            }
+            File(directory, name).outputStream().use { stream ->
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+        } finally {
+            bitmap.recycle()
         }
-        bitmap.recycle()
     }
 
     private fun createFocusMask(source: Bitmap, box: NormalizedFishBox, outputDir: File): FishSubjectResult {
