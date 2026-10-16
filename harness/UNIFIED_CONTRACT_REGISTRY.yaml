@@ -1758,6 +1758,6 @@ inventory:
   gate_count: 11
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "7d8fe87d7755a4300140d0f83782aed51b0ecc32"
+  last_synced_feature_matrix_sha: "a321b61f2c34abd283968e74769eec9e31a1d92f"
   last_synced_phase_task_state_machine_sha: "275a22ad28d6f9df3ab3feaba47855dd2c4f3a4e"
-  last_synced_experience_registry_sha: "dc4c7a7ac952f1a10a9e0989592fb64fcddb9e2c"
+  last_synced_experience_registry_sha: "f44b6af378880e899e93c21e129a463643ebf79e"
