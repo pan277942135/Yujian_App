@@ -32,3 +32,6 @@ jobs:
 
       - name: Validate feature matrix
         run: python scripts/validate_feature_matrix.py
+
+      - name: Validate phase task state machine
+        run: python scripts/validate_phase_task_state_machine.py
