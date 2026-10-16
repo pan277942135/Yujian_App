@@ -7,6 +7,7 @@ on:
     paths:
       - "design/**"
       - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_first_use_camera_guide_assets.py"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
 
@@ -60,6 +61,9 @@ jobs:
 
       - name: Verify Design Manager navigation artifact
         run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${GITHUB_SHA}"
+
+      - name: Verify first-use camera guide original PNG imports
+        run: python3 scripts/verify_first_use_camera_guide_assets.py
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
