@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "asset_id": "recognition_first_use_camera_guide_v1",
   "status": "FROZEN",
-  "runtime_visual_authority": true,
+  "runtime_visual_authority": false,
   "scope": "Recognition Capture first-use camera guide overlay",
   "design_spec": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
   "assets": [
@@ -60,5 +60,14 @@
       "遮挡过多"
     ],
     "orientation_rule": "P01 errors horizontal fish; P02 errors vertical fish; P03 errors horizontal fish."
+  },
+  "repository_binary_import": {
+    "status": "PENDING",
+    "required_paths": [
+      "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+      "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+      "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png"
+    ],
+    "reason": "Approved source bytes are frozen by SHA-256; this session's GitHub connector has no local-file binary upload primitive, so no re-encoding or substitute derivative is permitted."
   }
 }
