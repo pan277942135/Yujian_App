@@ -22,10 +22,10 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -147,7 +147,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         composeRule.onNodeWithTag("recognition-capture-first-guide").performTouchInput {
             // The shutter occupies the bottom-center band; the test taps above
             // the guide action bar but inside the underlying shutter target.
-            click(Offset(size.width / 2f, size.height - 100f))
+            click(Offset(width / 2f, height - 100f))
         }
         composeRule.runOnIdle {
             assertEquals(0, shutterRequests)
@@ -172,7 +172,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         // The bottom-right underlying Gallery target overlaps the guide CTA.
         // Only the topmost guide action can receive the tap.
         composeRule.onNodeWithTag("recognition-capture-first-guide").performTouchInput {
-            click(Offset(size.width - 26f, size.height - 55f))
+            click(Offset(width - 26f, height - 55f))
         }
         composeRule.runOnIdle {
             assertEquals(0, galleryRequests)
@@ -245,7 +245,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         }
 
         composeRule.onNodeWithTag("recognition-guide-touch-shield").performTouchInput {
-            click(Offset(2f, size.height / 2f))
+            click(Offset(2f, height / 2f))
         }
         composeRule.runOnIdle {
             assertTrue(visible)
