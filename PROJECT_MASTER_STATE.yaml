@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T16:05:00+08:00"
+  updated_at: "2026-10-16T16:28:00+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "a68d7a164bf3ddfa2144112078037ff38a94fb09"
+  live_branch_head_at_snapshot: "85cce99be2214c2bbaa02c2ea36218fda69c2958"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,7 +57,7 @@ repositories:
     default_branch: "main"
     main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "a68d7a164bf3ddfa2144112078037ff38a94fb09"
+    active_sha_at_snapshot: "85cce99be2214c2bbaa02c2ea36218fda69c2958"
     execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     runtime:
       os: "Android"
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "a68d7a164bf3ddfa2144112078037ff38a94fb09"
+    head_at_last_verified_snapshot: "85cce99be2214c2bbaa02c2ea36218fda69c2958"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -512,19 +512,21 @@ contract_control:
   resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
   validator: "scripts/validate_unified_contract.py"
   validation_report: "harness/UNIFIED_CONTRACT_VALIDATION_20261016.md"
-  status: "PASS"
+  status: "PASS_WITH_OPEN_CONTRACT_CONFLICT"
   structural_validation: "PASS"
-  validated_source_sha: "52ad6bdeded1b432904743fa0f738d48cbb1abeb"
-  validation_run_id: 38870394275
-  validation_job_id: 116872848431
+  contract_resolution_status: "NOT_CONFIRMED"
+  validated_source_sha: "e08676b2d42f694bca9c39dfa277d74caef3aaa7"
+  open_conflicts: ["C-FIRST-USE-GUIDE-PAGE-COUNT"]
+  validation_run_id: 38872052831
+  validation_job_id: 116878206041
   feature_count: 15
   journey_count: 20
-  child_surface_count: 75
+  child_surface_count: 79
   route_count: 22
   task_count: 45
   gate_count: 11
   role: "Contract-of-contracts resolver; domain authorities remain authoritative."
-  current_scope: "15 features / 20 journeys / 75 child surfaces / 22 routes / 45 tasks / 11 gates"
+  current_scope: "15 features / 20 journeys / 79 child surfaces / 22 routes / 45 tasks / 11 gates"
 
 execution_control:
   phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
@@ -537,8 +539,8 @@ execution_control:
   auto_recovery_enabled: true
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
-  machine_validation: "PENDING_AFTER_UPDATE"
-  machine_validated_source_sha: null
+  machine_validation: "PASS"
+  machine_validated_source_sha: "e08676b2d42f694bca9c39dfa277d74caef3aaa7"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
