@@ -41,76 +41,83 @@
     },
     {
       "board_id": "MB-05",
-      "page_id": "IDENTIFY",
-      "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
+      "page_id": "GUIDE",
+      "state_id": "P03",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-06",
       "page_id": "IDENTIFY",
-      "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
+      "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-07",
-      "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_IMAGE_RECOGNIZING_EARLY",
+      "page_id": "IDENTIFY",
+      "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-08",
       "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_IMAGE_RECOGNIZING_LATE",
+      "state_id": "PROCESSING_IMAGE_RECOGNIZING_EARLY",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-09",
       "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_FISH_LOCATED",
+      "state_id": "PROCESSING_IMAGE_RECOGNIZING_LATE",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-10",
       "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_SPECIES_RECOGNIZING",
+      "state_id": "PROCESSING_FISH_LOCATED",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-11",
-      "page_id": "RESULT",
-      "state_id": "RESULT_HIGH",
+      "page_id": "RECOGNIZING",
+      "state_id": "PROCESSING_SPECIES_RECOGNIZING",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-12",
       "page_id": "RESULT",
-      "state_id": "RESULT_MEDIUM",
+      "state_id": "RESULT_HIGH",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-13",
       "page_id": "RESULT",
-      "state_id": "RESULT_LOW",
+      "state_id": "RESULT_MEDIUM",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-14",
       "page_id": "RESULT",
-      "state_id": "NO_FISH",
+      "state_id": "RESULT_LOW",
       "status": "FROZEN",
       "ownership": null
     },
     {
       "board_id": "MB-15",
+      "page_id": "RESULT",
+      "state_id": "NO_FISH",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-16",
       "page_id": "RESULT",
       "state_id": "IMAGE_QUALITY",
       "status": "FROZEN",

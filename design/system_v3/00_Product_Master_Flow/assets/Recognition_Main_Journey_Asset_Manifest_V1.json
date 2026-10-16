@@ -98,15 +98,7 @@
   "first_use_camera_guide": {
     "status": "FROZEN",
     "manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
-    "note": "Active two-page package: P01 portrait+horizontal fish; P02 landscape+horizontal fish; former portrait/vertical P02 and former P03 are historical only."
-  },
-  "master_board": {
-    "id": "recognition_main_journey_master_board_v1",
-    "status": "FROZEN_REVIEW_BOARD",
-    "spec": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.md",
-    "manifest": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.json",
-    "standalone_visual_authority": false,
-    "canvas": "5120x2880",
-    "note": "Unified review board only; individual page/state Frozen authorities remain authoritative."
+    "package": "design/pages/recognition/first_use_camera_guide/",
+    "note": "Two-page Capture guide P01/P02 is the frozen first-use package: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish. Active P02 PNG is byte-verified PASS from user-approved source 湖畔横屏拍摄指南(1).png. Former portrait/vertical P02 and former P03 page IDs are historical/compatibility only."
   }
 }

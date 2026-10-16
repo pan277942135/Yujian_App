@@ -266,18 +266,19 @@
       "authority_id": "recognition_first_use_camera_guide",
       "domain": "Recognition Capture first-use camera guide visual and interaction surface",
       "status": "CANONICAL",
-      "canonical_path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md",
+      "canonical_path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
       "supporting_paths": [
         "design/pages/recognition/first_use_camera_guide/README.md",
         "design/pages/recognition/first_use_camera_guide/navigation.json",
         "design/pages/recognition/first_use_camera_guide/manifest.json",
         "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
         "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
-        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md",
-        "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png"
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md"
       ],
       "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
-      "status_detail": "P01/P02 FROZEN active two-page guide: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish. Former portrait/vertical P02 and former P03 page IDs are historical only."
+      "status_detail": "P01/P02/P03 are the active three-page V1 guide: P01 portrait phone + horizontal fish; P02 portrait phone + vertical fish; P03 landscape phone + horizontal fish. P01/P02 advance with 下一张 and P03 completes with 开始拍摄; Start never fires the shutter. All three original PNG binaries are byte-verified PASS. API28 runtime behavior and visual parity remain separate acceptance gates."
     },
     {
       "authority_id": "recognition_main_journey_master_board",

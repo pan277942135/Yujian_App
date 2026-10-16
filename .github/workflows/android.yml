@@ -21,7 +21,8 @@ on:
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve exact-head runtime evidence while newer PR commits are queued.
+  cancel-in-progress: false
 
 permissions:
   contents: read

@@ -1,71 +1,72 @@
-# 渔见 · First-use Camera Guide V1.1
+# Historical proposal · First-use Camera Guide V1.1 (SUPERSEDED)
 
-**Status:** FROZEN — ACTIVE DESIGN AUTHORITY  
-**Freeze date:** 2026-10-16  
-**Scope:** Recognition Capture 首次相机进入时的两页教学 Overlay。
+> Historical two-page proposal only. The active authority for PR #145 is the three-page Work Task V1 and its P01/P02/P03 Frozen contract.
 
-## Active pages
+> Historical two-page proposal only. The active authority for PR #145 is the three-page Work Task V1 and its P01/P02/P03 Frozen contract.
 
-| ID | Phone | Fish | Primary action |
-|---|---|---|---|
-| P01 | Portrait | Horizontal | 下一张 |
-| P02 | Landscape | Horizontal | 开始拍摄 |
+**Status:** SUPERSEDED for PR #145 Work Task V1\
+**Freeze date:** 2026-10-16\
+**Owner:** Recognition Capture / 首次拍照教学\
+**Scope:** Capture 页面首次相机进入时的两页教学 Overlay；不替代 Recognition Capture V3.1 页面合同。
 
-The guide is shown once after camera permission is granted and the camera preview is Ready. P01 and P02 both teach the same core composition rule: the fish itself is horizontal and the entire fish should fit inside the capture frame.
+## Change from V1
+
+V1 originally defined three teaching pages. V1.1 deliberately reduces the teaching to two orientation-matched pages:
+
+1. P01 · 竖屏拍摄示意 — portrait phone + horizontal fish
+2. P02 · 横屏拍摄示意 — landscape phone + horizontal fish
+
+The previous vertical-fish teaching page is removed from the active sequence. The previous P03 landscape page is promoted to P02 without changing its frozen PNG bytes.
+
+## Authority
+
+The two frozen PNGs in `frozen/` are the page-level visual authorities for the first-use guide sequence.
+
+- P01 · 竖屏拍摄示意
+- P02 · 横屏拍摄示意
+
+The guide is an additive overlay inside `recognition.capture.v3_1`. It does not redefine Camera Preview, Top Navigation, Gallery, the primary capture button, permission UI, or system Photo Picker.
+
+## Interaction
+
+- The guide is shown only once after camera permission is granted and the camera provider/preview is Ready.
+- Overlay blocks capture-button touch-through while visible.
+- P01 primary action: `下一张 →`.
+- P02 primary action: `开始拍摄 →`.
+- `跳过` closes the guide without triggering the shutter.
+- `上一张` is available on P02.
+- `开始拍摄` closes the guide and returns to normal Capture Ready; it does not automatically trigger the shutter.
+- Completion is persisted only after the guide is actually dismissed by `跳过` or the final action.
+- Camera permission denial, preview-not-ready, gallery entry, or abandoned/incomplete guide does not mark the guide completed.
+
+## Teaching content
 
 ### P01 · 竖屏拍摄示意
-
 - Phone: portrait
 - Fish: horizontal
-- Correct example: full fish, head/body/tail visible and well framed
-- Error examples: fish head outside frame; fish too small; excessive occlusion
-- Primary action: 下一张
-- Secondary exit: 跳过
+- Correct hero: fish fully visible and well framed
+- Errors: fish head outside the frame; fish too small; excessive occlusion
+- All three error examples are horizontal fish.
 
 ### P02 · 横屏拍摄示意
-
 - Phone: landscape
 - Fish: horizontal
-- Correct example: full fish, head/body/tail visible and well framed
-- Error examples: fish head outside frame; fish too small; excessive occlusion
-- Primary action: 开始拍摄
-- Secondary navigation: 上一张 / 跳过
-
-## Interaction rules
-
-- 开始拍摄 closes the guide and returns to Capture Ready.
-- 开始拍摄 never fires the shutter automatically.
-- 跳过 closes the guide without firing the shutter.
-- Guide completion is persisted only after Skip or the final Start action.
-- Permission denied, preview-not-ready, gallery entry, or abandoned guide does not mark completion.
-- The guide does not redefine Camera Preview, Back, Gallery, capture-button identity, permission UI, or Photo Picker.
+- Correct hero: fish fully visible and well framed
+- Errors: fish head outside the frame; fish too small; excessive occlusion
+- All three error examples are horizontal fish.
 
 ## Visual rules
 
-- Full-bleed natural lake photography; restrained blue-gray / mist white / gold.
-- Hero is the single correct example; lower three examples are error examples.
-- No HUD, radar, neon, scanner, game styling, or black modal treatment.
-- Both pages use horizontal fish.
+- Full-bleed natural camera photography remains dominant.
+- Morning lake blue-gray / mist white / restrained gold.
+- Dark legibility overlay is restrained; never create a solid black panel.
+- Examples are photographic samples, not card-heavy UI.
+- No HUD, scanner, AI radar, neon, metallic treatment, or decorative technology effects.
+- The top hero is the correct example; do not duplicate a `正确` card below.
+- The three lower examples are all error samples.
 - The guide inherits Capture safe-area and shared component contracts.
+- The two pages correspond directly to the two Capture Hi-Fi orientation states: portrait-horizontal and landscape-horizontal.
 
-## Frozen assets
+## Runtime boundary
 
-P01:
-- Path: design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png
-- 941×1671
-- 1,988,159 bytes
-- SHA-256: dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50
-
-P02:
-- Path: design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png
-- 941×1672
-- 2,001,322 bytes
-- SHA-256: 1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3
-
-## Superseded history
-
-The former three-page V1 is historical only. Former P02 portrait + vertical fish and former P03 page ID must not be used as active design or implementation input. Their source bytes remain archived for provenance.
-
-## Implementation boundary
-
-This is a design freeze only. Android implementation, runtime evidence, CI and APK acceptance are outside this freeze and require separate authorization.
+This package freezes the design surface only. Camera runtime, permission, lifecycle, device responsive behavior, accessibility execution, and Android evidence remain separate acceptance work.
