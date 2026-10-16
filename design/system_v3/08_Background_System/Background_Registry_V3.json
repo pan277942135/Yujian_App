@@ -1,0 +1,134 @@
+{
+  "schema_version": "3.0",
+  "system_id": "background_v3",
+  "status": "READY",
+  "source": [
+    "design/system/backgrounds/morning_lake_v1/Background_System_Spec_V1.md",
+    "treatment_contract.json",
+    "usage_map.json"
+  ],
+  "backgrounds": [
+    {
+      "background_id": "BG_ENV_HERO",
+      "source_asset": "Morning_Lake_Master_V1.png",
+      "master_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "usage": "Home environment",
+      "allowed_pages": [
+        "home_normal_v1",
+        "home_empty_v2"
+      ],
+      "treatment": {
+        "mist_white_veil_alpha": 0.02,
+        "saturation": 0.98,
+        "contrast": 0.98,
+        "brightness": 1,
+        "global_blur": false
+      },
+      "page_override": {
+        "page": "home_empty_v2",
+        "source_asset": "Morning_Lake_Sunrise_Hero_V1.png",
+        "master_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Sunrise_Hero_V1.png",
+        "sha256": "28313d84c8cf3fb9db52196874e9c4d55483c99ff61cf579cac3ecc69af6cc50",
+        "treatment": "Sunrise is embedded; do not add a second sun layer."
+      },
+      "status": "FROZEN"
+    },
+    {
+      "background_id": "BG_CONTENT",
+      "source_asset": "Morning_Lake_Master_V1.png",
+      "master_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "usage": "Content-first pages",
+      "allowed_pages": [
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "fish_memory_bside_v1 (inherits detail)",
+        "auth_login_v2",
+        "auth_register_v2",
+        "profile_edit_v1",
+        "account_privacy_v1",
+        "user_agreement_v1"
+      ],
+      "treatment": {
+        "mist_white_veil_alpha": 0.15,
+        "saturation": 0.91,
+        "contrast": 0.89,
+        "brightness": 1.03,
+        "global_blur": false,
+        "target_salience": 0.75
+      },
+      "status": "FROZEN"
+    },
+    {
+      "background_id": "BG_DATA",
+      "source_asset": "Morning_Lake_Master_V1.png",
+      "master_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "usage": "Dense archive / guide",
+      "allowed_pages": [
+        "my_catches_v2",
+        "fish_guide_v2",
+        "record_date_v2",
+        "my_habitat (design-only child of My Catches)"
+      ],
+      "treatment": {
+        "mist_white_veil_alpha": 0.3,
+        "saturation": 0.79,
+        "contrast": 0.78,
+        "brightness": 1.06,
+        "global_blur": false,
+        "target_salience": 0.48
+      },
+      "inheritance": "Habitat inherits My Catches; no separate route or background asset.",
+      "status": "FROZEN"
+    },
+    {
+      "background_id": "BG_CAPTURE",
+      "source_asset": "Current user photo (runtime)",
+      "master_path": null,
+      "sha256": null,
+      "usage": "Recognition capture",
+      "allowed_pages": [
+        "recognition_flow_v1_2"
+      ],
+      "treatment": {
+        "opaque": true,
+        "content_scale": "Crop per camera contract",
+        "tint": "none",
+        "fallback": "#102D35",
+        "no_morning_lake_underlay": true
+      },
+      "sha256_status": "NOT_APPLICABLE_DYNAMIC_SOURCE",
+      "status": "FROZEN"
+    },
+    {
+      "background_id": "BG_SOLID",
+      "source_asset": "Core color token",
+      "master_path": "design/system/core_visual_v1/tokens/color_tokens.json",
+      "sha256": "c48e9a7a1736f5a553d03a5fb7c1cb8b51f59796d51efca64d2fc8cd20066f87",
+      "usage": "Transient missing-background / error fallback",
+      "allowed_pages": [
+        "transient fallback states"
+      ],
+      "treatment": {
+        "light": "#F7FAFB",
+        "dark_capture": "#102D35",
+        "permanent_background": false
+      },
+      "status": "FROZEN"
+    }
+  ],
+  "page_inheritance": {
+    "home_empty_v2": "BG_ENV_HERO with Sunrise Hero master",
+    "home_normal_v1": "BG_ENV_HERO with Morning Lake master",
+    "recognition_flow_v1_2": "BG_CAPTURE",
+    "recognition_result_v1": "BG_CONTENT",
+    "fish_record_detail_v2": "BG_CONTENT",
+    "fish_memory_bside_v1": "BG_CONTENT inherited",
+    "fish_guide_v2": "BG_DATA",
+    "my_catches_v2": "BG_DATA",
+    "my_habitat": "BG_DATA inherited; design-only",
+    "record_date_v2": "BG_DATA"
+  }
+}

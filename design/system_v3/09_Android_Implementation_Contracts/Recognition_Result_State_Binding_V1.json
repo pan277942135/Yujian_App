@@ -1,0 +1,221 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "recognition_result_state_binding_v1",
+  "version": "V1",
+  "page": "RecognitionResult",
+  "page_id": "recognition.result.v3_1",
+  "status": "READY_FOR_IMPLEMENTATION",
+  "canonical_state_name": "RecognitionResultState",
+  "authority_source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+  "page_state_machine": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+  "page_data_contract": "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json",
+  "required_state_ids": [
+    "INITIAL",
+    "RESULT_READY",
+    "HIGH_CONFIDENCE",
+    "MEDIUM_CONFIDENCE",
+    "LOW_CONFIDENCE",
+    "NO_FISH",
+    "IMAGE_QUALITY_WARNING",
+    "SAVE_LOADING",
+    "SAVE_SUCCESS",
+    "SAVE_ERROR"
+  ],
+  "states": [
+    {
+      "id": "INITIAL",
+      "kind": "binding_boundary",
+      "page_state": null,
+      "rendered": false,
+      "meaning": "Recognition Result route is not rendered until a real result payload is available; keep the Processing owner active."
+    },
+    {
+      "id": "RESULT_READY",
+      "kind": "binding_boundary",
+      "page_state": null,
+      "rendered": false,
+      "meaning": "A complete Recognition Result payload has arrived; immediately bind exactly one of the five canonical product states."
+    },
+    {
+      "id": "HIGH_CONFIDENCE",
+      "kind": "page_state_alias",
+      "page_state": "HIGH_CONFIDENCE",
+      "rendered": true,
+      "meaning": "Top-1 is the default recognized species; user may correct it."
+    },
+    {
+      "id": "MEDIUM_CONFIDENCE",
+      "kind": "page_state_alias",
+      "page_state": "MEDIUM_CONFIDENCE",
+      "rendered": true,
+      "meaning": "Candidates are suggestions and require explicit user confirmation."
+    },
+    {
+      "id": "LOW_CONFIDENCE",
+      "kind": "page_state_alias",
+      "page_state": "LOW_CONFIDENCE",
+      "rendered": true,
+      "meaning": "Species remains unconfirmed until LOW_MANUAL selection; persistence is gated."
+    },
+    {
+      "id": "NO_FISH",
+      "kind": "page_state_alias",
+      "page_state": "NO_FISH",
+      "rendered": true,
+      "meaning": "Recovery state; never create a catch record."
+    },
+    {
+      "id": "IMAGE_QUALITY_WARNING",
+      "kind": "page_state_alias",
+      "page_state": "IMAGE_QUALITY_WARNING",
+      "rendered": true,
+      "meaning": "Recovery state; use registered reason/copy; never create a catch record."
+    },
+    {
+      "id": "SAVE_LOADING",
+      "kind": "page_state_alias",
+      "page_state": "SAVE_IN_PROGRESS",
+      "rendered": true,
+      "meaning": "Preserve content and drafts, disable duplicate submission, and expose the loading state on the initiating action."
+    },
+    {
+      "id": "SAVE_SUCCESS",
+      "kind": "transient_exit_binding",
+      "page_state": [
+        "SAVED_HOME",
+        "SAVED_DETAIL_MEMORY"
+      ],
+      "rendered": false,
+      "meaning": "Transient persisted outcome only; immediately dispatch the requested destination and never show a new success page."
+    },
+    {
+      "id": "SAVE_ERROR",
+      "kind": "page_state_alias",
+      "page_state": "SAVE_ERROR",
+      "rendered": true,
+      "meaning": "Keep Result visible, retain draft and requested destination, and allow a safe retry."
+    }
+  ],
+  "transitions": [
+    {
+      "from": "INITIAL",
+      "event": "result_payload_resolved",
+      "to": "RESULT_READY",
+      "guard": "Only after a real recognition result or recovery outcome is delivered."
+    },
+    {
+      "from": "RESULT_READY",
+      "event": "outcome_high",
+      "to": "HIGH_CONFIDENCE",
+      "page_transition": "entry_mapping.high"
+    },
+    {
+      "from": "RESULT_READY",
+      "event": "outcome_medium",
+      "to": "MEDIUM_CONFIDENCE",
+      "page_transition": "entry_mapping.medium"
+    },
+    {
+      "from": "RESULT_READY",
+      "event": "outcome_low",
+      "to": "LOW_CONFIDENCE",
+      "page_transition": "entry_mapping.low"
+    },
+    {
+      "from": "RESULT_READY",
+      "event": "outcome_no_fish",
+      "to": "NO_FISH",
+      "page_transition": "entry_mapping.no_fish"
+    },
+    {
+      "from": "RESULT_READY",
+      "event": "outcome_image_quality",
+      "to": "IMAGE_QUALITY_WARNING",
+      "page_transition": "entry_mapping.image_quality"
+    },
+    {
+      "from": "HIGH_CONFIDENCE",
+      "event": "save_catch_or_continue_memory",
+      "to": "SAVE_LOADING",
+      "page_transition": "HIGH_CONFIDENCE→SAVE_IN_PROGRESS"
+    },
+    {
+      "from": "MEDIUM_CONFIDENCE",
+      "event": "candidate_or_other_species",
+      "to": "MEDIUM_CONFIDENCE",
+      "guard": "No implicit candidate confirmation; use registered Selector state and commit only on explicit selection."
+    },
+    {
+      "from": "LOW_CONFIDENCE",
+      "event": "save_catch_or_continue_memory",
+      "to": "LOW_CONFIDENCE",
+      "guard": "Open LOW_MANUAL selector first; do not persist until species is explicitly selected."
+    },
+    {
+      "from": "SAVE_LOADING",
+      "event": "persistence_succeeded",
+      "to": "SAVE_SUCCESS",
+      "guard": "A persisted record identity is required."
+    },
+    {
+      "from": "SAVE_LOADING",
+      "event": "persistence_failed",
+      "to": "SAVE_ERROR",
+      "page_transition": "SAVE_IN_PROGRESS→SAVE_ERROR"
+    },
+    {
+      "from": "SAVE_ERROR",
+      "event": "retry_requested_destination",
+      "to": "SAVE_LOADING",
+      "page_transition": "SAVE_ERROR→SAVE_IN_PROGRESS"
+    },
+    {
+      "from": "SAVE_SUCCESS",
+      "event": "requested_destination_is_save_catch",
+      "to": "SAVE_SUCCESS",
+      "dispatch": "HOME",
+      "guard": "Exactly one persisted record; never open FishRecordDetail from Save Catch."
+    },
+    {
+      "from": "SAVE_SUCCESS",
+      "event": "requested_destination_is_continue_memory",
+      "to": "SAVE_SUCCESS",
+      "dispatch": "FishRecordDetail(recordId, initialSection=MEMORY)",
+      "guard": "Persisted record identity exists before navigation."
+    },
+    {
+      "from": "NO_FISH",
+      "event": "retake_or_gallery",
+      "to": "NO_FISH",
+      "dispatch": "RETURN_CAPTURE",
+      "guard": "No persistence."
+    },
+    {
+      "from": "IMAGE_QUALITY_WARNING",
+      "event": "retake_or_gallery",
+      "to": "IMAGE_QUALITY_WARNING",
+      "dispatch": "RETURN_CAPTURE",
+      "guard": "No persistence."
+    }
+  ],
+  "external_canonical_outcomes": [
+    {
+      "id": "TECHNICAL_FAILURE",
+      "source_state_machine": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "meaning": "Separate technical issue route; not a member of RecognitionResultState and not an Image Quality state.",
+      "dispatch": "RETURN_CAPTURE"
+    }
+  ],
+  "prohibited_android_private_states": [
+    "SUCCESS_2",
+    "FAILED_TEMP",
+    "UNKNOWN_RESULT"
+  ],
+  "invariants": [
+    "INITIAL and RESULT_READY are non-rendered binding boundaries, not product-visible page states.",
+    "The five product result/recovery states remain distinct and map one-to-one to the frozen Page Contract.",
+    "SAVE_SUCCESS is transient and dispatches only the already-requested destination.",
+    "Save Catch success routes Home; Continue Memory is the distinct persisted route to FishRecordDetail(memory).",
+    "No result, confidence, species, quality reason, metadata, or success state may be fabricated."
+  ]
+}

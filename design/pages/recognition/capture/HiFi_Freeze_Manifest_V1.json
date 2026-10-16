@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "feature": "recognition_flow_v1_2",
+  "page": "recognition.capture.v3_1",
+  "status": "FROZEN",
+  "freeze_date": "2026-10-16",
+  "states": [
+    {
+      "id": "capture_ready_portrait_horizontal",
+      "title": "Recognition Capture · Portrait · Horizontal Fish",
+      "runtime_reference": "1080x1920",
+      "source_filename": "a_realistic_high_resolution_vertical_smartphone_c.png",
+      "source_dimensions": "941x1672",
+      "source_bytes": 2184165,
+      "source_sha256": "6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c",
+      "repository_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png",
+      "binary_import_status": "PENDING"
+    },
+    {
+      "id": "capture_ready_landscape_horizontal",
+      "title": "Recognition Capture · Landscape · Horizontal Fish",
+      "runtime_reference": "1920x1080",
+      "source_filename": "湖畔拍照识鱼界面.png",
+      "source_dimensions": "1672x941",
+      "source_bytes": 2079370,
+      "source_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18",
+      "repository_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Landscape_Horizontal_Fish_Frozen.png",
+      "binary_import_status": "PENDING"
+    }
+  ],
+  "shared_components": {
+    "capture_button": "design/system/components/primary_capture_button/manifest.json",
+    "gallery": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+    "back": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json"
+  },
+  "orientation_rule": "Both phone orientations use a horizontal fish and a fixed horizontal Fish Guide Frame.",
+  "control_rule": "Capture + Gallery are a right-side vertical action rail in both frozen Hi-Fi states.",
+  "no_phone_frame": true,
+  "no_static_morning_lake_underlay": true
+}
