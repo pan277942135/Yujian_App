@@ -273,12 +273,11 @@
         "design/pages/recognition/first_use_camera_guide/manifest.json",
         "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
         "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-        "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
         "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
         "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md"
       ],
       "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
-      "status_detail": "P01/P02/P03 FROZEN; P01/P02 use 下一张, P03 uses 开始拍摄; no automatic shutter."
+      "status_detail": "P01/P02 FROZEN as a two-page guide; P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish; P01 uses 下一张, P02 uses 开始拍摄; no automatic shutter. Active P02 raster source is pending; former P02/P03 binaries are historical/compatibility only."
     }
   ],
   "precedence_rules": [
