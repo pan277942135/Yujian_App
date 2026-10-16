@@ -761,6 +761,11 @@
           "id": "icon_library_v0_1",
           "variant": "ALL",
           "note": "跨页面语义图标 V0.1 盘点引用；不代表本页面小图标已全部冻结。"
+        },
+        {
+          "id": "first_use_camera_guide_v1",
+          "variant": "PAGE_SCOPED_FROZEN_OVERLAY",
+          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
         }
       ],
       "hifi_views": [
@@ -2987,6 +2992,92 @@
                 ],
                 "acceptance": "最终唯一闭环条件：runtime_gate_result_v1_2.json.classification == PASS，并且 manifest 无 missing/invalid required artifact。"
               }
+            }
+          ]
+        },
+        {
+          "id": "capture_first_use_guide",
+          "code": "07",
+          "title": "07 · 首次拍照教学",
+          "status": "FROZEN",
+          "authority_type": "group",
+          "render_mode": "authority_index",
+          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+          "summary": "FROZEN：首次相机进入的三页教学 Overlay。P01/P02 使用“下一张”，P03 使用“开始拍摄”；跳过和最终动作均只关闭引导，不自动触发快门。顶部 Hero 是正确示范，下方固定为三个错误样本：鱼头不在画面 / 鱼体过小 / 遮挡过多。",
+          "menu_points": [
+            "P01 · 竖屏拍摄示意 · FROZEN",
+            "P02 · 竖拍鱼类拍摄示意 · FROZEN",
+            "P03 · 横屏拍摄示意 · FROZEN",
+            "Hero = 正确示范；下方 3 个均为错误示范",
+            "P01/P03 错误样本为横向鱼体；P02 错误样本为竖直鱼体",
+            "P01/P02 → 下一张；P03 → 开始拍摄",
+            "跳过/开始拍摄均不自动触发快门",
+            "Additive Overlay · 不改写 Capture Frozen Page Contract"
+          ],
+          "freeze_date": "2026-10-16",
+          "children": [
+            {
+              "id": "p01",
+              "code": "P01",
+              "title": "P01 · 竖屏拍摄示意",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "visual",
+              "render_mode": "repo_image",
+              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+              "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+              "visual_authority_dimensions": {
+                "width": 941,
+                "height": 1671
+              },
+              "visual_authority_bytes": 1988159,
+              "visual_authority_sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+              "source_high_fidelity_png": "a_vertical_smartphone_ui_screenshot_photo_guide.png",
+              "summary": "P01：竖屏手机 + 横向鱼体。顶部 Hero 为正确示范；下方 3 个错误示范分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为下一张。"
+            },
+            {
+              "id": "p02",
+              "code": "P02",
+              "title": "P02 · 竖拍鱼类拍摄示意",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "visual",
+              "render_mode": "repo_image",
+              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+              "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+              "visual_authority_dimensions": {
+                "width": 941,
+                "height": 1671
+              },
+              "visual_authority_bytes": 2042852,
+              "visual_authority_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+              "source_high_fidelity_png": "a_vertical_smartphone_app_ui_screenshot_photograph.png",
+              "summary": "P02：竖屏手机 + 竖直鱼体。顶部 Hero 为正确示范；下方 3 个错误示范全部保持竖直鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为下一张。"
+            },
+            {
+              "id": "p03",
+              "code": "P03",
+              "title": "P03 · 横屏拍摄示意",
+              "status": "FROZEN",
+              "authority_type": "visual",
+              "menu_group": "visual",
+              "render_mode": "repo_image",
+              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+              "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+              "visual_authority_dimensions": {
+                "width": 941,
+                "height": 1672
+              },
+              "visual_authority_bytes": 2001322,
+              "visual_authority_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+              "source_high_fidelity_png": "湖畔横屏拍摄指南.png",
+              "summary": "P03：横屏手机 + 横向鱼体。顶部 Hero 为正确示范；下方 3 个错误示范全部保持横向鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。最终主操作为开始拍摄。"
             }
           ]
         }
