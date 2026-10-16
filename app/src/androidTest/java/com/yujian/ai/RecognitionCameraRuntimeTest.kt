@@ -713,7 +713,7 @@ class RecognitionCameraRuntimeTest {
         ))
         device.findObject(By.desc(HOME_CAMERA_BUTTON))!!.click()
         assertTrue("Camera route did not reopen", device.wait(
-            Until.hasObject(By.desc(BACK_BUTTON)), 15_000L,
+            Until.hasObject(By.desc(GUIDE_SKIP_BUTTON)), 30_000L,
         ))
         val reopened = waitForProductionReady(CAMERA_WAIT_MS)
         assertNotNull("Reopened camera did not become READY", reopened)

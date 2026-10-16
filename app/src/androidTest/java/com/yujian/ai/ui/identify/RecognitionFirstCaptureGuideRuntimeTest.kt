@@ -156,8 +156,8 @@ class RecognitionFirstCaptureGuideRuntimeTest {
 
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
         composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
-        composeRule.onNodeWithTag("recognition-guide-previous").assertHasClickAction().performClick()
         assertButtonSemantics("recognition-guide-previous", "上一张教学示例")
+        composeRule.onNodeWithTag("recognition-guide-previous").assertHasClickAction().performClick()
         composeRule.onNodeWithTag("recognition-guide-page-title-1", useUnmergedTree = true).assertIsDisplayed()
 
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeLeft() }
