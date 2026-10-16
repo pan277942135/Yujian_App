@@ -36,7 +36,7 @@ JOURNEY_IDS = [f"J{i:02d}" for i in range(1, 21)]
 QUEUE_IDS = [f"N{i:03d}" for i in range(1, 11)]
 CONTRACT_STATUSES = {
     "FROZEN", "READY", "ACTIVE_CLOSURE", "PARTIAL", "MISSING",
-    "DEFERRED", "NOT_CONFIRMED", "HISTORICAL", "PROTECTED", "ACTIVE",
+    "DEFERRED", "NOT_CONFIRMED", "HISTORICAL", "PROTECTED", "ACTIVE", "RUNTIME_ONLY",
 }
 MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "runtime", "evidence", "assets"]
 
@@ -160,8 +160,9 @@ def validate_features(registry: dict[str, Any], matrix: dict[str, Any], v: Valid
         feature = actual.get(fid, {})
         source = matrix_features.get(fid, {})
         v.require(feature.get("contract_id") == f"FC-{fid}", f"{fid}: contract_id mismatch")
-        for key in ("name", "scope", "priority", "control_phase", "registry_overall", "owner_path"):
+        for key in ("name", "scope", "priority", "control_phase", "owner_path"):
             v.require(feature.get(key) == source.get(key), f"{fid}: {key} drift from Feature Matrix")
+        v.require(feature.get("registry_status") == source.get("registry_overall"), f"{fid}: registry_status drift from Feature Matrix")
         for key in ("child_surfaces", "journey_refs", "route_refs"):
             v.require(feature.get(key, []) == source.get(key, []), f"{fid}: {key} drift from Feature Matrix")
 
