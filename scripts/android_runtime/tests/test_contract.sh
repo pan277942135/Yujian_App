@@ -41,7 +41,6 @@ run_case() {
   app_apk_sha256="$(sha256sum "$tmp/app-debug.apk" | awk '{print $1}')"
   set +e
     FAKE_ADB_MODE="$mode" \
-    FAKE_ADB_RESTART_LOG="$tmp/restarts" \
     FAKE_APP_APK_SHA256="$app_apk_sha256" \
     YUJIAN_CAPTURE_RECOGNITION_VIDEO=1 \
     YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
@@ -60,9 +59,9 @@ run_case() {
   set -e
   assert_result "$tmp/evidence/runtime_gate_result.json" "$expected_classification" "$expected_rc" "$rc"
   if [[ "$name" == "offline" ]]; then
-    restarts="$(wc -l < "$tmp/restarts")"
-    [[ "$restarts" == "2" ]] || {
-      echo "expected exactly one kill/start ADB restart, observed $restarts calls" >&2
+    restarts="$(cat "$tmp/evidence/infra/adb_restart_count")"
+    [[ "$restarts" == "1" ]] || {
+      echo "expected exactly one kill/start ADB restart (count=1), observed count=$restarts" >&2
       exit 1
     }
   fi
