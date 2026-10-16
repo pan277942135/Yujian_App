@@ -1,0 +1,656 @@
+schema_version: "1.0"
+state_id: "yujian-project-master-state"
+project:
+  id: "yujian"
+  name: "渔见"
+  platform: "Android"
+  status: "IN_PROGRESS"
+  release_status: "NOT_READY"
+  current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
+
+state_control:
+  updated_at: "2026-10-16T11:00:00+08:00"
+  current_repo: "pan277942135/Yujian_App"
+  current_branch: "audit/design-system-v3-1-phase1-master-baseline"
+  current_head: "a280699da7575aa332f9d00104969161bbe918bd"
+  current_pr: 145
+  pr_state: "DRAFT_OPEN_UNMERGED"
+  base_branch: "main"
+  base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+  source_priority:
+    - "live repository"
+    - "current branch/HEAD"
+    - "current PR"
+    - "observed CI/runtime evidence"
+    - "durable project documents"
+    - "historical reports"
+    - "conversation memory"
+  conflict_rule: "When sources disagree, live repository evidence wins; otherwise mark CONFLICT/NOT_CONFIRMED and do not infer PASS."
+
+source_of_truth:
+  master_state: "PROJECT_MASTER_STATE.yaml"
+  agent_startup: "AGENTS.md"
+  state_update_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+  work_log: "harness/build-log.md"
+  current_work_state: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+  design_authority: "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
+  product_master_flow: "design/system_v3/00_Product_Master_Flow/"
+  page_contracts: "design/system_v3/08_Page_Contracts/"
+  runtime_governance: "design/system_v3/11_Freeze_Governance/"
+
+repositories:
+  android:
+    full_name: "pan277942135/Yujian_App"
+    role: "PRIMARY_CONTROL_PLANE"
+    default_branch: "main"
+    main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+    active_branch: "audit/design-system-v3-1-phase1-master-baseline"
+    active_sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    runtime:
+      os: "Android"
+      api_level: 28
+      runner: "self-hosted"
+      reference_device: "Pixel_2"
+      reference_resolution: "1080x1920"
+    local_runtime:
+      gradle: "UNAVAILABLE_AT_LAST_CHECK"
+      android_sdk: "UNAVAILABLE_AT_LAST_CHECK"
+      adb: "UNAVAILABLE_AT_LAST_CHECK"
+      emulator: "UNAVAILABLE_AT_LAST_CHECK"
+    policy:
+      merge_main: false
+      force_push: false
+      rewrite_history: false
+
+  backend:
+    full_name: "pan277942135/Yujian"
+    role: "BACKEND_GCP_API_DATA_PLANE"
+    default_branch: "main"
+    current_main_sha: "05554ce1b7104c7bce05610979dfc3478b6d24a5"
+    current_pr_145_scope: "UNCHANGED"
+    gcp_project: "gemini-api-project-503706"
+    cloud_sql_instance: "yujian-registry"
+    database: "yujian_registry"
+    model_factory_bucket: "yujian-model-factory-571785698442"
+    policy:
+      current_android_acceptance_may_modify_backend: false
+      current_android_acceptance_may_modify_database: false
+      deploy_without_explicit_scope: false
+
+pull_requests:
+  PR145:
+    repository: "pan277942135/Yujian_App"
+    number: 145
+    role: "CURRENT_CONTROL_PR"
+    title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
+    state: "DRAFT_OPEN_UNMERGED"
+    branch: "audit/design-system-v3-1-phase1-master-baseline"
+    head_sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    base: "main"
+    base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+
+  PR122:
+    repository: "pan277942135/Yujian_App"
+    number: 122
+    role: "HISTORICAL_NORMAL_HOME_WORKLINE"
+    state: "DRAFT_OPEN_UNMERGED"
+    rule: "REFERENCE_ONLY; never current baseline"
+
+  PR129:
+    repository: "pan277942135/Yujian_App"
+    number: 129
+    role: "HISTORICAL_NORMAL_HOME_ENGINEERING_GOVERNANCE"
+    state: "DRAFT_OPEN_UNMERGED"
+    rule: "REFERENCE_ONLY; never current baseline"
+
+  PR97:
+    repository: "pan277942135/Yujian_App"
+    number: 97
+    role: "HISTORICAL_FULL_SURFACE_EPIC"
+    state: "DRAFT_OPEN_UNMERGED"
+    historical_head_sha: "5ef7f9bf5fccffa29743878a1d5c69979bebc654"
+    rule: "REFERENCE_ONLY; never current baseline"
+
+phases:
+  P0:
+    name: "Product Goal / Decisions"
+    status: "PASS"
+    freeze: "FROZEN"
+    key_decisions:
+      save_catch_navigation: "Recognition Result -> Save Catch -> Home -> Recent Catch -> FishRecordDetail -> B-side memory"
+      brand_title: "FROZEN_ARTWORK_ASSET"
+      semantic_colors: "FROZEN"
+      selector_species_picker: "FROZEN"
+
+  P1:
+    name: "Product Master Flow / State Model"
+    status: "PASS"
+    freeze: "FROZEN"
+    master_flow:
+      nodes: 35
+      edges: 56
+      features: 15
+    recognition_main_journey: "FROZEN"
+
+  P2:
+    name: "Product Specifications / Business Contracts"
+    status: "IN_PROGRESS"
+    freeze: "PARTIAL"
+    primary_recognition_journey: "FROZEN"
+    secondary_surfaces: "NOT_FULLY_CLOSED"
+    remaining_examples:
+      - "Record Date"
+      - "My Habitat"
+      - "Share/templates"
+      - "remaining secondary feature contracts"
+
+  P3:
+    name: "Design System / Visual Contracts"
+    status: "IN_PROGRESS"
+    freeze: "PARTIAL"
+    design_system_version: "V3.1"
+    shared_foundation:
+      status: "PASS"
+      freeze: "FROZEN"
+      systems:
+        typography: "READY"
+        color: "READY"
+        geometry: "READY"
+        background: "READY"
+        icon: "READY"
+        component: "READY"
+        asset: "READY"
+      ready_count: "7/7"
+    component_registry:
+      status: "FROZEN"
+      frozen_count: 18
+    page_registry:
+      capture: "FROZEN"
+      processing: "FROZEN"
+      result: "FROZEN"
+    recognition_result_phase_3b:
+      status: "NOT_CONFIRMED"
+      current_pr_145_statement: "NOT_STARTED"
+      rule: "Do not promote to PASS until current-branch artifacts and provenance are verified."
+    brand_title_primary:
+      status: "FROZEN"
+      asset_id: "brand_title_primary"
+      design_path: "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png"
+      android_path: "app/src/main/res/drawable-nodpi/brand_title_primary.png"
+      sha256: "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc"
+      dimensions: "155x80"
+      format: "RGBA"
+    normal_home:
+      visual_contract: "DEFINED"
+      android_contract: "DEFINED"
+      runtime_parity: "BLOCKED"
+    first_capture_guide:
+      design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+      status: "READY_FOR_WORK"
+
+  P4:
+    name: "Architecture / API / Data Contracts"
+    status: "IN_PROGRESS"
+    freeze: "PARTIAL"
+    backend_api_database_contracts:
+      status: "PROTECTED"
+      changed_by_current_pr_145: false
+    rule: "Android work must not invent or silently change backend/API/database contracts."
+
+  P5:
+    name: "Engineering Foundation / CI / Test Harness"
+    status: "PASS"
+    freeze: "ACTIVE"
+    android_build: "PASS"
+    jvm_tests: "PASS"
+    android_test_apk_compile: "PASS"
+    lint: "PASS"
+    camera_harness_contract_tests: "PASS"
+    packaged_asset_checks: "PASS"
+    model_trace: "PASS"
+    self_hosted_api28_runner:
+      status: "AVAILABLE"
+      api_level: 28
+    runtime_trigger:
+      pr_event: "SKIP"
+      branch_push: "RUN"
+      workflow_dispatch: "RUN"
+
+  P6:
+    name: "Feature Implementation"
+    status: "IN_PROGRESS"
+    freeze: "PARTIAL"
+    current_feature: "RECOGNITION_MAIN_JOURNEY"
+    current_work_id: "RECOGNITION-FIRST-USE-GUIDE-V1"
+    current_work_stage: "E0"
+    current_work_status: "FIX_READY_FOR_EXACT_HEAD_CI"
+    completed_scope:
+      - "fresh capture on retake/back"
+      - "attempt-scoped stale-callback guards"
+      - "Photo Picker independence"
+      - "one-time Preview-Ready guidance"
+      - "dirty-draft confirmation"
+      - "recoverable save/login"
+      - "authenticated idempotency lookup"
+      - "durable guest idempotency"
+      - "clean post-save back stacks"
+    remaining_scope:
+      - "exact-head API28 runtime"
+      - "J01-J20 runtime execution"
+      - "runtime visual/motion/responsive evidence"
+      - "final QA evidence and APK provenance"
+
+  P7:
+    name: "Integration / Full Surface"
+    status: "IN_PROGRESS"
+    freeze: "NOT_FROZEN"
+    primary_scope:
+      - "Empty Home"
+      - "Camera"
+      - "First Capture Guide"
+      - "Recognition Processing"
+      - "Recognition Result"
+      - "Save Catch"
+      - "Home / Recent Catch"
+      - "FishRecordDetail"
+    acceptance_status: "NOT_ACCEPTED"
+    reasons:
+      - "exact-head runtime acceptance pending"
+      - "J01-J20 end-to-end acceptance pending"
+      - "Normal Home Hero fixture matrix remains blocked"
+      - "historical dependent runtime regressions require re-verification"
+
+  P8:
+    name: "QA / Runtime / Evidence"
+    status: "IN_PROGRESS"
+    freeze: "NOT_FROZEN"
+    exact_head:
+      sha: "a280699da7575aa332f9d00104969161bbe918bd"
+      runtime_status: "NOT_RUN"
+    required_evidence:
+      - "runtime run ID"
+      - "test result"
+      - "1080x1920 screenshots"
+      - "boundsInWindow"
+      - "pixel diff"
+      - "motion evidence"
+      - "device/profile matrix"
+      - "APK SHA-256"
+      - "final test report"
+
+  P9:
+    name: "Release / APK Delivery"
+    status: "NOT_STARTED"
+    release_candidate: "NOT_AVAILABLE"
+    exact_head_apk:
+      artifact_generated: true
+      apk_sha256: "NOT_VERIFIED_FROM_BINARY"
+      release_eligible: false
+    release_gate:
+      build: "PASS"
+      exact_head_runtime: "NOT_RUN"
+      full_journey: "NOT_ACCEPTED"
+      visual_acceptance: "BLOCKED"
+      final_release: "NOT_READY"
+
+recognition_main_journey:
+  status: "IN_PROGRESS"
+  contract_status: "FROZEN"
+  acceptance_plan_status: "FROZEN"
+  start: "EMPTY_HOME"
+  end: "HOME_OR_RECENT_CATCH"
+  route:
+    - "J01 Empty Home"
+    - "J02 Tap Camera"
+    - "J03 Camera Permission"
+    - "J04 First Capture Guide"
+    - "J05 Camera Capture"
+    - "J06 Preview Ready"
+    - "J07 Recognition Processing"
+    - "J08 Detection"
+    - "J09 Outline"
+    - "J10 Classification"
+    - "J11 Recognition Result"
+    - "J12 High Confidence Result"
+    - "J13 Medium/Low Confidence Result"
+    - "J14 No Fish / Invalid Image"
+    - "J15 Save Catch"
+    - "J16 Continue / Edit Catch"
+    - "J17 Return Home"
+    - "J18 Recent Catch"
+    - "J19 FishRecordDetail A"
+    - "J20 FishRecordDetail B / Memory"
+  first_use:
+    permission:
+      first_entry: "SYSTEM_PERMISSION_PROMPT"
+      denied: "RECOVERABLE"
+      granted: "CONTINUE_TO_GUIDE"
+    guide:
+      one_time_preview_ready_guidance: true
+      subsequent_entry: "SIMPLIFIED_PATH"
+      status: "READY_FOR_WORK"
+  processing:
+    state_sequence:
+      - "CAPTURED >= 220ms"
+      - "DETECTING >= 320ms"
+      - "OUTLINE >= 350ms"
+      - "CLASSIFYING >= 250ms"
+      - "RESULT_READY"
+    result_hold_max_ms: 900
+    expected_total: "approximately 1.1-1.3s"
+  result:
+    states:
+      - "HIGH_CONFIDENCE"
+      - "MEDIUM_CONFIDENCE"
+      - "LOW_CONFIDENCE"
+      - "NO_FISH"
+      - "INVALID_IMAGE"
+    first_entry_loading: "FORBIDDEN"
+    action_loading: "ONLY_AFTER_USER_ACTION"
+    save_navigation:
+      - "Recognition Result"
+      - "Save Catch"
+      - "Home"
+      - "Recent Catch"
+      - "FishRecordDetail"
+  detail:
+    hero_mode: "EVIDENCE_FIT"
+    first_b_side_reveal: "ONCE"
+    default_after_first_reveal: "A_SIDE"
+  acceptance:
+    J01_J20: "NOT_RUN"
+    runtime: "NOT_RUN"
+    end_to_end: "NOT_ACCEPTED"
+
+runtime_gates:
+  reference:
+    api_level: 28
+    device: "Pixel_2"
+    reference_resolution: "1080x1920"
+    runner: "self-hosted"
+  exact_head:
+    sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    status: "NOT_RUN"
+  pr_ci:
+    run_id: 38839618733
+    status: "PASS"
+    build: "PASS"
+    jvm: "PASS"
+    android_test_apk_compile: "PASS"
+    lint: "PASS"
+    asset_contracts: "PASS"
+    model_verification: "PASS"
+    camera_harness_contract_tests: "PASS"
+    apk_assembly: "PASS"
+    packaged_asset_checks: "PASS"
+    model_trace: "PASS"
+    apk_artifacts: "GENERATED"
+    android_runtime: "SKIPPED"
+  branch_runtime:
+    required: true
+    status: "PENDING"
+    suites:
+      - "normal-home-v1"
+      - "recognition-frozen"
+      - "empty-home-v2"
+      - "login-v2"
+      - "data-sanitization"
+      - "fish-guide-v1"
+      - "runtime-parity (optional)"
+  historical_runtime_run:
+    run_id: 38765917873
+    source_sha: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
+    classification: "DIAGNOSTIC_ONLY"
+    normal_home: "FAIL_EVIDENCE"
+    empty_home: "FAIL_EVIDENCE"
+    recognition_frozen: "FAIL_TEST"
+    data_sanitization: "FAIL_TEST"
+    login_v2: "FAIL_TEST"
+    fish_guide_v1: "RUNNER_SETUP_INCOMPLETE"
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+
+apk_and_evidence:
+  exact_head:
+    source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    run_id: 38839618733
+    artifact_ids:
+      debug: 12020716375
+      full_surface: 12020781309
+      recognition_qa: 12020876202
+      runtime_apk_pair: 12021175407
+    artifact_zip_digests:
+      debug: "sha256:d986e9264c18d0152410a3e9e59e49b353bbcd826710634ded324757b7994172"
+      full_surface: "sha256:5f69c81a4027df4137e54bf0740e02c6cfe3d11c6294379868c9aa8675e79b88"
+      recognition_qa: "sha256:f73ce11cc614cf50889ffed8b4e97a5d5ee8df37086151560557a38efb1f94e2"
+      runtime_apk_pair: "sha256:4b3a89cc5704ed0c2aa5e193e2d850b370fa8de6fa0fad8d65fcdaa06f576970"
+    apk_sha256: null
+    runtime_evidence: "NOT_GENERATED"
+
+  historical_installable:
+    source_sha: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
+    apk_sha256: "6822d3de0545d289c18f66581b16f3917201175809a95efbcea951c9f2b78e8c"
+    status: "HISTORICAL_ONLY"
+
+normal_home_runtime:
+  status: "BLOCKED"
+  A4_1:
+    name: "Hero Evidence Fixture Closure + Camera Mask Finalization"
+    status: "BLOCKED"
+    hero_fixture_matrix:
+      required_cases: "F01-F08"
+      status: "BLOCKED"
+      required_evidence: "HOME + DETAIL runtime screenshots with provenance/license/duplicate audit"
+    camera:
+      asset_id: "normal_home_camera_primary_v1"
+      sha256: "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2"
+      mask_threshold_px: 2.16
+      registration: "APPROVED"
+      runtime_parity: "NOT_CLOSED"
+  rule: "Static/source pixel checks do not promote NORMAL_HOME_RUNTIME_PARITY to PASS."
+
+current_work:
+  id: "RECOGNITION-FIRST-USE-GUIDE-V1"
+  phase: "P6"
+  stage: "E0"
+  status: "FIX_READY_FOR_EXACT_HEAD_CI"
+  source_file: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+  exact_head: "a280699da7575aa332f9d00104969161bbe918bd"
+  previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
+  first_use_guide:
+    task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+    design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+    status: "READY_FOR_WORK"
+    backend_dependency: "NONE"
+    frozen_assets:
+      P01:
+        path: "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png"
+        sha256: "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
+        dimensions: "941x1671"
+      P02:
+        path: "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png"
+        sha256: "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
+        dimensions: "941x1671"
+      P03:
+        path: "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png"
+        sha256: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+        dimensions: "941x1672"
+  next:
+    - "Trigger authoritative API28 runtime on exact HEAD"
+    - "Run J01-J20 acceptance"
+    - "Generate runtime evidence"
+    - "Record exact-head APK SHA-256"
+    - "Update state and build log after each stage"
+
+blockers:
+  - id: "B001"
+    severity: "P0"
+    area: "Android Runtime"
+    status: "OPEN"
+    description: "Exact HEAD a280699da7575aa332f9d00104969161bbe918bd has not completed authoritative API28 runtime acceptance."
+    unblock: "Branch push or workflow_dispatch -> API28 matrix -> evidence."
+
+  - id: "B002"
+    severity: "P1"
+    area: "Recognition Runtime"
+    status: "OPEN"
+    description: "Recognition runtime fixes are present, but exact-head device verification is pending."
+    unblock: "recognition-frozen PASS on exact HEAD."
+
+  - id: "B003"
+    severity: "P1"
+    area: "Normal Home"
+    status: "OPEN"
+    description: "Approved Hero fixture matrix F01-F08 is not closed."
+    unblock: "Approved independent fixtures + provenance/license + duplicate audit + HOME/DETAIL runtime evidence."
+
+  - id: "B004"
+    severity: "P1"
+    area: "Normal Home Camera"
+    status: "OPEN"
+    description: "Camera mask is registered but full runtime optical parity is not closed."
+    unblock: "Exact-head runtime evidence + geometry/pixel acceptance."
+
+  - id: "B005"
+    severity: "P1"
+    area: "Local Toolchain"
+    status: "OPEN"
+    description: "Local Gradle/SDK/ADB/emulator are unavailable in the checkout."
+    unblock: "Use authoritative self-hosted API28 runner."
+
+  - id: "B006"
+    severity: "P1"
+    area: "Design System"
+    status: "OPEN"
+    description: "Phase 3-B Recognition Result provenance differs between historical project records and current PR #145."
+    unblock: "Verify current-branch artifacts and provenance; only then change status."
+
+  - id: "B007"
+    severity: "P2"
+    area: "Full Product"
+    status: "OPEN"
+    description: "Secondary surfaces remain incompletely contract/runtime closed."
+    unblock: "Complete secondary contracts and runtime acceptance after the focused journey."
+
+protected_invariants:
+  product:
+    - "Recognition Result -> Save Catch -> Home -> Recent Catch -> FishRecordDetail"
+    - "Save Catch does not directly navigate to FishRecordDetail"
+  recognition:
+    - "CAPTURED >= 220ms"
+    - "DETECTING >= 320ms"
+    - "OUTLINE >= 350ms"
+    - "CLASSIFYING >= 250ms"
+    - "Result hold <= 900ms"
+    - "Total approximately 1.1-1.3s"
+  result:
+    - "First entry is idle, not loading"
+    - "Loading begins only after explicit CTA action"
+    - "GOOD/WARNING/INVALID taxonomy is preserved"
+  media:
+    - "Original user media is never overwritten"
+    - "Hero uses the declared Fill/Fit contract"
+    - "Evidence Fit is used when crop cannot be trusted"
+    - "No non-uniform image stretching"
+  design:
+    - "Frozen PNG bytes are immutable"
+    - "Frozen asset SHA must not change"
+    - "brand_title_primary is the brand title authority"
+    - "No unregistered crop mode"
+    - "No duplicate safePadding/inset processing"
+  engineering:
+    - "Do not merge main"
+    - "Do not force-push"
+    - "Do not rewrite history"
+    - "Do not delete failed historical evidence"
+    - "Do not infer runtime PASS from build PASS"
+    - "Do not use historical SHA evidence as current-head evidence"
+    - "Do not silently change Backend/API/database contracts"
+
+next_actions:
+  - id: "N001"
+    priority: "P0"
+    owner: "Work"
+    status: "READY"
+    action: "Run authoritative API28 runtime matrix against exact HEAD a280699da7575aa332f9d00104969161bbe918bd."
+  - id: "N002"
+    priority: "P0"
+    owner: "Work"
+    status: "WAITING_FOR_N001"
+    action: "Run recognition-frozen and verify current fixes on exact HEAD."
+  - id: "N003"
+    priority: "P0"
+    owner: "Work"
+    status: "WAITING_FOR_N001"
+    action: "Execute J01-J20 runtime acceptance."
+  - id: "N004"
+    priority: "P1"
+    owner: "Work"
+    status: "PARALLEL"
+    action: "Close Normal Home A4.1 F01-F08 Hero fixture matrix and Camera runtime parity."
+  - id: "N005"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    action: "Generate boundsInWindow, screenshots, pixel diff, motion and device/profile evidence."
+  - id: "N006"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    action: "Record exact-head APK SHA-256 and provenance."
+  - id: "N007"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    action: "Resolve Phase 3-B current-branch provenance conflict."
+  - id: "N008"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    action: "Publish focused recognition-main-journey test report."
+  - id: "N009"
+    priority: "P1"
+    owner: "Human"
+    status: "FINAL_GATE"
+    action: "Review final APK/evidence package and authorize release."
+
+completion_rules:
+  pass_requires:
+    - "Observed evidence exists"
+    - "Evidence is bound to exact source SHA"
+    - "Required runtime suite actually ran"
+    - "Required assertions passed"
+    - "Required screenshots/geometry/motion evidence exists"
+    - "No unresolved P0/P1 blocker for the claimed scope"
+  forbidden_shortcuts:
+    - "Build PASS => Runtime PASS"
+    - "Unit PASS => End-to-end PASS"
+    - "Historical PASS => Current PASS"
+    - "AI statement => Evidence"
+    - "Artifact exists => Release ready"
+
+state_update:
+  trigger_events:
+    - "commit"
+    - "branch change"
+    - "PR change"
+    - "phase status change"
+    - "feature status change"
+    - "runtime result"
+    - "blocker open/close"
+    - "APK generated"
+    - "evidence generated"
+    - "material product/design decision"
+  protocol_file: "harness/STATE_UPDATE_PROTOCOL.md"
+  work_log: "harness/build-log.md"
+
+agent_recovery:
+  startup_order:
+    - "AGENTS.md"
+    - "PROJECT_MASTER_STATE.yaml"
+    - "verify current Git HEAD"
+    - "read current_work_state"
+    - "read applicable contract"
+    - "read latest build-log entry"
+    - "check blockers"
+    - "execute next_actions"
+  interruption_rule: "Resume from the last committed state; never rely on chat memory as the only checkpoint."
