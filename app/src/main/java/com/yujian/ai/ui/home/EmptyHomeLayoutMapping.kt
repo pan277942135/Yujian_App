@@ -3,6 +3,7 @@ package com.yujian.ai.ui.home
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
 import com.yujian.ai.ui.adaptive.AdaptiveLayoutProfile
+import com.yujian.ai.ui.adaptive.AdaptiveWidthClass
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.adaptive.resolveAdaptiveLayoutProfile
 import com.yujian.ai.ui.adaptive.requiredTextBlockHeightDp
