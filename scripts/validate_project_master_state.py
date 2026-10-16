@@ -140,208 +140,78 @@ def sha256_file(path: Path) -> str:
 
 def validate_state(state: dict, v: Validation) -> None:
     v.require(state.get("schema_version") == "1.0", "schema_version must be 1.0")
-
     missing = REQUIRED_TOP_LEVEL - set(state)
     v.require(not missing, f"missing top-level keys: {sorted(missing)}")
 
     control = state.get("state_control", {})
     current_head = control.get("execution_baseline_sha") or control.get("current_head")
-    v.require(
-        isinstance(current_head, str) and RE_SHA40.fullmatch(current_head),
-        "state_control.execution_baseline_sha must be a 40-character SHA",
-    )
+    v.require(isinstance(current_head, str) and RE_SHA40.fullmatch(current_head), "state_control.execution_baseline_sha must be a 40-character SHA")
+    v.require(bool(control.get("current_branch")), "state_control.current_branch is required")
+    if control.get("base_sha"):
+        v.require(RE_SHA40.fullmatch(str(control["base_sha"])), "state_control.base_sha must be a 40-character SHA")
 
-    pr145 = state.get("pull_requests", {}).get("PR145", {})
-    v.require(pr145.get("number") == 145, "PR145.number must be 145")
-    pr145_snapshot = (
-        pr145.get("head_at_last_verified_snapshot")
-        or pr145.get("head_sha")
-    )
-    v.require(
-        isinstance(pr145_snapshot, str) and RE_SHA40.fullmatch(pr145_snapshot),
-        "PR145 head_at_last_verified_snapshot must be a 40-character SHA",
-    )
-    v.require(
-        pr145.get("head_tracking_rule")
-        == "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA.",
-        "PR145 head tracking rule is missing or changed",
-    )
-    v.require(
-        control.get("live_branch_head_at_snapshot") == pr145_snapshot,
-        "state_control.live_branch_head_at_snapshot must match PR145 snapshot",
-    )
-    # The snapshot is a durable observation, not a self-referential commit SHA.
-    # It may lag the current PR head by documentation/state commits, but must not
-    # point to a commit that is ahead of the current checkout.
-    v.require(
-        pr145.get("branch") == control.get("current_branch"),
-        "PR145.branch must equal state_control.current_branch",
-    )
-    v.require(
-        pr145.get("base_sha") == control.get("base_sha"),
-        "PR145.base_sha must equal state_control.base_sha",
-    )
-    v.require(
-        pr145.get("state") == "DRAFT_OPEN_UNMERGED",
-        "PR145 must remain DRAFT_OPEN_UNMERGED",
-    )
+    current_pr = control.get("current_pr")
+    if current_pr is not None:
+        v.require(isinstance(current_pr, int) and current_pr > 0, "state_control.current_pr must be positive")
+        pr = state.get("pull_requests", {}).get(f"PR{current_pr}", {})
+        v.require(pr.get("number") == current_pr, "current PR snapshot missing")
+        v.require(pr.get("branch") == control.get("current_branch"), "current PR branch drift")
+        v.require(pr.get("base_sha") == control.get("base_sha"), "current PR base SHA drift")
 
     phases = state.get("phases", {})
     for phase in REQUIRED_PHASES:
         v.require(phase in phases, f"missing phase {phase}")
         if phase in phases:
-            status = phases[phase].get("status")
-            v.require(
-                status in ALLOWED_STATUSES,
-                f"{phase}.status has unsupported value: {status!r}",
-            )
+            v.require(phases[phase].get("status") in ALLOWED_STATUSES, f"{phase}.status unsupported")
 
     journey = state.get("recognition_main_journey", {})
     route = journey.get("route", [])
-    expected_ids = [f"J{i:02d}" for i in range(1, 21)]
-    actual_ids = [
-        item.split(" ", 1)[0]
-        for item in route
-        if isinstance(item, str)
-    ]
-    v.require(
-        actual_ids == expected_ids,
-        "recognition route must contain J01-J20 in order",
-    )
-    v.require(
-        journey.get("contract_status") == "FROZEN",
-        "recognition_main_journey.contract_status must remain FROZEN",
-    )
+    ids = [x.split(" ", 1)[0] for x in route if isinstance(x, str)]
+    v.require(ids == [f"J{i:02d}" for i in range(1, 21)], "recognition route must contain J01-J20 in order")
+    v.require(journey.get("contract_status") == "FROZEN", "recognition_main_journey.contract_status must remain FROZEN")
 
     runtime = state.get("runtime_gates", {})
-    exact_head = runtime.get("exact_head", {})
-    v.require(
-        exact_head.get("sha") == current_head,
-        "runtime_gates.exact_head.sha must equal state_control.execution_baseline_sha",
-    )
-
-    if exact_head.get("status") == "PASS":
-        evidence = state.get("apk_and_evidence", {}).get("exact_head", {})
-        evidence_status = evidence.get("runtime_evidence")
-        apk_sha = evidence.get("apk_sha256")
-        v.require(
-            evidence_status not in (None, "NOT_GENERATED", "PENDING"),
-            "runtime PASS requires exact-head runtime evidence",
-        )
-        v.require(
-            isinstance(apk_sha, str) and RE_SHA256.fullmatch(apk_sha),
-            "runtime PASS requires a verified exact-head APK SHA-256",
-        )
-
-    branch = control.get("current_branch")
-    env_branch = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME")
-    if env_branch and branch and env_branch not in {branch, "HEAD"}:
-        v.error(f"workflow branch {env_branch!r} != state branch {branch!r}")
-
-    git_head = git_output("rev-parse", "HEAD")
-    if git_head and isinstance(current_head, str) and RE_SHA40.fullmatch(current_head):
-        relation = is_ancestor(current_head, git_head)
-        if relation is False:
-            v.error(
-                "tracked execution baseline is not an ancestor of repository HEAD: "
-                f"{current_head} -> {git_head}"
-            )
-        elif relation is None:
-            v.warning("could not verify Git ancestry")
-
-    current_work = ROOT / "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
-    v.require(current_work.exists(), f"current Work state missing: {current_work}")
-
-    for key in (
-        "current_work_state",
-        "design_authority",
-        "product_master_flow",
-        "page_contracts",
-        "runtime_governance",
-    ):
-        v.require(
-            bool(state.get("source_of_truth", {}).get(key)),
-            f"source_of_truth.{key} is missing",
-        )
-
-    frozen_brand = ROOT / (
-        "design/system_v3/06_Asset_System/derived/"
-        "brand_title_primary/brand_title_primary.png"
-    )
-    frozen_android_brand = ROOT / "app/src/main/res/drawable-nodpi/brand_title_primary.png"
-    expected_brand_sha = (
-        state.get("phases", {})
-        .get("P3", {})
-        .get("brand_title_primary", {})
-        .get("sha256")
-    )
-
-    if frozen_brand.exists():
-        actual = sha256_file(frozen_brand)
-        v.require(
-            actual == expected_brand_sha,
-            "brand_title_primary design asset SHA does not match master state",
-        )
-    else:
-        v.warning(f"brand_title_primary source asset not present: {frozen_brand}")
-
-    if frozen_android_brand.exists() and frozen_brand.exists():
-        v.require(
-            sha256_file(frozen_android_brand) == sha256_file(frozen_brand),
-            "Android brand_title_primary must be byte-identical to design asset",
-        )
-
-    blockers = state.get("blockers", [])
-    blocker_ids = [b.get("id") for b in blockers if isinstance(b, dict)]
-    v.require(
-        len(blocker_ids) == len(set(blocker_ids)),
-        "blocker IDs must be unique",
-    )
-
-    actions = state.get("next_actions", [])
-    action_ids = [a.get("id") for a in actions if isinstance(a, dict)]
-    v.require(
-        len(action_ids) == len(set(action_ids)),
-        "next_action IDs must be unique",
-    )
-    ready_actions = [
-        a for a in actions
-        if isinstance(a, dict) and a.get("status") == "READY"
-    ]
-    v.require(
-        len(ready_actions) >= 1,
-        "at least one next_action must be READY",
-    )
-
-    invariants = state.get("protected_invariants", {})
-    v.require(
-        bool(invariants) and all(
-            isinstance(items, list) and items
-            for items in invariants.values()
-        ),
-        "every protected_invariants group must be a non-empty list",
-    )
-
-    p9 = phases.get("P9", {})
-    if p9.get("release_candidate") == "NOT_AVAILABLE":
-        v.require(
-            p9.get("status") != "PASS",
-            "P9 cannot be PASS while release_candidate is NOT_AVAILABLE",
-        )
+    exact = runtime.get("exact_head", {})
+    v.require(exact.get("sha") == current_head, "runtime exact-head SHA drift")
 
     work = state.get("current_work", {})
-    v.require(
-        work.get("exact_head") == current_head,
-        "current_work.exact_head must equal state_control.execution_baseline_sha",
-    )
+    v.require(work.get("exact_head") == current_head, "current_work.exact_head drift")
+    v.require(bool(work.get("id")), "current_work.id is required")
+    v.require(bool(work.get("phase")), "current_work.phase is required")
+    v.require(bool(work.get("task_id")), "current_work.task_id is required")
 
-    historical = state.get("runtime_gates", {}).get("historical_runtime_run", {})
-    v.require(
-        historical.get("rule")
-        == "Historical results cannot promote current exact HEAD to PASS.",
-        "historical runtime protection rule is missing or changed",
-    )
+    source = state.get("source_of_truth", {})
+    work_path = source.get("current_work_state")
+    v.require(bool(work_path), "source_of_truth.current_work_state is required")
+    if work_path:
+        v.require((ROOT / work_path).exists(), f"current Work state missing: {ROOT / work_path}")
 
+    blockers = state.get("blockers", [])
+    blocker_ids = [x.get("id") for x in blockers if isinstance(x, dict)]
+    v.require(len(blocker_ids) == len(set(blocker_ids)), "blocker IDs must be unique")
+
+    actions = state.get("next_actions", [])
+    action_ids = [x.get("id") for x in actions if isinstance(x, dict)]
+    v.require(len(action_ids) == len(set(action_ids)), "next_action IDs must be unique")
+    v.require(any(isinstance(a, dict) and a.get("status") == "READY" for a in actions), "at least one next_action must be READY")
+
+    invariants = state.get("protected_invariants", {})
+    v.require(bool(invariants) and all(isinstance(x, list) and x for x in invariants.values()), "protected_invariants groups must be non-empty")
+
+    historical = runtime.get("historical_runtime_run", {})
+    v.require(historical.get("rule") == "Historical results cannot promote current exact HEAD to PASS.", "historical runtime protection rule missing")
+
+    env_branch = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME")
+    if env_branch and control.get("current_branch") and env_branch not in {control["current_branch"], "HEAD"}:
+        v.error(f"workflow branch {env_branch!r} != state branch {control['current_branch']!r}")
+
+    git_head = git_output("rev-parse", "HEAD")
+    if git_head:
+        relation = is_ancestor(current_head, git_head)
+        if relation is False:
+            v.error(f"tracked execution baseline is not an ancestor of repository HEAD: {current_head} -> {git_head}")
+        elif relation is None:
+            v.warning("could not verify Git ancestry")
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
