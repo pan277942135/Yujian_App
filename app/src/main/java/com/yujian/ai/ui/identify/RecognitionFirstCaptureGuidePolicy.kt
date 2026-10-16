@@ -102,7 +102,7 @@ internal fun reduceRecognitionFirstCaptureGuideState(
             state.copy(currentPage = previousPage)
         }
         RecognitionFirstCaptureGuideIntent.SKIP -> state.copy(visible = false, completed = true)
-        RecognitionFirstCaptureGuideIntent.START -> if (state.currentPage == RecognitionFirstCaptureGuidePage.P03) {
+        RecognitionFirstCaptureGuideIntent.START -> if (state.currentPage == RecognitionFirstCaptureGuidePage.P02) {
             state.copy(visible = false, completed = true)
         } else {
             state
