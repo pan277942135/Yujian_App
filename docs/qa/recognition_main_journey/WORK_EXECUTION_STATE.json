@@ -5,7 +5,7 @@
   "pull_request": 145,
   "branch": "audit/design-system-v3-1-phase1-master-baseline",
   "base_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-  "checkpoint_updated_at": "2026-10-16T11:00:00+08:00",
+  "checkpoint_updated_at": "2026-10-16T11:30:00+08:00",
   "stage": "E0",
   "stage_status": "FIX_READY_FOR_EXACT_HEAD_CI",
   "baseline_sha": "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2",
@@ -124,5 +124,17 @@
     "runtime_rule": "Frozen PNGs are Design Manager visual authority only; Android runtime must use structured Compose UI and independent page-specific photo assets, not full-page screenshots.",
     "binary_import_status": "PENDING_WORK",
     "main_merge_forbidden": true
+  },
+  "capture_permission_denied_visual": {
+    "state_id": "recognition.capture.permission_denied.v1",
+    "status": "FROZEN",
+    "contract": "design/system_v3/08_Page_Contracts/recognition/capture/Camera_Permission_Denied_Visual_Contract_V1.md",
+    "background": "BG_CONTENT",
+    "source_raster": "湖畔相机权限提示界面.png",
+    "source_dimensions": "941x1672",
+    "source_bytes": 1794959,
+    "source_sha256": "1feced3a5d6f7a7d3ef968edcf8a5a834d216fab40707cf84c31658be5417d06",
+    "github_visual_contract_commit": "ce478dd937593e4362338b62cc0f11ab08cb50b9",
+    "registry_commit": "b6180f3f7f61c3f8f78de75dfd23364f615d15ca"
   }
 }
