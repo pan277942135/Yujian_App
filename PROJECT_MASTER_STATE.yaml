@@ -14,7 +14,7 @@ state_control:
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "11a32ac649d28e4a7f9f70c59d245b8ff4d1f7bc"
+  live_branch_head_at_snapshot: "444e3b123f74b23fb44808385f5d87a3e278ca65"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -38,6 +38,8 @@ source_of_truth:
   current_work_state: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
   feature_matrix: "harness/FEATURE_MATRIX.yaml"
   feature_matrix_validator: "scripts/validate_feature_matrix.py"
+  phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+  phase_task_state_machine_validator: "scripts/validate_phase_task_state_machine.py"
   design_authority: "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
   product_master_flow: "design/system_v3/00_Product_Master_Flow/"
   page_contracts: "design/system_v3/08_Page_Contracts/"
@@ -91,7 +93,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "11a32ac649d28e4a7f9f70c59d245b8ff4d1f7bc"
+    head_at_last_verified_snapshot: "444e3b123f74b23fb44808385f5d87a3e278ca65"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -464,6 +466,18 @@ normal_home_runtime:
       registration: "APPROVED"
       runtime_parity: "NOT_CLOSED"
   rule: "Static/source pixel checks do not promote NORMAL_HOME_RUNTIME_PARITY to PASS."
+
+execution_control:
+  phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+  validator: "scripts/validate_phase_task_state_machine.py"
+  current_phase: "P8"
+  current_task: "N001"
+  current_task_status: "READY"
+  current_queue_status: "READY"
+  auto_advance_within_authorized_scope: true
+  auto_recovery_enabled: true
+  max_automatic_repairs_per_failing_gate: 2
+  final_human_gate: "N009"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
