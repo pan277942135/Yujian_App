@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T15:18:00+08:00"
+  updated_at: "2026-10-16T15:32:00+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "0015c296323bdf67afb7f41b791696451f8f23c1"
+  live_branch_head_at_snapshot: "87249c712b81abba123ffcd9068923e78bc14c1b"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -44,6 +44,7 @@ source_of_truth:
   unified_contract_schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
   contract_resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
   unified_contract_validator: "scripts/validate_unified_contract.py"
+  unified_contract_validation_report: "harness/UNIFIED_CONTRACT_VALIDATION_20261016.md"
   design_authority: "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
   product_master_flow: "design/system_v3/00_Product_Master_Flow/"
   page_contracts: "design/system_v3/08_Page_Contracts/"
@@ -56,7 +57,7 @@ repositories:
     default_branch: "main"
     main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "11a32ac649d28e4a7f9f70c59d245b8ff4d1f7bc"
+    active_sha_at_snapshot: "87249c712b81abba123ffcd9068923e78bc14c1b"
     execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     runtime:
       os: "Android"
@@ -97,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "0015c296323bdf67afb7f41b791696451f8f23c1"
+    head_at_last_verified_snapshot: "87249c712b81abba123ffcd9068923e78bc14c1b"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -476,8 +477,18 @@ contract_control:
   schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
   resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
   validator: "scripts/validate_unified_contract.py"
-  status: "ACTIVE"
-  structural_validation: "NOT_RUN_AFTER_LATEST_CONTRACT_LAYER_CHANGE"
+  validation_report: "harness/UNIFIED_CONTRACT_VALIDATION_20261016.md"
+  status: "PASS"
+  structural_validation: "PASS"
+  validated_source_sha: "dc689a9acce92036b5febaa201b5c289a3aee798"
+  validation_run_id: 38870029013
+  validation_job_id: 116871686066
+  feature_count: 15
+  journey_count: 20
+  child_surface_count: 75
+  route_count: 22
+  task_count: 45
+  gate_count: 11
   role: "Contract-of-contracts resolver; domain authorities remain authoritative."
   current_scope: "15 features / 20 journeys / 75 child surfaces / 22 routes / 45 tasks / 11 gates"
 
