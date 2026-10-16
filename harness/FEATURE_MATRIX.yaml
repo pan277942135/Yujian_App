@@ -15,7 +15,7 @@ project:
 inventory:
   feature_count: 15
   journey_count: 20
-  route_count: 21
+  route_count: 22
   primary_journey: "J01-J20"
   feature_source: "design/registry/experience_registry_v1.json"
   route_source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
