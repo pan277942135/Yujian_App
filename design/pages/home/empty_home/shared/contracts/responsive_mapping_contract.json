@@ -63,7 +63,7 @@
     }
   ],
   "font_scale_profiles": [
-    1.0,
+    1,
     1.3
   ],
   "groups": {
@@ -116,7 +116,7 @@
         "width": 620,
         "height": 310
       },
-      "reference_aspect_ratio": 2.0,
+      "reference_aspect_ratio": 2,
       "visible_ink_and_gold_measurement_px": {
         "left": 80,
         "top": 245,
@@ -128,7 +128,7 @@
       "minimum_width_dp_at_supported_320dp_profile": 183.7,
       "maximum_width_dp": 620,
       "horizontal_anchor": "safe viewport start + safeWidthDp * 50/1080",
-      "top_band_anchor": "safe viewport top + safeHeightDp * 224/1920",
+      "top_band_anchor": "scene transform offsetY + reference y * scene transform scale in the edge-to-edge app viewport; safeDrawing top inset does not shift Frozen Hero artwork",
       "height_policy": "renderedWidth / 2.0",
       "content_scale": "FIT",
       "stretch": false,

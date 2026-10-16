@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.ParcelFileDescriptor
 import androidx.activity.ComponentActivity
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.test.assertIsEnabled
@@ -55,6 +56,7 @@ import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -68,6 +70,21 @@ class LoginV2RuntimeTest {
 
     private var originalImeWithHardwareKeyboard: String? = null
     private var imeWithHardwareKeyboardChanged = false
+
+    @Before
+    fun configureProductionEdgeToEdgeViewport() {
+        val activity = composeRule.activity
+        activity.runOnUiThread {
+            WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+            activity.window.statusBarColor = android.graphics.Color.TRANSPARENT
+            activity.window.navigationBarColor = android.graphics.Color.TRANSPARENT
+            WindowInsetsControllerCompat(activity.window, activity.window.decorView).apply {
+                isAppearanceLightStatusBars = true
+                isAppearanceLightNavigationBars = true
+            }
+        }
+        composeRule.waitForIdle()
+    }
 
     @After
     fun restoreHardwareKeyboardImeSetting() {
@@ -573,6 +590,11 @@ class LoginV2RuntimeTest {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        if (name == "login_v2_idle.png" || name == "register_v2_idle.png") {
+            check(bitmap.width == 1080 && bitmap.height == 1920) {
+                "Frozen parity capture must cover the native 1080x1920 viewport; actual=${bitmap.width}x${bitmap.height}"
+            }
+        }
         val root = File(instrumentation.targetContext.getExternalFilesDir(null), "login_v2")
         check(root.exists() || root.mkdirs())
         FileOutputStream(File(root, name)).use { output ->

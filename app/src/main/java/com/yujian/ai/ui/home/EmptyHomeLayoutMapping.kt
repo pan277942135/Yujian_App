@@ -105,7 +105,7 @@ internal fun calculateEmptyHomeLayoutMapping(
         (EmptyHomeFrozenLayoutGeometry.HERO_HEIGHT_PX / EmptyHomeFrozenLayoutGeometry.HERO_WIDTH_PX)
     val hero = EmptyHomeBoundsDp(
         left = safe.left + profile.safeWidthDp * EmptyHomeFrozenLayoutGeometry.HERO_X_PX / referenceWidth,
-        top = safe.top + profile.safeHeightDp * EmptyHomeFrozenLayoutGeometry.HERO_Y_PX / referenceHeight,
+        top = (transform.offsetY + EmptyHomeFrozenLayoutGeometry.HERO_Y_PX * transform.scale) / density,
         width = heroWidth,
         height = heroHeight,
     )

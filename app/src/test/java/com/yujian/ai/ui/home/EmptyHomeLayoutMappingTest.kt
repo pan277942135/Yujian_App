@@ -48,7 +48,9 @@ class EmptyHomeLayoutMappingTest {
                 assertTrue(mapping.headerBounds.bottom <= safeBottom)
                 assertTrue(mapping.headerBounds.width <= EmptyHomeFrozenLayoutGeometry.HEADER_MAX_WIDTH_DP)
                 assertTrue(mapping.headerBounds.height >= EmptyHomeFrozenLayoutGeometry.HEADER_MIN_TOUCH_TARGET_DP)
-                assertTrue(mapping.headerBounds.bottom <= mapping.heroBounds.top)
+                val expectedHeroTop = mapping.sceneTransform.offsetY +
+                    EmptyHomeFrozenLayoutGeometry.HERO_Y_PX * mapping.sceneTransform.scale
+                assertEquals(expectedHeroTop, mapping.heroBounds.top, 0.01f)
                 assertTrue(mapping.cameraBounds.left >= mapping.safeViewport.left)
                 assertTrue(mapping.cameraBounds.right <= safeRight)
                 assertTrue(mapping.cameraBounds.bottom <= safeBottom)
@@ -66,6 +68,20 @@ class EmptyHomeLayoutMappingTest {
                 assertEquals(expectedSceneScale, mapping.sceneTransform.scale, 0.0001f)
             }
         }
+    }
+
+    @Test
+    fun canonicalViewportKeepsHeroAtFrozenReferenceAnchor() {
+        val mapping = calculateEmptyHomeLayoutMapping(
+            windowWidthDp = 360f,
+            windowHeightDp = 640f,
+            density = 3f,
+            fontScale = 1f,
+            safeInsets = SafeDrawingInsetsDp(top = 0.dp, bottom = 0.dp, start = 0.dp, end = 0.dp),
+        )
+
+        assertEquals(224f, mapping.heroBounds.top * 3f, 0.01f)
+        assertEquals(620f, mapping.heroBounds.width * 3f, 0.01f)
     }
 
     @Test

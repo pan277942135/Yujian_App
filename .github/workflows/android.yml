@@ -227,7 +227,7 @@ jobs:
           - gate: recognition-frozen
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: empty-home-v2
             api_level: 28
             required: true
@@ -235,19 +235,19 @@ jobs:
           - gate: login-v2
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: data-sanitization
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: fish-guide-v1
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: runtime-parity
             api_level: 28
             required: false
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
 
     steps:
       - name: Checkout
@@ -327,10 +327,9 @@ jobs:
 
           "$adb" start-server >> "$preflight_log" 2>&1
           emulator_started=0
-          if [[ "${{ matrix.gate }}" == "normal-home-v1" ]]; then
-            existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
+          existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
             if [[ "$existing_device" == emulator-* ]]; then
-              printf 'RESTART_EXISTING_EMULATOR_FOR_PHYSICAL_CAPTURE device=%s target_skin=1080x1920\n' \
+              printf 'RESTART_EXISTING_EMULATOR_FOR_NATIVE_PROFILE device=%s target_skin=1080x1920\n' \
                 "$existing_device" | tee -a "$preflight_log"
               "$adb" -s "$existing_device" emu kill >> "$preflight_log" 2>&1
               stopped=0
@@ -350,7 +349,6 @@ jobs:
               fi
               echo 'EXISTING_EMULATOR_STOPPED=1' | tee -a "$preflight_log"
             fi
-          fi
           if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
             if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
               read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
@@ -418,6 +416,20 @@ jobs:
             echo 'ADB_DEVICE_NOT_FULLY_READY' | tee -a "$preflight_log"
             exit 1
           fi
+
+          display_profile_log="evidence/runtime/${{ matrix.gate }}/infra/display_profile.log"
+          "$adb" shell wm size reset | tee "$display_profile_log"
+          physical_size="$("$adb" shell wm size | tee -a "$display_profile_log" | tr -d '\r' | awk -F': ' '/Physical size:/ {print $2; exit}')"
+          if [[ "$physical_size" != "1080x1920" ]]; then
+            printf 'ANDROID_NATIVE_PROFILE_INVALID physical_size=%s expected=1080x1920 gate=%s\n' \
+              "$physical_size" "${{ matrix.gate }}" | tee -a "$display_profile_log"
+            exit 1
+          fi
+          "$adb" shell wm density 480 | tee -a "$display_profile_log"
+          "$adb" shell wm density | tee -a "$display_profile_log"
+          "$adb" shell settings put system font_scale 1.0
+          "$adb" shell settings get system font_scale | tee -a "$display_profile_log"
+          echo 'ANDROID_NATIVE_PROFILE_READY=1080x1920@480dpi' | tee -a "$display_profile_log"
 
       - name: Run unified Android Runtime Harness
         id: runtime_gate
