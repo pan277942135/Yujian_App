@@ -40,6 +40,10 @@ source_of_truth:
   feature_matrix_validator: "scripts/validate_feature_matrix.py"
   phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
   phase_task_state_machine_validator: "scripts/validate_phase_task_state_machine.py"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  unified_contract_schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
+  contract_resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
+  unified_contract_validator: "scripts/validate_unified_contract.py"
   design_authority: "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
   product_master_flow: "design/system_v3/00_Product_Master_Flow/"
   page_contracts: "design/system_v3/08_Page_Contracts/"
@@ -466,6 +470,16 @@ normal_home_runtime:
       registration: "APPROVED"
       runtime_parity: "NOT_CLOSED"
   rule: "Static/source pixel checks do not promote NORMAL_HOME_RUNTIME_PARITY to PASS."
+
+contract_control:
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
+  resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
+  validator: "scripts/validate_unified_contract.py"
+  status: "ACTIVE"
+  structural_validation: "NOT_RUN_AFTER_LATEST_CONTRACT_LAYER_CHANGE"
+  role: "Contract-of-contracts resolver; domain authorities remain authoritative."
+  current_scope: "15 features / 20 journeys / 75 child surfaces / 22 routes / 45 tasks / 11 gates"
 
 execution_control:
   phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
