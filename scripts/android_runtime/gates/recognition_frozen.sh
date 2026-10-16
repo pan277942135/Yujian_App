@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# The frozen Recognition gate runs 50 instrumentation tests, including the
+# live FULL/LITE optical-fidelity capture. Its test suite needs more room than
+# the 180-second default; this does not alter any other gate's timeout.
+gate_instrumentation_timeout_seconds() {
+  printf '%s\n' '300'
+}
+
 gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest,com.yujian.ai.RecognitionOpticalFidelityRuntimeTest'
 }

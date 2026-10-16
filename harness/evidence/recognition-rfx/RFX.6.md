@@ -40,6 +40,18 @@ because none is defined by the frozen contract.
   the wrong Android package and omitted Compose test API imports. No API28 jobs
   or APK artifacts ran. Those imports are corrected in the next commit; API28
   instrumentation, actual frame metrics, and APK evidence remain pending.
+- Third exact-head Android CI attempt (`38941379127`, `cb6137248130cdc9f6486b326c0fec03aefb73eb`)
+  built successfully and reached the API28 Recognition gate, but instrumentation
+  hit the 180-second suite timeout as test 50 began. The test now captures the
+  rendered device surface through UiAutomation and uses non-idling semantic
+  checks. The frozen suite's 49 earlier tests already consume nearly the default
+  timeout, so Recognition alone now declares a 300-second instrumentation limit;
+  other gates retain the 180-second default.
+- Fourth exact-head Android CI attempt (`38943615023`, `ad7abe3c395337d55aafdbfc35710c8cb764b223`)
+  confirmed the same 180-second cutoff immediately after the optical-fidelity
+  test began. This run produced no optical metrics and is not a PASS. The
+  Recognition-only timeout increase and evidence update are committed for the
+  next exact-head run.
 
 ## Independent check retained
 
