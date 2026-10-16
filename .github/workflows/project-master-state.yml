@@ -29,3 +29,6 @@ jobs:
 
       - name: Validate project master state
         run: python scripts/validate_project_master_state.py
+
+      - name: Validate feature matrix
+        run: python scripts/validate_feature_matrix.py
