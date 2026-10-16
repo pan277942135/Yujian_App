@@ -7,6 +7,10 @@ on:
     paths:
       - "design/**"
       - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_design_manager_hifi_release.py"
+      - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_design_manager_live.py"
+      - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
 
@@ -22,9 +26,27 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node for browser verification
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Validate design registry and hi-fi assets
+        run: |
+          python3 scripts/design_manager.py validate
+          python3 scripts/verify_design_manager_hifi_release.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -61,18 +83,85 @@ jobs:
       - name: Verify Design Manager navigation artifact
         run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${GITHUB_SHA}"
 
+      - name: Verify hi-fi Pages artifact
+        run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${GITHUB_SHA}"
+
+      - name: Verify browser routes and responsive preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --root _site \
+              --expected-build "${GITHUB_SHA}" \
+              --output-dir "$RUNNER_TEMP/dm-build-browser"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+
+      - name: Upload build browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Design-Manager-Browser-Build-${{ github.sha }}
+          path: ${{ runner.temp }}/dm-build-browser/
+          if-no-files-found: error
+          retention-days: 14
 
   deploy:
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: build
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Setup Python and Node for live verification
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node for live browser verification
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Verify published SHA and original asset bytes
+        run: |
+          python3 scripts/verify_design_manager_live.py \
+            --url "${{ steps.deployment.outputs.page_url }}" \
+            --expected-build "${GITHUB_SHA}" \
+            --output "$RUNNER_TEMP/dm-live-evidence/live-verification.json"
+
+      - name: Verify live browser routes and responsive preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --url "${{ steps.deployment.outputs.page_url }}" \
+              --expected-build "${GITHUB_SHA}" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+
+      - name: Upload live release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Design-Manager-Live-Release-${{ github.sha }}
+          path: ${{ runner.temp }}/dm-live-evidence/
+          if-no-files-found: error
+          retention-days: 30

@@ -2945,3 +2945,84 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 .icon-library-visual img{width:80px;height:80px;object-fit:contain;display:block}
 .icon-library-visual span{font-size:10px;line-height:1.45}
 .icon-library-item p code{overflow-wrap:anywhere}
+
+/* High fidelity review, original-ratio previews and page contract metadata */
+.hifi-original{width:100%;min-width:0;margin:0}
+.hifi-asset-figure{justify-items:stretch;gap:9px;padding:12px;border:1px solid #e2ebe8;border-radius:14px;background:#fbfdfc}
+.hifi-image-open{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:44px;padding:0;border:0;border-radius:10px;background:transparent;cursor:zoom-in}
+.hifi-image-open:focus-visible,.hifi-image-actions a:focus-visible,.hifi-lightbox-toolbar button:focus-visible,.hifi-lightbox-toolbar a:focus-visible{outline:3px solid #267c76;outline-offset:3px}
+.hifi-original .hifi-image-open img{display:block;width:auto;height:auto;max-width:100%;max-height:min(78vh,1100px);object-fit:contain;border-radius:8px;box-shadow:none}
+.hifi-image-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;color:#687f80}
+.hifi-image-actions a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid #cfdfda;border-radius:9px;color:#28635f;text-decoration:none;background:#fff;font-weight:700}
+.hifi-original-caption{overflow-wrap:anywhere;text-align:center;line-height:1.6}
+.hifi-contract-details{margin:16px 0;padding:15px;border:1px solid #dae8e3;border-radius:13px;background:#f8fbfa;min-width:0}
+.hifi-contract-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:11px}
+.hifi-contract-heading strong{font-size:13px;color:#244e4e}
+.hifi-contract-heading span,.hifi-contract-authority>span,.hifi-contract-links>span{font-size:10px;color:#718789}
+.hifi-contract-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.hifi-contract-card{display:grid;align-content:start;gap:5px;min-width:0;padding:9px 10px;border:1px solid #e3ece9;border-radius:9px;background:#fff}
+.hifi-contract-card span{font-size:9px;color:#718789}
+.hifi-contract-card strong{font-size:11px;line-height:1.5;color:#2d4f51;overflow-wrap:anywhere;font-weight:650}
+.hifi-contract-authority,.hifi-contract-links{display:grid;gap:6px;margin-top:11px;min-width:0}
+.hifi-contract-authority a,.hifi-contract-links a{font-size:10px;line-height:1.55;color:#28635f;overflow-wrap:anywhere}
+.hifi-contract-authority code,.hifi-contract-plain-path{font-size:10px;line-height:1.55;color:#875f3b;overflow-wrap:anywhere}
+.hifi-missing-reason{margin:12px 0 0;padding:10px;border-radius:8px;background:#fff5ed;color:#83542d;font-size:11px;line-height:1.6}
+.hifi-overview-intro,.hifi-review-banner,.hifi-master-board-gate{display:grid;gap:5px;margin:0 0 12px;padding:13px 15px;border:1px solid #dce9e4;border-radius:11px;background:#f6faf8;color:#466567}
+.hifi-overview-intro strong,.hifi-review-banner strong,.hifi-master-board-gate strong{font-size:13px;color:#244e4e}
+.hifi-overview-intro span,.hifi-review-banner span,.hifi-master-board-gate span{font-size:11px;line-height:1.65;overflow-wrap:anywhere}
+.hifi-review-banner{background:#fff9ef;border-color:#eadcc4;color:#816341}
+.hifi-review-banner strong{color:#765832}
+.hifi-overview-links{display:grid;gap:10px;margin-top:16px}
+.hifi-overview-links h4{margin:0;font-size:13px;color:#294e50}
+.hifi-overview-grid,.hifi-boundary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.hifi-overview-link,.hifi-boundary-card{display:grid;align-content:start;gap:5px;min-width:0;padding:12px;border:1px solid #dce8e4;border-radius:10px;background:#fff;color:#2b5555;text-decoration:none}
+.hifi-overview-link:hover,.hifi-boundary-card:hover{border-color:#9abbb2;background:#f9fcfb}
+.hifi-overview-link strong,.hifi-boundary-title{font-size:11px;line-height:1.45;font-weight:760;overflow-wrap:anywhere}
+.hifi-overview-link span,.hifi-boundary-card>span:last-child{font-size:10px;line-height:1.5;color:#6d8281;overflow-wrap:anywhere}
+.hifi-boundary-card .badge{justify-self:start}
+.hifi-missing-authority{display:flex;align-items:flex-start;gap:13px;padding:16px;border:1px solid #e5c9af;border-radius:12px;background:#fff9f4;color:#765a42}
+.hifi-missing-authority strong{display:block;font-size:13px;color:#80522f}
+.hifi-missing-authority p{margin:7px 0 0;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+.hifi-missing-authority p code{display:block;margin-top:4px;font-size:10px;color:#815d3f;overflow-wrap:anywhere}
+.hifi-missing-authority p span{color:#8a715c}
+.hifi-missing-mark{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:#f3dfcc;color:#935a2c;font-size:18px;font-weight:800}
+.hifi-master-board-gate{grid-template-columns:auto 1fr;align-items:start;background:#fff6ed;border-color:#ead4bd}
+.hifi-master-board-gate strong{color:#835730}
+.hifi-master-board-gate span{color:#866747}
+.hifi-table-scroll{max-width:100%;overflow:auto;border:1px solid #e1e9e6;border-radius:10px;background:#fff}
+.hifi-state-table{width:100%;min-width:680px;border-collapse:collapse;font-size:10px}
+.hifi-state-table th,.hifi-state-table td{padding:9px 10px;border-bottom:1px solid #edf1ef;text-align:left;vertical-align:top}
+.hifi-state-table th{position:sticky;top:0;background:#f2f7f5;color:#486664;white-space:nowrap}
+.hifi-state-table td{color:#4f6868;overflow-wrap:anywhere}
+.hifi-state-table td small{display:block;margin-top:4px;color:#819391}
+.hifi-master-board-source{margin:10px 0 0;font-size:9px;line-height:1.55;color:#778a89;overflow-wrap:anywhere}
+.invalid-manager-route{display:grid;gap:7px;max-width:620px;margin:30px auto;padding:18px;border:1px solid #e1c9b4;border-radius:12px;background:#fff8f2;color:#755940}
+.invalid-manager-route strong{font-size:14px;color:#7c4f30}
+.invalid-manager-route span,.invalid-manager-route code{font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.hifi-image-lightbox{width:min(96vw,1540px);max-width:96vw;max-height:96vh;padding:0;border:0;border-radius:15px;background:#f7faf9;color:#273f40;box-shadow:0 16px 80px #0007;overflow:hidden}
+.hifi-image-lightbox::backdrop{background:rgba(10,24,27,.82)}
+.hifi-lightbox-content{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px;height:94vh;max-height:94vh;padding:12px}
+.hifi-lightbox-header{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.hifi-lightbox-header strong{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.hifi-lightbox-close,.hifi-lightbox-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 11px;border:1px solid #cfddd8;border-radius:9px;background:#fff;color:#315d5b;font-size:14px;font-weight:700;cursor:pointer}
+.hifi-lightbox-close{font-size:25px}
+.hifi-lightbox-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.hifi-lightbox-toolbar a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:9px;background:#eaf2ef;color:#28635f;font-size:11px;font-weight:700;text-decoration:none}
+.hifi-zoom-level{min-width:48px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:#58706e}
+.hifi-lightbox-stage{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:auto;border-radius:9px;background:#152426}
+.hifi-lightbox-stage img{display:block;width:auto;height:auto;max-width:100%;max-height:calc(94vh - 170px);object-fit:contain;transform-origin:center center;transition:transform .15s ease}
+.hifi-lightbox-hint{text-align:center;font-size:10px;color:#708480}
+@media(max-width:760px){
+  .hifi-contract-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hifi-overview-grid,.hifi-boundary-grid{grid-template-columns:1fr}
+  .hifi-lightbox-content{height:94vh;padding:8px}
+  .hifi-lightbox-stage img{max-height:calc(94vh - 210px)}
+}
+@media(max-width:420px){
+  .hifi-contract-grid{grid-template-columns:1fr}
+  .hifi-asset-figure{padding:8px}
+  .hifi-lightbox-toolbar{gap:5px}
+  .hifi-lightbox-toolbar button,.hifi-lightbox-toolbar a{font-size:10px;padding:0 8px}
+  .hifi-master-board-gate{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.hifi-lightbox-stage img{transition:none}}

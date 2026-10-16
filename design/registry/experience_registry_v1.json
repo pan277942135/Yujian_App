@@ -729,7 +729,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 P01/P02/P03 原始 PNG 已按批准 SHA/尺寸/字节数原字节导入；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。",
+      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 P01/P02/P03 原始 PNG 已按批准 SHA/尺寸/字节数原字节导入；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。 Design Manager 00 overview and 08 boundary gate expose the real 2026-10-16 authority inventory; missing binaries remain BLOCKED_INTEGRITY/MISSING, and Runtime remains independently NOT_RUN.",
       "display_name": "识别过程",
       "design_versions": [
         {
@@ -764,6 +764,100 @@
         }
       ],
       "hifi_views": [
+        {
+          "id": "main_journey_overview",
+          "code": "00",
+          "title": "00 · 全流程总览",
+          "status": "FROZEN",
+          "authority_type": "business_flow_overview",
+          "render_mode": "recognition_main_journey_overview",
+          "design_version": "Recognition_Main_Journey_Overview_V1",
+          "page_id": "recognition.main_journey",
+          "state_id": "OVERVIEW",
+          "state_id_scope": "Business-flow overview; not a product page state",
+          "asset_status": "FROZEN_BUSINESS_OVERVIEW",
+          "visual_status": "FROZEN",
+          "image": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Overview_V1.png",
+          "visual_authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Overview_V1.png",
+          "visual_authority_manifest": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Asset_Manifest_V1.json",
+          "machine_authority": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Flow_V1.json",
+          "authority": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md",
+          "sha256": "2cf0ea161360888248fb42227d2a2511df64aa94a4c4d3af7c7ffd3f06a0aeea",
+          "visual_authority_sha256": "2cf0ea161360888248fb42227d2a2511df64aa94a4c4d3af7c7ffd3f06a0aeea",
+          "visual_authority_dimensions": {
+            "width": 5120,
+            "height": 2880
+          },
+          "scope_note": "FROZEN_BUSINESS_OVERVIEW · communication_flow_not_runtime_visual_authority · 5120 × 2880. This image is not a single product page Hi-Fi authority.",
+          "summary": "拍照识鱼主链路总览。业务沟通图以 PNG 原图完整展示，可放大并查看源文件；各页面视觉仍由单页 Authority 控制。",
+          "runtime_status": "NOT_RUN",
+          "journey_links": [
+            {
+              "label": "01 · 空首页 / 进入相机",
+              "route": "#page/home_empty_v2",
+              "note": "进入产品相机/相册识别入口"
+            },
+            {
+              "label": "02 · 权限与异常状态",
+              "route": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/camera_permission_visual",
+              "note": "权限页面合同存在；冻结视觉二进制未随仓库提供"
+            },
+            {
+              "label": "03 · 首次拍照教学 · P01",
+              "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01",
+              "note": "FROZEN · 竖屏拍摄示意"
+            },
+            {
+              "label": "03 · 首次拍照教学 · P02",
+              "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02",
+              "note": "FROZEN · 竖拍鱼类拍摄示意"
+            },
+            {
+              "label": "03 · 首次拍照教学 · P03",
+              "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03",
+              "note": "FROZEN · 横屏拍摄示意"
+            },
+            {
+              "label": "04 · 相机拍摄",
+              "route": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/capture_portrait",
+              "note": "Manifest 标记 Frozen；PNG binary_import_status=PENDING"
+            },
+            {
+              "label": "05 · AI 识别过程",
+              "route": "#page/recognition_flow_v1_2/hifi/state_timeline",
+              "note": "Recognition Processing Page Contract V3.1 uses the five-state event-gated State Machine; the older Motion Spec V1.2 timing table remains immutable and is cross-referenced in the closure report."
+            },
+            {
+              "label": "06 · 识别结果",
+              "route": "#page/recognition_result_v1",
+              "note": "结果页与判定规范保持原 Registry 路由"
+            },
+            {
+              "label": "07 · 返回与保存",
+              "route": "#page/recognition_result_v1/hifi/content_edit",
+              "note": "Result 内容修改与退出规范按现有合同查看"
+            },
+            {
+              "label": "08 · 边界状态与验收",
+              "route": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate",
+              "note": "展示 Board REVIEW / MISSING 与资产缺口"
+            }
+          ],
+          "contract_links": [
+            {
+              "label": "Main Journey Business Contract V1",
+              "path": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md"
+            },
+            {
+              "label": "Main Journey Flow V1",
+              "path": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Flow_V1.json"
+            },
+            {
+              "label": "Overview Asset Manifest",
+              "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Asset_Manifest_V1.json"
+            }
+          ]
+        },
         {
           "id": "state_timeline",
           "title": "01 · State Timeline",
@@ -3032,7 +3126,41 @@
               "summary": "P01：竖屏手机 + 横向鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为下一张。",
               "visual_status": "FROZEN",
               "repository_binary_import_status": "PASS",
-              "image": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png"
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "P01",
+              "state_id_scope": "First-use guide overlay; not an Android runtime state identifier",
+              "design_version": "First_Use_Camera_Guide_Spec_V1",
+              "authority_path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+              "authority_path_available": true,
+              "entry_conditions": "Camera permission granted and the camera provider/preview are Ready; the guide is incomplete.",
+              "trigger": "Shown once after camera permission and camera provider/preview are Ready.",
+              "input_contract": "Camera readiness and guide-completion flag; no media selection is introduced.",
+              "user_actions": "下一张 → P02；跳过 → 关闭教学，不触发快门。",
+              "next_page": "P02",
+              "back_behavior": "无前序教学页；未规定其他返回动作。",
+              "cancel_behavior": "跳过 closes the guide without triggering the shutter; completion persists only after actual dismissal.",
+              "retake_behavior": "未定义；本教学页没有重拍动作。",
+              "contract_links": [
+                {
+                  "label": "First-use Camera Guide Spec V1",
+                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+                },
+                {
+                  "label": "Capture Page Contract V3.1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
+                },
+                {
+                  "label": "Guide Navigation",
+                  "path": "design/pages/recognition/first_use_camera_guide/navigation.json"
+                },
+                {
+                  "label": "Guide Asset Manifest",
+                  "path": "design/pages/recognition/first_use_camera_guide/manifest.json"
+                }
+              ],
+              "runtime_status": "NOT_RUN",
+              "runtime_note": "Frozen design does not establish Android runtime implementation or acceptance."
             },
             {
               "id": "p02",
@@ -3055,7 +3183,41 @@
               "summary": "P02：竖屏手机 + 竖直鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持竖直鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为下一张。",
               "visual_status": "FROZEN",
               "repository_binary_import_status": "PASS",
-              "image": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png"
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "P02",
+              "state_id_scope": "First-use guide overlay; not an Android runtime state identifier",
+              "design_version": "First_Use_Camera_Guide_Spec_V1",
+              "authority_path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+              "authority_path_available": true,
+              "entry_conditions": "Camera permission granted and the camera provider/preview are Ready; the guide is incomplete.",
+              "trigger": "Shown once after camera permission and camera provider/preview are Ready.",
+              "input_contract": "Camera readiness and guide-completion flag; no media selection is introduced.",
+              "user_actions": "上一张 → P01；下一张 → P03；跳过 → 关闭教学，不触发快门。",
+              "next_page": "P03",
+              "back_behavior": "上一张返回 P01。",
+              "cancel_behavior": "跳过 closes the guide without triggering the shutter; completion persists only after actual dismissal.",
+              "retake_behavior": "未定义；本教学页没有重拍动作。",
+              "contract_links": [
+                {
+                  "label": "First-use Camera Guide Spec V1",
+                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+                },
+                {
+                  "label": "Capture Page Contract V3.1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
+                },
+                {
+                  "label": "Guide Navigation",
+                  "path": "design/pages/recognition/first_use_camera_guide/navigation.json"
+                },
+                {
+                  "label": "Guide Asset Manifest",
+                  "path": "design/pages/recognition/first_use_camera_guide/manifest.json"
+                }
+              ],
+              "runtime_status": "NOT_RUN",
+              "runtime_note": "Frozen design does not establish Android runtime implementation or acceptance."
             },
             {
               "id": "p03",
@@ -3078,7 +3240,41 @@
               "summary": "P03：横屏手机 + 横向鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持横向鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为开始拍摄。",
               "visual_status": "FROZEN",
               "repository_binary_import_status": "PASS",
-              "image": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png"
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "P03",
+              "state_id_scope": "First-use guide overlay; not an Android runtime state identifier",
+              "design_version": "First_Use_Camera_Guide_Spec_V1",
+              "authority_path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+              "authority_path_available": true,
+              "entry_conditions": "Camera permission granted and the camera provider/preview are Ready; the guide is incomplete.",
+              "trigger": "Shown once after camera permission and camera provider/preview are Ready.",
+              "input_contract": "Camera readiness and guide-completion flag; no media selection is introduced.",
+              "user_actions": "上一张 → P02；开始拍摄 → 关闭教学并返回 Capture Ready，不自动触发快门。",
+              "next_page": "CAPTURE_READY",
+              "back_behavior": "上一张返回 P02。",
+              "cancel_behavior": "跳过 closes the guide without triggering the shutter; completion persists only after actual dismissal.",
+              "retake_behavior": "未定义；本教学页没有重拍动作。",
+              "contract_links": [
+                {
+                  "label": "First-use Camera Guide Spec V1",
+                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+                },
+                {
+                  "label": "Capture Page Contract V3.1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
+                },
+                {
+                  "label": "Guide Navigation",
+                  "path": "design/pages/recognition/first_use_camera_guide/navigation.json"
+                },
+                {
+                  "label": "Guide Asset Manifest",
+                  "path": "design/pages/recognition/first_use_camera_guide/manifest.json"
+                }
+              ],
+              "runtime_status": "NOT_RUN",
+              "runtime_note": "Frozen design does not establish Android runtime implementation or acceptance."
             }
           ],
           "visual_status": "FROZEN",
@@ -3113,6 +3309,227 @@
             }
           ],
           "page_count": 3
+        },
+        {
+          "id": "boundary_state_release_gate",
+          "code": "08",
+          "title": "08 · 边界状态与验收",
+          "status": "PARTIAL",
+          "authority_type": "behavior",
+          "render_mode": "recognition_boundary_release_gate",
+          "design_version": "Master Board V1 / Capture V3.1 / New States V1",
+          "page_id": "recognition.main_journey",
+          "state_id": "BOUNDARY_AND_RELEASE_GATE",
+          "summary": "对照 Master Board、页面合同与实际文件树盘点异常/权限/引导/返回与保存状态。未提供的 Frozen 二进制保持阻塞或缺失，不创建替代预览。",
+          "authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.md",
+          "machine_authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.json",
+          "contract_links": [
+            {
+              "label": "Recognition Capture Page Contract V3.1",
+              "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
+            },
+            {
+              "label": "Recognition Capture Authority",
+              "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md"
+            },
+            {
+              "label": "Master Board V1 schema",
+              "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.json"
+            },
+            {
+              "label": "New States Manifest V1",
+              "path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_Manifest_V1.json"
+            }
+          ],
+          "children": [
+            {
+              "id": "master_board_v1",
+              "title": "Master Board V1 · 状态审视",
+              "status": "PARTIAL",
+              "render_mode": "recognition_master_board",
+              "design_version": "Recognition_Main_Journey_Master_Board_V1",
+              "page_id": "recognition.main_journey",
+              "state_id": "MASTER_BOARD_V1",
+              "authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.md",
+              "machine_authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.json",
+              "board_id": "recognition_main_journey_master_board_v1",
+              "standalone_visual_authority": false,
+              "expected_outputs": [
+                "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.png",
+                "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.svg"
+              ],
+              "output_status": "MISSING",
+              "asset_import_gate": "BLOCKED_CONNECTOR_UPLOAD_STEP",
+              "summary": "Master Board JSON/MD 可读取，但独立 PNG/SVG 未生成或导入；展示原始状态 schema，不把流程总览图当作 Master Board。",
+              "runtime_status": "NOT_RUN",
+              "authority_path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.json",
+              "authority_path_available": true
+            },
+            {
+              "id": "capture_portrait",
+              "title": "Capture Ready · Portrait / Horizontal Fish",
+              "status": "BLOCKED_INTEGRITY",
+              "render_mode": "missing_authority",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
+              "design_version": "Recognition Capture Hi-Fi Freeze Manifest V1",
+              "design_approval_status": "FROZEN",
+              "visual_status": "BLOCKED_INTEGRITY",
+              "authority_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png",
+              "authority_path_available": false,
+              "expected_asset_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png",
+              "visual_authority_sha256": "6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c",
+              "expected_asset_bytes": 2184165,
+              "binary_import_status": "PENDING",
+              "authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md",
+              "machine_authority": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json",
+              "entry_conditions": "Capture state entered from the recognition route; see the linked Capture Page Contract.",
+              "trigger": "Capture route becomes active for the matching frozen state.",
+              "input_contract": "Live camera provider/preview is a runtime surface; the frozen reference binary is missing from this repository tree.",
+              "user_actions": "按 Recognition Capture Page Contract V3.1 执行；此处不生成交互模拟 UI。",
+              "next_page": "按 Capture State Machine V3.1 对应状态转换。",
+              "back_behavior": "按 Capture Page Contract V3.1 恢复路径。",
+              "cancel_behavior": "按 Capture Page Contract V3.1 取消/返回规则。",
+              "retake_behavior": "按 Capture Page Contract V3.1 Capture Error / Retake 规则。",
+              "contract_links": [
+                {
+                  "label": "Capture Page Contract V3.1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
+                },
+                {
+                  "label": "Recognition_Capture_V3_Authority.md",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md"
+                },
+                {
+                  "label": "HiFi_Freeze_Manifest_V1.json",
+                  "path": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
+                }
+              ],
+              "missing_reason": "HiFi_Freeze_Manifest_V1.json 标记 binary_import_status=PENDING，预期路径当前不存在。没有可校验原图，因此不展示 Frozen 预览。",
+              "runtime_status": "NOT_RUN",
+              "summary": "设计冻结记录存在，但原始高保真 PNG 未提交到仓库；预览被完整性门阻止。"
+            },
+            {
+              "id": "capture_landscape",
+              "title": "Capture Ready · Landscape / Horizontal Fish",
+              "status": "BLOCKED_INTEGRITY",
+              "render_mode": "missing_authority",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
+              "design_version": "Recognition Capture Hi-Fi Freeze Manifest V1",
+              "design_approval_status": "FROZEN",
+              "visual_status": "BLOCKED_INTEGRITY",
+              "authority_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Landscape_Horizontal_Fish_Frozen.png",
+              "authority_path_available": false,
+              "expected_asset_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Landscape_Horizontal_Fish_Frozen.png",
+              "visual_authority_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18",
+              "expected_asset_bytes": 2079370,
+              "binary_import_status": "PENDING",
+              "authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md",
+              "machine_authority": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json",
+              "entry_conditions": "Capture state entered from the recognition route; see the linked Capture Page Contract.",
+              "trigger": "Capture route becomes active for the matching frozen state.",
+              "input_contract": "Live camera provider/preview is a runtime surface; the frozen reference binary is missing from this repository tree.",
+              "user_actions": "按 Recognition Capture Page Contract V3.1 执行；此处不生成交互模拟 UI。",
+              "next_page": "按 Capture State Machine V3.1 对应状态转换。",
+              "back_behavior": "按 Capture Page Contract V3.1 恢复路径。",
+              "cancel_behavior": "按 Capture Page Contract V3.1 取消/返回规则。",
+              "retake_behavior": "按 Capture Page Contract V3.1 Capture Error / Retake 规则。",
+              "contract_links": [
+                {
+                  "label": "Capture Page Contract V3.1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
+                },
+                {
+                  "label": "Recognition_Capture_V3_Authority.md",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md"
+                },
+                {
+                  "label": "HiFi_Freeze_Manifest_V1.json",
+                  "path": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
+                }
+              ],
+              "missing_reason": "HiFi_Freeze_Manifest_V1.json 标记 binary_import_status=PENDING，预期路径当前不存在。没有可校验原图，因此不展示 Frozen 预览。",
+              "runtime_status": "NOT_RUN",
+              "summary": "设计冻结记录存在，但原始高保真 PNG 未提交到仓库；预览被完整性门阻止。"
+            },
+            {
+              "id": "camera_permission_visual",
+              "title": "Camera Permission Denied · Frozen Source Missing",
+              "status": "MISSING",
+              "render_mode": "missing_authority",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "CAPTURE_PERMISSION_DENIED",
+              "design_version": "Camera Permission Denied Visual Contract V1",
+              "visual_status": "MISSING",
+              "authority_path": "湖畔相机权限提示界面.png",
+              "authority_path_available": false,
+              "expected_asset_path": "湖畔相机权限提示界面.png",
+              "visual_authority_dimensions": {
+                "width": 941,
+                "height": 1672
+              },
+              "visual_authority_bytes": 1794959,
+              "visual_authority_sha256": "1feced3a5d6f7a7d3ef968edcf8a5a834d216fab40707cf84c31658be5417d06",
+              "authority": "design/system_v3/08_Page_Contracts/recognition/capture/Camera_Permission_Denied_Visual_Contract_V1.md",
+              "entry_conditions": "Camera permission is denied while Recognition Capture is active.",
+              "trigger": "Platform permission result resolves to CAPTURE_PERMISSION_DENIED.",
+              "input_contract": "Camera permission/provider state; Android-owned permission dialog is outside this page and is never imitated.",
+              "user_actions": "重新开启相机 or 去系统设置 (runtime-adaptive); 从相册选择照片; Back.",
+              "next_page": "Permission recovery returns to Capture Ready; Gallery uses the platform Photo Picker.",
+              "back_behavior": "Back remains available in the denied page.",
+              "cancel_behavior": "Permission dialog cancel/deny behavior is platform-owned; app denied-page contract remains separate.",
+              "retake_behavior": "Capture is disabled while permission is denied; retake is unavailable.",
+              "contract_links": [
+                {
+                  "label": "Camera Permission Denied Visual Contract V1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Camera_Permission_Denied_Visual_Contract_V1.md"
+                },
+                {
+                  "label": "Capture State Machine V3.1",
+                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+                }
+              ],
+              "missing_reason": "The frozen contract records the source filename, dimensions and SHA-256, but the PNG itself is absent from the current main tree. Only the text contract is linked; no permission UI is fabricated.",
+              "runtime_status": "NOT_RUN",
+              "summary": "冻结的权限拒绝视觉源文件尚未进入仓库。系统权限对话框由 Android 所有；管理站只显示缺失说明。"
+            },
+            {
+              "id": "new_states_review",
+              "title": "新增状态 · Review / Superseded",
+              "status": "PARTIAL",
+              "render_mode": "recognition_new_states_review",
+              "design_version": "Recognition_New_States_HiFi_V1",
+              "page_id": "recognition.capture.v3_1",
+              "state_id": "DIRTY_DISCARD_CONFIRMATION",
+              "state_id_scope": "Review state; not a Frozen product visual state",
+              "image": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.png",
+              "visual_authority_manifest": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_Manifest_V1.json",
+              "visual_authority_sha256": "8cc7c04a4e15bf35ca0f307d0b95940d05901ead0cf6c66742a9f25d4d2e33e5",
+              "authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_Manifest_V1.json",
+              "review_caption": "Recognition_New_States_HiFi_V1.png · 2800 × 1600 · combined review source, not a Frozen single-page PNG.",
+              "summary": "当前合成图一部分为已被三页教学冻结包替换的旧 Guide Overlay；另一部分是 Dirty Draft Discard Confirmation 的 Review 视觉。",
+              "runtime_status": "NOT_RUN",
+              "review_states": [
+                {
+                  "title": "Capture First-use Guide Overlay",
+                  "source_status": "SUPERSEDED",
+                  "manager_status": "DEPRECATED",
+                  "note": "已由专用 P01/P02/P03 Frozen 页面替代；本图仅存档，不构成视觉 Authority。"
+                },
+                {
+                  "title": "Dirty Draft Discard Confirmation",
+                  "source_status": "ADDITIVE_UI_REVIEW",
+                  "manager_status": "PARTIAL",
+                  "note": "待审增补状态；没有独立 Frozen 单页视觉 Authority。"
+                }
+              ],
+              "authority_path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.png",
+              "authority_path_available": true
+            }
+          ],
+          "authority_path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.md",
+          "authority_path_available": true
         }
       ],
       "navigation_mode": "submenu_direct",
