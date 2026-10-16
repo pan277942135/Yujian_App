@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T16:42:00+08:00"
+  updated_at: "2026-10-16T16:56:00+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "c7bab455dffb4c361ecb222c85d33265c6bb0fa3"
+  live_branch_head_at_snapshot: "5cff1c04c3cf97b8717c716576db23c0ea69ccf5"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,7 +57,7 @@ repositories:
     default_branch: "main"
     main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "c7bab455dffb4c361ecb222c85d33265c6bb0fa3"
+    active_sha_at_snapshot: "5cff1c04c3cf97b8717c716576db23c0ea69ccf5"
     execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     runtime:
       os: "Android"
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "c7bab455dffb4c361ecb222c85d33265c6bb0fa3"
+    head_at_last_verified_snapshot: "5cff1c04c3cf97b8717c716576db23c0ea69ccf5"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -518,10 +518,10 @@ contract_control:
   status: "PASS_WITH_OPEN_CONTRACT_CONFLICT"
   structural_validation: "PASS"
   contract_resolution_status: "NOT_CONFIRMED"
-  validated_source_sha: "c7bab455dffb4c361ecb222c85d33265c6bb0fa3"
+  validated_source_sha: "ff5701ed72b08b04ca5cba860d80bcde4899c991"
   open_conflicts: ["C-FIRST-USE-GUIDE-PAGE-COUNT"]
-  validation_run_id: 38872456293
-  validation_job_id: 116878801070
+  validation_run_id: 38872796180
+  validation_job_id: 116880638045
   feature_count: 15
   journey_count: 20
   child_surface_count: 79
@@ -543,7 +543,7 @@ execution_control:
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
   machine_validation: "PASS"
-  machine_validated_source_sha: "c7bab455dffb4c361ecb222c85d33265c6bb0fa3"
+  machine_validated_source_sha: "ff5701ed72b08b04ca5cba860d80bcde4899c991"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
