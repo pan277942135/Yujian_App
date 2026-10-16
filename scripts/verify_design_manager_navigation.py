@@ -49,6 +49,51 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     if nav_ids != EXPECTED_NORMAL_HOME:
         fail(f"Normal Home navigation changed: {nav_ids} != {EXPECTED_NORMAL_HOME}")
 
+    # Recognition first-use camera guide: verify the menu hierarchy and preview bindings.
+    # Binary presence/hash is intentionally checked in the separate asset-import gate so this
+    # navigation regression can validate the Design Manager behavior before PNG import.
+    recognition = next((x for x in registry.get("features", []) if x.get("id") == "recognition_flow_v1_2"), None)
+    if not recognition:
+        fail("recognition_flow_v1_2 missing from experience registry")
+    guide = next((x for x in recognition.get("hifi_views", []) if x.get("id") == "capture_first_use_guide"), None)
+    if not guide:
+        fail("Recognition first-use camera guide submenu missing")
+    if guide.get("status") != "FROZEN" or guide.get("render_mode") != "authority_gallery":
+        fail("First-use guide parent must be FROZEN authority_gallery")
+    expected_guide_children = ["p01", "p02", "p03"]
+    actual_guide_children = [x.get("id") for x in guide.get("children", [])]
+    if actual_guide_children != expected_guide_children:
+        fail(f"First-use guide child order changed: {actual_guide_children} != {expected_guide_children}")
+    expected_titles = {
+        "p01": "P01 · 竖屏拍摄示意",
+        "p02": "P02 · 竖拍鱼类拍摄示意",
+        "p03": "P03 · 横屏拍摄示意",
+    }
+    expected_paths = {
+        "p01": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+        "p02": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "p03": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+    }
+    for child in guide.get("children", []):
+        cid = child.get("id")
+        if child.get("status") != "FROZEN" or child.get("render_mode") != "repo_image" or child.get("authority_type") != "visual":
+            fail(f"First-use guide {cid} must be FROZEN repo_image visual child")
+        if child.get("title") != expected_titles.get(cid):
+            fail(f"First-use guide {cid} title mismatch")
+        if child.get("image") != expected_paths.get(cid) or child.get("visual_authority") != expected_paths.get(cid):
+            fail(f"First-use guide {cid} preview/image authority binding mismatch")
+    if [x.get("path") for x in guide.get("supporting_visual_references", [])] != [expected_paths[x] for x in expected_guide_children]:
+        fail("First-use guide parent gallery references must match P01/P02/P03 order")
+    guide_manifest_path = design / "pages/recognition/first_use_camera_guide/manifest.json"
+    guide_manifest = load_json(guide_manifest_path)
+    if guide_manifest.get("status") != "FROZEN":
+        fail("First-use guide manifest must remain FROZEN")
+    manifest_assets = {x.get("id"): x for x in guide_manifest.get("assets", [])}
+    for cid in expected_guide_children:
+        entry = manifest_assets.get(cid)
+        if not entry or entry.get("path") != expected_paths[cid] or entry.get("status") != "FROZEN":
+            fail(f"First-use guide manifest binding missing for {cid}")
+
     # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
     if not built:
         nh07 = feature["hifi_views"][-1]
