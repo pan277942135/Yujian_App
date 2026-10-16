@@ -52,7 +52,7 @@ PHASE_NAMES = {
 }
 TASK_STATES = {
     "READY", "WAITING", "RUNNING", "VALIDATING", "FAIL", "RECOVERING",
-    "BLOCKED", "PASS", "CLOSED", "FINAL_GATE", "CANCELLED",
+    "BLOCKED", "PASS", "CLOSED", "FINAL_GATE", "CANCELLED", "IN_PROGRESS",
 }
 
 
@@ -105,18 +105,17 @@ class Validation:
 
 def expand_journeys(refs: list[str]) -> set[str]:
     result: set[str] = set()
+    import re
     for ref in refs or []:
-        if ref in JOURNEYS:
-            result.add(ref)
+        if not isinstance(ref, str):
             continue
-        if isinstance(ref, str) and len(ref) == 7 and ref.startswith("J") and ref[3:5] == "-J":
-            try:
-                start = int(ref[1:3])
-                end = int(ref[4:6])
-            except ValueError:
-                continue
-            if 1 <= start <= end <= 20:
-                result.update(f"J{i:02d}" for i in range(start, end + 1))
+        match = re.fullmatch(r"J(\\d{2})(?:-J(\\d{2}))?", ref)
+        if not match:
+            continue
+        start = int(match.group(1))
+        end = int(match.group(2) or match.group(1))
+        if 1 <= start <= end <= 20:
+            result.update(f"J{i:02d}" for i in range(start, end + 1))
     return result
 
 
