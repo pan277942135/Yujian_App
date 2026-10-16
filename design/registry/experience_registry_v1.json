@@ -2997,16 +2997,14 @@
           "status": "FROZEN",
           "authority_type": "group",
           "render_mode": "authority_gallery",
-          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md",
-          "summary": "三页首次相机进入教学：P01 竖屏手机+横向鱼体；P02 竖屏手机+竖直鱼体；P03 横屏手机+横向鱼体。每页 Hero 为唯一正确示范，下方固定三个错误示范。",
+          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+          "summary": "两页首次相机进入教学：P01 竖屏手机+横向鱼体；P02 横屏手机+横向鱼体。每页 Hero 为唯一正确示范，下方固定三个错误示范。",
           "menu_points": [
             "P01 · 竖屏拍摄示意",
-            "P02 · 竖拍鱼类拍摄示意",
-            "P03 · 横屏拍摄示意",
+            "P02 · 横屏拍摄示意",
             "Hero = 唯一正确示范",
             "错误示范 = 鱼头不在画面 / 鱼体过小 / 遮挡过多",
-            "P02 三个错误示例全部保持竖直鱼体；P03 三个错误示例全部保持横向鱼体",
-            "P01/P02 → 下一张；P03 → 开始拍摄",
+            "P01 → 下一张；P02 → 开始拍摄",
             "跳过/开始拍摄均不自动触发快门"
           ],
           "freeze_date": "2026-10-16",
@@ -3037,35 +3035,12 @@
             {
               "id": "p02",
               "code": "P02",
-              "title": "P02 · 竖拍鱼类拍摄示意",
+              "title": "P02 · 横屏拍摄示意",
               "status": "FROZEN",
               "authority_type": "visual",
               "menu_group": "visual",
               "render_mode": "repo_image",
-              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
-              "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
-              "visual_authority_dimensions": {
-                "width": 941,
-                "height": 1671
-              },
-              "visual_authority_bytes": 2042852,
-              "visual_authority_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-              "source_high_fidelity_png": "湖畔竖拍识鱼指南.png",
-              "summary": "P02：竖屏手机 + 竖直鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持竖直鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为下一张。",
-              "visual_status": "FROZEN",
-              "repository_binary_import_status": "PASS",
-              "image": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png"
-            },
-            {
-              "id": "p03",
-              "code": "P03",
-              "title": "P03 · 横屏拍摄示意",
-              "status": "FROZEN",
-              "authority_type": "visual",
-              "menu_group": "visual",
-              "render_mode": "repo_image",
-              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
               "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
               "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
               "visual_authority_dimensions": {
@@ -3075,10 +3050,10 @@
               "visual_authority_bytes": 2001322,
               "visual_authority_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
               "source_high_fidelity_png": "湖畔横屏拍摄指南(1).png",
-              "summary": "P03：横屏手机 + 横向鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持横向鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为开始拍摄。",
+              "summary": "P02：横屏手机 + 横向鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为开始拍摄。",
               "visual_status": "FROZEN",
               "repository_binary_import_status": "PASS",
-              "image": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png"
+              "image": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png"
             }
           ],
           "visual_status": "FROZEN",
@@ -3095,24 +3070,15 @@
             },
             {
               "id": "p02",
-              "label": "P02 · 竖拍鱼类拍摄示意",
+              "label": "P02 · 横屏拍摄示意",
               "role": "FROZEN VISUAL AUTHORITY",
-              "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-              "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-              "width": 941,
-              "height": 1671
-            },
-            {
-              "id": "p03",
-              "label": "P03 · 横屏拍摄示意",
-              "role": "FROZEN VISUAL AUTHORITY",
-              "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+              "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
               "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
               "width": 941,
               "height": 1672
             }
           ],
-          "page_count": 3
+          "page_count": 2
         }
       ],
       "navigation_mode": "submenu_direct",
