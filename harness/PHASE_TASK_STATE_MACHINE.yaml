@@ -701,6 +701,380 @@ tasks:
     retry_count: 0
     retry_budget: 2
 
+  FT-home_empty_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["home_empty_v2"]
+    journey_refs: []
+    depends_on: ["N001"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-home_normal_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B003", "B004"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-record_date_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["record_date_v2"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-recognition_flow_v1_2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: []
+    depends_on: ["N001", "N010"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-recognition_result_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["recognition_result_v1"]
+    journey_refs: []
+    depends_on: ["N001", "N002", "N007"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-fish_record_detail_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["fish_record_detail_v2"]
+    journey_refs: []
+    depends_on: ["N003"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-share_templates_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["share_templates_v1"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-fish_memory_bside_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["fish_memory_bside_v1"]
+    journey_refs: []
+    depends_on: ["N003"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-my_catches_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["my_catches_v2"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-fish_guide_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["fish_guide_v2"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-account_privacy_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["account_privacy_v1"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-auth_login_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["auth_login_v2"]
+    journey_refs: []
+    depends_on: ["N001"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-auth_register_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["auth_register_v2"]
+    journey_refs: []
+    depends_on: []
+    blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-profile_edit_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["profile_edit_v1"]
+    journey_refs: []
+    depends_on: ["N001"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
+
+  FT-user_agreement_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    status: "WAITING"
+    queue_status: "WAITING"
+    feature_refs: ["user_agreement_v1"]
+    journey_refs: []
+    depends_on: ["N001"]
+    blockers: []
+    entry_blockers: []
+    target_blockers: []
+    next_action_refs: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    evidence_observed: []
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+    retry_count: 0
+    retry_budget: 2
+    last_attempt: null
+    failure_class: null
+    recovery_action: null
   N001:
     phase: "P8"
     priority: "P0"
