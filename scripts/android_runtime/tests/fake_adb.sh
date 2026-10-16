@@ -59,6 +59,12 @@ case "$1" in
       exit 0
     fi
     command_line="$*"
+    if [[ "$command_line" == *cache/recognition-first-use-camera-guide/first_use_camera_guide_runtime_report.json* ]]; then
+      # The evidence contract binds this report to the exact host APK supplied
+      # by test_contract.sh. Other fake evidence remains clearly synthetic.
+      printf '{"apk_sha256":"%s"}\n' "${FAKE_APP_APK_SHA256:-}"
+      exit 0
+    fi
     # This fake checks Harness classification and evidence-validator routing;
     # it does not claim to render application screenshots or validate video.
     fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"

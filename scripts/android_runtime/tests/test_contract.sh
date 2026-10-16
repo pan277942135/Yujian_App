@@ -37,9 +37,12 @@ run_case() {
   tmp="$(mktemp -d)"
   printf 'fake-apk' > "$tmp/app-debug.apk"
   printf 'fake-test-apk' > "$tmp/app-debug-androidTest.apk"
+  local app_apk_sha256
+  app_apk_sha256="$(sha256sum "$tmp/app-debug.apk" | awk '{print $1}')"
   set +e
     FAKE_ADB_MODE="$mode" \
     FAKE_ADB_RESTART_LOG="$tmp/restarts" \
+    FAKE_APP_APK_SHA256="$app_apk_sha256" \
     YUJIAN_CAPTURE_RECOGNITION_VIDEO=1 \
     YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
     ADB="$FAKE_ADB" \
