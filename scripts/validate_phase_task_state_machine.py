@@ -182,7 +182,7 @@ def main() -> int:
         errors.append("machine_completion live summary must not exist")
 
     policy = machine.get("execution_policy", {})
-    if policy.get("max_automatic_repairs_per_failing_gate") != 2:
+    if policy.get("auto_recovery_enabled") is not True:\n        errors.append("execution_policy.auto_recovery_enabled must be true")\n    if policy.get("max_automatic_repairs_per_failing_gate") != 2:
         errors.append("execution_policy.automatic_repairs must be 2")
     if policy.get("total_attempts_per_gate") != 3:
         errors.append("execution_policy.maximum_attempts must be 3")
