@@ -56,6 +56,30 @@
       "non_blocking_followups": [],
       "visual_states": [
         {
+          "state_id": "recognition.capture.ready.portrait.horizontal.v1",
+          "name": "Capture Ready · Portrait · Horizontal Fish",
+          "status": "FROZEN",
+          "contract": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md",
+          "visual_authority": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json#capture_ready_portrait_horizontal",
+          "runtime_reference": "1080x1920",
+          "fish_orientation": "HORIZONTAL",
+          "fish_guide_frame": "FIXED_HORIZONTAL",
+          "control_geometry": "RIGHT_VERTICAL_RAIL",
+          "source_sha256": "6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c"
+        },
+        {
+          "state_id": "recognition.capture.ready.landscape.horizontal.v1",
+          "name": "Capture Ready · Landscape · Horizontal Fish",
+          "status": "FROZEN",
+          "contract": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md",
+          "visual_authority": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json#capture_ready_landscape_horizontal",
+          "runtime_reference": "1920x1080",
+          "fish_orientation": "HORIZONTAL",
+          "fish_guide_frame": "FIXED_HORIZONTAL",
+          "control_geometry": "RIGHT_VERTICAL_RAIL",
+          "source_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18"
+        },
+        {
           "state_id": "recognition.capture.permission_denied.v1",
           "name": "Camera Permission Denied",
           "status": "FROZEN",
