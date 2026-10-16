@@ -188,6 +188,29 @@
     "safe_area": "Overlay controls stay inside resolved window/content insets; Bottom Action Area is above the navigation inset.",
     "gesture_exclusion": "Do not claim system edge-swipe areas or block Back.",
     "lifecycle": "Capture host owns one camera provider binding and releases it on exit, backgrounding, permission loss or picker handoff.",
-    "page_private_tokens": false
-  }
+    "page_private_tokens": false,
+    "capture_controls": "Portrait and landscape both use a right-side vertical Capture + Gallery action rail. Do not use center-bottom controls for the frozen Hi-Fi composition.",
+    "fish_guide_frame": "Fixed horizontal natural fish-shaped guide in V1; no live orientation inference.",
+    "no_phone_frame": true
+  },
+  "orientation_variants": {
+    "portrait": {
+      "runtime_reference": "1080x1920",
+      "fish_orientation": "HORIZONTAL",
+      "fish_guide_frame": "FIXED_HORIZONTAL",
+      "capture_controls": "RIGHT_VERTICAL_RAIL",
+      "back": "TOP_LEFT",
+      "preview": "FULL_SCREEN_LIVE_CAMERA"
+    },
+    "landscape": {
+      "runtime_reference": "1920x1080",
+      "fish_orientation": "HORIZONTAL",
+      "fish_guide_frame": "FIXED_HORIZONTAL",
+      "capture_controls": "RIGHT_VERTICAL_RAIL",
+      "back": "TOP_LEFT",
+      "preview": "FULL_SCREEN_LIVE_CAMERA"
+    }
+  },
+  "hifi_visual_authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md",
+  "hifi_manifest": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
 }
