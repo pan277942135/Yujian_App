@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.util.Log
 import android.view.Choreographer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,7 +25,6 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.recognition.RecognitionDegradationLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
-import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.theme.YujianTheme
 import org.json.JSONArray
@@ -51,6 +51,7 @@ class RecognitionOpticalFidelityRuntimeTest {
 
     @Test
     fun recordsLiveFullAndLiteOpticalFidelityFramesWithoutInventingABudget() {
+        Log.i(LOG_TAG, "Milestone: test-start")
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val testContext = instrumentation.context
@@ -73,11 +74,13 @@ class RecognitionOpticalFidelityRuntimeTest {
         val classificationPresented = CountDownLatch(1)
         val liteMotionSamplesReady = CountDownLatch(1)
         val unexpectedResultCount = AtomicInteger(0)
-        val motionSamples = Collections.synchronizedList(mutableListOf<RecognitionMotionTraceSample>())
+        val fullMotionSampleCount = AtomicInteger(0)
+        val liteMotionSampleCount = AtomicInteger(0)
         val presentedPhases = Collections.synchronizedList(mutableListOf<RecognitionPhase>())
         val refreshRate = AtomicReference(60.0)
 
         activityRule.scenario.onActivity { activity ->
+            Log.i(LOG_TAG, "Milestone: install-production-scene")
             refreshRate.set(activity.windowManager.defaultDisplay.refreshRate.toDouble())
             activity.setContent {
                 YujianTheme {
@@ -96,16 +99,20 @@ class RecognitionOpticalFidelityRuntimeTest {
                         onFinished = { unexpectedResultCount.incrementAndGet() },
                         onVisualPhasePresented = { phase, _ ->
                             presentedPhases += phase
+                            Log.i(LOG_TAG, "Milestone: phase-presented=$phase")
                             if (phase == RecognitionPhase.CLASSIFYING) classificationPresented.countDown()
                         },
                         motionPolicyOverride = policy.value,
                         onMotionFrame = { sample ->
-                            motionSamples += sample
                             if (sample.qualityLevel.name == "LITE") {
-                                val liteCount = synchronized(motionSamples) {
-                                    motionSamples.count { it.qualityLevel.name == "LITE" }
+                                if (liteMotionSampleCount.incrementAndGet() == 1) {
+                                    Log.i(LOG_TAG, "Milestone: first-motion-sample=LITE")
                                 }
-                                if (liteCount >= MIN_MOTION_SAMPLES) liteMotionSamplesReady.countDown()
+                                if (liteMotionSampleCount.get() >= MIN_MOTION_SAMPLES) liteMotionSamplesReady.countDown()
+                            } else {
+                                if (fullMotionSampleCount.incrementAndGet() == 1) {
+                                    Log.i(LOG_TAG, "Milestone: first-motion-sample=FULL")
+                                }
                             }
                         },
                     )
@@ -113,34 +120,40 @@ class RecognitionOpticalFidelityRuntimeTest {
             }
         }
 
+        Log.i(LOG_TAG, "Milestone: scene-installed")
         assertTrue("recognition pipeline did not enter CLASSIFYING", classificationStarted.await(3, TimeUnit.SECONDS))
+        Log.i(LOG_TAG, "Milestone: classification-started")
         assertTrue(
             "CLASSIFYING was not presented by the live scene",
             classificationPresented.await(8, TimeUnit.SECONDS),
         )
+        Log.i(LOG_TAG, "Milestone: classification-presented")
 
         val refreshRateHz = refreshRate.get()
+        Log.i(LOG_TAG, "Milestone: full-screenshot-start")
         saveScreenshot(outputDir, "optical_fidelity_full.png")
+        Log.i(LOG_TAG, "Milestone: full-screenshot-complete")
         val fullIntervals = collectFrameIntervals(FRAME_INTERVAL_SAMPLES)
-        val fullMotionSamples = synchronized(motionSamples) {
-            motionSamples.filter { it.qualityLevel.name == "FULL" }
-        }
-        assertTrue("live FULL compositing did not report motion samples", fullMotionSamples.size >= MIN_MOTION_SAMPLES)
+        Log.i(LOG_TAG, "Milestone: full-intervals-complete count=${fullIntervals.size}")
+        assertTrue("live FULL compositing did not report motion samples", fullMotionSampleCount.get() >= MIN_MOTION_SAMPLES)
 
         activityRule.scenario.onActivity {
+            Log.i(LOG_TAG, "Milestone: lite-profile-change-start")
             policy.value = RecognitionMotionPolicy(degradationLevel = RecognitionDegradationLevel.D2)
         }
+        Log.i(LOG_TAG, "Milestone: lite-profile-change-complete")
         assertTrue("LITE profile did not emit motion samples", liteMotionSamplesReady.await(8, TimeUnit.SECONDS))
+        Log.i(LOG_TAG, "Milestone: lite-samples-ready count=${liteMotionSampleCount.get()}")
         assertTrue(
             "production scene left CLASSIFYING before LITE samples were captured",
             synchronized(presentedPhases) { presentedPhases.lastOrNull() == RecognitionPhase.CLASSIFYING },
         )
+        Log.i(LOG_TAG, "Milestone: lite-screenshot-start")
         saveScreenshot(outputDir, "optical_fidelity_lite.png")
+        Log.i(LOG_TAG, "Milestone: lite-screenshot-complete")
         val liteIntervals = collectFrameIntervals(FRAME_INTERVAL_SAMPLES)
-        val liteMotionSamples = synchronized(motionSamples) {
-            motionSamples.filter { it.qualityLevel.name == "LITE" }
-        }
-        assertTrue("live LITE compositing did not report motion samples", liteMotionSamples.size >= MIN_MOTION_SAMPLES)
+        Log.i(LOG_TAG, "Milestone: lite-intervals-complete count=${liteIntervals.size}")
+        assertTrue("live LITE compositing did not report motion samples", liteMotionSampleCount.get() >= MIN_MOTION_SAMPLES)
         assertEquals("suspended recognition must not report a result", 0, unexpectedResultCount.get())
         val presentedSnapshot = synchronized(presentedPhases) { presentedPhases.map { it.name }.distinct() }
         assertTrue("production scene never presented CLASSIFYING", "CLASSIFYING" in presentedSnapshot)
@@ -153,11 +166,12 @@ class RecognitionOpticalFidelityRuntimeTest {
             .put("refresh_rate_hz", refreshRateHz)
             .put("budget_policy", "MEASURED_ONLY_NO_FROZEN_THRESHOLD")
             .put("profiles", JSONArray()
-                .put(profileMetrics("FULL", fullIntervals, fullMotionSamples.size, refreshRateHz))
-                .put(profileMetrics("LITE", liteIntervals, liteMotionSamples.size, refreshRateHz)))
+                .put(profileMetrics("FULL", fullIntervals, fullMotionSampleCount.get(), refreshRateHz))
+                .put(profileMetrics("LITE", liteIntervals, liteMotionSampleCount.get(), refreshRateHz)))
             .put("presented_phases", JSONArray(presentedSnapshot))
             .put("result_ready", false)
         File(outputDir, METRICS_FILENAME).writeText(document.toString(2) + "\n", Charsets.UTF_8)
+        Log.i(LOG_TAG, "Milestone: metrics-written")
     }
 
     private fun collectFrameIntervals(expectedCount: Int): List<Double> {
@@ -276,6 +290,7 @@ class RecognitionOpticalFidelityRuntimeTest {
     }
 
     private companion object {
+        const val LOG_TAG = "RecognitionOpticalFidelity"
         const val FRAME_INTERVAL_SAMPLES = 120
         const val MIN_MOTION_SAMPLES = 20
         const val METRICS_FILENAME = "recognition_optical_fidelity_v3_1.json"
