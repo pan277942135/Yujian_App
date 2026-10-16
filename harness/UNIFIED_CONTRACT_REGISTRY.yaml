@@ -1428,11 +1428,11 @@ gate_contracts:
     contract_refs: ["FC-recognition_flow_v1_2", "DS-FOUNDATION"]
     acceptance_domains: ["asset", "evidence"]
     exact_sha_required: true
-    status: "NOT_CONFIRMED"
+    status: "READY"
     blocker_id: "B008"
     blocker_status: "CLOSED"
-    page_set_resolution: "NOT_CONFIRMED"
-    page_set_conflict_id: "C-FIRST-USE-GUIDE-PAGE-COUNT"
+    page_set_resolution: "USER_AUTHORIZED_THREE_PAGE_V1"
+    page_set_conflict_id: null
     required_assets:
       p01:
         path: "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png"

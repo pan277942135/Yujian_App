@@ -2,44 +2,65 @@
 
 **Status:** FROZEN  
 **Freeze date:** 2026-10-16  
-**Scope:** Capture 页面首次相机进入时的两页教学 Overlay。
+**Owner:** Recognition Capture / 首次拍照教学  
+**Scope:** Capture 页面首次相机进入时的三页教学 Overlay；不替代 Recognition Capture V3.1 页面合同。
 
-## Final frozen teaching set
+## Authority
+
+The three frozen PNGs in `frozen/` are the page-level visual authorities for the first-use guide sequence.
+
+- P01 · 竖屏拍摄示意
+- P02 · 竖拍鱼类拍摄示意
+- P03 · 横屏拍摄示意
+
+The guide is an additive overlay inside `recognition.capture.v3_1`. It does not redefine Camera Preview, Top Navigation, Gallery, the primary capture button, permission UI, or system Photo Picker.
+
+## Interaction
+
+- The guide is shown only once after camera permission is granted and the camera provider/preview are Ready.
+- Overlay blocks capture-button touch-through while visible.
+- P01 primary action: `下一张 →`.
+- P02 primary action: `下一张 →`.
+- P03 primary action: `开始拍摄 →`.
+- `跳过` closes the guide without triggering the shutter.
+- `上一张` is available on P02/P03.
+- `开始拍摄` closes the guide and returns to normal Capture Ready; it does not automatically trigger the shutter.
+- Completion is persisted only after the guide is actually dismissed by `跳过` or the final action.
+- Camera permission denial, preview-not-ready, gallery entry, or abandoned/incomplete guide does not mark the guide completed.
+
+## Teaching content
 
 ### P01 · 竖屏拍摄示意
 - Phone: portrait
 - Fish: horizontal
-- Errors: 鱼头不在画面 / 鱼体过小 / 遮挡过多
-- Primary action: `下一张`
+- Correct hero: fish fully visible and well framed
+- Errors: fish head outside the frame; fish too small; excessive occlusion
 
-### P02 · 横屏拍摄示意
+### P02 · 竖拍鱼类拍摄示意
+- Phone: portrait
+- Fish: vertical
+- Correct hero: fish fully visible and well framed
+- Errors: fish head outside the frame; fish too small; excessive occlusion
+- All three error examples must also show a vertical fish.
+
+### P03 · 横屏拍摄示意
 - Phone: landscape
 - Fish: horizontal
-- Errors: 鱼头不在画面 / 鱼体过小 / 遮挡过多
-- Primary action: `开始拍摄`
-- **Active P02 landscape/horizontal-fish visual source is PENDING and must be newly supplied.**
-- The former P03 binary must **not** be reused as active P02.
-
-## Removed / historical
-The former **P02 · 竖拍鱼类拍摄示意** (portrait phone + vertical fish) is removed from the active sequence.
-The former **P03 · 横屏拍摄示意** binary remains historical/compatibility only.
-
-## Interaction
-- Active pager contains exactly two pages: `P01 → P02`.
-- `上一张` appears only on P02.
-- P01 → `下一张` → P02.
-- P02 → `开始拍摄` → Capture Ready.
-- `跳过` exits from either page.
-- `开始拍摄` never auto-triggers the shutter.
-- Completion is persisted only after `跳过` or final `开始拍摄`.
-- Back / abandoned / permission-denied / gallery paths do not mark completion.
+- Correct hero: fish fully visible and well framed
+- Errors: fish head outside the frame; fish too small; excessive occlusion
+- All three error examples must also show a horizontal fish.
 
 ## Visual rules
-- Both active pages use horizontal fish.
-- One correct hero + three error examples.
-- Natural morning lake / restrained gold visual language.
-- No HUD, scanner, radar, neon or decorative technology effects.
-- Guide inherits Capture safe-area and shared component contracts.
+
+- Full-bleed natural camera photography remains dominant.
+- Morning lake blue-gray / mist white / restrained gold.
+- Dark legibility overlay is restrained; never create a solid black panel.
+- Examples are photographic samples, not card-heavy UI.
+- No HUD, scanner, AI radar, neon, metallic treatment, or decorative technology effects.
+- The top hero is the correct example; do not duplicate a `正确` card below.
+- The three lower examples are all error samples.
+- The guide inherits Capture safe-area and shared component contracts.
 
 ## Runtime boundary
-This freezes the two-page design/interaction surface. It does not claim the pending P02 raster source or Android Runtime evidence as PASS.
+
+This package freezes the design surface only. Camera runtime, permission, lifecycle, device responsive behavior, accessibility execution, and Android evidence remain separate acceptance work.
