@@ -43,7 +43,7 @@ class PresentationSanitizationRuntimeTest {
         assertVisible("草鱼")
         assertVisible(currentDayOfMonthLabel())
         assertVisible(currentMonthLabel())
-        assertVisible("1条鱼获 · 1种鱼")
+        assertVisible("1 条鱼获 · 1 种鱼")
         assertAbsent("首次null")
         screenshot("02_my_catches_null_clean.png")
 

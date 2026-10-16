@@ -621,7 +621,7 @@ class RecognitionFrozenFlowEmulatorTest {
         }
         lengthField.performTextInput("0")
         lengthField.performImeAction()
-        composeRule.onNodeWithText("请输入有效的长度").assertIsDisplayed()
+        composeRule.onNodeWithText("请输入 0.1–999.9 cm 的长度").assertIsDisplayed()
     }
 
     @Test

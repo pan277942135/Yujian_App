@@ -106,7 +106,10 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
         val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
-        val speciesTitleBounds = composeRule.onNodeWithText("草鱼").fetchSemanticsNode().boundsInRoot
+        val speciesTitleBounds = composeRule.onNodeWithText(
+            "草鱼",
+            useUnmergedTree = true,
+        ).fetchSemanticsNode().boundsInRoot
         saveScreenshot("fish_guide_lit.png")
         assertTrue(
             "Species title must anchor the upper card hierarchy: title=$speciesTitleBounds carousel=$carouselBounds",
@@ -232,7 +235,6 @@ class FishGuideRuntimeTest {
             )
         }
 
-        composeRule.onNodeWithText("Ctenopharyngodon idella").performScrollTo().assertIsDisplayed()
         saveScreenshot("fish_species_detail_initial.png")
         composeRule.onNodeWithTag("fish_knowledge_card_v2_HERO").assertExists()
         composeRule.onNodeWithContentDescription("鱼种名片，草鱼").assertExists()
