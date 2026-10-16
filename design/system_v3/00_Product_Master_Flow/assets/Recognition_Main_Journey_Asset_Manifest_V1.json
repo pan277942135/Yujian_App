@@ -99,6 +99,6 @@
     "status": "FROZEN",
     "manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
     "package": "design/pages/recognition/first_use_camera_guide/",
-    "note": "Two-page Capture guide P01/P02 is the frozen first-use package: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish. Former P02/P03 binaries are historical/compatibility only; active P02 source remains pending."
+    "note": "Two-page Capture guide P01/P02 is the frozen first-use package: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish. Active P02 PNG is byte-verified PASS from user-approved source 湖畔横屏拍摄指南(1).png. Former portrait/vertical P02 and former P03 page IDs are historical/compatibility only."
   }
 }
