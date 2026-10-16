@@ -213,3 +213,69 @@ the moving PR head and the stable execution baseline.
 
 The latest live PR head must always be re-read before Work starts; it is intentionally
 not treated as a self-referential field inside PROJECT_MASTER_STATE.yaml.
+
+
+## 2026-10-16 — Unified Contract Layer V1
+
+### Scope
+
+Completed control-plane step ④: a machine-readable Unified Contract Registry and
+resolver were added without replacing domain authorities.
+
+### Added
+
+- `harness/UNIFIED_CONTRACT_REGISTRY.yaml`
+- `harness/UNIFIED_CONTRACT_SCHEMA_V1.md`
+- `harness/CONTRACT_RESOLUTION_PROTOCOL.md`
+- `scripts/validate_unified_contract.py`
+- `harness/UNIFIED_CONTRACT_VALIDATION_20261016.md`
+
+### Coverage
+
+- Features: 15/15
+- Journeys: J01-J20 = 20/20
+- Child surfaces: 75
+- Android routes: 22/22
+- Phase/Task bindings: 45/45
+- Gates: 11/11
+- Contract domains: Product / Feature / Journey / Child Surface / Route / Page /
+  Visual / Component / Token / Asset / State / Data-API / Model /
+  Android Implementation / Runtime / Accessibility / Evidence / Release
+
+### Resolver rule
+
+The lookup key is:
+
+`feature_id + child_surface_id + contract_domain`
+
+Missing authorities remain MISSING. Conflicting authorities remain
+NOT_CONFIRMED/BLOCKED. Historical evidence cannot promote current-head PASS.
+Page-owned authorities override shared defaults only inside their declared scope.
+
+### CI validation
+
+Project Master State workflow:
+
+- Run: 38870029013
+- Job: 116871686066
+- Result: PASS
+- PROJECT_MASTER_STATE_VALIDATION=PASS
+- FEATURE_MATRIX_VALIDATION=PASS
+- PHASE_TASK_STATE_MACHINE_VALIDATION=PASS
+- UNIFIED_CONTRACT_VALIDATION=PASS
+
+The unified validator initially exposed two implementation defects in the new
+validator itself (page-set lookup and matrix status-field naming). Both were repaired
+before the final PASS. No product/runtime status was promoted by this control-plane
+work.
+
+### Current execution boundary
+
+- Product/runtime execution baseline remains `e881c2a6772b418a49b6208ce44c8527fbeb97db`.
+- PR #145 remains Draft / Open / Unmerged.
+- Current executable task remains P8 / N001 / READY.
+- API28 runtime acceptance remains NOT_RUN.
+- J01-J20 runtime acceptance remains NOT_RUN.
+- B001/B002/B003/B004/B006/B007/B008 remain governed by the existing state machine.
+- No main merge, force-push, rebase, history rewrite, backend/API/database change, or
+  frozen asset modification was performed by this stage.
