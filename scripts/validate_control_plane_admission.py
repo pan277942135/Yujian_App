@@ -13,7 +13,9 @@ def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--no-fetch-main",action="store_true"); args=ap.parse_args()
     if not args.no_fetch_main and subprocess.run(["git","fetch","origin","main","--prune"],cwd=ROOT).returncode!=0:
         print("CONTROL_PLANE_ADMISSION=FAIL\n- unable to refresh origin/main",file=sys.stderr); return 1
-    branch=branch_name(); control_change=branch.startswith(("control/","design/")); ok=True
+    branch=branch_name(); event=os.environ.get("GITHUB_EVENT_NAME","")
+    if event=="merge_group": branch="main"
+    control_change=branch.startswith(("control/","design/")); ok=True
     ok &= run("CONTROL_PLANE_REGISTRY",["python","scripts/validate_control_plane_registry.py"])
     ok &= run("FEATURE_MATRIX",["python","scripts/validate_feature_matrix.py"])
     ok &= run("PHASE_TASK_STATE_MACHINE",["python","scripts/validate_phase_task_state_machine.py"])
