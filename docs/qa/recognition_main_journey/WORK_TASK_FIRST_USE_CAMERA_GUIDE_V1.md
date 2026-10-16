@@ -1,3 +1,7 @@
+> CURRENT DESIGN FREEZE OVERRIDE · 2026-10-16
+>
+> This Work Task body was written for the former three-page guide and is retained as historical execution material. It is NOT the current implementation scope. The active design authority is First_Use_Camera_Guide_Spec_V1_1.md with exactly two pages: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish. Former P02 portrait+vertical and former P03 are historical only. Do not start Android implementation from the old three-page sections.
+
 # Work Task · Recognition Capture / 07 · 首次拍照教学 V1
 
 Task ID: RECOGNITION-FIRST-USE-GUIDE-V1
