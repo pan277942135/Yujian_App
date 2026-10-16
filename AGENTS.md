@@ -20,10 +20,10 @@ Task/design/control-plane changes originate on `main`, then synchronize into the
 Run:
 
 ```bash
-python scripts/validate_control_plane_sync.py
+python scripts/validate_control_plane_admission.py
 ```
 
-Then follow the current task, contract, evidence and recovery rules resolved from `CONTROL_PLANE_REGISTRY.yaml`.
+This is the only Work admission command. It resolves the canonical Control Plane, refreshes `origin/main`, validates the six static layers, and for product branches validates branch synchronization plus live Project/Work state.
 
 ## State
 `PROJECT_MASTER_STATE.yaml` and Work execution state are allowed to remain branch-local. They must never become an alternative control-plane definition.
