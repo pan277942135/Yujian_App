@@ -1422,6 +1422,28 @@ gate_contracts:
     acceptance_domains: ["release"]
     exact_sha_required: true
   G-FIRST-USE-GUIDE-ASSET:
+    purpose: "First-use guide binary identity and governance"
+    contract_refs: ["FC-recognition_flow_v1_2", "DS-FOUNDATION"]
+    acceptance_domains: ["asset", "evidence"]
+    exact_sha_required: true
+    status: "NOT_CONFIRMED"
+    blocker_id: "B008"
+    blocker_status: "CLOSED"
+    active_pages_by_design_authority: ["p01", "p02", "p03"]
+    active_pages_by_state_machine: ["p01", "p02"]
+    conflict_id: "C-FIRST-USE-GUIDE-PAGE-COUNT"
+    required_assets:
+      p01:
+        path: "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png"
+        git_blob_sha: "3f73f744104777beee29bd2370ecac1f40197a1d"
+        sha256: "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
+      p02:
+        path: "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png"
+        git_blob_sha: "2f46b2f2906f258eef8ca67181fc049a55d045af"
+        sha256: "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
+      p03:
+        path: "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png"
+        sha256: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
     purpose: "Frozen P01/P02 teaching binary identity and governance"
     contract_refs: ["FC-recognition_flow_v1_2", "DS-FOUNDATION"]
     acceptance_domains: ["asset", "evidence"]
