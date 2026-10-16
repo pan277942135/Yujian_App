@@ -19,6 +19,8 @@ resume work without depending on chat history.
 | Current Work execution state | docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json |
 | Observed execution history | harness/build-log.md |
 | Phase / Task State Machine | harness/PHASE_TASK_STATE_MACHINE.yaml |
+| Unified Contract Registry | harness/UNIFIED_CONTRACT_REGISTRY.yaml |
+| Contract Resolution Protocol | harness/CONTRACT_RESOLUTION_PROTOCOL.md |
 | Detailed phase plan | harness/build/ |
 | Phase discoveries/decisions | harness/context/ |
 | Design authority | design/system_v3/11_Freeze_Governance/ |
@@ -57,14 +59,16 @@ Every material update follows this order:
 2. Identify the exact evidence or decision that changed.
 3. Update PROJECT_MASTER_STATE.yaml.
 4. Append an observation to harness/build-log.md.
-5. Add or update detailed evidence in its owning location.
-6. Run scripts/validate_project_master_state.py.
-7. Run affected tests/checks.
-8. Commit the coherent state/evidence update.
-9. Re-read the remote branch HEAD.
-10. If the product/runtime baseline changed, update the tracked execution baseline
+5. Resolve the Unified Contract Registry for the changed scope.
+6. Add or update detailed evidence in its owning location.
+7. Run scripts/validate_project_master_state.py.
+8. Run scripts/validate_unified_contract.py.
+9. Run affected tests/checks.
+10. Commit the coherent state/evidence update.
+11. Re-read the remote branch HEAD.
+12. If the product/runtime baseline changed, update the tracked execution baseline
     to the new exact implementation SHA and repeat validation.
-11. Push when the current task authorizes GitHub delivery.
+13. Push when the current task authorizes GitHub delivery.
 
 ## 5. Status transition rules
 
@@ -236,11 +240,15 @@ If an agent stops unexpectedly:
 1. Read AGENTS.md.
 2. Read PROJECT_MASTER_STATE.yaml.
 3. Verify current branch and HEAD.
-4. Read current Work state.
-5. Read the last build-log entry.
-6. Check open blockers.
-7. Identify the first unfinished next_action.
-8. Continue from the latest committed state.
+4. Read harness/FEATURE_MATRIX.yaml.
+5. Read harness/UNIFIED_CONTRACT_REGISTRY.yaml.
+6. Read harness/PHASE_TASK_STATE_MACHINE.yaml.
+7. Read current Work state.
+8. Read the last build-log entry.
+9. Check open blockers.
+10. Resolve the current task's contract bindings.
+11. Identify the first unfinished next_action.
+12. Continue from the latest committed state.
 
 Never reconstruct the project solely from conversation history.
 
@@ -310,10 +318,12 @@ A runtime failure is observed on SHA A:
 Run from repository root:
 
 python scripts/validate_project_master_state.py
+python scripts/validate_unified_contract.py
 
-Expected success marker:
+Expected success markers:
 
 PROJECT_MASTER_STATE_VALIDATION=PASS
+UNIFIED_CONTRACT_VALIDATION=PASS
 
 
 ## 17. Phase / Task State Machine
@@ -349,3 +359,14 @@ Automatic repair is bounded to the initial attempt plus two repairs. The third
 failure is classified and stopped for that gate. Failed evidence is retained.
 
 A task cannot be marked PASS from historical evidence or from a different source SHA.
+
+## 18. Unified Contract Layer
+
+`harness/UNIFIED_CONTRACT_REGISTRY.yaml` is the single machine-readable resolver across
+Product, Feature, Journey, Child Surface, Route, Page, Design, Component, Token, Asset,
+State, Data/API, Model, Android Implementation, Runtime, Accessibility, Evidence and Release.
+It indexes domain authorities; it does not replace them.
+
+Every executable task must resolve its contract references before implementation. A
+structural registry PASS is not a runtime or release PASS. Missing/partial contracts
+remain explicit and are governed by the Phase/Task State Machine.
