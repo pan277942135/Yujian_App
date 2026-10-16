@@ -1,11 +1,11 @@
 package com.yujian.ai.ui.recognition
 
 import android.graphics.Bitmap
-import android.graphics.BlurMaskFilter
-import android.graphics.Paint as AndroidPaint
+import android.os.SystemClock
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
@@ -206,6 +205,15 @@ fun RecognitionFishFocus(
         "recognition-fish-focus-level-${effectiveLevel.name.lowercase()}" +
             if (lowPerformance) "-low-performance" else ""
 
+    val cachedContourPath = remember(transform, subjectBox, contour) {
+        if (subjectBox != null && contour.isNotEmpty()) {
+            buildRecognitionContourPath(transform, subjectBox, contour)
+        } else {
+            null
+        }
+    }
+    val contourBlurPaints = remember { RecognitionBlurPaintCache() }
+
     Canvas(
         modifier
             .fillMaxSize()
@@ -247,7 +255,7 @@ fun RecognitionFishFocus(
                 resolveProgress <= 0f
             ) {
                 val t =
-                    ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) /
+                    ((visualClockMs ?: SystemClock.uptimeMillis()) % 1_900L) /
                         1_900f
                 (
                     (sin(t * 2f * PI - PI / 2f) + 1f) /
@@ -344,11 +352,7 @@ fun RecognitionFishFocus(
             effectiveLevel == RecognitionFishFocusLevel.A &&
             levelAAvailable
         ) {
-            val realContour = buildRecognitionContourPath(
-                transform = transform,
-                subjectBox = requireNotNull(subjectBox),
-                contour = contour,
-            )
+            val realContour = requireNotNull(cachedContourPath)
 
             val coreAlpha =
                 contourCoreTarget * reveal * resolveStrength
@@ -360,6 +364,7 @@ fun RecognitionFishFocus(
                 ),
                 widthPx = 11.dp.toPx(),
                 blurRadiusPx = 5.dp.toPx(),
+                blurPaints = contourBlurPaints,
             )
             drawLocalContourBlur(
                 realContour,
@@ -368,6 +373,7 @@ fun RecognitionFishFocus(
                 ),
                 widthPx = 4.dp.toPx(),
                 blurRadiusPx = 2.dp.toPx(),
+                blurPaints = contourBlurPaints,
             )
             drawPath(
                 realContour,
@@ -387,16 +393,9 @@ private fun DrawScope.drawLocalContourBlur(
     color: Color,
     widthPx: Float,
     blurRadiusPx: Float,
+    blurPaints: RecognitionBlurPaintCache,
 ) {
-    if (color.alpha <= 0f || widthPx <= 0f || blurRadiusPx <= 0f) return
-    val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-        this.color = color.toArgb()
-        style = AndroidPaint.Style.STROKE
-        strokeWidth = widthPx
-        strokeCap = AndroidPaint.Cap.ROUND
-        strokeJoin = AndroidPaint.Join.ROUND
-        maskFilter = BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
-    }
+    val paint = blurPaints.obtain(color, widthPx, blurRadiusPx) ?: return
     drawIntoCanvas { canvas ->
         canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }

@@ -4,16 +4,11 @@ import android.graphics.BlurMaskFilter
 import android.graphics.Paint as AndroidPaint
 import android.graphics.Path as AndroidPath
 import android.graphics.PathMeasure as AndroidPathMeasure
-import android.os.SystemClock
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -35,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -48,6 +41,7 @@ private val MotionEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
 
 internal val recognitionAmbientPrimaryIslandIds = setOf("B1", "G1", "B3", "G3")
 internal val recognitionAmbientSecondaryFragmentIds = setOf("B2", "G2", "B4")
+private val ENERGY_NODES = listOf("B1" to AiBlueHot, "G1" to AiGoldHot)
 
 private data class Cubic(
     val x: Float,
@@ -116,7 +110,7 @@ internal data class RecognitionAmbientStateCalibration(
     val speed: Float,
 )
 
-private data class MotionFrame(
+internal data class MotionFrame(
     val cycleOffset: Float,
     val segmentSpeed: Float,
     val stateStrength: Float,
@@ -139,7 +133,7 @@ data class RecognitionMotionTraceSample(
     val qualityLevel: RecognitionQualityLevel,
 )
 
-private class EdgeFieldMotionAccumulator {
+internal class EdgeFieldMotionAccumulator {
     private var initialized = false
     private var stage = ProductStage.IMAGE_RECOGNIZING
     private var lastNowMs = 0L
@@ -299,6 +293,8 @@ fun RecognitionAmbientField(
     phase: RecognitionPhase,
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
+    motionSessionKey: Any? = null,
+    deterministicMotion: Boolean = visualClockMs != null,
     lowPerformance: Boolean = false,
     reduceMotion: Boolean = false,
     resolveProgress: Float = 0f,
@@ -308,28 +304,25 @@ fun RecognitionAmbientField(
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     photoTransform: RecognitionImageTransform? = null,
 ) {
-    val nowMs = ambientNowMs(visualClockMs)
-    val accumulator = remember { EdgeFieldMotionAccumulator() }
+    val nowMs = visualClockMs ?: 0L
+    val accumulator = remember(motionSessionKey) { EdgeFieldMotionAccumulator() }
+    val cachedGeometry = remember(photoTransform?.photoContentRect) {
+        photoTransform?.photoContentRect?.let(::buildOpticalPathCache)
+    }
 
-    val frame = if (visualClockMs != null) {
+    val frame = if (deterministicMotion) {
         deterministicFrame(
-            visualClockMs,
-            phase,
-            reduceMotion,
-            resolveActive,
-            resolveProgress,
-        )
-    } else {
-        accumulator.sample(
             nowMs,
             phase,
             reduceMotion,
             resolveActive,
             resolveProgress,
         )
+    } else {
+        accumulator.sample(nowMs, phase, reduceMotion, resolveActive, resolveProgress)
     }
 
-    val quality = qualityProfile(qualityLevel)
+    val quality = remember(qualityLevel) { qualityProfile(qualityLevel) }
     if (onMotionFrame != null) {
         LaunchedEffect(nowMs, phase, frame, reduceMotion, qualityLevel, onMotionFrame) {
             onMotionFrame(
@@ -359,9 +352,11 @@ fun RecognitionAmbientField(
     ) {
         val fieldRect = photoTransform?.photoContentRect
             ?: DisplayRect(0f, 0f, size.width, size.height)
-        val primaryPaths = buildPaths(fieldRect, PRIMARY_ISLANDS)
-        val companionPaths = buildEchoPaths(fieldRect, COMPANION_HAIRLINES)
-        val microPaths = buildEchoPaths(fieldRect, MICRO_HAIRLINES)
+        val geometry = cachedGeometry?.takeIf { it.fieldRect == fieldRect }
+            ?: buildOpticalPathCache(fieldRect)
+        val primaryPaths = geometry.primaryPaths
+        val companionPaths = geometry.companionPaths
+        val microPaths = geometry.microPaths
 
         clipRect(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom) {
             drawReceivingLight(
@@ -387,6 +382,7 @@ fun RecognitionAmbientField(
                         offset = offset,
                         common = common,
                         quality = quality,
+                        blurPaints = geometry.blurPaints,
                     )
                 } else if (filament.id in recognitionAmbientSecondaryFragmentIds) {
                     drawSecondaryFragment(
@@ -395,6 +391,7 @@ fun RecognitionAmbientField(
                         offset = offset,
                         common = common,
                         quality = quality,
+                        blurPaints = geometry.blurPaints,
                     )
                 }
             }
@@ -415,6 +412,7 @@ fun RecognitionAmbientField(
                         offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
                         common = common,
                         micro = false,
+                        blurPaints = geometry.blurPaints,
                     )
                 }
             }
@@ -434,6 +432,7 @@ fun RecognitionAmbientField(
                         offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
                         common = common,
                         micro = true,
+                        blurPaints = geometry.blurPaints,
                     )
                 }
             }
@@ -459,20 +458,6 @@ fun RecognitionAmbientField(
             }
         }
     }
-}
-
-@Composable
-private fun ambientNowMs(override: Long?): Long {
-    if (override != null) return override
-
-    var nowMs by remember { mutableLongStateOf(SystemClock.uptimeMillis()) }
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            nowMs = SystemClock.uptimeMillis()
-            delay(33L)
-        }
-    }
-    return nowMs
 }
 
 private fun deterministicFrame(
@@ -630,11 +615,12 @@ private fun DrawScope.drawReceivingLight(
 }
 
 private fun DrawScope.drawCompositePrimary(
-    path: Path,
+    path: RecognitionMeasuredPath,
     filament: Filament,
     offset: Float,
     common: Float,
     quality: QualityProfile,
+    blurPaints: RecognitionBlurPaintCache,
 ) {
     if (common <= .001f) return
 
@@ -648,8 +634,8 @@ private fun DrawScope.drawCompositePrimary(
     val coreAlpha = (.46f * common * quality.core).coerceAtMost(.50f)
 
     segments.forEach { segment ->
-        drawLocalBlur(segment.path, outer, 10.dp.toPx(), 5.dp.toPx())
-        drawLocalBlur(segment.path, mid, 4.dp.toPx(), 2.dp.toPx())
+        drawLocalBlur(segment.path, outer, 10.dp.toPx(), 5.dp.toPx(), blurPaints)
+        drawLocalBlur(segment.path, mid, 4.dp.toPx(), 2.dp.toPx(), blurPaints)
         drawPath(
             segment.path,
             brush = gradientTail(segment, filament.color, filament.hot, coreAlpha),
@@ -663,11 +649,12 @@ private fun DrawScope.drawCompositePrimary(
 }
 
 private fun DrawScope.drawSecondaryFragment(
-    path: Path,
+    path: RecognitionMeasuredPath,
     filament: Filament,
     offset: Float,
     common: Float,
     quality: QualityProfile,
+    blurPaints: RecognitionBlurPaintCache,
 ) {
     if (common <= .001f) return
 
@@ -679,7 +666,7 @@ private fun DrawScope.drawSecondaryFragment(
     )
     val coreAlpha = (.16f * common * quality.core).coerceAtMost(.12f)
     segments.forEach { segment ->
-        drawLocalBlur(segment.path, mid, 2.dp.toPx(), 1.dp.toPx())
+        drawLocalBlur(segment.path, mid, 2.dp.toPx(), 1.dp.toPx(), blurPaints)
         drawPath(
             segment.path,
             brush = gradientTail(segment, filament.color, filament.hot, coreAlpha),
@@ -693,11 +680,12 @@ private fun DrawScope.drawSecondaryFragment(
 }
 
 private fun DrawScope.drawHairlineEcho(
-    path: Path,
+    path: RecognitionMeasuredPath,
     echo: EchoFilament,
     offset: Float,
     common: Float,
     micro: Boolean,
+    blurPaints: RecognitionBlurPaintCache,
 ) {
     if (common <= .001f) return
 
@@ -709,7 +697,7 @@ private fun DrawScope.drawHairlineEcho(
     )
     val coreAlpha = (.52f * common * localWeight).coerceAtMost(.20f)
     segments.forEach { segment ->
-        drawLocalBlur(segment.path, glow, glowWidth.toPx(), (glowWidth / 2f).toPx())
+        drawLocalBlur(segment.path, glow, glowWidth.toPx(), (glowWidth / 2f).toPx(), blurPaints)
         drawPath(
             segment.path,
             brush = gradientTail(segment, echo.color, echo.hot, coreAlpha),
@@ -735,10 +723,8 @@ private fun DrawScope.drawEnergyNodes(
             frame.detailEntry *
             quality.alphaMultiplier
 
-    val nodes = listOf("B1" to AiBlueHot, "G1" to AiGoldHot)
-
-    repeat(quality.nodeCount.coerceAtMost(nodes.size)) { index ->
-        val (islandId, color) = nodes[index]
+    repeat(quality.nodeCount.coerceAtMost(ENERGY_NODES.size)) { index ->
+        val (islandId, color) = ENERGY_NODES[index]
         val island = PRIMARY_ISLANDS.first { it.id == islandId }
         val pulse = if (reduceMotion) {
             1f
@@ -826,13 +812,58 @@ internal data class RecognitionVisiblePathSegment(
     val end: Offset,
 )
 
+/** Static screen-space Beziers and PathMeasures cached for one photo viewport. */
+internal class RecognitionMeasuredPath internal constructor(
+    val path: Path,
+) {
+    internal val measure = AndroidPathMeasure(path.asAndroidPath(), false)
+}
+
+private data class RecognitionOpticalPathCache(
+    val fieldRect: DisplayRect,
+    val primaryPaths: List<RecognitionMeasuredPath>,
+    val companionPaths: List<RecognitionMeasuredPath>,
+    val microPaths: List<RecognitionMeasuredPath>,
+    val blurPaints: RecognitionBlurPaintCache,
+)
+
+/** Reuses native glow paints while updating only the animated color each frame. */
+internal class RecognitionBlurPaintCache {
+    private data class Style(val strokeWidthBits: Int, val blurRadiusBits: Int)
+
+    private val paints = HashMap<Style, AndroidPaint>()
+
+    fun obtain(color: Color, strokeWidthPx: Float, blurRadiusPx: Float): AndroidPaint? {
+        if (color.alpha <= 0f || strokeWidthPx <= 0f || blurRadiusPx <= 0f) return null
+        val style = Style(strokeWidthPx.toBits(), blurRadiusPx.toBits())
+        return paints.getOrPut(style) {
+            AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+                this.style = AndroidPaint.Style.STROKE
+                strokeCap = AndroidPaint.Cap.ROUND
+                strokeJoin = AndroidPaint.Join.ROUND
+                strokeWidth = strokeWidthPx
+                maskFilter = BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
+            }
+        }.apply {
+            this.color = color.toArgb()
+        }
+    }
+}
+
 /** Extract the moving luminous dash from the real measured curve, including wraparound. */
 internal fun extractVisiblePathSegments(
     path: Path,
     offset: Float,
     visibleRatio: Float,
+): List<RecognitionVisiblePathSegment> =
+    extractVisiblePathSegments(RecognitionMeasuredPath(path), offset, visibleRatio)
+
+internal fun extractVisiblePathSegments(
+    path: RecognitionMeasuredPath,
+    offset: Float,
+    visibleRatio: Float,
 ): List<RecognitionVisiblePathSegment> {
-    val measure = AndroidPathMeasure(path.asAndroidPath(), false)
+    val measure = path.measure
     val length = measure.length
     if (length <= 1f) return emptyList()
 
@@ -871,16 +902,9 @@ private fun DrawScope.drawLocalBlur(
     color: Color,
     strokeWidthPx: Float,
     blurRadiusPx: Float,
+    blurPaints: RecognitionBlurPaintCache,
 ) {
-    if (color.alpha <= 0f || strokeWidthPx <= 0f || blurRadiusPx <= 0f) return
-    val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-        this.color = color.toArgb()
-        style = AndroidPaint.Style.STROKE
-        strokeWidth = strokeWidthPx
-        strokeCap = AndroidPaint.Cap.ROUND
-        strokeJoin = AndroidPaint.Join.ROUND
-        maskFilter = BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
-    }
+    val paint = blurPaints.obtain(color, strokeWidthPx, blurRadiusPx) ?: return
     drawIntoCanvas { canvas ->
         canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }
@@ -905,9 +929,9 @@ private fun gradientTail(
 private fun buildPaths(
     fieldRect: DisplayRect,
     filaments: List<Filament>,
-): List<Path> =
+): List<RecognitionMeasuredPath> =
     filaments.map { filament ->
-        Path().apply {
+        val path = Path().apply {
             moveTo(
                 fieldRect.left + filament.start.x * fieldRect.width,
                 fieldRect.top + filament.start.y * fieldRect.height,
@@ -921,14 +945,15 @@ private fun buildPaths(
                 fieldRect.top + filament.end.y * fieldRect.height,
             )
         }
+        RecognitionMeasuredPath(path)
     }
 
 private fun buildEchoPaths(
     fieldRect: DisplayRect,
     filaments: List<EchoFilament>,
-): List<Path> =
+): List<RecognitionMeasuredPath> =
     filaments.map { filament ->
-        Path().apply {
+        val path = Path().apply {
             moveTo(
                 fieldRect.left + filament.start.x * fieldRect.width,
                 fieldRect.top + filament.start.y * fieldRect.height,
@@ -942,7 +967,16 @@ private fun buildEchoPaths(
                 fieldRect.top + filament.end.y * fieldRect.height,
             )
         }
+        RecognitionMeasuredPath(path)
     }
+
+private fun buildOpticalPathCache(fieldRect: DisplayRect) = RecognitionOpticalPathCache(
+    fieldRect = fieldRect,
+    primaryPaths = buildPaths(fieldRect, PRIMARY_ISLANDS),
+    companionPaths = buildEchoPaths(fieldRect, COMPANION_HAIRLINES),
+    microPaths = buildEchoPaths(fieldRect, MICRO_HAIRLINES),
+    blurPaints = RecognitionBlurPaintCache(),
+)
 
 private fun productStage(phase: RecognitionPhase): ProductStage =
     when (phase) {

@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +55,6 @@ import com.yujian.ai.ui.recognition.result.RecognitionMediaPlanner
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.math.min
@@ -66,6 +66,8 @@ private const val OUTLINE_THRESHOLD = 36
 // still bounded to three local path draws in RecognitionFishFocus.
 private const val OUTLINE_STRIDE = 2
 private const val LOG_TAG = "RecognitionProcessingScene"
+
+private fun recognitionMonotonicNowMs(): Long = SystemClock.uptimeMillis()
 
 @Composable
 fun RecognizingScreen(
@@ -105,8 +107,8 @@ fun RecognitionProcessingScene(
     var subjectResult by remember(image?.imageId) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var finishedResult by remember(image?.imageId) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var delivered by remember(image?.imageId) { mutableStateOf(false) }
-    var visualNowMs by remember(image?.imageId) { mutableStateOf(SystemClock.uptimeMillis()) }
-    val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(SystemClock.uptimeMillis()) } }
+    var visualNowMs by remember(image?.imageId) { mutableStateOf(recognitionMonotonicNowMs()) }
+    val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(recognitionMonotonicNowMs()) } }
 
     LaunchedEffect(image?.imageId, assessment?.primary?.box) {
         val selected = image ?: return@LaunchedEffect
@@ -133,7 +135,7 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(image?.imageId) {
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
-        controller.reset(SystemClock.uptimeMillis()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = SystemClock.uptimeMillis()
+        controller.reset(recognitionMonotonicNowMs()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = recognitionMonotonicNowMs()
         assessment = null
         val result = try {
             recognize { progress ->
@@ -141,7 +143,7 @@ fun RecognitionProcessingScene(
                 realPhase = progress.phase
                 controller.onPipelinePhase(
                     phase = progress.phase,
-                    nowMs = SystemClock.uptimeMillis(),
+                    nowMs = recognitionMonotonicNowMs(),
                     hasRealFishFocus = assessment?.primary?.box != null,
                 )
             }
@@ -150,7 +152,7 @@ fun RecognitionProcessingScene(
         } catch (error: Throwable) {
             Log.e(LOG_TAG, "Recognition runtime failed", error)
             realPhase = RecognitionPhase.FAILURE
-            controller.onPipelinePhase(RecognitionPhase.FAILURE, SystemClock.uptimeMillis())
+            controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs())
             onFailure(error)
             return@LaunchedEffect
         }
@@ -159,7 +161,7 @@ fun RecognitionProcessingScene(
             realPhase = RecognitionPhase.RESULT
             controller.onPipelinePhase(
                 RecognitionPhase.RESULT,
-                SystemClock.uptimeMillis(),
+                recognitionMonotonicNowMs(),
                 hasRealFishFocus = result.assessment.primary?.box != null,
             )
         } else if (!delivered) {
@@ -174,13 +176,15 @@ fun RecognitionProcessingScene(
     LaunchedEffect(image?.imageId, phaseOverride) {
         try {
             while (isActive && phaseOverride == null && !delivered) {
-                visualNowMs = SystemClock.uptimeMillis()
+                withFrameNanos { _ ->
+                    // Use one uptime-based source for phase events and all visual layers.
+                    visualNowMs = recognitionMonotonicNowMs()
+                }
                 val nextVisualPhase = controller.current(visualNowMs)
                 if (nextVisualPhase != visualPhase) {
                     Log.i(LOG_TAG, "visual phase $visualPhase -> $nextVisualPhase real=$realPhase")
                     visualPhase = nextVisualPhase
                 }
-                delay(16L)
             }
         } finally {
             Log.i(
@@ -196,7 +200,7 @@ fun RecognitionProcessingScene(
             // Observe what Compose actually presents, independently from the
             // fast detector/classifier callback cadence. Deliver RESULT only
             // after the new state reaches Compose presentation.
-            val presentedAtMs = SystemClock.elapsedRealtime()
+            val presentedAtMs = recognitionMonotonicNowMs()
             onVisualPhasePresented(visualPhase, presentedAtMs)
             if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true && !delivered) {
                 delivered = true
@@ -207,6 +211,8 @@ fun RecognitionProcessingScene(
     }
 
     val rendered = phaseOverride ?: visualPhase
+    val visualClockMs = visualClockOverrideMs ?: visualNowMs
+    val deterministicMotion = visualClockOverrideMs != null
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     // RESULT_READY is an immediate handoff in V3.1; a timed Resolve fade may
     // only be shown by frozen reference captures, never delay production flow.
@@ -254,7 +260,7 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
+            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(
@@ -281,14 +287,15 @@ fun RecognitionProcessingScene(
                 ),
             resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
-            visualClockMs = visualClockOverrideMs ?: visualNowMs,
+            visualClockMs = visualClockMs,
         )
     }
 }
 @Composable
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
-    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
+    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
+    deterministicMotion: Boolean, motionSessionKey: Any?,
     phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
@@ -327,7 +334,9 @@ private fun RecognitionPhoto(
         modifier = Modifier.fillMaxSize(),
     )
     RecognitionAmbientField(
-        phase, Modifier.fillMaxSize(), visualClockOverrideMs,
+        phase, Modifier.fillMaxSize(), visualClockMs,
+        motionSessionKey = motionSessionKey,
+        deterministicMotion = deterministicMotion,
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
         resolveProgress = resolveProgress,
@@ -338,7 +347,7 @@ private fun RecognitionPhoto(
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
-        visualClockOverrideMs, phaseElapsedMs, resolveProgress,
+        visualClockMs, phaseElapsedMs, resolveProgress,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
         focusLevel = focusLevel,

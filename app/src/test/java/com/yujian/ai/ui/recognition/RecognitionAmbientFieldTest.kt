@@ -26,4 +26,38 @@ class RecognitionAmbientFieldTest {
         assertEquals(setOf("B2", "G2", "B4"), recognitionAmbientSecondaryFragmentIds)
         assertTrue(recognitionAmbientPrimaryIslandIds.intersect(recognitionAmbientSecondaryFragmentIds).isEmpty())
     }
+
+    @Test
+    fun liveFieldClockKeepsSegmentPhaseAcrossPipelineStateChanges() {
+        val clock = EdgeFieldMotionAccumulator()
+        val beforeOutline = clock.sample(
+            nowMs = 1_000L,
+            phase = RecognitionPhase.DETECTING,
+            reduceMotionNow = false,
+            resolveActive = false,
+            resolveProgress = 0f,
+        )
+        val firstOutlineFrame = clock.sample(
+            nowMs = 1_016L,
+            phase = RecognitionPhase.OUTLINE,
+            reduceMotionNow = false,
+            resolveActive = false,
+            resolveProgress = 0f,
+        )
+        val settledOutlineClock = clock.sample(
+            nowMs = 1_032L,
+            phase = RecognitionPhase.OUTLINE,
+            reduceMotionNow = false,
+            resolveActive = false,
+            resolveProgress = 0f,
+        )
+
+        assertTrue(firstOutlineFrame.cycleOffset >= beforeOutline.cycleOffset)
+        assertTrue(
+            "phase transition reset or jumped the segment",
+            settledOutlineClock.cycleOffset - beforeOutline.cycleOffset < .01f,
+        )
+        assertTrue(settledOutlineClock.segmentSpeed > .62f)
+        assertTrue(settledOutlineClock.segmentSpeed < 1f)
+    }
 }
