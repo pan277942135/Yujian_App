@@ -131,10 +131,32 @@ def validate_local_ref(ref: str, v: Validation, owner: str) -> None:
             v.gap(message)
 
 
+def validate_static_dynamic_boundary(registry: dict[str, Any], v: Validation) -> None:
+    project = registry.get("project", {})
+    for key in ("execution_baseline_sha","control_pr","base_sha","current_pr","current_work","current_task"):
+        if key in project:
+            v.error(f"project.{key} is live Work state and is forbidden in the static Contract Registry")
+    inventory = registry.get("inventory", {})
+    if "execution_baseline_sha" in inventory:
+        v.error("inventory.execution_baseline_sha is live Work state and is forbidden")
+    for feature_id, feature in registry.get("feature_contracts", {}).items():
+        if not isinstance(feature, dict):
+            continue
+        for key in ("release_ready","current_branch_acceptance","current_branch_runtime","current_branch_evidence","current_work"):
+            if key in feature:
+                v.error(f"{feature_id}.{key} is live Work state and is forbidden")
+    for task_id, binding in registry.get("task_contract_bindings", {}).items():
+        if not isinstance(binding, dict):
+            continue
+        for key in ("status","queue_status","current_task","current_work","execution_baseline_sha"):
+            if key in binding:
+                v.error(f"{task_id}.{key} is live Work state and is forbidden")
+
 def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any], machine: dict[str, Any], v: Validation) -> None:
     v.require(registry.get("schema_version") == "1.0", "registry schema_version must be 1.0")
     v.require(registry.get("registry_id") == "yujian-unified-contract-registry", "registry_id mismatch")
     v.require(registry.get("status") == "ACTIVE", "registry status must be ACTIVE")
+    validate_static_dynamic_boundary(registry, v)
 
     rp = registry.get("project", {})
     mp = matrix.get("project", {})
