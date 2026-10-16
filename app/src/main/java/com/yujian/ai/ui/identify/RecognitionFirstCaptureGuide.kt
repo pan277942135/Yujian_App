@@ -77,7 +77,7 @@ internal fun RecognitionFirstCaptureGuideOverlay(
     onDismiss: () -> Unit,
     onPageChanged: (RecognitionFirstCaptureGuidePage) -> Unit = {},
 ) {
-    val pagerState = rememberPagerState(initialPage = initialPage.index, pageCount = { 3 })
+    val pagerState = rememberPagerState(initialPage = initialPage.index, pageCount = { 2 })
     val scope = rememberCoroutineScope()
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
@@ -161,7 +161,7 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                     .fillMaxWidth()
                     .padding(bottom = 2.dp),
             ) {
-                val isFinalPage = pagerState.currentPage == RecognitionFirstCaptureGuidePage.P03.index
+                val isFinalPage = pagerState.currentPage == RecognitionFirstCaptureGuidePage.P02.index
                 val fontScale = LocalDensity.current.fontScale
                 val stackActions = maxWidth < 380.dp || fontScale >= 1.8f
 
@@ -306,11 +306,11 @@ private fun RecognitionFirstCaptureGuidePageContent(
                 .padding(top = 10.dp)
                 .semantics(mergeDescendants = true) {
                     selected = true
-                    stateDescription = "第${page.index + 1}页，共3页"
+                    stateDescription = "第${page.index + 1}页，共2页"
                 },
         ) {
             Text(
-                text = "0${page.index + 1} / 03",
+                text = "0${page.index + 1} / 02",
                 color = Color(0xFFF4D581),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
@@ -413,13 +413,13 @@ private fun RecognitionFirstCaptureGuidePageIndicator(
             .height(30.dp)
             .semantics(mergeDescendants = true) {
                 contentDescription = "教学页码"
-                stateDescription = "第${currentPage + 1}页，共3页"
+                stateDescription = "第${currentPage + 1}页，共2页"
             }
             .testTag("recognition-guide-page-indicator"),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        repeat(3) { index ->
+        repeat(2) { index ->
             val selected = index == currentPage
             Box(
                 modifier = Modifier
