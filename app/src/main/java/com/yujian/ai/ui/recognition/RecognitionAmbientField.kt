@@ -1,5 +1,9 @@
 package com.yujian.ai.ui.recognition
 
+import android.graphics.BlurMaskFilter
+import android.graphics.Paint as AndroidPaint
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 import android.os.SystemClock
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.Canvas
@@ -16,12 +20,15 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -31,7 +38,6 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.PI
-import kotlin.math.hypot
 import kotlin.math.sin
 
 private val AiBlueCore = Color(0xFFBFEAF2)
@@ -381,7 +387,6 @@ fun RecognitionAmbientField(
                         offset = offset,
                         common = common,
                         quality = quality,
-                        fieldRect = fieldRect,
                     )
                 } else if (filament.id in recognitionAmbientSecondaryFragmentIds) {
                     drawSecondaryFragment(
@@ -390,7 +395,6 @@ fun RecognitionAmbientField(
                         offset = offset,
                         common = common,
                         quality = quality,
-                        fieldRect = fieldRect,
                     )
                 }
             }
@@ -411,7 +415,6 @@ fun RecognitionAmbientField(
                         offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
                         common = common,
                         micro = false,
-                        fieldRect = fieldRect,
                     )
                 }
             }
@@ -431,7 +434,6 @@ fun RecognitionAmbientField(
                         offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
                         common = common,
                         micro = true,
-                        fieldRect = fieldRect,
                     )
                 }
             }
@@ -633,45 +635,31 @@ private fun DrawScope.drawCompositePrimary(
     offset: Float,
     common: Float,
     quality: QualityProfile,
-    fieldRect: DisplayRect,
 ) {
     if (common <= .001f) return
 
-    val effect = segmentEffect(
-        filament = filament,
-        fieldRect = fieldRect,
-        offset = offset,
-        visibleRatio = filament.visibleRatio,
+    val segments = extractVisiblePathSegments(path, offset, filament.visibleRatio)
+    val outer = filament.color.copy(
+        alpha = (.04f * common * quality.outer).coerceAtMost(.055f),
     )
-
-    fun stroke(width: Dp) = Stroke(
-        width = width.toPx(),
-        cap = StrokeCap.Round,
-        join = StrokeJoin.Round,
-        pathEffect = effect,
-    )
-
-    drawPath(
-        path,
-        filament.color.copy(
-            alpha = (.04f * common * quality.outer).coerceAtMost(.055f),
-        ),
-        style = stroke(10.dp),
-    )
-    drawPath(
-        path,
-        filament.color.copy(
+    val mid = filament.color.copy(
         alpha = (.075f * common * quality.mid).coerceAtMost(.10f),
-        ),
-        style = stroke(4.dp),
     )
-    drawPath(
-        path,
-        filament.hot.copy(
-            alpha = (.46f * common * quality.core).coerceAtMost(.50f),
-        ),
-        style = stroke(filament.width),
-    )
+    val coreAlpha = (.46f * common * quality.core).coerceAtMost(.50f)
+
+    segments.forEach { segment ->
+        drawLocalBlur(segment.path, outer, 10.dp.toPx(), 5.dp.toPx())
+        drawLocalBlur(segment.path, mid, 4.dp.toPx(), 2.dp.toPx())
+        drawPath(
+            segment.path,
+            brush = gradientTail(segment, filament.color, filament.hot, coreAlpha),
+            style = Stroke(
+                width = filament.width.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round,
+            ),
+        )
+    }
 }
 
 private fun DrawScope.drawSecondaryFragment(
@@ -680,39 +668,28 @@ private fun DrawScope.drawSecondaryFragment(
     offset: Float,
     common: Float,
     quality: QualityProfile,
-    fieldRect: DisplayRect,
 ) {
     if (common <= .001f) return
 
-    val effect = segmentEffect(
-        filament = filament,
-        fieldRect = fieldRect,
-        offset = offset,
-        visibleRatio = filament.visibleRatio,
-    )
-    fun stroke(width: Dp) = Stroke(
-        width = width.toPx(),
-        cap = StrokeCap.Round,
-        join = StrokeJoin.Round,
-        pathEffect = effect,
-    )
-
     // B2/G2/B4 are fragment accents only. They do not receive the Primary
     // 10dp outer bloom, so they cannot reconstruct a second perimeter.
-    drawPath(
-        path,
-        filament.color.copy(
-            alpha = (.025f * common * quality.mid).coerceAtMost(.035f),
-        ),
-        style = stroke(2.dp),
+    val segments = extractVisiblePathSegments(path, offset, filament.visibleRatio)
+    val mid = filament.color.copy(
+        alpha = (.025f * common * quality.mid).coerceAtMost(.035f),
     )
-    drawPath(
-        path,
-        filament.hot.copy(
-            alpha = (.16f * common * quality.core).coerceAtMost(.12f),
-        ),
-        style = stroke(filament.width),
-    )
+    val coreAlpha = (.16f * common * quality.core).coerceAtMost(.12f)
+    segments.forEach { segment ->
+        drawLocalBlur(segment.path, mid, 2.dp.toPx(), 1.dp.toPx())
+        drawPath(
+            segment.path,
+            brush = gradientTail(segment, filament.color, filament.hot, coreAlpha),
+            style = Stroke(
+                width = filament.width.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round,
+            ),
+        )
+    }
 }
 
 private fun DrawScope.drawHairlineEcho(
@@ -721,57 +698,28 @@ private fun DrawScope.drawHairlineEcho(
     offset: Float,
     common: Float,
     micro: Boolean,
-    fieldRect: DisplayRect,
 ) {
     if (common <= .001f) return
 
-    val pseudo = Filament(
-        id = echo.id,
-        color = echo.color,
-        hot = echo.hot,
-        width = echo.width,
-        seed = 0f,
-        visibleRatio = echo.visibleRatio,
-        islandWeight = 1f,
-        start = echo.start,
-        control1 = echo.control1,
-        control2 = echo.control2,
-        end = echo.end,
-    )
-    val effect = segmentEffect(
-        filament = pseudo,
-        fieldRect = fieldRect,
-        offset = offset,
-        visibleRatio = echo.visibleRatio,
-    )
-
     val localWeight = if (micro) .18f else .30f
     val glowWidth = if (micro) 1.5.dp else 2.1.dp
-
-    drawPath(
-        path,
-        echo.color.copy(
-            alpha = (.18f * common * localWeight).coerceAtMost(.08f),
-        ),
-        style = Stroke(
-            width = glowWidth.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round,
-            pathEffect = effect,
-        ),
+    val segments = extractVisiblePathSegments(path, offset, echo.visibleRatio)
+    val glow = echo.color.copy(
+        alpha = (.18f * common * localWeight).coerceAtMost(.08f),
     )
-    drawPath(
-        path,
-        echo.hot.copy(
-            alpha = (.52f * common * localWeight).coerceAtMost(.20f),
-        ),
-        style = Stroke(
-            width = echo.width.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round,
-            pathEffect = effect,
-        ),
-    )
+    val coreAlpha = (.52f * common * localWeight).coerceAtMost(.20f)
+    segments.forEach { segment ->
+        drawLocalBlur(segment.path, glow, glowWidth.toPx(), (glowWidth / 2f).toPx())
+        drawPath(
+            segment.path,
+            brush = gradientTail(segment, echo.color, echo.hot, coreAlpha),
+            style = Stroke(
+                width = echo.width.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round,
+            ),
+        )
+    }
 }
 
 private fun DrawScope.drawEnergyNodes(
@@ -872,44 +820,87 @@ private fun bezierPoint(filament: Filament, t: Float, fieldRect: DisplayRect): O
     return Offset(fieldRect.left + x * fieldRect.width, fieldRect.top + y * fieldRect.height)
 }
 
-private fun segmentEffect(
-    filament: Filament,
-    fieldRect: DisplayRect,
+internal data class RecognitionVisiblePathSegment(
+    val path: Path,
+    val start: Offset,
+    val end: Offset,
+)
+
+/** Extract the moving luminous dash from the real measured curve, including wraparound. */
+internal fun extractVisiblePathSegments(
+    path: Path,
     offset: Float,
     visibleRatio: Float,
-): PathEffect {
-    val length = estimatedLength(filament, fieldRect).coerceAtLeast(1f)
-    val visible = (length * visibleRatio.coerceIn(.05f, .60f)).coerceAtLeast(1f)
-    val gap = (length - visible).coerceAtLeast(1f)
-    return PathEffect.dashPathEffect(
-        floatArrayOf(visible, gap),
-        -positiveMod(offset) * length,
-    )
-}
+): List<RecognitionVisiblePathSegment> {
+    val measure = AndroidPathMeasure(path.asAndroidPath(), false)
+    val length = measure.length
+    if (length <= 1f) return emptyList()
 
-private fun estimatedLength(
-    filament: Filament,
-    fieldRect: DisplayRect,
-): Float {
-    fun mapped(p: Cubic) =
-        Offset(
-            fieldRect.left + p.x * fieldRect.width,
-            fieldRect.top + p.y * fieldRect.height,
+    val visibleLength = (length * visibleRatio.coerceIn(.05f, .60f)).coerceAtLeast(1f)
+    val startDistance = positiveMod(offset) * length
+    val endDistance = startDistance + visibleLength
+    val segments = ArrayList<RecognitionVisiblePathSegment>(2)
+
+    fun append(from: Float, to: Float) {
+        if (to - from <= .5f) return
+        val androidSegment = AndroidPath()
+        if (!measure.getSegment(from, to, androidSegment, true)) return
+        val startPosition = FloatArray(2)
+        val endPosition = FloatArray(2)
+        measure.getPosTan(from, startPosition, null)
+        measure.getPosTan(to, endPosition, null)
+        val composeSegment = Path().apply { asAndroidPath().set(androidSegment) }
+        segments += RecognitionVisiblePathSegment(
+            path = composeSegment,
+            start = Offset(startPosition[0], startPosition[1]),
+            end = Offset(endPosition[0], endPosition[1]),
         )
+    }
 
-    fun distance(a: Offset, b: Offset): Float =
-        hypot(
-            (a.x - b.x).toDouble(),
-            (a.y - b.y).toDouble(),
-        ).toFloat()
-
-    val p0 = mapped(filament.start)
-    val p1 = mapped(filament.control1)
-    val p2 = mapped(filament.control2)
-    val p3 = mapped(filament.end)
-
-    return (distance(p0, p1) + distance(p1, p2) + distance(p2, p3)) * .72f
+    if (endDistance <= length) {
+        append(startDistance, endDistance)
+    } else {
+        append(startDistance, length)
+        append(0f, endDistance - length)
+    }
+    return segments
 }
+
+private fun DrawScope.drawLocalBlur(
+    path: Path,
+    color: Color,
+    strokeWidthPx: Float,
+    blurRadiusPx: Float,
+) {
+    if (color.alpha <= 0f || strokeWidthPx <= 0f || blurRadiusPx <= 0f) return
+    val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+        this.color = color.toArgb()
+        style = AndroidPaint.Style.STROKE
+        strokeWidth = strokeWidthPx
+        strokeCap = AndroidPaint.Cap.ROUND
+        strokeJoin = AndroidPaint.Join.ROUND
+        maskFilter = BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
+    }
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
+    }
+}
+
+private fun gradientTail(
+    segment: RecognitionVisiblePathSegment,
+    color: Color,
+    hot: Color,
+    alpha: Float,
+): Brush = Brush.linearGradient(
+    colorStops = arrayOf(
+        0f to color.copy(alpha = alpha * .08f),
+        .58f to color.copy(alpha = alpha * .58f),
+        .88f to hot.copy(alpha = alpha),
+        1f to hot.copy(alpha = alpha * .78f),
+    ),
+    start = segment.start,
+    end = segment.end,
+)
 
 private fun buildPaths(
     fieldRect: DisplayRect,
