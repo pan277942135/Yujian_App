@@ -153,13 +153,22 @@ def validate_state(state: dict, v: Validation) -> None:
 
     pr145 = state.get("pull_requests", {}).get("PR145", {})
     v.require(pr145.get("number") == 145, "PR145.number must be 145")
-    pr145_baseline = (
+    pr145_snapshot = (
         pr145.get("head_at_last_verified_snapshot")
         or pr145.get("head_sha")
     )
     v.require(
-        pr145_baseline == current_head,
-        "PR145 baseline SHA must equal state_control.execution_baseline_sha",
+        isinstance(pr145_snapshot, str) and RE_SHA40.fullmatch(pr145_snapshot),
+        "PR145 head_at_last_verified_snapshot must be a 40-character SHA",
+    )
+    v.require(
+        pr145.get("head_tracking_rule")
+        == "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA.",
+        "PR145 head tracking rule is missing or changed",
+    )
+    v.require(
+        control.get("live_branch_head_at_snapshot") == pr145_snapshot,
+        "state_control.live_branch_head_at_snapshot must match PR145 snapshot",
     )
     v.require(
         pr145.get("branch") == control.get("current_branch"),
