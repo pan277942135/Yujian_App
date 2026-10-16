@@ -312,6 +312,25 @@ class RecognitionFrozenFlowEmulatorTest {
             ),
         )
     }
+
+    @Test
+    fun screenshotSurfaceCopyUsesExplicitPixelsAcrossBitmapDensities() {
+        val source = Bitmap.createBitmap(12, 8, Bitmap.Config.ARGB_8888).apply {
+            density = 480
+            eraseColor(Color.GREEN)
+        }
+        val target = Bitmap.createBitmap(36, 24, Bitmap.Config.ARGB_8888).apply {
+            density = 160
+            eraseColor(Color.BLACK)
+        }
+
+        drawMappedSurfacePixels(source, target)
+
+        assertEquals(Color.GREEN, target.getPixel(0, 0))
+        assertEquals(Color.GREEN, target.getPixel(target.width - 1, target.height - 1))
+        source.recycle()
+        target.recycle()
+    }
     @Test
     fun backingOutCancelsRecognitionWithoutReportingTechnicalFailure() {
         val processingVisible = mutableStateOf(true)
@@ -1561,9 +1580,7 @@ class RecognitionFrozenFlowEmulatorTest {
             mapping.targetBitmapBounds.height(),
             Bitmap.Config.ARGB_8888,
         )
-        val canvas = Canvas(appSurface)
-        canvas.scale(mapping.scaleX, mapping.scaleY)
-        canvas.drawBitmap(sourceSurfaceBitmap, 0f, 0f, null)
+        drawMappedSurfacePixels(sourceSurfaceBitmap, appSurface)
         output.outputStream().use { stream ->
             check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
@@ -1663,6 +1680,11 @@ class RecognitionFrozenFlowEmulatorTest {
         val scaleX: Float,
         val scaleY: Float,
     )
+
+    private fun drawMappedSurfacePixels(source: Bitmap, target: Bitmap) {
+        val targetBounds = Rect(0, 0, target.width, target.height)
+        Canvas(target).drawBitmap(source, null, targetBounds, Paint(Paint.FILTER_BITMAP_FLAG))
+    }
 
     private fun measureCaptureSourceSurface(): CaptureSourceSurface {
         val measured = AtomicReference<CaptureSourceSurface?>()
