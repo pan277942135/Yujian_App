@@ -97,6 +97,12 @@ class EmptyHomeLayoutMappingTest {
         assertEquals(AdaptiveHeightClass.SHORT, mapping.profile.heightClass)
         assertTrue(mapping.profile.requiresScrollableContent)
         assertEquals(2f, mapping.heroBounds.width / mapping.heroBounds.height, 0.01f)
+        assertEquals(4f, mapping.headerBounds.top - mapping.safeViewport.top, 0.001f)
+        assertEquals(
+            mapping.sceneTransform.offsetY + EmptyHomeFrozenLayoutGeometry.HERO_Y_PX * mapping.sceneTransform.scale,
+            mapping.heroBounds.top,
+            0.01f,
+        )
         assertEquals(48f, mapping.albumBounds.height, 0.001f)
     }
 

@@ -127,7 +127,11 @@ class EmptyHomeResponsiveRuntimeTest {
             listOf(header, subtitle, login, hero, prompt, camera, album).forEach { bounds ->
                 assertBoundsInside(bounds, safeLeft, safeTop, safeRight, safeBottom)
             }
-            assertTrue("header and subtitle must stay above the Hero", maxOf(header.bottom, subtitle.bottom) <= hero.top)
+            assertTrue(
+                "header and subtitle must stay above the Hero; " +
+                    "header=$header subtitle=$subtitle hero=$hero profile=$profile",
+                maxOf(header.bottom, subtitle.bottom) <= hero.top,
+            )
             assertTrue("Hero must preserve its frozen 2:1 box", kotlin.math.abs(hero.width / hero.height - 2f) <= 0.02f)
             assertTrue("prompt must remain separated from Camera", prompt.bottom < camera.top)
             assertTrue("Camera must remain a reachable touch target", camera.width / density >= 48f && camera.height / density >= 48f)

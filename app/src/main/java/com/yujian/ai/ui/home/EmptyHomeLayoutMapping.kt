@@ -56,6 +56,7 @@ internal object EmptyHomeFrozenLayoutGeometry {
     const val PROMPT_CAMERA_GAP_MIN_PX = 25f
     const val CAMERA_ALBUM_GAP_MIN_PX = 23f
     const val SAFE_HEADER_INSET_DP = 16f
+    const val COMPACT_SAFE_HEADER_INSET_DP = 4f
     const val HEADER_MAX_WIDTH_DP = 430f
     const val HEADER_MIN_TOUCH_TARGET_DP = 48f
     const val PROMPT_LINE_HEIGHT_SP = 24f
@@ -146,9 +147,14 @@ internal fun calculateEmptyHomeLayoutMapping(
         height = promptHeight,
     )
     val headerWidth = min(profile.safeWidthDp, EmptyHomeFrozenLayoutGeometry.HEADER_MAX_WIDTH_DP)
+    val headerTopInset = if (profile.widthClass == AdaptiveWidthClass.COMPACT) {
+        EmptyHomeFrozenLayoutGeometry.COMPACT_SAFE_HEADER_INSET_DP
+    } else {
+        EmptyHomeFrozenLayoutGeometry.SAFE_HEADER_INSET_DP
+    }
     val header = EmptyHomeBoundsDp(
         left = safe.left + (profile.safeWidthDp - headerWidth) / 2f,
-        top = safe.top + EmptyHomeFrozenLayoutGeometry.SAFE_HEADER_INSET_DP,
+        top = safe.top + headerTopInset,
         width = headerWidth,
         height = EmptyHomeFrozenLayoutGeometry.HEADER_MIN_TOUCH_TARGET_DP,
     )

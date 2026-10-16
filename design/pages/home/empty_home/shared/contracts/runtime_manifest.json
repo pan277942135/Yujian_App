@@ -52,7 +52,7 @@
   "contract_sha256": {
     "authority_manifest.json": "796961d61ef89a101fff0af9ad3e43b1dffb97df12ab69dfbed74f535b4c03df",
     "anchor_contract.json": "c74cea419cfb7e7c3df995a47a49ae2abd34a6f51dc98ab4278dedbe07b5be9f",
-    "responsive_mapping_contract.json": "c20981035a1db2f6bb3ec60f2f425e108dc5cb4b28a815eb159d19e9b97d9073",
+    "responsive_mapping_contract.json": "4aa8b0008bee7dd58dc7537bc093fbbe965734b8027ae660bf94170859bc761c",
     "layer_contract.json": "559f5a9933d0a509e9f47f9c60391d86b6f421fae5579cc92d31573a1be18e3d",
     "motion_contract.json": "24dd46488fa6ca6b68f305a5e8241f5e05e40d70a7e5abf801900c98b6db2716",
     "haptic_contract.json": "a87c3fef6e976d138d7a52009a4d129a47948de0dab196712001eef454b433be",

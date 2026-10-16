@@ -265,7 +265,7 @@ class FishGuideRuntimeTest {
         composeRule.runOnIdle { assertEquals("catch_3", openedCatchId) }
         saveScreenshot("fish_species_detail_catch.png")
 
-        composeRule.onNodeWithContentDescription("返回").performClick()
+        composeRule.onNodeWithContentDescription("返回").performScrollTo().performClick()
         composeRule.runOnIdle { assertTrue(backed) }
     }
 

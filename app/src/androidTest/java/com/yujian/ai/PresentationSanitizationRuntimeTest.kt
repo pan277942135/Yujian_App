@@ -2,16 +2,13 @@ package com.yujian.ai
 
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
-import android.view.accessibility.AccessibilityNodeInfo
+import android.graphics.Bitmap
 import android.graphics.Rect
+import android.os.SystemClock
+import android.view.MotionEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.BySelector
-import androidx.test.uiautomator.StaleObjectException
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertFalse
@@ -19,6 +16,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -30,8 +28,6 @@ class PresentationSanitizationRuntimeTest {
         get() = InstrumentationRegistry.getInstrumentation()
     private val context: Context
         get() = instrumentation.targetContext
-    private val device: UiDevice
-        get() = UiDevice.getInstance(instrumentation)
 
     @Test
     fun productionRoutes_hideDirtyValues_andPreserveValidLocation() {
@@ -117,29 +113,39 @@ class PresentationSanitizationRuntimeTest {
 
     private fun clickVisibleText(sourceText: String, destinationText: String) {
         waitForVisibleTextBounds(sourceText)
-        clickVisibleTarget(sourceText, destinationText, By.text(sourceText))
+        clickVisibleTarget(sourceText, destinationText) { findNodeByText(sourceText) }
         waitForText(destinationText)
     }
 
     private fun clickVisibleDescription(description: String, destinationText: String) {
-        clickVisibleTarget(description, destinationText, By.desc(description))
+        clickVisibleTarget(description, destinationText) { findNodeByDescription(description) }
         waitForText(destinationText)
     }
 
-    private fun clickVisibleTarget(sourceLabel: String, destinationText: String, selector: BySelector) {
+    private fun clickVisibleTarget(
+        sourceLabel: String,
+        destinationText: String,
+        findSource: () -> AccessibilityNodeInfo?,
+    ) {
         val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
         while (SystemClock.uptimeMillis() < deadline) {
-            try {
-                // A stale node can be reported after navigation starts. Check the destination first
-                // so a successful click is never repeated.
-                if (device.findObject(By.text(destinationText)) != null) return
-                val target = device.findObject(selector)
-                if (target != null && !target.visibleBounds.isEmpty) {
-                    target.click()
-                    return
+            // Poll the active accessibility tree directly. UiDevice.findObject and dumpWindowHierarchy
+            // wait for global idle, which never occurs on Home while its ambient animation is running.
+            findNodeByText(destinationText)?.let { destination ->
+                destination.recycle()
+                return
+            }
+            val target = findSource()
+            if (target != null) {
+                val bounds = Rect().also(target::getBoundsInScreen)
+                val isVisible = !bounds.isEmpty && target.isVisibleToUser
+                if (isVisible) {
+                    val clicked = performAccessibleClick(target, bounds)
+                    target.recycle()
+                    if (clicked) return
+                } else {
+                    target.recycle()
                 }
-            } catch (_: StaleObjectException) {
-                // Reacquire the node on the next attempt.
             }
             SystemClock.sleep(100L)
         }
@@ -147,14 +153,21 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun waitForText(text: String) {
-        try {
-            waitForVisibleTextBounds(text)
-        } catch (_: AssertionError) {
-            val hierarchy = evidenceFile("diagnostics_accessibility.txt")
-            writeAccessibilityHierarchy(hierarchy)
-            device.takeScreenshot(evidenceFile("diagnostics_screen.png"))
-            throw AssertionError("Timed out waiting for visible text: $text; diagnostics saved to $hierarchy")
+        val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
+        while (SystemClock.uptimeMillis() < deadline) {
+            val node = findNodeByText(text)
+            if (node != null) {
+                val bounds = Rect().also(node::getBoundsInScreen)
+                val visible = node.isVisibleToUser && !bounds.isEmpty
+                node.recycle()
+                if (visible) return
+            }
+            SystemClock.sleep(100L)
         }
+        val hierarchy = evidenceFile("diagnostics_accessibility.txt")
+        writeAccessibilityHierarchy(hierarchy)
+        screenshot("diagnostics_screen.png")
+        throw AssertionError("Timed out waiting for visible text: $text; diagnostics saved to $hierarchy")
     }
 
     private fun evidenceFile(name: String): File =
@@ -162,18 +175,29 @@ class PresentationSanitizationRuntimeTest {
             .apply { parentFile?.mkdirs() }
 
     private fun waitForVisibleTextBounds(text: String): Rect {
-        val selector = By.text(text)
-        val candidate = device.wait(Until.findObject(selector), SETTLE_MILLIS)
-        val visibleBounds = candidate?.visibleBounds?.let(::Rect)?.takeUnless { it.isEmpty }
-        if (visibleBounds != null) return visibleBounds
+        val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
+        while (SystemClock.uptimeMillis() < deadline) {
+            val candidate = findNodeByText(text)
+            if (candidate != null) {
+                val visibleBounds = Rect().also(candidate::getBoundsInScreen)
+                val visible = candidate.isVisibleToUser && !visibleBounds.isEmpty
+                candidate.recycle()
+                if (visible) return visibleBounds
+            }
+            SystemClock.sleep(100L)
+        }
         throw AssertionError("Timed out waiting for visible text: $text")
     }
 
     private fun assertVisible(text: String) {
-        if (device.findObject(By.text(text)) != null) return
-        val hierarchy = evidenceFile("diagnostics_hierarchy.xml")
-        device.dumpWindowHierarchy(hierarchy)
-        device.takeScreenshot(evidenceFile("diagnostics_screen.png"))
+        val node = findNodeByText(text)
+        if (node != null) {
+            node.recycle()
+            return
+        }
+        val hierarchy = evidenceFile("diagnostics_accessibility.txt")
+        writeAccessibilityHierarchy(hierarchy)
+        screenshot("diagnostics_screen.png")
         assertTrue("Expected visible runtime text: $text; diagnostics saved to $hierarchy", false)
     }
 
@@ -223,14 +247,84 @@ class PresentationSanitizationRuntimeTest {
         return output.toString()
     }
 
+    private fun findNodeByText(text: String): AccessibilityNodeInfo? =
+        findActiveNode { it.text?.toString() == text }
+
+    private fun findNodeByDescription(description: String): AccessibilityNodeInfo? =
+        findActiveNode { it.contentDescription?.toString() == description }
+
+    private fun findActiveNode(matches: (AccessibilityNodeInfo) -> Boolean): AccessibilityNodeInfo? {
+        val root = instrumentation.uiAutomation.rootInActiveWindow ?: return null
+        fun visit(node: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+            val bounds = Rect().also(node::getBoundsInScreen)
+            if (matches(node) && node.isVisibleToUser && !bounds.isEmpty) {
+                return AccessibilityNodeInfo.obtain(node)
+            }
+            repeat(node.childCount) { index ->
+                val child = node.getChild(index) ?: return@repeat
+                val found = try {
+                    visit(child)
+                } finally {
+                    child.recycle()
+                }
+                if (found != null) return found
+            }
+            return null
+        }
+        return try {
+            visit(root)
+        } finally {
+            root.recycle()
+        }
+    }
+
+    private fun performAccessibleClick(target: AccessibilityNodeInfo, bounds: Rect): Boolean {
+        var candidate: AccessibilityNodeInfo? = AccessibilityNodeInfo.obtain(target)
+        repeat(MAX_CLICK_ANCESTOR_DEPTH) {
+            val current = candidate ?: return@repeat
+            if (current.isClickable && current.isEnabled) {
+                val clicked = current.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                current.recycle()
+                candidate = null
+                if (clicked) return true
+            } else {
+                val parent = current.parent
+                current.recycle()
+                candidate = parent
+            }
+        }
+        candidate?.recycle()
+        return tapAt(bounds.centerX().toFloat(), bounds.centerY().toFloat())
+    }
+
+    private fun tapAt(x: Float, y: Float): Boolean {
+        val downTime = SystemClock.uptimeMillis()
+        val down = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0)
+        val up = MotionEvent.obtain(downTime, downTime + 80L, MotionEvent.ACTION_UP, x, y, 0)
+        return try {
+            instrumentation.sendPointerSync(down)
+            instrumentation.sendPointerSync(up)
+            true
+        } finally {
+            down.recycle()
+            up.recycle()
+        }
+    }
+
     private fun screenshot(name: String) {
         val file = evidenceFile(name)
-        assertTrue("Failed to capture runtime screenshot: $name", device.takeScreenshot(file))
+        val bitmap = instrumentation.uiAutomation.takeScreenshot()
+        assertTrue("Failed to capture runtime screenshot: $name", bitmap != null)
+        FileOutputStream(file).use { output ->
+            assertTrue("Failed to encode runtime screenshot: $name", requireNotNull(bitmap).compress(Bitmap.CompressFormat.PNG, 100, output))
+        }
+        requireNotNull(bitmap).recycle()
     }
 
     private companion object {
         const val APP_PACKAGE = "com.yujian.ai.uiv2"
         const val SETTLE_MILLIS = 10_000L
+        const val MAX_CLICK_ANCESTOR_DEPTH = 8
         val DIRTY_VALUES = listOf("null", "undefined", "n/a", "1970", ".onnx", ".tflite")
     }
 }

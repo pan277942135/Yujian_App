@@ -95,7 +95,12 @@ def main() -> int:
         fail(errors, "responsive mapping reference canvas must be [1080, 1920]")
     groups = responsive.get("groups", {})
     header_mapping = groups.get("safe_top_ui", {})
-    if header_mapping.get("top_margin_after_safe_inset_dp") != 16 or header_mapping.get("maximum_content_width_dp") != 430 or header_mapping.get("minimum_touch_target_dp") != 48:
+    if (
+        header_mapping.get("top_margin_after_safe_inset_dp") != 16
+        or header_mapping.get("compact_width_top_margin_after_safe_inset_dp") != 4
+        or header_mapping.get("maximum_content_width_dp") != 430
+        or header_mapping.get("minimum_touch_target_dp") != 48
+    ):
         fail(errors, "safe-top header geometry/target contract is incomplete")
     scene_mapping = groups.get("scene_space", {})
     if scene_mapping.get("strategy") != "UNIFORM_COVER_COMPOSITION_AWARE" or scene_mapping.get("all_scene_locked_elements_share_transform") is not True:
