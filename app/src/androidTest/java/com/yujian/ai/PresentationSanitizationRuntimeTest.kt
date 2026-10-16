@@ -106,6 +106,10 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun assertHome(label: String) {
+        // The first real catch is revealed after the Home resolver settles. Wait for
+        // the same visible-node contract used by click and bounds assertions before
+        // checking the remaining presentation invariants.
+        waitForText("草鱼")
         assertVisible("草鱼")
         assertVisible("今天 20:07")
         assertRuntimeClean("Normal Home: $label")
