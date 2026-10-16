@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "asset_id": "recognition_new_states_hifi_v1",
-  "status": "HI_FI_REVIEW_READY",
+  "status": "PARTIALLY_SUPERSEDED",
   "runtime_visual_authority": false,
   "surface_states": [
     {
@@ -13,7 +13,9 @@
         "width": 1300,
         "height": 1300
       },
-      "status": "ADDITIVE_UI_REVIEW"
+      "status": "SUPERSEDED",
+      "replaced_by": "design/pages/recognition/first_use_camera_guide/manifest.json",
+      "note": "Superseded on 2026-10-16 by the dedicated three-page frozen First-use Camera Guide package. The original combined review board remains historical review material and is not visual authority."
     },
     {
       "id": "dirty_draft_discard_confirmation",
@@ -49,5 +51,8 @@
   },
   "capture_background_is_live_context_placeholder": true,
   "frozen_assets_modified": false,
-  "generated_by": "design/system_v3/00_Product_Master_Flow/tools/render_recognition_new_states_hifi_v1.py"
+  "generated_by": "design/system_v3/00_Product_Master_Flow/tools/render_recognition_new_states_hifi_v1.py",
+  "notes": [
+    "capture_first_guide_overlay is no longer the active authority; use the dedicated first_use_camera_guide package. dirty_draft_discard_confirmation remains HI_FI_REVIEW_READY."
+  ]
 }
