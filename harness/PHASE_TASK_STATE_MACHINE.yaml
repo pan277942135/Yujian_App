@@ -133,11 +133,10 @@ state_machine:
     - "CANCELLED"
   queue_status_labels:
     - "READY"
-    - "WAITING_FOR_N001"
+    - "WAITING_FOR_DEPENDENCIES"
     - "PARALLEL"
-    - "WAITING"
     - "FINAL_GATE"
-    - "BLOCKED_BY_B008"
+    - "BLOCKED"
   phase_states:
     - "NOT_STARTED"
     - "READY"
@@ -1029,17 +1028,6 @@ next_action_queue:
     - "N008"
     - "N009"
     - "N010"
-  required_queue_status:
-    N001: "READY"
-    N002: "WAITING_FOR_N001"
-    N003: "WAITING_FOR_N001_AND_N010"
-    N004: "PARALLEL"
-    N005: "WAITING"
-    N006: "WAITING"
-    N007: "WAITING"
-    N008: "WAITING"
-    N009: "FINAL_GATE"
-    N010: "READY"
   queue_policy: "Do not reorder, delete or silently replace N001-N010. A task may add recovery substeps but cannot bypass the queue's declared dependency semantics."
 
 recovery:
