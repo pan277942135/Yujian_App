@@ -55,7 +55,8 @@ def main():
     env_branch=os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME")
     if env_branch and env_branch not in {state.get("branch"),"HEAD"}: errors.append(f"workflow branch {env_branch!r} != state branch {state.get('branch')!r}")
     try:
-        if git("rev-parse","HEAD") != state.get("source_sha"): errors.append("source_sha must equal current HEAD")
+        expected_source = git("rev-parse", f"origin/{env_branch}") if os.environ.get("GITHUB_HEAD_REF") else git("rev-parse","HEAD")
+        if expected_source != state.get("source_sha"): errors.append("source_sha must equal the actual Work branch HEAD")
         if git("rev-parse","origin/main") != state.get("control_plane_revision"): errors.append("control_plane_revision must equal refreshed origin/main")
     except Exception as exc: errors.append(f"git provenance check failed: {exc}")
     binding=contracts.get("task_contract_bindings",{}).get(task_id)
