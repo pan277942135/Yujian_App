@@ -12,14 +12,14 @@ state_control:
   updated_at: "2026-10-16T16:56:00+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+  execution_baseline_sha: "9df07be2818514f37f81b6e88d3b78f89d32395e"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "5cff1c04c3cf97b8717c716576db23c0ea69ccf5"
+  live_branch_head_at_snapshot: "9df07be2818514f37f81b6e88d3b78f89d32395e"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
   base_branch: "main"
-  base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+  base_sha: "e4414282acad41b9554b522de46f59325b089300"
   source_priority:
     - "live repository"
     - "current branch/HEAD"
@@ -35,7 +35,7 @@ source_of_truth:
   agent_startup: "AGENTS.md"
   state_update_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
   work_log: "harness/build-log.md"
-  current_work_state: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+  current_work_state: "WORK_EXECUTION_STATE.json"
   feature_matrix: "harness/FEATURE_MATRIX.yaml"
   feature_matrix_validator: "scripts/validate_feature_matrix.py"
   phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
@@ -55,10 +55,10 @@ repositories:
     full_name: "pan277942135/Yujian_App"
     role: "PRIMARY_CONTROL_PLANE"
     default_branch: "main"
-    main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+    main_sha: "e4414282acad41b9554b522de46f59325b089300"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "5cff1c04c3cf97b8717c716576db23c0ea69ccf5"
-    execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+    active_sha_at_snapshot: "9df07be2818514f37f81b6e88d3b78f89d32395e"
+    execution_baseline_sha: "9df07be2818514f37f81b6e88d3b78f89d32395e"
     runtime:
       os: "Android"
       api_level: 28
@@ -98,10 +98,10 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "5cff1c04c3cf97b8717c716576db23c0ea69ccf5"
+    head_at_last_verified_snapshot: "9df07be2818514f37f81b6e88d3b78f89d32395e"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
-    base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+    base_sha: "e4414282acad41b9554b522de46f59325b089300"
 
   PR122:
     repository: "pan277942135/Yujian_App"
@@ -420,7 +420,7 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+    sha: "9df07be2818514f37f81b6e88d3b78f89d32395e"
     status: "NOT_RUN"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -464,7 +464,7 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+    source_sha: "9df07be2818514f37f81b6e88d3b78f89d32395e"
     run_id: null
     artifact_ids: {}
     artifact_zip_digests: {}
@@ -550,8 +550,9 @@ current_work:
   phase: "P6"
   stage: "E0"
   status: "FIX_READY_FOR_EXACT_HEAD_CI"
-  source_file: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
-  exact_head: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+  source_file: "WORK_EXECUTION_STATE.json"
+  task_id: "N001"
+  exact_head: "9df07be2818514f37f81b6e88d3b78f89d32395e"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"

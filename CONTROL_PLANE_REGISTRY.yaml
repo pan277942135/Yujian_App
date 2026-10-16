@@ -1,105 +1,202 @@
-# Yujian AI Control Plane Registry V1
-# Purpose: single index for control-plane layers 01-06.
-# This file is an index only. It must not duplicate the contents of the referenced authorities.
+# Control Plane V1.1 — canonical Work entrypoint.
+# CI policy: control-only PRs must not start Android or design-asset validation.
+# Yujian AI Control Plane Registry V1.1
+# Single entrypoint for every Work, regardless of product branch.
+# INDEX ONLY: references authorities; never duplicates authoritative content.
 
-schema_version: "1.0"
+schema_version: "1.1"
 registry_id: "YUJIAN-CONTROL-PLANE-V1"
 status: "ACTIVE"
-purpose: "Single entrypoint for Work to discover the six control-plane layers and their authoritative files."
-source_of_truth_rule: "This registry indexes authorities; it does not replace or duplicate them."
-write_rule: "Update references when paths change; never copy authoritative rules, state, contracts or evidence into this file."
+role: "INDEX_ONLY_SINGLE_ENTRYPOINT"
+canonical_repository: "pan277942135/Yujian_App"
+canonical_branch: "main"
+work_state_filename: "WORK_EXECUTION_STATE.json"
+canonicality: "MAIN_IS_CONTROL_PLANE_AUTHORITY"
+purpose: "Single Work entrypoint for project state, feature scope, execution topology, unified contracts, evidence gates and recovery."
+source_of_truth_rule: "CONTROL_PLANE_REGISTRY.yaml is the only Work process entrypoint. Referenced authorities remain authoritative for their own domains."
+product_branch_rule: "Product branches may diverge in implementation and live state, but may not retain stale Control Plane or canonical design definitions."
+write_rule: "This file only indexes authorities, versions, routing metadata and synchronization policy. It never stores Work progress."
 
 startup:
-  entrypoint: "CONTROL_PLANE_REGISTRY.yaml"
-  rule: "After reading this file, Work follows the referenced authoritative files required by the current task/state."
-  required_order:
-    - "PROJECT_MASTER_STATE.yaml"
-    - "harness/FEATURE_MATRIX.yaml"
-    - "harness/PHASE_TASK_STATE_MACHINE.yaml"
-    - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
-    - "Evidence Gate authorities resolved from layers 03-04"
-    - "Recovery authorities resolved from layers 03-06"
-  current_task_resolution: "Use PROJECT_MASTER_STATE.yaml for current phase/task, then resolve dependencies, contract, gate and recovery rules from the indexed authorities."
+  first_file: "CONTROL_PLANE_REGISTRY.yaml"
+  admission_required_before_work: true
+  sequence:
+    - "01_project_master_state"
+    - "02_feature_matrix"
+    - "03_phase_task_state_machine"
+    - "04_unified_contract"
+    - "05_evidence_gate"
+    - "06_automatic_recovery"
+  branch_resolution:
+    canonical_registry: "main:CONTROL_PLANE_REGISTRY.yaml"
+    local_registry_must_match_canonical: true
+    stale_registry_action: "BLOCK_AND_SYNC_FROM_MAIN"
+    missing_registry_action: "BLOCK_AND_SYNC_FROM_MAIN"
+  state_resolution:
+    project_master_state: "current_work_branch:PROJECT_MASTER_STATE.yaml"
+    work_execution_state: "current_work_branch:WORK_EXECUTION_STATE.json"
+    fallback: "initialize branch-local state from canonical control-plane definitions; never copy another product branch state"
+  execution_rule: "No implementation, design consumption/change, test execution or release action may begin until control-plane admission resolves PASS."
 
 layers:
   "01_project_master_state":
     sequence: 1
     name: "Project Master State"
-    role: "Project-wide state snapshot and current execution baseline."
+    role: "Branch-local live project snapshot and execution pointer."
     authority:
-      primary: "PROJECT_MASTER_STATE.yaml"
+      primary: "current_work_branch:PROJECT_MASTER_STATE.yaml"
+      state_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
     validation:
       primary: "scripts/validate_project_master_state.py"
 
   "02_feature_matrix":
     sequence: 2
     name: "Feature Matrix"
-    role: "Feature, Journey, Route and Child Surface execution index."
+    role: "Canonical static feature/journey/route/child-surface index."
     authority:
       primary: "harness/FEATURE_MATRIX.yaml"
+      canonical_branch: "main"
     validation:
       primary: "scripts/validate_feature_matrix.py"
 
   "03_phase_task_state_machine":
     sequence: 3
     name: "Phase / Task State Machine"
-    role: "Execution sequencing, dependency semantics, task states, checkpoints and gate progression."
+    role: "Canonical static task topology, dependencies, lifecycle semantics, gate bindings and bounded recovery rules."
     authority:
       primary: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+      canonical_branch: "main"
       protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+    validation:
+      primary: "scripts/validate_phase_task_state_machine.py"
 
   "04_unified_contract":
     sequence: 4
     name: "Unified Contract"
-    role: "Contract resolution across Feature, Surface, Journey, Route and contract domains."
+    role: "Canonical static resolver connecting Feature, Child Surface, Journey, Route and contract domains."
     authority:
       primary: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+      schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
+      resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
+      canonical_branch: "main"
     validation:
       primary: "scripts/validate_unified_contract.py"
 
   "05_evidence_gate":
     sequence: 5
     name: "Evidence Gate"
-    role: "Acceptance and provenance gates; no PASS without required evidence on the claimed source SHA."
+    role: "Canonical acceptance/provenance policy. PASS requires evidence bound to the claimed source SHA."
     authority:
       state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
       contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
       runtime_gate: "scripts/run_android_runtime_gate.sh"
       recognition_runtime_gate: "scripts/run_recognition_frozen_emulator_gate.sh"
-      evidence_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+      state_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+      canonical_branch: "main"
 
   "06_automatic_recovery":
     sequence: 6
     name: "Automatic Recovery"
-    role: "Bounded retry, checkpoint, interruption recovery and durable resume semantics."
+    role: "Bounded retry, checkpoint, interruption recovery and durable resume."
     authority:
       state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
       protocol: "harness/STATE_UPDATE_PROTOCOL.md"
-      agent_startup: "AGENTS.md"
-      work_checkpoint: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+      agent_bootstrap: "AGENTS.md"
+      work_checkpoint: "current_work_branch:WORK_EXECUTION_STATE.json"
+      canonical_branch: "main"
 
-cross_layer_resolution:
-  current_state: "01_project_master_state"
-  scope: "02_feature_matrix"
-  execution: "03_phase_task_state_machine"
-  contract: "04_unified_contract"
-  acceptance: "05_evidence_gate"
-  recovery: "06_automatic_recovery"
-  rule: "Do not create a second source of truth when a referenced authority already exists."
+design_task_sync:
+  canonical: "main"
+  protocol: "CONTROL_PLANE_CHANGE_SYNC.md"
+  design_authorities:
+    governance: "design/governance/"
+    registry: "design/registry/"
+    pages: "design/pages/"
+    system_v3: "design/system_v3/"
+  required_sync_targets:
+    - "harness/FEATURE_MATRIX.yaml"
+    - "harness/PHASE_TASK_STATE_MACHINE.yaml"
+    - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+    - "affected Evidence Gate bindings"
+    - "affected Recovery/Work task bindings"
+  stale_action: "BLOCK_WORK"
 
-work_startup:
-  first_control_plane_file: "CONTROL_PLANE_REGISTRY.yaml"
-  then:
-    - "Read 01 for current project state and baseline."
-    - "Read 02 for feature/journey/surface scope."
-    - "Read 03 for current task, dependencies, retry budget and gate."
-    - "Read 04 for the applicable contract authority."
-    - "Resolve 05 for required acceptance evidence."
-    - "Resolve 06 for recovery/checkpoint rules before execution."
-  resume_rule: "On interruption, use the indexed recovery/checkpoint authorities and resume from the last durable Git/state checkpoint; do not rely on chat memory."
+canonical_static_control_plane:
+  branch: "main"
+  files:
+    - "AGENTS.md"
+    - "CONTROL_PLANE_REGISTRY.yaml"
+    - "CONTROL_PLANE_CHANGE_SYNC.md"
+    - "harness/FEATURE_MATRIX.yaml"
+    - "harness/PHASE_TASK_STATE_MACHINE.yaml"
+    - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+    - "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
+    - "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
+    - "harness/STATE_UPDATE_PROTOCOL.md"
+    - "harness/WORK_EXECUTION_STATE_SCHEMA_V1.json"
+    - "harness/WORK_EXECUTION_STATE_TEMPLATE_V1.json"
+    - "scripts/validate_project_master_state.py"
+    - "scripts/validate_feature_matrix.py"
+    - "scripts/validate_phase_task_state_machine.py"
+    - "scripts/validate_unified_contract.py"
+    - "scripts/validate_control_plane_registry.py"
+    - "scripts/validate_control_plane_sync.py"
+    - "scripts/validate_work_execution_state.py"
+    - "scripts/validate_control_plane_admission.py"
+    - "scripts/run_android_runtime_gate.sh"
+    - "scripts/run_recognition_frozen_emulator_gate.sh"
+
+canonical_design_authorities:
+  branch: "main"
+  paths:
+    - "design/governance/"
+    - "design/registry/"
+    - "design/pages/"
+    - "design/system_v3/"
+  rule: "Design/task changes originate in canonical main authorities and are synchronized to product branches before Work execution."
+
+main_merge_gate:
+  required_status_check: "control-plane-admission"
+  required_before_merge: true
+  human_authorization: "N009"
+  enforcement_location: "GitHub branch protection or repository ruleset"
+
+admission:
+  script: "scripts/validate_control_plane_admission.py"
+  product_work: "SYNC + STATIC_CONTROL_PLANE + PROJECT_STATE + WORK_STATE"
+  control_plane_change: "STATIC_CONTROL_PLANE_ONLY"
+  canonical_main: "STATIC_CONTROL_PLANE_ONLY"
+  refresh_main_before_check: true
+  fail_closed: true
+
+branch_sync:
+  validator: "scripts/validate_control_plane_sync.py"
+  gate_id: "G-CONTROL-PLANE-SYNC"
+  required_for_product_work: true
+  comparison_base: "main"
+  compared_paths: "canonical_static_control_plane.files + canonical_design_authorities"
+  allowed_branch_local:
+    - "PROJECT_MASTER_STATE.yaml"
+    - "WORK_EXECUTION_STATE.json"
+    - "product implementation paths"
+    - "product-specific evidence generated by the Work"
+  forbidden_control_plane_origin: "Product branches must not originate new task/design/contract/gate/recovery definitions."
+  sync_flow: "main control-plane change -> control-plane validation -> branch synchronization -> admission PASS -> Work"
+
+change_sync:
+  protocol: "CONTROL_PLANE_CHANGE_SYNC.md"
+  single_entry: "CONTROL_PLANE_REGISTRY.yaml"
+  rule: "Any task or design change is one coherent change-set. Update the authoritative source first, then affected Feature Matrix, Phase/Task, Contract, Gate and Recovery references, validate, commit on main, then synchronize product branches."
+  partial_update: "FORBIDDEN"
+  stale_branch_action: "BLOCK"
 
 integrity:
   registry_is_index_only: true
-  duplicates_authoritative_content: false
+  static_dynamic_boundary: "ENFORCED"
+  no_duplicate_authority_content: true
+  canonical_branch_is_main: true
+  product_code_merge_not_required_for_control_plane_sync: true
   references_must_exist: true
-  path_change_requires_registry_update: true
+  stale_control_plane_blocks_admission: true
+  task_design_changes_require_sync: true
+  work_progress_never_updates_main_control_plane: true

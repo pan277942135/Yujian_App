@@ -3,13 +3,11 @@ schema_version: "1.0"
 registry_id: "yujian-unified-contract-registry"
 status: "ACTIVE"
 purpose: "Single machine-readable contract resolution layer binding Product, Feature, Journey, Child Surface, Route, Page, Design, Component, Asset, State, Data/API, Model, Android Implementation, Runtime, Accessibility, Evidence and Release contracts without replacing their authoritative source files."
-source_of_truth_rule: "This registry is the contract index and resolver. Domain authorities remain authoritative; this layer must never invent a missing contract or promote status."
+source_of_truth_rule: "This registry is the static contract index and resolver. Domain authorities remain authoritative; this layer never stores live Work status or release progress."
+dynamic_state_rule: "Live execution status, current branch, current PR, current SHA and evidence observations belong to PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json on the active Work branch."
 project:
   repository: "pan277942135/Yujian_App"
-  control_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
-  control_pr: 145
-  base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+  control_branch: "main"
   backend_repository: "pan277942135/Yujian"
   backend_main_sha: "05554ce1b7104c7bce05610979dfc3478b6d24a5"
 
@@ -41,7 +39,7 @@ domain_catalog:
     role: "PRIMARY"
   journey:
     description: "J01-J20 user journey semantics"
-    authority_family: "PROJECT_MASTER_STATE.yaml + harness/FEATURE_MATRIX.yaml"
+    authority_family: "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json + harness/FEATURE_MATRIX.yaml"
     role: "PRIMARY"
   child_surface:
     description: "Page/feature sub-surface ownership"
@@ -101,7 +99,7 @@ domain_catalog:
     role: "EXECUTION"
   release:
     description: "APK provenance/release authorization"
-    authority_family: "harness/PHASE_TASK_STATE_MACHINE.yaml + PROJECT_MASTER_STATE.yaml"
+    authority_family: "harness/PHASE_TASK_STATE_MACHINE.yaml + branch-local PROJECT_MASTER_STATE.yaml"
     role: "EXECUTION"
 
 shared_contracts:
@@ -168,7 +166,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
-    release_ready: false
   home_normal_v1:
     contract_id: "FC-home_normal_v1"
     name: "有数据首页"
@@ -210,7 +207,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
-    release_ready: false
   record_date_v2:
     contract_id: "FC-record_date_v2"
     name: "记录日期"
@@ -252,7 +248,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   recognition_flow_v1_2:
     contract_id: "FC-recognition_flow_v1_2"
     name: "识别过程"
@@ -320,7 +315,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
-    release_ready: false
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
     name: "识别结果"
@@ -362,7 +356,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
-    release_ready: false
   fish_record_detail_v2:
     contract_id: "FC-fish_record_detail_v2"
     name: "鱼获详情"
@@ -404,7 +397,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["API-DATA-BOUNDARY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
-    release_ready: false
   share_templates_v1:
     contract_id: "FC-share_templates_v1"
     name: "分享模板"
@@ -446,7 +438,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   fish_memory_bside_v1:
     contract_id: "FC-fish_memory_bside_v1"
     name: "鱼获记忆 / B 面"
@@ -488,7 +479,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["API-DATA-BOUNDARY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
-    release_ready: false
   my_catches_v2:
     contract_id: "FC-my_catches_v2"
     name: "我的鱼获"
@@ -530,7 +520,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   fish_guide_v2:
     contract_id: "FC-fish_guide_v2"
     name: "鱼鉴"
@@ -572,7 +561,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   account_privacy_v1:
     contract_id: "FC-account_privacy_v1"
     name: "账号与隐私"
@@ -614,7 +602,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   auth_login_v2:
     contract_id: "FC-auth_login_v2"
     name: "登录 · 欢迎回来"
@@ -656,7 +643,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   auth_register_v2:
     contract_id: "FC-auth_register_v2"
     name: "注册 · 创建账号"
@@ -698,7 +684,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   profile_edit_v1:
     contract_id: "FC-profile_edit_v1"
     name: "编辑资料"
@@ -740,7 +725,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
   user_agreement_v1:
     contract_id: "FC-user_agreement_v1"
     name: "用户协议"
@@ -782,7 +766,6 @@ feature_contracts:
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: []
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
-    release_ready: false
 
 journey_contracts:
   J01:
@@ -1430,7 +1413,6 @@ gate_contracts:
     exact_sha_required: true
     status: "READY"
     blocker_id: "B008"
-    blocker_status: "CLOSED"
     page_set_resolution: "USER_AUTHORIZED_THREE_PAGE_V1"
     page_set_conflict_id: null
     required_assets:
@@ -1446,272 +1428,182 @@ gate_contracts:
 task_contract_bindings:
   P0-01:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P0"
   P1-01:
     contract_refs: ["FC-home_empty_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-home_normal_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P1"
   P2-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-home_empty_v2", "FC-home_normal_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P2"
   P2-02:
     contract_refs: ["FC-record_date_v2", "FC-share_templates_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1"]
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P2"
   P3-01:
     contract_refs: ["FC-home_empty_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P3"
   P3-02:
     contract_refs: ["FC-home_normal_v1", "FC-recognition_result_v1"]
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P3"
   P3-03:
     contract_refs: ["FC-recognition_flow_v1_2"]
-    status: "READY"
-    queue_status: "READY"
     gate_id: null
     phase: "P3"
   P3-04:
     contract_refs: ["FC-fish_memory_bside_v1", "FC-record_date_v2", "FC-share_templates_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1"]
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P3"
   P4-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P4"
   P4-02:
     contract_refs: ["FC-record_date_v2", "FC-share_templates_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1"]
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P4"
   P5-01:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P5"
   P5-02:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
-    status: "PASS"
-    queue_status: "PASS"
     gate_id: null
     phase: "P5"
   P6-01:
     contract_refs: ["FC-recognition_flow_v1_2"]
-    status: "READY"
-    queue_status: "READY"
     gate_id: null
     phase: "P6"
   P6-02:
     contract_refs: ["FC-recognition_flow_v1_2"]
-    status: "READY"
-    queue_status: "READY"
     gate_id: null
     phase: "P6"
   P6-03:
     contract_refs: ["FC-auth_register_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P6"
   P6-04:
     contract_refs: ["FC-record_date_v2", "FC-share_templates_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P6"
   P7-01:
     contract_refs: ["FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   P7-02:
     contract_refs: ["FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   P7-03:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   FT-home_empty_v2:
     contract_refs: ["FC-home_empty_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   FT-home_normal_v1:
     contract_refs: ["FC-home_normal_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   FT-record_date_v2:
     contract_refs: ["FC-record_date_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P6"
   FT-recognition_flow_v1_2:
     contract_refs: ["FC-recognition_flow_v1_2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   FT-recognition_result_v1:
     contract_refs: ["FC-recognition_result_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   FT-fish_record_detail_v2:
     contract_refs: ["FC-fish_record_detail_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   FT-share_templates_v1:
     contract_refs: ["FC-share_templates_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P6"
   FT-fish_memory_bside_v1:
     contract_refs: ["FC-fish_memory_bside_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   FT-my_catches_v2:
     contract_refs: ["FC-my_catches_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   FT-fish_guide_v2:
     contract_refs: ["FC-fish_guide_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   FT-account_privacy_v1:
     contract_refs: ["FC-account_privacy_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P7"
   FT-auth_login_v2:
     contract_refs: ["FC-auth_login_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   FT-auth_register_v2:
     contract_refs: ["FC-auth_register_v2"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P6"
   FT-profile_edit_v1:
     contract_refs: ["FC-profile_edit_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   FT-user_agreement_v1:
     contract_refs: ["FC-user_agreement_v1"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: null
     phase: "P8"
   N001:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-auth_login_v2", "FC-fish_guide_v2", "G-API28-MATRIX"]
-    status: "READY"
-    queue_status: "READY"
     gate_id: "G-API28-MATRIX"
     phase: "P8"
   N002:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "G-RECOGNITION-FROZEN"]
-    status: "WAITING"
-    queue_status: "WAITING_FOR_N001"
     gate_id: "G-RECOGNITION-FROZEN"
     phase: "P8"
   N003:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1", "G-J01-J20"]
-    status: "WAITING"
-    queue_status: "WAITING_FOR_N001"
     gate_id: "G-J01-J20"
     phase: "P8"
   N004:
     contract_refs: ["FC-home_normal_v1", "FC-fish_record_detail_v2", "G-NORMAL-HOME-A4.1"]
-    status: "READY"
-    queue_status: "PARALLEL"
     gate_id: "G-NORMAL-HOME-A4.1"
     phase: "P8"
   N005:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1", "G-EVIDENCE-PACK"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: "G-EVIDENCE-PACK"
     phase: "P8"
   N006:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1", "G-APK-PROVENANCE"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: "G-APK-PROVENANCE"
     phase: "P8"
   N007:
     contract_refs: ["FC-recognition_result_v1", "G-PHASE3B-PROVENANCE"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: "G-PHASE3B-PROVENANCE"
     phase: "P8"
   N008:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1", "G-FOCUSED-REPORT"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: "G-FOCUSED-REPORT"
     phase: "P8"
   P9-01:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1", "G-RELEASE-PACKAGE"]
-    status: "WAITING"
-    queue_status: "WAITING"
     gate_id: "G-RELEASE-PACKAGE"
     phase: "P9"
   N009:
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1", "G-HUMAN-RELEASE"]
-    status: "FINAL_GATE"
-    queue_status: "FINAL_GATE"
     gate_id: "G-HUMAN-RELEASE"
     phase: "P9"
   N010:
     contract_refs: ["FC-recognition_flow_v1_2", "G-FIRST-USE-GUIDE-ASSET"]
-    status: "READY"
-    queue_status: "READY"
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
     phase: "P3"
 
@@ -1751,7 +1643,6 @@ inventory:
   route_count: 22
   task_count: 45
   gate_count: 11
-  execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "f280d12a97ff0412ef852c0e7f3524330a3825ac"
   last_synced_phase_task_state_machine_sha: "275a22ad28d6f9df3ab3feaba47855dd2c4f3a4e"

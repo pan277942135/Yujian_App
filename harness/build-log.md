@@ -19,7 +19,7 @@ PROJECT_MASTER_STATE.yaml.
 - Work ID: RECOGNITION-FIRST-USE-GUIDE-V1
 - Stage: E0
 - Status: FIX_READY_FOR_EXACT_HEAD_CI
-- Source: docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json
+- Source: WORK_EXECUTION_STATE.json
 - Exact-head API28 runtime: not yet run after the latest fixes
 - J01-J20: not run
 - Local Android toolchain: unavailable in the recorded checkout

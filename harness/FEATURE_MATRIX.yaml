@@ -4,14 +4,11 @@ schema_version: "1.0"
 matrix_id: "yujian-feature-matrix"
 status: "ACTIVE"
 purpose: "Machine-readable traceability index connecting the 15 Product Features to Design Registry units, child surfaces, J01-J20, Android routes, implementation, runtime/evidence and release control."
-source_of_truth_rule: "Feature Matrix is the execution index; it does not replace PROJECT_MASTER_STATE, Experience Registry, Page Contracts, Runtime Gates or Evidence manifests."
+source_of_truth_rule: "Feature Matrix is the canonical static feature/journey/route/surface index; it does not store live Work status, branch acceptance, blockers, next actions or release progress."
+dynamic_state_rule: "Live execution state belongs to PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json on the active Work branch."
 project:
   repository: "pan277942135/Yujian_App"
-  control_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
-  current_pr: 145
-  base_branch: "main"
-  base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
+  control_branch: "main"
 inventory:
   feature_count: 15
   journey_count: 20
@@ -19,7 +16,7 @@ inventory:
   primary_journey: "J01-J20"
   feature_source: "design/registry/experience_registry_v1.json"
   route_source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
-  journey_source: "PROJECT_MASTER_STATE.yaml"
+  journey_source: "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json"
 feature_order:
   - "home_empty_v2"
   - "home_normal_v1"
@@ -83,15 +80,8 @@ features:
     route_refs:
       - "home"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "FROZEN"
       runtime_authority: "design/pages/home/empty_home/shared/contracts/runtime_manifest.json"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers: []
-    next_actions: []
     known_gaps:
       - "Current-branch runtime/evidence must be reverified; registry FROZEN is historical authority, not current-head evidence."
   home_normal_v1:
@@ -152,19 +142,8 @@ features:
     route_refs:
       - "home"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B001"
-      - "B003"
-      - "B004"
-    next_actions:
-      - "N004"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
   record_date_v2:
@@ -214,16 +193,8 @@ features:
     journey_refs: []
     route_refs: []
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "MISSING"
       runtime_authority: null
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "No production route is registered in current Android navigation; runtime is MISSING; motion is PARTIAL; haptic/sound are intentionally DEFERRED."
   recognition_flow_v1_2:
@@ -317,20 +288,8 @@ features:
       - "recognizing"
       - "recognition_issue"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "ACTIVE_CLOSURE"
       runtime_authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B001"
-      - "B002"
-    next_actions:
-      - "N001"
-      - "N002"
-      - "N003"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
@@ -409,22 +368,8 @@ features:
     route_refs:
       - "result"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B001"
-      - "B002"
-      - "B006"
-    next_actions:
-      - "N001"
-      - "N002"
-      - "N003"
-      - "N007"
     known_gaps:
       - "Current runtime/evidence are partial; exact-head runtime and current-branch provenance conflict remain open (B001/B002/B006)."
   fish_record_detail_v2:
@@ -488,16 +433,8 @@ features:
     route_refs:
       - "catch/{catchId}?section={section}"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Motion/haptic/sound/evidence are missing; runtime is partial."
   share_templates_v1:
@@ -562,16 +499,8 @@ features:
     journey_refs: []
     route_refs: []
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "RUNTIME_ONLY"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/ShareCenterScreen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "No current production navigation route is registered; visual/motion/haptic/sound/assets/evidence remain partial; runtime is RUNTIME_ONLY."
   fish_memory_bside_v1:
@@ -621,16 +550,8 @@ features:
     route_refs:
       - "memory_capture/{catchId}/{captureMode}"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemorySection.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Independent memory design package is PARTIAL; motion/haptic/sound/evidence are missing; runtime is partial."
   my_catches_v2:
@@ -717,16 +638,8 @@ features:
       - "my_catches?speciesId={speciesId}"
       - "my_catches/day/{dayKey}"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Runtime is partial; motion/haptic/sound/evidence are missing; Habitat remains design-only with pending raw imports."
   fish_guide_v2:
@@ -786,16 +699,8 @@ features:
       - "guide"
       - "species/{key}"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/FishGuideHomeScreen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Runtime is partial and runtime evidence is missing."
   account_privacy_v1:
@@ -872,16 +777,8 @@ features:
       - "about"
       - "privacy_policy"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Runtime is partial; runtime acceptance remains open. Forgot Password/Export/Delete are intentionally DEFERRED."
   auth_login_v2:
@@ -928,16 +825,8 @@ features:
       - "login"
       - "auth/login"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "FROZEN"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/auth/LoginV2Screen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Design/runtime are frozen in registry, but current evidence is partial and exact-head revalidation is still required."
   auth_register_v2:
@@ -983,16 +872,8 @@ features:
     route_refs:
       - "register"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "RUNTIME_ONLY"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Runtime is RUNTIME_ONLY and evidence is missing."
   profile_edit_v1:
@@ -1049,16 +930,8 @@ features:
     route_refs:
       - "edit_profile"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "RUNTIME_ONLY"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Runtime is RUNTIME_ONLY and evidence is missing."
   user_agreement_v1:
@@ -1105,16 +978,8 @@ features:
     route_refs:
       - "user_agreement"
     implementation:
-      current_branch_acceptance: "NOT_VERIFIED"
       registered_runtime_status: "RUNTIME_ONLY"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
-    acceptance:
-      current_branch_runtime: "NOT_RUN"
-      current_branch_evidence: "NOT_RUN"
-      release_ready: false
-    blockers:
-      - "B007"
-    next_actions: []
     known_gaps:
       - "Final legal copy remains LEGAL_REVIEW_REQUIRED; runtime is RUNTIME_ONLY and no runtime evidence is registered."
 journeys:

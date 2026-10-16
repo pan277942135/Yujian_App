@@ -16,7 +16,7 @@ resume work without depending on chat history.
 |---|---|
 | Current project state | PROJECT_MASTER_STATE.yaml |
 | Agent startup rules | AGENTS.md |
-| Current Work execution state | docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json |
+| Current Work execution state | WORK_EXECUTION_STATE.json |
 | Observed execution history | harness/build-log.md |
 | Phase / Task State Machine | harness/PHASE_TASK_STATE_MACHINE.yaml |
 | Unified Contract Registry | harness/UNIFIED_CONTRACT_REGISTRY.yaml |
@@ -370,3 +370,20 @@ It indexes domain authorities; it does not replace them.
 Every executable task must resolve its contract references before implementation. A
 structural registry PASS is not a runtime or release PASS. Missing/partial contracts
 remain explicit and are governed by the Phase/Task State Machine.
+
+
+## V1.1 — Static / Dynamic Boundary
+The Control Plane defines rules; it does not store live Work progress.
+
+- Static on main: registry, Feature Matrix, Phase/Task Machine, Unified Contract, Evidence/Recovery rules and canonical design authorities.
+- Dynamic on a Work branch: PROJECT_MASTER_STATE.yaml, generic WORK_EXECUTION_STATE.json, checkpoints, logs, CI/runtime observations, evidence and APK provenance.
+- A Work status change never requires a main Control Plane commit.
+- A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.
+
+
+## Work State Migration V1.1
+Legacy feature-specific Work state paths such as `docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json` are retired. Every active Work branch uses root `WORK_EXECUTION_STATE.json`.
+
+Required identity fields: `work_id`, `branch`, `control_plane_revision`, `base_sha`, `phase`, `task_id`, `stage`, `status`, `source_sha` and `next_action`.
+
+The Work state records the live pointer; the Phase/Task Machine records the static definition. Never put the live pointer back into the machine.

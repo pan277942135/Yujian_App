@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "work_id": "PR145-RECOGNITION-MAIN-JOURNEY",
+  "repository": "pan277942135/Yujian_App",
+  "pull_request": 145,
+  "branch": "audit/design-system-v3-1-phase1-master-baseline",
+  "control_plane_revision": "e4414282acad41b9554b522de46f59325b089300",
+  "base_branch": "main",
+  "base_sha": "e4414282acad41b9554b522de46f59325b089300",
+  "phase": "P8",
+  "task_id": "N001",
+  "stage": "CONTROL_PLANE_SYNCED",
+  "status": "READY",
+  "source_sha": "9df07be2818514f37f81b6e88d3b78f89d32395e",
+  "checkpoint_updated_at": "2026-10-16T19:00:00+08:00",
+  "next_action": "Run the authoritative API28 matrix against the exact product source SHA and record machine-readable gate evidence.",
+  "dependencies": ["P5-02", "P6-02"],
+  "blockers": ["B001"],
+  "evidence": {
+    "control_plane_admission": "PENDING",
+    "control_plane_baseline": "e4414282acad41b9554b522de46f59325b089300",
+    "pr_head_observed_before_sync": "9df07be2818514f37f81b6e88d3b78f89d32395e",
+    "n001_gate": "NOT_RUN",
+    "n002_n010": "WAITING_FOR_DEPENDENCIES",
+    "historical_runtime_state": "Preserved in PROJECT_MASTER_STATE.yaml and evidence artifacts; not promoted to current-head PASS."
+  },
+  "recovery": {
+    "max_automatic_repairs_per_failing_gate": 2,
+    "attempts_used": 0,
+    "last_failure": null
+  },
+  "pr_state": "DRAFT_OPEN_UNMERGED"
+}
