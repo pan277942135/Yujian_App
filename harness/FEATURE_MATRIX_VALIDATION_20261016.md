@@ -12,6 +12,12 @@
 - Project Master State validation in the same workflow: **PASS**
 - Product incompleteness is reported as open gaps and is intentionally non-fatal.
 - Structural traceability errors: **0**
+- Raw open-gap findings: **86**
+  - modality status findings: 49
+  - current-branch runtime NOT_RUN: 15
+  - features without a current Android route: 2
+  - features without registered hifi_views: 5
+  - feature-level known-gap statements: 15
 - Features: **15 / 15**
 - Recognition journey: **20 / 20 (J01-J20)**
 - Android navigation routes: **22 / 22**
