@@ -36,7 +36,7 @@ EXPECTED_QUEUE_STATUS = {
     "N007": "WAITING",
     "N008": "WAITING",
     "N009": "FINAL_GATE",
-    "N010": "BLOCKED_BY_B008",
+    "N010": "READY",
 }
 PHASE_NAMES = {
     "P0": "Product Goal / Decisions",
@@ -187,9 +187,17 @@ def validate_tasks(machine: dict, state: dict, matrix: dict, v: Validation) -> N
 
         if task_id.startswith("N"):
             v.require(task_id in QUEUE, f"{task_id}: task is outside N001-N010 queue")
+            expected_queue_status = EXPECTED_QUEUE_STATUS[task_id]
+            if task_id == "N010":
+                b008 = next(
+                    (x for x in state.get("blockers", [])
+                     if isinstance(x, dict) and x.get("id") == "B008"),
+                    {},
+                )
+                expected_queue_status = "BLOCKED_BY_B008" if b008.get("status") == "OPEN" else "READY"
             v.require(
-                task.get("queue_status") == EXPECTED_QUEUE_STATUS[task_id],
-                f"{task_id}: queue_status must remain {EXPECTED_QUEUE_STATUS[task_id]!r}",
+                task.get("queue_status") == expected_queue_status,
+                f"{task_id}: queue_status must remain {expected_queue_status!r}",
             )
 
     v.require(set(tasks) >= set(QUEUE), "tasks must contain all N001-N010")
@@ -228,7 +236,17 @@ def validate_tasks(machine: dict, state: dict, matrix: dict, v: Validation) -> N
             v.require(task.get("status") == "FINAL_GATE", "N009 must remain FINAL_GATE")
             v.require(task.get("human_required") is True, "N009 must require human authorization")
         if task_id == "N010":
-            v.require("B008" in set(task.get("blockers", [])), "N010 must remain blocked by B008")
+            b008 = next(
+                (x for x in state.get("blockers", [])
+                 if isinstance(x, dict) and x.get("id") == "B008"),
+                {},
+            )
+            if b008.get("status") == "OPEN":
+                v.require("B008" in set(task.get("blockers", [])), "N010 must remain blocked by B008 while B008 is OPEN")
+                v.require(task.get("status") == "BLOCKED", "N010 must be BLOCKED while B008 is OPEN")
+            else:
+                v.require("B008" not in set(task.get("blockers", [])), "N010 must not retain closed B008 as an active blocker")
+                v.require(task.get("status") == "READY", "N010 must be READY after B008 closes")
 
     # Every feature has exactly one rollup.
     matrix_feature_ids = list(features)
