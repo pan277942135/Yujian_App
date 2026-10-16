@@ -1,0 +1,105 @@
+# Yujian AI Control Plane Registry V1
+# Purpose: single index for control-plane layers 01-06.
+# This file is an index only. It must not duplicate the contents of the referenced authorities.
+
+schema_version: "1.0"
+registry_id: "YUJIAN-CONTROL-PLANE-V1"
+status: "ACTIVE"
+purpose: "Single entrypoint for Work to discover the six control-plane layers and their authoritative files."
+source_of_truth_rule: "This registry indexes authorities; it does not replace or duplicate them."
+write_rule: "Update references when paths change; never copy authoritative rules, state, contracts or evidence into this file."
+
+startup:
+  entrypoint: "CONTROL_PLANE_REGISTRY.yaml"
+  rule: "After reading this file, Work follows the referenced authoritative files required by the current task/state."
+  required_order:
+    - "PROJECT_MASTER_STATE.yaml"
+    - "harness/FEATURE_MATRIX.yaml"
+    - "harness/PHASE_TASK_STATE_MACHINE.yaml"
+    - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+    - "Evidence Gate authorities resolved from layers 03-04"
+    - "Recovery authorities resolved from layers 03-06"
+  current_task_resolution: "Use PROJECT_MASTER_STATE.yaml for current phase/task, then resolve dependencies, contract, gate and recovery rules from the indexed authorities."
+
+layers:
+  "01_project_master_state":
+    sequence: 1
+    name: "Project Master State"
+    role: "Project-wide state snapshot and current execution baseline."
+    authority:
+      primary: "PROJECT_MASTER_STATE.yaml"
+    validation:
+      primary: "scripts/validate_project_master_state.py"
+
+  "02_feature_matrix":
+    sequence: 2
+    name: "Feature Matrix"
+    role: "Feature, Journey, Route and Child Surface execution index."
+    authority:
+      primary: "harness/FEATURE_MATRIX.yaml"
+    validation:
+      primary: "scripts/validate_feature_matrix.py"
+
+  "03_phase_task_state_machine":
+    sequence: 3
+    name: "Phase / Task State Machine"
+    role: "Execution sequencing, dependency semantics, task states, checkpoints and gate progression."
+    authority:
+      primary: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+      protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+
+  "04_unified_contract":
+    sequence: 4
+    name: "Unified Contract"
+    role: "Contract resolution across Feature, Surface, Journey, Route and contract domains."
+    authority:
+      primary: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+    validation:
+      primary: "scripts/validate_unified_contract.py"
+
+  "05_evidence_gate":
+    sequence: 5
+    name: "Evidence Gate"
+    role: "Acceptance and provenance gates; no PASS without required evidence on the claimed source SHA."
+    authority:
+      state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+      contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+      runtime_gate: "scripts/run_android_runtime_gate.sh"
+      recognition_runtime_gate: "scripts/run_recognition_frozen_emulator_gate.sh"
+      evidence_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+
+  "06_automatic_recovery":
+    sequence: 6
+    name: "Automatic Recovery"
+    role: "Bounded retry, checkpoint, interruption recovery and durable resume semantics."
+    authority:
+      state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+      protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+      agent_startup: "AGENTS.md"
+      work_checkpoint: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+
+cross_layer_resolution:
+  current_state: "01_project_master_state"
+  scope: "02_feature_matrix"
+  execution: "03_phase_task_state_machine"
+  contract: "04_unified_contract"
+  acceptance: "05_evidence_gate"
+  recovery: "06_automatic_recovery"
+  rule: "Do not create a second source of truth when a referenced authority already exists."
+
+work_startup:
+  first_control_plane_file: "CONTROL_PLANE_REGISTRY.yaml"
+  then:
+    - "Read 01 for current project state and baseline."
+    - "Read 02 for feature/journey/surface scope."
+    - "Read 03 for current task, dependencies, retry budget and gate."
+    - "Read 04 for the applicable contract authority."
+    - "Resolve 05 for required acceptance evidence."
+    - "Resolve 06 for recovery/checkpoint rules before execution."
+  resume_rule: "On interruption, use the indexed recovery/checkpoint authorities and resume from the last durable Git/state checkpoint; do not rely on chat memory."
+
+integrity:
+  registry_is_index_only: true
+  duplicates_authoritative_content: false
+  references_must_exist: true
+  path_change_requires_registry_update: true
