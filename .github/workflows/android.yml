@@ -228,6 +228,10 @@ jobs:
             api_level: 28
             required: true
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
+          - gate: camera-runtime-v1
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -partition-size 4096 -skin 1080x1920
           - gate: empty-home-v2
             api_level: 28
             required: true
@@ -276,7 +280,7 @@ jobs:
           cp build/runtime-apks/apk_model_trace.json "evidence/runtime/${{ matrix.gate }}/apk_model_trace.json"
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'camera-runtime-v1' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg

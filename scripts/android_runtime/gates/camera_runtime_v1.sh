@@ -47,6 +47,10 @@ gate_after_instrumentation() {
     04_capture_pressed.png \
     05_post_capture.png \
     06_recognition_handoff.png \
+    P01_runtime.png \
+    P02_runtime.png \
+    P03_runtime.png \
+    first_use_camera_guide_runtime_report.json \
     camera_preflight.txt \
     camera_runtime_log.txt \
     camera_capture_trace.txt \
@@ -58,6 +62,15 @@ gate_after_instrumentation() {
   do
     camera_runtime_pull_file "cache/camera-runtime-v1/$name" "$output/$name"
   done
+
+  if [[ -s "$output/first_use_camera_guide_runtime_report.json" && \
+        -s "$output/P01_runtime.png" && -s "$output/P02_runtime.png" && -s "$output/P03_runtime.png" ]]; then
+    python3 scripts/create_first_use_camera_guide_visual_evidence.py \
+      --runtime-dir "$output" \
+      --output-dir "$output/first_use_camera_guide" \
+      --build-sha "$BUILD_SHA" \
+      --apk "$YUJIAN_APP_APK" || runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_VISUAL_EVIDENCE_INVALID"
+  fi
 
   local instrumentation_log="$YUJIAN_EVIDENCE_DIR/instrumentation.log"
   if [[ -s "$instrumentation_log" ]]; then
@@ -118,6 +131,10 @@ gate_collect_evidence() {
     04_capture_pressed.png \
     05_post_capture.png \
     06_recognition_handoff.png \
+    P01_runtime.png \
+    P02_runtime.png \
+    P03_runtime.png \
+    first_use_camera_guide_runtime_report.json \
     camera_capture_trace.txt \
     camera_runtime_log.txt \
     instrumentation_result.txt
@@ -125,6 +142,13 @@ gate_collect_evidence() {
     if [[ ! -s "$output/$name" ]]; then
       printf 'MISSING_CAMERA_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
       runtime_set_failure "EVIDENCE" "CAMERA_RUNTIME_EVIDENCE_INCOMPLETE"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  for name in P01_overlay.png P02_overlay.png P03_overlay.png P01_diff.png P02_diff.png P03_diff.png first_use_camera_guide_runtime_report.json; do
+    if [[ ! -s "$output/first_use_camera_guide/$name" ]]; then
+      printf 'MISSING_FIRST_USE_GUIDE_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPARISON_INCOMPLETE"
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
