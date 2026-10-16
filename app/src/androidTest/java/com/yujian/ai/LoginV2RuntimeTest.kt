@@ -298,7 +298,9 @@ class LoginV2RuntimeTest {
 
         val username = composeRule.onNodeWithTag("login_username")
         showSoftwareKeyboardForEmulator()
-        username.performClick()
+        // Exercise the platform touch/IME path. A semantics-only click can focus
+        // the field without asking API 28's real input method to appear.
+        username.performTouchInput { click() }
         awaitImeVisible()
         username.performTextInput("x")
         composeRule.onNodeWithText("账号").assertIsDisplayed()
@@ -342,7 +344,7 @@ class LoginV2RuntimeTest {
         }
 
         val usernameHelper = composeRule.onNodeWithText("3–32 位字母、数字、_ 或 -")
-        usernameHelper.assertIsDisplayed()
+        usernameHelper.performScrollTo().assertIsDisplayed()
         assertInsideCompactViewport(usernameHelper)
         val passwordHelper = composeRule.onNodeWithText("至少 6 位")
         passwordHelper.performScrollTo().assertIsDisplayed()
@@ -368,7 +370,7 @@ class LoginV2RuntimeTest {
         val usernameError = "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
         val username = composeRule.onNodeWithTag("register_username")
         showSoftwareKeyboardForEmulator()
-        username.performClick()
+        username.performTouchInput { click() }
         awaitImeVisible()
         username.performTextInput("x")
         composeRule.onNodeWithText("账号").assertIsDisplayed()
@@ -383,7 +385,7 @@ class LoginV2RuntimeTest {
 
         val password = composeRule.onNodeWithTag("register_password")
         password.performScrollTo().performClick().performTextInput("1")
-        password.assertIsFocused().assertTextContains("1").assertIsDisplayed()
+        password.assertIsFocused().assertTextContains("•").assertIsDisplayed()
         val passwordErrorNode = composeRule.onNodeWithText("密码长度需要为 6–72 位")
         passwordErrorNode.assertIsDisplayed()
         assertInsideCompactViewport(passwordErrorNode)

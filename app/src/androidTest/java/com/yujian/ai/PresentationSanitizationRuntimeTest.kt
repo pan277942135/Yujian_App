@@ -38,10 +38,11 @@ class PresentationSanitizationRuntimeTest {
         assertHome("null location")
         screenshot("01_normal_home_null_clean.png")
 
-        clickVisibleText(sourceText = "全部", destinationText = "我的鱼获")
+        clickVisibleDescription(description = "全部鱼获", destinationText = "我的鱼获")
         assertRuntimeClean("My Catches with null location")
         assertVisible("草鱼")
-        assertVisible(currentDayLabel())
+        assertVisible(currentDayOfMonthLabel())
+        assertVisible(currentMonthLabel())
         assertVisible("1条鱼获 · 1种鱼")
         assertAbsent("首次null")
         screenshot("02_my_catches_null_clean.png")
@@ -81,8 +82,11 @@ class PresentationSanitizationRuntimeTest {
         context.getSharedPreferences("yujian_user_session", Context.MODE_PRIVATE).edit().clear().commit()
     }
 
-    private fun currentDayLabel(): String =
-        SimpleDateFormat("MM月dd日", Locale.CHINA).format(Calendar.getInstance().time)
+    private fun currentDayOfMonthLabel(): String =
+        "%02d".format(Locale.US, Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
+
+    private fun currentMonthLabel(): String =
+        SimpleDateFormat("MMM", Locale.ENGLISH).format(Calendar.getInstance().time).uppercase(Locale.ROOT)
 
     private fun fixtureTimestamp(): String {
         val calendar = Calendar.getInstance().apply {
@@ -109,17 +113,37 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun clickVisibleText(sourceText: String, destinationText: String) {
-        val targetBounds = waitForVisibleTextBounds(sourceText)
+        waitForVisibleTextBounds(sourceText)
+        val target = device.findObject(By.text(sourceText))
         assertTrue(
-            "Expected visible text: $sourceText at $targetBounds",
-            device.click(targetBounds.centerX(), targetBounds.centerY()),
+            "Expected visible text: $sourceText",
+            target != null,
         )
+        target!!.click()
+        waitForText(destinationText)
+    }
+
+    private fun clickVisibleDescription(description: String, destinationText: String) {
+        val target = device.findObject(By.desc(description))
+        assertTrue("Expected accessible button: $description", target != null)
+        target!!.click()
         waitForText(destinationText)
     }
 
     private fun waitForText(text: String) {
-        waitForVisibleTextBounds(text)
+        try {
+            waitForVisibleTextBounds(text)
+        } catch (_: AssertionError) {
+            val hierarchy = evidenceFile("diagnostics_hierarchy.xml")
+            device.dumpWindowHierarchy(hierarchy)
+            device.takeScreenshot(evidenceFile("diagnostics_screen.png"))
+            throw AssertionError("Timed out waiting for visible text: $text; diagnostics saved to $hierarchy")
+        }
     }
+
+    private fun evidenceFile(name: String): File =
+        File(context.getExternalFilesDir(null), "evidence/ui_rework_v1/data_sanitization/$name")
+            .apply { parentFile?.mkdirs() }
 
     private fun waitForVisibleTextBounds(text: String): Rect {
         val selector = By.text(text)
@@ -141,7 +165,11 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun assertVisible(text: String) {
-        assertTrue("Expected visible runtime text: $text", device.findObject(By.text(text)) != null)
+        if (device.findObject(By.text(text)) != null) return
+        val hierarchy = evidenceFile("diagnostics_hierarchy.xml")
+        device.dumpWindowHierarchy(hierarchy)
+        device.takeScreenshot(evidenceFile("diagnostics_screen.png"))
+        assertTrue("Expected visible runtime text: $text; diagnostics saved to $hierarchy", false)
     }
 
     private fun assertAbsent(text: String) {
@@ -162,8 +190,7 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun screenshot(name: String) {
-        val file = File(context.getExternalFilesDir(null), "evidence/ui_rework_v1/data_sanitization/$name")
-        file.parentFile?.mkdirs()
+        val file = evidenceFile(name)
         assertTrue("Failed to capture runtime screenshot: $name", device.takeScreenshot(file))
     }
 

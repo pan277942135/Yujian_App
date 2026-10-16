@@ -531,6 +531,7 @@ class RecognitionFrozenFlowEmulatorTest {
 
     @Test
     fun unresolvedMediumAndLowCanReturnWithoutCreatingRecordActions() {
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
         val showLow = mutableStateOf(false)
         composeRule.setContent {
             YujianTheme {
@@ -541,7 +542,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         productionResult = low,
                         onBack = {},
                         onRetry = {},
-                        onSave = { _, _, _ -> },
+                        onSave = { _, _, _ -> saveCalls.incrementAndGet() },
                     )
                 } else {
                     RecognitionResultScreen(
@@ -550,7 +551,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         productionResult = medium,
                         onBack = {},
                         onRetry = {},
-                        onSave = { _, _, _ -> },
+                        onSave = { _, _, _ -> saveCalls.incrementAndGet() },
                     )
                 }
             }
@@ -566,6 +567,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("暂不确认鱼种").performClick()
         composeRule.onNodeWithText("手动选择鱼种").assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+        assertEquals("unresolved result must not request durable persistence", 0, saveCalls.get())
     }
 
     @Test
@@ -617,8 +619,6 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitUntil(timeoutMillis = 2_000L) {
             composeRule.onAllNodesWithTag("recognition-numeric-长度").fetchSemanticsNodes().isNotEmpty()
         }
-        lengthField.performTextInput("21")
-        composeRule.onNodeWithContentDescription("清除输入").performClick()
         lengthField.performTextInput("0")
         lengthField.performImeAction()
         composeRule.onNodeWithText("请输入有效的长度").assertIsDisplayed()
@@ -644,6 +644,59 @@ class RecognitionFrozenFlowEmulatorTest {
         saveButton.performClick()
         saveButton.performClick()
         assertEquals("one resolved Result may submit only once while saving", 1, saveCalls.get())
+    }
+
+    @Test
+    fun saveFailureKeepsDraftAndRetryKeyAndBackIsBlockedWhileSaving() {
+        val saving = mutableStateOf(false)
+        val saveError = mutableStateOf<String?>(null)
+        val backCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val submittedDrafts = Collections.synchronizedList(mutableListOf<CatchSaveDraft>())
+        val story = "这次保存后继续留在草稿里的故事。"
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    saving = saving.value,
+                    saveError = saveError.value,
+                    onBack = { backCalls.incrementAndGet() },
+                    onRetry = {},
+                    onSave = { draft, _, destination ->
+                        assertEquals(RecognitionSaveDestination.HOME, destination)
+                        submittedDrafts += draft
+                        if (submittedDrafts.size == 1) {
+                            saveError.value = "server stack trace: private detail"
+                        } else {
+                            saving.value = true
+                        }
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recognition-story-input")
+            .performScrollTo()
+            .performTextInput(story)
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            saveError.value != null && submittedDrafts.size == 1
+        }
+        composeRule.onNodeWithText("保存鱼获失败，请重试").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("重试保存").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            saving.value && submittedDrafts.size == 2
+        }
+
+        composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        assertEquals("system Back must remain blocked while the retry is saving", 0, backCalls.get())
+        assertEquals(submittedDrafts[0].clientRecordId, submittedDrafts[1].clientRecordId)
+        assertEquals(story, requireNotNull(submittedDrafts[0].classifierResult).optString("story"))
+        assertEquals(story, requireNotNull(submittedDrafts[1].classifierResult).optString("story"))
+        composeRule.onNode(homeLoading).assertIsDisplayed()
     }
 
     @Test

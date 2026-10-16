@@ -4,6 +4,18 @@ gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.ui.home.NormalHomeRealPhotoProbeTest,com.yujian.ai.ui.components.HomeEvidenceBitmapTest,com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.home.NormalHomeMotionEvidenceTest'
 }
 
+gate_before_instrumentation() {
+  "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
+}
+
+gate_after_instrumentation() {
+  local output_dir="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
+  mkdir -p "$output_dir"
+  "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
+    NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \
+    > "$output_dir/normal-home-motion-instrumentation.log" 2>&1 || true
+}
+
 normal_home_run_seed() {
   local method="$1"
   local log="$2"

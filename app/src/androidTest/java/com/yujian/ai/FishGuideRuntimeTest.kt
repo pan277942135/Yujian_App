@@ -107,8 +107,11 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
         val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
         val speciesTitleBounds = composeRule.onNodeWithText("草鱼").fetchSemanticsNode().boundsInRoot
-        assertTrue("Species title must anchor the upper card hierarchy", speciesTitleBounds.center.y < carouselBounds.center.y)
         saveScreenshot("fish_guide_lit.png")
+        assertTrue(
+            "Species title must anchor the upper card hierarchy: title=$speciesTitleBounds carousel=$carouselBounds",
+            speciesTitleBounds.center.y < carouselBounds.center.y,
+        )
 
         swipeCarouselToSelectedSpecies(
             fromName = "草鱼",
@@ -229,7 +232,8 @@ class FishGuideRuntimeTest {
             )
         }
 
-        composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
+        composeRule.onNodeWithText("Ctenopharyngodon idella").performScrollTo().assertIsDisplayed()
+        saveScreenshot("fish_species_detail_initial.png")
         composeRule.onNodeWithTag("fish_knowledge_card_v2_HERO").assertExists()
         composeRule.onNodeWithContentDescription("鱼种名片，草鱼").assertExists()
         assertTrue(composeRule.onAllNodesWithText("英雄卡").fetchSemanticsNodes().isEmpty())
@@ -282,7 +286,8 @@ class FishGuideRuntimeTest {
 
         composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("0次记录").assertIsDisplayed()
-        composeRule.onNodeWithText("还没有记录").assertIsDisplayed()
+        saveScreenshot("fish_species_detail_zero_catch_initial.png")
+        composeRule.onNodeWithText("还没有记录").performScrollTo().assertIsDisplayed()
         saveScreenshot("fish_species_detail_zero_catch.png")
         composeRule.onNodeWithText("去记录鱼获").performScrollTo().performClick()
         composeRule.runOnIdle {

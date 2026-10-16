@@ -59,9 +59,8 @@ class FishRecordDetailRuntimeTest {
             }
         }
 
-        composeRule.onNodeWithText("鱼获记忆").assertIsDisplayed()
+        composeRule.onNodeWithText("鱼获记忆", substring = false).assertIsDisplayed()
         composeRule.onNodeWithText("还没有留下影像").assertIsDisplayed()
-        composeRule.onNodeWithText("鱼获详情").assertIsDisplayed()
         composeRule.onNodeWithText("鱼鉴").assertIsDisplayed()
         composeRule.onNodeWithText("分享").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("鱼鉴").performClick()

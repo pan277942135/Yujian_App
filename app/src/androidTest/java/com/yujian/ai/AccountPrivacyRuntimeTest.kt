@@ -17,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.platform.app.InstrumentationRegistry
@@ -63,11 +64,11 @@ class AccountPrivacyRuntimeTest {
         }
 
         composeRule.onNodeWithText("编辑资料").assertIsDisplayed()
-        composeRule.onNodeWithText("账号").assertIsDisplayed()
-        composeRule.onNodeWithText("angler_2025").assertIsDisplayed()
-        composeRule.onNodeWithText("不可修改").assertIsDisplayed()
-        primaryButton("保存修改").assertIsNotEnabled()
         saveScreenshot("account_profile_idle.png")
+        composeRule.onNodeWithText("账号").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("angler_2025").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("不可修改").performScrollTo().assertIsDisplayed()
+        primaryButton("保存修改").assertIsNotEnabled()
 
         composeRule.onNodeWithTag("edit_profile_nickname").performTextClearance()
         composeRule.onNodeWithTag("edit_profile_nickname").performTextInput("🙂".repeat(21))

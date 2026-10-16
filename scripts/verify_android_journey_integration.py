@@ -36,8 +36,8 @@ require('popUpTo("home") { inclusive = false }' in logout, "logout must clear ne
 
 migration = body_after(APP, "fun adoptGuestArchive(")
 failure = body_after(migration, ".onFailure {")
-require("游客鱼获迁移未完成" in failure, "migration failure must be visible to the user")
-require("原记录仍保留" in failure, "migration failure must confirm local preservation")
+require("游客鱼获尚未完成迁移" in failure, "migration failure must be visible to the user")
+require("未验证的本机记录和照片仍保留" in failure, "migration failure must confirm local preservation")
 require("guestMigrationPending = false" not in failure, "failed migration must keep the local archive visible")
 
 guide_link = body_after(APP, "onOpenFishGuide = { record ->")
@@ -49,6 +49,11 @@ for route in ('composable("home")', 'composable("auth/login")', 'route = "identi
 
 require('nav.navigate("catch/${Uri.encode(createdRecord.id)}?section=memory")' in APP,
         "saved catch must carry the memory section into Fish Record Detail")
+save_handler = body_after(APP, "onSave = { draft, feedback, destination ->")
+save_success = body_after(save_handler, "if (saveResult.isSuccess) {")
+require("clearRecognitionSession()" in save_success, "verified save must clear Recognition state")
+require('popUpTo("home") { inclusive = false }' in save_success,
+        "verified save must clear Capture/Processing/Result from the back stack")
 require('nav.navigate("my_catches?speciesId=${Uri.encode(speciesId)}")' in APP,
         "Fish Guide species action must preserve its filter in My Catches")
 require('const val FishRecordDetailRoute = "catch/{catchId}?section={section}"' in DETAIL_ROUTE,

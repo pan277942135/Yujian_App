@@ -3,6 +3,15 @@
 gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.PresentationSanitizationRuntimeTest'
 }
+
+gate_after_instrumentation() {
+  local output_dir="$YUJIAN_EVIDENCE_DIR/ui_rework_v1/data_sanitization/diagnostics"
+  local remote_dir="/sdcard/Android/data/${YUJIAN_APP_PACKAGE}/files/evidence/ui_rework_v1/data_sanitization"
+  mkdir -p "$output_dir"
+  "${YUJIAN_ADB_BIN}" pull "${remote_dir}/diagnostics_hierarchy.xml" "$output_dir/" >/dev/null 2>&1 || true
+  "${YUJIAN_ADB_BIN}" pull "${remote_dir}/diagnostics_screen.png" "$output_dir/" >/dev/null 2>&1 || true
+}
+
 gate_collect_evidence() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/ui_rework_v1/data_sanitization"
   local remote_dir="/sdcard/Android/data/${YUJIAN_APP_PACKAGE}/files/evidence/ui_rework_v1/data_sanitization"
