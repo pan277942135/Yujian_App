@@ -9,17 +9,17 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T23:55:43+08:00"
+  updated_at: "2026-10-17T04:41:11+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+  execution_baseline_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+  live_branch_head_at_snapshot: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
   base_branch: "main"
-  base_sha: "72329c026cb4a42f4af3bc885f9f9b36c004ef2d"
+  base_sha: "b201d2b6229b629bcbcb9b4a3458a307099d2cfe"
   source_priority:
     - "live repository"
     - "current branch/HEAD"
@@ -55,10 +55,10 @@ repositories:
     full_name: "pan277942135/Yujian_App"
     role: "PRIMARY_CONTROL_PLANE"
     default_branch: "main"
-    main_sha: "72329c026cb4a42f4af3bc885f9f9b36c004ef2d"
+    main_sha: "b201d2b6229b629bcbcb9b4a3458a307099d2cfe"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "a3a5e984c28795a5da0984f594d97b714cfd2204"
-    execution_baseline_sha: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+    active_sha_at_snapshot: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
+    execution_baseline_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
     runtime:
       os: "Android"
       api_level: 28
@@ -98,10 +98,10 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+    head_at_last_verified_snapshot: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
-    base_sha: "72329c026cb4a42f4af3bc885f9f9b36c004ef2d"
+    base_sha: "b201d2b6229b629bcbcb9b4a3458a307099d2cfe"
 
   PR122:
     repository: "pan277942135/Yujian_App"
@@ -307,7 +307,7 @@ phases:
     status: "IN_PROGRESS"
     freeze: "NOT_FROZEN"
     exact_head:
-      sha: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+      sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
       runtime_status: "NOT_RUN"
     required_evidence:
       - "runtime run ID"
@@ -420,7 +420,7 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+    sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
     status: "NOT_RUN"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -464,7 +464,7 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+    source_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
     run_id: null
     artifact_ids: {}
     artifact_zip_digests: {}
@@ -543,7 +543,7 @@ execution_control:
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
   machine_validation: "PASS"
-  machine_validated_source_sha: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+  machine_validated_source_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
@@ -552,7 +552,7 @@ current_work:
   status: "FIX_READY_FOR_EXACT_HEAD_CI"
   source_file: "WORK_EXECUTION_STATE.json"
   task_id: "N001"
-  exact_head: "a3a5e984c28795a5da0984f594d97b714cfd2204"
+  exact_head: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
