@@ -153,6 +153,12 @@ canonical_design_authorities:
     - "design/system_v3/"
   rule: "Design/task changes originate in canonical main authorities and are synchronized to product branches before Work execution."
 
+main_merge_gate:
+  required_status_check: "control-plane-admission"
+  required_before_merge: true
+  human_authorization: "N009"
+  enforcement_location: "GitHub branch protection or repository ruleset"
+
 admission:
   script: "scripts/validate_control_plane_admission.py"
   product_work: "SYNC + STATIC_CONTROL_PLANE + PROJECT_STATE + WORK_STATE"
