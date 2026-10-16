@@ -3,17 +3,19 @@ name: control-plane-admission
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main]
   push:
-    branches:
-      - "main"
-      - "control/**"
-      - "feature/**"
-      - "fix/**"
-      - "design/**"
-      - "integration/**"
+    branches: [main]
   workflow_dispatch:
   merge_group:
     types: [checks_requested]
+
+concurrency:
+  group: yujian-control-plane-admission-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   control-plane-admission:

@@ -16,7 +16,8 @@ def main():
     branch=branch_name(); event=os.environ.get("GITHUB_EVENT_NAME","")
     if event=="merge_group": branch="main"
     control_change=branch.startswith(("control/","design/")); ok=True
-    ok &= run("PYTHON_SYNTAX",["python","-m","compileall","-q","scripts"])\n    ok &= run("CONTROL_PLANE_REGISTRY",["python","scripts/validate_control_plane_registry.py"])
+    ok &= run("PYTHON_SYNTAX",["python","-m","compileall","-q","scripts"])
+    ok &= run("CONTROL_PLANE_REGISTRY",["python","scripts/validate_control_plane_registry.py"])
     ok &= run("FEATURE_MATRIX",["python","scripts/validate_feature_matrix.py"])
     ok &= run("PHASE_TASK_STATE_MACHINE",["python","scripts/validate_phase_task_state_machine.py"])
     ok &= run("UNIFIED_CONTRACT",["python","scripts/validate_unified_contract.py"])

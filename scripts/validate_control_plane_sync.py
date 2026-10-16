@@ -14,6 +14,10 @@ def files(ref,path):
     return set(out.splitlines())
 def blob(ref,path):
     return run("rev-parse",f"{ref}:{path}")
+
+def local_files(path):
+    out=run("ls-files","--",path)
+    return set(out.splitlines()) if out else set()
 def local_blob(path):
     return run("hash-object",str(path))
 def main():
