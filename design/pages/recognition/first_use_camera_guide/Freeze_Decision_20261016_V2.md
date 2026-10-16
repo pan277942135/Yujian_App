@@ -1,3 +1,5 @@
+> SUPERSEDED for PR #145 Work Task V1; active authority is the three-page P01/P02/P03 guide.
+
 # First-use Camera Guide · Freeze Decision V2 · 2026-10-16
 
 **Design status:** FROZEN  

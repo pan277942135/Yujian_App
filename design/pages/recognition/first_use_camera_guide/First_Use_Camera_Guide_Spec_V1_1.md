@@ -2,6 +2,8 @@
 
 > Historical two-page proposal only. The active authority for PR #145 is the three-page Work Task V1 and its P01/P02/P03 Frozen contract.
 
+> Historical two-page proposal only. The active authority for PR #145 is the three-page Work Task V1 and its P01/P02/P03 Frozen contract.
+
 **Status:** SUPERSEDED for PR #145 Work Task V1  
 **Freeze date:** 2026-10-16  
 **Owner:** Recognition Capture / 首次拍照教学  
