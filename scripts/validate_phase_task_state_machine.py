@@ -96,7 +96,7 @@ def main() -> int:
     known_blockers = set(machine.get("known_blocker_ids", []))
     required = {
         "phase","priority","owner","feature_refs","journey_refs","depends_on",
-        "blockers","entry_blockers","target_blockers","evidence_required",
+        "entry_blockers","target_blockers","evidence_required",
         "completion","human_required",
     }
     for task_id, task in tasks.items():
@@ -117,11 +117,9 @@ def main() -> int:
         for fid in task.get("feature_refs", []) or []:
             if fid not in features:
                 errors.append(f"{task_id}: unknown feature {fid}")
-        for bid in task.get("blockers", []) or []:
+        for bid in (task.get("entry_blockers", []) or []) + (task.get("target_blockers", []) or []):
             if bid not in known_blockers:
                 errors.append(f"{task_id}: unknown blocker {bid}")
-        if set(task.get("blockers", []) or []) != set(task.get("entry_blockers", []) or []) | set(task.get("target_blockers", []) or []):
-            errors.append(f"{task_id}: blockers must equal entry+target")
 
     if not set(tasks) >= set(QUEUE):
         errors.append("tasks must contain N001-N010")
@@ -184,9 +182,9 @@ def main() -> int:
         errors.append("machine_completion live summary must not exist")
 
     policy = machine.get("execution_policy", {})
-    if policy.get("automatic_repairs") != 2:
+    if policy.get("max_automatic_repairs_per_failing_gate") != 2:
         errors.append("execution_policy.automatic_repairs must be 2")
-    if policy.get("maximum_attempts") != 3:
+    if policy.get("total_attempts_per_gate") != 3:
         errors.append("execution_policy.maximum_attempts must be 3")
     if policy.get("no_unbounded_retry") is not True:
         errors.append("execution_policy.no_unbounded_retry must be true")
