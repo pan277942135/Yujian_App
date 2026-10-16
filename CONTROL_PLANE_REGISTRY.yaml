@@ -132,6 +132,7 @@ canonical_static_control_plane:
     - "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
     - "harness/STATE_UPDATE_PROTOCOL.md"
     - "harness/WORK_EXECUTION_STATE_SCHEMA_V1.json"
+    - "harness/WORK_EXECUTION_STATE_TEMPLATE_V1.json"
     - "scripts/validate_project_master_state.py"
     - "scripts/validate_feature_matrix.py"
     - "scripts/validate_phase_task_state_machine.py"
