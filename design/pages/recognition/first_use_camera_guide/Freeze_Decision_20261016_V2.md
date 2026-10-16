@@ -27,4 +27,4 @@ P01 remains byte-identical. P02 reuses the former P03 Git blob without changing 
 
 ## Superseded
 
-This V2 decision supersedes the three-page teaching definition in `Freeze_Decision_20261016.md`. Historical files remain only for provenance.
+This two-page V2 decision is retained as historical provenance only. It does not supersede PR #145 Work Task V1; the active page contract is the three-page P01/P02/P03 definition in `Freeze_Decision_20261016.md`.
