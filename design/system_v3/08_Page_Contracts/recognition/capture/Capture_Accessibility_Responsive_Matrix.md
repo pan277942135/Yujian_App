@@ -16,3 +16,13 @@
 | Touch target | Back, Gallery and Capture actionable bounds are each at least touch.minimum = 44×44dp. | PASS |
 
 PASS certifies that the contract defines the required cases and measurable conditions. It does not claim Android rendering or device execution.
+
+
+## Orientation Hi-Fi coverage
+
+| Orientation | Frozen visual rule | Status |
+|---|---|---|
+| Portrait 1080×1920 reference | Horizontal fish + fixed horizontal Fish Guide Frame + right-side vertical Capture/Gallery rail | PASS |
+| Landscape 1920×1080 reference | Horizontal fish + fixed horizontal Fish Guide Frame + right-side vertical Capture/Gallery rail | PASS |
+| Phone frame / mockup chrome | Must not appear in the page-level Hi-Fi authority | PASS |
+| Static Morning Lake underlay | Must not appear beneath the live Camera Preview | PASS |
