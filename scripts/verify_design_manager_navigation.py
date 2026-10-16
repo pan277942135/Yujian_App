@@ -11,6 +11,15 @@ from pathlib import Path
 import sys
 
 EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06", "NH07"]
+EXPECTED_RECOGNITION_FLOW = [
+    "main_journey_overview", "state_timeline", "visual_states",
+    "layer_component_ownership", "motion_transition", "degradation_accessibility",
+    "runtime_evidence", "capture_first_use_guide", "boundary_state_release_gate",
+]
+EXPECTED_RECOGNITION_RESULT = [
+    "overview", "high", "medium", "low", "no_fish", "image_quality",
+    "content_edit", "decision_logic",
+]
 
 
 def fail(message: str) -> None:
@@ -49,50 +58,19 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     if nav_ids != EXPECTED_NORMAL_HOME:
         fail(f"Normal Home navigation changed: {nav_ids} != {EXPECTED_NORMAL_HOME}")
 
-    # Recognition first-use camera guide: verify the menu hierarchy and preview bindings.
-    # Binary presence/hash is intentionally checked in the separate asset-import gate so this
-    # navigation regression can validate the Design Manager behavior before PNG import.
     recognition = next((x for x in registry.get("features", []) if x.get("id") == "recognition_flow_v1_2"), None)
     if not recognition:
         fail("recognition_flow_v1_2 missing from experience registry")
-    guide = next((x for x in recognition.get("hifi_views", []) if x.get("id") == "capture_first_use_guide"), None)
-    if not guide:
-        fail("Recognition first-use camera guide submenu missing")
-    if guide.get("status") != "FROZEN" or guide.get("render_mode") != "authority_gallery":
-        fail("First-use guide parent must be FROZEN authority_gallery")
-    expected_guide_children = ["p01", "p02", "p03"]
-    actual_guide_children = [x.get("id") for x in guide.get("children", [])]
-    if actual_guide_children != expected_guide_children:
-        fail(f"First-use guide child order changed: {actual_guide_children} != {expected_guide_children}")
-    expected_titles = {
-        "p01": "P01 · 竖屏拍摄示意",
-        "p02": "P02 · 竖拍鱼类拍摄示意",
-        "p03": "P03 · 横屏拍摄示意",
-    }
-    expected_paths = {
-        "p01": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-        "p02": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-        "p03": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
-    }
-    for child in guide.get("children", []):
-        cid = child.get("id")
-        if child.get("status") != "FROZEN" or child.get("render_mode") != "repo_image" or child.get("authority_type") != "visual":
-            fail(f"First-use guide {cid} must be FROZEN repo_image visual child")
-        if child.get("title") != expected_titles.get(cid):
-            fail(f"First-use guide {cid} title mismatch")
-        if child.get("image") != expected_paths.get(cid) or child.get("visual_authority") != expected_paths.get(cid):
-            fail(f"First-use guide {cid} preview/image authority binding mismatch")
-    if [x.get("path") for x in guide.get("supporting_visual_references", [])] != [expected_paths[x] for x in expected_guide_children]:
-        fail("First-use guide parent gallery references must match P01/P02/P03 order")
-    guide_manifest_path = design / "pages/recognition/first_use_camera_guide/manifest.json"
-    guide_manifest = load_json(guide_manifest_path)
-    if guide_manifest.get("status") != "FROZEN":
-        fail("First-use guide manifest must remain FROZEN")
-    manifest_assets = {x.get("id"): x for x in guide_manifest.get("assets", [])}
-    for cid in expected_guide_children:
-        entry = manifest_assets.get(cid)
-        if not entry or entry.get("path") != expected_paths[cid] or entry.get("status") != "FROZEN":
-            fail(f"First-use guide manifest binding missing for {cid}")
+    recognition_ids = [x.get("id") for x in recognition.get("hifi_views", [])]
+    if recognition_ids != EXPECTED_RECOGNITION_FLOW:
+        fail(f"Recognition main journey navigation changed: {recognition_ids} != {EXPECTED_RECOGNITION_FLOW}")
+    guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
+    guide_children = [x.get("id") for x in guide.get("children", [])]
+    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03"]:
+        fail("legacy 07 guide and P01/P02/P03 menu mapping must remain stable")
+    journey = next((x for x in registry["features"] if x.get("id") == "recognition_result_v1"), None)
+    if not journey or [x.get("id") for x in journey.get("hifi_views", [])] != EXPECTED_RECOGNITION_RESULT:
+        fail("Recognition Result existing RR01–RR08 view mapping changed")
 
     # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
     if not built:
@@ -198,6 +176,18 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     if "nh07-master-open" not in app or "openNh07MasterLightbox" not in app or "dialog.showModal" not in app:
         fail("NH07 must provide a clickable modal preview of its verified mother image")
 
+    route_logic = (
+        'window.addEventListener("popstate", selectFromHash)',
+        "renderInvalidManagerRoute",
+        "selectShared(id, variantId, false)",
+        "selectPage(id, null, hifiId, childId, false)",
+        "openHifiImageLightbox",
+        'data-zoom="fit"',
+        'hifiViewContractDetails'
+    )
+    if any(token not in app and token not in index_path.read_text(encoding="utf-8") for token in route_logic):
+        fail("Design Manager direct Hash / history / Hi-Fi preview routes regressed")
+
     index = index_path.read_text(encoding="utf-8") if index_path.exists() else ""
     if built:
         if "__DESIGN_MANAGER_BUILD__" in index or "__DESIGN_MANAGER_BUILD_SHORT__" in index:
@@ -216,7 +206,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
 
     print(
         "PASS: Design Manager navigation guard | "
-        f"Normal Home={','.join(hifi_ids)} | built={built}"
+        f"Normal Home={','.join(hifi_ids)} | Recognition Flow={','.join(recognition_ids)} | built={built}"
     )
 
 

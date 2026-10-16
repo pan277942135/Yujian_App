@@ -7,16 +7,21 @@ on:
       - "design/**"
       - "scripts/design_manager.py"
       - "scripts/verify_design_manager_navigation.py"
-      - "scripts/verify_first_use_camera_guide_assets.py"
-      - "scripts/design/verify_system_v3_phase1.py"
+      - "scripts/verify_design_manager_hifi_release.py"
+      - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_design_manager_live.py"
+      - ".github/workflows/design-manager-pages.yml"
       - ".github/workflows/experience-governance.yml"
   pull_request:
     branches: [main]
     paths:
       - "design/**"
       - "scripts/design_manager.py"
-      - "scripts/verify_first_use_camera_guide_assets.py"
-      - "scripts/design/verify_system_v3_phase1.py"
+      - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_design_manager_hifi_release.py"
+      - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_design_manager_live.py"
+      - ".github/workflows/design-manager-pages.yml"
       - ".github/workflows/experience-governance.yml"
   workflow_dispatch:
 
@@ -26,10 +31,22 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node for browser verification
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
       - name: Compile Design Manager
         run: python3 -m py_compile scripts/design_manager.py
@@ -40,11 +57,17 @@ jobs:
       - name: Design Manager navigation regression gate
         run: python3 scripts/verify_design_manager_navigation.py
 
-      - name: Verify first-use camera guide original PNG imports
-        run: python3 scripts/verify_first_use_camera_guide_assets.py
+      - name: Hi-fi release and asset integrity gate
+        run: python3 scripts/verify_design_manager_hifi_release.py
 
-      - name: Phase 1 baseline asset integrity and frozen immutability
-        run: python3 scripts/design/verify_system_v3_phase1.py
+      - name: Browser navigation, modal, and responsive gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --root "$GITHUB_WORKSPACE" \
+              --output-dir "$RUNNER_TEMP/dm-governance-browser"
 
       - name: Print design summary
         run: python3 scripts/design_manager.py summary
@@ -56,5 +79,13 @@ jobs:
           path: |
             design/manager/
             design/registry/experience_registry_v1.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Design-Manager-Browser-${{ github.sha }}
+          path: ${{ runner.temp }}/dm-governance-browser/
           if-no-files-found: error
           retention-days: 14

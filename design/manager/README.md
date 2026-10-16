@@ -221,3 +221,11 @@ GitHub Pages 仅复制 `design/`，因此真实照片展示资产固定为 `desi
 
 ## 图标库 V1 · 43/43 全量冻结
 公共设计系统「图标」六类全部具备 SVG V1 冻结母版；「07 · 全部已冻结 SVG」支持 43 张预览、点击 SVG 打开原图放大，并记录每份资源 SHA-256。仅设计素材冻结；Android 尚未接入。
+
+## 拍照识别主链路 · 高保真发布视图
+
+`recognition_flow_v1_2` 保留既有 `07 · 首次拍照教学` 菜单与 P01/P02/P03 Hash。新增 `00 · 全流程总览` 和 `08 · 边界状态与验收`：总览 PNG 标明为业务流程图，不冒充单页 Frozen Hi-Fi；边界视图按真实 Master Board JSON 展示状态映射，并将未导入的 PNG/SVG、缺失的 Capture 图和权限图标记为 `PARTIAL`、`BLOCKED_INTEGRITY` 或 `MISSING`。
+
+Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小、适配窗口和查看原文件的弹层；页面与状态合同显示 Authority Path / SHA、进入条件、触发、操作、下一状态、返回 / 取消 / 重拍和独立 Runtime 状态。未提供的原图不生成模拟 UI 或可点击假路径；浏览器前进 / 后退、刷新和无效 Hash 均经过回归验证。
+
+展示与路由合同见 [`RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md`](RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md)。本管理站的响应式验证只证明 Design Manager；Page Contract 的 320dp / 360dp、Insets、字号、TalkBack 和 Runtime 项仍由各自产品合同与验收状态控制。

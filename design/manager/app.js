@@ -31,6 +31,7 @@ let sharedRegistry = null;
 let backgroundContract = null;
 let backgroundUsage = null;
 let recognitionDecisionContract = null;
+let recognitionMasterBoard = null;
 let selectedKey = null;
 let expandedLevelOne = new Set();
 
@@ -53,6 +54,64 @@ function repoHref(path) {
   return "../../" + path + sep + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
 }
 function isImage(path) { return !!path && /\.(png|jpe?g|webp|gif|svg)$/i.test(path); }
+
+function hifiImageFigure(path, title, caption, sha256 = "") {
+  const src = repoHref(path);
+  const safeTitle = title || "Frozen design asset";
+  return '<figure class="hifi-original hifi-asset-figure">' +
+    '<button type="button" class="hifi-image-open" data-image-src="' + esc(src) +
+      '" data-image-title="' + esc(safeTitle) + '" aria-label="放大查看 ' + esc(safeTitle) + '">' +
+      '<img src="' + esc(src) + '" alt="' + esc(safeTitle) + ' · 原始比例完整预览" decoding="async">' +
+    '</button>' +
+    '<div class="hifi-image-actions">' +
+      '<span>等比例完整预览 · 点击图片放大</span>' +
+      '<a href="' + esc(src) + '" target="_blank" rel="noreferrer">打开原始文件 ↗</a>' +
+    '</div>' +
+    '<figcaption class="hifi-original-caption">' + esc(caption || path) +
+      (sha256 ? '<br>SHA-256 · ' + esc(sha256) : '') +
+    '</figcaption>' +
+  '</figure>';
+}
+
+function hifiContractMetadataHtml(item, parentView = null) {
+  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links)) return "";
+  const display = value => Array.isArray(value) ? value.join(" · ") : (value || "未在当前 Authority 中规定");
+  const path = item.authority_path || item.visual_authority || item.expected_asset_path || item.image || item.machine_authority || item.authority || "未提供";
+  const pathMarkup = item.authority_path_available === false
+    ? '<span class="hifi-contract-plain-path">' + esc(path) + '</span>'
+    : '<a href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' + esc(path) + '</a>';
+  const contractLinks = [...(item.contract_links || []), ...(parentView?.contract_links || [])]
+    .filter((link, index, all) => link.path && all.findIndex(other => other.path === link.path) === index);
+  const fields = [
+    ["Page ID", item.page_id], ["页面名称", item.page_name || item.title || parentView?.title],
+    ["State ID", item.state_id], ["状态名称", item.state_name || item.title],
+    ["State ID 作用域", item.state_id_scope], ["Asset ID", item.asset_id],
+    ["设计版本", item.design_version], ["当前设计状态", item.status],
+    ["设计审批状态", item.design_approval_status], ["进入条件", item.entry_conditions],
+    ["触发动作", item.trigger], ["输入", item.input_contract],
+    ["用户操作", item.user_actions], ["下一页面 / 状态", item.next_page],
+    ["返回", item.back_behavior], ["取消", item.cancel_behavior],
+    ["重拍", item.retake_behavior], ["Runtime 实现状态", item.runtime_status || "NOT_RUN"]
+  ].filter(([, value]) => value !== undefined && value !== null && value !== "");
+  const cards = fields.map(([label, value]) =>
+    '<div class="hifi-contract-card"><span>' + esc(label) + '</span><strong>' +
+      esc(display(value)) + '</strong></div>'
+  ).join("");
+  const links = contractLinks.map(link =>
+    '<a href="' + esc(repoHref(link.path)) + '" target="_blank" rel="noreferrer">' +
+      esc(link.label || link.path) + ' ↗</a>'
+  ).join("");
+  return '<section class="hifi-contract-details" aria-label="页面与状态合同信息">' +
+    '<div class="hifi-contract-heading"><strong>页面与状态合同</strong>' +
+      '<span>设计 Authority 与 Android Runtime 分开记录</span></div>' +
+    '<div class="hifi-contract-grid">' + cards + '</div>' +
+    '<div class="hifi-contract-authority"><span>Authority Path</span>' + pathMarkup +
+      ((item.visual_authority_sha256 || item.sha256) ? '<span>视觉 SHA-256</span><code>' + esc(item.visual_authority_sha256 || item.sha256) + '</code>' : '') +
+    '</div>' +
+    (links ? '<div class="hifi-contract-links"><span>设计规范 / Contracts</span>' + links + '</div>' : '') +
+    (item.missing_reason ? '<p class="hifi-missing-reason">' + esc(item.missing_reason) + '</p>' : '') +
+  '</section>';
+}
 
 function currentVersion(feature) {
   return (feature.design_versions || []).find(v => v.current) ||
@@ -1063,7 +1122,11 @@ function renderSharedDirectVariantWorkspace(item, variantId) {
   );
 }
 
-function selectShared(id, variantId = null) {
+function writeManagerRoute(route, writeHistory = true) {
+  if (writeHistory && location.hash !== route) history.pushState(null, "", route);
+}
+
+function selectShared(id, variantId = null, writeHistory = true) {
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
 
@@ -1074,10 +1137,9 @@ function selectShared(id, variantId = null) {
   const directVariantMode = item.navigation_mode === "submenu_direct";
 
   selectedKey = "shared/" + id + (variantId ? "/" + variantId : "");
-  history.replaceState(
-    null,
-    "",
-    "#shared/" + encodeURIComponent(id) + (variantId ? "/" + encodeURIComponent(variantId) : "")
+  writeManagerRoute(
+    "#shared/" + encodeURIComponent(id) + (variantId ? "/" + encodeURIComponent(variantId) : ""),
+    writeHistory
   );
   renderLists();
   hideAllDetails();
@@ -2090,6 +2152,58 @@ function openNh07MasterLightbox(trigger, src) {
   dialog.querySelector(".nh07-lightbox-close").focus();
 }
 
+function openHifiImageLightbox(trigger) {
+  const src = trigger.dataset.imageSrc;
+  if (!src) return;
+  const title = trigger.dataset.imageTitle || "Frozen design asset";
+  const dialog = document.createElement("dialog");
+  dialog.className = "hifi-image-lightbox";
+  dialog.setAttribute("aria-label", title + " · 高清原图预览");
+  dialog.innerHTML =
+    '<div class="hifi-lightbox-content">' +
+      '<div class="hifi-lightbox-header"><strong>' + esc(title) + '</strong>' +
+        '<button type="button" class="hifi-lightbox-close" aria-label="关闭放大预览">×</button></div>' +
+      '<div class="hifi-lightbox-toolbar" aria-label="图片缩放控制">' +
+        '<button type="button" data-zoom="out" aria-label="缩小图片">−</button>' +
+        '<span class="hifi-zoom-level" aria-live="polite">100%</span>' +
+        '<button type="button" data-zoom="in" aria-label="放大图片">＋</button>' +
+        '<button type="button" data-zoom="fit">适配窗口</button>' +
+        '<a href="' + esc(src) + '" target="_blank" rel="noreferrer">查看原始 PNG ↗</a>' +
+      '</div>' +
+      '<div class="hifi-lightbox-stage"><img src="' + esc(src) + '" alt="' + esc(title) + ' · 未裁剪原图"></div>' +
+      '<div class="hifi-lightbox-hint">原始比例 · 滚动查看 · Esc 关闭</div>' +
+    '</div>';
+  if (typeof dialog.showModal !== "function") {
+    window.open(src, "_blank", "noopener,noreferrer");
+    return;
+  }
+  document.body.appendChild(dialog);
+  const image = dialog.querySelector(".hifi-lightbox-stage img");
+  const level = dialog.querySelector(".hifi-zoom-level");
+  let zoom = 1;
+  const updateZoom = next => {
+    zoom = Math.max(0.5, Math.min(4, next));
+    image.style.transform = "scale(" + zoom + ")";
+    level.textContent = Math.round(zoom * 100) + "%";
+  };
+  dialog.querySelector(".hifi-lightbox-close").addEventListener("click", () => dialog.close());
+  dialog.querySelector('[data-zoom="in"]').addEventListener("click", () => updateZoom(zoom + 0.25));
+  dialog.querySelector('[data-zoom="out"]').addEventListener("click", () => updateZoom(zoom - 0.25));
+  dialog.querySelector('[data-zoom="fit"]').addEventListener("click", () => {
+    updateZoom(1);
+    dialog.querySelector(".hifi-lightbox-stage").scrollTo({ top: 0, left: 0 });
+  });
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    trigger.focus();
+  }, { once: true });
+  dialog.showModal();
+  dialog.querySelector(".hifi-lightbox-close").focus();
+}
+
 function recognitionDecisionLogicCanvas(view) {
   const data = recognitionDecisionContract;
   if (!data) {
@@ -2187,7 +2301,84 @@ function recognitionDecisionLogicCanvas(view) {
   '</div>';
 }
 
+function recognitionMainJourneyOverviewCanvas(view) {
+  const links = (view.journey_links || []).map(link =>
+    '<a class="hifi-overview-link" href="' + esc(link.route) + '">' +
+      '<strong>' + esc(link.label) + '</strong><span>' + esc(link.note || "") + '</span></a>'
+  ).join("");
+  return '<div class="hifi-overview-intro"><strong>业务流程总览</strong>' +
+      '<span>这张 PNG 是冻结的沟通流程图，不是任何单页的 Frozen 高保真。单页 Authority 仍由各自页面合同和原始视觉文件控制。</span></div>' +
+    hifiImageFigure(view.image, view.title, view.scope_note, view.sha256) +
+    '<section class="hifi-overview-links"><h4>主链路页面 / 状态</h4>' +
+      '<div class="hifi-overview-grid">' + links + '</div></section>';
+}
+
+function recognitionBoundaryReleaseGateCanvas(feature, view) {
+  const cards = (view.children || []).map(child => {
+    const route = '#page/' + encodeURIComponent(feature.id) + '/hifi/' +
+      encodeURIComponent(view.id) + '/' + encodeURIComponent(child.id);
+    return '<a class="hifi-boundary-card" href="' + esc(route) + '">' +
+      '<span class="hifi-boundary-title">' + esc(child.title) + '</span>' +
+      statusBadge(child.status || "PARTIAL") +
+      '<span>' + esc(child.summary || "") + '</span></a>';
+  }).join("");
+  return '<div class="hifi-overview-intro"><strong>边界状态与验收索引</strong>' +
+      '<span>状态板只显示仓库内的 Authority 与资产可用性。REVIEW 映射为 Design Manager 的 PARTIAL；缺失二进制不生成替代页面。</span></div>' +
+    '<div class="hifi-boundary-grid">' + cards + '</div>';
+}
+
+function recognitionMissingAuthorityCanvas(child) {
+  return '<section class="hifi-missing-authority" role="status">' +
+    '<div class="hifi-missing-mark" aria-hidden="true">!</div>' +
+    '<div><strong>没有可显示的高保真原图</strong>' +
+      '<p>' + esc(child.missing_reason || "Authority 二进制未提供；Design Manager 不会生成模拟图或假预览。") + '</p>' +
+      (child.expected_asset_path ? '<p><span>预期资源路径</span><code>' + esc(child.expected_asset_path) + '</code></p>' : '') +
+      (child.visual_authority_sha256 ? '<p><span>登记 SHA-256</span><code>' + esc(child.visual_authority_sha256) + '</code></p>' : '') +
+      (child.binary_import_status ? '<p><span>二进制导入状态</span><code>' + esc(child.binary_import_status) + '</code></p>' : '') +
+    '</div></section>';
+}
+
+function recognitionNewStatesReviewCanvas(child) {
+  const states = (child.review_states || []).map(state =>
+    '<article class="authority-index-card"><div class="authority-index-head"><strong>' +
+      esc(state.title) + '</strong>' + statusBadge(state.manager_status) + '</div>' +
+      '<div class="authority-kind">Master Board · ' + esc(state.source_status) + '</div>' +
+      '<p>' + esc(state.note) + '</p></article>'
+  ).join("");
+  return '<div class="hifi-review-banner"><strong>Review source image · 非 Frozen 单页 Authority</strong>' +
+      '<span>原始合成板仍含已被三页 P01/P02/P03 替换的旧教学画面；仅作为边界审阅来源展示。</span></div>' +
+    hifiImageFigure(child.image, child.title, child.review_caption, child.visual_authority_sha256) +
+    '<div class="authority-index-grid">' + states + '</div>';
+}
+
+function recognitionMasterBoardCanvas(child) {
+  const board = recognitionMasterBoard;
+  if (!board || board.board_id !== child.board_id) {
+    return '<section class="hifi-missing-authority" role="status"><div><strong>Master Board 状态数据尚未载入</strong>' +
+      '<p>不会用 Overview PNG 替代缺失的 Master Board 输出。</p></div></section>';
+  }
+  const rows = [...(board.primary_sequence || []), ...(board.recovery_sequence || [])].map(item => {
+    const managerStatus = item.status === "REVIEW" ? "PARTIAL" : item.status;
+    return '<tr><td>' + esc(item.board_id) + '</td><td>' + esc(item.page_id) + '</td><td>' +
+      esc(item.state_id) + '</td><td>' + statusBadge(managerStatus) +
+      '<small>Master Board · ' + esc(item.status) + '</small></td><td>' +
+      esc(item.ownership || "产品页面") + '</td></tr>';
+  }).join("");
+  return '<div class="hifi-review-banner"><strong>Master Board V1 · 状态审视</strong>' +
+      '<span>以下内容按真实 JSON 状态合同读取；它不绘制、不替代 Master Board PNG/SVG，也不证明 Android Runtime。</span></div>' +
+    '<div class="hifi-master-board-gate"><strong>Master Board 图片输出缺失</strong>' +
+      '<span>PNG / SVG 尚未进入仓库；Figma 原图资源导入门为 ' +
+        esc(board.asset_import_gate?.status || "未确认") + '。本表只呈现状态映射。</span></div>' +
+    '<div class="hifi-table-scroll"><table class="hifi-state-table"><thead><tr>' +
+      '<th>Board ID</th><th>Page ID</th><th>State ID</th><th>源状态 / Manager 状态</th><th>归属</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<p class="hifi-master-board-source">Board schema · ' + esc(child.machine_authority || "") +
+      ' · standalone_visual_authority = ' + String(board.standalone_visual_authority) + '</p>';
+}
+
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "recognition_main_journey_overview") return recognitionMainJourneyOverviewCanvas(view);
+  if (view.render_mode === "recognition_boundary_release_gate") return recognitionBoundaryReleaseGateCanvas(feature, view);
   if (view.render_mode === "recognition_decision_logic") return recognitionDecisionLogicCanvas(view);
   if (view.render_mode === "nh07_avatar_states") return nh07AvatarStatesCanvas(view);
   if (view.render_mode === "authority_gallery") {
@@ -2198,11 +2389,7 @@ function genericSpecHifiCanvas(feature, view) {
       '<article class="authority-index-card">' +
         '<div class="authority-index-head"><strong>' + esc(ref.label || "Frozen Visual Authority") + '</strong>' +
           statusBadge("FROZEN") + '</div>' +
-        '<div class="hifi-original">' +
-          '<a href="' + esc(repoHref(ref.path)) + '" target="_blank" rel="noreferrer">' +
-            '<img src="' + esc(repoHref(ref.path)) + '" alt="' + esc(ref.label || "Frozen Visual Authority") + '" loading="lazy" decoding="async"></a>' +
-          '<div class="hifi-original-caption">' + esc(ref.path) + '</div>' +
-        '</div>' +
+        hifiImageFigure(ref.path, ref.label || "Frozen Visual Authority", ref.path, ref.sha256) +
       '</article>'
     ).join("");
     const boundaryPoints = (view.menu_points || []).map((point, index) =>
@@ -2277,11 +2464,9 @@ function genericSpecHifiCanvas(feature, view) {
         '</div>'
       : '';
 
-    return '<div class="hifi-original">' +
-      '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
-      '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(view.title) + '"></a>' +
-      '<div class="hifi-original-caption">' + esc(view.visual_caption || (view.visual_status === "FROZEN" ? "当前 Frozen Visual Authority" : "当前 Hi-Fi Review Visual")) + '</div></div>' +
-      specIndex;
+    return hifiImageFigure(visual, view.title,
+      view.visual_caption || (view.visual_status === "FROZEN" ? "当前 Frozen Visual Authority" : "当前 Hi-Fi Review Visual"),
+      view.visual_authority_sha256) + specIndex;
   }
 
   return sourceCard + '<div class="authority-index">' +
@@ -2816,6 +3001,9 @@ function accountPrivacyGalleryCanvas(item) {
 }
 
 function genericSpecChildCanvas(child, feature = null) {
+  if (child.render_mode === "recognition_master_board") return recognitionMasterBoardCanvas(child);
+  if (child.render_mode === "recognition_new_states_review") return recognitionNewStatesReviewCanvas(child);
+  if (child.render_mode === "missing_authority") return recognitionMissingAuthorityCanvas(child);
   if (feature?.id === "account_privacy_v1" && child.render_mode === "account_privacy_gallery") {
     return accountPrivacyGalleryCanvas(child);
   }
@@ -2836,14 +3024,11 @@ function genericSpecChildCanvas(child, feature = null) {
   const visual = child.image || child.visual_authority || null;
   if (child.render_mode === "repo_image" && visual && isImage(visual)) {
     const points = child.menu_points || [];
-    return '<div class="hifi-original">' +
-      '<a href="' + esc(repoHref(visual)) + '" target="_blank" rel="noreferrer">' +
-      '<img src="' + esc(repoHref(visual)) + '" alt="' + esc(child.title) + '"></a>' +
-      '<div class="hifi-original-caption">' +
-        esc(child.status === "FROZEN"
-          ? "当前子状态 Frozen Visual Authority · 直接引用仓库原始文件"
-          : "当前视觉参考 · " + statusText(child.status || "PARTIAL") + " · 不构成可信 Frozen Authority") +
-      '</div></div>' +
+    return hifiImageFigure(visual, child.title,
+      child.status === "FROZEN"
+        ? "当前子状态 Frozen Visual Authority · 直接引用仓库原始文件 · " + visual
+        : "当前视觉参考 · " + statusText(child.status || "PARTIAL") + " · 不构成可信 Frozen Authority · " + visual,
+      child.visual_authority_sha256) +
       '<div class="authority-index">' +
         '<div class="authority-index-intro"><strong>' + esc(child.title) + '</strong>' +
           '<span>' + esc(child.summary || "本子状态已建立正式规范。") + '</span></div>' +
@@ -2877,6 +3062,12 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   panel.classList.remove("hidden");
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
+    view.render_mode === "recognition_main_journey_overview" ? "业务流程总览 · 不代表单页视觉 Authority" :
+    view.render_mode === "recognition_boundary_release_gate" ? "主链路边界状态 · 设计与资产 Gate" :
+    child?.render_mode === "recognition_new_states_review" ? "Review Source · 非 Frozen 单页 Authority" :
+    child?.status === "BLOCKED_INTEGRITY" ? "视觉资源完整性阻塞 · 无预览" :
+    child?.status === "MISSING" ? "视觉 Authority 缺失 · 无预览" :
+    child?.status === "PARTIAL" && !child?.authority_type ? "Review / 状态审视 · 非 Frozen" :
     authorityType === "behavior" ? "交互规范" :
     child && feature.id === "account_privacy_v1" && child.visual_status === "FROZEN" && child.legal_copy_status ? "冻结视觉 / Legal Copy Gate" :
     child && feature.id === "account_privacy_v1" && child.status !== "FROZEN" ? "视觉参考 / Authority" :
@@ -2892,6 +3083,13 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewCanvas").innerHTML = child
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
+
+  const contractDetails = hifiContractMetadataHtml(child || view, view);
+  el("hifiViewContractDetails").innerHTML = contractDetails;
+  el("hifiViewContractDetails").classList.toggle("hidden", !contractDetails);
+  el("hifiViewCanvas").querySelectorAll(".hifi-image-open").forEach(button =>
+    button.addEventListener("click", () => openHifiImageLightbox(button))
+  );
 
   if (!child && view.render_mode === "nh07_avatar_states") {
     el("hifiViewCanvas").querySelectorAll(".nh07-master-open").forEach(anchor => {
@@ -3140,7 +3338,7 @@ function renderVersions(feature) {
   }).join("") || '<div class="preview-empty">尚未建立版本历史。</div>';
 }
 
-function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null) {
+function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null, writeHistory = true) {
   const feature = pageRegistry.features.find(f => f.id === id);
   if (!feature) return;
   const scene = scenarioId ? (feature.scenario_pages || []).find(x => x.id === scenarioId) : null;
@@ -3149,11 +3347,11 @@ function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null) {
   selectedKey = "page/" + id +
     (hifi ? "/hifi/" + hifi.id + (hifiChild ? "/" + hifiChild.id : "") :
       (scene ? "/scenario/" + scene.id : ""));
-  history.replaceState(
-    null, "",
+  writeManagerRoute(
     "#page/" + encodeURIComponent(id) +
       (hifi ? "/hifi/" + encodeURIComponent(hifi.id) + (hifiChild ? "/" + encodeURIComponent(hifiChild.id) : "") :
-        (scene ? "/scenario/" + encodeURIComponent(scene.id) : ""))
+        (scene ? "/scenario/" + encodeURIComponent(scene.id) : "")),
+    writeHistory
   );
   renderLists();
   hideAllDetails();
@@ -3205,16 +3403,31 @@ function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null) {
   applyPageDetailMode(detailMode);
 }
 
+function renderInvalidManagerRoute(raw) {
+  selectedKey = null;
+  renderLists();
+  hideAllDetails();
+  el("emptyState").innerHTML =
+    '<div class="invalid-manager-route"><strong>无法打开这个 Design Manager 页面</strong>' +
+      '<span>Hash 路由无效或 Registry 中没有对应资源；没有回退到其他 Frozen 页面。</span>' +
+      '<code>#' + esc(raw || "(empty)") + '</code></div>';
+  el("emptyState").classList.remove("hidden");
+}
+
 function selectFromHash() {
-  const raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+  const encoded = location.hash.replace(/^#/, "");
+  let raw;
+  try { raw = decodeURIComponent(encoded); }
+  catch (_) { return renderInvalidManagerRoute(encoded); }
+  if (!raw) return selectShared(sharedRegistry.items[0]?.id, null, false);
   if (raw.startsWith("shared/")) {
     const parts = raw.split("/");
     const id = parts[1];
     const variantId = parts[2] || null;
     const item = sharedRegistry.items.find(x => x.id === id);
-    if (item) {
+    if (item && parts.length <= 3) {
       const validVariant = !variantId || (item.variants || []).some(v => v.id === variantId);
-      if (validVariant) return selectShared(id, variantId);
+      if (validVariant) return selectShared(id, variantId, false);
     }
   }
   if (raw.startsWith("page/")) {
@@ -3222,24 +3435,26 @@ function selectFromHash() {
     const id = parts[1];
     const feature = pageRegistry.features.find(x => x.id === id);
     if (feature) {
-      if (parts[2] === "hifi" && parts[3]) {
-        const hifiId=parts[3];
-        const view=(feature.hifi_views || []).find(x=>x.id===hifiId);
+      if (parts[2] === "hifi" && parts[3] && (parts.length === 4 || parts.length === 5)) {
+        const hifiId = parts[3];
+        const view = (feature.hifi_views || []).find(x => x.id === hifiId);
         if (view) {
-          const childId=parts[4] || null;
-          if (!childId || (view.children || []).some(x=>x.id===childId)) {
-            return selectPage(id,null,hifiId,childId);
+          const childId = parts[4] || null;
+          if (!childId || (view.children || []).some(x => x.id === childId)) {
+            return selectPage(id, null, hifiId, childId, false);
           }
         }
       }
-      if (parts[2] === "scenario" && parts[3]) {
-        const scenarioId=parts[3];
-        if ((feature.scenario_pages || []).some(x=>x.id===scenarioId)) return selectPage(id,scenarioId,null);
+      if (parts[2] === "scenario" && parts[3] && parts.length === 4) {
+        const scenarioId = parts[3];
+        if ((feature.scenario_pages || []).some(x => x.id === scenarioId)) {
+          return selectPage(id, scenarioId, null, null, false);
+        }
       }
-      if (!parts[2]) return selectPage(id);
+      if (parts.length === 2) return selectPage(id, null, null, null, false);
     }
   }
-  selectShared(sharedRegistry.items[0]?.id);
+  renderInvalidManagerRoute(raw);
 }
 
 async function init() {
@@ -3251,6 +3466,22 @@ async function init() {
     if (!pageResponse.ok || !sharedResponse.ok) throw new Error("Registry HTTP error");
     pageRegistry = await pageResponse.json();
     sharedRegistry = await sharedResponse.json();
+    const mainJourneyBoard = pageRegistry.features.find(x => x.id === "recognition_flow_v1_2")
+      ?.hifi_views?.find(x => x.id === "boundary_state_release_gate")
+      ?.children?.find(x => x.id === "master_board_v1");
+    if (mainJourneyBoard?.machine_authority) {
+      try {
+        const boardResponse = await fetch(repoHref(mainJourneyBoard.machine_authority), { cache: "no-store" });
+        if (!boardResponse.ok) throw new Error("Master Board schema HTTP " + boardResponse.status);
+        recognitionMasterBoard = await boardResponse.json();
+        if (recognitionMasterBoard.board_id !== mainJourneyBoard.board_id) {
+          throw new Error("Master Board schema ID mismatch");
+        }
+      } catch (boardError) {
+        recognitionMasterBoard = null;
+        console.warn("Master Board status schema unavailable:", boardError);
+      }
+    }
     // RR07 loads the machine contract once; lack of deployment never breaks other pages.
     const rr07 = pageRegistry.features.find(x => x.id === "recognition_result_v1")
       ?.hifi_views?.find(x => x.id === "decision_logic");
@@ -3319,6 +3550,7 @@ async function init() {
   el("searchInput").addEventListener("input", renderLists);
   el("statusFilter").addEventListener("change", renderLists);
   window.addEventListener("hashchange", selectFromHash);
+  window.addEventListener("popstate", selectFromHash);
 }
 
 init();
