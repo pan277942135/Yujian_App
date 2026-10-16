@@ -32,7 +32,7 @@ Before Work executes:
 
 ## What may remain branch-local
 - `PROJECT_MASTER_STATE.yaml`
-- `docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json`
+- `WORK_EXECUTION_STATE.json`
 - product implementation code
 - Work-generated runtime/evidence artifacts
 
