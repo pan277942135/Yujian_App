@@ -258,6 +258,8 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithContentDescription("我的草鱼，3次记录，打开该鱼种鱼获").performClick()
         composeRule.runOnIdle { assertEquals("grass_carp", openedSpeciesFilter) }
         composeRule.onNodeWithContentDescription("打开草鱼鱼获记录，2026-09-27，照片暂不可用")
+            .performScrollTo()
+            .assertIsDisplayed()
             .assertHasClickAction()
             .performClick()
         composeRule.runOnIdle { assertEquals("catch_3", openedCatchId) }

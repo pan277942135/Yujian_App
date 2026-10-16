@@ -3,6 +3,7 @@ package com.yujian.ai
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.view.accessibility.AccessibilityNodeInfo
 import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -17,7 +18,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -150,8 +150,8 @@ class PresentationSanitizationRuntimeTest {
         try {
             waitForVisibleTextBounds(text)
         } catch (_: AssertionError) {
-            val hierarchy = evidenceFile("diagnostics_hierarchy.xml")
-            device.dumpWindowHierarchy(hierarchy)
+            val hierarchy = evidenceFile("diagnostics_accessibility.txt")
+            writeAccessibilityHierarchy(hierarchy)
             device.takeScreenshot(evidenceFile("diagnostics_screen.png"))
             throw AssertionError("Timed out waiting for visible text: $text; diagnostics saved to $hierarchy")
         }
@@ -188,10 +188,39 @@ class PresentationSanitizationRuntimeTest {
         }
     }
 
-    private fun runtimeSemantics(): String {
-        val output = ByteArrayOutputStream()
-        device.dumpWindowHierarchy(output)
-        return output.toString(Charsets.UTF_8.name()).lowercase(Locale.ROOT)
+    private fun runtimeSemantics(): String = accessibilitySnapshot()
+        .lowercase(Locale.ROOT)
+
+    private fun writeAccessibilityHierarchy(destination: File) {
+        destination.writeText(accessibilitySnapshot())
+    }
+
+    private fun accessibilitySnapshot(): String {
+        val root = instrumentation.uiAutomation.rootInActiveWindow
+            ?: throw AssertionError("No active accessibility root for the current runtime page")
+        val output = StringBuilder()
+        @Suppress("DEPRECATION")
+        fun visit(node: AccessibilityNodeInfo, depth: Int) {
+            try {
+                val text = node.text?.toString().orEmpty()
+                val description = node.contentDescription?.toString().orEmpty()
+                if (text.isNotBlank() || description.isNotBlank()) {
+                    val bounds = Rect().also(node::getBoundsInScreen)
+                    output.append("  ".repeat(depth))
+                        .append("text=").append(text)
+                        .append(" description=").append(description)
+                        .append(" bounds=").append(bounds)
+                        .append('\n')
+                }
+                repeat(node.childCount) { index ->
+                    node.getChild(index)?.let { child -> visit(child, depth + 1) }
+                }
+            } finally {
+                node.recycle()
+            }
+        }
+        visit(root, 0)
+        return output.toString()
     }
 
     private fun screenshot(name: String) {

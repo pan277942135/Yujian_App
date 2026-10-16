@@ -7273,12 +7273,12 @@
       "asset_id": "registry_experience_registry_v1_json",
       "path": "design/registry/experience_registry_v1.json",
       "type": "JSON",
-      "size": 402497,
-      "sha256": "d182625a4ab773fe94b3dcd80c4788a6543c28885afbb45d4e699ea51090308f",
-      "sha256_status": "COMPUTED_FROM_BASELINE_BYTES",
-      "git_blob_sha": "ebb0a80da16b1bf6fafb3b51a77819aee58df55f",
+      "size": 407941,
+      "sha256": "8e733079e62de38b58290901f4a5fd0d5aa1b61c02492190d9d632f05750e182",
+      "sha256_status": "COMPUTED_FROM_CURRENT_BYTES",
+      "git_blob_sha": "ab7607c32e3b0a71db5cedad7c6b6399262a07e2",
       "source": [
-        "Repository baseline file; provenance not stated in Phase 1 scan"
+        "PR #145 non-frozen registry update; the approved P01–P03 source identities remain in design/pages/recognition/first_use_camera_guide/manifest.json."
       ],
       "used_by": [],
       "status": "REVIEW",

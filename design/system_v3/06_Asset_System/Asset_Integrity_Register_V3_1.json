@@ -19631,6 +19631,13 @@
       "source_commit_sha": "4b27062eff2cf9cfe083b0eeb143f7ebf04cc520",
       "reason": "PR #145 refreshes this non-frozen runtime contract and its app mirror for the current responsive/runtime mapping. Frozen artwork, the Frozen acceptance matrix, and visual thresholds are unchanged.",
       "is_frozen_asset": false
+    },
+    {
+      "path": "design/registry/experience_registry_v1.json",
+      "expected_current_git_blob_sha": "ab7607c32e3b0a71db5cedad7c6b6399262a07e2",
+      "source_commit_sha": "d91f3c06681095bce5464c311883be3c1fbc66f8",
+      "reason": "PR #145 marks the first-use guide as a page-scoped overlay with the exact frozen P01–P03 source identities preserved in the existing manifest. Repository PNG import is explicitly pending; no substitute image bytes are added and the invalid shared-system reference is removed.",
+      "is_frozen_asset": false
     }
   ],
   "phase2_manager_status_update": {

@@ -580,16 +580,16 @@ private fun CatchPreviewTile(
             .background(Color.White.copy(alpha = 0.50f))
             .border(1.dp, Color.White.copy(alpha = 0.74f), RoundedCornerShape(14.dp))
             .graphicsLayer { alpha = pressAlpha }
-            .semantics(mergeDescendants = true) {
-                contentDescription = description
-                stateDescription = date
-            }
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Button,
                 onClick = onClick,
-            ),
+            )
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+                stateDescription = date
+            },
         contentAlignment = Alignment.Center,
     ) {
         if (imageUrl != null) {
