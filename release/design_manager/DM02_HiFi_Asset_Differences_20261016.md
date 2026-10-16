@@ -1,7 +1,7 @@
 # DM02 · 2026-10-16 高保真资源差异报告
 
 - Inventory: `release/design_manager/DM02_HiFi_Asset_Inventory.json` (schema 1.0)
-- Source scan: `2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d` → `ebac477330350972ae05613fe7e8717f467eea8f`; latest main `ae7f492a649d20dc23e7f04bcffa49749c7d9e70`
+- Source scan: `2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d` → `ebac477330350972ae05613fe7e8717f467eea8f`; final main `72329c026cb4a42f4af3bc885f9f9b36c004ef2d` (initial inventory snapshot `ae7f492a649d20dc23e7f04bcffa49749c7d9e70`)
 - Changed visual files scanned: 15; inventory records including absent expected outputs: 20
 - Classification is provenance-based. Presence in GitHub does not itself establish Frozen authority.
 
@@ -50,3 +50,15 @@
 - The camera-permission contract is Frozen but its declared PNG is absent; the manager shows `MISSING`. OS permission UI remains platform-owned.
 - Master Board JSON/MD remain its machine-readable status source; the expected standalone PNG/SVG are absent behind `BLOCKED_CONNECTOR_UPLOAD_STEP`. The manager can show the schema table only, not a substitute board.
 - The release report must keep `DESIGN_MANAGER_HIFI_PUBLISH` at `BLOCKED` until the published target binaries exist under their canonical paths and their approved hashes validate.
+
+## Recheck of the unmerged Control Plane proposal
+
+PR #153 (`control/first-use-guide-two-page-20261016`, head `1d463ebff473c402725ffaa118908ad147d3967a`) is Draft / Open / Unmerged and is explicitly marked `CONTROL_PLANE_PROPOSAL_PENDING_MAIN_AUTHORIZATION`. Its visual delta was scanned separately so it cannot be confused with effective `main` inventory:
+
+| Proposal-only finding | Branch evidence | Current `main` / production disposition |
+|---|---|---|
+| Capture landscape PNG at `design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Landscape_Horizontal_Fish_Frozen.png` | Exists only on PR #153; 2,079,370 bytes, 1672×941, actual SHA-256 `c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18f` (64 characters). | Absent from `main`; production URL returns 404; current Manager state stays `BLOCKED_INTEGRITY`. Current `main` manifest and Registry each record `c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18` (63 characters). The candidate hash differs, so no import was made. Resolve the canonical SHA through Control Plane review before importing. |
+| First-use P02 reassignment | PR #153 renames the former active P03 image to `P02_Landscape_Horizontal_Fish_Frozen.png` without changing its bytes (SHA-256 `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`) and proposes a two-page sequence. | Not effective. Current `main` continues to serve the approved P01/P02/P03 mapping and hashes supplied for this release. |
+| Former active P02 visual | PR #153 removes the active `P02_First_Use_Camera_Guide_Frozen.png` identity; the same bytes are already kept in the current archive (SHA-256 `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f`). | Current `main` active P02 stays unchanged until the proposal completes its required Control Plane review and merge. |
+
+The current release follows the effective `main` Authority and does not import or activate PR #153 content. The proposal must be resolved through its own governance path before any future guide navigation or state IDs change.
