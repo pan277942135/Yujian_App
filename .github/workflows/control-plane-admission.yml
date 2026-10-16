@@ -1,4 +1,5 @@
 name: control-plane-admission
+# Non-main branches are admitted through pull_request or manual dispatch; this avoids duplicate push+PR runs.
 
 on:
   pull_request:
