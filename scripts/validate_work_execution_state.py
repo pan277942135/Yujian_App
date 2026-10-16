@@ -38,14 +38,16 @@ def validate_source_sha(source_sha, expected_source, parents, state_is_tracked):
     return "source_sha must equal the checkpoint commit's direct product parent"
 
 def resolve_contract(contracts, ref):
+    matches=[]
     for section_name in ("feature_contracts", "shared_contracts", "gate_contracts"):
         section=contracts.get(section_name,{})
-        if ref in section:
-            return section[ref]
-        for item in section.values():
-            if isinstance(item,dict) and item.get("contract_id")==ref:
-                return item
-    return None
+        for key,item in section.items():
+            if key == ref or (isinstance(item,dict) and item.get("contract_id")==ref):
+                matches.append((section_name,key,item))
+    if len(matches)>1:
+        locations=", ".join(f"{section}.{key}" for section,key,_ in matches)
+        raise ValueError(f"contract reference is ambiguous: {ref} ({locations})")
+    return matches[0][2] if matches else None
 
 def local_refs(value):
     refs=set()
@@ -109,7 +111,11 @@ def main():
         gate_contracts=contracts.get("gate_contracts",{})
         resolved=[]
         for ref in required_refs:
-            item=resolve_contract(contracts,ref)
+            try:
+                item=resolve_contract(contracts,ref)
+            except ValueError as exc:
+                errors.append(f"{task_id}: {exc}")
+                continue
             if item is None: errors.append(f"{task_id}: contract reference not found: {ref}")
             else: resolved.append(item)
         for item in resolved:

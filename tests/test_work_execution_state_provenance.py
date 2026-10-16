@@ -46,6 +46,18 @@ class WorkExecutionStateProvenanceTests(unittest.TestCase):
             "FROZEN",
         )
 
+    def test_duplicate_contract_id_alias_is_rejected_as_ambiguous(self):
+        contracts = {
+            "feature_contracts": {
+                "home_normal_v1": {"contract_id": "FC-duplicate"}
+            },
+            "shared_contracts": {
+                "home_normal_shared": {"contract_id": "FC-duplicate"}
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            resolve_contract(contracts, "FC-duplicate")
+
 
 if __name__ == "__main__":
     unittest.main()
