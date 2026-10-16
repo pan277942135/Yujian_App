@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-17T04:41:11+08:00"
+  updated_at: "2026-10-17T05:41:19+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
+  execution_baseline_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
+  live_branch_head_at_snapshot: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,8 +57,8 @@ repositories:
     default_branch: "main"
     main_sha: "b201d2b6229b629bcbcb9b4a3458a307099d2cfe"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
-    execution_baseline_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
+    active_sha_at_snapshot: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+    execution_baseline_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
     runtime:
       os: "Android"
       api_level: 28
@@ -304,11 +304,11 @@ phases:
 
   P8:
     name: "QA / Runtime / Evidence"
-    status: "IN_PROGRESS"
+    status: "BLOCKED"
     freeze: "NOT_FROZEN"
     exact_head:
-      sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
-      runtime_status: "NOT_RUN"
+      sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+      runtime_status: "BLOCKED_FAIL_EVIDENCE"
     required_evidence:
       - "runtime run ID"
       - "test result"
@@ -322,15 +322,15 @@ phases:
 
   P9:
     name: "Release / APK Delivery"
-    status: "NOT_STARTED"
+    status: "BLOCKED"
     release_candidate: "NOT_AVAILABLE"
     exact_head_apk:
       artifact_generated: true
-      apk_sha256: "NOT_VERIFIED_FROM_BINARY"
+      apk_sha256: "e47a9766da835e3d2f58df02a529aa7b5476b289dfe75fb6fd913b6b7b9ab620"
       release_eligible: false
     release_gate:
       build: "PASS"
-      exact_head_runtime: "NOT_RUN"
+      exact_head_runtime: "BLOCKED_FAIL_EVIDENCE"
       full_journey: "NOT_ACCEPTED"
       visual_acceptance: "BLOCKED"
       final_release: "NOT_READY"
@@ -409,8 +409,8 @@ recognition_main_journey:
     first_b_side_reveal: "ONCE"
     default_after_first_reveal: "A_SIDE"
   acceptance:
-    J01_J20: "NOT_RUN"
-    runtime: "NOT_RUN"
+    J01_J20: "NOT_RUN_BLOCKED_BY_N001"
+    runtime: "PARTIAL_BLOCKED"
     end_to_end: "NOT_ACCEPTED"
 
 runtime_gates:
@@ -420,8 +420,8 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
-    status: "NOT_RUN"
+    sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+    status: "BLOCKED_FAIL_EVIDENCE"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
     run_id: 38839618733
@@ -441,7 +441,7 @@ runtime_gates:
     android_runtime: "SKIPPED"
   branch_runtime:
     required: true
-    status: "PENDING"
+    status: "BLOCKED"
     suites:
       - "normal-home-v1"
       - "recognition-frozen"
@@ -449,6 +449,7 @@ runtime_gates:
       - "login-v2"
       - "data-sanitization"
       - "fish-guide-v1"
+      - "camera-runtime-v1"
       - "runtime-parity (optional)"
   historical_runtime_run:
     run_id: 38765917873
@@ -464,12 +465,24 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
-    run_id: null
-    artifact_ids: {}
+    source_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+    run_id: 38965298955
+    artifact_ids:
+      runtime_apk_pair: 12073914737
+      debug_apk: 12074019413
+      full_surface_apk: 12074199154
+      recognition_visual_apk: 12074433749
+      normal_home_runtime: 12074414986
+      recognition_frozen_runtime: 12074953434
+      camera_runtime: 12075127990
+      login_v2_runtime: 12075298682
+      data_sanitization_runtime: 12075309847
+      empty_home_runtime: 12076201405
+      fish_guide_runtime: 12076477029
     artifact_zip_digests: {}
-    apk_sha256: null
-    runtime_evidence: "NOT_GENERATED_AFTER_REPAIR_2"
+    apk_sha256: "e47a9766da835e3d2f58df02a529aa7b5476b289dfe75fb6fd913b6b7b9ab620"
+    android_test_apk_sha256: "d674f9897195e469d3e0d536becd4b6d10d047b8668415f7c08e7f4feea0c8f8"
+    runtime_evidence: "GENERATED_PARTIAL_FAIL_EVIDENCE"
 
   last_verified_build:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -536,23 +549,23 @@ execution_control:
   validator: "scripts/validate_phase_task_state_machine.py"
   current_phase: "P8"
   current_task: "N001"
-  current_task_status: "READY"
-  current_queue_status: "READY"
+  current_task_status: "BLOCKED"
+  current_queue_status: "BLOCKED"
   auto_advance_within_authorized_scope: true
   auto_recovery_enabled: true
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
   machine_validation: "PASS"
-  machine_validated_source_sha: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
+  machine_validated_source_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
-  phase: "P6"
-  stage: "E0"
-  status: "FIX_READY_FOR_EXACT_HEAD_CI"
+  phase: "P8"
+  stage: "EXACT_HEAD_API28_MATRIX_EVIDENCE_RECORDED"
+  status: "BLOCKED"
   source_file: "WORK_EXECUTION_STATE.json"
   task_id: "N001"
-  exact_head: "bafa65d05097a0790d8a6858bbc82d693bdefae2"
+  exact_head: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
@@ -586,29 +599,30 @@ blockers:
     severity: "P0"
     area: "Android Runtime"
     status: "OPEN"
-    description: "Repair-2 exact-head API28 matrix has not completed; the prior exact-head evidence remains historical and did not produce an N001 PASS."
-    unblock: "Run the authoritative API28 matrix at the current exact head, then complete every required row without promoting historical evidence."
+    description: "Exact-head API28 matrix run 38965298955 completed the required rows, but normal-home-v1 and camera-runtime-v1 returned FAIL_EVIDENCE; N001 is not PASS."
+    unblock: "Obtain approved source/rights/ground-truth fixtures and authority decisions, then rerun the affected gates without changing Frozen assets or acceptance thresholds."
 
   - id: "B002"
     severity: "P1"
     area: "Recognition Runtime"
-    status: "OPEN"
-    description: "Recognition runtime fixes are present, but exact-head device verification is pending."
-    unblock: "recognition-frozen PASS on exact HEAD."
+    status: "CLOSED"
+    description: "Exact-head recognition-frozen API28 gate passed on run 38965298955, job 117192650550."
+    unblock: "No action; preserve artifact and source SHA provenance."
+    closed_at: "2026-10-17T05:41:19+08:00"
 
   - id: "B003"
     severity: "P1"
     area: "Normal Home"
     status: "OPEN"
-    description: "Exact-head run 38920720125 / artifact 12056066044 reports HERO_APPROVED_FIXTURE_MATRIX blocked: approved originals, rights and ground-truth fish boxes for F01-F08 are unavailable."
+    description: "Exact-head run 38965298955 / artifact 12074414986 reports FAIL_EVIDENCE: approved originals, rights and ground-truth fish boxes for F01-F08 plus direct visual review are unavailable."
     unblock: "Approved independent fixtures + provenance/license + duplicate audit + HOME/DETAIL runtime evidence."
 
   - id: "B004"
     severity: "P1"
     area: "Normal Home Camera"
     status: "OPEN"
-    description: "Camera mask is registered but full runtime optical parity is not closed."
-    unblock: "Exact-head runtime evidence + geometry/pixel acceptance."
+    description: "Exact-head camera-runtime-v1 artifact 12075127990 reports FAIL_EVIDENCE with failure_reason ASSET_SOURCE_BLOCKED; device, install and instrumentation passed."
+    unblock: "Resolve the approved camera/source fixture and complete geometry/pixel acceptance; do not alter Frozen assets."
 
   - id: "B005"
     severity: "P1"
