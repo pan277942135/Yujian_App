@@ -11,8 +11,8 @@
   "task_id": "N001",
   "stage": "CONTROL_PLANE_SYNCED",
   "status": "READY",
-  "source_sha": "9df07be2818514f37f81b6e88d3b78f89d32395e",
-  "checkpoint_updated_at": "2026-10-16T19:00:00+08:00",
+  "source_sha": "d88eb7179e85b0f94f3be169bc3072b892e8dcdc",
+  "checkpoint_updated_at": "2026-10-16T21:52:54+08:00",
   "next_action": "Run the authoritative API28 matrix against the exact product source SHA and record machine-readable gate evidence.",
   "dependencies": ["P5-02", "P6-02"],
   "blockers": ["B001"],
@@ -20,6 +20,7 @@
     "control_plane_admission": "PENDING",
     "control_plane_baseline": "e4414282acad41b9554b522de46f59325b089300",
     "pr_head_observed_before_sync": "9df07be2818514f37f81b6e88d3b78f89d32395e",
+    "canonical_runtime_gate_restore": "d88eb7179e85b0f94f3be169bc3072b892e8dcdc",
     "n001_gate": "NOT_RUN",
     "n002_n010": "WAITING_FOR_DEPENDENCIES",
     "historical_runtime_state": "Preserved in PROJECT_MASTER_STATE.yaml and evidence artifacts; not promoted to current-head PASS."
