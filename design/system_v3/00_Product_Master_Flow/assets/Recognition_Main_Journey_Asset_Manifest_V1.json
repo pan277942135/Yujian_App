@@ -99,6 +99,6 @@
     "status": "FROZEN",
     "manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
     "package": "design/pages/recognition/first_use_camera_guide/",
-    "note": "Three-page Capture guide P01/P02/P03 is now the frozen first-use visual package; dirty draft discard confirmation remains a separate review surface."
+    "note": "Two-page Capture guide P01/P02 is the frozen first-use package: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish. Former P02/P03 binaries are historical/compatibility only; active P02 source remains pending."
   }
 }
