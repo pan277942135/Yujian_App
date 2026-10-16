@@ -5,7 +5,6 @@ status: "ACTIVE"
 purpose: "Single machine-readable contract resolution layer binding Product, Feature, Journey, Child Surface, Route, Page, Design, Component, Asset, State, Data/API, Model, Android Implementation, Runtime, Accessibility, Evidence and Release contracts without replacing their authoritative source files."
 source_of_truth_rule: "This registry is the static contract index and resolver. Domain authorities remain authoritative; this layer never stores live Work status or release progress."
 dynamic_state_rule: "Live execution status, current branch, current PR, current SHA and evidence observations belong to PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json on the active Work branch."
-dynamic_state_rule: "Live execution status, current branch, current PR, current SHA and evidence observations belong to PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json on the active Work branch."
 project:
   repository: "pan277942135/Yujian_App"
   control_branch: "main"
