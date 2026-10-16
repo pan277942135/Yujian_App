@@ -235,13 +235,26 @@ def validate_routes(registry: dict[str, Any], matrix: dict[str, Any], v: Validat
 def validate_page_sets(registry: dict[str, Any], v: Validation) -> None:
     feature_sets = registry.get("feature_contracts", {})
     page_sets = registry.get("page_contract_sets", {})
+    expected_page_features = {
+        fid for fid, feature in feature_sets.items()
+        if feature.get("page_contract_keys")
+    }
+    v.require(
+        set(page_sets) == expected_page_features,
+        "page_contract_sets must exactly cover features that declare page_contract_keys",
+    )
     for fid, feature in feature_sets.items():
         keys = feature.get("page_contract_keys", []) or []
-        v.require(set(keys) <= set(page_sets), f"{fid}: page_contract_keys contain unknown page set")
-        for key in keys:
-            refs = page_sets[key].get("refs", {})
-            for name, ref in refs.items():
-                validate_local_ref(ref, v, f"page_contract_sets.{key}.{name}")
+        if not keys:
+            continue
+        page_set = page_sets.get(fid, {})
+        refs = page_set.get("refs", {})
+        v.require(
+            set(keys) == set(refs),
+            f"{fid}: page_contract_keys must equal its page_contract_sets.refs keys",
+        )
+        for name, ref in refs.items():
+            validate_local_ref(ref, v, f"page_contract_sets.{fid}.{name}")
 
 
 def validate_gates_and_tasks(registry: dict[str, Any], machine: dict[str, Any], v: Validation) -> None:
