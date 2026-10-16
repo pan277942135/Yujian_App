@@ -19634,9 +19634,23 @@
     },
     {
       "path": "design/registry/experience_registry_v1.json",
-      "expected_current_git_blob_sha": "ab7607c32e3b0a71db5cedad7c6b6399262a07e2",
-      "source_commit_sha": "d91f3c06681095bce5464c311883be3c1fbc66f8",
-      "reason": "PR #145 marks the first-use guide as a page-scoped overlay with the exact frozen P01–P03 source identities preserved in the existing manifest. Repository PNG import is explicitly pending; no substitute image bytes are added and the invalid shared-system reference is removed.",
+      "expected_current_git_blob_sha": "dc4c7a7ac952f1a10a9e0989592fb64fcddb9e2c",
+      "source_commit_sha": "8458e658da8ef0e72892d36b52a043718d7629d2",
+      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 imports the exact approved P01/P02/P03 Frozen PNG bytes. This additive Design Manager registration changes only first-use visual presence/import metadata; all existing Phase 1 Frozen artwork and bytes remain unchanged.",
+      "is_frozen_asset": false
+    },
+    {
+      "path": "design/README.md",
+      "expected_current_git_blob_sha": "c20bc332815a5066281951ff63cac8580d0ad201",
+      "source_commit_sha": "d09f24c65c9617bf2ce89a3715577ac831fb960b",
+      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 adds the frozen three-page guide Design Manager entry and source-of-truth links. Documentation only; no Phase 1 Frozen visual or product asset bytes changed.",
+      "is_frozen_asset": false
+    },
+    {
+      "path": "design/manager/README.md",
+      "expected_current_git_blob_sha": "0913477f001392231706d865438b80d4bfae5b7c",
+      "source_commit_sha": "d09f24c65c9617bf2ce89a3715577ac831fb960b",
+      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 documents the additive authority_gallery/repo_image menu and its frozen PNG source paths. Documentation only; no Phase 1 Frozen visual or product asset bytes changed.",
       "is_frozen_asset": false
     }
   ],
