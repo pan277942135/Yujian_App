@@ -1149,11 +1149,11 @@ journeys:
     feature_refs:
       - "recognition_result_v1"
   J12:
-    name: "High Confidence"
+    name: "High Confidence Result"
     feature_refs:
       - "recognition_result_v1"
   J13:
-    name: "Medium/Low Confidence"
+    name: "Medium/Low Confidence Result"
     feature_refs:
       - "recognition_result_v1"
   J14:
