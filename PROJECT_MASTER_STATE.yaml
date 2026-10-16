@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T16:12:00+08:00"
+  updated_at: "2026-10-16T15:48:21+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "52ad6bdeded1b432904743fa0f738d48cbb1abeb"
+  live_branch_head_at_snapshot: "a8c253037aa1cb830b1ade9fee1c033668bc7453"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,7 +57,7 @@ repositories:
     default_branch: "main"
     main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "52ad6bdeded1b432904743fa0f738d48cbb1abeb"
+    active_sha_at_snapshot: "a8c253037aa1cb830b1ade9fee1c033668bc7453"
     execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     runtime:
       os: "Android"
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "52ad6bdeded1b432904743fa0f738d48cbb1abeb"
+    head_at_last_verified_snapshot: "a8c253037aa1cb830b1ade9fee1c033668bc7453"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -208,6 +208,8 @@ phases:
       active_pages:
         - "P01"
         - "P02"
+      manager_registry: "design/registry/experience_registry_v1.json#recognition_flow_v1_2.hifi_views.capture_first_use_guide"
+      manager_menu: "识别过程 → 07 · 首次拍照教学"
       previous_vertical_fish_page: "SUPERSEDED"
     capture_hifi:
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
