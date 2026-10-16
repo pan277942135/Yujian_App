@@ -30,7 +30,7 @@ EXPECTED = [
         "height": 1672,
         "bytes": 2_001_322,
         "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-    
+    },
 ]
 
 
