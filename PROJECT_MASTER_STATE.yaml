@@ -12,8 +12,10 @@ state_control:
   updated_at: "2026-10-16T11:00:00+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "a280699da7575aa332f9d00104969161bbe918bd"
-  execution_baseline_role: "latest product/runtime SHA intentionally tracked for acceptance"
+  execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+  execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
+  live_branch_head_at_snapshot: "11a32ac649d28e4a7f9f70c59d245b8ff4d1f7bc"
+  live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
   base_branch: "main"
@@ -46,7 +48,8 @@ repositories:
     default_branch: "main"
     main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    active_sha_at_snapshot: "11a32ac649d28e4a7f9f70c59d245b8ff4d1f7bc"
+    execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     runtime:
       os: "Android"
       api_level: 28
@@ -86,7 +89,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "a280699da7575aa332f9d00104969161bbe918bd"
+    head_at_last_verified_snapshot: "11a32ac649d28e4a7f9f70c59d245b8ff4d1f7bc"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -371,10 +374,12 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     status: "NOT_RUN"
   pr_ci:
+    source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
     run_id: 38839618733
+    classification: "HISTORICAL_RELATIVE_TO_EXECUTION_BASELINE"
     status: "PASS"
     build: "PASS"
     jvm: "PASS"
@@ -413,6 +418,14 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
+    source_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+    run_id: null
+    artifact_ids: {}
+    artifact_zip_digests: {}
+    apk_sha256: null
+    runtime_evidence: "NOT_GENERATED"
+
+  last_verified_build:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
     run_id: 38839618733
     artifact_ids:
@@ -456,7 +469,7 @@ current_work:
   stage: "E0"
   status: "FIX_READY_FOR_EXACT_HEAD_CI"
   source_file: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
-  exact_head: "a280699da7575aa332f9d00104969161bbe918bd"
+  exact_head: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
@@ -490,7 +503,7 @@ blockers:
     severity: "P0"
     area: "Android Runtime"
     status: "OPEN"
-    description: "Exact HEAD a280699da7575aa332f9d00104969161bbe918bd has not completed authoritative API28 runtime acceptance."
+    description: "Execution baseline e881c2a6772b418a49b6208ce44c8527fbeb97db has not completed authoritative API28 runtime acceptance."
     unblock: "Branch push or workflow_dispatch -> API28 matrix -> evidence."
 
   - id: "B002"
@@ -589,7 +602,7 @@ next_actions:
     priority: "P0"
     owner: "Work"
     status: "READY"
-    action: "Run authoritative API28 runtime matrix against exact HEAD a280699da7575aa332f9d00104969161bbe918bd."
+    action: "Run authoritative API28 runtime matrix against execution baseline e881c2a6772b418a49b6208ce44c8527fbeb97db."
   - id: "N002"
     priority: "P0"
     owner: "Work"
