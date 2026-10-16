@@ -144,8 +144,14 @@ def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any],
     v.require(rp.get("backend_main_sha") == state.get("repositories", {}).get("backend", {}).get("current_main_sha"), "registry backend SHA drift")
 
     inventory = registry.get("inventory", {})
+    expected_child_surfaces = {
+        child
+        for feature in matrix.get("features", {}).values()
+        for child in (feature.get("child_surfaces", []) or [])
+    }
     v.require(inventory.get("feature_count") == len(FEATURE_IDS), "registry feature_count must be 15")
     v.require(inventory.get("journey_count") == len(JOURNEY_IDS), "registry journey_count must be 20")
+    v.require(inventory.get("child_surface_count") == len(expected_child_surfaces), "registry child_surface_count drift from Feature Matrix")
     v.require(inventory.get("route_count") == matrix.get("inventory", {}).get("route_count"), "registry route_count drift from Feature Matrix")
     v.require(inventory.get("task_count") == len(machine.get("tasks", {})), "registry task_count drift from Phase/Task Machine")
     v.require(inventory.get("execution_baseline_sha") == sp.get("execution_baseline_sha"), "registry inventory baseline drift")
