@@ -53,7 +53,26 @@
           ]
         }
       ],
-      "non_blocking_followups": []
+      "non_blocking_followups": [],
+      "visual_states": [
+        {
+          "state_id": "recognition.capture.permission_denied.v1",
+          "name": "Camera Permission Denied",
+          "status": "FROZEN",
+          "contract": "design/system_v3/08_Page_Contracts/recognition/capture/Camera_Permission_Denied_Visual_Contract_V1.md",
+          "background": "BG_CONTENT",
+          "source_raster": "湖畔相机权限提示界面.png",
+          "source_dimensions": "941x1672",
+          "source_sha256": "1feced3a5d6f7a7d3ef968edcf8a5a834d216fab40707cf84c31658be5417d06",
+          "behavior": {
+            "retryable_permission": "重新开启相机 → Android platform Camera permission request",
+            "non_retryable_permission": "去系统设置 → Android platform app permission settings",
+            "gallery": "从相册选择照片 → platform Photo Picker / Content Picker",
+            "shutter": "DISABLED"
+          },
+          "notes": "Single visual state. No separate first-denial/permanent-denial page and no photo-library permission page."
+        }
+      ]
     },
     {
       "page_id": "recognition.processing.v3_1",
