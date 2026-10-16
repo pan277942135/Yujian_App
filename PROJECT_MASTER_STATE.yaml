@@ -12,9 +12,9 @@ state_control:
   updated_at: "2026-10-16T23:26:20+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
+  execution_baseline_sha: "4202d9d3ec8476360426506659b1fea6233b9667"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
+  live_branch_head_at_snapshot: "4202d9d3ec8476360426506659b1fea6233b9667"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,8 +57,8 @@ repositories:
     default_branch: "main"
     main_sha: "ae7f492a649d20dc23e7f04bcffa49749c7d9e70"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
-    execution_baseline_sha: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
+    active_sha_at_snapshot: "4202d9d3ec8476360426506659b1fea6233b9667"
+    execution_baseline_sha: "4202d9d3ec8476360426506659b1fea6233b9667"
     runtime:
       os: "Android"
       api_level: 28
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
+    head_at_last_verified_snapshot: "4202d9d3ec8476360426506659b1fea6233b9667"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "ae7f492a649d20dc23e7f04bcffa49749c7d9e70"
@@ -307,8 +307,8 @@ phases:
     status: "IN_PROGRESS"
     freeze: "NOT_FROZEN"
     exact_head:
-      sha: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
-      runtime_status: "BLOCKED"
+      sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+      runtime_status: "NOT_RUN"
     required_evidence:
       - "runtime run ID"
       - "test result"
@@ -330,7 +330,7 @@ phases:
       release_eligible: false
     release_gate:
       build: "PASS"
-      exact_head_runtime: "BLOCKED_FAIL_EVIDENCE"
+      exact_head_runtime: "NOT_RUN"
       full_journey: "NOT_ACCEPTED"
       visual_acceptance: "BLOCKED"
       final_release: "NOT_READY"
@@ -420,8 +420,8 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
-    status: "BLOCKED"
+    sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+    status: "NOT_RUN"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
     run_id: 38839618733
@@ -441,11 +441,7 @@ runtime_gates:
     android_runtime: "SKIPPED"
   branch_runtime:
     required: true
-    status: "BLOCKED"
-    last_run_id: 38920720125
-    last_failed_gate: "normal-home-v1"
-    last_failed_classification: "FAIL_EVIDENCE"
-    last_failed_reason: "NORMAL_HOME_RUNTIME_PARITY_BLOCKED"
+    status: "PENDING"
     suites:
       - "normal-home-v1"
       - "recognition-frozen"
@@ -468,17 +464,12 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
-    run_id: 38920720125
-    artifact_ids:
-      runtime_gate_normal_home_v1: 12056066044
-      runtime_apk_pair: 12055930785
-      full_surface: 12055811725
-      recognition_qa: 12054968503
-      debug: 12054568620
+    source_sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+    run_id: null
+    artifact_ids: {}
     artifact_zip_digests: {}
-    apk_sha256: "dc041d41e1e99cac6efbe334e539ea248e2b3f18b8cb892f8ac8449258602e7e"
-    runtime_evidence: "BLOCKED_FAIL_EVIDENCE; normal-home-v1 artifact 12056066044"
+    apk_sha256: null
+    runtime_evidence: "NOT_GENERATED_AFTER_REPAIR"
 
   last_verified_build:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -545,8 +536,8 @@ execution_control:
   validator: "scripts/validate_phase_task_state_machine.py"
   current_phase: "P8"
   current_task: "N001"
-  current_task_status: "BLOCKED"
-  current_queue_status: "BLOCKED"
+  current_task_status: "READY"
+  current_queue_status: "READY"
   auto_advance_within_authorized_scope: true
   auto_recovery_enabled: true
   max_automatic_repairs_per_failing_gate: 2
@@ -558,10 +549,10 @@ current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
   phase: "P6"
   stage: "E0"
-  status: "BLOCKED"
+  status: "FIX_READY_FOR_EXACT_HEAD_CI"
   source_file: "WORK_EXECUTION_STATE.json"
   task_id: "N001"
-  exact_head: "5ea871cda79d6c9a14f184d4ee8de04d67c0909a"
+  exact_head: "4202d9d3ec8476360426506659b1fea6233b9667"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
