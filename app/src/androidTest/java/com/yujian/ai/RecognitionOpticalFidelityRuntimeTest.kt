@@ -9,9 +9,9 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.view.Choreographer
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishDetection
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -38,6 +38,7 @@ import java.util.Collections
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.awaitCancellation
 
 /**
@@ -46,7 +47,7 @@ import kotlinx.coroutines.awaitCancellation
  */
 class RecognitionOpticalFidelityRuntimeTest {
     @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    val activityRule = ActivityScenarioRule(ComponentActivity::class.java)
 
     @Test
     fun recordsLiveFullAndLiteOpticalFidelityFramesWithoutInventingABudget() {
@@ -69,42 +70,56 @@ class RecognitionOpticalFidelityRuntimeTest {
             RecognitionMotionPolicy(degradationLevel = RecognitionDegradationLevel.D0),
         )
         val classificationStarted = CountDownLatch(1)
+        val classificationPresented = CountDownLatch(1)
+        val liteMotionSamplesReady = CountDownLatch(1)
         val unexpectedResultCount = AtomicInteger(0)
         val motionSamples = Collections.synchronizedList(mutableListOf<RecognitionMotionTraceSample>())
         val presentedPhases = Collections.synchronizedList(mutableListOf<RecognitionPhase>())
+        val refreshRate = AtomicReference(60.0)
 
-        composeRule.setContent {
-            YujianTheme {
-                RecognitionProcessingScene(
-                    image = selectedImage,
-                    onBack = {},
-                    recognize = { onProgress ->
-                        onProgress(RecognitionProgress(RecognitionPhase.CAPTURED))
-                        onProgress(RecognitionProgress(RecognitionPhase.DETECTING))
-                        onProgress(RecognitionProgress(RecognitionPhase.OUTLINE, assessment))
-                        onProgress(RecognitionProgress(RecognitionPhase.CLASSIFYING, assessment))
-                        classificationStarted.countDown()
-                        awaitCancellation()
-                    },
-                    generateSubject = { _, _ -> subject },
-                    onFinished = { unexpectedResultCount.incrementAndGet() },
-                    onVisualPhasePresented = { phase, _ -> presentedPhases += phase },
-                    motionPolicyOverride = policy.value,
-                    onMotionFrame = { sample -> motionSamples += sample },
-                )
+        activityRule.scenario.onActivity { activity ->
+            refreshRate.set(activity.windowManager.defaultDisplay.refreshRate.toDouble())
+            activity.setContent {
+                YujianTheme {
+                    RecognitionProcessingScene(
+                        image = selectedImage,
+                        onBack = {},
+                        recognize = { onProgress ->
+                            onProgress(RecognitionProgress(RecognitionPhase.CAPTURED))
+                            onProgress(RecognitionProgress(RecognitionPhase.DETECTING))
+                            onProgress(RecognitionProgress(RecognitionPhase.OUTLINE, assessment))
+                            onProgress(RecognitionProgress(RecognitionPhase.CLASSIFYING, assessment))
+                            classificationStarted.countDown()
+                            awaitCancellation()
+                        },
+                        generateSubject = { _, _ -> subject },
+                        onFinished = { unexpectedResultCount.incrementAndGet() },
+                        onVisualPhasePresented = { phase, _ ->
+                            presentedPhases += phase
+                            if (phase == RecognitionPhase.CLASSIFYING) classificationPresented.countDown()
+                        },
+                        motionPolicyOverride = policy.value,
+                        onMotionFrame = { sample ->
+                            motionSamples += sample
+                            if (sample.qualityLevel.name == "LITE") {
+                                val liteCount = synchronized(motionSamples) {
+                                    motionSamples.count { it.qualityLevel.name == "LITE" }
+                                }
+                                if (liteCount >= MIN_MOTION_SAMPLES) liteMotionSamplesReady.countDown()
+                            }
+                        },
+                    )
+                }
             }
         }
 
         assertTrue("recognition pipeline did not enter CLASSIFYING", classificationStarted.await(3, TimeUnit.SECONDS))
-        composeRule.waitUntil(timeoutMillis = 8_000L) {
-            composeRule.onAllNodesWithText("正在认识这条鱼").fetchSemanticsNodes().isNotEmpty()
-        }
         assertTrue(
-            "CLASSIFYING status is missing from the live scene",
-            composeRule.onAllNodesWithText("正在认识这条鱼").fetchSemanticsNodes().isNotEmpty(),
+            "CLASSIFYING was not presented by the live scene",
+            classificationPresented.await(8, TimeUnit.SECONDS),
         )
 
-        val refreshRateHz = composeRule.activity.windowManager.defaultDisplay.refreshRate.toDouble()
+        val refreshRateHz = refreshRate.get()
         saveScreenshot(outputDir, "optical_fidelity_full.png")
         val fullIntervals = collectFrameIntervals(FRAME_INTERVAL_SAMPLES)
         val fullMotionSamples = synchronized(motionSamples) {
@@ -112,17 +127,13 @@ class RecognitionOpticalFidelityRuntimeTest {
         }
         assertTrue("live FULL compositing did not report motion samples", fullMotionSamples.size >= MIN_MOTION_SAMPLES)
 
-        composeRule.runOnUiThread {
+        activityRule.scenario.onActivity {
             policy.value = RecognitionMotionPolicy(degradationLevel = RecognitionDegradationLevel.D2)
         }
-        composeRule.waitUntil(timeoutMillis = 3_000L) {
-            synchronized(motionSamples) {
-                motionSamples.count { it.qualityLevel.name == "LITE" } >= MIN_MOTION_SAMPLES
-            }
-        }
+        assertTrue("LITE profile did not emit motion samples", liteMotionSamplesReady.await(8, TimeUnit.SECONDS))
         assertTrue(
-            "CLASSIFYING status disappeared in LITE profile",
-            composeRule.onAllNodesWithText("正在认识这条鱼").fetchSemanticsNodes().isNotEmpty(),
+            "production scene left CLASSIFYING before LITE samples were captured",
+            synchronized(presentedPhases) { presentedPhases.lastOrNull() == RecognitionPhase.CLASSIFYING },
         )
         saveScreenshot(outputDir, "optical_fidelity_lite.png")
         val liteIntervals = collectFrameIntervals(FRAME_INTERVAL_SAMPLES)
@@ -152,7 +163,7 @@ class RecognitionOpticalFidelityRuntimeTest {
     private fun collectFrameIntervals(expectedCount: Int): List<Double> {
         val intervalsNanos = Collections.synchronizedList(mutableListOf<Long>())
         val completed = CountDownLatch(1)
-        composeRule.runOnUiThread {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val choreographer = Choreographer.getInstance()
             var previousFrameNanos = 0L
             lateinit var callback: Choreographer.FrameCallback

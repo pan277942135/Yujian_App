@@ -52,6 +52,19 @@ because none is defined by the frozen contract.
   test began. This run produced no optical metrics and is not a PASS. The
   Recognition-only timeout increase and evidence update are committed for the
   next exact-head run.
+- Fifth exact-head Android CI run (`38946381172`,
+  `c4721529f0f8b3d90ce51bf54722049c3d7d450d`): build, unit tests, harness
+  contract tests, APK assembly, AndroidTest APK compilation, packaged asset
+  checks, model trace, and lint all PASS. The API28 `recognition-frozen` gate
+  reached the optical-fidelity test as item 50/50 but ended
+  `FAIL_TEST / INSTRUMENTATION_TIMEOUT` at 300 seconds, so no optical metrics
+  or screenshots were emitted. Logcat confirms the production scene reached
+  CLASSIFYING and then repeatedly reported the Compose-Espresso idling resource
+  as busy. The test's semantics query was synchronizing against that
+  intentionally live animation. The harness now uses ActivityScenario and
+  production phase/motion callbacks instead of Compose idling/semantics queries;
+  this correction remains unverified until the next API28 run. No PASS is
+  claimed for this run.
 
 ## Independent check retained
 
