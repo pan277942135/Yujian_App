@@ -109,7 +109,7 @@ def expand_journeys(refs: list[str]) -> set[str]:
     for ref in refs or []:
         if not isinstance(ref, str):
             continue
-        match = re.fullmatch(r"J(\\d{2})(?:-J(\\d{2}))?", ref)
+        match = re.fullmatch(r"J(\d{2})(?:-J(\d{2}))?", ref)
         if not match:
             continue
         start = int(match.group(1))
