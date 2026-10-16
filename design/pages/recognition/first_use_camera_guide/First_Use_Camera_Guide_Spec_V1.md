@@ -1,5 +1,3 @@
-> **SUPERSEDED by V1.1 on 2026-10-16.** Active authority: `First_Use_Camera_Guide_Spec_V1_1.md`. The active teaching sequence is two pages: P01 portrait + horizontal fish, P02 landscape + horizontal fish.
-
 # 渔见 · First-use Camera Guide V1
 
 **Status:** FROZEN  
