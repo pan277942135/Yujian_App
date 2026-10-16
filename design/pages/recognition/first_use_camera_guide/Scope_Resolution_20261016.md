@@ -1,22 +1,9 @@
-# First-use Camera Guide V1 · Task Scope Resolution
+# First-use Camera Guide · Current Freeze Resolution · 2026-10-16
 
-**Status:** ACTIVE FOR `RECOGNITION-FIRST-USE-GUIDE-V1`  
-**Date:** 2026-10-16
+**Status:** FROZEN — ACTIVE DESIGN AUTHORITY
 
-## Resolution
+The final user-authorized guide contains exactly two pages: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish.
 
-The explicitly requested V1 work task at `docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md` defines the active scope for PR #145 as three pages. This resolves `C-FIRST-USE-GUIDE-PAGE-COUNT` for this task.
+Former P02 portrait + vertical fish and former P03 are removed from active page identity and remain historical only. The approved landscape/horizontal PNG is promoted unchanged as active P02.
 
-| Page | Phone | Fish |
-|---|---|---|
-| P01 | Portrait | Horizontal |
-| P02 | Portrait | Vertical |
-| P03 | Landscape | Horizontal |
-
-The task requires the exact original P01/P02/P03 Frozen PNG bytes already registered in `asset_import_report.json`. Their paths, bytes, dimensions and SHA-256 values remain unchanged.
-
-## Authority boundary
-
-`Freeze_Decision_20261016.md` records a later two-page alternative. It is retained for provenance, but is superseded for this specifically authorized V1 task. The three-page scope is not a visual redesign and does not alter Frozen artwork.
-
-Android Runtime must continue to rebuild the guide with Compose. Independent page-specific runtime photos remain a separate asset-source acceptance item; full-page Frozen screenshots are not runtime resources.
+This freeze changes design authority and asset identity only. No Android implementation, runtime, CI or APK work is authorized by this change.
