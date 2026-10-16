@@ -288,14 +288,19 @@ features:
       - "runtime_accessibility_degradation"
       - "runtime_production_semantics"
       - "runtime_final_gate"
-      - "p01"
-      - "p02"
-      - "p03"
+      - "first_use_guide_portrait_horizontal"
+      - "first_use_guide_landscape_horizontal"
+      - "capture_ready_portrait_horizontal"
+      - "capture_ready_landscape_horizontal"
     child_surfaces:
       - "capture"
       - "permission"
       - "first_use_guide"
+      - "first_use_guide_portrait_horizontal"
+      - "first_use_guide_landscape_horizontal"
       - "preview_ready"
+      - "capture_ready_portrait_horizontal"
+      - "capture_ready_landscape_horizontal"
       - "processing"
       - "issue_retry"
       - "gallery_entry"
@@ -323,14 +328,24 @@ features:
     blockers:
       - "B001"
       - "B002"
-      - "B008"
     next_actions:
       - "N001"
       - "N002"
       - "N003"
-      - "N010"
+    capture_hifi:
+      status: "FROZEN"
+      visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
+      manifest: "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
+      states:
+        - "capture_ready_portrait_horizontal"
+        - "capture_ready_landscape_horizontal"
+      fish_guide_frame: "FIXED_HORIZONTAL"
+      control_geometry: "RIGHT_VERTICAL_RAIL"
+      binary_import_status: "PENDING"
     known_gaps:
-      - "Exact-head API28 runtime not yet accepted (B001/B002); frozen P01/P02/P03 PNG binaries are missing (B008)."
+      - "Exact-head API28 runtime not yet accepted (B001/B002)."
+      - "Capture Hi-Fi source PNGs are visually frozen but repository binary import is still pending."
+      - "Android first-use guide implementation must be reduced from the old three-page runtime path to the two-page frozen design."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"
