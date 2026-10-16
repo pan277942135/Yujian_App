@@ -66,6 +66,24 @@ async function waitForManager(page) {
   await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
 }
 
+async function waitForLoadedImage(page, selector, label) {
+  await page.locator(selector).first().waitFor({ state: "attached", timeout: 30000 });
+  try {
+    await page.waitForFunction((imageSelector) => {
+      const image = document.querySelector(imageSelector);
+      return !!image && image.complete && image.naturalWidth > 0;
+    }, selector, { timeout: 30000 });
+  } catch (error) {
+    throw new Error(`${label} original image did not finish loading: ${error.message}`);
+  }
+  return page.locator(selector).first().evaluate(node => ({
+    width: node.naturalWidth,
+    height: node.naturalHeight,
+    complete: node.complete,
+    src: node.currentSrc
+  }));
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   const { mkdir } = await import("node:fs/promises");
@@ -107,11 +125,8 @@ async function main() {
   const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
   if (args.expectedBuild) assert(buildMarker === args.expectedBuild, `live/build marker mismatch: ${buildMarker} != ${args.expectedBuild}`);
   const image = page.locator(".hifi-asset-figure img").first();
-  const guideImageInfo = await image.evaluate(node => ({
-    width: node.naturalWidth, height: node.naturalHeight,
-    complete: node.complete, objectFit: getComputedStyle(node).objectFit,
-    src: node.currentSrc
-  }));
+  const guideImageInfo = await waitForLoadedImage(page, ".hifi-asset-figure img", "P01");
+  guideImageInfo.objectFit = await image.evaluate(node => getComputedStyle(node).objectFit);
   assert(guideImageInfo.complete && guideImageInfo.width === 941 && guideImageInfo.height === 1671,
     `P01 must load original 941×1671 pixels: ${JSON.stringify(guideImageInfo)}`);
   assert(guideImageInfo.objectFit === "contain", `P01 image fit must contain: ${guideImageInfo.objectFit}`);
@@ -155,14 +170,14 @@ async function main() {
 
   for (const [hash, width, height, id] of [[p02Hash, 941, 1671, "P02"], [p03Hash, 941, 1672, "P03"]]) {
     await open(hash);
-    const loaded = await page.locator(".hifi-asset-figure img").first().evaluate(node => ({ width: node.naturalWidth, height: node.naturalHeight, complete: node.complete }));
+    const loaded = await waitForLoadedImage(page, ".hifi-asset-figure img", id);
     assert(loaded.complete && loaded.width === width && loaded.height === height, `${id} original dimensions are wrong: ${JSON.stringify(loaded)}`);
     assert(await page.locator("#hifiViewContractDetails").innerText().then(text => text.includes(id)), `${id} Page/State metadata missing`);
   }
 
   await open(overviewHash);
   await waitForManager(page);
-  const overviewImageInfo = await page.locator(".hifi-asset-figure img").first().evaluate(node => ({ width: node.naturalWidth, height: node.naturalHeight, complete: node.complete }));
+  const overviewImageInfo = await waitForLoadedImage(page, ".hifi-asset-figure img", "overview PNG");
   assert(overviewImageInfo.complete && overviewImageInfo.width === 5120 && overviewImageInfo.height === 2880,
     `Overview must show the complete approved PNG: ${JSON.stringify(overviewImageInfo)}`);
   assert((await page.locator(".hifi-overview-intro").innerText()).includes("不是任何单页"), "overview must not be labeled a single-page authority");
@@ -181,7 +196,7 @@ async function main() {
   await page.waitForFunction(expected => location.hash === expected, targetHash);
 
   await open("#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review");
-  const reviewImage = await page.locator(".hifi-asset-figure img").first().evaluate(node => ({ width: node.naturalWidth, height: node.naturalHeight, complete: node.complete }));
+  const reviewImage = await waitForLoadedImage(page, ".hifi-asset-figure img", "review source");
   assert(reviewImage.complete && reviewImage.width === 2800 && reviewImage.height === 1600,
     `review image must load the real 2800×1600 source: ${JSON.stringify(reviewImage)}`);
   assert((await page.locator("#hifiViewStatus").innerText()).includes("部分完成"), "review image must remain PARTIAL, not Frozen");
