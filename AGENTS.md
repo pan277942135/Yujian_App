@@ -13,13 +13,14 @@ Before changing anything:
 2. Read PROJECT_MASTER_STATE.yaml.
 3. Verify live branch and Git HEAD.
 4. Read harness/FEATURE_MATRIX.yaml and identify the Feature/Child Surface/Route/Journey scope.
-5. If touching recognition, read docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json.
-6. Read the applicable design/page/runtime contract.
-7. Read the latest relevant harness/build-log.md entry.
-8. Check open blockers in PROJECT_MASTER_STATE.yaml.
-9. Execute only an authorized next_action or explicit user task.
-10. Before completion, run the applicable validator/tests and collect evidence.
-11. Update state + build log before ending the stage.
+5. Read harness/PHASE_TASK_STATE_MACHINE.yaml and identify the current phase/task, dependencies, retry budget and gate.
+6. If touching recognition, read docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json.
+7. Read the applicable design/page/runtime contract.
+8. Read the latest relevant harness/build-log.md entry.
+9. Check open blockers in PROJECT_MASTER_STATE.yaml.
+10. Execute only an authorized next_action or explicit user task.
+11. Before completion, run the applicable validator/tests and collect evidence.
+12. Update state + build log before ending the stage.
 
 Conversation history is not the project source of truth.
 
@@ -152,8 +153,8 @@ If local Android tooling is unavailable, do not fabricate runtime evidence.
 
 For each stage:
 
-1. inspect exact baseline and Feature Matrix scope;
-2. identify applicable contract, blockers and acceptance gate;
+1. inspect exact baseline, Feature Matrix scope and current Phase/Task state;
+2. identify applicable contract, blockers, dependencies and acceptance gate;
 3. implement the smallest coherent change;
 4. validate statically and dynamically as applicable;
 5. capture evidence;
