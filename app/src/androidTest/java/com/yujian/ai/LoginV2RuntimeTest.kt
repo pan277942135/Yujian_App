@@ -300,7 +300,7 @@ class LoginV2RuntimeTest {
         showSoftwareKeyboardForEmulator()
         // Exercise the platform touch/IME path. A semantics-only click can focus
         // the field without asking API 28's real input method to appear.
-        username.performTouchInput { click() }
+        username.performTouchInput { down(center); up() }
         awaitImeVisible()
         username.performTextInput("x")
         composeRule.onNodeWithText("账号").assertIsDisplayed()
@@ -370,7 +370,7 @@ class LoginV2RuntimeTest {
         val usernameError = "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
         val username = composeRule.onNodeWithTag("register_username")
         showSoftwareKeyboardForEmulator()
-        username.performTouchInput { click() }
+        username.performTouchInput { down(center); up() }
         awaitImeVisible()
         username.performTextInput("x")
         composeRule.onNodeWithText("账号").assertIsDisplayed()
