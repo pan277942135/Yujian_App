@@ -1,5 +1,548 @@
-Y™Áäx-ÆÈ‹j◊ù¢Îi∫⁄+äßj[hëÈ‹¢ÈÌÔè{NãZñã≠¶Îeäw¨Â¡Öç≠ÖùîÅçΩ¥πÂ’©•Ö∏πÖ§()•µ¡Ω…–ÅÖπë…Ω•êπù…Ö¡°•çÃπ	•—µÖ¿)•µ¡Ω…–ÅÖπë…Ω•êπù…Ö¡°•çÃπIïç–)•µ¡Ω…–ÅÖπë…Ω•êπΩÃπAÖ…çï±•±ïïÕç…•¡—Ω»)•µ¡Ω…–ÅÖπë…Ω•êπ¡…ΩŸ•ëï»πMï——•πùÃ)•µ¡Ω…–ÅÖπë…Ω•ë‡πÖç—•Ÿ•—‰πΩµ¡Ωπïπ—ç—•Ÿ•—‰)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πÖÕÕï…—%Õ•Õ¡±ÖÂïê)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§πùïΩµï—…‰π=ôôÕï–)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–π©’π•––πç…ïÖ—ïπë…Ω•ëΩµ¡ΩÕïI’±î)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–π°ÖÕ±•ç≠ç—•Ω∏)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–π°ÖÕQï·–)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§πÕïµÖπ—•çÃπMïµÖπ—•çÕA…Ω¡ï…—•ïÃ)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πΩπ±±9ΩëïÕ]•—°Qï·–)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πΩπ±±9ΩëïÕ]•—°Ωπ—ïπ—ïÕç…•¡—•Ω∏)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πΩπ9Ωëï]•—°Ωπ—ïπ—ïÕç…•¡—•Ω∏)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πΩπ9Ωëï]•—°QÖú)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πΩπ9Ωëï]•—°Qï·–)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πΩπIΩΩ–)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–π¡ï…ôΩ…µ±•ç¨)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–π¡ï…ôΩ…µMç…Ω±±Qº)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–π¡ï…ôΩ…µQΩ’ç°%π¡’–)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πÕ›•¡î)•µ¡Ω…–ÅÖπë…Ω•ë‡πçΩµ¡ΩÕîπ’§π—ïÕ–πÕ›•¡ï1ïô–)•µ¡Ω…–ÅÖπë…Ω•ë‡π—ïÕ–π¡±Ö—ôΩ…¥πÖ¡¿π%πÕ—…’µïπ—Ö—•ΩπIïù•Õ—…‰)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§πçÖ—ç°ïÃπIïµΩ—ïÖ—ç†)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°’•ëï%—ï¥)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïÖ…ê)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïÖ…ëΩπ—ïπ–)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïï—Ö•∞)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïçΩ±Ωù‰)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùï•Õ°•πú)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïïÖ»)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïA…Ωô•±î)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïM≠•±∞)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïM¡ïç•ïÃ)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π≠πΩ›±ïëùîπ•Õ°-πΩ›±ïëùïM—…’ç—’…ïê)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π’§πÕç…ïïπÃπ•Õ°’•ëï!ΩµïMç…ïï∏)•µ¡Ω…–ÅçΩ¥πÂ’©•Ö∏πÖ§π’§πÕç…ïïπÃπ•Õ°M¡ïç•ïÕï—Ö•±Mç…ïï∏)•µ¡Ω…–Å©ÖŸÑπ•ºπ•±î)•µ¡Ω…–Å©ÖŸÑπ•ºπ•±ï=’—¡’—M—…ïÖ¥)•µ¡Ω…–ÅΩ…úπ©’π•–πÕÕï…–πÖÕÕï…—≈’Ö±Ã)•µ¡Ω…–ÅΩ…úπ©’π•–πÕÕï…–πÖÕÕï…—Ö±Õî)•µ¡Ω…–ÅΩ…úπ©’π•–πÕÕï…–πÖÕÕï…—Q…’î)•µ¡Ω…–Å≠Ω—±•∏πµÖ—†πÖâÃ)•µ¡Ω…–ÅΩ…úπ©’π•–πI’±î)•µ¡Ω…–ÅΩ…úπ©’π•–πQïÕ–()ç±ÖÕÃÅ•Õ°’•ëïI’π—•µïQïÕ–ÅÏ(ÄÄÄÅùï–ÈI’±î(ÄÄÄÅŸÖ∞ÅçΩµ¡ΩÕïI’±îÄÙÅç…ïÖ—ïπë…Ω•ëΩµ¡ΩÕïI’±îÒΩµ¡Ωπïπ—ç—•Ÿ•—‰¯†§((ÄÄÄÅ¡…•ŸÖ—îÅŸÖ∞ÅÕ¡ïç•ïÃÄÙÅ±•Õ—=ò†(ÄÄÄÄÄÄÄÅ•Õ°’•ëï%—ï¥†(ÄÄÄÄÄÄÄÄÄÄÄÅ•êÄÙÄâù…ÖÕÕ}çÖ…¿à∞(ÄÄÄÄÄÄÄÄÄÄÄÅπÖµï∏ÄÙÄã¢6'¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÅÖ±•ÖÕïÃÄÙÅ±•Õ—=ò†ã¶ ß¶∆à§∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕç•ïπ—•ô•ç9ÖµîÄÙÄâ—ïπΩ¡°Ö…ÂπùΩëΩ∏Å•ëï±±Ñà∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰ÄÙÄã¶ ìûûDà∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕ’µµÖ…‰ÄÙÄãñ‚„¢ûñíüñz/öﬁáö¬”¶∆Ûéà∞(ÄÄÄÄÄÄÄÄÄÄÄÅë•ÕçΩŸï…ïêÄÙÅ—…’î∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ç°ïÃÄÙÄ»∞(ÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÅ•Õ°’•ëï%—ï¥†(ÄÄÄÄÄÄÄÄÄÄÄÅ•êÄÙÄâç…’ç•Öπ}çÖ…¿à∞(ÄÄÄÄÄÄÄÄÄÄÄÅπÖµï∏ÄÙÄã¶ Ø¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÅÖ±•ÖÕïÃÄÙÅ±•Õ—=ò†ã¶ ¨à§∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕç•ïπ—•ô•ç9ÖµîÄÙÄâÖ…ÖÕÕ•’ÃÅÖ’…Ö—’Ãà∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰ÄÙÄã¶ ìûûDà∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕ’µµÖ…‰ÄÙÄãñÊˇöŒoñ"ñ‚ûjöﬁáö¬”¶∆Ûéà∞(ÄÄÄÄÄÄÄÄÄÄÄÅë•ÕçΩŸï…ïêÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ç°ïÃÄÙÄ¿∞(ÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÅ•Õ°’•ëï%—ï¥†(ÄÄÄÄÄÄÄÄÄÄÄÅ•êÄÙÄâçΩµµΩπ}çÖ…¿à∞(ÄÄÄÄÄÄÄÄÄÄÄÅπÖµï∏ÄÙÄã¶ ì¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕç•ïπ—•ô•ç9ÖµîÄÙÄâÂ¡…•π’ÃÅçÖ…¡•ºà∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰ÄÙÄã¶ ìûûDà∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕ’µµÖ…‰ÄÙÄãñ‚„¢ûñÍWñ∆öﬁáö¬”¶∆Ûéà∞(ÄÄÄÄÄÄÄÄÄÄÄÅë•ÕçΩŸï…ïêÄÙÅ—…’î∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ç°ïÃÄÙÄƒ∞(ÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄ§((ÄÄÄÅQïÕ–(ÄÄÄÅô’∏Åô•Õ°’•ëï}±•—πëUπ±•—}Ö…ï	…Ω›ÕÖâ±ïπë±•ç≠Öâ±î†§ÅÏ(ÄÄÄÄÄÄÄÅŸÖ∞ÅçΩπ—ï·–ÄÙÅ%πÕ—…’µïπ—Ö—•ΩπIïù•Õ—…‰πùï—%πÕ—…’µïπ—Ö—•Ω∏†§π—Ö…ùï—Ωπ—ï·–(ÄÄÄÄÄÄÄÅçΩπ—ï·–πùï—M°Ö…ïëA…ïôï…ïπçïÃ†âô•Õ°}ù’•ëï}°Ωµîà∞Ä¿§(ÄÄÄÄÄÄÄÄÄÄÄÄπïë•–†§π¡’—	ΩΩ±ïÖ∏†âçÖ…Ω’Õï±}ë•ÕçΩŸï…}°•π—}Õ°Ω›∏à∞Å—…’î§πçΩµµ•–†§(ÄÄÄÄÄÄÄÅŸÖ»ÅΩ¡ïπïêËÅM—…•πú¸ÄÙÅπ’±∞(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπÕï—Ωπ—ïπ–ÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÅ•Õ°’•ëï!ΩµïMç…ïï∏†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ¡ïç•ïÃÄÙÅÕ¡ïç•ïÃ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ±ΩÖë•πúÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩôô±•πïA…ïŸ•ï‹ÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅï……Ω»ÄÙÅπ’±∞∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ…ïÕΩ±ŸïÕÕï—U…∞ÄÙÅÏÅπ’±∞ÅÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπ	Öç¨ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπIï—…‰ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπM¡ïç•ïÕ±•ç¨ÄÙÅÏÅΩ¡ïπïêÄÙÅ•–π•êÅÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅÙ((ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†ã¶∆Û¶&–à§πÖÕÕï…—%Õ•Õ¡±ÖÂïê†§(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†ãñﬁÀû
-ÁíÍ∏Ä»ÄºÄÃÉûû4à§πÖÕÕï…—%Õ•Õ¡±ÖÂïê†§(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†àƒÄºÄÃà§πÖÕÕï…—%Õ•Õ¡±ÖÂïê†§(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†ã¢6'¶∆à§πÖÕÕï…—%Õ•Õ¡±ÖÂïê†§(ÄÄÄÄÄÄÄÅŸÖ∞ÅçÖ…Ω’Õï±	Ω’πëÃÄÙÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°QÖú†âô•Õ°}ù’•ëï}çÖ…Ω’Õï∞à§πôï—ç°MïµÖπ—•çÕ9Ωëî†§πâΩ’πëÕ%πIΩΩ–(ÄÄÄÄÄÄÄÅŸÖ∞ÅÕ¡ïç•ïÕQ•—±ï	Ω’πëÃÄÙÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†(ÄÄÄÄÄÄÄÄÄÄÄÄã¢6'¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÅ’ÕïUπµï…ùïëQ…ïîÄÙÅ—…’î∞(ÄÄÄÄÄÄÄÄ§πôï—ç°MïµÖπ—•çÕ9Ωëî†§πâΩ’πëÕ%πIΩΩ–(ÄÄÄÄÄÄÄÅÕÖŸïMç…ïïπÕ°Ω–†âô•Õ°}ù’•ëï}±•–π¡πúà§(ÄÄÄÄÄÄÄÅÖÕÕï…—Q…’î†(ÄÄÄÄÄÄÄÄÄÄÄÄâM¡ïç•ïÃÅ—•—±îÅµ’Õ–ÅÖπç°Ω»Å—°îÅ’¡¡ï»ÅçÖ…êÅ°•ï…Ö…ç°‰ËÅ—•—±îÙëÕ¡ïç•ïÕQ•—±ï	Ω’πëÃÅçÖ…Ω’Õï∞ÙëçÖ…Ω’Õï±	Ω’πëÃà∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕ¡ïç•ïÕQ•—±ï	Ω’πëÃπçïπ—ï»π‰ÄÅçÖ…Ω’Õï±	Ω’πëÃπçïπ—ï»π‰∞(ÄÄÄÄÄÄÄÄ§((ÄÄÄÄÄÄÄÅÕ›•¡ïÖ…Ω’Õï±QΩMï±ïç—ïëM¡ïç•ïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÅô…Ωµ9ÖµîÄÙÄã¢6'¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÅπÖµîÄÙÄã¶ Ø¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÅï·¡ïç—ïëAÖùîÄÙÄƒ∞(ÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†ãñ¬kör´û
-ÁíÍ∏à§πÖÕÕï…—%Õ•Õ¡±ÖÂïê†§(ÄÄÄÄÄÄÄÅÕÖŸïMç…ïïπÕ°Ω–†âô•Õ°}ù’•ëï}’π±•–π¡πúà§(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπΩπ9Ωëï]•—°Qï·–†ã¶ Ø¶∆à§π¡ï…ôΩ…µ±•ç¨†§(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπ…’π=π%ë±îÅÏÅÖÕÕï…—≈’Ö±Ã†âç…’ç•Öπ}çÖ…¿à∞ÅΩ¡ïπïê§ÅÙ(ÄÄÄÅÙ((ÄÄÄÅQïÕ–(ÄÄÄÅô’∏Åô•Õ°’•ëï}…ïë’çï5Ω—•Ωπ}Õ’¡¡…ïÕÕïÕ•ÕçΩŸï…!•π—}â’—M›•¡ï]Ω…≠Ã†§ÅÏ(ÄÄÄÄÄÄÄÅŸÖ∞Å•πÕ—…’µïπ—Ö—•Ω∏ÄÙÅ%πÕ—…’µïπ—Ö—•ΩπIïù•Õ—…‰πùï—%πÕ—…’µïπ—Ö—•Ω∏†§(ÄÄÄÄÄÄÄÅŸÖ∞ÅçΩπ—ï·–ÄÙÅ•πÕ—…’µïπ—Ö—•Ω∏π—Ö…ùï—Ωπ—ï·–(ÄÄÄÄÄÄÄÅŸÖ∞Å¡…ïôÃÄÙÅçΩπ—ï·–πùï—M°Ö…ïëA…ïôï…ïπçïÃ†âô•Õ°}ù’•ëï}°Ωµîà∞Ä¿§(ÄÄÄÄÄÄÄÅ¡…ïôÃπïë•–†§π¡’—	ΩΩ±ïÖ∏†âçÖ…Ω’Õï±}ë•ÕçΩŸï…}°•π—}Õ°Ω›∏à∞ÅôÖ±Õî§πçΩµµ•–†§(ÄÄÄÄÄÄÄÅŸÖ∞ÅÖπ•µÖ—Ω…MçÖ±îÄÙÅMï——•πùÃπ±ΩâÖ∞πùï—±ΩÖ–†(ÄÄÄÄÄÄÄÄÄÄÄÅçΩπ—ï·–πçΩπ—ïπ—IïÕΩ±Ÿï»∞(ÄÄÄÄÄÄÄÄÄÄÄÅMï——•πùÃπ±ΩâÖ∞π9%5Q=I}UIQ%=9}M1∞(ÄÄÄÄÄÄÄÄÄÄÄÄ≈ò∞(ÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅŸÖ∞Å—…ÖπÕ•—•ΩπMçÖ±îÄÙÅMï——•πùÃπ±ΩâÖ∞πùï—±ΩÖ–†(ÄÄÄÄÄÄÄÄÄÄÄÅçΩπ—ï·–πçΩπ—ïπ—IïÕΩ±Ÿï»∞(ÄÄÄÄÄÄÄÄÄÄÄÅMï——•πùÃπ±ΩâÖ∞πQI9M%Q%=9}9%5Q%=9}M1∞(ÄÄÄÄÄÄÄÄÄÄÄÄ≈ò∞(ÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅ—…‰ÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÅÕ°ï±∞†âÕï——•πùÃÅ¡’–Åù±ΩâÖ∞ÅÖπ•µÖ—Ω…}ë’…Ö—•Ωπ}ÕçÖ±îÄ¿à§(ÄÄÄÄÄÄÄÄÄÄÄÅÕ°ï±∞†âÕï——•πùÃÅ¡’–Åù±ΩâÖ∞Å—…ÖπÕ•—•Ωπ}Öπ•µÖ—•Ωπ}ÕçÖ±îÄ¿à§(ÄÄÄÄÄÄÄÄÄÄÄÅÖÕÕï…—≈’Ö±Ã†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¡ò∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅMï——•πùÃπ±ΩâÖ∞πùï—±ΩÖ–°çΩπ—ï·–πçΩπ—ïπ—IïÕΩ±Ÿï»∞ÅMï——•πùÃπ±ΩâÖ∞π9%5Q=I}UIQ%=9}M1∞Ä≈ò§∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¡ò∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÄÄÄÄÅÖÕÕï…—≈’Ö±Ã†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¡ò∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅMï——•πùÃπ±ΩâÖ∞πùï—±ΩÖ–°çΩπ—ï·–πçΩπ—ïπ—IïÕΩ±Ÿï»∞ÅMï——•πùÃπ±ΩâÖ∞πQI9M%Q%=9}9%5Q%=9}M1∞Ä≈ò§∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¡ò∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπÕï—Ωπ—ïπ–ÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ•Õ°’•ëï!ΩµïMç…ïï∏†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ¡ïç•ïÃÄÙÅÕ¡ïç•ïÃ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ±ΩÖë•πúÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩôô±•πïA…ïŸ•ï‹ÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅï……Ω»ÄÙÅπ’±∞∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ…ïÕΩ±ŸïÕÕï—U…∞ÄÙÅÏÅπ’±∞ÅÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπ	Öç¨ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπIï—…‰ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπM¡ïç•ïÕ±•ç¨ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÄÄÄÄÅÙ(ÄÄÄÄÄÄÄÄÄÄÄÅ›Ö•—Ω…Mï±ïç—ïëM¡ïç•ïÃ°πÖµîÄÙÄã¢6'¶∆à∞Åï·¡ïç—ïëAÖùîÄÙÄ¿§(ÄÄÄÄÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπµÖ•π±Ωç¨πÖëŸÖπçïQ•µï	‰†ƒÃ¿¿§(ÄÄÄÄÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπ…’π=π%ë±îÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÖÕÕï…—Ö±Õî°¡…ïôÃπùï—	ΩΩ±ïÖ∏†âçÖ…Ω’Õï±}ë•ÕçΩŸï…}°•π—}Õ°Ω›∏à∞ÅôÖ±Õî§§(ÄÄÄÄÄÄÄÄÄÄÄÅÙ(ÄÄÄÄÄÄÄÄÄÄÄÅÕ›•¡ïÖ…Ω’Õï±QΩMï±ïç—ïëM¡ïç•ïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅô…Ωµ9ÖµîÄÙÄã¢6'¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπÖµîÄÙÄã¶ Ø¶∆à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅï·¡ïç—ïëAÖùîÄÙÄƒ∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅÙÅô•πÖ±±‰ÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÅÕ°ï±∞†âÕï——•πùÃÅ¡’–Åù±ΩâÖ∞ÅÖπ•µÖ—Ω…}ë’…Ö—•Ωπ}ÕçÖ±îÄëÖπ•µÖ—Ω…MçÖ±îà§(ÄÄÄÄÄÄÄÄÄÄÄÅÕ°ï±∞†âÕï——•πùÃÅ¡’–Åù±ΩâÖ∞Å—…ÖπÕ•—•Ωπ}Öπ•µÖ—•Ωπ}ÕçÖ±îÄë—…ÖπÕ•—•ΩπMçÖ±îà§(ÄÄÄÄÄÄÄÅÙ(ÄÄÄÅÙ((ÄÄÄÅQïÕ–(ÄÄÄÅô’∏Åô•Õ°’•ëï}ï……Ω…}°ÖÕIï—…ÂAÖ—††§ÅÏ(ÄÄÄÄÄÄÄÅŸÖ»Å…ï—…•ïêÄÙÅôÖ±Õî(ÄÄÄÄÄÄÄÅçΩµ¡ΩÕïI’±îπÕï—Ωπ—ïπ–ÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÅ•Õ°’•ëï!ΩµïMç…ïï∏†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ¡ïç•ïÃÄÙÅïµ¡—Â1•Õ–†§∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ±ΩÖë•πúÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩôô±•πïA…ïŸ•ï‹ÄÙÅôÖ±Õî∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅï……Ω»ÄÙÄãûˆGûÓsöjí‚7ñ>øûR†à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ…ïÕΩ±ŸïÕÕï—U…∞ÄÙÅÏÅπ’±∞ÅÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπ	Öç¨ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπIï—…‰ÄÙÅÏÅ…ï—…•ïêÄÙÅ—…’îÅÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπM¡ïç•ïÕ±•ç¨ÄÙÅÌÙ∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄ€o{∂âûÀk∫wµÁwV6ñW4ñB¿¢7V6ñW4Ê÷R“.àÿûõ¬"¿¢6ˆÊfñFVÊ6R“„ñb¿¢÷ˆFV≈fW'6ñˆ‚“'FW7B"¿¢6GW&VDB“FFR¿¢7&VFVDB“FFR¿¢ê†¢&ófFRgV‚FWFñƒfóáGW&RÇì¢fó6Ñ∂Ê˜v∆VFvTFWFñ¬“fó6Ñ∂Ê˜v∆VFvTFWFñ¬Ä¢7V6ñW2“fó6Ñ∂Ê˜v∆VFvU7V6ñW2Ä¢ñB“&w&75ˆ6'"¿¢Ê÷T6‚“.àÿûõ¬"¿¢∆ñ6W2“∆ó7DˆbÇ.õ*ûõ¬"í¿¢66ñVÁFñfñ4Ê÷R“$7FVÊ˜Ü'ñÊvˆFˆ‚ñFV∆∆"¿¢6FVv˜'í“.õ*Nzy"¿¢f÷ñ«í“$7ó&ñÊñFR"¿¢vVÁW2“$7FVÊ˜Ü'ñÊvˆFˆ‚"¿¢7V÷÷'í“.[ãéäxZJ~YËækzkNõŒ8""¿¢7FGW2“$5DïdR"¿¢6˜fW$ñ÷vR“ÁV∆¬¿¢í¿¢6˜fW"“ÁV∆¬¿¢6&G2“∆ó7DˆbÄ¢fó6Ñ∂Ê˜v∆VFvT6&BÄ¢ñB“¿¢7V6ñW4ñB“&w&75ˆ6'"¿¢6&EGóR“$ÑU$Ú"¿¢FóF∆R“.àÿûõŒKãæX⁄"¿¢ñ÷vUW&¬“""¿¢FW67&óFñˆ‚“.àÿûö9˛h
-~ZJ~YËækzkNõ¬"¿¢6ˆÁFVÁB“fó6Ñ∂Ê˜v∆VFvT6&D6ˆÁFVÁBÄ¢GóR“$ÑU$Ú"¿¢Fr“.KäﬁKàæ[""¿¢&&óGí“"¿¢˜vW"“2¿¢6Ü∆∆VÊvR“¿¢FW67&óFñˆ‚“.àÿûö9˛h
-~ZJ~YËækzkNõ¬"¿¢í¿¢6˜'D˜&FW"“¿¢7FGW2“$5DïdR"¿¢í¿¢fó6Ñ∂Ê˜v∆VFvT6&BÄ¢ñB“"¿¢7V6ñW4ñB“&w&75ˆ6'"¿¢6&EGóR“$îDTÂDîdî4DîÙ‚"¿¢FóF∆R“.iz~àÿûzãÚ"¿¢ñ÷vUW&¬“""¿¢FW67&óFñˆ‚“""¿¢6ˆÁFVÁB“fó6Ñ∂Ê˜v∆VFvT6&D6ˆÁFVÁBáGóR“$îDTÂDîdî4DîÙ‚"í¿¢6˜'D˜&FW"“¿¢7FGW2“$E$eB"¿¢í¿¢í¿¢v∆∆W'í“V◊Gî∆ó7BÇí¿¢&ˆfñ∆R“fó6Ñ∂Ê˜v∆VFvU&ˆfñ∆RÄ¢&ˆGï6ÜR“.{´ÆôJN[⁄""¿¢fVGW&W2“∆ó7DˆbÇ.KŸ>àõ.ôŸ.x"¬.õ9Óxò~ãË>ZJr"í¿¢Ü&óFB“∆ó7DˆbÇ.k˛k+2"¬.kôn[©2"í¿¢fˆˆB“.àÿûö9Ú"¿¢6V6ˆ‚“∆ó7DˆbÇ.iäR"¬.ZHÚ"¬.zx≤"í¿¢í¿¢fó6ÜñÊr“fó6Ñ∂Ê˜v∆VFvTfó6ÜñÊrÄ¢vFW$∆ñW"“.KäﬁKàæ[""¿¢6V6ˆ‚“∆ó7DˆbÇ.ZHÚ"¬.zx≤"í¿¢&óB“∆ó7DˆbÇ.xËû{2"í¿¢÷WFÜˆB“∆ó7DˆbÇ.[©^ô)2"í¿¢7V÷÷'í“.Z˚æhõÓi»ûkNàÿûy®N{…>kXXÀÆY˘˛8""¿¢í¿¢fñFV˜2“V◊Gî∆ó7BÇí¿¢6ñ÷ñ∆&óGí“V◊Gî∆ó7BÇí¿¢∂Ê˜v∆VFvR“fó6Ñ∂Ê˜v∆VFvU7G'V7GW&VBÄ¢V6ˆ∆ˆwí“fó6Ñ∂Ê˜v∆VFvTV6ˆ∆ˆwíÄ¢Ü&óFB“∆ó7DˆbÇ.k˛k+2"¬.kôn[©2"í¿¢vFW$∆ñW"“.KäﬁKàæ[""¿¢6V6ˆ‚“.ZH˛zx≤"¿¢&VÜfñ˜"“.YiŒY ékNàÿûKãZ¯ŒXÀÆY˘˛kKæX™Ç"¿¢FñWB“.àÿûö9Ú"¿¢í¿¢vV"“fó6Ñ∂Ê˜v∆VFvTvV"Ä¢÷WFÜˆB“.[©^ô)2"¿¢&ˆB“.Käﬁô[˛zªÚ"¿¢∆ñÊR“.Käﬁzÿû{´˛{∏B"¿¢Üˆˆ≤“.KäﬁX˚~ô*í"¿¢&óB“∆ó7DˆbÇ.xËû{2"í¿¢í¿¢6∂ñ∆¬“fó6Ñ∂Ê˜v∆VFvU6∂ñ∆¬áFó“.KäﬁõŒYÓK˘ﬁh»zã>ZÈÆhÍ~õ¬"í¿¢í¿¢GñÊ÷ñ4fñ∆&∆R“G'VR¿¢ê†¢&ófFRgV‚6fU67&VVÁ6Ü˜BÜÊ÷S¢7G&ñÊrí∞¢6ˆ◊˜6U'V∆RÁvóDf˜$ñF∆RÇê¢f¬ñÁ7G'V÷VÁFFñˆ‚“ñÁ7G'V÷VÁFFñˆÂ&Vvó7G'íÊvWDñÁ7G'V÷VÁFFñˆ‚Çê¢f¬&t&óF÷“ñÁ7G'V÷VÁFFñˆ‚ÁVîWFˆ÷Fñˆ‚ÁF∂U67&VVÁ6Ü˜BÇê¢f¬7W&f6R“7&˜FÙ6ˆ◊˜6U&ˆ˜Bá&t&óF÷ê¢G'í∞¢f¬&ˆ˜B“fñ∆RÜñÁ7G'V÷VÁFFñˆ‚ÁF&vWD6ˆÁFWáBÊvWDWáFW&Êƒfñ∆W4Fó"ÜÁV∆¬í¬&fó6ÖˆwVñFU˜c"ê¢6ÜV6≤á&ˆ˜BÊWÜó7G2Çí«¬&ˆ˜BÊ÷∂Fó'2Çíê¢fñ∆T˜WGWE7G&V“Ñfñ∆Rá&ˆ˜B¬Ê÷RííÁW6R≤˜WB”‡¢6ÜV6≤Ü7W&f6RÊ6ˆ◊&W72Ñ&óF÷‰6ˆ◊&W74f˜&÷BÂ‰r¬¬˜WBíê¢–¢“fñÊ∆«í∞¢ñbÜ7W&f6R”“&t&óF÷í7W&f6RÁ&V7ñ6∆RÇê¢&t&óF÷Á&V7ñ6∆RÇê¢–¢–†¢&ófFRgV‚7&˜FÙ6ˆ◊˜6U&ˆ˜Bá6˜W&6S¢&óF÷ì¢&óF÷∞¢f¬&ˆ˜D&˜VÊG2“6ˆ◊˜6U'V∆RÊˆÂ&ˆ˜BÇíÊfWF6Ö6V÷ÁFñ74ÊˆFRÇíÊ&˜VÊG4ñÂvñÊF˜p¢f¬vñÊF˜t˜&ñvñ‚“ñÁD'&íÉ"ê¢6ˆ◊˜6U'V∆RÁ'V‰ˆÂVïFá&VB∞¢6ˆ◊˜6U'V∆RÊ7FófóGíÁvñÊF˜rÊFV6˜%fñWrÊvWD∆ˆ6Fñˆ‰ˆÂ67&VV‚ávñÊF˜t˜&ñvñ‚ê¢–¢f¬&˜VÊG2“&V7BÄ¢∂˜F∆ñ‚Ê÷FÇÊf∆ˆ˜"á&ˆ˜D&˜VÊG2Ê∆VgBíÁFÙñÁBÇí≤vñÊF˜t˜&ñvñÂ≥“¿¢∂˜F∆ñ‚Ê÷FÇÊf∆ˆ˜"á&ˆ˜D&˜VÊG2ÁF˜íÁFÙñÁBÇí≤vñÊF˜t˜&ñvñÂ≥“¿¢∂˜F∆ñ‚Ê÷FÇÊ6Vñ¬á&ˆ˜D&˜VÊG2Á&ñváBíÁFÙñÁBÇí≤vñÊF˜t˜&ñvñÂ≥“¿¢∂˜F∆ñ‚Ê÷FÇÊ6Vñ¬á&ˆ˜D&˜VÊG2Ê&˜GFˆ“íÁFÙñÁBÇí≤vñÊF˜t˜&ñvñÂ≥“¿¢ê¢6ÜV6≤Ü&˜VÊG2Ê∆VgB„“bb&˜VÊG2ÁF˜„“b`¢&˜VÊG2Á&ñváB√“6˜W&6RÁvñGFÇbb&˜VÊG2Ê&˜GFˆ“√“6˜W&6RÊÜVñvá@¢í∞¢$6ˆ◊˜6R&ˆ˜B&˜VÊG2F&˜VÊG2WÜ6VVB67&VVÁ6Ü˜BG∑6˜W&6RÁvñGFá◊ÇG∑6˜W&6RÊÜVñváG“ ¢–¢6ÜV6≤Ü&˜VÊG2ÁvñGFÇÇí‚bb&˜VÊG2ÊÜVñváBÇí‚í∞¢$6ˆ◊˜6R&ˆ˜BÜ2V◊Gí67&VVÁ6Ü˜B&˜VÊG3¢F&˜VÊG2 ¢–¢&WGW&‚&óF÷Ê7&VFT&óF÷á6˜W&6R¬&˜VÊG2Ê∆VgB¬&˜VÊG2ÁF˜¬&˜VÊG2ÁvñGFÇÇí¬&˜VÊG2ÊÜVñváBÇíê¢–†¢&ófFRgV‚7vóT6&˜W6V≈Fı6V∆V7FVE7V6ñW2Ä¢g&ˆ‘Ê÷S¢7G&ñÊr¿¢Ê÷S¢7G&ñÊr¿¢WáV7FVEvS¢ñÁB¿¢í∞¢vóDf˜%6V∆V7FVE7V6ñW2ÜÊ÷R“g&ˆ‘Ê÷R¬WáV7FVEvR“WáV7FVEvR“ê†¢f¬6&˜W6Vƒ&˜VÊG2“6ˆ◊˜6U'V∆RÊˆ‰ÊˆFUvóFÖFrÇ&fó6ÖˆwVñFUˆ6&˜W6V¬"ê¢ÊfWF6Ö6V÷ÁFñ74ÊˆFRÇê¢Ê&˜VÊG4ñÂ&ˆ˜@¢f¬7F'B“ˆfg6WBÜ6&˜W6Vƒ&˜VÊG2ÁvñGFÇ¢„ÉFb¬6&˜W6Vƒ&˜VÊG2ÊÜVñváB¢„Vbê¢f¬VÊB“ˆfg6WBÜ6&˜W6Vƒ&˜VÊG2ÁvñGFÇ¢„fb¬6&˜W6Vƒ&˜VÊG2ÊÜVñváB¢„Vbê¢6ˆ◊˜6U'V∆RÊˆ‰ÊˆFUvóFÖFrÇ&fó6ÖˆwVñFUˆ6&˜W6V¬"íÁW&f˜&’F˜V6ÑñÁWB∞¢7vóRá7F'B“7F'B¬VÊB“VÊB¬GW&Fñˆ‰÷ñ∆∆ó2“Û¬ê¢–†¢vóDf˜%6V∆V7FVE7V6ñW2ÜÊ÷R“Ê÷R¬WáV7FVEvR“WáV7FVEvRê¢6ˆ◊˜6U'V∆RÊˆ‰ÊˆFUvóFÖFWáBÇ"G∂WáV7FVEvR≤“ÚG∑7V6ñW2Á6ó¶W“"íÊ76W'Dó4Fó7∆ñVBÇê¢6ˆ◊˜6U'V∆RÊˆ‰ÊˆFUvóFÖFWáBÜÊ÷RíÊ76W'Dó4Fó7∆ñVBÇê¢–†¢&ófFRgV‚vóDf˜%6V∆V7FVE7V6ñW2ÜÊ÷S¢7G&ñÊr¬WáV7FVEvS¢ñÁBí∞¢6ˆ◊˜6U'V∆RÁvóEVÁFñ¬áFñ÷V˜WD÷ñ∆∆ó2“UÛ¬í∞¢6V∆V7FVE7V6ñW4ÊˆFRÜÊ÷R“Ê÷R¬WáV7FVEvR“WáV7FVEvRí“ÁV∆¿¢–†¢f¬6&˜W6Vƒ&˜VÊG2“6ˆ◊˜6U'V∆RÊˆ‰ÊˆFUvóFÖFrÇ&fó6ÖˆwVñFUˆ6&˜W6V¬"ê¢ÊfWF6Ö6V÷ÁFñ74ÊˆFRÇê¢Ê&˜VÊG4ñÂ&ˆ˜@¢f¬7FófTÊˆFR“6V∆V7FVE7V6ñW4ÊˆFRÜÊ÷R“Ê÷R¬WáV7FVEvR“WáV7FVEvRê¢Û¢Fá&˜r76W'Fñˆ‰W'&˜"Ä¢"FÊ÷RFñBÊ˜BWá˜6R7W'&VÁB◊6V∆V7FVB7FFRf˜"vRFWáV7FVEvR"¿¢ê¢f¬6VÁFW$FV«F“'2Ü7FófTÊˆFRÊ&˜VÊG4ñÂ&ˆ˜BÊ6VÁFW"ÁÇ“6&˜W6Vƒ&˜VÊG2Ê6VÁFW"ÁÇê¢76W'EG'VRÄ¢%6V∆V7FVB6&BFÊ÷Ró2Ê˜B6VÁFW&VC¢vS“FWáV7FVEvR¬"∞¢&6&˜W6Vƒ6VÁFW%É“G∂6&˜W6Vƒ&˜VÊG2Ê6VÁFW"Áá“¬6&D&˜VÊG3“G∂7FófTÊˆFRÊ&˜VÊG4ñÂ&ˆ˜G“¬"∞¢&6VÁFW$FV«FÉ“F6VÁFW$FV«F"¿¢7FófTÊˆFRÊ&˜VÊG4ñÂ&ˆ˜BÁvñGFÇ‚bb`¢6VÁFW$FV«F√“7FófTÊˆFRÊ&˜VÊG4ñÂ&ˆ˜BÁvñGFÇ¢„b¿¢ê¢–†¢&ófFRgV‚6V∆V7FVE7V6ñW4ÊˆFRÜÊ÷S¢7G&ñÊr¬WáV7FVEvS¢ñÁBí–¢6ˆ◊˜6U'V∆RÊˆ‰∆ƒÊˆFW5vóFÑ6ˆÁFVÁDFW67&óFñˆ‚ÜÊ÷Rê¢ÊfWF6Ö6V÷ÁFñ74ÊˆFW2Çê¢Êfó'7D˜$ÁV∆¬≤ÊˆFR”‡¢f¬7FFTFW67&óFñˆ‚“'V‰6F6ÜñÊr∞¢ÊˆFRÊ6ˆÊfñuµ6V÷ÁFñ75&˜W'FñW2Â7FFTFW67&óFñˆÂ–¢“ÊvWD˜$ÁV∆¬Çê¢f¬FW67&óFñˆ‚“7FFTFW67&óFñˆ‚Ê˜$V◊GíÇê¢FW67&óFñˆ‚Ê6ˆÁFñÁ2Ç.z ¬G∂WáV7FVEvR≤“zxﬁ˚»ŒX[G∑7V6ñW2Á6ó¶W“zx“"íb`¢FW67&óFñˆ‚Ê6ˆÁFñÁ2Ç.[Ÿ>XòﬁòûKä“"ê¢–†¢&ófFRgV‚6ÜV∆¬Ü6ˆ÷÷ÊC¢7G&ñÊrí∞¢f¬FW67&óF˜"“ñÁ7G'V÷VÁFFñˆÂ&Vvó7G'íÊvWDñÁ7G'V÷VÁFFñˆ‚ÇíÁVîWFˆ÷Fñˆ‡¢ÊWÜV7WFU6ÜV∆ƒ6ˆ÷÷ÊBÜ6ˆ÷÷ÊBê¢&6Vƒfñ∆TFW67&óF˜"‰WFÙ6∆˜6TñÁWE7G&V“ÜFW67&óF˜"íÊ'VffW&VE&VFW"ÇíÁW6R≤óBÁ&VEFWáBÇí–¢–ß–†
+package com.yujian.ai
+
+import android.graphics.Bitmap
+import android.graphics.Rect
+import android.os.ParcelFileDescriptor
+import android.provider.Settings
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
+import androidx.compose.ui.test.swipeLeft
+import androidx.test.platform.app.InstrumentationRegistry
+import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.knowledge.FishGuideItem
+import com.yujian.ai.knowledge.FishKnowledgeCard
+import com.yujian.ai.knowledge.FishKnowledgeCardContent
+import com.yujian.ai.knowledge.FishKnowledgeDetail
+import com.yujian.ai.knowledge.FishKnowledgeEcology
+import com.yujian.ai.knowledge.FishKnowledgeFishing
+import com.yujian.ai.knowledge.FishKnowledgeGear
+import com.yujian.ai.knowledge.FishKnowledgeProfile
+import com.yujian.ai.knowledge.FishKnowledgeSkill
+import com.yujian.ai.knowledge.FishKnowledgeSpecies
+import com.yujian.ai.knowledge.FishKnowledgeStructured
+import com.yujian.ai.ui.screens.FishGuideHomeScreen
+import com.yujian.ai.ui.screens.FishSpeciesDetailScreen
+import java.io.File
+import java.io.FileOutputStream
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import kotlin.math.abs
+import org.junit.Rule
+import org.junit.Test
+
+class FishGuideRuntimeTest {
+    @get:Rule
+    val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    private val species = listOf(
+        FishGuideItem(
+            id = "grass_carp",
+            nameCn = "ËçâÈ±º",
+            aliases = listOf("È≤©È±º"),
+            scientificName = "Ctenopharyngodon idella",
+            category = "È≤§Áßë",
+            summary = "Â∏∏ËßÅÂ§ßÂûãÊ∑°Ê∞¥È±º„ÄÇ",
+            discovered = true,
+            catches = 2,
+        ),
+        FishGuideItem(
+            id = "crucian_carp",
+            nameCn = "È≤´È±º",
+            aliases = listOf("È≤´"),
+            scientificName = "Carassius auratus",
+            category = "È≤§Áßë",
+            summary = "ÂπøÊ≥õÂàÜÂ∏ÉÁöÑÊ∑°Ê∞¥È±º„ÄÇ",
+            discovered = false,
+            catches = 0,
+        ),
+        FishGuideItem(
+            id = "common_carp",
+            nameCn = "È≤§È±º",
+            scientificName = "Cyprinus carpio",
+            category = "È≤§Áßë",
+            summary = "Â∏∏ËßÅÂ∫ïÂ±ÇÊ∑°Ê∞¥È±º„ÄÇ",
+            discovered = true,
+            catches = 1,
+        ),
+    )
+
+    @Test
+    fun fishGuide_litAndUnlit_areBrowsableAndClickable() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        context.getSharedPreferences("fish_guide_home", 0)
+            .edit().putBoolean("carousel_discover_hint_shown", true).commit()
+        var opened: String? = null
+        composeRule.setContent {
+            FishGuideHomeScreen(
+                species = species,
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                onBack = {},
+                onRetry = {},
+                onSpeciesClick = { opened = it.id },
+            )
+        }
+
+        composeRule.onNodeWithText("È±ºÈâ¥").assertIsDisplayed()
+        composeRule.onNodeWithText("Â∑≤ÁÇπ‰∫Æ 2 / 3 Áßç").assertIsDisplayed()
+        composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
+        composeRule.onNodeWithText("ËçâÈ±º").assertIsDisplayed()
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
+        val speciesTitleBounds = composeRule.onNodeWithText(
+            "ËçâÈ±º",
+            useUnmergedTree = true,
+        ).fetchSemanticsNode().boundsInRoot
+        saveScreenshot("fish_guide_lit.png")
+        assertTrue(
+            "Species title must anchor the upper card hierarchy: title=$speciesTitleBounds carousel=$carouselBounds",
+            speciesTitleBounds.center.y < carouselBounds.center.y,
+        )
+
+        swipeCarouselToSelectedSpecies(
+            fromName = "ËçâÈ±º",
+            name = "È≤´È±º",
+            expectedPage = 1,
+        )
+        composeRule.onNodeWithText("Â∞öÊú™ÁÇπ‰∫Æ").assertIsDisplayed()
+        saveScreenshot("fish_guide_unlit.png")
+        composeRule.onNodeWithText("È≤´È±º").performClick()
+        composeRule.runOnIdle { assertEquals("crucian_carp", opened) }
+    }
+
+    @Test
+    fun fishGuide_reduceMotion_suppressesDiscoverHint_butSwipeWorks() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val prefs = context.getSharedPreferences("fish_guide_home", 0)
+        prefs.edit().putBoolean("carousel_discover_hint_shown", false).commit()
+        val animatorScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        )
+        val transitionScale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1f,
+        )
+        try {
+            shell("settings put global animator_duration_scale 0")
+            shell("settings put global transition_animation_scale 0")
+            assertEquals(
+                0f,
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f),
+                0f,
+            )
+            assertEquals(
+                0f,
+                Settings.Global.getFloat(context.contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f),
+                0f,
+            )
+            composeRule.setContent {
+                FishGuideHomeScreen(
+                    species = species,
+                    loading = false,
+                    offlinePreview = false,
+                    error = null,
+                    resolveAssetUrl = { null },
+                    onBack = {},
+                    onRetry = {},
+                    onSpeciesClick = {},
+                )
+            }
+            waitForSelectedSpecies(name = "ËçâÈ±º", expectedPage = 0)
+            composeRule.mainClock.advanceTimeBy(1300)
+            composeRule.runOnIdle {
+                assertFalse(prefs.getBoolean("carousel_discover_hint_shown", false))
+            }
+            swipeCarouselToSelectedSpecies(
+                fromName = "ËçâÈ±º",
+                name = "È≤´È±º",
+                expectedPage = 1,
+            )
+        } finally {
+            shell("settings put global animator_duration_scale $animatorScale")
+            shell("settings put global transition_animation_scale $transitionScale")
+        }
+    }
+
+    @Test
+    fun fishGuide_error_hasRetryPath() {
+        var retried = false
+        composeRule.setContent {
+            FishGuideHomeScreen(
+                species = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = "ÁΩëÁªúÊöÇ‰∏çÂèØÁî®",
+                resolveAssetUrl = { null },
+                onBack = {},
+                onRetry = { retried = true },
+                onSpeciesClick = {},
+            )
+        }
+        composeRule.onNodeWithText("ÂΩìÂâçÊó†Ê≥ïÂä†ËΩΩÈ±ºÁßçËµÑÊñô").assertIsDisplayed()
+        saveScreenshot("fish_guide_error.png")
+        composeRule.onNode(hasText("Ê£ÄÊü•ÁΩëÁªúÂêéÈáçËØï") and hasClickAction()).performClick()
+        composeRule.runOnIdle { assertTrue(retried) }
+    }
+
+    @Test
+    fun speciesDetail_usesNaturalKnowledgeSemanticsAndRealCatchCount() {
+        val detail = detailFixture()
+        val catches = listOf(
+            catch("catch_1", "grass_carp", "2026-09-22T10:00:00Z"),
+            catch("catch_2", "grass_carp", "2026-09-25T10:00:00Z"),
+            catch("catch_3", "grass_carp", "2026-09-27T10:00:00Z"),
+            catch("other", "crucian_carp", "2026-09-28T10:00:00Z"),
+        )
+        var openedCatchId: String? = null
+        var openedSpeciesFilter: String? = null
+        var backed = false
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detail,
+                fallback = null,
+                savedCatches = catches,
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = { backed = true },
+                onRecordCatch = {},
+                onOpenCatch = { openedCatchId = it },
+                onOpenSpeciesCatches = { openedSpeciesFilter = it },
+            )
+        }
+
+        saveScreenshot("fish_species_detail_initial.png")
+        composeRule.onNodeWithTag("fish_knowledge_card_v2_HERO").assertExists()
+        composeRule.onNodeWithContentDescription("È±ºÁßçÂêçÁâáÔºåËçâÈ±º").assertExists()
+        assertTrue(composeRule.onAllNodesWithText("Ëã±ÈõÑÂç°").fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithText("Á®ÄÊúâ 2  ¬∑  ÂäõÈáè 3  ¬∑  ÊåëÊàò 1").fetchSemanticsNodes().isEmpty())
+        composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        val carouselBounds = composeRule.onNodeWithTag("fish_species_knowledge_carousel")
+            .fetchSemanticsNode().boundsInRoot
+        val activeCardBounds = composeRule.onNodeWithContentDescription("È±ºÁßçÂêçÁâáÔºåËçâÈ±º")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue(
+            "Species Detail active card width must follow the frozen 82‚Äì86% range",
+            activeCardBounds.width / carouselBounds.width in 0.82f..0.86f,
+        )
+        assertTrue(composeRule.onAllNodesWithText("ÊéíË°åÊ¶ú").fetchSemanticsNodes().isEmpty())
+        saveScreenshot("fish_species_detail.png")
+        composeRule.onNodeWithText("ÊàëÁöÑËçâÈ±º").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("3Ê¨°ËÆ∞ÂΩï").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("ÊàëÁöÑËçâÈ±ºÔºå3Ê¨°ËÆ∞ÂΩïÔºåÊâìÂºÄËØ•È±ºÁßçÈ±ºËé∑").performClick()
+        composeRule.runOnIdle { assertEquals("grass_carp", openedSpeciesFilter) }
+        composeRule.onNodeWithContentDescription("ÊâìÂºÄËçâÈ±ºÈ±ºËé∑ËÆ∞ÂΩïÔºå2026-09-27ÔºåÁÖßÁâáÊöÇ‰∏çÂèØÁî®").performClick()
+        composeRule.runOnIdle { assertEquals("catch_3", openedCatchId) }
+        saveScreenshot("fish_species_detail_catch.png")
+
+        composeRule.onNodeWithContentDescription("ËøîÂõû").performClick()
+        composeRule.runOnIdle { assertTrue(backed) }
+    }
+
+    @Test
+    fun speciesDetail_zeroCatch_usesQuietStateAndUnfilteredCaptureEntry() {
+        var openedCapture = false
+        var openedFilteredCatches = false
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detailFixture(),
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = {},
+                onRecordCatch = { openedCapture = true },
+                onOpenCatch = {},
+                onOpenSpeciesCatches = { openedFilteredCatches = true },
+            )
+        }
+
+        composeRule.onNodeWithText("ÊàëÁöÑËçâÈ±º").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("0Ê¨°ËÆ∞ÂΩï").assertIsDisplayed()
+        saveScreenshot("fish_species_detail_zero_catch_initial.png")
+        composeRule.onNodeWithText("ËøòÊ≤°ÊúâËÆ∞ÂΩï").performScrollTo().assertIsDisplayed()
+        saveScreenshot("fish_species_detail_zero_catch.png")
+        composeRule.onNodeWithText("ÂéªËÆ∞ÂΩïÈ±ºËé∑").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertTrue(openedCapture)
+            assertFalse(openedFilteredCatches)
+        }
+    }
+
+    @Test
+    fun speciesDetail_knowledgeCarouselHasFiveFinitePositions() {
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = detailFixture(),
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = null,
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = {},
+                onBack = {},
+                onRecordCatch = {},
+                onOpenCatch = {},
+                onOpenSpeciesCatches = {},
+            )
+        }
+
+        composeRule.onNodeWithText("01 / 05").assertIsDisplayed()
+        repeat(4) {
+            composeRule.onNodeWithTag("fish_species_knowledge_carousel").performTouchInput { swipeLeft() }
+        }
+        composeRule.onNodeWithText("05 / 05").assertIsDisplayed()
+        composeRule.onNodeWithTag("fish_species_knowledge_carousel").performTouchInput { swipeLeft() }
+        composeRule.onNodeWithText("05 / 05").assertIsDisplayed()
+    }
+
+    @Test
+    fun speciesDetail_empty_hasRetryPath() {
+        var retried = false
+        composeRule.setContent {
+            FishSpeciesDetailScreen(
+                detail = null,
+                fallback = null,
+                savedCatches = emptyList(),
+                loading = false,
+                offlinePreview = false,
+                error = "ÊúçÂä°ÊöÇ‰∏çÂèØÁî®",
+                resolveAssetUrl = { null },
+                resolveCatchImageUrl = { null },
+                onRetry = { retried = true },
+                onBack = {},
+                onRecordCatch = {},
+                onOpenCatch = {},
+                onOpenSpeciesCatches = {},
+            )
+        }
+        composeRule.onNodeWithText("ËØ•È±ºÁßçËµÑÊñôÊöÇ‰∏çÂèØÁî®").assertIsDisplayed()
+        composeRule.onNodeWithText("ÈáçËØï").performClick()
+        composeRule.runOnIdle { assertTrue(retried) }
+    }
+
+    private fun catch(id: String, speciesId: String, date: String) = RemoteCatch(
+        id = id,
+        imageUrl = "",
+        speciesId = speciesId,
+        speciesName = "ËçâÈ±º",
+        confidence = 0.9f,
+        modelVersion = "test",
+        capturedAt = date,
+        createdAt = date,
+    )
+
+    private fun detailFixture(): FishKnowledgeDetail = FishKnowledgeDetail(
+        species = FishKnowledgeSpecies(
+            id = "grass_carp",
+            nameCn = "ËçâÈ±º",
+            aliases = listOf("È≤©È±º"),
+            scientificName = "Ctenopharyngodon idella",
+            category = "È≤§Áßë",
+            family = "Cyprinidae",
+            genus = "Ctenopharyngodon",
+            summary = "Â∏∏ËßÅÂ§ßÂûãÊ∑°Ê∞¥È±º„ÄÇ",
+            status = "ACTIVE",
+            coverImage = null,
+        ),
+        cover = null,
+        cards = listOf(
+            FishKnowledgeCard(
+                id = 1,
+                speciesId = "grass_carp",
+                cardType = "HERO",
+                title = "ËçâÈ±º‰∏ªÂç°",
+                imageUrl = "",
+                description = "ËçâÈ£üÊÄßÂ§ßÂûãÊ∑°Ê∞¥È±º",
+                content = FishKnowledgeCardContent(
+                    type = "HERO",
+                    tag = "‰∏≠‰∏ãÂ±Ç",
+                    rarity = 2,
+                    power = 3,
+                    challenge = 1,
+                    description = "ËçâÈ£üÊÄßÂ§ßÂûãÊ∑°Ê∞¥È±º",
+                ),
+                sortOrder = 0,
+                status = "ACTIVE",
+            ),
+            FishKnowledgeCard(
+                id = 2,
+                speciesId = "grass_carp",
+                cardType = "IDENTIFICATION",
+                title = "ÊóßËçâÁ®ø",
+                imageUrl = "",
+                description = "",
+                content = FishKnowledgeCardContent(type = "IDENTIFICATION"),
+                sortOrder = 1,
+                status = "DRAFT",
+            ),
+        ),
+        gallery = emptyList(),
+        profile = FishKnowledgeProfile(
+            bodyShape = "Á∫∫Èî§ÂΩ¢",
+            features = listOf("‰ΩìËâ≤ÈùíÁÅ∞", "È≥ûÁâáËæÉÂ§ß"),
+            habitat = listOf("Ê±üÊ≤≥", "ÊπñÂ∫ì"),
+            food = "ËçâÈ£ü",
+            season = listOf("Êò•", "Â§è", "Áßã"),
+        ),
+        fishing = FishKnowledgeFishing(
+            waterLayer = "‰∏≠‰∏ãÂ±Ç",
+            season = listOf("Â§è", "Áßã"),
+            bait = listOf("ÁéâÁ±≥"),
+            method = listOf("Â∫ïÈíì"),
+            summary = "ÂØªÊâæÊúâÊ∞¥ËçâÁöÑÁºìÊµÅÂå∫Âüü„ÄÇ",
+        ),
+        videos = emptyList(),
+        similarity = emptyList(),
+        knowledge = FishKnowledgeStructured(
+            ecology = FishKnowledgeEcology(
+                habitat = listOf("Ê±üÊ≤≥", "ÊπñÂ∫ì"),
+                waterLayer = "‰∏≠‰∏ãÂ±Ç",
+                season = "Â§èÁßã",
+                behavior = "ÂñúÂú®Ê∞¥Ëçâ‰∏∞ÂØåÂå∫ÂüüÊ¥ªÂä®",
+                diet = "ËçâÈ£ü",
+            ),
+            gear = FishKnowledgeGear(
+                method = "Â∫ïÈíì",
+                rod = "‰∏≠ÈïøÁ´ø",
+                line = "‰∏≠Á≠âÁ∫øÁªÑ",
+                hook = "‰∏≠Âè∑Èí©",
+                bait = listOf("ÁéâÁ±≥"),
+            ),
+            skill = FishKnowledgeSkill(tip = "‰∏≠È±ºÂêé‰øùÊåÅÁ®≥ÂÆöÊéßÈ±º"),
+        ),
+        dynamicAvailable = true,
+    )
+
+    private fun saveScreenshot(name: String) {
+        composeRule.waitForIdle()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val rawBitmap = instrumentation.uiAutomation.takeScreenshot()
+        val appSurface = cropToComposeRoot(rawBitmap)
+        try {
+            val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
+            check(root.exists() || root.mkdirs())
+            FileOutputStream(File(root, name)).use { out ->
+                check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, out))
+            }
+        } finally {
+            if (appSurface !== rawBitmap) appSurface.recycle()
+            rawBitmap.recycle()
+        }
+    }
+
+    private fun cropToComposeRoot(source: Bitmap): Bitmap {
+        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+        val windowOrigin = IntArray(2)
+        composeRule.runOnUiThread {
+            composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
+        }
+        val bounds = Rect(
+            kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
+            kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
+            kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
+            kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
+        )
+        check(bounds.left >= 0 && bounds.top >= 0 &&
+            bounds.right <= source.width && bounds.bottom <= source.height
+        ) {
+            "Compose root bounds $bounds exceed screenshot ${source.width}x${source.height}"
+        }
+        check(bounds.width() > 0 && bounds.height() > 0) {
+            "Compose root has empty screenshot bounds: $bounds"
+        }
+        return Bitmap.createBitmap(source, bounds.left, bounds.top, bounds.width(), bounds.height())
+    }
+
+    private fun swipeCarouselToSelectedSpecies(
+        fromName: String,
+        name: String,
+        expectedPage: Int,
+    ) {
+        waitForSelectedSpecies(name = fromName, expectedPage = expectedPage - 1)
+
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val start = Offset(carouselBounds.width * 0.84f, carouselBounds.height * 0.5f)
+        val end = Offset(carouselBounds.width * 0.16f, carouselBounds.height * 0.5f)
+        composeRule.onNodeWithTag("fish_guide_carousel").performTouchInput {
+            swipe(start = start, end = end, durationMillis = 1_100L)
+        }
+
+        waitForSelectedSpecies(name = name, expectedPage = expectedPage)
+        composeRule.onNodeWithText("${expectedPage + 1} / ${species.size}").assertIsDisplayed()
+        composeRule.onNodeWithText(name).assertIsDisplayed()
+    }
+
+    private fun waitForSelectedSpecies(name: String, expectedPage: Int) {
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            selectedSpeciesNode(name = name, expectedPage = expectedPage) != null
+        }
+
+        val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel")
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val activeNode = selectedSpeciesNode(name = name, expectedPage = expectedPage)
+            ?: throw AssertionError(
+                "$name did not expose current-selected state for page $expectedPage",
+            )
+        val centerDelta = abs(activeNode.boundsInRoot.center.x - carouselBounds.center.x)
+        assertTrue(
+            "Selected card $name is not centered: page=$expectedPage, " +
+                "carouselCenterX=${carouselBounds.center.x}, cardBounds=${activeNode.boundsInRoot}, " +
+                "centerDeltaX=$centerDelta",
+            activeNode.boundsInRoot.width > 0f &&
+                centerDelta <= activeNode.boundsInRoot.width * 0.1f,
+        )
+    }
+
+    private fun selectedSpeciesNode(name: String, expectedPage: Int) =
+        composeRule.onAllNodesWithContentDescription(name)
+            .fetchSemanticsNodes()
+            .firstOrNull { node ->
+                val stateDescription = runCatching {
+                    node.config[SemanticsProperties.StateDescription]
+                }.getOrNull()
+                val description = stateDescription.orEmpty()
+                description.contains("Á¨¨ ${expectedPage + 1} ÁßçÔºåÂÖ± ${species.size} Áßç") &&
+                    description.contains("ÂΩìÂâçÈÄâ‰∏≠")
+            }
+
+    private fun shell(command: String) {
+        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand(command)
+        ParcelFileDescriptor.AutoCloseInputStream(descriptor).bufferedReader().use { it.readText() }
+    }
+}
