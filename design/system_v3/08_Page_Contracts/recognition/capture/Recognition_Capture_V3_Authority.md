@@ -53,6 +53,18 @@ Gallery cancellation is non-mutating. An unreadable selected image maps to CAPTU
 
 The capture-button master remains the existing Asset Registry entry and SHA. Its RGBA pixel size is not a dp dimension. Live camera pixels are runtime data and must never be added to the frozen artwork list. The Processing Early PNG remains read-only and is not a camera visual.
 
+## Additive first-use guide authority
+
+The first-use camera guide is an additive overlay state inside Recognition Capture. Its frozen visual authority is:
+
+- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md`
+- `design/pages/recognition/first_use_camera_guide/manifest.json`
+- `design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png`
+- `design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png`
+- `design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png`
+
+It does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker. P01/P02 advance with `下一张`; P03 uses `开始拍摄`. The final action only dismisses the guide and returns to Capture Ready; it never fires the shutter automatically.
+
 ## Acceptance
 
 Capture_Accessibility_Responsive_Matrix.md is the contract acceptance authority. Matrix PASS denotes frozen design coverage only; Android/runtime/device execution is NOT_RUN in this work.
