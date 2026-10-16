@@ -18,6 +18,7 @@ resume work without depending on chat history.
 | Agent startup rules | AGENTS.md |
 | Current Work execution state | docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json |
 | Observed execution history | harness/build-log.md |
+| Phase / Task State Machine | harness/PHASE_TASK_STATE_MACHINE.yaml |
 | Detailed phase plan | harness/build/ |
 | Phase discoveries/decisions | harness/context/ |
 | Design authority | design/system_v3/11_Freeze_Governance/ |
@@ -41,6 +42,8 @@ Update the master state when any of the following changes:
 - blocker status;
 - material product/design/architecture decision;
 - next action;
+- phase/task transition;
+- retry/recovery state;
 - release readiness.
 
 A documentation-only commit does not automatically change the tracked execution
@@ -311,3 +314,38 @@ python scripts/validate_project_master_state.py
 Expected success marker:
 
 PROJECT_MASTER_STATE_VALIDATION=PASS
+
+
+## 17. Phase / Task State Machine
+
+The execution controller is harness/PHASE_TASK_STATE_MACHINE.yaml.
+
+At task start, verify:
+
+- current phase and task;
+- exact queue status for N001-N010;
+- dependency tasks;
+- named blockers;
+- retry_count and retry_budget;
+- exact-SHA evidence requirements.
+
+Task lifecycle:
+
+READY -> RUNNING -> VALIDATING -> PASS -> CLOSED
+
+Failure/recovery:
+
+VALIDATING -> FAIL -> RECOVERING -> RUNNING
+
+Dependency or infrastructure stop:
+
+VALIDATING -> BLOCKED
+
+Human release:
+
+FINAL_GATE -> CLOSED only after explicit human authorization.
+
+Automatic repair is bounded to the initial attempt plus two repairs. The third
+failure is classified and stopped for that gate. Failed evidence is retained.
+
+A task cannot be marked PASS from historical evidence or from a different source SHA.
