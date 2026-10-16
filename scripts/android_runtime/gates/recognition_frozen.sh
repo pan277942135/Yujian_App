@@ -15,7 +15,7 @@ gate_before_instrumentation() {
   fi
   "${YUJIAN_ADB_BIN}" shell "rm -f '${YUJIAN_RECOGNITION_DEVICE_RECORDING}'" >/dev/null 2>&1 || true
   "${YUJIAN_ADB_BIN}" shell \
-    "screenrecord --size 320x640 --bit-rate 4000000 --time-limit 45 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
+    "screenrecord --bit-rate 4000000 --time-limit 45 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
     >/dev/null 2>&1 || true
   sleep 0.5
 }

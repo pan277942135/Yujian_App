@@ -3,11 +3,11 @@ package com.yujian.ai
 import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
-import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertFalse
@@ -147,20 +147,9 @@ class PresentationSanitizationRuntimeTest {
 
     private fun waitForVisibleTextBounds(text: String): Rect {
         val selector = By.text(text)
-        val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
-        while (SystemClock.uptimeMillis() < deadline) {
-            val visibleBounds = runCatching { device.findObjects(selector) }
-                .getOrNull()
-                ?.mapNotNull { candidate ->
-                    runCatching { Rect(candidate.visibleBounds) }
-                        .getOrNull()
-                        ?.takeUnless { it.isEmpty }
-                }
-                .orEmpty()
-            visibleBounds.maxByOrNull { it.width().toLong() * it.height() }
-                ?.let { return it }
-            SystemClock.sleep(100L)
-        }
+        val candidate = device.wait(Until.findObject(selector), SETTLE_MILLIS)
+        val visibleBounds = candidate?.visibleBounds?.let(::Rect)?.takeUnless { it.isEmpty }
+        if (visibleBounds != null) return visibleBounds
         throw AssertionError("Timed out waiting for visible text: $text")
     }
 

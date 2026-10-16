@@ -484,11 +484,11 @@ private fun RecentCatchSectionHeader(
         Row(
             modifier = Modifier
                 .requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .clickable(role = Role.Button, onClick = onCatchesClick)
                 .semantics(mergeDescendants = true) {
                     contentDescription = "全部鱼获"
                     role = Role.Button
                 }
-                .clickable(role = Role.Button, onClick = onCatchesClick)
                 .testTag("normal-home-recent-all"),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(actionSpacing),

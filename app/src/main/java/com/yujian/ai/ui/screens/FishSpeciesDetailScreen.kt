@@ -586,7 +586,7 @@ private fun CatchPreviewTile(
                 role = Role.Button,
                 onClick = onClick,
             )
-            .semantics {
+            .semantics(mergeDescendants = true) {
                 contentDescription = description
                 stateDescription = date
             },

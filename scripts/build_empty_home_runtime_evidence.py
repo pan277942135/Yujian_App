@@ -136,10 +136,16 @@ def main() -> None:
 
     line_end = anchors["line"]["end_reference_px"]
     ripple_center = anchors["ripple"]["center_reference_px"]
+    # The fitted line endpoint sits 1px left and 3px below water contact,
+    # inside the bobber occlusion. Its measured anchor is intentionally not
+    # equal to the water-contact coordinate.
     fishing_contract_ok = (
-        ripple_center == [contact_x, contact_y]
-        and int(line_end[0]) == int(contact_x)
-        and int(line_end[1]) > int(contact_y)
+        # The frozen V2.2 anchors intentionally place the ripple center 1px
+        # right and 3px above water contact; do not collapse those distinct
+        # measured points into one coordinate. EmptyHomeV2RuntimeContractTest
+        # locks this exact design relation.
+        ripple_center == [contact_x + 1, contact_y - 3]
+        and line_end == [contact_x - 1, contact_y + 3]
         and mean_rgb_spread(checked_crop(runtime, fishing_box, "fishing")) >= 5.0
     )
     fishing_status = "PASS" if fishing_contract_ok else "FAIL"
