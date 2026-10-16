@@ -379,3 +379,11 @@ The Control Plane defines rules; it does not store live Work progress.
 - Dynamic on a Work branch: PROJECT_MASTER_STATE.yaml, generic WORK_EXECUTION_STATE.json, checkpoints, logs, CI/runtime observations, evidence and APK provenance.
 - A Work status change never requires a main Control Plane commit.
 - A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.
+
+
+## Work State Migration V1.1
+Legacy feature-specific Work state paths such as `docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json` are retired. Every active Work branch uses root `WORK_EXECUTION_STATE.json`.
+
+Required identity fields: `work_id`, `branch`, `control_plane_revision`, `base_sha`, `phase`, `task_id`, `stage`, `status`, `source_sha` and `next_action`.
+
+The Work state records the live pointer; the Phase/Task Machine records the static definition. Never put the live pointer back into the machine.
