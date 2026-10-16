@@ -261,7 +261,7 @@ def main() -> int:
     print("PROJECT_MASTER_STATE_VALIDATION=PASS")
     print(f"state_file={path}")
     print(f"tracked_execution_baseline={state['state_control']['execution_baseline_sha']}")
-    print(f"current_pr=PR#{state['pull_requests']['PR145']['number']}")
+    print(f"current_pr=PR#{state["state_control"].get("current_pr")}")
     print(f"open_blockers={len(state['blockers'])}")
     print(f"next_actions={len(state['next_actions'])}")
     return 0
