@@ -4,7 +4,7 @@
   "version": "V3.1",
   "status": "FROZEN",
   "shared_foundation_status": "SHARED_FOUNDATION_READY",
-  "updated_at": "2026-10-12",
+  "updated_at": "2026-10-16",
   "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
   "entries": [
     {
@@ -261,6 +261,24 @@
         "Android Work implementation input (Normal Home only)",
         "Test Work runtime acceptance input (Normal Home only)"
       ]
+    },
+    {
+      "authority_id": "recognition_first_use_camera_guide",
+      "domain": "Recognition Capture first-use camera guide visual and interaction surface",
+      "status": "CANONICAL",
+      "canonical_path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+      "supporting_paths": [
+        "design/pages/recognition/first_use_camera_guide/README.md",
+        "design/pages/recognition/first_use_camera_guide/navigation.json",
+        "design/pages/recognition/first_use_camera_guide/manifest.json",
+        "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md"
+      ],
+      "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
+      "status_detail": "P01/P02/P03 FROZEN; P01/P02 use 下一张, P03 uses 开始拍摄; no automatic shutter."
     }
   ],
   "precedence_rules": [
