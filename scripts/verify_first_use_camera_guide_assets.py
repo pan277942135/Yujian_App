@@ -25,21 +25,12 @@ EXPECTED = [
     {
         "id": "p02",
         "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-        "source_filename": "湖畔竖拍识鱼指南.png",
-        "width": 941,
-        "height": 1671,
-        "bytes": 2_042_852,
-        "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-    },
-    {
-        "id": "p03",
-        "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
         "source_filename": "湖畔横屏拍摄指南(1).png",
         "width": 941,
         "height": 1672,
         "bytes": 2_001_322,
         "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-    },
+    
 ]
 
 
@@ -67,7 +58,7 @@ def main() -> None:
         fail("manifest repository_binary_import.status must be PASS")
     if import_status.get("required_paths") != expected_paths:
         fail("manifest repository_binary_import.required_paths order mismatch")
-    if report.get("schema_version") != "1.0" or report.get("task_id") != "RECOGNITION-FIRST-USE-GUIDE-V1":
+    if report.get("schema_version") != "1.1" or report.get("task_id") != "RECOGNITION-FIRST-USE-GUIDE-V1":
         fail("asset import report schema/task id mismatch")
     if report.get("status") != "PASS" or report.get("binary_import_status") != "PASS":
         fail("asset import report must record PASS")
@@ -75,7 +66,7 @@ def main() -> None:
     manifest_assets = {item.get("id"): item for item in manifest.get("assets", [])}
     report_assets = report.get("assets", [])
     if [item.get("id") for item in report_assets] != [asset["id"] for asset in EXPECTED]:
-        fail("asset import report must list P01/P02/P03 in order")
+        fail("asset import report must list P01/P02 in order")
 
     for expected, recorded in zip(EXPECTED, report_assets):
         relative = expected["path"]
@@ -105,7 +96,7 @@ def main() -> None:
         if recorded.get("status") != "PASS" or not recorded.get("import_timestamp"):
             fail(f"report {expected['id']} must include PASS and import_timestamp")
 
-    print("PASS: P01/P02/P03 frozen guide PNG bytes, SHA-256, dimensions, and Git blob SHAs match.")
+    print("PASS: P01/P02 frozen guide PNG bytes, SHA-256, dimensions, and Git blob SHAs match.")
 
 
 if __name__ == "__main__":
