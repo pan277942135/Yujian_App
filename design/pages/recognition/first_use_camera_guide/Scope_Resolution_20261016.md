@@ -1,22 +1,36 @@
-# First-use Camera Guide V1 · Task Scope Resolution
+# First-use Camera Guide V1 · Scope Resolution
 
-**Status:** ACTIVE FOR `RECOGNITION-FIRST-USE-GUIDE-V1`  
+**Status:** ACTIVE / FROZEN  
 **Date:** 2026-10-16
 
-## Resolution
+## Final user-authorized resolution
 
-The explicitly requested V1 work task at `docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md` defines the active scope for PR #145 as three pages. This resolves `C-FIRST-USE-GUIDE-PAGE-COUNT` for this task.
+The first-use camera guide is **exactly two pages**.
 
-| Page | Phone | Fish |
-|---|---|---|
-| P01 | Portrait | Horizontal |
-| P02 | Portrait | Vertical |
-| P03 | Landscape | Horizontal |
+| Page | Phone | Fish | Action |
+|---|---|---|---|
+| P01 | Portrait | Horizontal | 下一张 |
+| P02 | Landscape | Horizontal | 开始拍摄 |
 
-The task requires the exact original P01/P02/P03 Frozen PNG bytes already registered in `asset_import_report.json`. Their paths, bytes, dimensions and SHA-256 values remain unchanged.
+The former **P02 · 竖拍鱼类拍摄示意** (portrait + vertical fish) is removed from the active flow.
+
+The former **P03 · 横屏拍摄示意** page ID is removed. The user-approved PNG from that page is promoted unchanged as the active P02 visual authority.
+
+## Active P02 source
+
+- Source: `湖畔横屏拍摄指南(1).png`
+- Canvas: 941×1672
+- Bytes: 2,001,322
+- SHA-256: `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`
+- Repository path: `design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png`
+
+## Historical provenance
+
+- Former P02 portrait/vertical PNG remains under `archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png`.
+- Former P03 landscape/horizontal PNG remains under `archive/P03_Landscape_Horizontal_Fish_Superseded_20261016.png`.
+
+Neither historical path is an active Design Manager page.
 
 ## Authority boundary
 
-`Freeze_Decision_20261016.md` records a later two-page alternative. It is retained for provenance, but is superseded for this specifically authorized V1 task. The three-page scope is not a visual redesign and does not alter Frozen artwork.
-
-Android Runtime must continue to rebuild the guide with Compose. Independent page-specific runtime photos remain a separate asset-source acceptance item; full-page Frozen screenshots are not runtime resources.
+This resolves the previous page-count conflict. The active design authority is now the two-page package above. Android implementation is **not** changed by this freeze and remains a downstream task.
