@@ -25,7 +25,7 @@ internal fun mapRecognitionGuideReferenceSpace(
     runtimeHeightPx: Int,
 ): RecognitionGuideReferenceMapping {
     require(runtimeWidthPx > 0 && runtimeHeightPx > 0) { "Runtime viewport must be positive" }
-    val referenceHeight = if (page == RecognitionFirstCaptureGuidePage.P02) 1672 else 1671
+    val referenceHeight = if (page == RecognitionFirstCaptureGuidePage.P03) 1672 else 1671
     val scale = runtimeWidthPx / 941f
     val scaledHeight = referenceHeight * scale
     return RecognitionGuideReferenceMapping(

@@ -169,5 +169,40 @@ gate_collect_evidence() {
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
+
+  local visual_report="$output/first_use_camera_guide/first_use_camera_guide_runtime_report.json"
+  local visual_parity visual_pass
+  if ! visual_parity="$(python3 - "$visual_report" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    print(json.load(stream).get("visual_parity", ""))
+PY
+)"; then
+    runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_VISUAL_REPORT_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  case "$visual_parity" in
+    BLOCKED_ASSET_SOURCE)
+      runtime_set_failure "ASSET_SOURCE" "ASSET_SOURCE_BLOCKED"
+      return "$EXIT_BLOCKED_ASSET_SOURCE"
+      ;;
+    PASS)
+      if ! visual_pass="$(python3 - "$visual_report" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    print(str(json.load(stream).get("pass", False)).lower())
+PY
+)" || [[ "$visual_pass" != "true" ]]; then
+        runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_VISUAL_PARITY_NOT_CONFIRMED"
+        return "$EXIT_FAIL_EVIDENCE"
+      fi
+      ;;
+    *)
+      runtime_set_failure "DESIGN_PARITY" "FIRST_USE_CAMERA_GUIDE_VISUAL_PARITY_FAILED"
+      return "$EXIT_FAIL_EVIDENCE"
+      ;;
+  esac
   return "$EXIT_PASS"
 }

@@ -305,16 +305,17 @@ feature_contracts:
         authority_spec: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
         current_registry_manifest: "design/pages/recognition/first_use_camera_guide/manifest.json"
         current_registry_navigation: "design/pages/recognition/first_use_camera_guide/navigation.json"
-        active_pages_by_design_authority: ["p01", "p02"]
-        active_pages_by_state_machine: ["p01", "p02"]
+        active_pages_by_design_authority: ["p01", "p02", "p03"]
+        active_pages_by_state_machine: ["p01", "p02", "p03"]
         page_orientation:
           p01: "PORTRAIT + HORIZONTAL_FISH"
-          p02: "LANDSCAPE + HORIZONTAL_FISH"
+          p02: "PORTRAIT + VERTICAL_FISH"
+          p03: "LANDSCAPE + HORIZONTAL_FISH"
         asset_sha256:
           p01: "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
-          p02: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+          p02: "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
+          p03: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
         repository_binary_import_status: "PASS"
-        historical_page_ids: ["former_p02_portrait_vertical", "former_p03_landscape_horizontal"]
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]

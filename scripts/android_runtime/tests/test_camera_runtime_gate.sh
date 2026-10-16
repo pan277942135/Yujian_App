@@ -13,6 +13,8 @@ export FAKE_GRANT_EXIT=0
 export FAKE_GRANT_OUTPUT=""
 EXIT_PASS=0
 EXIT_BLOCKED_INFRA=10
+EXIT_FAIL_EVIDENCE=40
+EXIT_BLOCKED_ASSET_SOURCE=50
 FAIL_PHASE=""
 FAIL_REASON=""
 runtime_set_failure() {
@@ -62,4 +64,47 @@ fi
 [[ "$FAIL_PHASE" == "CAMERA_PERMISSION_SETUP" ]]
 [[ "$FAIL_REASON" == "APP_RESET_OR_CAMERA_PERMISSION_GRANT_FAILED" ]]
 grep -Fx "CAMERA_PERMISSION_GRANT_EXIT_CODE=7" "$YUJIAN_EVIDENCE_DIR/camera_runtime_v1/permission_preflight.txt" >/dev/null
-printf "camera runtime gate permission handling: PASS\n"
+
+fixture="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+mkdir -p "$fixture/first_use_camera_guide" "$fixture/component"
+printf 'BACK_CAMERA_COUNT=1\nCAMERA_SERVICE_RESPONSIVE=true\n' > "$fixture/camera_preflight.txt"
+for name in \
+  01_camera_open.png 02_preview_streaming.png 03_capture_ready.png \
+  04_capture_pressed.png 05_post_capture.png 06_recognition_handoff.png \
+  P01_runtime.png P02_runtime.png P03_runtime.png \
+  first_use_camera_guide_runtime_report.json camera_capture_trace.txt \
+  camera_runtime_log.txt instrumentation_result.txt; do
+  printf 'fixture\n' > "$fixture/$name"
+done
+for name in P01_overlay.png P02_overlay.png P03_overlay.png \
+  P01_diff.png P02_diff.png P03_diff.png first_use_camera_guide_runtime_report.json; do
+  printf 'fixture\n' > "$fixture/first_use_camera_guide/$name"
+done
+for name in P01_compose_component.png P02_compose_component.png \
+  P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+  printf 'fixture\n' > "$fixture/component/$name"
+done
+printf '{"visual_parity":"BLOCKED_ASSET_SOURCE","pass":false}\n' \
+  > "$fixture/first_use_camera_guide/first_use_camera_guide_runtime_report.json"
+FAIL_PHASE=""
+FAIL_REASON=""
+gate_collect_evidence
+blocked_rc=$?
+if (( blocked_rc != EXIT_BLOCKED_ASSET_SOURCE )); then
+  printf "expected missing source photos to block visual gate; got rc=%s phase=%s reason=%s\n" \
+    "$blocked_rc" "$FAIL_PHASE" "$FAIL_REASON" >&2
+  exit 1
+fi
+[[ "$FAIL_PHASE" == "ASSET_SOURCE" ]]
+[[ "$FAIL_REASON" == "ASSET_SOURCE_BLOCKED" ]]
+
+printf '{"visual_parity":"PASS","pass":true}\n' \
+  > "$fixture/first_use_camera_guide/first_use_camera_guide_runtime_report.json"
+gate_collect_evidence
+pass_evidence_rc=$?
+if (( pass_evidence_rc != EXIT_PASS )); then
+  printf "expected explicit visual pass report to pass evidence collection; got rc=%s\n" \
+    "$pass_evidence_rc" >&2
+  exit 1
+fi
+printf "camera runtime gate permission and visual evidence checks: PASS\n"

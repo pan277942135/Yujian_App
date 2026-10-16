@@ -48,7 +48,7 @@ class RecognitionFirstCaptureGuidePolicyTest {
     }
 
     @Test
-    fun pageSequenceAndActionsMatchTheFrozenTwoPageContract() {
+    fun pageSequenceAndActionsMatchTheFrozenThreePageContract() {
         var state = RecognitionFirstCaptureGuideState()
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
         assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
@@ -57,9 +57,10 @@ class RecognitionFirstCaptureGuidePolicyTest {
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
         assertEquals(RecognitionFirstCaptureGuidePage.P01, state.currentPage)
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
-        assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
+        assertEquals(RecognitionFirstCaptureGuidePage.P03, state.currentPage)
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
-        assertEquals(RecognitionFirstCaptureGuidePage.P01, state.currentPage)
+        assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
     }
 
     @Test
@@ -83,7 +84,7 @@ class RecognitionFirstCaptureGuidePolicyTest {
         assertTrue(skipped.completed)
 
         val started = reduceRecognitionFirstCaptureGuideState(
-            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P02),
+            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P03),
             RecognitionFirstCaptureGuideIntent.START,
         )
         assertFalse(started.visible)
@@ -94,14 +95,14 @@ class RecognitionFirstCaptureGuidePolicyTest {
                 RecognitionFirstCaptureGuideState(currentPage = page),
                 RecognitionFirstCaptureGuideIntent.START,
             )
-            assertTrue("START is only valid on P02 ($page)", prematureStart.visible)
-            assertFalse("START is only valid on P02 ($page)", prematureStart.completed)
+            assertTrue("START is only valid on P03 ($page)", prematureStart.visible)
+            assertFalse("START is only valid on P03 ($page)", prematureStart.completed)
         }
     }
 
     @Test
     fun fishOrientationAndErrorExamplesStayConsistentOnEachPage() {
-        val horizontalPages = listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02)
+        val horizontalPages = listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P03)
         horizontalPages.forEach { page ->
             val spec = recognitionFirstCaptureGuidePageSpec(page)
             assertEquals(RecognitionGuideFishOrientation.HORIZONTAL, spec.fishOrientation)
@@ -109,7 +110,11 @@ class RecognitionFirstCaptureGuidePolicyTest {
             assertTrue(spec.errors.all { it.orientation == RecognitionGuideFishOrientation.HORIZONTAL })
         }
 
-        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02)
+        val verticalSpec = recognitionFirstCaptureGuidePageSpec(RecognitionFirstCaptureGuidePage.P02)
+        assertEquals(RecognitionGuideFishOrientation.VERTICAL, verticalSpec.fishOrientation)
+        assertTrue(verticalSpec.errors.all { it.orientation == RecognitionGuideFishOrientation.VERTICAL })
+
+        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02, RecognitionFirstCaptureGuidePage.P03)
             .forEach { page ->
                 val spec = recognitionFirstCaptureGuidePageSpec(page)
                 assertEquals(RecognitionGuideRuntimeAssetStatus.ASSET_SOURCE_BLOCKED, spec.runtimeAssetStatus)
@@ -140,7 +145,7 @@ class RecognitionFirstCaptureGuidePolicyTest {
         assertEquals(
             1672,
             mapRecognitionGuideReferenceSpace(
-                page = RecognitionFirstCaptureGuidePage.P02,
+                page = RecognitionFirstCaptureGuidePage.P03,
                 runtimeWidthPx = 1080,
                 runtimeHeightPx = 1920,
             ).referenceHeightPx,
