@@ -370,3 +370,12 @@ It indexes domain authorities; it does not replace them.
 Every executable task must resolve its contract references before implementation. A
 structural registry PASS is not a runtime or release PASS. Missing/partial contracts
 remain explicit and are governed by the Phase/Task State Machine.
+
+
+## V1.1 — Static / Dynamic Boundary
+The Control Plane defines rules; it does not store live Work progress.
+
+- Static on main: registry, Feature Matrix, Phase/Task Machine, Unified Contract, Evidence/Recovery rules and canonical design authorities.
+- Dynamic on a Work branch: PROJECT_MASTER_STATE.yaml, generic WORK_EXECUTION_STATE.json, checkpoints, logs, CI/runtime observations, evidence and APK provenance.
+- A Work status change never requires a main Control Plane commit.
+- A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.

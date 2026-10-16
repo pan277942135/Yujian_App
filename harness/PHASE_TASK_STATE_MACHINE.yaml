@@ -3,30 +3,21 @@
 schema_version: "1.0"
 machine_id: "yujian-phase-task-state-machine"
 status: "ACTIVE"
-purpose: "Machine-readable execution controller connecting P0-P9 phases, the exact N001-N010 queue, 15 Feature Matrix features, J01-J20, blockers, evidence gates, recovery and the final human release gate."
+purpose: "Canonical static execution controller defining P0-P9 phases, N001-N010 task topology, dependencies, gate bindings, recovery semantics and release rules."
+dynamic_state_rule: "This file contains no live Work status, current task, current SHA, queue status, retry counters or observed evidence. Those belong to branch-local execution state."
 source_of_truth_rule: "This file controls execution state and dependency semantics; PROJECT_MASTER_STATE remains the project snapshot, FEATURE_MATRIX remains the feature execution index, and contracts/evidence remain authoritative for their domains."
 
 project:
   repository: "pan277942135/Yujian_App"
   control_branch: "main"
-  execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
-  current_pr: 145
-  base_branch: "main"
-  base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
   master_state: "PROJECT_MASTER_STATE.yaml"
   feature_matrix: "harness/FEATURE_MATRIX.yaml"
   unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
   unified_contract_schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
   contract_resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
-  current_work_state: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+  current_work_state: "WORK_EXECUTION_STATE.json"
 
-execution_control:
-  current_phase: "P8"
-  current_task: "N001"
-  current_work_id: "RECOGNITION-FIRST-USE-GUIDE-V1"
-  current_work_stage: "E0"
-  current_work_status: "FIX_READY_FOR_EXACT_HEAD_CI"
-  current_execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+execution_policy:
   unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
   unified_contract_validator: "scripts/validate_unified_contract.py"
   auto_advance_within_authorized_scope: true
@@ -58,7 +49,6 @@ phase_order:
 phases:
   P0:
     name: "Product Goal / Decisions"
-    status: "PASS"
     entry_condition: "Product scope and decisions are available."
     exit_condition: "Frozen product decisions are recorded and validated."
     release_scope: "FOUNDATION"
@@ -66,7 +56,6 @@ phases:
     task_refs: ["P0-01"]
   P1:
     name: "Product Master Flow / State Model"
-    status: "PASS"
     entry_condition: "P0 PASS."
     exit_condition: "35 nodes / 56 edges / 15 features and J01-J20 recognition journey are frozen."
     release_scope: "FOUNDATION"
@@ -74,7 +63,6 @@ phases:
     task_refs: ["P1-01"]
   P2:
     name: "Product Specifications / Business Contracts"
-    status: "IN_PROGRESS"
     entry_condition: "P1 PASS."
     exit_condition: "Primary recognition contracts remain FROZEN and secondary product contracts are closed for the claimed release scope."
     release_scope: "PRIMARY_PLUS_SECONDARY"
@@ -82,7 +70,6 @@ phases:
     task_refs: ["P2-01", "P2-02"]
   P3:
     name: "Design System / Visual Contracts"
-    status: "IN_PROGRESS"
     entry_condition: "P2 primary contracts are available."
     exit_condition: "Required design authority, page contracts, assets and provenance are closed for the claimed scope."
     release_scope: "PRIMARY_PLUS_SECONDARY"
@@ -90,7 +77,6 @@ phases:
     task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "N010"]
   P4:
     name: "Architecture / API / Data Contracts"
-    status: "IN_PROGRESS"
     entry_condition: "Required product contracts exist."
     exit_condition: "Backend/API/database contracts are protected and all release-scope dependencies are explicit."
     release_scope: "PRIMARY_PLUS_SECONDARY"
@@ -98,7 +84,6 @@ phases:
     task_refs: ["P4-01", "P4-02"]
   P5:
     name: "Engineering Foundation / CI / Test Harness"
-    status: "PASS"
     entry_condition: "Architecture boundaries are known."
     exit_condition: "Build, test harness, CI and API28 runner are available."
     release_scope: "FOUNDATION"
@@ -106,7 +91,6 @@ phases:
     task_refs: ["P5-01", "P5-02"]
   P6:
     name: "Feature Implementation"
-    status: "IN_PROGRESS"
     entry_condition: "Required contracts and engineering foundation exist."
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
@@ -114,7 +98,6 @@ phases:
     task_refs: ["P6-01", "P6-02", "P6-03", "P6-04"]
   P7:
     name: "Integration / Full Surface"
-    status: "IN_PROGRESS"
     entry_condition: "Feature implementation is executable."
     exit_condition: "Primary journey and required dependent surfaces integrate without unresolved release-scope P0/P1 blockers."
     release_scope: "PRIMARY_RELEASE"
@@ -122,7 +105,6 @@ phases:
     task_refs: ["P7-01", "P7-02", "P7-03"]
   P8:
     name: "QA / Runtime / Evidence"
-    status: "IN_PROGRESS"
     entry_condition: "P5 PASS and executable feature baseline available."
     exit_condition: "Exact-head runtime, J01-J20, visual/motion/accessibility evidence and APK provenance are accepted for the claimed scope."
     release_scope: "PRIMARY_RELEASE"
@@ -130,7 +112,6 @@ phases:
     task_refs: ["N001", "N002", "N003", "N004", "N005", "N006", "N007", "N008"]
   P9:
     name: "Release / APK Delivery"
-    status: "NOT_STARTED"
     entry_condition: "All release-scope P8 gates PASS and no unresolved P0/P1 blocker."
     exit_condition: "Exact release APK provenance is verified and human release authorization is recorded."
     release_scope: "PRIMARY_RELEASE"
@@ -209,6 +190,8 @@ blocker_semantics:
   n004_target: ["B003", "B004"]
   n007_target: ["B006"]
   n010_target_and_entry: ["B008"]
+
+known_blocker_ids: ["B001", "B002", "B003", "B004", "B005", "B006", "B007", "B008"]
 
 retry_policy:
   initial_attempt: 1
@@ -290,79 +273,63 @@ feature_closure_rollup:
   home_empty_v2:
     task_id: "FT-home_empty_v2"
     phase: "P8"
-    status: "WAITING"
     depends_on: ["N001"]
   home_normal_v1:
     task_id: "FT-home_normal_v1"
     phase: "P8"
-    status: "READY"
-    queue_status: "PARALLEL"
     depends_on: []
     blockers: ["B003", "B004"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
-    status: "BLOCKED"
     blockers: ["B007"]
   recognition_flow_v1_2:
     task_id: "FT-recognition_flow_v1_2"
     phase: "P8"
-    status: "WAITING"
     depends_on: ["N001", "N010"]
   recognition_result_v1:
     task_id: "FT-recognition_result_v1"
     phase: "P8"
-    status: "WAITING"
     depends_on: ["N001", "N002", "N007"]
   fish_record_detail_v2:
     task_id: "FT-fish_record_detail_v2"
     phase: "P7"
-    status: "WAITING"
     depends_on: ["N003"]
   share_templates_v1:
     task_id: "FT-share_templates_v1"
     phase: "P6"
-    status: "BLOCKED"
     blockers: ["B007"]
   fish_memory_bside_v1:
     task_id: "FT-fish_memory_bside_v1"
     phase: "P7"
-    status: "WAITING"
     depends_on: ["N003"]
   my_catches_v2:
     task_id: "FT-my_catches_v2"
     phase: "P7"
-    status: "BLOCKED"
     blockers: ["B007"]
   fish_guide_v2:
     task_id: "FT-fish_guide_v2"
     phase: "P7"
-    status: "BLOCKED"
     blockers: ["B007"]
   account_privacy_v1:
     task_id: "FT-account_privacy_v1"
     phase: "P7"
-    status: "BLOCKED"
     blockers: ["B007"]
   auth_login_v2:
     task_id: "FT-auth_login_v2"
     phase: "P8"
-    status: "WAITING"
     depends_on: ["N001"]
   auth_register_v2:
     task_id: "FT-auth_register_v2"
     phase: "P6"
-    status: "BLOCKED"
     blockers: ["B007"]
   profile_edit_v1:
     task_id: "FT-profile_edit_v1"
     phase: "P8"
-    status: "WAITING"
     depends_on: ["N001"]
   user_agreement_v1:
     task_id: "FT-user_agreement_v1"
     phase: "P8"
-    status: "WAITING"
     depends_on: ["N001"]
 
 tasks:
@@ -370,364 +337,250 @@ tasks:
     phase: "P0"
     priority: "P0"
     owner: "Product"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: []
     journey_refs: []
     depends_on: []
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["frozen_product_decisions"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:phases.P0"]
     completion: "Product Goal / Decisions frozen."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P1-01:
     phase: "P1"
     priority: "P0"
     owner: "Product"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: ["home_empty_v2", "recognition_flow_v1_2", "recognition_result_v1", "home_normal_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["P0-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["master_flow_35_nodes_56_edges", "J01-J20_route"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:recognition_main_journey"]
     completion: "Product Master Flow / State Model frozen."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P2-01:
     phase: "P2"
     priority: "P0"
     owner: "Product"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: ["recognition_flow_v1_2", "recognition_result_v1", "home_empty_v2", "home_normal_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["P1-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["primary_journey_contracts"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:recognition_main_journey.contract_status=FROZEN"]
     completion: "Primary recognition journey contracts are frozen."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P2-02:
     phase: "P2"
     priority: "P1"
     owner: "Work"
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     feature_refs: ["record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P2-01"]
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["secondary_contract_closure"]
-    evidence_observed: []
     completion: "Secondary product contracts closed for expanded release scope."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P3-01:
     phase: "P3"
     priority: "P0"
     owner: "Design"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: ["home_empty_v2", "recognition_flow_v1_2", "recognition_result_v1"]
     journey_refs: ["J01-J16"]
     depends_on: ["P2-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["shared_foundation_7_of_7", "page_contracts_capture_processing_result"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:phases.P3.shared_foundation", "PROJECT_MASTER_STATE.yaml:phases.P3.page_registry"]
     completion: "Shared Foundation and core Capture/Processing/Result contracts frozen."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P3-02:
     phase: "P3"
     priority: "P1"
     owner: "Work"
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     feature_refs: ["home_normal_v1", "recognition_result_v1"]
     journey_refs: ["J11-J18"]
     depends_on: ["P3-01"]
     blockers: ["B003", "B004", "B006"]
     entry_blockers: []
     target_blockers: ["B003", "B004", "B006"]
-    next_action_refs: ["N004", "N007"]
     evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution"]
-    evidence_observed: []
     completion: "Normal Home and Recognition Result design/runtime provenance blockers closed."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P3-03:
     phase: "P3"
     priority: "P1"
     owner: "Work"
-    status: "READY"
-    queue_status: "READY"
     feature_refs: ["recognition_flow_v1_2"]
     journey_refs: ["J04"]
     depends_on: ["P3-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N010"]
     evidence_required: ["P01_png_sha", "P02_png_sha", "P03_png_sha", "design_governance_pass"]
-    evidence_observed: ["P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d", "P02 blob 9c2dd981a04792c6ac51e3925727b4e4e6704034", "P03 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"]
     completion: "Three-page First Capture Guide frozen binaries are restored and registered; Design Governance remains the acceptance gate."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P3-04:
     phase: "P3"
     priority: "P1"
     owner: "Design"
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     feature_refs: ["fish_memory_bside_v1", "record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P2-02"]
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["secondary_surface_contracts"]
-    evidence_observed: []
     completion: "Secondary design contracts and child surfaces are closed for expanded scope."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P4-01:
     phase: "P4"
     priority: "P0"
     owner: "Architecture"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
     journey_refs: ["J03-J16"]
     depends_on: ["P2-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["backend_api_database_contract_protection"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:phases.P4.backend_api_database_contracts"]
     completion: "Current Android acceptance is prohibited from silently changing backend/API/database contracts."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P4-02:
     phase: "P4"
     priority: "P1"
     owner: "Architecture"
-    status: "IN_PROGRESS"
-    queue_status: "WAITING"
     feature_refs: ["record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P4-01"]
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["secondary_data_contract_dependencies"]
-    evidence_observed: []
     completion: "Secondary data/API dependencies are explicitly closed or deferred."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P5-01:
     phase: "P5"
     priority: "P0"
     owner: "Engineering"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: []
     journey_refs: []
     depends_on: ["P4-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["build", "jvm", "android_test_compile", "lint", "asset_checks", "model_trace"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:phases.P5"]
     completion: "Engineering foundation and CI checks are available."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P5-02:
     phase: "P5"
     priority: "P0"
     owner: "Work"
-    status: "PASS"
-    queue_status: "PASS"
     feature_refs: []
     journey_refs: ["J01-J20"]
     depends_on: ["P5-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["self_hosted_api28_runner"]
-    evidence_observed: ["PROJECT_MASTER_STATE.yaml:phases.P5.self_hosted_api28_runner"]
     completion: "Authoritative API28 runner is available."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P6-01:
     phase: "P6"
     priority: "P0"
     owner: "Work"
-    status: "READY"
-    queue_status: "READY"
     feature_refs: ["recognition_flow_v1_2"]
     journey_refs: ["J04-J06"]
     depends_on: ["P3-03", "P5-02"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N010"]
     evidence_required: ["first_use_guide_implementation", "P01_P02_P03_binary_integrity"]
-    evidence_observed: []
     completion: "Three-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P6-02:
     phase: "P6"
     priority: "P0"
     owner: "Work"
-    status: "READY"
-    queue_status: "READY"
     feature_refs: ["recognition_flow_v1_2"]
     journey_refs: ["J05-J10"]
     depends_on: ["P5-02"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N001"]
     evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
-    evidence_observed: []
     completion: "Recognition feature implementation is executable on the current baseline."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P6-03:
     phase: "P6"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["auth_register_v2"]
     journey_refs: []
     depends_on: ["P5-01"]
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["register_runtime"]
-    evidence_observed: []
     completion: "Register runtime closure."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P6-04:
     phase: "P6"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["record_date_v2", "share_templates_v1"]
     journey_refs: []
     depends_on: ["P2-02", "P4-02"]
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["secondary_feature_implementation"]
-    evidence_observed: []
     completion: "Secondary implementation closure for expanded scope."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
 
   P7-01:
     phase: "P7"
     priority: "P0"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J19", "J20"]
     depends_on: ["P6-02"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N003"]
     evidence_required: ["detail_A_side", "detail_B_side", "save_navigation", "first_reveal_once"]
-    evidence_observed: []
     completion: "FishRecordDetail integration is accepted for the primary journey."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P7-02:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P6-03", "P6-04"]
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["secondary_surface_integration"]
-    evidence_observed: []
     completion: "Secondary surfaces integrated for expanded scope."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   P7-03:
     phase: "P7"
     priority: "P0"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["N002", "N003", "N004"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N005", "N006", "N008"]
     evidence_required: ["primary_journey_integration_report", "end_to_end_state_transitions"]
-    evidence_observed: []
     completion: "Primary recognition journey integration is accepted."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
 
   FT-home_empty_v2:
     task_role: "FEATURE_ROLLUP"
@@ -735,24 +588,15 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_empty_v2"]
     journey_refs: []
     depends_on: ["N001"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-home_normal_v1:
     task_role: "FEATURE_ROLLUP"
@@ -760,24 +604,15 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_normal_v1"]
     journey_refs: []
     depends_on: []
     blockers: ["B003", "B004"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-record_date_v2:
     task_role: "FEATURE_ROLLUP"
@@ -785,24 +620,15 @@ tasks:
     phase: "P6"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["record_date_v2"]
     journey_refs: []
     depends_on: []
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-recognition_flow_v1_2:
     task_role: "FEATURE_ROLLUP"
@@ -810,24 +636,15 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["recognition_flow_v1_2"]
     journey_refs: []
     depends_on: ["N001", "N010"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-recognition_result_v1:
     task_role: "FEATURE_ROLLUP"
@@ -835,24 +652,15 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["recognition_result_v1"]
     journey_refs: []
     depends_on: ["N001", "N002", "N007"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-fish_record_detail_v2:
     task_role: "FEATURE_ROLLUP"
@@ -860,24 +668,15 @@ tasks:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["fish_record_detail_v2"]
     journey_refs: []
     depends_on: ["N003"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-share_templates_v1:
     task_role: "FEATURE_ROLLUP"
@@ -885,24 +684,15 @@ tasks:
     phase: "P6"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["share_templates_v1"]
     journey_refs: []
     depends_on: []
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-fish_memory_bside_v1:
     task_role: "FEATURE_ROLLUP"
@@ -910,24 +700,15 @@ tasks:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["fish_memory_bside_v1"]
     journey_refs: []
     depends_on: ["N003"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-my_catches_v2:
     task_role: "FEATURE_ROLLUP"
@@ -935,24 +716,15 @@ tasks:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["my_catches_v2"]
     journey_refs: []
     depends_on: []
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-fish_guide_v2:
     task_role: "FEATURE_ROLLUP"
@@ -960,24 +732,15 @@ tasks:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["fish_guide_v2"]
     journey_refs: []
     depends_on: []
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-account_privacy_v1:
     task_role: "FEATURE_ROLLUP"
@@ -985,24 +748,15 @@ tasks:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["account_privacy_v1"]
     journey_refs: []
     depends_on: []
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-auth_login_v2:
     task_role: "FEATURE_ROLLUP"
@@ -1010,24 +764,15 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["auth_login_v2"]
     journey_refs: []
     depends_on: ["N001"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-auth_register_v2:
     task_role: "FEATURE_ROLLUP"
@@ -1035,24 +780,15 @@ tasks:
     phase: "P6"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["auth_register_v2"]
     journey_refs: []
     depends_on: []
     blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-profile_edit_v1:
     task_role: "FEATURE_ROLLUP"
@@ -1060,24 +796,15 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["profile_edit_v1"]
     journey_refs: []
     depends_on: ["N001"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   FT-user_agreement_v1:
     task_role: "FEATURE_ROLLUP"
@@ -1085,37 +812,25 @@ tasks:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["user_agreement_v1"]
     journey_refs: []
     depends_on: ["N001"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: []
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
-    evidence_observed: []
     completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
   N001:
     phase: "P8"
     priority: "P0"
     owner: "Work"
-    status: "READY"
-    queue_status: "READY"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "auth_login_v2", "fish_guide_v2"]
     journey_refs: ["J01-J20"]
     depends_on: ["P5-02", "P6-02"]
     blockers: ["B001"]
     entry_blockers: []
     target_blockers: ["B001"]
-    next_action_refs: ["N001"]
     gate_id: "G-API28-MATRIX"
     evidence_required:
       - "source_sha"
@@ -1125,247 +840,157 @@ tasks:
       - "APK_artifact"
       - "APK_SHA256_when_verified"
       - "runtime_logs"
-    evidence_observed: []
     completion: "Authoritative API28 runtime matrix passes or produces a classified blocker with preserved evidence."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N002:
     phase: "P8"
     priority: "P0"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING_FOR_N001"
     feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
     journey_refs: ["J03-J16"]
     depends_on: ["N001"]
     blockers: ["B002"]
     entry_blockers: []
     target_blockers: ["B002"]
-    next_action_refs: ["N002"]
     gate_id: "G-RECOGNITION-FROZEN"
     evidence_required: ["recognition_frozen_test_result", "exact_head_runtime_logs", "recognition_screenshots", "APK_provenance"]
-    evidence_observed: []
     completion: "Recognition Frozen suite passes on exact head."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N003:
     phase: "P8"
     priority: "P0"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING_FOR_N001"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
-    depends_on: ["N001"]
+    depends_on: ["N001", "N010"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N003"]
     gate_id: "G-J01-J20"
     evidence_required: ["Journey_Execution_Results_V1.json", "J01-J20_runtime_results", "navigation_persistence", "failure_recovery_paths"]
-    evidence_observed: []
     completion: "J01-J20 execute and persist acceptance results."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N004:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "READY"
-    queue_status: "PARALLEL"
     feature_refs: ["home_normal_v1", "fish_record_detail_v2"]
     journey_refs: ["J17", "J18", "J19"]
     depends_on: []
     blockers: ["B003", "B004"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
-    next_action_refs: ["N004"]
     gate_id: "G-NORMAL-HOME-A4.1"
     evidence_required: ["F01-F08_fixture_matrix", "fixture_provenance_license_duplicate_audit", "HOME_runtime", "DETAIL_runtime", "camera_mask_geometry_pixel_evidence"]
-    evidence_observed: []
     completion: "Normal Home A4.1 Hero fixture matrix and Camera runtime parity are closed."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N005:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["N002", "N003", "N004"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N005"]
     gate_id: "G-EVIDENCE-PACK"
     evidence_required: ["1080x1920_screenshots", "boundsInWindow", "pixel_diff", "motion_evidence", "device_profile_matrix", "runtime_logs"]
-    evidence_observed: []
     completion: "Primary runtime/evidence package is complete."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N006:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["N005"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N006"]
     gate_id: "G-APK-PROVENANCE"
     evidence_required: ["exact_head_APK", "APK_SHA256", "source_SHA", "artifact_provenance"]
-    evidence_observed: []
     completion: "Exact-head APK SHA-256 and provenance are verified."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N007:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["recognition_result_v1"]
     journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
     depends_on: ["N002"]
     blockers: ["B006"]
     entry_blockers: []
     target_blockers: ["B006"]
-    next_action_refs: ["N007"]
     gate_id: "G-PHASE3B-PROVENANCE"
     evidence_required: ["current_branch_provenance", "Recognition_Result_Phase_3B_authority", "exact_SHA_mapping"]
-    evidence_observed: []
     completion: "Phase 3-B Recognition Result provenance conflict is resolved."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   N008:
     phase: "P8"
     priority: "P1"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["N005", "N006", "N007"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N008"]
     gate_id: "G-FOCUSED-REPORT"
     evidence_required: ["focused_recognition_main_journey_test_report", "gate_summary", "blocker_summary", "APK_provenance"]
-    evidence_observed: []
     completion: "Focused recognition-main-journey test report is published."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
   P9-01:
     phase: "P9"
     priority: "P0"
     owner: "Work"
-    status: "WAITING"
-    queue_status: "WAITING"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["N006", "N008"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N009"]
     gate_id: "G-RELEASE-PACKAGE"
     evidence_required: ["release_candidate_APK", "exact_SHA256", "runtime_PASS", "journey_PASS", "visual_PASS", "no_P0_P1_blocker"]
-    evidence_observed: []
     completion: "Release package is complete and eligible for human review."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
   N009:
     phase: "P9"
     priority: "P1"
     owner: "Human"
-    status: "FINAL_GATE"
-    queue_status: "FINAL_GATE"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
     journey_refs: ["J01-J20"]
     depends_on: ["P9-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N009"]
     gate_id: "G-HUMAN-RELEASE"
     evidence_required: ["final_APK", "evidence_index", "test_report", "APK_SHA256"]
-    evidence_observed: []
     completion: "Human reviews and explicitly authorizes release."
     human_required: true
-    retry_count: 0
-    retry_budget: 0
 
   N010:
     phase: "P3"
     priority: "P1"
     owner: "Work"
-    status: "READY"
-    queue_status: "READY"
     feature_refs: ["recognition_flow_v1_2"]
     journey_refs: ["J04-J06"]
     depends_on: ["P3-01"]
     blockers: []
     entry_blockers: []
     target_blockers: []
-    next_action_refs: ["N010"]
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
     evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
-    evidence_observed: ["P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d", "P02 blob 9c2dd981a04792c6ac51e3925727b4e4e6704034", "P03 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"]
     completion: "Approved three-page P01/P02/P03 frozen PNG binaries are restored at the registered paths; Design Governance must pass before task closure."
     human_required: false
-    retry_count: 0
-    retry_budget: 2
-    last_attempt: null
-    failure_class: null
-    recovery_action: null
 
 feature_task_coverage:
   required_feature_count: 15
@@ -1407,7 +1032,7 @@ next_action_queue:
   required_queue_status:
     N001: "READY"
     N002: "WAITING_FOR_N001"
-    N003: "WAITING_FOR_N001"
+    N003: "WAITING_FOR_N001_AND_N010"
     N004: "PARALLEL"
     N005: "WAITING"
     N006: "WAITING"
@@ -1427,7 +1052,7 @@ recovery:
       - "harness/PHASE_TASK_STATE_MACHINE.yaml"
       - "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
       - "harness/build-log.md"
-    resume_rule: "Select the first READY task in the authorized queue whose dependencies are satisfied; preserve all WAITING/BLOCKED tasks."
+    resume_rule: "Read branch-local Work execution state, select the first READY task whose static dependencies and named entry blockers are satisfied, and preserve all WAITING/BLOCKED tasks."
   failure:
     classify_before_retry: true
     retry_same_gate_max: 2
@@ -1456,11 +1081,3 @@ release_scope:
     - "the release scope is explicitly expanded"
   release_blockers: ["B001", "B002", "B003", "B004", "B006"]
   human_gate: "N009"
-
-machine_completion:
-  feature_matrix_structural_validation: "PASS"
-  master_state_validation: "PASS"
-  phase_task_machine_validation: "REQUIRED"
-  current_task: "N001"
-  current_task_status: "READY"
-  release_status: "NOT_READY"
