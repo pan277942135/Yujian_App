@@ -35,3 +35,6 @@ jobs:
 
       - name: Validate phase task state machine
         run: python scripts/validate_phase_task_state_machine.py
+
+      - name: Validate unified contract registry
+        run: python scripts/validate_unified_contract.py
