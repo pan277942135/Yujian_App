@@ -12,6 +12,8 @@ on:
       - "design/**"
       - "integration/**"
   workflow_dispatch:
+  merge_group:
+    types: [checks_requested]
 
 jobs:
   control-plane-admission:
