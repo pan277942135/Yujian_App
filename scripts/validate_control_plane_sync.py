@@ -38,12 +38,17 @@ def main():
         seen.add(path)
         try:
             canonical=files(args.base,path) if path.endswith("/") else {path}
+            local=local_files(path) if path.endswith("/") else ({path} if (ROOT/path).exists() else set())
         except Exception as exc:
             errors.append(str(exc)); continue
-        for item in sorted(canonical):
+        missing=canonical-local
+        extra=local-canonical
+        for item in sorted(missing): errors.append(f"missing canonical file on Work branch: {item}")
+        for item in sorted(extra): errors.append(f"extra/divergent canonical file on Work branch: {item}")
+        for item in sorted(canonical & local):
             compared+=1
             local=ROOT/item
-            if not local.exists(): errors.append(f"missing canonical file on Work branch: {item}"); continue
+            if not local.exists(): continue
             try:
                 if local_blob(local)!=blob(args.base,item): errors.append(f"stale/diverged canonical file: {item}")
             except Exception as exc: errors.append(f"unable to compare {item}: {exc}")
