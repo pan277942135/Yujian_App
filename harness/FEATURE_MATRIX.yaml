@@ -288,10 +288,6 @@ features:
       - "runtime_accessibility_degradation"
       - "runtime_production_semantics"
       - "runtime_final_gate"
-      - "first_use_guide_portrait_horizontal"
-      - "first_use_guide_landscape_horizontal"
-      - "capture_ready_portrait_horizontal"
-      - "capture_ready_landscape_horizontal"
     child_surfaces:
       - "capture"
       - "permission"
