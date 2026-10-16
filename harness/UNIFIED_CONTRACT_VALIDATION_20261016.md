@@ -17,7 +17,7 @@
 - Open contract gaps from this structural validator: **0**
 - Features: **15 / 15**
 - Journeys: **20 / 20**
-- Child surfaces: **75**
+- Child surfaces: **79**
 - Android routes: **22 / 22**
 - Phase/Task bindings: **45 / 45**
 - Acceptance gates: **11 / 11**
