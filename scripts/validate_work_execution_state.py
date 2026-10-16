@@ -12,6 +12,62 @@ SHA=re.compile(r"^[0-9a-f]{40}$")
 STATUS={"READY","RUNNING","VALIDATING","FAIL","RECOVERING","BLOCKED","PASS","CLOSED","FINAL_GATE","CANCELLED"}
 def git(*args):
     return subprocess.check_output(["git",*args],cwd=ROOT,text=True,stderr=subprocess.DEVNULL).strip()
+
+def direct_parents(commit):
+    parts=git("rev-list","--parents","-n","1",commit).split()
+    return parts[1:]
+
+def state_is_tracked_at(commit):
+    return "WORK_EXECUTION_STATE.json" in git("ls-tree","-r","--name-only",commit).splitlines()
+
+def validate_source_sha(source_sha, expected_source, parents, state_is_tracked,
+                        changed_paths=None, source_is_ancestor=False):
+    """Validate code provenance without a self-referential checkpoint SHA.
+
+    A committed Work checkpoint may contain multiple state-only commits after
+    the original validated code SHA. Any product or contract change since that
+    SHA invalidates the checkpoint's claim and requires a new verified source.
+    """
+    if source_sha == expected_source:
+        if state_is_tracked:
+            return "source_sha cannot equal a committed checkpoint HEAD (self-reference)"
+        return None
+    if not source_is_ancestor and source_sha not in parents:
+        return "source_sha must be an ancestor of the checkpoint commit"
+    if changed_paths is not None:
+        allowed = {
+            "WORK_EXECUTION_STATE.json",
+            "PROJECT_MASTER_STATE.yaml",
+            "harness/build-log.md",
+        }
+        forbidden = sorted(set(changed_paths) - allowed)
+        if forbidden:
+            return "code or contract changes after source_sha require revalidation: " + ", ".join(forbidden)
+    return None
+
+def source_is_ancestor_of(source_sha, expected_source):
+    return subprocess.run(
+        ["git", "merge-base", "--is-ancestor", source_sha, expected_source],
+        cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        check=False,
+    ).returncode == 0
+
+def changed_since(source_sha, expected_source):
+    result = git("diff", "--name-only", source_sha, expected_source)
+    return result.splitlines() if result else []
+
+def resolve_contract(contracts, ref):
+    matches=[]
+    for section_name in ("feature_contracts", "shared_contracts", "gate_contracts"):
+        section=contracts.get(section_name,{})
+        for key,item in section.items():
+            if key == ref or (isinstance(item,dict) and item.get("contract_id")==ref):
+                matches.append((section_name,key,item))
+    if len(matches)>1:
+        locations=", ".join(f"{section}.{key}" for section,key,_ in matches)
+        raise ValueError(f"contract reference is ambiguous: {ref} ({locations})")
+    return matches[0][2] if matches else None
+
 def local_refs(value):
     refs=set()
     if isinstance(value,dict):
@@ -56,7 +112,15 @@ def main():
     if env_branch and env_branch not in {state.get("branch"),"HEAD"}: errors.append(f"workflow branch {env_branch!r} != state branch {state.get('branch')!r}")
     try:
         expected_source = git("rev-parse", f"origin/{env_branch}") if os.environ.get("GITHUB_HEAD_REF") else git("rev-parse","HEAD")
-        if expected_source != state.get("source_sha"): errors.append("source_sha must equal the actual Work branch HEAD")
+        source_error=validate_source_sha(
+            state.get("source_sha"),
+            expected_source,
+            direct_parents(expected_source),
+            state_is_tracked_at(expected_source),
+            changed_paths=changed_since(state.get("source_sha"), expected_source),
+            source_is_ancestor=source_is_ancestor_of(state.get("source_sha"), expected_source),
+        )
+        if source_error: errors.append(source_error)
         if git("rev-parse","origin/main") != state.get("control_plane_revision"): errors.append("control_plane_revision must equal refreshed origin/main")
     except Exception as exc: errors.append(f"git provenance check failed: {exc}")
     binding=contracts.get("task_contract_bindings",{}).get(task_id)
@@ -68,10 +132,13 @@ def main():
         gate_contracts=contracts.get("gate_contracts",{})
         resolved=[]
         for ref in required_refs:
-            if ref in feature_contracts: resolved.append(feature_contracts[ref])
-            elif ref in shared: resolved.append(shared[ref])
-            elif ref in gate_contracts: resolved.append(gate_contracts[ref])
-            else: errors.append(f"{task_id}: contract reference not found: {ref}")
+            try:
+                item=resolve_contract(contracts,ref)
+            except ValueError as exc:
+                errors.append(f"{task_id}: {exc}")
+                continue
+            if item is None: errors.append(f"{task_id}: contract reference not found: {ref}")
+            else: resolved.append(item)
         for item in resolved:
             for ref in local_refs(item):
                 path=ROOT/ref
