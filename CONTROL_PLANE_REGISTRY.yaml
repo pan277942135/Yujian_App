@@ -1,4 +1,5 @@
 # Control Plane V1.1 — canonical Work entrypoint.
+# CI policy: control-only PRs must not start Android or design-asset validation.
 # Yujian AI Control Plane Registry V1.1
 # Single entrypoint for every Work, regardless of product branch.
 # INDEX ONLY: references authorities; never duplicates authoritative content.
