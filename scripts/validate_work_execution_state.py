@@ -20,22 +20,41 @@ def direct_parents(commit):
 def state_is_tracked_at(commit):
     return "WORK_EXECUTION_STATE.json" in git("ls-tree","-r","--name-only",commit).splitlines()
 
-def validate_source_sha(source_sha, expected_source, parents, state_is_tracked):
-    """Return an error for an impossible checkpoint provenance, otherwise None.
+def validate_source_sha(source_sha, expected_source, parents, state_is_tracked,
+                        changed_paths=None, source_is_ancestor=False):
+    """Validate code provenance without a self-referential checkpoint SHA.
 
-    A committed checkpoint cannot contain its own commit SHA: the file content
-    participates in the commit hash.  The source SHA therefore identifies the
-    exact product commit immediately preceding the checkpoint commit.  An exact
-    HEAD is accepted only for an uncommitted local preflight where the state
-    file is not yet part of that commit.
+    A committed Work checkpoint may contain multiple state-only commits after
+    the original validated code SHA. Any product or contract change since that
+    SHA invalidates the checkpoint's claim and requires a new verified source.
     """
     if source_sha == expected_source:
         if state_is_tracked:
             return "source_sha cannot equal a committed checkpoint HEAD (self-reference)"
         return None
-    if source_sha in parents:
-        return None
-    return "source_sha must equal the checkpoint commit's direct product parent"
+    if not source_is_ancestor and source_sha not in parents:
+        return "source_sha must be an ancestor of the checkpoint commit"
+    if changed_paths is not None:
+        allowed = {
+            "WORK_EXECUTION_STATE.json",
+            "PROJECT_MASTER_STATE.yaml",
+            "harness/build-log.md",
+        }
+        forbidden = sorted(set(changed_paths) - allowed)
+        if forbidden:
+            return "code or contract changes after source_sha require revalidation: " + ", ".join(forbidden)
+    return None
+
+def source_is_ancestor_of(source_sha, expected_source):
+    return subprocess.run(
+        ["git", "merge-base", "--is-ancestor", source_sha, expected_source],
+        cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        check=False,
+    ).returncode == 0
+
+def changed_since(source_sha, expected_source):
+    result = git("diff", "--name-only", source_sha, expected_source)
+    return result.splitlines() if result else []
 
 def resolve_contract(contracts, ref):
     matches=[]
@@ -98,6 +117,8 @@ def main():
             expected_source,
             direct_parents(expected_source),
             state_is_tracked_at(expected_source),
+            changed_paths=changed_since(state.get("source_sha"), expected_source),
+            source_is_ancestor=source_is_ancestor_of(state.get("source_sha"), expected_source),
         )
         if source_error: errors.append(source_error)
         if git("rev-parse","origin/main") != state.get("control_plane_revision"): errors.append("control_plane_revision must equal refreshed origin/main")
