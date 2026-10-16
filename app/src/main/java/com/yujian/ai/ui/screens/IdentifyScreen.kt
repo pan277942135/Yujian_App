@@ -1,72 +1,9 @@
-package com.yujian.ai.ui.screens
-
-import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.util.Log
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.view.CameraController
-import androidx.camera.view.LifecycleCameraController
-import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.Observer
-import com.yujian.ai.R
-import com.yujian.ai.media.RecognitionImageStore
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹ÍÉ••¹Ì()¥µÁ½ÉĞ…¹‘É½¥¹5…¹¥™•ÍĞ)¥µÁ½ÉĞ…¹‘É½¥¹…ÁÀ¹Ñ¥Ù¥Ñä)¥µÁ½ÉĞ…¹‘É½¥¹½¹Ñ•¹Ğ¹Á´¹A…­…•5…¹…•È)¥µÁ½ÉĞ…¹‘É½¥¹ÕÑ¥°¹1½œ)¥µÁ½ÉĞ…¹‘É½¥‘à¹…Ñ¥Ù¥Ñä¹½µÁ½Í”¹	…­!…¹‘±•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹…Ñ¥Ù¥Ñä¹½µÁ½Í”¹É•µ•µ‰•É1…Õ¹¡•É½ÉÑ¥Ù¥ÑåI•ÍÕ±Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹…Ñ¥Ù¥Ñä¹É•ÍÕ±Ğ¹A¥­Y¥ÍÕ…±5•‘¥…I•ÅÕ•ÍĞ)¥µÁ½ÉĞ…¹‘É½¥‘à¹…Ñ¥Ù¥Ñä¹É•ÍÕ±Ğ¹½¹ÑÉ…Ğ¹Ñ¥Ù¥ÑåI•ÍÕ±Ñ½¹ÑÉ…ÑÌ)¥µÁ½ÉĞ…¹‘É½¥‘à¹…µ•É„¹½É”¹…µ•É…M•±•Ñ½È)¥µÁ½ÉĞ…¹‘É½¥‘à¹…µ•É„¹½É”¹%µ…•…ÁÑÕÉ”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹…µ•É„¹½É”¹%µ…•…ÁÑÕÉ•á•ÁÑ¥½¸4)¥µÁ½ÉĞ…¹‘É½¥‘à¹…µ•É„¹Ù¥•Ü¹…µ•É…½¹ÑÉ½±±•È4)¥µÁ½ÉĞ…¹‘É½¥‘à¹…µ•É„¹Ù¥•Ü¹1¥™•å±•…µ•É…½¹ÑÉ½±±•È4)¥µÁ½ÉĞ…¹‘É½¥‘à¹…µ•É„¹Ù¥•Ü¹AÉ•Ù¥•İY¥•Ü4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹%µ…”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹‰…­É½Õ¹)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹‰½É‘•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±¥­…‰±”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹	½à4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹	½á]¥Ñ¡½¹ÍÑÉ…¥¹ÑÌ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹]¥¹‘½İ%¹Í•ÑÌ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹…ÍA…‘‘¥¹Y…±Õ•Ì4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹™¥±±5…áM¥é”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹Á…‘‘¥¹œ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹Í…™•É…İ¥¹œ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹Í¥é”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹%½¹Ì4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹…ÕÑ½µ¥ÉÉ½É•¹™¥±±•¹ÉÉ½İ	…¬4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹	ÕÑÑ½¸4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹%½¸4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹%½¹	ÕÑÑ½¸4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹Q•áĞ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹½µÁ½Í…‰±”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹¥ÍÁ½Í…‰±•™™•Ğ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹1…Õ¹¡•‘™™•Ğ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹•ÑY…±Õ”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹µÕÑ…‰±•MÑ…Ñ•=˜4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹É•µ•µ‰•È4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹É•µ•µ‰•É½É½ÕÑ¥¹•M½Á”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹Í…Ù•…‰±”¹É•µ•µ‰•ÉM…Ù•…‰±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹Í•ÑY…±Õ”4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Í¡…Á”¹¥É±•M¡…Á”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹±¥¹µ•¹Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹‘É…Ü¹±¥À)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹5½‘¥™¥•È4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹½±½È4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹…Í%µ…•	¥Ñµ…À4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±½¹Ñ•áĞ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±•¹Í¥Ñä4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±Y¥•Ü)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±1…å½ÕÑ¥É•Ñ¥½¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É•Ì¹Á…¥¹Ñ•ÉI•Í½ÕÉ”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹I½±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹Í•µ…¹Ñ¥Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹Ñ•ÍÑQ…œ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ğ¹‘À4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ù¥•İ¥¹Ñ•É½À¹¹‘É½¥‘Y¥•Ü4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½É”¹½¹Ñ•¹Ğ¹½¹Ñ•áÑ½µÁ…Ğ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹½É”¹Ù¥•Ü¹]¥¹‘½İ½µÁ…Ğ4)¥µÁ½ÉĞ…¹‘É½¥‘à¹±¥™•å±”¹½µÁ½Í”¹1½…±1¥™•å±•=İ¹•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹±¥™•å±”¹=‰Í•ÉÙ•È)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹H)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹µ•‘¥„¹I•½¹¥Ó[h‘éì¶»§q«^uonImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureContract
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideOverlay
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuidePage
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
 import com.yujian.ai.ui.identify.RecognitionCameraControlsGeometry
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureOutput
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureState
@@ -124,59 +61,7 @@ fun IdentifyScreen(
         )
     }
     var permissionRequested by remember { mutableStateOf(false) }
-    // Gallery selection/normalization may temporarily replace the preview.
-    // Camera capture must not share this state: the PreviewView and controller
-    // stay composed until CameraX delivers its terminal callback.
-    var galleryBusy by remember { mutableStateOf(false) }
-    var activeCaptureRequestId by remember { mutableStateOf<String?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var cameraBound by remember { mutableStateOf(false) }
-    var imageCaptureReady by remember { mutableStateOf(false) }
-    var previewStreaming by remember { mutableStateOf(false) }
-    var firstCaptureGuideVisible by remember { mutableStateOf(false) }
-    var firstCaptureGuidePresented by remember { mutableStateOf(false) }
-    var galleryAutoOpenPending by remember(autoOpenGallery, captureResetToken) {
-        mutableStateOf(autoOpenGallery)
-    }
-    var captureState by remember { mutableStateOf(RecognitionCameraCaptureState.INITIALIZING) }
-    var cameraRetry by remember { mutableStateOf(0) }
-    var previewView by remember { mutableStateOf<PreviewView?>(null) }
-    // This local handoff is set before navigation, so CameraX and its controls
-    // cannot share a frame with the Recognition processing scene.
-    var handoffImage by remember { mutableStateOf<SelectedImage?>(null) }
-
-    val cameraController = remember(context) {
-        LifecycleCameraController(context).apply {
-            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-            setEnabledUseCases(CameraController.IMAGE_CAPTURE)
-        }
-    }
-
-    fun imageCaptureInstanceReady(): Boolean = imageCaptureReady && runCatching {
-        cameraController.isImageCaptureEnabled && cameraController.cameraInfo != null
-    }.getOrDefault(false)
-
-    fun cameraCanCapture(): Boolean =
-        hasCameraPermission && cameraBound && previewStreaming && imageCaptureInstanceReady()
-
-    fun syncCaptureState() {
-        if (captureState == RecognitionCameraCaptureState.CAPTURING ||
-            captureState == RecognitionCameraCaptureState.SUCCESS
-        ) {
-            return
-        }
-        captureState = when {
-            cameraCanCapture() && captureState == RecognitionCameraCaptureState.ERROR ->
-                RecognitionCameraCaptureState.ERROR
-            cameraCanCapture() -> RecognitionCameraCaptureState.READY
-            else -> RecognitionCameraCaptureState.INITIALIZING
-        }
-    }
-
-    DisposableEffect(view) {
-        val activity = view.context as? Activity
-        if (activity == null) {
-            onDispose { }
+    // Gallery selection/normalization may temporarily replace YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÕÑ¡”ÁÉ•Ù¥•Ü¸(€€€€¼¼…µ•É„…ÁÑÕÉ”µÕÍĞ¹½ĞÍ¡…É”Ñ¡¥ÌÍÑ…Ñ”èÑ¡”AÉ•Ù¥•İY¥•Ü…¹½¹ÑÉ½±±•È(€€€€¼¼ÍÑ…ä½µÁ½Í•Õ¹Ñ¥°…µ•É…`‘•±¥Ù•ÉÌ¥ÑÌÑ•Éµ¥¹…°…±±‰…¬¸(€€€Ù…È…±±•Éå	ÕÍä‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤ô(€€€Ù…È…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜ñMÑÉ¥¹œüø¡¹Õ±°¤ô(€€€Ù…È•ÉÉ½È‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜ñMÑÉ¥¹œüø¡¹Õ±°¤ô(€€€Ù…È…µ•É…	½Õ¹‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤ô(€€€Ù…È¥µ…•…ÁÑÕÉ•I•…‘ä‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤ô(€€€Ù…ÈÁÉ•Ù¥•İMÑÉ•…µ¥¹œ‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤ô(€€€Ù…È™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•Y¥Í¥‰±”‰äÉ•µ•µ‰•ÉM…Ù•…‰±”¡…ÕÑ½=Á•¹…±±•Éä°…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€µÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤(€€€ô(€€€Ù…È™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•AÉ•Í•¹Ñ•‰äÉ•µ•µ‰•ÉM…Ù•…‰±”¡…ÕÑ½=Á•¹…±±•Éä°…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€µÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤(€€€ô(€€€Ù…È™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”‰äÉ•µ•µ‰•ÉM…Ù•…‰±”¡…ÕÑ½=Á•¹…±±•Éä°…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€µÕÑ…‰±•MÑ…Ñ•=˜¡I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹@ÀÄ¤(€€€ô(€€€Ù…È…±±•ÉåY¥Í¥Ñ•‘Q¡¥ÍM•ÍÍ¥½¸‰äÉ•µ•µ‰•ÉM…Ù•…‰±”¡…ÕÑ½=Á•¹…±±•Éä°…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€µÕÑ…‰±•MÑ…Ñ•=˜¡…ÕÑ½=Á•¹…±±•Éä¤(€€€ô(€€€Ù…°™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ½É”€ôÉ•µ•µ‰•È¡½¹Ñ•áĞ¤ìI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ½É”¡½¹Ñ•áĞ¤ô(€€€Ù…È…±±•ÉåÕÑ½=Á•¹A•¹‘¥¹œ‰äÉ•µ•µ‰•È¡…ÕÑ½=Á•¹…±±•Éä°…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€µÕÑ…‰±•MÑ…Ñ•=˜¡…ÕÑ½=Á•¹…±±•Éä¤(€€€ô(€€€Ù…È…ÁÑÕÉ•MÑ…Ñ”‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜¡I•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹%9%Q%1%i%9¤ô(€€€Ù…È…µ•É…I•ÑÉä‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜ À¤ô(€€€Ù…ÈÁÉ•Ù¥•İY¥•Ü‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜ñAÉ•Ù¥•İY¥•Üüø¡¹Õ±°¤ô(€€€€¼¼Q¡¥Ì±½…°¡…¹‘½™˜¥ÌÍ•Ğ‰•™½É”¹…Ù¥…Ñ¥½¸°Í¼…µ•É…`…¹¥ÑÌ½¹ÑÉ½±Ì4(€€€€¼¼…¹¹½ĞÍ¡…É”„™É…µ”İ¥Ñ Ñ¡”I•½¹¥Ñ¥½¸ÁÉ½•ÍÍ¥¹œÍ•¹”¸4(€€€Ù…È¡…¹‘½™™%µ…”‰äÉ•µ•µ‰•ÈìµÕÑ…‰±•MÑ…Ñ•=˜ñM•±•Ñ•‘%µ…”üø¡¹Õ±°¤ô4(4(€€€Ù…°…µ•É…½¹ÑÉ½±±•È€ôÉ•µ•µ‰•È¡½¹Ñ•áĞ¤ì4(€€€€€€€1¥™•å±•…µ•É…½¹ÑÉ½±±•È¡½¹Ñ•áĞ¤¹…ÁÁ±äì4(€€€€€€€€€€€…µ•É…M•±•Ñ½È€ô…µ•É…M•±•Ñ½È¹U1Q}	-}5I4(€€€€€€€€€€€Í•Ñ¹…‰±•‘UÍ•…Í•Ì¡…µ•É…½¹ÑÉ½±±•È¹%5}AQUI¤(€€€€€€€ô(€€€ô((€€€™Õ¸¥µ…•…ÁÑÕÉ•%¹ÍÑ…¹•I•…‘ä ¤è	½½±•…¸€ô¥µ…•…ÁÑÕÉ•I•…‘ä€˜˜ÉÕ¹…Ñ¡¥¹œì(€€€€€€€…µ•É…½¹ÑÉ½±±•È¹¥Í%µ…•…ÁÑÕÉ•¹…‰±•€˜˜…µ•É…½¹ÑÉ½±±•È¹…µ•É…%¹™¼€„ô¹Õ±°(€€€ô¹•Ñ=É•™…Õ±Ğ¡™…±Í”¤((€€€™Õ¸…µ•É……¹…ÁÑÕÉ” ¤è	½½±•…¸€ô(€€€€€€€¡…Í…µ•É…A•Éµ¥ÍÍ¥½¸€˜˜…µ•É…	½Õ¹€˜˜ÁÉ•Ù¥•İMÑÉ•…µ¥¹œ€˜˜¥µ…•…ÁÑÕÉ•%¹ÍÑ…¹•I•…‘ä ¤((€€€™Õ¸Íå¹…ÁÑÕÉ•MÑ…Ñ” ¤ì(€€€€€€€¥˜€¡…ÁÑÕÉ•MÑ…Ñ”€ôôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹AQUI%9ñğ(€€€€€€€€€€€…ÁÑÕÉ•MÑ…Ñ”€ôôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹MUML(€€€€€€€€¤ì(€€€€€€€€€€€É•ÑÕÉ¸(€€€€€€€ô(€€€€€€€…ÁÑÕÉ•MÑ…Ñ”€ôİ¡•¸ì(€€€€€€€€€€€…µ•É……¹…ÁÑÕÉ” ¤€˜˜…ÁÑÕÉ•MÑ…Ñ”€ôôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹II=H€´ø(€€€€€€€€€€€€€€€I•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹II=H(€€€€€€€€€€€…µ•É……¹…ÁÑÕÉ” ¤€´øI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹Id(€€€€€€€€€€€•±Í”€´øI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹%9%Q%1%i%9(€€€€€€€ô(€€€ô(4(€€€¥ÍÁ½Í…‰±•™™•Ğ¡Ù¥•Ü¤ì4(€€€€€€€Ù…°…Ñ¥Ù¥Ñä€ôÙ¥•Ü¹½¹Ñ•áĞ…ÌüÑ¥Ù¥Ñä4(€€€€€€€¥˜€¡…Ñ¥Ù¥Ñä€ôô¹Õ±°¤ì4(€€€€€€€€€€€½¹¥ÍÁ½Í”ìƒ[h‘éì¶»§q«^u
         } else {
             val controller = WindowCompat.getInsetsController(activity.window, view)
             controller.isAppearanceLightStatusBars = false
@@ -242,73 +127,7 @@ fun IdentifyScreen(
                         "event=camera_bind_failed " +
                             "cause_class=${diagnosticValue(bindError::class.simpleName)} " +
                             "cause_message=${diagnosticValue(bindError.message)}",
-                    )
-                }
-        }
-        onDispose {
-            logCapture(
-                activeCaptureRequestId ?: "camera-controller",
-                "camera_controller_dispose",
-                "camera_provider_bound=$cameraBound preview_attached=${previewView?.isAttachedToWindow == true} " +
-                    "capture_state=${captureState.name} " +
-                    "active_capture_request_id=${diagnosticValue(activeCaptureRequestId)} " +
-                    "teardown_during_capture=${captureState == RecognitionCameraCaptureState.CAPTURING && activeCaptureRequestId != null}",
-            )
-            cameraController.unbind()
-        }
-    }
-
-    DisposableEffect(previewView, lifecycleOwner) {
-        val currentPreview = previewView
-        if (currentPreview == null) {
-            onDispose { }
-        } else {
-            fun logSurfaceState(attached: Boolean) {
-                logCapture(
-                    activeCaptureRequestId ?: "camera-preview",
-                    "capture_surface_state",
-                    "preview_attached=$attached controller_attached=${currentPreview.controller === cameraController} " +
-                        "capture_state=${captureState.name} " +
-                        "active_capture_request_id=${diagnosticValue(activeCaptureRequestId)} " +
-                        "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name}",
-                )
-            }
-            val attachListener = object : android.view.View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(view: android.view.View) = logSurfaceState(true)
-                override fun onViewDetachedFromWindow(view: android.view.View) = logSurfaceState(false)
-            }
-            currentPreview.addOnAttachStateChangeListener(attachListener)
-            if (currentPreview.isAttachedToWindow) logSurfaceState(true)
-            val observer = Observer<PreviewView.StreamState> { streamState ->
-                previewStreaming = streamState == PreviewView.StreamState.STREAMING
-                logCapture(
-                    "preview-state",
-                    "preview_stream_state",
-                    "state=${streamState.name} camera_provider_bound=$cameraBound " +
-                        "image_capture_ready=${imageCaptureInstanceReady()}",
-                )
-                syncCaptureState()
-            }
-            currentPreview.previewStreamState.observe(lifecycleOwner, observer)
-            onDispose {
-                currentPreview.previewStreamState.removeObserver(observer)
-                currentPreview.removeOnAttachStateChangeListener(attachListener)
-            }
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        hasCameraPermission = granted
-        if (!granted) {
-            error = CameraPermissionHint
-        } else {
-            error = null
-        }
-    }
-
-    val galleryLauncher = rememberLauncherForActivityResult(
+            YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Ô€€€€€€€€¤(€€€€€€€€€€€€€€€ô(€€€€€€€ô(€€€€€€€½¹¥ÍÁ½Í”ì(€€€€€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€€€€€…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%€üè€‰…µ•É„µ½¹ÑÉ½±±•Èˆ°(€€€€€€€€€€€€€€€€‰…µ•É…}½¹ÑÉ½±±•É}‘¥ÍÁ½Í”ˆ°(€€€€€€€€€€€€€€€€‰…µ•É…}ÁÉ½Ù¥‘•É}‰½Õ¹ô‘…µ•É…	½Õ¹ÁÉ•Ù¥•İ}…ÑÑ…¡•ô‘íÁÉ•Ù¥•İY¥•Üü¹¥ÍÑÑ…¡•‘Q½]¥¹‘½Ü€ôôÑÉÕ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…ÁÑÕÉ•}ÍÑ…Ñ”ô‘í…ÁÑÕÉ•MÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…Ñ¥Ù•}…ÁÑÕÉ•}É•ÅÕ•ÍÑ}¥ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰Ñ•…É‘½İ¹}‘ÕÉ¥¹}…ÁÑÕÉ”ô‘í…ÁÑÕÉ•MÑ…Ñ”€ôôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹AQUI%9€˜˜…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%€„ô¹Õ±±ôˆ°(€€€€€€€€€€€€¤(€€€€€€€€€€€…µ•É…½¹ÑÉ½±±•È¹Õ¹‰¥¹ ¤(€€€€€€€ô(€€€ô((€€€¥ÍÁ½Í…‰±•™™•Ğ¡ÁÉ•Ù¥•İY¥•Ü°±¥™•å±•=İ¹•È¤ì(€€€€€€€Ù…°ÕÉÉ•¹ÑAÉ•Ù¥•Ü€ôÁÉ•Ù¥•İY¥•Ü(€€€€€€€¥˜€¡ÕÉÉ•¹ÑAÉ•Ù¥•Ü€ôô¹Õ±°¤ì(€€€€€€€€€€€½¹¥ÍÁ½Í”ìô(€€€€€€€ô•±Í”ì(€€€€€€€€€€€™Õ¸±½MÕÉ™…•MÑ…Ñ”¡…ÑÑ…¡•è	½½±•…¸¤ì(€€€€€€€€€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€€€€€€€€€…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%€üè€‰…µ•É„µÁÉ•Ù¥•Üˆ°(€€€€€€€€€€€€€€€€€€€€‰…ÁÑÕÉ•}ÍÕÉ™…•}ÍÑ…Ñ”ˆ°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥•İ}…ÑÑ…¡•ô‘…ÑÑ…¡•½¹ÑÉ½±±•É}…ÑÑ…¡•ô‘íÕÉÉ•¹ÑAÉ•Ù¥•Ü¹½¹ÑÉ½±±•È€ôôô…µ•É…½¹ÑÉ½±±•Éô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€‰…ÁÑÕÉ•}ÍÑ…Ñ”ô‘í…ÁÑÕÉ•MÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€‰…Ñ¥Ù•}…ÁÑÕÉ•}É•ÅÕ•ÍÑ}¥ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€‰±¥™•å±•}ÍÑ…Ñ”ô‘í±¥™•å±•=İ¹•È¹±¥™•å±”¹ÕÉÉ•¹ÑMÑ…Ñ”¹¹…µ•ôˆ°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€ô(€€€€€€€€€€€Ù…°…ÑÑ…¡1¥ÍÑ•¹•È€ô½‰©•Ğ€è…¹‘É½¥¹Ù¥•Ü¹Y¥•Ü¹=¹ÑÑ…¡MÑ…Ñ•¡…¹•1¥ÍÑ•¹•Èì(€€€€€€€€€€€€€€€½Ù•ÉÉ¥‘”™Õ¸½¹Y¥•İÑÑ…¡•‘Q½]¥¹‘½Ü¡Ù¥•Üè…¹‘É½¥¹Ù¥•Ü¹Y¥•Ü¤€ô±½MÕÉ™…•MÑ…Ñ”¡ÑÉÕ”¤(€€€€€€€€€€€€€€€½Ù•ÉÉ¥‘”™Õ¸½¹Y¥•İ•Ñ…¡•‘É½µ]¥¹‘½Ü¡Ù¥•Üè…¹‘É½¥¹Ù¥•Ü¹Y¥•Ü¤€ô±½MÕÉ™…•MÑ…Ñ”¡™…±Í”¤(€€€€€€€€€€€ô(€€€€€€€€€€€ÕÉÉ•¹ÑAÉ•Ù¥•Ü¹…‘‘=¹ÑÑ…¡MÑ…Ñ•¡…¹•1¥ÍÑ•¹•È¡…ÑÑ…¡1¥ÍÑ•¹•È¤(€€€€€€€€€€€¥˜€¡ÕÉÉ•¹ÑAÉ•Ù¥•Ü¹¥ÍÑÑ…¡•‘Q½]¥¹‘½Ü¤±½MÕÉ™…•MÑ…Ñ”¡ÑÉÕ”¤(€€€€€€€€€€€Ù…°½‰Í•ÉÙ•È€ô=‰Í•ÉÙ•ÈñAÉ•Ù¥•İY¥•Ü¹MÑÉ•…µMÑ…Ñ”øìÍÑÉ•…µMÑ…Ñ”€´ø(€€€€€€€€€€€€€€€ÁÉ•Ù¥•İMÑÉ•…µ¥¹œ€ôÍÑÉ•…µMÑ…Ñ”€ôôAÉ•Ù¥•İY¥•Ü¹MÑÉ•…µMÑ…Ñ”¹MQI5%9(€€€€€€€€€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥•ÜµÍÑ…Ñ”ˆ°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥•İ}ÍÑÉ•…µ}ÍÑ…Ñ”ˆ°(€€€€€€€€€€€€€€€€€€€€‰ÍÑ…Ñ”ô‘íÍÑÉ•…µMÑ…Ñ”¹¹…µ•ô…µ•É…}ÁÉ½Ù¥‘•É}‰½Õ¹ô‘…µ•É…	½Õ¹€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€‰¥µ…•}…ÁÑÕÉ•}É•…‘äô‘í¥µ…•…ÁÑÕÉ•%¹ÍÑ…¹•I•…‘ä ¥ôˆ°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€Íå¹…ÁÑÕÉ•MÑ…Ñ” ¤(€€€€€€€€€€€ô(€€€€€€€€€€€ÕÉÉ•¹ÑAÉ•Ù¥•Ü¹ÁÉ•Ù¥•İMÑÉ•…µMÑ…Ñ”¹½‰Í•ÉÙ”¡±¥™•å±•=İ¹•È°½‰Í•ÉÙ•È¤(€€€€€€€€€€€½¹¥ÍÁ½Í”ì(€€€€€€€€€€€€€€€ÕÉÉ•¹ÑAÉ•Ù¥•Ü¹ÁÉ•Ù¥•İMÑÉ•…µMÑ…Ñ”¹É•µ½Ù•=‰Í•ÉÙ•È¡½‰Í•ÉÙ•È¤(€€€€€€€€€€€€€€€ÕÉÉ•¹ÑAÉ•Ù¥•Ü¹É•µ½Ù•=¹ÑÑ…¡MÑ…Ñ•¡…¹•1¥ÍÑ•¹•È¡…ÑÑ…¡1¥ÍÑ•¹•È¤(€€€€€€€€€€€ô(€€€€€€€ô(€€€ô(4(€€€Ù…°Á•Éµ¥ÍÍ¥½¹1…Õ¹¡•È€ôÉ•µ•µ‰•É1…Õ¹¡•É½ÉÑ¥Ù¥ÑåI•ÍÕ±Ğ 4(€€€€€€€Ñ¥Ù¥ÑåI•ÍÕ±Ñ½¹ÑÉ…ÑÌ¹I•ÅÕ•ÍÑA•Éµ¥ÍÍ¥½¸ ¤°4(€€€€¤ìÉ…¹Ñ•€´ø4(€€€€€€€¡…Í…µ•É…A•Éµ¥ÍÍ¥½¸€ôÉ…¹Ñ•4(€€€€€€€¥˜€ …É…¹Ñ•¤ì4(€€€€€€€€€€€•ÉÉ½È€ô…µ•É…A•Éµ¥ÍÍ¥½¹!¥¹Ğ4(€€€€€€€ô•±Í”ì4(€€€€€€€€€€€•ÉÉ½È€ô¹Õ±°4(€€€€€€€ô4(€€€ô4(4(€€ƒ[h‘éì¶»§q«^tval galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         galleryAutoOpenPending = false
@@ -335,6 +154,7 @@ fun IdentifyScreen(
 
     fun openGallery() {
         if (!galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
+            galleryVisitedThisSession = true
             galleryBusy = true
             error = null
             runCatching {
@@ -378,58 +198,7 @@ fun IdentifyScreen(
                     "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name} " +
                     "capture_state=${captureState.name} capture_button_enabled=false",
             )
-            error = CameraUnavailableHint
-            return
-        }
-        captureState = capturingState
-        error = null
-        val targetResult = runCatching { RecognitionImageStore.createCameraTarget(context) }
-        if (targetResult.isFailure) {
-            captureState = RecognitionCameraCaptureContract.completeError()
-            Log.e(
-                RecognitionCameraCaptureTag,
-                "request=$requestId event=target_create_failed " +
-                    "cause_class=${diagnosticValue(targetResult.exceptionOrNull()?.let { it::class.simpleName })} " +
-                    "cause_message=${diagnosticValue(targetResult.exceptionOrNull()?.message)}",
-            )
-            error = CameraStartFailureHint
-            return
-        }
-        val target = targetResult.getOrThrow()
-        activeCaptureRequestId = requestId
-        logCapture(
-            requestId,
-            "before_capture",
-            "camera_provider_bound=$cameraBound preview_bound=$previewStreaming " +
-                "image_capture_instance_ready=${imageCaptureInstanceReady()} " +
-                "camera_controller_alive=${runCatching { cameraController.cameraInfo != null }.getOrDefault(false)} " +
-                "preview_view_attached=${previewView?.isAttachedToWindow == true} " +
-                "preview_attached=${previewView?.isAttachedToWindow == true} " +
-                "controller_attached=${previewView?.controller === cameraController} " +
-                "lifecycle_state=${lifecycleOwner.lifecycle.currentState.name} " +
-                "capture_state=${captureState.name} " +
-                "capture_button_enabled=false output_target_type=file " +
-                "output_file=${diagnosticValue(target.file.absolutePath)} " +
-                "output_uri_type=${diagnosticValue(target.uri.scheme)} " +
-                "parent_directory_exists=${target.file.parentFile?.isDirectory == true} " +
-                "parent_directory_writable=${target.file.parentFile?.canWrite() == true}",
-        )
-        try {
-            // CameraX writes directly to the app-private cache file. The
-            // FileProvider URI remains available for gallery/test handoffs but
-            // is not used as the still-image output target.
-            val output = ImageCapture.OutputFileOptions.Builder(target.file).build()
-            cameraController.takePicture(
-                output,
-                ContextCompat.getMainExecutor(context),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(result: ImageCapture.OutputFileResults) {
-                        logCapture(
-                            requestId,
-                            "terminal_callback",
-                            "result=onImageSaved capture_state=${captureState.name} " +
-                                "camera_provider_bound=$cameraBound " +
-                                "camera_controller_alive=${runCatching { cameraController.cameraInfo != null }.getOrDefault(false)} " +
+            error = CamerYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Õ…U¹…Ù…¥±…‰±•!¥¹Ğ(€€€€€€€€€€€É•ÑÕÉ¸(€€€€€€€ô(€€€€€€€…ÁÑÕÉ•MÑ…Ñ”€ô…ÁÑÕÉ¥¹MÑ…Ñ”(€€€€€€€•ÉÉ½È€ô¹Õ±°(€€€€€€€Ù…°Ñ…É•ÑI•ÍÕ±Ğ€ôÉÕ¹…Ñ¡¥¹œìI•½¹¥Ñ¥½¹%µ…•MÑ½É”¹É•…Ñ•…µ•É…Q…É•Ğ¡½¹Ñ•áĞ¤ô(€€€€€€€¥˜€¡Ñ…É•ÑI•ÍÕ±Ğ¹¥Í…¥±ÕÉ”¤ì(€€€€€€€€€€€…ÁÑÕÉ•MÑ…Ñ”€ôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•½¹ÑÉ…Ğ¹½µÁ±•Ñ•ÉÉ½È ¤(€€€€€€€€€€€1½œ¹” (€€€€€€€€€€€€€€€I•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•Q…œ°(€€€€€€€€€€€€€€€€‰É•ÅÕ•ÍĞô‘É•ÅÕ•ÍÑ%•Ù•¹ĞõÑ…É•Ñ}É•…Ñ•}™…¥±•€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}±…ÍÌô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡Ñ…É•ÑI•ÍÕ±Ğ¹•á•ÁÑ¥½¹=É9Õ±° ¤ü¹±•Ğì¥Ğèé±…ÍÌ¹Í¥µÁ±•9…µ”ô¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}µ•ÍÍ…”ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡Ñ…É•ÑI•ÍÕ±Ğ¹•á•ÁÑ¥½¹=É9Õ±° ¤ü¹µ•ÍÍ…”¥ôˆ°(€€€€€€€€€€€€¤(€€€€€€€€€€€•ÉÉ½È€ô…µ•É…MÑ…ÉÑ…¥±ÕÉ•!¥¹Ğ(€€€€€€€€€€€É•ÑÕÉ¸(€€€€€€€ô(€€€€€€€Ù…°Ñ…É•Ğ€ôÑ…É•ÑI•ÍÕ±Ğ¹•Ñ=ÉQ¡É½Ü ¤(€€€€€€€…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%€ôÉ•ÅÕ•ÍÑ%(€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€É•ÅÕ•ÍÑ%°(€€€€€€€€€€€€‰‰•™½É•}…ÁÑÕÉ”ˆ°(€€€€€€€€€€€€‰…µ•É…}ÁÉ½Ù¥‘•É}‰½Õ¹ô‘…µ•É…	½Õ¹ÁÉ•Ù¥•İ}‰½Õ¹ô‘ÁÉ•Ù¥•İMÑÉ•…µ¥¹œ€ˆ€¬(€€€€€€€€€€€€€€€€‰¥µ…•}…ÁÑÕÉ•}¥¹ÍÑ…¹•}É•…‘äô‘í¥µ…•…ÁÑÕÉ•%¹ÍÑ…¹•I•…‘ä ¥ô€ˆ€¬(€€€€€€€€€€€€€€€€‰…µ•É…}½¹ÑÉ½±±•É}…±¥Ù”ô‘íÉÕ¹…Ñ¡¥¹œì…µ•É…½¹ÑÉ½±±•È¹…µ•É…%¹™¼€„ô¹Õ±°ô¹•Ñ=É•™…Õ±Ğ¡™…±Í”¥ô€ˆ€¬(€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥•İ}Ù¥•İ}…ÑÑ…¡•ô‘íÁÉ•Ù¥•İY¥•Üü¹¥ÍÑÑ…¡•‘Q½]¥¹‘½Ü€ôôÑÉÕ•ô€ˆ€¬(€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥•İ}…ÑÑ…¡•ô‘íÁÉ•Ù¥•İY¥•Üü¹¥ÍÑÑ…¡•‘Q½]¥¹‘½Ü€ôôÑÉÕ•ô€ˆ€¬(€€€€€€€€€€€€€€€€‰½¹ÑÉ½±±•É}…ÑÑ…¡•ô‘íÁÉ•Ù¥•İY¥•Üü¹½¹ÑÉ½±±•È€ôôô…µ•É…½¹ÑÉ½±±•Éô€ˆ€¬(€€€€€€€€€€€€€€€€‰±¥™•å±•}ÍÑ…Ñ”ô‘í±¥™•å±•=İ¹•È¹±¥™•å±”¹ÕÉÉ•¹ÑMÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€‰…ÁÑÕÉ•}ÍÑ…Ñ”ô‘í…ÁÑÕÉ•MÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€‰…ÁÑÕÉ•}‰ÕÑÑ½¹}•¹…‰±•õ™…±Í”½ÕÑÁÕÑ}Ñ…É•Ñ}ÑåÁ”õ™¥±”€ˆ€¬(€€€€€€€€€€€€€€€€‰½ÕÑÁÕÑ}™¥±”ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡Ñ…É•Ğ¹™¥±”¹…‰Í½±ÕÑ•A…Ñ ¥ô€ˆ€¬(€€€€€€€€€€€€€€€€‰½ÕÑÁÕÑ}ÕÉ¥}ÑåÁ”ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡Ñ…É•Ğ¹ÕÉ¤¹Í¡•µ”¥ô€ˆ€¬(€€€€€€€€€€€€€€€€‰Á…É•¹Ñ}‘¥É•Ñ½Éå}•á¥ÍÑÌô‘íÑ…É•Ğ¹™¥±”¹Á…É•¹Ñ¥±”ü¹¥Í¥É•Ñ½Éä€ôôÑÉÕ•ô€ˆ€¬(€€€€€€€€€€€€€€€€‰Á…É•¹Ñ}‘¥É•Ñ½Éå}İÉ¥Ñ…‰±”ô‘íÑ…É•Ğ¹™¥±”¹Á…É•¹Ñ¥±”ü¹…¹]É¥Ñ” ¤€ôôÑÉÕ•ôˆ°(€€€€€€€€¤(€€€€€€€ÑÉäì(€€€€€€€€€€€€¼¼…µ•É…`İÉ¥Ñ•Ì‘¥É•Ñ±äÑ¼Ñ¡”…ÁÀµÁÉ¥Ù…Ñ”…¡”™¥±”¸Q¡”(€€€€€€€€€€€€¼¼¥±•AÉ½Ù¥‘•ÈUI$É•µ…¥¹Ì…Ù…¥±…‰±”™½È…±±•Éä½Ñ•ÍĞ¡…¹‘½™™Ì‰ÕĞ(€€€€€€€€€€€€¼¼¥Ì¹½ĞÕÍ•…ÌÑ¡”ÍÑ¥±°µ¥µ…”½ÕÑÁÕĞÑ…É•Ğ¸(€€€€€€€€€€€Ù…°½ÕÑÁÕĞ€ô%µ…•…ÁÑÕÉ”¹=ÕÑÁÕÑ¥±•=ÁÑ¥½¹Ì¹	Õ¥±‘•È¡Ñ…É•Ğ¹™¥±”¤¹‰Õ¥± ¤(€€€€€€€€€€€…µ•É…½¹ÑÉ½±±•È¹Ñ…­•A¥ÑÕÉ” (€€€€€€€€€€€€€€€½ÕÑÁÕĞ°(€€€€€€€€€€€€€€€½¹Ñ•áÑ½µÁ…Ğ¹•Ñ5…¥¹á•ÕÑ½È¡½¹Ñ•áĞ¤°(€€€€€€€€€€€€€€€½‰©•Ğ€è%µ…•…ÁÑÕÉ”¹=¹%µ…•M…Ù•‘…±±‰…¬ì(€€€€€€€€€€€€€€€€€€€½Ù•ÉÉ¥‘”™Õ¸½¹%µ…•M…Ù•¡É•ÍÕ±Ğè%µ…•…ÁÑÕÉ”¹=ÕÑÁÕÑ¥±•I•ÍÕ±ÑÌ¤ì(€€€€€€€€€€€€€€€€€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€€€€€€€€€€€€€€€€€É•ÅÕ•ÍÑ%°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰Ñ•Éµ¥¹…±}…±±‰…¬ˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰É•ÍÕ±Ğõ½¹%µ…•M…Ù•…ÁÑÕÉ•}ÍÑ…Ñ”ô‘í…ÁÑÕÉ•MÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…µ•É…}ÁÉ½Ù¥‘•É}‰½Õ¹ô‘…µ•É…	½Õ¹€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…µ•É…}½¹ÑÉ½±±•É}…±¥Ù”ô‘íÉÕ¹…Ñ¡¥¹œì…µ•É…½¹ÑÉ½±±•È¹…µ•É…%¹™¼€„ô¹Õ±°ô¹•Ñ=É•™…Õ±Ğ£[h‘éì¶»§q«^valse)} " +
                                 "preview_view_attached=${previewView?.isAttachedToWindow == true} " +
                                 "preview_attached=${previewView?.isAttachedToWindow == true} " +
                                 "controller_attached=${previewView?.controller === cameraController}",
@@ -471,50 +240,7 @@ fun IdentifyScreen(
                                         requestId,
                                         "decode_result",
                                         "decode_success=true decoded_width=${details.decodedWidth} " +
-                                            "decoded_height=${details.decodedHeight} rotation_degrees=${details.rotationDegrees} " +
-                                            "selected_image_created=true",
-                                    )
-                                    handoffImage = details.selectedImage
-                                    runCatching { onImageReady(details.selectedImage) }
-                                        .onSuccess {
-                                            logCapture(requestId, "recognition_navigation", "started=true")
-                                        }
-                                        .onFailure { navigationError ->
-                                            captureState = RecognitionCameraCaptureContract.completeError()
-                                            error = CameraImageFailureHint
-                                            Log.e(
-                                                RecognitionCameraCaptureTag,
-                                                "request=$requestId event=recognition_navigation " +
-                                                    "started=false cause_class=${diagnosticValue(navigationError::class.simpleName)} " +
-                                                    "cause_message=${diagnosticValue(navigationError.message)}",
-                                            )
-                                        }
-                                } else {
-                                    val decodeError = normalized.exceptionOrNull()
-                                    Log.e(
-                                        RecognitionCameraCaptureTag,
-                                        "request=$requestId event=decode_result " +
-                                            "decode_attempted=true decode_success=false " +
-                                            "decoded_width=0 decoded_height=0 " +
-                                            "selected_image_created=false " +
-                                            "cause_class=${diagnosticValue(decodeError?.let { it::class.simpleName })} " +
-                                            "cause_message=${diagnosticValue(decodeError?.message)}",
-                                    )
-                                    error = CameraImageFailureHint
-                                }
-                            } finally {
-                                val cleanupSucceeded = !target.file.exists() || target.file.delete()
-                                logCapture(
-                                    requestId,
-                                    "post_capture",
-                                    "temporary_file_cleanup=$cleanupSucceeded " +
-                                        "camera_state_after_callback=${captureState.name} " +
-                                        "camera_provider_bound=$cameraBound preview_bound=$previewStreaming",
-                                )
-                            }
-                        }
-                    }
-
+                                            "decoYªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Õ‘•‘}¡•¥¡Ğô‘í‘•Ñ…¥±Ì¹‘•½‘•‘!•¥¡ÑôÉ½Ñ…Ñ¥½¹}‘•É••Ìô‘í‘•Ñ…¥±Ì¹É½Ñ…Ñ¥½¹•É••Íô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰Í•±•Ñ•‘}¥µ…•}É•…Ñ•õÑÉÕ”ˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¡…¹‘½™™%µ…”€ô‘•Ñ…¥±Ì¹Í•±•Ñ•‘%µ…”(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ÉÕ¹…Ñ¡¥¹œì½¹%µ…•I•…‘ä¡‘•Ñ…¥±Ì¹Í•±•Ñ•‘%µ…”¤ô(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹½¹MÕ•ÍÌì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€±½…ÁÑÕÉ”¡É•ÅÕ•ÍÑ%°€‰É•½¹¥Ñ¥½¹}¹…Ù¥…Ñ¥½¸ˆ°€‰ÍÑ…ÉÑ•õÑÉÕ”ˆ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹½¹…¥±ÕÉ”ì¹…Ù¥…Ñ¥½¹ÉÉ½È€´ø(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€…ÁÑÕÉ•MÑ…Ñ”€ôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•½¹ÑÉ…Ğ¹½µÁ±•Ñ•ÉÉ½È ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€•ÉÉ½È€ô…µ•É…%µ…•…¥±ÕÉ•!¥¹Ğ(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€1½œ¹” (€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€I•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•Q…œ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰É•ÅÕ•ÍĞô‘É•ÅÕ•ÍÑ%•Ù•¹ĞõÉ•½¹¥Ñ¥½¹}¹…Ù¥…Ñ¥½¸€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰ÍÑ…ÉÑ•õ™…±Í”…ÕÍ•}±…ÍÌô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡¹…Ù¥…Ñ¥½¹ÉÉ½Èèé±…ÍÌ¹Í¥µÁ±•9…µ”¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}µ•ÍÍ…”ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡¹…Ù¥…Ñ¥½¹ÉÉ½È¹µ•ÍÍ…”¥ôˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ô•±Í”ì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€Ù…°‘•½‘•ÉÉ½È€ô¹½Éµ…±¥é•¹•á•ÁÑ¥½¹=É9Õ±° ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€1½œ¹” (€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€I•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•Q…œ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰É•ÅÕ•ÍĞô‘É•ÅÕ•ÍÑ%•Ù•¹Ğõ‘•½‘•}É•ÍÕ±Ğ€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰‘•½‘•}…ÑÑ•µÁÑ•õÑÉÕ”‘•½‘•}ÍÕ•ÍÌõ™…±Í”€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰‘•½‘•‘}İ¥‘Ñ ôÀ‘•½‘•‘}¡•¥¡ĞôÀ€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰Í•±•Ñ•‘}¥µ…•}É•…Ñ•õ™…±Í”€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}±…ÍÌô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡‘•½‘•ÉÉ½Èü¹±•Ğì¥Ğèé±…ÍÌ¹Í¥µÁ±•9…µ”ô¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}µ•ÍÍ…”ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡‘•½‘•ÉÉ½Èü¹µ•ÍÍ…”¥ôˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€•ÉÉ½È€ô…µ•É…%µ…•…¥±ÕÉ•!¥¹Ğ(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€€€€€ô™¥¹…±±äì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€Ù…°±•…¹ÕÁMÕ••‘•€ô€…Ñ…É•Ğ¹™¥±”¹•á¥ÍÑÌ ¤ñğÑ…É•Ğ¹™¥±”¹‘•±•Ñ” ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€É•ÅÕ•ÍÑ%°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰Á½ÍÑ}…ÁÑÕÉ”ˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰Ñ•µÁ½É…Éå}™¥±•}±•…¹ÕÀô‘±•…¹ÕÁMÕ••‘•€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…µ•É…}ÍÑ…Ñ•}…™Ñ•É}…±±‰…¬ô‘í…ÁÑÕÉ•MÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‰…µ•É…}ÁÉ½Ù¥‘•É}‰½Õ¹ô‘…µ•É…	½Õ¹ÁÉ•Ù¥•İ}‰½Õ¹ô‘ÁÉ•Ù¥•İMÑÉ•…µ¥¹œˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€÷[h‘éì¶»§q«^v
                     override fun onError(exception: ImageCaptureException) {
                         val cause = exception.cause
                         logCapture(
@@ -556,68 +282,7 @@ fun IdentifyScreen(
                 },
             )
         } catch (captureError: Exception) {
-            val cleanupSucceeded = !target.file.exists() || target.file.delete()
-            logCapture(
-                requestId,
-                "terminal_callback",
-                "result=takePictureThrow capture_state=${captureState.name} " +
-                    "preview_attached=${previewView?.isAttachedToWindow == true} " +
-                    "controller_attached=${previewView?.controller === cameraController}",
-            )
-            activeCaptureRequestId = null
-            val cameraReadyForRetry = cameraCanCapture()
-            captureState = RecognitionCameraCaptureContract.completeError()
-            if (!cameraReadyForRetry) cameraRetry += 1
-            Log.e(
-                RecognitionCameraCaptureTag,
-                "request=$requestId event=take_picture_throw " +
-                    "cause_class=${diagnosticValue(captureError::class.simpleName)} " +
-                    "cause_message=${diagnosticValue(captureError.message)} " +
-                    "camera_ready_for_retry=$cameraReadyForRetry " +
-                    "camera_rebind_requested=${!cameraReadyForRetry} " +
-                    "temporary_file_cleanup=$cleanupSucceeded",
-            )
-            error = CameraStartFailureHint
-        }
-    }
-
-    LaunchedEffect(captureResetToken) {
-        // Re-entering Capture after a result must restore a live camera preview,
-        // never the last photo that was handed to Processing.
-        handoffImage = null
-        galleryBusy = false
-        error = null
-        galleryAutoOpenPending = autoOpenGallery
-    }
-
-    LaunchedEffect(autoOpenGallery, captureResetToken) {
-        if (autoOpenGallery) openGallery()
-        else if (!hasCameraPermission && !permissionRequested) {
-            permissionRequested = true
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    LaunchedEffect(hasCameraPermission, cameraBound, imageCaptureReady, previewStreaming, galleryAutoOpenPending) {
-        if (firstCaptureGuidePresented || galleryAutoOpenPending || !cameraCanCapture()) return@LaunchedEffect
-        val completed = context.getSharedPreferences(CAPTURE_GUIDE_PREFERENCES, Activity.MODE_PRIVATE)
-            .getBoolean(CAPTURE_GUIDE_COMPLETED_KEY, false)
-        firstCaptureGuideVisible = shouldShowRecognitionFirstCaptureGuide(
-            cameraPermissionGranted = hasCameraPermission,
-            previewReady = cameraCanCapture(),
-            galleryPickerPending = galleryAutoOpenPending,
-            guideCompleted = completed,
-        )
-        firstCaptureGuidePresented = true
-    }
-
-    BackHandler(enabled = captureState == RecognitionCameraCaptureState.CAPTURING) {
-        // Keep the bound CameraX surface alive until the request has a terminal result.
-    }
-
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
-        val layoutDirection = LocalLayoutDirection.current
-        val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
+            val cleanupSucceeded = !target.file.exists() ||YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÔÑ…É•Ğ¹™¥±”¹‘•±•Ñ” ¤(€€€€€€€€€€€±½…ÁÑÕÉ” (€€€€€€€€€€€€€€€É•ÅÕ•ÍÑ%°(€€€€€€€€€€€€€€€€‰Ñ•Éµ¥¹…±}…±±‰…¬ˆ°(€€€€€€€€€€€€€€€€‰É•ÍÕ±ĞõÑ…­•A¥ÑÕÉ•Q¡É½Ü…ÁÑÕÉ•}ÍÑ…Ñ”ô‘í…ÁÑÕÉ•MÑ…Ñ”¹¹…µ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥•İ}…ÑÑ…¡•ô‘íÁÉ•Ù¥•İY¥•Üü¹¥ÍÑÑ…¡•‘Q½]¥¹‘½Ü€ôôÑÉÕ•ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰½¹ÑÉ½±±•É}…ÑÑ…¡•ô‘íÁÉ•Ù¥•İY¥•Üü¹½¹ÑÉ½±±•È€ôôô…µ•É…½¹ÑÉ½±±•Éôˆ°(€€€€€€€€€€€€¤(€€€€€€€€€€€…Ñ¥Ù•…ÁÑÕÉ•I•ÅÕ•ÍÑ%€ô¹Õ±°(€€€€€€€€€€€Ù…°…µ•É…I•…‘å½ÉI•ÑÉä€ô…µ•É……¹…ÁÑÕÉ” ¤(€€€€€€€€€€€…ÁÑÕÉ•MÑ…Ñ”€ôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•½¹ÑÉ…Ğ¹½µÁ±•Ñ•ÉÉ½È ¤(€€€€€€€€€€€¥˜€ ……µ•É…I•…‘å½ÉI•ÑÉä¤…µ•É…I•ÑÉä€¬ô€Ä(€€€€€€€€€€€1½œ¹” (€€€€€€€€€€€€€€€I•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•Q…œ°(€€€€€€€€€€€€€€€€‰É•ÅÕ•ÍĞô‘É•ÅÕ•ÍÑ%•Ù•¹ĞõÑ…­•}Á¥ÑÕÉ•}Ñ¡É½Ü€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}±…ÍÌô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡…ÁÑÕÉ•ÉÉ½Èèé±…ÍÌ¹Í¥µÁ±•9…µ”¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…ÕÍ•}µ•ÍÍ…”ô‘í‘¥…¹½ÍÑ¥Y…±Õ”¡…ÁÑÕÉ•ÉÉ½È¹µ•ÍÍ…”¥ô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…µ•É…}É•…‘å}™½É}É•ÑÉäô‘…µ•É…I•…‘å½ÉI•ÑÉä€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰…µ•É…}É•‰¥¹‘}É•ÅÕ•ÍÑ•ô‘ì……µ•É…I•…‘å½ÉI•ÑÉåô€ˆ€¬(€€€€€€€€€€€€€€€€€€€€‰Ñ•µÁ½É…Éå}™¥±•}±•…¹ÕÀô‘±•…¹ÕÁMÕ••‘•ˆ°(€€€€€€€€€€€€¤(€€€€€€€€€€€•ÉÉ½È€ô…µ•É…MÑ…ÉÑ…¥±ÕÉ•!¥¹Ğ(€€€€€€€ô(€€€ô4(4(€€€1…Õ¹¡•‘™™•Ğ¡…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€€¼¼I”µ•¹Ñ•É¥¹œ…ÁÑÕÉ”…™Ñ•È„É•ÍÕ±ĞµÕÍĞÉ•ÍÑ½É”„±¥Ù”…µ•É„ÁÉ•Ù¥•Ü°(€€€€€€€€¼¼¹•Ù•ÈÑ¡”±…ÍĞÁ¡½Ñ¼Ñ¡…Ğİ…Ì¡…¹‘•Ñ¼AÉ½•ÍÍ¥¹œ¸(€€€€€€€¡…¹‘½™™%µ…”€ô¹Õ±°(€€€€€€€…±±•Éå	ÕÍä€ô™…±Í”(€€€€€€€•ÉÉ½È€ô¹Õ±°(€€€€€€€…±±•ÉåÕÑ½=Á•¹A•¹‘¥¹œ€ô…ÕÑ½=Á•¹…±±•Éä(€€€ô((€€€1…Õ¹¡•‘™™•Ğ¡…ÕÑ½=Á•¹…±±•Éä°…ÁÑÕÉ•I•Í•ÑQ½­•¸¤ì(€€€€€€€¥˜€¡…ÕÑ½=Á•¹…±±•Éä¤½Á•¹…±±•Éä ¤4(€€€€€€€•±Í”¥˜€ …¡…Í…µ•É…A•Éµ¥ÍÍ¥½¸€˜˜€…Á•Éµ¥ÍÍ¥½¹I•ÅÕ•ÍÑ•¤ì4(€€€€€€€€€€€Á•Éµ¥ÍÍ¥½¹I•ÅÕ•ÍÑ•€ôÑÉÕ”4(€€€€€€€€€€€Á•Éµ¥ÍÍ¥½¹1…Õ¹¡•È¹±…Õ¹ ¡5…¹¥™•ÍĞ¹Á•Éµ¥ÍÍ¥½¸¹5I¤4(€€€€€€€ô4(€€€ô((€€€1…Õ¹¡•‘™™•Ğ (€€€€€€€…ÕÑ½=Á•¹…±±•Éä°(€€€€€€€…±±•ÉåY¥Í¥Ñ•‘Q¡¥ÍM•ÍÍ¥½¸°(€€€€€€€¡…Í…µ•É…A•Éµ¥ÍÍ¥½¸°(€€€€€€€…µ•É…	½Õ¹°(€€€€€€€¥µ…•…ÁÑÕÉ•I•…‘ä°(€€€€€€€ÁÉ•Ù¥•İMÑÉ•…µ¥¹œ°(€€€€€€€…±±•ÉåÕÑ½=Á•¹A•¹‘¥¹œ°(€€€€¤ì(€€€€€€€¥˜€¡™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•AÉ•Í•¹Ñ•ñğ…±±•ÉåÕÑ½=Á•¹A•¹‘¥¹œñğ€……µ•É……¹…ÁÑÕÉ” ¤¤ì(€€€€€€€€€€€É•ÑÕÉ¹1…Õ¹¡•‘™™•Ğ(€€€€€€€ô(€€€€€€€™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•Y¥Í¥‰±”€ôÍ¡½Õ±‘M¡½İI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘” (€€€€€€€€€€€…µ•É…A•Éµ¥ÍÍ¥½¹É…¹Ñ•€ô¡…Í…µ•É…A•Éµ¥ÍÍ¥½¸°(€€€€€€€€€€€ÁÉ•Ù¥•İI•…‘ä€ô…µ•É……¹…ÁÑÕÉ” ¤°(€€€€€€€€€€€…±±•ÉåA¥­•ÉA•¹‘¥¹œ€ô…±±•ÉåÕÑ½=Á•¹A•¹‘¥¹œñğ…ÕÑ½=Á•¹…±±•Éä°(€€€€€€€€€€€Õ¥‘•½µÁ±•Ñ•€ô™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ½É”¹¥Í½µÁ±•Ñ• ¤°(€€€€€€€€€€€…±±•ÉåY¥Í¥Ñ•‘Q¡¥ÍM•ÍÍ¥½¸€ô…±±•ÉåY¥Í¥Ñ•‘Q¡¥ÍM•ÍÍ¥½¸ñğ…ÕÑ½=Á•¹…±±•Éä°(€€€€€€€€¤(€€€€€€€™¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•AÉ•Í•¹Ñ•€ôÑÉÕ”(€€€ô((€€€	…­!…¹‘±•È¡•¹…‰±•€ô…ÁÑÕÉ•MÑ…Ñ”€ôôI•½¹¥Ñ¥½¹…µ•É……ÁÑÕÉ•MÑ…Ñ”¹AQUI%9¤ì(€€€€€€€€¼¼-••ÀÑ¡”‰½Õ¹…µ•É…`ÍÕÉ™…”…±¥Ù”Õ¹Ñ¥°Ñ¡”É•ÅÕ•ÍĞ¡…Ì„Ñ•Éµ¥¹…°É•ÍÕ±Ğ¸(€€€ô((€€€	½á]¥Ñ¡½¹ÍÑÉ…¥¹ÑÌ¡5½‘¥™¥•È¹™¥±±5…áM¥é” ¤¹‰…­É½Õ¹¡½±½È¹	±…¬¤¤ì(€€€€€€€Ù…°±…å½ÕÑ¥É•Ñ¥½¸€ô1½…±1…å½ÕÑ¥É•Ñ¥½¸¹ÕÉÉ•¹Ğ(€€€€€€€Ù…°…ÁÑÕÉ•½¹ÑÉ½±ÍA±…•µ•¹Ğ€ôÉ•µ•µ‰•È¡µ…á]¥‘Ñ °Ï[h‘éì¶»§q«^ufeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
                 viewportWidthDp = maxWidth.value,
                 galleryWidthDp = 54f,
@@ -667,7 +332,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -687,7 +352,7 @@ fun IdentifyScreen(
             }
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !galleryAutoOpenPending) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !galleryAutoOpenPending && !firstCaptureGuideVisible) {
             if (!hasCameraPermission) {
                 Button(
                     onClick = {
@@ -707,7 +372,7 @@ fun IdentifyScreen(
             }
         }
 
-        error?.takeIf { handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING }?.let {
+        error?.takeIf { handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible }?.let {
             Text(
                 text = it,
                 color = Color.White,
@@ -717,7 +382,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -770,32 +435,14 @@ fun IdentifyScreen(
         }
 
         if (firstCaptureGuideVisible) {
-            val dismissGuide = {
-                val saved = context.getSharedPreferences(CAPTURE_GUIDE_PREFERENCES, Activity.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean(CAPTURE_GUIDE_COMPLETED_KEY, true)
-                    .commit()
-                if (saved) firstCaptureGuideVisible = false
-            }
-            AlertDialog(
-                modifier = Modifier.testTag("recognition-capture-first-guide"),
-                onDismissRequest = dismissGuide,
-                title = { Text("å¼€å§‹æ‹ç…§è¯†é±¼") },
-                text = { Text("å°½é‡è®©é±¼ä½“è½®å»“æ¸…æ™°ï¼Œæ‰‹æŒé±¼è·ä¹Ÿå¯ä»¥ã€‚æ‹æ‘„å AI ä¼šè‡ªåŠ¨è¯†åˆ«ï¼Œç»“æœå¯ç¡®è®¤æˆ–ä¿®æ”¹ã€‚") },
-                confirmButton = {
-                    TextButton(onClick = dismissGuide, modifier = Modifier.testTag("recognition-capture-guide-start")) {
-                        Text("å¼€å§‹æ‹ç…§")
-                    }
+            RecognitionFirstCaptureGuideOverlay(
+                initialPage = firstCaptureGuidePage,
+                onComplete = {
+                    if (firstCaptureGuideStore.markCompleted()) firstCaptureGuideVisible = false
                 },
-                dismissButton = {
-                    TextButton(onClick = dismissGuide, modifier = Modifier.testTag("recognition-capture-guide-skip")) {
-                        Text("è·³è¿‡")
-                    }
-                },
+                onDismiss = { firstCaptureGuideVisible = false },
+                onPageChanged = { firstCaptureGuidePage = it },
             )
         }
     }
 }
-
-private const val CAPTURE_GUIDE_PREFERENCES = "yujian_capture_guide_v1"
-private const val CAPTURE_GUIDE_COMPLETED_KEY = "capture_guide_v1_completed"

@@ -1,64 +1,4 @@
-package com.yujian.ai.ui.home
-
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.LayoutDirection
-import kotlin.math.abs
-import com.yujian.ai.ui.adaptive.AdaptiveHeightClass
-import com.yujian.ai.ui.adaptive.AdaptiveWidthClass
-import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
-
-class EmptyHomeLayoutMappingTest {
-    private val insets = SafeDrawingInsetsDp(
-        top = 24.dp,
-        bottom = 34.dp,
-        start = 0.dp,
-        end = 0.dp,
-    )
-
-    @Test
-    fun frozenGeometryMapsAcrossRequiredPortraitProfilesAndFontScales() {
-        val profiles = listOf(
-            Triple(320f, 640f, AdaptiveWidthClass.COMPACT),
-            Triple(360f, 780f, AdaptiveWidthClass.STANDARD),
-            Triple(393f, 852f, AdaptiveWidthClass.MEDIUM),
-            Triple(411f, 891f, AdaptiveWidthClass.WIDE),
-        )
-
-        profiles.forEach { (width, height, widthClass) ->
-            listOf(1f, 1.3f).forEach { fontScale ->
-                val mapping = calculateEmptyHomeLayoutMapping(
-                    windowWidthDp = width,
-                    windowHeightDp = height,
-                    density = 1f,
-                    fontScale = fontScale,
-                    safeInsets = insets,
-                )
-                val safeRight = mapping.safeViewport.right
-                val safeBottom = mapping.safeViewport.bottom
-                val referenceScale = mapping.profile.safeWidthDp / EmptyHomeFrozenLayoutGeometry.REFERENCE_WIDTH_PX
-
-                assertEquals(widthClass, mapping.profile.widthClass)
-                assertEquals(2f, mapping.heroBounds.width / mapping.heroBounds.height, 0.01f)
-                assertTrue(mapping.heroBounds.left >= mapping.safeViewport.left)
-                assertTrue(mapping.heroBounds.right <= safeRight)
-                assertTrue(mapping.headerBounds.top >= mapping.safeViewport.top)
-                assertTrue(mapping.headerBounds.bottom <= safeBottom)
-                assertTrue(mapping.headerBounds.width <= EmptyHomeFrozenLayoutGeometry.HEADER_MAX_WIDTH_DP)
-                assertTrue(mapping.headerBounds.height >= EmptyHomeFrozenLayoutGeometry.HEADER_MIN_TOUCH_TARGET_DP)
-                val expectedHeroTop = mapping.sceneTransform.offsetY +
-                    EmptyHomeFrozenLayoutGeometry.HERO_Y_PX * mapping.sceneTransform.scale
-                assertEquals(expectedHeroTop, mapping.heroBounds.top, 0.01f)
-                assertTrue(mapping.cameraBounds.left >= mapping.safeViewport.left)
-                assertTrue(mapping.cameraBounds.right <= safeRight)
-                assertTrue(mapping.cameraBounds.bottom <= safeBottom)
-                assertTrue(mapping.albumBounds.height >= EmptyHomeFrozenLayoutGeometry.ALBUM_TOUCH_TARGET_DP)
-                assertTrue(mapping.albumBounds.bottom <= safeBottom + 0.01f)
-                assertTrue(
-                    mapping.cameraBounds.top - mapping.promptBounds.bottom >=
-                        EmptyHomeFrozenLayoutGeometry.PROMPT_CAMERA_GAP_MIN_PX * referenceScale - 0.01f,
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”()¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ð¹‘À)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ð¹1…å½ÕÑ¥É•Ñ¥½¸)¥µÁ½ÉÐ­½Ñ±¥¸¹µ…Ñ ¹…‰Ì)¥µÁ½ÉÐ½´¹åÕ©¥…¸¹…¤¹Õ¤¹…‘…ÁÑ¥Ù”¹‘…ÁÑ¥Ù•!•¥¡Ñ±…ÍÌ)¥µÁ½ÉÐ½´¹åÕ©¥…¸¹…¤¹Õ¤¹…‘…ÁÑ¥Ù”¹‘…ÁÑ¥Ù•]¥‘Ñ¡±…ÍÌ)¥µÁ½ÉÐ½´¹åÕ©¥…¸¹…¤¹Õ¤¹…‘…ÁÑ¥Ù”¹M…™•É…Ý¥¹%¹Í•ÑÍÀ)¥µÁ½ÉÐ½Éœ¹©Õ¹¥Ð¹ÍÍ•ÉÐ¹…ÍÍ•ÉÑÅÕ…±Ì)¥µÁ½ÉÐ½Éœ¹©Õ¹¥Ð¹ÍÍ•ÉÐ¹…ÍÍ•ÉÑQÉÕ”)¥µÁ½ÉÐ½Éœ¹©Õ¹¥Ð¹Q•ÍÐ()±…ÍÌµÁÑå!½µ•1…å½ÕÑ5…ÁÁ¥¹Q•ÍÐì(€€€ÁÉ¥Ù…Ñ”Ù…°¥¹Í•ÑÌ€ôM…™•É…Ý¥¹%¹Í•ÑÍÀ (€€€€€€€Ñ½À€ô€ÈÐ¹‘À°(€€€€€€€‰½ÑÑ½´€ô€ÌÐ¹‘À°(€€€€€€€ÍÑ…ÉÐ€ô€À¹‘À°(€€€€€€€•¹€ô€À¹‘À°(€€€€¤((€€€Q•ÍÐ(€€€™Õ¸™É½é•¹•½µ•ÑÉå5…ÁÍÉ½ÍÍI•ÅÕ¥É•‘A½ÉÑÉ…¥ÑAÉ½™¥±•Í¹‘½¹ÑM…±•Ì ¤ì(€€€€€€€Ù…°ÁÉ½™¥±•Ì€ô±¥ÍÑ=˜ (€€€€€€€€€€€QÉ¥Á±” ÌÈÁ˜°€ØÐÁ˜°‘…ÁÑ¥Ù•]¥‘Ñ¡±…ÍÌ¹=5AP¤°(€€€€€€€€€€€QÉ¥Á±” ÌØÁ˜°€ÜàÁ˜°‘…ÁÑ¥Ù•]¥‘Ñ¡±…ÍÌ¹MQ9I¤°(€€€€€€€€€€€QÉ¥Á±” ÌäÍ˜°€àÔÉ˜°‘…ÁÑ¥Ù•]¥‘Ñ¡±…ÍÌ¹5%U4¤°(€€€€€€€€€€€QÉ¥Á±” ÐÄÅ˜°€àäÅ˜°‘…ÁÑ¥Ù•]¥‘Ñ¡±…ÍÌ¹]%¤°(€€€€€€€€¤((€€€€€€€ÁÉ½™¥±•Ì¹™½É… ì€¡Ý¥‘Ñ °¡•¥¡Ð°Ý¥‘Ñ¡±…ÍÌ¤€´ø(€€€€€€€€€€€±¥ÍÑ=˜ Å˜°€Ä¸Í˜¤¹™½É… ì™½¹ÑM…±”€´ø(€€€€€€€€€€€€€€€Ù…°µ…ÁÁ¥¹œ€ô…±Õ±…Ñ•µÁÑå!½µ•1…å½ÕÑ5…ÁÁ¥¹œ (€€€€€€€€€€€€€€€€€€€Ý¥¹‘½Ý]¥‘Ñ¡À€ôÝ¥‘Ñ °(€€€€€€€€€€€€€€€€€€€Ý¥¹‘½Ý!•¥¡ÑÀ€ô¡•¥¡Ð°(€€€€€€€€€€€€€€€€€€€‘•¹Í¥Ñä€ô€Å˜°(€€€€€€€€€€€€€€€€€€€™½¹ÑM…±”€ô™½¹ÑM…±”°(€€€€€€€€€€€€€€€€€€€Í…™•%¹Í•ÑÌ€ô¥¹Í•ÑÌ°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€Ù…°Í…™•I¥¡Ð€ôµ…ÁÁ¥¹œ¹Í…™•Y¥•ÝÁ½ÉÐ¹É¥¡Ð(€€€€€€€€€€€€€€€Ù…°Í…™•	½ÑÑ½´€ôµ…ÁÁ¥¹œ¹Í…™•Y¥•ÝÁ½ÉÐ¹‰½ÑÑ½´(€€€€€€€€€€€€€€€Ù…°É•™•É•¹•M…±”€ôµ…ÁÁ¥¹œ¹ÁÉ½™¥±”¹Í…™•]¥‘Ñ¡À€¼µÁÑå!½µ•É½é•¹1…å½ÕÑ•½µ•ÑÉä¹II9}]%Q!}A`((€€€€€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì¡Ý¥‘Ñ¡±…ÍÌ°µ…ÁÁ¥¹œ¹ÁÉ½™¥±”¹Ý¥‘Ñ¡±…ÍÌ¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì É˜°µ…ÁÁ¥¹œ¹¡•É½	½Õ¹‘Ì¹Ý¥‘Ñ €¼µ…ÁÁ¥¹œ¹¡•É½	½Õ¹‘Ì¹¡•¥¡Ð°€À¸ÀÅ˜¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹¡•É½	½Õ¹‘Ì¹±•™Ð€øôµ…ÁÁ¥¹œ¹Í…™•Y¥•ÝÁ½ÉÐ¹±•™Ð¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹¡•É½	½Õ¹‘Ì¹É¥¡Ð€ðôÍ…™•I¥¡Ð¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹¡•…‘•É	½Õ¹‘Ì¹Ñ½À€øôµ…ÁÁ¥¹œ¹Í…™•Y¥•ÝÁ½ÉÐ¹Ñ½À¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹¡•…‘•É	½Õ¹‘Ì¹‰½ÑÑ½´€ðôÍ…™•	½ÑÑ½´¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹¡•…‘•É	½Õ¹‘Ì¹Ý¥‘Ñ €ðôµÁÑå!½µ•É½é•¹1…å½ÕÑ•½µ•ÑÉä¹!I}5a}]%Q!}@¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹¡•…‘•É	½Õ¹‘Ì¹¡•¥¡Ð€øôµÁÑå!½µ•É½é•¹1…å½ÕÑ•½µ•ÑÉä¹!I}5%9}Q=U!}QIQ}@¤(€€€€€€€€€€€€€€€Ù…°•áÁ•Ñ•‘!•É½Q½À€ôµ…ÁÁ¥¹œ¹Í•¹•QÉ…¹Í™½É´¹½™™Í•Ñd€¬(€€€€€€€€€€€€€€€€€€€µÁÑå!½µ•É½é•¹1…å½ÕÑ•½µ•ÑÉä¹!I=}e}A`€¨µ…ÁÁ¥¹œ¹Í•¹•QÉ…¹Í™½É´¹Í…±”(€€€€€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì¡•áÁ•Ñ•‘!•É½Q½À°µ…ÁÁ¥¹œ¹¡•É½	½Õ¹‘Ì¹Ñ½À°€À¸ÀÅ˜¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹…µ•É…	½Õ¹‘Ì¹±•™Ð€øôµ…ÁÁ¥¹œ¹Í…™•Y¥•ÝÁ½ÉÐ¹±•™Ð¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹…µ•É…	½Õ¹‘Ì¹É¥¡Ð€ðôÍ…™•I¥¡Ð¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹…µ•É…	½Õ¹‘Ì¹‰½ÑÑ½´€ðôÍ…™•	½ÑÑ½´¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹…±‰Õµ	½Õ¹‘Ì¹¡•¥¡Ð€øôµÁÑå!½µ•É½é•¹1…å½ÕÑ•½µ•ÑÉä¹1	U5}Q=U!}QIQ}@¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ”¡µ…ÁÁ¥¹œ¹…±‰Õµ	½Õ¹‘Ì¹‰½ÑÑ½´€ðôÍ…™•	½ÑÑ½´€¬€À¸ÀÅ˜¤(€€€€€€€€€€€€€€€…ÍÍ•ÉÑQÉÕ” (€€€€€€€€€€€€€€€€€€€µ…ÁÁ¥¹œ¹…µ•É…	½Õ¹‘Ì¹Ñ½À€´µ…ÁÁ¥¹œ¹ÁÉ½µÁÑ	½Õ¹‘Ì¹‰½ÑÑ½´€øô+[h‘éì¶»§q«^t                       EmptyHomeFrozenLayoutGeometry.PROMPT_CAMERA_GAP_MIN_PX * referenceScale - 0.01f,
                 )
                 assertTrue(
                     mapping.albumBounds.top - mapping.cameraBounds.bottom >=
@@ -97,7 +37,11 @@ class EmptyHomeLayoutMappingTest {
         assertEquals(AdaptiveHeightClass.SHORT, mapping.profile.heightClass)
         assertTrue(mapping.profile.requiresScrollableContent)
         assertEquals(2f, mapping.heroBounds.width / mapping.heroBounds.height, 0.01f)
-        assertEquals(4f, mapping.headerBounds.top - mapping.safeViewport.top, 0.001f)
+        assertEquals(
+            EmptyHomeFrozenLayoutGeometry.COMPACT_SAFE_HEADER_INSET_DP,
+            mapping.headerBounds.top - mapping.safeViewport.top,
+            0.001f,
+        )
         assertEquals(
             mapping.sceneTransform.offsetY + EmptyHomeFrozenLayoutGeometry.HERO_Y_PX * mapping.sceneTransform.scale,
             mapping.heroBounds.top,
