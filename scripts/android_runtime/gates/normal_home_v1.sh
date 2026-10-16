@@ -1,540 +1,1 @@
-#!/usr/bin/env bash
-
-gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.home.NormalHomeRealPhotoProbeTest,com.yujian.ai.ui.components.HomeEvidenceBitmapTest,com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.home.NormalHomeMotionEvidenceTest'
-}
-
-gate_before_instrumentation() {
-  "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
-}
-
-gate_after_instrumentation() {
-  local output_dir="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
-  mkdir -p "$output_dir"
-  "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
-    NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \
-    > "$output_dir/normal-home-motion-instrumentation.log" 2>&1 || true
-}
-
-normal_home_run_seed() {
-  local method="$1"
-  local log="$2"
-  timeout 60s "$YUJIAN_ADB_BIN" shell am instrument -w -r \
-    -e class "com.yujian.ai.HomeVisualEvidenceSeedTest#$method" \
-    "$YUJIAN_INSTRUMENTATION_TARGET" > "$log" 2>&1
-  local rc=$?
-  if (( rc != 0 )) || grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process (crashed|has died)|Process .* (crashed|has died)|shortMsg=Process crashed' "$log"; then
-    cat "$log" >&2
-    return 1
-  fi
-  grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \([0-9]+ test' "$log"
-}
-
-normal_home_launch_app() {
-  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
-  "$YUJIAN_ADB_BIN" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
-
-  local attempt resumed pid
-  for attempt in $(seq 1 20); do
-    resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
-    pid="$("$YUJIAN_ADB_BIN" shell pidof "$YUJIAN_APP_PACKAGE" 2>/dev/null | tr -d '\r' || true)"
-    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s pid=%s\n' "$attempt" "$resumed" "$pid"
-    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* && "$pid" =~ [0-9] ]]; then
-      # UIAutomator's Compose bridge is unreliable and can hang on API 28.
-      # Wait on real rendered pixels instead. Normal Home intentionally loads
-      # its scene/card/photo assets asynchronously, so an Activity-resumed
-      # signal alone is not sufficient evidence that the production frame is
-      # ready for a frozen-parity capture.
-      local candidate="$YUJIAN_EVIDENCE_DIR/normal-home-v1/render_readiness.png"
-      local render_attempt
-      for render_attempt in $(seq 1 20); do
-        "$YUJIAN_ADB_BIN" exec-out screencap -p > "$candidate"
-        local fatal_runtime
-        fatal_runtime="$("$YUJIAN_ADB_BIN" logcat -d -v brief -s AndroidRuntime:E 2>/dev/null | grep -E 'FATAL EXCEPTION|Process: com\.yujian\.ai' | tail -n 4 || true)"
-        if [[ -n "$fatal_runtime" ]]; then
-          printf 'NORMAL_HOME_APP_CRASH_DETECTED\n%s\n' "$fatal_runtime" >&2
-          return 1
-        fi
-        if python3 - "$candidate" <<'PY'
-from PIL import Image, ImageStat
-import sys
-
-image = Image.open(sys.argv[1]).convert("RGB")
-if image.width < 200 or image.height < 400:
-    raise SystemExit("NORMAL_HOME_FRAME_INVALID")
-
-def crop(x, y, w, h):
-    return image.crop((
-        int(image.width * x),
-        int(image.height * y),
-        int(image.width * (x + w)),
-        int(image.height * (y + h)),
-    ))
-
-# The screen must be the Normal Home data page, not merely any resumed
-# activity. The blue/gray lake and photographic Hero reject the API28 launcher
-# wallpaper that previously passed the loose spread-only check.
-background = crop(0.04, 0.16, 0.92, 0.18)
-card_photo = crop(0.18, 0.33, 0.64, 0.28)
-bg_stat = ImageStat.Stat(background)
-card_stat = ImageStat.Stat(card_photo)
-bg_spread = sum(bg_stat.stddev) / 3.0
-card_spread = sum(card_stat.stddev) / 3.0
-bg_mean = sum(bg_stat.mean) / 3.0
-card_mean = sum(card_stat.mean) / 3.0
-lake_blue_over_red = bg_stat.mean[2] - bg_stat.mean[0]
-print(
-    "NORMAL_HOME_RENDER_READINESS "
-    f"bg_mean={bg_mean:.2f} bg_spread={bg_spread:.2f} "
-    f"lake_blue_over_red={lake_blue_over_red:.2f} "
-    f"card_mean={card_mean:.2f} card_spread={card_spread:.2f}"
-)
-if lake_blue_over_red < 6.0 or card_spread < 35.0 or card_mean > 225.0:
-    raise SystemExit("NORMAL_HOME_RENDER_NOT_SETTLED")
-PY
-        then
-          printf 'NORMAL_HOME_RENDER_READY attempt=%s\n' "$render_attempt"
-          return 0
-        fi
-        printf 'NORMAL_HOME_RENDER_SETTLE attempt=%s\n' "$render_attempt"
-        sleep 1
-      done
-      echo 'NORMAL_HOME_RENDER_NOT_READY' >&2
-      return 1
-    fi
-    sleep 1
-  done
-  echo 'NORMAL_HOME_ACTIVITY_NOT_READY' >&2
-  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$YUJIAN_EVIDENCE_DIR/normal-home-v1/content_not_ready.png" || true
-  return 1
-}
-
-normal_home_capture_exact() {
-  local path="$1" width="$2" height="$3"
-  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$path"
-  python3 - "$path" "$width" "$height" <<'PY'
-from PIL import Image
-import sys
-path, expected_w, expected_h = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
-with Image.open(path) as image:
-    actual = image.size
-print(f"SCREENSHOT_DIMENSIONS file={path} actual={actual[0]}x{actual[1]} expected={expected_w}x{expected_h}")
-if actual != (expected_w, expected_h):
-    raise SystemExit(10)
-PY
-}
-
-normal_home_prepare_long_display() {
-  local setup_log="$YUJIAN_EVIDENCE_DIR/infra/long_screen_device_setup.log"
-  local probe="$YUJIAN_EVIDENCE_DIR/infra/long_screen_probe.png"
-  local actual serial avd_name emulator_bin emulator_log attempt boot api
-  mkdir -p "$(dirname "$setup_log")"
-  : > "$setup_log"
-  "$YUJIAN_ADB_BIN" shell wm size 1080x2340 >> "$setup_log" 2>&1 || true
-  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$probe" 2>> "$setup_log" || true
-  actual="$(python3 - "$probe" <<'PY'
-from PIL import Image
-import sys
-try:
-    with Image.open(sys.argv[1]) as image:
-        print(f"{image.width}x{image.height}")
-except Exception:
-    print("unavailable")
-PY
-)"
-  printf 'wm_size_capture_probe=%s\n' "$actual" | tee -a "$setup_log"
-  if [[ "$actual" == "1080x2340" ]]; then
-    return 0
-  fi
-
-  serial="$("$YUJIAN_ADB_BIN" get-serialno 2>/dev/null | tr -d '\r' || true)"
-  avd_name="$("$YUJIAN_ADB_BIN" shell getprop qemu.avd_name 2>/dev/null | tr -d '\r' || true)"
-  local startup_log="$YUJIAN_EVIDENCE_DIR/infra/emulator.log"
-  local sdk_root
-  if [[ -z "$avd_name" && -s "$startup_log" ]]; then
-    avd_name="$(sed -nE 's/.*qemu\.avd_name=([^[:space:]]+).*/\1/p' "$startup_log" | tail -n 1)"
-    if [[ -z "$avd_name" ]]; then
-      avd_name="$(sed -nE 's/.*requirements to run avd: `([^`]+)`.*/\1/p' "$startup_log" | tail -n 1)"
-    fi
-    printf 'resolved_avd_name=%s source=%s\n' "$avd_name" "$startup_log" | tee -a "$setup_log"
-  fi
-  emulator_bin="$(command -v emulator || true)"
-  sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-  if [[ -z "$emulator_bin" && -n "$sdk_root" && -x "$sdk_root/emulator/emulator" ]]; then
-    emulator_bin="$sdk_root/emulator/emulator"
-  fi
-  if [[ "$serial" != emulator-* || -z "$avd_name" || -z "$emulator_bin" ]]; then
-    printf 'LONG_SCREEN_NATIVE_PROFILE_UNAVAILABLE serial=%s avd=%s emulator=%s\n' \
-      "$serial" "$avd_name" "$emulator_bin" | tee -a "$setup_log"
-    return "$EXIT_BLOCKED_INFRA"
-  fi
-
-  emulator_log="$YUJIAN_EVIDENCE_DIR/infra/emulator_long_screen.log"
-  printf 'restart_serial=%s avd=%s skin=1080x2340\n' "$serial" "$avd_name" | tee -a "$setup_log"
-  "$YUJIAN_ADB_BIN" -s "$serial" emu kill >> "$setup_log" 2>&1 || true
-  for attempt in $(seq 1 30); do
-    if ! "$YUJIAN_ADB_BIN" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
-      break
-    fi
-    sleep 1
-  done
-  nohup "$emulator_bin" -avd "$avd_name" -no-snapshot -no-window \
-    -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
-    -partition-size 4096 -skin 1080x2340 > "$emulator_log" 2>&1 &
-  printf 'restarted_emulator_pid=%s\n' "$!" | tee -a "$setup_log"
-  timeout 120s "$YUJIAN_ADB_BIN" wait-for-device >> "$setup_log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
-  boot=0
-  for attempt in $(seq 1 60); do
-    api="$("$YUJIAN_ADB_BIN" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
-    if [[ "$("$YUJIAN_ADB_BIN" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)" == "1" && "$api" == "28" ]]; then
-      boot=1
-      break
-    fi
-    sleep 2
-  done
-  if (( boot != 1 )); then
-    printf 'LONG_SCREEN_EMULATOR_BOOT_FAILED api=%s\n' "$api" | tee -a "$setup_log"
-    return "$EXIT_BLOCKED_INFRA"
-  fi
-
-  # Preserve the runner's previous logical profile after the wider native skin
-  # has supplied a real 1080x2340 capture surface for this job.
-  original_override="1080x1920"
-  "$YUJIAN_ADB_BIN" shell wm size reset >> "$setup_log" 2>&1 || true
-  "$YUJIAN_ADB_BIN" shell wm density 480 >> "$setup_log" 2>&1 || true
-  "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >> "$setup_log" 2>&1 || true
-  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$probe" 2>> "$setup_log" || true
-  actual="$(python3 - "$probe" <<'PY'
-from PIL import Image
-import sys
-try:
-    with Image.open(sys.argv[1]) as image:
-        print(f"{image.width}x{image.height}")
-except Exception:
-    print("unavailable")
-PY
-)"
-  printf 'native_skin_capture_probe=%s\n' "$actual" | tee -a "$setup_log"
-  if [[ "$actual" != "1080x2340" ]]; then
-    tail -n 80 "$emulator_log" >> "$setup_log" 2>&1 || true
-    return "$EXIT_BLOCKED_INFRA"
-  fi
-  return 0
-}
-
-normal_home_write_profile_record() {
-  local screenshot="$1" profile="$2" size="$3" scale="$4" status="$5" reason="$6"
-  local output="$YUJIAN_EVIDENCE_DIR/normal-home-v1/normal_home_profile_${profile}.json"
-  python3 - "$screenshot" "$output" "$BUILD_SHA" "$profile" "$size" "$scale" \
-    "$YUJIAN_ADB_BIN" "$YUJIAN_APP_APK" "$status" "$reason" <<'PY'
-import hashlib, json, pathlib, subprocess, sys
-from PIL import Image
-image_path, output, build_sha, profile, size, font_scale, adb, apk, status, reason = sys.argv[1:]
-def shell(*args):
-    return subprocess.check_output([adb, "shell", *args], text=True).strip().replace("\r", "")
-with Image.open(image_path) as image:
-    dimensions = list(image.size)
-payload = {
-    "profile_id": profile,
-    "status": status,
-    "reason": reason or None,
-    "page_state": "NORMAL_HOME_DATA",
-    "account_state": "GUEST",
-    "api_level": shell("getprop", "ro.build.version.sdk"),
-    "device": shell("getprop", "ro.product.model"),
-    "device_serial": subprocess.check_output([adb, "get-serialno"], text=True).strip(),
-    "resolution_override": size,
-    "reported_wm_size": shell("wm", "size"),
-    "density_dpi": 480,
-    "font_scale": float(font_scale),
-    "motion_settings": {
-        "animator_duration_scale": shell("settings", "get", "global", "animator_duration_scale"),
-        "transition_animation_scale": shell("settings", "get", "global", "transition_animation_scale"),
-        "window_animation_scale": shell("settings", "get", "global", "window_animation_scale"),
-    },
-    "apk_sha256": hashlib.sha256(pathlib.Path(apk).read_bytes()).hexdigest(),
-    "source_commit": build_sha,
-    "screenshot": {
-        "path": pathlib.Path(image_path).name,
-        "sha256": hashlib.sha256(pathlib.Path(image_path).read_bytes()).hexdigest(),
-        "dimensions": dimensions,
-        "native_capture": True,
-    },
-    "window_metrics_log": pathlib.Path(output).with_name(f"normal_home_profile_{profile}_metrics.log").name,
-    "window_dump": pathlib.Path(output).with_name(f"normal_home_profile_{profile}_window.txt").name,
-}
-pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-print(json.dumps(payload, ensure_ascii=False))
-PY
-}
-
-normal_home_write_blocked_profile_record() {
-  local profile="$1" size="$2" scale="$3" reason="$4"
-  local output="$YUJIAN_EVIDENCE_DIR/normal-home-v1/normal_home_profile_${profile}.json"
-  python3 - "$output" "$BUILD_SHA" "$profile" "$size" "$scale" "$reason" <<'PY'
-import json, pathlib, sys
-output, build_sha, profile, size, font_scale, reason = sys.argv[1:]
-payload = {
-    "profile_id": profile,
-    "status": "BLOCKED_INFRA",
-    "reason": reason,
-    "page_state": "NORMAL_HOME_DATA",
-    "account_state": "GUEST",
-    "requested_resolution": size,
-    "font_scale": float(font_scale),
-    "source_commit": build_sha,
-    "screenshot": None,
-}
-pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-print(json.dumps(payload, ensure_ascii=False))
-PY
-}
-
-normal_home_blocked_dimension() {
-  local size="$1"
-  "$YUJIAN_ADB_BIN" shell wm size reset || true
-  runtime_set_failure "PREFLIGHT" "DEVICE_CANNOT_CAPTURE_${size}"
-  return "$EXIT_BLOCKED_INFRA"
-}
-
-normal_home_capture_runtime_profile() {
-  local profile="$1" size="$2" scale="$3"
-  local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
-  local screenshot="$out/normal_home_runtime_${profile}.png"
-  local test_log="$out/normal_home_profile_${profile}_instrumentation.log"
-  local insets_log="$out/normal_home_profile_${profile}_insets_instrumentation.log"
-  local metrics_log="$out/normal_home_profile_${profile}_metrics.log"
-  local window_dump="$out/normal_home_profile_${profile}_window.txt"
-  local launch_log="$out/normal_home_profile_${profile}_launch.log"
-  local rc capture_rc launch_rc
-
-  if [[ "$size" == "1080x2340" ]]; then
-    local prepare_rc=0
-    normal_home_prepare_long_display || prepare_rc=$?
-    if (( prepare_rc == EXIT_BLOCKED_INFRA )); then
-      normal_home_write_blocked_profile_record "$profile" "$size" "$scale" \
-        "A native 1080x2340 API28 display could not be provisioned; see infra/long_screen_device_setup.log."
-      return "$EXIT_BLOCKED_INFRA"
-    elif (( prepare_rc != 0 )); then
-      return "$prepare_rc"
-    fi
-  fi
-
-  "$YUJIAN_ADB_BIN" shell wm size "$size" > "$out/normal_home_profile_${profile}_wm_size.log" 2>&1
-  "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put system font_scale "$scale" >/dev/null
-  # Frozen pixel masks compare the neutral design frame. Motion is captured
-  # separately below with the platform animation scales restored to 1.
-  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
-  "$YUJIAN_ADB_BIN" logcat -c
-
-  local profile_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#differentPortraitRatiosShareCoverViewportAndPreserveHomeDataAndRoutes'
-  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r -e class "$profile_class" \
-    "$YUJIAN_INSTRUMENTATION_TARGET" > "$test_log" 2>&1
-  local rc=$?
-  if (( rc != 0 )) || ! grep -Eq 'OK \([1-9][0-9]* tests?\)' "$test_log"; then
-    cat "$test_log" >&2
-    return 1
-  fi
-
-  local insets_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#edgeToEdgeNormalHomeUsesOneWindowOriginAndReportsInsets'
-  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r -e class "$insets_class" \
-    "$YUJIAN_INSTRUMENTATION_TARGET" > "$insets_log" 2>&1
-  rc=$?
-  if (( rc != 0 )) || ! grep -Eq 'OK \([1-9][0-9]* tests?\)' "$insets_log"; then
-    cat "$insets_log" >&2
-    return 1
-  fi
-
-  # Save real hierarchy/text metrics from the instrumentation activity before
-  # the runtime page is relaunched for the screenshot.
-  "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
-    NORMAL_HOME_HIERARCHY_EVIDENCE:I NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I \
-    > "$metrics_log" 2>&1 || return 1
-  "$YUJIAN_ADB_BIN" shell dumpsys window > "$window_dump" 2>&1 || return 1
-
-  normal_home_launch_app > "$launch_log" 2>&1
-  launch_rc=$?
-  if (( launch_rc != 0 )); then
-    if [[ "$size" == "1080x2340" ]]; then
-      if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>/dev/null; then
-        normal_home_write_profile_record "$screenshot" "$profile" "$size" "$scale" \
-          "BLOCKED_INFRA" "The runtime page did not settle at the requested long-screen profile; see native screenshot and launch log."
-      else
-        normal_home_write_blocked_profile_record "$profile" "$size" "$scale" \
-          "The API28 emulator became unavailable during native long-screen capture; see infra/long_screen_device_setup.log."
-      fi
-      return "$EXIT_BLOCKED_INFRA"
-    fi
-    "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>/dev/null || return 1
-    cat "$launch_log" >&2
-    return 1
-  fi
-
-  normal_home_capture_exact "$screenshot" "${size%x*}" "${size#*x}"
-  capture_rc=$?
-  if (( capture_rc != 0 )); then
-    if [[ "$size" == "1080x2340" ]]; then
-      normal_home_write_profile_record "$screenshot" "$profile" "$size" "$scale" \
-        "BLOCKED_INFRA" "Native screencap dimensions do not match the requested 1080x2340 device profile."
-      return "$EXIT_BLOCKED_INFRA"
-    fi
-    return 1
-  fi
-
-  normal_home_write_profile_record "$screenshot" "$profile" "$size" "$scale" "CAPTURED" ""
-  printf 'NORMAL_HOME_RUNTIME_PROFILE_PASS profile=%s resolution=%s fontScale=%s\n' "$profile" "$size" "$scale"
-}
-
-gate_collect_evidence() {
-  local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
-  mkdir -p "$out"
-  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 || true
-  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 || true
-  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 || true
-
-  local rc
-  "$YUJIAN_ADB_BIN" shell wm size 1080x1920
-  # Runtime screenshots must use the registered photo fixture. Synthetic
-  # aspect-ratio panels remain useful for layout tests, but are not fish-photo
-  # evidence and must never be used to close the visual Hero gate.
-  local seed_method="${NORMAL_HOME_EVIDENCE_SEED_METHOD:-seedMultipleGuestCatches}"
-  normal_home_run_seed "$seed_method" "$out/seed_${seed_method}.log" || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 1920
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
-  normal_home_capture_exact "$out/04_normal_home_runtime_1080x1920.png" 1080 1920
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
-  "$YUJIAN_ADB_BIN" shell input swipe 900 1200 180 1200 450
-  sleep 2
-  normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 1920
-  rc=$?
-  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
-python3 - "$out/01_normal_home_first_card.png" "$out/02_normal_home_second_card.png" <<'PY'
-from PIL import Image, ImageChops
-import sys
-
-first, second = (Image.open(path).convert("RGB") for path in sys.argv[1:])
-difference = ImageChops.difference(first.crop((200, 1180, 880, 1460)), second.crop((200, 1180, 880, 1460)))
-changed_pixels = sum(1 for pixel in difference.getdata() if pixel != (0, 0, 0))
-print(f"NORMAL_HOME_PAGER_FOOTER_CHANGED_PIXELS={changed_pixels}")
-if changed_pixels == 0:
-    raise SystemExit("NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE")
-PY
-  rc=$?
-  if (( rc != 0 )); then
-    runtime_set_failure "EVIDENCE" "NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE"
-    return "$EXIT_FAIL_EVIDENCE"
-  fi
-
-  cp "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/normal_home_v1.png" "$out/03_normal_home_frozen_1080x1920.png"
-  cp "$YUJIAN_REPO_ROOT/app/src/main/assets/normal_home_runtime_v1/static/scene_base.png" "$out/07_normal_home_background_runtime.png"
-  cp "$YUJIAN_REPO_ROOT/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" "$out/06_normal_home_background_source.png"
-  python3 "$YUJIAN_REPO_ROOT/scripts/verify_normal_home_visual_evidence.py" "$out" || {
-    runtime_set_failure "EVIDENCE" "NORMAL_HOME_VISUAL_EVIDENCE_FAILED"
-    return "$EXIT_FAIL_EVIDENCE"
-  }
-
-  printf '%s\n' \
-    'NormalHomeDataParityTest: synthetic 9:16 and 4:5 fixtures verify layout behavior only; they are not real-fish visual evidence.' \
-    'HomeStatsSemanticsTest: recordDays has no OnClick; fish species and catch totals navigate.' \
-    'NormalHomeHeroBehaviorTest: one catch is centered; tap opens the matching recordId; multiple catches remain manual and swipeable.' \
-    'API 28 responsive evidence: native screenshots and test metrics are saved for each device/font profile.' \
-    'No custom Home Hero haptic; no Home sound.' \
-    > "$out/10_normal_home_semantics_report.txt"
-
-  normal_home_capture_runtime_profile "1080x1920_fs1_0" "1080x1920" "1.0" || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_runtime_profile "1080x1920_fs1_3" "1080x1920" "1.3" || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_runtime_profile "1080x1920_fs1_5" "1080x1920" "1.5" || return "$EXIT_FAIL_EVIDENCE"
-  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null
-  normal_home_launch_app > "$out/reduce_motion_launch.log" 2>&1 || return "$EXIT_FAIL_EVIDENCE"
-  normal_home_capture_exact "$out/normal_home_motion_neutral_1080x1920.png" 1080 1920 || return "$EXIT_FAIL_EVIDENCE"
-  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
-  "$YUJIAN_ADB_BIN" shell rm -f /sdcard/normal_home_motion.mp4
-  "$YUJIAN_ADB_BIN" shell screenrecord --time-limit 18 /sdcard/normal_home_motion.mp4 > "$out/screenrecord.log" 2>&1 &
-  local screenrecord_pid=$!
-  sleep 1
-  normal_home_launch_app > "$out/motion_launch.log" 2>&1 || return "$EXIT_FAIL_EVIDENCE"
-  wait "$screenrecord_pid"
-  "$YUJIAN_ADB_BIN" pull /sdcard/normal_home_motion.mp4 "$out/11_Normal_Home_Runtime_18s.mp4" >/dev/null
-  local duration
-  duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$out/11_Normal_Home_Runtime_18s.mp4")"
-  python3 - "$duration" <<'PY'
-import sys
-duration=float(sys.argv[1])
-print(f"NORMAL_HOME_MOTION_DURATION={duration:.3f}")
-if duration < 16.0:
-    raise SystemExit("NORMAL_HOME_MOTION_TOO_SHORT")
-PY
-
-  # The long-screen profile may require restarting the AVD with a native
-  # 1080x2340 skin. Capture it last so the base-size reduced-motion frame and
-  # motion recording above remain native 1080x1920 evidence.
-  local long_profile_rc=0
-  normal_home_capture_runtime_profile "1080x2340_fs1_0" "1080x2340" "1.0" || long_profile_rc=$?
-  if (( long_profile_rc != 0 && long_profile_rc != EXIT_BLOCKED_INFRA )); then
-    return "$EXIT_FAIL_EVIDENCE"
-  fi
-
-  python3 "$YUJIAN_REPO_ROOT/scripts/verify_normal_home_a4_runtime_evidence.py" "$out" || {
-    runtime_set_failure "EVIDENCE" "NORMAL_HOME_A4_RUNTIME_EVIDENCE_INVALID"
-    return "$EXIT_FAIL_EVIDENCE"
-  }
-  local closure_status
-  closure_status="$(python3 - "$out/Normal_Home_Runtime_Closure_Result.json" <<'PY'
-import json, sys
-print(json.load(open(sys.argv[1], encoding="utf-8")).get("status", "BLOCKED"))
-PY
-)"
-  if [[ "$closure_status" != "PASS" ]]; then
-    runtime_set_failure "EVIDENCE" "NORMAL_HOME_RUNTIME_PARITY_${closure_status}"
-    return "$EXIT_FAIL_EVIDENCE"
-  fi
-
-  local missing=0 file
-  for file in \
-    "$out/01_normal_home_first_card.png" \
-    "$out/02_normal_home_second_card.png" \
-    "$out/03_normal_home_frozen_1080x1920.png" \
-    "$out/04_normal_home_runtime_1080x1920.png" \
-    "$out/05_normal_home_frozen_runtime_side_by_side.png" \
-    "$out/06_normal_home_background_source.png" \
-    "$out/07_normal_home_background_runtime.png" \
-    "$out/08_normal_home_background_parity_report.json" \
-    "$out/09_normal_home_visual_parity_report.json" \
-    "$out/10_normal_home_semantics_report.txt" \
-    "$out/11_Normal_Home_Runtime_18s.mp4" \
-    "$out/normal-home-motion-instrumentation.log" \
-    "$out/Normal_Home_Runtime_Visual_Audit_Report.md" \
-    "$out/Normal_Home_Hierarchy_Report.json" \
-    "$out/Normal_Home_Hero_EvidenceFit_Report.json" \
-    "$out/Normal_Home_Typography_Runtime_Report.json" \
-    "$out/Normal_Home_Motion_Runtime_Report.json" \
-    "$out/Normal_Home_Responsive_Runtime_Report.json" \
-    "$out/Normal_Home_Runtime_Bounds_Report.json" \
-    "$out/Normal_Home_Pixel_Diff_Report.json" \
-    "$out/Hero_Fixture_Preflight_Report.json" \
-    "$out/Camera_Core_Mask_Report.json" \
-    "$out/Normal_Home_Runtime_Closure_Result.json"
-  do
-    if [[ ! -s "$file" ]]; then
-      printf 'MISSING_EVIDENCE=%s\n' "$file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
-      missing=1
-    fi
-  done
-  if (( missing != 0 )); then
-    runtime_set_failure "EVIDENCE" "NORMAL_HOME_V1_EVIDENCE_MISSING"
-    return "$EXIT_FAIL_EVIDENCE"
-  fi
-  return "$EXIT_PASS"
-}
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíó}ýN‹Z–‹­¦ëeŠw¬èŒ„½ÕÍÈ½‰¥¸½•¹Ø‰…Í ()…Ñ•}Ñ•ÍÑ}±…ÍÍ•Ì ¤ì(€ÁÉ¥¹Ñ˜€œ•Íq¸œ€½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•I•…±A¡½Ñ½AÉ½‰•Q•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹½µÁ½¹•¹ÑÌ¹!½µ•Ù¥‘•¹•	¥Ñµ…ÁQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹9½Éµ…±!½µ•IÕ¹Ñ¥µ•½¹ÑÉ…ÑQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹!½µ•MÑ…ÑÍM•µ…¹Ñ¥ÍQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•!•É½	•¡…Ù¥½ÉQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•…Ñ…A…É¥ÑåQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•5½Ñ¥½¹Ù¥‘•¹•Q•ÍÐœ)ô()…Ñ•}‰•™½É•}¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸ ¤ì(€€ˆ‘eU)%9}	}	%8ˆ±½…Ð€µŒ€ø½‘•Ø½¹Õ±°€Èø˜ÄñðÑÉÕ”)ô()…Ñ•}…™Ñ•É}¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸ ¤ì(€±½…°½ÕÑÁÕÑ}‘¥Èôˆ‘eU)%9}Y%9}%H½¹½Éµ…°µ¡½µ”µØÄˆ(€µ­‘¥È€µÀ€ˆ‘½ÕÑÁÕÑ}‘¥Èˆ(€€ˆ‘eU)%9}	}	%8ˆ±½…Ð€µ€µØ‰É¥•˜€µÌp(€€€9=I51}!=5}5=Q%=9}QIé$9=I51}!=5}YQI}MQQ}QIé$p(€€€€ø€ˆ‘½ÕÑÁÕÑ}‘¥È½¹½Éµ…°µ¡½µ”µµ½Ñ¥½¸µ¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸¹±½œˆ€Èø˜ÄñðÑÉÕ”)ô()¹½Éµ…±}¡½µ•}ÉÕ¹}Í•• ¤ì(€±½…°µ•Ñ¡½ôˆÄˆ(€±½…°±½œôˆÈˆ(€Ñ¥µ•½ÕÐ€ØÁÌ€ˆ‘eU)%9}	}	%8ˆÍ¡•±°…´¥¹ÍÑÉÕµ•¹Ð€µÜ€µÈp(€€€€µ”±…ÍÌ€‰½´¹åÕ©¥…¸¹…¤¹!½µ•Y¥ÍÕ…±Ù¥‘•¹•M••‘Q•ÍÐŒ‘µ•Ñ¡½ˆp(€€€€ˆ‘eU)%9}%9MQIU59QQ%=9}QIPˆ€ø€ˆ‘±½œˆ€Èø˜Ä(€±½…°ÉŒôü(€¥˜€  ÉŒ€„ô€À€¤¤ñðÉ•À€µ¥Ä€%1UIL„„…ñ%9MQIU59QQ%=9}%1ñÍÍ•ÉÑ¥½¸¡ÉÉ½Éñ…¥±•‘ÉÉ½È¥ñAÉ½•ÍÌ€¡É…Í¡•‘ñ¡…Ì‘¥•¥ñAÉ½•ÍÌ€¸¨€¡É…Í¡•‘ñ¡…Ì‘¥•¥ñÍ¡½ÉÑ5ÍœõAÉ½•ÍÌÉ…Í¡•œ€ˆ‘±½œˆìÑ¡•¸(€€€…Ð€ˆ‘±½œˆ€ø˜È(€€€É•ÑÕÉ¸€Ä(€™¤(€É•À€µÄ€%9MQIU59QQ%=9}=émléÍÁ…”éut¨Áñ=,p¡lÀ´åt¬Ñ•ÍÐœ€ˆ‘±½œˆ)ô()¹½Éµ…±}¡½µ•}±…Õ¹¡}…ÁÀ ¤ì(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°…´™½É”µÍÑ½À€ˆ‘eU)%9}AA}A-ˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°µ½¹­•ä€µÀ€ˆ‘eU)%9}AA}A-ˆ€µŒ…¹‘É½¥¹¥¹Ñ•¹Ð¹…Ñ•½Éä¹1U9!H€Ä€ø½‘•Ø½¹Õ±°((€±½…°…ÑÑ•µÁÐÉ•ÍÕµ•Á¥(€™½È…ÑÑ•µÁÐ¥¸€¡Í•Ä€Ä€ÈÀ¤ì‘¼(€€€É•ÍÕµ•ôˆ ˆ‘eU)%9}	}	%8ˆÍ¡•±°‘ÕµÁÍåÌ…Ñ¥Ù¥Ñä…Ñ¥Ù¥Ñ¥•Ì€Èø½‘•Ø½¹Õ±°ðÉ•À€µ€µI•ÍÕµ•‘Ñ¥Ù¥ÑåñI•ÍÕµ•‘Ñ¥Ù¥Ñäœð¡•…€µ¸€ÄñðÑÉÕ”¤ˆ(€€€Á¥ôˆ ˆ‘eU)%9}	}	%8ˆÍ¡•±°Á¥‘½˜€ˆ‘eU)%9}AA}A-ˆ€Èø½‘•Ø½¹Õ±°ðÑÈ€µ€qÈœñðÑÉÕ”¤ˆ(€€€ÁÉ¥¹Ñ˜€9=I51}!=5}Q%Y%Qe}I%9ML…ÑÑ•µÁÐô•ÌÉ•ÍÕµ•ô•ÌÁ¥ô•Íq¸œ€ˆ‘…ÑÑ•µÁÐˆ€ˆ‘É•ÍÕµ•ˆ€ˆ‘Á¥ˆ(€€€¥˜ml€ˆ‘É•ÍÕµ•ˆ€ôô€¨ˆ‘eU)%9}AA}A-½½´¹åÕ©¥…¸¹…¤¹5…¥¹Ñ¥Ù¥Ñäˆ¨€˜˜€ˆ‘Á¥ˆ€õølÀ´åtutìÑ¡•¸(€€€€€€ŒU%ÕÑ½µ…Ñ½ÈÌ½µÁ½Í”‰É¥‘”¥ÌÕ¹É•±¥…‰±”…¹…¸¡…¹œ½¸A$€Èà¸(€€€€€€Œ]…¥Ð½¸É•…°É•¹‘•É•Á¥á•±Ì¥¹ÍÑ•…¸9½Éµ…°!½µ”¥¹Ñ•¹Ñ¥½¹…±±ä±½…‘Ì(€€€€€€Œ¥ÑÌÍ•¹”½…É½Á¡½Ñ¼…ÍÍ•ÑÌ…Íå¹¡É½¹½ÕÍ±ä°Í¼…¸Ñ¥Ù¥ÑäµÉ•ÍÕµ•(€€€€€€ŒÍ¥¹…°…±½¹”¥Ì¹½ÐÍÕ™™¥¥•¹Ð•Ù¥‘•¹”Ñ¡…ÐÑ¡”ÁÉ½‘ÕÑ¥½¸™É…µ”¥Ì(€€€€€€ŒÉ•…‘ä™½È„™É½é•¸µÁ…É¥Ñä…ÁÑÕÉ”¸(€€€€€±½…°…¹‘¥‘…Ñ”ôˆ‘eU)%9}Y%9}%H½¹½Éµ…°µ¡½µ”µØÄ½É•¹‘•É}É•…‘¥¹•ÍÌ¹Á¹œˆ(€€€€€±½…°É•¹‘•É}…ÑÑ•µÁÐ(€€€€€™½ÈÉ•¹‘•É}…ÑÑ•µÁÐ¥¸€¡Í•Ä€Ä€ÈÀ¤ì‘¼(€€€€€€€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘…¹‘¥‘…Ñ”ˆ(€€€€€€€±½…°™…Ñ…±}ÉÕ¹Ñ¥µ”(€€€€€€€™…Ñ…±}ÉÕ¹Ñ¥µ”ôˆ ˆ‘eU)%9}	}	%8ˆ±½…Ð€µ€µØ‰É¥•˜€µÌ¹‘É½¥‘IÕ¹Ñ¥µ”é€Èø½‘•Ø½¹Õ±°ðÉ•À€µ€Q0aAQ%=9ñAÉ½•ÍÌè½µp¹åÕ©¥…¹p¹…¤œðÑ…¥°€µ¸€ÐñðÑÉÕ”¤ˆ(€€€€€€€¥˜ml€µ¸€ˆ‘™…Ñ…±}ÉÕ¹Ñ¥µ”ˆutìÑ¡•¸(€€€€€€€€€ÁÉ¥¹Ñ˜€9=I51}!=5}AA}IM!}QQq¸•Íq¸œ€ˆ‘™…Ñ…±}ÉÕ¹Ñ¥µ”ˆ€ø˜È(€€€€€€€€€É•ÑÕÉ¸€Ä(€€€€€€€™¤(€€€€€€€¥˜ÁåÑ¡½¸Ì€´€ˆ‘…¹‘¥‘…Ñ”ˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”°%µ…•MÑ…Ð)¥µÁ½ÉÐÍåÌ()¥µ…”€ô%µ…”¹½Á•¸¡ÍåÌ¹…ÉÙlÅt¤¹½¹Ù•ÉÐ ‰Iˆ¤)¥˜¥µ…”¹Ý¥‘Ñ €ð€ÈÀÀ½È¥µ…”¹¡•¥¡Ð€ð€ÐÀÀè(€€€É…¥Í”MåÍÑ•µá¥Ð ‰9=I51}!=5}I5}%9Y1%ˆ¤()‘•˜É½À¡à°ä°Ü° ¤è(€€€É•ÑÕÉ¸¥µ…”¹É½À  (€€€€€€€¥¹Ð¡¥µ…”¹Ý¥‘Ñ €¨à¤°(€€€€€€€¥¹Ð¡¥µ…”¹¡•¥¡Ð€¨ä¤°(€€€€€€€¥¹Ð¡¥µ…”¹Ý¥‘Ñ €¨€¡à€¬Ü¤¤°(€€€€€€€¥¹Ð¡¥µ…”¹¡•¥¡Ð€¨€¡ä€¬ ¤¤°(€€€€¤¤((ŒQ¡”ÍÉ••¸µÕÍÐ‰”Ñ¡”9½Éµ…°!½µ”‘…Ñ„Á…”°¹½Ðµ•É•±ä…¹äÉ•ÍÕµ•(Œ…Ñ¥Ù¥Ñä¸Q¡”‰±Õ”½É…ä±…­”…¹Á¡½Ñ½É…Á¡¥Œ!•É¼É•©•ÐÑ¡”A$Èà±…Õ¹¡•È(ŒÝ…±±Á…Á•ÈÑ¡…ÐÁÉ•Ù¥½ÕÍ±äÁ…ÍÍ•Ñ¡”±½½Í”ÍÁÉ•…µ½¹±ä¡•¬¸)‰…­É½Õ¹€ôÉ½À À¸ÀÐ°€À¸ÄØ°€À¸äÈ°€À¸Äà¤)…É‘}Á¡½Ñ¼€ôÉ½À À¸Äà°€À¸ÌÌ°€À¸ØÐ°€À¸Èà¤)‰}ÍÑ…Ð€ô%µ…•MÑ…Ð¹MÑ…Ð¡‰…­É½Õ¹¤)…É‘}ÍÑ…Ð€ô%µ…•MÑ…Ð¹MÑ…Ð¡…É‘}Á¡½Ñ¼¤)‰}ÍÁÉ•…€ôÍÕ´¡‰}ÍÑ…Ð¹ÍÑ‘‘•Ø¤€¼€Ì¸À)…É‘}ÍÁÉ•…€ôÍÕ´¡…É‘}ÍÑ…Ð¹ÍÑ‘‘•Ø¤€¼€Ì¸À)‰}µ•…¸€ôÍÕ´¡‰}ÍÑ…Ð¹µ•…¸¤€¼€Ì¸À)…É‘}µ•…¸€ôÍÕ´¡…É‘}ÍÑ…Ð¹µ•…¸¤€¼€Ì¸À)±…­•}‰±Õ•}½Ù•É}É•€ô‰}ÍÑ…Ð¹µ•…¹lÉt€´‰}ÍÑ…Ð¹µ•…¹lÁt)ÁÉ¥¹Ð (€€€€‰9=I51}!=5}I9I}I%9ML€ˆ(€€€˜‰‰}µ•…¸õí‰}µ•…¸è¸É™ô‰}ÍÁÉ•…õí‰}ÍÁÉ•…è¸É™ô€ˆ(€€€˜‰±…­•}‰±Õ•}½Ù•É}É•õí±…­•}‰±Õ•}½Ù•É}É•è¸É™ô€ˆ(€€€˜‰…É‘}µ•…¸õí…É‘}µ•…¸è¸É™ô…É‘}ÍÁÉ•…õí…É‘}ÍÁÉ•…è¸É™ôˆ(¤)¥˜±…­•}‰±Õ•}½Ù•É}É•€ð€Ø¸À½È…É‘}ÍÁÉ•…€ð€ÌÔ¸À½È…É‘}µ•…¸€ø€ÈÈÔ¸Àè(€€€É…¥Í”MåÍÑ•µá¥Ð ‰9=I51}!=5}I9I}9=Q}MQQ1ˆ¤)Ad(€€€€€€€Ñ¡•¸(€€€€€€€€€ÁÉ¥¹Ñ˜€9=I51}!=5}I9I}Id…ÑÑ•µÁÐô•Íq¸œ€ˆ‘É•¹‘•É}…ÑÑ•µÁÐˆ(€€€€€€€€€É•ÑÕÉ¸€À(€€€€€€€™¤(€€€€€€€ÁÉ¥¹Ñ˜€9=I51}!=5}I9I}MQQ1…ÑÑ•µÁÐô•Íq¸œ€ˆ‘É•¹‘•É}…ÑÑ•µÁÐˆ(€€€€€€€Í±••À€Ä(€€€€€‘½¹”(€€€€€•¡¼€9=I51}!=5}I9I}9=Q}Idœ€ø˜È(€€€€€É•ÑÕÉ¸€Ä(€€€™¤(€€€Í±••À€Ä(€‘½¹”(€•¡¼€9=I51}!=5}Q%Y%Qe}9=Q}Idœ€ø˜È(€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘eU)%9}Y%9}%H½¹½Éµ…°µ¡½µ”µØÄ½½¹Ñ•¹Ñ}¹½Ñ}É•…‘ä¹Á¹œˆñðÑÉÕ”(€É•ÑÕÉ¸€Ä)ô()¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}•á…Ð ¤ì(€±½…°Á…Ñ ôˆÄˆÝ¥‘Ñ ôˆÈˆ¡•¥¡ÐôˆÌˆ(€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘Á…Ñ ˆ(€ÁåÑ¡½¸Ì€´€ˆ‘Á…Ñ ˆ€ˆ‘Ý¥‘Ñ ˆ€ˆ‘¡•¥¡Ðˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”)¥µÁ½ÉÐÍåÌ)Á…Ñ °•áÁ•Ñ•‘}Ü°•áÁ•Ñ•‘} €ôÍåÌ¹…ÉÙlÅt°¥¹Ð¡ÍåÌ¹…ÉÙlÉt¤°¥¹Ð¡ÍåÌ¹…ÉÙlÍt¤)Ý¥Ñ %µ…”¹½Á•¸¡Á…Ñ ¤…Ì¥µ…”è(€€€…ÑÕ…°€ô¥µ…”¹Í¥é”)ÁÉ¥¹Ð¡˜‰MI9M!=Q}%59M%=9L™¥±”õíÁ…Ñ¡ô…ÑÕ…°õí…ÑÕ…±lÁuõáí…ÑÕ…±lÅuô•áÁ•Ñ•õí•áÁ•Ñ•‘}Ýõáí•áÁ•Ñ•‘}¡ôˆ¤)¥˜…ÑÕ…°€„ô€¡•áÁ•Ñ•‘}Ü°•áÁ•Ñ•‘} ¤è(€€€É…¥Í”MåÍÑ•µá¥Ð ÄÀ¤)Ad)ô()¹½Éµ…±}¡½µ•}ÁÉ•Á…É•}±½¹}‘¥ÍÁ±…ä ¤ì(€±½…°Í•ÑÕÁ}±½œôˆ‘eU)%9}Y%9}%H½¥¹™É„½±½¹}ÍÉ••¹}‘•Ù¥•}Í•ÑÕÀ¹±½œˆ(€±½…°ÁÉ½‰”ôˆ‘eU)%9}Y%9}%H½¥¹™É„½±½¹}ÍÉ••¹}ÁÉ½‰”¹Á¹œˆ(€±½…°…ÑÕ…°Í•É¥…°…Ù‘}¹…µ”•µÕ±…Ñ½É}‰¥¸•µÕ±…Ñ½É}±½œ…ÑÑ•µÁÐ‰½½Ð…Á¤(€µ­‘¥È€µÀ€ˆ¡‘¥É¹…µ”€ˆ‘Í•ÑÕÁ}±½œˆ¤ˆ(€€è€ø€ˆ‘Í•ÑÕÁ}±½œˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Ý´Í¥é”€ÄÀàÁàÈÌÐÀ€øø€ˆ‘Í•ÑÕÁ}±½œˆ€Èø˜ÄñðÑÉÕ”(€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘ÁÉ½‰”ˆ€Èøø€ˆ‘Í•ÑÕÁ}±½œˆñðÑÉÕ”(€…ÑÕ…°ôˆ¡ÁåÑ¡½¸Ì€´€ˆ‘ÁÉ½‰”ˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”)¥µÁ½ÉÐÍåÌ)ÑÉäè(€€€Ý¥Ñ %µ…”¹½Á•¸¡ÍåÌ¹…ÉÙlÅt¤…Ì¥µ…”è(€€€€€€€ÁÉ¥¹Ð¡˜‰í¥µ…”¹Ý¥‘Ñ¡õáí¥µ…”¹¡•¥¡Ñôˆ¤)•á•ÁÐá•ÁÑ¥½¸è(€€€ÁÉ¥¹Ð ‰Õ¹…Ù…¥±…‰±”ˆ¤)Ad(¤ˆ(€ÁÉ¥¹Ñ˜€Ýµ}Í¥é•}…ÁÑÕÉ•}ÁÉ½‰”ô•Íq¸œ€ˆ‘…ÑÕ…°ˆðÑ•”€µ„€ˆ‘Í•ÑÕÁ}±½œˆ(€¥˜ml€ˆ‘…ÑÕ…°ˆ€ôô€ˆÄÀàÁàÈÌÐÀˆutìÑ¡•¸(€€€É•ÑÕÉ¸€À(€™¤((€Í•É¥…°ôˆ ˆ‘eU)%9}	}	%8ˆ•ÐµÍ•É¥…±¹¼€Èø½‘•Ø½¹Õ±°ðÑÈ€µ€qÈœñðÑÉÕ”¤ˆ(€…Ù‘}¹…µ”ôˆ ˆ‘eU)%9}	}	%8ˆÍ¡•±°•ÑÁÉ½ÀÅ•µÔ¹…Ù‘}¹…µ”€Èø½‘•Ø½¹Õ±°ðÑÈ€µ€qÈœñðÑÉÕ”¤ˆ(€±½…°ÍÑ…ÉÑÕÁ}±½œôˆ‘eU)%9}Y%9}%H½¥¹™É„½•µÕ±…Ñ½È¹±½œˆ(€±½…°Í‘­}É½½Ð(€¥˜ml€µè€ˆ‘…Ù‘}¹…µ”ˆ€˜˜€µÌ€ˆ‘ÍÑ…ÉÑÕÁ}±½œˆutìÑ¡•¸(€€€…Ù‘}¹…µ”ôˆ¡Í•€µ¹€Ì¼¸©Å•µÕp¹…Ù‘}¹…µ”ô¡myléÍÁ…”éut¬¤¸¨½pÄ½Àœ€ˆ‘ÍÑ…ÉÑÕÁ}±½œˆðÑ…¥°€µ¸€Ä¤ˆ(€€€¥˜ml€µè€ˆ‘…Ù‘}¹…µ”ˆutìÑ¡•¸(€€€€€…Ù‘}¹…µ”ôˆ¡Í•€µ¹€Ì¼¸©É•ÅÕ¥É•µ•¹ÑÌÑ¼ÉÕ¸…Ùè€¡myt¬¥€¸¨½pÄ½Àœ€ˆ‘ÍÑ…ÉÑÕÁ}±½œˆðÑ…¥°€µ¸€Ä¤ˆ(€€€™¤(€€€ÁÉ¥¹Ñ˜€É•Í½±Ù•‘}…Ù‘}¹…µ”ô•ÌÍ½ÕÉ”ô•Íq¸œ€ˆ‘…Ù‘}¹…µ”ˆ€ˆ‘ÍÑ…ÉÑÕÁ}±½œˆðÑ•”€µ„€ˆ‘Í•ÑÕÁ}±½œˆ(€™¤(€•µÕ±…Ñ½É}‰¥¸ôˆ¡½µµ…¹€µØ•µÕ±…Ñ½ÈñðÑÉÕ”¤ˆ(€Í‘­}É½½Ðôˆ‘í9I=%}M-}I==Pè´‘í9I=%}!=5èµõôˆ(€¥˜ml€µè€ˆ‘•µÕ±…Ñ½É}‰¥¸ˆ€˜˜€µ¸€ˆ‘Í‘­}É½½Ðˆ€˜˜€µà€ˆ‘Í‘­}É½½Ð½•µÕ±…Ñ½È½•µÕ±…Ñ½ÈˆutìÑ¡•¸(€€€•µÕ±…Ñ½É}‰¥¸ôˆ‘Í‘­}É½½Ð½•µÕ±…Ñ½È½•µÕ±…Ñ½Èˆ(€™¤(€¥˜ml€ˆ‘Í•É¥…°ˆ€„ô•µÕ±…Ñ½È´¨ñð€µè€ˆ‘…Ù‘}¹…µ”ˆñð€µè€ˆ‘•µÕ±…Ñ½É}‰¥¸ˆutìÑ¡•¸(€€€ÁÉ¥¹Ñ˜€1=9}MI9}9Q%Y}AI=%1}U9Y%1	1Í•É¥…°ô•Ì…Ùô•Ì•µÕ±…Ñ½Èô•Íq¸œp(€€€€€€ˆ‘Í•É¥…°ˆ€ˆ‘…Ù‘}¹…µ”ˆ€ˆ‘•µÕ±…Ñ½É}‰¥¸ˆðÑ•”€µ„€ˆ‘Í•ÑÕÁ}±½œˆ(€€€É•ÑÕÉ¸€ˆ‘a%Q}	1=-}%9Iˆ(€™¤((€•µÕ±…Ñ½É}±½œôˆ‘eU)%9}Y%9}%H½¥¹™É„½•µÕ±…Ñ½É}±½¹}ÍÉ••¸¹±½œˆ(€ÁÉ¥¹Ñ˜€É•ÍÑ…ÉÑ}Í•É¥…°ô•Ì…Ùô•ÌÍ­¥¸ôÄÀàÁàÈÌÐÁq¸œ€ˆ‘Í•É¥…°ˆ€ˆ‘…Ù‘}¹…µ”ˆðÑ•”€µ„€ˆ‘Í•ÑÕÁ}±½œˆ(€€ˆ‘eU)%9}	}	%8ˆ€µÌ€ˆ‘Í•É¥…°ˆ•µÔ­¥±°€øø€ˆ‘Í•ÑÕÁ}±½œˆ€Èø˜ÄñðÑÉÕ”(€™½È…ÑÑ•µÁÐ¥¸€¡Í•Ä€Ä€ÌÀ¤ì‘¼(€€€¥˜€„€ˆ‘eU)%9}	}	%8ˆ‘•Ù¥•Ìð…Ý¬€9H€ø€Ä€˜˜€È€ôô€‰‘•Ù¥”ˆí™½Õ¹ôÅô9í•á¥Ð€…™½Õ¹‘ôœìÑ¡•¸(€€€€€‰É•…¬(€€€™¤(€€€Í±••À€Ä(€‘½¹”(€¹½¡ÕÀ€ˆ‘•µÕ±…Ñ½É}‰¥¸ˆ€µ…Ù€ˆ‘…Ù‘}¹…µ”ˆ€µ¹¼µÍ¹…ÁÍ¡½Ð€µ¹¼µÝ¥¹‘½Üp(€€€€µÁÔÍÝ¥™ÑÍ¡…‘•É}¥¹‘¥É•Ð€µ¹½…Õ‘¥¼€µ¹¼µ‰½½Ðµ…¹¥´€µ…ß]ý¶‰žËkºwµçu¡½µ”µØÄˆ(€µ­‘¥È€µÀ€ˆ‘½ÕÐˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°…¹¥µ…Ñ½É}‘ÕÉ…Ñ¥½¹}Í…±”€Ä¸ÀñðÑÉÕ”(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°ÑÉ…¹Í¥Ñ¥½¹}…¹¥µ…Ñ¥½¹}Í…±”€Ä¸ÀñðÑÉÕ”(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°Ý¥¹‘½Ý}…¹¥µ…Ñ¥½¹}Í…±”€Ä¸ÀñðÑÉÕ”((€±½…°ÉŒ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Ý´Í¥é”€ÄÀàÁàÄäÈÀ(€€ŒIÕ¹Ñ¥µ”ÍÉ••¹Í¡½ÑÌµÕÍÐÕÍ”Ñ¡”É•¥ÍÑ•É•Á¡½Ñ¼™¥áÑÕÉ”¸Må¹Ñ¡•Ñ¥Œ(€€Œ…ÍÁ•ÐµÉ…Ñ¥¼Á…¹•±ÌÉ•µ…¥¸ÕÍ•™Õ°™½È±…å½ÕÐÑ•ÍÑÌ°‰ÕÐ…É”¹½Ð™¥Í µÁ¡½Ñ¼(€€Œ•Ù¥‘•¹”…¹µÕÍÐ¹•Ù•È‰”ÕÍ•Ñ¼±½Í”Ñ¡”Ù¥ÍÕ…°!•É¼…Ñ”¸(€±½…°Í••‘}µ•Ñ¡½ôˆ‘í9=I51}!=5}Y%9}M}5Q!=èµÍ••‘5Õ±Ñ¥Á±•Õ•ÍÑ…Ñ¡•Íôˆ(€¹½Éµ…±}¡½µ•}ÉÕ¹}Í••€ˆ‘Í••‘}µ•Ñ¡½ˆ€ˆ‘½ÕÐ½Í••‘|‘íÍ••‘}µ•Ñ¡½‘ô¹±½œˆñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€¹½Éµ…±}¡½µ•}±…Õ¹¡}…ÁÀñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}•á…Ð€ˆ‘½ÕÐ¼ÀÅ}¹½Éµ…±}¡½µ•}™¥ÉÍÑ}…É¹Á¹œˆ€ÄÀàÀ€ÄäÈÀ(€ÉŒôü(€¥˜€  ÉŒ€„ô€À€¤¤ìÑ¡•¸¹½Éµ…±}¡½µ•}‰±½­•‘}‘¥µ•¹Í¥½¸€ˆÄÀàÁ`ÄäÈÀˆìÉ•ÑÕÉ¸€ˆ‘a%Q}	1=-}%9Iˆì™¤(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}•á…Ð€ˆ‘½ÕÐ¼ÀÑ}¹½Éµ…±}¡½µ•}ÉÕ¹Ñ¥µ•|ÄÀàÁàÄäÈÀ¹Á¹œˆ€ÄÀàÀ€ÄäÈÀ(€ÉŒôü(€¥˜€  ÉŒ€„ô€À€¤¤ìÑ¡•¸¹½Éµ…±}¡½µ•}‰±½­•‘}‘¥µ•¹Í¥½¸€ˆÄÀàÁ`ÄäÈÀˆìÉ•ÑÕÉ¸€ˆ‘a%Q}	1=-}%9Iˆì™¤(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°¥¹ÁÕÐÍÝ¥Á”€äÀÀ€ÄÈÀÀ€ÄàÀ€ÄÈÀÀ€ÐÔÀ(€Í±••À€È(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}•á…Ð€ˆ‘½ÕÐ¼ÀÉ}¹½Éµ…±}¡½µ•}Í•½¹‘}…É¹Á¹œˆ€ÄÀàÀ€ÄäÈÀ(€ÉŒôü(€¥˜€  ÉŒ€„ô€À€¤¤ìÑ¡•¸¹½Éµ…±}¡½µ•}‰±½­•‘}‘¥µ•¹Í¥½¸€ˆÄÀàÁ`ÄäÈÀˆìÉ•ÑÕÉ¸€ˆ‘a%Q}	1=-}%9Iˆì™¤)ÁåÑ¡½¸Ì€´€ˆ‘½ÕÐ¼ÀÅ}¹½Éµ…±}¡½µ•}™¥ÉÍÑ}…É¹Á¹œˆ€ˆ‘½ÕÐ¼ÀÉ}¹½Éµ…±}¡½µ•}Í•½¹‘}…É¹Á¹œˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”°%µ…•¡½ÁÌ)¥µÁ½ÉÐÍåÌ()™¥ÉÍÐ°Í•½¹€ô€¡%µ…”¹½Á•¸¡Á…Ñ ¤¹½¹Ù•ÉÐ ‰Iˆ¤™½ÈÁ…Ñ ¥¸ÍåÌ¹…ÉÙlÄét¤)‘¥™™•É•¹”€ô%µ…•¡½ÁÌ¹‘¥™™•É•¹”¡™¥ÉÍÐ¹É½À  ÈÀÀ°€ÄÄàÀ°€ààÀ°€ÄÐØÀ¤¤°Í•½¹¹É½À  ÈÀÀ°€ÄÄàÀ°€ààÀ°€ÄÐØÀ¤¤¤)¡…¹•‘}Á¥á•±Ì€ôÍÕ´ Ä™½ÈÁ¥á•°¥¸‘¥™™•É•¹”¹•Ñ‘…Ñ„ ¤¥˜Á¥á•°€„ô€ À°€À°€À¤¤)ÁÉ¥¹Ð¡˜‰9=I51}!=5}AI}==QI}!9}A%a1Lõí¡…¹•‘}Á¥á•±Íôˆ¤)¥˜¡…¹•‘}Á¥á•±Ì€ôô€Àè(€€€É…¥Í”MåÍÑ•µá¥Ð ‰9=I51}!=5}M=9}A}AQUI}%}9=Q}!9ˆ¤)Ad(€ÉŒôü(€¥˜€  ÉŒ€„ô€À€¤¤ìÑ¡•¸(€€€ÉÕ¹Ñ¥µ•}Í•Ñ}™…¥±ÕÉ”€‰Y%9ˆ€‰9=I51}!=5}M=9}A}AQUI}%}9=Q}!9ˆ(€€€É•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€™¤((€À€ˆ‘eU)%9}IA=}I==P½‘•Í¥¸½ÍåÍÑ•´½½É•}Ù¥ÍÕ…±}ØÄ½É•™•É•¹”½¹½Éµ…±}¡½µ•}ØÄ¹Á¹œˆ€ˆ‘½ÕÐ¼ÀÍ}¹½Éµ…±}¡½µ•}™É½é•¹|ÄÀàÁàÄäÈÀ¹Á¹œˆ(€À€ˆ‘eU)%9}IA=}I==P½…ÁÀ½ÍÉŒ½µ…¥¸½…ÍÍ•ÑÌ½¹½Éµ…±}¡½µ•}ÉÕ¹Ñ¥µ•}ØÄ½ÍÑ…Ñ¥Œ½Í•¹•}‰…Í”¹Á¹œˆ€ˆ‘½ÕÐ¼ÀÝ}¹½Éµ…±}¡½µ•}‰…­É½Õ¹‘}ÉÕ¹Ñ¥µ”¹Á¹œˆ(€À€ˆ‘eU)%9}IA=}I==P½‘•Í¥¸½ÍåÍÑ•´½‰…­É½Õ¹‘Ì½µ½É¹¥¹}±…­•}ØÄ½…ÍÍ•ÑÌ½5½É¹¥¹}1…­•}5…ÍÑ•É}XÄ¹Á¹œˆ€ˆ‘½ÕÐ¼ÀÙ}¹½Éµ…±}¡½µ•}‰…­É½Õ¹‘}Í½ÕÉ”¹Á¹œˆ(€ÁåÑ¡½¸Ì€ˆ‘eU)%9}IA=}I==P½ÍÉ¥ÁÑÌ½Ù•É¥™å}¹½Éµ…±}¡½µ•}Ù¥ÍÕ…±}•Ù¥‘•¹”¹Áäˆ€ˆ‘½ÕÐˆñðì(€€€ÉÕ¹Ñ¥µ•}Í•Ñ}™…¥±ÕÉ”€‰Y%9ˆ€‰9=I51}!=5}Y%MU1}Y%9}%1ˆ(€€€É•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€ô((€ÁÉ¥¹Ñ˜€œ•Íq¸œp(€€€€9½Éµ…±!½µ•…Ñ…A…É¥ÑåQ•ÍÐèÍå¹Ñ¡•Ñ¥Œ€äèÄØ…¹€ÐèÔ™¥áÑÕÉ•ÌÙ•É¥™ä±…å½ÕÐ‰•¡…Ù¥½È½¹±äìÑ¡•ä…É”¹½ÐÉ•…°µ™¥Í Ù¥ÍÕ…°•Ù¥‘•¹”¸œp(€€€€!½µ•MÑ…ÑÍM•µ…¹Ñ¥ÍQ•ÍÐèÉ•½É‘…åÌ¡…Ì¹¼=¹±¥¬ì™¥Í ÍÁ•¥•Ì…¹…Ñ Ñ½Ñ…±Ì¹…Ù¥…Ñ”¸œp(€€€€9½Éµ…±!½µ•!•É½	•¡…Ù¥½ÉQ•ÍÐè½¹”…Ñ ¥Ì•¹Ñ•É•ìÑ…À½Á•¹ÌÑ¡”µ…Ñ¡¥¹œÉ•½É‘%ìµÕ±Ñ¥Á±”…Ñ¡•ÌÉ•µ…¥¸µ…¹Õ…°…¹ÍÝ¥Á•…‰±”¸œp(€€€€A$€ÈàÉ•ÍÁ½¹Í¥Ù”•Ù¥‘•¹”è¹…Ñ¥Ù”ÍÉ••¹Í¡½ÑÌ…¹Ñ•ÍÐµ•ÑÉ¥Ì…É”Í…Ù•™½È•… ‘•Ù¥”½™½¹ÐÁÉ½™¥±”¸œp(€€€€9¼ÕÍÑ½´!½µ”!•É¼¡…ÁÑ¥Œì¹¼!½µ”Í½Õ¹¸œp(€€€€ø€ˆ‘½ÕÐ¼ÄÁ}¹½Éµ…±}¡½µ•}Í•µ…¹Ñ¥Í}É•Á½ÉÐ¹ÑáÐˆ((€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}ÉÕ¹Ñ¥µ•}ÁÉ½™¥±”€ˆÄÀàÁàÄäÈÁ}™ÌÅ|Àˆ€ˆÄÀàÁàÄäÈÀˆ€ˆÄ¸ÀˆñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}ÉÕ¹Ñ¥µ•}ÁÉ½™¥±”€ˆÄÀàÁàÄäÈÁ}™ÌÅ|Ìˆ€ˆÄÀàÁàÄäÈÀˆ€ˆÄ¸ÌˆñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}ÉÕ¹Ñ¥µ•}ÁÉ½™¥±”€ˆÄÀàÁàÄäÈÁ}™ÌÅ|Ôˆ€ˆÄÀàÁàÄäÈÀˆ€ˆÄ¸ÔˆñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°…¹¥µ…Ñ½É}‘ÕÉ…Ñ¥½¹}Í…±”€À¸À€ø½‘•Ø½¹Õ±°(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°ÑÉ…¹Í¥Ñ¥½¹}…¹¥µ…Ñ¥½¹}Í…±”€À¸À€ø½‘•Ø½¹Õ±°(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°Ý¥¹‘½Ý}…¹¥µ…Ñ¥½¹}Í…±”€À¸À€ø½‘•Ø½¹Õ±°(€¹½Éµ…±}¡½µ•}±…Õ¹¡}…ÁÀ€ø€ˆ‘½ÕÐ½É•‘Õ•}µ½Ñ¥½¹}±…Õ¹ ¹±½œˆ€Èø˜ÄñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}•á…Ð€ˆ‘½ÕÐ½¹½Éµ…±}¡½µ•}µ½Ñ¥½¹}¹•ÕÑÉ…±|ÄÀàÁàÄäÈÀ¹Á¹œˆ€ÄÀàÀ€ÄäÈÀñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°…¹¥µ…Ñ½É}‘ÕÉ…Ñ¥½¹}Í…±”€Ä¸À€ø½‘•Ø½¹Õ±°(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°ÑÉ…¹Í¥Ñ¥½¹}…¹¥µ…Ñ¥½¹}Í…±”€Ä¸À€ø½‘•Ø½¹Õ±°(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Í•ÑÑ¥¹ÌÁÕÐ±½‰…°Ý¥¹‘½Ý}…¹¥µ…Ñ¥½¹}Í…±”€Ä¸À€ø½‘•Ø½¹Õ±°(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°…´™½É”µÍÑ½À€ˆ‘eU)%9}AA}A-ˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°É´€µ˜€½Í‘…É½¹½Éµ…±}¡½µ•}µ½Ñ¥½¸¹µÀÐ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°ÍÉ••¹É•½É€´µÑ¥µ”µ±¥µ¥Ð€Äà€½Í‘…É½¹½Éµ…±}¡½µ•}µ½Ñ¥½¸¹µÀÐ€ø€ˆ‘½ÕÐ½ÍÉ••¹É•½É¹±½œˆ€Èø˜Ä€˜(€±½…°ÍÉ••¹É•½É‘}Á¥ô„(€Í±••À€Ä(€¹½Éµ…±}¡½µ•}±…Õ¹¡}…ÁÀ€ø€ˆ‘½ÕÐ½µ½Ñ¥½¹}±…Õ¹ ¹±½œˆ€Èø˜ÄñðÉ•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€Ý…¥Ð€ˆ‘ÍÉ••¹É•½É‘}Á¥ˆ(€€ˆ‘eU)%9}	}	%8ˆÁÕ±°€½Í‘…É½¹½Éµ…±}¡½µ•}µ½Ñ¥½¸¹µÀÐ€ˆ‘½ÕÐ¼ÄÅ}9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•|ÄáÌ¹µÀÐˆ€ø½‘•Ø½¹Õ±°(€±½…°‘ÕÉ…Ñ¥½¸(€‘ÕÉ…Ñ¥½¸ôˆ¡™™ÁÉ½‰”€µØ•ÉÉ½È€µÍ¡½Ý}•¹ÑÉ¥•Ì™½Éµ…Ðõ‘ÕÉ…Ñ¥½¸€µ½˜‘•™…Õ±Ðõ¹ÜôÄé¹¬ôÄ€ˆ‘½ÕÐ¼ÄÅ}9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•|ÄáÌ¹µÀÐˆ¤ˆ(€ÁåÑ¡½¸Ì€´€ˆ‘‘ÕÉ…Ñ¥½¸ˆ€ððAdœ)¥µÁ½ÉÐÍåÌ)‘ÕÉ…Ñ¥½¸õ™±½…Ð¡ÍåÌ¹…ÉÙlÅt¤)ÁÉ¥¹Ð¡˜‰9=I51}!=5}5=Q%=9}UIQ%=8õí‘ÕÉ…Ñ¥½¸è¸Í™ôˆ¤)¥˜‘ÕÉ…Ñ¥½¸€ð€ÄØ¸Àè(€€€É…¥Í”MåÍÑ•µá¥Ð ‰9=I51}!=5}5=Q%=9}Q==}M!=IPˆ¤)Ad((€€ŒQ¡”±½¹œµÍÉ••¸ÁÉ½™¥±”µ…äÉ•ÅÕ¥É”É•ÍÑ…ÉÑ¥¹œÑ¡”YÝ¥Ñ „¹…Ñ¥Ù”(€€Œ€ÄÀàÁàÈÌÐÀÍ­¥¸¸…ÁÑÕÉ”¥Ð±…ÍÐÍ¼Ñ¡”‰…Í”µÍ¥é”É•‘Õ•µµ½Ñ¥½¸™É…µ”…¹(€€Œµ½Ñ¥½¸É•½É‘¥¹œ…‰½Ù”É•µ…¥¸¹…Ñ¥Ù”€ÄÀàÁàÄäÈÀ•Ù¥‘•¹”¸(€±½…°±½¹}ÁÉ½™¥±•}ÉŒôÀ(€¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}ÉÕ¹Ñ¥µ•}ÁÉ½™¥±”€ˆÄÀàÁàÈÌÐÁ}™ÌÅ|Àˆ€ˆÄÀàÁàÈÌÐÀˆ€ˆÄ¸Àˆñð±½¹}ÁÉ½™¥±•}ÉŒôü(€¥˜€  ±½¹}ÁÉ½™¥±•}ÉŒ€„ô€À€˜˜±½¹}ÁÉ½™¥±•}ÉŒ€„ôa%Q}	1=-}%9I€¤¤ìÑ¡•¸(€€€É•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€™¤((€ÁåÑ¡½¸Ì€ˆ‘eU)%9}IA=}I==P½ÍÉ¥ÁÑÌ½Ù•É¥™å}¹½Éµ…±}¡½µ•}„Ñ}ÉÕ¹Ñ¥µ•}•Ù¥‘•¹”¹Áäˆ€ˆ‘½ÕÐˆñðì(€€€ÉÕ¹Ñ¥µ•}Í•Ñ}™…¥±ÕÉ”€‰Y%9ˆ€‰9=I51}!=5}Ñ}IU9Q%5}Y%9}%9Y1%ˆ(€€€É•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€ô(€±½…°±½ÍÕÉ•}ÍÑ…ÑÕÌ(€±½ÍÕÉ•}ÍÑ…ÑÕÌôˆ¡ÁåÑ¡½¸Ì€´€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•}±½ÍÕÉ•}I•ÍÕ±Ð¹©Í½¸ˆ€ððAdœ)¥µÁ½ÉÐ©Í½¸°ÍåÌ)ÁÉ¥¹Ð¡©Í½¸¹±½…¡½Á•¸¡ÍåÌ¹…ÉÙlÅt°•¹½‘¥¹œô‰ÕÑ˜´àˆ¤¤¹•Ð ‰ÍÑ…ÑÕÌˆ°€‰	1=-ˆ¤¤)Ad(¤ˆ(€¥˜ml€ˆ‘±½ÍÕÉ•}ÍÑ…ÑÕÌˆ€„ô€‰AMLˆutìÑ¡•¸(€€€ÉÕ¹Ñ¥µ•}Í•Ñ}™…¥±ÕÉ”€‰Y%9ˆ€‰9=I51}!=5}IU9Q%5}AI%Qe|‘í±½ÍÕÉ•}ÍÑ…ÑÕÍôˆ(€€€É•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€™¤((€±½…°µ¥ÍÍ¥¹œôÀ™¥±”(€™½È™¥±”¥¸p(€€€€ˆ‘½ÕÐ¼ÀÅ}¹½Éµ…±}¡½µ•}™¥ÉÍÑ}…É¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼ÀÉ}¹½Éµ…±}¡½µ•}Í•½¹‘}…É¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼ÀÍ}¹½Éµ…±}¡½µ•}™É½é•¹|ÄÀàÁàÄäÈÀ¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼ÀÑ}¹½Éµ…±}¡½µ•}ÉÕ¹Ñ¥µ•|ÄÀàÁàÄäÈÀ¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼ÀÕ}¹½Éµ…±}¡½µ•}™É½é•¹}ÉÕ¹Ñ¥µ•}Í¥‘•}‰å}Í¥‘”¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼ÀÙ}¹½Éµ…±}¡½µ•}‰…­É½Õ¹‘}Í½ÕÉ”¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼ÀÝ}¹½Éµ…±}¡½µ•}‰…­É½Õ¹‘}ÉÕ¹Ñ¥µ”¹Á¹œˆp(€€€€ˆ‘½ÕÐ¼Àá}¹½Éµ…±}¡½µ•}‰…­É½Õ¹‘}Á…É¥Ñå}É•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ¼Àå}¹½Éµ…±}¡½µ•}Ù¥ÍÕ…±}Á…É¥Ñå}É•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ¼ÄÁ}¹½Éµ…±}¡½µ•}Í•µ…¹Ñ¥Í}É•Á½ÉÐ¹ÑáÐˆp(€€€€ˆ‘½ÕÐ¼ÄÅ}9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•|ÄáÌ¹µÀÐˆp(€€€€ˆ‘½ÕÐ½¹½Éµ…°µ¡½µ”µµ½Ñ¥½¸µ¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸¹±½œˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•}Y¥ÍÕ…±}Õ‘¥Ñ}I•Á½ÉÐ¹µˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}!¥•É…É¡å}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}!•É½}Ù¥‘•¹•¥Ñ}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}QåÁ½É…Á¡å}IÕ¹Ñ¥µ•}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}5½Ñ¥½¹}IÕ¹Ñ¥µ•}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}I•ÍÁ½¹Í¥Ù•}IÕ¹Ñ¥µ•}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•}	½Õ¹‘Í}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}A¥á•±}¥™™}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½!•É½}¥áÑÕÉ•}AÉ•™±¥¡Ñ}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½…µ•É…}½É•}5…Í­}I•Á½ÉÐ¹©Í½¸ˆp(€€€€ˆ‘½ÕÐ½9½Éµ…±}!½µ•}IÕ¹Ñ¥µ•}±½ÍÕÉ•}I•ÍÕ±Ð¹©Í½¸ˆ(€‘¼(€€€¥˜ml€„€µÌ€ˆ‘™¥±”ˆutìÑ¡•¸(€€€€€ÁÉ¥¹Ñ˜€5%MM%9}Y%9ô•Íq¸œ€ˆ‘™¥±”ˆ€øø€ˆ‘eU)%9}Y%9}%H½•Ù¥‘•¹•}µ¥ÍÍ¥¹œ¹±½œˆ(€€€€€µ¥ÍÍ¥¹œôÄ(€€€™¤(€‘½¹”(€¥˜€  µ¥ÍÍ¥¹œ€„ô€À€¤¤ìÑ¡•¸(€€€ÉÕ¹Ñ¥µ•}Í•Ñ}™…¥±ÕÉ”€‰Y%9ˆ€‰9=I51}!=5}XÅ}Y%9}5%MM%9ˆ(€€€É•ÑÕÉ¸€ˆ‘a%Q}%1}Y%9ˆ(€™¤(€É•ÑÕÉ¸€ˆ‘a%Q}AMLˆ)ô

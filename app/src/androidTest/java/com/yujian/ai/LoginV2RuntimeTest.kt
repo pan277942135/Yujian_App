@@ -1,580 +1,1 @@
-package com.yujian.ai
-
-import android.graphics.Bitmap
-import android.graphics.Rect
-import android.os.ParcelFileDescriptor
-import androidx.activity.ComponentActivity
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.SemanticsNodeInteraction
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performImeAction
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.unit.dp
-import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
-import com.yujian.ai.ui.designsystem.components.YuJianBackTitleActionsTopBar
-import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
-import com.yujian.ai.ui.designsystem.components.YuJianIconAction
-import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
-import com.yujian.ai.ui.designsystem.components.YuJianTextAction
-import com.yujian.ai.ui.designsystem.components.YuJianTitleOnlyTopBar
-import com.yujian.ai.ui.designsystem.components.YuJianTopBarAction
-import com.yujian.ai.ui.auth.LoginV2Screen
-import com.yujian.ai.ui.auth.RegisterV2Screen
-import java.io.File
-import java.io.FileOutputStream
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
-
-class LoginV2RuntimeTest {
-    private fun primaryButton(text: String) = composeRule.onNode(
-        hasText(text) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button),
-    )
-
-    @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
-
-    private var originalImeWithHardwareKeyboard: String? = null
-    private var imeWithHardwareKeyboardChanged = false
-
-    @After
-    fun restoreHardwareKeyboardImeSetting() {
-        if (!imeWithHardwareKeyboardChanged) return
-        try {
-            val setting = originalImeWithHardwareKeyboard
-            if (setting == "0" || setting == "1") {
-                runShellCommand("settings put secure show_ime_with_hard_keyboard $setting")
-            } else {
-                runShellCommand("settings delete secure show_ime_with_hard_keyboard")
-            }
-        } finally {
-            imeWithHardwareKeyboardChanged = false
-        }
-    }
-
-    private fun runShellCommand(command: String): String {
-        val output = InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand(command)
-        return ParcelFileDescriptor.AutoCloseInputStream(output).bufferedReader().use {
-            it.readText().trim()
-        }
-    }
-
-    private fun showSoftwareKeyboardForEmulator() {
-        if (imeWithHardwareKeyboardChanged) return
-        originalImeWithHardwareKeyboard = runShellCommand(
-            "settings get secure show_ime_with_hard_keyboard",
-        )
-        imeWithHardwareKeyboardChanged = true
-        runShellCommand("settings put secure show_ime_with_hard_keyboard 1")
-    }
-
-    private fun awaitImeVisible() {
-        val activity = composeRule.activity
-        val decorView = activity.window.decorView
-        val visibleFrameBeforeIme = Rect()
-        decorView.getWindowVisibleDisplayFrame(visibleFrameBeforeIme)
-        val imeVisibilityThresholdPx = (100 * activity.resources.displayMetrics.density).toInt()
-
-        activity.runOnUiThread {
-            WindowInsetsControllerCompat(activity.window, decorView)
-                .show(WindowInsetsCompat.Type.ime())
-        }
-
-        composeRule.waitUntil(timeoutMillis = 5_000L) {
-            val insets = decorView.rootWindowInsets
-            val imeInsetsVisible = insets?.let {
-                WindowInsetsCompat.toWindowInsetsCompat(it).isVisible(WindowInsetsCompat.Type.ime())
-            } ?: false
-            val visibleFrame = Rect()
-            decorView.getWindowVisibleDisplayFrame(visibleFrame)
-            val keyboardReducedVisibleFrame =
-                visibleFrameBeforeIme.bottom - visibleFrame.bottom > imeVisibilityThresholdPx
-            imeInsetsVisible || keyboardReducedVisibleFrame
-        }
-    }
-
-    private fun assertInsideCompactViewport(node: SemanticsNodeInteraction) {
-        val viewport = composeRule.onNodeWithTag("auth_compact_viewport")
-            .fetchSemanticsNode().boundsInRoot
-        val bounds = node.fetchSemanticsNode().boundsInRoot
-        assertTrue("node is clipped above the compact viewport", bounds.top >= viewport.top)
-        assertTrue("node is clipped below the compact viewport", bounds.bottom <= viewport.bottom)
-    }
-
-    @Test
-    fun idle_matchesFrozenStructure() {
-        var loginCalls = 0
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = false,
-                error = null,
-                onLogin = { _, _ -> loginCalls += 1 },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        composeRule.onNodeWithText("æ¬¢è¿å›æ¥").assertExists()
-        composeRule.onNodeWithText("ç»§ç»­è®°å½•ä½ çš„æ¯ä¸€æ¬¡æ¸”è·").assertExists()
-        composeRule.onNodeWithTag("login_username").assertExists()
-        composeRule.onNodeWithTag("login_password").assertExists()
-        composeRule.onNodeWithText("å¿˜è®°å¯†ç ï¼Ÿ").assertExists()
-        composeRule.onNodeWithText("åˆ›å»ºè´¦å·").assertExists()
-        primaryButton("ç™»å½•").assertIsNotEnabled()
-        primaryButton("ç™»å½•").performTouchInput { down(center); up() }
-        composeRule.runOnIdle { assertEquals(0, loginCalls) }
-        saveScreenshot("login_v2_idle.png")
-    }
-
-    @Test
-    fun filled_form_isActionable() {
-        var username = ""
-        var password = ""
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = false,
-                error = null,
-                onLogin = { user, pass -> username = user; password = pass },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        composeRule.onNodeWithTag("login_username").performTextInput("fisher001")
-        composeRule.onNodeWithTag("login_password").performTextInput("123456")
-        primaryButton("ç™»å½•").assertIsEnabled()
-        saveScreenshot("login_v2_filled.png")
-        primaryButton("ç™»å½•").performClick()
-        composeRule.runOnIdle {
-            assertEquals("fisher001", username)
-            assertEquals("123456", password)
-        }
-    }
-
-    @Test
-    fun passwordVisibility_isUserControlled() {
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = false,
-                error = null,
-                onLogin = { _, _ -> },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        composeRule.onNodeWithTag("login_password").performTextInput("123456")
-        composeRule.onNodeWithContentDescription("æ˜¾ç¤ºå¯†ç ").performClick()
-        composeRule.onNodeWithTag("login_password").assertTextContains("123456")
-        saveScreenshot("login_v2_password_visible.png")
-    }
-
-    @Test
-    fun loading_hasDeterministicVisualState() {
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = true,
-                error = null,
-                onLogin = { _, _ -> },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        saveScreenshot("login_v2_loading.png")
-    }
-
-    @Test
-    fun login_imeNextMovesToPassword_andDoneSubmits() {
-        var submitted = false
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = false,
-                error = null,
-                onLogin = { _, _ -> submitted = true },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        composeRule.onNodeWithTag("login_username").performTextInput("fisher003")
-        composeRule.onNodeWithTag("login_username").performClick()
-        composeRule.onNodeWithTag("login_username").performImeAction()
-        composeRule.onNodeWithTag("login_password").assertIsFocused()
-        saveScreenshot("login_v2_focus.png")
-        composeRule.onNodeWithTag("login_password").performTextInput("123456")
-        saveScreenshot("login_v2_keyboard.png")
-        composeRule.onNodeWithTag("login_password").performImeAction()
-        composeRule.runOnIdle { assert(submitted) }
-    }
-
-    @Test
-    fun register_imeMovesAcrossFields_andDoneSubmits() {
-        var submitted = false
-        composeRule.setContent {
-            RegisterV2Screen(
-                loading = false,
-                error = null,
-                onRegister = { _, _, _ -> submitted = true },
-                onBackToLogin = {},
-            )
-        }
-        composeRule.onNodeWithTag("register_username").performTextInput("fisher004")
-        composeRule.onNodeWithTag("register_username").performClick()
-        composeRule.onNodeWithTag("register_username").performImeAction()
-        composeRule.onNodeWithTag("register_password").assertIsFocused()
-        saveScreenshot("register_v2_focus.png")
-        composeRule.onNodeWithTag("register_password").performTextInput("123456")
-        composeRule.onNodeWithTag("register_password").performImeAction()
-        composeRule.onNodeWithTag("register_nickname").assertIsFocused()
-        composeRule.onNodeWithTag("register_nickname").performTextInput("angler")
-        saveScreenshot("register_v2_keyboard.png")
-        composeRule.onNodeWithTag("register_nickname").performImeAction()
-        composeRule.runOnIdle { assert(submitted) }
-    }
-
-    @Test
-    fun login_smallScreen_keepsSubmitReachableByScrolling() {
-        composeRule.setContent {
-            Box(Modifier.width(360.dp).height(560.dp)) {
-                LoginV2Screen(
-                    loading = false,
-                    error = null,
-                    onLogin = { _, _ -> },
-                    onRegister = {},
-                    onForgotPassword = {},
-                    onBack = {},
-                )
-            }
-        }
-        composeRule.onNodeWithTag("login_submit").performScrollTo().assertIsDisplayed()
-        saveScreenshot("login_v2_small_screen.png")
-    }
-
-    @Test
-    fun login_invalidUsernameWithIme_keepsErrorVisibleAndLaterActionsReachable() {
-        composeRule.setContent {
-            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
-                LoginV2Screen(
-                    loading = false,
-                    error = null,
-                    onLogin = { _, _ -> },
-                    onRegister = {},
-                    onForgotPassword = {},
-                    onBack = {},
-                )
-            }
-        }
-
-        val username = composeRule.onNodeWithTag("login_username")
-        showSoftwareKeyboardForEmulator()
-        // Exercise the platform touch/IME path. A semantics-only click can focus
-        // the field without asking API 28's real input method to appear.
-        username.performTouchInput { down(center); up() }
-        awaitImeVisible()
-        username.performTextInput("x")
-        composeRule.onNodeWithText("è´¦å·").assertIsDisplayed()
-        username.assertIsFocused().assertTextContains("x").assertIsDisplayed()
-        val error = composeRule.onNodeWithText("è¯·è¾“å…¥ 3â€“32 ä½å­—æ¯ã€æ•°å­—ã€_ æˆ– - ç»„æˆçš„è´¦å·")
-        error.assertIsDisplayed()
-        assertInsideCompactViewport(error)
-
-        composeRule.onNodeWithTag("login_password").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("login_submit").performScrollTo().assertIsDisplayed()
-        saveScreenshot("login_v2_invalid_username_ime_compact.png")
-    }
-
-    @Test
-    fun register_smallScreen_keepsSubmitReachableByScrolling() {
-        composeRule.setContent {
-            Box(Modifier.width(360.dp).height(560.dp)) {
-                RegisterV2Screen(
-                    loading = false,
-                    error = null,
-                    onRegister = { _, _, _ -> },
-                    onBackToLogin = {},
-                )
-            }
-        }
-        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
-        saveScreenshot("register_v2_small_screen.png")
-    }
-
-    @Test
-    fun register_helpers_areVisibleAndScrollableOnCompactScreen() {
-        composeRule.setContent {
-            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
-                RegisterV2Screen(
-                    loading = false,
-                    error = null,
-                    onRegister = { _, _, _ -> },
-                    onBackToLogin = {},
-                )
-            }
-        }
-
-        val usernameHelper = composeRule.onNodeWithText("3â€“32 ä½å­—æ¯ã€æ•°å­—ã€_ æˆ– -")
-        usernameHelper.performScrollTo().assertIsDisplayed()
-        assertInsideCompactViewport(usernameHelper)
-        val passwordHelper = composeRule.onNodeWithText("è‡³å°‘ 6 ä½")
-        passwordHelper.performScrollTo().assertIsDisplayed()
-        assertInsideCompactViewport(passwordHelper)
-        composeRule.onNodeWithTag("register_nickname").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
-        saveScreenshot("register_v2_helpers_compact.png")
-    }
-
-    @Test
-    fun register_invalidFieldsWithIme_showFullErrorsWithoutOverlapAndKeepSubmitReachable() {
-        composeRule.setContent {
-            Box(Modifier.width(360.dp).height(560.dp).testTag("auth_compact_viewport")) {
-                RegisterV2Screen(
-                    loading = false,
-                    error = null,
-                    onRegister = { _, _, _ -> },
-                    onBackToLogin = {},
-                )
-            }
-        }
-
-        val usernameError = "è¯·è¾“å…¥ 3â€“32 ä½å­—æ¯ã€æ•°å­—ã€_ æˆ– - ç»„æˆçš„è´¦å·"
-        val username = composeRule.onNodeWithTag("register_username")
-        showSoftwareKeyboardForEmulator()
-        username.performTouchInput { down(center); up() }
-        awaitImeVisible()
-        username.performTextInput("x")
-        composeRule.onNodeWithText("è´¦å·").assertIsDisplayed()
-        username.assertIsFocused().assertTextContains("x").assertIsDisplayed()
-        val usernameErrorNode = composeRule.onNodeWithText(usernameError)
-        usernameErrorNode.assertIsDisplayed()
-        assertInsideCompactViewport(usernameErrorNode)
-        val usernameErrorBottom = usernameErrorNode.fetchSemanticsNode().boundsInRoot.bottom
-        val passwordTop = composeRule.onNodeWithTag("register_password")
-            .fetchSemanticsNode().boundsInRoot.top
-        assertTrue("username error overlaps the password field", usernameErrorBottom < passwordTop)
-
-        val password = composeRule.onNodeWithTag("register_password")
-        password.performScrollTo().performClick().performTextInput("1")
-        password.assertIsFocused().assertTextContains("â€¢").assertIsDisplayed()
-        val passwordErrorNode = composeRule.onNodeWithText("å¯†ç é•¿åº¦éœ€è¦ä¸º 6â€“72 ä½")
-        passwordErrorNode.assertIsDisplayed()
-        assertInsideCompactViewport(passwordErrorNode)
-        val passwordErrorBottom = passwordErrorNode.fetchSemanticsNode().boundsInRoot.bottom
-        val nicknameTop = composeRule.onNodeWithTag("register_nickname")
-            .fetchSemanticsNode().boundsInRoot.top
-        assertTrue("password error overlaps the nickname field", passwordErrorBottom < nicknameTop)
-
-        val nickname = composeRule.onNodeWithTag("register_nickname")
-        nickname.performScrollTo().performClick().performTextInput(" ")
-        composeRule.onNodeWithText("æ˜µç§°").assertIsDisplayed()
-        nickname.assertIsFocused().assertIsDisplayed()
-        val nicknameError = composeRule.onNodeWithText("è¯·è¾“å…¥ 1â€“20 ä¸ªå­—ç¬¦çš„æ˜µç§°")
-        nicknameError.assertIsDisplayed()
-        assertInsideCompactViewport(nicknameError)
-        composeRule.onNodeWithTag("register_submit").performScrollTo().assertIsDisplayed()
-        saveScreenshot("register_v2_invalid_fields_ime_compact.png")
-    }
-
-    @Test
-    fun p0SharedComponents_renderFrozenVariantsAndButtonStates() {
-        var disabledButtonClicks = 0
-        composeRule.setContent {
-            Column {
-                YuJianTitleOnlyTopBar("æ ‡é¢˜")
-                YuJianBackTitleTopBar("è¿”å› + æ ‡é¢˜", onBack = {})
-                YuJianBackTitleActionsTopBar(
-                    title = "è¿”å› + æ ‡é¢˜ + å·¥å…·",
-                    onBack = {},
-                    actions = listOf(
-                        YuJianTopBarAction(
-                            icon = Icons.Rounded.MoreHoriz,
-                            contentDescription = "æ›´å¤š",
-                            onClick = {},
-                        ),
-                    ),
-                )
-                YuJianTextAction("æ–‡å­—æ“ä½œ", onClick = {})
-                YuJianIconAction(
-                    icon = Icons.Rounded.ArrowBack,
-                    contentDescription = "ç‹¬ç«‹å›¾æ ‡æ“ä½œ",
-                    onClick = {},
-                    family = YuJianIconActionFamily.UTILITY,
-                )
-                YuJianPrimaryButton("é»˜è®¤", onClick = {}, modifier = Modifier.testTag("p0_button_default"))
-                YuJianPrimaryButton("æŒ‰ä¸‹", onClick = {}, modifier = Modifier.testTag("p0_button_pressed"))
-                YuJianPrimaryButton(
-                    "ç¦ç”¨",
-                    onClick = { disabledButtonClicks += 1 },
-                    modifier = Modifier.testTag("p0_button_disabled"),
-                    enabled = false,
-                )
-                YuJianPrimaryButton(
-                    "åŠ è½½",
-                    onClick = {},
-                    modifier = Modifier.testTag("p0_button_loading"),
-                    loading = true,
-                )
-            }
-        }
-        primaryButton("é»˜è®¤").assertIsEnabled()
-        primaryButton("ç¦ç”¨").assertIsNotEnabled()
-        primaryButton("ç¦ç”¨").performTouchInput { down(center); up() }
-        composeRule.runOnIdle { assertEquals(0, disabledButtonClicks) }
-        composeRule.onNodeWithText("æ–‡å­—æ“ä½œ").assertExists()
-        composeRule.onNodeWithContentDescription("ç‹¬ç«‹å›¾æ ‡æ“ä½œ").assertExists()
-        saveScreenshot("p0_shared_components_default.png")
-        composeRule.onNodeWithTag("p0_button_pressed").performTouchInput { down(center) }
-        composeRule.waitForIdle()
-        saveScreenshot("p0_button_pressed.png")
-        composeRule.onNodeWithTag("p0_button_pressed").performTouchInput { up() }
-        saveScreenshot("p0_button_disabled.png")
-        saveScreenshot("p0_button_loading.png")
-    }
-
-    @Test
-    fun error_isVisibleWithoutTechnicalDetails() {
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = false,
-                error = "è´¦å·æˆ–å¯†ç ä¸æ­£ç¡®",
-                onLogin = { _, _ -> },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        composeRule.onNodeWithText("è´¦å·æˆ–å¯†ç ä¸æ­£ç¡®").assertExists()
-        saveScreenshot("login_v2_error.png")
-    }
-
-    @Test
-    fun register_idle_matchesFrozenStructure() {
-        composeRule.setContent {
-            RegisterV2Screen(
-                loading = false,
-                error = null,
-                onRegister = { _, _, _ -> },
-                onBackToLogin = {},
-            )
-        }
-        composeRule.onNodeWithText("æ¸”è§").assertDoesNotExist()
-        composeRule.onNodeWithText("æ‹ç…§æ”¶è—æ¯æ¬¡æ¸”è·").assertDoesNotExist()
-        composeRule.onNodeWithText("åˆ›å»ºè´¦å·").assertExists()
-        composeRule.onNodeWithText("ç”¨ä¸€ä¸ªè´¦å·ï¼Œç•™ä½ä½ çš„é’“é±¼è½¨è¿¹").assertExists()
-        composeRule.onNodeWithTag("register_username").assertExists()
-        composeRule.onNodeWithTag("register_password").assertExists()
-        composeRule.onNodeWithTag("register_nickname").assertExists()
-        composeRule.onNodeWithText("æ³¨å†Œå¹¶ç™»å½•").assertExists()
-        composeRule.onNodeWithText("å»ç™»å½•").assertExists()
-        primaryButton("æ³¨å†Œå¹¶ç™»å½•").assertIsNotEnabled()
-        saveScreenshot("register_v2_idle.png")
-    }
-
-    @Test
-    fun register_filled_form_isActionable() {
-        var username = ""
-        var password = ""
-        var nickname = ""
-        composeRule.setContent {
-            RegisterV2Screen(
-                loading = false,
-                error = null,
-                onRegister = { user, pass, name ->
-                    username = user
-                    password = pass
-                    nickname = name
-                },
-                onBackToLogin = {},
-            )
-        }
-        composeRule.onNodeWithTag("register_username").performTextInput("fisher002")
-        composeRule.onNodeWithTag("register_password").performTextInput("123456")
-        composeRule.onNodeWithTag("register_nickname").performTextInput("angler")
-        primaryButton("æ³¨å†Œå¹¶ç™»å½•").assertIsEnabled()
-        saveScreenshot("register_v2_filled.png")
-        primaryButton("æ³¨å†Œå¹¶ç™»å½•").performClick()
-        composeRule.runOnIdle {
-            assertEquals("fisher002", username)
-            assertEquals("123456", password)
-            assertEquals("angler", nickname)
-        }
-    }
-
-    @Test
-    fun register_errorAndLoading_areVisibleAndStable() {
-        val loading = mutableStateOf(false)
-        composeRule.setContent {
-            RegisterV2Screen(
-                loading = loading.value,
-                error = if (loading.value) null else "è´¦å·å·²å­˜åœ¨",
-                onRegister = { _, _, _ -> },
-                onBackToLogin = {},
-            )
-        }
-        composeRule.onNodeWithText("è´¦å·å·²å­˜åœ¨").assertExists()
-        saveScreenshot("register_v2_error.png")
-
-        composeRule.runOnIdle { loading.value = true }
-        primaryButton("æ³¨å†Œå¹¶ç™»å½•").assertIsNotEnabled()
-        saveScreenshot("register_v2_loading.png")
-    }
-
-    @Test
-    fun formValidation_errorsAreInline() {
-        composeRule.setContent {
-            LoginV2Screen(
-                loading = false,
-                error = null,
-                onLogin = { _, _ -> },
-                onRegister = {},
-                onForgotPassword = {},
-                onBack = {},
-            )
-        }
-        composeRule.onNodeWithTag("login_username").performTextInput("x")
-        composeRule.onNodeWithText("è¯·è¾“å…¥ 3â€“32 ä½å­—æ¯ã€æ•°å­—ã€_ æˆ– - ç»„æˆçš„è´¦å·").assertExists()
-        saveScreenshot("login_v2_validation_error.png")
-    }
-
-    private fun saveScreenshot(name: String) {
-        composeRule.waitForIdle()
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val bitmap = instrumentation.uiAutomation.takeScreenshot()
-        val root = File(instrumentation.targetContext.getExternalFilesDir(null), "login_v2")
-        check(root.exists() || root.mkdirs())
-        FileOutputStream(File(root, name)).use { output ->
-            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output))
-        }
-        bitmap.recycle()
-    }
-}
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíó^üN‹Z–‹­¦ëeŠw¬éÁ…­…”½´¹åÕ©¥…¸¹…¤()¥µÁ½ÉĞ…¹‘É½¥¹É…Á¡¥Ì¹	¥Ñµ…À)¥µÁ½ÉĞ…¹‘É½¥¹É…Á¡¥Ì¹I•Ğ)¥µÁ½ÉĞ…¹‘É½¥¹½Ì¹A…É•±¥±••ÍÉ¥ÁÑ½È)¥µÁ½ÉĞ…¹‘É½¥‘à¹…Ñ¥Ù¥Ñä¹½µÁ½¹•¹ÑÑ¥Ù¥Ñä)¥µÁ½ÉĞ…¹‘É½¥‘à¹½É”¹Ù¥•Ü¹]¥¹‘½İ%¹Í•ÑÍ½µÁ…Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½É”¹Ù¥•Ü¹]¥¹‘½İ%¹Í•ÑÍ½¹ÑÉ½±±•É½µÁ…Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹…ÍÍ•ÉÑ%Í¹…‰±•)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹…ÍÍ•ÉÑ%Í9½Ñ¹…‰±•)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹…ÍÍ•ÉÑ%Í½ÕÍ•)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹M•µ…¹Ñ¥Í5…Ñ¡•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹¡…ÍQ•áĞ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹…ÍÍ•ÉÑ%Í¥ÍÁ±…å•)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹…ÍÍ•ÉÑQ•áÑ½¹Ñ…¥¹Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹©Õ¹¥ĞĞ¹É•…Ñ•¹‘É½¥‘½µÁ½Í•IÕ±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹½¹9½‘•]¥Ñ¡½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹½¹9½‘•]¥Ñ¡Q…œ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹½¹9½‘•]¥Ñ¡Q•áĞ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹M•µ…¹Ñ¥Í9½‘•%¹Ñ•É…Ñ¥½¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹Á•É™½Éµ±¥¬)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹Á•É™½Éµ%µ•Ñ¥½¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹Á•É™½ÉµMÉ½±±Q¼)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•ÍĞ¹Á•É™½ÉµQ½Õ¡%¹ÁÕĞ)¥µÁ½ÉĞ…¹‘É½¥‘à¹Ñ•ÍĞ¹Á±…Ñ™½É´¹…ÁÀ¹%¹ÍÑÉÕµ•¹Ñ…Ñ¥½¹I•¥ÍÑÉä)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹	½à)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹½±Õµ¸)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹¡•¥¡Ğ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕĞ¹İ¥‘Ñ )¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹%½¹Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹É½Õ¹‘•¹ÉÉ½İ	…¬)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹É½Õ¹‘•¹5½É•!½É¥è)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹5½‘¥™¥•È)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹Ñ•ÍÑQ…œ)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹I½±”)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹M•µ…¹Ñ¥ÍAÉ½Á•ÉÑ¥•Ì)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹µÕÑ…‰±•MÑ…Ñ•=˜)¥µÁ½ÉĞ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ğ¹‘À)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹AÉ¥µ…Éå	ÕÑÑ½¸)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹	…­Q¥Ñ±•Ñ¥½¹ÍQ½Á	…È)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹	…­Q¥Ñ±•Q½Á	…È)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹%½¹Ñ¥½¸)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹%½¹Ñ¥½¹…µ¥±ä)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹Q•áÑÑ¥½¸)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹Q¥Ñ±•=¹±åQ½Á	…È)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹‘•Í¥¹ÍåÍÑ•´¹½µÁ½¹•¹ÑÌ¹eÕ)¥…¹Q½Á	…ÉÑ¥½¸)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹…ÕÑ ¹1½¥¹XÉMÉ••¸)¥µÁ½ÉĞ½´¹åÕ©¥…¸¹…¤¹Õ¤¹…ÕÑ ¹I•¥ÍÑ•ÉXÉMÉ••¸)¥µÁ½ÉĞ©…Ù„¹¥¼¹¥±”)¥µÁ½ÉĞ©…Ù„¹¥¼¹¥±•=ÕÑÁÕÑMÑÉ•…´)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹ÍÍ•ÉĞ¹…ÍÍ•ÉÑÅÕ…±Ì)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹ÍÍ•ÉĞ¹…ÍÍ•ÉÑQÉÕ”)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹™Ñ•È)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹IÕ±”)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹Q•ÍĞ()±…ÍÌ1½¥¹XÉIÕ¹Ñ¥µ•Q•ÍĞì(€€€ÁÉ¥Ù…Ñ”™Õ¸ÁÉ¥µ…Éå	ÕÑÑ½¸¡Ñ•áĞèMÑÉ¥¹œ¤€ô½µÁ½Í•IÕ±”¹½¹9½‘” (€€€€€€€¡…ÍQ•áĞ¡Ñ•áĞ¤…¹M•µ…¹Ñ¥Í5…Ñ¡•È¹•áÁ•ÑY…±Õ”¡M•µ…¹Ñ¥ÍAÉ½Á•ÉÑ¥•Ì¹I½±”°I½±”¹	ÕÑÑ½¸¤°(€€€€¤((€€€•ĞéIÕ±”(€€€Ù…°½µÁ½Í•IÕ±”€ôÉ•…Ñ•¹‘É½¥‘½µÁ½Í•IÕ±”ñ½µÁ½¹•¹ÑÑ¥Ù¥Ñäø ¤((€€€ÁÉ¥Ù…Ñ”Ù…È½É¥¥¹…±%µ•]¥Ñ¡!…É‘İ…É•-•å‰½…ÉèMÑÉ¥¹œü€ô¹Õ±°(€€€ÁÉ¥Ù…Ñ”Ù…È¥µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É‘¡…¹•€ô™…±Í”((€€€™Ñ•È(€€€™Õ¸É•ÍÑ½É•!…É‘İ…É•-•å‰½…É‘%µ•M•ÑÑ¥¹œ ¤ì(€€€€€€€¥˜€ …¥µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É‘¡…¹•¤É•ÑÕÉ¸(€€€€€€€ÑÉäì(€€€€€€€€€€€Ù…°Í•ÑÑ¥¹œ€ô½É¥¥¹…±%µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É(€€€€€€€€€€€¥˜€¡Í•ÑÑ¥¹œ€ôô€ˆÀˆñğÍ•ÑÑ¥¹œ€ôô€ˆÄˆ¤ì(€€€€€€€€€€€€€€€ÉÕ¹M¡•±±½µµ…¹ ‰Í•ÑÑ¥¹ÌÁÕĞÍ•ÕÉ”Í¡½İ}¥µ•}İ¥Ñ¡}¡…É‘}­•å‰½…É€‘Í•ÑÑ¥¹œˆ¤(€€€€€€€€€€€ô•±Í”ì(€€€€€€€€€€€€€€€ÉÕ¹M¡•±±½µµ…¹ ‰Í•ÑÑ¥¹Ì‘•±•Ñ”Í•ÕÉ”Í¡½İ}¥µ•}İ¥Ñ¡}¡…É‘}­•å‰½…Éˆ¤(€€€€€€€€€€€ô(€€€€€€€ô™¥¹…±±äì(€€€€€€€€€€€¥µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É‘¡…¹•€ô™…±Í”(€€€€€€€ô(€€€ô((€€€ÁÉ¥Ù…Ñ”™Õ¸ÉÕ¹M¡•±±½µµ…¹¡½µµ…¹èMÑÉ¥¹œ¤èMÑÉ¥¹œì(€€€€€€€Ù…°½ÕÑÁÕĞ€ô%¹ÍÑÉÕµ•¹Ñ…Ñ¥½¹I•¥ÍÑÉä¹•Ñ%¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸ ¤¹Õ¥ÕÑ½µ…Ñ¥½¸(€€€€€€€€€€€€¹•á•ÕÑ•M¡•±±½µµ…¹¡½µµ…¹¤(€€€€€€€É•ÑÕÉ¸A…É•±¥±••ÍÉ¥ÁÑ½È¹ÕÑ½±½Í•%¹ÁÕÑMÑÉ•…´¡½ÕÑÁÕĞ¤¹‰Õ™™•É•‘I•…‘•È ¤¹ÕÍ”ì(€€€€€€€€€€€¥Ğ¹É•…‘Q•áĞ ¤¹ÑÉ¥´ ¤(€€€€€€€ô(€€€ô((€€€ÁÉ¥Ù…Ñ”™Õ¸Í¡½İM½™Ñİ…É•-•å‰½…É‘½ÉµÕ±…Ñ½È ¤ì(€€€€€€€¥˜€¡¥µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É‘¡…¹•¤É•ÑÕÉ¸(€€€€€€€½É¥¥¹…±%µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É€ôÉÕ¹M¡•±±½µµ…¹ (€€€€€€€€€€€€‰Í•ÑÑ¥¹Ì•ĞÍ•ÕÉ”Í¡½İ}¥µ•}İ¥Ñ¡}¡…É‘}­•å‰½…Éˆ°(€€€€€€€€¤(€€€€€€€¥µ•]¥Ñ¡!…É‘İ…É•-•å‰½…É‘¡…¹•€ôÑÉÕ”(€€€€€€€ÉÕ¹M¡•±±½µµ…¹ ‰Í•ÑÑ¥¹ÌÁÕĞÍ•ÕÉ”Í¡½İ}¥µ•}İ¥Ñ¡}¡…É‘}­•å‰½…É€Äˆ¤(€€€ô((€€€ÁÉ¥Ù…Ñ”™Õ¸…İ…¥Ñ%µ•Y¥Í¥‰±” ¤ì(€€€€€€€Ù…°…Ñ¥Ù¥Ñä€ô½µÁ½Í•IÕ±”¹…Ñ¥Ù¥Ñä(€€€€€€€Ù…°‘•½ÉY¥•Ü€ô…Ñ¥Ù¥Ñä¹İ¥¹‘½Ü¹‘•½ÉY¥•Ü(€€€€€€€Ù…°Ù¥Í¥‰±•É…µ•	•™½É•%µ”€ôI•Ğ ¤(€€€€€€€‘•½ÉY¥•Ü¹•Ñ]¥¹‘½İY¥Í¥‰±•¥ÍÁ±…åÉ…µ”¡Ù¥Í¥‰±•É…µ•	•™½É•%µ”¤(€€€€€€€Ù…°¥µ•Y¥Í¥‰¥±¥ÑåQ¡É•Í¡½±‘Aà€ô€ ÄÀÀ€¨…Ñ¥Ù¥Ñä¹É•Í½ÕÉ•Ì¹‘¥ÍÁ±…å5•ÑÉ¥Ì¹‘•¹Í¥Ñä¤¹Ñ½%¹Ğ ¤((€€€€€€€…Ñ¥Ù¥Ñä¹ÉÕ¹=¹U¥Q¡É•…ì(€€€€€€€€€€€]¥¹‘½İ%¹Í•ÑÍ½¹ÑÉ½±±•É½µÁ…Ğ¡…Ñ¥Ù¥Ñä¹İ¥¹‘½Ü°‘•½ÉY¥•Ü¤(€€€€€€€€€€€€€€€€¹Í¡½Ü¡]¥¹‘½İ%¹Í•ÑÍ½µÁ…Ğ¹QåÁ”¹¥µ” ¤¤(€€€€€€€ô((€€€€€€€½µÁ½Í•IÕ±”¹İ…¥ÑU¹Ñ¥°¡Ñ¥µ•½ÕÑ5¥±±¥Ì€ô€Õ|ÀÀÁ0¤ì(€€€€€€€€€€€Ù…°¥¹Í•ÑÌ€ô‘•½ÉY¥•Ü¹É½½Ñ]¥¹‘½İ%¹Í•ÑÌ(€€€€€€€€€€€Ù…°¥µ•%¹Í•ÑÍY¥Í¥‰±”€ô¥¹Í•ÑÌü¹±•Ğì(€€€€€€€€€€€€€€€]¥¹‘½İ%¹Í•ÑÍ½µÁ…Ğ¹Ñ½]¥¹‘½İ%¹Í•ÑÍ½µÁ…Ğ¡¥Ğ¤¹¥ÍY¥Í¥‰±”¡]¥¹‘½İ%¹Í•ÑÍ½µÁ…Ğ¹QåÁ”¹¥µ” ¤¤(€€€€€€€€€€€ô€üè™…±Í”(€€€€€€€€€€€Ù…°Ù¥Í¥‰±•É…µ”€ôI•Ğ ¤(€€€€€€€€€€€‘•½ÉY¥•Ü¹•Ñ]¥¹‘½İY¥Í¥‰±•¥ÍÁ±…åÉ…µ”¡Ù¥Í¥‰±•É…µ”¤(€€€€€€€€€€€Ù…°­•å‰½…É‘I•‘Õ•‘Y¥Í¥‰±•É…µ”€ô(€€€€€€€€€€€€€€€Ù¥Í¥‰±•É…µ•	•™½É•%µ”¹‰½ÑÑ½´€´Ù¥Í¥‰±•É…µ”¹‰½ÑÑ½´€ø¥µ•Y¥Í¥‰¥±¥ÑåQ¡É•Í¡½±‘Aà(€€€€€€€€€€€¥µ•%¹Í•ÑÍY¥Í¥‰±”ñğ­•å‰½…É‘I•‘Õ•‘Y¥Í¥‰±•É…µ”(€€€€€€€ô(€€€ô((€€€ÁÉ¥Ù…Ñ”™Õ¸…ÍÍ•ÉÑ%¹Í¥‘•½µÁ…ÑY¥•İÁ½ÉĞ¡¹½‘”èM•µ…¹Ñ¥Í9½‘•%¹Ñ•É…Ñ¥½¸¤ì(€€€€€€€Ù…°Ù¥•İÁ½ÉĞ€ô½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰…ÕÑ¡}½µÁ…Ñ}Ù¥•İÁ½ÉĞˆ¤(€€€€€€€€€€€€¹™•Ñ¡M•µ…¹Ñ¥Í9½‘” ¤¹‰½Õ¹‘Í%¹I½½Ğ(€€€€€€€Ù…°‰½Õ¹‘Ì€ô¹½‘”¹™•Ñ¡M•µ…¹Ñ¥Í9½‘” ¤¹‰½Õ¹‘Í%¹I½½Ğ(€€€€€€€…ÍÍ•ÉÑQÉÕ” ‰¹½‘”¥Ì±¥ÁÁ•…‰½Ù”Ñ¡”½µÁ…ĞÙ¥•İÁ½ÉĞˆ°‰½Õ¹‘Ì¹Ñ½À€øôÙ¥•İÁ½ÉĞ¹Ñ½À¤(€€€€€€€…ÍÍ•ÉÑQÉÕ” ‰¹½‘”¥Ì±¥ÁÁ•‰•±½ÜÑ¡”½µÁ…ĞÙ¥•İÁ½ÉĞˆ°‰½Õ¹‘Ì¹‰½ÑÑ½´€ğôÙ¥•İÁ½ÉĞ¹‰½ÑÑ½´¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸¥‘±•}µ…Ñ¡•ÍÉ½é•¹MÑÉÕÑÕÉ” ¤ì(€€€€€€€Ù…È±½¥¹…±±Ì€ô€À(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€1½¥¹XÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô¹Õ±°°(€€€€€€€€€€€€€€€½¹1½¥¸€ôì|°|€´ø±½¥¹…±±Ì€¬ô€Äô°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôíô°(€€€€€€€€€€€€€€€½¹½É½ÑA…ÍÍİ½É€ôíô°(€€€€€€€€€€€€€€€½¹	…¬€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹š²‹¢ş;–n{šv”ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹îŸî·¢ºÃ–öW’öƒjš¾?’âš²‡šâS¢:Üˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰±½¥¹}ÕÍ•É¹…µ”ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰±½¥¹}Á…ÍÍİ½Éˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹–şc¢ºÃ–¾‚¾ò|ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹–"o–îë¢Ò›–>Üˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹fï–öTˆ¤¹…ÍÍ•ÉÑ%Í9½Ñ¹…‰±• ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹fï–öTˆ¤¹Á•É™½ÉµQ½Õ¡%¹ÁÕĞì‘½İ¸¡•¹Ñ•È¤ìÕÀ ¤ô(€€€€€€€½µÁ½Í•IÕ±”¹ÉÕ¹=¹%‘±”ì…ÍÍ•ÉÑÅÕ…±Ì À°±½¥¹…±±Ì¤ô(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰±½¥¹}ØÉ}¥‘±”¹Á¹œˆ¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸™¥±±•‘}™½Éµ}¥ÍÑ¥½¹…‰±” ¤ì(€€€€€€€Ù…ÈÕÍ•É¹…µ”€ô€ˆˆ(€€€€€€€Ù…ÈÁ…ÍÍİ½É€ô€ˆˆ(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€1½¥¹XÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô¹Õ±°°(€€€€€€€€€€€€€€€½¹1½¥¸€ôìÕÍ•È°Á…ÍÌ€´øÕÍ•É¹…µ”€ôÕÍ•ÈìÁ…ÍÍİ½É€ôÁ…ÍÌô°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôíô°(€€€€€€€€€€€€€€€½¹½É½ÑA…ÍÍİ½É€ôíô°(€€€€€€€€€€€€€€€½¹	…¬€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰±½¥¹}ÕÍ•É¹…µ”ˆ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ‰™¥Í¡•ÈÀÀÄˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰±½¥¹}Á…ÍÍİ½Éˆ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ˆÄÈÌĞÔØˆ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹fï–öTˆ¤¹…ÍÍ•ÉÑ%Í¹…‰±• ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰±½¥¹}ØÉ}™¥±±•¹Á¹œˆ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹fï–öTˆ¤¹Á•É™½Éµ±¥¬ ¤(€€€€€€€½µÁ½Í•IÕ±”¹ÉÕ¹=¹%‘±”ì(€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì ‰™¥Í¡•ÈÀÀÄˆ°ÕÍ•É¹…µ”¤(€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì ˆÄÈÌĞÔØˆ°Á…ÍÍİ½É¤(€€€€€€€ô(€€€ô((€€€Q•ÍĞ(€€€™Õ¸Á…ÍÍİ½É‘Y¥Í¥‰¥±¥Ñå}¥ÍUÍ•É½¹ÑÉ½±±• ¤ì(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹ÛŞü¶‰ËkºwµçM%¹I½½Ğ¹Ñ½À(€€€€€€€…ÍÍ•ÉÑQÉÕ” ‰Á…ÍÍİ½É•ÉÉ½È½Ù•É±…ÁÌÑ¡”¹¥­¹…µ”™¥•±ˆ°Á…ÍÍİ½É‘ÉÉ½É	½ÑÑ½´€ğ¹¥­¹…µ•Q½À¤((€€€€€€€Ù…°¹¥­¹…µ”€ô½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}¹¥­¹…µ”ˆ¤(€€€€€€€¹¥­¹…µ”¹Á•É™½ÉµMÉ½±±Q¼ ¤¹Á•É™½Éµ±¥¬ ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ˆ€ˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹šb×Àˆ¤¹…ÍÍ•ÉÑ%Í¥ÍÁ±…å• ¤(€€€€€€€¹¥­¹…µ”¹…ÍÍ•ÉÑ%Í½ÕÍ• ¤¹…ÍÍ•ÉÑ%Í¥ÍÁ±…å• ¤(€€€€€€€Ù…°¹¥­¹…µ•ÉÉ½È€ô½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹¢¾ß¢úO–”€ÇŠLÈÀƒ’â«–¶_²›jšb×Àˆ¤(€€€€€€€¹¥­¹…µ•ÉÉ½È¹…ÍÍ•ÉÑ%Í¥ÍÁ±…å• ¤(€€€€€€€…ÍÍ•ÉÑ%¹Í¥‘•½µÁ…ÑY¥•İÁ½ÉĞ¡¹¥­¹…µ•ÉÉ½È¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}ÍÕ‰µ¥Ğˆ¤¹Á•É™½ÉµMÉ½±±Q¼ ¤¹…ÍÍ•ÉÑ%Í¥ÍÁ±…å• ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰É•¥ÍÑ•É}ØÉ}¥¹Ù…±¥‘}™¥•±‘Í}¥µ•}½µÁ…Ğ¹Á¹œˆ¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸ÀÁM¡…É•‘½µÁ½¹•¹ÑÍ}É•¹‘•ÉÉ½é•¹Y…É¥…¹ÑÍ¹‘	ÕÑÑ½¹MÑ…Ñ•Ì ¤ì(€€€€€€€Ù…È‘¥Í…‰±•‘	ÕÑÑ½¹±¥­Ì€ô€À(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€½±Õµ¸ì(€€€€€€€€€€€€€€€eÕ)¥…¹Q¥Ñ±•=¹±åQ½Á	…È ‹š‚¦Š`ˆ¤(€€€€€€€€€€€€€€€eÕ)¥…¹	…­Q¥Ñ±•Q½Á	…È ‹¢şS–nx€¬ƒš‚¦Š`ˆ°½¹	…¬€ôíô¤(€€€€€€€€€€€€€€€eÕ)¥…¹	…­Q¥Ñ±•Ñ¥½¹ÍQ½Á	…È (€€€€€€€€€€€€€€€€€€€Ñ¥Ñ±”€ô€‹¢şS–nx€¬ƒš‚¦Š`€¬ƒ–Ş—–Üˆ°(€€€€€€€€€€€€€€€€€€€½¹	…¬€ôíô°(€€€€€€€€€€€€€€€€€€€…Ñ¥½¹Ì€ô±¥ÍÑ=˜ (€€€€€€€€€€€€€€€€€€€€€€€eÕ)¥…¹Q½Á	…ÉÑ¥½¸ (€€€€€€€€€€€€€€€€€€€€€€€€€€€¥½¸€ô%½¹Ì¹I½Õ¹‘•¹5½É•!½É¥è°(€€€€€€€€€€€€€€€€€€€€€€€€€€€½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸€ô€‹šnÓ–’hˆ°(€€€€€€€€€€€€€€€€€€€€€€€€€€€½¹±¥¬€ôíô°(€€€€€€€€€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€eÕ)¥…¹Q•áÑÑ¥½¸ ‹šZ–¶_šN7’öpˆ°½¹±¥¬€ôíô¤(€€€€€€€€€€€€€€€eÕ)¥…¹%½¹Ñ¥½¸ (€€€€€€€€€€€€€€€€€€€¥½¸€ô%½¹Ì¹I½Õ¹‘•¹ÉÉ½İ	…¬°(€€€€€€€€€€€€€€€€€€€½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸€ô€‹.³®/–nûš‚šN7’öpˆ°(€€€€€€€€€€€€€€€€€€€½¹±¥¬€ôíô°(€€€€€€€€€€€€€€€€€€€™…µ¥±ä€ôeÕ)¥…¹%½¹Ñ¥½¹…µ¥±ä¹UQ%1%Qd°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€eÕ)¥…¹AÉ¥µ…Éå	ÕÑÑ½¸ ‹¦îc¢ºˆ°½¹±¥¬€ôíô°µ½‘¥™¥•È€ô5½‘¥™¥•È¹Ñ•ÍÑQ…œ ‰ÀÁ}‰ÕÑÑ½¹}‘•™…Õ±Ğˆ¤¤(€€€€€€€€€€€€€€€eÕ)¥…¹AÉ¥µ…Éå	ÕÑÑ½¸ ‹š2'’â,ˆ°½¹±¥¬€ôíô°µ½‘¥™¥•È€ô5½‘¥™¥•È¹Ñ•ÍÑQ…œ ‰ÀÁ}‰ÕÑÑ½¹}ÁÉ•ÍÍ•ˆ¤¤(€€€€€€€€€€€€€€€eÕ)¥…¹AÉ¥µ…Éå	ÕÑÑ½¸ (€€€€€€€€€€€€€€€€€€€€‹šR ˆ°(€€€€€€€€€€€€€€€€€€€½¹±¥¬€ôì‘¥Í…‰±•‘	ÕÑÑ½¹±¥­Ì€¬ô€Äô°(€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È¹Ñ•ÍÑQ…œ ‰ÀÁ}‰ÕÑÑ½¹}‘¥Í…‰±•ˆ¤°(€€€€€€€€€€€€€€€€€€€•¹…‰±•€ô™…±Í”°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€eÕ)¥…¹AÉ¥µ…Éå	ÕÑÑ½¸ (€€€€€€€€€€€€€€€€€€€€‹–*ƒ¢öôˆ°(€€€€€€€€€€€€€€€€€€€½¹±¥¬€ôíô°(€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È¹Ñ•ÍÑQ…œ ‰ÀÁ}‰ÕÑÑ½¹}±½…‘¥¹œˆ¤°(€€€€€€€€€€€€€€€€€€€±½…‘¥¹œ€ôÑÉÕ”°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€ô(€€€€€€€ô(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹¦îc¢ºˆ¤¹…ÍÍ•ÉÑ%Í¹…‰±• ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹šR ˆ¤¹…ÍÍ•ÉÑ%Í9½Ñ¹…‰±• ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹šR ˆ¤¹Á•É™½ÉµQ½Õ¡%¹ÁÕĞì‘½İ¸¡•¹Ñ•È¤ìÕÀ ¤ô(€€€€€€€½µÁ½Í•IÕ±”¹ÉÕ¹=¹%‘±”ì…ÍÍ•ÉÑÅÕ…±Ì À°‘¥Í…‰±•‘	ÕÑÑ½¹±¥­Ì¤ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹šZ–¶_šN7’öpˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸ ‹.³®/–nûš‚šN7’öpˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰ÀÁ}Í¡…É•‘}½µÁ½¹•¹ÑÍ}‘•™…Õ±Ğ¹Á¹œˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰ÀÁ}‰ÕÑÑ½¹}ÁÉ•ÍÍ•ˆ¤¹Á•É™½ÉµQ½Õ¡%¹ÁÕĞì‘½İ¸¡•¹Ñ•È¤ô(€€€€€€€½µÁ½Í•IÕ±”¹İ…¥Ñ½É%‘±” ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰ÀÁ}‰ÕÑÑ½¹}ÁÉ•ÍÍ•¹Á¹œˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰ÀÁ}‰ÕÑÑ½¹}ÁÉ•ÍÍ•ˆ¤¹Á•É™½ÉµQ½Õ¡%¹ÁÕĞìÕÀ ¤ô(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰ÀÁ}‰ÕÑÑ½¹}‘¥Í…‰±•¹Á¹œˆ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰ÀÁ}‰ÕÑÑ½¹}±½…‘¥¹œ¹Á¹œˆ¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸•ÉÉ½É}¥ÍY¥Í¥‰±•]¥Ñ¡½ÕÑQ•¡¹¥…±•Ñ…¥±Ì ¤ì(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€1½¥¹XÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô€‹¢Ò›–>ßš"[–¾‚’â7š¶†¸ˆ°(€€€€€€€€€€€€€€€½¹1½¥¸€ôì|°|€´øô°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôíô°(€€€€€€€€€€€€€€€½¹½É½ÑA…ÍÍİ½É€ôíô°(€€€€€€€€€€€€€€€½¹	…¬€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹¢Ò›–>ßš"[–¾‚’â7š¶†¸ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰±½¥¹}ØÉ}•ÉÉ½È¹Á¹œˆ¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸É•¥ÍÑ•É}¥‘±•}µ…Ñ¡•ÍÉ½é•¹MÑÉÕÑÕÉ” ¤ì(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€I•¥ÍÑ•ÉXÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô¹Õ±°°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôì|°|°|€´øô°(€€€€€€€€€€€€€€€½¹	…­Q½1½¥¸€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹šâS¢ˆ¤¹…ÍÍ•ÉÑ½•Í9½Ñá¥ÍĞ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹š.7ŸšRÛ¢^?š¾?š²‡šâS¢:Üˆ¤¹…ÍÍ•ÉÑ½•Í9½Ñá¥ÍĞ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹–"o–îë¢Ò›–>Üˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹R£’â’â«¢Ò›–>ß¾ò3Vg’ö?’öƒj¦JO¦Æó¢ö£¢şäˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}ÕÍ•É¹…µ”ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}Á…ÍÍİ½Éˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}¹¥­¹…µ”ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹šÎ£–3–æÛfï–öTˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹–:ïfï–öTˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹šÎ£–3–æÛfï–öTˆ¤¹…ÍÍ•ÉÑ%Í9½Ñ¹…‰±• ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰É•¥ÍÑ•É}ØÉ}¥‘±”¹Á¹œˆ¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸É•¥ÍÑ•É}™¥±±•‘}™½Éµ}¥ÍÑ¥½¹…‰±” ¤ì(€€€€€€€Ù…ÈÕÍ•É¹…µ”€ô€ˆˆ(€€€€€€€Ù…ÈÁ…ÍÍİ½É€ô€ˆˆ(€€€€€€€Ù…È¹¥­¹…µ”€ô€ˆˆ(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€I•¥ÍÑ•ÉXÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô¹Õ±°°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôìÕÍ•È°Á…ÍÌ°¹…µ”€´ø(€€€€€€€€€€€€€€€€€€€ÕÍ•É¹…µ”€ôÕÍ•È(€€€€€€€€€€€€€€€€€€€Á…ÍÍİ½É€ôÁ…ÍÌ(€€€€€€€€€€€€€€€€€€€¹¥­¹…µ”€ô¹…µ”(€€€€€€€€€€€€€€€ô°(€€€€€€€€€€€€€€€½¹	…­Q½1½¥¸€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}ÕÍ•É¹…µ”ˆ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ‰™¥Í¡•ÈÀÀÈˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}Á…ÍÍİ½Éˆ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ˆÄÈÌĞÔØˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰É•¥ÍÑ•É}¹¥­¹…µ”ˆ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ‰…¹±•Èˆ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹šÎ£–3–æÛfï–öTˆ¤¹…ÍÍ•ÉÑ%Í¹…‰±• ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰É•¥ÍÑ•É}ØÉ}™¥±±•¹Á¹œˆ¤(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹šÎ£–3–æÛfï–öTˆ¤¹Á•É™½Éµ±¥¬ ¤(€€€€€€€½µÁ½Í•IÕ±”¹ÉÕ¹=¹%‘±”ì(€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì ‰™¥Í¡•ÈÀÀÈˆ°ÕÍ•É¹…µ”¤(€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì ˆÄÈÌĞÔØˆ°Á…ÍÍİ½É¤(€€€€€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì ‰…¹±•Èˆ°¹¥­¹…µ”¤(€€€€€€€ô(€€€ô((€€€Q•ÍĞ(€€€™Õ¸É•¥ÍÑ•É}•ÉÉ½É¹‘1½…‘¥¹}…É•Y¥Í¥‰±•¹‘MÑ…‰±” ¤ì(€€€€€€€Ù…°±½…‘¥¹œ€ôµÕÑ…‰±•MÑ…Ñ•=˜¡™…±Í”¤(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€I•¥ÍÑ•ÉXÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô±½…‘¥¹œ¹Ù…±Õ”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô¥˜€¡±½…‘¥¹œ¹Ù…±Õ”¤¹Õ±°•±Í”€‹¢Ò›–>ß–ŞË–¶c–r ˆ°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôì|°|°|€´øô°(€€€€€€€€€€€€€€€½¹	…­Q½1½¥¸€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹¢Ò›–>ß–ŞË–¶c–r ˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰É•¥ÍÑ•É}ØÉ}•ÉÉ½È¹Á¹œˆ¤((€€€€€€€½µÁ½Í•IÕ±”¹ÉÕ¹=¹%‘±”ì±½…‘¥¹œ¹Ù…±Õ”€ôÑÉÕ”ô(€€€€€€€ÁÉ¥µ…Éå	ÕÑÑ½¸ ‹šÎ£–3–æÛfï–öTˆ¤¹…ÍÍ•ÉÑ%Í9½Ñ¹…‰±• ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰É•¥ÍÑ•É}ØÉ}±½…‘¥¹œ¹Á¹œˆ¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸™½ÉµY…±¥‘…Ñ¥½¹}•ÉÉ½ÉÍÉ•%¹±¥¹” ¤ì(€€€€€€€½µÁ½Í•IÕ±”¹Í•Ñ½¹Ñ•¹Ğì(€€€€€€€€€€€1½¥¹XÉMÉ••¸ (€€€€€€€€€€€€€€€±½…‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€•ÉÉ½È€ô¹Õ±°°(€€€€€€€€€€€€€€€½¹1½¥¸€ôì|°|€´øô°(€€€€€€€€€€€€€€€½¹I•¥ÍÑ•È€ôíô°(€€€€€€€€€€€€€€€½¹½É½ÑA…ÍÍİ½É€ôíô°(€€€€€€€€€€€€€€€½¹	…¬€ôíô°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q…œ ‰±½¥¹}ÕÍ•É¹…µ”ˆ¤¹Á•É™½ÉµQ•áÑ%¹ÁÕĞ ‰àˆ¤(€€€€€€€½µÁ½Í•IÕ±”¹½¹9½‘•]¥Ñ¡Q•áĞ ‹¢¾ß¢úO–”€ÏŠLÌÈƒ’ö7–¶_š¾7šVÃ–¶_|ƒš"X€´ƒîš"Cj¢Ò›–>Üˆ¤¹…ÍÍ•ÉÑá¥ÍÑÌ ¤(€€€€€€€Í…Ù•MÉ••¹Í¡½Ğ ‰±½¥¹}ØÉ}Ù…±¥‘…Ñ¥½¹}•ÉÉ½È¹Á¹œˆ¤(€€€ô((€€€ÁÉ¥Ù…Ñ”™Õ¸Í…Ù•MÉ••¹Í¡½Ğ¡¹…µ”èMÑÉ¥¹œ¤ì(€€€€€€€½µÁ½Í•IÕ±”¹İ…¥Ñ½É%‘±” ¤(€€€€€€€Ù…°¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸€ô%¹ÍÑÉÕµ•¹Ñ…Ñ¥½¹I•¥ÍÑÉä¹•Ñ%¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸ ¤(€€€€€€€Ù…°‰¥Ñµ…À€ô¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸¹Õ¥ÕÑ½µ…Ñ¥½¸¹Ñ…­•MÉ••¹Í¡½Ğ ¤(€€€€€€€Ù…°É½½Ğ€ô¥±”¡¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸¹Ñ…É•Ñ½¹Ñ•áĞ¹•ÑáÑ•É¹…±¥±•Í¥È¡¹Õ±°¤°€‰±½¥¹}ØÈˆ¤(€€€€€€€¡•¬¡É½½Ğ¹•á¥ÍÑÌ ¤ñğÉ½½Ğ¹µ­‘¥ÉÌ ¤¤(€€€€€€€¥±•=ÕÑÁÕÑMÑÉ•…´¡¥±”¡É½½Ğ°¹…µ”¤¤¹ÕÍ”ì½ÕÑÁÕĞ€´ø(€€€€€€€€€€€¡•¬¡‰¥Ñµ…À¹½µÁÉ•ÍÌ¡	¥Ñµ…À¹½µÁÉ•ÍÍ½Éµ…Ğ¹A9°€ÄÀÀ°½ÕÑÁÕĞ¤¤(€€€€€€€ô(€€€€€€€‰¥Ñµ…À¹É•å±” ¤(€€€ô)ô

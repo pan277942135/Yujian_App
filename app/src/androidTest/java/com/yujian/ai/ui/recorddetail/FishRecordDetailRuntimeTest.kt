@@ -59,7 +59,9 @@ class FishRecordDetailRuntimeTest {
             }
         }
 
-        composeRule.onAllNodesWithText("鱼获记忆", substring = false).onFirst().assertIsDisplayed()
+        val memoryTitles = composeRule.onAllNodesWithText("鱼获记忆", substring = false)
+        assertTrue(memoryTitles.fetchSemanticsNodes().isNotEmpty())
+        memoryTitles[0].assertIsDisplayed()
         composeRule.onNodeWithText("还没有留下影像").assertIsDisplayed()
         composeRule.onNodeWithText("鱼鉴").assertIsDisplayed()
         composeRule.onNodeWithText("分享").assertIsDisplayed()
