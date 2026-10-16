@@ -3,8 +3,16 @@ name: Empty Home V2 Design Assets
 on:
   push:
     branches: [main]
+    paths:
+      - "design/pages/home/empty_home/**"
+      - "scripts/design_asset_pipeline/validate_empty_home_v2_design.py"
+      - ".github/workflows/design-assets.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "design/pages/home/empty_home/**"
+      - "scripts/design_asset_pipeline/validate_empty_home_v2_design.py"
+      - ".github/workflows/design-assets.yml"
   workflow_dispatch:
 
 permissions:

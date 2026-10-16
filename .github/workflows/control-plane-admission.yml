@@ -1,16 +1,22 @@
 name: control-plane-admission
+# Non-main branches are admitted through pull_request or manual dispatch; this avoids duplicate push+PR runs.
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main]
   push:
-    branches:
-      - "main"
-      - "control/**"
-      - "feature/**"
-      - "fix/**"
-      - "design/**"
-      - "integration/**"
+    branches: [main]
   workflow_dispatch:
+  merge_group:
+    types: [checks_requested]
+
+concurrency:
+  group: yujian-control-plane-admission-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   control-plane-admission:
@@ -26,5 +32,5 @@ jobs:
           python-version: "3.12"
       - name: Install YAML dependency
         run: python -m pip install PyYAML
-      - name: Validate control-plane synchronization
-        run: python scripts/validate_control_plane_sync.py --base origin/main
+      - name: Single control-plane admission
+        run: python scripts/validate_control_plane_admission.py

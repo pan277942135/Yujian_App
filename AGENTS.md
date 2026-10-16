@@ -20,13 +20,22 @@ Task/design/control-plane changes originate on `main`, then synchronize into the
 Run:
 
 ```bash
-python scripts/validate_control_plane_sync.py
+python scripts/validate_control_plane_admission.py
 ```
 
-Then follow the current task, contract, evidence and recovery rules resolved from `CONTROL_PLANE_REGISTRY.yaml`.
+This is the only Work admission command. It resolves the canonical Control Plane, refreshes `origin/main`, validates the six static layers, and for product branches validates branch synchronization plus live Project/Work state.
 
 ## State
 `PROJECT_MASTER_STATE.yaml` and Work execution state are allowed to remain branch-local. They must never become an alternative control-plane definition.
 
 ## Recovery
 On interruption, return to `CONTROL_PLANE_REGISTRY.yaml`, then resume from the latest durable branch-local state/checkpoint. Do not reconstruct the project from chat history.
+
+
+## Control Plane Entry Rule V1.1
+- The only project-process entrypoint is `CONTROL_PLANE_REGISTRY.yaml`.
+- Before any Work implementation, test, runtime, design-consumption or release action, run `python scripts/validate_control_plane_admission.py`.
+- Product branches must exactly synchronize the canonical Control Plane from `origin/main`.
+- `control/*` and `design/*` branches are Control Plane change proposals; they run static validation and are not required to equal the current main Control Plane until merged.
+- Work progress MUST NOT modify the static Control Plane. Update branch-local `PROJECT_MASTER_STATE.yaml`, generic `WORK_EXECUTION_STATE.json`, logs and evidence instead.
+- A task/design/contract/gate/recovery rule change must land on main first; affected Work branches then resynchronize and re-enter admission.

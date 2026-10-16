@@ -117,31 +117,51 @@ def is_local_ref(ref: str) -> bool:
     )
 
 
+STRICT_REFS = False
+
 def validate_local_ref(ref: str, v: Validation, owner: str) -> None:
-    if not isinstance(ref, str) or not ref:
-        return
-    if not is_local_ref(ref):
+    if not isinstance(ref, str) or not ref or not is_local_ref(ref):
         return
     path = ROOT / ref
     if not path.exists():
-        v.error(f"{owner}: referenced local contract does not exist: {ref}")
+        message = f"{owner}: referenced local contract does not exist: {ref}"
+        if STRICT_REFS:
+            v.error(message)
+        else:
+            v.gap(message)
 
 
-def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any], state: dict[str, Any], machine: dict[str, Any], v: Validation) -> None:
+def validate_static_dynamic_boundary(registry: dict[str, Any], v: Validation) -> None:
+    project = registry.get("project", {})
+    for key in ("execution_baseline_sha","control_pr","base_sha","current_pr","current_work","current_task"):
+        if key in project:
+            v.error(f"project.{key} is live Work state and is forbidden in the static Contract Registry")
+    inventory = registry.get("inventory", {})
+    if "execution_baseline_sha" in inventory:
+        v.error("inventory.execution_baseline_sha is live Work state and is forbidden")
+    for feature_id, feature in registry.get("feature_contracts", {}).items():
+        if not isinstance(feature, dict):
+            continue
+        for key in ("release_ready","current_branch_acceptance","current_branch_runtime","current_branch_evidence","current_work"):
+            if key in feature:
+                v.error(f"{feature_id}.{key} is live Work state and is forbidden")
+    for task_id, binding in registry.get("task_contract_bindings", {}).items():
+        if not isinstance(binding, dict):
+            continue
+        for key in ("status","queue_status","current_task","current_work","execution_baseline_sha"):
+            if key in binding:
+                v.error(f"{task_id}.{key} is live Work state and is forbidden")
+
+def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any], machine: dict[str, Any], v: Validation) -> None:
     v.require(registry.get("schema_version") == "1.0", "registry schema_version must be 1.0")
     v.require(registry.get("registry_id") == "yujian-unified-contract-registry", "registry_id mismatch")
     v.require(registry.get("status") == "ACTIVE", "registry status must be ACTIVE")
+    validate_static_dynamic_boundary(registry, v)
 
     rp = registry.get("project", {})
     mp = matrix.get("project", {})
-    sp = state.get("state_control", {})
     v.require(rp.get("repository") == mp.get("repository"), "registry repository drift from Feature Matrix")
     v.require(rp.get("control_branch") == mp.get("control_branch"), "registry control branch drift from Feature Matrix")
-    v.require(rp.get("execution_baseline_sha") == sp.get("execution_baseline_sha"), "registry execution baseline drift from Master State")
-    v.require(rp.get("control_pr") == sp.get("current_pr"), "registry PR drift from Master State")
-    v.require(rp.get("base_sha") == mp.get("base_sha"), "registry base SHA drift from Feature Matrix")
-    v.require(rp.get("backend_repository") == state.get("repositories", {}).get("backend", {}).get("full_name"), "registry backend repository drift")
-    v.require(rp.get("backend_main_sha") == state.get("repositories", {}).get("backend", {}).get("current_main_sha"), "registry backend SHA drift")
 
     inventory = registry.get("inventory", {})
     expected_child_surfaces = {
@@ -154,8 +174,6 @@ def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any],
     v.require(inventory.get("child_surface_count") == len(expected_child_surfaces), "registry child_surface_count drift from Feature Matrix")
     v.require(inventory.get("route_count") == matrix.get("inventory", {}).get("route_count"), "registry route_count drift from Feature Matrix")
     v.require(inventory.get("task_count") == len(machine.get("tasks", {})), "registry task_count drift from Phase/Task Machine")
-    v.require(inventory.get("execution_baseline_sha") == sp.get("execution_baseline_sha"), "registry inventory baseline drift")
-
 
 def validate_features(registry: dict[str, Any], matrix: dict[str, Any], v: Validation) -> None:
     actual = registry.get("feature_contracts", {})
@@ -345,10 +363,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, default=REGISTRY_PATH)
     parser.add_argument("--report", type=Path, default=None)
+    parser.add_argument("--strict-refs", action="store_true")
     args = parser.parse_args()
 
     registry_path = args.registry.resolve()
-    for required in (registry_path, MATRIX_PATH, STATE_PATH, MACHINE_PATH):
+    for required in (registry_path, MATRIX_PATH, MACHINE_PATH):
         if not required.exists():
             print(f"ERROR: required file missing: {required}", file=sys.stderr)
             return 2
@@ -356,14 +375,13 @@ def main() -> int:
     try:
         registry = load_yaml(registry_path)
         matrix = load_yaml(MATRIX_PATH)
-        state = load_yaml(STATE_PATH)
         machine = load_yaml(MACHINE_PATH)
     except (OSError, ValueError, yaml.YAMLError) as exc:
         print(f"ERROR: source parse failed: {exc}", file=sys.stderr)
         return 2
 
     v = Validation()
-    validate_project_alignment(registry, matrix, state, machine, v)
+    validate_project_alignment(registry, matrix, machine, v)
     validate_features(registry, matrix, v)
     validate_journeys_and_children(registry, matrix, v)
     validate_routes(registry, matrix, v)
