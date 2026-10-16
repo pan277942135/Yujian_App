@@ -1,0 +1,64 @@
+{
+  "repository": "pan277942135/Yujian_App",
+  "audit_date_utc": "2026-10-16",
+  "main_sha": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
+  "pr145_sha": "5ea871cda79d6c9a14f184d4ee8de04d67c0909a",
+  "pr145_state": "Draft / Open / Unmerged",
+  "main_is_merge_base": true,
+  "pr145_contains_main_merge": true,
+  "compared_scope": "canonical static paths declared by both branch registries plus design/governance/, design/registry/, design/pages/, design/system_v3/",
+  "matrix_rows": 616,
+  "comparison_counts": {
+    "SAME": 614,
+    "DIVERGENT": 2
+  },
+  "design_binary_count": 259,
+  "frozen_or_archived_binary_count": 51,
+  "all_frozen_or_archived_match_main_same_path_blob": true,
+  "full_history_bundle": {
+    "file": "PR145_full_history_5ea871cda79d6c9a14f184d4ee8de04d67c0909a.bundle",
+    "bytes": 192444782,
+    "sha256": "0584edeb40bff6c7668b4a31ca14bc642e70a26127446424dc09a0365d79f357"
+  },
+  "design_delta_patch": {
+    "file": "PR145_design_changes_5ea871cda79d6c9a14f184d4ee8de04d67c0909a.patch",
+    "bytes": 17299,
+    "sha256": "e10ce2b39b71243133e6b82c2302d89f575bb9cc459260a52692cde7cfd7929c",
+    "scope": "git diff --binary origin/main...PR145 -- design/"
+  },
+  "note": "This snapshot supersedes prior 91240b89 and b2c7098b snapshots. Read-only; does not authorize product Admission or Figma work.",
+  "approved_worktree_exceptions_in_matrix": [
+    {
+      "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+      "expected_git_blob_sha": "4eaf3b7c17b8c4d93503bda5ade4537ac1326855",
+      "actual_pr145_git_blob_sha": "4eaf3b7c17b8c4d93503bda5ade4537ac1326855",
+      "status": "EXACT_MATCH_APPROVED"
+    },
+    {
+      "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
+      "expected_git_blob_sha": "1d4a386373a080fc73fea071331e19fd11d968ee",
+      "actual_pr145_git_blob_sha": "1d4a386373a080fc73fea071331e19fd11d968ee",
+      "status": "EXACT_MATCH_APPROVED"
+    },
+    {
+      "path": "design/pages/recognition/result/MENU_STRUCTURE_V1.md",
+      "expected_git_blob_sha": "da4e545ba0382c1e936a6b00972e994be8a1ca4a",
+      "actual_pr145_git_blob_sha": "da4e545ba0382c1e936a6b00972e994be8a1ca4a",
+      "status": "EXACT_MATCH_APPROVED"
+    },
+    {
+      "path": "design/pages/recognition/result/navigation.json",
+      "expected_git_blob_sha": "8a99530d8ab787aaf05d37532d1e45f38277a3b0",
+      "actual_pr145_git_blob_sha": "8a99530d8ab787aaf05d37532d1e45f38277a3b0",
+      "status": "EXACT_MATCH_APPROVED"
+    },
+    {
+      "path": "design/registry/experience_registry_v1.json",
+      "expected_git_blob_sha": "bd9d0bb0774832d256aeb72f3475abd9976dd507",
+      "actual_pr145_git_blob_sha": "bd9d0bb0774832d256aeb72f3475abd9976dd507",
+      "status": "EXACT_MATCH_APPROVED"
+    }
+  ],
+  "unapproved_divergences": 0,
+  "matrix_note": "The two static/design contract differences are exact matches to the content-addressed non-frozen worktree exceptions in main Asset_Integrity_Register_V3_1; preserve them and verify the G-CONTROL-PLANE-SYNC exception gate."
+}
