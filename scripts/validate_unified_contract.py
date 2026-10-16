@@ -375,7 +375,6 @@ def main() -> int:
     try:
         registry = load_yaml(registry_path)
         matrix = load_yaml(MATRIX_PATH)
-        state = load_yaml(STATE_PATH)
         machine = load_yaml(MACHINE_PATH)
     except (OSError, ValueError, yaml.YAMLError) as exc:
         print(f"ERROR: source parse failed: {exc}", file=sys.stderr)
