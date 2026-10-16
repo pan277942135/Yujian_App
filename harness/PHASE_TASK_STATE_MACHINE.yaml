@@ -22,6 +22,7 @@ execution_policy:
   unified_contract_validator: "scripts/validate_unified_contract.py"
   auto_advance_within_authorized_scope: true
   auto_recovery_enabled: true
+  no_unbounded_retry: true
   max_automatic_repairs_per_failing_gate: 2
   total_attempts_per_gate: 3
   parallel_execution: "Only tasks explicitly marked PARALLEL may run independently; phase advancement never bypasses dependency gates."
