@@ -1,0 +1,324 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "normal_home_pixel_targets_v1",
+  "page_id": "normal_home_v1",
+  "reference_device": {
+    "width_px": 1080,
+    "height_px": 1920,
+    "aspect": "9:16",
+    "density_scale": 3.0,
+    "density_dpi": 480,
+    "viewport_dp": {
+      "width": 360,
+      "height": 640
+    },
+    "fontScale": 1.0,
+    "windowInsets": {
+      "owner": "host",
+      "statusBar": "record actual measured inset",
+      "navigationBar": "record actual measured inset",
+      "displayCutout": "record actual measured inset",
+      "ime": "hidden baseline; separately capture only when actually visible",
+      "screenshot": "full native output; never crop or resample"
+    }
+  },
+  "source_color_policy": {
+    "observed_png_mode": "RGB for page/board PNGs; NH07 transparent exports are indexed palette with alpha as declared by NH07 manifest",
+    "embedded_icc_profile": "NOT_PRESENT_IN_CHECKED_FROZEN_PAGE_PNGS",
+    "source_color_space": "UNVERIFIED_NOT_RECORDED",
+    "comparison": "Record device/display profile and comparison color management. Existing source acceptance path may compare in sRGB; never rewrite frozen bytes or infer an embedded profile."
+  },
+  "authority_sources": [
+    {
+      "asset_id": "home_empty_v2_2_frozen_visual",
+      "path": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
+      "sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+      "dimensions_px": [
+        941,
+        1672
+      ],
+      "source_role": "Empty Home full-screen source; intrinsic aspect 941:1672; use only its V2.2 coordinate/fit contract."
+    },
+    {
+      "asset_id": "empty_home_sunrise_master",
+      "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Sunrise_Hero_V1.png",
+      "sha256": "28313d84c8cf3fb9db52196874e9c4d55483c99ff61cf579cac3ecc69af6cc50",
+      "dimensions_px": [
+        941,
+        1672
+      ],
+      "source_role": "Shared Sunrise background master reserved for Empty Home; never use for Normal Home."
+    },
+    {
+      "asset_id": "normal_home_v1_frozen_page",
+      "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "dimensions_px": [
+        1080,
+        1920
+      ],
+      "source_role": "Normal Home multi-catch full-screen source; original NH01."
+    },
+    {
+      "asset_id": "normal_home_nh02_first_catch",
+      "path": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+      "sha256": "377e8e24d11d11428345c129129a26ca03477f83672723b47e3ec1ef01482e7b",
+      "dimensions_px": [
+        941,
+        1672
+      ],
+      "source_role": "Normal Home one-catch full-screen source; original NH02."
+    }
+  ],
+  "normal_home_coordinate_transform": {
+    "authority": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+    "inputs": "same-window app W,H,L,T,R,B,d,fontScale",
+    "formula": {
+      "Wsafe": "max(0,W-L-R)",
+      "Hsafe": "max(0,H-T-B)",
+      "S": "Wsafe/1080",
+      "E": "max(0,Hsafe-1920*S)",
+      "delta": "min(0.36*E,180*S)",
+      "x": "L+frozenX*S",
+      "y": "frozenY*S+delta (do not add T)",
+      "width": "frozenWidth*S",
+      "height": "frozenHeight*S"
+    },
+    "baseline_result": "1080x1920 with zero insets yields S=1 and delta=0.",
+    "screenshot_crop": "FORBIDDEN"
+  },
+  "empty_home_coordinate_transform": {
+    "authority": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+    "scene": "uniform cover on edge-to-edge scene canvas; all scene-locked layers share one transform",
+    "hero": "aspect-preserving FIT",
+    "controls": "safe-top and safe-bottom group use measured safeDrawing insets once",
+    "do_not_apply": "Normal Home common vertical delta"
+  },
+  "tolerances": {
+    "normal_home_geometry": {
+      "formula": "max(2px,0.002*WsafePx)",
+      "authority": "design/pages/home/normal_home/engineering/Quantitative_Visual_Acceptance_Contract_V1.md",
+      "scope": "same-kind geometry/container/anchor bounds in NORMAL_FIXED mode"
+    },
+    "normal_home_glyph": {
+      "formula": "max(3px,0.003*WsafePx)",
+      "authority": "design/pages/home/normal_home/engineering/Quantitative_Visual_Acceptance_Contract_V1.md",
+      "scope": "same-kind visible glyph bounds under matching fontScale and neutral motion"
+    },
+    "touch": {
+      "formula": "width>=48dp AND height>=48dp",
+      "tolerance": "NONE",
+      "scope": "Home page requirement; measure semantic bounds and safe-window containment"
+    },
+    "color": "No global MAE/changed-pixel threshold. Compare only same registered source, profile, static region and color pipeline."
+  },
+  "responsive_profiles": [
+    {
+      "width_dp": 320,
+      "profile": "compact; include 320x480dp short test",
+      "status": "REQUIRED"
+    },
+    {
+      "width_dp": 360,
+      "profile": "canonical baseline",
+      "status": "REQUIRED"
+    },
+    {
+      "width_dp": 393,
+      "profile": "common baseline",
+      "status": "REQUIRED"
+    },
+    {
+      "width_dp": 411,
+      "profile": "wide baseline",
+      "status": "REQUIRED"
+    },
+    {
+      "width_dp": 412,
+      "profile": "shared geometry baseline",
+      "status": "REQUIRED"
+    },
+    {
+      "width_dp": 480,
+      "profile": "maximum shared baseline",
+      "status": "REQUIRED"
+    },
+    {
+      "height_px": 2340,
+      "profile": "long screen; shared NH05 delta; use real app-window/insets",
+      "status": "REQUIRED_WHEN_DEVICE_AVAILABLE"
+    }
+  ],
+  "font_scales": [
+    1.0,
+    1.3,
+    1.5
+  ],
+  "measured_source_targets": {
+    "normal_home_frozen_source": "design/pages/home/normal_home/engineering/normal_home_visual_pixel_targets_v1.json",
+    "empty_home_geometry_source": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+    "empty_home_camera": {
+      "visual_bounds": {
+        "x": 430,
+        "y": 1537,
+        "width": 220,
+        "height": 220,
+        "coordinate": "1080x1920 reference canvas"
+      },
+      "touch_bounds": ">=48x48dp; not inferable from artwork"
+    },
+    "empty_home_scene": {
+      "rod": {
+        "x": 0,
+        "y": 1180,
+        "width": 340,
+        "height": 206,
+        "tip": [
+          337,
+          1184
+        ]
+      },
+      "line": {
+        "start": [
+          337,
+          1184
+        ],
+        "control1": [
+          389,
+          1257
+        ],
+        "control2": [
+          471,
+          1312
+        ],
+        "end": [
+          560,
+          1326
+        ],
+        "curve": "cubic Bezier; line endpoint lies behind bobber contact"
+      },
+      "bobber": {
+        "bbox": {
+          "x": 550,
+          "y": 1250,
+          "width": 24,
+          "height": 78
+        },
+        "water_contact": [
+          561,
+          1323
+        ]
+      },
+      "ripple": {
+        "bbox": {
+          "x": 443,
+          "y": 1279,
+          "width": 238,
+          "height": 82
+        },
+        "center": [
+          562,
+          1320
+        ]
+      }
+    },
+    "normal_home_source_masks": {
+      "coordinate": "inclusive original pixel indices, 1080x1920 source",
+      "CTA_NEAR_WHITE": {
+        "threshold": "RGB minimum>=210 and max-min<=46; ROI x390..699 y1510..1569",
+        "bbox": [
+          433,
+          1527,
+          646,
+          1558
+        ]
+      },
+      "CAMERA_CORE_NEAR_WHITE": {
+        "threshold": "RGB minimum>=210 and max-min<=46; ROI x400..679 y1580..1784",
+        "bbox": [
+          450,
+          1590,
+          628,
+          1773
+        ]
+      },
+      "CAMERA_GOLD": {
+        "threshold": "R-G>=18, G-B>=5, R>=125 and G>=105; ROI x400..679 y1580..1799",
+        "bbox": [
+          439,
+          1593,
+          638,
+          1789
+        ]
+      }
+    },
+    "normal_home_reference_anchors": {
+      "header": [
+        88,
+        104,
+        904,
+        104
+      ],
+      "statistics": {
+        "y": 304,
+        "height": 116
+      },
+      "recent_header": {
+        "y": 494,
+        "height": 70,
+        "horizontal_inset": 108
+      },
+      "hero": [
+        170,
+        596,
+        740,
+        880
+      ],
+      "hero_radius_reference_px": 32,
+      "brand_visible_glyph": [
+        103,
+        125,
+        242,
+        188
+      ],
+      "statistics_value_visible_glyph": [
+        262,
+        326,
+        809,
+        356
+      ],
+      "statistics_label_visible_glyph": [
+        257,
+        378,
+        850,
+        401
+      ],
+      "recent_title_visible_glyph": [
+        109,
+        515,
+        282,
+        555
+      ],
+      "hero_species_visible_glyph": [
+        228,
+        1276,
+        334,
+        1325
+      ],
+      "hero_measurement_visible_glyph": [
+        227,
+        1348,
+        564,
+        1388
+      ],
+      "hero_context_visible_glyph": [
+        232,
+        1408,
+        684,
+        1440
+      ]
+    }
+  },
+  "runtime_status": "NOT_RUN",
+  "policy": "Never modify Frozen PNG content, resize a screenshot to match, compare unlike anchor kinds, or treat source-raster checks as Android parity."
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": "3.1",
+  "state_machine_id": "recognition_processing_state_machine_v3_1",
+  "name": "Recognition Processing State Machine V3.1",
+  "page_id": "recognition.processing.v3_1",
+  "status": "FROZEN",
+  "authority": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
+  "supersedes": [
+    "Legacy three-step phase labels",
+    "Recognition_State_Timeline_Spec_V1_3 as effective Page Contract timeline",
+    "Recognition_Processing_Visual_Spec_V1_1 as effective transition authority"
+  ],
+  "entry_state": "CAPTURED",
+  "states": [
+    {
+      "id": "CAPTURED",
+      "duration": ">=220ms",
+      "visual_behavior": "Original photo is immediately visible and unchanged. Use the existing IMAGE_RECOGNIZING Early reference and Frozen copy: title 正在准备识别; subtitle AI 已获取这张照片. No fish focus is implied.",
+      "transition_rule": "Enter when a normalized image is accepted. Advance to DETECTING only after both the 220ms minimum beat and the real detection-start event; remain here while either condition is missing. A real pipeline failure exits to TECHNICAL_FAILURE."
+    },
+    {
+      "id": "DETECTING",
+      "duration": ">=320ms",
+      "visual_behavior": "Keep the original photo dominant. Use the existing IMAGE_RECOGNIZING Late reference and Frozen copy: title 正在理解这张照片; subtitle 寻找这次鱼获的线索. No bbox, halo or contour before a real focus.",
+      "transition_rule": "Advance to OUTLINE only after both the 320ms minimum beat and a real classifier-eligible fish focus. A real NO_FISH/quality issue follows its existing Result recovery route; a reported exception follows TECHNICAL_FAILURE. No timer-only advance."
+    },
+    {
+      "id": "OUTLINE",
+      "duration": ">=350ms",
+      "visual_behavior": "Use the existing FISH_LOCATED reference and Frozen copy: title 已定位到鱼体; subtitle 正在分析这次鱼获. Show focus/contour only from real detector geometry.",
+      "transition_rule": "Advance to CLASSIFYING only after both the 350ms minimum beat and a real classification-start event. If focus/crop is lost or an actual failure is reported, use the existing issue/TECHNICAL_FAILURE route."
+    },
+    {
+      "id": "CLASSIFYING",
+      "duration": ">=250ms",
+      "visual_behavior": "Use the existing SPECIES_RECOGNIZING reference and Frozen copy: title 正在认识这条鱼; subtitle 分析鱼体特征. The subtitle role maps to type.body_small.",
+      "transition_rule": "Advance to RESULT_READY only after both the 250ms minimum beat and a real classifier result. A real model/dependency failure routes to TECHNICAL_FAILURE. Do not create an ETA, percentage or timer-only completion."
+    },
+    {
+      "id": "RESULT_READY",
+      "duration": "0ms · immediate handoff",
+      "visual_behavior": "No additional Processing page state or artwork; hand the real Recognition outcome to Recognition Result.",
+      "transition_rule": "Terminal handoff to recognition.result.v3_1 immediately when CLASSIFYING has met its minimum beat and the pipeline has produced its result."
+    }
+  ],
+  "failure_routing": {
+    "no_fish": "Distinct NO_FISH recovery; never relabel as a technical failure.",
+    "image_quality": "Distinct IMAGE_QUALITY_WARNING recovery only when the real quality gate emits INVALID.",
+    "technical_failure": "Only a reported pipeline/model/crop/network dependency failure; never show No Fish/Image Quality copy."
+  },
+  "timing_policy": "Durations are minimum visual beats for each named state; real event completion and minimum duration must both be satisfied. They are not promised total recognition time, progress percentages, ETA, or permission to auto-advance."
+}
