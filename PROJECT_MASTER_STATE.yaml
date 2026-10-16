@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T23:03:00+08:00"
+  updated_at: "2026-10-16T23:02:13+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+  execution_baseline_sha: "01494cabb53da9699ee0b39b25566acce1a9cab1"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+  live_branch_head_at_snapshot: "01494cabb53da9699ee0b39b25566acce1a9cab1"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,8 +57,8 @@ repositories:
     default_branch: "main"
     main_sha: "ae7f492a649d20dc23e7f04bcffa49749c7d9e70"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
-    execution_baseline_sha: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+    active_sha_at_snapshot: "01494cabb53da9699ee0b39b25566acce1a9cab1"
+    execution_baseline_sha: "01494cabb53da9699ee0b39b25566acce1a9cab1"
     runtime:
       os: "Android"
       api_level: 28
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+    head_at_last_verified_snapshot: "01494cabb53da9699ee0b39b25566acce1a9cab1"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "ae7f492a649d20dc23e7f04bcffa49749c7d9e70"
@@ -420,7 +420,7 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+    sha: "01494cabb53da9699ee0b39b25566acce1a9cab1"
     status: "NOT_RUN"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -464,7 +464,7 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+    source_sha: "01494cabb53da9699ee0b39b25566acce1a9cab1"
     run_id: null
     artifact_ids: {}
     artifact_zip_digests: {}
@@ -552,7 +552,7 @@ current_work:
   status: "FIX_READY_FOR_EXACT_HEAD_CI"
   source_file: "WORK_EXECUTION_STATE.json"
   task_id: "N001"
-  exact_head: "61750308ad66ac5ec8d12d9a6c9c87e8d88ead74"
+  exact_head: "01494cabb53da9699ee0b39b25566acce1a9cab1"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
