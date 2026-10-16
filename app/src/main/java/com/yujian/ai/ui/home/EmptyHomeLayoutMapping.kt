@@ -57,7 +57,10 @@ internal object EmptyHomeFrozenLayoutGeometry {
     const val PROMPT_CAMERA_GAP_MIN_PX = 25f
     const val CAMERA_ALBUM_GAP_MIN_PX = 23f
     const val SAFE_HEADER_INSET_DP = 16f
-    const val COMPACT_SAFE_HEADER_INSET_DP = 4f
+    const val COMPACT_SAFE_HEADER_INSET_DP = 0f
+    const val COMPACT_HEADER_TITLE_LINE_HEIGHT_SP = 23f
+    const val COMPACT_HEADER_SUBTITLE_LINE_HEIGHT_SP = 12f
+    const val COMPACT_HEADER_VERTICAL_GAP_DP = 1f
     const val HEADER_MAX_WIDTH_DP = 430f
     const val HEADER_MIN_TOUCH_TARGET_DP = 48f
     const val PROMPT_LINE_HEIGHT_SP = 24f

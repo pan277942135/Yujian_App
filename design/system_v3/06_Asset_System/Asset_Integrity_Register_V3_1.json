@@ -19620,16 +19620,16 @@
     },
     {
       "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
-      "expected_current_git_blob_sha": "b61901878c10094858eab13ff96d9a9887e66861",
-      "source_commit_sha": "c6290cf72c95d687b0445069c5470f88421900c9",
-      "reason": "The compact-width mapping records a 4 dp safe-top margin while preserving the frozen Hero anchor and touch targets. It addresses the API 28 320x640 header/Hero overlap; Frozen artwork, acceptance thresholds, and the acceptance matrix remain unchanged.",
+      "expected_current_git_blob_sha": "4eaf3b7c17b8c4d93503bda5ade4537ac1326855",
+      "source_commit_sha": "91992a7b1be0d9353db6899c985201525faaa9d2",
+      "reason": "V1.2 records compact-width header line metrics and a zero post-safe-inset margin after the API 28 320x640 overlap finding. It preserves the frozen Hero anchor, 48dp minimum targets and thresholds; exact-head runtime revalidation is pending.",
       "is_frozen_asset": false
     },
     {
       "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
-      "expected_current_git_blob_sha": "4d31ac98b2e02a0456cb134f087d634eb541f839",
-      "source_commit_sha": "c6290cf72c95d687b0445069c5470f88421900c9",
-      "reason": "The runtime manifest refresh binds the compact-width responsive mapping hash to the packaged app copy. No Frozen artwork or asset bytes changed.",
+      "expected_current_git_blob_sha": "1d4a386373a080fc73fea071331e19fd11d968ee",
+      "source_commit_sha": "91992a7b1be0d9353db6899c985201525faaa9d2",
+      "reason": "The runtime manifest now binds the V1.2 compact-header contract hash to the packaged app copy. No Frozen artwork or asset bytes changed; API 28 runtime revalidation is pending.",
       "is_frozen_asset": false
     },
     {

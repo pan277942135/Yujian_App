@@ -196,9 +196,14 @@ class PresentationSanitizationRuntimeTest {
             return
         }
         val hierarchy = evidenceFile("diagnostics_accessibility.txt")
-        writeAccessibilityHierarchy(hierarchy)
+        val snapshot = accessibilitySnapshot()
+        hierarchy.writeText(snapshot)
         screenshot("diagnostics_screen.png")
-        assertTrue("Expected visible runtime text: $text; diagnostics saved to $hierarchy", false)
+        assertTrue(
+            "Expected visible runtime text: $text; diagnostics saved to $hierarchy; " +
+                "visible accessibility labels=${snapshot.take(4_000)}",
+            false,
+        )
     }
 
     private fun assertAbsent(text: String) {
@@ -248,7 +253,10 @@ class PresentationSanitizationRuntimeTest {
     }
 
     private fun findNodeByText(text: String): AccessibilityNodeInfo? =
-        findActiveNode { it.text?.toString() == text }
+        findActiveNode {
+            it.text?.toString()?.contains(text) == true ||
+                it.contentDescription?.toString()?.contains(text) == true
+        }
 
     private fun findNodeByDescription(description: String): AccessibilityNodeInfo? =
         findActiveNode { it.contentDescription?.toString() == description }

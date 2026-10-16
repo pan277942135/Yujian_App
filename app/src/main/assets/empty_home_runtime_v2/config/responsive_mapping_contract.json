@@ -1,7 +1,7 @@
 {
   "design_version": "Empty_Home_Final_Design_V2",
   "visual_revision": "V2.2",
-  "contract_revision": "EMPTY_HOME_RESPONSIVE_MAPPING_V1_1",
+  "contract_revision": "EMPTY_HOME_RESPONSIVE_MAPPING_V1_2",
   "purpose": "Engineering translation of the frozen 1080x1920 artwork and approved V2.2 deltas; this contract does not redesign the page.",
   "reference_canvas": [
     1080,
@@ -97,7 +97,7 @@
       "strategy": "SAFE_TOP_ANCHORED",
       "inset_source": "WindowInsets.safeDrawing",
       "top_margin_after_safe_inset_dp": 16,
-      "compact_width_top_margin_after_safe_inset_dp": 4,
+      "compact_width_top_margin_after_safe_inset_dp": 0,
       "maximum_content_width_dp": 430,
       "minimum_touch_target_dp": 48,
       "elements": [
@@ -106,7 +106,14 @@
         "login",
         "profile"
       ],
-      "position_independent_of_scene_crop": true
+      "position_independent_of_scene_crop": true,
+      "compact_typography": {
+        "title_line_height_sp": 23,
+        "subtitle_line_height_sp": 12,
+        "vertical_gap_dp": 1,
+        "include_font_padding": false,
+        "font_sizes_unchanged": true
+      }
     },
     "hero_copy": {
       "strategy": "ASPECT_LOCKED_REFERENCE_ANCHOR",

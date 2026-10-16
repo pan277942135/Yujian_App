@@ -97,11 +97,22 @@ def main() -> int:
     header_mapping = groups.get("safe_top_ui", {})
     if (
         header_mapping.get("top_margin_after_safe_inset_dp") != 16
-        or header_mapping.get("compact_width_top_margin_after_safe_inset_dp") != 4
+        or header_mapping.get("compact_width_top_margin_after_safe_inset_dp") != 0
         or header_mapping.get("maximum_content_width_dp") != 430
         or header_mapping.get("minimum_touch_target_dp") != 48
     ):
         fail(errors, "safe-top header geometry/target contract is incomplete")
+    if responsive.get("contract_revision") != "EMPTY_HOME_RESPONSIVE_MAPPING_V1_2":
+        fail(errors, "responsive mapping contract revision must identify the compact-header correction")
+    compact_typography = header_mapping.get("compact_typography", {})
+    if compact_typography != {
+        "title_line_height_sp": 23,
+        "subtitle_line_height_sp": 12,
+        "vertical_gap_dp": 1,
+        "include_font_padding": False,
+        "font_sizes_unchanged": True,
+    }:
+        fail(errors, "compact header typography must match the tested compact layout mapping")
     scene_mapping = groups.get("scene_space", {})
     if scene_mapping.get("strategy") != "UNIFORM_COVER_COMPOSITION_AWARE" or scene_mapping.get("all_scene_locked_elements_share_transform") is not True:
         fail(errors, "scene elements must share one composition-aware sceneTransform")
@@ -176,6 +187,10 @@ def main() -> int:
         "PROMPT_CAMERA_GAP_MIN_PX": responsive["groups"]["capture_cta_group"]["reference_geometry_px"]["prompt_to_camera_clear_gap_minimum"],
         "CAMERA_ALBUM_GAP_MIN_PX": responsive["groups"]["capture_cta_group"]["reference_geometry_px"]["camera_to_album_clear_gap_minimum"],
         "SAFE_HEADER_INSET_DP": responsive["groups"]["safe_top_ui"]["top_margin_after_safe_inset_dp"],
+        "COMPACT_SAFE_HEADER_INSET_DP": responsive["groups"]["safe_top_ui"]["compact_width_top_margin_after_safe_inset_dp"],
+        "COMPACT_HEADER_TITLE_LINE_HEIGHT_SP": compact_typography["title_line_height_sp"],
+        "COMPACT_HEADER_SUBTITLE_LINE_HEIGHT_SP": compact_typography["subtitle_line_height_sp"],
+        "COMPACT_HEADER_VERTICAL_GAP_DP": compact_typography["vertical_gap_dp"],
         "HEADER_MAX_WIDTH_DP": responsive["groups"]["safe_top_ui"]["maximum_content_width_dp"],
         "HEADER_MIN_TOUCH_TARGET_DP": responsive["groups"]["safe_top_ui"]["minimum_touch_target_dp"],
         "HERO_ASSET_WIDTH_PX": hero_contract["asset"]["dimensions_px"][0],

@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -58,10 +59,12 @@ import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.HomeEmptyScene
 import com.yujian.ai.ui.home.EmptyHomeLayoutMapping
+import com.yujian.ai.ui.home.EmptyHomeFrozenLayoutGeometry
 import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.calculateEmptyHomeLayoutMapping
 import com.yujian.ai.ui.home.HomeMotionState
 import com.yujian.ai.ui.home.NormalHomeContent
+import com.yujian.ai.ui.adaptive.AdaptiveWidthClass
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.rememberNormalHomeRuntimeAssets
@@ -211,6 +214,7 @@ private fun EmptyHomeContent(
 
     Box(modifier) {
         val header = layoutMapping.headerBounds
+        val compactHeader = layoutMapping.profile.widthClass == AdaptiveWidthClass.COMPACT
         Box(
             Modifier
                 .offset(x = header.left.dp, y = header.top.dp)
@@ -220,19 +224,37 @@ private fun EmptyHomeContent(
         ) {
             Column(
                 modifier = Modifier.align(Alignment.CenterStart),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
+                verticalArrangement = Arrangement.spacedBy(
+                    if (compactHeader) EmptyHomeFrozenLayoutGeometry.COMPACT_HEADER_VERTICAL_GAP_DP.dp else 1.dp,
+                ),
             ) {
                 Text(
                     text = "渔见",
                     color = Ink.copy(alpha = 0.84f),
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Normal,
+                    style = if (compactHeader) {
+                        TextStyle(
+                            lineHeight = EmptyHomeFrozenLayoutGeometry.COMPACT_HEADER_TITLE_LINE_HEIGHT_SP.sp,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        )
+                    } else {
+                        TextStyle.Default
+                    },
                 )
                 Text(
                     text = "拍照收藏每次渔获",
                     color = Ink.copy(alpha = 0.62f),
                     fontSize = 9.sp,
                     letterSpacing = 0.4.sp,
+                    style = if (compactHeader) {
+                        TextStyle(
+                            lineHeight = EmptyHomeFrozenLayoutGeometry.COMPACT_HEADER_SUBTITLE_LINE_HEIGHT_SP.sp,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        )
+                    } else {
+                        TextStyle.Default
+                    },
                 )
             }
             if (!isLoggedIn) {
