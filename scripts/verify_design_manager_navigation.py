@@ -60,17 +60,19 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("Recognition first-use camera guide submenu missing")
     if guide.get("status") != "FROZEN" or guide.get("render_mode") != "authority_gallery":
         fail("First-use guide parent must be FROZEN authority_gallery")
-    expected_guide_children = ["p01", "p02"]
+    expected_guide_children = ["p01", "p02", "p03"]
     actual_guide_children = [x.get("id") for x in guide.get("children", [])]
     if actual_guide_children != expected_guide_children:
         fail(f"First-use guide child order changed: {actual_guide_children} != {expected_guide_children}")
     expected_titles = {
         "p01": "P01 · 竖屏拍摄示意",
-        "p02": "P02 · 横屏拍摄示意",
+        "p02": "P02 · 竖拍鱼类拍摄示意",
+        "p03": "P03 · 横屏拍摄示意",
     }
     expected_paths = {
         "p01": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-        "p02": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+        "p02": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "p03": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
     }
     for child in guide.get("children", []):
         cid = child.get("id")
@@ -81,7 +83,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         if child.get("image") != expected_paths.get(cid) or child.get("visual_authority") != expected_paths.get(cid):
             fail(f"First-use guide {cid} preview/image authority binding mismatch")
     if [x.get("path") for x in guide.get("supporting_visual_references", [])] != [expected_paths[x] for x in expected_guide_children]:
-        fail("First-use guide parent gallery references must match P01/P02 order")
+        fail("First-use guide parent gallery references must match P01/P02/P03 order")
     guide_manifest_path = design / "pages/recognition/first_use_camera_guide/manifest.json"
     guide_manifest = load_json(guide_manifest_path)
     if guide_manifest.get("status") != "FROZEN":

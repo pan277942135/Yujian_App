@@ -493,9 +493,9 @@ tasks:
     entry_blockers: []
     target_blockers: []
     next_action_refs: ["N010"]
-    evidence_required: ["P01_png_sha", "P02_png_sha", "design_governance_pass"]
-    evidence_observed: ["P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d", "P02 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"]
-    completion: "Two-page First Capture Guide frozen binaries are restored and registered; Design Governance remains the acceptance gate."
+    evidence_required: ["P01_png_sha", "P02_png_sha", "P03_png_sha", "design_governance_pass"]
+    evidence_observed: ["P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d", "P02 blob 9c2dd981a04792c6ac51e3925727b4e4e6704034", "P03 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"]
+    completion: "Three-page First Capture Guide frozen binaries are restored and registered; Design Governance remains the acceptance gate."
     human_required: false
     retry_count: 0
     retry_budget: 2
@@ -607,9 +607,9 @@ tasks:
     entry_blockers: []
     target_blockers: []
     next_action_refs: ["N010"]
-    evidence_required: ["first_use_guide_implementation", "P01_P02_binary_integrity"]
+    evidence_required: ["first_use_guide_implementation", "P01_P02_P03_binary_integrity"]
     evidence_observed: []
-    completion: "Two-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
+    completion: "Three-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
     human_required: false
     retry_count: 0
     retry_budget: 2
@@ -1357,9 +1357,9 @@ tasks:
     target_blockers: []
     next_action_refs: ["N010"]
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
-    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
-    evidence_observed: ["P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d", "P02 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"]
-    completion: "Approved two-page P01/P02 frozen PNG binaries are restored at the registered paths; Design Governance must pass before task closure."
+    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
+    evidence_observed: ["P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d", "P02 blob 9c2dd981a04792c6ac51e3925727b4e4e6704034", "P03 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"]
+    completion: "Approved three-page P01/P02/P03 frozen PNG binaries are restored at the registered paths; Design Governance must pass before task closure."
     human_required: false
     retry_count: 0
     retry_budget: 2

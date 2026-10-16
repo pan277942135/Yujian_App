@@ -199,18 +199,19 @@ phases:
       android_contract: "DEFINED"
       runtime_parity: "BLOCKED"
     first_capture_guide:
-      design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md"
+      design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
       status: "FROZEN"
-      page_count: 2
+      page_count: 3
       orientation_mapping:
         P01: "PORTRAIT + HORIZONTAL_FISH"
-        P02: "LANDSCAPE + HORIZONTAL_FISH"
+        P02: "PORTRAIT + VERTICAL_FISH"
+        P03: "LANDSCAPE + HORIZONTAL_FISH"
       active_pages:
         - "P01"
         - "P02"
+        - "P03"
       manager_registry: "design/registry/experience_registry_v1.json#recognition_flow_v1_2.hifi_views.capture_first_use_guide"
       manager_menu: "识别过程 → 07 · 首次拍照教学"
-      previous_vertical_fish_page: "SUPERSEDED"
     capture_hifi:
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
       manifest: "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
@@ -370,13 +371,15 @@ recognition_main_journey:
       one_time_preview_ready_guidance: true
       subsequent_entry: "SIMPLIFIED_PATH"
       status: "FROZEN"
-      page_count: 2
+      page_count: 3
       pages:
         - "P01 PORTRAIT + HORIZONTAL_FISH"
-        - "P02 LANDSCAPE + HORIZONTAL_FISH"
+        - "P02 PORTRAIT + VERTICAL_FISH"
+        - "P03 LANDSCAPE + HORIZONTAL_FISH"
       mapping_to_capture_hifi:
         P01: "capture_ready_portrait_horizontal"
-        P02: "capture_ready_landscape_horizontal"
+        P02: "guide_only_portrait_vertical_example"
+        P03: "capture_ready_landscape_horizontal"
   processing:
     state_sequence:
       - "CAPTURED >= 220ms"
@@ -553,10 +556,10 @@ current_work:
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
     design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
-    status: "READY_FOR_WORK"
+    status: "IN_PROGRESS"
     backend_dependency: "NONE"
-    visual_binary_import_status: "MISSING_AT_LAST_DESIGN_GOVERNANCE"
-    visual_binary_import_blocker: "B008"
+    visual_binary_import_status: "PASS"
+    asset_import_report: "design/pages/recognition/first_use_camera_guide/asset_import_report.json"
     frozen_assets:
       P01:
         path: "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png"
@@ -631,15 +634,15 @@ blockers:
     severity: "P1"
     area: "First Capture Guide / Design Registry"
     status: "CLOSED"
-    description: "The active first-use guide has been reconciled to two orientation-matched pages: P01 portrait + horizontal fish and P02 landscape + horizontal fish. Repository contains the two active frozen PNG blobs at the registered paths; the former vertical-fish P02 and old P03 path are superseded."
-    observed_run_id: 38861933685
-    closed_at: "2026-10-16T15:48:21+08:00"
+    description: "The active First-use Camera Guide follows the three-page V1 authority: P01 portrait + horizontal fish, P02 portrait + vertical fish, and P03 landscape + horizontal fish. All three original frozen PNG blobs are registered at their V1 paths."
+    closed_at: "2026-10-16T07:00:29Z"
     closure_evidence:
       - "P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d"
-      - "P02 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"
-      - "manifest.json sequence = p01,p02"
-      - "navigation.json children = p01,p02"
-    rule: "B008 is closed for the two-page teaching binary registry; Android runtime implementation and Design Governance execution remain separate acceptance gates."
+      - "P02 blob 9c2dd981a04792c6ac51e3925727b4e4e6704034"
+      - "P03 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"
+      - "manifest.json sequence = p01,p02,p03"
+      - "navigation.json children = p01,p02,p03"
+    rule: "B008 covers three-page V1 frozen-binary registration; Design Governance preview, Android runtime behavior, and visual parity remain separate acceptance gates."
 
 protected_invariants:
   product:
@@ -727,7 +730,7 @@ next_actions:
     priority: "P1"
     owner: "Work"
     status: "READY"
-    action: "Implement the two-page first-use guide (P01 portrait-horizontal, P02 landscape-horizontal), run Design Governance, and align runtime to the frozen Capture Hi-Fi composition."
+    action: "Verify the three-page V1 first-use guide (P01 portrait-horizontal, P02 portrait-vertical, P03 landscape-horizontal), run Design Governance, and complete exact-head runtime and visual evidence."
 
 completion_rules:
   pass_requires:

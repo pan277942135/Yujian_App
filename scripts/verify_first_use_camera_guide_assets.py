@@ -24,6 +24,15 @@ EXPECTED = [
     },
     {
         "id": "p02",
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "source_filename": "湖畔竖拍识鱼指南.png",
+        "width": 941,
+        "height": 1671,
+        "bytes": 2_042_852,
+        "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+    },
+    {
+        "id": "p03",
         "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
         "source_filename": "湖畔横屏拍摄指南(1).png",
         "width": 941,
@@ -64,9 +73,11 @@ def main() -> None:
         fail("asset import report must record PASS")
 
     manifest_assets = {item.get("id"): item for item in manifest.get("assets", [])}
+    if [item.get("id") for item in manifest.get("assets", [])] != [asset["id"] for asset in EXPECTED]:
+        fail("manifest must list P01/P02/P03 in order")
     report_assets = report.get("assets", [])
     if [item.get("id") for item in report_assets] != [asset["id"] for asset in EXPECTED]:
-        fail("asset import report must list P01/P02 in order")
+        fail("asset import report must list P01/P02/P03 in order")
 
     for expected, recorded in zip(EXPECTED, report_assets):
         relative = expected["path"]
@@ -96,7 +107,7 @@ def main() -> None:
         if recorded.get("status") != "PASS" or not recorded.get("import_timestamp"):
             fail(f"report {expected['id']} must include PASS and import_timestamp")
 
-    print("PASS: P01/P02 frozen guide PNG bytes, SHA-256, dimensions, and Git blob SHAs match.")
+    print("PASS: P01/P02/P03 frozen guide PNG bytes, SHA-256, dimensions, and Git blob SHAs match.")
 
 
 if __name__ == "__main__":
