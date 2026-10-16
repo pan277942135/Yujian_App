@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "2.1",
   "status": "FROZEN",
   "manager_parent": "recognition_flow_v1_2",
   "manager_title": "07 · 首次拍照教学",
@@ -12,15 +12,9 @@
     },
     {
       "id": "p02",
-      "title": "P02 · 竖拍鱼类拍摄示意",
+      "title": "P02 · 横屏拍摄示意",
       "status": "FROZEN",
-      "visual_authority": "frozen/P02_First_Use_Camera_Guide_Frozen.png"
-    },
-    {
-      "id": "p03",
-      "title": "P03 · 横屏拍摄示意",
-      "status": "FROZEN",
-      "visual_authority": "frozen/P03_First_Use_Camera_Guide_Frozen.png"
+      "visual_authority": "frozen/P02_Landscape_Horizontal_Fish_Frozen.png"
     }
   ]
 }
