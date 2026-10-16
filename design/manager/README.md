@@ -169,24 +169,24 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 
 ## Recognition Capture · 首次拍照教学
 
-新增 Recognition Capture 的三页首次进入教学子菜单：
+新增 Recognition Capture 的两页首次进入教学子菜单：
 
 ```text
 识别过程
 └── 07 · 首次拍照教学
     ├── P01 · 竖屏拍摄示意
-    ├── P02 · 竖拍鱼类拍摄示意
-    └── P03 · 横屏拍摄示意
+    └── P02 · 横屏拍摄示意
 ```
 
 注册源：`design/registry/experience_registry_v1.json` → `recognition_flow_v1_2.hifi_views.capture_first_use_guide`。
 
-- Parent：`FROZEN` + `authority_gallery`，用于三张 Frozen Visual Authority 的总览。
+- Parent：`FROZEN` + `authority_gallery`，用于两张 Frozen Visual Authority 的总览。
 - Children：`FROZEN` + `repo_image`，点击后直接预览对应 PNG，不生成模拟 UI。
-- P01/P02 →「下一张」；P03 →「开始拍摄」。
+- P01 →「下一张」；P02 →「开始拍摄」。
 - Hero 为唯一正确示范；下方三个均为错误示范。
-- P02 三个错误示例全部保持竖直鱼体；P03 三个错误示例全部保持横向鱼体。
-- PNG 原始字节导入属于独立 Asset Import Gate，未导入前不得将预览路径标记为实际存在。
+- P01/P02 的三个错误示例全部保持横向鱼体。
+- `跳过/开始拍摄` 均不自动触发快门。
+- P02 当前复用原横屏冻结 PNG 的 Git blob（历史文件名 `P03_...`），逻辑编号已正式改为 P02；避免重新编码或生成，保证字节级一致。
 
 ## Normal Home · NH07 头像状态
 
