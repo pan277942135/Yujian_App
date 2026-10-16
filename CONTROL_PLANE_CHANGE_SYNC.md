@@ -53,3 +53,13 @@ A task/design change is complete only when:
 - branch admission passes;
 - the exact resulting main control-plane commit is recorded;
 - product Work then executes against that synchronized control-plane revision.
+
+
+## Static / Dynamic Boundary V1.1
+The Control Plane defines rules; it does not store live Work progress.
+
+Static on main: registry, Feature Matrix, Phase/Task Machine, Unified Contract, Evidence/Recovery rules and canonical design authorities.
+
+Dynamic on a Work branch: PROJECT_MASTER_STATE.yaml, generic WORK_EXECUTION_STATE.json, checkpoints, CI/runtime observations, evidence manifests, APK provenance and next action.
+
+A Work status change never requires a main Control Plane commit. A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.
