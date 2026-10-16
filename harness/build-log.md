@@ -133,9 +133,11 @@ The master state now distinguishes:
 This avoids a self-referential state file. Documentation-only commits can move the
 PR HEAD without falsely changing the product/runtime baseline.
 
-Current tracked execution baseline remains:
+Current tracked application-code baseline is:
 
-a280699da7575aa332f9d00104969161bbe918bd
+e881c2a6772b418a49b6208ce44c8527fbeb97db
+
+Reason: commits after e881c2a are documentation/design-manager/harness changes only; no application-code changes were observed in the e881c2a -> current branch comparison.
 
 ### New blocker observed on current branch
 
@@ -171,3 +173,22 @@ was fabricated.
 
 Work should resume from N001: execute the authoritative API28 runtime matrix on
 the tracked exact execution baseline, while B008 is resolved independently.
+
+## 2026-10-16 — Final V1 state validation
+
+Project Master State workflow:
+
+- Run: 38862418629
+- Job: Validate PROJECT_MASTER_STATE
+- Result: PASS
+- Validator output: PROJECT_MASTER_STATE_VALIDATION=PASS
+- Tracked application-code baseline: e881c2a6772b418a49b6208ce44c8527fbeb97db
+- Current PR: #145
+- Blockers recorded: 8
+- Next actions recorded: 10
+
+This validation was executed by GitHub Actions with PyYAML installed and the repository
+checked out from the PR merge ref. It validates the current state document and its
+provenance rules; it does not imply that Android API28 runtime acceptance has passed.
+
+Current live PR head must still be re-read before the next Work execution.
