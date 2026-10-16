@@ -149,7 +149,7 @@ def validate_tasks(machine: dict, state: dict, matrix: dict, v: Validation) -> N
     required_keys = {
         "phase", "priority", "owner", "status", "queue_status",
         "feature_refs", "journey_refs", "depends_on", "blockers",
-        "next_action_refs", "evidence_required", "completion",
+        "entry_blockers", "target_blockers", "next_action_refs", "evidence_required", "completion",
         "human_required", "retry_count", "retry_budget",
     }
 
@@ -173,6 +173,16 @@ def validate_tasks(machine: dict, state: dict, matrix: dict, v: Validation) -> N
             v.require(fid in features, f"{task_id}: unknown feature {fid}")
         for bid in task.get("blockers", []) or []:
             v.require(bid in blockers, f"{task_id}: unknown blocker {bid}")
+        entry = set(task.get("entry_blockers", []) or [])
+        target = set(task.get("target_blockers", []) or [])
+        v.require(entry.issubset(blockers), f"{task_id}: unknown entry_blocker")
+        v.require(target.issubset(blockers), f"{task_id}: unknown target_blocker")
+        v.require(entry.isdisjoint(target) or task_id in {"P3-03", "P6-01", "N010"},
+                  f"{task_id}: entry/target blocker overlap is only allowed for B008 asset tasks")
+        v.require(set(task.get("blockers", []) or []) == entry | target,
+                  f"{task_id}: blockers must equal entry_blockers union target_blockers")
+        if not entry and target and task.get("status") == "BLOCKED":
+            v.error(f"{task_id}: target-only blocker cannot force BLOCKED")
         for aid in task.get("next_action_refs", []) or []:
             v.require(aid in next_actions, f"{task_id}: unknown next_action {aid}")
 
