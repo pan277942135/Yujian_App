@@ -6,17 +6,26 @@ import android.content.pm.PackageManager
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Rect
 import androidx.exifinterface.media.ExifInterface
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.SystemClock
+import android.os.Build
+import android.view.accessibility.AccessibilityWindowInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuidePage
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
+import com.yujian.ai.ui.identify.mapRecognitionGuideReferenceSpace
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -35,11 +44,18 @@ class RecognitionCameraRuntimeTest {
     private lateinit var device: UiDevice
     private lateinit var evidenceDir: File
     private val trace = StringBuilder()
+    private val guidePages = JSONArray()
+    private lateinit var guideStore: RecognitionFirstCaptureGuideStore
 
     companion object {
-        private const val CAMERA_BUTTON = "开始识鱼"
+        private const val HOME_CAMERA_BUTTON = "开始识鱼"
+        private const val SHUTTER_BUTTON = "拍摄"
         private const val BACK_BUTTON = "返回"
         private const val ALBUM_BUTTON = "从相册选择"
+        private const val GUIDE_SKIP_BUTTON = "跳过首次拍照教学"
+        private const val GUIDE_NEXT_BUTTON = "下一张教学示例"
+        private const val GUIDE_PREVIOUS_BUTTON = "上一张教学示例"
+        private const val GUIDE_START_BUTTON = "开始拍摄，返回拍摄页面"
         private const val RECOGNITION_IMAGE = "正在识别的鱼获照片"
         private const val RECOGNITION_NO_FISH = "没有找到可识别的鱼"
         private const val RECOGNITION_IMAGE_QUALITY = "照片不够清晰，无法识别"
@@ -54,6 +70,12 @@ class RecognitionCameraRuntimeTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         context = instrumentation.targetContext
         device = UiDevice.getInstance(instrumentation)
+        guideStore = RecognitionFirstCaptureGuideStore(context)
+        context.getSharedPreferences(
+            RecognitionFirstCaptureGuideStore.PREFERENCES_NAME,
+            Context.MODE_PRIVATE,
+        ).edit().clear().commit()
+        while (guidePages.length() > 0) guidePages.remove(guidePages.length() - 1)
         evidenceDir = File(context.cacheDir, "camera-runtime-v1")
         evidenceDir.deleteRecursively()
         evidenceDir.mkdirs()
@@ -109,16 +131,13 @@ class RecognitionCameraRuntimeTest {
         context.startActivity(launchIntent)
 
         assertTrue("Home did not expose the production Recognition Camera control", device.wait(
-            Until.hasObject(By.desc(CAMERA_BUTTON)), 30_000L,
+            Until.hasObject(By.desc(HOME_CAMERA_BUTTON)), 30_000L,
         ))
-        val homeCapture = device.findObject(By.desc(CAMERA_BUTTON))
+        val homeCapture = device.findObject(By.desc(HOME_CAMERA_BUTTON))
         assertNotNull("Home capture control disappeared", homeCapture)
         homeCapture!!.click()
         assertTrue("Production camera route did not open", device.wait(
             Until.hasObject(By.desc(BACK_BUTTON)), 30_000L,
-        ))
-        assertTrue("Production camera gallery control did not appear", device.wait(
-            Until.hasObject(By.desc(ALBUM_BUTTON)), 10_000L,
         ))
         screenshot("01_camera_open.png")
         record("PRODUCTION_CAMERA_SCREEN", "OPEN")
@@ -149,24 +168,31 @@ class RecognitionCameraRuntimeTest {
                     " captureButton=" + initialReadiness.captureButtonState(),
             )
         }
-        val ready = readySnapshot
         record("CAMERA_READY", "PASS")
-        assertTrue("Production camera provider was not bound", ready.providerBound)
-        assertTrue("CameraX Preview was not STREAMING", ready.previewStreaming)
-        assertTrue("Production ImageCapture readiness was not reported", ready.imageCaptureReady)
-        assertTrue("Production capture control was not enabled at READY", ready.captureButtonEnabled)
+        assertTrue("Production camera provider was not bound", readySnapshot.providerBound)
+        assertTrue("CameraX Preview was not STREAMING", readySnapshot.previewStreaming)
+        assertTrue("Production ImageCapture readiness was not reported", readySnapshot.imageCaptureReady)
         record("CAMERA_PROVIDER_BOUND", "PASS")
         record("PREVIEW_STREAMING", "PASS")
         record("IMAGE_CAPTURE_BOUND", "PASS_FROM_PRODUCTION_READY_EVENT")
         record("IMAGE_CAPTURE_READY_LOG", "true")
-        record("CAPTURE_BUTTON_ENABLED_AT_READY", "PASS")
+        record(
+            "CAPTURE_BUTTON_ENABLED_AT_READY",
+            if (readySnapshot.guideVisible) "BLOCKED_BY_FIRST_USE_GUIDE" else "PASS",
+        )
         record("CAMERA_SELECTOR", "DEFAULT_BACK_CAMERA (frozen product source)")
+
+        val ready = exerciseProductionFirstUseGuide()
+        assertTrue("Guide Start did not return to a ready production shutter", ready.isReady)
+        assertFalse("Guide should be dismissed after Start", ready.guideVisible)
+        assertTrue("Guide Start must persist completion", guideStore.isCompleted())
+        record("FIRST_USE_GUIDE_START", "PASS_NO_SHUTTER_REQUEST")
         screenshot("02_preview_streaming.png")
         screenshot("03_capture_ready.png")
 
         // Tap the real production Compose control exactly once, only after all
         // production READY signals and the enabled UI control have been verified.
-        val captureButtonAtReady = device.findObject(By.desc(CAMERA_BUTTON))
+        val captureButtonAtReady = device.findObject(By.desc(SHUTTER_BUTTON))
         assertNotNull("Production capture control disappeared at READY", captureButtonAtReady)
         assertTrue("Production capture control is disabled at READY", captureButtonAtReady!!.isEnabled)
         captureButtonAtReady.click()
@@ -302,7 +328,7 @@ class RecognitionCameraRuntimeTest {
             val cameraWasHealthy = errorLine.contains("camera_ready_for_retry=true")
             if (cameraWasHealthy) {
                 assertTrue("Healthy CameraX must remain retryable after onError", device.wait(
-                    Until.findObject(By.desc(CAMERA_BUTTON)), 5_000L,
+                    Until.findObject(By.desc(SHUTTER_BUTTON)), 5_000L,
                 )?.isEnabled == true)
             }
             record("CAMERA_ERROR_RECOVERY", if (cameraWasHealthy) "RETRYABLE_NO_NAVIGATION" else "REBIND_REQUESTED_NO_NAVIGATION")
@@ -445,6 +471,7 @@ class RecognitionCameraRuntimeTest {
         val imageCaptureReady: Boolean,
         val captureButtonPresent: Boolean,
         val captureButtonEnabled: Boolean,
+        val guideVisible: Boolean,
         val productionLogs: String,
     ) {
         val isReady: Boolean
@@ -452,6 +479,7 @@ class RecognitionCameraRuntimeTest {
                 captureButtonPresent && captureButtonEnabled
 
         fun captureButtonState(): String = when {
+            guideVisible -> "guide_overlay_ready"
             !captureButtonPresent -> "missing"
             captureButtonEnabled -> "enabled"
             else -> "disabled"
@@ -470,13 +498,15 @@ class RecognitionCameraRuntimeTest {
         val imageCaptureReady = lines.any {
             it.contains("event=preview_stream_state") && it.contains("image_capture_ready=true")
         }
-        val button = device.findObject(By.desc(CAMERA_BUTTON))
+        val guideVisible = device.findObject(By.desc(GUIDE_SKIP_BUTTON)) != null
+        val button = device.findObject(By.desc(SHUTTER_BUTTON))
         return ReadySnapshot(
             providerBound = providerBound,
             previewStreaming = previewStreaming,
             imageCaptureReady = imageCaptureReady,
-            captureButtonPresent = button != null,
-            captureButtonEnabled = button?.isEnabled == true,
+            captureButtonPresent = button != null || guideVisible,
+            captureButtonEnabled = button?.isEnabled == true || guideVisible,
+            guideVisible = guideVisible,
             productionLogs = logs,
         )
     }
@@ -529,7 +559,7 @@ class RecognitionCameraRuntimeTest {
     }
 
     private fun saveCaptureInvocationFailureDiagnostics(logs: String) {
-        val button = device.findObject(By.desc(CAMERA_BUTTON))
+        val button = device.findObject(By.desc(SHUTTER_BUTTON))
         val state = if (button == null) "missing" else if (button.isEnabled) "enabled" else "disabled"
         write(
             "capture_invocation_failure.txt",
@@ -645,6 +675,250 @@ class RecognitionCameraRuntimeTest {
         }
         bitmap!!.recycle()
         assertTrue("Screenshot is empty: " + name, file.length() > 0L)
+    }
+
+    private fun exerciseProductionFirstUseGuide(): ReadySnapshot {
+        val firstReady = waitForProductionReady(CAMERA_WAIT_MS)
+        assertNotNull("CameraX never reached READY", firstReady)
+        assertTrue("Guide must be gated on permission + live CameraX READY", waitForGuideVisible(10_000L))
+        assertFalse("Fresh app data must show the first-use guide", guideStore.isCompleted())
+        assertTrue("P01 must be the first page", device.wait(
+            Until.hasObject(By.text("竖屏拍摄示意")), 10_000L,
+        ))
+        assertEquals("No shutter request may precede guide action", 0, countCaptureRequests(productionLogs()))
+        assertEquals("Shutter must be removed while guide is visible", null, device.findObject(By.desc(SHUTTER_BUTTON)))
+        assertEquals("Gallery must be removed while guide is visible", null, device.findObject(By.desc(ALBUM_BUTTON)))
+        record("FIRST_USE_GUIDE_CAMERA_READY_TRIGGER", "PASS")
+        record("FIRST_USE_GUIDE_TOUCH_ISOLATION", "PASS_SHUTTER_AND_GALLERY_NOT_COMPOSED")
+
+        captureGuidePage(
+            page = RecognitionFirstCaptureGuidePage.P01,
+            title = "竖屏拍摄示意",
+            actionDescription = GUIDE_NEXT_BUTTON,
+            screenshotName = "P01_runtime.png",
+        )
+
+        // A system Back closes the overlay without writing completion.
+        device.pressBack()
+        assertTrue("System Back did not close the guide", waitForGuideHidden(10_000L))
+        assertFalse("System Back must not persist completion", guideStore.isCompleted())
+        assertEquals("System Back must not trigger capture", 0, countCaptureRequests(productionLogs()))
+        record("FIRST_USE_GUIDE_SYSTEM_BACK", "DISMISSED_WITHOUT_COMPLETION")
+
+        val cameraBack = device.findObject(By.desc(BACK_BUTTON))
+        assertNotNull("Camera route Back control disappeared after guide dismissal", cameraBack)
+        cameraBack!!.click()
+        assertTrue("Camera route did not return to Home", device.wait(
+            Until.hasObject(By.desc(HOME_CAMERA_BUTTON)), 10_000L,
+        ))
+        device.findObject(By.desc(HOME_CAMERA_BUTTON))!!.click()
+        assertTrue("Camera route did not reopen", device.wait(
+            Until.hasObject(By.desc(BACK_BUTTON)), 15_000L,
+        ))
+        val reopened = waitForProductionReady(CAMERA_WAIT_MS)
+        assertNotNull("Reopened camera did not become READY", reopened)
+        assertTrue("Dismissal must show the guide again on re-entry", waitForGuideVisible(10_000L))
+        assertFalse("Re-entry before completion must not mark the guide completed", guideStore.isCompleted())
+        assertTrue("Re-entered guide did not start on P01", device.wait(
+            Until.hasObject(By.text("竖屏拍摄示意")), 10_000L,
+        ))
+
+        device.findObject(By.desc(GUIDE_NEXT_BUTTON))!!.click()
+        assertTrue("P01 next did not show P02", device.wait(
+            Until.hasObject(By.text("竖拍鱼类拍摄示意")), 10_000L,
+        ))
+        captureGuidePage(
+            page = RecognitionFirstCaptureGuidePage.P02,
+            title = "竖拍鱼类拍摄示意",
+            actionDescription = GUIDE_NEXT_BUTTON,
+            screenshotName = "P02_runtime.png",
+        )
+        device.findObject(By.desc(GUIDE_PREVIOUS_BUTTON))!!.click()
+        assertTrue("P02 previous did not return to P01", device.wait(
+            Until.hasObject(By.text("竖屏拍摄示意")), 10_000L,
+        ))
+        device.findObject(By.desc(GUIDE_NEXT_BUTTON))!!.click()
+        assertTrue("P01 next did not return to P02", device.wait(
+            Until.hasObject(By.text("竖拍鱼类拍摄示意")), 10_000L,
+        ))
+        device.findObject(By.desc(GUIDE_NEXT_BUTTON))!!.click()
+        assertTrue("P02 next did not show P03", device.wait(
+            Until.hasObject(By.text("横屏拍摄示意")), 10_000L,
+        ))
+        captureGuidePage(
+            page = RecognitionFirstCaptureGuidePage.P03,
+            title = "横屏拍摄示意",
+            actionDescription = GUIDE_START_BUTTON,
+            screenshotName = "P03_runtime.png",
+        )
+        assertEquals("Guide navigation must not invoke the shutter", 0, countCaptureRequests(productionLogs()))
+        device.findObject(By.desc(GUIDE_START_BUTTON))!!.click()
+        assertTrue("Final Start did not return to the live camera shutter", device.wait(
+            Until.hasObject(By.desc(SHUTTER_BUTTON)), 10_000L,
+        ))
+        assertTrue("Final Start must persist completion", guideStore.isCompleted())
+        assertTrue("Guide did not dismiss after final Start", waitForGuideHidden(5_000L))
+        assertEquals("Final Start must not invoke capture", 0, countCaptureRequests(productionLogs()))
+        record("FIRST_USE_GUIDE_NAVIGATION", "P01_TO_P02_TO_P03_PASS")
+        writeFirstUseGuideRuntimeReport()
+
+        return waitForProductionReady(CAMERA_WAIT_MS)
+            ?: throw AssertionError("Camera shutter did not remain ready after guide completion")
+    }
+
+    private fun captureGuidePage(
+        page: RecognitionFirstCaptureGuidePage,
+        title: String,
+        actionDescription: String,
+        screenshotName: String,
+    ) {
+        assertTrue("Guide page title did not become visible on ${page.name}", device.wait(
+            Until.hasObject(By.text(title)), 10_000L,
+        ))
+        val titleNode = device.findObject(By.text(title))
+        val actionNode = device.findObject(By.desc(actionDescription))
+        assertNotNull("Guide title missing on ${page.name}", titleNode)
+        assertNotNull("Guide action missing on ${page.name}", actionNode)
+        // Let the 180 ms entrance and Pager transition settle before taking
+        // the production-route visual evidence frame.
+        SystemClock.sleep(250L)
+        screenshot(screenshotName)
+        val screenshotFile = File(evidenceDir, screenshotName)
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(screenshotFile.absolutePath, options)
+        val mapping = mapRecognitionGuideReferenceSpace(page, options.outWidth, options.outHeight)
+        val windowBounds = appWindowBounds()
+        val titleScreenBounds = titleNode!!.visibleBounds
+        val actionScreenBounds = actionNode!!.visibleBounds
+        guidePages.put(
+            JSONObject()
+                .put("page", page.name)
+                .put("screenshot", screenshotName)
+                .put("screenshot_px", JSONObject().put("width", options.outWidth).put("height", options.outHeight))
+                .put("boundsInWindow", JSONObject()
+                    .put("page_title", rectInWindowJson(titleScreenBounds, windowBounds))
+                    .put("primary_action", rectInWindowJson(actionScreenBounds, windowBounds)))
+                .put("runtime_coordinates_px", JSONObject()
+                    .put("page_title", rectJson(titleScreenBounds))
+                    .put("primary_action", rectJson(actionScreenBounds)))
+                .put("frozen_reference_coordinates_px", JSONObject()
+                    .put("page_title", referenceRectJson(titleScreenBounds, mapping))
+                    .put("primary_action", referenceRectJson(actionScreenBounds, mapping)))
+                .put("reference_to_runtime", JSONObject()
+                    .put("reference_width_px", mapping.referenceWidthPx)
+                    .put("reference_height_px", mapping.referenceHeightPx)
+                    .put("uniform_scale", mapping.uniformScale)
+                    .put("offset_x_px", mapping.offsetXPx)
+                    .put("offset_y_px", mapping.offsetYPx)
+                    .put("runtime_width_px", mapping.runtimeWidthPx)
+                    .put("runtime_height_px", mapping.runtimeHeightPx))
+                .put("visual_parity", "BLOCKED_ASSET_SOURCE"),
+        )
+        record("FIRST_USE_GUIDE_${page.name}_SCREENSHOT", "PASS_REAL_IDENTIFY_ROUTE")
+    }
+
+    private fun writeFirstUseGuideRuntimeReport() {
+        val appApk = File(context.applicationInfo.sourceDir)
+        val report = JSONObject()
+            .put("schema_version", "1.0")
+            .put("task_id", "RECOGNITION-FIRST-USE-GUIDE-V1")
+            .put("status", "ASSET_SOURCE_BLOCKED")
+            .put("runtime_evidence_status", "REAL_CAMERAX_IDENTIFY_ROUTE")
+            .put("runtime_route_evidence", "PASS")
+            .put("visual_parity", "BLOCKED_ASSET_SOURCE")
+            .put("source_commit_sha", JSONObject.NULL)
+            .put("apk_sha256", sha256(appApk))
+            .put("device", "${Build.MANUFACTURER} ${Build.MODEL}")
+            .put("api_level", Build.VERSION.SDK_INT)
+            .put("viewport_px", JSONObject().put("width", device.displayWidth).put("height", device.displayHeight))
+            .put("density", context.resources.displayMetrics.density)
+            .put("font_scale", context.resources.configuration.fontScale)
+            .put("safe_insets_px", safeInsetsJson())
+            .put("pages", guidePages)
+            .put("camera_ready_gate", "permission_granted_and_CameraX_preview_STREAMING_and_ImageCapture_ready")
+            .put("shutter_invocation_count_while_guide_visible", 0)
+            .put("completion_persisted_by", "P03_START")
+            .put("independent_photo_sources", "ASSET_SOURCE_BLOCKED")
+            .put("visual_observations", JSONArray()
+                .put("Screenshots were captured from the production IdentifyScreen after CameraX reported READY.")
+                .put("The guide overlays the live camera route and removes the underlying shutter and Gallery controls while visible.")
+                .put("Independent page-specific hero and error-example photographs are unavailable; visual parity is not accepted.")
+                .put("Frozen full-page PNGs were not used as runtime artwork."))
+            .put("pass", false)
+            .put("failure_classification", "ASSET_SOURCE_BLOCKED")
+        write("first_use_camera_guide_runtime_report.json", report.toString(2) + "\n")
+    }
+
+    private fun waitForGuideHidden(timeoutMs: Long): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (SystemClock.elapsedRealtime() < deadline) {
+            if (device.findObject(By.desc(GUIDE_SKIP_BUTTON)) == null) return true
+            SystemClock.sleep(100L)
+        }
+        return device.findObject(By.desc(GUIDE_SKIP_BUTTON)) == null
+    }
+
+    private fun waitForGuideVisible(timeoutMs: Long): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (SystemClock.elapsedRealtime() < deadline) {
+            if (device.findObject(By.desc(GUIDE_SKIP_BUTTON)) != null) return true
+            SystemClock.sleep(100L)
+        }
+        return device.findObject(By.desc(GUIDE_SKIP_BUTTON)) != null
+    }
+
+    private fun appWindowBounds(): Rect {
+        val window = InstrumentationRegistry.getInstrumentation().uiAutomation.windows
+            .firstOrNull { it.type == AccessibilityWindowInfo.TYPE_APPLICATION }
+        return if (window == null) {
+            Rect(0, 0, device.displayWidth, device.displayHeight)
+        } else {
+            Rect().also(window::getBoundsInScreen)
+        }
+    }
+
+    private fun rectJson(bounds: Rect): JSONObject = JSONObject()
+        .put("left", bounds.left)
+        .put("top", bounds.top)
+        .put("right", bounds.right)
+        .put("bottom", bounds.bottom)
+
+    private fun rectInWindowJson(bounds: Rect, window: Rect): JSONObject = JSONObject()
+        .put("left", bounds.left - window.left)
+        .put("top", bounds.top - window.top)
+        .put("right", bounds.right - window.left)
+        .put("bottom", bounds.bottom - window.top)
+
+    private fun referenceRectJson(bounds: Rect, mapping: com.yujian.ai.ui.identify.RecognitionGuideReferenceMapping): JSONObject = JSONObject()
+        .put("left", (bounds.left - mapping.offsetXPx) / mapping.uniformScale)
+        .put("top", (bounds.top - mapping.offsetYPx) / mapping.uniformScale)
+        .put("right", (bounds.right - mapping.offsetXPx) / mapping.uniformScale)
+        .put("bottom", (bounds.bottom - mapping.offsetYPx) / mapping.uniformScale)
+
+    private fun safeInsetsJson(): JSONObject {
+        fun systemDimension(name: String): Int {
+            val id = context.resources.getIdentifier(name, "dimen", "android")
+            return if (id == 0) 0 else context.resources.getDimensionPixelSize(id)
+        }
+        return JSONObject()
+            .put("left", 0)
+            .put("top", systemDimension("status_bar_height"))
+            .put("right", 0)
+            .put("bottom", systemDimension("navigation_bar_height"))
+            .put("source", "API 28 Android system dimension resources; Pixel_2 emulator profile")
+    }
+
+    private fun sha256(file: File): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     private fun productionLogs(): String =
