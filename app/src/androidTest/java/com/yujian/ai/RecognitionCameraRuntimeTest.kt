@@ -136,8 +136,8 @@ class RecognitionCameraRuntimeTest {
         val homeCapture = device.findObject(By.desc(HOME_CAMERA_BUTTON))
         assertNotNull("Home capture control disappeared", homeCapture)
         homeCapture!!.click()
-        assertTrue("Production camera route did not open", device.wait(
-            Until.hasObject(By.desc(BACK_BUTTON)), 30_000L,
+        assertTrue("First-use guide did not appear after the production CameraX preview became READY", device.wait(
+            Until.hasObject(By.desc(GUIDE_SKIP_BUTTON)), 30_000L,
         ))
         screenshot("01_camera_open.png")
         record("PRODUCTION_CAMERA_SCREEN", "OPEN")

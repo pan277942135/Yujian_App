@@ -11,6 +11,10 @@ export YUJIAN_APP_PACKAGE="com.yujian.ai"
 export YUJIAN_ADB_BIN="$TEMP_DIR/adb"
 export FAKE_GRANT_EXIT=0
 export FAKE_GRANT_OUTPUT=""
+export YUJIAN_FAILURE_PHASE=""
+export YUJIAN_FAILURE_REASON=""
+export BUILD_SHA="camera-gate-test"
+export YUJIAN_APP_APK="$TEMP_DIR/app-debug.apk"
 EXIT_PASS=0
 EXIT_BLOCKED_INFRA=10
 EXIT_FAIL_EVIDENCE=40
@@ -20,6 +24,8 @@ FAIL_REASON=""
 runtime_set_failure() {
   FAIL_PHASE="$1"
   FAIL_REASON="$2"
+  YUJIAN_FAILURE_PHASE="$1"
+  YUJIAN_FAILURE_REASON="$2"
 }
 
 cat > "$YUJIAN_ADB_BIN" <<'ADB'
@@ -33,7 +39,19 @@ case "$command" in
     printf "%s" "$FAKE_GRANT_OUTPUT"
     exit "$FAKE_GRANT_EXIT"
     ;;
+  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P01_runtime.png"|\
+  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P02_runtime.png"|\
+  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P03_runtime.png")
+    printf 'invalid png fixture'
+    ;;
+  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/first_use_camera_guide_runtime_report.json")
+    printf '{ invalid json fixture'
+    ;;
+  "exec-out run-as com.yujian.ai cat "*) exit 0 ;;
   "logcat -c") exit 0 ;;
+  "logcat -d -v threadtime") exit 0 ;;
+  "shell dumpsys media.camera") exit 0 ;;
+  "shell dumpsys camera") exit 0 ;;
   *) printf "unexpected fake adb command: %s\n" "$command" >&2; exit 90 ;;
 esac
 ADB
@@ -64,6 +82,18 @@ fi
 [[ "$FAIL_PHASE" == "CAMERA_PERMISSION_SETUP" ]]
 [[ "$FAIL_REASON" == "APP_RESET_OR_CAMERA_PERMISSION_GRANT_FAILED" ]]
 grep -Fx "CAMERA_PERMISSION_GRANT_EXIT_CODE=7" "$YUJIAN_EVIDENCE_DIR/camera_runtime_v1/permission_preflight.txt" >/dev/null
+
+# The post-instrumentation hook runs before the runner classifies the test
+# result. Partial visual files must not overwrite a real test assertion.
+YUJIAN_FAILURE_PHASE="INSTRUMENTATION"
+YUJIAN_FAILURE_REASON="TEST_ASSERTION_FAILED"
+FAIL_PHASE="$YUJIAN_FAILURE_PHASE"
+FAIL_REASON="$YUJIAN_FAILURE_REASON"
+gate_after_instrumentation
+[[ "$YUJIAN_FAILURE_PHASE" == "INSTRUMENTATION" ]]
+[[ "$YUJIAN_FAILURE_REASON" == "TEST_ASSERTION_FAILED" ]]
+[[ "$FAIL_PHASE" == "INSTRUMENTATION" ]]
+[[ "$FAIL_REASON" == "TEST_ASSERTION_FAILED" ]]
 
 fixture="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
 mkdir -p "$fixture/first_use_camera_guide" "$fixture/component"

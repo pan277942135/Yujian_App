@@ -73,7 +73,11 @@ gate_after_instrumentation() {
     camera_runtime_pull_file "cache/recognition-first-use-camera-guide/$name" "$component_output/$name"
   done
 
-  if [[ -s "$output/first_use_camera_guide_runtime_report.json" && \
+  # This hook runs before the orchestration classifies an instrumentation
+  # failure. Keep that primary failure intact; partial or malformed visual
+  # artifacts must not turn a test assertion into an evidence failure.
+  if [[ "${YUJIAN_FAILURE_PHASE:-}" != "INSTRUMENTATION" && \
+        -s "$output/first_use_camera_guide_runtime_report.json" && \
         -s "$output/P01_runtime.png" && -s "$output/P02_runtime.png" && -s "$output/P03_runtime.png" ]]; then
     python3 scripts/create_first_use_camera_guide_visual_evidence.py \
       --runtime-dir "$output" \

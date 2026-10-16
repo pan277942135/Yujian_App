@@ -134,7 +134,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
             }
         }
 
-        composeRule.onNodeWithTag("recognition-guide-page-title-1").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-page-title-1", useUnmergedTree = true).assertIsDisplayed()
         assertButtonSemantics("recognition-guide-back", "返回拍摄页面")
         assertButtonSemantics("recognition-guide-skip", "跳过首次拍照教学")
         assertButtonSemantics("recognition-guide-primary-action", "下一张教学示例")
@@ -158,16 +158,16 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-previous").assertHasClickAction().performClick()
         assertButtonSemantics("recognition-guide-previous", "上一张教学示例")
-        composeRule.onNodeWithTag("recognition-guide-page-title-1").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-page-title-1", useUnmergedTree = true).assertIsDisplayed()
 
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeLeft() }
-        composeRule.onNodeWithTag("recognition-guide-page-title-2").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-page-title-2", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeLeft() }
-        composeRule.onNodeWithTag("recognition-guide-page-title-3").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-page-title-3", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeRight() }
-        composeRule.onNodeWithTag("recognition-guide-page-title-2").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-page-title-2", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeRight() }
-        composeRule.onNodeWithTag("recognition-guide-page-title-1").assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-page-title-1", useUnmergedTree = true).assertIsDisplayed()
 
         // The bottom-right underlying Gallery target overlaps the guide CTA.
         // Only the topmost guide action can receive the tap.
@@ -209,18 +209,10 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         context.getSharedPreferences(RecognitionFirstCaptureGuideStore.PREFERENCES_NAME, 0)
             .edit().clear().commit()
         store = RecognitionFirstCaptureGuideStore(context)
-        visible = true
-        composeRule.setContent {
-            if (visible) {
-                RecognitionFirstCaptureGuideOverlay(
-                    onComplete = {
-                        assertTrue(store.markCompleted())
-                        visible = false
-                    },
-                    onDismiss = { visible = false },
-                )
-            }
+        composeRule.runOnIdle {
+            visible = true
         }
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
         composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
@@ -244,7 +236,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
             }
         }
 
-        composeRule.onNodeWithTag("recognition-guide-touch-shield").performTouchInput {
+        composeRule.onNodeWithTag("recognition-capture-first-guide").performTouchInput {
             click(Offset(2f, height / 2f))
         }
         composeRule.runOnIdle {
@@ -258,15 +250,10 @@ class RecognitionFirstCaptureGuideRuntimeTest {
             assertFalse(store.isCompleted())
         }
 
-        visible = true
-        composeRule.setContent {
-            if (visible) {
-                RecognitionFirstCaptureGuideOverlay(
-                    onComplete = { store.markCompleted(); visible = false },
-                    onDismiss = { visible = false },
-                )
-            }
+        composeRule.runOnIdle {
+            visible = true
         }
+        composeRule.waitForIdle()
         composeRule.runOnUiThread {
             composeRule.activity.onBackPressedDispatcher.onBackPressed()
         }
@@ -307,21 +294,31 @@ class RecognitionFirstCaptureGuideRuntimeTest {
     fun requiredWidthsAndFontScalesKeepGuideActionsInsideTheViewport() {
         val profiles = listOf(320 to 640, 360 to 640, 411 to 891)
         val fontScales = listOf(1.0f, 1.3f, 2.0f)
+        var viewportWidth by mutableStateOf(profiles.first().first)
+        var viewportHeight by mutableStateOf(profiles.first().second)
+        var guideFontScale by mutableStateOf(fontScales.first())
+
+        composeRule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = guideFontScale)) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(Modifier.requiredSize(viewportWidth.dp, viewportHeight.dp).testTag("responsive-guide-viewport")) {
+                        RecognitionFirstCaptureGuideOverlay(
+                            onComplete = {},
+                            onDismiss = {},
+                        )
+                    }
+                }
+            }
+        }
 
         profiles.forEach { (width, height) ->
             fontScales.forEach { fontScale ->
-                composeRule.setContent {
-                    CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = fontScale)) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Box(Modifier.requiredSize(width.dp, height.dp).testTag("responsive-guide-viewport")) {
-                                RecognitionFirstCaptureGuideOverlay(
-                                    onComplete = {},
-                                    onDismiss = {},
-                                )
-                            }
-                        }
-                    }
+                composeRule.runOnIdle {
+                    viewportWidth = width
+                    viewportHeight = height
+                    guideFontScale = fontScale
                 }
+                composeRule.waitForIdle()
                 composeRule.onNodeWithTag("recognition-guide-skip").assertIsDisplayed()
                 composeRule.onNodeWithTag("recognition-guide-primary-action").assertIsDisplayed()
                 composeRule.onNodeWithTag("recognition-guide-back").assertIsDisplayed()
@@ -331,6 +328,8 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
                 composeRule.onNodeWithTag("recognition-guide-previous").assertIsDisplayed()
                 assertInsideViewport("recognition-guide-previous", width, height)
+                composeRule.onNodeWithTag("recognition-guide-previous").performClick()
+                composeRule.waitForIdle()
             }
         }
     }
@@ -360,7 +359,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
             if (index > 0) {
                 composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
             }
-            composeRule.onNodeWithTag(titleTag).assertIsDisplayed()
+            composeRule.onNodeWithTag(titleTag, useUnmergedTree = true).assertIsDisplayed()
             val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
             writePng(bitmap, File(evidenceDir, fileName))
             pages += buildPageEvidence(guidePage, bitmap.width, bitmap.height, fileName)
@@ -445,7 +444,8 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         val titleTag = "recognition-guide-page-title-${page.index + 1}"
         val actionBounds = composeRule.onNodeWithTag("recognition-guide-primary-action")
             .fetchSemanticsNode().boundsInWindow
-        val titleBounds = composeRule.onNodeWithTag(titleTag).fetchSemanticsNode().boundsInWindow
+        val titleBounds = composeRule.onNodeWithTag(titleTag, useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
         return JSONObject()
             .put("page", page.name)
             .put("screenshot", screenshot)
