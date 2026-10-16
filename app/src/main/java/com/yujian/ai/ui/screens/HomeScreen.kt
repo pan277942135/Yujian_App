@@ -319,7 +319,13 @@ private fun EmptyHomeContent(
             modifier = Modifier
                 .offset(
                     x = layoutMapping.heroBounds.left.dp,
-                    y = layoutMapping.heroBounds.top.dp,
+                    // At compact width with an accessibility font scale, the
+                    // canonical header line boxes can grow by a few pixels
+                    // beyond their 48dp touch container. Keep the frozen
+                    // reference mapping unchanged, but give the semantic hero
+                    // copy the smallest clearance required to avoid overlap.
+                    y = (layoutMapping.heroBounds.top +
+                        if (compactHeader && layoutMapping.profile.accessibilityFontScale) 1.dp.value else 0f).dp,
                 )
                 .width(layoutMapping.heroBounds.width.dp)
                 .height(layoutMapping.heroBounds.height.dp),
