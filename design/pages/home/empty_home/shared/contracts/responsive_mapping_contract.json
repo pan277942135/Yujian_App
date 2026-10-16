@@ -1,7 +1,7 @@
 {
   "design_version": "Empty_Home_Final_Design_V2",
   "visual_revision": "V2.2",
-  "contract_revision": "EMPTY_HOME_RESPONSIVE_MAPPING_V1_2",
+  "contract_revision": "EMPTY_HOME_RESPONSIVE_MAPPING_V1",
   "purpose": "Engineering translation of the frozen 1080x1920 artwork and approved V2.2 deltas; this contract does not redesign the page.",
   "reference_canvas": [
     1080,
@@ -63,7 +63,7 @@
     }
   ],
   "font_scale_profiles": [
-    1,
+    1.0,
     1.3
   ],
   "groups": {
@@ -97,7 +97,6 @@
       "strategy": "SAFE_TOP_ANCHORED",
       "inset_source": "WindowInsets.safeDrawing",
       "top_margin_after_safe_inset_dp": 16,
-      "compact_width_top_margin_after_safe_inset_dp": 0,
       "maximum_content_width_dp": 430,
       "minimum_touch_target_dp": 48,
       "elements": [
@@ -106,14 +105,7 @@
         "login",
         "profile"
       ],
-      "position_independent_of_scene_crop": true,
-      "compact_typography": {
-        "title_line_height_sp": 23,
-        "subtitle_line_height_sp": 12,
-        "vertical_gap_dp": 1,
-        "include_font_padding": false,
-        "font_sizes_unchanged": true
-      }
+      "position_independent_of_scene_crop": true
     },
     "hero_copy": {
       "strategy": "ASPECT_LOCKED_REFERENCE_ANCHOR",
@@ -124,7 +116,7 @@
         "width": 620,
         "height": 310
       },
-      "reference_aspect_ratio": 2,
+      "reference_aspect_ratio": 2.0,
       "visible_ink_and_gold_measurement_px": {
         "left": 80,
         "top": 245,
@@ -136,7 +128,7 @@
       "minimum_width_dp_at_supported_320dp_profile": 183.7,
       "maximum_width_dp": 620,
       "horizontal_anchor": "safe viewport start + safeWidthDp * 50/1080",
-      "top_band_anchor": "scene transform offsetY + reference y * scene transform scale in the edge-to-edge app viewport; safeDrawing top inset does not shift Frozen Hero artwork",
+      "top_band_anchor": "safe viewport top + safeHeightDp * 224/1920",
       "height_policy": "renderedWidth / 2.0",
       "content_scale": "FIT",
       "stretch": false,
