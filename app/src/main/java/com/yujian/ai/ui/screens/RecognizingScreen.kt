@@ -327,6 +327,7 @@ private fun RecognitionPhoto(
         resolveActive = resolveActive,
         qualityLevel = motionPolicy.qualityLevel,
         onMotionFrame = onMotionFrame,
+        photoTransform = transform,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),

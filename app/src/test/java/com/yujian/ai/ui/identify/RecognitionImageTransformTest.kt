@@ -88,7 +88,32 @@ class RecognitionImageTransformTest {
         assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), fit.visibleSourceRect)
         assertEquals(250f, fit.translationY, 0.01f)
         assertEquals(0.5f, fit.scale, 0.01f)
+        assertEquals(DisplayRect(0f, 250f, 1000f, 750f), fit.photoContentRect)
         assertNotEquals(fit, processing)
+    }
+
+    @Test
+    fun ambientPhotoCoordinatesExcludeFitBandsAndPreserveAuthoredOvershoot() {
+        val fit = calculateRecognitionImageTransform(
+            containerWidth = 1000f,
+            containerHeight = 1000f,
+            imageWidth = 2000,
+            imageHeight = 1000,
+            contentScaleMode = RecognitionContentScaleMode.FIT,
+        )
+        val crop = calculateRecognitionImageTransform(
+            containerWidth = 1000f,
+            containerHeight = 1000f,
+            imageWidth = 2000,
+            imageHeight = 1000,
+            contentScaleMode = RecognitionContentScaleMode.CROP,
+        )
+
+        assertEquals(DisplayPoint(500f, 250f), fit.mapPhotoContentNormalized(.5f, 0f))
+        assertEquals(DisplayPoint(500f, 750f), fit.mapPhotoContentNormalized(.5f, 1f))
+        assertEquals(DisplayPoint(1000f, 500f), crop.mapPhotoContentNormalized(1f, .5f))
+        assertEquals(DisplayPoint(1020f, 500f), crop.mapPhotoContentNormalized(1.02f, .5f))
+        assertEquals(DisplayPoint(-20f, 500f), crop.mapPhotoContentNormalized(-.02f, .5f))
     }
 
     @Test

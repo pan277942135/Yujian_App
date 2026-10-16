@@ -21,10 +21,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.identify.DisplayRect
+import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.PI
@@ -297,6 +300,7 @@ fun RecognitionAmbientField(
     qualityLevel: RecognitionQualityLevel =
         if (lowPerformance) RecognitionQualityLevel.LITE else RecognitionQualityLevel.FULL,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
+    photoTransform: RecognitionImageTransform? = null,
 ) {
     val nowMs = ambientNowMs(visualClockMs)
     val accumulator = remember { EdgeFieldMotionAccumulator() }
@@ -347,99 +351,110 @@ fun RecognitionAmbientField(
             .fillMaxSize()
             .testTag(evidenceTag),
     ) {
-        val primaryPaths = buildPaths(size, PRIMARY_ISLANDS)
-        val companionPaths = buildEchoPaths(size, COMPANION_HAIRLINES)
-        val microPaths = buildEchoPaths(size, MICRO_HAIRLINES)
+        val fieldRect = photoTransform?.photoContentRect
+            ?: DisplayRect(0f, 0f, size.width, size.height)
+        val primaryPaths = buildPaths(fieldRect, PRIMARY_ISLANDS)
+        val companionPaths = buildEchoPaths(fieldRect, COMPANION_HAIRLINES)
+        val microPaths = buildEchoPaths(fieldRect, MICRO_HAIRLINES)
 
-        drawReceivingLight(
-            frame = frame,
-            quality = quality,
-        )
+        clipRect(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom) {
+            drawReceivingLight(
+                frame = frame,
+                quality = quality,
+                fieldRect = fieldRect,
+            )
 
-        PRIMARY_ISLANDS.forEachIndexed { index, filament ->
-            val path = primaryPaths[index]
-            val offset = positiveMod(frame.cycleOffset + filament.seed)
-            val common =
-                frame.stateStrength *
-                    frame.resolveStrength *
-                    frame.primaryEntry *
-                    quality.alphaMultiplier *
-                    filament.islandWeight
-
-            if (filament.id in recognitionAmbientPrimaryIslandIds) {
-                drawCompositePrimary(
-                    path = path,
-                    filament = filament,
-                    offset = offset,
-                    common = common,
-                    quality = quality,
-                )
-            } else if (filament.id in recognitionAmbientSecondaryFragmentIds) {
-                drawSecondaryFragment(
-                    path = path,
-                    filament = filament,
-                    offset = offset,
-                    common = common,
-                    quality = quality,
-                )
-            }
-        }
-
-        if (quality.companionIds.isNotEmpty()) {
-            COMPANION_HAIRLINES.forEachIndexed { index, echo ->
-                if (echo.id !in quality.companionIds) return@forEachIndexed
-                val parent = PRIMARY_ISLANDS.first { it.id == echo.parentId }
+            PRIMARY_ISLANDS.forEachIndexed { index, filament ->
+                val path = primaryPaths[index]
+                val offset = positiveMod(frame.cycleOffset + filament.seed)
                 val common =
                     frame.stateStrength *
                         frame.resolveStrength *
-                        frame.detailEntry *
+                        frame.primaryEntry *
                         quality.alphaMultiplier *
-                        parent.islandWeight
-                drawHairlineEcho(
-                    path = companionPaths[index],
-                    echo = echo,
-                    offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
-                    common = common,
-                    micro = false,
+                        filament.islandWeight
+
+                if (filament.id in recognitionAmbientPrimaryIslandIds) {
+                    drawCompositePrimary(
+                        path = path,
+                        filament = filament,
+                        offset = offset,
+                        common = common,
+                        quality = quality,
+                        fieldRect = fieldRect,
+                    )
+                } else if (filament.id in recognitionAmbientSecondaryFragmentIds) {
+                    drawSecondaryFragment(
+                        path = path,
+                        filament = filament,
+                        offset = offset,
+                        common = common,
+                        quality = quality,
+                        fieldRect = fieldRect,
+                    )
+                }
+            }
+
+            if (quality.companionIds.isNotEmpty()) {
+                COMPANION_HAIRLINES.forEachIndexed { index, echo ->
+                    if (echo.id !in quality.companionIds) return@forEachIndexed
+                    val parent = PRIMARY_ISLANDS.first { it.id == echo.parentId }
+                    val common =
+                        frame.stateStrength *
+                            frame.resolveStrength *
+                            frame.detailEntry *
+                            quality.alphaMultiplier *
+                            parent.islandWeight
+                    drawHairlineEcho(
+                        path = companionPaths[index],
+                        echo = echo,
+                        offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
+                        common = common,
+                        micro = false,
+                        fieldRect = fieldRect,
+                    )
+                }
+            }
+
+            if (quality.microEnabled) {
+                MICRO_HAIRLINES.forEachIndexed { index, echo ->
+                    val parent = PRIMARY_ISLANDS.first { it.id == echo.parentId }
+                    val common =
+                        frame.stateStrength *
+                            frame.resolveStrength *
+                            frame.detailEntry *
+                            quality.alphaMultiplier *
+                            parent.islandWeight
+                    drawHairlineEcho(
+                        path = microPaths[index],
+                        echo = echo,
+                        offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
+                        common = common,
+                        micro = true,
+                        fieldRect = fieldRect,
+                    )
+                }
+            }
+
+            if (quality.nodeCount > 0) {
+                drawEnergyNodes(
+                    nowMs = frame.detailMotionTimeMs,
+                    frame = frame,
+                    quality = quality,
+                    reduceMotion = reduceMotion,
+                    fieldRect = fieldRect,
                 )
             }
-        }
 
-        if (quality.microEnabled) {
-            MICRO_HAIRLINES.forEachIndexed { index, echo ->
-                val parent = PRIMARY_ISLANDS.first { it.id == echo.parentId }
-                val common =
-                    frame.stateStrength *
-                        frame.resolveStrength *
-                        frame.detailEntry *
-                        quality.alphaMultiplier *
-                        parent.islandWeight
-                drawHairlineEcho(
-                    path = microPaths[index],
-                    echo = echo,
-                    offset = positiveMod(frame.cycleOffset + parent.seed + echo.phaseDelta),
-                    common = common,
-                    micro = true,
+            if (quality.particleCount > 0 && !reduceMotion) {
+                drawParticles(
+                    nowMs = frame.detailMotionTimeMs,
+                    count = quality.particleCount,
+                    frame = frame,
+                    quality = quality,
+                    fieldRect = fieldRect,
                 )
             }
-        }
-
-        if (quality.nodeCount > 0) {
-            drawEnergyNodes(
-                nowMs = frame.detailMotionTimeMs,
-                frame = frame,
-                quality = quality,
-                reduceMotion = reduceMotion,
-            )
-        }
-
-        if (quality.particleCount > 0 && !reduceMotion) {
-            drawParticles(
-                nowMs = frame.detailMotionTimeMs,
-                count = quality.particleCount,
-                frame = frame,
-                quality = quality,
-            )
         }
     }
 }
@@ -537,6 +552,7 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
 private fun DrawScope.drawReceivingLight(
     frame: MotionFrame,
     quality: QualityProfile,
+    fieldRect: DisplayRect,
 ) {
     val common =
         frame.stateStrength *
@@ -546,6 +562,10 @@ private fun DrawScope.drawReceivingLight(
             quality.alphaMultiplier
 
     if (common <= .001f) return
+
+    val fieldWidth = fieldRect.width
+    val fieldHeight = fieldRect.height
+    val minDimension = minOf(fieldWidth, fieldHeight)
 
     fun islandLight(
         color: Color,
@@ -576,34 +596,34 @@ private fun DrawScope.drawReceivingLight(
     islandLight(
         color = AiBlueCore,
         weight = 1f,
-        center = Offset(size.width * 1.00f, size.height * .12f),
-        radius = size.minDimension * .28f,
-        ovalTopLeft = Offset(size.width * .62f, -size.height * .04f),
-        ovalSize = Size(size.width * .46f, size.height * .40f),
+        center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .12f),
+        radius = minDimension * .28f,
+        ovalTopLeft = Offset(fieldRect.left + fieldWidth * .62f, fieldRect.top - fieldHeight * .04f),
+        ovalSize = Size(fieldWidth * .46f, fieldHeight * .40f),
     )
     islandLight(
         color = AiGoldCore,
         weight = .78f,
-        center = Offset(0f, size.height * .10f),
-        radius = size.minDimension * .25f,
-        ovalTopLeft = Offset(-size.width * .08f, -size.height * .04f),
-        ovalSize = Size(size.width * .46f, size.height * .36f),
+        center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .10f),
+        radius = minDimension * .25f,
+        ovalTopLeft = Offset(fieldRect.left - fieldWidth * .08f, fieldRect.top - fieldHeight * .04f),
+        ovalSize = Size(fieldWidth * .46f, fieldHeight * .36f),
     )
     islandLight(
         color = AiGoldCore,
         weight = .63f,
-        center = Offset(0f, size.height * .88f),
-        radius = size.minDimension * .26f,
-        ovalTopLeft = Offset(-size.width * .08f, size.height * .64f),
-        ovalSize = Size(size.width * .48f, size.height * .38f),
+        center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .88f),
+        radius = minDimension * .26f,
+        ovalTopLeft = Offset(fieldRect.left - fieldWidth * .08f, fieldRect.top + fieldHeight * .64f),
+        ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
     )
     islandLight(
         color = AiBlueCore,
         weight = .54f,
-        center = Offset(size.width, size.height * .86f),
-        radius = size.minDimension * .25f,
-        ovalTopLeft = Offset(size.width * .60f, size.height * .64f),
-        ovalSize = Size(size.width * .48f, size.height * .38f),
+        center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .86f),
+        radius = minDimension * .25f,
+        ovalTopLeft = Offset(fieldRect.left + fieldWidth * .60f, fieldRect.top + fieldHeight * .64f),
+        ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
     )
 }
 
@@ -613,12 +633,13 @@ private fun DrawScope.drawCompositePrimary(
     offset: Float,
     common: Float,
     quality: QualityProfile,
+    fieldRect: DisplayRect,
 ) {
     if (common <= .001f) return
 
     val effect = segmentEffect(
         filament = filament,
-        size = size,
+        fieldRect = fieldRect,
         offset = offset,
         visibleRatio = filament.visibleRatio,
     )
@@ -659,12 +680,13 @@ private fun DrawScope.drawSecondaryFragment(
     offset: Float,
     common: Float,
     quality: QualityProfile,
+    fieldRect: DisplayRect,
 ) {
     if (common <= .001f) return
 
     val effect = segmentEffect(
         filament = filament,
-        size = size,
+        fieldRect = fieldRect,
         offset = offset,
         visibleRatio = filament.visibleRatio,
     )
@@ -699,6 +721,7 @@ private fun DrawScope.drawHairlineEcho(
     offset: Float,
     common: Float,
     micro: Boolean,
+    fieldRect: DisplayRect,
 ) {
     if (common <= .001f) return
 
@@ -717,7 +740,7 @@ private fun DrawScope.drawHairlineEcho(
     )
     val effect = segmentEffect(
         filament = pseudo,
-        size = size,
+        fieldRect = fieldRect,
         offset = offset,
         visibleRatio = echo.visibleRatio,
     )
@@ -756,6 +779,7 @@ private fun DrawScope.drawEnergyNodes(
     frame: MotionFrame,
     quality: QualityProfile,
     reduceMotion: Boolean,
+    fieldRect: DisplayRect,
 ) {
     val common =
         frame.stateStrength *
@@ -781,7 +805,7 @@ private fun DrawScope.drawEnergyNodes(
         } else {
             positiveMod(frame.cycleOffset + island.seed + island.visibleRatio * .5f)
         }
-        val center = bezierPoint(island, trajectory, size)
+        val center = bezierPoint(island, trajectory, fieldRect)
 
         drawCircle(
             color.copy(alpha = (.07f * alpha).coerceAtMost(.07f)),
@@ -801,6 +825,7 @@ private fun DrawScope.drawParticles(
     count: Int,
     frame: MotionFrame,
     quality: QualityProfile,
+    fieldRect: DisplayRect,
 ) {
     val common =
         frame.stateStrength *
@@ -813,10 +838,10 @@ private fun DrawScope.drawParticles(
         val t = ((nowMs % 5_000L) / 5_000f + index * .137f) % 1f
         val travel = 14f + (index % 4) * 7f
         val x =
-            anchor.point.x * size.width +
+            fieldRect.left + anchor.point.x * fieldRect.width +
                 sin((t + index) * 2f * PI).toFloat() * travel
         val y =
-            anchor.point.y * size.height +
+            fieldRect.top + anchor.point.y * fieldRect.height +
                 (t - .5f) * travel
 
         val goldOwner = anchor.islandId == "G1" || anchor.islandId == "G3"
@@ -834,7 +859,7 @@ private fun DrawScope.drawParticles(
     }
 }
 
-private fun bezierPoint(filament: Filament, t: Float, size: Size): Offset {
+private fun bezierPoint(filament: Filament, t: Float, fieldRect: DisplayRect): Offset {
     val oneMinus = 1f - t
     val x = oneMinus * oneMinus * oneMinus * filament.start.x +
         3f * oneMinus * oneMinus * t * filament.control1.x +
@@ -844,16 +869,16 @@ private fun bezierPoint(filament: Filament, t: Float, size: Size): Offset {
         3f * oneMinus * oneMinus * t * filament.control1.y +
         3f * oneMinus * t * t * filament.control2.y +
         t * t * t * filament.end.y
-    return Offset(x * size.width, y * size.height)
+    return Offset(fieldRect.left + x * fieldRect.width, fieldRect.top + y * fieldRect.height)
 }
 
 private fun segmentEffect(
     filament: Filament,
-    size: Size,
+    fieldRect: DisplayRect,
     offset: Float,
     visibleRatio: Float,
 ): PathEffect {
-    val length = estimatedLength(filament, size).coerceAtLeast(1f)
+    val length = estimatedLength(filament, fieldRect).coerceAtLeast(1f)
     val visible = (length * visibleRatio.coerceIn(.05f, .60f)).coerceAtLeast(1f)
     val gap = (length - visible).coerceAtLeast(1f)
     return PathEffect.dashPathEffect(
@@ -864,12 +889,12 @@ private fun segmentEffect(
 
 private fun estimatedLength(
     filament: Filament,
-    size: Size,
+    fieldRect: DisplayRect,
 ): Float {
     fun mapped(p: Cubic) =
         Offset(
-            p.x * size.width,
-            p.y * size.height,
+            fieldRect.left + p.x * fieldRect.width,
+            fieldRect.top + p.y * fieldRect.height,
         )
 
     fun distance(a: Offset, b: Offset): Float =
@@ -887,43 +912,43 @@ private fun estimatedLength(
 }
 
 private fun buildPaths(
-    size: Size,
+    fieldRect: DisplayRect,
     filaments: List<Filament>,
 ): List<Path> =
     filaments.map { filament ->
         Path().apply {
             moveTo(
-                filament.start.x * size.width,
-                filament.start.y * size.height,
+                fieldRect.left + filament.start.x * fieldRect.width,
+                fieldRect.top + filament.start.y * fieldRect.height,
             )
             cubicTo(
-                filament.control1.x * size.width,
-                filament.control1.y * size.height,
-                filament.control2.x * size.width,
-                filament.control2.y * size.height,
-                filament.end.x * size.width,
-                filament.end.y * size.height,
+                fieldRect.left + filament.control1.x * fieldRect.width,
+                fieldRect.top + filament.control1.y * fieldRect.height,
+                fieldRect.left + filament.control2.x * fieldRect.width,
+                fieldRect.top + filament.control2.y * fieldRect.height,
+                fieldRect.left + filament.end.x * fieldRect.width,
+                fieldRect.top + filament.end.y * fieldRect.height,
             )
         }
     }
 
 private fun buildEchoPaths(
-    size: Size,
+    fieldRect: DisplayRect,
     filaments: List<EchoFilament>,
 ): List<Path> =
     filaments.map { filament ->
         Path().apply {
             moveTo(
-                filament.start.x * size.width,
-                filament.start.y * size.height,
+                fieldRect.left + filament.start.x * fieldRect.width,
+                fieldRect.top + filament.start.y * fieldRect.height,
             )
             cubicTo(
-                filament.control1.x * size.width,
-                filament.control1.y * size.height,
-                filament.control2.x * size.width,
-                filament.control2.y * size.height,
-                filament.end.x * size.width,
-                filament.end.y * size.height,
+                fieldRect.left + filament.control1.x * fieldRect.width,
+                fieldRect.top + filament.control1.y * fieldRect.height,
+                fieldRect.left + filament.control2.x * fieldRect.width,
+                fieldRect.top + filament.control2.y * fieldRect.height,
+                fieldRect.left + filament.end.x * fieldRect.width,
+                fieldRect.top + filament.end.y * fieldRect.height,
             )
         }
     }
