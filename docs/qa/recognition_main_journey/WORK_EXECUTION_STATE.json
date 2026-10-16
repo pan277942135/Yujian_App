@@ -5,7 +5,7 @@
   "pull_request": 145,
   "branch": "audit/design-system-v3-1-phase1-master-baseline",
   "base_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-  "checkpoint_updated_at": "2026-10-16T07:59:11+08:00",
+  "checkpoint_updated_at": "2026-10-16T11:00:00+08:00",
   "stage": "E0",
   "stage_status": "FIX_READY_FOR_EXACT_HEAD_CI",
   "baseline_sha": "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2",
@@ -81,9 +81,48 @@
     "status": "NOT_CREATED",
     "J01-J20": "NOT_RUN"
   },
-  "next_action": "Commit the E0 fixes and this checkpoint, push to PR #145, then inspect the exact-head GitHub Actions build and API 28 Recognition artifact before proceeding to E1.",
+  "next_action": "Work: execute RECOGNITION-FIRST-USE-GUIDE-V1 from the dedicated task doc, starting at the exact current remote HEAD; commit/push each stage and confirm the remote SHA before proceeding.",
   "external_blockers": [
     "Local Android build and emulator execution are unavailable in this checkout; use the configured self-hosted API 28 runner."
   ],
-  "pr_state": "DRAFT_OPEN_UNMERGED"
+  "pr_state": "DRAFT_OPEN_UNMERGED",
+  "first_use_camera_guide": {
+    "task_id": "RECOGNITION-FIRST-USE-GUIDE-V1",
+    "status": "READY_FOR_WORK",
+    "task_doc": "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md",
+    "scope": [
+      "Android Compose three-page first-use guide overlay",
+      "unit/instrumentation/runtime visual tests",
+      "byte-identical P01/P02/P03 PNG import"
+    ],
+    "design_authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+    "design_manager_parent": "识别过程 → 07 · 首次拍照教学",
+    "frozen_assets": {
+      "p01": {
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+        "width": 941,
+        "height": 1671,
+        "bytes": 1988159,
+        "sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
+      },
+      "p02": {
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "width": 941,
+        "height": 1671,
+        "bytes": 2042852,
+        "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
+      },
+      "p03": {
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+        "width": 941,
+        "height": 1672,
+        "bytes": 2001322,
+        "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+      }
+    },
+    "backend_dependency": "NONE",
+    "runtime_rule": "Frozen PNGs are Design Manager visual authority only; Android runtime must use structured Compose UI and independent page-specific photo assets, not full-page screenshots.",
+    "binary_import_status": "PENDING_WORK",
+    "main_merge_forbidden": true
+  }
 }
