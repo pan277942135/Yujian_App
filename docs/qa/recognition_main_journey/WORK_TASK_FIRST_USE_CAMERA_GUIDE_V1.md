@@ -4,8 +4,8 @@ Task ID: RECOGNITION-FIRST-USE-GUIDE-V1
 Repository: pan277942135/Yujian_App
 PR: #145
 Branch: audit/design-system-v3-1-phase1-master-baseline
-Status: DESIGN_FROZEN_PENDING_IMPLEMENTATION
-Scope: Frozen design authority + downstream Android implementation/tests
+Status: IN_PROGRESS
+Scope: Android runtime implementation + tests + exact Frozen PNG binary import
 Main merge: FORBIDDEN
 Design redesign: FORBIDDEN
 
@@ -13,7 +13,7 @@ Design redesign: FORBIDDEN
 
 ## 1. 唯一目标
 
-把「识别过程 → 07 · 首次拍照教学 → P01/P02」冻结为两页首次拍照教学 Overlay；本次只更新设计权威，不启动 Android 开发实现。后续实现任务必须以本冻结版本为唯一输入。
+把「识别过程 → 07 · 首次拍照教学 → P01/P02/P03」从当前“单个 AlertDialog 占位实现”升级为真正的三页首次拍照教学 Overlay，并完成：
 
 1. Android Compose 结构化实现；
 2. 首次触发/完成持久化；
@@ -22,7 +22,7 @@ Design redesign: FORBIDDEN
 5. 遮罩不可穿透到快门；
 6. 权限/预览/Gallery 边界；
 7. 视觉 Runtime Evidence；
-8. P01/P02 Frozen PNG 二进制原字节导入 Git；
+8. P01/P02/P03 Frozen PNG 二进制原字节导入 Git；
 9. PNG SHA-256 / bytes / dimensions Gate；
 10. Design Manager 实际预览最终验收；
 11. APK + SHA-256 + 测试报告。
@@ -34,9 +34,8 @@ Design redesign: FORBIDDEN
 design/pages/recognition/first_use_camera_guide/frozen/
 
 - P01: P01_First_Use_Camera_Guide_Frozen.png — 941×1671 — 1,988,159 bytes — SHA-256 dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50
-- P02: P02_Landscape_Horizontal_Fish_Frozen.png — 941×1672 — 2,001,322 bytes — SHA-256 1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3
-
-Former portrait/vertical P02 and former P03 are historical assets only.
+- P02: P02_First_Use_Camera_Guide_Frozen.png — 941×1671 — 2,042,852 bytes — SHA-256 fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f
+- P03: P03_First_Use_Camera_Guide_Frozen.png — 941×1672 — 2,001,322 bytes — SHA-256 1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3
 
 这些 PNG 是 Design Manager 的视觉权威，不是 Android Runtime 的整页图片资源。
 
@@ -59,13 +58,13 @@ design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.m
 
 ### L4 · 历史 P02 FirstUse 方案
 
-只用于参考历史模板、Pager、首次触发、状态持久化和静态资源拆分；页面数量、方向与交互以当前两页冻结合同为准。
+只用于参考历史模板、Pager、首次触发、状态持久化和静态资源拆分；页面数量、方向与交互以三页 V1 冻结合同为准。
 
 ## 3. 当前代码问题：必须先修
 
 当前 IdentifyScreen.kt 已有 RecognitionFirstCaptureGuidePolicy.kt 和 shouldShowRecognitionFirstCaptureGuide(...); 这部分逻辑可以复用。
 
-但当前 UI 仍是 AlertDialog，只有标题、说明、跳过、开始拍照。这不是当前冻结的 P01/P02。
+但当前 UI 仍是 AlertDialog，只有标题、说明、跳过、开始拍照。这不是冻结的 P01/P02/P03。
 
 ### 当前 P0 缺陷
 
@@ -106,22 +105,23 @@ IdentifyScreen
             ├── Previous
             └── Next / Start
 
-不要把 Frozen P01/P02 PNG 当成运行时整页背景。
+不要把 Frozen P01/P02/P03 PNG 当成运行时整页背景。
 
 运行时必须是 CameraX Preview + 独立照片/示例资源 + Compose 文本 + Compose 布局 + Pager + 代码实现的交互。
 
-## 5. 两页状态合同
+## 5. 三页状态合同
 
-建立 RecognitionFirstCaptureGuidePage：P01 / P02。
+建立 RecognitionFirstCaptureGuidePage：P01 / P02 / P03。
 
 建立 RecognitionFirstCaptureGuideState，至少包含 currentPage / visible / completed。
 
-不要把页面内容写成两套重复 Composable。采用参数化 GuidePageSpec：page、title、subtitle、heroAsset、errorAssets、orientation、primaryAction。
+不要把页面内容写成三套重复 Composable。采用参数化 GuidePageSpec：page、title、subtitle、heroAsset、errorAssets、orientation、primaryAction。
 
 P01：手机教学方向竖屏；鱼体横向；三个错误示例也全部横向鱼体。
-P02：横屏教学方向；鱼体横向；三个错误示例也全部横向鱼体。
+P02：竖屏教学方向；鱼体竖直；三个错误示例也全部竖直鱼体。
+P03：横屏教学方向；鱼体横向；三个错误示例也全部横向鱼体。
 
-注意：P02 是“教学用户横屏拍摄”，不是把整个 Guide UI 强制旋转成 Android landscape。P01 为 941×1671；P02 为 941×1672。
+注意：P03 是“教学用户横屏拍摄”，不是把整个 Guide UI 强制旋转成 Android landscape。P01/P02 冻结 PNG 为 941×1671；P03 为 941×1672。
 
 ## 6. 页面内容合同
 
@@ -135,12 +135,14 @@ Hero = 唯一正确示范：鱼体完整、构图清晰、鱼体占比合适，�
 3. 遮挡过多。
 
 P01：横鱼 / 横鱼 / 横鱼。
-P02：横鱼 / 横鱼 / 横鱼。
+P02：竖鱼 / 竖鱼 / 竖鱼。
+P03：横鱼 / 横鱼 / 横鱼。
 
 ## 7. Interaction Contract
 
 P01：下一张 → P02。
-P02：上一张 → P01；开始拍摄 → 关闭 Guide → Capture Ready。
+P02：上一张 → P01；下一张 → P03。
+P03：上一张 → P02；开始拍摄 → 关闭 Guide → Capture Ready。
 
 开始拍摄绝对不能自动调用快门。
 
@@ -148,7 +150,7 @@ P02：上一张 → P01；开始拍摄 → 关闭 Guide → Capture Ready。
 
 ### 明确完成动作
 
-只有：跳过；P02 开始拍摄。才写 capture_guide_v1_completed=true。
+只有：跳过；P03 开始拍摄。才写 capture_guide_v1_completed=true。
 
 ### 非完成退出
 
@@ -176,7 +178,7 @@ Guide 可见期间 Capture Button 不得收到 touch-through。
 
 当前合同使用 device-local SharedPreferences：文件 yujian_capture_guide_v1；key capture_guide_v1_completed。
 
-App 首次安装/清除数据 → false → 显示；Skip / P02 Start → true；后续 Capture → 不显示；登录/游客身份不改变此标识；多设备不要求同步。
+App 首次安装/清除数据 → false → 显示；Skip / P03 Start → true；后续 Capture → 不显示；登录/游客身份不改变此标识；多设备不要求同步。
 
 ## 11. Motion
 
@@ -186,7 +188,7 @@ App 首次安装/清除数据 → false → 显示；Skip / P02 Start → true�
 
 ## 12. Responsive / Insets
 
-Frozen PNG：P01 941×1671；P02 941×1672。Android Runtime canonical device：API 28 / 1080×1920。
+Frozen PNG：P01/P02 941×1671；P03 941×1672。Android Runtime canonical device：API 28 / 1080×1920。
 
 严禁要求 Frozen PNG 与 Runtime Screenshot 像素完全一致。验收必须保持 Frozen 原始尺寸和 SHA；Runtime 使用 reference-space mapping；统一缩放；不得独立 X/Y 拉伸；分别报告 Frozen coordinates 与 Runtime coordinates。
 
@@ -228,7 +230,7 @@ Android Runtime 不得引用上述整页 Frozen PNG。
 
 如果运行时缺少 Hero / error example 的独立照片源：优先在历史 FirstUse Asset Package、当前仓库和 Work workspace 查找原始独立照片；找到后登记 page-specific asset、记录 source SHA、绑定 Android resource、用 Compose 重建页面。
 
-禁止从 Frozen P01/P02 整页截图裁 UI 或照片作为 Runtime Shortcut。
+禁止从 Frozen P01/P02/P03 整页截图裁 UI 或照片作为 Runtime Shortcut。
 
 若原始独立照片源确实不存在，标记 ASSET_SOURCE_BLOCKED；必须明确报告缺失源，不得用重新生成图片冒充源资产。
 
@@ -240,11 +242,12 @@ Android Runtime 不得引用上述整页 Frozen PNG。
 识别过程
 └── 07 · 首次拍照教学
     ├── P01 · 竖屏拍摄示意
-    └── P02 · 横屏拍摄示意
+    ├── P02 · 竖拍鱼类拍摄示意
+    └── P03 · 横屏拍摄示意
 
 父级 = authority_gallery；子项 = repo_image。
 
-导入 PNG 后：Manifest status=FROZEN；binary_import=PASS；Design Manager P01/P02 均须真实加载；Hash deep-link 保持可用。
+导入 PNG 后：Manifest status=FROZEN；binary_import=PASS；Design Manager P01/P02/P03 均须真实加载；Hash deep-link 保持可用。
 
 执行 python3 scripts/verify_design_manager_navigation.py。
 
@@ -258,9 +261,9 @@ Android Runtime 不得引用上述整页 Frozen PNG。
 
 Trigger：permission=false → false；preview=false → false；gallery pending=true → false；completed=true → false；all ready + incomplete → true。
 
-Navigation：P01 next → P02；P02 previous → P01；P02 start → dismiss + complete；P01 next 不 complete；Skip → complete。
+Navigation：P01 next → P02；P02 previous → P01；P02 next → P03；P03 previous → P02；P03 start → dismiss + complete；P01/P02 next 不 complete；Skip → complete。
 
-Completion：Back → not complete；Close → not complete；outside dismiss → not complete；Skip → complete；P02 Start → complete。
+Completion：Back → not complete；Close → not complete；outside dismiss → not complete；Skip → complete；P03 Start → complete。
 
 ### Compose / Android Instrumentation
 
@@ -270,7 +273,9 @@ J01 首次权限完成后：permission granted → camera provider ready → gui
 J02 首次 Guide 默认 P01。
 J03 P01 下一张 → P02。
 J04 P02 上一张 → P01。
-J05 P02 开始拍摄：Guide hidden、Capture Ready、shutter invocation count=0。
+J05 P02 下一张 → P03。
+J06 P03 上一张 → P02。
+J07 P03 开始拍摄：Guide hidden、Capture Ready、shutter invocation count=0。
 J08 Skip：Guide hidden、completed=true、shutter count=0。
 J09 重新进入 Camera：completed=true、Guide 不出现。
 J10 清除 app data：Guide 再次出现。
@@ -279,7 +284,7 @@ J12 Permission denied：Guide 不出现。
 J13 Provider not ready：Guide 不出现。
 J14 Guide visible 点击 shutter：TAKE_PICTURE_REQUESTS=0。
 J15 Guide visible 点击 Gallery：不穿透、不触发 Camera capture。
-J16 左右 swipe：P01 → P02 → P01。
+J16 左右 swipe：P01 → P02 → P03；P03 → P02 → P01。
 J17 System Back：不写 completed、不触发 shutter。
 J18 rotation / Activity recreation：未完成 Guide 不得被错误标记完成；已完成 Guide 不再次出现。
 J19 TalkBack / semantics：所有 actions 有 role/name；page indicator 有 current state。
@@ -289,7 +294,7 @@ J20 fontScale 1.0 / 1.3 / 2.0：不裁切关键操作。
 
 Canonical device：API 28 / 1080×1920。
 
-输出 P01_runtime.png、P02_runtime.png；对应 Frozen reference；Overlay；Diff。
+每页输出 P01_runtime.png、P02_runtime.png、P03_runtime.png；对应 Frozen reference；Overlay；Diff。
 
 生成 first_use_camera_guide_runtime_report.json，包含 APK SHA、source SHA、device、API、viewport、density、fontScale、safeInsets、page、boundsInWindow、reference coordinates、runtime coordinates、visual observations、pass/fail。
 
@@ -358,7 +363,7 @@ Infra blocked 时必须保留已完成的静态/Unit/Design Manager 结果，并
 
 1. GitHub commits + SHA；
 2. PR #145 最新 HEAD；
-3. P01/P02 PNG binary import report；
+3. P01/P02/P03 PNG binary import report；
 4. Design Manager navigation PASS；
 5. Design Manager preview PASS；
 6. Unit test report；
@@ -372,15 +377,3 @@ Infra blocked 时必须保留已完成的静态/Unit/Design Manager 结果，并
 14. 未完成项 / blocker 分类。
 
 完成后保持 PR #145 Draft / Open / Unmerged，不得 merge main。
-
-## 20. Freeze-only update 2026-10-16
-
-本次用户明确冻结变更：首次拍照教学从三页调整为两页。
-
-- P01 保留：竖屏手机 + 横向鱼。
-- P02 冻结为：横屏手机 + 横向鱼。
-- 用户提供的 `湖畔横屏拍摄指南(1).png` 作为 P02 唯一高保真源。
-- P02：941×1672，2,001,322 bytes，SHA-256 `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`。
-- 原 P02（竖屏 + 竖鱼）和原 P03 仅保留历史溯源，不属于 active flow。
-- **本次不修改 Android 实现、不运行开发测试、不生成 APK。**
-- 后续开发必须先重新读取本冻结合同与 manifest，再实施两页版本。
