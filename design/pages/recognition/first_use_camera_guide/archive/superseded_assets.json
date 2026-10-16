@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "status": "HISTORICAL_PROVENANCE",
+  "superseded_by": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
+  "assets": [
+    {
+      "former_page_id": "p02",
+      "phone_orientation": "PORTRAIT",
+      "fish_orientation": "VERTICAL",
+      "original_path_in_pr145": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+      "archived_path": "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+      "bytes": 2042852,
+      "status": "SUPERSEDED_NOT_ACTIVE",
+      "preserve_bytes": true
+    },
+    {
+      "former_page_id": "p03",
+      "phone_orientation": "LANDSCAPE",
+      "fish_orientation": "HORIZONTAL",
+      "original_path_in_pr145": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+      "promoted_to_active_path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
+      "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "bytes": 2001322,
+      "status": "PROMOTED_BYTE_IDENTICAL_TO_P02",
+      "preserve_bytes": true
+    }
+  ]
+}

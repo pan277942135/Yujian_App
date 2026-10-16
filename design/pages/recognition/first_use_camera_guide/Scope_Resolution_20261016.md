@@ -1,22 +1,24 @@
-# First-use Camera Guide V1 · Task Scope Resolution
+# First-use Camera Guide V1.2 · Scope Resolution
 
-**Status:** ACTIVE FOR `RECOGNITION-FIRST-USE-GUIDE-V1`\
+**Status:** USER DECISION RECORDED; canonical change pending main review.
 **Date:** 2026-10-16
+**Conflict:** `C-FIRST-USE-GUIDE-PAGE-COUNT`
 
-## Resolution
+## Current active scope
 
-The explicitly requested V1 work task at `docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md` defines the active scope for PR #145 as three pages. This resolves `C-FIRST-USE-GUIDE-PAGE-COUNT` for this task.
+The latest user decision sets exactly two active teaching pages:
 
-| Page | Phone | Fish |
+| ID | Phone | Fish |
 |---|---|---|
 | P01 | Portrait | Horizontal |
-| P02 | Portrait | Vertical |
-| P03 | Landscape | Horizontal |
+| P02 | Landscape | Horizontal |
 
-The task requires the exact original P01/P02/P03 Frozen PNG bytes already registered in `asset_import_report.json`. Their paths, bytes, dimensions and SHA-256 values remain unchanged.
+The former portrait phone + vertical fish page is canceled as active teaching content and preserved under `archive/`. The original landscape/horizontal PNG formerly called P03 is promoted to active P02 without changing a byte.
 
-## Authority boundary
+## Synchronization required
 
-`Freeze_Decision_20261016_V2.md` records the earlier two-page proposal. It is retained for provenance, but is superseded by the current three-page V1 scope. The three-page scope is not a visual redesign and does not alter Frozen artwork.
+This decision is complete only when the Feature Matrix, N010/P3-03/P6-01 tasks, `G-FIRST-USE-GUIDE-ASSET`, Unified Contract, Experience Registry, guide manifest/navigation, Capture authority, Asset Manifest, and Master Board mapping all use P01/P02. P03 may appear only as historical provenance, never as an active page.
 
-Android Runtime must continue to rebuild the guide with Compose. Independent page-specific runtime photos remain a separate asset-source acceptance item; full-page Frozen screenshots are not runtime resources.
+## Product and Figma boundary
+
+Android implementation is not part of this design authority change. Figma remains untouched until canonical Admission passes and PR #145 is synchronized. MB-05 keeps `SOURCE_MISSING` for SHA-256 `6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c`; no replacement is generated.

@@ -21,7 +21,8 @@ def state_is_tracked_at(commit):
     return "WORK_EXECUTION_STATE.json" in git("ls-tree","-r","--name-only",commit).splitlines()
 
 def validate_source_sha(source_sha, expected_source, parents, state_is_tracked,
-                        changed_paths=None, source_is_ancestor=False):
+                        changed_paths=None, source_is_ancestor=False,
+                        source_changed_paths=None):
     """Validate code provenance without a self-referential checkpoint SHA.
 
     A committed Work checkpoint may contain multiple state-only commits after
@@ -32,6 +33,8 @@ def validate_source_sha(source_sha, expected_source, parents, state_is_tracked,
         if state_is_tracked:
             return "source_sha cannot equal a committed checkpoint HEAD (self-reference)"
         return None
+    if source_changed_paths is not None and "WORK_EXECUTION_STATE.json" in source_changed_paths:
+        return "source_sha cannot reference a commit that updates WORK_EXECUTION_STATE.json"
     if not source_is_ancestor and source_sha not in parents:
         return "source_sha must be an ancestor of the checkpoint commit"
     if changed_paths is not None:
@@ -44,6 +47,15 @@ def validate_source_sha(source_sha, expected_source, parents, state_is_tracked,
         if forbidden:
             return "code or contract changes after source_sha require revalidation: " + ", ".join(forbidden)
     return None
+
+def changed_in_commit(commit):
+    result=subprocess.run(
+        ["git","diff-tree","--root","--no-commit-id","--name-only","-r","-m",commit],
+        cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"could not inspect source commit {commit}")
+    return result.stdout.splitlines()
 
 def source_is_ancestor_of(source_sha, expected_source):
     return subprocess.run(
@@ -111,7 +123,26 @@ def main():
     env_branch=os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME")
     if env_branch and env_branch not in {state.get("branch"),"HEAD"}: errors.append(f"workflow branch {env_branch!r} != state branch {state.get('branch')!r}")
     try:
-        expected_source = git("rev-parse", f"origin/{env_branch}") if os.environ.get("GITHUB_HEAD_REF") else git("rev-parse","HEAD")
+        branch_ref=f"origin/{env_branch}" if os.environ.get("GITHUB_HEAD_REF") else "HEAD"
+        current_branch_head=git("rev-parse",branch_ref)
+        checkout_sha=git("rev-parse","HEAD")
+        expected_source=current_branch_head
+        state_rel=p.relative_to(ROOT).as_posix()
+        state_commit_sha=git("log","-1","--format=%H",branch_ref,"--",state_rel)
+        if not state_commit_sha:
+            errors.append("state_commit_sha could not be resolved from committed Work State")
+        elif state_commit_sha != current_branch_head:
+            errors.append("state_commit_sha must equal current branch HEAD; commit the state checkpoint after source changes")
+        committed_state=subprocess.run(
+            ["git","show",f"{branch_ref}:{state_rel}"],cwd=ROOT,
+            stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,
+        )
+        if committed_state.returncode != 0 or committed_state.stdout != p.read_bytes():
+            errors.append("working Work State bytes must match the current branch's committed state")
+        if git("status","--porcelain","--untracked-files=all"):
+            errors.append("Work branch must be committed and clean before admission")
+        if checkout_sha != current_branch_head and not source_is_ancestor_of(current_branch_head,checkout_sha):
+            errors.append("current branch HEAD must be an ancestor of the checked-out commit")
         source_error=validate_source_sha(
             state.get("source_sha"),
             expected_source,
@@ -119,6 +150,7 @@ def main():
             state_is_tracked_at(expected_source),
             changed_paths=changed_since(state.get("source_sha"), expected_source),
             source_is_ancestor=source_is_ancestor_of(state.get("source_sha"), expected_source),
+            source_changed_paths=changed_in_commit(state.get("source_sha")),
         )
         if source_error: errors.append(source_error)
         if git("rev-parse","origin/main") != state.get("control_plane_revision"): errors.append("control_plane_revision must equal refreshed origin/main")
@@ -153,5 +185,9 @@ def main():
         return 1
     print("WORK_EXECUTION_STATE_VALIDATION=PASS")
     print(f"work_id={state['work_id']}"); print(f"task_id={state['task_id']}"); print(f"phase={state['phase']}"); print(f"status={state['status']}"); print(f"control_plane_revision={state['control_plane_revision']}")
+    print(f"source_sha={state.get('source_sha')}")
+    print(f"state_commit_sha={state_commit_sha}")
+    print(f"current_branch_head_sha={current_branch_head}")
+    print(f"checkout_sha={checkout_sha}")
     return 0
 if __name__=="__main__": raise SystemExit(main())

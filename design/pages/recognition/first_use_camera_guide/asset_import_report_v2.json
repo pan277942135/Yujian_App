@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
   "task_id": "RECOGNITION-FIRST-USE-GUIDE-V2-HISTORICAL",
-  "status": "HISTORICAL_SUPERSEDED_BY_USER_AUTHORIZED_V1_SCOPE",
+  "status": "HISTORICAL_SNAPSHOT_SUPERSEDED_BY_V1_2_USER_DECISION",
   "binary_import_status": "NOT_APPLICABLE_TO_ACTIVE_V1_SCOPE",
   "historical_assets": [
     {
@@ -19,7 +19,7 @@
       "status": "HISTORICAL_COMPATIBILITY_ONLY"
     }
   ],
-  "note": "Preserved historical two-page proposal. It does not define the active RECOGNITION-FIRST-USE-GUIDE-V1 task, which explicitly requires byte-identical P01/P02/P03; see Scope_Resolution_20261016.md.",
+  "note": "Historical record of an earlier two-page proposal. Current active authority is V1.2 and asset_import_report.json; the former vertical-fish P02 remains archived and the former P03 landscape bytes are active P02 unchanged.",
   "historical_proposal_assets": [
     {
       "id": "p01",

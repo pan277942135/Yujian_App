@@ -145,6 +145,10 @@ canonical_static_control_plane:
     - "scripts/validate_control_plane_admission.py"
     - "scripts/run_android_runtime_gate.sh"
     - "scripts/run_recognition_frozen_emulator_gate.sh"
+    - ".github/workflows/control-plane-admission.yml"
+    - "tests/test_work_execution_state_provenance.py"
+    - "tests/test_work_execution_state_checkpoints.py"
+    - "scripts/tests/test_first_use_guide_authority.py"
 
 canonical_design_authorities:
   branch: "main"

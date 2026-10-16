@@ -19636,14 +19636,14 @@
       "path": "design/registry/experience_registry_v1.json",
       "expected_current_git_blob_sha": "bd9d0bb0774832d256aeb72f3475abd9976dd507",
       "source_commit_sha": "8458e658da8ef0e72892d36b52a043718d7629d2",
-      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 imports the exact approved P01/P02/P03 Frozen PNG bytes. The active registry root now points to the V1 three-page guide authority; the original imported PNG bytes remain unchanged.",
+      "reason": "Historical audit note at generation time: RECOGNITION-FIRST-USE-GUIDE-V1 imported the then-approved P01/P02/P03 PNG bytes. Current V1.2 authority supersedes that page count with P01/P02; original payload bytes remain unchanged and former portrait/vertical P02 is archived.",
       "is_frozen_asset": false
     },
     {
       "path": "design/README.md",
       "expected_current_git_blob_sha": "c20bc332815a5066281951ff63cac8580d0ad201",
       "source_commit_sha": "d09f24c65c9617bf2ce89a3715577ac831fb960b",
-      "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 adds the frozen three-page guide Design Manager entry and source-of-truth links. Documentation only; no Phase 1 Frozen visual or product asset bytes changed.",
+      "reason": "Historical audit note at generation time: the first-use guide Design Manager entry used three pages. Current V1.2 authority uses two active pages; this supersession changes no source image bytes.",
       "is_frozen_asset": false
     },
     {

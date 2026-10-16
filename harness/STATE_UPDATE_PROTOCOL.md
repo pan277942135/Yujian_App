@@ -381,6 +381,20 @@ The Control Plane defines rules; it does not store live Work progress.
 - A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.
 
 
+## Work State source and checkpoint provenance V1.2
+
+`source_sha` identifies the code and contract commit whose evidence is being validated. It must be a real ancestor of the current Work branch HEAD, and that source commit must not modify the root `WORK_EXECUTION_STATE.json`.
+
+The validator reports three separate Git identities:
+
+- `source_sha`: the tested code/contract snapshot stored in Work State;
+- `state_commit_sha`: derived as the latest commit that changed the active root Work State file;
+- `current_branch_head_sha`: the actual branch ref being admitted. `checkout_sha` is reported separately when the runner checkout differs from the branch ref.
+
+For a committed checkpoint, the latest state commit must be the current branch HEAD, the checked-in state bytes must match the state file on disk, and the worktree must be clean. `source_sha` may precede one or more state-only checkpoint commits. Commits after `source_sha` may change only the Work State, Project Master State, or build log; any code/design/contract change requires a new source SHA and revalidation. A prior state-only commit is never a valid source SHA.
+
+Checkpoint recovery is accepted only when the restored Git HEAD contains the restored Work State bytes and the source-to-head ancestry remains valid. Re-run the validator after a restore. Never infer PASS from a state label or an unverified checkpoint.
+
 ## Work State Migration V1.1
 Legacy feature-specific Work state paths such as `docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json` are retired. Every active Work branch uses root `WORK_EXECUTION_STATE.json`.
 

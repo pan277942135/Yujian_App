@@ -1,55 +1,60 @@
 {
   "schema_version": "1.1",
-  "task_id": "RECOGNITION-FIRST-USE-GUIDE-V1",
-  "status": "PASS",
-  "binary_import_status": "PASS",
-  "import_timestamp": "2026-10-16T07:00:29Z",
-  "verification": [
-    "file",
-    "sha256sum",
-    "wc -c",
-    "Pillow Image.open",
-    "git hash-object"
-  ],
-  "assets": [
+  "scope": "repository source-byte verification only; no Figma upload or node fill has been performed",
+  "authority_status": "CONTROL_PLANE_PROPOSAL_PENDING_MAIN_AUTHORIZATION",
+  "verified_assets": [
     {
       "id": "p01",
       "path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-      "filename": "P01_First_Use_Camera_Guide_Frozen.png",
-      "width": 941,
-      "height": 1671,
-      "bytes": 1988159,
-      "sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+      "expected_sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+      "actual_repository_sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
       "git_blob_sha": "3f73f744104777beee29bd2370ecac1f40197a1d",
-      "source_filename": "湖畔夕照拍照识鱼指南.png",
-      "import_timestamp": "2026-10-16T07:00:29Z",
-      "status": "PASS"
+      "bytes": 1988159,
+      "dimensions": [
+        941,
+        1671
+      ],
+      "result": "PASS",
+      "figma_node_id": "6:21",
+      "figma_fill_status": "PENDING_ADMISSION",
+      "image_fill_confirmed": false,
+      "crop_review": "PENDING_AFTER_IMPORT"
     },
     {
       "id": "p02",
-      "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-      "filename": "P02_First_Use_Camera_Guide_Frozen.png",
-      "width": 941,
-      "height": 1671,
-      "bytes": 2042852,
-      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-      "git_blob_sha": "9c2dd981a04792c6ac51e3925727b4e4e6704034",
-      "source_filename": "湖畔竖拍识鱼指南.png",
-      "import_timestamp": "2026-10-16T07:00:29Z",
-      "status": "PASS"
+      "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
+      "expected_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "actual_repository_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "git_blob_sha": "2f46b2f2906f258eef8ca67181fc049a55d045af",
+      "bytes": 2001322,
+      "dimensions": [
+        941,
+        1672
+      ],
+      "result": "PASS",
+      "figma_node_id": "6:28",
+      "figma_fill_status": "PENDING_ADMISSION",
+      "image_fill_confirmed": false,
+      "crop_review": "PENDING_AFTER_IMPORT"
     },
     {
-      "id": "p03",
-      "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
-      "filename": "P03_First_Use_Camera_Guide_Frozen.png",
-      "width": 941,
-      "height": 1672,
-      "bytes": 2001322,
-      "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-      "git_blob_sha": "2f46b2f2906f258eef8ca67181fc049a55d045af",
-      "source_filename": "湖畔横屏拍摄指南(1).png",
-      "import_timestamp": "2026-10-16T07:00:29Z",
-      "status": "PASS"
+      "id": "former_p02_vertical",
+      "path": "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+      "expected_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+      "actual_repository_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+      "git_blob_sha": "9c2dd981a04792c6ac51e3925727b4e4e6704034",
+      "bytes": 2042852,
+      "dimensions": [
+        941,
+        1671
+      ],
+      "result": "PASS_ARCHIVED_NOT_ACTIVE",
+      "figma_node_id": null,
+      "figma_fill_status": "NOT_APPLICABLE",
+      "image_fill_confirmed": null,
+      "crop_review": "NOT_APPLICABLE"
     }
-  ]
+  ],
+  "figma_frame": "VjN7iFviVN9aKeLv8kJivM / 6:2",
+  "figma_edits_performed": false
 }

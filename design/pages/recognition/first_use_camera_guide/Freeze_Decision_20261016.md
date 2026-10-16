@@ -1,35 +1,24 @@
-# First-use Camera Guide · Freeze Decision 2026-10-16
+# First-use Camera Guide · Active Freeze Decision 2026-10-16
 
-**Design status: FROZEN**  
-**Active authority:** `First_Use_Camera_Guide_Spec_V1.md`  
+**Status:** FROZEN DESIGN AUTHORITY; canonical change is pending main review and admission.
+**Canonical spec:** `First_Use_Camera_Guide_Spec_V1_2.md`
 **Task:** `RECOGNITION-FIRST-USE-GUIDE-V1`
 
-The current scope is the original frozen three-page V1 sequence. The two-page V1.1 proposal was not accepted as a product/design decision and is retained as historical proposal material.
+## Active two-page decision
 
-## Active sequence
-
-| ID | Title | Phone | Fish | Primary action |
+| ID | Phone | Fish | Primary action | Original PNG SHA-256 |
 |---|---|---|---|---|
-| P01 | 竖屏拍摄示意 | Portrait | Horizontal | 下一张 |
-| P02 | 竖拍鱼类拍摄示意 | Portrait | Vertical | 下一张 |
-| P03 | 横屏拍摄示意 | Landscape | Horizontal | 开始拍摄 |
+| P01 | Portrait | Horizontal | 下一张 | `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50` |
+| P02 | Landscape | Horizontal | 开始拍摄 | `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3` |
 
-**Active page count: exactly 3.**
+The former portrait-phone + vertical-fish page is no longer active. Its original bytes remain in `archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png` with SHA-256 `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f`. The former P03 landscape PNG is byte-identical to active P02; it is promoted without image edits.
 
-## Frozen source assets
+`跳过` exits without taking a photo. `开始拍摄` closes the guide and returns to Capture Ready; it does not trigger the shutter.
 
-The V1 artwork remains byte-identical to the imported originals. The active manifest and `asset_import_report.json` are the file-level sources of truth.
+## Preserved review history
 
-| ID | Path | Canvas | Bytes | SHA-256 | Git blob |
-|---|---|---:|---:|---|---|
-| P01 | `frozen/P01_First_Use_Camera_Guide_Frozen.png` | 941×1671 | 1,988,159 | `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50` | `3f73f744104777beee29bd2370ecac1f40197a1d` |
-| P02 | `frozen/P02_First_Use_Camera_Guide_Frozen.png` | 941×1671 | 2,042,852 | `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f` | `9c2dd981a04792c6ac51e3925727b4e4e6704034` |
-| P03 | `frozen/P03_First_Use_Camera_Guide_Frozen.png` | 941×1672 | 2,001,322 | `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3` | `2f46b2f2906f258eef8ca67181fc049a55d045af` |
-
-## Interaction freeze
-
-P01 → `下一张` → P02; P02 → `上一张` or `下一张`; P03 → `上一张` or `开始拍摄` → Capture Ready. `跳过` exits from any page. Back, close, and outside dismissal do not mark the guide complete. Only Skip or the final P03 Start completes it. Start never triggers the shutter automatically.
+The earlier three-page decision was based on the former Work Task text. The latest user decision in the active Work request supersedes that page count and formally selects the two-page sequence above. Prior V1/V1.1/V2 files remain historical records and are not active authorities.
 
 ## Acceptance boundary
 
-The V1 page count, semantics, orientation, interactions and original asset bytes are frozen. This records design authority and does not claim Android runtime behavior or visual parity. Runtime validation and independent page-specific photo-source availability remain separate acceptance evidence.
+The PNG source SHA values and Git blob identities are verified in `asset_import_report.json`. Figma node fills, crop review, the complete Master Board visual, PNG/PDF export and product-branch Admission remain pending their required sequence. MB-05 portrait Capture source remains `SOURCE_MISSING`; no replacement is generated.

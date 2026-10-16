@@ -1,8 +1,10 @@
+> Historical V1.1 proposal snapshot. Its two-page orientation is adopted by active V1.2; use `First_Use_Camera_Guide_Spec_V1_2.md` for current authority.
+
 # Historical proposal · First-use Camera Guide V1.1 (SUPERSEDED)
 
-> Historical two-page proposal only. The active authority for PR #145 is the three-page Work Task V1 and its P01/P02/P03 Frozen contract.
+> Historical V1.1 proposal snapshot. The latest user decision re-adopts its two-page orientation in active V1.2; this file is history only. Current authority: `First_Use_Camera_Guide_Spec_V1_2.md`.
 
-> Historical two-page proposal only. The active authority for PR #145 is the three-page Work Task V1 and its P01/P02/P03 Frozen contract.
+> Historical V1.1 proposal snapshot. The latest user decision re-adopts its two-page orientation in active V1.2; this file is history only. Current authority: `First_Use_Camera_Guide_Spec_V1_2.md`.
 
 **Status:** SUPERSEDED for PR #145 Work Task V1\
 **Freeze date:** 2026-10-16\

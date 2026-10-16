@@ -41,10 +41,10 @@
 
 ### 3.2 首次拍照引导
 
-- The first-use guide is a three-page additive Capture Overlay: P01 `竖屏拍摄示意`, P02 `竖拍鱼类拍摄示意`, P03 `横屏拍摄示意`.
-- P01 and P02 use `下一张`; P03 uses `开始拍摄`.
+- The first-use guide is a two-page additive Capture Overlay: P01 `竖屏拍摄示意` (portrait phone + horizontal fish), P02 `横屏拍摄示意` (landscape phone + horizontal fish).
+- P01 uses `下一张`; P02 uses `开始拍摄` and `上一张`.
 - Each page uses one correct Hero example plus three lower error examples: `鱼头不在画面` / `鱼体过小` / `遮挡过多`.
-- P01 error examples use horizontal fish; P02 error examples use vertical fish; P03 error examples use horizontal fish.
+- P01 and P02 error examples both use horizontal fish. The former portrait-phone + vertical-fish page is archived, not active.
 - `跳过` and the final `开始拍摄` action only dismiss the guide; neither action automatically triggers the shutter.
 - The frozen visual authority is `design/pages/recognition/first_use_camera_guide/`.
 

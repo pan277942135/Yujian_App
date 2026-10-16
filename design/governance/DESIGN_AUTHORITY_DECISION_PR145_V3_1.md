@@ -2,62 +2,43 @@
 
 | Field | Value |
 |---|---|
-| Decision ID | `AUTH-PR145-20261016-01` |
-| Status | `REVIEWED / CONDITIONALLY APPROVED — EXACT-HEAD CHECKS REQUIRED BEFORE MERGE` |
-| Baseline main | `2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d` (after PR #150) |
-| Source Work checkpoint | `5701512dad61fa2b634293a542804c60b70ce7b3` |
+| Decision ID | `AUTH-PR145-20261016-02` |
+| Status | `USER DECISION RECORDED / DRAFT CONTROL PLANE CHANGE — EXACT-HEAD GATES REQUIRED` |
+| Canonical baseline main | `2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d` |
+| PR #151 current pre-change head | `ca2d2f8d56511f0fe3954d407081b04aad69cd61` |
 | Product PR | `#145` — Draft / Open / Unmerged |
-| Control Plane PR | `#151` |
-| Review source | Prior blocking review on PR #151, exact file diffs, original Work Task V1, effective registry, Empty Home / Android CI failure logs |
+| Latest verified PR #145 head | `91240b89280cc51e2b5aa9c56f04e19a57453a6c` |
+| User decision date | `2026-10-16` |
 
-## Path-level authority disposition
+## Current first-use guide authority — exactly two pages
 
-| Authority root | Added | Modified | Reviewed disposition |
-|---|---:|---:|---|
-| `design/system_v3/` | 153 | 1 | Approve additive V3.1 authority package and synchronize first-use-guide entry in the existing effective registry to three-page V1. Do not overwrite pre-existing Frozen PNGs or tokens. |
-| `design/pages/` | 20 | 2 | Approve new guide, evidence, archive and V3.1 page assets; approve the additive RR08 Result navigation/menu links only. |
-| `design/registry/` | 0 | 1 | Approve the three-page first-use guide Design Manager navigation and SHA declarations. |
-| `design/governance/` | 1 | 0 | This decision record and review trail. |
+The latest user decision for this work sets P01 to portrait phone + horizontal fish and P02 to landscape phone + horizontal fish. The former portrait-phone + vertical-fish teaching page is canceled as active content and retained in the archive. The landscape/horizontal original bytes formerly labeled P03 are promoted unchanged as active P02.
 
-Overall expected PR delta after reconciliation: 178 files: 174 added / 4 modified. The counts are a proposed post-fix diff and must be confirmed against the remote PR file list before merge.
+| Page | Phone | Fish | Original SHA-256 | Git blob | Status |
+|---|---|---|---|---|---|
+| P01 | portrait | horizontal | `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50` | `3f73f744104777beee29bd2370ecac1f40197a1d` | active / FROZEN |
+| P02 | landscape | horizontal | `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3` | `2f46b2f2906f258eef8ca67181fc049a55d045af` | active / FROZEN |
+| archived former P02 | portrait | vertical | `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f` | `9c2dd981a04792c6ac51e3925727b4e4e6704034` | archive only |
 
-### Empty Home — explicitly deferred to product runtime PR #145
+The V1.2 Guide Spec, manifest, navigation, Feature Matrix, P3-03/N010/P6-01 tasks, `G-FIRST-USE-GUIDE-ASSET`, Unified Contract, Experience Registry, Capture authority, Asset Manifest, and 15-state Master Board mapping have been synchronized to this page set. The resolved gate requires P01/P02 bytes and Design Governance evidence. Historical P03 identifiers appear only in provenance/archive fields.
 
-The original authority proposal modified these two pre-existing V2.2 contracts without including corresponding packaged Android Runtime changes:
+## Frozen asset and capture source boundaries
 
-- `design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json`
-- `design/pages/home/empty_home/shared/contracts/runtime_manifest.json`
+The active P01 and P02 image payloads are byte-identical to the verified originals; only their semantic page mapping and repository path for active P02 change. The former vertical-fish P02 remains preserved under `archive/`. No Frozen image was redrawn, resampled, recompressed, or AI-generated.
 
-This caused exact failures in **Empty Home V2 Design Assets** run `38911215172` and **Android CI** run `38911215197`: the responsive contract and manifest diverged from packaged Runtime.
+Capture MB-05 remains `SOURCE_MISSING` for `a_realistic_high_resolution_vertical_smartphone_c.png`, expected SHA-256 `6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c`. Its original has not been found in the handoff ZIP, Library results, or reachable Git history; no substitute is generated. Board status remains PARTIAL.
 
-**Decision:** Restore both files in PR #151 byte-for-byte to the current `main` blobs (`2ef308d0bf8d9f07319e88a6b1bbba80ce4afb7f` and `24fd2f74908f5cda1b704fd5cce074db0d183a8a`, respectively). Keep the revised Empty Home contract together with the matching Android implementation on product PR #145, subject to synchronized Exact-HEAD gates; do not suppress a validator or backport product assets into the Control Plane PR. This is a **defer**, not a rejection of the runtime revision.
+## Work State provenance repair in this control-plane change
 
-### First-use Camera Guide — active three-page V1
+PR #150 already established source ancestry checks and contract alias resolution. This follow-up additionally separates the tested `source_sha`, derived `state_commit_sha`, and current branch HEAD; rejects a state-only commit as a source; and adds Git integration tests for submitted state, consecutive state-only updates, and checkpoint restore. PASS remains evidence-gated.
 
-The original `docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md` on PR #145 explicitly specifies **P01/P02/P03** and prohibits promotion of the historical two-page proposal. This is also consistent with `First_Use_Camera_Guide_Spec_V1.md`, `Freeze_Decision_20261016.md`, `Scope_Resolution_20261016.md`, `manifest.json`, `navigation.json`, the Capture authority and the product journey contract.
+## Deferred work and merge boundary
 
-| Page | Phone orientation | Fish orientation | Bytes | Declared SHA-256 | Git blob |
-|---|---|---|---:|---|---|
-| P01 | portrait | horizontal | 1,988,159 | `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50` | `3f73f744104777beee29bd2370ecac1f40197a1d` |
-| P02 | portrait | vertical | 2,042,852 | `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f` | `9c2dd981a04792c6ac51e3925727b4e4e6704034` |
-| P03 | landscape | horizontal | 2,001,322 | `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3` | `2f46b2f2906f258eef8ca67181fc049a55d045af` |
+- PR #145 remains untouched by this change and must remain Draft/Open/Unmerged.
+- Figma remains untouched until canonical control-plane changes are approved, merged to main, synchronized to PR #145, and product-branch Admission passes.
+- Final Figma fills, aspect/crop review, 5120×2880 PNG, and PDF exports are downstream deliverables, not claimed here.
+- This Draft PR is not a merge authorization. Exact-head gates and human authorization remain required.
 
-The three assets' Git blob identities were read from the remote PR #151 files and matched the asset import report. **The SHA-256 values above are recorded source evidence; independent raw binary SHA-256 recomputation is not claimed here.** That verification must be performed using actual PNG bytes in CI / a byte-capable runner before final evidence sign-off.
+## Superseded review history
 
-**Decision:** The active Effective Authority Registry must include P01/P02/P03 and state the three-page sequence, with the same approved manifest and freeze decision. The historical V1.1/V2 two-page proposal remains under historical status and must not drive runtime implementation.
-
-The Frozen full-page PNGs authorize Design Manager design display **only**; Android must use CameraX + Compose with independently sourced photo examples. Design approval is **not** Android Runtime approval.
-
-### RR08 and V3.1 shared design package
-
-The Result navigation and menu changes add a visual acceptance contract index (RR08), not a new Result product state. The 153 newly introduced V3.1 system authority files remain additive; no existing `main` Frozen PNG, SVG, token, or source asset SHA path is overwritten by this branch. Asset manifests remain source references without rewriting Frozen artwork.
-
-## Mandatory merge gates
-
-1. Verify final diff scope and that no `app/`, packaged Runtime, existing Frozen overwrite, or validator bypass entered PR #151.
-2. Re-run on the **new exact head**: Control Plane Admission, Design Governance, Normal Home Spec Governance, Empty Home V2 Design Assets, and Android CI. An old successful run is not sufficient.
-3. Verify P01/P02/P03 original PNG SHA-256/size/geometry from raw bytes in a trusted runner; inspect all three Design Manager authority bindings. Lack of a raw-asset check is a remaining evidence limitation, not a PASS.
-4. Confirm main SHA immediately before merge. Merge PR #151 only after all required checks and the final authority review are satisfied.
-5. Then synchronize Draft PR #145 from the **new** main SHA; re-run Project Master State and full Control Plane Admission, and continue N001 only after they pass.
-
-**Boundary:** Do not merge PR #145 or declare N001, API28 Runtime, APK SHA, or Release PASS from this authority approval.
+An earlier review snapshot in this file's prior revision accepted a three-page P01/P02/P03 interpretation based on task text then present on PR #145. That snapshot is superseded by the latest explicit user decision recorded above. Its existence is retained in Git history; it is not an active design authority.

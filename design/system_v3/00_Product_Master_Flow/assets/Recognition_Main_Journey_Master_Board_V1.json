@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "board_id": "recognition_main_journey_master_board_v1",
-  "status": "FROZEN_REVIEW_BOARD",
+  "status": "PARTIAL",
   "standalone_visual_authority": false,
   "canvas": {
     "width": 5120,
@@ -16,112 +16,184 @@
       "page_id": "HOME",
       "state_id": "EMPTY",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:7",
+      "repository_path": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
+      "source_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-02",
       "page_id": "IDENTIFY",
       "state_id": "CAMERA_PERMISSION",
       "status": "FROZEN",
-      "ownership": "SYSTEM"
+      "ownership": "SYSTEM",
+      "figma_node_id": "6:14",
+      "repository_path": null,
+      "source_sha256": null,
+      "source_status": "SYSTEM",
+      "figma_fill_status": "SYSTEM_NO_BITMAP"
     },
     {
       "board_id": "MB-03",
       "page_id": "GUIDE",
       "state_id": "P01",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:21",
+      "repository_path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+      "source_sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION",
+      "guide_page_id": "p01",
+      "page_state": "P01 · portrait phone + horizontal fish"
     },
     {
       "board_id": "MB-04",
       "page_id": "GUIDE",
       "state_id": "P02",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:28",
+      "repository_path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
+      "source_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION",
+      "guide_page_id": "p02",
+      "page_state": "P02 · landscape phone + horizontal fish"
     },
     {
       "board_id": "MB-05",
-      "page_id": "GUIDE",
-      "state_id": "P03",
-      "status": "FROZEN",
-      "ownership": null
+      "page_id": "IDENTIFY",
+      "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
+      "status": "MISSING",
+      "ownership": null,
+      "figma_node_id": "6:35",
+      "repository_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png",
+      "source_sha256": "6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c",
+      "source_status": "SOURCE_MISSING",
+      "figma_fill_status": "SOURCE_MISSING"
     },
     {
       "board_id": "MB-06",
       "page_id": "IDENTIFY",
-      "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
+      "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:42",
+      "repository_path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Landscape_Horizontal_Fish_Frozen.png",
+      "source_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18f",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-07",
-      "page_id": "IDENTIFY",
-      "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
+      "page_id": "RECOGNIZING",
+      "state_id": "PROCESSING_IMAGE_RECOGNIZING_EARLY",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:49",
+      "repository_path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "source_sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-08",
       "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_IMAGE_RECOGNIZING_EARLY",
+      "state_id": "PROCESSING_IMAGE_RECOGNIZING_LATE",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:56",
+      "repository_path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+      "source_sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-09",
       "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_IMAGE_RECOGNIZING_LATE",
+      "state_id": "PROCESSING_FISH_LOCATED",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:63",
+      "repository_path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+      "source_sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-10",
       "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_FISH_LOCATED",
+      "state_id": "PROCESSING_SPECIES_RECOGNIZING",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:70",
+      "repository_path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+      "source_sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-11",
-      "page_id": "RECOGNIZING",
-      "state_id": "PROCESSING_SPECIES_RECOGNIZING",
+      "page_id": "RESULT",
+      "state_id": "RESULT_HIGH",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:77",
+      "repository_path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "source_sha256": "f540ddc4b3844a453170537eaa70f506dc0eb1c312fc3410a960ad6cd87ba156",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-12",
       "page_id": "RESULT",
-      "state_id": "RESULT_HIGH",
+      "state_id": "RESULT_MEDIUM",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:84",
+      "repository_path": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+      "source_sha256": "5a334f8deef344910865d43057a2df3d6d5137ca8ebfad3eef7557120586fcd3",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-13",
       "page_id": "RESULT",
-      "state_id": "RESULT_MEDIUM",
+      "state_id": "RESULT_LOW",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:91",
+      "repository_path": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+      "source_sha256": "b767965028786374bcadf9dd1b219b7b61f698edade323d8557293ebcec1d6e1",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-14",
       "page_id": "RESULT",
-      "state_id": "RESULT_LOW",
+      "state_id": "NO_FISH",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:98",
+      "repository_path": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+      "source_sha256": "3952e2f8eb8e42124e8554f6c1481351ff7cb7bb200180613787c4448bf2d8d2",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     },
     {
       "board_id": "MB-15",
       "page_id": "RESULT",
-      "state_id": "NO_FISH",
-      "status": "FROZEN",
-      "ownership": null
-    },
-    {
-      "board_id": "MB-16",
-      "page_id": "RESULT",
       "state_id": "IMAGE_QUALITY",
       "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "figma_node_id": "6:105",
+      "repository_path": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+      "source_sha256": "965be5b37ce4c41e8a5b758f2f94bac16fa0b99dc135e25b114c2943d35b1a0d",
+      "source_status": "FROZEN_SOURCE_AVAILABLE",
+      "figma_fill_status": "PENDING_ADMISSION"
     }
   ],
   "recovery_sequence": [
@@ -203,19 +275,34 @@
   },
   "output_targets": {
     "png": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.png",
-    "svg": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.svg",
-    "resolution": "5120x2880"
+    "pdf": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.pdf",
+    "resolution": "5120x2880",
+    "status": "PENDING_FIGMA_IMPORT_AND_VISUAL_QA"
   },
   "figma": {
     "file_key": "VjN7iFviVN9aKeLv8kJivM",
     "page_name": "MASTER BOARD V1",
     "board_node_id": "6:2",
-    "composition_status": "STRUCTURE_COMPLETE_SOURCE_IMPORT_PENDING",
-    "note": "Figma canvas is editable. Frozen PNG binary assets are not embedded yet because the current MCP client exposes upload_assets as single-use POST endpoints but does not provide a raw-byte POST action in this session; no generated substitutes were used."
+    "composition_status": "PENDING_ADMISSION_AND_TWO_PAGE_MAPPING",
+    "note": "No Figma edit performed before Control Plane Admission PASS. Original image imports and per-node fill/crop verification are pending."
   },
   "asset_import_gate": {
-    "status": "BLOCKED_CONNECTOR_UPLOAD_STEP",
-    "required_action": "POST original Frozen PNG bytes to Figma upload_assets endpoints, then bind them to the existing placeholder nodes.",
+    "status": "BLOCKED_ADMISSION_PENDING",
+    "required_action": "After canonical approval and Admission PASS, map 15 primary states / 8 recovery, bind only original source bytes, then verify node fills and crop.",
+    "source_missing_policy": "MB-05 remains SOURCE_MISSING; never regenerate or claim FROZEN.",
     "no_ai_generated_substitutes": true
-  }
+  },
+  "authority_status": "CONTROL_PLANE_PROPOSAL_PENDING_MAIN_AUTHORIZATION",
+  "board_status": "PARTIAL",
+  "figma_import_status": "PENDING_ADMISSION",
+  "source_missing": {
+    "board_id": "MB-05",
+    "path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png",
+    "source_filename": "a_realistic_high_resolution_vertical_smartphone_c.png",
+    "expected_sha256": "6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c",
+    "status": "SOURCE_MISSING",
+    "regenerate": false
+  },
+  "verified_main_base_sha": "2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d",
+  "verified_pr145_head_sha": "91240b89280cc51e2b5aa9c56f04e19a57453a6c"
 }

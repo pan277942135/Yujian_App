@@ -76,7 +76,7 @@ State: `CAPTURE_PERMISSION_DENIED`
 - Shutter must be disabled.
 - Gallery remains available.
 - Back remains available.
-- First-use guide P01/P02/P03 must not appear while permission is denied.
+- Active first-use guide P01/P02 must not appear while permission is denied.
 - Runtime must use structured Compose UI; the frozen raster is visual authority only.
 
 ## 7. Frozen raster authority

@@ -39,5 +39,22 @@
     "api_level": 28,
     "classification": "PASS",
     "scope": "historical_v1_1"
+  },
+  "first_use_camera_guide": {
+    "status": "FROZEN",
+    "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
+    "active_pages": [
+      "p01",
+      "p02"
+    ],
+    "page_orientation": {
+      "p01": "PORTRAIT + HORIZONTAL_FISH",
+      "p02": "LANDSCAPE + HORIZONTAL_FISH"
+    },
+    "source_sha256": {
+      "p01": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+      "p02": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+    },
+    "figma_import_status": "PENDING_ADMISSION"
   }
 }

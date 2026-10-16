@@ -35,4 +35,6 @@ jobs:
       - name: Single control-plane admission
         run: python scripts/validate_control_plane_admission.py
       - name: Work checkpoint and contract alias regression
-        run: python -m unittest discover -s tests -p 'test_work_execution_state_provenance.py' -v
+        run: python -m unittest discover -s tests -p 'test_work_execution_state_*.py' -v
+      - name: Two-page first-use authority regression
+        run: python -m unittest discover -s scripts/tests -p 'test_first_use_guide_authority.py' -v

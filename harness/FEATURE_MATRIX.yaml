@@ -261,7 +261,6 @@ features:
       - "runtime_final_gate"
       - "p01"
       - "p02"
-      - "p03"
     child_surfaces:
       - "capture"
       - "permission"
@@ -303,7 +302,7 @@ features:
     known_gaps:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
       - "Capture Hi-Fi source PNG binary import remains pending."
-      - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
+      - "The active V1.2 first-use guide uses exactly P01 portrait phone + horizontal fish and P02 landscape phone + horizontal fish; exact-head API28 runtime and visual parity evidence remain pending."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"

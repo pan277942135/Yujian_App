@@ -189,9 +189,9 @@ blocker_semantics:
   n002_target: ["B002"]
   n004_target: ["B003", "B004"]
   n007_target: ["B006"]
-  n010_target_and_entry: ["B008"]
+  n010_target_and_entry: []
 
-known_blocker_ids: ["B001", "B002", "B003", "B004", "B005", "B006", "B007", "B008"]
+known_blocker_ids: ["B001", "B002", "B003", "B004", "B005", "B006", "B007"]
 
 retry_policy:
   initial_attempt: 1
@@ -407,8 +407,8 @@ tasks:
     depends_on: ["P3-01"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["P01_png_sha", "P02_png_sha", "P03_png_sha", "design_governance_pass"]
-    completion: "Three-page First Capture Guide frozen binaries are restored and registered; Design Governance remains the acceptance gate."
+    evidence_required: ["P01_png_sha", "P02_png_sha", "design_governance_pass"]
+    completion: "The two-page First Capture Guide P01/P02 frozen binaries are restored and registered; Design Governance remains the acceptance gate."
     human_required: false
   P3-04:
     phase: "P3"
@@ -479,8 +479,8 @@ tasks:
     depends_on: ["P3-03", "P5-02"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["first_use_guide_implementation", "P01_P02_P03_binary_integrity"]
-    completion: "Three-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
+    evidence_required: ["first_use_guide_implementation", "P01_P02_binary_integrity"]
+    completion: "Two-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
     human_required: false
   P6-02:
     phase: "P6"
@@ -936,8 +936,8 @@ tasks:
     entry_blockers: []
     target_blockers: []
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
-    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
-    completion: "Approved three-page P01/P02/P03 frozen PNG binaries are restored at the registered paths; Design Governance must pass before task closure."
+    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
+    completion: "Approved two-page P01/P02 frozen PNG binaries are verified at the registered paths; Design Governance must pass before task closure."
     human_required: false
 
 feature_task_coverage:

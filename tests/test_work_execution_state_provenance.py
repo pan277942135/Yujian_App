@@ -25,6 +25,18 @@ class WorkExecutionStateProvenanceTests(unittest.TestCase):
             "source_sha cannot equal a committed checkpoint HEAD (self-reference)",
         )
 
+    def test_state_only_commit_cannot_be_claimed_as_source(self):
+        self.assertEqual(
+            validate_source_sha(
+                "a" * 40,
+                "b" * 40,
+                ["a" * 40],
+                True,
+                source_changed_paths=["WORK_EXECUTION_STATE.json"],
+            ),
+            "source_sha cannot reference a commit that updates WORK_EXECUTION_STATE.json",
+        )
+
     def test_uncommitted_local_preflight_may_use_current_head(self):
         self.assertIsNone(
             validate_source_sha(
@@ -91,6 +103,9 @@ class WorkExecutionStateProvenanceTests(unittest.TestCase):
             source_is_ancestor=False,
         )
         self.assertIn("ancestor", err)
+
+    def test_unknown_contract_reference_does_not_resolve(self):
+        self.assertIsNone(resolve_contract({"feature_contracts": {"known": {"contract_id": "FC-known"}}}, "FC-unknown"))
 
 
 if __name__ == "__main__":
