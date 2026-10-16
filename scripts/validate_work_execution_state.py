@@ -12,6 +12,41 @@ SHA=re.compile(r"^[0-9a-f]{40}$")
 STATUS={"READY","RUNNING","VALIDATING","FAIL","RECOVERING","BLOCKED","PASS","CLOSED","FINAL_GATE","CANCELLED"}
 def git(*args):
     return subprocess.check_output(["git",*args],cwd=ROOT,text=True,stderr=subprocess.DEVNULL).strip()
+
+def direct_parents(commit):
+    parts=git("rev-list","--parents","-n","1",commit).split()
+    return parts[1:]
+
+def state_is_tracked_at(commit):
+    return "WORK_EXECUTION_STATE.json" in git("ls-tree","-r","--name-only",commit).splitlines()
+
+def validate_source_sha(source_sha, expected_source, parents, state_is_tracked):
+    """Return an error for an impossible checkpoint provenance, otherwise None.
+
+    A committed checkpoint cannot contain its own commit SHA: the file content
+    participates in the commit hash.  The source SHA therefore identifies the
+    exact product commit immediately preceding the checkpoint commit.  An exact
+    HEAD is accepted only for an uncommitted local preflight where the state
+    file is not yet part of that commit.
+    """
+    if source_sha == expected_source:
+        if state_is_tracked:
+            return "source_sha cannot equal a committed checkpoint HEAD (self-reference)"
+        return None
+    if source_sha in parents:
+        return None
+    return "source_sha must equal the checkpoint commit's direct product parent"
+
+def resolve_contract(contracts, ref):
+    for section_name in ("feature_contracts", "shared_contracts", "gate_contracts"):
+        section=contracts.get(section_name,{})
+        if ref in section:
+            return section[ref]
+        for item in section.values():
+            if isinstance(item,dict) and item.get("contract_id")==ref:
+                return item
+    return None
+
 def local_refs(value):
     refs=set()
     if isinstance(value,dict):
@@ -56,7 +91,13 @@ def main():
     if env_branch and env_branch not in {state.get("branch"),"HEAD"}: errors.append(f"workflow branch {env_branch!r} != state branch {state.get('branch')!r}")
     try:
         expected_source = git("rev-parse", f"origin/{env_branch}") if os.environ.get("GITHUB_HEAD_REF") else git("rev-parse","HEAD")
-        if expected_source != state.get("source_sha"): errors.append("source_sha must equal the actual Work branch HEAD")
+        source_error=validate_source_sha(
+            state.get("source_sha"),
+            expected_source,
+            direct_parents(expected_source),
+            state_is_tracked_at(expected_source),
+        )
+        if source_error: errors.append(source_error)
         if git("rev-parse","origin/main") != state.get("control_plane_revision"): errors.append("control_plane_revision must equal refreshed origin/main")
     except Exception as exc: errors.append(f"git provenance check failed: {exc}")
     binding=contracts.get("task_contract_bindings",{}).get(task_id)
@@ -68,10 +109,9 @@ def main():
         gate_contracts=contracts.get("gate_contracts",{})
         resolved=[]
         for ref in required_refs:
-            if ref in feature_contracts: resolved.append(feature_contracts[ref])
-            elif ref in shared: resolved.append(shared[ref])
-            elif ref in gate_contracts: resolved.append(gate_contracts[ref])
-            else: errors.append(f"{task_id}: contract reference not found: {ref}")
+            item=resolve_contract(contracts,ref)
+            if item is None: errors.append(f"{task_id}: contract reference not found: {ref}")
+            else: resolved.append(item)
         for item in resolved:
             for ref in local_refs(item):
                 path=ROOT/ref
