@@ -419,6 +419,8 @@ tasks:
     journey_refs: []
     depends_on: ["P2-01"]
     blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
     next_action_refs: []
     evidence_required: ["secondary_contract_closure"]
     evidence_observed: []
@@ -453,6 +455,8 @@ tasks:
     journey_refs: ["J11-J18"]
     depends_on: ["P3-01"]
     blockers: ["B003", "B004", "B006"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004", "B006"]
     next_action_refs: ["N004", "N007"]
     evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution"]
     evidence_observed: []
@@ -470,6 +474,8 @@ tasks:
     journey_refs: ["J04"]
     depends_on: ["P3-01"]
     blockers: ["B008"]
+    entry_blockers: ["B008"]
+    target_blockers: ["B008"]
     next_action_refs: ["N010"]
     evidence_required: ["P01_png_sha", "P02_png_sha", "P03_png_sha", "design_governance_pass"]
     evidence_observed: []
@@ -487,6 +493,8 @@ tasks:
     journey_refs: []
     depends_on: ["P2-02"]
     blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
     next_action_refs: []
     evidence_required: ["secondary_surface_contracts"]
     evidence_observed: []
@@ -521,6 +529,8 @@ tasks:
     journey_refs: []
     depends_on: ["P4-01"]
     blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
     next_action_refs: []
     evidence_required: ["secondary_data_contract_dependencies"]
     evidence_observed: []
@@ -566,12 +576,14 @@ tasks:
     phase: "P6"
     priority: "P0"
     owner: "Work"
-    status: "READY"
-    queue_status: "READY"
+    status: "BLOCKED"
+    queue_status: "BLOCKED"
     feature_refs: ["recognition_flow_v1_2"]
     journey_refs: ["J04-J06"]
     depends_on: ["P3-03", "P5-02"]
     blockers: ["B008"]
+    entry_blockers: ["B008"]
+    target_blockers: ["B008"]
     next_action_refs: ["N010"]
     evidence_required: ["first_use_guide_implementation", "P01_P02_P03_binary_integrity"]
     evidence_observed: []
@@ -606,6 +618,8 @@ tasks:
     journey_refs: []
     depends_on: ["P5-01"]
     blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
     next_action_refs: []
     evidence_required: ["register_runtime"]
     evidence_observed: []
@@ -623,6 +637,8 @@ tasks:
     journey_refs: []
     depends_on: ["P2-02", "P4-02"]
     blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
     next_action_refs: []
     evidence_required: ["secondary_feature_implementation"]
     evidence_observed: []
@@ -652,12 +668,14 @@ tasks:
     phase: "P7"
     priority: "P1"
     owner: "Work"
-    status: "BLOCKED"
+    status: "WAITING"
     queue_status: "WAITING"
     feature_refs: ["my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P6-03", "P6-04"]
     blockers: ["B007"]
+    entry_blockers: []
+    target_blockers: ["B007"]
     next_action_refs: []
     evidence_required: ["secondary_surface_integration"]
     evidence_observed: []
@@ -693,6 +711,8 @@ tasks:
     journey_refs: ["J01-J20"]
     depends_on: ["P5-02", "P6-02"]
     blockers: ["B001"]
+    entry_blockers: []
+    target_blockers: ["B001"]
     next_action_refs: ["N001"]
     gate_id: "G-API28-MATRIX"
     evidence_required:
@@ -722,6 +742,8 @@ tasks:
     journey_refs: ["J03-J16"]
     depends_on: ["N001"]
     blockers: ["B002"]
+    entry_blockers: []
+    target_blockers: ["B002"]
     next_action_refs: ["N002"]
     gate_id: "G-RECOGNITION-FROZEN"
     evidence_required: ["recognition_frozen_test_result", "exact_head_runtime_logs", "recognition_screenshots", "APK_provenance"]
@@ -744,6 +766,8 @@ tasks:
     journey_refs: ["J01-J20"]
     depends_on: ["N001"]
     blockers: []
+    entry_blockers: []
+    target_blockers: []
     next_action_refs: ["N003"]
     gate_id: "G-J01-J20"
     evidence_required: ["Journey_Execution_Results_V1.json", "J01-J20_runtime_results", "navigation_persistence", "failure_recovery_paths"]
@@ -766,6 +790,8 @@ tasks:
     journey_refs: ["J17", "J18", "J19"]
     depends_on: []
     blockers: ["B003", "B004"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
     next_action_refs: ["N004"]
     gate_id: "G-NORMAL-HOME-A4.1"
     evidence_required: ["F01-F08_fixture_matrix", "fixture_provenance_license_duplicate_audit", "HOME_runtime", "DETAIL_runtime", "camera_mask_geometry_pixel_evidence"]
@@ -788,6 +814,8 @@ tasks:
     journey_refs: ["J01-J20"]
     depends_on: ["N002", "N003", "N004"]
     blockers: []
+    entry_blockers: []
+    target_blockers: []
     next_action_refs: ["N005"]
     gate_id: "G-EVIDENCE-PACK"
     evidence_required: ["1080x1920_screenshots", "boundsInWindow", "pixel_diff", "motion_evidence", "device_profile_matrix", "runtime_logs"]
@@ -810,6 +838,8 @@ tasks:
     journey_refs: ["J01-J20"]
     depends_on: ["N005"]
     blockers: []
+    entry_blockers: []
+    target_blockers: []
     next_action_refs: ["N006"]
     gate_id: "G-APK-PROVENANCE"
     evidence_required: ["exact_head_APK", "APK_SHA256", "source_SHA", "artifact_provenance"]
@@ -832,6 +862,8 @@ tasks:
     journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
     depends_on: ["N002"]
     blockers: ["B006"]
+    entry_blockers: []
+    target_blockers: ["B006"]
     next_action_refs: ["N007"]
     gate_id: "G-PHASE3B-PROVENANCE"
     evidence_required: ["current_branch_provenance", "Recognition_Result_Phase_3B_authority", "exact_SHA_mapping"]
@@ -854,6 +886,8 @@ tasks:
     journey_refs: ["J01-J20"]
     depends_on: ["N005", "N006", "N007"]
     blockers: []
+    entry_blockers: []
+    target_blockers: []
     next_action_refs: ["N008"]
     gate_id: "G-FOCUSED-REPORT"
     evidence_required: ["focused_recognition_main_journey_test_report", "gate_summary", "blocker_summary", "APK_provenance"]
@@ -894,6 +928,8 @@ tasks:
     journey_refs: ["J01-J20"]
     depends_on: ["P9-01"]
     blockers: []
+    entry_blockers: []
+    target_blockers: []
     next_action_refs: ["N009"]
     gate_id: "G-HUMAN-RELEASE"
     evidence_required: ["final_APK", "evidence_index", "test_report", "APK_SHA256"]
@@ -913,6 +949,8 @@ tasks:
     journey_refs: ["J04"]
     depends_on: ["P3-01"]
     blockers: ["B008"]
+    entry_blockers: ["B008"]
+    target_blockers: ["B008"]
     next_action_refs: ["N010"]
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
     evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
