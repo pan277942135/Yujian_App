@@ -1,0 +1,202 @@
+{
+  "schema_version": "1.0",
+  "board_id": "recognition_main_journey_master_board_v1",
+  "status": "FROZEN_REVIEW_BOARD",
+  "standalone_visual_authority": false,
+  "canvas": {
+    "width": 5120,
+    "height": 2880,
+    "orientation": "LANDSCAPE"
+  },
+  "title": "渔见 · 拍照识鱼主链路",
+  "subtitle": "MASTER BOARD V1 · HIGH-FIDELITY REVIEW",
+  "primary_sequence": [
+    {
+      "board_id": "MB-01",
+      "page_id": "HOME",
+      "state_id": "EMPTY",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-02",
+      "page_id": "IDENTIFY",
+      "state_id": "CAMERA_PERMISSION",
+      "status": "FROZEN",
+      "ownership": "SYSTEM"
+    },
+    {
+      "board_id": "MB-03",
+      "page_id": "GUIDE",
+      "state_id": "P01",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-04",
+      "page_id": "GUIDE",
+      "state_id": "P02",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-05",
+      "page_id": "IDENTIFY",
+      "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-06",
+      "page_id": "IDENTIFY",
+      "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-07",
+      "page_id": "RECOGNIZING",
+      "state_id": "PROCESSING_IMAGE_RECOGNIZING_EARLY",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-08",
+      "page_id": "RECOGNIZING",
+      "state_id": "PROCESSING_IMAGE_RECOGNIZING_LATE",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-09",
+      "page_id": "RECOGNIZING",
+      "state_id": "PROCESSING_FISH_LOCATED",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-10",
+      "page_id": "RECOGNIZING",
+      "state_id": "PROCESSING_SPECIES_RECOGNIZING",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-11",
+      "page_id": "RESULT",
+      "state_id": "RESULT_HIGH",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-12",
+      "page_id": "RESULT",
+      "state_id": "RESULT_MEDIUM",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-13",
+      "page_id": "RESULT",
+      "state_id": "RESULT_LOW",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-14",
+      "page_id": "RESULT",
+      "state_id": "NO_FISH",
+      "status": "FROZEN",
+      "ownership": null
+    },
+    {
+      "board_id": "MB-15",
+      "page_id": "RESULT",
+      "state_id": "IMAGE_QUALITY",
+      "status": "FROZEN",
+      "ownership": null
+    }
+  ],
+  "recovery_sequence": [
+    {
+      "board_id": "MB-R01",
+      "page_id": "IDENTIFY",
+      "state_id": "CAPTURE_PERMISSION_DENIED",
+      "status": "FROZEN"
+    },
+    {
+      "board_id": "MB-R02",
+      "page_id": "SYSTEM",
+      "state_id": "PHOTO_PICKER",
+      "status": "FROZEN",
+      "ownership": "SYSTEM"
+    },
+    {
+      "board_id": "MB-R03",
+      "page_id": "SYSTEM",
+      "state_id": "PHOTO_PICKER_CANCEL",
+      "status": "FROZEN",
+      "ownership": "SYSTEM"
+    },
+    {
+      "board_id": "MB-R04",
+      "page_id": "IDENTIFY",
+      "state_id": "CAPTURE_ERROR",
+      "status": "REVIEW"
+    },
+    {
+      "board_id": "MB-R05",
+      "page_id": "RECOGNITION",
+      "state_id": "TECHNICAL_FAILURE",
+      "status": "REVIEW"
+    },
+    {
+      "board_id": "MB-R06",
+      "page_id": "RESULT",
+      "state_id": "SAVE_IN_PROGRESS",
+      "status": "REVIEW"
+    },
+    {
+      "board_id": "MB-R07",
+      "page_id": "RESULT",
+      "state_id": "SAVE_ERROR",
+      "status": "MISSING"
+    },
+    {
+      "board_id": "MB-R08",
+      "page_id": "RESULT",
+      "state_id": "DIRTY_DISCARD_CONFIRMATION",
+      "status": "REVIEW"
+    }
+  ],
+  "status_rules": {
+    "FROZEN": "Exact approved visual authority exists or surface is system-owned with frozen behavior.",
+    "REVIEW": "Contract/review composition exists but exact standalone visual authority is not frozen.",
+    "MISSING": "Required state has no adequate high-fidelity visual authority.",
+    "SYSTEM": "Ownership tag only."
+  },
+  "semantic_rules": {
+    "formal_result_states": [
+      "RESULT_HIGH",
+      "RESULT_MEDIUM",
+      "RESULT_LOW",
+      "NO_FISH",
+      "IMAGE_QUALITY"
+    ],
+    "technical_failure_is_sixth_result": false,
+    "technical_failure_scope": "3+2 external recovery",
+    "low_meaning": "AI completed recognition but species is not reliable enough to claim"
+  },
+  "render_rules": {
+    "frozen_sources_must_not_be_redrawn": true,
+    "board_is_not_runtime_asset": true,
+    "processing_early_late_same_product_state": true,
+    "normal_arrows": "solid",
+    "recovery_arrows": "dashed"
+  },
+  "output_targets": {
+    "png": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.png",
+    "svg": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.svg",
+    "resolution": "5120x2880"
+  }
+}
