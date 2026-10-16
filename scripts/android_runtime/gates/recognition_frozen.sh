@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
 }
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
@@ -57,7 +57,55 @@ gate_collect_evidence() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/recognition_v1_2"
   mkdir -p "$output_dir"
 
+  local first_guide_output="$YUJIAN_EVIDENCE_DIR/first_use_camera_guide"
+  mkdir -p "$first_guide_output"
   local name
+  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/recognition-first-use-camera-guide/${name}" \
+      > "$first_guide_output/$name" 2>/dev/null || true
+    if [[ ! -s "$first_guide_output/$name" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$first_guide_output/$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  if ! python3 - "$first_guide_output/first_use_camera_guide_runtime_report.json" \
+    "$YUJIAN_BUILD_SHA" "${YUJIAN_APP_APK:-}" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+report_path = Path(sys.argv[1])
+build_sha = sys.argv[2]
+apk_path = Path(sys.argv[3]) if sys.argv[3] else None
+report = json.loads(report_path.read_text(encoding="utf-8"))
+report["source_commit_sha"] = build_sha
+report["apk_sha256_host"] = None
+report["apk_bytes_host"] = None
+report["apk_sha256_match"] = None
+if apk_path and apk_path.is_file():
+    hasher = hashlib.sha256()
+    with apk_path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            hasher.update(block)
+    digest = hasher.hexdigest()
+    report["apk_sha256_host"] = digest
+    report["apk_bytes_host"] = apk_path.stat().st_size
+    report["apk_sha256_match"] = report.get("apk_sha256") == digest
+    if not report["apk_sha256_match"]:
+        report["status"] = "APK_SHA_MISMATCH"
+        report["failure_classification"] = "APK_SHA_MISMATCH"
+report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+if report["apk_sha256_match"] is False:
+    raise SystemExit("installed APK SHA-256 does not match the exact host build APK")
+PY
+  then
+    runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_APK_SHA_MISMATCH"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
   for name in \
     01_image_recognizing_early.png \
     02_image_recognizing_late.png \
