@@ -1,4 +1,66 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹¥‘•¹Ñ¥™ä()¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹ÍÍ•ÉĞ¹…ÍÍ•ÉÑÅÕ…±Ì)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹ÍÍ•ÉĞ¹…ÍÍ•ÉÑ…±Í”)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹ÍÍ•ÉĞ¹…ÍÍ•ÉÑQÉÕ”)¥µÁ½ÉĞ½Éœ¹©Õ¹¥Ğ¹Q•ÍĞ()±…ÍÌI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A½±¥åQ•ÍĞì(€€€Q•ÍĞ(€€€™Õ¸Õ¥‘•ÁÁ•…ÉÍ=¹±å™Ñ•É…µ•É…AÉ•Ù¥•İ%ÍI•…‘å½ÉQ¡•¥ÉÍÑ…µ•É…¹ÑÉä ¤ì(€€€€€€€™Õ¸‘•¥Í¥½¸¡Á•Éµ¥ÍÍ¥½¸è	½½±•…¸°ÁÉ•Ù¥•Üè	½½±•…¸°…±±•ÉåA•¹‘¥¹œè	½½±•…¸°½µÁ±•Ñ•è	½½±•…¸¤€ô(€€€€€€€€€€€Í¡½Õ±‘M¡½İI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘”¡Á•Éµ¥ÍÍ¥½¸°ÁÉ•Ù¥•Ü°…±±•ÉåA•¹‘¥¹œ°½µÁ±•Ñ•¤((€€€€€€€…ÍÍ•ÉÑ…±Í”¡‘•¥Í¥½¸¡Á•Éµ¥ÍÍ¥½¸€ô™…±Í”°ÁÉ•Ù¥•Ü€ôÑÉÕ”°…±±•ÉåA•¹‘¥¹œ€ô™…±Í”°½µÁ±•Ñ•€ô™…±Í”¤¤(€€€€€€€…ÍÍ•ÉÑ…±Í”¡‘•¥Í¥½¸¡Á•Éµ¥ÍÍ¥½¸€ôÑÉÕ”°ÁÉ•Ù¥•Ü€ô™…±Í”°…±±•ÉåA•¹‘¥¹œ€ô™…±Í”°½µÁ±•Ñ•€ô™…±Í”¤¤(€€€€€€€…ÍÍ•ÉÑ…±Í”¡‘•¥Í¥½¸¡Á•Éµ¥ÍÍ¥½¸€ôÑÉÕ”°ÁÉ•Ù¥•Ü€ôÑÉÕ”°…±±•ÉåA•¹‘¥¹œ€ôÑÉÕ”°½µÁ±•Ñ•€ô™…±Í”¤¤(€€€€€€€…ÍÍ•ÉÑ…±Í”¡‘•¥Í¥½¸¡Á•Éµ¥ÍÍ¥½¸€ôÑÉÕ”°ÁÉ•Ù¥•Ü€ôÑÉÕ”°…±±•ÉåA•¹‘¥¹œ€ô™…±Í”°½µÁ±•Ñ•€ôÑÉÕ”¤¤(€€€€€€€…ÍÍ•ÉÑQÉÕ”¡‘•¥Í¥½¸¡Á•Éµ¥ÍÍ¥½¸€ôÑÉÕ”°ÁÉ•Ù¥•Ü€ôÑÉÕ”°…±±•ÉåA•¹‘¥¹œ€ô™…±Í”°½µÁ±•Ñ•€ô™…±Í”¤¤(€€€€€€€…ÍÍ•ÉÑ…±Í” (€€€€€€€€€€€Í¡½Õ±‘M¡½İI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘” (€€€€€€€€€€€€€€€…µ•É…A•Éµ¥ÍÍ¥½¹É…¹Ñ•€ôÑÉÕ”°(€€€€€€€€€€€€€€€ÁÉ•Ù¥•İI•…‘ä€ôÑÉÕ”°(€€€€€€€€€€€€€€€…±±•ÉåA¥­•ÉA•¹‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€Õ¥‘•½µÁ±•Ñ•€ô™…±Í”°(€€€€€€€€€€€€€€€…±±•ÉåY¥Í¥Ñ•‘Q¡¥ÍM•ÍÍ¥½¸€ôÑÉÕ”°(€€€€€€€€€€€€¤°(€€€€€€€€¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸…±±•Éå	åÁ…ÍÍ¹‘…µ•É…I•…‘¥¹•ÍÍÉ•%¹‘•Á•¹‘•¹Ñ=™I½ÕÑ•¹ÑÉä ¤ì(€€€€€€€…ÍÍ•ÉÑ…±Í” (€€€€€€€€€€€Í¡½Õ±‘M¡½İI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘” (€€€€€€€€€€€€€€€…µ•É…A•Éµ¥ÍÍ¥½¹É…¹Ñ•€ôÑÉÕ”°(€€€€€€€€€€€€€€€ÁÉ•Ù¥•İI•…‘ä€ôÑÉÕ”°(€€€€€€€€€€€€€€€…±±•ÉåA¥­•ÉA•¹‘¥¹œ€ôÑÉÕ”°(€€€€€€€€€€€€€€€Õ¥‘•½µÁ±•Ñ•€ô™…±Í”°(€€€€€€€€€€€€¤°(€€€€€€€€¤(€€€€€€€…ÍÍ•ÉÑ…±Í” (€€€€€€€€€€€Í¡½Õ±‘M¡½İI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘” (€€€€€€€€€€€€€€€…µ•É…A•Éµ¥ÍÍ¥½¹É…¹Ñ•€ô™…±Í”°(€€€€€€€€€€€€€€€ÁÉ•Ù¥•İI•…‘ä€ô™…±Í”°(€€€€€€€€€€€€€€€…±±•ÉåA¥­•ÉA•¹‘¥¹œ€ô™…±Í”°(€€€€€€€€€€€€€€€Õ¥‘•½µÁ±•Ñ•€ô™…±Í”°(€€€€€€€€€€€€¤°(€€€€€€€€¤(€€€ô((€€€Q•ÍĞ(€€€™Õ¸Á…•M•ÅÕ•¹•¹‘Ñ¥½¹Í5…Ñ¡Q¡•É½é•¹Q¡É••A…•½¹ÑÉ…Ğ ¤ì(€€€€€€€Ù…ÈÍÑ…Ñ”€ôI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ…Ñ” ¤(€€€€€€€ÍÑ…Ñ”€ôÉ•‘Õ•I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ…Ñ”¡ÍÑ…Ñ”°I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•%¹Ñ•¹Ğ¹9aP¤(€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì¡I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹@ÀÈ°ÍÑ…Ñ”¹ÕÉÉ•¹ÑA…”¤(€€€€€€€…ÍÍ•ÉÑ…±Í”¡ÍÑ…Ñ”¹½µÁ±•Ñ•¤((€€€€€€€ÍÑ…Ñ”€ôÉ•‘Õ•I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ…Ñ”¡ÍÑ…Ñ”°I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•%¹Ñ•¹Ğ¹AIY%=UL¤(€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì¡I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹@ÀÄ°ÍÑ…Ñ”¹ÕÉÉ•¹ÑA…”¤(€€€€€€€ÍÑ…Ñ”€ôÉ•‘Õ•I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ…Ñ”¡ÍÑ…Ñ”°I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•%¹Ñ•¹Ğ¹9aP¤(€€€€€€€ÍÑ…Ñ”€ôÉ•‘Õ•I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ…Ñ”¡ÍÑ…Ñ”°I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•%¹Ñ•¹Ğ¹9aP¤(€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì¡I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹@ÀÌ°ÍÑ…Ñ”¹ÕÉÉ•¹ÑA…”¤(€€€€€€€ÍÑ…Ñ”€ôÉ•‘Õ•I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•MÑ…Ñ”¡ÍÑ…Ñ”°I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•%¹Ñ•¹Ğ¹AIY%=UL¤(€€€€€€€…ÍÍ•ÉÑÅÕ…±Ì¡I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹@ÀÈ°ÍÑ…Ñ”¹ÕÉÉ•»[h‘éì¶»§q«^tPage)
+package com.yujian.ai.ui.identify
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class RecognitionFirstCaptureGuidePolicyTest {
+    @Test
+    fun guideAppearsOnlyAfterCameraPreviewIsReadyForTheFirstCameraEntry() {
+        fun decision(permission: Boolean, preview: Boolean, galleryPending: Boolean, completed: Boolean) =
+            shouldShowRecognitionFirstCaptureGuide(permission, preview, galleryPending, completed)
+
+        assertFalse(decision(permission = false, preview = true, galleryPending = false, completed = false))
+        assertFalse(decision(permission = true, preview = false, galleryPending = false, completed = false))
+        assertFalse(decision(permission = true, preview = true, galleryPending = true, completed = false))
+        assertFalse(decision(permission = true, preview = true, galleryPending = false, completed = true))
+        assertTrue(decision(permission = true, preview = true, galleryPending = false, completed = false))
+        assertFalse(
+            shouldShowRecognitionFirstCaptureGuide(
+                cameraPermissionGranted = true,
+                previewReady = true,
+                galleryPickerPending = false,
+                guideCompleted = false,
+                galleryVisitedThisSession = true,
+            ),
+        )
+    }
+
+    @Test
+    fun galleryBypassAndCameraReadinessAreIndependentOfRouteEntry() {
+        assertFalse(
+            shouldShowRecognitionFirstCaptureGuide(
+                cameraPermissionGranted = true,
+                previewReady = true,
+                galleryPickerPending = true,
+                guideCompleted = false,
+            ),
+        )
+        assertFalse(
+            shouldShowRecognitionFirstCaptureGuide(
+                cameraPermissionGranted = false,
+                previewReady = false,
+                galleryPickerPending = false,
+                guideCompleted = false,
+            ),
+        )
+    }
+
+    @Test
+    fun pageSequenceAndActionsMatchTheFrozenThreePageContract() {
+        var state = RecognitionFirstCaptureGuideState()
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
+        assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
+        assertFalse(state.completed)
+
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
+        assertEquals(RecognitionFirstCaptureGuidePage.P01, state.currentPage)
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
+        assertEquals(RecognitionFirstCaptureGuidePage.P03, state.currentPage)
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
+        assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
     }
 
     @Test

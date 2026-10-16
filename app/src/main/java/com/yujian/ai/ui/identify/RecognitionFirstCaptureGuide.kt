@@ -1,4 +1,69 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬ÕÁ…­…”½´¹åÕ©¥…¸¹…¤¹Õ¤¹¥‘•¹Ñ¥™ä()¥µÁ½ÉÐ…¹‘É½¥‘à¹…Ñ¥Ù¥Ñä¹½µÁ½Í”¹	…­!…¹‘±•È)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹…¹¥µ…Ñ¥½¸¹¹¥µ…Ñ•‘Y¥Í¥‰¥±¥Ñä)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹…¹¥µ…Ñ¥½¸¹™…‘•%¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹…¹¥µ…Ñ¥½¸¹Í±¥‘•%¹Y•ÉÑ¥…±±ä)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹…¹¥µ…Ñ¥½¸¹½É”¹ÑÝ••¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹áÁ•É¥µ•¹Ñ…±½Õ¹‘…Ñ¥½¹Á¤)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹‰…­É½Õ¹)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±¥­…‰±”)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹ÉÉ…¹•µ•¹Ð)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹	½à)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹	½á]¥Ñ¡½¹ÍÑÉ…¥¹ÑÌ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹½±Õµ¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹I½Ü)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹]¥¹‘½Ý%¹Í•ÑÌ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹…ÍA…‘‘¥¹Y…±Õ•Ì)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹™¥±±5…áM¥é”)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹™¥±±5…á]¥‘Ñ )¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹¡•¥¡Ð)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹Á…‘‘¥¹œ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹Í…™•É…Ý¥¹œ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹Í¥é•%¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹±…å½ÕÐ¹Ý¥‘Ñ¡%¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Á…•È¹!½É¥é½¹Ñ…±A…•È)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Á…•È¹É•µ•µ‰•ÉA…•ÉMÑ…Ñ”)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹É•µ•µ‰•ÉMÉ½±±MÑ…Ñ”)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹™½Õ¹‘…Ñ¥½¸¹Ù•ÉÑ¥…±MÉ½±°)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹%½¹Ì)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°¹¥½¹Ì¹…ÕÑ½µ¥ÉÉ½É•¹™¥±±•¹ÉÉ½Ý	…¬)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹	ÕÑÑ½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹	ÕÑÑ½¹•™…Õ±ÑÌ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹%½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹%½¹	ÕÑÑ½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹Q•áÐ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹µ…Ñ•É¥…°Ì¹Q•áÑ	ÕÑÑ½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹½µÁ½Í…‰±”)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹1…Õ¹¡•‘™™•Ð)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹É•µ•µ‰•É½É½ÕÑ¥¹•M½Á”)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹ÉÕ¹Ñ¥µ”¹Í¹…ÁÍ¡½Ñ±½Ü)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹±¥¹µ•¹Ð)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹5½‘¥™¥•È)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹	ÉÕÍ )¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹É…Á¡¥Ì¹½±½È)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±1…å½ÕÑ¥É•Ñ¥½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹±•…É¹‘M•ÑM•µ…¹Ñ¥Ì)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹µ•É••Í•¹‘…¹ÑÌ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹Í•µ…¹Ñ¥Ì)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹Í•±•Ñ•)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Í•µ…¹Ñ¥Ì¹ÍÑ…Ñ••ÍÉ¥ÁÑ¥½¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹Ñ•ÍÑQ…œ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•áÐ¹™½¹Ð¹½¹Ñ]•¥¡Ð)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Ñ•áÐ¹ÍÑå±”¹Q•áÑ±¥¸)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ð¹‘À)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Õ¹¥Ð¹ÍÀ)¥µÁ½ÉÐ…¹‘É½¥‘à¹½µÁ½Í”¹Õ¤¹Á±…Ñ™½É´¹1½…±•¹Í¥Ñä)¥µÁ½ÉÐ­½Ñ±¥¹à¹½É½ÕÑ¥¹•Ì¹±…Õ¹ )¥µÁ½ÉÐ­½Ñ±¥¹à¹½É½ÕÑ¥¹•Ì¹™±½Ü¹‘¥ÍÑ¥¹ÑU¹Ñ¥±¡…¹•)¥µÁ½ÉÐ­½Ñ±¥¹à¹½É½ÕÑ¥¹•Ì¹™±½Ü¹½±±•Ð((¼¨¨(€¨¥ÉÍÐµÕÍ”Õ¥‘…¹”¥Ì…¸½Ù•É±…ä½Ù•ÈÑ¡”±¥Ù”…µ•É…`ÍÕÉ™…”¸%Ð¹•Ù•È(€¨É•Á±…•ÌÑ¡”…µ•É„É½ÕÑ”…¹¹•Ù•È¥¹Ù½­•Ì…ÁÑÕÉ”¥ÑÍ•±˜¸(€¨(€¨S[h‘éì¶»§q«^te camera preview supplies the full-bleed photographic environment. The
+package com.yujian.ai.ui.identify
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.mergeDescendants
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collect
+
+/**
+ * First-use guidance is an overlay over the live CameraX surface. It never
+ * replaces the camera route and never invokes capture itself.
+ *
+ * The camera preview supplies the full-bleed photographic environment. The
  * separately sourced still-photo examples are not present in the repository
  * yet; their missing provenance is recorded as ASSET_SOURCE_BLOCKED instead
  * of using the frozen design screenshots as runtime artwork.
@@ -75,7 +140,72 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                     .weight(1f)
                     .testTag("recognition-guide-pager"),
             ) { pageIndex ->
-     YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Ô€€€€€€€€€€Ù…°Á…”€ôI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹™É½µ%¹‘•à¡Á…•%¹‘•à¤(€€€€€€€€€€€€€€€I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…•½¹Ñ•¹Ð (€€€€€€€€€€€€€€€€€€€Á…”€ôÁ…”°(€€€€€€€€€€€€€€€€€€€½¹¥Íµ¥ÍÌ€ô½¹¥Íµ¥ÍÌ°(€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È¹™¥±±5…áM¥é” ¤°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€ô((€€€€€€€€€€€I•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…•%¹‘¥…Ñ½È (€€€€€€€€€€€€€€€ÕÉÉ•¹ÑA…”€ôÁ…•ÉMÑ…Ñ”¹ÕÉÉ•¹ÑA…”°(€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€¹™¥±±5…á]¥‘Ñ  ¤(€€€€€€€€€€€€€€€€€€€€¹Á…‘‘¥¹œ¡Ñ½À€ô€Ð¹‘À°‰½ÑÑ½´€ô€È¹‘À¤°(€€€€€€€€€€€€¤((€€€€€€€€€€€	½á]¥Ñ¡½¹ÍÑÉ…¥¹ÑÌ (€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€¹™¥±±5…á]¥‘Ñ  ¤(€€€€€€€€€€€€€€€€€€€€¹Á…‘‘¥¹œ¡‰½ÑÑ½´€ô€È¹‘À¤°(€€€€€€€€€€€€¤ì(€€€€€€€€€€€€€€€Ù…°¥Í¥¹…±A…”€ôÁ…•ÉMÑ…Ñ”¹ÕÉÉ•¹ÑA…”€ôôI•½¹¥Ñ¥½¹¥ÉÍÑ…ÁÑÕÉ•Õ¥‘•A…”¹@ÀÌ¹¥¹‘•à(€€€€€€€€€€€€€€€Ù…°™½¹ÑM…±”€ô1½…±•¹Í¥Ñä¹ÕÉÉ•¹Ð¹™½¹ÑM…±”(€€€€€€€€€€€€€€€Ù…°ÍÑ…­Ñ¥½¹Ì€ôµ…á]¥‘Ñ €ð€ÌàÀ¹‘Àñð™½¹ÑM…±”€øô€Ä¸á˜((€€€€€€€€€€€€€€€½µÁ½Í…‰±”(€€€€€€€€€€€€€€€™Õ¸Ñ¥½¹	ÕÑÑ½¹Ì ¤ì(€€€€€€€€€€€€€€€€€€€I½Ü¡Ù•ÉÑ¥…±±¥¹µ•¹Ð€ô±¥¹µ•¹Ð¹•¹Ñ•ÉY•ÉÑ¥…±±ä¤ì(€€€€€€€€€€€€€€€€€€€€€€€Q•áÑ	ÕÑÑ½¸ (€€€€€€€€€€€€€€€€€€€€€€€€€€€½¹±¥¬€ô½¹½µÁ±•Ñ”°(€€€€€€€€€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Í¥é•%¸¡µ¥¹]¥‘Ñ €ô€ÐÐ¹‘À°µ¥¹!•¥¡Ð€ô€ÐÐ¹‘À¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ ‰É•½¹¥Ñ¥½¸µÕ¥‘”µÍ­¥Àˆ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Í•µ…¹Ñ¥Ìì½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸€ô€‹¢ÞÏ¢þ¦š[š²‡š.7žŸšVg–¶˜ˆô°(€€€€€€€€€€€€€€€€€€€€€€€€¤ì(€€€€€€€€€€€€€€€€€€€€€€€€€€€Q•áÐ ‹¢ÞÏ¢þˆ°½±½È€ô½±½È¹]¡¥Ñ”°™½¹ÑM¥é”€ô€ÄÔ¹ÍÀ¤(€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€¥˜€¡Á…•ÉMÑ…Ñ”¹ÕÉÉ•¹ÑA…”€ø€À¤ì(€€€€€€€€€€€€€€€€€€€€€€€€€€€Q•áÑ	ÕÑÑ½¸ (€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€½¹±¥¬€ôì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€Í½Á”¹±…Õ¹ ìÁ…•ÉMÑ…Ñ”¹…¹¥µ…Ñ•MÉ½±±Q½A…”¡Á…•ÉMÑ…Ñ”¹ÕÉÉ•¹ÑA…”€´€Ä¤ô(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€ô°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Í¥é•%¸¡µ¥¹]¥‘Ñ €ô€ÐÐ¹‘À°µ¥¹!•¥¡Ð€ô€ÐÐ¹‘À¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ ‰É•½¹¥Ñ¥½¸µÕ¥‘”µÁÉ•Ù¥½ÕÌˆ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Í•µ…¹Ñ¥Ìì½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸€ô€‹’â+’â–òƒšVg–¶›ž’ë’ú,ˆô°(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¤ì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€Q•áÐ ‹’â+’â–ò€ˆ°½±½È€ô½±½È¹]¡¥Ñ”°™½¹ÑM¥é”€ô€ÄÔ¹ÍÀ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€ô((€€€€€€€€€€€€€€€½µÁ½Í…‰±”(€€€€€€€€€€€€€€€™Õ¸AÉ¥µ…ÉåÑ¥½¸ ¤ì(€€€€€€€€€€€€€€€€€€€	ÕÑÑ½¸ (€€€€€€€€€€€€€€€€€€€€€€€½¹±¥¬€ôì(€€€€€€€€€€€€€€€€€€€€€€€€€€€¥˜€¡¥Í¥¹…±A…”¤ì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€½¹½µÁ±•Ñ” ¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€ô•±Í”ì(€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€Í½Á”¹±…Õ¹ ìÁ…•ÉMÑ…Ñ”¹…¹¥µ…Ñ•MÉ½±±Q½A…”¡Á…•ÉMÑ…Ñ”¹ÕÉÉ•¹ÑA…”€¬€Ä¤ô(€€€€€€€€€€€€€€€€€€€€€€€€€€€ô(€€€€€€€€€€€€€€€€€€€€€€€ô°(€€€€€€€€€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Ý¥‘Ñ¡%¸¡µ¥¸€ô€ÄÌÈ¹‘À¤(€€€€€€€€€€€€€€€€€€€€€€€€€€€€¹Í¥é•%¸¡µ¥¹!•¥¡Ð€ô€Ðà¹‘À¤(€€€€€€€ƒ[h‘éì¶»§q«^t                   .testTag("recognition-guide-primary-action")
+                val page = RecognitionFirstCaptureGuidePage.fromIndex(pageIndex)
+                RecognitionFirstCaptureGuidePageContent(
+                    page = page,
+                    onDismiss = onDismiss,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            RecognitionFirstCaptureGuidePageIndicator(
+                currentPage = pagerState.currentPage,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 2.dp),
+            )
+
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
+            ) {
+                val isFinalPage = pagerState.currentPage == RecognitionFirstCaptureGuidePage.P03.index
+                val fontScale = LocalDensity.current.fontScale
+                val stackActions = maxWidth < 380.dp || fontScale >= 1.8f
+
+                @Composable
+                fun ActionButtons() {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(
+                            onClick = onComplete,
+                            modifier = Modifier
+                                .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
+                                .testTag("recognition-guide-skip")
+                                .semantics { contentDescription = "è·³è¿‡é¦–æ¬¡æ‹ç…§æ•™å­¦" },
+                        ) {
+                            Text("è·³è¿‡", color = Color.White, fontSize = 15.sp)
+                        }
+                        if (pagerState.currentPage > 0) {
+                            TextButton(
+                                onClick = {
+                                    scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
+                                },
+                                modifier = Modifier
+                                    .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
+                                    .testTag("recognition-guide-previous")
+                                    .semantics { contentDescription = "ä¸Šä¸€å¼ æ•™å­¦ç¤ºä¾‹" },
+                            ) {
+                                Text("ä¸Šä¸€å¼ ", color = Color.White, fontSize = 15.sp)
+                            }
+                        }
+                    }
+                }
+
+                @Composable
+                fun PrimaryAction() {
+                    Button(
+                        onClick = {
+                            if (isFinalPage) {
+                                onComplete()
+                            } else {
+                                scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            }
+                        },
+                        modifier = Modifier
+                            .widthIn(min = 132.dp)
+                            .sizeIn(minHeight = 48.dp)
+                            .testTag("recognition-guide-primary-action")
                             .semantics {
                                 contentDescription = if (isFinalPage) "å¼€å§‹æ‹æ‘„ï¼Œè¿”å›žæ‹æ‘„é¡µé¢" else "ä¸‹ä¸€å¼ æ•™å­¦ç¤ºä¾‹"
                             },
@@ -154,7 +284,84 @@ private fun RecognitionFirstCaptureGuidePageContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-            YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíÛM5N‹Z–‹­¦ëeŠw¬Ô€€€€€€€Ñ•áÐ€ô€‹š.7žŸ¢¾¦Æðˆ°(€€€€€€€€€€€€€€€€€€€½±½È€ô½±½È¹]¡¥Ñ”°(€€€€€€€€€€€€€€€€€€€™½¹ÑM¥é”€ô€Äà¹ÍÀ°(€€€€€€€€€€€€€€€€€€€™½¹Ñ]•¥¡Ð€ô½¹Ñ]•¥¡Ð¹M•µ¥	½±°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€Q•áÐ (€€€€€€€€€€€€€€€€€€€Ñ•áÐ€ô€‹žR£’â–òƒšâšfÃžjžŸž&¾ò3¢ºÃ–öW’öƒžjš¾?’âš²‡žnã¦ˆ°(€€€€€€€€€€€€€€€€€€€½±½È€ô½±½È¹]¡¥Ñ”¹½Áä¡…±Á¡„€ô€À¸äÁ˜¤°(€€€€€€€€€€€€€€€€€€€™½¹ÑM¥é”€ô€ÄÈ¹ÍÀ°(€€€€€€€€€€€€€€€€€€€Ñ•áÑ±¥¸€ôQ•áÑ±¥¸¹•¹Ñ•È°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€ô(€€€€€€€€€€€	½à¡5½‘¥™¥•È¹Í¥é•%¸¡µ¥¹]¥‘Ñ €ô€ÐÐ¹‘À°µ¥¹!•¥¡Ð€ô€ÐÐ¹‘À¤¤(€€€€€€€ô((€€€€€€€½±Õµ¸ (€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€¹™¥±±5…á]¥‘Ñ  ¤(€€€€€€€€€€€€€€€€¹Á…‘‘¥¹œ¡Ñ½À€ô€ÄÀ¹‘À¤(€€€€€€€€€€€€€€€€¹Í•µ…¹Ñ¥Ì¡µ•É••Í•¹‘…¹ÑÌ€ôÑÉÕ”¤ì(€€€€€€€€€€€€€€€€€€€Í•±•Ñ•€ôÑÉÕ”(€€€€€€€€€€€€€€€€€€€ÍÑ…Ñ••ÍÉ¥ÁÑ¥½¸€ô€‹ž²°‘íÁ…”¹¥¹‘•à€¬€Å÷¦†×¾ò3–ÄÏ¦†Ôˆ(€€€€€€€€€€€€€€€ô°(€€€€€€€€¤ì(€€€€€€€€€€€Q•áÐ (€€€€€€€€€€€€€€€Ñ•áÐ€ô€ˆÀ‘íÁ…”¹¥¹‘•à€¬€Åô€¼€ÀÌˆ°(€€€€€€€€€€€€€€€½±½È€ô½±½È ÁáÑÔàÄ¤°(€€€€€€€€€€€€€€€™½¹ÑM¥é”€ô€ÄÐ¹ÍÀ°(€€€€€€€€€€€€€€€™½¹Ñ]•¥¡Ð€ô½¹Ñ]•¥¡Ð¹5•‘¥Õ´°(€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È¹Ñ•ÍÑQ…œ ‰É•½¹¥Ñ¥½¸µÕ¥‘”µÁ…”µ¹Õµ‰•È´‘íÁ…”¹¥¹‘•à€¬€Åôˆ¤°(€€€€€€€€€€€€¤(€€€€€€€€€€€Q•áÐ (€€€€€€€€€€€€€€€Ñ•áÐ€ôÍÁ•Œ¹Ñ¥Ñ±”°(€€€€€€€€€€€€€€€½±½È€ô½±½È¹]¡¥Ñ”°(€€€€€€€€€€€€€€€™½¹ÑM¥é”€ô€Èà¹ÍÀ°(€€€€€€€€€€€€€€€±¥¹•!•¥¡Ð€ô€ÌÐ¹ÍÀ°(€€€€€€€€€€€€€€€™½¹Ñ]•¥¡Ð€ô½¹Ñ]•¥¡Ð¹M•µ¥	½±°(€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€¹Á…‘‘¥¹œ¡Ñ½À€ô€È¹‘À¤(€€€€€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ ‰É•½¹¥Ñ¥½¸µÕ¥‘”µÁ…”µÑ¥Ñ±”´‘íÁ…”¹¥¹‘•à€¬€Åôˆ¤°(€€€€€€€€€€€€¤(€€€€€€€€€€€	½à (€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€¹Á…‘‘¥¹œ¡Ñ½À€ô€Ü¹‘À°‰½ÑÑ½´€ô€ÄÀ¹‘À¤(€€€€€€€€€€€€€€€€€€€€¹¡•¥¡Ð Ä¹‘À¤(€€€€€€€€€€€€€€€€€€€€¹™¥±±5…á]¥‘Ñ  À¸ÔÉ˜¤(€€€€€€€€€€€€€€€€€€€€¹‰…­É½Õ¹¡½±½È ÁáÝäÙ¤¤°(€€€€€€€€€€€€¤(€€€€€€€€€€€Q•áÐ (€€€€€€€€€€€€€€€Ñ•áÐ€ôÍÁ•Œ¹ÍÕ‰Ñ¥Ñ±”°(€€€€€€€€€€€€€€€½±½È€ô½±½È¹]¡¥Ñ”¹½Áä¡…±Á¡„€ô€À¸äÉ˜¤°(€€€€€€€€€€€€€€€™½¹ÑM¥é”€ô€ÄØ¹ÍÀ°(€€€€€€€€€€€€€€€±¥¹•!•¥¡Ð€ô€ÈÌ¹ÍÀ°(€€€€€€€€€€€€€€€Ñ•áÑ±¥¸€ôQ•áÑ±¥¸¹MÑ…ÉÐ°(€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È¹™¥±±5…á]¥‘Ñ  ¤°(€€€€€€€€€€€€¤(€€€€€€€ô((€€€€€€€€¼¼Q¡”±¥Ù”…µ•É…`¥µ…”É•µ…¥¹ÌÙ¥Í¥‰±”Ñ¡É½Õ Ñ¡¥ÌÉ•¥½¸¸(€€€€€€€€¼¼‘¥ÍÑ¥¹ÐÍÑ¥±°Á¡½Ñ¼¥ÌÉ•ÅÕ¥É•™½ÈÑ¡”™É½é•¸!•É¼‘•µ½¹ÍÑÉ…Ñ¥½¸ì(€€€€€€€€¼¼‘¼¹½ÐÍÕ‰ÍÑ¥ÑÕÑ”½ÈÉ½ÀÑ¡”Á…”µ±•Ù•°É½é•¸A9¸(€€€€€€€	½à (€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€¹™¥±±5…á]¥‘Ñ  ¤(€€€€€€€€€€€€€€€€¹¡•¥¡Ð ÄÜØ¹‘À¤(€€€€€€€€€€€€€€€€¹Í•µ…¹Ñ¥Ìì(€€€€€€€€€€€€€€€€€€€½¹Ñ•¹Ñ•ÍÉ¥ÁÑ¥½¸€ô€‹š¶ž†»ž’ë¢2–2ë–~¾ò0‘½É¥•¹Ñ…Ñ¥½¹1…‰•³¾ò3¦Æó’öO–º3šVÓ¾ò3–>¿š.7šFˆ(€€€€€€€€€€€€€€€ô°(€€€€€€€€€€€½¹Ñ•¹Ñ±¥¹µ•¹Ð€ô±¥¹µ•¹Ð¹	½ÑÑ½µ•¹Ñ•È°(€€€€€€€€¤ì(€€€€€€€€€€€Q•áÐ (€€€€€€€€€€€€€€€Ñ•áÐ€ô€‹¦Æó’öO–º3šVÓ¾ò3–>¿š.7šFˆ°(€€€€€€€€€€€€€€€½±½È€ô½±½È ÁáÑÔàÄ¤°(€€€€€€€€€€€€€€€™½¹ÑM¥é”€ô€ÄØ¹ÍÀ°(€€€€€€€€€€€€€€€™½¹Ñ]•¥¡Ð€ô½¹Ñ]•¥¡Ð¹5•‘¥Õ´°(€€€€€€€€€€€€€€€µ½‘¥™¥•È€ô5½‘¥™¥•È(€€€€€€€€€€€€€€€€€€€€¹Á…‘‘¥¹œ¡‰½ÑÑ½´€ô€Ø¹‘À¤(€€€€€€€€€€€€€€€€€€€€¹Ñ•ÍÑQ…œ ‰É•½¹¥Ñ¥½¸µÕ¥‘”µ¡•É¼µ…ÁÑ¥½¸´‘íÁ…”¹¥¹‘—[h‘éì¶»§q«^t + 1}"),
+                    text = "æ‹ç…§è¯†é±¼",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "ç”¨ä¸€å¼ æ¸…æ™°çš„ç…§ç‰‡ï¼Œè®°å½•ä½ çš„æ¯ä¸€æ¬¡ç›¸é‡",
+                    color = Color.White.copy(alpha = 0.90f),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Box(Modifier.sizeIn(minWidth = 44.dp, minHeight = 44.dp))
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .semantics(mergeDescendants = true) {
+                    selected = true
+                    stateDescription = "ç¬¬${page.index + 1}é¡µï¼Œå…±3é¡µ"
+                },
+        ) {
+            Text(
+                text = "0${page.index + 1} / 03",
+                color = Color(0xFFF4D581),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.testTag("recognition-guide-page-number-${page.index + 1}"),
+            )
+            Text(
+                text = spec.title,
+                color = Color.White,
+                fontSize = 28.sp,
+                lineHeight = 34.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .padding(top = 2.dp)
+                    .testTag("recognition-guide-page-title-${page.index + 1}"),
+            )
+            Box(
+                modifier = Modifier
+                    .padding(top = 7.dp, bottom = 10.dp)
+                    .height(1.dp)
+                    .fillMaxWidth(0.52f)
+                    .background(Color(0xFFE7C96D)),
+            )
+            Text(
+                text = spec.subtitle,
+                color = Color.White.copy(alpha = 0.92f),
+                fontSize = 16.sp,
+                lineHeight = 23.sp,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        // The live CameraX image remains visible through this region. A
+        // distinct still photo is required for the frozen Hero demonstration;
+        // do not substitute or crop the page-level Frozen PNG.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(176.dp)
+                .semantics {
+                    contentDescription = "æ­£ç¡®ç¤ºèŒƒåŒºåŸŸï¼Œ$orientationLabelï¼Œé±¼ä½“å®Œæ•´ï¼Œå¯æ‹æ‘„"
+                },
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Text(
+                text = "é±¼ä½“å®Œæ•´ï¼Œå¯æ‹æ‘„",
+                color = Color(0xFFF4D581),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .testTag("recognition-guide-hero-caption-${page.index + 1}"),
             )
         }
 
