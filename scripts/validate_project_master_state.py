@@ -145,17 +145,17 @@ def validate_state(state: dict, v: Validation) -> None:
     v.require(not missing, f"missing top-level keys: {sorted(missing)}")
 
     control = state.get("state_control", {})
-    current_head = control.get("current_head")
+    current_head = control.get("execution_baseline_sha") or control.get("current_head")
     v.require(
         isinstance(current_head, str) and RE_SHA40.fullmatch(current_head),
-        "state_control.current_head must be a 40-character SHA",
+        "state_control.execution_baseline_sha must be a 40-character SHA",
     )
 
     pr145 = state.get("pull_requests", {}).get("PR145", {})
     v.require(pr145.get("number") == 145, "PR145.number must be 145")
     v.require(
         pr145.get("head_sha") == current_head,
-        "PR145.head_sha must equal state_control.current_head",
+        "PR145 baseline SHA must equal state_control.execution_baseline_sha",
     )
     v.require(
         pr145.get("branch") == control.get("current_branch"),
@@ -201,7 +201,7 @@ def validate_state(state: dict, v: Validation) -> None:
     exact_head = runtime.get("exact_head", {})
     v.require(
         exact_head.get("sha") == current_head,
-        "runtime_gates.exact_head.sha must equal state_control.current_head",
+        "runtime_gates.exact_head.sha must equal state_control.execution_baseline_sha",
     )
 
     if exact_head.get("status") == "PASS":
@@ -316,7 +316,7 @@ def validate_state(state: dict, v: Validation) -> None:
     work = state.get("current_work", {})
     v.require(
         work.get("exact_head") == current_head,
-        "current_work.exact_head must equal state_control.current_head",
+        "current_work.exact_head must equal state_control.execution_baseline_sha",
     )
 
     historical = state.get("runtime_gates", {}).get("historical_runtime_run", {})
