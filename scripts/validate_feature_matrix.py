@@ -139,6 +139,9 @@ def extract_declared_routes() -> set[str]:
 
     const_re = re.compile(r'const\s+val\s+(\w+Route)\s*=\s*"([^"]+)"')
     direct_re = re.compile(r'(?:composable|dialog)\s*\(\s*"([^"]+)"')
+    route_literal_arg_re = re.compile(
+        r'(?:composable|dialog)\s*\(\s*route\s*=\s*"([^"]+)"'
+    )
     route_arg_re = re.compile(
         r'(?:composable|dialog)\s*\(\s*route\s*=\s*(\w+Route)'
     )
@@ -147,6 +150,7 @@ def extract_declared_routes() -> set[str]:
         text = path.read_text(encoding="utf-8", errors="ignore")
         constants.update(dict(const_re.findall(text)))
         direct.update(direct_re.findall(text))
+        direct.update(route_literal_arg_re.findall(text))
         constant_usages.update(route_arg_re.findall(text))
 
     resolved = {constants[name] for name in constant_usages if name in constants}
