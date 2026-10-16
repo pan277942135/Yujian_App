@@ -1,5 +1,3 @@
-> **SUPERSEDED by Freeze_Decision_20261016_V2.md on 2026-10-16.**
-
 # First-use Camera Guide · Freeze Decision 2026-10-16
 
 **Design status:** FROZEN  
