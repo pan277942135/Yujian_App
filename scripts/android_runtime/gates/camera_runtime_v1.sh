@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.RecognitionCameraRuntimeTest'
+  printf '%s\n' 'com.yujian.ai.RecognitionCameraRuntimeTest,com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest'
 }
 
 gate_before_instrumentation() {
@@ -38,7 +38,9 @@ camera_runtime_pull_file() {
 
 gate_after_instrumentation() {
   local output="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+  local component_output="$output/component"
   mkdir -p "$output"
+  mkdir -p "$component_output"
   local name
   for name in \
     01_camera_open.png \
@@ -61,6 +63,14 @@ gate_after_instrumentation() {
     ui_hierarchy_readiness_failure.xml
   do
     camera_runtime_pull_file "cache/camera-runtime-v1/$name" "$output/$name"
+  done
+  for name in \
+    P01_compose_component.png \
+    P02_compose_component.png \
+    P03_compose_component.png \
+    first_use_camera_guide_runtime_report.json
+  do
+    camera_runtime_pull_file "cache/recognition-first-use-camera-guide/$name" "$component_output/$name"
   done
 
   if [[ -s "$output/first_use_camera_guide_runtime_report.json" && \
@@ -149,6 +159,13 @@ gate_collect_evidence() {
     if [[ ! -s "$output/first_use_camera_guide/$name" ]]; then
       printf 'MISSING_FIRST_USE_GUIDE_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
       runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPARISON_INCOMPLETE"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+    if [[ ! -s "$output/component/$name" ]]; then
+      printf 'MISSING_FIRST_USE_GUIDE_COMPONENT_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPONENT_EVIDENCE_INCOMPLETE"
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
