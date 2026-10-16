@@ -25,3 +25,7 @@ P01/P02/P03 use one shared Capture teaching Overlay. The hero is the correct exa
 P01 and P02 advance with `下一张`; P03 ends with `开始拍摄`. `跳过` never triggers the shutter.
 
 The PNG binaries must be imported byte-identically from the approved high-fidelity source files. No re-encoding, resizing, or screenshot derivative may replace the frozen authority.
+
+## Repository binary import
+
+The design decision and source hashes are frozen. The three PNG byte imports are currently **PENDING** because the connected GitHub write surface in this session does not expose a local-file binary upload operation. Do not substitute JPEG/WebP, re-encode the PNGs, or mark the repository image paths present until the exact source bytes are imported.
