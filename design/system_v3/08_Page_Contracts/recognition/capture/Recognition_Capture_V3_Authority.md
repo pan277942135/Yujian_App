@@ -60,7 +60,7 @@ The first-use camera guide is an additive overlay state inside Recognition Captu
 - `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md`
 - `design/pages/recognition/first_use_camera_guide/manifest.json`
 - `design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png`
-- `design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png`
+- `design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png`
 
 It does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker. P01 uses `下一张`; P02 uses `开始拍摄`. The final action only dismisses the guide and returns to Capture Ready; it never fires the shutter automatically.
 
@@ -77,3 +77,8 @@ The orientation-specific Capture Ready Hi-Fi composition is frozen in:
 - `design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json`
 
 Both portrait and landscape use a horizontal fish and a fixed horizontal Fish Guide Frame. Both use the same right-side vertical Capture + Gallery action rail. No phone frame or external mockup is part of the authority.
+
+
+## Current freeze correction · 2026-10-16
+
+Active First-use Guide is exactly P01 portrait phone + horizontal fish and P02 landscape phone + horizontal fish. Former portrait+vertical P02 and former P03 are historical only. This correction is design-only; Android implementation and runtime acceptance are not changed here.
