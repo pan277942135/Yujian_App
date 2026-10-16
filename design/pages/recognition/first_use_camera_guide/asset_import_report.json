@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "task_id": "RECOGNITION-FIRST-USE-GUIDE-V1",
   "status": "PASS",
   "binary_import_status": "PASS",
@@ -27,25 +27,12 @@
     },
     {
       "id": "p02",
-      "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-      "filename": "P02_First_Use_Camera_Guide_Frozen.png",
-      "width": 941,
-      "height": 1671,
-      "bytes": 2042852,
-      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-      "git_blob_sha": "9c2dd981a04792c6ac51e3925727b4e4e6704034",
-      "source_filename": "湖畔竖拍识鱼指南.png",
-      "import_timestamp": "2026-10-16T07:00:29Z",
-      "status": "PASS"
-    },
-    {
-      "id": "p03",
       "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
       "filename": "P03_First_Use_Camera_Guide_Frozen.png",
       "width": 941,
       "height": 1672,
       "bytes": 2001322,
-      "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
       "git_blob_sha": "2f46b2f2906f258eef8ca67181fc049a55d045af",
       "source_filename": "湖畔横屏拍摄指南(1).png",
       "import_timestamp": "2026-10-16T07:00:29Z",
