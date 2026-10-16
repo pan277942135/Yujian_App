@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.recognition
 
 import android.graphics.Bitmap
+import android.graphics.BlurMaskFilter
+import android.graphics.Paint as AndroidPaint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -11,7 +13,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
@@ -91,7 +98,44 @@ data class RecognitionContourSegment(
     val startY: Float,
     val endX: Float,
     val endY: Float,
+    val control1X: Float = startX,
+    val control1Y: Float = startY,
+    val control2X: Float = endX,
+    val control2Y: Float = endY,
+    val beginsContour: Boolean = false,
+    val closesContour: Boolean = false,
 )
+
+internal fun buildRecognitionContourPath(
+    transform: RecognitionImageTransform,
+    subjectBox: NormalizedFishBox,
+    contour: List<RecognitionContourSegment>,
+): Path {
+    val crop = subjectBox.normalized()
+    return Path().apply {
+        contour.forEach { segment ->
+            val start = transform.mapNormalized(
+                crop.x1 + segment.startX * crop.width,
+                crop.y1 + segment.startY * crop.height,
+            )
+            val end = transform.mapNormalized(
+                crop.x1 + segment.endX * crop.width,
+                crop.y1 + segment.endY * crop.height,
+            )
+            if (segment.beginsContour) moveTo(start.x, start.y) else lineTo(start.x, start.y)
+            val control1 = transform.mapNormalized(
+                crop.x1 + segment.control1X * crop.width,
+                crop.y1 + segment.control1Y * crop.height,
+            )
+            val control2 = transform.mapNormalized(
+                crop.x1 + segment.control2X * crop.width,
+                crop.y1 + segment.control2Y * crop.height,
+            )
+            cubicTo(control1.x, control1.y, control2.x, control2.y, end.x, end.y)
+            if (segment.closesContour) close()
+        }
+    }
+}
 
 internal data class RecognitionFishFocusRadii(
     val radiusX: Float,
@@ -300,55 +344,60 @@ fun RecognitionFishFocus(
             effectiveLevel == RecognitionFishFocusLevel.A &&
             levelAAvailable
         ) {
-            val crop = requireNotNull(subjectBox).normalized()
-            val realContour = Path()
-
-            contour.forEach { segment ->
-                val start = transform.mapNormalized(
-                    crop.x1 + segment.startX * crop.width,
-                    crop.y1 + segment.startY * crop.height,
-                )
-                val end = transform.mapNormalized(
-                    crop.x1 + segment.endX * crop.width,
-                    crop.y1 + segment.endY * crop.height,
-                )
-                realContour.moveTo(start.x, start.y)
-                realContour.lineTo(end.x, end.y)
-            }
+            val realContour = buildRecognitionContourPath(
+                transform = transform,
+                subjectBox = requireNotNull(subjectBox),
+                contour = contour,
+            )
 
             val coreAlpha =
                 contourCoreTarget * reveal * resolveStrength
 
-            drawPath(
+            drawLocalContourBlur(
                 realContour,
                 Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .30f).coerceAtMost(.12f),
+                    alpha = (coreAlpha * .22f).coerceAtMost(.10f),
                 ),
-                style = Stroke(
-                    width = 11.dp.toPx(),
-                    cap = StrokeCap.Round,
-                ),
+                widthPx = 11.dp.toPx(),
+                blurRadiusPx = 5.dp.toPx(),
             )
-            drawPath(
+            drawLocalContourBlur(
                 realContour,
                 Color(0xFFFFD887).copy(
                     alpha = (coreAlpha * .68f).coerceAtMost(.24f),
                 ),
-                style = Stroke(
-                    width = 4.dp.toPx(),
-                    cap = StrokeCap.Round,
-                ),
+                widthPx = 4.dp.toPx(),
+                blurRadiusPx = 2.dp.toPx(),
             )
             drawPath(
                 realContour,
-                Color(0xFFFFE7AE).copy(
-                    alpha = coreAlpha.coerceAtMost(.42f),
-                ),
+                Color(0xFFFFE7AE).copy(alpha = coreAlpha.coerceAtMost(.42f)),
                 style = Stroke(
                     width = 1.5.dp.toPx(),
                     cap = StrokeCap.Round,
+                    join = androidx.compose.ui.graphics.StrokeJoin.Round,
                 ),
             )
         }
+    }
+}
+
+private fun DrawScope.drawLocalContourBlur(
+    path: Path,
+    color: Color,
+    widthPx: Float,
+    blurRadiusPx: Float,
+) {
+    if (color.alpha <= 0f || widthPx <= 0f || blurRadiusPx <= 0f) return
+    val paint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+        this.color = color.toArgb()
+        style = AndroidPaint.Style.STROKE
+        strokeWidth = widthPx
+        strokeCap = AndroidPaint.Cap.ROUND
+        strokeJoin = AndroidPaint.Join.ROUND
+        maskFilter = BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
+    }
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }
 }

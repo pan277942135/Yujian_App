@@ -59,6 +59,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.math.min
 import java.util.ArrayDeque
+import java.util.LinkedHashSet
 
 private const val OUTLINE_THRESHOLD = 36
 // Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
@@ -393,39 +394,135 @@ internal fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
     val minimumComponent = maxOf(4, largest / 200)
     val keep = componentSizes.map { it >= minimumComponent }
 
-    val segments = ArrayList<RecognitionContourSegment>()
+    val boundaryEdges = ArrayList<GridBoundaryEdge>()
     fun kept(gridX: Int, gridY: Int): Boolean {
         if (gridX !in 0 until gridWidth || gridY !in 0 until gridHeight) return false
         val label = labels[gridY * gridWidth + gridX]
         return label >= 0 && keep[label]
     }
-    fun addOrMerge(segment: RecognitionContourSegment) {
-        val previous = segments.lastOrNull()
-        if (previous != null &&
-            previous.endX == segment.startX && previous.endY == segment.startY &&
-            ((previous.startX == previous.endX && segment.startX == segment.endX) ||
-                (previous.startY == previous.endY && segment.startY == segment.endY))
-        ) {
-            segments[segments.lastIndex] = previous.copy(endX = segment.endX, endY = segment.endY)
-        } else {
-            segments += segment
-        }
-    }
     for (gridY in 0 until gridHeight) {
         for (gridX in 0 until gridWidth) {
             if (!kept(gridX, gridY)) continue
-            val left = gridX * OUTLINE_STRIDE / width.toFloat()
-            val top = gridY * OUTLINE_STRIDE / height.toFloat()
-            val right = min((gridX + 1) * OUTLINE_STRIDE, width) / width.toFloat()
-            val bottom = min((gridY + 1) * OUTLINE_STRIDE, height) / height.toFloat()
-            if (!kept(gridX - 1, gridY)) addOrMerge(RecognitionContourSegment(left, top, left, bottom))
-            if (!kept(gridX + 1, gridY)) addOrMerge(RecognitionContourSegment(right, top, right, bottom))
-            if (!kept(gridX, gridY - 1)) addOrMerge(RecognitionContourSegment(left, top, right, top))
-            if (!kept(gridX, gridY + 1)) addOrMerge(RecognitionContourSegment(left, bottom, right, bottom))
+            if (!kept(gridX, gridY - 1)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX, gridY), GridPoint(gridX + 1, gridY))
+            }
+            if (!kept(gridX + 1, gridY)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX + 1, gridY), GridPoint(gridX + 1, gridY + 1))
+            }
+            if (!kept(gridX, gridY + 1)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX + 1, gridY + 1), GridPoint(gridX, gridY + 1))
+            }
+            if (!kept(gridX - 1, gridY)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX, gridY + 1), GridPoint(gridX, gridY))
+            }
         }
     }
-    return segments
+    fun normalized(point: GridPoint) = ContourPoint(
+        x = min(point.x * OUTLINE_STRIDE, width) / width.toFloat(),
+        y = min(point.y * OUTLINE_STRIDE, height) / height.toFloat(),
+    )
+    return traceGridContours(boundaryEdges).flatMap { gridLoop ->
+        val points = simplifyGridLoop(gridLoop).map(::normalized)
+        if (points.size < 4) return@flatMap emptyList()
+        points.indices.map { index ->
+            val previous = points[(index - 1 + points.size) % points.size]
+            val current = points[index]
+            val next = points[(index + 1) % points.size]
+            val start = midpoint(previous, current)
+            val end = midpoint(current, next)
+            val control1 = interpolate(start, current, 2f / 3f)
+            val control2 = interpolate(end, current, 2f / 3f)
+            RecognitionContourSegment(
+                startX = start.x,
+                startY = start.y,
+                endX = end.x,
+                endY = end.y,
+                control1X = control1.x,
+                control1Y = control1.y,
+                control2X = control2.x,
+                control2Y = control2.y,
+                beginsContour = index == 0,
+                closesContour = index == points.lastIndex,
+            )
+        }
+    }
 }
+
+private data class GridPoint(val x: Int, val y: Int)
+
+private data class GridBoundaryEdge(val start: GridPoint, val end: GridPoint) {
+    val direction: Int
+        get() = when {
+            end.x > start.x -> 0 // east
+            end.y > start.y -> 1 // south
+            end.x < start.x -> 2 // west
+            else -> 3 // north
+        }
+}
+
+private data class ContourPoint(val x: Float, val y: Float)
+
+private fun traceGridContours(edges: List<GridBoundaryEdge>): List<List<GridPoint>> {
+    if (edges.isEmpty()) return emptyList()
+    val outgoing = edges.groupBy(GridBoundaryEdge::start)
+    val remaining = LinkedHashSet(edges)
+    val comparator = compareBy<GridBoundaryEdge> { it.start.y }
+        .thenBy { it.start.x }
+        .thenBy { it.direction }
+    val contours = ArrayList<List<GridPoint>>()
+
+    while (remaining.isNotEmpty()) {
+        val first = remaining.minWithOrNull(comparator) ?: break
+        val points = ArrayList<GridPoint>()
+        points += first.start
+        var edge = first
+        var closed = false
+        var visited = 0
+        while (visited <= edges.size) {
+            if (!remaining.remove(edge)) break
+            points += edge.end
+            visited += 1
+            if (edge.end == first.start) {
+                closed = true
+                break
+            }
+            val candidates = outgoing[edge.end].orEmpty().filter(remaining::contains)
+            if (candidates.isEmpty()) break
+            edge = candidates.minBy { candidate ->
+                val turn = (candidate.direction - edge.direction + 4) % 4
+                when (turn) {
+                    1 -> 0 // keep the foreground on the right at diagonal contacts
+                    0 -> 1
+                    3 -> 2
+                    else -> 3
+                }
+            }
+        }
+        if (closed && points.size >= 5) contours += points.dropLast(1)
+    }
+    return contours
+}
+
+private fun simplifyGridLoop(points: List<GridPoint>): List<GridPoint> {
+    if (points.size < 4) return points
+    return points.filterIndexed { index, point ->
+        val previous = points[(index - 1 + points.size) % points.size]
+        val next = points[(index + 1) % points.size]
+        val vertical = previous.x == point.x && point.x == next.x
+        val horizontal = previous.y == point.y && point.y == next.y
+        !vertical && !horizontal
+    }
+}
+
+private fun midpoint(left: ContourPoint, right: ContourPoint) = ContourPoint(
+    x = (left.x + right.x) / 2f,
+    y = (left.y + right.y) / 2f,
+)
+
+private fun interpolate(start: ContourPoint, end: ContourPoint, fraction: Float) = ContourPoint(
+    x = start.x + (end.x - start.x) * fraction,
+    y = start.y + (end.y - start.y) * fraction,
+)
 
 private fun logFocusDiagnostic(
     subject: FishSubjectResult,
