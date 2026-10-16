@@ -7278,7 +7278,7 @@
       "sha256_status": "COMPUTED_FROM_CURRENT_BYTES",
       "git_blob_sha": "ab7607c32e3b0a71db5cedad7c6b6399262a07e2",
       "source": [
-        "PR #145 non-frozen registry update; the approved P01–P03 source identities remain in design/pages/recognition/first_use_camera_guide/manifest.json."
+        "PR #145 non-frozen registry update; the approved P01–P02 source identities remain in design/pages/recognition/first_use_camera_guide/manifest.json."
       ],
       "used_by": [],
       "status": "REVIEW",
