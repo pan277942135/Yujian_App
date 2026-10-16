@@ -41,6 +41,13 @@
 
 ### 3.2 首次拍照引导
 
+- The first-use guide is a three-page additive Capture Overlay: P01 `竖屏拍摄示意`, P02 `竖拍鱼类拍摄示意`, P03 `横屏拍摄示意`.
+- P01 and P02 use `下一张`; P03 uses `开始拍摄`.
+- Each page uses one correct Hero example plus three lower error examples: `鱼头不在画面` / `鱼体过小` / `遮挡过多`.
+- P01 error examples use horizontal fish; P02 error examples use vertical fish; P03 error examples use horizontal fish.
+- `跳过` and the final `开始拍摄` action only dismiss the guide; neither action automatically triggers the shutter.
+- The frozen visual authority is `design/pages/recognition/first_use_camera_guide/`.
+
 - 仅当 `capture_guide_v1_completed=false`、当前入口为相机、Camera 权限已授权且 Provider + Preview Ready 时，在 Capture 内展示一次轻量 Overlay。
 - 引导文案回答：这是拍照识鱼；尽量让鱼体轮廓清晰，手持鱼获也可以拍；拍摄后自动识别，结果可确认或修改。
 - “跳过”和“开始拍照”都只关闭引导并持久化完成标识；**都不自动触发快门**。关闭后等待用户主动拍摄。
