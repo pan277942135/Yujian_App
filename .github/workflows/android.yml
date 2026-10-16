@@ -9,6 +9,8 @@ on:
       - 'refactor/**'
       - 'integration/**'
     paths-ignore:
+      - ".github/workflows/android.yml"
+      - ".github/workflows/control-plane-admission.yml"
       - "CONTROL_PLANE_REGISTRY.yaml"
       - "CONTROL_PLANE_CHANGE_SYNC.md"
       - "harness/FEATURE_MATRIX.yaml"
