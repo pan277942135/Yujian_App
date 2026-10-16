@@ -2,30 +2,30 @@
 
 **Status: FROZEN**
 
-Design Manager 入口：
+Design Manager 入口：`识别过程 → 07 · 首次拍照教学`
 
-`识别过程 → 07 · 首次拍照教学`
+## Active pages
+- **P01 · 竖屏拍摄示意** — 手机竖屏 + 横向鱼
+- **P02 · 横屏拍摄示意** — 手机横屏 + 横向鱼
 
-## 子菜单
+**Active sequence:** P01 → P02
 
-- P01 · 竖屏拍摄示意
-- P02 · 竖拍鱼类拍摄示意
-- P03 · 横屏拍摄示意
+- P01: `下一张`
+- P02: `开始拍摄`
+- `上一张` only appears on P02
+- `跳过` may exit from either page
+- `开始拍摄` only dismisses the guide and returns to Capture Ready; it never triggers the shutter automatically.
 
-## Authority
+## Removed from active flow
+- Former **P02 · 竖拍鱼类拍摄示意** (portrait phone + vertical fish) is removed from active use.
+- Former **P03 · 横屏拍摄示意** is retained only as historical/compatibility material and **must not be rebound as active P02**.
+- Historical binaries live under `archive/`.
 
-- Spec: `First_Use_Camera_Guide_Spec_V1.md`
-- Manifest: `manifest.json`
-- Frozen visuals: `frozen/P01_First_Use_Camera_Guide_Frozen.png`, `frozen/P02_First_Use_Camera_Guide_Frozen.png`, `frozen/P03_First_Use_Camera_Guide_Frozen.png`
+## Active visual source
+- P01: `frozen/P01_First_Use_Camera_Guide_Frozen.png` — byte-verified
+- P02: `frozen/P02_Landscape_Horizontal_Fish_Frozen.png` — **source pending**
 
-## Freeze rules
+Do not substitute either historical binary for active P02.
 
-P01/P02/P03 use one shared Capture teaching Overlay. The hero is the correct example; the three lower examples are all errors: 鱼头不在画面 / 鱼体过小 / 遮挡过多. P02 error samples are all vertical fish; P03 error samples are all horizontal fish.
-
-P01 and P02 advance with `下一张`; P03 ends with `开始拍摄`. `跳过` never triggers the shutter.
-
-The PNG binaries must be imported byte-identically from the approved high-fidelity source files. No re-encoding, resizing, or screenshot derivative may replace the frozen authority.
-
-## Repository binary import
-
-The design decision and source hashes are frozen. The three PNG byte imports are currently **PENDING** because the connected GitHub write surface in this session does not expose a local-file binary upload operation. Do not substitute JPEG/WebP, re-encode the PNGs, or mark the repository image paths present until the exact source bytes are imported.
+## Runtime rule
+Android runtime uses structured Compose UI + independent runtime photo assets. Frozen full-page PNGs are not runtime backgrounds.
