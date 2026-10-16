@@ -15,7 +15,7 @@ Camera Preview is a live runtime surface supplied by the camera provider. It is 
 
 1. **Camera Preview** — flexible live source inside the resolved preview viewport; preserve source ratio and use the registered cover behavior without distortion.
 2. **Overlay Layer** — registered Top Title/Back and Gallery/icon actions plus state feedback. Interactive controls stay inside resolved system insets and do not obscure preview status.
-3. **Bottom Action Area** — fixed relative to the content root above the navigation inset. Existing capture-button artwork is the primary action; Gallery is an independent secondary action. The 208×208px PNG is a pixel master and does not define runtime dp size.
+3. **Primary Action Area** — fixed relative to the content root and safe area. The frozen Hi-Fi composition uses a right-side vertical action rail in both portrait and landscape: Capture above Gallery. Existing capture-button artwork remains the primary action; Gallery is an independent secondary action. The 208×208px PNG is a pixel master and does not define runtime dp size.
 
 Coordinate ownership is Screen → Window Insets → Content Root → Component Layout. Preview can flex; the bottom action role stays fixed; controls do not move into system gesture/cutout regions. No frozen page screenshot or unregistered coordinate is inferred.
 
@@ -57,14 +57,23 @@ The capture-button master remains the existing Asset Registry entry and SHA. Its
 
 The first-use camera guide is an additive overlay state inside Recognition Capture. Its frozen visual authority is:
 
-- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md`
+- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md`
 - `design/pages/recognition/first_use_camera_guide/manifest.json`
 - `design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png`
 - `design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png`
-- `design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png`
 
-It does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker. P01/P02 advance with `下一张`; P03 uses `开始拍摄`. The final action only dismisses the guide and returns to Capture Ready; it never fires the shutter automatically.
+It does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker. P01 uses `下一张`; P02 uses `开始拍摄`. The final action only dismisses the guide and returns to Capture Ready; it never fires the shutter automatically.
 
 ## Acceptance
 
 Capture_Accessibility_Responsive_Matrix.md is the contract acceptance authority. Matrix PASS denotes frozen design coverage only; Android/runtime/device execution is NOT_RUN in this work.
+
+
+## Hi-Fi visual authority V1
+
+The orientation-specific Capture Ready Hi-Fi composition is frozen in:
+
+- `design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md`
+- `design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json`
+
+Both portrait and landscape use a horizontal fish and a fixed horizontal Fish Guide Frame. Both use the same right-side vertical Capture + Gallery action rail. No phone frame or external mockup is part of the authority.
