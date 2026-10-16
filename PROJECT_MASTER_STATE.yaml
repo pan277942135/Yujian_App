@@ -648,7 +648,7 @@ next_actions:
     priority: "P1"
     owner: "Work"
     status: "BLOCKED_BY_B008"
-    action: "Restore/import the approved P01/P02/P03 frozen PNG binaries and rerun Design Governance for the first-use-guide visual authority.";
+    action: "Restore/import the approved P01/P02/P03 frozen PNG binaries and rerun Design Governance for the first-use-guide visual authority."
 
 completion_rules:
   pass_requires:
