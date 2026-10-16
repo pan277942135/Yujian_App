@@ -290,7 +290,6 @@ features:
       - "runtime_final_gate"
       - "p01"
       - "p02"
-      - "p03"
     child_surfaces:
       - "capture"
       - "permission"
@@ -343,8 +342,8 @@ features:
       binary_import_status: "PENDING"
     known_gaps:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
-      - "Capture Hi-Fi source PNGs are visually frozen but repository binary import is still pending."
-      - "Android first-use guide implementation must be reduced from the old three-page runtime path to the two-page frozen design."
+      - "Capture Hi-Fi source PNG binary import remains pending."
+      - "Android first-use guide implementation must be verified against the two-page frozen design."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"
