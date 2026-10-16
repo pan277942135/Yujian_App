@@ -362,7 +362,8 @@ def write_report(path: Path, registry: dict[str, Any], v: Validation) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, default=REGISTRY_PATH)
-    parser.add_argument("--report", type=Path, default=None)\n    parser.add_argument("--strict-refs", action="store_true")
+    parser.add_argument("--report", type=Path, default=None)
+    parser.add_argument("--strict-refs", action="store_true")
     args = parser.parse_args()
 
     registry_path = args.registry.resolve()
