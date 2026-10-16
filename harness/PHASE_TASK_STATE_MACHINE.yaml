@@ -263,7 +263,7 @@ parallelism:
     - "Independent evidence collection may run in parallel after its producing gate is available."
     - "Secondary feature closure may proceed while primary runtime is blocked when it does not mutate the blocked dependency."
   forbidden:
-    - "N002 or N003 may not bypass N001."
+    - "N002 may not bypass N001; N003 may not bypass N001 or N010."
     - "P9 may not bypass N001-N008."
     - "A task may not execute while a named prerequisite is WAITING or BLOCKED."
     - "Parallel work may not modify frozen authorities or backend/API/database contracts without explicit scope."
@@ -1028,7 +1028,7 @@ next_action_queue:
     - "N008"
     - "N009"
     - "N010"
-  queue_policy: "Do not reorder, delete or silently replace N001-N010. A task may add recovery substeps but cannot bypass the queue's declared dependency semantics."
+  queue_policy: "Do not reorder, delete or silently replace N001-N010. A task may add recovery substeps but cannot bypass the declared dependency semantics."
 
 recovery:
   interruption:
