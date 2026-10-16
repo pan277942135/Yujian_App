@@ -12,7 +12,8 @@ state_control:
   updated_at: "2026-10-16T11:00:00+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  current_head: "a280699da7575aa332f9d00104969161bbe918bd"
+  execution_baseline_sha: "a280699da7575aa332f9d00104969161bbe918bd"
+  execution_baseline_role: "latest product/runtime SHA intentionally tracked for acceptance"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
   base_branch: "main"
@@ -85,7 +86,8 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_sha: "a280699da7575aa332f9d00104969161bbe918bd"
+    head_at_last_verified_snapshot: "a280699da7575aa332f9d00104969161bbe918bd"
+    head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
 
