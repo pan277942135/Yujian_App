@@ -41,83 +41,76 @@
     },
     {
       "board_id": "MB-05",
-      "page_id": "GUIDE",
-      "state_id": "P03",
-      "status": "FROZEN",
-      "ownership": null
-    },
-    {
-      "board_id": "MB-06",
       "page_id": "IDENTIFY",
       "state_id": "CAPTURE_READY_PORTRAIT_HORIZONTAL",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-07",
+      "board_id": "MB-06",
       "page_id": "IDENTIFY",
       "state_id": "CAPTURE_READY_LANDSCAPE_HORIZONTAL",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-08",
+      "board_id": "MB-07",
       "page_id": "RECOGNIZING",
       "state_id": "PROCESSING_IMAGE_RECOGNIZING_EARLY",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-09",
+      "board_id": "MB-08",
       "page_id": "RECOGNIZING",
       "state_id": "PROCESSING_IMAGE_RECOGNIZING_LATE",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-10",
+      "board_id": "MB-09",
       "page_id": "RECOGNIZING",
       "state_id": "PROCESSING_FISH_LOCATED",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-11",
+      "board_id": "MB-10",
       "page_id": "RECOGNIZING",
       "state_id": "PROCESSING_SPECIES_RECOGNIZING",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-12",
+      "board_id": "MB-11",
       "page_id": "RESULT",
       "state_id": "RESULT_HIGH",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-13",
+      "board_id": "MB-12",
       "page_id": "RESULT",
       "state_id": "RESULT_MEDIUM",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-14",
+      "board_id": "MB-13",
       "page_id": "RESULT",
       "state_id": "RESULT_LOW",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-15",
+      "board_id": "MB-14",
       "page_id": "RESULT",
       "state_id": "NO_FISH",
       "status": "FROZEN",
       "ownership": null
     },
     {
-      "board_id": "MB-16",
+      "board_id": "MB-15",
       "page_id": "RESULT",
       "state_id": "IMAGE_QUALITY",
       "status": "FROZEN",
@@ -205,5 +198,17 @@
     "png": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.png",
     "svg": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.svg",
     "resolution": "5120x2880"
+  },
+  "figma": {
+    "file_key": "VjN7iFviVN9aKeLv8kJivM",
+    "page_name": "MASTER BOARD V1",
+    "board_node_id": "6:2",
+    "composition_status": "STRUCTURE_COMPLETE_SOURCE_IMPORT_PENDING",
+    "note": "Figma canvas is editable. Frozen PNG binary assets are not embedded yet because the current MCP client exposes upload_assets as single-use POST endpoints but does not provide a raw-byte POST action in this session; no generated substitutes were used."
+  },
+  "asset_import_gate": {
+    "status": "BLOCKED_CONNECTOR_UPLOAD_STEP",
+    "required_action": "POST original Frozen PNG bytes to Figma upload_assets endpoints, then bind them to the existing placeholder nodes.",
+    "no_ai_generated_substitutes": true
   }
 }
