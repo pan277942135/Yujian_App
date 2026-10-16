@@ -1016,7 +1016,7 @@ recovery:
       - "PROJECT_MASTER_STATE.yaml"
       - "harness/FEATURE_MATRIX.yaml"
       - "harness/PHASE_TASK_STATE_MACHINE.yaml"
-      - "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
+      - "WORK_EXECUTION_STATE.json"
       - "harness/build-log.md"
     resume_rule: "Read branch-local Work execution state, select the first READY task whose static dependencies and named entry blockers are satisfied, and preserve all WAITING/BLOCKED tasks."
   failure:
