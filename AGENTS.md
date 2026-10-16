@@ -40,7 +40,7 @@ If unresolved, use NOT_CONFIRMED or BLOCKED. Never guess or promote to PASS.
 
 - Android repo: pan277942135/Yujian_App
 - Control branch: audit/design-system-v3-1-phase1-master-baseline
-- Current tracked execution baseline: a280699da7575aa332f9d00104969161bbe918bd
+- Current tracked application-code baseline: e881c2a6772b418a49b6208ce44c8527fbeb97db
 - Control PR: #145, Draft / Open / Unmerged
 - Base: main@7737f293ea3831aeea2c6f58308961cdb2ba7d01
 - Backend repo: pan277942135/Yujian
