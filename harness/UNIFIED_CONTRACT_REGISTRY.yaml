@@ -261,7 +261,7 @@ feature_contracts:
     control_phase: "P8"
     registry_status: "ACTIVE_CLOSURE"
     owner_path: "design/pages/recognition"
-    child_surfaces: ["capture", "permission", "first_use_guide", "preview_ready", "processing", "issue_retry", "gallery_entry"]
+    child_surfaces: ["capture", "permission", "first_use_guide", "first_use_guide_portrait_horizontal", "first_use_guide_landscape_horizontal", "preview_ready", "capture_ready_portrait_horizontal", "capture_ready_landscape_horizontal", "processing", "issue_retry", "gallery_entry"]
     journey_refs: ["J03", "J04", "J05", "J06", "J07", "J08", "J09", "J10"]
     route_refs: ["identify?openGallery={openGallery}", "recognizing", "recognition_issue"]
     domain_contracts:
@@ -937,7 +937,23 @@ child_surface_contracts:
     owner_features: ["recognition_flow_v1_2"]
     contract_refs: ["FC-recognition_flow_v1_2"]
     resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "first_use_guide_portrait_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "first_use_guide_landscape_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
   "preview_ready":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "capture_ready_portrait_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "capture_ready_landscape_horizontal":
     owner_features: ["recognition_flow_v1_2"]
     contract_refs: ["FC-recognition_flow_v1_2"]
     resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
@@ -1177,7 +1193,6 @@ child_surface_contracts:
     owner_features: ["user_agreement_v1"]
     contract_refs: ["FC-user_agreement_v1"]
     resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
-
 route_contracts:
   "login":
     mapping_mode: "LEGACY_ALIAS"
