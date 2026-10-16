@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T15:58:00+08:00"
+  updated_at: "2026-10-16T15:48:21+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "d7a15274b969a3548f9b8c78a53c3ea88048df50"
+  live_branch_head_at_snapshot: "82c22571aee82f03ed247bb7a2521d4691c256de"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,7 +57,7 @@ repositories:
     default_branch: "main"
     main_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "d7a15274b969a3548f9b8c78a53c3ea88048df50"
+    active_sha_at_snapshot: "82c22571aee82f03ed247bb7a2521d4691c256de"
     execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
     runtime:
       os: "Android"
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "d7a15274b969a3548f9b8c78a53c3ea88048df50"
+    head_at_last_verified_snapshot: "82c22571aee82f03ed247bb7a2521d4691c256de"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
@@ -199,8 +199,33 @@ phases:
       android_contract: "DEFINED"
       runtime_parity: "BLOCKED"
     first_capture_guide:
-      design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
-      status: "READY_FOR_WORK"
+      design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md"
+      status: "FROZEN"
+      page_count: 2
+      orientation_mapping:
+        P01: "PORTRAIT + HORIZONTAL_FISH"
+        P02: "LANDSCAPE + HORIZONTAL_FISH"
+      active_pages:
+        - "P01"
+        - "P02"
+      previous_vertical_fish_page: "SUPERSEDED"
+    capture_hifi:
+      visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
+      manifest: "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
+      status: "FROZEN"
+      states:
+        portrait_horizontal:
+          runtime_reference: "1080x1920"
+          control_geometry: "RIGHT_VERTICAL_RAIL"
+          fish_guide_frame: "FIXED_HORIZONTAL"
+          binary_import: "PENDING"
+          source_sha256: "6d67d03045f5f3dfb66adad10921d7456a2c82620b7b68f156cb98be74f1908c"
+        landscape_horizontal:
+          runtime_reference: "1920x1080"
+          control_geometry: "RIGHT_VERTICAL_RAIL"
+          fish_guide_frame: "FIXED_HORIZONTAL"
+          binary_import: "PENDING"
+          source_sha256: "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18"
 
   P4:
     name: "Architecture / API / Data Contracts"
@@ -342,7 +367,14 @@ recognition_main_journey:
     guide:
       one_time_preview_ready_guidance: true
       subsequent_entry: "SIMPLIFIED_PATH"
-      status: "READY_FOR_WORK"
+      status: "FROZEN"
+      page_count: 2
+      pages:
+        - "P01 PORTRAIT + HORIZONTAL_FISH"
+        - "P02 LANDSCAPE + HORIZONTAL_FISH"
+      mapping_to_capture_hifi:
+        P01: "capture_ready_portrait_horizontal"
+        P02: "capture_ready_landscape_horizontal"
   processing:
     state_sequence:
       - "CAPTURED >= 220ms"
@@ -503,8 +535,8 @@ execution_control:
   auto_recovery_enabled: true
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
-  machine_validation: "PASS"
-  machine_validated_source_sha: "0015c296323bdf67afb7f41b791696451f8f23c1"
+  machine_validation: "PENDING_AFTER_UPDATE"
+  machine_validated_source_sha: null
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
@@ -594,16 +626,16 @@ blockers:
   - id: "B008"
     severity: "P1"
     area: "First Capture Guide / Design Registry"
-    status: "OPEN"
-    description: "Design Governance on PR merge ref e3b82e5 reports the frozen P01/P02/P03 PNG paths are missing; the registry therefore fails the first-use-guide visual authority check."
+    status: "CLOSED"
+    description: "The active first-use guide has been reconciled to two orientation-matched pages: P01 portrait + horizontal fish and P02 landscape + horizontal fish. Repository contains the two active frozen PNG blobs at the registered paths; the former vertical-fish P02 and old P03 path are superseded."
     observed_run_id: 38861933685
-    observed_errors:
-      - "recognition_flow_v1_2/capture_first_use_guide: VISUAL_MISSING requires SPEC_FROZEN status"
-      - "P01_First_Use_Camera_Guide_Frozen.png path missing"
-      - "P02_First_Use_Camera_Guide_Frozen.png path missing"
-      - "P03_First_Use_Camera_Guide_Frozen.png path missing"
-    unblock: "Restore/import the approved P01/P02/P03 frozen PNG binaries at the registered paths, or explicitly reconcile the registry/status with the authoritative design decision."
-    rule: "Do not claim the first-use-guide visual authority is fully closed until Design Governance passes."
+    closed_at: "2026-10-16T15:48:21+08:00"
+    closure_evidence:
+      - "P01 blob 3f73f744104777beee29bd2370ecac1f40197a1d"
+      - "P02 blob 2f46b2f2906f258eef8ca67181fc049a55d045af"
+      - "manifest.json sequence = p01,p02"
+      - "navigation.json children = p01,p02"
+    rule: "B008 is closed for the two-page teaching binary registry; Android runtime implementation and Design Governance execution remain separate acceptance gates."
 
 protected_invariants:
   product:
@@ -690,8 +722,8 @@ next_actions:
   - id: "N010"
     priority: "P1"
     owner: "Work"
-    status: "BLOCKED_BY_B008"
-    action: "Restore/import the approved P01/P02/P03 frozen PNG binaries and rerun Design Governance for the first-use-guide visual authority."
+    status: "READY"
+    action: "Implement the two-page first-use guide (P01 portrait-horizontal, P02 landscape-horizontal), run Design Governance, and align runtime to the frozen Capture Hi-Fi composition."
 
 completion_rules:
   pass_requires:
