@@ -37,4 +37,5 @@ jobs:
         run: python scripts/validate_phase_task_state_machine.py
 
       - name: Validate unified contract registry
+        if: always()
         run: python scripts/validate_unified_contract.py
