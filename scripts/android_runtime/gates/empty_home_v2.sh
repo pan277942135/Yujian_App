@@ -130,11 +130,12 @@ PY
     # display is 320x640. Pin the evidence stream to the runner's physical
     # surface so the MP4 contains the same full frame as screencap.
     "${YUJIAN_ADB_BIN}" shell wm size > "$home_dir/screenrecord.log" 2>&1
-    # The API 28 320x640 runner produced only 14.081s of MP4 timestamps from
-    # a 60s wall-clock limit at the default 20Mbps. Use a lighter encoder load
-    # and a longer capture window, while retaining the real ffprobe duration
-    # assertion below.
-    "${YUJIAN_ADB_BIN}" shell screenrecord --size 320x640 --bit-rate 4000000 --time-limit 90 --verbose /sdcard/full_runtime_15s.mp4 >> "$home_dir/screenrecord.log" 2>&1
+    # wm size reset returns this runner to 1080x1920. Keep the 9:16 frame in
+    # the video so API 28 does not letterbox the 320x640 (1:2) encoder output
+    # into a 320x568 content region before the frozen visual parity check.
+    # A 4Mbps bitrate and 90s wall-clock limit leave the encoder enough time
+    # to produce the required timestamp duration on this runner.
+    "${YUJIAN_ADB_BIN}" shell screenrecord --size 360x640 --bit-rate 4000000 --time-limit 90 --verbose /sdcard/full_runtime_15s.mp4 >> "$home_dir/screenrecord.log" 2>&1
     "${YUJIAN_ADB_BIN}" pull /sdcard/full_runtime_15s.mp4 "$home_dir/full_runtime_15s.mp4" >/dev/null
     cp "$home_dir/full_runtime_15s.mp4" "$home_dir/Empty_Home_V2_Parity_Runtime.mp4"
     "${YUJIAN_ADB_BIN}" shell wm size 1080x1920

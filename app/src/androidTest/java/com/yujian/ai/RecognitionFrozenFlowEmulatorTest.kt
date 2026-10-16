@@ -9,7 +9,6 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
-import android.view.View
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
@@ -32,6 +31,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
@@ -40,6 +40,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.compose.NavHost
@@ -1519,107 +1520,16 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun capture(name: String) {
         awaitSurfaceFrameCommit()
         val output = File(evidenceDir, name)
-        val raw = File(evidenceDir, ".$name.raw.png")
-        assertTrue("screenshot capture failed: $name", device.takeScreenshot(raw))
-        assertTrue("empty screenshot: $name", raw.isFile && raw.length() > 0L)
-
-        val bitmap = BitmapFactory.decodeFile(raw.absolutePath)
-        assertTrue("unreadable screenshot: $name", bitmap != null && bitmap.width > 0 && bitmap.height > 0)
-        val decoded = requireNotNull(bitmap)
-        val logicalDisplayWidth = device.displayWidth
-        val logicalDisplayHeight = device.displayHeight
-        val logicalRootBounds = composeSurfaceBoundsOnScreen()
-        val sourceSurface = measureCaptureSourceSurface()
-        val targetBitmapBounds = screenshotCropBounds(
-            sourceWidth = decoded.width,
-            sourceHeight = decoded.height,
-            logicalDisplayWidth = logicalDisplayWidth,
-            logicalDisplayHeight = logicalDisplayHeight,
-            logicalBounds = logicalRootBounds,
-        )
-        trace(
-            "SCREENSHOT_CAPTURE_FORENSICS name=" + name + " " +
-                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
-                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
-                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
-                sourceSurface.physicalDisplayHeightPx + " " +
-                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
-                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
-                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
-                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
-                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
-                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
-                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
-                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
-                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
-                "target_bitmap_crop_px=" + targetBitmapBounds.left + "," + targetBitmapBounds.top + "," +
-                targetBitmapBounds.right + "," + targetBitmapBounds.bottom + " " +
-                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi,
-        )
-        val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
-            sourceBounds = sourceSurface.viewBoundsOnScreenPx,
-            logicalDisplayWidth = logicalDisplayWidth,
-            logicalDisplayHeight = logicalDisplayHeight,
-            bitmapWidth = decoded.width,
-            bitmapHeight = decoded.height,
-        )
-        val mapping = captureSurfaceMapping(
-            sourceBitmapWidth = decoded.width,
-            sourceBitmapHeight = decoded.height,
-            sourceBounds = sourceBitmapBounds,
-            targetBitmapWidth = decoded.width,
-            targetBitmapHeight = decoded.height,
-            targetBounds = targetBitmapBounds,
-        )
-        val sourceSurfaceBitmap = Bitmap.createBitmap(
-            decoded,
-            mapping.sourceBitmapBounds.left,
-            mapping.sourceBitmapBounds.top,
-            mapping.sourceBitmapBounds.width(),
-            mapping.sourceBitmapBounds.height(),
-        )
-        val appSurface = Bitmap.createBitmap(
-            mapping.targetBitmapBounds.width(),
-            mapping.targetBitmapBounds.height(),
-            Bitmap.Config.ARGB_8888,
-        )
-        drawMappedSurfacePixels(sourceSurfaceBitmap, appSurface)
+        val appSurface = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        assertTrue("empty Compose root capture: $name", appSurface.width > 0 && appSurface.height > 0)
         output.outputStream().use { stream ->
             check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         trace(
-            "SCREENSHOT_APP_SURFACE_ONLY name=" + name + " " +
-                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
-                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
-                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
-                sourceSurface.physicalDisplayHeightPx + " " +
-                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
-                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
-                "source_view_class=" + sourceSurface.viewClassName + " " +
-                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
-                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
-                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
-                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
-                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
-                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
-                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
-                "source_bitmap_crop_px=" + mapping.sourceBitmapBounds.left + "," +
-                mapping.sourceBitmapBounds.top + "," + mapping.sourceBitmapBounds.right + "," +
-                mapping.sourceBitmapBounds.bottom + " " +
-                "target_bitmap_crop_px=" + mapping.targetBitmapBounds.left + "," +
-                mapping.targetBitmapBounds.top + "," + mapping.targetBitmapBounds.right + "," +
-                mapping.targetBitmapBounds.bottom + " " +
-                "view_origin_in_bitmap_px=" + mapping.sourceBitmapBounds.left + "," +
-                mapping.sourceBitmapBounds.top + " " +
-                "canvas_initial_transform=identity " +
-                "canvas_transform=scale(" + mapping.scaleX + "," + mapping.scaleY + ") " +
-                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi + " " +
-                "output_px=" + appSurface.width + "x" + appSurface.height,
+            "COMPOSE_ROOT_CAPTURE name=" + name + " " +
+                "output_px=" + appSurface.width + "x" + appSurface.height + " " +
+                "density_dpi=" + appSurface.density,
         )
-        if (sourceSurfaceBitmap !== decoded) sourceSurfaceBitmap.recycle()
-        appSurface.recycle()
-        decoded.recycle()
-        raw.delete()
 
         assertTrue("empty canonical screenshot: $name", output.isFile && output.length() > 0L)
         val verified = BitmapFactory.decodeFile(output.absolutePath)
@@ -1660,23 +1570,6 @@ class RecognitionFrozenFlowEmulatorTest {
         source.recycle()
     }
 
-    private data class CaptureSourceSurface(
-        val viewBoundsOnScreenPx: Rect,
-        val viewWidthPx: Int,
-        val viewHeightPx: Int,
-        val windowWidthPx: Int,
-        val windowHeightPx: Int,
-        val decorWidthPx: Int,
-        val decorHeightPx: Int,
-        val contentWidthPx: Int,
-        val contentHeightPx: Int,
-        val viewClassName: String,
-        val physicalDisplayWidthPx: Int,
-        val physicalDisplayHeightPx: Int,
-        val density: Float,
-        val densityDpi: Int,
-    )
-
     private data class CaptureSurfaceMapping(
         val sourceBitmapBounds: Rect,
         val targetBitmapBounds: Rect,
@@ -1687,62 +1580,6 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun drawMappedSurfacePixels(source: Bitmap, target: Bitmap) {
         val targetBounds = Rect(0, 0, target.width, target.height)
         Canvas(target).drawBitmap(source, null, targetBounds, Paint(Paint.FILTER_BITMAP_FLAG))
-    }
-
-    private fun measureCaptureSourceSurface(): CaptureSourceSurface {
-        val measured = AtomicReference<CaptureSourceSurface?>()
-        composeRule.runOnUiThread {
-            val decor = composeRule.activity.window.decorView
-            val content = composeRule.activity.findViewById<View>(android.R.id.content)
-                ?: error("Recognition capture content View is unavailable")
-            val sourceView = findComposeSourceView(content) ?: content
-            val display = decor.display ?: error("Recognition capture display is unavailable")
-            val displayMode = display.mode
-            check(displayMode.physicalWidth > 0 && displayMode.physicalHeight > 0) {
-                "Recognition capture display mode has invalid size ${displayMode.physicalWidth}x${displayMode.physicalHeight}"
-            }
-            val location = IntArray(2)
-            sourceView.getLocationOnScreen(location)
-            check(sourceView.width > 0 && sourceView.height > 0) {
-                "Recognition capture source View has invalid size ${sourceView.width}x${sourceView.height}"
-            }
-            measured.set(
-                CaptureSourceSurface(
-                    viewBoundsOnScreenPx = Rect(
-                        location[0],
-                        location[1],
-                        location[0] + sourceView.width,
-                        location[1] + sourceView.height,
-                    ),
-                    viewWidthPx = sourceView.width,
-                    viewHeightPx = sourceView.height,
-                    windowWidthPx = decor.width,
-                    windowHeightPx = decor.height,
-                    decorWidthPx = decor.width,
-                    decorHeightPx = decor.height,
-                    contentWidthPx = content.width,
-                    contentHeightPx = content.height,
-                    viewClassName = sourceView.javaClass.name,
-                    physicalDisplayWidthPx = displayMode.physicalWidth,
-                    physicalDisplayHeightPx = displayMode.physicalHeight,
-                    density = sourceView.resources.displayMetrics.density,
-                    densityDpi = sourceView.resources.displayMetrics.densityDpi,
-                ),
-            )
-        }
-        return requireNotNull(measured.get()) {
-            "Recognition capture source View bounds were not measured"
-        }
-    }
-
-    private fun findComposeSourceView(view: View): View? {
-        var candidate: View? = if (view.javaClass.name.contains("Compose")) view else null
-        if (view is android.view.ViewGroup) {
-            for (index in 0 until view.childCount) {
-                candidate = findComposeSourceView(view.getChildAt(index)) ?: candidate
-            }
-        }
-        return candidate
     }
 
     private fun mapSourceViewBoundsToBitmap(
