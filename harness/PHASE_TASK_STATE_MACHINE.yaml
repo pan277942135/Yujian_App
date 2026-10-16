@@ -15,6 +15,9 @@ project:
   base_sha: "7737f293ea3831aeea2c6f58308961cdb2ba7d01"
   master_state: "PROJECT_MASTER_STATE.yaml"
   feature_matrix: "harness/FEATURE_MATRIX.yaml"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  unified_contract_schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
+  contract_resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
   current_work_state: "docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json"
 
 execution_control:
@@ -24,6 +27,8 @@ execution_control:
   current_work_stage: "E0"
   current_work_status: "FIX_READY_FOR_EXACT_HEAD_CI"
   current_execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  unified_contract_validator: "scripts/validate_unified_contract.py"
   auto_advance_within_authorized_scope: true
   auto_recovery_enabled: true
   max_automatic_repairs_per_failing_gate: 2
@@ -34,6 +39,9 @@ execution_control:
   force_push_allowed: false
   rebase_allowed: false
   history_rewrite_allowed: false
+  contract_resolution_required: true
+  contract_registry_is_execution_authority: false
+  contract_registry_role: "Resolver/index only; domain contract files remain authoritative."
 
 phase_order:
   - "P0"
