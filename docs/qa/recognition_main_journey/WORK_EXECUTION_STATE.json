@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "task": "YuJian Recognition Main Journey E0-E5 acceptance",
+  "repository": "pan277942135/Yujian_App",
+  "pull_request": 145,
+  "branch": "audit/design-system-v3-1-phase1-master-baseline",
+  "base_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
+  "checkpoint_updated_at": "2026-10-16T07:59:11+08:00",
+  "stage": "E0",
+  "stage_status": "FIX_READY_FOR_EXACT_HEAD_CI",
+  "baseline_sha": "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2",
+  "baseline_runtime_run_id": 38765917873,
+  "baseline_runtime_url": "https://github.com/pan277942135/Yujian_App/actions/runs/38765917873",
+  "baseline_recognition_artifact_id": 11989917574,
+  "baseline_recognition_artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/38765917873/artifacts/11989917574",
+  "baseline_classification": "TEST_ASSERTION_FAILED",
+  "baseline_execution": {
+    "device": "API 28 Android emulator, emulator-5554",
+    "adb_preflight": "PASS",
+    "apk_install": "PASS",
+    "android_junit_runner": "completed",
+    "test_count": 29,
+    "failed_test_count": 6,
+    "crash_or_anr": false,
+    "instrumentation_timeout": false
+  },
+  "failure_findings": [
+    {
+      "test": "RecognitionFrozenFlowEmulatorTest.realDetectorBboxAndAnnotatedSubjectRenderLevelAContourEvidence",
+      "classification": "TEST_ASSERTION_FAILED",
+      "root_cause": "Screenshot helper used Display.Mode dimensions 320x640 as physical screenshot size although the captured display and bitmap were 1080x2340; scaleX and scaleY differed and evidence capture aborted."
+    },
+    {
+      "test": "RecognitionFrozenFlowEmulatorTest.generatesFrozenThreeStateScreenshotsAndExercisesProductionNavigation",
+      "classification": "TEST_ASSERTION_FAILED",
+      "root_cause": "Same screenshot coordinate mapping defect."
+    },
+    {
+      "test": "RecognitionFrozenFlowEmulatorTest.capturesQualityProfilesAndD0ThroughD4AccessibilityEvidence",
+      "classification": "TEST_ASSERTION_FAILED",
+      "root_cause": "Same screenshot coordinate mapping defect."
+    },
+    {
+      "test": "RecognitionFrozenFlowEmulatorTest.reduceMotionAndLowPerformanceKeepRecognitionSemanticStateStable",
+      "classification": "TEST_ASSERTION_FAILED",
+      "root_cause": "Same screenshot coordinate mapping defect."
+    },
+    {
+      "test": "RecognitionFrozenFlowEmulatorTest.resultEntersWithLabelsAndOnlyRequestedSaveActionShowsLoading",
+      "classification": "TEST_ASSERTION_FAILED",
+      "root_cause": "The custom Result action rendered its spinner but did not expose the loading state to accessibility semantics."
+    },
+    {
+      "test": "RecognitionFrozenFlowEmulatorTest.numericEditorValidatesWithFrozenGentleCopyAndSaveErrorsStaySafe",
+      "classification": "TEST_ASSERTION_FAILED",
+      "root_cause": "Test requested the clear-input control before entering a value; the production UI correctly omits that control for an empty field."
+    }
+  ],
+  "fixes_in_worktree": [
+    "Map measured view bounds using logical display dimensions and the actual screenshot bitmap dimensions; add API 28 full-resolution coordinate regression coverage.",
+    "Expose the Result action loading state as the existing '正在加载' accessibility state description.",
+    "Seed the numeric editor before exercising its visible clear-input action."
+  ],
+  "local_validation": {
+    "git_diff_check": "PASS with CRLF-aware whitespace check",
+    "gradle_build": "NOT_RUN",
+    "instrumentation_reproduction": "NOT_RUN",
+    "reason": "This checkout has no Gradle wrapper, installed Gradle, Android SDK, ADB, or emulator; the repository's self-hosted API 28 GitHub runner is required."
+  },
+  "completed_stages": [],
+  "pending_stages": [
+    "E0 exact-head targeted and full Recognition runtime verification",
+    "E1 J01-J20 execution and persistence evidence",
+    "E2 frozen visual, motion, responsive and device-boundary evidence",
+    "E3 dependent runtime regression analysis and repair",
+    "E4 exact-head CI and machine-readable gate results",
+    "E5 final QA APK, provenance, evidence index and execution report"
+  ],
+  "journey_results": {
+    "file": "docs/qa/recognition_main_journey/Journey_Execution_Results_V1.json",
+    "status": "NOT_CREATED",
+    "J01-J20": "NOT_RUN"
+  },
+  "next_action": "Commit the E0 fixes and this checkpoint, push to PR #145, then inspect the exact-head GitHub Actions build and API 28 Recognition artifact before proceeding to E1.",
+  "external_blockers": [
+    "Local Android build and emulator execution are unavailable in this checkout; use the configured self-hosted API 28 runner."
+  ],
+  "pr_state": "DRAFT_OPEN_UNMERGED"
+}
