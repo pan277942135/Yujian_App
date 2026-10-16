@@ -288,6 +288,9 @@ features:
       - "runtime_accessibility_degradation"
       - "runtime_production_semantics"
       - "runtime_final_gate"
+      - "p01"
+      - "p02"
+      - "p03"
     child_surfaces:
       - "capture"
       - "permission"
