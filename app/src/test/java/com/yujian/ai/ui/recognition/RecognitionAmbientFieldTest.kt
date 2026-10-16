@@ -34,22 +34,16 @@ class RecognitionAmbientFieldTest {
             nowMs = 1_000L,
             phase = RecognitionPhase.DETECTING,
             reduceMotionNow = false,
-            resolveActive = false,
-            resolveProgress = 0f,
         )
         val firstOutlineFrame = clock.sample(
             nowMs = 1_016L,
             phase = RecognitionPhase.OUTLINE,
             reduceMotionNow = false,
-            resolveActive = false,
-            resolveProgress = 0f,
         )
         val settledOutlineClock = clock.sample(
             nowMs = 1_032L,
             phase = RecognitionPhase.OUTLINE,
             reduceMotionNow = false,
-            resolveActive = false,
-            resolveProgress = 0f,
         )
 
         assertTrue(firstOutlineFrame.cycleOffset >= beforeOutline.cycleOffset)

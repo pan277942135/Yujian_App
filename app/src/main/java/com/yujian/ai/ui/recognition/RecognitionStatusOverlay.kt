@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +31,6 @@ import com.yujian.ai.ai.RecognitionPhase
 fun RecognitionStatusOverlay(
     phase: RecognitionPhase,
     modifier: Modifier = Modifier,
-    resolveProgress: Float = 0f,
     reduceMotion: Boolean = false,
     visualClockMs: Long = 0L,
 ) {
@@ -67,7 +65,6 @@ fun RecognitionStatusOverlay(
         modifier
             .fillMaxWidth()
             .height(RecognitionProcessingVisualTokens.statusHeight)
-            .graphicsLayer { alpha = 1f - resolveProgress.coerceIn(0f, 1f) }
             .clip(shape)
             .background(RecognitionProcessingVisualTokens.statusSurface)
             .border(width = .75.dp, brush = energyBorder, shape = shape)

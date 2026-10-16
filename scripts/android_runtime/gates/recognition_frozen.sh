@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest,com.yujian.ai.RecognitionOpticalFidelityRuntimeTest'
 }
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
 # assertions and single proof screenshots.
 YUJIAN_RECOGNITION_DEVICE_RECORDING="/sdcard/recognition_processing_runtime_host.mp4"
-YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v1_2.mp4"
+YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v3_1.mp4"
 
 gate_before_instrumentation() {
   if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
@@ -111,7 +111,6 @@ PY
     02_image_recognizing_late.png \
     03_fish_located.png \
     04_species_recognizing.png \
-    05_resolve.png \
     05_result_high.png \
     06_result_medium.png \
     07_result_low.png \
@@ -136,24 +135,41 @@ PY
   done
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-    "cache/recognition-evidence/recognition_processing_timing_v1_2.txt" \
-    > "$output_dir/recognition_processing_timing_v1_2.txt" 2>/dev/null || true
-  if [[ ! -s "$output_dir/recognition_processing_timing_v1_2.txt" ]]; then
-    rm -f "$output_dir/recognition_processing_timing_v1_2.txt"
+    "cache/recognition-evidence/recognition_processing_timing_v3_1.txt" \
+    > "$output_dir/recognition_processing_timing_v3_1.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_processing_timing_v3_1.txt" ]]; then
+    rm -f "$output_dir/recognition_processing_timing_v3_1.txt"
   fi
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-    "cache/recognition-evidence/recognition_production_flow_trace_v1_2.json" \
-    > "$output_dir/recognition_production_flow_trace_v1_2.json" 2>/dev/null || true
-  if [[ ! -s "$output_dir/recognition_production_flow_trace_v1_2.json" ]]; then
-    rm -f "$output_dir/recognition_production_flow_trace_v1_2.json"
+    "cache/recognition-evidence/recognition_production_flow_trace_v3_1.json" \
+    > "$output_dir/recognition_production_flow_trace_v3_1.json" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_production_flow_trace_v3_1.json" ]]; then
+    rm -f "$output_dir/recognition_production_flow_trace_v3_1.json"
   fi
 
-  for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
+  for name in recognition_motion_trace_v3_1.json recognition_accessibility_trace_v3_1.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi
   done
+
+  local optical_dir="$output_dir/optical-fidelity"
+  mkdir -p "$optical_dir"
+  for name in recognition_optical_fidelity_v3_1.json optical_fidelity_full.png optical_fidelity_lite.png; do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/recognition-optical-fidelity/${name}" > "$optical_dir/${name}" 2>/dev/null || true
+    if [[ ! -s "$optical_dir/${name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$optical_dir/${name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "RECOGNITION_OPTICAL_FIDELITY_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  if ! python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_optical_fidelity_evidence.py" \
+    --evidence-dir "$optical_dir"; then
+    runtime_set_failure "EVIDENCE" "RECOGNITION_OPTICAL_FIDELITY_EVIDENCE_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
 
   for name in \
     portrait_low_confidence_original.jpg \
@@ -205,7 +221,7 @@ PY
       --reference-dir "$YUJIAN_REPO_ROOT/design/pages/recognition/design" \
       --output-dir "$output_dir" || {
         runtime_set_failure "EVIDENCE" "RECOGNITION_VISUAL_PARITY_INVALID"
-      return "$EXIT_FAIL_EVIDENCE"
+        return "$EXIT_FAIL_EVIDENCE"
     }
   fi
 
@@ -229,14 +245,14 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageStat
 
 output_dir = Path(sys.argv[1])
-video_path = output_dir / "recognition_processing_v1_2.mp4"
+video_path = output_dir / "recognition_processing_v3_1.mp4"
 validation_path = output_dir / "recognition_processing_video_validation.txt"
 reference_names = [
     "01_image_recognizing_early.png",
     "02_image_recognizing_late.png",
     "03_fish_located.png",
     "04_species_recognizing.png",
-    "05_resolve.png",
+    "05_result_high.png",
 ]
 references = [Image.open(output_dir / name).convert("RGB") for name in reference_names]
 if len(references) != 5:
@@ -340,8 +356,8 @@ PY
     fi
   fi
 
-  if ! python3 scripts/verify_recognition_runtime_evidence_v1_2.py --evidence-dir "$output_dir"; then
-    runtime_set_failure "EVIDENCE" "RECOGNITION_V1_2_EVIDENCE_INVALID"
+  if ! python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_runtime_evidence_v3_1.py" --evidence-dir "$output_dir"; then
+    runtime_set_failure "EVIDENCE" "RECOGNITION_V3_1_EVIDENCE_INVALID"
     return "$EXIT_FAIL_EVIDENCE"
   fi
   return "$EXIT_PASS"

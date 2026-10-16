@@ -77,11 +77,9 @@ fun RecognizingScreen(
     onFinished: (ProductionRecognitionResult) -> Unit, onFailure: (Throwable) -> Unit = {},
     phaseOverride: RecognitionPhase? = null, visualClockOverrideMs: Long? = null,
     motionPolicyOverride: RecognitionMotionPolicy? = null,
-    resolveProgressOverride: Float? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
-    resolveProgressOverride = resolveProgressOverride,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -96,7 +94,6 @@ fun RecognitionProcessingScene(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
-    resolveProgressOverride: Float? = null,
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -214,10 +211,6 @@ fun RecognitionProcessingScene(
     val visualClockMs = visualClockOverrideMs ?: visualNowMs
     val deterministicMotion = visualClockOverrideMs != null
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
-    // RESULT_READY is an immediate handoff in V3.1; a timed Resolve fade may
-    // only be shown by frozen reference captures, never delay production flow.
-    val resolveProgress = resolveProgressOverride ?: 0f
-    val resolveActive = resolveProgressOverride?.let { it > 0f } == true
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
@@ -260,7 +253,7 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
+            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(
@@ -285,7 +278,6 @@ fun RecognitionProcessingScene(
                         rendered == RecognitionPhase.DETECTING
                     ) 84.dp else 34.dp,
                 ),
-            resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
             visualClockMs = visualClockMs,
         )
@@ -296,7 +288,7 @@ private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
     deterministicMotion: Boolean, motionSessionKey: Any?,
-    phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
+    phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
@@ -339,15 +331,13 @@ private fun RecognitionPhoto(
         deterministicMotion = deterministicMotion,
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
-        resolveProgress = resolveProgress,
-        resolveActive = resolveActive,
         qualityLevel = motionPolicy.qualityLevel,
         onMotionFrame = onMotionFrame,
         photoTransform = transform,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
-        visualClockMs, phaseElapsedMs, resolveProgress,
+        visualClockMs, phaseElapsedMs,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
         focusLevel = focusLevel,

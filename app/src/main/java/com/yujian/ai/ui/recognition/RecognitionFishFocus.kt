@@ -175,7 +175,6 @@ fun RecognitionFishFocus(
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
     phaseElapsedMs: Long = Long.MAX_VALUE,
-    resolveProgress: Float = 0f,
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
     focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
@@ -233,10 +232,6 @@ fun RecognitionFishFocus(
         val visualRadiusX = radii.radiusX
         val visualRadiusY = radii.radiusY
 
-        val remaining =
-            1f - resolveProgress.coerceIn(0f, 1f)
-        val resolveStrength = remaining * remaining
-
         val revealDuration =
             if (reduceMotion) 180f else 380f
         val revealRaw =
@@ -251,8 +246,7 @@ fun RecognitionFishFocus(
         val wave =
             if (
                 phase == RecognitionPhase.CLASSIFYING &&
-                !reduceMotion &&
-                resolveProgress <= 0f
+                !reduceMotion
             ) {
                 val t =
                     ((visualClockMs ?: SystemClock.uptimeMillis()) % 1_900L) /
@@ -294,7 +288,7 @@ fun RecognitionFishFocus(
         } else {
             reveal
         }
-        val haloAlpha = haloTarget * haloReveal * resolveStrength
+        val haloAlpha = haloTarget * haloReveal
 
         val radiusScale =
             if (effectiveLevel == RecognitionFishFocusLevel.C) .88f else 1f
@@ -332,7 +326,7 @@ fun RecognitionFishFocus(
                         } else {
                             .30f + .12f * wave
                         }
-                    ) * haloReveal * resolveStrength,
+                    ) * haloReveal,
                 ),
                 topLeft = Offset(
                     center.x - baseRadiusX,
@@ -354,8 +348,7 @@ fun RecognitionFishFocus(
         ) {
             val realContour = requireNotNull(cachedContourPath)
 
-            val coreAlpha =
-                contourCoreTarget * reveal * resolveStrength
+            val coreAlpha = contourCoreTarget * reveal
 
             drawLocalContourBlur(
                 realContour,

@@ -114,7 +114,6 @@ internal data class MotionFrame(
     val cycleOffset: Float,
     val segmentSpeed: Float,
     val stateStrength: Float,
-    val resolveStrength: Float,
     val detailMotionTimeMs: Long,
     val receivingEntry: Float,
     val primaryEntry: Float,
@@ -127,7 +126,6 @@ data class RecognitionMotionTraceSample(
     val segmentOffset: Float,
     val segmentSpeed: Float,
     val stateStrength: Float,
-    val resolveStrength: Float,
     val detailMotionTimeMs: Long,
     val reduceMotion: Boolean,
     val qualityLevel: RecognitionQualityLevel,
@@ -139,8 +137,6 @@ internal class EdgeFieldMotionAccumulator {
     private var lastNowMs = 0L
     private var entryStartedAtMs = 0L
     private var cycleOffset = 0f
-    private var resolving = false
-    private var resolveStartedAtMs = 0L
     private var reduceMotion = false
 
     private var speedFrom = 1f
@@ -157,8 +153,6 @@ internal class EdgeFieldMotionAccumulator {
         nowMs: Long,
         phase: RecognitionPhase,
         reduceMotionNow: Boolean,
-        resolveActive: Boolean,
-        resolveProgress: Float,
     ): MotionFrame {
         val nextStage = productStage(phase)
 
@@ -187,7 +181,7 @@ internal class EdgeFieldMotionAccumulator {
 
         advance(nowMs)
 
-        if (nextStage != stage && !resolving) {
+        if (nextStage != stage) {
             val currentSpeed = speedAt(nowMs)
             val currentStrength = strengthAt(nowMs)
             stage = nextStage
@@ -204,7 +198,7 @@ internal class EdgeFieldMotionAccumulator {
             strengthTransitionMs = if (reduceMotionNow) 180L else transitionDurationFor(stage)
         }
 
-        if (reduceMotionNow != reduceMotion && !resolving) {
+        if (reduceMotionNow != reduceMotion) {
             val currentSpeed = speedAt(nowMs)
             reduceMotion = reduceMotionNow
             speedFrom = currentSpeed
@@ -216,16 +210,6 @@ internal class EdgeFieldMotionAccumulator {
                 speedTo = targetFor(stage).speed
                 speedTransitionMs = 220L
             }
-        }
-
-        if (resolveActive && !resolving) {
-            advance(nowMs)
-            resolving = true
-            resolveStartedAtMs = nowMs
-            speedFrom = 0f
-            speedTo = 0f
-            speedTransitionAtMs = nowMs
-            speedTransitionMs = 0L
         }
 
         val elapsed = (nowMs - entryStartedAtMs).coerceAtLeast(0L)
@@ -249,8 +233,7 @@ internal class EdgeFieldMotionAccumulator {
             cycleOffset = cycleOffset,
             segmentSpeed = speedAt(nowMs),
             stateStrength = strengthAt(nowMs),
-            resolveStrength = (1f - resolveProgress.coerceIn(0f, 1f)).let { it * it },
-            detailMotionTimeMs = if (resolving) resolveStartedAtMs else nowMs,
+            detailMotionTimeMs = nowMs,
             receivingEntry = receivingEntry,
             primaryEntry = primaryEntry,
             detailEntry = detailEntry,
@@ -259,7 +242,7 @@ internal class EdgeFieldMotionAccumulator {
 
     private fun advance(nowMs: Long) {
         if (!initialized || nowMs <= lastNowMs) return
-        if (!resolving && !reduceMotion) {
+        if (!reduceMotion) {
             val before = speedAt(lastNowMs)
             val after = speedAt(nowMs)
             val average = (before + after) * .5f
@@ -297,8 +280,6 @@ fun RecognitionAmbientField(
     deterministicMotion: Boolean = visualClockMs != null,
     lowPerformance: Boolean = false,
     reduceMotion: Boolean = false,
-    resolveProgress: Float = 0f,
-    resolveActive: Boolean = resolveProgress > 0f,
     qualityLevel: RecognitionQualityLevel =
         if (lowPerformance) RecognitionQualityLevel.LITE else RecognitionQualityLevel.FULL,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
@@ -315,11 +296,9 @@ fun RecognitionAmbientField(
             nowMs,
             phase,
             reduceMotion,
-            resolveActive,
-            resolveProgress,
         )
     } else {
-        accumulator.sample(nowMs, phase, reduceMotion, resolveActive, resolveProgress)
+        accumulator.sample(nowMs, phase, reduceMotion)
     }
 
     val quality = remember(qualityLevel) { qualityProfile(qualityLevel) }
@@ -332,7 +311,6 @@ fun RecognitionAmbientField(
                     segmentOffset = frame.cycleOffset,
                     segmentSpeed = frame.segmentSpeed,
                     stateStrength = frame.stateStrength,
-                    resolveStrength = frame.resolveStrength,
                     detailMotionTimeMs = frame.detailMotionTimeMs,
                     reduceMotion = reduceMotion,
                     qualityLevel = qualityLevel,
@@ -370,7 +348,6 @@ fun RecognitionAmbientField(
                 val offset = positiveMod(frame.cycleOffset + filament.seed)
                 val common =
                     frame.stateStrength *
-                        frame.resolveStrength *
                         frame.primaryEntry *
                         quality.alphaMultiplier *
                         filament.islandWeight
@@ -402,7 +379,6 @@ fun RecognitionAmbientField(
                     val parent = PRIMARY_ISLANDS.first { it.id == echo.parentId }
                     val common =
                         frame.stateStrength *
-                            frame.resolveStrength *
                             frame.detailEntry *
                             quality.alphaMultiplier *
                             parent.islandWeight
@@ -422,7 +398,6 @@ fun RecognitionAmbientField(
                     val parent = PRIMARY_ISLANDS.first { it.id == echo.parentId }
                     val common =
                         frame.stateStrength *
-                            frame.resolveStrength *
                             frame.detailEntry *
                             quality.alphaMultiplier *
                             parent.islandWeight
@@ -464,8 +439,6 @@ private fun deterministicFrame(
     clockMs: Long,
     phase: RecognitionPhase,
     reduceMotion: Boolean,
-    resolveActive: Boolean,
-    resolveProgress: Float,
 ): MotionFrame {
     val stage = productStage(phase)
     val target = targetFor(stage)
@@ -480,19 +453,11 @@ private fun deterministicFrame(
         positiveMod(clockMs / 10_000f * target.speed)
     }
 
-    val resolve =
-        (1f - resolveProgress.coerceIn(0f, 1f)).let { it * it }
-
     return MotionFrame(
         cycleOffset = offset,
-        segmentSpeed = if (reduceMotion || resolveActive) 0f else target.speed,
+        segmentSpeed = if (reduceMotion) 0f else target.speed,
         stateStrength = target.strength,
-        resolveStrength = resolve,
-        detailMotionTimeMs = if (resolveActive) {
-            (clockMs - (resolveProgress.coerceIn(0f, 1f) * 200f).toLong()).coerceAtLeast(0L)
-        } else {
-            clockMs
-        },
+        detailMotionTimeMs = clockMs,
         receivingEntry = 1f,
         primaryEntry = 1f,
         detailEntry = if (reduceMotion) 1f else 1f,
@@ -543,7 +508,6 @@ private fun DrawScope.drawReceivingLight(
 ) {
     val common =
         frame.stateStrength *
-            frame.resolveStrength *
             frame.receivingEntry *
             quality.receiving *
             quality.alphaMultiplier
@@ -719,7 +683,6 @@ private fun DrawScope.drawEnergyNodes(
 ) {
     val common =
         frame.stateStrength *
-            frame.resolveStrength *
             frame.detailEntry *
             quality.alphaMultiplier
 
@@ -763,7 +726,6 @@ private fun DrawScope.drawParticles(
 ) {
     val common =
         frame.stateStrength *
-            frame.resolveStrength *
             frame.detailEntry *
             quality.alphaMultiplier
 

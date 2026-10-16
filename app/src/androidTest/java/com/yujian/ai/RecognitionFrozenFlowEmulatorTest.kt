@@ -201,7 +201,6 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.RESOLVE, "正在认识这条鱼", "05_resolve.png")
         cropEvidence("02_image_recognizing_late.png", "06_edge_field_crop.png", 0f, 0f, 1f, .44f)
         cropEvidence("03_fish_located.png", "07_fish_focus_crop.png", .04f, .16f, .96f, .90f)
         cropEvidence("03_fish_located.png", "08_contour_closeup.png", .18f, .22f, .82f, .82f)
@@ -1049,7 +1048,7 @@ class RecognitionFrozenFlowEmulatorTest {
                     "{\"uptime_ms\":${sample.uptimeMs},\"phase\":\"${sample.phase}\"," +
                     "\"segment_offset\":${sample.segmentOffset},\"segment_speed\":${sample.segmentSpeed}," +
                     "\"state_strength\":${sample.stateStrength}," +
-                    "\"resolve_strength\":${sample.resolveStrength},\"detail_motion_time_ms\":${sample.detailMotionTimeMs}," +
+                    "\"detail_motion_time_ms\":${sample.detailMotionTimeMs}," +
                     "\"reduce_motion\":${sample.reduceMotion}," +
                     "\"quality\":\"${sample.qualityLevel}\"}"
             },
@@ -1309,8 +1308,8 @@ class RecognitionFrozenFlowEmulatorTest {
         capture("reduce_motion_static.png")
 
         createDegradationContactSheet(levels)
-        File(evidenceDir, "recognition_accessibility_trace_v1_2.json").writeText(
-            """{"quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
+        File(evidenceDir, "recognition_accessibility_trace_v3_1.json").writeText(
+            """{"contract_version":"recognition_processing_state_machine_v3_1","quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
         )
         File(evidenceDir, "recognition_visual_qa_v1_3.json").writeText(
             """{"version":"1.3","review_status":"PENDING_PHYSICAL_REVIEW","reviewed_artifact_id":"pending-runtime-capture","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png"]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png","quality_full.png","quality_balanced.png","quality_lite.png"]}}}""",
@@ -1785,7 +1784,6 @@ private enum class FrozenState {
     IMAGE_RECOGNIZING_LATE,
     FISH_LOCATED,
     SPECIES_RECOGNIZING,
-    RESOLVE,
     RESULT_HIGH,
     RESULT_MEDIUM,
     RESULT_LOW,
@@ -1811,8 +1809,7 @@ private fun FrozenRecognitionHarness(
         FrozenState.IMAGE_RECOGNIZING_EARLY,
         FrozenState.IMAGE_RECOGNIZING_LATE,
         FrozenState.FISH_LOCATED,
-        FrozenState.SPECIES_RECOGNIZING,
-        FrozenState.RESOLVE -> {
+        FrozenState.SPECIES_RECOGNIZING -> {
             RecognitionProcessingScene(
                 image = photo,
                 onBack = {},
@@ -1832,8 +1829,7 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
                     FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING
                     FrozenState.FISH_LOCATED -> RecognitionPhase.OUTLINE
-                    FrozenState.SPECIES_RECOGNIZING,
-                    FrozenState.RESOLVE -> RecognitionPhase.CLASSIFYING
+                    FrozenState.SPECIES_RECOGNIZING -> RecognitionPhase.CLASSIFYING
                     else -> RecognitionPhase.CAPTURED
                 },
                 visualClockOverrideMs = when (stateValue) {
@@ -1841,7 +1837,6 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_LATE -> 720L
                     else -> 3_200L
                 },
-                resolveProgressOverride = if (stateValue == FrozenState.RESOLVE) .72f else null,
             )
         }
         FrozenState.RESULT_HIGH,
