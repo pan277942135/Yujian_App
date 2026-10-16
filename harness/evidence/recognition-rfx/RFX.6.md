@@ -34,6 +34,12 @@ because none is defined by the frozen contract.
   `LaunchedEffect` import. The build stopped before API28 jobs and produced no
   APK. The import is added in the follow-up fix; API28 instrumentation, actual
   frame metrics, and APK evidence remain pending CI on that exact new SHA.
+- Second exact-head Android CI attempt (`38940752726`, `8eac2ef2b4da6c281d51779e22718f9e5d4e2887`)
+  passed unit tests, Camera harness contract tests, and debug APK assembly, then
+  failed AndroidTest compilation because the test imported `Choreographer` from
+  the wrong Android package and omitted Compose test API imports. No API28 jobs
+  or APK artifacts ran. Those imports are corrected in the next commit; API28
+  instrumentation, actual frame metrics, and APK evidence remain pending.
 
 ## Independent check retained
 
