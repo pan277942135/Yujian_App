@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-16T23:26:20+08:00"
+  updated_at: "2026-10-16T23:49:39+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+  execution_baseline_sha: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
   execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "4202d9d3ec8476360426506659b1fea6233b9667"
+  live_branch_head_at_snapshot: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,8 +57,8 @@ repositories:
     default_branch: "main"
     main_sha: "ae7f492a649d20dc23e7f04bcffa49749c7d9e70"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "4202d9d3ec8476360426506659b1fea6233b9667"
-    execution_baseline_sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+    active_sha_at_snapshot: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
+    execution_baseline_sha: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
     runtime:
       os: "Android"
       api_level: 28
@@ -98,7 +98,7 @@ pull_requests:
     title: "[Draft] YuJian Design System V3.1 — Phase 1/2 Baseline + Phase 3-A Page Contract"
     state: "DRAFT_OPEN_UNMERGED"
     branch: "audit/design-system-v3-1-phase1-master-baseline"
-    head_at_last_verified_snapshot: "4202d9d3ec8476360426506659b1fea6233b9667"
+    head_at_last_verified_snapshot: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
     head_tracking_rule: "Live PR head is re-read from GitHub; state does not self-reference its own commit SHA."
     base: "main"
     base_sha: "ae7f492a649d20dc23e7f04bcffa49749c7d9e70"
@@ -265,7 +265,7 @@ phases:
     current_feature: "RECOGNITION_MAIN_JOURNEY"
     current_work_id: "RECOGNITION-FIRST-USE-GUIDE-V1"
     current_work_stage: "E0"
-    current_work_status: "FIX_READY_FOR_EXACT_HEAD_CI"
+    current_work_status: "REPAIR_2_READY_FOR_EXACT_HEAD_CI"
     completed_scope:
       - "fresh capture on retake/back"
       - "attempt-scoped stale-callback guards"
@@ -307,7 +307,7 @@ phases:
     status: "IN_PROGRESS"
     freeze: "NOT_FROZEN"
     exact_head:
-      sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+      sha: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
       runtime_status: "NOT_RUN"
     required_evidence:
       - "runtime run ID"
@@ -420,7 +420,7 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+    sha: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
     status: "NOT_RUN"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -464,12 +464,12 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "4202d9d3ec8476360426506659b1fea6233b9667"
+    source_sha: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
     run_id: null
     artifact_ids: {}
     artifact_zip_digests: {}
     apk_sha256: null
-    runtime_evidence: "NOT_GENERATED_AFTER_REPAIR"
+    runtime_evidence: "NOT_GENERATED_AFTER_REPAIR_2"
 
   last_verified_build:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -543,7 +543,7 @@ execution_control:
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
   machine_validation: "PASS"
-  machine_validated_source_sha: "ff5701ed72b08b04ca5cba860d80bcde4899c991"
+  machine_validated_source_sha: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
@@ -552,7 +552,7 @@ current_work:
   status: "FIX_READY_FOR_EXACT_HEAD_CI"
   source_file: "WORK_EXECUTION_STATE.json"
   task_id: "N001"
-  exact_head: "4202d9d3ec8476360426506659b1fea6233b9667"
+  exact_head: "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
@@ -586,8 +586,8 @@ blockers:
     severity: "P0"
     area: "Android Runtime"
     status: "OPEN"
-    description: "Exact-head API28 matrix run 38920720125 produced normal-home-v1 FAIL_EVIDENCE; remaining matrix rows are not yet complete."
-    unblock: "Provide approved Hero fixture matrix and rerun branch-push API28 matrix; then complete all required rows."
+    description: "Repair-2 exact-head API28 matrix has not completed; the prior exact-head evidence remains historical and did not produce an N001 PASS."
+    unblock: "Run the authoritative API28 matrix at the current exact head, then complete every required row without promoting historical evidence."
 
   - id: "B002"
     severity: "P1"
@@ -685,13 +685,13 @@ next_actions:
     priority: "P0"
     owner: "Work"
     status: "READY"
-    action: "After approved Hero fixture provenance is supplied, rerun the API28 matrix and re-evaluate N001 without changing the acceptance threshold."
+    action: "Run the authoritative API28 matrix at repair-2 exact HEAD; keep the approved Hero fixture provenance blocker explicit and do not change the acceptance threshold."
 
   - id: "N001"
     priority: "P0"
     owner: "Work"
     status: "BLOCKED"
-    action: "Resolve B003 Hero fixture evidence and rerun the authoritative API28 matrix; current normal-home-v1 result is FAIL_EVIDENCE."
+    action: "Complete the current exact-head API28 matrix, then resolve B003 Hero fixture evidence and re-evaluate N001; historical FAIL_EVIDENCE remains non-promotable."
   - id: "N002"
     priority: "P0"
     owner: "Work"

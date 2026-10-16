@@ -9,11 +9,11 @@
   "base_sha": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
   "phase": "P8",
   "task_id": "N001",
-  "stage": "REPAIR_READY_FOR_EXACT_HEAD_CI",
+  "stage": "REPAIR_2_READY_FOR_EXACT_HEAD_CI",
   "status": "READY",
-  "source_sha": "4202d9d3ec8476360426506659b1fea6233b9667",
-  "checkpoint_updated_at": "2026-10-16T23:52:00+08:00",
-  "next_action": "Run the authoritative API28 matrix against the repaired exact product source SHA and record machine-readable gate evidence.",
+  "source_sha": "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee",
+  "checkpoint_updated_at": "2026-10-16T23:49:39+08:00",
+  "next_action": "Run the authoritative API28 matrix against repair-2 exact product source SHA and record machine-readable gate evidence.",
   "dependencies": ["P5-02", "P6-02"],
   "blockers": ["B001", "B003", "B004"],
   "evidence": {
@@ -25,9 +25,9 @@
     "canonical_contract_sync_commit": "bb870de73730188d4beeaf67bf349f638ac52414",
     "control_plane_pr152_merge_commit": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
     "canonical_runtime_gate_restore": "d88eb7179e85b0f94f3be169bc3072b892e8dcdc",
-    "n001_gate": "NOT_RUN_AFTER_REPAIR",
-    "repair_attempt": 1,
-    "repair_commit": "4202d9d3ec8476360426506659b1fea6233b9667",
+    "n001_gate": "NOT_RUN_AFTER_REPAIR_2",
+    "repair_attempt": 2,
+    "repair_commit": "7f2c6684c5bdea7c7c85e96db0f1fa6a783d90ee",
     "api28_workflow_run": "38920720125",
     "api28_normal_home_job": "117046654040",
     "api28_normal_home_artifact": "runtime-gate-normal-home-v1-5ea871cda79d6c9a14f184d4ee8de04d67c0909a-MODEL_CROP_M1_v0.2",
@@ -36,7 +36,8 @@
     "api28_normal_home_apk_sha256": "dc041d41e1e99cac6efbe334e539ea248e2b3f18b8cb892f8ac8449258602e7e",
     "api28_normal_home_evidence": "Hero subgate BLOCKED: approved originals/rights/ground-truth fish boxes for F01-F08 are unavailable; device, install and instrumentation passed.",
     "n002_n010": "WAITING_FOR_DEPENDENCIES",
-    "historical_runtime_state": "Preserved in PROJECT_MASTER_STATE.yaml and evidence artifacts; not promoted to current-head PASS."
+    "historical_runtime_state": "Preserved in PROJECT_MASTER_STATE.yaml and evidence artifacts; not promoted to current-head PASS.",
+    "repair_2_scope": "Data-sanitization runtime synchronization now waits for the resolved catch to become a visible accessibility node; acceptance predicates are unchanged."
   },
   "recovery": {
     "max_automatic_repairs_per_failing_gate": 2,
