@@ -1,28 +1,24 @@
 {
-  "contract_version": "RECOGNITION_PRESENTATION_v1_3",
-  "states": [
-    "IMAGE_RECOGNIZING",
-    "FISH_LOCATED",
-    "SPECIES_RECOGNIZING",
-    "RESOLVE",
-    "RESULT_HIGH",
-    "RESULT_MEDIUM",
-    "RESULT_LOW",
-    "ISSUE_NO_FISH",
-    "ISSUE_IMAGE_QUALITY",
-    "ISSUE_TECHNICAL_FAILURE"
-  ],
+  "contract_version": "recognition_processing_state_machine_v3_1",
+  "states": ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING", "RESULT_READY"],
   "production_pipeline": ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING", "RESULT", "FAILURE"],
+  "minimum_duration_ms": {
+    "CAPTURED": 220,
+    "DETECTING": 320,
+    "OUTLINE": 350,
+    "CLASSIFYING": 250,
+    "RESULT_READY": 0
+  },
   "flow": {
-    "IMAGE_RECOGNIZING": ["FISH_LOCATED", "ISSUE_NO_FISH", "ISSUE_IMAGE_QUALITY", "ISSUE_TECHNICAL_FAILURE"],
-    "FISH_LOCATED": ["SPECIES_RECOGNIZING", "ISSUE_TECHNICAL_FAILURE"],
-    "SPECIES_RECOGNIZING": ["RESOLVE", "ISSUE_TECHNICAL_FAILURE"],
-    "RESOLVE": ["RESULT_HIGH", "RESULT_MEDIUM", "RESULT_LOW"],
-    "RESULT_HIGH": [],
-    "RESULT_MEDIUM": [],
-    "RESULT_LOW": [],
-    "ISSUE_NO_FISH": [],
-    "ISSUE_IMAGE_QUALITY": [],
-    "ISSUE_TECHNICAL_FAILURE": []
-  }
+    "CAPTURED": ["DETECTING", "TECHNICAL_FAILURE"],
+    "DETECTING": ["OUTLINE", "NO_FISH", "IMAGE_QUALITY_WARNING", "TECHNICAL_FAILURE"],
+    "OUTLINE": ["CLASSIFYING", "TECHNICAL_FAILURE"],
+    "CLASSIFYING": ["RESULT_READY", "TECHNICAL_FAILURE"],
+    "RESULT_READY": [],
+    "NO_FISH": [],
+    "IMAGE_QUALITY_WARNING": [],
+    "TECHNICAL_FAILURE": []
+  },
+  "result_ready_rule": "Immediate handoff when the CLASSIFYING minimum beat and real classifier result are both satisfied.",
+  "timing_rule": "Minimum duration and the corresponding real pipeline event are both required; never advance from time alone."
 }

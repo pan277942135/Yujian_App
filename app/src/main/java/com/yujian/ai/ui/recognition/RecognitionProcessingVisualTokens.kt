@@ -17,6 +17,16 @@ internal object RecognitionProcessingVisualTokens {
     val statusHorizontalPadding = 28.dp
     val statusIndicatorSize = 54.dp
     val statusIndicatorStroke = 4.dp
+    const val energyRingCycleMs = 1_600L
+    const val energyRingSweepDegrees = 112f
+}
+
+internal fun recognitionEnergyRingStartAngle(clockMs: Long, reduceMotion: Boolean): Float {
+    if (reduceMotion) return -90f
+    val cyclePosition = ((clockMs % RecognitionProcessingVisualTokens.energyRingCycleMs) +
+        RecognitionProcessingVisualTokens.energyRingCycleMs) %
+        RecognitionProcessingVisualTokens.energyRingCycleMs
+    return -90f + cyclePosition / RecognitionProcessingVisualTokens.energyRingCycleMs.toFloat() * 360f
 }
 
 internal data class RecognitionStatusCopy(
@@ -25,8 +35,8 @@ internal data class RecognitionStatusCopy(
 )
 
 internal fun recognitionStatusCopy(visualPhase: RecognitionPhase): RecognitionStatusCopy = when (visualPhase) {
-    RecognitionPhase.CAPTURED,
-    RecognitionPhase.DETECTING -> RecognitionStatusCopy("图片识别中", "正在理解照片并寻找鱼获线索")
+    RecognitionPhase.CAPTURED -> RecognitionStatusCopy("正在准备识别", "AI 已获取这张照片")
+    RecognitionPhase.DETECTING -> RecognitionStatusCopy("正在理解这张照片", "寻找这次鱼获的线索")
     RecognitionPhase.OUTLINE -> RecognitionStatusCopy("已定位到鱼体", "正在分析这次鱼获")
     RecognitionPhase.CLASSIFYING -> RecognitionStatusCopy("正在认识这条鱼", "分析鱼体特征")
     RecognitionPhase.RESULT -> RecognitionStatusCopy("", "")

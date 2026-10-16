@@ -139,7 +139,11 @@ fun RecognitionProcessingScene(
             recognize { progress ->
                 assessment = progress.assessment ?: assessment
                 realPhase = progress.phase
-                controller.onPipelinePhase(progress.phase, SystemClock.uptimeMillis())
+                controller.onPipelinePhase(
+                    phase = progress.phase,
+                    nowMs = SystemClock.uptimeMillis(),
+                    hasRealFishFocus = assessment?.primary?.box != null,
+                )
             }
         } catch (cancellation: CancellationException) {
             throw cancellation
@@ -153,7 +157,11 @@ fun RecognitionProcessingScene(
         assessment = result.assessment; finishedResult = result
         if (result.ready) {
             realPhase = RecognitionPhase.RESULT
-            controller.onPipelinePhase(RecognitionPhase.RESULT, SystemClock.uptimeMillis())
+            controller.onPipelinePhase(
+                RecognitionPhase.RESULT,
+                SystemClock.uptimeMillis(),
+                hasRealFishFocus = result.assessment.primary?.box != null,
+            )
         } else if (!delivered) {
             delivered = true
             onFinished(result)
@@ -200,13 +208,10 @@ fun RecognitionProcessingScene(
 
     val rendered = phaseOverride ?: visualPhase
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
-    val resolveProgress = resolveProgressOverride ?: if (phaseOverride != null) {
-        0f
-    } else {
-        controller.resolveProgress(visualNowMs)
-    }
-    val resolveActive = resolveProgressOverride?.let { it > 0f } == true ||
-        (phaseOverride == null && controller.isResolveActive(visualNowMs))
+    // RESULT_READY is an immediate handoff in V3.1; a timed Resolve fade may
+    // only be shown by frozen reference captures, never delay production flow.
+    val resolveProgress = resolveProgressOverride ?: 0f
+    val resolveActive = resolveProgressOverride?.let { it > 0f } == true
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
@@ -276,6 +281,7 @@ fun RecognitionProcessingScene(
                 ),
             resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
+            visualClockMs = visualClockOverrideMs ?: visualNowMs,
         )
     }
 }

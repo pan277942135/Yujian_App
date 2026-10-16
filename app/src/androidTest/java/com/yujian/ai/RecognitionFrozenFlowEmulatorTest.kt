@@ -175,7 +175,7 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
-    fun generatesFrozenThreeStateScreenshotsAndExercisesProductionNavigation() {
+    fun generatesV31RecognitionScreenshotsAndExercisesProductionNavigation() {
         val state = mutableStateOf(FrozenState.IMAGE_RECOGNIZING_EARLY)
         val subject = createAnnotatedSubjectAlphaFixture(
             photo.bitmap,
@@ -187,11 +187,11 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        render(state, FrozenState.IMAGE_RECOGNIZING_EARLY, "图片识别中", "01_image_recognizing_early.png")
-        assertVisible("正在理解照片并寻找鱼获线索")
+        render(state, FrozenState.IMAGE_RECOGNIZING_EARLY, "正在准备识别", "01_image_recognizing_early.png")
+        assertVisible("AI 已获取这张照片")
 
-        render(state, FrozenState.IMAGE_RECOGNIZING_LATE, "图片识别中", "02_image_recognizing_late.png")
-        assertVisible("正在理解照片并寻找鱼获线索")
+        render(state, FrozenState.IMAGE_RECOGNIZING_LATE, "正在理解这张照片", "02_image_recognizing_late.png")
+        assertVisible("寻找这次鱼获的线索")
         assertNoDirtyTechnicalUi()
 
         render(state, FrozenState.FISH_LOCATED, "已定位到鱼体", "03_fish_located.png")
@@ -948,48 +948,59 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(
             listOf(
                 RecognitionPhase.CAPTURED,
+                RecognitionPhase.DETECTING,
                 RecognitionPhase.OUTLINE,
                 RecognitionPhase.CLASSIFYING,
             ),
             visualTimes.keys.filter { it != RecognitionPhase.RESULT },
         )
-        assertFalse("DETECTING leaked into the product presentation trace", visualTimes.containsKey(RecognitionPhase.DETECTING))
 
-        val imageRecognizingAt = requireNotNull(visualTimes[RecognitionPhase.CAPTURED])
+        val capturedAt = requireNotNull(visualTimes[RecognitionPhase.CAPTURED])
+        val detectingAt = requireNotNull(visualTimes[RecognitionPhase.DETECTING])
         val outlineAt = requireNotNull(visualTimes[RecognitionPhase.OUTLINE])
         val classifyingAt = requireNotNull(visualTimes[RecognitionPhase.CLASSIFYING])
-        assertTrue("RESULT callback did not complete", finishedAtMs > classifyingAt)
+        val resultReadyAt = requireNotNull(visualTimes[RecognitionPhase.RESULT])
+        assertTrue("RESULT_READY did not complete", resultReadyAt > classifyingAt)
+        assertTrue("result callback did not complete", finishedAtMs >= resultReadyAt)
 
-        val imageRecognizingMs = outlineAt - imageRecognizingAt
-        val fishLocatedMs = classifyingAt - outlineAt
-        val speciesRecognizingMs = finishedAtMs - classifyingAt
-        val totalMs = finishedAtMs - imageRecognizingAt
-        val fishFocusStableMs = speciesRecognizingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
-        val resolveAtMs = finishedAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+        val capturedMs = detectingAt - capturedAt
+        val detectingMs = outlineAt - detectingAt
+        val outlineMs = classifyingAt - outlineAt
+        val classifyingMs = resultReadyAt - classifyingAt
+        val totalMs = resultReadyAt - capturedAt
+        val fishFocusStableMs = classifyingMs
         // These markers are delivered by separate Compose effects. Frame scheduling can
         // make their observed interval shorter than the controller's exact minimum;
-        // controller unit tests continue to assert the frozen 900/600/1250ms contract.
+        // controller unit tests assert the V3.1 event gates and 220/320/350/250ms beats.
         val presentationTimestampToleranceMs = 50L
 
         assertTrue(
-            "图片识别中 presentation interval was too short: ${imageRecognizingMs}ms",
-            imageRecognizingMs >= 900L - presentationTimestampToleranceMs,
+            "CAPTURED presentation interval was too short: ${capturedMs}ms",
+            capturedMs >= RecognitionVisualStateController.CAPTURED_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "已定位到鱼体 presentation interval was too short: ${fishLocatedMs}ms",
-            fishLocatedMs >= 600L - presentationTimestampToleranceMs,
+            "DETECTING presentation interval was too short: ${detectingMs}ms",
+            detectingMs >= RecognitionVisualStateController.DETECTING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "鱼种识别中 including resolve presentation interval was too short: ${speciesRecognizingMs}ms",
-            speciesRecognizingMs >= 1_450L - presentationTimestampToleranceMs,
+            "OUTLINE presentation interval was too short: ${outlineMs}ms",
+            outlineMs >= RecognitionVisualStateController.OUTLINE_MIN_MS - presentationTimestampToleranceMs,
+        )
+        assertTrue(
+            "CLASSIFYING beat was too short: ${classifyingMs}ms",
+            classifyingMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
             "nominal presentation interval was too short: ${totalMs}ms",
-            totalMs >= 2_950L - presentationTimestampToleranceMs,
+            totalMs >= RecognitionVisualStateController.CAPTURED_MIN_MS +
+                RecognitionVisualStateController.DETECTING_MIN_MS +
+                RecognitionVisualStateController.OUTLINE_MIN_MS +
+                RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
             "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= 1_250L - presentationTimestampToleranceMs,
+            fishFocusStableMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS -
+                presentationTimestampToleranceMs,
         )
 
         val primary = requireNotNull(result.assessment.primary)
@@ -1005,12 +1016,12 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         } ?: 0
         assertTrue("real-catch Level A fixture produced an empty contour", contourSegments > 0)
-        File(evidenceDir, "recognition_processing_timing_v1_2.txt").writeText(
-            "Contract: IMAGE_RECOGNIZING=900ms FISH_LOCATED=600ms SPECIES_RECOGNIZING=1250ms RESOLVE=200ms TOTAL=2950ms\n" +
-                "Runtime IMAGE_RECOGNIZING duration: ${imageRecognizingMs}ms\n" +
-                "Runtime FISH_LOCATED duration: ${fishLocatedMs}ms\n" +
-                "Runtime SPECIES_RECOGNIZING duration: ${speciesRecognizingMs}ms\n" +
-                "Runtime RESOLVE duration: ${RecognitionVisualStateController.RESOLVE_FADE_MS}ms\n" +
+        File(evidenceDir, "recognition_processing_timing_v3_1.txt").writeText(
+            "Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\n" +
+                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
+                "Runtime DETECTING duration: ${detectingMs}ms\n" +
+                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
+                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
                 "Runtime TOTAL duration: ${totalMs}ms\n" +
                 "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
         )
@@ -1029,7 +1040,7 @@ class RecognitionFrozenFlowEmulatorTest {
                 "RESULT species=${result.prediction?.top1?.speciesKey} confidence=${result.prediction?.top1?.confidence}\n" +
                 visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=$phase at=$at" } + "\n",
         )
-        File(evidenceDir, "recognition_motion_trace_v1_2.json").writeText(
+        File(evidenceDir, "recognition_motion_trace_v3_1.json").writeText(
             motionSamples.toList().joinToString(
                 prefix = "{\"samples\":[",
                 postfix = "]}\n",
@@ -1044,17 +1055,18 @@ class RecognitionFrozenFlowEmulatorTest {
             },
         )
         val presentationEvents = listOf(
-            "IMAGE_RECOGNIZING" to imageRecognizingAt,
-            "FISH_LOCATED" to outlineAt,
-            "SPECIES_RECOGNIZING" to classifyingAt,
-            "RESOLVE" to resolveAtMs,
-            "RESULT" to finishedAtMs,
+            "CAPTURED" to capturedAt,
+            "DETECTING" to detectingAt,
+            "OUTLINE" to outlineAt,
+            "CLASSIFYING" to classifyingAt,
+            "RESULT_READY" to resultReadyAt,
         )
         val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
         val mappedRect = transform.mapBoxRect(primary.box)
         val cropPixelsJson = result.cropPixels?.joinToString(prefix = "[", postfix = "]") ?: "null"
-        File(evidenceDir, "recognition_production_flow_trace_v1_2.json").writeText(
-            "{\"contract_version\":\"RECOGNITION_PRESENTATION_v1_3\"," +
+        File(evidenceDir, "recognition_production_flow_trace_v3_1.json").writeText(
+            "{\"contract_version\":\"recognition_processing_state_machine_v3_1\"," +
+                "\"visual_state_sequence\":[\"CAPTURED\",\"DETECTING\",\"OUTLINE\",\"CLASSIFYING\",\"RESULT_READY\"]," +
                 "\"pipeline_phases\":[${actualPipeline.joinToString(",") { "\"$it\"" }}]," +
                 "\"presentation_events\":[${presentationEvents.joinToString(",") { (state, at) -> "{\"state\":\"$state\",\"at_ms\":$at}" }}]," +
                 "\"result_ready\":${result.ready}," +
@@ -1090,8 +1102,8 @@ class RecognitionFrozenFlowEmulatorTest {
                 "REDUCE_MOTION=false\n",
         )
         trace(
-            "TIMING_IMAGE_RECOGNIZING_MS=$imageRecognizingMs TIMING_FISH_LOCATED_MS=$fishLocatedMs " +
-                "TIMING_SPECIES_RECOGNIZING_MS=$speciesRecognizingMs " +
+            "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
+                "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
                 "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
         )
     }
@@ -1228,7 +1240,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val policy = mutableStateOf(RecognitionMotionPolicy())
         val phaseState = mutableStateOf(RecognitionPhase.DETECTING)
         val visualClockState = mutableStateOf(720L)
-        // The three profile captures share one real photo, IMAGE_RECOGNIZING
+        // The three profile captures share one real photo, DETECTING
         // state, and frozen visual clock. Focus ladder evidence is separate.
         composeRule.setContent {
             YujianTheme {
@@ -1254,7 +1266,7 @@ class RecognitionFrozenFlowEmulatorTest {
         ).forEach { (level, fileName) ->
             policy.value = RecognitionMotionPolicy(degradationLevel = level)
             composeRule.waitForIdle()
-            assertVisible("图片识别中")
+            assertVisible("正在理解这张照片")
             awaitSurfaceFrameCommit()
             capture(fileName)
         }
