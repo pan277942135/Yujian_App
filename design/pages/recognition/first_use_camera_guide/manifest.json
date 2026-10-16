@@ -1,10 +1,11 @@
 {
-  "schema_version": "1.1",
-  "asset_id": "recognition_first_use_camera_guide_v1",
+  "schema_version": "2.0",
+  "asset_id": "recognition_first_use_camera_guide_v1_1",
   "status": "FROZEN",
   "runtime_visual_authority": false,
   "scope": "Recognition Capture first-use camera guide overlay",
-  "design_spec": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+  "design_spec": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md",
+  "active_page_count": 2,
   "assets": [
     {
       "id": "p01",
@@ -19,19 +20,8 @@
     },
     {
       "id": "p02",
-      "title": "P02 · 竖拍鱼类拍摄示意",
-      "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-      "source_filename": "湖畔竖拍识鱼指南.png",
-      "width": 941,
-      "height": 1671,
-      "bytes": 2042852,
-      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-      "status": "FROZEN"
-    },
-    {
-      "id": "p03",
-      "title": "P03 · 横屏拍摄示意",
-      "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+      "title": "P02 · 横屏拍摄示意",
+      "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
       "source_filename": "湖畔横屏拍摄指南(1).png",
       "width": 941,
       "height": 1672,
@@ -43,12 +33,10 @@
   "rules": {
     "sequence": [
       "p01",
-      "p02",
-      "p03"
+      "p02"
     ],
     "p01_primary_action": "下一张",
-    "p02_primary_action": "下一张",
-    "p03_primary_action": "开始拍摄",
+    "p02_primary_action": "开始拍摄",
     "skip_action": "跳过",
     "previous_action": "上一张",
     "shutter_auto_trigger": false,
@@ -59,16 +47,11 @@
       "鱼体过小",
       "遮挡过多"
     ],
-    "orientation_rule": "P01 errors horizontal fish; P02 errors vertical fish; P03 errors horizontal fish."
+    "orientation_rule": "P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish."
   },
-  "repository_binary_import": {
-    "status": "PASS",
-    "required_paths": [
-      "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-      "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-      "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png"
-    ],
-    "method": "byte-identical Git blob import from approved original PNG files",
-    "report": "design/pages/recognition/first_use_camera_guide/asset_import_report.json"
-  }
+  "historical_page_ids": [
+    "former_p02_portrait_vertical",
+    "former_p03_landscape_horizontal"
+  ],
+  "repository_binary_import_status": "PENDING_REPO_REBIND"
 }
