@@ -24,7 +24,7 @@ EXPECTED = [
     },
     {
         "id": "p02",
-        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
         "source_filename": "湖畔横屏拍摄指南(1).png",
         "width": 941,
         "height": 1672,
