@@ -277,11 +277,9 @@ feature_closure_rollup:
     task_id: "FT-home_normal_v1"
     phase: "P8"
     depends_on: []
-    blockers: ["B003", "B004"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
-    blockers: ["B007"]
   recognition_flow_v1_2:
     task_id: "FT-recognition_flow_v1_2"
     phase: "P8"
@@ -297,7 +295,6 @@ feature_closure_rollup:
   share_templates_v1:
     task_id: "FT-share_templates_v1"
     phase: "P6"
-    blockers: ["B007"]
   fish_memory_bside_v1:
     task_id: "FT-fish_memory_bside_v1"
     phase: "P7"
@@ -305,15 +302,12 @@ feature_closure_rollup:
   my_catches_v2:
     task_id: "FT-my_catches_v2"
     phase: "P7"
-    blockers: ["B007"]
   fish_guide_v2:
     task_id: "FT-fish_guide_v2"
     phase: "P7"
-    blockers: ["B007"]
   account_privacy_v1:
     task_id: "FT-account_privacy_v1"
     phase: "P7"
-    blockers: ["B007"]
   auth_login_v2:
     task_id: "FT-auth_login_v2"
     phase: "P8"
@@ -321,7 +315,6 @@ feature_closure_rollup:
   auth_register_v2:
     task_id: "FT-auth_register_v2"
     phase: "P6"
-    blockers: ["B007"]
   profile_edit_v1:
     task_id: "FT-profile_edit_v1"
     phase: "P8"
@@ -378,7 +371,6 @@ tasks:
     feature_refs: ["record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P2-01"]
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["secondary_contract_closure"]
@@ -404,7 +396,6 @@ tasks:
     feature_refs: ["home_normal_v1", "recognition_result_v1"]
     journey_refs: ["J11-J18"]
     depends_on: ["P3-01"]
-    blockers: ["B003", "B004", "B006"]
     entry_blockers: []
     target_blockers: ["B003", "B004", "B006"]
     evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution"]
@@ -430,7 +421,6 @@ tasks:
     feature_refs: ["fish_memory_bside_v1", "record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P2-02"]
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["secondary_surface_contracts"]
@@ -456,7 +446,6 @@ tasks:
     feature_refs: ["record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P4-01"]
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["secondary_data_contract_dependencies"]
@@ -521,7 +510,6 @@ tasks:
     feature_refs: ["auth_register_v2"]
     journey_refs: []
     depends_on: ["P5-01"]
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["register_runtime"]
@@ -534,7 +522,6 @@ tasks:
     feature_refs: ["record_date_v2", "share_templates_v1"]
     journey_refs: []
     depends_on: ["P2-02", "P4-02"]
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["secondary_feature_implementation"]
@@ -561,7 +548,6 @@ tasks:
     feature_refs: ["my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
     journey_refs: []
     depends_on: ["P6-03", "P6-04"]
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["secondary_surface_integration"]
@@ -606,7 +592,6 @@ tasks:
     feature_refs: ["home_normal_v1"]
     journey_refs: []
     depends_on: []
-    blockers: ["B003", "B004"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -622,7 +607,6 @@ tasks:
     feature_refs: ["record_date_v2"]
     journey_refs: []
     depends_on: []
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -686,7 +670,6 @@ tasks:
     feature_refs: ["share_templates_v1"]
     journey_refs: []
     depends_on: []
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -718,7 +701,6 @@ tasks:
     feature_refs: ["my_catches_v2"]
     journey_refs: []
     depends_on: []
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -734,7 +716,6 @@ tasks:
     feature_refs: ["fish_guide_v2"]
     journey_refs: []
     depends_on: []
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -750,7 +731,6 @@ tasks:
     feature_refs: ["account_privacy_v1"]
     journey_refs: []
     depends_on: []
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -782,7 +762,6 @@ tasks:
     feature_refs: ["auth_register_v2"]
     journey_refs: []
     depends_on: []
-    blockers: ["B007"]
     entry_blockers: []
     target_blockers: ["B007"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
@@ -879,7 +858,6 @@ tasks:
     feature_refs: ["home_normal_v1", "fish_record_detail_v2"]
     journey_refs: ["J17", "J18", "J19"]
     depends_on: []
-    blockers: ["B003", "B004"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
     gate_id: "G-NORMAL-HOME-A4.1"
