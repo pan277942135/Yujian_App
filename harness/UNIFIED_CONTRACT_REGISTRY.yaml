@@ -1722,7 +1722,7 @@ global_acceptance_rules:
 inventory:
   feature_count: 15
   journey_count: 20
-  child_surface_count: 75
+  child_surface_count: 79
   route_count: 22
   task_count: 45
   gate_count: 11
