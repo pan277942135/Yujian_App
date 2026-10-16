@@ -1206,6 +1206,11 @@ routes:
       - "home_empty_v2"
       - "home_normal_v1"
     source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  "catch/{catchId}?section={section}":
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "fish_record_detail_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
   memory_capture/{catchId}/{captureMode}:
     mapping_mode: "CANONICAL"
     owner_features:
