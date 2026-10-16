@@ -98,3 +98,76 @@ The next product/runtime action is:
 Run the authoritative API28 runtime matrix against the tracked execution baseline
 a280699da7575aa332f9d00104969161bbe918bd, then record the exact result and evidence
 before promoting any runtime gate.
+
+## 2026-10-16 — Harness bootstrap verification and state refinement
+
+### Repository-native control files
+
+Added:
+
+- AGENTS.md — concise startup/recovery/operating protocol
+- PROJECT_MASTER_STATE.yaml — V1 current-state snapshot
+- harness/STATE_UPDATE_PROTOCOL.md — state ownership and transition rules
+- harness/build-log.md — append-only observed execution log
+- scripts/validate_project_master_state.py — deterministic state validator
+- .github/workflows/project-master-state.yml — CI enforcement
+
+### Validation observed
+
+Project Master State workflow:
+
+- Run: 38861933644
+- Result: PASS
+- Commit tested: 07ecfc6a23fe5c623678e469aa02fa557ce2c6c8
+
+The validator confirmed the V1 state structure, P0-P9 coverage, J01-J20 route,
+provenance rules, blockers, next actions, and protected invariants.
+
+### Important state-model correction
+
+The master state now distinguishes:
+
+- execution baseline SHA: the product/runtime SHA being accepted;
+- moving PR/branch HEAD: live Git state that must be re-read.
+
+This avoids a self-referential state file. Documentation-only commits can move the
+PR HEAD without falsely changing the product/runtime baseline.
+
+Current tracked execution baseline remains:
+
+a280699da7575aa332f9d00104969161bbe918bd
+
+### New blocker observed on current branch
+
+Design Governance run 38861933685 failed while validating the first-use-guide
+visual registry.
+
+Observed errors:
+
+- VISUAL_MISSING requires SPEC_FROZEN status
+- P01_First_Use_Camera_Guide_Frozen.png missing
+- P02_First_Use_Camera_Guide_Frozen.png missing
+- P03_First_Use_Camera_Guide_Frozen.png missing
+
+This is recorded as blocker B008 in PROJECT_MASTER_STATE.yaml. The existing
+first-use-guide task state already lists the three approved PNG paths and hashes,
+but the binaries are not present at those registered repository paths.
+
+This is a real acceptance blocker, not an inferred failure. No replacement artwork
+was fabricated.
+
+### Current state
+
+- State system: IMPLEMENTED
+- Validator: IMPLEMENTED
+- CI enforcement: IMPLEMENTED
+- Current execution baseline: a280699da7575aa332f9d00104969161bbe918bd
+- Exact-head runtime: NOT_RUN
+- J01-J20: NOT_RUN
+- P0/P1 runtime blockers: OPEN
+- Main merge: FORBIDDEN
+
+### Next action
+
+Work should resume from N001: execute the authoritative API28 runtime matrix on
+the tracked exact execution baseline, while B008 is resolved independently.
