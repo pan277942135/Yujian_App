@@ -29,8 +29,11 @@ because none is defined by the frozen contract.
 - `scripts/verify_recognition_runtime_contract.py`: PASS.
 - `scripts/verify_final_android_matrix.py`: PASS.
 - `git diff --check` and shell syntax checks: PASS.
-- API28 instrumentation, actual frame metrics, and Android build: pending CI
-  on the exact RFX.6 code SHA.
+- First exact-head Android CI attempt (`38940090476`, `a325102b1de38b72dd56fc3118a1ea4257c34266`)
+  failed in Kotlin compilation: `RecognitionAmbientField.kt` was missing the
+  `LaunchedEffect` import. The build stopped before API28 jobs and produced no
+  APK. The import is added in the follow-up fix; API28 instrumentation, actual
+  frame metrics, and APK evidence remain pending CI on that exact new SHA.
 
 ## Independent check retained
 
