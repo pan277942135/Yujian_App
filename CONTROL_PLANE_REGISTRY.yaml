@@ -103,7 +103,7 @@ layers:
 
 design_task_sync:
   canonical: "main"
-  protocol: "harness/CONTROL_PLANE_CHANGE_SYNC.md"
+  protocol: "CONTROL_PLANE_CHANGE_SYNC.md"
   design_authorities:
     effective_authority_registry: "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
     product_master_flow: "design/system_v3/00_Product_Master_Flow/"
@@ -161,7 +161,7 @@ branch_sync:
   sync_flow: "main control-plane change -> control-plane validation -> branch synchronization -> admission PASS -> Work"
 
 change_sync:
-  protocol: "harness/CONTROL_PLANE_CHANGE_SYNC.md"
+  protocol: "CONTROL_PLANE_CHANGE_SYNC.md"
   single_entry: "CONTROL_PLANE_REGISTRY.yaml"
   rule: "Any task or design change is one coherent change-set. Update the authoritative design source first, then all affected Feature Matrix, Phase/Task, Contract, Gate and Recovery references, validate, commit on main, then synchronize product branches."
   partial_update: "FORBIDDEN"
