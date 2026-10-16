@@ -715,7 +715,10 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(submittedDrafts[0].clientRecordId, submittedDrafts[1].clientRecordId)
         assertEquals(story, requireNotNull(submittedDrafts[0].classifierResult).optString("story"))
         assertEquals(story, requireNotNull(submittedDrafts[1].classifierResult).optString("story"))
-        composeRule.onNode(homeLoading).assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNode(homeLoading).performScrollTo().assertIsDisplayed()
     }
 
     @Test

@@ -98,7 +98,30 @@ PY
     # Capture after returning to the physical display size, then restore the
     # frozen logical size for the remaining evidence.
     "${YUJIAN_ADB_BIN}" shell wm size reset
-    sleep 1
+    recording_launch_log="$home_dir/recording_launch.log"
+    "${YUJIAN_ADB_BIN}" shell am start -W -n \
+      "$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity" > "$recording_launch_log" 2>&1 || {
+        cat "$recording_launch_log" >&2
+        echo 'EMPTY_HOME_RECORDING_ACTIVITY_LAUNCH_FAILED' >&2
+        exit 1
+      }
+    recording_home_resumed=0
+    for attempt in $(seq 1 20); do
+      resumed="$("${YUJIAN_ADB_BIN}" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
+      printf 'EMPTY_HOME_RECORDING_ACTIVITY_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
+      if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* ]]; then
+        recording_home_resumed=1
+        break
+      fi
+      sleep 1
+    done
+    if (( recording_home_resumed != 1 )); then
+      echo 'EMPTY_HOME_RECORDING_ACTIVITY_NOT_RESUMED' >&2
+      "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/recording_activity_not_ready.png" || true
+      "${YUJIAN_ADB_BIN}" logcat -d -b all -v threadtime > "$home_dir/recording_activity_logcat.txt" || true
+      exit 1
+    fi
+    sleep 2
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_recording_reference.png"
 
     "${YUJIAN_ADB_BIN}" shell rm -f /sdcard/full_runtime_15s.mp4
