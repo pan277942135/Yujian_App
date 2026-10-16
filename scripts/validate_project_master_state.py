@@ -153,8 +153,12 @@ def validate_state(state: dict, v: Validation) -> None:
 
     pr145 = state.get("pull_requests", {}).get("PR145", {})
     v.require(pr145.get("number") == 145, "PR145.number must be 145")
+    pr145_baseline = (
+        pr145.get("head_at_last_verified_snapshot")
+        or pr145.get("head_sha")
+    )
     v.require(
-        pr145.get("head_sha") == current_head,
+        pr145_baseline == current_head,
         "PR145 baseline SHA must equal state_control.execution_baseline_sha",
     )
     v.require(
@@ -374,7 +378,7 @@ def main() -> int:
 
     print("PROJECT_MASTER_STATE_VALIDATION=PASS")
     print(f"state_file={path}")
-    print(f"tracked_execution_baseline={state['state_control']['current_head']}")
+    print(f"tracked_execution_baseline={state['state_control']['execution_baseline_sha']}")
     print(f"current_pr=PR#{state['pull_requests']['PR145']['number']}")
     print(f"open_blockers={len(state['blockers'])}")
     print(f"next_actions={len(state['next_actions'])}")
