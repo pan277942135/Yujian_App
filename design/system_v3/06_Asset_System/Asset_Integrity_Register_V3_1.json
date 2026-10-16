@@ -19617,6 +19617,20 @@
       "source_commit_sha": "1d3f88480e5b1538de945cfed9f7f881895c5677",
       "reason": "Phase 3-B adds the RR08 Visual Acceptance Contract V1 menu row only; existing RR00-RR07 authority and status rows remain intact. No Frozen page artwork or product visuals changed.",
       "is_frozen_asset": false
+    },
+    {
+      "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+      "expected_current_git_blob_sha": "2a1081d955148f125ced4de828e14d14a16c4332",
+      "source_commit_sha": "4b27062eff2cf9cfe083b0eeb143f7ebf04cc520",
+      "reason": "PR #145 refreshes this non-frozen runtime contract and its app mirror for the current responsive/runtime mapping. Frozen artwork, the Frozen acceptance matrix, and visual thresholds are unchanged.",
+      "is_frozen_asset": false
+    },
+    {
+      "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
+      "expected_current_git_blob_sha": "784b425c2b30efd1873e6208c988dc9cabadf349",
+      "source_commit_sha": "4b27062eff2cf9cfe083b0eeb143f7ebf04cc520",
+      "reason": "PR #145 refreshes this non-frozen runtime contract and its app mirror for the current responsive/runtime mapping. Frozen artwork, the Frozen acceptance matrix, and visual thresholds are unchanged.",
+      "is_frozen_asset": false
     }
   ],
   "phase2_manager_status_update": {

@@ -96,7 +96,7 @@ internal fun AuthV2Scaffold(
         }
         val resolvedEnvironmentHeight = when (heightBand) {
             AuthHeightBand.STANDARD -> environmentHeight
-            AuthHeightBand.COMPACT -> minOf(environmentHeight, 248.dp)
+            AuthHeightBand.COMPACT -> minOf(environmentHeight, 224.dp)
             AuthHeightBand.VERY_COMPACT -> 144.dp
         }
         val titleScale = (maxWidth / 320.dp).coerceIn(1f, 1.57f)

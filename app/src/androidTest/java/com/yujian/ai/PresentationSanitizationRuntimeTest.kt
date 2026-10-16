@@ -2,10 +2,13 @@ package com.yujian.ai
 
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.BySelector
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import org.json.JSONArray
@@ -114,20 +117,33 @@ class PresentationSanitizationRuntimeTest {
 
     private fun clickVisibleText(sourceText: String, destinationText: String) {
         waitForVisibleTextBounds(sourceText)
-        val target = device.findObject(By.text(sourceText))
-        assertTrue(
-            "Expected visible text: $sourceText",
-            target != null,
-        )
-        target!!.click()
+        clickVisibleTarget(sourceText, destinationText, By.text(sourceText))
         waitForText(destinationText)
     }
 
     private fun clickVisibleDescription(description: String, destinationText: String) {
-        val target = device.findObject(By.desc(description))
-        assertTrue("Expected accessible button: $description", target != null)
-        target!!.click()
+        clickVisibleTarget(description, destinationText, By.desc(description))
         waitForText(destinationText)
+    }
+
+    private fun clickVisibleTarget(sourceLabel: String, destinationText: String, selector: BySelector) {
+        val deadline = SystemClock.uptimeMillis() + SETTLE_MILLIS
+        while (SystemClock.uptimeMillis() < deadline) {
+            try {
+                // A stale node can be reported after navigation starts. Check the destination first
+                // so a successful click is never repeated.
+                if (device.findObject(By.text(destinationText)) != null) return
+                val target = device.findObject(selector)
+                if (target != null && !target.visibleBounds.isEmpty) {
+                    target.click()
+                    return
+                }
+            } catch (_: StaleObjectException) {
+                // Reacquire the node on the next attempt.
+            }
+            SystemClock.sleep(100L)
+        }
+        throw AssertionError("Timed out clicking visible target: $sourceLabel")
     }
 
     private fun waitForText(text: String) {

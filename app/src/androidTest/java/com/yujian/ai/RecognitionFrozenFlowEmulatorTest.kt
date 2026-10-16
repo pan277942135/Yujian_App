@@ -1192,6 +1192,8 @@ class RecognitionFrozenFlowEmulatorTest {
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         composeRule.waitForIdle()
+        // The reduced-motion receiving field has a one-time 180 ms settle; sample after it completes.
+        SystemClock.sleep(220L)
         val appSurfaceBounds = composeSurfaceBoundsOnScreen()
         val first = File(evidenceDir, "_reduce_motion_a.png")
         val second = File(evidenceDir, "_reduce_motion_b.png")

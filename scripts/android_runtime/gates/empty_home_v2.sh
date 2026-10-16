@@ -258,11 +258,13 @@ report["regions"]["header"] = {
     "threshold": 42.0,
     "status": header_status,
 }
-report["regions"]["fishing_composition"] = dict(report["regions"]["bobber_water"])
-report["regions"]["fishing_composition"]["authority"] = "Empty_Home_Frozen_Visual_Revision_V2_2"
-report["regions"]["fishing_composition"]["contract"] = "rod_line_bobber_water_contact_ripple"
-report["region_failures"] = sorted(set(report.get("region_failures", [])) | ({"header"} if header_status != "PASS" else set()))
-report["status"] = "PASS" if report.get("full_frame_status") == "PASS" and not report["region_failures"] else "FAIL"
+report["region_failures"] = sorted(
+    name
+    for name, region in report.get("regions", {}).items()
+    if isinstance(region, dict) and region.get("status") != "PASS"
+)
+full_frame_status = report.get("regions", {}).get("full_frame", {}).get("status")
+report["status"] = "PASS" if full_frame_status == "PASS" and not report["region_failures"] else "FAIL"
 report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"EMPTY_HOME_REGION_GATE header_mae={header_mae:.4f} threshold=42 status={header_status} fishing=CONTRACT")
 if report["status"] != "PASS":

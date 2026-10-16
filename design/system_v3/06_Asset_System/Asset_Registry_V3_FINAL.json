@@ -3316,12 +3316,13 @@
       "asset_id": "pages_home_empty_home_shared_contracts_responsive_mapping_contract_json",
       "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
       "type": "JSON",
-      "size": 6316,
-      "sha256": "43743917cad1ca04b23fc16b3d9d78493e145c72b88fb613a0ed4a6d578215e8",
-      "sha256_status": "COMPUTED_FROM_BASELINE_BYTES",
-      "git_blob_sha": "2ef308d0bf8d9f07319e88a6b1bbba80ce4afb7f",
+      "size": 6421,
+      "sha256": "c20981035a1db2f6bb3ec60f2f425e108dc5cb4b28a815eb159d19e9b97d9073",
+      "sha256_status": "COMPUTED_FROM_CURRENT_BYTES",
+      "git_blob_sha": "2a1081d955148f125ced4de828e14d14a16c4332",
       "source": [
-        "Repository baseline file; provenance not stated in Phase 1 scan"
+        "Repository baseline file; provenance not stated in Phase 1 scan",
+        "Current non-frozen bytes verified from PR #145 commit 4b27062eff2cf9cfe083b0eeb143f7ebf04cc520 at exact head 6b816a417dd4bf0b67c04852980a2edeae2bfdd5."
       ],
       "used_by": [],
       "status": "REVIEW",
@@ -3332,11 +3333,12 @@
       "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
       "type": "JSON",
       "size": 3473,
-      "sha256": "1997788bb933457b333aca6939b2232d943fb66011b886122cd2b1acf26db655",
-      "sha256_status": "COMPUTED_FROM_BASELINE_BYTES",
-      "git_blob_sha": "24fd2f74908f5cda1b704fd5cce074db0d183a8a",
+      "sha256": "98d39c037b252ece425b8d18ddfa130e6654715560696a7d44f66d0e39bc9f77",
+      "sha256_status": "COMPUTED_FROM_CURRENT_BYTES",
+      "git_blob_sha": "784b425c2b30efd1873e6208c988dc9cabadf349",
       "source": [
-        "Repository baseline file; provenance not stated in Phase 1 scan"
+        "Repository baseline file; provenance not stated in Phase 1 scan",
+        "Current non-frozen bytes verified from PR #145 commit 4b27062eff2cf9cfe083b0eeb143f7ebf04cc520 at exact head 6b816a417dd4bf0b67c04852980a2edeae2bfdd5."
       ],
       "used_by": [],
       "status": "REVIEW",
