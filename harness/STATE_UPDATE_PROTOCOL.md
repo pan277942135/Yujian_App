@@ -16,7 +16,7 @@ resume work without depending on chat history.
 |---|---|
 | Current project state | PROJECT_MASTER_STATE.yaml |
 | Agent startup rules | AGENTS.md |
-| Current Work execution state | docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json |
+| Current Work execution state | WORK_EXECUTION_STATE.json |
 | Observed execution history | harness/build-log.md |
 | Phase / Task State Machine | harness/PHASE_TASK_STATE_MACHINE.yaml |
 | Unified Contract Registry | harness/UNIFIED_CONTRACT_REGISTRY.yaml |
