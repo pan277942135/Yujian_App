@@ -6,10 +6,52 @@
   "authority_delta": {
     "base_sha": "2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d",
     "authority_merge_sha": "ebac477330350972ae05613fe7e8717f467eea8f",
-    "main_sha": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
-    "scope": "visual files added to design/ from the PR #151 Authority merge through latest main, plus explicitly missing high-fidelity outputs referenced by current manifests/contracts"
+    "main_sha": "72329c026cb4a42f4af3bc885f9f9b36c004ef2d",
+    "initial_scan_main_sha": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
+    "scope": "visual files added to design/ from the PR #151 Authority merge through final main, plus explicitly missing high-fidelity outputs referenced by current manifests/contracts; unmerged PR #153 is inventoried separately below"
   },
   "changed_image_file_count": 15,
+  "proposal_only_scan": {
+    "pr_number": 153,
+    "state": "DRAFT_OPEN_UNMERGED",
+    "branch": "control/first-use-guide-two-page-20261016",
+    "head_sha": "1d463ebff473c402725ffaa118908ad147d3967a",
+    "base_sha": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
+    "authority_status": "CONTROL_PLANE_PROPOSAL_PENDING_MAIN_AUTHORIZATION",
+    "proposed_active_guide_page_ids": ["p01", "p02"],
+    "current_main_authority_applied": false,
+    "visual_findings": [
+      {
+        "path": "design/pages/recognition/capture/frozen/Recognition_Capture_Ready_Landscape_Horizontal_Fish_Frozen.png",
+        "proposal_disposition": "REVIEW",
+        "current_main_present": false,
+        "current_main_design_manager_status": "BLOCKED_INTEGRITY",
+        "proposal_bytes": 2079370,
+        "proposal_dimensions_px": [1672, 941],
+        "proposal_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18f",
+        "current_main_expected_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18",
+        "proposal_sha256_length": 64,
+        "current_main_expected_sha256_length": 63,
+        "matches_current_main_expected_sha256": false,
+        "source": "PR #153 head only; candidate bytes do not match the malformed 63-character current-main expected identity and must not be imported until the Authority hash is resolved through Control Plane review"
+      },
+      {
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
+        "proposal_disposition": "REVIEW",
+        "proposal_bytes_changed": false,
+        "proposal_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+        "identity_change": "renamed/promoted from current-main P03 into proposed P02; proposal only"
+      },
+      {
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "proposal_disposition": "REVIEW",
+        "proposal_bytes_changed": false,
+        "proposal_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+        "identity_change": "removed from the proposed active P02; retained in current-main archive"
+      }
+    ],
+    "disposition": "Separate from the 20 current-main inventory records. The proposal does not supersede the user's explicit current-main P01/P02/P03 targets or the live Registry in this release. Its Capture landscape candidate is not imported because its SHA-256 differs from the 63-character current-main expected value."
+  },
   "records": [
     {
       "path": "design/pages/recognition/first_use_camera_guide/archive/P02_Landscape_Horizontal_Fish_Two_Page_Freeze_Superseded_20261016.png",
