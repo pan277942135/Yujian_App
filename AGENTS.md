@@ -14,8 +14,10 @@ Before changing anything:
 3. Verify live branch and Git HEAD.
 4. Read harness/FEATURE_MATRIX.yaml and identify the Feature/Child Surface/Route/Journey scope.
 5. Read harness/PHASE_TASK_STATE_MACHINE.yaml and identify the current phase/task, dependencies, retry budget and gate.
-6. If touching recognition, read docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json.
-7. Read the applicable design/page/runtime contract.
+6. Read harness/UNIFIED_CONTRACT_REGISTRY.yaml and resolve Feature -> Child Surface -> Journey/Route -> Contract Domain -> Authority -> Gate -> Evidence.
+7. Read harness/CONTRACT_RESOLUTION_PROTOCOL.md.
+8. If touching recognition, read docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json.
+9. Read the applicable domain contract.
 8. Read the latest relevant harness/build-log.md entry.
 9. Check open blockers in PROJECT_MASTER_STATE.yaml.
 10. Execute only an authorized next_action or explicit user task.
@@ -154,7 +156,8 @@ If local Android tooling is unavailable, do not fabricate runtime evidence.
 For each stage:
 
 1. inspect exact baseline, Feature Matrix scope and current Phase/Task state;
-2. identify applicable contract, blockers, dependencies and acceptance gate;
+2. resolve the Unified Contract Registry for Feature/Child Surface/Journey/Route and contract domains;
+3. identify applicable contract, blockers, dependencies and acceptance gate;
 3. implement the smallest coherent change;
 4. validate statically and dynamically as applicable;
 5. capture evidence;
@@ -235,3 +238,11 @@ At stage close, report:
 - remaining blockers
 - next action
 - PASS / FAIL / BLOCKED / NOT_RUN
+
+## 15. Unified Contract Resolution
+
+The machine-readable contract-of-contracts is `harness/UNIFIED_CONTRACT_REGISTRY.yaml`.
+Before implementation, Work must resolve the affected Feature, Child Surface, Journey,
+Route, domain authority, acceptance gate and evidence requirements. Missing contracts
+remain MISSING; conflicting authorities remain NOT_CONFIRMED/BLOCKED. Never invent a
+contract or silently substitute a neighboring feature's authority.
