@@ -290,6 +290,7 @@ features:
       - "runtime_final_gate"
       - "p01"
       - "p02"
+      - "p03"
     child_surfaces:
       - "capture"
       - "permission"
