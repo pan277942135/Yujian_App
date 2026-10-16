@@ -463,6 +463,8 @@ current_work:
     design_authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
     status: "READY_FOR_WORK"
     backend_dependency: "NONE"
+    visual_binary_import_status: "MISSING_AT_LAST_DESIGN_GOVERNANCE"
+    visual_binary_import_blocker: "B008"
     frozen_assets:
       P01:
         path: "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png"
@@ -532,6 +534,20 @@ blockers:
     status: "OPEN"
     description: "Secondary surfaces remain incompletely contract/runtime closed."
     unblock: "Complete secondary contracts and runtime acceptance after the focused journey."
+
+  - id: "B008"
+    severity: "P1"
+    area: "First Capture Guide / Design Registry"
+    status: "OPEN"
+    description: "Design Governance on PR merge ref e3b82e5 reports the frozen P01/P02/P03 PNG paths are missing; the registry therefore fails the first-use-guide visual authority check."
+    observed_run_id: 38861933685
+    observed_errors:
+      - "recognition_flow_v1_2/capture_first_use_guide: VISUAL_MISSING requires SPEC_FROZEN status"
+      - "P01_First_Use_Camera_Guide_Frozen.png path missing"
+      - "P02_First_Use_Camera_Guide_Frozen.png path missing"
+      - "P03_First_Use_Camera_Guide_Frozen.png path missing"
+    unblock: "Restore/import the approved P01/P02/P03 frozen PNG binaries at the registered paths, or explicitly reconcile the registry/status with the authoritative design decision."
+    rule: "Do not claim the first-use-guide visual authority is fully closed until Design Governance passes."
 
 protected_invariants:
   product:
@@ -614,6 +630,12 @@ next_actions:
     owner: "Human"
     status: "FINAL_GATE"
     action: "Review final APK/evidence package and authorize release."
+
+  - id: "N010"
+    priority: "P1"
+    owner: "Work"
+    status: "BLOCKED_BY_B008"
+    action: "Restore/import the approved P01/P02/P03 frozen PNG binaries and rerun Design Governance for the first-use-guide visual authority.";
 
 completion_rules:
   pass_requires:
