@@ -1012,13 +1012,15 @@ recovery:
   interruption:
     restart_from: "latest committed checkpoint"
     read_order:
+      - "CONTROL_PLANE_REGISTRY.yaml"
       - "AGENTS.md"
       - "PROJECT_MASTER_STATE.yaml"
+      - "WORK_EXECUTION_STATE.json"
       - "harness/FEATURE_MATRIX.yaml"
       - "harness/PHASE_TASK_STATE_MACHINE.yaml"
-      - "WORK_EXECUTION_STATE.json"
+      - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
       - "harness/build-log.md"
-    resume_rule: "Read branch-local Work execution state, select the first READY task whose static dependencies and named entry blockers are satisfied, and preserve all WAITING/BLOCKED tasks."
+    resume_rule: "Resume the current task from the last durable WORK_EXECUTION_STATE checkpoint; after task closure, select the first READY next action whose static dependencies and named blockers are satisfied."
   failure:
     classify_before_retry: true
     retry_same_gate_max: 2
