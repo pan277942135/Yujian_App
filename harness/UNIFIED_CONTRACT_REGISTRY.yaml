@@ -301,12 +301,20 @@ feature_contracts:
         control_geometry: "RIGHT_VERTICAL_RAIL"
         binary_import_status: "PENDING"
       first_use_guide:
-        status: "FROZEN"
-        spec: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_1.md"
-        manifest: "design/pages/recognition/first_use_camera_guide/manifest.json"
-        navigation: "design/pages/recognition/first_use_camera_guide/navigation.json"
-        active_pages: ["p01", "p02"]
-        former_page_p03: "SUPERSEDED"
+        status: "NOT_CONFIRMED"
+        authority_spec: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+        current_registry_manifest: "design/pages/recognition/first_use_camera_guide/manifest.json"
+        current_registry_navigation: "design/pages/recognition/first_use_camera_guide/navigation.json"
+        active_pages_by_design_authority: ["p01", "p02", "p03"]
+        active_pages_by_state_machine: ["p01", "p02"]
+        conflict_id: "C-FIRST-USE-GUIDE-PAGE-COUNT"
+        conflict_rule: "Do not promote N010/G-FIRST-USE-GUIDE-ASSET to contract-clean until Master State / Phase Task State Machine and live Design Registry converge."
+        asset_sha256:
+          p01: "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
+          p02: "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
+          p03: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+        repository_binary_import_status: "PASS"
+
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
@@ -1701,6 +1709,16 @@ task_contract_bindings:
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
     phase: "P3"
 
+contract_conflicts:
+  C-FIRST-USE-GUIDE-PAGE-COUNT:
+    status: "OPEN"
+    severity: "P1"
+    scope: "recognition_flow_v1_2 / N010 / G-FIRST-USE-GUIDE-ASSET"
+    live_design_authority: "Experience Registry + first_use_camera_guide manifest/navigation currently declare p01,p02,p03."
+    execution_state_authority: "PROJECT_MASTER_STATE B008 and Phase/Task N010 currently describe a two-page active set."
+    impact: "Contract resolution is NOT_CONFIRMED for the active teaching-page set; no silent page removal or addition is permitted."
+    unblock: "Reconcile the live Design Registry, manifest/navigation, PROJECT_MASTER_STATE and N010 into one approved page set, then rerun all validators."
+
 status_semantics:
   FROZEN: "Authoritative and immutable unless explicitly superseded by a new approved version."
   READY: "Contract exists and is structurally usable; runtime acceptance may still be NOT_RUN."
@@ -1728,5 +1746,6 @@ inventory:
   gate_count: 11
   execution_baseline_sha: "e881c2a6772b418a49b6208ce44c8527fbeb97db"
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "a3de4e67f225a030cd7a7aabc66df87153ba7dc2"
+  last_synced_feature_matrix_sha: "7d8fe87d7755a4300140d0f83782aed51b0ecc32"
   last_synced_phase_task_state_machine_sha: "275a22ad28d6f9df3ab3feaba47855dd2c4f3a4e"
+  last_synced_experience_registry_sha: "dc4c7a7ac952f1a10a9e0989592fb64fcddb9e2c"
