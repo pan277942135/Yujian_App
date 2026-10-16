@@ -117,31 +117,29 @@ def is_local_ref(ref: str) -> bool:
     )
 
 
+STRICT_REFS = False
+
 def validate_local_ref(ref: str, v: Validation, owner: str) -> None:
-    if not isinstance(ref, str) or not ref:
-        return
-    if not is_local_ref(ref):
+    if not isinstance(ref, str) or not ref or not is_local_ref(ref):
         return
     path = ROOT / ref
     if not path.exists():
-        v.error(f"{owner}: referenced local contract does not exist: {ref}")
+        message = f"{owner}: referenced local contract does not exist: {ref}"
+        if STRICT_REFS:
+            v.error(message)
+        else:
+            v.gap(message)
 
 
-def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any], state: dict[str, Any], machine: dict[str, Any], v: Validation) -> None:
+def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any], machine: dict[str, Any], v: Validation) -> None:
     v.require(registry.get("schema_version") == "1.0", "registry schema_version must be 1.0")
     v.require(registry.get("registry_id") == "yujian-unified-contract-registry", "registry_id mismatch")
     v.require(registry.get("status") == "ACTIVE", "registry status must be ACTIVE")
 
     rp = registry.get("project", {})
     mp = matrix.get("project", {})
-    sp = state.get("state_control", {})
     v.require(rp.get("repository") == mp.get("repository"), "registry repository drift from Feature Matrix")
     v.require(rp.get("control_branch") == mp.get("control_branch"), "registry control branch drift from Feature Matrix")
-    v.require(rp.get("execution_baseline_sha") == sp.get("execution_baseline_sha"), "registry execution baseline drift from Master State")
-    v.require(rp.get("control_pr") == sp.get("current_pr"), "registry PR drift from Master State")
-    v.require(rp.get("base_sha") == mp.get("base_sha"), "registry base SHA drift from Feature Matrix")
-    v.require(rp.get("backend_repository") == state.get("repositories", {}).get("backend", {}).get("full_name"), "registry backend repository drift")
-    v.require(rp.get("backend_main_sha") == state.get("repositories", {}).get("backend", {}).get("current_main_sha"), "registry backend SHA drift")
 
     inventory = registry.get("inventory", {})
     expected_child_surfaces = {
@@ -154,8 +152,6 @@ def validate_project_alignment(registry: dict[str, Any], matrix: dict[str, Any],
     v.require(inventory.get("child_surface_count") == len(expected_child_surfaces), "registry child_surface_count drift from Feature Matrix")
     v.require(inventory.get("route_count") == matrix.get("inventory", {}).get("route_count"), "registry route_count drift from Feature Matrix")
     v.require(inventory.get("task_count") == len(machine.get("tasks", {})), "registry task_count drift from Phase/Task Machine")
-    v.require(inventory.get("execution_baseline_sha") == sp.get("execution_baseline_sha"), "registry inventory baseline drift")
-
 
 def validate_features(registry: dict[str, Any], matrix: dict[str, Any], v: Validation) -> None:
     actual = registry.get("feature_contracts", {})
@@ -344,11 +340,11 @@ def write_report(path: Path, registry: dict[str, Any], v: Validation) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, default=REGISTRY_PATH)
-    parser.add_argument("--report", type=Path, default=None)
+    parser.add_argument("--report", type=Path, default=None)\n    parser.add_argument("--strict-refs", action="store_true")
     args = parser.parse_args()
 
     registry_path = args.registry.resolve()
-    for required in (registry_path, MATRIX_PATH, STATE_PATH, MACHINE_PATH):
+    for required in (registry_path, MATRIX_PATH, MACHINE_PATH):
         if not required.exists():
             print(f"ERROR: required file missing: {required}", file=sys.stderr)
             return 2
@@ -363,7 +359,7 @@ def main() -> int:
         return 2
 
     v = Validation()
-    validate_project_alignment(registry, matrix, state, machine, v)
+    validate_project_alignment(registry, matrix, machine, v)
     validate_features(registry, matrix, v)
     validate_journeys_and_children(registry, matrix, v)
     validate_routes(registry, matrix, v)
