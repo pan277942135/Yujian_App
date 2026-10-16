@@ -190,6 +190,18 @@ state_machine:
     - "P8 -> P9 when any required release gate is not PASS"
     - "any state -> RELEASE without N009 human authorization"
 
+blocker_semantics:
+  blockers_compatibility_field: "Legacy combined blocker index; entry_blockers and target_blockers are authoritative for task execution."
+  entry_blockers: "A named prerequisite that must be CLOSED before the task can enter RUNNING."
+  target_blockers: "A named blocker the task is explicitly intended to close; it may remain OPEN while the task is READY/RUNNING."
+  target_only_task_rule: "An OPEN target_blocker does not force BLOCKED."
+  entry_blocker_rule: "Any OPEN entry_blocker forces WAITING or BLOCKED."
+  n001_target: ["B001"]
+  n002_target: ["B002"]
+  n004_target: ["B003", "B004"]
+  n007_target: ["B006"]
+  n010_target_and_entry: ["B008"]
+
 retry_policy:
   initial_attempt: 1
   automatic_repairs: 2
