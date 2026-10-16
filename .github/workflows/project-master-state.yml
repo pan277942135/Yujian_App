@@ -1,0 +1,31 @@
+name: Project Master State
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-project-master-state:
+    name: Validate PROJECT_MASTER_STATE
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install state validator dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6,<7"
+
+      - name: Validate project master state
+        run: python scripts/validate_project_master_state.py
