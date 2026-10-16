@@ -81,22 +81,21 @@
     "status": "NOT_CREATED",
     "J01-J20": "NOT_RUN"
   },
-  "next_action": "Work: run the three-page Design Governance and exact-head API28 runtime gates; verify independent runtime photo-source availability and report any remaining visual parity blocker.",
+  "next_action": "Freeze only: do not start Android implementation. When development is explicitly authorized, re-read the two-page authority and rebase implementation/state tests from three-page to P01/P02.",
   "external_blockers": [
     "Local Android build and emulator execution are unavailable in this checkout; use the configured self-hosted API 28 runner."
   ],
   "pr_state": "DRAFT_OPEN_UNMERGED",
   "first_use_camera_guide": {
     "task_id": "RECOGNITION-FIRST-USE-GUIDE-V1",
-    "status": "IMPLEMENTED_AWAITING_EXACT_HEAD_CI",
+    "status": "DESIGN_FROZEN_PENDING_IMPLEMENTATION",
     "task_doc": "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md",
     "scope": [
-      "Android Compose three-page first-use guide overlay",
+      "Frozen two-page first-use guide design authority",
       "P01 portrait + horizontal fish",
-      "P02 portrait + vertical fish",
-      "P03 landscape + horizontal fish",
-      "unit/instrumentation/runtime visual tests",
-      "byte-identical P01/P02/P03 PNG import"
+      "P02 landscape + horizontal fish",
+      "exact user-approved P02 PNG provenance",
+      "downstream Android implementation/tests pending explicit development go"
     ],
     "design_authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
     "design_manager_parent": "识别过程 → 07 · 首次拍照教学",
@@ -109,14 +108,7 @@
         "sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
       },
       "p02": {
-        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-        "width": 941,
-        "height": 1671,
-        "bytes": 2042852,
-        "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
-      },
-      "p03": {
-        "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+        "path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
         "width": 941,
         "height": 1672,
         "bytes": 2001322,
@@ -124,12 +116,15 @@
       }
     },
     "superseded_pages": [
-      "Two-page V1.1 proposal is superseded for this task by the explicit V1 P01/P02/P03 work scope."
+      "Former P02 portrait phone + vertical fish removed from active flow.",
+      "Former P03 landscape + horizontal fish page ID removed; its exact PNG bytes are promoted unchanged to active P02."
     ],
     "backend_dependency": "NONE",
     "runtime_rule": "Frozen PNGs are Design Manager visual authority only; Android runtime must use structured Compose UI and independent page-specific photo assets, not full-page screenshots.",
     "binary_import_status": "PASS",
-    "main_merge_forbidden": true
+    "main_merge_forbidden": true,
+    "app_code_not_modified_by_freeze": true,
+    "implementation_alignment_required": true
   },
   "capture_permission_denied_visual": {
     "state_id": "recognition.capture.permission_denied.v1",
