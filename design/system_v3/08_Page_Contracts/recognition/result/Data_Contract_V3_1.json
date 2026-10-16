@@ -1,0 +1,114 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.result.v3_1",
+  "fields": [
+    {
+      "field": "recognition.result_state",
+      "source": "Recognition Result State Matrix V1.1 and canonical Master Flow result nodes",
+      "required": "required",
+      "fallback": "The five page states stay distinct; no default state is fabricated.",
+      "error_behavior": "Technical Failure remains a separate issue route."
+    },
+    {
+      "field": "recognition.original_image",
+      "source": "Normalized user image handed off from Capture; Hero Media Contract owns its mapping inside the state-specific frame.",
+      "required": "required for all five visual states",
+      "fallback": "No substitute or generated image; return to recovery/capture if unavailable.",
+      "error_behavior": "Missing media does not create a FishRecord."
+    },
+    {
+      "field": "recognition.species_identity",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#species → MODEL_M1",
+      "required": "Top-1 default for High; explicit confirmation for Medium; optional until manual selection for Low.",
+      "fallback": "Medium candidates stay suggestions; Low remains unconfirmed.",
+      "error_behavior": "Never invent an unknown species or persist an unconfirmed Low result."
+    },
+    {
+      "field": "recognition.candidate_list",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#candidate_list → MODEL_M1",
+      "required": "Conditional: Medium result only.",
+      "fallback": "Do not silently select Top-1. If explicit candidates are absent, no candidate is fabricated; current failure mapping is not expanded here.",
+      "error_behavior": "Keep on current Result/technical recovery according to the actual pipeline outcome; no guessed state mapping."
+    },
+    {
+      "field": "recognition.image_quality_reason",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json#reason_taxonomy",
+      "required": "Conditional: quality=INVALID and IMAGE_QUALITY_WARNING; NO_FISH uses its separate state.",
+      "fallback": "Use IMAGE_QUALITY_GENERIC_FROZEN verbatim; never diagnose unmeasured blur, light or angle.",
+      "error_behavior": "Unregistered reasons are not shown/invented; Technical Failure remains separate."
+    },
+    {
+      "field": "catch.length",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#length → USER_INPUT",
+      "required": "optional",
+      "fallback": "Display the Frozen empty placeholder and preserve the prior draft.",
+      "error_behavior": "Invalid numeric value remains editable with field error; does not block save merely by being absent."
+    },
+    {
+      "field": "catch.weight",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#weight → USER_INPUT",
+      "required": "optional",
+      "fallback": "Display the Frozen empty placeholder and preserve the prior draft.",
+      "error_behavior": "Invalid numeric value remains editable with field error; does not block save merely by being absent."
+    },
+    {
+      "field": "catch.location",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#location → GPS (optional, explicit action/permission); existing location interaction remains page-owned.",
+      "required": "optional",
+      "fallback": "Display the Frozen empty placeholder.",
+      "error_behavior": "Permission denial does not block save; location is requested only after an explicit action."
+    },
+    {
+      "field": "catch.story",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#story → USER_INPUT",
+      "required": "optional",
+      "fallback": "Empty draft with Frozen placeholder and zero counter.",
+      "error_behavior": "Preserve draft; cap at 300 Unicode code points; voice input is absent unless transcript capability is real."
+    },
+    {
+      "field": "save.requested_destination",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#requested_destination → CTA_INTENT",
+      "required": "required when persisting",
+      "fallback": "No destination inferred from a prior unrelated flow.",
+      "error_behavior": "On failure remain on Result and preserve requested destination/draft for retry."
+    },
+    {
+      "field": "save.persisted_record_id",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#persisted_record_id → PERSISTENCE_RESULT",
+      "required": "required before either successful exit",
+      "fallback": "No success route without a persisted record identity.",
+      "error_behavior": "Retry safely; no duplicate FishRecord."
+    },
+    {
+      "field": "recognition.confidence_output",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#confidence → MODEL_OUTPUT",
+      "required": "required to determine the real confidence state",
+      "fallback": "Do not expose a numeric probability unless existing Frozen authority requires it.",
+      "error_behavior": "Do not fabricate confidence."
+    },
+    {
+      "field": "recognition.quality_gate",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json#quality_gate → QUALITY_GATE",
+      "required": "required when quality evaluation is returned",
+      "fallback": "Do not infer GOOD from missing data.",
+      "error_behavior": "INVALID routes by reason; NO_FISH and Technical Failure remain distinct."
+    },
+    {
+      "field": "catch.timestamp",
+      "source": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json#timestamp → DEVICE",
+      "required": "optional display metadata",
+      "fallback": "Omit when capture time is unavailable; do not substitute current time.",
+      "error_behavior": "No fabricated timestamp."
+    }
+  ],
+  "coverage": {
+    "empty": "Optional metadata/story may remain empty; Medium/Low species confirmation gates persistence; missing photo or quality state is not fabricated.",
+    "loading": "Result is entered only after real model resolution; save loading preserves layout/drafts and prevents duplicate submission.",
+    "error": "No Fish/Image Quality create no record; save errors stay retryable; Technical Failure is separate.",
+    "partial": "Optional user fields stay empty; Model M1, Quality Gate, Device, GPS and Capture Asset sources remain traceable through the lineage registry.",
+    "network_failure": "Reported persistence/network failure stays retryable with fields/destination preserved; it is never relabeled as Image Quality."
+  },
+  "lineage_boundary": "Every Result field follows UI → Data Contract → Source Owner via design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json. This closes page-level source mapping only; no Android repository, Backend/API, database or local-store schema is changed or claimed.",
+  "lineage_authority": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+  "image_quality_copy_authority": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json"
+}
