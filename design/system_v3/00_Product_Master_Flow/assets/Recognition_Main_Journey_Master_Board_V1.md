@@ -29,18 +29,18 @@ Ownership tag only, not a fourth status. Android Camera Permission Dialog and Ph
 | MB-01 | HOME / EMPTY | Empty Home V2.2 | FROZEN |
 | MB-02 | IDENTIFY / CAMERA_PERMISSION | Android Camera permission dialog | FROZEN · SYSTEM |
 | MB-03 | GUIDE / P01 | 竖屏手机 + 横向鱼 | FROZEN |
-| MB-04 | GUIDE / P02 | 横屏手机 + 横向鱼 | FROZEN |
-| MB-05 | IDENTIFY / CAPTURE_READY_PORTRAIT_HORIZONTAL | Camera Ready 竖屏 + 横鱼 | FROZEN |
-| MB-06 | IDENTIFY / CAPTURE_READY_LANDSCAPE_HORIZONTAL | Camera Ready 横屏 + 横鱼 | FROZEN |
-| MB-07 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · EARLY | 图片识别中 Early | FROZEN |
-| MB-08 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · LATE | 图片识别中 Late | FROZEN |
-| MB-09 | RECOGNIZING / PROCESSING_FISH_LOCATED | 已定位到鱼体 | FROZEN |
-| MB-10 | RECOGNIZING / PROCESSING_SPECIES_RECOGNIZING | 鱼种识别中 | FROZEN |
-| MB-11 | RESULT / RESULT_HIGH | 高置信度 | FROZEN |
-| MB-12 | RESULT / RESULT_MEDIUM | 中置信度 | FROZEN |
-| MB-13 | RESULT / RESULT_LOW | 低置信度 | FROZEN |
-| MB-14 | RESULT / NO_FISH | 未检测到鱼 | FROZEN |
-| MB-15 | RESULT / IMAGE_QUALITY | 图片质量不足 | FROZEN |
+| MB-04 | GUIDE / P02 | 竖屏手机 + 竖直鱼 | FROZEN |
+| MB-05 | GUIDE / P03 | 横屏教学页 + 横向鱼 | FROZEN |
+| MB-06 | IDENTIFY / CAPTURE_READY_PORTRAIT_HORIZONTAL | Camera Ready 竖屏 + 横鱼 | FROZEN |
+| MB-07 | IDENTIFY / CAPTURE_READY_LANDSCAPE_HORIZONTAL | Camera Ready 横屏 + 横鱼 | FROZEN |
+| MB-08 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · EARLY | 图片识别中 Early | FROZEN |
+| MB-09 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · LATE | 图片识别中 Late | FROZEN |
+| MB-10 | RECOGNIZING / PROCESSING_FISH_LOCATED | 已定位到鱼体 | FROZEN |
+| MB-11 | RECOGNIZING / PROCESSING_SPECIES_RECOGNIZING | 鱼种识别中 | FROZEN |
+| MB-12 | RESULT / RESULT_HIGH | 高置信度 | FROZEN |
+| MB-13 | RESULT / RESULT_MEDIUM | 中置信度 | FROZEN |
+| MB-14 | RESULT / RESULT_LOW | 低置信度 | FROZEN |
+| MB-15 | RESULT / NO_FISH | 未检测到鱼 | FROZEN |
 | MB-16 | RESULT / IMAGE_QUALITY | 图片质量不足 | FROZEN |
 
 Processing rule: Early/Late are two visual keyframes of one product state 图片识别中; product-level Processing remains exactly three user-visible states.
@@ -84,7 +84,7 @@ The Master Board never overrides items 1–4.
 The board must let a reviewer answer at one glance: what is Frozen, what is Review, what is Missing, how normal and recovery routes connect, and whether Camera orientation / Processing product states / Result 3+2 semantics are separated correctly.
 
 ## 9. Inventory
-Frozen: Empty Home; Camera Permission system surface; Camera Permission Denied; Guide P01/P02; Camera Ready portrait/landscape; Processing four Frozen keyframes mapped to three product states; Result High/Medium/Low/No Fish/Image Quality.
+Frozen: Empty Home; Camera Permission system surface; Camera Permission Denied; Guide P01/P02/P03; Camera Ready portrait/landscape; Processing four Frozen keyframes mapped to three product states; Result High/Medium/Low/No Fish/Image Quality.
 Review: Capture Error; Technical Failure; Save Loading; Dirty Draft Confirmation.
 Missing: Save Error.
 
