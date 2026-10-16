@@ -77,9 +77,10 @@
   "new_visual_surfaces": [
     {
       "id": "capture_first_guide_overlay",
-      "status": "HI_FI_REVIEW_READY",
+      "status": "FROZEN",
       "is_runtime_authority": false,
-      "review_asset_path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.png"
+      "review_asset_path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+      "frozen_visual_package": "design/pages/recognition/first_use_camera_guide/manifest.json"
     },
     {
       "id": "dirty_draft_discard_confirmation",
@@ -93,5 +94,11 @@
     "android_photo_picker"
   ],
   "frozen_assets_modified": false,
-  "generated_by": "design/system_v3/00_Product_Master_Flow/tools/render_recognition_main_journey_overview.py"
+  "generated_by": "design/system_v3/00_Product_Master_Flow/tools/render_recognition_main_journey_overview.py",
+  "first_use_camera_guide": {
+    "status": "FROZEN",
+    "manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+    "package": "design/pages/recognition/first_use_camera_guide/",
+    "note": "Three-page Capture guide P01/P02/P03 is now the frozen first-use visual package; dirty draft discard confirmation remains a separate review surface."
+  }
 }
