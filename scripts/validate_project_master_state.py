@@ -170,6 +170,9 @@ def validate_state(state: dict, v: Validation) -> None:
         control.get("live_branch_head_at_snapshot") == pr145_snapshot,
         "state_control.live_branch_head_at_snapshot must match PR145 snapshot",
     )
+    # The snapshot is a durable observation, not a self-referential commit SHA.
+    # It may lag the current PR head by documentation/state commits, but must not
+    # point to a commit that is ahead of the current checkout.
     v.require(
         pr145.get("branch") == control.get("current_branch"),
         "PR145.branch must equal state_control.current_branch",
