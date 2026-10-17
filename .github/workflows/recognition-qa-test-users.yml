@@ -6,6 +6,11 @@ on:
       - 'app/src/androidTest/java/com/yujian/ai/RecognitionQaUserFixtureSeedTest.kt'
       - 'scripts/validate_recognition_qa_test_users.py'
       - 'tests/test_recognition_qa_test_users.py'
+      - 'tests/test_recognition_test_case_catalog.py'
+      - 'scripts/validate_recognition_test_case_catalog.py'
+      - 'docs/qa/recognition_main_journey/test_case_catalog_v1.json'
+      - 'docs/qa/recognition_main_journey/e2e_scenarios_v1.json'
+      - 'docs/qa/recognition_main_journey/test_inputs_v1.json'
       - '.github/workflows/recognition-qa-test-users.yml'
   pull_request:
     paths:
@@ -13,6 +18,11 @@ on:
       - 'app/src/androidTest/java/com/yujian/ai/RecognitionQaUserFixtureSeedTest.kt'
       - 'scripts/validate_recognition_qa_test_users.py'
       - 'tests/test_recognition_qa_test_users.py'
+      - 'tests/test_recognition_test_case_catalog.py'
+      - 'scripts/validate_recognition_test_case_catalog.py'
+      - 'docs/qa/recognition_main_journey/test_case_catalog_v1.json'
+      - 'docs/qa/recognition_main_journey/e2e_scenarios_v1.json'
+      - 'docs/qa/recognition_main_journey/test_inputs_v1.json'
       - '.github/workflows/recognition-qa-test-users.yml'
   workflow_dispatch:
 permissions:
@@ -27,5 +37,9 @@ jobs:
           python-version: '3.11'
       - name: Validate fixture contract and stable states
         run: python3 scripts/validate_recognition_qa_test_users.py
+      - name: Validate 66 + 10 case coverage and QA state bindings
+        run: python3 scripts/validate_recognition_test_case_catalog.py
       - name: Negative and regression tests
-        run: python3 -m unittest discover -s tests -p 'test_recognition_qa_test_users.py' -v
+        run: |
+          python3 -m unittest discover -s tests -p 'test_recognition_qa_test_users.py' -v
+          python3 -m unittest discover -s tests -p 'test_recognition_test_case_catalog.py' -v

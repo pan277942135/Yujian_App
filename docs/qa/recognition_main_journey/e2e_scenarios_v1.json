@@ -220,7 +220,7 @@
         "IMG-06"
       ],
       "covers_case_ids": [
-        "PROC-09",
+        "CAP-03",
         "RES-05"
       ],
       "assertions": [
@@ -235,7 +235,7 @@
         "native_screenshots",
         "fish_record_count"
       ],
-      "review_reason": "固定模型输入及质量门响应需建立真实证据"
+      "review_reason": "图像质量 INVALID 不能借用 PROC-09 的技术故障断言；必须使用真实质量门证据确认目标分支。"
     },
     {
       "scenario_id": "E2E-08",

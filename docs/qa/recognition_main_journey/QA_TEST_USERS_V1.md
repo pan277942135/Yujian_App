@@ -1,6 +1,6 @@
 # 拍照识别主流程 · 标准测试用户 V1
 
-**Owner**: Recognition QA · **Status**: Git-tracked baseline (fixture schema v1.0 / dataset v1.0.0), not a real account or runtime acceptance certificate.
+**Owner**: Recognition QA · **Status**: Git-tracked baseline (fixture schema v1.0 / dataset v1.1.0), not a real account or runtime acceptance certificate.
 
 ## Unique pinned identity
 
@@ -56,3 +56,11 @@ Every dataset change is reviewed in PR, updates \`dataset_version\` and \`CHANGE
 ## Boundaries and existing integration
 
 The fixture reuses the real GuestCatchRepository preference keys and first-use guide persistence key. Do not modify the existing on-device CameraX / Detector / Classifier behavior or Frozen V3.1 design. The fixture does not replace the real API28 camera/runtime acceptance gate and does not certify the E2E happy path.
+
+## V1.1 linked test-case library
+
+- [66-case review catalog](test_case_catalog_v1.json)
+- [10 composed E2E scenarios](e2e_scenarios_v1.json)
+- [29 input/host specs](test_inputs_v1.json)
+- [Readable review and unresolved decisions](TEST_CASE_REVIEW_V1.md)
+- Check cross-references with `python3 scripts/validate_recognition_test_case_catalog.py`; every base case and E2E has one primary initial state and is listed exactly once in `states[].test_case_ids`. Source-case `NOT_RUN` is not runtime acceptance.
