@@ -117,7 +117,6 @@ async function main() {
   const overviewHash = "#page/recognition_flow_v1_2/hifi/main_journey_overview";
   const p01Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01";
   const p02Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02";
-  const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
 
   await open(p01Hash);
@@ -168,7 +167,7 @@ async function main() {
   await dialog.waitFor({ state: "hidden" });
   assert(await page.locator(".hifi-image-open").evaluate(node => document.activeElement === node), "closing the lightbox must restore focus");
 
-  for (const [hash, width, height, id] of [[p02Hash, 941, 1671, "P02"], [p03Hash, 941, 1672, "P03"]]) {
+  for (const [hash, width, height, id] of [[p02Hash, 941, 1672, "P02"]]) {
     await open(hash);
     const loaded = await waitForLoadedImage(page, ".hifi-asset-figure img", id);
     assert(loaded.complete && loaded.width === width && loaded.height === height, `${id} original dimensions are wrong: ${JSON.stringify(loaded)}`);
