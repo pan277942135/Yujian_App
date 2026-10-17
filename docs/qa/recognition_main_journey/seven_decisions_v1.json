@@ -1,0 +1,228 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "RECOGNITION_MAIN_FLOW_SEVEN_DECISIONS",
+  "version": "1.0.0",
+  "status": "APPROVED_BEHAVIOR_NOT_RUNTIME",
+  "approved_on": "2026-10-17",
+  "source": "User directly approved seven selected rules",
+  "test_user_id": "QA_RECOGNITION_001",
+  "scope": "QA_ACCEPTANCE_RULES_ONLY",
+  "decisions": [
+    {
+      "id": "PER-04",
+      "approval": "APPROVED_BY_USER",
+      "name": "Permission after denial",
+      "variants": [
+        "REQUESTABLE",
+        "NOT_REQUESTABLE"
+      ],
+      "steps": [
+        "Seed PERMISSION_DENIED and configure Android requestable state",
+        "Enter Camera: observe no unsolicited repeated permission dialog",
+        "User taps retry permission once: observe one platform request",
+        "Switch host to non-requestable: retry must not loop; Settings/Gallery/Back remain accessible"
+      ],
+      "assertions": [
+        "Platform permission re-request happens only on explicit user action AND when Android allows it",
+        "No repeated permission requests on navigation or recomposition",
+        "Capture stays disabled until actual grant and CameraX Ready"
+      ],
+      "required_observations": [
+        "permission_request_count",
+        "android_requestable",
+        "camera_request_count"
+      ],
+      "pending_checks": []
+    },
+    {
+      "id": "PER-05",
+      "approval": "APPROVED_BY_USER",
+      "name": "Permanently denied recovery",
+      "variants": [
+        "NO_MORE_PROMPT",
+        "SETTINGS_RETURN"
+      ],
+      "steps": [
+        "Set host permission permanently denied",
+        "Open Camera permission recovery, verify no repeated platform prompt",
+        "Tap Open Settings; verify target is current app settings",
+        "Return without grant; use Gallery and Back; then grant and recheck permission"
+      ],
+      "assertions": [
+        "Open Settings action targets this app's Android settings screen",
+        "Gallery and Back remain usable while CAMERA denied",
+        "No automatic grant inferred from navigating to settings",
+        "No repeated permission request loop"
+      ],
+      "required_observations": [
+        "settings_intent_target",
+        "gallery_available",
+        "back_available",
+        "permission_after_settings",
+        "request_count"
+      ],
+      "pending_checks": [
+        "COPY_AND_VISUAL_PARITY_ON_API28"
+      ]
+    },
+    {
+      "id": "PROC-07",
+      "approval": "APPROVED_BY_USER",
+      "name": "Slow inference, timeout and retry",
+      "variants": [
+        "BEFORE_DEADLINE",
+        "AFTER_DEADLINE",
+        "LATE_CALLBACK",
+        "EXPLICIT_RETRY"
+      ],
+      "steps": [
+        "Start classifier attempt; capture request ID and monotonic start time",
+        "Hold result until before configured deadline: expect still waiting",
+        "Advance past approved deadline without result: expect technical failure and explicit Retry",
+        "Deliver late old model callback: expect ignored",
+        "User taps Retry: expect new attempt ID and fresh deadline"
+      ],
+      "assertions": [
+        "No RESULT_READY or fish species without real classifier result",
+        "Deadline crossing maps to TECHNICAL_FAILURE, never NO_FISH or INVALID",
+        "Failed attempt never writes FishRecord and late callback cannot navigate",
+        "Retry only on user action and generates new attempt ID"
+      ],
+      "required_observations": [
+        "attempt_id",
+        "started_monotonic_ms",
+        "configured_timeout_ms",
+        "elapsed_ms",
+        "last_result_route",
+        "late_callback_ignored",
+        "retry_attempt_id",
+        "record_count"
+      ],
+      "pending_checks": [
+        "INFERENCE_TIMEOUT_MS_FROM_APPROVED_RUNTIME_CONFIG"
+      ]
+    },
+    {
+      "id": "NAV-03",
+      "approval": "APPROVED_BY_USER",
+      "name": "Cancel Processing Back",
+      "variants": [
+        "USER_BACK",
+        "LATE_CALLBACK_AFTER_CANCEL"
+      ],
+      "steps": [
+        "Start real Processing with an active request ID",
+        "Tap Processing Back and inspect cancellation/invalidation event",
+        "Assert destination is Capture camera and record count is zero",
+        "Deliver late old request callback; verify ignored; open capture again"
+      ],
+      "assertions": [
+        "Active inference cancelled or invalidated with attempt ID",
+        "Back returns to Capture, not Result or Home",
+        "Stale classifier callback ignored; no FishRecord created",
+        "Next camera capture can run independently"
+      ],
+      "required_observations": [
+        "attempt_id",
+        "cancel_or_invalidate_trace",
+        "route_after_back",
+        "late_callback_ignored",
+        "record_count"
+      ],
+      "pending_checks": []
+    },
+    {
+      "id": "NAV-04",
+      "approval": "APPROVED_BY_USER",
+      "name": "Result top Back returns origin Home",
+      "variants": [
+        "TOP_BACK_UNSAVED"
+      ],
+      "steps": [
+        "Seed RETURNING and reach unsaved Result from Empty Home",
+        "Record pre-back record count and source-home route",
+        "Tap top Back and inspect destination/back stack",
+        "Reenter camera and verify no stale Result route"
+      ],
+      "assertions": [
+        "Top Back returns to originating Empty Home for this QA user",
+        "If Save was never requested, FishRecord count remains zero",
+        "No stale Result stack; next capture starts fresh"
+      ],
+      "required_observations": [
+        "origin_home",
+        "destination",
+        "records_before",
+        "records_after",
+        "back_stack_trace"
+      ],
+      "pending_checks": []
+    },
+    {
+      "id": "NAV-05",
+      "approval": "APPROVED_BY_USER",
+      "name": "Android Back matches Result top Back",
+      "variants": [
+        "SYSTEM_BACK_UNSAVED"
+      ],
+      "steps": [
+        "Reach unsaved Result from Empty Home",
+        "Press Android System Back once",
+        "Compare destination with NAV-04 and check archive/back stack"
+      ],
+      "assertions": [
+        "System Back returns same origin Empty Home as top Back",
+        "No FishRecord created and no duplicate/back-stack loop"
+      ],
+      "required_observations": [
+        "origin_home",
+        "destination",
+        "record_count",
+        "top_back_parity"
+      ],
+      "pending_checks": []
+    },
+    {
+      "id": "NAV-07",
+      "approval": "APPROVED_BY_USER",
+      "name": "Resume or retry after lifecycle recreation",
+      "variants": [
+        "BACKGROUND_ALIVE",
+        "RECREATION_REATTACHABLE",
+        "ATTEMPT_LOST"
+      ],
+      "steps": [
+        "Start Processing and capture attempt ID",
+        "Background/foreground while attempt owner still active; verify same attempt resumed",
+        "Recreate Activity while same attempt can reattach safely; inspect single inference invocation",
+        "Lose process/attempt owner; reopen and observe explicit Retry when photo retained or Retake otherwise",
+        "Inject stale callback and verify it cannot navigate Result"
+      ],
+      "assertions": [
+        "When safely alive, resume SAME attempt without a second inference",
+        "When not safely recoverable, never silently restart inference or fabricate Result",
+        "Offer explicit Retry Recognition with retained image or Retake without it",
+        "Stale callback never routes Result or creates FishRecord"
+      ],
+      "required_observations": [
+        "prior_attempt_id",
+        "current_attempt_id",
+        "attempt_owner_alive",
+        "media_available",
+        "new_invocation_count",
+        "recovery_cta",
+        "stale_callback_ignored"
+      ],
+      "pending_checks": [
+        "LIFECYCLE_REATTACHABILITY_RUNTIME_VALIDATION"
+      ]
+    }
+  ],
+  "global_invariants": [
+    "Permission retry never loops",
+    "Denied CAMERA never blocks Gallery or Back",
+    "No timeout timer alone can fabricate a fish species",
+    "Timed out/cancelled callbacks cannot navigate Result",
+    "Unsaved Result Back does not create FishRecord"
+  ]
+}

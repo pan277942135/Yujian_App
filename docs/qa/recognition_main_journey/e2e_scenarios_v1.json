@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_id": "YU_JIAN_RECOGNITION_E2E",
-  "suite_version": "1.0.0",
+  "suite_version": "1.1.0",
   "status": "REVIEW",
   "test_user_id": "QA_RECOGNITION_001",
   "test_user_dataset_version": "1.1.0",
@@ -15,7 +15,7 @@
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "FIRST_USE",
       "execution_mode": "REAL_DEVICE",
-      "design_status": "REVIEW",
+      "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
       "input_ids": [
         "DEVICE_FRESH",
@@ -37,9 +37,9 @@
         "NAV-04"
       ],
       "assertions": [
-        "一次 Capture 与一次真实推理",
-        "展示真实输出",
-        "返回前没有 FishRecord"
+        "One real capture and inference with genuine device trace",
+        "Render actual model result without assuming High",
+        "Result top Back returns origin Empty Home with zero unsaved fish records"
       ],
       "evidence_required": [
         "source_sha",
@@ -50,7 +50,9 @@
         "native_screenshots",
         "fish_record_count"
       ],
-      "review_reason": "真实模型不保证 HIGH；Result 返回落点待 NAV-04 确认"
+      "decision_refs": [
+        "NAV-04"
+      ]
     },
     {
       "scenario_id": "E2E-02",
@@ -105,8 +107,9 @@
         "CAP-01"
       ],
       "assertions": [
-        "拒绝时零拍照",
-        "恢复权限且 CameraX Ready 后可拍"
+        "Denial does not permit capture",
+        "System requestability determines explicit retry versus app Settings recovery",
+        "Gallery/Back remain accessible and Settings return checks actual permission"
       ],
       "evidence_required": [
         "source_sha",
@@ -116,6 +119,10 @@
         "model_pipeline_events",
         "native_screenshots",
         "fish_record_count"
+      ],
+      "decision_refs": [
+        "PER-04",
+        "PER-05"
       ]
     },
     {
@@ -270,7 +277,7 @@
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "RETURNING",
       "execution_mode": "REAL_DEVICE",
-      "design_status": "REVIEW",
+      "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
       "input_ids": [
         "CAMERA_LIVE"
@@ -281,7 +288,9 @@
         "NAV-07"
       ],
       "assertions": [
-        "没有旧异步结果跳转或新增记录"
+        "Processing Back invalidates current attempt and routes Capture",
+        "Stale model callback cannot auto navigate Result or save a record",
+        "Background/Activity recreation safely reattaches same attempt or offers explicit Retry/Retake"
       ],
       "evidence_required": [
         "source_sha",
@@ -292,7 +301,11 @@
         "native_screenshots",
         "fish_record_count"
       ],
-      "review_reason": "依赖 NAV-03/NAV-07 的明确行为决策"
+      "decision_refs": [
+        "NAV-03",
+        "NAV-07"
+      ],
+      "acceptance_readiness": "DEVICE_VALIDATION_REQUIRED"
     },
     {
       "scenario_id": "E2E-10",
@@ -324,5 +337,6 @@
         "fish_record_count"
       ]
     }
-  ]
+  ],
+  "approved_decision_registry": "docs/qa/recognition_main_journey/seven_decisions_v1.json"
 }

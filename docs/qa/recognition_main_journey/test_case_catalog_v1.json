@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "catalog_id": "YU_JIAN_RECOGNITION_MAIN_FLOW_CASES",
-  "catalog_version": "1.0.0",
+  "catalog_version": "1.1.0",
   "status": "REVIEW",
   "test_user_id": "QA_RECOGNITION_001",
   "test_user_dataset_version": "1.1.0",
@@ -341,7 +341,7 @@
       "module": "PER",
       "title": "拒绝后再次进入",
       "priority": "P0",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "PERMISSION_DENIED",
@@ -351,32 +351,45 @@
         "SYSTEM_PERMISSION"
       ],
       "steps": [
-        "已有拒绝记录",
-        "再次进入 Camera"
+        "Seed PERMISSION_DENIED and configure Android requestable state",
+        "Enter Camera: observe no unsolicited repeated permission dialog",
+        "User taps retry permission once: observe one platform request",
+        "Switch host to non-requestable: retry must not loop; Settings/Gallery/Back remain accessible"
       ],
       "assertions": [
-        "按平台可请求性呈现对应状态",
-        "不无限反复弹权限"
+        "Platform permission re-request happens only on explicit user action AND when Android allows it",
+        "No repeated permission requests on navigation or recomposition",
+        "Capture stays disabled until actual grant and CameraX Ready"
       ],
       "evidence_required": [
         "source_sha",
         "apk_sha256",
         "device_profile",
         "native_runtime_trace",
-        "observed_assertions"
+        "observed_assertions",
+        "permission_request_count",
+        "android_requestable",
+        "camera_request_count"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
         "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
       ],
-      "review_reason": "再次弹窗行为依赖系统授权历史；应覆盖 requestable 与 permanently denied。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "PER-04",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "READY_TO_IMPLEMENT",
+      "required_policy_variants": [
+        "REQUESTABLE",
+        "NOT_REQUESTABLE"
+      ]
     },
     {
       "case_id": "PER-05",
       "module": "PER",
       "title": "不再询问或受策略限制",
       "priority": "P1",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "PERMISSION_DENIED",
@@ -386,26 +399,44 @@
         "SYSTEM_PERMISSION"
       ],
       "steps": [
-        "在测试设备模拟权限不可再次请求",
-        "再次进入"
+        "Set host permission permanently denied",
+        "Open Camera permission recovery, verify no repeated platform prompt",
+        "Tap Open Settings; verify target is current app settings",
+        "Return without grant; use Gallery and Back; then grant and recheck permission"
       ],
       "assertions": [
-        "不循环触发系统弹窗",
-        "可经系统设置恢复",
-        "Gallery/Back 不被阻断"
+        "Open Settings action targets this app's Android settings screen",
+        "Gallery and Back remain usable while CAMERA denied",
+        "No automatic grant inferred from navigating to settings",
+        "No repeated permission request loop"
       ],
       "evidence_required": [
         "source_sha",
         "apk_sha256",
         "device_profile",
         "native_runtime_trace",
-        "observed_assertions"
+        "observed_assertions",
+        "settings_intent_target",
+        "gallery_available",
+        "back_available",
+        "permission_after_settings",
+        "request_count"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
         "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
       ],
-      "review_reason": "权限设置入口的 Copy 和视觉需要 Runtime 审核。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "PER-05",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "READY_TO_IMPLEMENT",
+      "required_policy_variants": [
+        "NO_MORE_PROMPT",
+        "SETTINGS_RETURN"
+      ],
+      "pending_checks": [
+        "COPY_AND_VISUAL_PARITY_ON_API28"
+      ]
     },
     {
       "case_id": "PER-06",
@@ -1318,7 +1349,7 @@
       "module": "PROC",
       "title": "模型延迟返回",
       "priority": "P0",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "RETURNING",
@@ -1328,20 +1359,46 @@
         "PIPELINE_EVENTS"
       ],
       "steps": [
-        "延迟 classifier result 事件"
+        "Start classifier attempt; capture request ID and monotonic start time",
+        "Hold result until before configured deadline: expect still waiting",
+        "Advance past approved deadline without result: expect technical failure and explicit Retry",
+        "Deliver late old model callback: expect ignored",
+        "User taps Retry: expect new attempt ID and fresh deadline"
       ],
       "assertions": [
-        "不能用计时器伪造完成",
-        "真实超时/等待策略待决策"
+        "No RESULT_READY or fish species without real classifier result",
+        "Deadline crossing maps to TECHNICAL_FAILURE, never NO_FISH or INVALID",
+        "Failed attempt never writes FishRecord and late callback cannot navigate",
+        "Retry only on user action and generates new attempt ID"
       ],
       "evidence_required": [
         "source_sha",
-        "jvm_assertion_log"
+        "jvm_assertion_log",
+        "attempt_id",
+        "started_monotonic_ms",
+        "configured_timeout_ms",
+        "elapsed_ms",
+        "last_result_route",
+        "late_callback_ignored",
+        "retry_attempt_id",
+        "record_count"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
       ],
-      "review_reason": "慢速真实推理时的超时/等待策略尚未冻结，禁止定时假成功。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "PROC-07",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "BLOCKED_PARAMETER",
+      "required_policy_variants": [
+        "BEFORE_DEADLINE",
+        "AFTER_DEADLINE",
+        "LATE_CALLBACK",
+        "EXPLICIT_RETRY"
+      ],
+      "pending_checks": [
+        "INFERENCE_TIMEOUT_MS_FROM_APPROVED_RUNTIME_CONFIG"
+      ]
     },
     {
       "case_id": "PROC-08",
@@ -1789,7 +1846,7 @@
       "module": "NAV",
       "title": "Processing 中断/返回策略",
       "priority": "P1",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "RETURNING",
@@ -1799,31 +1856,48 @@
         "CAMERA_LIVE"
       ],
       "steps": [
-        "处理中点击返回并等待迟到回调"
+        "Start real Processing with an active request ID",
+        "Tap Processing Back and inspect cancellation/invalidation event",
+        "Assert destination is Capture camera and record count is zero",
+        "Deliver late old request callback; verify ignored; open capture again"
       ],
       "assertions": [
-        "无旧结果异步跳转",
-        "返回目标待产品决定"
+        "Active inference cancelled or invalidated with attempt ID",
+        "Back returns to Capture, not Result or Home",
+        "Stale classifier callback ignored; no FishRecord created",
+        "Next camera capture can run independently"
       ],
       "evidence_required": [
         "source_sha",
         "apk_sha256",
         "device_profile",
         "native_runtime_trace",
-        "observed_assertions"
+        "observed_assertions",
+        "attempt_id",
+        "cancel_or_invalidate_trace",
+        "route_after_back",
+        "late_callback_ignored",
+        "record_count"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
         "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
       ],
-      "review_reason": "Processing 中 Back 的取消策略及返回落点待确认。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "NAV-03",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "READY_TO_IMPLEMENT",
+      "required_policy_variants": [
+        "USER_BACK",
+        "LATE_CALLBACK_AFTER_CANCEL"
+      ]
     },
     {
       "case_id": "NAV-04",
       "module": "NAV",
       "title": "Result 顶部返回目的地",
       "priority": "P0",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "RETURNING",
@@ -1833,32 +1907,46 @@
         "RESP-HIGH"
       ],
       "steps": [
-        "从 Empty Home 识别进入 Result",
-        "顶部返回"
+        "Seed RETURNING and reach unsaved Result from Empty Home",
+        "Record pre-back record count and source-home route",
+        "Tap top Back and inspect destination/back stack",
+        "Reenter camera and verify no stale Result route"
       ],
       "assertions": [
-        "无鱼获时仍 0 条",
-        "返回目的地待冻结"
+        "Top Back returns to originating Empty Home for this QA user",
+        "If Save was never requested, FishRecord count remains zero",
+        "No stale Result stack; next capture starts fresh"
       ],
       "evidence_required": [
         "source_sha",
         "apk_sha256",
         "device_profile",
         "native_runtime_trace",
-        "observed_assertions"
+        "observed_assertions",
+        "origin_home",
+        "destination",
+        "records_before",
+        "records_after",
+        "back_stack_trace"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
         "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
       ],
-      "review_reason": "Result 顶部返回目标与已冻结导航合同的关系待确认。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "NAV-04",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "READY_TO_IMPLEMENT",
+      "required_policy_variants": [
+        "TOP_BACK_UNSAVED"
+      ]
     },
     {
       "case_id": "NAV-05",
       "module": "NAV",
       "title": "Result 系统 Back 处理",
       "priority": "P1",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "RETURNING",
@@ -1868,24 +1956,36 @@
         "RESP-HIGH"
       ],
       "steps": [
-        "Result 按系统 Back"
+        "Reach unsaved Result from Empty Home",
+        "Press Android System Back once",
+        "Compare destination with NAV-04 and check archive/back stack"
       ],
       "assertions": [
-        "没有错误页面堆栈",
-        "返回目的地待冻结"
+        "System Back returns same origin Empty Home as top Back",
+        "No FishRecord created and no duplicate/back-stack loop"
       ],
       "evidence_required": [
         "source_sha",
         "apk_sha256",
         "device_profile",
         "native_runtime_trace",
-        "observed_assertions"
+        "observed_assertions",
+        "origin_home",
+        "destination",
+        "record_count",
+        "top_back_parity"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
         "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
       ],
-      "review_reason": "Result System Back 的具体返回目标待确认。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "NAV-05",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "READY_TO_IMPLEMENT",
+      "required_policy_variants": [
+        "SYSTEM_BACK_UNSAVED"
+      ]
     },
     {
       "case_id": "NAV-06",
@@ -1925,7 +2025,7 @@
       "module": "NAV",
       "title": "Activity 重建/后台恢复",
       "priority": "P1",
-      "design_status": "REVIEW",
+      "design_status": "FROZEN",
       "execution_status": "NOT_RUN",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "RETURNING",
@@ -1935,24 +2035,48 @@
         "CAMERA_LIVE"
       ],
       "steps": [
-        "Processing 中切后台或旋转再恢复"
+        "Start Processing and capture attempt ID",
+        "Background/foreground while attempt owner still active; verify same attempt resumed",
+        "Recreate Activity while same attempt can reattach safely; inspect single inference invocation",
+        "Lose process/attempt owner; reopen and observe explicit Retry when photo retained or Retake otherwise",
+        "Inject stale callback and verify it cannot navigate Result"
       ],
       "assertions": [
-        "无重复保存或旧回调",
-        "恢复/重拍策略待决定"
+        "When safely alive, resume SAME attempt without a second inference",
+        "When not safely recoverable, never silently restart inference or fabricate Result",
+        "Offer explicit Retry Recognition with retained image or Retake without it",
+        "Stale callback never routes Result or creates FishRecord"
       ],
       "evidence_required": [
         "source_sha",
         "apk_sha256",
         "device_profile",
         "native_runtime_trace",
-        "observed_assertions"
+        "observed_assertions",
+        "prior_attempt_id",
+        "current_attempt_id",
+        "attempt_owner_alive",
+        "media_available",
+        "new_invocation_count",
+        "recovery_cta",
+        "stale_callback_ignored"
       ],
       "authority_refs": [
         "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
         "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
       ],
-      "review_reason": "处理中 Activity 重建应恢复还是重拍仍需明确。"
+      "decision_status": "APPROVED_BY_USER",
+      "decision_id": "NAV-07",
+      "decision_policy_ref": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+      "acceptance_readiness": "DEVICE_VALIDATION_REQUIRED",
+      "required_policy_variants": [
+        "BACKGROUND_ALIVE",
+        "RECREATION_REATTACHABLE",
+        "ATTEMPT_LOST"
+      ],
+      "pending_checks": [
+        "LIFECYCLE_REATTACHABILITY_RUNTIME_VALIDATION"
+      ]
     },
     {
       "case_id": "SYS-01",
@@ -2179,5 +2303,15 @@
         "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
       ]
     }
+  ],
+  "approved_decision_registry": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+  "approved_decision_ids": [
+    "PER-04",
+    "PER-05",
+    "PROC-07",
+    "NAV-03",
+    "NAV-04",
+    "NAV-05",
+    "NAV-07"
   ]
 }
