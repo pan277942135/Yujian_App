@@ -413,7 +413,7 @@ private fun RecognitionFirstCaptureGuidePageIndicator(
             .height(30.dp)
             .semantics(mergeDescendants = true) {
                 contentDescription = "教学页码"
-                stateDescription = "第${currentPage + 1}页，共3页"
+                stateDescription = "第${currentPage + 1}页，共2页"
             }
             .testTag("recognition-guide-page-indicator"),
         horizontalArrangement = Arrangement.Center,
