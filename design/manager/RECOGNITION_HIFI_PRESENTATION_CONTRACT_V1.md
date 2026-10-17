@@ -10,14 +10,13 @@
 
 | Page ID | Design State ID | Source | Design status |
 |---|---|---|---|
-| `recognition.capture.v3_1` | `P01` | First-use guide overlay; `First_Use_Camera_Guide_Spec_V1.md` | FROZEN |
-| `recognition.capture.v3_1` | `P02` | First-use guide overlay; `First_Use_Camera_Guide_Spec_V1.md` | FROZEN |
-| `recognition.capture.v3_1` | `P03` | First-use guide overlay; `First_Use_Camera_Guide_Spec_V1.md` | FROZEN |
+| `recognition.capture.v3_1` | `P01` | First-use guide overlay; `First_Use_Camera_Guide_Spec_V1_2.md` | FROZEN |
+| `recognition.capture.v3_1` | `P02` | First-use guide overlay; `First_Use_Camera_Guide_Spec_V1_2.md` | FROZEN |
 | `recognition.capture.v3_1` | `CAPTURE_READY_PORTRAIT_HORIZONTAL` | Capture Hi-Fi Freeze Manifest V1 | Design freeze recorded; preview `BLOCKED_INTEGRITY` |
 | `recognition.capture.v3_1` | `CAPTURE_READY_LANDSCAPE_HORIZONTAL` | Capture Hi-Fi Freeze Manifest V1 | Design freeze recorded; preview `BLOCKED_INTEGRITY` |
 | `recognition.capture.v3_1` | `CAPTURE_PERMISSION_DENIED` | Capture V3.1 Page Registry + Camera Permission Denied Visual Contract V1 | Contract FROZEN; preview `MISSING` |
 
-P01/P02/P03 are guide-step IDs from the approved guide Registry and manifest, not new Android State Machine IDs. The first-use overlay remains additive inside `recognition.capture.v3_1`; its V1 spec does not replace the Capture Page Contract.
+P01/P02 are guide-step IDs from the two-page V1.2 guide Registry and manifest, not new Android State Machine IDs. The first-use overlay remains additive inside `recognition.capture.v3_1`; its V1.2 spec does not replace the Capture Page Contract.
 
 ## Entry, trigger, input and actions
 
@@ -27,8 +26,7 @@ P01/P02/P03 are guide-step IDs from the approved guide Registry and manifest, no
 - **Trigger:** show once after permission and provider readiness.
 - **Input:** camera readiness and the guide-completion flag; the overlay does not select or create media.
 - **P01:** `下一张` → P02. `跳过` closes the guide without triggering the shutter.
-- **P02:** `上一张` → P01; `下一张` → P03; `跳过` closes without triggering the shutter.
-- **P03:** `上一张` → P02; `开始拍摄` closes the guide and returns to Capture Ready without automatically triggering the shutter.
+- **P02:** `上一张` → P01; `开始拍摄` closes the guide and returns to Capture Ready without automatically triggering the shutter.
 - **Completion:** persist only after actual dismissal by `跳过` or the final action. Permission denial, preview-not-ready, Gallery entry, and an abandoned / incomplete guide do not complete the guide.
 - **Retake:** not specified; these guide states do not introduce a retake action.
 
