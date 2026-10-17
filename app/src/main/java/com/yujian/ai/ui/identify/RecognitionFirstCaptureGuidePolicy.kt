@@ -2,7 +2,6 @@ package com.yujian.ai.ui.identify
 
 internal enum class RecognitionGuideFishOrientation {
     HORIZONTAL,
-    VERTICAL,
 }
 
 internal enum class RecognitionGuideRuntimeAssetStatus {
