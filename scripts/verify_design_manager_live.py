@@ -15,8 +15,7 @@ from urllib.request import Request, urlopen
 
 EXPECTED_GUIDE = {
     "P01": (941, 1671, "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"),
-    "P02": (941, 1671, "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"),
-    "P03": (941, 1672, "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
+    "P02": (941, 1672, "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
 }
 
 
@@ -82,7 +81,7 @@ def main() -> int:
     guide = views.get("capture_first_use_guide")
     require(guide is not None and guide.get("title") == "07 · 首次拍照教学", "live guide entry changed")
     guide_children = {item.get("id"): item for item in guide.get("children", [])}
-    require(set(guide_children) == {"p01", "p02", "p03"}, "live guide must retain P01/P02/P03")
+    require(set(guide_children) == {"p01", "p02"}, "live guide must expose exactly P01/P02")
 
     guide_manifest_raw, _ = fetch(urljoin(parent_url, "design/pages/recognition/first_use_camera_guide/manifest.json"))
     guide_manifest = json.loads(guide_manifest_raw)
@@ -132,7 +131,7 @@ def main() -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"PASS: Pages live release | build={build['sha']} | P01/P02/P03 + overview/review originals SHA-verified | expected missing paths=404")
+    print(f"PASS: Pages live release | build={build['sha']} | P01/P02 + overview/review originals SHA-verified | expected missing paths=404")
     return 0
 
 
