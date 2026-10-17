@@ -39,7 +39,7 @@ Required sub-gates:
 
 **Fail-closed rule:** any missing/unapproved required image blocks FIRST_USE_GUIDE_VISUAL and every full-flow E2E that depends on that guide. A missing asset is BLOCKED; a declared-but-missing binding, hash mismatch, or wrong image semantics is FAIL. Neither status may be converted to PASS or silently skipped. Unrelated tests may continue independently.
 
-Current sub-gate state: G03A=BLOCKED, G03B=PASS_FOR_MANIFEST_SHAPE_ONLY, G03C=BLOCKED, G03D=BLOCKED, G03E=NOT_RUN. The manifest is a specification and empty slot register; it is not evidence of runtime readiness.
+Current sub-gate state: G03A=BLOCKED, G03B=NOT_RUN (the manifest declares 12 slots; no schema validator has been implemented or run), G03C=BLOCKED, G03D=BLOCKED, G03E=NOT_RUN. The manifest is a specification and empty slot register; it is not evidence of runtime readiness.
 
 The Frozen full-page PNGs are used to compare layout/typography/spacing and the placement of example slots. Dynamic CameraX background pixels are not expected to match the static design background pixel-for-pixel.
 
