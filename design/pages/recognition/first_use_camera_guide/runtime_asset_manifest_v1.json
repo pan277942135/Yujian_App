@@ -6,7 +6,7 @@
   "approved_slot_count": 0,
   "frozen_page_reference_policy": {
     "paths_are_reference_only": true,
-    "runtime_page_background_allowed": false,
+    "frozen_page_png_as_runtime_background_allowed": false,
     "forbid_crop_from_full_page": true
   },
   "slots": {
