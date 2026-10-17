@@ -1,0 +1,2183 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "YU_JIAN_RECOGNITION_MAIN_FLOW_CASES",
+  "catalog_version": "1.0.0",
+  "status": "REVIEW",
+  "test_user_id": "QA_RECOGNITION_001",
+  "test_user_dataset_version": "1.1.0",
+  "scope": "EMPTY_HOME_CAMERA_FIRST_GUIDE_CAPTURE_PROCESSING_RESULT_RETURN",
+  "excluded": [
+    "Normal Home Hero F01-F08",
+    "FishRecordDetail A/B",
+    "post-save flow",
+    "Fish Guide",
+    "remote account auth",
+    "cloud sync",
+    "model training/accuracy"
+  ],
+  "case_count": 66,
+  "module_counts": {
+    "EN": 6,
+    "PER": 7,
+    "GUIDE": 11,
+    "CAP": 9,
+    "PROC": 9,
+    "RES": 10,
+    "NAV": 7,
+    "SYS": 7
+  },
+  "execution_policy": {
+    "default_execution_status": "NOT_RUN",
+    "frozen_contract_is_not_runtime_pass": true,
+    "controlled_outcomes_not_real_model": true,
+    "real_camera_required_for_true_e2e": true
+  },
+  "cases": [
+    {
+      "case_id": "EN-01",
+      "module": "EN",
+      "title": "首次安装展示空首页",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "FIRST_USE",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_FRESH"
+      ],
+      "steps": [
+        "安装调试包",
+        "清除数据",
+        "打开应用"
+      ],
+      "assertions": [
+        "显示 Empty Home",
+        "鱼获数为 0",
+        "不出现假数据"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "EN-02",
+      "module": "EN",
+      "title": "点击拍照入口",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "启动空首页",
+        "点击开始识鱼"
+      ],
+      "assertions": [
+        "仅进入 Identify 相机入口",
+        "预览准备与权限状态正确"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "EN-03",
+      "module": "EN",
+      "title": "快速重复点击入口",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "在空首页快速连续点击拍照入口"
+      ],
+      "assertions": [
+        "仅创建一次导航",
+        "不叠加相机页面"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "EN-04",
+      "module": "EN",
+      "title": "相机初始化期间返回",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "进入 Camera",
+        "模拟 Provider 尚未 Ready",
+        "返回"
+      ],
+      "assertions": [
+        "相机资源安全释放",
+        "返回空首页",
+        "没有崩溃"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "EN-05",
+      "module": "EN",
+      "title": "已授权且已完成指引再进入",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "从空首页进入 Camera"
+      ],
+      "assertions": [
+        "不弹系统权限",
+        "不重复首用指引",
+        "Provider Ready 后快门可用"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "EN-06",
+      "module": "EN",
+      "title": "相机初始化失败后重试",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "PROVIDER_FAILURE"
+      ],
+      "steps": [
+        "注入 Provider 初始化失败",
+        "观察错误态",
+        "重新进入"
+      ],
+      "assertions": [
+        "进入 CAPTURE_ERROR",
+        "可恢复到 CAPTURE_READY",
+        "不残留失效会话"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PER-01",
+      "module": "PER",
+      "title": "首次请求相机权限",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "FIRST_USE",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION"
+      ],
+      "steps": [
+        "重置系统授权请求历史",
+        "打开空首页",
+        "点击拍照"
+      ],
+      "assertions": [
+        "出现平台相机权限请求",
+        "未授权时快门不可用"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PER-02",
+      "module": "PER",
+      "title": "首次授权成功",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "FIRST_USE",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION",
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "首次权限弹窗点击允许",
+        "等待 CameraX Ready"
+      ],
+      "assertions": [
+        "真实相机可用",
+        "首次教学仅在 Provider Ready 后出现"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PER-03",
+      "module": "PER",
+      "title": "首次拒绝授权",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "FIRST_USE",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION"
+      ],
+      "steps": [
+        "首次请求点击拒绝"
+      ],
+      "assertions": [
+        "进入可恢复 CAPTURE_PERMISSION_DENIED",
+        "无相机拍照请求",
+        "相册和返回仍可用"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PER-04",
+      "module": "PER",
+      "title": "拒绝后再次进入",
+      "priority": "P0",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "PERMISSION_DENIED",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION"
+      ],
+      "steps": [
+        "已有拒绝记录",
+        "再次进入 Camera"
+      ],
+      "assertions": [
+        "按平台可请求性呈现对应状态",
+        "不无限反复弹权限"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ],
+      "review_reason": "再次弹窗行为依赖系统授权历史；应覆盖 requestable 与 permanently denied。"
+    },
+    {
+      "case_id": "PER-05",
+      "module": "PER",
+      "title": "不再询问或受策略限制",
+      "priority": "P1",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "PERMISSION_DENIED",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION"
+      ],
+      "steps": [
+        "在测试设备模拟权限不可再次请求",
+        "再次进入"
+      ],
+      "assertions": [
+        "不循环触发系统弹窗",
+        "可经系统设置恢复",
+        "Gallery/Back 不被阻断"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ],
+      "review_reason": "权限设置入口的 Copy 和视觉需要 Runtime 审核。"
+    },
+    {
+      "case_id": "PER-06",
+      "module": "PER",
+      "title": "从系统设置恢复授权",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "PERMISSION_DENIED",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION",
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "打开系统设置授予 CAMERA",
+        "返回应用",
+        "重试"
+      ],
+      "assertions": [
+        "读取最新授权状态",
+        "Provider Ready 后可拍摄",
+        "无需重装"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PER-07",
+      "module": "PER",
+      "title": "运行时权限被撤销",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "SYSTEM_PERMISSION",
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "Camera 已 Ready",
+        "后台设置撤销权限",
+        "恢复 App"
+      ],
+      "assertions": [
+        "CameraX 安全解绑",
+        "不能拍摄",
+        "保持可恢复错误/权限态"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "GUIDE-01",
+      "module": "GUIDE",
+      "title": "首次显示的触发条件",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "Preview 尚未就绪",
+        "使 CameraX Ready"
+      ],
+      "assertions": [
+        "Ready 前不显示首用指引",
+        "Ready 后展示且快门未触发"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-02",
+      "module": "GUIDE",
+      "title": "默认 P01",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "启动首次指引"
+      ],
+      "assertions": [
+        "默认第一页 P01",
+        "页码 1/3",
+        "横鱼竖屏教学"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-03",
+      "module": "GUIDE",
+      "title": "P01 到 P02",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "在 P01 点击下一张"
+      ],
+      "assertions": [
+        "切到 P02",
+        "页码 2/3",
+        "竖向鱼体说明"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-04",
+      "module": "GUIDE",
+      "title": "P02 到 P03",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "在 P02 点击下一张"
+      ],
+      "assertions": [
+        "切到 P03",
+        "页码 3/3",
+        "横屏横鱼教学"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-05",
+      "module": "GUIDE",
+      "title": "上一步回退",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "P03 点击上一张",
+        "P02 再点击上一张"
+      ],
+      "assertions": [
+        "依次回到 P02 和 P01",
+        "完成标记仍为 false"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-06",
+      "module": "GUIDE",
+      "title": "Pager 左右滑动",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "P01 左滑两次",
+        "P03 右滑两次"
+      ],
+      "assertions": [
+        "P01/P02/P03 顺序正确",
+        "页码与可访问状态同步"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-07",
+      "module": "GUIDE",
+      "title": "P03 开始拍摄",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "P01",
+        "P02",
+        "P03",
+        "点击开始拍摄"
+      ],
+      "assertions": [
+        "退出 Overlay",
+        "持久化完成=true",
+        "快门请求数仍为 0"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-08",
+      "module": "GUIDE",
+      "title": "跳过首用指引",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "在 P01 点击跳过"
+      ],
+      "assertions": [
+        "关闭 Overlay",
+        "持久化完成=true",
+        "快门请求数 0"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-09",
+      "module": "GUIDE",
+      "title": "Back 不误标完成",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "未完成时点击顶部 Back 或系统 Back"
+      ],
+      "assertions": [
+        "关闭当前 Overlay",
+        "持久化 completed=false",
+        "后续符合条件可再次出现"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-10",
+      "module": "GUIDE",
+      "title": "底层快门/相册不可穿透",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "打开 Guide",
+        "点击遮罩下快门和相册区域"
+      ],
+      "assertions": [
+        "TakePicture 及 Picker 触发数都为 0"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "GUIDE-11",
+      "module": "GUIDE",
+      "title": "引导完成持久化与数据重置",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_RESET"
+      ],
+      "steps": [
+        "完成 Guide",
+        "退出重新进入",
+        "清除 App 数据后再进入"
+      ],
+      "assertions": [
+        "完成后不重复弹",
+        "清除数据后按首次条件再弹"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+      ]
+    },
+    {
+      "case_id": "CAP-01",
+      "module": "CAP",
+      "title": "CameraX 预览 Ready",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "进入相机",
+        "等待 Preview Streaming / ImageCapture Ready"
+      ],
+      "assertions": [
+        "快门启用条件与 Provider/权限一致"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-02",
+      "module": "CAP",
+      "title": "Ready 前禁止点击拍照",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "进入 Camera",
+        "未就绪时点击快门"
+      ],
+      "assertions": [
+        "不存在实际 TakePicture 请求",
+        "界面不进入虚假 Processing"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-03",
+      "module": "CAP",
+      "title": "单次快门产生单次照片",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "Preview Ready",
+        "点快门一次"
+      ],
+      "assertions": [
+        "恰有一次 capture 请求和终态回调",
+        "图像可解码并移交"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-04",
+      "module": "CAP",
+      "title": "双击快门去重",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "连续快速点击快门多次"
+      ],
+      "assertions": [
+        "只有一个在途捕获/识别请求",
+        "没有重复导航"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-05",
+      "module": "CAP",
+      "title": "横向鱼体正常化",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-01"
+      ],
+      "steps": [
+        "以现场实拍横鱼作为输入",
+        "拍摄并处理"
+      ],
+      "assertions": [
+        "方向和色彩不被非预期修改",
+        "输出可解码并传入 Processing"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-06",
+      "module": "CAP",
+      "title": "长竖鱼与不完整入框",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-02",
+        "IMG-03"
+      ],
+      "steps": [
+        "分别输入竖向鱼与部分出框照片"
+      ],
+      "assertions": [
+        "输入进入合法处理/恢复分支",
+        "不崩溃、拉伸或虚构鱼体"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-07",
+      "module": "CAP",
+      "title": "夜拍与复杂背景",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-04"
+      ],
+      "steps": [
+        "在低照度复杂背景拍摄"
+      ],
+      "assertions": [
+        "归一化并正确交给模型",
+        "不要求固定识别置信度"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-08",
+      "module": "CAP",
+      "title": "拍照失败或图像不可解码",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-08",
+        "CAPTURE_FAILURE"
+      ],
+      "steps": [
+        "注入 capture 回调异常或无效文件"
+      ],
+      "assertions": [
+        "进入 CAPTURE_ERROR/输入恢复",
+        "不伪造成功，不保存鱼获"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "CAP-09",
+      "module": "CAP",
+      "title": "相册打开与取消不污染相机",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "PHOTO_PICKER"
+      ],
+      "steps": [
+        "相机点击相册",
+        "取消",
+        "返回 Camera"
+      ],
+      "assertions": [
+        "相册取消不触发拍照",
+        "相机仍可用"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-01",
+      "module": "PROC",
+      "title": "进入真实 Processing",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "捕获并归一化图片",
+        "发起真实识别"
+      ],
+      "assertions": [
+        "原图立即可见",
+        "首先进入 CAPTURED",
+        "不闪现 Result"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-02",
+      "module": "PROC",
+      "title": "CAPTURED 最短视觉时长",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "PIPELINE_EVENTS"
+      ],
+      "steps": [
+        "给状态机检测开始事件并测量时序"
+      ],
+      "assertions": [
+        "CAPTURED ≥220ms",
+        "无真实等价事件不推进"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-03",
+      "module": "PROC",
+      "title": "DETECTING 最短视觉时长",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "PIPELINE_EVENTS"
+      ],
+      "steps": [
+        "给状态机 detector bbox/eligibility 事件"
+      ],
+      "assertions": [
+        "DETECTING ≥320ms",
+        "无可信鱼焦点不进入 OUTLINE"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-04",
+      "module": "PROC",
+      "title": "OUTLINE 使用真实目标几何",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-01"
+      ],
+      "steps": [
+        "实际 Detector bbox 到达",
+        "分类开始"
+      ],
+      "assertions": [
+        "OUTLINE ≥350ms",
+        "无虚构鱼体轮廓或矩形 HUD"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-05",
+      "module": "PROC",
+      "title": "CLASSIFYING 最短视觉时长",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "PIPELINE_EVENTS"
+      ],
+      "steps": [
+        "给分类开始/结果事件并测量时序"
+      ],
+      "assertions": [
+        "CLASSIFYING ≥250ms",
+        "无结果不进入 RESULT_READY"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-06",
+      "module": "PROC",
+      "title": "模型早于最短节拍完成",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L1",
+      "execution_mode": "STATE_MACHINE",
+      "input_ids": [
+        "PIPELINE_EVENTS"
+      ],
+      "steps": [
+        "提前发送检测/分类事件"
+      ],
+      "assertions": [
+        "仍满足四个最短节拍",
+        "不跳过必要语义状态"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "jvm_assertion_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-07",
+      "module": "PROC",
+      "title": "模型延迟返回",
+      "priority": "P0",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L1",
+      "execution_mode": "STATE_MACHINE",
+      "input_ids": [
+        "PIPELINE_EVENTS"
+      ],
+      "steps": [
+        "延迟 classifier result 事件"
+      ],
+      "assertions": [
+        "不能用计时器伪造完成",
+        "真实超时/等待策略待决策"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "jvm_assertion_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ],
+      "review_reason": "慢速真实推理时的超时/等待策略尚未冻结，禁止定时假成功。"
+    },
+    {
+      "case_id": "PROC-08",
+      "module": "PROC",
+      "title": "真实无鱼分支",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-05"
+      ],
+      "steps": [
+        "真实 Detector 输入无鱼图"
+      ],
+      "assertions": [
+        "依据 Detector 输出进入 NO_FISH",
+        "不生成虚假鱼种"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "PROC-09",
+      "module": "PROC",
+      "title": "模型或裁切错误",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "PIPELINE_FAILURE"
+      ],
+      "steps": [
+        "分别注入 Detector、Classifier、Crop 异常"
+      ],
+      "assertions": [
+        "进入 TECHNICAL_FAILURE",
+        "不与无鱼/质量差混淆"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-01",
+      "module": "RES",
+      "title": "高置信结果 UI",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-HIGH"
+      ],
+      "steps": [
+        "受控 Result 测试输入确定的 HIGH 输出"
+      ],
+      "assertions": [
+        "展示 High 状态与正确鱼种，不当作真实模型精度"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-02",
+      "module": "RES",
+      "title": "中置信度候选 UI",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-MEDIUM"
+      ],
+      "steps": [
+        "输入 Medium",
+        "查看候选"
+      ],
+      "assertions": [
+        "候选仅建议",
+        "未经选择不自动确认"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-03",
+      "module": "RES",
+      "title": "低置信度人工确认 UI",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-LOW"
+      ],
+      "steps": [
+        "输入 Low",
+        "尝试保存入口"
+      ],
+      "assertions": [
+        "未知鱼种不得持久化",
+        "转 LOW_MANUAL"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-04",
+      "module": "RES",
+      "title": "无鱼结果 UI",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-NO_FISH"
+      ],
+      "steps": [
+        "输入 NO_FISH Outcome",
+        "查看 Result"
+      ],
+      "assertions": [
+        "显示无鱼恢复",
+        "不出现鱼种或保存记录"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-05",
+      "module": "RES",
+      "title": "严重图像质量异常",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-INVALID"
+      ],
+      "steps": [
+        "输入 INVALID 质量结果",
+        "查看恢复页"
+      ],
+      "assertions": [
+        "进入质量异常恢复，文案按照 Copy 合同"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-06",
+      "module": "RES",
+      "title": "可处理的质量警告",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-WARNING"
+      ],
+      "steps": [
+        "输入 WARNING quality outcome"
+      ],
+      "assertions": [
+        "WARNING 不自动等于 INVALID",
+        "遵守质量门合同"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-07",
+      "module": "RES",
+      "title": "Result 原图完整且方向正确",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "IMG-02",
+        "IMG-07"
+      ],
+      "steps": [
+        "以含明确 EXIF 方向的照片进入 Result"
+      ],
+      "assertions": [
+        "无拉伸或错误旋转，鱼体安全区域不被裁切"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-08",
+      "module": "RES",
+      "title": "Result 首入 CTA 不 Loading",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-HIGH"
+      ],
+      "steps": [
+        "进入 High Result",
+        "观察",
+        "点击保存 CTA"
+      ],
+      "assertions": [
+        "初始不 Loading",
+        "只有点击后触发相应 Loading"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-09",
+      "module": "RES",
+      "title": "缺失可选元数据",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-HIGH"
+      ],
+      "steps": [
+        "受控分类响应可选字段为空"
+      ],
+      "assertions": [
+        "可选字段缺失安全降级、不崩溃"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "RES-10",
+      "module": "RES",
+      "title": "重组不重复识别",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "RESP-HIGH"
+      ],
+      "steps": [
+        "在 Result 触发 Compose 重组/恢复"
+      ],
+      "assertions": [
+        "不重复发识别请求、不重复导航或保存"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "NAV-01",
+      "module": "NAV",
+      "title": "Camera 返回空首页",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "Camera Ready 后点击返回"
+      ],
+      "assertions": [
+        "释放 CameraX",
+        "回 Empty Home",
+        "无 FishRecord"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "NAV-02",
+      "module": "NAV",
+      "title": "Guide 退出状态保持",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [],
+      "steps": [
+        "未完成 Guide 按 Back",
+        "再进入"
+      ],
+      "assertions": [
+        "退出不写 completed",
+        "后续触发再次显示"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "NAV-03",
+      "module": "NAV",
+      "title": "Processing 中断/返回策略",
+      "priority": "P1",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "处理中点击返回并等待迟到回调"
+      ],
+      "assertions": [
+        "无旧结果异步跳转",
+        "返回目标待产品决定"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ],
+      "review_reason": "Processing 中 Back 的取消策略及返回落点待确认。"
+    },
+    {
+      "case_id": "NAV-04",
+      "module": "NAV",
+      "title": "Result 顶部返回目的地",
+      "priority": "P0",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "RESP-HIGH"
+      ],
+      "steps": [
+        "从 Empty Home 识别进入 Result",
+        "顶部返回"
+      ],
+      "assertions": [
+        "无鱼获时仍 0 条",
+        "返回目的地待冻结"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ],
+      "review_reason": "Result 顶部返回目标与已冻结导航合同的关系待确认。"
+    },
+    {
+      "case_id": "NAV-05",
+      "module": "NAV",
+      "title": "Result 系统 Back 处理",
+      "priority": "P1",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "RESP-HIGH"
+      ],
+      "steps": [
+        "Result 按系统 Back"
+      ],
+      "assertions": [
+        "没有错误页面堆栈",
+        "返回目的地待冻结"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ],
+      "review_reason": "Result System Back 的具体返回目标待确认。"
+    },
+    {
+      "case_id": "NAV-06",
+      "module": "NAV",
+      "title": "返回后第二次识别",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "识别一次返回后再点拍照"
+      ],
+      "assertions": [
+        "Camera/Processing 状态正确重建",
+        "无旧请求"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "NAV-07",
+      "module": "NAV",
+      "title": "Activity 重建/后台恢复",
+      "priority": "P1",
+      "design_status": "REVIEW",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "CAMERA_LIVE"
+      ],
+      "steps": [
+        "Processing 中切后台或旋转再恢复"
+      ],
+      "assertions": [
+        "无重复保存或旧回调",
+        "恢复/重拍策略待决定"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ],
+      "review_reason": "处理中 Activity 重建应恢复还是重拍仍需明确。"
+    },
+    {
+      "case_id": "SYS-01",
+      "module": "SYS",
+      "title": "基准 API28 主链路",
+      "priority": "P0",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_API28"
+      ],
+      "steps": [
+        "API28 1080×1920 480dpi 跑主流程"
+      ],
+      "assertions": [
+        "截图与轨迹绑定当前 HEAD、APK SHA"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "SYS-02",
+      "module": "SYS",
+      "title": "长屏边界",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_LONG"
+      ],
+      "steps": [
+        "1080×2340 运行 Camera/Processing/Result"
+      ],
+      "assertions": [
+        "底部 CTA、Insets、Hero 不越界"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "SYS-03",
+      "module": "SYS",
+      "title": "短屏边界",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_SHORT"
+      ],
+      "steps": [
+        "短屏运行 Camera/Guide/Result"
+      ],
+      "assertions": [
+        "关键操作仍可触达，无关键内容裁切"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "SYS-04",
+      "module": "SYS",
+      "title": "字体缩放",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "FONT_SCALE"
+      ],
+      "steps": [
+        "fontScale 1.0、1.3、2.0 进入 Guide/Result"
+      ],
+      "assertions": [
+        "CTA 和关键文案可见可操作"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "SYS-05",
+      "module": "SYS",
+      "title": "旋转与 Insets",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_ROTATE"
+      ],
+      "steps": [
+        "在 Guide/Camera 旋转或更改 Insets"
+      ],
+      "assertions": [
+        "状态不丢",
+        "不误标 Guide 完成或重复拍照"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "SYS-06",
+      "module": "SYS",
+      "title": "TalkBack 语义",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "GUIDE_PENDING",
+      "test_layer": "L2",
+      "execution_mode": "CONTROLLED_UI",
+      "input_ids": [
+        "ACCESSIBILITY"
+      ],
+      "steps": [
+        "遍历 Guide、Camera、Result 可访问控件"
+      ],
+      "assertions": [
+        "名称、角色、焦点、当前页和触控尺寸符合合同"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "instrumentation_assertions",
+        "semantics_or_state_log"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    },
+    {
+      "case_id": "SYS-07",
+      "module": "SYS",
+      "title": "视觉与 Motion 合同",
+      "priority": "P1",
+      "design_status": "DRAFT",
+      "execution_status": "NOT_RUN",
+      "test_user_id": "QA_RECOGNITION_001",
+      "initial_state": "RETURNING",
+      "test_layer": "L3",
+      "execution_mode": "NATIVE_DEVICE",
+      "input_ids": [
+        "DEVICE_API28"
+      ],
+      "steps": [
+        "采集设备截图与帧序列并对照 Frozen"
+      ],
+      "assertions": [
+        "锚点/时序/均匀映射达标",
+        "不能更改 Frozen 或伪造 diff"
+      ],
+      "evidence_required": [
+        "source_sha",
+        "apk_sha256",
+        "device_profile",
+        "native_runtime_trace",
+        "observed_assertions"
+      ],
+      "authority_refs": [
+        "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json",
+        "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json"
+      ]
+    }
+  ]
+}
