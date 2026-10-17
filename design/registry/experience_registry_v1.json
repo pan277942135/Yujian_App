@@ -729,7 +729,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 P01/P02/P03 原始 PNG 已按批准 SHA/尺寸/字节数原字节导入；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。 Design Manager 00 overview and 08 boundary gate expose the real 2026-10-16 authority inventory; missing binaries remain BLOCKED_INTEGRITY/MISSING, and Runtime remains independently NOT_RUN.",
+      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 V1.2 仅包含 P01/P02；P01 为竖屏手机+横向鱼体，P02 为横屏手机+横向鱼体。旧竖拍鱼类示意已归档；P02 使用原 P03 PNG 字节原样晋升；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。 Design Manager 00 overview and 08 boundary gate expose the real 2026-10-16 authority inventory; missing binaries remain BLOCKED_INTEGRITY/MISSING, and Runtime remains independently NOT_RUN.",
       "display_name": "识别过程",
       "design_versions": [
         {
@@ -810,11 +810,6 @@
             {
               "label": "03 · 首次拍照教学 · P02",
               "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02",
-              "note": "历史竖拍鱼类示意已归档，不属于当前两页教学序列。"
-            },
-            {
-              "label": "03 · 首次拍照教学 · P03",
-              "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03",
               "note": "FROZEN · 横屏拍摄示意"
             },
             {
@@ -3101,7 +3096,7 @@
             "P01 → 下一张；P02 → 开始拍摄",
             "跳过/开始拍摄均不自动触发快门"
           ],
-          "freeze_date": "2026-10-16",
+          "freeze_date": "2026-10-17",
           "children": [
             {
               "id": "p01",
@@ -3240,7 +3235,8 @@
               "height": 1672
             }
           ],
-          "page_count": 2
+          "page_count": 2,
+          "design_version": "First_Use_Camera_Guide_Spec_V1_2"
         },
         {
           "id": "boundary_state_release_gate",
@@ -3440,7 +3436,7 @@
               "visual_authority_sha256": "8cc7c04a4e15bf35ca0f307d0b95940d05901ead0cf6c66742a9f25d4d2e33e5",
               "authority": "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_Manifest_V1.json",
               "review_caption": "Recognition_New_States_HiFi_V1.png · 2800 × 1600 · combined review source, not a Frozen single-page PNG.",
-              "summary": "当前合成图一部分为已被三页教学冻结包替换的旧 Guide Overlay；另一部分是 Dirty Draft Discard Confirmation 的 Review 视觉。",
+              "summary": "当前合成图一部分为已被两页教学 V1.2 authority 替换的旧 Guide Overlay；另一部分是 Dirty Draft Discard Confirmation 的 Review 视觉。",
               "runtime_status": "NOT_RUN",
               "review_states": [
                 {
