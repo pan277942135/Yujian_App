@@ -68,3 +68,7 @@ The normative delivery contract is now:
 The runtime manifest defines 12 required slots: one correct Hero and three error examples for each of P01/P02/P03. Its initial status is `BLOCKED_ASSET_SOURCE`; all 12 slots are currently `MISSING`, with no approved source path, source hash, Android resource binding, or semantic review. This is an honest inventory state, not a claim that assets have been delivered.
 
 The source audit remains unchanged: existing photo candidates have unresolved provenance/authorization and cannot be promoted merely because they are in the repository. Asset completeness must be decided per slot and then by the fail-closed G03 sub-gates.
+
+### Existing repository validators and Runtime evidence boundary
+
+On the current main snapshot, `scripts/verify_first_use_camera_guide_assets.py` verifies only the three Frozen full-page PNG files and their provenance/import report. It is not a validator for independent Runtime Hero/error photos. The current Android component evidence test explicitly writes `status=ASSET_SOURCE_BLOCKED`, `runtime_evidence_status=COMPONENT_INSTRUMENTATION_ONLY`, and `runtime_route_evidence=NOT_RUN`. A passing test job therefore does not close the independent-photo source blocker or prove a CameraX route visual pass.
