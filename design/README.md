@@ -68,3 +68,19 @@ The five state-level Frozen references remain under `design/pages/recognition/de
 The system-level `recognition_result_v1.png` defines shared Result visual language, while the five state references define state-specific composition.
 
 Design closure and Android Runtime alignment are tracked separately.
+
+## Recognition Capture · 首次拍照教学 V1
+
+`design/pages/recognition/first_use_camera_guide` 是 Recognition Capture 的首次进入教学 Overlay，已于 2026-10-16 冻结。
+
+Design Manager 二级菜单：
+`识别过程 → 07 · 首次拍照教学`
+
+子菜单：
+- P01 · 竖屏拍摄示意 — FROZEN
+- P02 · 竖拍鱼类拍摄示意 — FROZEN
+- P03 · 横屏拍摄示意 — FROZEN
+
+顶部 Hero 为唯一正确示范；下方固定 3 个错误示范：鱼头不在画面 / 鱼体过小 / 遮挡过多。P02 的错误示例全部使用竖直鱼体，P03 的错误示例全部使用横向鱼体。P01/P02 使用「下一张」，P03 使用「开始拍摄」；最后的「开始拍摄」仅关闭教学并回到 Capture Ready，不自动触发快门。
+
+视觉权威、源文件 SHA 与冻结规则见 `design/pages/recognition/first_use_camera_guide/manifest.json` 与 `First_Use_Camera_Guide_Spec_V1.md`。

@@ -43,6 +43,25 @@ data class RecognitionImageTransform(
     val offsetX: Float get() = translationX
     val offsetY: Float get() = translationY
 
+    /** Visible photo rectangle in viewport pixels; FIT letterboxes are excluded. */
+    val photoContentRect: DisplayRect
+        get() = DisplayRect(
+            left = max(0f, translationX),
+            top = max(0f, translationY),
+            right = min(viewportWidthPx, translationX + drawnWidth),
+            bottom = min(viewportHeightPx, translationY + drawnHeight),
+        )
+
+    /**
+     * Map a point expressed in the visible photo's normalized space.
+     * Deliberately leaves values outside [0, 1] untouched so authored optical
+     * path control points can overshoot the photo edge without being clamped.
+     */
+    fun mapPhotoContentNormalized(x: Float, y: Float): DisplayPoint = DisplayPoint(
+        photoContentRect.left + x * photoContentRect.width,
+        photoContentRect.top + y * photoContentRect.height,
+    )
+
     fun mapNormalized(x: Float, y: Float): DisplayPoint = DisplayPoint(
         translationX + x.coerceIn(0f, 1f) * drawnWidth,
         translationY + y.coerceIn(0f, 1f) * drawnHeight,

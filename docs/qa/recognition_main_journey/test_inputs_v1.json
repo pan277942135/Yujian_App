@@ -1,0 +1,215 @@
+{
+  "schema_version": "1.0",
+  "registry_id": "YU_JIAN_RECOGNITION_TEST_INPUTS",
+  "registry_version": "1.0.0",
+  "status": "REVIEW",
+  "policy": "Photo candidates not source-approved, host setups only descriptive, no fabricated runtime images or live credential data.",
+  "inputs": [
+    {
+      "input_id": "IMG-01",
+      "label": "清晰横向鱼体",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "CANDIDATE_REVIEW",
+      "repository_candidate": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-02",
+      "label": "纵向鱼体",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "MISSING",
+      "repository_candidate": null,
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-03",
+      "label": "鱼体部分出框",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "MISSING",
+      "repository_candidate": null,
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-04",
+      "label": "低光夜拍",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "CANDIDATE_REVIEW",
+      "repository_candidate": "app/src/androidTest/assets/detector_case_b_night_flash.jpg",
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-05",
+      "label": "真实无鱼照片",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "MISSING",
+      "repository_candidate": null,
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-06",
+      "label": "严重模糊图片",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "MISSING",
+      "repository_candidate": null,
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-07",
+      "label": "包含 EXIF 旋转的图片",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "MISSING",
+      "repository_candidate": null,
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "IMG-08",
+      "label": "损坏或不可解码文件",
+      "kind": "PHOTO_OR_MEDIA",
+      "status": "SPEC_ONLY",
+      "repository_candidate": null,
+      "source_sha256": null,
+      "rights_evidence": null,
+      "stable_model_outcome": null
+    },
+    {
+      "input_id": "RESP-HIGH",
+      "kind": "CONTROLLED_OUTCOME",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "RESP-MEDIUM",
+      "kind": "CONTROLLED_OUTCOME",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "RESP-LOW",
+      "kind": "CONTROLLED_OUTCOME",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "RESP-NO_FISH",
+      "kind": "CONTROLLED_OUTCOME",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "RESP-WARNING",
+      "kind": "CONTROLLED_OUTCOME",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "RESP-INVALID",
+      "kind": "CONTROLLED_OUTCOME",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "DEVICE_FRESH",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "CAMERA_LIVE",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "SYSTEM_PERMISSION",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "PROVIDER_FAILURE",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "DEVICE_RESET",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "CAPTURE_FAILURE",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "PHOTO_PICKER",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "PIPELINE_EVENTS",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "PIPELINE_FAILURE",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "DEVICE_API28",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "DEVICE_LONG",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "DEVICE_SHORT",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "FONT_SCALE",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "DEVICE_ROTATE",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    },
+    {
+      "input_id": "ACCESSIBILITY",
+      "kind": "HOST_SETUP_OR_CONTROLLED_INJECTION",
+      "status": "SPEC_ONLY",
+      "real_model_inference": false
+    }
+  ]
+}

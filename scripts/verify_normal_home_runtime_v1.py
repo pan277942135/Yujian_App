@@ -17,8 +17,20 @@ BACKGROUND_SOURCE = ROOT / "design/system/backgrounds/morning_lake_v1/assets/Mor
 EMPTY_SCENE = ROOT / "app/src/main/assets/empty_home_runtime_v2/static/scene_base.webp"
 DEFAULT_AVATAR = ROOT / "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png"
 DEFAULT_AVATAR_MANIFEST = ROOT / "design/pages/home/normal_home/assets/normal_home_default_avatar_v2_manifest.json"
+NH07_AVATAR_EXPORT = ROOT / "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png"
+NH07_AVATAR_ANDROID = ROOT / "app/src/main/res/drawable-nodpi/nh07_default_avatar_3x_192.png"
+NH07_AVATAR_MANIFEST = ROOT / "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"
 BACKGROUND_SHA256 = "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7"
 DEFAULT_AVATAR_SHA256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528"
+NH07_AVATAR_SHA256 = "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2"
+BRAND_TITLE_ASSET = ROOT / "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png"
+BRAND_TITLE_RUNTIME = ROOT / "app/src/main/res/drawable-nodpi/brand_title_primary.png"
+BRAND_TITLE_MANIFEST = ROOT / "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json"
+BRAND_TITLE_REGISTRY = ROOT / "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json"
+BRAND_TITLE_BINDING = ROOT / "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json"
+BRAND_TITLE_SHA256 = "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc"
+BRAND_TITLE_SOURCE_SHA256 = "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
+BRAND_TITLE_SOURCE = ROOT / "design/system/core_visual_v1/reference/normal_home_v1.png"
 
 EXPECTED = {
     "static/scene_base.png": "188593ed13b0fd6b9164aaba8632e783b8534d68",
@@ -79,6 +91,63 @@ def kotlin_block(source: str, opening_brace: int) -> tuple[str, int] | None:
 
 def main() -> int:
     failures: list[str] = []
+    try:
+        if not BRAND_TITLE_ASSET.is_file() or not BRAND_TITLE_RUNTIME.is_file():
+            failures.append("Brand Title master/runtime resource is missing")
+        else:
+            master_sha = sha256(BRAND_TITLE_ASSET)
+            runtime_sha = sha256(BRAND_TITLE_RUNTIME)
+            if master_sha != BRAND_TITLE_SHA256 or runtime_sha != BRAND_TITLE_SHA256:
+                failures.append(f"Brand Title SHA mismatch: master={master_sha} runtime={runtime_sha}")
+            with Image.open(BRAND_TITLE_ASSET) as image:
+                if image.format != "PNG" or image.mode != "RGBA" or image.size != (155, 80):
+                    failures.append(f"Brand Title raster format/mode/dimensions mismatch: {image.format}/{image.mode}/{image.size}")
+            source_sha = sha256(BRAND_TITLE_SOURCE)
+            if source_sha != BRAND_TITLE_SOURCE_SHA256:
+                failures.append(f"Frozen Normal Home source SHA mismatch: {source_sha}")
+        registry = json.loads(BRAND_TITLE_REGISTRY.read_text(encoding="utf-8"))
+        record = next(item for item in registry.get("entries", []) if item.get("asset_id") == "brand_title_primary")
+        if record.get("status") != "FROZEN" or record.get("sha256") != BRAND_TITLE_SHA256:
+            failures.append("Brand Title Asset Registry identity/status mismatch")
+        if record.get("path") != BRAND_TITLE_ASSET.relative_to(ROOT).as_posix():
+            failures.append("Brand Title Asset Registry path mismatch")
+        manifest = json.loads(BRAND_TITLE_MANIFEST.read_text(encoding="utf-8"))
+        if manifest.get("asset_id") != "brand_title_primary" or manifest.get("sha256") != BRAND_TITLE_SHA256:
+            failures.append("Brand Title extraction manifest identity mismatch")
+        if manifest.get("source_sha256") != BRAND_TITLE_SOURCE_SHA256:
+            failures.append("Brand Title extraction manifest source provenance mismatch")
+        binding = json.loads(BRAND_TITLE_BINDING.read_text(encoding="utf-8"))
+        title_binding = binding.get("brand_title_binding", {})
+        if title_binding.get("asset_id") != "brand_title_primary" or title_binding.get("sha256") != BRAND_TITLE_SHA256:
+            failures.append("Normal Home brand title resource binding identity mismatch")
+        if title_binding.get("status") != "FROZEN" or title_binding.get("render") != "image_asset":
+            failures.append("Normal Home brand title binding is not frozen image artwork")
+    except Exception as exc:
+        failures.append(f"Brand Title registry/binding validation failed: {exc}")
+    try:
+        camera_id = "normal_home_camera_primary_v1"
+        camera_sha = "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2"
+        camera_master = ROOT / "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png"
+        camera_runtime = ROOT / "app/src/main/res/drawable-nodpi/normal_home_camera_primary_v1.png"
+        camera_row = next(item for item in registry["entries"] if item.get("asset_id") == camera_id)
+        camera_binding = binding.get("camera_primary_binding", {})
+        if camera_row.get("status") != "FROZEN" or camera_row.get("sha256") != camera_sha:
+            failures.append("Normal Home Camera registry identity/status mismatch")
+        if camera_binding.get("asset_id") != camera_id or camera_binding.get("sha256") != camera_sha:
+            failures.append("Normal Home Camera binding identity mismatch")
+        if camera_binding.get("android_resource_path") != camera_runtime.relative_to(ROOT).as_posix():
+            failures.append("Normal Home Camera drawable binding path mismatch")
+        for camera_path in (camera_master, camera_runtime):
+            if sha256(camera_path) != camera_sha:
+                failures.append(f"Normal Home Camera SHA mismatch: {camera_path}")
+            with Image.open(camera_path) as image:
+                if image.mode != "RGBA" or image.size != (208, 208):
+                    failures.append(f"Normal Home Camera format/dimensions mismatch: {camera_path}")
+        loader = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeRuntimeAssets.kt").read_text()
+        if "R.drawable.normal_home_camera_primary_v1" not in loader or "cameraBase = decodeNormalHomeCamera(context)" not in loader:
+            failures.append("Normal Home is not bound to the registered Camera drawable")
+    except Exception as exc:
+        failures.append(f"Normal Home Camera registry/binding validation failed: {exc}")
     try:
         data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -146,8 +215,8 @@ def main() -> int:
     except Exception as exc:
         failures.append(f"Design Package asset manifest is invalid: {exc}")
 
-    # Keep the old runtime asset registered and byte-verified as historical
-    # provenance, while validating the V2 drawable used by the current UI.
+    # Keep V2 registered and byte-verified as historical provenance. The
+    # current signed-in fallback is the separately registered NH07 export.
     if "avatar/guest_avatar.png" not in data.get("avatar", []):
         failures.append("historical guest avatar provenance is missing from runtime manifest")
     if not DEFAULT_AVATAR.is_file():
@@ -168,6 +237,31 @@ def main() -> int:
                     failures.append(f"normal_home_default_avatar_v2 dimensions mismatch: {avatar_image.size}")
         except Exception as exc:
             failures.append(f"normal_home_default_avatar_v2 PNG is invalid: {exc}")
+
+    for label, path in (("NH07 design export", NH07_AVATAR_EXPORT), ("NH07 Android resource", NH07_AVATAR_ANDROID)):
+        if not path.is_file():
+            failures.append(f"MISSING {label}: {path.relative_to(ROOT)}")
+            continue
+        actual_sha = sha256(path)
+        if actual_sha != NH07_AVATAR_SHA256:
+            failures.append(f"{label} SHA-256 mismatch: {actual_sha}")
+        try:
+            with Image.open(path) as avatar_image:
+                avatar_image.verify()
+            with Image.open(path) as avatar_image:
+                if avatar_image.format != "PNG" or avatar_image.size != (192, 192):
+                    failures.append(f"{label} format/dimensions mismatch: {avatar_image.format}/{avatar_image.size}")
+        except Exception as exc:
+            failures.append(f"{label} PNG is invalid: {exc}")
+    try:
+        nh07_manifest = json.loads(NH07_AVATAR_MANIFEST.read_text(encoding="utf-8"))
+        export = next(item for item in nh07_manifest.get("exports", []) if item.get("scale") == "3x")
+        if export.get("path") != "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png":
+            failures.append("NH07 3x export path mismatch")
+        if export.get("sha256") != NH07_AVATAR_SHA256 or [export.get("width"), export.get("height")] != [192, 192]:
+            failures.append("NH07 3x export identity mismatch")
+    except Exception as exc:
+        failures.append(f"NH07 avatar manifest is invalid: {exc}")
     try:
         avatar_manifest = json.loads(DEFAULT_AVATAR_MANIFEST.read_text(encoding="utf-8"))
         avatar_source = avatar_manifest.get("source", {})
@@ -233,6 +327,10 @@ def main() -> int:
     if header_body is None or default_avatar_body is None:
         failures.append("Normal Home avatar composable bodies could not be verified")
     else:
+        if 'text = "渔见"' in header_body or 'Text("渔见")' in header_body:
+            failures.append("Normal Home brand title must not be rendered as dynamic Text")
+        if "R.drawable.brand_title_primary" not in header_body or "Image(" not in header_body or 'contentDescription = "渔见"' not in header_body:
+            failures.append("Normal Home brand title is not bound to the registered accessible artwork resource")
         login_branch_start = header_body.find("if (isLoggedIn)")
         login_branch_open = header_body.find("{", login_branch_start)
         login_branch = kotlin_block(header_body, login_branch_open)
@@ -253,16 +351,16 @@ def main() -> int:
             logged_in_body = login_branch[0]
             guest_body = guest_branch[0]
         if "NormalHomeDefaultAvatar(Modifier.fillMaxSize())" not in logged_in_body:
-            failures.append("logged-in avatar does not keep the V2 default drawable underneath remote loading")
+            failures.append("logged-in avatar does not keep the NH07 default drawable underneath remote loading")
         if "Image(" not in guest_body or "guestAvatar.asImageBitmap()" not in guest_body or "ContentScale.Fit" not in guest_body:
             failures.append("guest branch does not render the registered guest bitmap with Fit")
-        if "R.drawable.normal_home_default_avatar_v2" not in default_avatar_body or "ContentScale.Fit" not in default_avatar_body:
-            failures.append("logged-in default/failure avatar does not use the V2 drawable with Fit")
+        if "R.drawable.nh07_default_avatar_3x_192" not in default_avatar_body or "ContentScale.Fit" not in default_avatar_body:
+            failures.append("logged-in default/failure avatar does not use the registered NH07 drawable with Fit")
         remote_guard = logged_in_body.find("if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||")
         remote_image = logged_in_body.find("RemoteImage(")
         fallback = logged_in_body.find("NormalHomeDefaultAvatar(Modifier.fillMaxSize())")
         if fallback < 0 or remote_guard < fallback or remote_image < remote_guard:
-            failures.append("remote avatar is not layered over the default V2 fallback behind the load-state guard")
+            failures.append("remote avatar is not layered over the NH07 fallback behind the load-state guard")
 
     expected_state_routes = (
         "if (!isLoggedIn) return NormalHomeAvatarState.GUEST_DEFAULT",
@@ -286,6 +384,7 @@ def main() -> int:
         print(f"FAIL: {len(failures)} Normal Home runtime closure issue(s)", file=sys.stderr)
         return 1
     print("PASS: Normal Home runtime assets are independent and source wiring is closed")
+    print("BRAND_TITLE_ASSET_CHECK = PASS")
     return 0
 
 if __name__ == "__main__":

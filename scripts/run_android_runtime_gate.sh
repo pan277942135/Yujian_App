@@ -164,6 +164,22 @@ fi
 android_runtime_run_instrumentation "$test_classes"
 instrumentation_rc=$?
 
+# Some gates have one expensive, real-time evidence class. Run it as a second
+# instrumentation invocation so the required product suite and the measured
+# capture each receive their own bounded timeout. The same installed APK pair,
+# API-level device, gate classification, and final evidence collection apply.
+if (( instrumentation_rc == EXIT_PASS )) && declare -F gate_additional_test_classes >/dev/null 2>&1; then
+  additional_test_classes="$(gate_additional_test_classes)"
+  if [[ -n "$additional_test_classes" ]]; then
+    additional_timeout=""
+    if declare -F gate_additional_test_timeout_seconds >/dev/null 2>&1; then
+      additional_timeout="$(gate_additional_test_timeout_seconds)"
+    fi
+    android_runtime_run_instrumentation "$additional_test_classes" "1" "$additional_timeout"
+    instrumentation_rc=$?
+  fi
+fi
+
 if declare -F gate_after_instrumentation >/dev/null 2>&1; then
   gate_after_instrumentation || true
 fi

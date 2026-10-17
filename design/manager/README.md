@@ -167,6 +167,28 @@ V1 仍然只管理设计：
 Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 
 
+## Recognition Capture · 首次拍照教学
+
+新增 Recognition Capture 的三页首次进入教学子菜单：
+
+```text
+识别过程
+└── 07 · 首次拍照教学
+    ├── P01 · 竖屏拍摄示意
+    ├── P02 · 竖拍鱼类拍摄示意
+    └── P03 · 横屏拍摄示意
+```
+
+注册源：`design/registry/experience_registry_v1.json` → `recognition_flow_v1_2.hifi_views.capture_first_use_guide`。
+
+- Parent：`FROZEN` + `authority_gallery`，展示三张 Frozen Visual Authority。
+- Children：`FROZEN` + `repo_image`，点击后直接预览对应 PNG，不生成模拟 UI。
+- P01/P02 →「下一张」；P03 →「开始拍摄」。
+- Hero 为唯一正确示范；下方三个均为错误示范。
+- P02 的三个错误示例保持竖直鱼体；P03 的三个错误示例保持横向鱼体。
+- `跳过/开始拍摄` 均不自动触发快门。
+- P01/P02/P03 PNG 按原字节导入；Design Manager 导航、Manifest 与 SHA 校验分别验收。
+
 ## Normal Home · NH07 头像状态
 
 新增 `#page/home_normal_v1/hifi/NH07` 二级菜单，由 `design/registry/experience_registry_v1.json` 的 `home_normal_v1.hifi_views` 注册。五态独立预览：真实头像、默认头像、加载、失败、游客。读取 `07_avatar_states/README.md` 与 PNG SHA Manifest；Guest 资源和登录 fallback 分离。本工作区属于设计稿与规范展示，不包含 Android 代码改动。NH01 Frozen PNG 不重写。新菜单进入部署后才会出现在公开的 GitHub Pages 网站。

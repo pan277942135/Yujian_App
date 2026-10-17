@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.RecognitionCameraRuntimeTest'
+  printf '%s\n' 'com.yujian.ai.RecognitionCameraRuntimeTest,com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest'
 }
 
 gate_before_instrumentation() {
@@ -38,7 +38,9 @@ camera_runtime_pull_file() {
 
 gate_after_instrumentation() {
   local output="$YUJIAN_EVIDENCE_DIR/camera_runtime_v1"
+  local component_output="$output/component"
   mkdir -p "$output"
+  mkdir -p "$component_output"
   local name
   for name in \
     01_camera_open.png \
@@ -47,6 +49,10 @@ gate_after_instrumentation() {
     04_capture_pressed.png \
     05_post_capture.png \
     06_recognition_handoff.png \
+    P01_runtime.png \
+    P02_runtime.png \
+    P03_runtime.png \
+    first_use_camera_guide_runtime_report.json \
     camera_preflight.txt \
     camera_runtime_log.txt \
     camera_capture_trace.txt \
@@ -58,6 +64,27 @@ gate_after_instrumentation() {
   do
     camera_runtime_pull_file "cache/camera-runtime-v1/$name" "$output/$name"
   done
+  for name in \
+    P01_compose_component.png \
+    P02_compose_component.png \
+    P03_compose_component.png \
+    first_use_camera_guide_runtime_report.json
+  do
+    camera_runtime_pull_file "cache/recognition-first-use-camera-guide/$name" "$component_output/$name"
+  done
+
+  # This hook runs before the orchestration classifies an instrumentation
+  # failure. Keep that primary failure intact; partial or malformed visual
+  # artifacts must not turn a test assertion into an evidence failure.
+  if [[ "${YUJIAN_FAILURE_PHASE:-}" != "INSTRUMENTATION" && \
+        -s "$output/first_use_camera_guide_runtime_report.json" && \
+        -s "$output/P01_runtime.png" && -s "$output/P02_runtime.png" && -s "$output/P03_runtime.png" ]]; then
+    python3 scripts/create_first_use_camera_guide_visual_evidence.py \
+      --runtime-dir "$output" \
+      --output-dir "$output/first_use_camera_guide" \
+      --build-sha "$BUILD_SHA" \
+      --apk "$YUJIAN_APP_APK" || runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_VISUAL_EVIDENCE_INVALID"
+  fi
 
   local instrumentation_log="$YUJIAN_EVIDENCE_DIR/instrumentation.log"
   if [[ -s "$instrumentation_log" ]]; then
@@ -118,6 +145,10 @@ gate_collect_evidence() {
     04_capture_pressed.png \
     05_post_capture.png \
     06_recognition_handoff.png \
+    P01_runtime.png \
+    P02_runtime.png \
+    P03_runtime.png \
+    first_use_camera_guide_runtime_report.json \
     camera_capture_trace.txt \
     camera_runtime_log.txt \
     instrumentation_result.txt
@@ -128,5 +159,54 @@ gate_collect_evidence() {
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
+  for name in P01_overlay.png P02_overlay.png P03_overlay.png P01_diff.png P02_diff.png P03_diff.png first_use_camera_guide_runtime_report.json; do
+    if [[ ! -s "$output/first_use_camera_guide/$name" ]]; then
+      printf 'MISSING_FIRST_USE_GUIDE_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPARISON_INCOMPLETE"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+    if [[ ! -s "$output/component/$name" ]]; then
+      printf 'MISSING_FIRST_USE_GUIDE_COMPONENT_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPONENT_EVIDENCE_INCOMPLETE"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+
+  local visual_report="$output/first_use_camera_guide/first_use_camera_guide_runtime_report.json"
+  local visual_parity visual_pass
+  if ! visual_parity="$(python3 - "$visual_report" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    print(json.load(stream).get("visual_parity", ""))
+PY
+)"; then
+    runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_VISUAL_REPORT_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  case "$visual_parity" in
+    BLOCKED_ASSET_SOURCE)
+      runtime_set_failure "ASSET_SOURCE" "ASSET_SOURCE_BLOCKED"
+      return "$EXIT_BLOCKED_ASSET_SOURCE"
+      ;;
+    PASS)
+      if ! visual_pass="$(python3 - "$visual_report" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    print(str(json.load(stream).get("pass", False)).lower())
+PY
+)" || [[ "$visual_pass" != "true" ]]; then
+        runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_VISUAL_PARITY_NOT_CONFIRMED"
+        return "$EXIT_FAIL_EVIDENCE"
+      fi
+      ;;
+    *)
+      runtime_set_failure "DESIGN_PARITY" "FIRST_USE_CAMERA_GUIDE_VISUAL_PARITY_FAILED"
+      return "$EXIT_FAIL_EVIDENCE"
+      ;;
+  esac
   return "$EXIT_PASS"
 }

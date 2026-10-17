@@ -1,9 +1,11 @@
 package com.yujian.ai.ui.recognition
 
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -11,7 +13,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
@@ -91,7 +97,44 @@ data class RecognitionContourSegment(
     val startY: Float,
     val endX: Float,
     val endY: Float,
+    val control1X: Float = startX,
+    val control1Y: Float = startY,
+    val control2X: Float = endX,
+    val control2Y: Float = endY,
+    val beginsContour: Boolean = false,
+    val closesContour: Boolean = false,
 )
+
+internal fun buildRecognitionContourPath(
+    transform: RecognitionImageTransform,
+    subjectBox: NormalizedFishBox,
+    contour: List<RecognitionContourSegment>,
+): Path {
+    val crop = subjectBox.normalized()
+    return Path().apply {
+        contour.forEach { segment ->
+            val start = transform.mapNormalized(
+                crop.x1 + segment.startX * crop.width,
+                crop.y1 + segment.startY * crop.height,
+            )
+            val end = transform.mapNormalized(
+                crop.x1 + segment.endX * crop.width,
+                crop.y1 + segment.endY * crop.height,
+            )
+            if (segment.beginsContour) moveTo(start.x, start.y) else lineTo(start.x, start.y)
+            val control1 = transform.mapNormalized(
+                crop.x1 + segment.control1X * crop.width,
+                crop.y1 + segment.control1Y * crop.height,
+            )
+            val control2 = transform.mapNormalized(
+                crop.x1 + segment.control2X * crop.width,
+                crop.y1 + segment.control2Y * crop.height,
+            )
+            cubicTo(control1.x, control1.y, control2.x, control2.y, end.x, end.y)
+            if (segment.closesContour) close()
+        }
+    }
+}
 
 internal data class RecognitionFishFocusRadii(
     val radiusX: Float,
@@ -132,7 +175,6 @@ fun RecognitionFishFocus(
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
     phaseElapsedMs: Long = Long.MAX_VALUE,
-    resolveProgress: Float = 0f,
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
     focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
@@ -162,6 +204,15 @@ fun RecognitionFishFocus(
         "recognition-fish-focus-level-${effectiveLevel.name.lowercase()}" +
             if (lowPerformance) "-low-performance" else ""
 
+    val cachedContourPath = remember(transform, subjectBox, contour) {
+        if (subjectBox != null && contour.isNotEmpty()) {
+            buildRecognitionContourPath(transform, subjectBox, contour)
+        } else {
+            null
+        }
+    }
+    val contourBlurPaints = remember { RecognitionBlurPaintCache() }
+
     Canvas(
         modifier
             .fillMaxSize()
@@ -181,10 +232,6 @@ fun RecognitionFishFocus(
         val visualRadiusX = radii.radiusX
         val visualRadiusY = radii.radiusY
 
-        val remaining =
-            1f - resolveProgress.coerceIn(0f, 1f)
-        val resolveStrength = remaining * remaining
-
         val revealDuration =
             if (reduceMotion) 180f else 380f
         val revealRaw =
@@ -199,11 +246,10 @@ fun RecognitionFishFocus(
         val wave =
             if (
                 phase == RecognitionPhase.CLASSIFYING &&
-                !reduceMotion &&
-                resolveProgress <= 0f
+                !reduceMotion
             ) {
                 val t =
-                    ((visualClockMs ?: System.currentTimeMillis()) % 1_900L) /
+                    ((visualClockMs ?: SystemClock.uptimeMillis()) % 1_900L) /
                         1_900f
                 (
                     (sin(t * 2f * PI - PI / 2f) + 1f) /
@@ -242,7 +288,7 @@ fun RecognitionFishFocus(
         } else {
             reveal
         }
-        val haloAlpha = haloTarget * haloReveal * resolveStrength
+        val haloAlpha = haloTarget * haloReveal
 
         val radiusScale =
             if (effectiveLevel == RecognitionFishFocusLevel.C) .88f else 1f
@@ -280,7 +326,7 @@ fun RecognitionFishFocus(
                         } else {
                             .30f + .12f * wave
                         }
-                    ) * haloReveal * resolveStrength,
+                    ) * haloReveal,
                 ),
                 topLeft = Offset(
                     center.x - baseRadiusX,
@@ -300,55 +346,50 @@ fun RecognitionFishFocus(
             effectiveLevel == RecognitionFishFocusLevel.A &&
             levelAAvailable
         ) {
-            val crop = requireNotNull(subjectBox).normalized()
-            val realContour = Path()
+            val realContour = requireNotNull(cachedContourPath)
 
-            contour.forEach { segment ->
-                val start = transform.mapNormalized(
-                    crop.x1 + segment.startX * crop.width,
-                    crop.y1 + segment.startY * crop.height,
-                )
-                val end = transform.mapNormalized(
-                    crop.x1 + segment.endX * crop.width,
-                    crop.y1 + segment.endY * crop.height,
-                )
-                realContour.moveTo(start.x, start.y)
-                realContour.lineTo(end.x, end.y)
-            }
+            val coreAlpha = contourCoreTarget * reveal
 
-            val coreAlpha =
-                contourCoreTarget * reveal * resolveStrength
-
-            drawPath(
+            drawLocalContourBlur(
                 realContour,
                 Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .30f).coerceAtMost(.12f),
+                    alpha = (coreAlpha * .22f).coerceAtMost(.10f),
                 ),
-                style = Stroke(
-                    width = 11.dp.toPx(),
-                    cap = StrokeCap.Round,
-                ),
+                widthPx = 11.dp.toPx(),
+                blurRadiusPx = 5.dp.toPx(),
+                blurPaints = contourBlurPaints,
             )
-            drawPath(
+            drawLocalContourBlur(
                 realContour,
                 Color(0xFFFFD887).copy(
                     alpha = (coreAlpha * .68f).coerceAtMost(.24f),
                 ),
-                style = Stroke(
-                    width = 4.dp.toPx(),
-                    cap = StrokeCap.Round,
-                ),
+                widthPx = 4.dp.toPx(),
+                blurRadiusPx = 2.dp.toPx(),
+                blurPaints = contourBlurPaints,
             )
             drawPath(
                 realContour,
-                Color(0xFFFFE7AE).copy(
-                    alpha = coreAlpha.coerceAtMost(.42f),
-                ),
+                Color(0xFFFFE7AE).copy(alpha = coreAlpha.coerceAtMost(.42f)),
                 style = Stroke(
                     width = 1.5.dp.toPx(),
                     cap = StrokeCap.Round,
+                    join = androidx.compose.ui.graphics.StrokeJoin.Round,
                 ),
             )
         }
+    }
+}
+
+private fun DrawScope.drawLocalContourBlur(
+    path: Path,
+    color: Color,
+    widthPx: Float,
+    blurRadiusPx: Float,
+    blurPaints: RecognitionBlurPaintCache,
+) {
+    val paint = blurPaints.obtain(color, widthPx, blurRadiusPx) ?: return
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }
 }

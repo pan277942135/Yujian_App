@@ -2,23 +2,29 @@ package com.yujian.ai.ui.home
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
@@ -27,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -71,9 +78,12 @@ private const val NormalHomeCardY = 596f
 private const val NormalHomeCardWidth = 740f
 private const val NormalHomeCardHeight = 880f
 private const val NormalHomeCtaY = 1495f
-private const val NormalHomeCameraY = 1564f
-private const val NormalHomeCameraSize = 200f
-private const val NormalHomeCameraTouchSize = 208f
+private const val NormalHomeCtaGlyphOffsetY = 21f
+// The source raster mask resolves visible ink; these are not historic touch-box coordinates.
+private const val NormalHomeCameraY = 1583f
+private const val NormalHomeCameraCenterOffsetX = 1.5f
+private const val NormalHomeCameraSize = 208f
+private const val NormalHomeCameraTouchSize = 216f
 private const val NormalHomeHeroCornerRadius = 32f
 private const val NormalHomeFooterHorizontalInset = 56f
 private const val NormalHomeFooterVerticalInset = 32f
@@ -117,141 +127,204 @@ internal fun NormalHomeContent(
             normalHomeTypographyContract(maxWidth.value, density.density)
         }
         val spacing = remember(maxWidth.value) { normalHomeSpacingContract(maxWidth.value) }
+        val recentHeaderScale = maxOf(1f, density.fontScale)
+        val recentHeaderHeight = ref(NormalHomeRecentHeaderHeight * recentHeaderScale)
+        val recentHeaderExtra = if (isResolving) 0.dp else recentHeaderHeight - ref(NormalHomeRecentHeaderHeight)
         val usableHeight = (maxHeight.value - safeInsets.top.value - safeInsets.bottom.value).coerceAtLeast(0f)
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
+        val captureCtaTextHeight = remember(maxWidth.value, density.fontScale) {
+            mutableStateOf(ref(58f))
+        }
+        // The frozen glyph anchor sits below the layout origin;
+        // include that placement in the measured parent so semantics and bounds
+        // contain the rendered text at every system font scale.
+        val captureCtaHeight = maxOf(
+            ref(58f),
+            captureCtaTextHeight.value + ref(NormalHomeCtaGlyphOffsetY),
+        )
+        val cameraY = maxOf(
+            refY(NormalHomeCameraY) + recentHeaderExtra,
+            refY(NormalHomeCtaY) + recentHeaderExtra + captureCtaHeight + ref(8f),
+        )
+
         val cardWidth = ref(NormalHomeCardWidth)
         val cardHeight = ref(NormalHomeCardHeight)
         val pagerSidePadding = (maxWidth - cardWidth) / 2
-
-        Box(
-            modifier = Modifier
-                .offset(x = ref(NormalHomeHeaderX), y = refY(NormalHomeHeaderY))
-                .width(ref(NormalHomeHeaderWidth))
-                .height(ref(NormalHomeHeaderHeight))
-                .testTag("normal-home-header"),
-        ) {
-            NormalHomeHeader(
-                isLoggedIn = isLoggedIn,
-                avatarUrl = avatarUrl,
-                resolveImageUrl = resolveImageUrl,
-                accessToken = accessToken,
-                onProfileClick = onProfileClick,
-                avatarSize = ref(92f),
-                guestAvatar = runtimeAssets?.guestAvatar,
-                typography = typography,
-                brandMinWidth = ref(148f),
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .offset(y = refY(NormalHomeStatsY))
-                .fillMaxWidth()
-                .testTag("normal-home-stats"),
-            contentAlignment = Alignment.Center,
-        ) {
-            HomeStats(
-                statistics = statistics,
-                catches = recent,
-                onSpeciesClick = onSpeciesClick,
-                onCatchesClick = onCatchesClick,
-                isResolving = isResolving,
-                dividerHeight = ref(56f),
-                dividerWidth = ref(1f),
-                horizontalPadding = ref(150f),
-                verticalPadding = spacing.statVerticalPadding,
-                labelSpacing = spacing.statLabelSpacing,
-                typography = typography,
-            )
-        }
-
-        if (isResolving) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset(y = refY(NormalHomeCardY))
-                    .width(cardWidth)
-                    .height(cardHeight)
-                    .clip(RoundedCornerShape(ref(NormalHomeHeroCornerRadius)))
-                    .background(YuJianColors.MistWhite.copy(alpha = 0.24f))
-                    .testTag("normal-home-resolving-hero"),
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .offset(y = refY(NormalHomeRecentHeaderY))
-                    .fillMaxWidth()
-                    .height(ref(NormalHomeRecentHeaderHeight))
-                    .testTag("normal-home-recent-header"),
-                contentAlignment = Alignment.Center,
-            ) {
-                RecentCatchSectionHeader(
-                    onCatchesClick = onCatchesClick,
-                    typography = typography,
-                    horizontalPadding = spacing.recentHeaderHorizontalInset,
-                    actionSpacing = spacing.recentActionSpacing,
-                    chevronSize = spacing.recentChevronSize,
-                )
-            }
-
-            RecentCatchPager(
-                catches = recent,
-                cardWidth = cardWidth,
-                cardHeight = cardHeight,
-                sidePadding = pagerSidePadding,
-                resolveImageUrl = resolveImageUrl,
-                accessToken = accessToken,
-                onCatchClick = onCatchClick,
-                motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
-                runtimeAssets = runtimeAssets,
-                typography = typography,
-                cornerRadius = ref(NormalHomeHeroCornerRadius),
-                footerPaddingHorizontal = ref(NormalHomeFooterHorizontalInset),
-                footerPaddingVertical = ref(NormalHomeFooterVerticalInset),
-                metadataSpacing = spacing.heroMetadataSpacing,
-                pageSpacing = spacing.pagerSpacing,
-                referenceScale = referenceScale.value,
-                modifier = Modifier.offset(y = refY(NormalHomeCardY)),
-            )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset(y = refY(NormalHomeCtaY))
-                    .height(ref(58f))
-                    .width(ref(420f))
-                    .testTag("normal-home-capture-cta"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "记录下一条鱼",
-                    style = YuJianTypography.body.copy(
-                        color = YuJianColors.OnDark.copy(alpha = 0.92f),
-                        fontSize = typography.captureCta.fontSize,
-                        lineHeight = typography.captureCta.lineHeight,
-                        shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.testTag("normal-home-capture-cta-text"),
-                )
-            }
-        }
-
-        val cameraSize = ref(NormalHomeCameraSize)
-        HomeCameraButton(
-            onClick = onIdentify,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = refY(NormalHomeCameraY))
-                .testTag("normal-home-camera"),
-            motionState = motionState,
-            runtimeAssets = runtimeAssets,
-            visualSize = cameraSize,
-            touchTargetSize = ref(NormalHomeCameraTouchSize),
+        val cameraTouchBottom = cameraY.value + ref(NormalHomeCameraTouchSize).value
+        val shortScreenMode = normalHomeNeedsSafeOverflow(
+            cameraTouchBottom = cameraTouchBottom,
+            windowHeight = maxHeight.value,
+            safeBottom = safeInsets.bottom.value,
         )
+        val contentHeight = normalHomeScrollableContentHeight(
+            windowHeight = maxHeight.value,
+            cameraTouchBottom = cameraTouchBottom,
+            safeBottom = safeInsets.bottom.value,
+        ).dp
+        val scrollState = rememberScrollState()
+        val initialEmptyResolution = remember { mutableStateOf(isResolving && recent.isEmpty()) }
+        val revealFirstResolvedCatch = initialEmptyResolution.value && !isResolving && recent.isNotEmpty()
+        SideEffect {
+            if (isResolving && recent.isEmpty() && !initialEmptyResolution.value) {
+                initialEmptyResolution.value = true
+            } else if (!isResolving && recent.isNotEmpty() && initialEmptyResolution.value) {
+                initialEmptyResolution.value = false
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState, enabled = shortScreenMode)
+                .testTag(if (shortScreenMode) "normal-home-short-screen-scroll" else "normal-home-fixed-layout"),
+        ) {
+            Box(Modifier.fillMaxWidth().height(contentHeight)) {
+
+                Box(
+                    modifier = Modifier
+                        .offset(x = ref(NormalHomeHeaderX), y = refY(NormalHomeHeaderY))
+                        .width(ref(NormalHomeHeaderWidth))
+                        .height(ref(NormalHomeHeaderHeight))
+                        .testTag("normal-home-header"),
+                ) {
+                    NormalHomeHeader(
+                        isLoggedIn = isLoggedIn,
+                        avatarUrl = avatarUrl,
+                        resolveImageUrl = resolveImageUrl,
+                        accessToken = accessToken,
+                        onProfileClick = onProfileClick,
+                        avatarSize = ref(92f),
+                        guestAvatar = runtimeAssets?.guestAvatar,
+                        brandMinWidth = ref(148f),
+                        brandArtworkWidth = ref(155f),
+                        brandArtworkHeight = ref(80f),
+                        brandArtworkOffsetX = ref(7f),
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .offset(y = refY(NormalHomeStatsY))
+                        .fillMaxWidth()
+                        .testTag("normal-home-stats"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    HomeStats(
+                        statistics = statistics,
+                        catches = recent,
+                        onSpeciesClick = onSpeciesClick,
+                        onCatchesClick = onCatchesClick,
+                        isResolving = isResolving,
+                        dividerHeight = ref(56f),
+                        dividerWidth = ref(1f),
+                        horizontalPadding = ref(150f),
+                        verticalPadding = spacing.statVerticalPadding,
+                        labelSpacing = spacing.statLabelSpacing,
+                        typography = typography,
+                    )
+                }
+
+                if (isResolving) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = refY(NormalHomeCardY))
+                            .width(cardWidth)
+                            .height(cardHeight)
+                            .clip(RoundedCornerShape(ref(NormalHomeHeroCornerRadius)))
+                            .background(YuJianColors.MistWhite.copy(alpha = 0.24f))
+                            .testTag("normal-home-resolving-hero"),
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .offset(y = refY(NormalHomeRecentHeaderY))
+                            .fillMaxWidth()
+                            .height(recentHeaderHeight)
+                            .testTag("normal-home-recent-header"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        RecentCatchSectionHeader(
+                            onCatchesClick = onCatchesClick,
+                            typography = typography,
+                            horizontalPadding = spacing.recentHeaderHorizontalInset,
+                            actionSpacing = spacing.recentActionSpacing,
+                            chevronSize = spacing.recentChevronSize,
+                        )
+                    }
+
+                    RecentCatchPager(
+                        catches = recent,
+                        cardWidth = cardWidth,
+                        cardHeight = cardHeight,
+                        sidePadding = pagerSidePadding,
+                        resolveImageUrl = resolveImageUrl,
+                        accessToken = accessToken,
+                        onCatchClick = onCatchClick,
+                        motionEnabled = normalHomeCatchMotionActive(motionState.running, motionState.reduceMotion),
+                        runtimeAssets = runtimeAssets,
+                        typography = typography,
+                        cornerRadius = ref(NormalHomeHeroCornerRadius),
+                        footerPaddingHorizontal = ref(NormalHomeFooterHorizontalInset),
+                        footerPaddingVertical = ref(NormalHomeFooterVerticalInset),
+                        metadataSpacing = spacing.heroMetadataSpacing,
+                        pageSpacing = spacing.pagerSpacing,
+                        referenceScale = referenceScale.value,
+                        revealInitialResolvedCatch = revealFirstResolvedCatch,
+                        modifier = Modifier.offset(y = refY(NormalHomeCardY) + recentHeaderExtra),
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = refY(NormalHomeCtaY) + recentHeaderExtra)
+                            .heightIn(min = captureCtaHeight)
+                            .width(ref(420f))
+                            .testTag("normal-home-capture-cta"),
+                        // The measured parent includes the frozen 17px glyph
+                        // offset. Top alignment keeps that offset inside the
+                        // CTA's layout/semantics bounds at every font scale.
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        Text(
+                            text = "记录下一条鱼",
+                            style = YuJianTypography.body.copy(
+                                color = YuJianColors.OnDark.copy(alpha = 0.92f),
+                                fontSize = typography.captureCta.fontSize,
+                                lineHeight = typography.captureCta.lineHeight,
+                                shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            onTextLayout = { result ->
+                                val measuredHeight = with(density) { result.size.height.toDp() }
+                                if (measuredHeight != captureCtaTextHeight.value) {
+                                    captureCtaTextHeight.value = measuredHeight
+                                }
+                            },
+                            modifier = Modifier
+                                .offset(y = ref(NormalHomeCtaGlyphOffsetY))
+                                .testTag("normal-home-capture-cta-text"),
+                        )
+                    }
+                }
+
+                val cameraSize = ref(NormalHomeCameraSize)
+                HomeCameraButton(
+                    onClick = onIdentify,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(x = -ref(NormalHomeCameraCenterOffsetX), y = cameraY)
+                        .testTag("normal-home-camera"),
+                    motionState = motionState,
+                    runtimeAssets = runtimeAssets,
+                    visualSize = cameraSize,
+                    touchTargetSize = ref(NormalHomeCameraTouchSize),
+                )
+            }
+        }
     }
 }
 
@@ -262,6 +335,22 @@ internal fun normalHomeVerticalOffset(referenceScale: Float, usableHeight: Float
     return min(excessHeight * 0.36f, 180f * referenceScale)
 }
 
+internal fun normalHomeNeedsSafeOverflow(
+    cameraTouchBottom: Float,
+    windowHeight: Float,
+    safeBottom: Float,
+): Boolean = cameraTouchBottom > (windowHeight - safeBottom).coerceAtLeast(0f)
+
+internal fun normalHomeScrollableContentHeight(
+    windowHeight: Float,
+    cameraTouchBottom: Float,
+    safeBottom: Float,
+): Float = maxOf(windowHeight, cameraTouchBottom + safeBottom)
+
+/** Neighbor displacement is authored in dp by the frozen Home motion contract. */
+internal fun normalHomePagerNeighborTranslationYDp(distance: Float): Float =
+    4f * distance.coerceIn(0f, 1f)
+
 @Composable
 private fun NormalHomeHeader(
     isLoggedIn: Boolean,
@@ -271,8 +360,10 @@ private fun NormalHomeHeader(
     onProfileClick: () -> Unit,
     avatarSize: Dp,
     guestAvatar: android.graphics.Bitmap?,
-    typography: NormalHomeTypographyContract,
     brandMinWidth: Dp,
+    brandArtworkWidth: Dp,
+    brandArtworkHeight: Dp,
+    brandArtworkOffsetX: Dp,
 ) {
     val resolvedAvatarUrl = resolveImageUrl(avatarUrl)
     val avatarLoadResult = remember(resolvedAvatarUrl) { mutableStateOf<Boolean?>(null) }
@@ -282,21 +373,22 @@ private fun NormalHomeHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = "渔见",
-            style = YuJianTypography.brand.copy(
-                color = YuJianColors.TextPrimary.copy(alpha = 0.94f),
-                fontSize = typography.brand.fontSize,
-                lineHeight = typography.brand.lineHeight,
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            // Preserve the 72 px glyph contract while giving Android's measured
-            // two-glyph outline room for its reported 3 px intrinsic overhang.
+        Box(
             modifier = Modifier
-                .widthIn(min = brandMinWidth)
+                .width(brandMinWidth)
+                .height(brandArtworkHeight)
                 .testTag("normal-home-brand-title"),
-        )
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.brand_title_primary),
+                contentDescription = "渔见",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .offset(x = brandArtworkOffsetX)
+                    .requiredSize(width = brandArtworkWidth, height = brandArtworkHeight),
+            )
+        }
         if (isLoggedIn) {
             Box(
                 modifier = Modifier
@@ -337,12 +429,15 @@ private fun NormalHomeHeader(
                     modifier = guestModifier,
                 )
             } else {
-                // Only while the registered guest bitmap is loading.
-                Image(
-                    painter = painterResource(R.drawable.normal_home_default_avatar_v2),
-                    contentDescription = "登录或注册",
-                    contentScale = ContentScale.Fit,
-                    modifier = guestModifier,
+                // Keep the distinct Guest identity out of the signed-in fallback while its
+                // independently registered runtime bitmap is being decoded.
+                Box(
+                    guestModifier
+                        .semantics {
+                            contentDescription = "登录或注册"
+                            role = Role.Button
+                        }
+                        .testTag("normal-home-guest-avatar-loading"),
                 )
             }
         }
@@ -352,7 +447,7 @@ private fun NormalHomeHeader(
 @Composable
 private fun NormalHomeDefaultAvatar(modifier: Modifier) {
     Image(
-        painter = painterResource(R.drawable.normal_home_default_avatar_v2),
+        painter = painterResource(R.drawable.nh07_default_avatar_3x_192),
         contentDescription = null,
         modifier = modifier.testTag("normal-home-default-profile-avatar"),
         contentScale = ContentScale.Fit,
@@ -389,11 +484,11 @@ private fun RecentCatchSectionHeader(
         Row(
             modifier = Modifier
                 .requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .clickable(role = Role.Button, onClick = onCatchesClick)
                 .semantics(mergeDescendants = true) {
                     contentDescription = "全部鱼获"
                     role = Role.Button
                 }
-                .clickable(role = Role.Button, onClick = onCatchesClick)
                 .testTag("normal-home-recent-all"),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(actionSpacing),
@@ -437,6 +532,7 @@ private fun RecentCatchPager(
     metadataSpacing: Dp,
     pageSpacing: Dp,
     referenceScale: Float,
+    revealInitialResolvedCatch: Boolean,
     modifier: Modifier = Modifier,
 ) {
     if (catches.isEmpty()) return
@@ -445,7 +541,17 @@ private fun RecentCatchPager(
     val density = LocalDensity.current
     val activeCardScale = remember { Animatable(1f) }
     val activeCardOffset = remember { Animatable(0f) }
+    val initialRevealRequested = remember { revealInitialResolvedCatch }
+    val initialRevealAlpha = remember { Animatable(if (initialRevealRequested) 0f else 1f) }
     val selectedCatchId = catches.getOrNull(pagerState.currentPage)?.id ?: catches.first().id
+
+    LaunchedEffect(initialRevealRequested, motionEnabled) {
+        if (initialRevealRequested && motionEnabled) {
+            initialRevealAlpha.animateTo(1f, tween(durationMillis = 160, easing = LinearEasing))
+        } else {
+            initialRevealAlpha.snapTo(1f)
+        }
+    }
 
     LaunchedEffect(motionEnabled, pagerState.currentPage, selectedCatchId) {
         if (!motionEnabled) {
@@ -464,7 +570,7 @@ private fun RecentCatchPager(
                 launch {
                     activeCardOffset.animateTo(0f, keyframes {
                         durationMillis = 6_000
-                        (-2f * referenceScale) at 3_000
+                        (-2f) at 3_000
                     })
                 }
             }
@@ -490,8 +596,8 @@ private fun RecentCatchPager(
                 .fillMaxSize()
                 .graphicsLayerForPagerCard(
                     scale = if (selected) activeCardScale.value else 1f - distance * 0.055f,
-                    translationY = if (selected) activeCardOffset.value else 4f * distance * referenceScale,
-                    alpha = 1f - distance * 0.12f,
+                    translationY = if (selected) activeCardOffset.value else normalHomePagerNeighborTranslationYDp(distance),
+                    alpha = (1f - distance * 0.12f) * initialRevealAlpha.value,
                     density = density,
                 ),
         ) {

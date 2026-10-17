@@ -1,48 +1,49 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ai.RecognitionPhase
-import com.yujian.ai.ai.RecognitionRuntimeContract
 
-/**
- * Presentation controller for the frozen three-state Recognition story.
- *
- * The production pipeline still emits CAPTURED -> DETECTING -> OUTLINE ->
- * CLASSIFYING -> RESULT / FAILURE. Presentation intentionally merges CAPTURED
- * and DETECTING into the single user-visible opening state "图片识别中".
- *
- * User-visible presentation sequence:
- *
- * CAPTURED (图片识别中) -> OUTLINE (已定位到鱼体)
- * -> CLASSIFYING (鱼种识别中) -> 200ms RESOLVE -> RESULT
- *
- * Slow pipeline work gates advancement. The controller may hold a real phase for
- * minimum perceptual duration, but it never invents a later semantic state.
- */
+/** V3.1 presentation state driven by pipeline events and minimum visual beats. */
 class RecognitionVisualStateController(
     private val minVisibleMs: Map<RecognitionPhase, Long> = DEFAULT_MIN_VISIBLE_MS,
-    private val maxPostResultHoldMs: Long = MAX_POST_RESULT_HOLD_MS,
 ) {
-    private var actual = RecognitionPhase.CAPTURED
     private var presented = RecognitionPhase.CAPTURED
     private var phaseStartedAtMs = UNSET
+    private var detectionStarted = false
+    private var realFishFocusAvailable = false
+    private var classificationStarted = false
     private var resultReceivedAtMs = UNSET
 
     fun reset(nowMs: Long) {
-        actual = RecognitionPhase.CAPTURED
         presented = RecognitionPhase.CAPTURED
         phaseStartedAtMs = nowMs
+        detectionStarted = false
+        realFishFocusAvailable = false
+        classificationStarted = false
         resultReceivedAtMs = UNSET
     }
 
-    fun onPipelinePhase(phase: RecognitionPhase, nowMs: Long) {
+    fun onPipelinePhase(
+        phase: RecognitionPhase,
+        nowMs: Long,
+        hasRealFishFocus: Boolean = false,
+    ) {
         if (phaseStartedAtMs == UNSET) reset(nowMs)
-        actual = phase
-        if (phase == RecognitionPhase.RESULT && resultReceivedAtMs == UNSET) {
-            resultReceivedAtMs = nowMs
-        }
-        if (phase == RecognitionPhase.FAILURE) {
-            presented = RecognitionPhase.FAILURE
-            phaseStartedAtMs = nowMs
+        when (phase) {
+            RecognitionPhase.DETECTING -> detectionStarted = true
+            RecognitionPhase.OUTLINE -> realFishFocusAvailable = hasRealFishFocus
+            RecognitionPhase.CLASSIFYING -> {
+                classificationStarted = true
+                realFishFocusAvailable = realFishFocusAvailable || hasRealFishFocus
+            }
+            RecognitionPhase.RESULT -> {
+                if (resultReceivedAtMs == UNSET) resultReceivedAtMs = nowMs
+                realFishFocusAvailable = realFishFocusAvailable || hasRealFishFocus
+            }
+            RecognitionPhase.FAILURE -> {
+                presented = RecognitionPhase.FAILURE
+                phaseStartedAtMs = nowMs
+            }
+            RecognitionPhase.CAPTURED -> Unit
         }
     }
 
@@ -65,88 +66,42 @@ class RecognitionVisualStateController(
     fun phaseElapsedMs(nowMs: Long): Long =
         (nowMs - phaseStartedAtMs).coerceAtLeast(0L)
 
-    /**
-     * RESOLVE is not a fourth Processing state. It begins only after the
-     * 鱼种识别中 minimum beat has completed and only when a real RESULT exists.
-     */
-    fun resolveProgress(nowMs: Long): Float {
-        if (presented != RecognitionPhase.CLASSIFYING || actual != RecognitionPhase.RESULT) {
-            return 0f
-        }
-        val elapsed = phaseElapsedMs(nowMs)
-        return (
-            (elapsed - minimum(RecognitionPhase.CLASSIFYING)).toFloat() /
-                RESOLVE_FADE_MS.toFloat()
-            ).coerceIn(0f, 1f)
-    }
-
-    fun isResolveActive(nowMs: Long): Boolean =
-        presented == RecognitionPhase.CLASSIFYING &&
-            actual == RecognitionPhase.RESULT &&
-            phaseElapsedMs(nowMs) >= minimum(RecognitionPhase.CLASSIFYING)
-
     private fun canAdvance(nowMs: Long): Boolean {
-        val target = next(presented)
-        if (target == presented) return false
-
         val elapsed = phaseElapsedMs(nowMs)
-
-        if (target == RecognitionPhase.RESULT) {
-            if (actual != RecognitionPhase.RESULT) return false
-            return elapsed >= minimum(RecognitionPhase.CLASSIFYING) + RESOLVE_FADE_MS
+        if (elapsed < minimum(presented)) return false
+        return when (presented) {
+            RecognitionPhase.CAPTURED -> detectionStarted
+            RecognitionPhase.DETECTING -> realFishFocusAvailable
+            RecognitionPhase.OUTLINE -> classificationStarted && realFishFocusAvailable
+            RecognitionPhase.CLASSIFYING -> resultReceivedAtMs != UNSET
+            RecognitionPhase.RESULT,
+            RecognitionPhase.FAILURE -> false
         }
-
-        if (rank(actual) < rank(target)) return false
-        return elapsed >= minimum(presented)
     }
 
-    private fun minimum(phase: RecognitionPhase): Long =
-        minVisibleMs[phase] ?: 0L
+    private fun minimum(phase: RecognitionPhase): Long = minVisibleMs[phase] ?: 0L
 
-    /**
-     * DETECTING is a pipeline phase only. Presentation skips it because
-     * CAPTURED + DETECTING are one product state: 图片识别中.
-     */
     private fun next(phase: RecognitionPhase): RecognitionPhase = when (phase) {
-        RecognitionPhase.CAPTURED,
+        RecognitionPhase.CAPTURED -> RecognitionPhase.DETECTING
         RecognitionPhase.DETECTING -> RecognitionPhase.OUTLINE
         RecognitionPhase.OUTLINE -> RecognitionPhase.CLASSIFYING
         RecognitionPhase.CLASSIFYING -> RecognitionPhase.RESULT
-        else -> phase
-    }
-
-    private fun rank(phase: RecognitionPhase) = when (phase) {
-        RecognitionPhase.CAPTURED -> 0
-        RecognitionPhase.DETECTING -> 1
-        RecognitionPhase.OUTLINE -> 2
-        RecognitionPhase.CLASSIFYING -> 3
         RecognitionPhase.RESULT,
-        RecognitionPhase.FAILURE -> 4
+        RecognitionPhase.FAILURE -> phase
     }
 
     companion object {
-        /**
-         * Retained as a compatibility constant for callers that still expose
-         * the former V1.1 bound. The current nominal fast story is 2950ms.
-         */
-        const val MAX_POST_RESULT_HOLD_MS = RecognitionRuntimeContract.RESULT_START_MS
-        const val RESOLVE_FADE_MS =
-            RecognitionRuntimeContract.RESULT_START_MS - RecognitionRuntimeContract.RESOLVE_START_MS
-        const val IMAGE_RECOGNIZING_MIN_MS = RecognitionRuntimeContract.FISH_LOCATED_START_MS
-        const val FISH_LOCATED_MIN_MS =
-            RecognitionRuntimeContract.SPECIES_RECOGNIZING_START_MS -
-                RecognitionRuntimeContract.FISH_LOCATED_START_MS
-        const val SPECIES_RECOGNIZING_MIN_MS =
-            RecognitionRuntimeContract.RESOLVE_START_MS -
-                RecognitionRuntimeContract.SPECIES_RECOGNIZING_START_MS
-
+        const val CAPTURED_MIN_MS = 220L
+        const val DETECTING_MIN_MS = 320L
+        const val OUTLINE_MIN_MS = 350L
+        const val CLASSIFYING_MIN_MS = 250L
         private const val UNSET = Long.MIN_VALUE
 
         val DEFAULT_MIN_VISIBLE_MS = mapOf(
-            RecognitionPhase.CAPTURED to IMAGE_RECOGNIZING_MIN_MS,
-            RecognitionPhase.DETECTING to 0L,
-            RecognitionPhase.OUTLINE to FISH_LOCATED_MIN_MS,
-            RecognitionPhase.CLASSIFYING to SPECIES_RECOGNIZING_MIN_MS,
+            RecognitionPhase.CAPTURED to CAPTURED_MIN_MS,
+            RecognitionPhase.DETECTING to DETECTING_MIN_MS,
+            RecognitionPhase.OUTLINE to OUTLINE_MIN_MS,
+            RecognitionPhase.CLASSIFYING to CLASSIFYING_MIN_MS,
         )
     }
 }

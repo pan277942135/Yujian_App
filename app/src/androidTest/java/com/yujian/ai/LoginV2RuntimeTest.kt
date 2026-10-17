@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.ParcelFileDescriptor
 import androidx.activity.ComponentActivity
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.test.assertIsEnabled
@@ -13,10 +14,12 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
@@ -33,6 +36,7 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +56,7 @@ import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -65,6 +70,21 @@ class LoginV2RuntimeTest {
 
     private var originalImeWithHardwareKeyboard: String? = null
     private var imeWithHardwareKeyboardChanged = false
+
+    @Before
+    fun configureProductionEdgeToEdgeViewport() {
+        val activity = composeRule.activity
+        activity.runOnUiThread {
+            WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+            activity.window.statusBarColor = android.graphics.Color.TRANSPARENT
+            activity.window.navigationBarColor = android.graphics.Color.TRANSPARENT
+            WindowInsetsControllerCompat(activity.window, activity.window.decorView).apply {
+                isAppearanceLightStatusBars = true
+                isAppearanceLightNavigationBars = true
+            }
+        }
+        composeRule.waitForIdle()
+    }
 
     @After
     fun restoreHardwareKeyboardImeSetting() {
@@ -298,7 +318,9 @@ class LoginV2RuntimeTest {
 
         val username = composeRule.onNodeWithTag("login_username")
         showSoftwareKeyboardForEmulator()
-        username.performClick()
+        // Exercise the platform touch/IME path. A semantics-only click can focus
+        // the field without asking API 28's real input method to appear.
+        username.performTouchInput { down(center); up() }
         awaitImeVisible()
         username.performTextInput("x")
         composeRule.onNodeWithText("账号").assertIsDisplayed()
@@ -342,7 +364,7 @@ class LoginV2RuntimeTest {
         }
 
         val usernameHelper = composeRule.onNodeWithText("3–32 位字母、数字、_ 或 -")
-        usernameHelper.assertIsDisplayed()
+        usernameHelper.performScrollTo().assertIsDisplayed()
         assertInsideCompactViewport(usernameHelper)
         val passwordHelper = composeRule.onNodeWithText("至少 6 位")
         passwordHelper.performScrollTo().assertIsDisplayed()
@@ -368,7 +390,7 @@ class LoginV2RuntimeTest {
         val usernameError = "请输入 3–32 位字母、数字、_ 或 - 组成的账号"
         val username = composeRule.onNodeWithTag("register_username")
         showSoftwareKeyboardForEmulator()
-        username.performClick()
+        username.performTouchInput { down(center); up() }
         awaitImeVisible()
         username.performTextInput("x")
         composeRule.onNodeWithText("账号").assertIsDisplayed()
@@ -383,7 +405,7 @@ class LoginV2RuntimeTest {
 
         val password = composeRule.onNodeWithTag("register_password")
         password.performScrollTo().performClick().performTextInput("1")
-        password.assertIsFocused().assertTextContains("1").assertIsDisplayed()
+        password.assertIsFocused().assertTextContains("•").assertIsDisplayed()
         val passwordErrorNode = composeRule.onNodeWithText("密码长度需要为 6–72 位")
         passwordErrorNode.assertIsDisplayed()
         assertInsideCompactViewport(passwordErrorNode)
@@ -567,7 +589,12 @@ class LoginV2RuntimeTest {
     private fun saveScreenshot(name: String) {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val bitmap = instrumentation.uiAutomation.takeScreenshot()
+        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        if (name == "login_v2_idle.png" || name == "register_v2_idle.png") {
+            check(bitmap.width == 1080 && bitmap.height == 1920) {
+                "Frozen parity capture must cover the native 1080x1920 viewport; actual=${bitmap.width}x${bitmap.height}"
+            }
+        }
         val root = File(instrumentation.targetContext.getExternalFilesDir(null), "login_v2")
         check(root.exists() || root.mkdirs())
         FileOutputStream(File(root, name)).use { output ->

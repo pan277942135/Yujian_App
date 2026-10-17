@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
 
+# The frozen Recognition gate runs 50 instrumentation tests, including the
+# live FULL/LITE optical-fidelity capture. Its test suite needs more room than
+# the 180-second default; this does not alter any other gate's timeout.
+gate_instrumentation_timeout_seconds() {
+  printf '%s\n' '300'
+}
+
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+}
+
+gate_additional_test_classes() {
+  printf '%s\n' 'com.yujian.ai.RecognitionOpticalFidelityRuntimeTest'
+}
+
+gate_additional_test_timeout_seconds() {
+  printf '%s\n' '420'
 }
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
 # assertions and single proof screenshots.
 YUJIAN_RECOGNITION_DEVICE_RECORDING="/sdcard/recognition_processing_runtime_host.mp4"
-YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v1_2.mp4"
+YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v3_1.mp4"
 
 gate_before_instrumentation() {
   if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
@@ -15,7 +30,7 @@ gate_before_instrumentation() {
   fi
   "${YUJIAN_ADB_BIN}" shell "rm -f '${YUJIAN_RECOGNITION_DEVICE_RECORDING}'" >/dev/null 2>&1 || true
   "${YUJIAN_ADB_BIN}" shell \
-    "screenrecord --size 320x640 --bit-rate 4000000 --time-limit 45 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
+    "screenrecord --bit-rate 4000000 --time-limit 45 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
     >/dev/null 2>&1 || true
   sleep 0.5
 }
@@ -57,13 +72,60 @@ gate_collect_evidence() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/recognition_v1_2"
   mkdir -p "$output_dir"
 
+  local first_guide_output="$YUJIAN_EVIDENCE_DIR/first_use_camera_guide"
+  mkdir -p "$first_guide_output"
   local name
+  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/recognition-first-use-camera-guide/${name}" \
+      > "$first_guide_output/$name" 2>/dev/null || true
+    if [[ ! -s "$first_guide_output/$name" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$first_guide_output/$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  if ! python3 - "$first_guide_output/first_use_camera_guide_runtime_report.json" \
+    "$YUJIAN_BUILD_SHA" "${YUJIAN_APP_APK:-}" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+report_path = Path(sys.argv[1])
+build_sha = sys.argv[2]
+apk_path = Path(sys.argv[3]) if sys.argv[3] else None
+report = json.loads(report_path.read_text(encoding="utf-8"))
+report["source_commit_sha"] = build_sha
+report["apk_sha256_host"] = None
+report["apk_bytes_host"] = None
+report["apk_sha256_match"] = None
+if apk_path and apk_path.is_file():
+    hasher = hashlib.sha256()
+    with apk_path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            hasher.update(block)
+    digest = hasher.hexdigest()
+    report["apk_sha256_host"] = digest
+    report["apk_bytes_host"] = apk_path.stat().st_size
+    report["apk_sha256_match"] = report.get("apk_sha256") == digest
+    if not report["apk_sha256_match"]:
+        report["status"] = "APK_SHA_MISMATCH"
+        report["failure_classification"] = "APK_SHA_MISMATCH"
+report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+if report["apk_sha256_match"] is False:
+    raise SystemExit("installed APK SHA-256 does not match the exact host build APK")
+PY
+  then
+    runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_APK_SHA_MISMATCH"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
   for name in \
     01_image_recognizing_early.png \
     02_image_recognizing_late.png \
     03_fish_located.png \
     04_species_recognizing.png \
-    05_resolve.png \
     05_result_high.png \
     06_result_medium.png \
     07_result_low.png \
@@ -88,24 +150,41 @@ gate_collect_evidence() {
   done
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-    "cache/recognition-evidence/recognition_processing_timing_v1_2.txt" \
-    > "$output_dir/recognition_processing_timing_v1_2.txt" 2>/dev/null || true
-  if [[ ! -s "$output_dir/recognition_processing_timing_v1_2.txt" ]]; then
-    rm -f "$output_dir/recognition_processing_timing_v1_2.txt"
+    "cache/recognition-evidence/recognition_processing_timing_v3_1.txt" \
+    > "$output_dir/recognition_processing_timing_v3_1.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_processing_timing_v3_1.txt" ]]; then
+    rm -f "$output_dir/recognition_processing_timing_v3_1.txt"
   fi
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-    "cache/recognition-evidence/recognition_production_flow_trace_v1_2.json" \
-    > "$output_dir/recognition_production_flow_trace_v1_2.json" 2>/dev/null || true
-  if [[ ! -s "$output_dir/recognition_production_flow_trace_v1_2.json" ]]; then
-    rm -f "$output_dir/recognition_production_flow_trace_v1_2.json"
+    "cache/recognition-evidence/recognition_production_flow_trace_v3_1.json" \
+    > "$output_dir/recognition_production_flow_trace_v3_1.json" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_production_flow_trace_v3_1.json" ]]; then
+    rm -f "$output_dir/recognition_production_flow_trace_v3_1.json"
   fi
 
-  for name in recognition_motion_trace_v1_2.json recognition_accessibility_trace_v1_2.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
+  for name in recognition_motion_trace_v3_1.json recognition_accessibility_trace_v3_1.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi
   done
+
+  local optical_dir="$output_dir/optical-fidelity"
+  mkdir -p "$optical_dir"
+  for name in recognition_optical_fidelity_v3_1.json optical_fidelity_full.png optical_fidelity_lite.png; do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/recognition-optical-fidelity/${name}" > "$optical_dir/${name}" 2>/dev/null || true
+    if [[ ! -s "$optical_dir/${name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$optical_dir/${name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "RECOGNITION_OPTICAL_FIDELITY_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  if ! python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_optical_fidelity_evidence.py" \
+    --evidence-dir "$optical_dir"; then
+    runtime_set_failure "EVIDENCE" "RECOGNITION_OPTICAL_FIDELITY_EVIDENCE_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
 
   for name in \
     portrait_low_confidence_original.jpg \
@@ -157,7 +236,7 @@ gate_collect_evidence() {
       --reference-dir "$YUJIAN_REPO_ROOT/design/pages/recognition/design" \
       --output-dir "$output_dir" || {
         runtime_set_failure "EVIDENCE" "RECOGNITION_VISUAL_PARITY_INVALID"
-      return "$EXIT_FAIL_EVIDENCE"
+        return "$EXIT_FAIL_EVIDENCE"
     }
   fi
 
@@ -181,14 +260,14 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageStat
 
 output_dir = Path(sys.argv[1])
-video_path = output_dir / "recognition_processing_v1_2.mp4"
+video_path = output_dir / "recognition_processing_v3_1.mp4"
 validation_path = output_dir / "recognition_processing_video_validation.txt"
 reference_names = [
     "01_image_recognizing_early.png",
     "02_image_recognizing_late.png",
     "03_fish_located.png",
     "04_species_recognizing.png",
-    "05_resolve.png",
+    "05_result_high.png",
 ]
 references = [Image.open(output_dir / name).convert("RGB") for name in reference_names]
 if len(references) != 5:
@@ -292,8 +371,8 @@ PY
     fi
   fi
 
-  if ! python3 scripts/verify_recognition_runtime_evidence_v1_2.py --evidence-dir "$output_dir"; then
-    runtime_set_failure "EVIDENCE" "RECOGNITION_V1_2_EVIDENCE_INVALID"
+  if ! python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_runtime_evidence_v3_1.py" --evidence-dir "$output_dir"; then
+    runtime_set_failure "EVIDENCE" "RECOGNITION_V3_1_EVIDENCE_INVALID"
     return "$EXIT_FAIL_EVIDENCE"
   fi
   return "$EXIT_PASS"

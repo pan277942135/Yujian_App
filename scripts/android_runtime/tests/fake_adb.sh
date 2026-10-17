@@ -59,34 +59,41 @@ case "$1" in
       exit 0
     fi
     command_line="$*"
+    if [[ "$command_line" == *cache/recognition-first-use-camera-guide/first_use_camera_guide_runtime_report.json* ]]; then
+      # The evidence contract binds this report to the exact host APK supplied
+      # by test_contract.sh. Other fake evidence remains clearly synthetic.
+      printf '{"apk_sha256":"%s"}\n' "${FAKE_APP_APK_SHA256:-}"
+      exit 0
+    fi
     # This fake checks Harness classification and evidence-validator routing;
     # it does not claim to render application screenshots or validate video.
     fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"
-    if [[ "$command_line" == *recognition_motion_trace_v1_2.json* ]]; then
+    if [[ "$command_line" == *recognition_motion_trace_v3_1.json* ]]; then
       printf '{"samples":['
       for index in $(seq 0 9); do
         if (( index > 0 )); then printf ','; fi
         phase=CAPTURED
-        (( index >= 3 )) && phase=OUTLINE
+        (( index >= 2 )) && phase=DETECTING
+        (( index >= 4 )) && phase=OUTLINE
         (( index >= 6 )) && phase=CLASSIFYING
-        resolve=1.0
-        (( index >= 8 )) && resolve=0.5
-        speed=0.5
-        (( index >= 8 )) && speed=0.0
-        printf '{"uptime_ms":%s,"phase":"%s","segment_offset":0.%s,"segment_speed":%s,"state_strength":0.5,"resolve_strength":%s,"detail_motion_time_ms":1008}' "$((1000 + index))" "$phase" "$index" "$speed" "$resolve"
+        printf '{"uptime_ms":%s,"phase":"%s","segment_offset":0.%s,"segment_speed":0.5,"state_strength":0.5,"detail_motion_time_ms":%s,"reduce_motion":false,"quality":"FULL"}' "$((1000 + index))" "$phase" "$index" "$((1000 + index))"
       done
       printf ']}\n'
       exit 0
     fi
-    if [[ "$command_line" == *recognition_production_flow_trace_v1_2.json* ]]; then
-      printf '{"pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"IMAGE_RECOGNIZING","at_ms":0},{"state":"FISH_LOCATED","at_ms":900},{"state":"SPECIES_RECOGNIZING","at_ms":1500},{"state":"RESOLVE","at_ms":2750},{"state":"RESULT","at_ms":2950}],"result_ready":true,"source":{"width":1080,"height":1920},"quality_gate":{"classifier_eligible":true},"focus":{"level":"A"},"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+    if [[ "$command_line" == *recognition_production_flow_trace_v3_1.json* ]]; then
+      printf '{"contract_version":"recognition_processing_state_machine_v3_1","visual_state_sequence":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT_READY"],"pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"CAPTURED","at_ms":0},{"state":"DETECTING","at_ms":220},{"state":"OUTLINE","at_ms":540},{"state":"CLASSIFYING","at_ms":890},{"state":"RESULT_READY","at_ms":1140}],"result_ready":true,"source":{"width":1080,"height":1920},"quality_gate":{"classifier_eligible":true},"focus":{"level":"A"},"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_processing_timing_v3_1.txt* ]]; then
+      printf 'Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\nRuntime CAPTURED duration: 220ms\nRuntime DETECTING duration: 320ms\nRuntime OUTLINE duration: 350ms\nRuntime CLASSIFYING duration: 250ms\n'
       exit 0
     fi
     if [[ "$command_line" == *recognition_visual_qa_v1_3.json* ]]; then
       printf '{"findings":{"F01":{"status":"UNREVIEWED"},"F02":{"status":"UNREVIEWED"},"F03":{"status":"UNREVIEWED"},"F04":{"status":"UNREVIEWED"},"F05":{"status":"UNREVIEWED"},"F06":{"status":"UNREVIEWED"}}}\n'
       exit 0
     fi
-    if [[ "$command_line" == *recognition_accessibility_trace_v1_2.json* ]]; then
+    if [[ "$command_line" == *recognition_accessibility_trace_v3_1.json* ]]; then
       printf '{"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"}}\n'
       exit 0
     fi
@@ -94,7 +101,46 @@ case "$1" in
       printf '{"detector_bbox_normalized":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
       exit 0
     fi
-    if [[ "$command_line" =~ cache/recognition-evidence/([0-9][0-9]_[a-z_]+\.png) ]]; then
+    if [[ "$command_line" == *cache/recognition-optical-fidelity/recognition_optical_fidelity_v3_1.json* ]]; then
+      python3 - <<'PY'
+import json
+intervals = [16.67] * 120
+def profile(name):
+    return {
+        "profile": name,
+        "phase": "CLASSIFYING",
+        "sample_count": len(intervals),
+        "motion_sample_count": 120,
+        "refresh_rate_hz": 60.0,
+        "interval_ms": {
+            "mean": 16.67,
+            "median": 16.67,
+            "p95": 16.67,
+            "max": 16.67,
+            "frames_over_32ms": 0,
+        },
+        "samples_ms": intervals,
+        "budget_policy": "MEASURED_ONLY_NO_FROZEN_THRESHOLD",
+    }
+print(json.dumps({
+    "contract_version": "recognition_processing_state_machine_v3_1",
+    "measurement_method": "Choreographer.FrameCallback frame intervals while production RecognitionProcessingScene is live (synthetic fake-adb contract fixture)",
+    "phase": "CLASSIFYING",
+    "fixture": "fake",
+    "refresh_rate_hz": 60.0,
+    "budget_policy": "MEASURED_ONLY_NO_FROZEN_THRESHOLD",
+    "profiles": [profile("FULL"), profile("LITE")],
+    "presented_phases": ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING"],
+    "result_ready": False,
+}))
+PY
+      exit 0
+    fi
+    if [[ "$command_line" =~ cache/recognition-optical-fidelity/([A-Za-z0-9_.-]+\.png) ]]; then
+      cat "$fixture_root/05_Result_High_Frozen.png"
+      exit 0
+    fi
+    if [[ "$command_line" =~ cache/recognition-evidence/([A-Za-z0-9_.-]+\.png) ]]; then
       name="${BASH_REMATCH[1]}"
       case "$name" in
         01_image_recognizing_early.png) cat "$fixture_root/01_Capture_Transition_Frozen.png" ;;
@@ -102,16 +148,12 @@ case "$1" in
         03_fish_located.png) cat "$fixture_root/03_Fish_Highlight_Frozen.png" ;;
         04_species_recognizing.png) cat "$fixture_root/04_Fish_Identifying_Frozen.png" ;;
         05_result_high.png) cat "$fixture_root/05_Result_High_Frozen.png" ;;
-        05_resolve.png) cat "$fixture_root/05_Result_High_Frozen.png" ;;
         06_result_medium.png) cat "$fixture_root/06_Result_Medium_Frozen.png" ;;
         07_result_low.png) cat "$fixture_root/07_Result_Low_Frozen.png" ;;
         08_error_no_fish.png) cat "$fixture_root/08_Error_No_Fish_Frozen.png" ;;
         09_error_image_quality.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
         10_issue_technical_failure.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
-        06_edge_field_crop.png|07_fish_focus_crop.png|08_contour_closeup.png) printf 'fake-evidence\n' ;;
-        08_issue_no_fish.png) cat "$fixture_root/08_Error_No_Fish_Frozen.png" ;;
-        09_issue_image_quality.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
-        10_issue_technical_failure.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
+        *) cat "$fixture_root/05_Result_High_Frozen.png" ;;
       esac
       exit 0
     fi

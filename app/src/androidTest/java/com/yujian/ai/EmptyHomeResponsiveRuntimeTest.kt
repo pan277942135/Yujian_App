@@ -59,11 +59,9 @@ class EmptyHomeResponsiveRuntimeTest {
         }
 
         val observedProfile = AtomicReference<RuntimeProfile?>()
-        if (canonicalCapture) {
-            // Freeze the Compose frame clock before composition so continuous
-            // Empty Home animations cannot keep the global idling resource busy.
-            composeRule.mainClock.autoAdvance = false
-        }
+        // Empty Home has continuous ambient animations. Freeze time for every
+        // viewport profile so layout assertions inspect a stable frame.
+        composeRule.mainClock.autoAdvance = false
         composeRule.setContent {
             val density = LocalDensity.current
             val safeInsets = rememberSafeDrawingInsets()
@@ -97,15 +95,10 @@ class EmptyHomeResponsiveRuntimeTest {
             }
         }
 
-        if (canonicalCapture) {
-            // Advance only a couple of deterministic frames for first composition.
-            // Do not wait for global idle on a page with continuous animation.
-            repeat(2) { composeRule.mainClock.advanceTimeByFrame() }
-            composeRule.waitUntil(timeoutMillis = 5_000L) { observedProfile.get() != null }
-        } else {
-            composeRule.waitUntil(timeoutMillis = 5_000L) { observedProfile.get() != null }
-            composeRule.waitForIdle()
-        }
+        // Advance only a couple of deterministic frames for first composition.
+        // Do not wait for global idle on a page with continuous animation.
+        repeat(2) { composeRule.mainClock.advanceTimeByFrame() }
+        composeRule.waitUntil(timeoutMillis = 5_000L) { observedProfile.get() != null }
         val profile = requireNotNull(observedProfile.get())
         assertEquals(expectedFontScale, profile.fontScale, 0.06f)
 
@@ -134,7 +127,11 @@ class EmptyHomeResponsiveRuntimeTest {
             listOf(header, subtitle, login, hero, prompt, camera, album).forEach { bounds ->
                 assertBoundsInside(bounds, safeLeft, safeTop, safeRight, safeBottom)
             }
-            assertTrue("header and subtitle must stay above the Hero", maxOf(header.bottom, subtitle.bottom) <= hero.top)
+            assertTrue(
+                "header and subtitle must stay above the Hero; " +
+                    "header=$header subtitle=$subtitle hero=$hero profile=$profile",
+                maxOf(header.bottom, subtitle.bottom) <= hero.top,
+            )
             assertTrue("Hero must preserve its frozen 2:1 box", kotlin.math.abs(hero.width / hero.height - 2f) <= 0.02f)
             assertTrue("prompt must remain separated from Camera", prompt.bottom < camera.top)
             assertTrue("Camera must remain a reachable touch target", camera.width / density >= 48f && camera.height / density >= 48f)

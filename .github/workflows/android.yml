@@ -8,6 +8,7 @@ on:
       - 'feature/**'
       - 'refactor/**'
       - 'integration/**'
+      - audit/design-system-v3-1-phase1-master-baseline
     paths-ignore:
       - ".github/workflows/android.yml"
       - ".github/workflows/control-plane-admission.yml"
@@ -60,7 +61,8 @@ on:
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve exact-head runtime evidence while newer PR commits are queued.
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -97,6 +99,7 @@ jobs:
           python3 scripts/verify_recognition_design_closure_v1_1.py
           python3 scripts/verify_recognition_runtime_contract.py
           python3 scripts/test_bootstrap_android_recognition_assets.py
+          python3 -m unittest discover -s scripts -p 'test_runtime_evidence_source_closure.py'
 
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
@@ -266,7 +269,11 @@ jobs:
           - gate: recognition-frozen
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
+          - gate: camera-runtime-v1
+            api_level: 28
+            required: true
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -partition-size 4096 -skin 1080x1920
           - gate: empty-home-v2
             api_level: 28
             required: true
@@ -274,19 +281,19 @@ jobs:
           - gate: login-v2
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: data-sanitization
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: fish-guide-v1
             api_level: 28
             required: true
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: runtime-parity
             api_level: 28
             required: false
-            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+            emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
 
     steps:
       - name: Checkout
@@ -315,7 +322,7 @@ jobs:
           cp build/runtime-apks/apk_model_trace.json "evidence/runtime/${{ matrix.gate }}/apk_model_trace.json"
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'camera-runtime-v1' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
@@ -366,10 +373,9 @@ jobs:
 
           "$adb" start-server >> "$preflight_log" 2>&1
           emulator_started=0
-          if [[ "${{ matrix.gate }}" == "normal-home-v1" ]]; then
-            existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
+          existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
             if [[ "$existing_device" == emulator-* ]]; then
-              printf 'RESTART_EXISTING_EMULATOR_FOR_PHYSICAL_CAPTURE device=%s target_skin=1080x1920\n' \
+              printf 'RESTART_EXISTING_EMULATOR_FOR_NATIVE_PROFILE device=%s target_skin=1080x1920\n' \
                 "$existing_device" | tee -a "$preflight_log"
               "$adb" -s "$existing_device" emu kill >> "$preflight_log" 2>&1
               stopped=0
@@ -389,7 +395,6 @@ jobs:
               fi
               echo 'EXISTING_EMULATOR_STOPPED=1' | tee -a "$preflight_log"
             fi
-          fi
           if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
             if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
               read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
@@ -458,6 +463,20 @@ jobs:
             exit 1
           fi
 
+          display_profile_log="evidence/runtime/${{ matrix.gate }}/infra/display_profile.log"
+          "$adb" shell wm size reset | tee "$display_profile_log"
+          physical_size="$("$adb" shell wm size | tee -a "$display_profile_log" | tr -d '\r' | awk -F': ' '/Physical size:/ {print $2; exit}')"
+          if [[ "$physical_size" != "1080x1920" ]]; then
+            printf 'ANDROID_NATIVE_PROFILE_INVALID physical_size=%s expected=1080x1920 gate=%s\n' \
+              "$physical_size" "${{ matrix.gate }}" | tee -a "$display_profile_log"
+            exit 1
+          fi
+          "$adb" shell wm density 480 | tee -a "$display_profile_log"
+          "$adb" shell wm density | tee -a "$display_profile_log"
+          "$adb" shell settings put system font_scale 1.0
+          "$adb" shell settings get system font_scale | tee -a "$display_profile_log"
+          echo 'ANDROID_NATIVE_PROFILE_READY=1080x1920@480dpi' | tee -a "$display_profile_log"
+
       - name: Run unified Android Runtime Harness
         id: runtime_gate
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
@@ -513,8 +532,10 @@ jobs:
 
   # A diagnostic-only commit can run the exact failing test first and then
   # the complete Normal Home suite without starting unrelated API 28 jobs.
+  # Branch pushes with the explicit marker own exact-HEAD device evidence.
+  # Avoid a duplicate PR merge-ref emulator job on every synchronize event.
   normal-home-brand-title-validation:
-    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[normal-home-brand-title-validation]') }}
+    if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || (github.event_name == 'pull_request' && github.event.action != 'synchronize' && github.event.pull_request.head.ref == 'audit/design-system-v3-1-phase1-master-baseline') }}
     needs: build
     runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 90

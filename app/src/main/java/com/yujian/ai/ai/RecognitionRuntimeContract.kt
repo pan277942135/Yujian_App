@@ -1,75 +1,68 @@
 package com.yujian.ai.ai
 
-/** User-visible Processing contract. Runtime pipeline phases remain unchanged. */
+/** Android projection of the frozen Recognition Processing V3.1 contract. */
 object RecognitionRuntimeContract {
-    const val CONTRACT_VERSION = "RECOGNITION_PRESENTATION_v1_3"
+    const val CONTRACT_VERSION = "recognition_processing_state_machine_v3_1"
 
-    const val FISH_LOCATED_START_MS = 900L
-    const val SPECIES_RECOGNIZING_START_MS = 1_500L
-    const val RESOLVE_START_MS = 2_750L
-    const val RESULT_START_MS = 2_950L
-
-    val timeline: List<RecognitionPresentationStep> = listOf(
-        RecognitionPresentationStep(
-            RecognitionPresentationState.IMAGE_RECOGNIZING,
-            0L,
-            "图片识别中",
+    val states: List<RecognitionProcessingStateContract> = listOf(
+        RecognitionProcessingStateContract(
+            RecognitionPresentationState.CAPTURED,
+            220L,
+            "正在准备识别",
+            "AI 已获取这张照片",
         ),
-        RecognitionPresentationStep(
-            RecognitionPresentationState.FISH_LOCATED,
-            FISH_LOCATED_START_MS,
+        RecognitionProcessingStateContract(
+            RecognitionPresentationState.DETECTING,
+            320L,
+            "正在理解这张照片",
+            "寻找这次鱼获的线索",
+        ),
+        RecognitionProcessingStateContract(
+            RecognitionPresentationState.OUTLINE,
+            350L,
             "已定位到鱼体",
+            "正在分析这次鱼获",
         ),
-        RecognitionPresentationStep(
-            RecognitionPresentationState.SPECIES_RECOGNIZING,
-            SPECIES_RECOGNIZING_START_MS,
-            "鱼种识别中",
+        RecognitionProcessingStateContract(
+            RecognitionPresentationState.CLASSIFYING,
+            250L,
+            "正在认识这条鱼",
+            "分析鱼体特征",
         ),
-        RecognitionPresentationStep(
-            RecognitionPresentationState.RESOLVE,
-            RESOLVE_START_MS,
+        RecognitionProcessingStateContract(
+            RecognitionPresentationState.RESULT_READY,
+            0L,
             "",
-        ),
-        RecognitionPresentationStep(
-            RecognitionPresentationState.RESULT,
-            RESULT_START_MS,
-            "识别结果",
+            "",
         ),
     )
 
-    init {
-        require(timeline.first().startMs == 0L)
-        require(timeline.zipWithNext().all { (current, next) -> current.startMs < next.startMs })
-        require(
-            timeline.count {
-                it.state == RecognitionPresentationState.IMAGE_RECOGNIZING ||
-                    it.state == RecognitionPresentationState.FISH_LOCATED ||
-                    it.state == RecognitionPresentationState.SPECIES_RECOGNIZING
-            } == 3,
-        )
-        require(timeline.none { it.state.name == "DETECTING" })
-    }
+    val presentationSequence: List<RecognitionPresentationState> = states.map { it.state }
 
-    fun stateAt(elapsedMs: Long): RecognitionPresentationState {
-        val elapsed = elapsedMs.coerceAtLeast(0L)
-        return timeline.lastOrNull { elapsed >= it.startMs }?.state
-            ?: RecognitionPresentationState.IMAGE_RECOGNIZING
-    }
+    val productionPipeline: List<String> = listOf(
+        "CAPTURED",
+        "DETECTING",
+        "OUTLINE",
+        "CLASSIFYING",
+        "RESULT",
+        "FAILURE",
+    )
 
-    fun labelFor(state: RecognitionPresentationState): String =
-        timeline.first { it.state == state }.label
+    fun state(state: RecognitionPresentationState): RecognitionProcessingStateContract =
+        states.first { it.state == state }
 }
 
 enum class RecognitionPresentationState {
-    IMAGE_RECOGNIZING,
-    FISH_LOCATED,
-    SPECIES_RECOGNIZING,
-    RESOLVE,
-    RESULT,
+    CAPTURED,
+    DETECTING,
+    OUTLINE,
+    CLASSIFYING,
+    RESULT_READY,
 }
 
-data class RecognitionPresentationStep(
+data class RecognitionProcessingStateContract(
     val state: RecognitionPresentationState,
-    val startMs: Long,
-    val label: String,
+    val minimumDurationMs: Long,
+    val title: String,
+    val subtitle: String,
 )

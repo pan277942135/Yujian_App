@@ -9,7 +9,6 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
-import android.view.View
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
@@ -32,6 +31,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
@@ -40,6 +40,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.compose.NavHost
@@ -174,7 +175,7 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
-    fun generatesFrozenThreeStateScreenshotsAndExercisesProductionNavigation() {
+    fun generatesV31RecognitionScreenshotsAndExercisesProductionNavigation() {
         val state = mutableStateOf(FrozenState.IMAGE_RECOGNIZING_EARLY)
         val subject = createAnnotatedSubjectAlphaFixture(
             photo.bitmap,
@@ -186,11 +187,11 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        render(state, FrozenState.IMAGE_RECOGNIZING_EARLY, "图片识别中", "01_image_recognizing_early.png")
-        assertVisible("正在理解照片并寻找鱼获线索")
+        render(state, FrozenState.IMAGE_RECOGNIZING_EARLY, "正在准备识别", "01_image_recognizing_early.png")
+        assertVisible("AI 已获取这张照片")
 
-        render(state, FrozenState.IMAGE_RECOGNIZING_LATE, "图片识别中", "02_image_recognizing_late.png")
-        assertVisible("正在理解照片并寻找鱼获线索")
+        render(state, FrozenState.IMAGE_RECOGNIZING_LATE, "正在理解这张照片", "02_image_recognizing_late.png")
+        assertVisible("寻找这次鱼获的线索")
         assertNoDirtyTechnicalUi()
 
         render(state, FrozenState.FISH_LOCATED, "已定位到鱼体", "03_fish_located.png")
@@ -200,7 +201,6 @@ class RecognitionFrozenFlowEmulatorTest {
         assertVisible("分析鱼体特征")
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
-        render(state, FrozenState.RESOLVE, "正在认识这条鱼", "05_resolve.png")
         cropEvidence("02_image_recognizing_late.png", "06_edge_field_crop.png", 0f, 0f, 1f, .44f)
         cropEvidence("03_fish_located.png", "07_fish_focus_crop.png", .04f, .16f, .96f, .90f)
         cropEvidence("03_fish_located.png", "08_contour_closeup.png", .18f, .22f, .82f, .82f)
@@ -274,17 +274,15 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
-    fun physicalDisplayMappingConvertsMeasuredLogicalViewToRawSourcePixels() {
+    fun screenshotMappingConvertsMeasuredLogicalViewToRawSourcePixels() {
         val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
-            sourceBounds = Rect(0, 24, 640, 1280),
-            logicalDisplayWidth = 640,
-            logicalDisplayHeight = 1280,
-            physicalDisplayWidth = 320,
-            physicalDisplayHeight = 640,
+            sourceBounds = Rect(0, 12, 320, 640),
+            logicalDisplayWidth = 320,
+            logicalDisplayHeight = 640,
             bitmapWidth = 640,
             bitmapHeight = 1280,
         )
-        assertEquals(Rect(0, 12, 320, 640), sourceBitmapBounds)
+        assertEquals(Rect(0, 24, 640, 1280), sourceBitmapBounds)
 
         val mapping = captureSurfaceMapping(
             sourceBitmapWidth = 640,
@@ -294,10 +292,44 @@ class RecognitionFrozenFlowEmulatorTest {
             targetBitmapHeight = 1280,
             targetBounds = Rect(0, 24, 640, 1280),
         )
-        assertEquals(2f, mapping.scaleX, 0.001f)
-        assertEquals(2f, mapping.scaleY, 0.001f)
+        assertEquals(1f, mapping.scaleX, 0.001f)
+        assertEquals(1f, mapping.scaleY, 0.001f)
         assertEquals(640, mapping.targetBitmapBounds.width())
         assertEquals(1256, mapping.targetBitmapBounds.height())
+    }
+
+    @Test
+    fun screenshotMappingUsesRawCaptureDimensionsForFullResolutionEmulator() {
+        val bounds = Rect(0, 72, 1080, 2340)
+        assertEquals(
+            bounds,
+            mapSourceViewBoundsToBitmap(
+                sourceBounds = bounds,
+                logicalDisplayWidth = 1080,
+                logicalDisplayHeight = 2340,
+                bitmapWidth = 1080,
+                bitmapHeight = 2340,
+            ),
+        )
+    }
+
+    @Test
+    fun screenshotSurfaceCopyUsesExplicitPixelsAcrossBitmapDensities() {
+        val source = Bitmap.createBitmap(12, 8, Bitmap.Config.ARGB_8888).apply {
+            density = 480
+            eraseColor(Color.GREEN)
+        }
+        val target = Bitmap.createBitmap(36, 24, Bitmap.Config.ARGB_8888).apply {
+            density = 160
+            eraseColor(Color.BLACK)
+        }
+
+        drawMappedSurfacePixels(source, target)
+
+        assertEquals(Color.GREEN, target.getPixel(0, 0))
+        assertEquals(Color.GREEN, target.getPixel(target.width - 1, target.height - 1))
+        source.recycle()
+        target.recycle()
     }
     @Test
     fun backingOutCancelsRecognitionWithoutReportingTechnicalFailure() {
@@ -328,7 +360,6 @@ class RecognitionFrozenFlowEmulatorTest {
         assertTrue("active overlay Back action must exist", lastBackIndex >= 0)
         backNodes[lastBackIndex].performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) { !processingVisible.value }
-        composeRule.waitForIdle()
 
         assertEquals("user Back must not be routed as recognition failure", 0, failureCount.get())
     }
@@ -518,6 +549,7 @@ class RecognitionFrozenFlowEmulatorTest {
 
     @Test
     fun unresolvedMediumAndLowCanReturnWithoutCreatingRecordActions() {
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger(0)
         val showLow = mutableStateOf(false)
         composeRule.setContent {
             YujianTheme {
@@ -528,7 +560,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         productionResult = low,
                         onBack = {},
                         onRetry = {},
-                        onSave = { _, _, _ -> },
+                        onSave = { _, _, _ -> saveCalls.incrementAndGet() },
                     )
                 } else {
                     RecognitionResultScreen(
@@ -537,7 +569,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         productionResult = medium,
                         onBack = {},
                         onRetry = {},
-                        onSave = { _, _, _ -> },
+                        onSave = { _, _, _ -> saveCalls.incrementAndGet() },
                     )
                 }
             }
@@ -553,6 +585,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("暂不确认鱼种").performClick()
         composeRule.onNodeWithText("手动选择鱼种").assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("保存本次鱼获").fetchSemanticsNodes().isNotEmpty())
+        assertEquals("unresolved result must not request durable persistence", 0, saveCalls.get())
     }
 
     @Test
@@ -604,10 +637,9 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitUntil(timeoutMillis = 2_000L) {
             composeRule.onAllNodesWithTag("recognition-numeric-长度").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithContentDescription("清除输入").performClick()
         lengthField.performTextInput("0")
         lengthField.performImeAction()
-        composeRule.onNodeWithText("请输入有效的长度").assertIsDisplayed()
+        composeRule.onNodeWithText("请输入 0.1–999.9 cm 的长度").assertIsDisplayed()
     }
 
     @Test
@@ -630,6 +662,62 @@ class RecognitionFrozenFlowEmulatorTest {
         saveButton.performClick()
         saveButton.performClick()
         assertEquals("one resolved Result may submit only once while saving", 1, saveCalls.get())
+    }
+
+    @Test
+    fun saveFailureKeepsDraftAndRetryKeyAndBackIsBlockedWhileSaving() {
+        val saving = mutableStateOf(false)
+        val saveError = mutableStateOf<String?>(null)
+        val backCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val submittedDrafts = Collections.synchronizedList(mutableListOf<CatchSaveDraft>())
+        val story = "这次保存后继续留在草稿里的故事。"
+        val homeLoading = hasText("保存本次鱼获") and hasStateDescription("正在加载")
+
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    saving = saving.value,
+                    saveError = saveError.value,
+                    onBack = { backCalls.incrementAndGet() },
+                    onRetry = {},
+                    onSave = { draft, _, destination ->
+                        assertEquals(RecognitionSaveDestination.HOME, destination)
+                        submittedDrafts += draft
+                        if (submittedDrafts.size == 1) {
+                            saveError.value = "server stack trace: private detail"
+                        } else {
+                            saving.value = true
+                        }
+                    },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recognition-story-input")
+            .performScrollTo()
+            .performTextInput(story)
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            saveError.value != null && submittedDrafts.size == 1
+        }
+        composeRule.onNodeWithText("保存鱼获失败，请重试").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("重试保存").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 3_000L) {
+            saving.value && submittedDrafts.size == 2
+        }
+
+        composeRule.runOnIdle { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        assertEquals("system Back must remain blocked while the retry is saving", 0, backCalls.get())
+        assertEquals(submittedDrafts[0].clientRecordId, submittedDrafts[1].clientRecordId)
+        assertEquals(story, requireNotNull(submittedDrafts[0].classifierResult).optString("story"))
+        assertEquals(story, requireNotNull(submittedDrafts[1].classifierResult).optString("story"))
+        composeRule.waitUntil(timeoutMillis = 2_000L) {
+            composeRule.onAllNodes(homeLoading).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNode(homeLoading).performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -858,48 +946,59 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(
             listOf(
                 RecognitionPhase.CAPTURED,
+                RecognitionPhase.DETECTING,
                 RecognitionPhase.OUTLINE,
                 RecognitionPhase.CLASSIFYING,
             ),
             visualTimes.keys.filter { it != RecognitionPhase.RESULT },
         )
-        assertFalse("DETECTING leaked into the product presentation trace", visualTimes.containsKey(RecognitionPhase.DETECTING))
 
-        val imageRecognizingAt = requireNotNull(visualTimes[RecognitionPhase.CAPTURED])
+        val capturedAt = requireNotNull(visualTimes[RecognitionPhase.CAPTURED])
+        val detectingAt = requireNotNull(visualTimes[RecognitionPhase.DETECTING])
         val outlineAt = requireNotNull(visualTimes[RecognitionPhase.OUTLINE])
         val classifyingAt = requireNotNull(visualTimes[RecognitionPhase.CLASSIFYING])
-        assertTrue("RESULT callback did not complete", finishedAtMs > classifyingAt)
+        val resultReadyAt = requireNotNull(visualTimes[RecognitionPhase.RESULT])
+        assertTrue("RESULT_READY did not complete", resultReadyAt > classifyingAt)
+        assertTrue("result callback did not complete", finishedAtMs >= resultReadyAt)
 
-        val imageRecognizingMs = outlineAt - imageRecognizingAt
-        val fishLocatedMs = classifyingAt - outlineAt
-        val speciesRecognizingMs = finishedAtMs - classifyingAt
-        val totalMs = finishedAtMs - imageRecognizingAt
-        val fishFocusStableMs = speciesRecognizingMs - RecognitionVisualStateController.RESOLVE_FADE_MS
-        val resolveAtMs = finishedAtMs - RecognitionVisualStateController.RESOLVE_FADE_MS
+        val capturedMs = detectingAt - capturedAt
+        val detectingMs = outlineAt - detectingAt
+        val outlineMs = classifyingAt - outlineAt
+        val classifyingMs = resultReadyAt - classifyingAt
+        val totalMs = resultReadyAt - capturedAt
+        val fishFocusStableMs = classifyingMs
         // These markers are delivered by separate Compose effects. Frame scheduling can
         // make their observed interval shorter than the controller's exact minimum;
-        // controller unit tests continue to assert the frozen 900/600/1250ms contract.
+        // controller unit tests assert the V3.1 event gates and 220/320/350/250ms beats.
         val presentationTimestampToleranceMs = 50L
 
         assertTrue(
-            "图片识别中 presentation interval was too short: ${imageRecognizingMs}ms",
-            imageRecognizingMs >= 900L - presentationTimestampToleranceMs,
+            "CAPTURED presentation interval was too short: ${capturedMs}ms",
+            capturedMs >= RecognitionVisualStateController.CAPTURED_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "已定位到鱼体 presentation interval was too short: ${fishLocatedMs}ms",
-            fishLocatedMs >= 600L - presentationTimestampToleranceMs,
+            "DETECTING presentation interval was too short: ${detectingMs}ms",
+            detectingMs >= RecognitionVisualStateController.DETECTING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "鱼种识别中 including resolve presentation interval was too short: ${speciesRecognizingMs}ms",
-            speciesRecognizingMs >= 1_450L - presentationTimestampToleranceMs,
+            "OUTLINE presentation interval was too short: ${outlineMs}ms",
+            outlineMs >= RecognitionVisualStateController.OUTLINE_MIN_MS - presentationTimestampToleranceMs,
+        )
+        assertTrue(
+            "CLASSIFYING beat was too short: ${classifyingMs}ms",
+            classifyingMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
             "nominal presentation interval was too short: ${totalMs}ms",
-            totalMs >= 2_950L - presentationTimestampToleranceMs,
+            totalMs >= RecognitionVisualStateController.CAPTURED_MIN_MS +
+                RecognitionVisualStateController.DETECTING_MIN_MS +
+                RecognitionVisualStateController.OUTLINE_MIN_MS +
+                RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
             "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= 1_250L - presentationTimestampToleranceMs,
+            fishFocusStableMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS -
+                presentationTimestampToleranceMs,
         )
 
         val primary = requireNotNull(result.assessment.primary)
@@ -915,12 +1014,12 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         } ?: 0
         assertTrue("real-catch Level A fixture produced an empty contour", contourSegments > 0)
-        File(evidenceDir, "recognition_processing_timing_v1_2.txt").writeText(
-            "Contract: IMAGE_RECOGNIZING=900ms FISH_LOCATED=600ms SPECIES_RECOGNIZING=1250ms RESOLVE=200ms TOTAL=2950ms\n" +
-                "Runtime IMAGE_RECOGNIZING duration: ${imageRecognizingMs}ms\n" +
-                "Runtime FISH_LOCATED duration: ${fishLocatedMs}ms\n" +
-                "Runtime SPECIES_RECOGNIZING duration: ${speciesRecognizingMs}ms\n" +
-                "Runtime RESOLVE duration: ${RecognitionVisualStateController.RESOLVE_FADE_MS}ms\n" +
+        File(evidenceDir, "recognition_processing_timing_v3_1.txt").writeText(
+            "Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\n" +
+                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
+                "Runtime DETECTING duration: ${detectingMs}ms\n" +
+                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
+                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
                 "Runtime TOTAL duration: ${totalMs}ms\n" +
                 "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
         )
@@ -939,7 +1038,7 @@ class RecognitionFrozenFlowEmulatorTest {
                 "RESULT species=${result.prediction?.top1?.speciesKey} confidence=${result.prediction?.top1?.confidence}\n" +
                 visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=$phase at=$at" } + "\n",
         )
-        File(evidenceDir, "recognition_motion_trace_v1_2.json").writeText(
+        File(evidenceDir, "recognition_motion_trace_v3_1.json").writeText(
             motionSamples.toList().joinToString(
                 prefix = "{\"samples\":[",
                 postfix = "]}\n",
@@ -948,23 +1047,24 @@ class RecognitionFrozenFlowEmulatorTest {
                     "{\"uptime_ms\":${sample.uptimeMs},\"phase\":\"${sample.phase}\"," +
                     "\"segment_offset\":${sample.segmentOffset},\"segment_speed\":${sample.segmentSpeed}," +
                     "\"state_strength\":${sample.stateStrength}," +
-                    "\"resolve_strength\":${sample.resolveStrength},\"detail_motion_time_ms\":${sample.detailMotionTimeMs}," +
+                    "\"detail_motion_time_ms\":${sample.detailMotionTimeMs}," +
                     "\"reduce_motion\":${sample.reduceMotion}," +
                     "\"quality\":\"${sample.qualityLevel}\"}"
             },
         )
         val presentationEvents = listOf(
-            "IMAGE_RECOGNIZING" to imageRecognizingAt,
-            "FISH_LOCATED" to outlineAt,
-            "SPECIES_RECOGNIZING" to classifyingAt,
-            "RESOLVE" to resolveAtMs,
-            "RESULT" to finishedAtMs,
+            "CAPTURED" to capturedAt,
+            "DETECTING" to detectingAt,
+            "OUTLINE" to outlineAt,
+            "CLASSIFYING" to classifyingAt,
+            "RESULT_READY" to resultReadyAt,
         )
         val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
         val mappedRect = transform.mapBoxRect(primary.box)
         val cropPixelsJson = result.cropPixels?.joinToString(prefix = "[", postfix = "]") ?: "null"
-        File(evidenceDir, "recognition_production_flow_trace_v1_2.json").writeText(
-            "{\"contract_version\":\"RECOGNITION_PRESENTATION_v1_3\"," +
+        File(evidenceDir, "recognition_production_flow_trace_v3_1.json").writeText(
+            "{\"contract_version\":\"recognition_processing_state_machine_v3_1\"," +
+                "\"visual_state_sequence\":[\"CAPTURED\",\"DETECTING\",\"OUTLINE\",\"CLASSIFYING\",\"RESULT_READY\"]," +
                 "\"pipeline_phases\":[${actualPipeline.joinToString(",") { "\"$it\"" }}]," +
                 "\"presentation_events\":[${presentationEvents.joinToString(",") { (state, at) -> "{\"state\":\"$state\",\"at_ms\":$at}" }}]," +
                 "\"result_ready\":${result.ready}," +
@@ -1000,8 +1100,8 @@ class RecognitionFrozenFlowEmulatorTest {
                 "REDUCE_MOTION=false\n",
         )
         trace(
-            "TIMING_IMAGE_RECOGNIZING_MS=$imageRecognizingMs TIMING_FISH_LOCATED_MS=$fishLocatedMs " +
-                "TIMING_SPECIES_RECOGNIZING_MS=$speciesRecognizingMs " +
+            "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
+                "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
                 "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
         )
     }
@@ -1081,6 +1181,7 @@ class RecognitionFrozenFlowEmulatorTest {
                     generateSubject = { _, _ -> subject },
                     onFinished = {},
                     phaseOverride = RecognitionPhase.CLASSIFYING,
+                    visualClockOverrideMs = 1_000L,
                     motionPolicyOverride = RecognitionMotionPolicy(
                         reduceMotion = true,
                         lowPerformance = true,
@@ -1102,6 +1203,8 @@ class RecognitionFrozenFlowEmulatorTest {
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         composeRule.waitForIdle()
+        // The reduced-motion receiving field has a one-time 180 ms settle; sample after it completes.
+        SystemClock.sleep(220L)
         val appSurfaceBounds = composeSurfaceBoundsOnScreen()
         val first = File(evidenceDir, "_reduce_motion_a.png")
         val second = File(evidenceDir, "_reduce_motion_b.png")
@@ -1136,7 +1239,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val policy = mutableStateOf(RecognitionMotionPolicy())
         val phaseState = mutableStateOf(RecognitionPhase.DETECTING)
         val visualClockState = mutableStateOf(720L)
-        // The three profile captures share one real photo, IMAGE_RECOGNIZING
+        // The three profile captures share one real photo, DETECTING
         // state, and frozen visual clock. Focus ladder evidence is separate.
         composeRule.setContent {
             YujianTheme {
@@ -1162,7 +1265,7 @@ class RecognitionFrozenFlowEmulatorTest {
         ).forEach { (level, fileName) ->
             policy.value = RecognitionMotionPolicy(degradationLevel = level)
             composeRule.waitForIdle()
-            assertVisible("图片识别中")
+            assertVisible("正在理解这张照片")
             awaitSurfaceFrameCommit()
             capture(fileName)
         }
@@ -1205,8 +1308,8 @@ class RecognitionFrozenFlowEmulatorTest {
         capture("reduce_motion_static.png")
 
         createDegradationContactSheet(levels)
-        File(evidenceDir, "recognition_accessibility_trace_v1_2.json").writeText(
-            """{"quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
+        File(evidenceDir, "recognition_accessibility_trace_v3_1.json").writeText(
+            """{"contract_version":"recognition_processing_state_machine_v3_1","quality":{"FULL":"D0","BALANCED":"D1","LITE":"D2"},"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"},"reduce_motion":{"independent_of_degradation":true,"segment_offset":"frozen","particles":"off","focus_breathing":"off"}}""",
         )
         File(evidenceDir, "recognition_visual_qa_v1_3.json").writeText(
             """{"version":"1.3","review_status":"PENDING_PHYSICAL_REVIEW","reviewed_artifact_id":"pending-runtime-capture","taxonomy":{"F01":"closed neon border","F02":"lightning or magic","F03":"HUD or scanner","F04":"railroad parallel Hairlines","F05":"equal-bright symmetric corners","F06":"AI presence too weak"},"findings":{"F01":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F02":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F03":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F04":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png"]},"F05":{"status":"PASS","evidence":["01_image_recognizing_early.png","02_image_recognizing_late.png"]},"F06":{"status":"UNREVIEWED","evidence":["06_edge_field_crop.png","quality_full.png","quality_balanced.png","quality_lite.png"]}}}""",
@@ -1430,111 +1533,16 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun capture(name: String) {
         awaitSurfaceFrameCommit()
         val output = File(evidenceDir, name)
-        val raw = File(evidenceDir, ".$name.raw.png")
-        assertTrue("screenshot capture failed: $name", device.takeScreenshot(raw))
-        assertTrue("empty screenshot: $name", raw.isFile && raw.length() > 0L)
-
-        val bitmap = BitmapFactory.decodeFile(raw.absolutePath)
-        assertTrue("unreadable screenshot: $name", bitmap != null && bitmap.width > 0 && bitmap.height > 0)
-        val decoded = requireNotNull(bitmap)
-        val logicalDisplayWidth = device.displayWidth
-        val logicalDisplayHeight = device.displayHeight
-        val logicalRootBounds = composeSurfaceBoundsOnScreen()
-        val sourceSurface = measureCaptureSourceSurface()
-        val targetBitmapBounds = screenshotCropBounds(
-            sourceWidth = decoded.width,
-            sourceHeight = decoded.height,
-            logicalDisplayWidth = logicalDisplayWidth,
-            logicalDisplayHeight = logicalDisplayHeight,
-            logicalBounds = logicalRootBounds,
-        )
-        trace(
-            "SCREENSHOT_CAPTURE_FORENSICS name=" + name + " " +
-                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
-                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
-                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
-                sourceSurface.physicalDisplayHeightPx + " " +
-                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
-                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
-                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
-                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
-                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
-                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
-                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
-                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
-                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
-                "target_bitmap_crop_px=" + targetBitmapBounds.left + "," + targetBitmapBounds.top + "," +
-                targetBitmapBounds.right + "," + targetBitmapBounds.bottom + " " +
-                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi,
-        )
-        val sourceBitmapBounds = mapSourceViewBoundsToBitmap(
-            sourceBounds = sourceSurface.viewBoundsOnScreenPx,
-            logicalDisplayWidth = logicalDisplayWidth,
-            logicalDisplayHeight = logicalDisplayHeight,
-            physicalDisplayWidth = sourceSurface.physicalDisplayWidthPx,
-            physicalDisplayHeight = sourceSurface.physicalDisplayHeightPx,
-            bitmapWidth = decoded.width,
-            bitmapHeight = decoded.height,
-        )
-        val mapping = captureSurfaceMapping(
-            sourceBitmapWidth = decoded.width,
-            sourceBitmapHeight = decoded.height,
-            sourceBounds = sourceBitmapBounds,
-            targetBitmapWidth = decoded.width,
-            targetBitmapHeight = decoded.height,
-            targetBounds = targetBitmapBounds,
-        )
-        val sourceSurfaceBitmap = Bitmap.createBitmap(
-            decoded,
-            mapping.sourceBitmapBounds.left,
-            mapping.sourceBitmapBounds.top,
-            mapping.sourceBitmapBounds.width(),
-            mapping.sourceBitmapBounds.height(),
-        )
-        val appSurface = Bitmap.createBitmap(
-            mapping.targetBitmapBounds.width(),
-            mapping.targetBitmapBounds.height(),
-            Bitmap.Config.ARGB_8888,
-        )
-        val canvas = Canvas(appSurface)
-        canvas.scale(mapping.scaleX, mapping.scaleY)
-        canvas.drawBitmap(sourceSurfaceBitmap, 0f, 0f, null)
+        val appSurface = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        assertTrue("empty Compose root capture: $name", appSurface.width > 0 && appSurface.height > 0)
         output.outputStream().use { stream ->
             check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, stream))
         }
         trace(
-            "SCREENSHOT_APP_SURFACE_ONLY name=" + name + " " +
-                "display_px=" + logicalDisplayWidth + "x" + logicalDisplayHeight + " " +
-                "window_bounds_px=" + sourceSurface.windowWidthPx + "x" + sourceSurface.windowHeightPx + " " +
-                "physical_display_mode_px=" + sourceSurface.physicalDisplayWidthPx + "x" +
-                sourceSurface.physicalDisplayHeightPx + " " +
-                "decor_measured_px=" + sourceSurface.decorWidthPx + "x" + sourceSurface.decorHeightPx + " " +
-                "content_measured_px=" + sourceSurface.contentWidthPx + "x" + sourceSurface.contentHeightPx + " " +
-                "source_view_class=" + sourceSurface.viewClassName + " " +
-                "source_view_measured_px=" + sourceSurface.viewWidthPx + "x" + sourceSurface.viewHeightPx + " " +
-                "source_view_bounds_logical_px=" + sourceSurface.viewBoundsOnScreenPx.left + "," +
-                sourceSurface.viewBoundsOnScreenPx.top + "," + sourceSurface.viewBoundsOnScreenPx.right + "," +
-                sourceSurface.viewBoundsOnScreenPx.bottom + " " +
-                "raw_screenshot_px=" + decoded.width + "x" + decoded.height + " " +
-                "logical_root_bounds_px=" + logicalRootBounds.left + "," + logicalRootBounds.top + "," +
-                logicalRootBounds.right + "," + logicalRootBounds.bottom + " " +
-                "source_bitmap_crop_px=" + mapping.sourceBitmapBounds.left + "," +
-                mapping.sourceBitmapBounds.top + "," + mapping.sourceBitmapBounds.right + "," +
-                mapping.sourceBitmapBounds.bottom + " " +
-                "target_bitmap_crop_px=" + mapping.targetBitmapBounds.left + "," +
-                mapping.targetBitmapBounds.top + "," + mapping.targetBitmapBounds.right + "," +
-                mapping.targetBitmapBounds.bottom + " " +
-                "view_origin_in_bitmap_px=" + mapping.sourceBitmapBounds.left + "," +
-                mapping.sourceBitmapBounds.top + " " +
-                "canvas_initial_transform=identity " +
-                "canvas_transform=scale(" + mapping.scaleX + "," + mapping.scaleY + ") " +
-                "density=" + sourceSurface.density + " density_dpi=" + sourceSurface.densityDpi + " " +
-                "output_px=" + appSurface.width + "x" + appSurface.height,
+            "COMPOSE_ROOT_CAPTURE name=" + name + " " +
+                "output_px=" + appSurface.width + "x" + appSurface.height + " " +
+                "density_dpi=" + appSurface.density,
         )
-        if (sourceSurfaceBitmap !== decoded) sourceSurfaceBitmap.recycle()
-        appSurface.recycle()
-        decoded.recycle()
-        raw.delete()
 
         assertTrue("empty canonical screenshot: $name", output.isFile && output.length() > 0L)
         val verified = BitmapFactory.decodeFile(output.absolutePath)
@@ -1575,23 +1583,6 @@ class RecognitionFrozenFlowEmulatorTest {
         source.recycle()
     }
 
-    private data class CaptureSourceSurface(
-        val viewBoundsOnScreenPx: Rect,
-        val viewWidthPx: Int,
-        val viewHeightPx: Int,
-        val windowWidthPx: Int,
-        val windowHeightPx: Int,
-        val decorWidthPx: Int,
-        val decorHeightPx: Int,
-        val contentWidthPx: Int,
-        val contentHeightPx: Int,
-        val viewClassName: String,
-        val physicalDisplayWidthPx: Int,
-        val physicalDisplayHeightPx: Int,
-        val density: Float,
-        val densityDpi: Int,
-    )
-
     private data class CaptureSurfaceMapping(
         val sourceBitmapBounds: Rect,
         val targetBitmapBounds: Rect,
@@ -1599,82 +1590,26 @@ class RecognitionFrozenFlowEmulatorTest {
         val scaleY: Float,
     )
 
-    private fun measureCaptureSourceSurface(): CaptureSourceSurface {
-        val measured = AtomicReference<CaptureSourceSurface?>()
-        composeRule.runOnUiThread {
-            val decor = composeRule.activity.window.decorView
-            val content = composeRule.activity.findViewById<View>(android.R.id.content)
-                ?: error("Recognition capture content View is unavailable")
-            val sourceView = findComposeSourceView(content) ?: content
-            val display = decor.display ?: error("Recognition capture display is unavailable")
-            val displayMode = display.mode
-            check(displayMode.physicalWidth > 0 && displayMode.physicalHeight > 0) {
-                "Recognition capture display mode has invalid size ${displayMode.physicalWidth}x${displayMode.physicalHeight}"
-            }
-            val location = IntArray(2)
-            sourceView.getLocationOnScreen(location)
-            check(sourceView.width > 0 && sourceView.height > 0) {
-                "Recognition capture source View has invalid size ${sourceView.width}x${sourceView.height}"
-            }
-            measured.set(
-                CaptureSourceSurface(
-                    viewBoundsOnScreenPx = Rect(
-                        location[0],
-                        location[1],
-                        location[0] + sourceView.width,
-                        location[1] + sourceView.height,
-                    ),
-                    viewWidthPx = sourceView.width,
-                    viewHeightPx = sourceView.height,
-                    windowWidthPx = decor.width,
-                    windowHeightPx = decor.height,
-                    decorWidthPx = decor.width,
-                    decorHeightPx = decor.height,
-                    contentWidthPx = content.width,
-                    contentHeightPx = content.height,
-                    viewClassName = sourceView.javaClass.name,
-                    physicalDisplayWidthPx = displayMode.physicalWidth,
-                    physicalDisplayHeightPx = displayMode.physicalHeight,
-                    density = sourceView.resources.displayMetrics.density,
-                    densityDpi = sourceView.resources.displayMetrics.densityDpi,
-                ),
-            )
-        }
-        return requireNotNull(measured.get()) {
-            "Recognition capture source View bounds were not measured"
-        }
-    }
-
-    private fun findComposeSourceView(view: View): View? {
-        var candidate: View? = if (view.javaClass.name.contains("Compose")) view else null
-        if (view is android.view.ViewGroup) {
-            for (index in 0 until view.childCount) {
-                candidate = findComposeSourceView(view.getChildAt(index)) ?: candidate
-            }
-        }
-        return candidate
+    private fun drawMappedSurfacePixels(source: Bitmap, target: Bitmap) {
+        val targetBounds = Rect(0, 0, target.width, target.height)
+        Canvas(target).drawBitmap(source, null, targetBounds, Paint(Paint.FILTER_BITMAP_FLAG))
     }
 
     private fun mapSourceViewBoundsToBitmap(
         sourceBounds: Rect,
         logicalDisplayWidth: Int,
         logicalDisplayHeight: Int,
-        physicalDisplayWidth: Int,
-        physicalDisplayHeight: Int,
         bitmapWidth: Int,
         bitmapHeight: Int,
     ): Rect {
         require(logicalDisplayWidth > 0 && logicalDisplayHeight > 0) {
             "Logical display must have positive dimensions: ${logicalDisplayWidth}x${logicalDisplayHeight}"
         }
-        require(physicalDisplayWidth > 0 && physicalDisplayHeight > 0) {
-            "Physical display must have positive dimensions: ${physicalDisplayWidth}x${physicalDisplayHeight}"
-        }
         require(bitmapWidth > 0 && bitmapHeight > 0) {
             "Capture bitmap must have positive dimensions: ${bitmapWidth}x${bitmapHeight}"
         }
-        val scaleX = physicalDisplayWidth / logicalDisplayWidth.toFloat()
-        val scaleY = physicalDisplayHeight / logicalDisplayHeight.toFloat()
+        val scaleX = bitmapWidth / logicalDisplayWidth.toFloat()
+        val scaleY = bitmapHeight / logicalDisplayHeight.toFloat()
         require(kotlin.math.abs(scaleX - scaleY) <= SCREENSHOT_SCALE_TOLERANCE) {
             "Logical-to-physical display mapping is non-uniform: scaleX=$scaleX scaleY=$scaleY"
         }
@@ -1849,7 +1784,6 @@ private enum class FrozenState {
     IMAGE_RECOGNIZING_LATE,
     FISH_LOCATED,
     SPECIES_RECOGNIZING,
-    RESOLVE,
     RESULT_HIGH,
     RESULT_MEDIUM,
     RESULT_LOW,
@@ -1875,8 +1809,7 @@ private fun FrozenRecognitionHarness(
         FrozenState.IMAGE_RECOGNIZING_EARLY,
         FrozenState.IMAGE_RECOGNIZING_LATE,
         FrozenState.FISH_LOCATED,
-        FrozenState.SPECIES_RECOGNIZING,
-        FrozenState.RESOLVE -> {
+        FrozenState.SPECIES_RECOGNIZING -> {
             RecognitionProcessingScene(
                 image = photo,
                 onBack = {},
@@ -1896,8 +1829,7 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_EARLY -> RecognitionPhase.CAPTURED
                     FrozenState.IMAGE_RECOGNIZING_LATE -> RecognitionPhase.DETECTING
                     FrozenState.FISH_LOCATED -> RecognitionPhase.OUTLINE
-                    FrozenState.SPECIES_RECOGNIZING,
-                    FrozenState.RESOLVE -> RecognitionPhase.CLASSIFYING
+                    FrozenState.SPECIES_RECOGNIZING -> RecognitionPhase.CLASSIFYING
                     else -> RecognitionPhase.CAPTURED
                 },
                 visualClockOverrideMs = when (stateValue) {
@@ -1905,7 +1837,6 @@ private fun FrozenRecognitionHarness(
                     FrozenState.IMAGE_RECOGNIZING_LATE -> 720L
                     else -> 3_200L
                 },
-                resolveProgressOverride = if (stateValue == FrozenState.RESOLVE) .72f else null,
             )
         }
         FrozenState.RESULT_HIGH,
