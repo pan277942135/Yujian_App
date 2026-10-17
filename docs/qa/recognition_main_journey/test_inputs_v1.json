@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
   "registry_id": "YU_JIAN_RECOGNITION_TEST_INPUTS",
-  "registry_version": "1.0.0",
+  "registry_version": "1.1.0",
   "status": "REVIEW",
-  "policy": "Photo candidates not source-approved, host setups only descriptive, no fabricated runtime images or live credential data.",
+  "policy": "Photo candidates are not approved fixtures. source_sha256 is reserved for a provenance/rights-approved original; file_bytes_sha256 is only the exact current repository byte digest. Host setups are descriptive; no fabricated runtime image, model result, or live credential data.",
   "inputs": [
     {
       "input_id": "IMG-01",
@@ -13,7 +13,26 @@
       "repository_candidate": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Sharp, well-lit, fully visible fish body approximately horizontal in a full-resolution natural photo; no UI overlay/watermark/identifiable bystander.",
+      "candidate_asset_path": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg (same bytes also at app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg and design/system/fish_media_display_v1/assets/real_catch_source.jpg)",
+      "source_type": "REPOSITORY_PHOTO_CANDIDATE; duplicate copies, one content identity",
+      "source_authorization": "UNVERIFIED: rights, subject release, source/author and redistribution permission absent; observed image contains an identifiable person and platform watermark.",
+      "file_bytes_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+      "dimensions": "1152x1536",
+      "exif_orientation": "Absent (tag 274 not present)",
+      "expected_quality_branch": "Observe the actual quality gate; no predetermined result.",
+      "expected_pipeline_behavior": "Approved image is passed through actual normalization, Detector, Crop and Classifier for gallery/fixture scope; never treat this as CameraX full-device capture.",
+      "expected_result_branch": "Record actual model terminal result. No forced HIGH/species label.",
+      "asset_status": "CANDIDATE_REVIEW; scene mismatch for horizontal requirement (visible fish is vertical, person present, watermark); not approved.",
+      "missing_reason": "Candidate does not meet target scene and provenance/privacy approval is missing.",
+      "remediation_plan": "Acquire rights-cleared original with subject release and remove no watermark by editing existing asset; provide new authorized original and provenance. No alteration of this candidate.",
+      "test_case_bindings": [
+        "CAP-05",
+        "PROC-04"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact detector/classifier artifact SHA and preprocessing contract must be captured at execution; not frozen in current manifest."
     },
     {
       "input_id": "IMG-02",
@@ -23,7 +42,26 @@
       "repository_candidate": null,
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Full fish body framed vertically with head and tail inside image; sharp enough for model inspection; source and capture context recorded.",
+      "candidate_asset_path": null,
+      "source_type": "NOT_AVAILABLE",
+      "source_authorization": "NOT_APPLICABLE; no candidate found.",
+      "file_bytes_sha256": null,
+      "dimensions": null,
+      "exif_orientation": null,
+      "expected_quality_branch": "Observe actual quality gate.",
+      "expected_pipeline_behavior": "Normalize orientation/size then run real Detector/Crop/Classifier only after fixture approval.",
+      "expected_result_branch": "Actual model branch; no predetermined species/confidence.",
+      "asset_status": "MISSING",
+      "missing_reason": "No approved full-resolution vertical fish test image.",
+      "remediation_plan": "Acquire rights-cleared full-resolution vertical image; retain original bytes, source consent and capture metadata.",
+      "test_case_bindings": [
+        "CAP-06",
+        "RES-07"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact model/preprocessing SHA at execution."
     },
     {
       "input_id": "IMG-03",
@@ -33,7 +71,25 @@
       "repository_candidate": null,
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Fish body intentionally intersects an image boundary (head/tail or side clipped) with annotated crop/framing description; still a decodable full-resolution photo.",
+      "candidate_asset_path": null,
+      "source_type": "NOT_AVAILABLE",
+      "source_authorization": "NOT_APPLICABLE; no candidate found.",
+      "file_bytes_sha256": null,
+      "dimensions": null,
+      "exif_orientation": null,
+      "expected_quality_branch": "Actual detector/quality-gate response; annotation only describes input geometry.",
+      "expected_pipeline_behavior": "Run actual pipeline and inspect bbox clipping/crop behavior; do not force NO_FISH or INVALID.",
+      "expected_result_branch": "Actual output; no fixed result implied by the scene label.",
+      "asset_status": "MISSING",
+      "missing_reason": "No rights-cleared partial-frame photo with scene annotation.",
+      "remediation_plan": "Acquire original plus non-destructive annotation manifest; approve labels independently from model output.",
+      "test_case_bindings": [
+        "CAP-06"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact detector/classifier artifact and crop contract at execution."
     },
     {
       "input_id": "IMG-04",
@@ -43,7 +99,25 @@
       "repository_candidate": "app/src/androidTest/assets/detector_case_b_night_flash.jpg",
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Genuinely low-light/night scene with complex background, documented capture conditions, visible fish target, full-resolution original.",
+      "candidate_asset_path": "app/src/androidTest/assets/detector_case_b_night_flash.jpg",
+      "source_type": "REPOSITORY_PHOTO_CANDIDATE",
+      "source_authorization": "UNVERIFIED: provenance, subject/privacy and redistribution rights absent; observed watermark/platform ID.",
+      "file_bytes_sha256": "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
+      "dimensions": "1152x1536",
+      "exif_orientation": "Absent (tag 274 not present)",
+      "expected_quality_branch": "Actual gate response only; do not infer INVALID from night scene.",
+      "expected_pipeline_behavior": "After approval, actual Detector/Crop/Classifier; record flash/exposure and camera/gallery origin.",
+      "expected_result_branch": "Record real terminal output without assuming a species/confidence.",
+      "asset_status": "CANDIDATE_REVIEW; plausible low-light/vertical fish scene, but not approved; includes watermark.",
+      "missing_reason": "No source and rights approval; source profile/scene annotation incomplete.",
+      "remediation_plan": "Acquire source/license/subject evidence and capture metadata, or obtain a new rights-cleared equivalent; do not crop/re-encode candidate.",
+      "test_case_bindings": [
+        "CAP-07"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact model and preprocessing SHA plus low-light capture metadata."
     },
     {
       "input_id": "IMG-05",
@@ -53,7 +127,26 @@
       "repository_candidate": null,
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Real, decodable outdoor/indoor scene with no fish, non-empty natural background and reviewable source; avoid synthetic blank canvas.",
+      "candidate_asset_path": null,
+      "source_type": "NOT_AVAILABLE",
+      "source_authorization": "NOT_APPLICABLE; no candidate found.",
+      "file_bytes_sha256": null,
+      "dimensions": null,
+      "exif_orientation": null,
+      "expected_quality_branch": "Must record actual model quality/detector behavior.",
+      "expected_pipeline_behavior": "Run actual production Detector and quality gate. Do not substitute RESP-NO_FISH or hard-code expected model response.",
+      "expected_result_branch": "Target scenario is NO_FISH only if actual product output is NO_FISH; otherwise record actual output and leave target unsatisfied.",
+      "asset_status": "MISSING",
+      "missing_reason": "No rights-cleared real no-fish photo and verified model behavior.",
+      "remediation_plan": "Acquire natural no-fish original with provenance/rights, independent scene annotation, then run actual model qualification before approving expected branch.",
+      "test_case_bindings": [
+        "E2E-06",
+        "PROC-08"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact model SHA and inference configuration; outcome stability must be measured, not asserted."
     },
     {
       "input_id": "IMG-06",
@@ -63,7 +156,25 @@
       "repository_candidate": null,
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Full-resolution photo with objectively documented focus/motion blur level and a sharp control from same acquisition where possible; fish may be present.",
+      "candidate_asset_path": null,
+      "source_type": "NOT_AVAILABLE",
+      "source_authorization": "NOT_APPLICABLE; no candidate found.",
+      "file_bytes_sha256": null,
+      "dimensions": null,
+      "exif_orientation": null,
+      "expected_quality_branch": "No frozen blur threshold or dedicated blur metric found in current implementation; parameter/contract review required.",
+      "expected_pipeline_behavior": "Run actual Detector and current quality gate; observe only. Do not label INVALID by input filename/human opinion.",
+      "expected_result_branch": "INVALID only when actual output and actual reason meet the Frozen Result contract; otherwise record actual outcome.",
+      "asset_status": "MISSING; E2E-07 REVIEW_REQUIRED",
+      "missing_reason": "No approved blur photo; implementation audit found geometry/eligibility gate but no standalone blur metric/threshold contract.",
+      "remediation_plan": "Define blur capture/measurement protocol and decision owner; obtain rights-cleared sample(s); qualify actual model output without forced responses.",
+      "test_case_bindings": [
+        "E2E-07"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact model/gate implementation SHA and any subsequently approved blur contract."
     },
     {
       "input_id": "IMG-07",
@@ -73,7 +184,25 @@
       "repository_candidate": null,
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Original JPEG with EXIF Orientation 6 or 8, raw pixel dimensions and orientation metadata preserved; define expected upright normalized geometry.",
+      "candidate_asset_path": null,
+      "source_type": "NOT_AVAILABLE",
+      "source_authorization": "NOT_APPLICABLE; no candidate found.",
+      "file_bytes_sha256": null,
+      "dimensions": null,
+      "exif_orientation": "Required future input: 6 or 8, exact original tag captured before decode.",
+      "expected_quality_branch": "Orientation normalization should yield correct upright image before detection; output/result still model-dependent.",
+      "expected_pipeline_behavior": "Use original encoded bytes through normalization path; assert transformed pixel geometry and metadata handling.",
+      "expected_result_branch": "Actual model output; orientation correctness is the target, not a predetermined fish result.",
+      "asset_status": "MISSING",
+      "missing_reason": "No EXIF-rotated original source asset found.",
+      "remediation_plan": "Acquire rights-cleared original preserving EXIF; freeze original bytes, dimensions, EXIF tag and upright reference, without re-encoding.",
+      "test_case_bindings": [
+        "RES-07"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Exact image normalization implementation and model artifact at execution."
     },
     {
       "input_id": "IMG-08",
@@ -83,7 +212,25 @@
       "repository_candidate": null,
       "source_sha256": null,
       "rights_evidence": null,
-      "stable_model_outcome": null
+      "stable_model_outcome": null,
+      "required_scene": "Future non-decodable byte fixture: define immutable bytes, length, media type/name and expected decoder error class; no image content assumed.",
+      "candidate_asset_path": null,
+      "source_type": "SPEC_ONLY_BYTES_RECIPE_NOT_CREATED",
+      "source_authorization": "No image source; a minimal synthetic malformed-byte fixture may be authored later under an approved test-only data process.",
+      "file_bytes_sha256": null,
+      "dimensions": null,
+      "exif_orientation": "Not applicable",
+      "expected_quality_branch": "Decoder failure before detector; must not be reclassified as no-fish or image-quality INVALID unless explicit contract says so.",
+      "expected_pipeline_behavior": "Deterministic decode failure, release partial buffers/files, show recoverable technical/capture error per approved failure copy.",
+      "expected_result_branch": "TECHNICAL_FAILURE / IMAGE_DECODE_FAILURE path, not NO_FISH.",
+      "asset_status": "SPEC_ONLY",
+      "missing_reason": "Bytes were intentionally not generated in this specification-only phase.",
+      "remediation_plan": "Implement later in approved test implementation phase as immutable malformed bytes with digest, schema, and decoder-version evidence.",
+      "test_case_bindings": [
+        "CAP-08"
+      ],
+      "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
+      "model_version_dependency": "Decoder implementation/API level; no model call expected."
     },
     {
       "input_id": "RESP-HIGH",
@@ -211,5 +358,10 @@
       "status": "SPEC_ONLY",
       "real_model_inference": false
     }
-  ]
+  ],
+  "image_inventory_scope": {
+    "raster_file_count": 256,
+    "scope": "Repository tree on docs/recognition-main-flow-spec-v1; raster suffixes png/jpg/jpeg/webp/gif/bmp/tif/tiff; read-only inventory. No separate authorized asset directory was configured or supplied.",
+    "sha_semantics": "file_bytes_sha256 hashes the exact present repository file bytes; it is not source provenance, rights approval or Git Blob SHA. source_sha256 is intentionally null until approved."
+  }
 }

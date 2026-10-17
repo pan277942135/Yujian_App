@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_id": "YU_JIAN_RECOGNITION_E2E",
-  "suite_version": "1.1.0",
+  "suite_version": "1.2.0",
   "status": "REVIEW",
   "test_user_id": "QA_RECOGNITION_001",
   "test_user_dataset_version": "1.1.0",
@@ -19,8 +19,7 @@
       "execution_status": "NOT_RUN",
       "input_ids": [
         "DEVICE_FRESH",
-        "CAMERA_LIVE",
-        "IMG-01"
+        "CAMERA_LIVE"
       ],
       "covers_case_ids": [
         "EN-01",
@@ -48,11 +47,150 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
       ],
       "decision_refs": [
         "NAV-04"
-      ]
+      ],
+      "execution_contract": "REAL_CAMERA_E2E",
+      "planned_test_method": "RecognitionFirstUseRealCameraE2ETest#firstRequestGuideCaptureActualInferenceAndReturn",
+      "initial_user_state": "FIRST_USE",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Empty Home",
+          "action": "Install/reset debug guest seed FIRST_USE; launch",
+          "expected_state": "EMPTY_HOME",
+          "observable_assertions": "FishRecord count=0; CAMERA currently denied; guide=false; no permission request before camera intent",
+          "evidence": [
+            "seed_receipt",
+            "screen_home",
+            "permission_state"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Capture",
+          "action": "Tap camera entry",
+          "expected_state": "PERMISSION_REQUIRED",
+          "observable_assertions": "One Android CAMERA request; no duplicate prompt",
+          "evidence": [
+            "permission_request_trace"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Capture/Guide",
+          "action": "Grant permission and wait CameraX Ready",
+          "expected_state": "CAMERA_READY → GUIDE.P01",
+          "observable_assertions": "Provider bound + Preview STREAMING + ImageCapture ready precede P01; shutter count=0",
+          "evidence": [
+            "camera_capture_trace",
+            "page_screenshots",
+            "device_profile"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "First-use Guide",
+          "action": "Next P01→P02→P03; tap Start",
+          "expected_state": "GUIDE.COMPLETED → CAMERA_READY",
+          "observable_assertions": "P01/P02/P03 order and page semantics; completed=true; Start does not shoot",
+          "evidence": [
+            "guide_state_trace",
+            "guide_screenshots"
+          ]
+        },
+        {
+          "checkpoint": 5,
+          "page_or_owner": "CameraX/Processing",
+          "action": "Capture one live frame and run production pipeline",
+          "expected_state": "CAPTURING → CAPTURE_SUCCESS → CAPTURED → actual pipeline",
+          "observable_assertions": "One capture output; normalized source decodes; real detector/pipeline events bind image ID and Attempt ID",
+          "evidence": [
+            "camera_capture_trace",
+            "image_normalization_trace",
+            "model_pipeline_events"
+          ]
+        },
+        {
+          "checkpoint": 6,
+          "page_or_owner": "Result/Recovery",
+          "action": "Observe actual terminal output and tap Result/Recovery Back",
+          "expected_state": "actual outcome → BACK_TO_SOURCE_HOME",
+          "observable_assertions": "Do not assume High/species; actual model or real no-fish/quality result is shown; technical exception is failure; Back returns Empty Home",
+          "evidence": [
+            "model_pipeline_events",
+            "native_screenshots",
+            "navigation_trace",
+            "fish_record_count"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "Permission granted on first prompt",
+        "Model may emit any real supported non-technical outcome; classification branch is observed, never preselected"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "DEVICE_FRESH",
+          "CAMERA_LIVE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "One real capture and inference with genuine device trace",
+        "Render actual model result without assuming High",
+        "Result top Back returns origin Empty Home with zero unsaved fish records",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_CAMERA_E2E",
+        "real_camera": true,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "CameraX and production model must both emit traces."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "Runner lacks usable CameraX image source",
+        "No actual model terminal trace or only a controlled response exists",
+        "Camera fixture is unreadable or no output file is produced"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-02",
@@ -63,8 +201,7 @@
       "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
       "input_ids": [
-        "CAMERA_LIVE",
-        "IMG-01"
+        "CAMERA_LIVE"
       ],
       "covers_case_ids": [
         "EN-05",
@@ -84,8 +221,119 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
-      ]
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
+      ],
+      "execution_contract": "REAL_CAMERA_E2E",
+      "planned_test_method": "RecognitionReturningUserRealCameraE2ETest#repeatEntrySkipsPermissionAndGuide",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Empty Home",
+          "action": "Seed RETURNING and verify environment",
+          "expected_state": "EMPTY_HOME",
+          "observable_assertions": "CAMERA granted by Host; guide_completed=true; no records",
+          "evidence": [
+            "seed_receipt",
+            "permission_state"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Capture",
+          "action": "Enter camera and wait readiness",
+          "expected_state": "CAMERA_INITIALIZING → CAMERA_READY",
+          "observable_assertions": "No system permission dialog; no first-use guide; shutter enabled only after Ready",
+          "evidence": [
+            "camera_capture_trace",
+            "page_screenshots"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Processing",
+          "action": "Capture one live image and run real model",
+          "expected_state": "CAPTURING → Processing → actual outcome",
+          "observable_assertions": "Unique capture and Attempt ID; detector/classifier trace actual and exact model SHA/version recorded",
+          "evidence": [
+            "capture_trace",
+            "model_pipeline_events"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Navigation",
+          "action": "Return Home, re-enter, capture again",
+          "expected_state": "Result Back → EMPTY_HOME → new Capture",
+          "observable_assertions": "Second entry does not show guide; second attempt ID/image ID differs; no stale Result; unsaved record count remains zero",
+          "evidence": [
+            "navigation_trace",
+            "model_pipeline_events",
+            "fish_record_count"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "First returning session",
+        "After one prior unsaved recognition and Home return"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "CAMERA_LIVE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "已授权且完成指引不重弹",
+        "一次识别后可返回再进入",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_CAMERA_E2E",
+        "real_camera": true,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "CameraX and production model must both emit traces."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "No genuine CameraX feed",
+        "Any outcome was supplied through controlled response instead of real model"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-03",
@@ -118,12 +366,151 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
       ],
       "decision_refs": [
         "PER-04",
         "PER-05"
-      ]
+      ],
+      "execution_contract": "REAL_CAMERA_E2E",
+      "planned_test_method": "RecognitionPermissionRecoveryE2ETest#denyThenRecoverThroughSettingsAndCapture",
+      "initial_user_state": "FIRST_USE",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Host + Empty Home",
+          "action": "Reset permission history and seed FIRST_USE",
+          "expected_state": "EMPTY_HOME",
+          "observable_assertions": "Host confirms CAMERA denied and request flags known; app data clean",
+          "evidence": [
+            "permission_host_receipt",
+            "seed_receipt"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Capture",
+          "action": "Tap camera; deny the first prompt",
+          "expected_state": "PERMISSION_REQUIRED → PERMISSION_DENIED",
+          "observable_assertions": "No provider/capture; Gallery and Back remain available",
+          "evidence": [
+            "permission_request_trace",
+            "camera_capture_count"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Capture",
+          "action": "Enter again; verify no unsolicited repeat; test one explicit retry in requestable variant",
+          "expected_state": "PERMISSION_DENIED",
+          "observable_assertions": "Request count changes only after explicit tap; false rationale alone is not labeled permanent",
+          "evidence": [
+            "permission_request_trace",
+            "permission_state"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "System Settings",
+          "action": "Tap Open Settings; grant CAMERA; return",
+          "expected_state": "PERMISSION_DENIED → FOREGROUND recheck → CAMERA_INITIALIZING",
+          "observable_assertions": "Intent targets current package; grant is read from OS after resume; no grant inferred from settings launch",
+          "evidence": [
+            "settings_intent_trace",
+            "permission_state_after_resume"
+          ]
+        },
+        {
+          "checkpoint": 5,
+          "page_or_owner": "CameraX",
+          "action": "Wait ready, capture and invoke production pipeline",
+          "expected_state": "CAMERA_READY → CAPTURING → actual pipeline",
+          "observable_assertions": "One real capture; no capture occurred before grant; actual pipeline trace if result route is included",
+          "evidence": [
+            "camera_capture_trace",
+            "model_pipeline_events",
+            "native_screenshots"
+          ]
+        },
+        {
+          "checkpoint": 6,
+          "page_or_owner": "Recovery controls",
+          "action": "Repeat denied/no-prompt variant; test Gallery and Back",
+          "expected_state": "PERMISSION_DENIED → Gallery or EMPTY_HOME",
+          "observable_assertions": "Settings remains available; Photo Picker works without CAMERA; Back returns source Home",
+          "evidence": [
+            "permission_host_receipt",
+            "gallery_import_trace",
+            "fish_record_count"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "Requestable after one denial",
+        "USER_FIXED/non-requestable state confirmed by Host flags",
+        "Return from Settings without granting",
+        "Return from Settings after granting"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "SYSTEM_PERMISSION",
+          "CAMERA_LIVE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "Denial does not permit capture",
+        "System requestability determines explicit retry versus app Settings recovery",
+        "Gallery/Back remain accessible and Settings return checks actual permission",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_CAMERA_E2E",
+        "real_camera": true,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "CameraX and production model must both emit traces."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "Host cannot prove permission request history/state",
+        "Settings UI not available on the target image",
+        "Permission is assumed from shouldShowRequestPermissionRationale=false without Host/system observation"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-04",
@@ -153,8 +540,118 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
-      ]
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
+      ],
+      "execution_contract": "REAL_CAMERA_E2E",
+      "planned_test_method": "RecognitionGuideSkipRealCameraE2ETest#skipGuideThenCaptureOnce",
+      "initial_user_state": "GUIDE_PENDING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Empty Home/Capture",
+          "action": "Seed GUIDE_PENDING and wait CameraX Ready",
+          "expected_state": "EMPTY_HOME → CAMERA_READY → GUIDE.P01",
+          "observable_assertions": "No guide before Preview Ready; capture count=0",
+          "evidence": [
+            "seed_receipt",
+            "camera_capture_trace",
+            "guide_screenshot"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Guide",
+          "action": "Tap Skip",
+          "expected_state": "P01 → COMPLETED → CAMERA_READY",
+          "observable_assertions": "Completion true exactly once; shutter/picker request counts remain 0",
+          "evidence": [
+            "guide_state_trace",
+            "capture_request_count"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "CameraX/Processing",
+          "action": "Tap shutter once; capture and run actual pipeline",
+          "expected_state": "CAMERA_READY → CAPTURING → actual pipeline outcome",
+          "observable_assertions": "Exactly one live capture; actual production model; no result branch preselected",
+          "evidence": [
+            "camera_capture_trace",
+            "model_pipeline_events"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Return",
+          "action": "Use Result Back (if result is produced)",
+          "expected_state": "actual outcome → Empty Home",
+          "observable_assertions": "NAV-04 source Home; no record unless an explicit save action was intentionally excluded",
+          "evidence": [
+            "native_screenshots",
+            "navigation_trace",
+            "fish_record_count"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "Skip from P01; skip is not a shutter action"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "CAMERA_LIVE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "跳过前快门触发数零",
+        "跳过后持久化 completed=true",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_CAMERA_E2E",
+        "real_camera": true,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "CameraX and production model must both emit traces."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "No camera feed or capture/inference trace is controlled rather than production"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-05",
@@ -180,9 +677,120 @@
         "source_sha",
         "apk_sha256",
         "controlled_injection_manifest",
-        "assertion_trace"
+        "assertion_trace",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
       ],
-      "review_reason": "受控 UI 验证而非真实模型端到端"
+      "review_reason": "受控 UI 验证而非真实模型端到端",
+      "execution_contract": "CONTROLLED_UI",
+      "planned_test_method": "RecognitionResultControlledE2ETest#mediumAndLowRequireExplicitSpeciesConfirmation",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Controlled Result Host",
+          "action": "Seed RETURNING; load RESP-MEDIUM",
+          "expected_state": "MEDIUM",
+          "observable_assertions": "Fixture manifest says controlled=true; candidate list is visible but none preselected; persistence calls=0",
+          "evidence": [
+            "controlled_injection_manifest",
+            "assertion_trace"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Medium Result",
+          "action": "Tap Save/Continue before confirming; cancel selector; then explicitly choose a species",
+          "expected_state": "MEDIUM → SPECIES_SELECTOR_MEDIUM → MEDIUM → SPECIES_CONFIRMED",
+          "observable_assertions": "No persistence before explicit choice; cancel preserves branch; selection required",
+          "evidence": [
+            "selector_state_trace",
+            "save_sink_call_count"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Controlled Result Host",
+          "action": "Load RESP-LOW with a fresh state; edit metadata and tap Save",
+          "expected_state": "LOW → SPECIES_SELECTOR_LOW_MANUAL",
+          "observable_assertions": "Requested destination/draft preserved; no save callback before selected species",
+          "evidence": [
+            "controlled_injection_manifest",
+            "draft_state_trace"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Low Result",
+          "action": "Select species and verify one controlled save intent; stop at save boundary",
+          "expected_state": "LOW_MANUAL → SPECIES_CONFIRMED → SAVE_IN_PROGRESS (controlled sink)",
+          "observable_assertions": "Sink gets one request; production guest archive remains unchanged; do not count as model evidence",
+          "evidence": [
+            "save_sink_trace",
+            "controlled=true"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "RESP-MEDIUM: tap a candidate vs cancel vs explicit choose-other",
+        "RESP-LOW: Save Catch vs Continue Memory; selection then save callback"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "RESP-MEDIUM",
+          "RESP-LOW"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "NOT_REAL_MODEL_EVIDENCE; controlled fixture/injection manifest is mandatory.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "分别注入 Medium 和 Low Outcome",
+        "未经人工确认不得自动保存",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "CONTROLLED_UI",
+        "real_camera": false,
+        "real_model": false,
+        "controlled_model_or_failure": true,
+        "notes": "Controlled response/failure is not production-model evidence."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "Any controlled response is reported as real model evidence",
+        "Controlled sink writes production FishRecord or duplicate save callback occurs"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-06",
@@ -196,13 +804,14 @@
         "IMG-05"
       ],
       "covers_case_ids": [
-        "CAP-03",
+        "CAP-09",
         "PROC-08",
         "RES-04"
       ],
       "assertions": [
         "只有真实 Detector 判为 NO_FISH 才满足结果",
-        "不采用 Mock 冒充真实推理"
+        "不采用 Mock 冒充真实推理",
+        "Gallery import trace is the positive input proof; camera_capture_trace proves camera_capture_count=0 and is not a CameraX success claim."
       ],
       "evidence_required": [
         "source_sha",
@@ -211,9 +820,127 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id",
+        "gallery_import_trace",
+        "camera_capture_count_zero",
+        "camera_capture_trace"
       ],
-      "review_reason": "需获取版本锁定的黄金无鱼输入并核验结果稳定性"
+      "review_reason": "需获取版本锁定的黄金无鱼输入并核验结果稳定性",
+      "execution_contract": "REAL_MODEL_GALLERY",
+      "planned_test_method": "RecognitionNoFishRealModelGalleryE2ETest#actualNoFishPhotoUsesProductionDetector",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Asset preflight",
+          "action": "Verify IMG-05 source/rights/scene label and SHA",
+          "expected_state": "NOT_RUN until approved fixture exists",
+          "observable_assertions": "No existing file is called an approved no-fish photo; fixture source and authorization independently reviewed",
+          "evidence": [
+            "asset_manifest",
+            "source_rights_receipt"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Gallery/Capture",
+          "action": "Seed RETURNING; open Photo Picker and select approved IMG-05",
+          "expected_state": "EMPTY_HOME → Gallery → CAPTURE_SUCCESS",
+          "observable_assertions": "Camera permission/camera capture is not required; record picker URI provenance and normalized image SHA",
+          "evidence": [
+            "gallery_import_trace",
+            "image_normalization_trace",
+            "camera_capture_count=0"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Production Model",
+          "action": "Run actual Detector and quality gate using pinned model artifact",
+          "expected_state": "CAPTURED → DETECTING → actual detector result",
+          "observable_assertions": "Only actual output can establish NO_FISH; record detector model SHA/version, event trace, input SHA and quality reason",
+          "evidence": [
+            "model_pipeline_events",
+            "model_artifact_manifest"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "No Fish Result",
+          "action": "If and only if actual gate returns NO_FISH, inspect recovery and Back",
+          "expected_state": "NO_FISH → BACK_TO_SOURCE_HOME or explicit retry",
+          "observable_assertions": "No species/save record; return target source Home; zero FishRecord",
+          "evidence": [
+            "native_screenshots",
+            "navigation_trace",
+            "fish_record_count"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "Different approved no-fish scenes must be separate fixture IDs/SHA; no one photo copied into multiple independent sample claims"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "IMG-05"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "只有真实 Detector 判为 NO_FISH 才满足结果",
+        "不采用 Mock 冒充真实推理",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_MODEL_GALLERY",
+        "real_camera": false,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "Gallery/model only: capture trace must prove zero CameraX requests."
+      },
+      "camera_capture_trace_semantics": "Negative evidence only: camera_capture_count=0; positive input proof is gallery_import_trace.",
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "IMG-05 missing/unapproved",
+        "Actual model does not produce NO_FISH for the approved image",
+        "Any mocked result, expected response substitution or forced label is present"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP",
+        "REAL_BRANCH_NOT_OBSERVED",
+        "MODEL_BEHAVIOR_REVIEW_REQUIRED"
+      ],
+      "review_status": "REVIEW_REQUIRED"
     },
     {
       "scenario_id": "E2E-07",
@@ -227,11 +954,12 @@
         "IMG-06"
       ],
       "covers_case_ids": [
-        "CAP-03",
+        "CAP-09",
         "RES-05"
       ],
       "assertions": [
-        "当质量门真实返回 INVALID 才进入质量恢复"
+        "当质量门真实返回 INVALID 才进入质量恢复",
+        "Gallery import trace is the positive input proof; camera_capture_trace proves camera_capture_count=0 and is not a CameraX success claim."
       ],
       "evidence_required": [
         "source_sha",
@@ -240,9 +968,128 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id",
+        "gallery_import_trace",
+        "camera_capture_count_zero",
+        "camera_capture_trace"
       ],
-      "review_reason": "图像质量 INVALID 不能借用 PROC-09 的技术故障断言；必须使用真实质量门证据确认目标分支。"
+      "review_reason": "图像质量 INVALID 不能借用 PROC-09 的技术故障断言；必须使用真实质量门证据确认目标分支。",
+      "execution_contract": "REAL_MODEL_GALLERY",
+      "planned_test_method": "RecognitionInvalidRealModelGalleryE2ETest#actualQualityGateInvalidUsesQualityRecovery",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Asset/model preflight",
+          "action": "Verify IMG-06 original image source, rights, blur evidence and current model/gate version",
+          "expected_state": "NOT_RUN until fixture and gate qualification",
+          "observable_assertions": "Human blur label alone is not a measured INVALID result; current quality gate uses detector geometry/eligibility and has no standalone blur metric identified in source audit",
+          "evidence": [
+            "asset_manifest",
+            "source_rights_receipt",
+            "model_gate_version"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Gallery",
+          "action": "Select approved full-resolution IMG-06 through system Photo Picker",
+          "expected_state": "EMPTY_HOME → Gallery → normalized image",
+          "observable_assertions": "No CameraX requirement; record original/normalized SHA, dimensions and decode trace",
+          "evidence": [
+            "gallery_import_trace",
+            "image_normalization_trace",
+            "camera_capture_count=0"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Production Model",
+          "action": "Run actual detector and quality gate; do not override response",
+          "expected_state": "CAPTURED → DETECTING → actual gate outcome",
+          "observable_assertions": "Record actual quality level/reason, detector boxes, model SHA/version and whether classifier was eligible",
+          "evidence": [
+            "model_pipeline_events",
+            "model_artifact_manifest"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Image Quality recovery",
+          "action": "Enter only if actual output is INVALID and reason is not NO_FISH",
+          "expected_state": "INVALID → IMAGE_QUALITY_WARNING",
+          "observable_assertions": "Exact Frozen generic quality copy; if actual output is NO_FISH, route NO_FISH; if actual output remains eligible, do not force Image Quality",
+          "evidence": [
+            "native_screenshots",
+            "navigation_trace",
+            "fish_record_count"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "Candidate blur sample with measured quality-gate INVALID",
+        "Other real quality-invalid sample only if the existing approved gate emits INVALID"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "IMG-06"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "当质量门真实返回 INVALID 才进入质量恢复",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_MODEL_GALLERY",
+        "real_camera": false,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "Gallery/model only: capture trace must prove zero CameraX requests."
+      },
+      "camera_capture_trace_semantics": "Negative evidence only: camera_capture_count=0; positive input proof is gallery_import_trace.",
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "IMG-06 missing or unapproved",
+        "No actual gate output supports INVALID",
+        "A forced RESP-INVALID or human-only blur label is used as model evidence"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP",
+        "REAL_BRANCH_NOT_OBSERVED",
+        "MODEL_BEHAVIOR_REVIEW_REQUIRED"
+      ],
+      "review_status": "REVIEW_REQUIRED"
     },
     {
       "scenario_id": "E2E-08",
@@ -253,7 +1100,8 @@
       "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
       "input_ids": [
-        "PIPELINE_FAILURE"
+        "PIPELINE_FAILURE",
+        "CAPTURE_FAILURE"
       ],
       "covers_case_ids": [
         "PROC-09",
@@ -267,9 +1115,124 @@
         "source_sha",
         "apk_sha256",
         "controlled_injection_manifest",
-        "assertion_trace"
+        "assertion_trace",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
       ],
-      "review_reason": "故障注入场景不是正常真实模型成功识别"
+      "review_reason": "故障注入场景不是正常真实模型成功识别",
+      "execution_contract": "CONTROLLED_FAILURE",
+      "planned_test_method": "RecognitionTechnicalFailureRecoveryE2ETest#injectedStageFailureIsDistinctAndRetryable",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Controlled Failure Host",
+          "action": "Seed RETURNING and choose one failure ID",
+          "expected_state": "EMPTY_HOME → controlled image handoff",
+          "observable_assertions": "Manifest names exact injection layer and failure code; controlled=true; no Release entry point can select Mock",
+          "evidence": [
+            "controlled_injection_manifest"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "Pipeline adapter",
+          "action": "Inject Detector, Crop or Classifier exception; run one variant at a time",
+          "expected_state": "PROCESSING stage → TECHNICAL_FAILURE",
+          "observable_assertions": "Actual injected stage and Attempt ID recorded; no model species or NO_FISH/INVALID outcome",
+          "evidence": [
+            "pipeline_failure_trace",
+            "assertion_trace"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Technical Recovery",
+          "action": "Tap explicit Retry with retained image or Retake/Gallery",
+          "expected_state": "TECHNICAL_FAILURE → fresh Attempt/Capture action",
+          "observable_assertions": "Old Attempt ID invalidated; retry creates new ID; one failure does not create a record",
+          "evidence": [
+            "attempt_id_trace",
+            "navigation_trace",
+            "fish_record_count"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Optional verification run",
+          "action": "If a real pipeline retry is run, report it as a separate real-model subrun",
+          "expected_state": "new actual outcome or new technical error",
+          "observable_assertions": "Do not attribute controlled first outcome to model accuracy; timeout case remains blocked until numeric policy is approved",
+          "evidence": [
+            "separate_controlled_and_real_run_ids"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "DETECTOR_FAILURE",
+        "CROP_FAILURE",
+        "CLASSIFIER_FAILURE",
+        "MODEL_TIMEOUT only after PROC-07 timeout parameter approval",
+        "CAPTURE_FAILURE only in Capture subvariant"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "PIPELINE_FAILURE",
+          "CAPTURE_FAILURE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "NOT_REAL_MODEL_EVIDENCE; controlled fixture/injection manifest is mandatory.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "注入明确技术故障",
+        "无假鱼种，用户可安全重试",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "CONTROLLED_FAILURE",
+        "real_camera": false,
+        "real_model": false,
+        "controlled_model_or_failure": true,
+        "notes": "Controlled response/failure is not production-model evidence."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "Mock can be triggered through ordinary Release UI",
+        "Controlled and real outcomes share one accuracy/result population",
+        "Retry reuses old Attempt ID or automatically repeats without user action"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP",
+        "CONTROLLED_FAILURE_NOT_REAL_MODEL_EVIDENCE"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-09",
@@ -299,13 +1262,130 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
       ],
       "decision_refs": [
         "NAV-03",
         "NAV-07"
       ],
-      "acceptance_readiness": "DEVICE_VALIDATION_REQUIRED"
+      "acceptance_readiness": "DEVICE_VALIDATION_REQUIRED",
+      "execution_contract": "CONTROLLED_FAILURE",
+      "planned_test_method": "RecognitionLifecycleControlledE2ETest#backAndRecreationNeverDuplicateAttempt",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "CameraX/Processing",
+          "action": "Seed RETURNING; capture one real CameraX image; hold a controlled pipeline event at a chosen phase",
+          "expected_state": "CAPTURING → PROCESSING active",
+          "observable_assertions": "Camera capture itself is real; detector/classifier event sequence is controlled and never claimed as real-model evidence",
+          "evidence": [
+            "camera_capture_trace",
+            "controlled_injection_manifest"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "NAV-03 Back",
+          "action": "Tap Processing Back once; deliver the old callback afterward",
+          "expected_state": "PROCESSING → CANCELLED → CAMERA_READY",
+          "observable_assertions": "Old Attempt terminal before late callback; callback ignored; no Result/navigation/record",
+          "evidence": [
+            "attempt_id_trace",
+            "late_callback_trace",
+            "fish_record_count"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Lifecycle recoverable variant",
+          "action": "Re-enter Processing with a controlled active owner and recreate Activity",
+          "expected_state": "ACTIVITY_RECREATED → ATTEMPT_RECOVERABLE",
+          "observable_assertions": "Same owner/Attempt ID; exactly one invocation; rebind observation only",
+          "evidence": [
+            "lifecycle_trace",
+            "attempt_owner_trace"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Lifecycle owner-loss variant",
+          "action": "Destroy owner; retain image or delete it, then foreground",
+          "expected_state": "ATTEMPT_LOST → explicit retry (new ID) or IMAGE_LOST → Retake",
+          "observable_assertions": "No time threshold; file existence/SHA determines retry eligibility; no automatic inference",
+          "evidence": [
+            "lifecycle_trace",
+            "image_integrity_trace",
+            "navigation_trace"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "User Back plus late callback",
+        "Activity recreation with same owner still live",
+        "Owner lost and image verified",
+        "Owner lost and image missing/corrupt"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "CAMERA_LIVE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "NOT_REAL_MODEL_EVIDENCE; controlled fixture/injection manifest is mandatory.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "Processing Back invalidates current attempt and routes Capture",
+        "Stale model callback cannot auto navigate Result or save a record",
+        "Background/Activity recreation safely reattaches same attempt or offers explicit Retry/Retake",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "CONTROLLED_FAILURE",
+        "real_camera": true,
+        "real_model": false,
+        "controlled_model_or_failure": true,
+        "notes": "Real CameraX capture and controlled pipeline events are mixed in separate checkpoints; never claim the injected pipeline is real model evidence."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "A controlled delayed callback is labeled real model output",
+        "Same attempt is dispatched twice",
+        "Restore is based only on background elapsed seconds"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP",
+        "CONTROLLED_FAILURE_NOT_REAL_MODEL_EVIDENCE"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     },
     {
       "scenario_id": "E2E-10",
@@ -316,8 +1396,7 @@
       "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
       "input_ids": [
-        "CAMERA_LIVE",
-        "IMG-01"
+        "CAMERA_LIVE"
       ],
       "covers_case_ids": [
         "CAP-04",
@@ -334,9 +1413,144 @@
         "camera_capture_trace",
         "model_pipeline_events",
         "native_screenshots",
-        "fish_record_count"
-      ]
+        "fish_record_count",
+        "test_user_id_and_state",
+        "seed_receipt_and_manifest_sha256",
+        "input_image_sha256_or_controlled_fixture_sha256",
+        "model_artifact_sha256_or_controlled=true",
+        "checkpoint_state_trace",
+        "navigation_trace",
+        "result_classification",
+        "run_id"
+      ],
+      "execution_contract": "REAL_CAMERA_E2E",
+      "planned_test_method": "RecognitionRepeatedCaptureRealCameraE2ETest#twoRunsUseIndependentImagesAndAttempts",
+      "initial_user_state": "RETURNING",
+      "complete_path": [
+        {
+          "checkpoint": 1,
+          "page_or_owner": "Empty Home",
+          "action": "Seed RETURNING and record initial IDs/count",
+          "expected_state": "EMPTY_HOME",
+          "observable_assertions": "Permission granted; guide completed; record count=0",
+          "evidence": [
+            "seed_receipt",
+            "permission_state"
+          ]
+        },
+        {
+          "checkpoint": 2,
+          "page_or_owner": "First run",
+          "action": "Real CameraX capture + production model run; do not save",
+          "expected_state": "CAMERA_READY → Attempt A → actual result/recovery",
+          "observable_assertions": "Capture A and model events bind exact input/model; result can be any actual supported branch",
+          "evidence": [
+            "camera_capture_trace_A",
+            "model_pipeline_events_A"
+          ]
+        },
+        {
+          "checkpoint": 3,
+          "page_or_owner": "Return",
+          "action": "Use Result top/System Back to source Home",
+          "expected_state": "actual outcome → EMPTY_HOME",
+          "observable_assertions": "Old result/image/attempt is cleared; no record created",
+          "evidence": [
+            "navigation_trace_A",
+            "fish_record_count"
+          ]
+        },
+        {
+          "checkpoint": 4,
+          "page_or_owner": "Second run",
+          "action": "Capture a new live frame and run production model again",
+          "expected_state": "EMPTY_HOME → Capture B → Attempt B → actual outcome",
+          "observable_assertions": "B image ID and Attempt ID differ from A; each run has one invocation; no stale callback crosses runs",
+          "evidence": [
+            "camera_capture_trace_B",
+            "model_pipeline_events_B"
+          ]
+        },
+        {
+          "checkpoint": 5,
+          "page_or_owner": "Final state",
+          "action": "Inspect guest archive and session cleanup",
+          "expected_state": "EMPTY_HOME or active actual result per explicit test stop",
+          "observable_assertions": "Unsaved two runs still create zero records; no duplicate record or stale result",
+          "evidence": [
+            "fish_record_count",
+            "session_cleanup_trace"
+          ]
+        }
+      ],
+      "scenario_variants": [
+        "Both results unsaved",
+        "Attempt A returns recovery; Attempt B independently starts from Capture"
+      ],
+      "input_and_model_version": {
+        "input_ids": [
+          "CAMERA_LIVE"
+        ],
+        "input_registry_version": "1.1.0 (after asset audit update)",
+        "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
+        "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
+      },
+      "event_timing": {
+        "clock": "monotonic runtime event timestamps; stage minima from Processing Frozen contract only",
+        "minimum_visual_beats_ms": {
+          "CAPTURED": 220,
+          "DETECTING": 320,
+          "OUTLINE": 350,
+          "CLASSIFYING": 250
+        },
+        "model_timeout": "PROC-07 configured parameter only; not assigned from these visual minima",
+        "ordering": true
+      },
+      "observable_assertions": [
+        "两次有独立 Capture/Inference Trace，未保存时鱼获仍零",
+        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "A scenario can pass only from the observation type allowed by its execution_contract."
+      ],
+      "camera_vs_simulation_boundary": {
+        "execution_contract": "REAL_CAMERA_E2E",
+        "real_camera": true,
+        "real_model": true,
+        "controlled_model_or_failure": false,
+        "notes": "CameraX and production model must both emit traces."
+      },
+      "pass_conditions": [
+        "All complete_path checkpoints satisfy their objective state and observable assertions.",
+        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+      ],
+      "blocked_conditions": [
+        "Attempt B reuses Attempt A image/Attempt/result",
+        "Controlled responses stand in for production inference",
+        "Any record is created without explicit successful save"
+      ],
+      "failure_classification": [
+        "PRODUCT_FAIL",
+        "INFRA_BLOCKED",
+        "ASSET_SOURCE_BLOCKED",
+        "EVIDENCE_INCOMPLETE",
+        "CONTRACT_GAP"
+      ],
+      "review_status": "READY_FOR_FREEZE"
     }
   ],
-  "approved_decision_registry": "docs/qa/recognition_main_journey/seven_decisions_v1.json"
+  "approved_decision_registry": "docs/qa/recognition_main_journey/seven_decisions_v1.json",
+  "spec_contract_version": "RECOGNITION_MAIN_FLOW_SPEC_V1",
+  "normative_execution_contracts": [
+    "REAL_CAMERA_E2E",
+    "REAL_MODEL_GALLERY",
+    "CONTROLLED_UI",
+    "CONTROLLED_FAILURE"
+  ],
+  "execution_contract_policy": {
+    "REAL_CAMERA_E2E": "Real CameraX capture and production recognition pipeline; never use RESP-* as its outcome oracle.",
+    "REAL_MODEL_GALLERY": "System Photo Picker input and production Detector/Crop/Classifier; camera_capture_trace is a negative proof of zero CameraX requests for legacy validator compatibility.",
+    "CONTROLLED_UI": "Controlled result payloads drive UI/state assertions; not real-model evidence.",
+    "CONTROLLED_FAILURE": "Test-only failure/event injection; not real-model evidence. Release entry points are forbidden.",
+    "legacy_execution_mode": "Retained for the current read-only catalog validator; normative submode is execution_contract."
+  }
 }
