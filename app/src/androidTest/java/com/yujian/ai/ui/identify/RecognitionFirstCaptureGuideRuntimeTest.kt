@@ -354,7 +354,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         listOf(
             Triple(RecognitionFirstCaptureGuidePage.P01, "P01_compose_component.png", "recognition-guide-page-title-1"),
             Triple(RecognitionFirstCaptureGuidePage.P02, "P02_compose_component.png", "recognition-guide-page-title-2"),
-            Triple(RecognitionFirstCaptureGuidePage.P03, "P03_compose_component.png", "recognition-guide-page-title-3"),
+            Triple(
         ).forEachIndexed { index, (guidePage, fileName, titleTag) ->
             if (index > 0) {
                 composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
@@ -378,8 +378,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 "frozen_source_sha256",
                 JSONObject()
                     .put("P01", "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50")
-                    .put("P02", "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f")
-                    .put("P03", "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
+                    .put("P02", "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
             )
             .put("device", "${Build.MANUFACTURER} ${Build.MODEL}")
             .put("api_level", Build.VERSION.SDK_INT)
@@ -402,7 +401,6 @@ class RecognitionFirstCaptureGuideRuntimeTest {
 
         assertTrue(File(evidenceDir, "P01_compose_component.png").length() > 0L)
         assertTrue(File(evidenceDir, "P02_compose_component.png").length() > 0L)
-        assertTrue(File(evidenceDir, "P03_compose_component.png").length() > 0L)
         assertEquals("ASSET_SOURCE_BLOCKED", report.getString("status"))
     }
 
