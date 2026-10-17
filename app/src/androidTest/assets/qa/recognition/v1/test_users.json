@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "dataset_id": "YU_JIAN_RECOGNITION_QA_USERS",
-  "dataset_version": "1.0.0",
+  "dataset_version": "1.1.0",
   "status": "FROZEN_BASELINE",
   "scope": "EMPTY_HOME_TO_CAMERA_TO_FIRST_USE_GUIDE_TO_RECOGNITION_RESULT_AND_RETURN",
   "identity": {
@@ -46,11 +46,12 @@
       "camera_permission": "HOST_REVOKE",
       "expected_initial_page": "EMPTY_HOME",
       "test_case_ids": [
+        "E2E-01",
+        "E2E-03",
         "EN-01",
         "PER-01",
-        "GUIDE-01",
-        "GUIDE-02",
-        "E2E-01"
+        "PER-02",
+        "PER-03"
       ]
     },
     {
@@ -59,10 +60,21 @@
       "camera_permission": "HOST_GRANT",
       "expected_initial_page": "EMPTY_HOME",
       "test_case_ids": [
-        "PER-02",
+        "E2E-04",
         "GUIDE-01",
         "GUIDE-02",
-        "E2E-01"
+        "GUIDE-03",
+        "GUIDE-04",
+        "GUIDE-05",
+        "GUIDE-06",
+        "GUIDE-07",
+        "GUIDE-08",
+        "GUIDE-09",
+        "GUIDE-10",
+        "NAV-02",
+        "SYS-04",
+        "SYS-05",
+        "SYS-06"
       ]
     },
     {
@@ -71,10 +83,58 @@
       "camera_permission": "HOST_GRANT",
       "expected_initial_page": "EMPTY_HOME",
       "test_case_ids": [
-        "EN-05",
-        "GUIDE-11",
+        "CAP-01",
+        "CAP-02",
+        "CAP-03",
+        "CAP-04",
+        "CAP-05",
+        "CAP-06",
+        "CAP-07",
+        "CAP-08",
+        "CAP-09",
         "E2E-02",
-        "E2E-10"
+        "E2E-05",
+        "E2E-06",
+        "E2E-07",
+        "E2E-08",
+        "E2E-09",
+        "E2E-10",
+        "EN-02",
+        "EN-03",
+        "EN-04",
+        "EN-05",
+        "EN-06",
+        "GUIDE-11",
+        "NAV-01",
+        "NAV-03",
+        "NAV-04",
+        "NAV-05",
+        "NAV-06",
+        "NAV-07",
+        "PER-07",
+        "PROC-01",
+        "PROC-02",
+        "PROC-03",
+        "PROC-04",
+        "PROC-05",
+        "PROC-06",
+        "PROC-07",
+        "PROC-08",
+        "PROC-09",
+        "RES-01",
+        "RES-02",
+        "RES-03",
+        "RES-04",
+        "RES-05",
+        "RES-06",
+        "RES-07",
+        "RES-08",
+        "RES-09",
+        "RES-10",
+        "SYS-01",
+        "SYS-02",
+        "SYS-03",
+        "SYS-07"
       ]
     },
     {
@@ -83,10 +143,9 @@
       "camera_permission": "HOST_REVOKE",
       "expected_initial_page": "EMPTY_HOME",
       "test_case_ids": [
-        "PER-03",
         "PER-04",
         "PER-05",
-        "E2E-03"
+        "PER-06"
       ]
     }
   ],
@@ -96,5 +155,11 @@
     "behavior_changes": "MAJOR_VERSION_AND_MIGRATION_NOTE",
     "catalog_status": "CANDIDATE_CASES_REVIEW_NOT_RUNTIME_PASS",
     "binary_photo_sources": "SEPARATE_HASHED_ASSET_MANIFEST_WHEN_APPROVED"
+  },
+  "catalog_bindings": {
+    "base_cases": "docs/qa/recognition_main_journey/test_case_catalog_v1.json",
+    "e2e_scenarios": "docs/qa/recognition_main_journey/e2e_scenarios_v1.json",
+    "input_registry": "docs/qa/recognition_main_journey/test_inputs_v1.json",
+    "mapping_rule": "Each case has exactly one primary initial state and appears once in that state's reverse index"
   }
 }
