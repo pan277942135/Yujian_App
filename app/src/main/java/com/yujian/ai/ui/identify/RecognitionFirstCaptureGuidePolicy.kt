@@ -68,7 +68,7 @@ internal fun recognitionFirstCaptureGuidePageSpec(
         RecognitionFirstCaptureGuidePage.P01 -> "竖屏拍摄示意"
         RecognitionFirstCaptureGuidePage.P02 -> "横屏拍摄示意"
     }
-    val fishPose = if (fishOrientation == RecognitionGuideFishOrientation.VERTICAL) "竖直" else "横向"
+    val fishPose = "横向"
     val subtitle = "手机保持$phoneOrientationLabel，整条鱼${fishPose}完整放入取景范围"
     return RecognitionFirstCaptureGuidePageSpec(
         page = page,
