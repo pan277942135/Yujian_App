@@ -139,7 +139,10 @@
         "reviewed_at",
         "approved",
         "allow_reuse",
-        "reuse_group"
+        "reuse_group",
+        "source_git_blob_sha",
+        "runtime_git_blob_sha",
+        "source_exif_orientation"
       ],
       "properties": {
         "slot_id": {
@@ -251,7 +254,8 @@
             "repository_distribution",
             "app_distribution",
             "ci_use",
-            "privacy_review"
+            "privacy_review",
+            "license_basis"
           ],
           "properties": {
             "source_ref": {
@@ -285,6 +289,10 @@
                 "PENDING",
                 "REJECTED"
               ]
+            },
+            "license_basis": {
+              "type": "string",
+              "minLength": 1
             }
           }
         },
@@ -400,6 +408,37 @@
           "type": [
             "string",
             "null"
+          ]
+        },
+        "source_git_blob_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "runtime_git_blob_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "source_exif_orientation": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            null
           ]
         }
       }
