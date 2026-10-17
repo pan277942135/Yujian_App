@@ -66,12 +66,19 @@
     "orientation_rule": "P01 errors horizontal fish; P02 errors horizontal fish."
   },
   "repository_binary_import": {
-    "status": "BYTE_IDENTITY_TO_EXISTING_FROZEN_SOURCE_VERIFIED_PENDING_TREE_PATH_CHECK",
+    "status": "PASS_BYTE_IDENTITY_PENDING_CI_RECOMPUTE",
     "required_paths": [
       "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
       "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png"
     ],
     "method": "P01 unchanged; P02 reuses the exact Git blob formerly used by P03; no image re-encoding",
-    "report": "design/pages/recognition/first_use_camera_guide/asset_import_report.json"
+    "report": "design/pages/recognition/first_use_camera_guide/asset_import_report.json",
+    "verification": [
+      "P01 active path exists and retains its prior Git blob",
+      "P02 active path points to the exact former P03 Git blob",
+      "Former vertical-fish P02 active path returns 404 and the same old P02 Git blob is present under archive/",
+      "Former P03 active path returns 404 and its original Git blob is present under archive/"
+    ],
+    "note": "Active-path and Git-blob identity checks passed through GitHub. CI should independently recompute SHA-256, byte counts and PNG dimensions from raw bytes before the binary-integrity gate is marked PASS."
   }
 }
