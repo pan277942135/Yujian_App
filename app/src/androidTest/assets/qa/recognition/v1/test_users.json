@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "YU_JIAN_RECOGNITION_QA_USERS",
+  "dataset_version": "1.0.0",
+  "status": "FROZEN_BASELINE",
+  "scope": "EMPTY_HOME_TO_CAMERA_TO_FIRST_USE_GUIDE_TO_RECOGNITION_RESULT_AND_RETURN",
+  "identity": {
+    "user_id": "QA_RECOGNITION_001",
+    "type": "GUEST_LOCAL_FIXTURE",
+    "is_real_backend_account": false,
+    "is_production_user": false,
+    "display_name": "渔见·拍照识别标准测试用户",
+    "credentials_in_git": false
+  },
+  "storage_contract": {
+    "guest_archive_preferences": "yujian_guest_archive",
+    "guest_records_key": "records",
+    "guest_image_directory": "guest_catches",
+    "guide_preferences": "yujian_capture_guide_v1",
+    "guide_completed_key": "capture_guide_v1_completed",
+    "allowed_mutations": [
+      "guest_archive_preferences",
+      "guest_image_directory",
+      "guide_preferences"
+    ],
+    "forbidden_mutations": [
+      "auth_credentials",
+      "backend_accounts",
+      "production_user_data",
+      "system_camera_permission",
+      "models",
+      "frozen_design_assets"
+    ]
+  },
+  "invariant": {
+    "initial_fish_records": 0,
+    "persistence_scope": "APP_PRIVATE_DEBUG_TARGET_ONLY",
+    "reset_is_idempotent": true,
+    "asset_scope": "NO_PHOTOS_NO_MODEL_MOCKS",
+    "evidence_policy": "NEVER_SUBSTITUTE_SEED_FOR_API28_OR_INFERENCE_EVIDENCE"
+  },
+  "states": [
+    {
+      "id": "FIRST_USE",
+      "guide_completed": false,
+      "camera_permission": "HOST_REVOKE",
+      "expected_initial_page": "EMPTY_HOME",
+      "test_case_ids": [
+        "EN-01",
+        "PER-01",
+        "GUIDE-01",
+        "GUIDE-02",
+        "E2E-01"
+      ]
+    },
+    {
+      "id": "GUIDE_PENDING",
+      "guide_completed": false,
+      "camera_permission": "HOST_GRANT",
+      "expected_initial_page": "EMPTY_HOME",
+      "test_case_ids": [
+        "PER-02",
+        "GUIDE-01",
+        "GUIDE-02",
+        "E2E-01"
+      ]
+    },
+    {
+      "id": "RETURNING",
+      "guide_completed": true,
+      "camera_permission": "HOST_GRANT",
+      "expected_initial_page": "EMPTY_HOME",
+      "test_case_ids": [
+        "EN-05",
+        "GUIDE-11",
+        "E2E-02",
+        "E2E-10"
+      ]
+    },
+    {
+      "id": "PERMISSION_DENIED",
+      "guide_completed": false,
+      "camera_permission": "HOST_REVOKE",
+      "expected_initial_page": "EMPTY_HOME",
+      "test_case_ids": [
+        "PER-03",
+        "PER-04",
+        "PER-05",
+        "E2E-03"
+      ]
+    }
+  ],
+  "extension_policy": {
+    "new_user_ids": "REVIEW_REQUIRED",
+    "new_states": "MINOR_VERSION_AND_NEW_TESTS",
+    "behavior_changes": "MAJOR_VERSION_AND_MIGRATION_NOTE",
+    "catalog_status": "CANDIDATE_CASES_REVIEW_NOT_RUNTIME_PASS",
+    "binary_photo_sources": "SEPARATE_HASHED_ASSET_MANIFEST_WHEN_APPROVED"
+  }
+}
