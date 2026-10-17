@@ -100,3 +100,12 @@ This standards-only update extends the existing Draft PR #161; it does not chang
 - Required slots: 12; approved sources: 0; current asset manifest status: BLOCKED_ASSET_SOURCE.
 - G03 is refined into G03A–G03E. Missing/unapproved assets block guide visual acceptance and guide-dependent E2E; no placeholder or camera-background fallback can be reported as PASS.
 - Runtime execution remains NOT_RUN. Overall specification remains REVIEW_REQUIRED, not READY_FOR_DEVELOPMENT.
+
+
+## Addendum · verified PR #145 merge and guide evidence scope · 2026-10-17
+
+- Current GitHub PR #145 metadata reports `closed/merged` at 2026-10-17T08:10:00Z, merge commit `cc642f198b6641108589076eb70de600f0e47d3a`; current `main@0d3238e8` contains that commit. Earlier status reports saying PR #145 remained unmerged are stale snapshots.
+- The existing `scripts/verify_first_use_camera_guide_assets.py` validates only the three Frozen full-page PNG files, not the 12 independent Runtime image slots.
+- The existing component instrumentation test deliberately reports `ASSET_SOURCE_BLOCKED`, `COMPONENT_INSTRUMENTATION_ONLY`, and `runtime_route_evidence=NOT_RUN`. Its green test result is not Runtime visual acceptance.
+- The new runtime asset schema records source and Android Git Blob SHA separately from file SHA-256, plus EXIF orientation and license basis. The 12 slots remain `MISSING`; no asset approval is inferred.
+- This remains a standards-only PR; Android production/test code and Runtime results are unchanged. Overall status remains `REVIEW_REQUIRED`.
