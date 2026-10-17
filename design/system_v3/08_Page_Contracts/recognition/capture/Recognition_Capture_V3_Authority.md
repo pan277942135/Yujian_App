@@ -78,3 +78,7 @@ The orientation-specific Capture Ready Hi-Fi composition is frozen in:
 - `design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json`
 
 Both portrait and landscape use a horizontal fish and a fixed horizontal Fish Guide Frame. Both use the same right-side vertical Capture + Gallery action rail. No phone frame or external mockup is part of the authority.
+
+## First-use guide authority — V1.2 two-page sequence
+
+The active first-use guide proposal is `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md`: P01 portrait phone + horizontal fish, then P02 landscape phone + horizontal fish. The former portrait phone + vertical-fish page is archive-only. P02 uses the former P03 frozen PNG bytes unchanged. The guide remains an additive overlay over the live Camera Preview; full-page Frozen PNGs are not Android runtime backgrounds. Runtime image-source, Android binding, and visual-evidence gates remain independent.
