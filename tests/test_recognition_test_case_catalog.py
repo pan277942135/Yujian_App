@@ -120,7 +120,7 @@ class CatalogRegressionTest(unittest.TestCase):
     def test_removing_approved_decision_binding_fails(self):
         def corrupt(c, e, i, u):
             e["scenarios"][0].pop("decision_refs")
-        self.assertTrue(any("E2E navigation bindings" in msg
+        self.assertTrue(any("E2E acceptance must reference approved Back decisions" in msg
                             for msg in self.check(corrupt)))
 
     def test_pretending_behavior_freeze_is_execution_pass_fails(self):
