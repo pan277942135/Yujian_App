@@ -12,7 +12,7 @@ Processing 视觉最短展示合同固定为 CAPTURED ≥220ms, DETECTING ≥320
 |---|---|---|---|---|---|---|---|
 | **G01 业务状态与导航** | 冻结状态机、QA user、精确 build | 所有被测 event 只走定义的 guarded transition；Result Top/System Back 到 source Empty Home；未保存 record 增量=0；显式 Retake 清理并产生新 Image/Attempt 身份 | Reducer/instrumentation state trace、route/back stack、archive before/after、Attempt/image ID | Result Back/Retake 源与结果页交互审阅 | state_trace, navigation_trace, archive count, screenshots, source/APK SHA | 错 route/记录副作用=PRODUCT_FAIL；source route 未构造=BLOCKED | 是 G02–G14 上游 |
 | **G02 Android 相机权限** | Host 可控制权限，API28；G12 profile/evidence | 首次请求只在 Camera 用户入口一次；拒绝无自动循环；显式重试计数正确；Settings 返回重查系统授权；运行撤销 release camera；Gallery/Back 保持可用 | permission probe/request count、intent/resume trace、CameraX bind state | 拒绝/设置提示 copy 审查（非 Frozen） | 前后 permission state、Host request history/flags、Settings route、Gallery trace | 状态不能客观确定=BLOCKED; 行为错=PRODUCT_FAIL | 是 G03/G04/G13/G14 上游 |
-| **G03 首次指引 P01/P02/P03** | Camera permission granted、CameraX READY、V1 copy/visual authority | Ready 后先 P01；页序/上一页/滑动正确；Skip/P03 Start 持久化完成；Start 不拍照；Back/关闭不标完成 | page/state/persistence/shutter traces | P01/02/03 实际截图对 Frozen 整页 reference；Hero/error runtime asset 来源审核 | 三页原生截图、page events、guide pref、shutter count、resource manifest | 独立 Hero 原片未获批时对应资源子断言 BLOCKED；视觉错 FAIL | 是 Capture/流程 E2E 上游 |
+| **G03 首次指引 P01/P02/P03** | Camera permission granted、CameraX READY、Frozen page authority、12-slot Runtime Asset Manifest、G03A–G03E | P01/02/03 page order and navigation correct; all 12 required slots approved, bound to real Android resources, SHA/semantics verified, visible in real Runtime; Skip/P03 Start persist completion and never auto-shutter | Catalog/state/persistence checks plus future fail-closed asset validator, resource-resolution/hash checks, instrumentation slot visibility and runtime screenshot assertions | Three real Android screenshots compared to Frozen layout reference; source rights and semantic labels reviewed | page screenshots, 12-slot manifest, source/runtime SHA list, resource binding report, slot bounds/testTags, APK/source/manifest SHA, device profile and run ID | Missing or unapproved source = BLOCKED; declared-but-missing binding/hash mismatch/wrong semantic image = FAIL; runtime not executed = NOT_RUN | Blocks FIRST_USE_GUIDE_VISUAL and full-flow E2E depending on guide until PASS |
 | **G04 CameraX 捕获** | G02 PASS、相机输入可用、精确 API28 device profile | Provider+Preview+ImageCapture ready 后方可快门；一次触发产出一个可解码文件；无权限/离开/后台时释放；Gallery 路径 CameraX 调用=0 | CameraX trace/output decode/count/assert | 相机画面构图可见性；emulator-camera 是否满足语义核验 | CameraX provider/stream/capture trace、输出 SHA/尺寸、device profile、截图 | 没有真实 camera source=BLOCKED; 多重输出/资源泄漏=FAIL | 是 G05/G06/G07/G14 上游 |
 | **G05 图片归一化与方向** | 获批全尺寸图/真实 capture bytes | image SHA 链完整；解码后尺寸、EXIF/像素方向按合同一致；crop coordinates 在 bounds 内；失败时清临时资源 | 输入/归一化元数据、pixel reference/assertion、file hash | 方向样例和 frame crop 目视审核 | source file bytes SHA、output dimensions/orientation、imageId、normalization trace | IMG-07 未批准/缺失=BLOCKED; 旋转/裁剪错误=FAIL | 是 G06/G08 上游 |
 | **G06 Detector / Crop / Classifier** | G05、APK 中模型发布合同与模型 SHA 一致；权限/输入有效 | 真实模型 trace 展示 Detector→quality→Crop→Classifier 或正确 terminal branch；实际 output 被完整记录；失败码分支正确；不推断模型通过 | Inference trace、模型 artifact checks、Attempt/phase IDs、tensor/asset contract checks | 输入场景标签和输出是否如实解释 | model release contract、APK model trace、input SHA、detector/crop/classifier trace、terminal result | 模型版本不匹配=BLOCKED; 实际错误路由/输出丢失=FAIL; timeout 数值没批复则 Proc performance 子 Gate BLOCKED | 是 G07/G08/G13/G14 上游 |
@@ -25,6 +25,23 @@ Processing 视觉最短展示合同固定为 CAPTURED ≥220ms, DETECTING ≥320
 | **G13 66 条基础用例** | 66 条标准全部冻结；G01–G12 对应 Gate；Case source SHA/APK 同一 | 66/66 逐条 PASS，所有 required evidence complete；不允许 BLOCKED/NOT_RUN/选择性重跑；批准测试分层/环境 | catalog ↔ result JSON cardinality/ID/status/hash validation | Need-to-review 视觉/无障碍项逐项人工签字 | 每条 case run record、evidence manifest、人工签审、summary | 任何未审批/未执行=BLOCKED; 失败断言=FAIL | G14 执行上游（但 E2E 可按依赖逐条先行） |
 | **G14 10 条 E2E 场景** | E2E JSON 标准冻结；G12；对应 G02–G09; 输入/Runner准备 | 10/10 实际执行且满足各场景 pass condition；REAL_CAMERA 有 CameraX trace；REAL_MODEL_GALLERY 有 model trace；CONTROLLED 路径明标且不算 real model | scenario/checkpoint/result JSON and trace validator | 真人路径截图/照片标签/用户结果路径审阅 | per checkpoint states, camera/model/controlled trace, SHA-bound artifact list, visual review | E2E-06/07 输入无批准素材=BLOCKED; controlled mislabeled real=FAIL | 与 G13 并列汇总到 G15 |
 | **G15 APK 与执行报告 SHA 一致性** | CI Build Once artifact pair; G12 result artifacts | 每个 run 使用构建出的同一 app-debug.apk 与 androidTest.apk; sha256sum -c 全部通过；run 的 source SHA 等于 checkout SHA；report/result artifact 绑定同一 SHA 和 run ID | artifact manifest verifier + report cross-check | 无人工替代 hash 校验；人工确认 run/summary关联准确 | APK pair, SHA256SUMS, model trace, run metadata, evidence-manifest SHA, result JSON | artifact 缺失/不同源/不同包=BLOCKED（无结论）或串包=FAIL | 终端证据 Gate；未 PASS 不可宣称运行验收通过 |
+
+## G03 fail-closed asset sub-gates
+
+G03's first-use-guide asset requirements are refined by `G03-ASSET-FAIL-CLOSED-V1` in `16_MISSING_ASSET_FAIL_CLOSED_GATE.md`. The top-level G03 row must not be interpreted as satisfied by a rendered title/text-only overlay.
+
+Required sub-gates:
+- G03A_SOURCE_AUTHORITY — approved source and repository/app/CI usage rights.
+- G03B_SLOT_COMPLETENESS — exact 12-slot manifest, schema-valid and no missing/duplicate slot IDs.
+- G03C_ANDROID_BINDING_AND_HASH — source and Android resource paths exist, decode, map to the correct R.drawable, and match the registered SHA-256.
+- G03D_SEMANTIC_REVIEW — correct fish orientation and source-image semantics are reviewed and approved.
+- G03E_RUNTIME_VISUAL — all 12 images visibly render in real Android runtime evidence at the approved device profile.
+
+**Fail-closed rule:** any missing/unapproved required image blocks FIRST_USE_GUIDE_VISUAL and every full-flow E2E that depends on that guide. A missing asset is BLOCKED; a declared-but-missing binding, hash mismatch, or wrong image semantics is FAIL. Neither status may be converted to PASS or silently skipped. Unrelated tests may continue independently.
+
+Current sub-gate state: G03A=BLOCKED, G03B=PASS_FOR_MANIFEST_SHAPE_ONLY, G03C=BLOCKED, G03D=BLOCKED, G03E=NOT_RUN. The manifest is a specification and empty slot register; it is not evidence of runtime readiness.
+
+The Frozen full-page PNGs are used to compare layout/typography/spacing and the placement of example slots. Dynamic CameraX background pixels are not expected to match the static design background pixel-for-pixel.
 
 ## 当前 Gate 基线状态
 
