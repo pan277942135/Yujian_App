@@ -827,7 +827,7 @@ class RecognitionCameraRuntimeTest {
             .put("pages", guidePages)
             .put("camera_ready_gate", "permission_granted_and_CameraX_preview_STREAMING_and_ImageCapture_ready")
             .put("shutter_invocation_count_while_guide_visible", 0)
-            .put("completion_persisted_by", "P03_START")
+            .put("completion_persisted_by", "P02_START")
             .put("independent_photo_sources", "ASSET_SOURCE_BLOCKED")
             .put("visual_observations", JSONArray()
                 .put("Screenshots were captured from the production IdentifyScreen after CameraX reported READY.")
