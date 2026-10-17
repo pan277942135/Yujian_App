@@ -307,8 +307,7 @@ feature_contracts:
           p02: "LANDSCAPE + HORIZONTAL_FISH"
         asset_sha256:
           p01: "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"
-          p02: "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
-          p03: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+          p02: "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
         repository_binary_import_status: "PASS"
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -1609,8 +1608,8 @@ contract_conflicts:
     severity: "P1"
     scope: "recognition_flow_v1_2 / N010 / G-FIRST-USE-GUIDE-ASSET"
     prior_conflict: "Design registry declared p01,p02,p03 while control documents declared p01,p02."
-    resolution: "Use the user-authorized three-page V1 scope: P01 portrait + horizontal fish, P02 portrait + vertical fish, P03 landscape + horizontal fish. Registry, manifest, navigation, asset report, Feature Matrix, Project Master State, and phase task state machine now agree."
-    resolved_on: "2026-10-16"
+    resolution: "Superseded by the 2026-10-17 two-page V1.2 authority: P01 portrait + horizontal fish; P02 landscape + horizontal fish. The former portrait + vertical-fish P02 is archive-only; P02 uses the former P03 frozen PNG bytes unchanged. Runtime and design-manager gates must validate the two-page sequence."
+    resolved_on: "2026-10-17"
     authority: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md"
 
 
