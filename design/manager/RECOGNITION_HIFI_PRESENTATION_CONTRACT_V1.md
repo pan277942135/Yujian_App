@@ -51,7 +51,7 @@ The Capture Hi-Fi Freeze Manifest records two approved design identities, but bo
 
 `Recognition_Main_Journey_Master_Board_V1.json` and `.md` are the actual board schema and state reference. The target Master Board PNG/SVG files are absent and `asset_import_gate` is `BLOCKED_CONNECTOR_UPLOAD_STEP`. The manager renders the schema as a status table only; it does not use the overview PNG or an HTML mock as a substitute board. Master Board `REVIEW` maps to manager `PARTIAL`; `MISSING` maps to `MISSING`; system ownership stays an ownership label.
 
-The combined `Recognition_New_States_HiFi_V1.png` is a review source: the first-use overlay it contains is superseded by P01/P02/P03, while Dirty Draft Discard Confirmation remains `ADDITIVE_UI_REVIEW`. Its manager state is `PARTIAL`; neither item is promoted to `FROZEN` by the image's existence.
+The combined `Recognition_New_States_HiFi_V1.png` is a review source: the first-use overlay it contains is superseded by the dedicated two-page P01/P02 guide authority, while Dirty Draft Discard Confirmation remains `ADDITIVE_UI_REVIEW`. Its manager state is `PARTIAL`; neither item is promoted to `FROZEN` by the image's existence.
 
 ## Processing motion and timing authority
 
@@ -83,7 +83,7 @@ The Result Motion Spec V1 continues to govern the resolve-to-Result visual hando
 
 ## Navigation contract
 
-- Keep `recognition_flow_v1_2 → 07 · 首次拍照教学 → P01/P02/P03` and all existing hifi IDs intact.
+- Keep `recognition_flow_v1_2 → 07 · 首次拍照教学 → P01/P02` as the active guide sequence. Preserve the existing parent/menu IDs; the former vertical-fish P02 and former P03 identity are historical only.
 - Each page and state uses a stable `#page/{feature}/hifi/{view}[/{child}]` URL.
 - User-selected navigation pushes a history entry. Direct Hash load, refresh, back, and forward resolve the same Registry item.
 - An invalid Hash displays an explicit route error and never falls back to a valid Frozen page.
