@@ -144,3 +144,10 @@ Android 开发实施时必须：
 - 缺图 Fail-closed Gate：docs/qa/recognition_main_journey/spec_v1/16_MISSING_ASSET_FAIL_CLOSED_GATE.md
 
 以上三个文件与 manifest.json 中的 Frozen 整页设计资源登记用途不同。manifest.json 继续登记 Frozen 页面参考图；新 Manifest 只登记独立 Runtime 示例图槽位。
+
+
+## 11.1 Existing validation boundary (verified on main@0d3238e8)
+
+- `scripts/verify_first_use_camera_guide_assets.py` exists and checks the three Frozen full-page PNG imports against `manifest.json` and `asset_import_report.json`.
+- `RecognitionFirstCaptureGuideRuntimeTest#capturesComponentEvidenceAndReportsTheIndependentPhotoSourceBlocker` renders the Compose component harness, explicitly records `status=ASSET_SOURCE_BLOCKED`, `runtime_evidence_status=COMPONENT_INSTRUMENTATION_ONLY`, and `runtime_route_evidence=NOT_RUN`.
+- Therefore a CI job/test named `fish-guide-v1` passing only proves the current test assertions passed, including that the missing independent-photo source is reported. It does not prove the three-page CameraX route or runtime example-image visuals passed.
