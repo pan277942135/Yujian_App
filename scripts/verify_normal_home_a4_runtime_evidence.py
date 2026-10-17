@@ -18,6 +18,7 @@ from typing import Any
 
 from PIL import Image, ImageChops
 from verify_normal_home_hero_fixtures import audit as audit_hero_fixtures
+from verify_runtime_evidence_source_closure import evaluate_home
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = ROOT / "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Pixel_Targets_V1.json"
@@ -337,31 +338,9 @@ def main(out: Path) -> int:
     with Image.open(fixture_path) as source_image:
         source_dimensions = list(source_image.size)
     source_ratio = source_dimensions[0] / source_dimensions[1]
-    hero_report = {
-        "status": "BLOCKED",
-        "fixture_preflight_status": fixture_preflight["status"],
-        "fixture_preflight_report": "Hero_Fixture_Preflight_Report.json",
-        "runtime_fixture": {
-            "fixture_id": "F03",
-            "source_path": fixture_f03["source_path"],
-            "source_sha256": sha(fixture_path),
-            "source_dimensions_px": source_dimensions,
-            "source_ratio": round(source_ratio, 5),
-            "source_provenance": fixture_f03["photo_provenance"],
-            "usage_rights": fixture_f03["source_usage_rights"],
-            "fish_bbox_ground_truth": fixture_f03["bbox_ground_truth"],
-            "render_mode": "EVIDENCE_FIT",
-            "contract_binding": "RemoteImage(preserveEvidenceWithFitBackdrop=true; fitted unchanged source over same-source blur)",
-            "fish_safe_area": "UNVERIFIED",
-            "crop": "No front-layer crop; source file SHA is preserved by seed path. Subject-safe region cannot be scored without approved bbox.",
-            "layout_test": "PASS for shared viewport and rounded card clipping; synthetic 9:16/4:5 sources are layout-only fixtures.",
-        },
-        "required_real_photo_cases": [
-            {"fixture_id": item["id"], "case": item["test_case"], "status": item["status"], "reason": item["notes"]}
-            for item in fixtures["fixtures"]
-        ],
-        "blocking_reason": "No approved originals/rights/ground-truth fish boxes for required landscape, vertical, edge, letterbox and low-confidence cases.",
-    }
+    hero_report = evaluate_home(
+        fixtures, fixture_preflight, out, base["source_commit"], base["apk_sha256"]
+    )
 
     expected_text_tags = [
         "normal-home-stat-species-value", "normal-home-stat-species-label",

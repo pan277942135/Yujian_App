@@ -10,6 +10,7 @@ import shutil
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageStat
+from verify_runtime_evidence_source_closure import evaluate_guide
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -157,12 +158,14 @@ def main() -> int:
         "status": "PASS" if not profile_failures else "FAIL",
         "failures": profile_failures,
     }
-    report["visual_parity"] = "BLOCKED_ASSET_SOURCE"
-    report["pass"] = False
+    verdict = evaluate_guide(report, visual_pages, args.output_dir)
+    report["visual_parity"] = verdict["status"]
+    report["pass"] = verdict["pass"]
+    report["visual_blockers"] = verdict["blockers"]
     report["failure_classification"] = (
         "APK_SHA_MISMATCH" if not report["apk_sha256_match"] else
         "RUNTIME_PROFILE_MISMATCH" if profile_failures else
-        "ASSET_SOURCE_BLOCKED"
+        "ASSET_SOURCE_BLOCKED" if not verdict["pass"] else None
     )
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     shutil.copyfile(report_path, args.output_dir / REPORT_NAME)
@@ -170,10 +173,10 @@ def main() -> int:
         raise SystemExit("installed APK SHA-256 does not match the exact host build APK")
     if profile_failures:
         raise SystemExit("canonical API 28 / 1080x1920 / fontScale 1.0 profile failed: " + "; ".join(profile_failures))
-    print("RUNTIME_ROUTE_EVIDENCE=PASS")
+    print("RUNTIME_ROUTE_EVIDENCE=" + str(report.get("runtime_route_evidence", "NOT_RUN")))
     print("CANONICAL_RUNTIME_PROFILE=PASS")
     print("APK_SHA_MATCH=PASS")
-    print("VISUAL_PARITY=BLOCKED_ASSET_SOURCE")
+    print("VISUAL_PARITY=" + verdict["status"])
     return 0
 
 
