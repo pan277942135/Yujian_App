@@ -103,3 +103,10 @@ Frozen 整页 PNG 是几何/排版参考，不是 Runtime 背景像素目标。C
 - ANDROID_RUNTIME_VISUAL_EVIDENCE=NOT_RUN
 
 这些状态不得合并成一个笼统的“页面完成”。只有在后续获批独立图片、绑定和真实运行验收完成后，才可更新对应状态。
+
+
+## 8. Existing test and validator interpretation (verified on main@0d3238e8)
+
+The current `scripts/verify_first_use_camera_guide_assets.py` validates only the three Frozen full-page PNGs and their import report. It is not the 12-slot runtime asset validator required by this Gate.
+
+The current Android test `RecognitionFirstCaptureGuideRuntimeTest#capturesComponentEvidenceAndReportsTheIndependentPhotoSourceBlocker` is a Compose component harness. Its evidence explicitly records `ASSET_SOURCE_BLOCKED`, `COMPONENT_INSTRUMENTATION_ONLY`, and `runtime_route_evidence=NOT_RUN`; it intentionally asserts that the blocker is reported. A green test result or `fish-guide-v1` CI job must not be interpreted as Guide Visual PASS. G03E remains NOT_RUN/BLOCKED until real IdentifyScreen + CameraX route evidence exists and all 12 images are approved and visible.
