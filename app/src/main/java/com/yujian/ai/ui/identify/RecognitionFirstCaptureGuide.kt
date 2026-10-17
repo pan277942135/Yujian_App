@@ -252,10 +252,7 @@ private fun RecognitionFirstCaptureGuidePageContent(
     modifier: Modifier = Modifier,
 ) {
     val spec = recognitionFirstCaptureGuidePageSpec(page)
-    val orientationLabel = when (spec.fishOrientation) {
-        RecognitionGuideFishOrientation.HORIZONTAL -> "横向鱼体"
-        RecognitionGuideFishOrientation.VERTICAL -> "竖直鱼体"
-    }
+    val orientationLabel = "横向鱼体"
 
     Column(
         modifier = modifier
