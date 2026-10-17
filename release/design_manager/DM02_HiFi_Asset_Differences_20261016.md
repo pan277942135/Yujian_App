@@ -1,3 +1,5 @@
+> **Historical snapshot — superseded for the active guide sequence on 2026-10-17.** This report documents the 2026-10-16 main-branch inventory and its then-current three-page mapping. The new V1.2 proposal uses exactly P01 portrait + horizontal fish and P02 landscape + horizontal fish; see `DM06_First_Use_Guide_Two_Page_Closure_20261017.md`. This banner does not rewrite the historical evidence below.
+
 # DM02 · 2026-10-16 高保真资源差异报告
 
 - Inventory: `release/design_manager/DM02_HiFi_Asset_Inventory.json` (schema 1.0)

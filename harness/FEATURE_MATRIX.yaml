@@ -303,7 +303,7 @@ features:
     known_gaps:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
       - "Capture Hi-Fi source PNG binary import remains pending."
-      - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
+      - "The active first-use guide V1.2 uses exactly P01 portrait + horizontal fish and P02 landscape + horizontal fish; former vertical-fish P02 is archive-only. Exact-head API28 runtime and visual parity evidence remain pending."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"

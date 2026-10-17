@@ -66,8 +66,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail(f"Recognition main journey navigation changed: {recognition_ids} != {EXPECTED_RECOGNITION_FLOW}")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
-    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03"]:
-        fail("legacy 07 guide and P01/P02/P03 menu mapping must remain stable")
+    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02"]:
+        fail("legacy 07 guide parent and active P01/P02 menu mapping must remain stable")
     journey = next((x for x in registry["features"] if x.get("id") == "recognition_result_v1"), None)
     if not journey or [x.get("id") for x in journey.get("hifi_views", [])] != EXPECTED_RECOGNITION_RESULT:
         fail("Recognition Result existing RR01–RR08 view mapping changed")

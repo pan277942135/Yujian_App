@@ -1,3 +1,5 @@
+> **Historical release closure — superseded for the active guide sequence on 2026-10-17.** The statements below accurately describe the 2026-10-16 release baseline. The new V1.2 two-page guide authority is documented in `DM06_First_Use_Guide_Two_Page_Closure_20261017.md`; do not treat this report's P01/P02/P03 mapping as the current proposal.
+
 # DM05 · Design Manager 高保真发布收口报告
 
 Date: 2026-10-16 (UTC)
