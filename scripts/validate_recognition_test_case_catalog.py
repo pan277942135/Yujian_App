@@ -25,6 +25,18 @@ RESP = re.compile(r"^RESP-(HIGH|MEDIUM|LOW|NO_FISH|WARNING|INVALID)$")
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 
 
+
+POLICY = ROOT / "docs/qa/recognition_main_journey/seven_decisions_v1.json"
+APPROVED_VARIANTS = {
+    "PER-04": ["REQUESTABLE", "NOT_REQUESTABLE"],
+    "PER-05": ["NO_MORE_PROMPT", "SETTINGS_RETURN"],
+    "PROC-07": ["BEFORE_DEADLINE", "AFTER_DEADLINE", "LATE_CALLBACK", "EXPLICIT_RETRY"],
+    "NAV-03": ["USER_BACK", "LATE_CALLBACK_AFTER_CANCEL"],
+    "NAV-04": ["TOP_BACK_UNSAVED"],
+    "NAV-05": ["SYSTEM_BACK_UNSAVED"],
+    "NAV-07": ["BACKGROUND_ALIVE", "RECREATION_REATTACHABLE", "ATTEMPT_LOST"],
+}
+
 def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -181,6 +193,53 @@ def validate(catalog: dict, e2e: dict, inputs: dict, users: dict,
             bindings.get("e2e_scenarios") == str(E2E.relative_to(ROOT)) and
             bindings.get("input_registry") == str(INPUTS.relative_to(ROOT)),
             "missing canonical GitHub catalog links in QA user")
+
+    # User-approved test contracts are distinct from live Android runtime PASS.
+    try:
+        approval = load(POLICY)
+    except (OSError, ValueError):
+        approval = {}
+    require(approval.get("status") == "APPROVED_BEHAVIOR_NOT_RUNTIME" and
+            approval.get("policy_id") == "RECOGNITION_MAIN_FLOW_SEVEN_DECISIONS",
+            "missing or changed approval registry")
+    require(catalog.get("approved_decision_registry") == str(POLICY.relative_to(ROOT)) and
+            e2e.get("approved_decision_registry") == str(POLICY.relative_to(ROOT)),
+            "decision authority link drift")
+    require(set(catalog.get("approved_decision_ids", [])) == set(APPROVED_VARIANTS),
+            "approved seven-case roster drift")
+    records = approval.get("decisions", [])
+    by_approved_id = {p.get("id"): p for p in records}
+    require(len(records) == 7 and set(by_approved_id) == set(APPROVED_VARIANTS),
+            "seven decision registry entries missing/duplicated")
+    for cid, variants in APPROVED_VARIANTS.items():
+        case = by_case.get(cid, {})
+        decision = by_approved_id.get(cid, {})
+        require(case.get("design_status") == "FROZEN" and
+                case.get("decision_status") == "APPROVED_BY_USER" and
+                case.get("execution_status") == "NOT_RUN",
+                f"{cid}: approved behavior must not masquerade as runtime PASS")
+        require(case.get("decision_id") == cid and
+                case.get("decision_policy_ref") == str(POLICY.relative_to(ROOT)),
+                f"{cid}: decision origin mismatch")
+        require(decision.get("approval") == "APPROVED_BY_USER" and
+                decision.get("variants") == variants and
+                case.get("required_policy_variants") == variants,
+                f"{cid}: decision variant drift")
+        require(case.get("steps") == decision.get("steps") and
+                case.get("assertions") == decision.get("assertions") and
+                all(f in case.get("evidence_required", [])
+                    for f in decision.get("required_observations", [])),
+                f"{cid}: steps/assertions/evidence diverge from approved authority")
+    delayed = by_case.get("PROC-07", {})
+    require(delayed.get("acceptance_readiness") == "BLOCKED_PARAMETER" and
+            "INFERENCE_TIMEOUT_MS_FROM_APPROVED_RUNTIME_CONFIG" in delayed.get("pending_checks", []),
+            "PROC-07: timeout must come from approved runtime config")
+    require(by_case.get("NAV-07", {}).get("acceptance_readiness") ==
+            "DEVICE_VALIDATION_REQUIRED", "NAV-07: real-device lifecycle evidence required")
+    require("NAV-04" in by_e2e.get("E2E-01", {}).get("decision_refs", []) and
+            "NAV-03" in by_e2e.get("E2E-09", {}).get("decision_refs", []),
+            "E2E acceptance must reference approved Back decisions")
+
     return errors
 
 

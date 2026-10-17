@@ -11,6 +11,7 @@ on:
       - 'docs/qa/recognition_main_journey/test_case_catalog_v1.json'
       - 'docs/qa/recognition_main_journey/e2e_scenarios_v1.json'
       - 'docs/qa/recognition_main_journey/test_inputs_v1.json'
+      - 'docs/qa/recognition_main_journey/seven_decisions_v1.json'
       - '.github/workflows/recognition-qa-test-users.yml'
   pull_request:
     paths:
@@ -23,6 +24,7 @@ on:
       - 'docs/qa/recognition_main_journey/test_case_catalog_v1.json'
       - 'docs/qa/recognition_main_journey/e2e_scenarios_v1.json'
       - 'docs/qa/recognition_main_journey/test_inputs_v1.json'
+      - 'docs/qa/recognition_main_journey/seven_decisions_v1.json'
       - '.github/workflows/recognition-qa-test-users.yml'
   workflow_dispatch:
 permissions:
