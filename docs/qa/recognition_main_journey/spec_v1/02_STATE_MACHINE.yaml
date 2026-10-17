@@ -1,0 +1,880 @@
+contract_id: YU_JIAN_RECOGNITION_UNIFIED_STATE_MACHINE_V1
+contract_version: 1.0.0
+status: REVIEW_REQUIRED
+authority: spec_v1/01_MASTER_JOURNEY.md plus cited Frozen contracts
+key: PAGE_ID + STATE_ID
+execution_status: NOT_RUN
+state_count: 38
+transition_count: 32
+rules:
+  single_primary_initial_state_per_test_case: true
+  no_implicit_record_creation: true
+  real_pipeline_events_required: true
+  visual_minima_ms:
+    CAPTURED: 220
+    DETECTING: 320
+    OUTLINE: 350
+    CLASSIFYING: 250
+  model_timeout_ms: PARAMETER_REVIEW_REQUIRED; no fixed value approved
+  processing_back: CANCEL_OR_INVALIDATE_ATTEMPT_AND_RETURN_TO_CAPTURE (approved NAV-03)
+  result_back: TOP_AND_SYSTEM_BACK_RETURN_TO_SOURCE_HOME (approved NAV-04/NAV-05)
+  gallery_permission: CAMERA_PERMISSION_NOT_REQUIRED
+  qa_user: QA_RECOGNITION_001; one logical local guest with four seeded states
+states:
+- PAGE_ID: recognition.home.empty.v1
+  STATE_ID: EMPTY_HOME
+  ENTRY_CONDITION: App opens or a recognition session returns to its recorded origin
+  EVENT: tap_capture | tap_gallery
+  GUARD: QA user is a local guest; no recognition route is already active
+  SIDE_EFFECT: Store source route; create recognition session only on accepted user action
+  NEXT_STATE: PERMISSION_REQUIRED | CAMERA_INITIALIZING | GALLERY_PICKER
+  BACK_TARGET: N/A (entry page)
+  ERROR_PATH: Home data cannot load
+  RECOVERY_PATH: Retry Home; do not create a placeholder FishRecord
+  PERSISTENCE: No Recognition Attempt or FishRecord; guest archive count starts at 0
+  OWNER: Home navigation owner
+  TEST_CASE_IDS:
+  - EN-01
+  - EN-02
+  - EN-03
+  - NAV-04
+  - NAV-05
+  - SYS-01
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: PERMISSION_REQUIRED
+  ENTRY_CONDITION: Camera route entered with CAMERA not granted and first request or an explicit retry is available
+  EVENT: camera_route_entered | user_tap_retry_permission
+  GUARD: Camera has been requested only after camera-route intent; no active request is in flight
+  SIDE_EFFECT: Issue one Android permission request; keep camera disabled
+  NEXT_STATE: PERMISSION_DENIED | CAMERA_INITIALIZING
+  BACK_TARGET: EMPTY_HOME
+  ERROR_PATH: Permission result is denied or dismissed
+  RECOVERY_PATH: Stay in denied recovery; keep Gallery and Back
+  PERSISTENCE: Record only app-owned request history hint; Android permission remains system-owned
+  OWNER: Capture permission coordinator
+  TEST_CASE_IDS:
+  - PER-01
+  - PER-02
+  - PER-03
+  - PER-04
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: PERMISSION_DENIED
+  ENTRY_CONDITION: Permission callback is denied/dismissed or current system check is not granted
+  EVENT: permission_denied | settings_returned_without_grant | explicit_retry
+  GUARD: Re-read checkSelfPermission; shouldShowRequestPermissionRationale is a rationale hint, never sole permanent-denial
+    proof
+  SIDE_EFFECT: Prevent camera bind/capture; show retry/settings/Gallery/Back actions
+  NEXT_STATE: PERMISSION_REQUIRED | CAMERA_INITIALIZING | CAPTURE_SUCCESS | CANCELLED
+  BACK_TARGET: EMPTY_HOME
+  ERROR_PATH: Settings Intent cannot resolve or permission is still denied
+  RECOVERY_PATH: Keep Gallery and Back; allow explicit retry; retry Settings Intent if resolvable
+  PERSISTENCE: Store last request result only as a UX hint; do not synthesize grant
+  OWNER: Capture permission coordinator
+  TEST_CASE_IDS:
+  - PER-03
+  - PER-04
+  - PER-05
+  - PER-06
+  - PER-07
+  - CAP-09
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: CAMERA_INITIALIZING
+  ENTRY_CONDITION: System permission is currently granted and Capture host starts/reattaches CameraX
+  EVENT: permission_granted | camera_retry | app_foreground
+  GUARD: Provider binding, Preview streaming and ImageCapture readiness are not all true
+  SIDE_EFFECT: Bind CameraX once; observe provider and preview readiness; disable shutter
+  NEXT_STATE: CAMERA_READY | CAPTURE_ERROR | CANCELLED
+  BACK_TARGET: EMPTY_HOME
+  ERROR_PATH: Provider initialization/binding failure or permission revocation
+  RECOVERY_PATH: Retry camera; Gallery; Back; re-read permission after resume
+  PERSISTENCE: No image or FishRecord
+  OWNER: Capture host / CameraX lifecycle owner
+  TEST_CASE_IDS:
+  - EN-04
+  - EN-05
+  - EN-06
+  - PER-02
+  - PER-06
+  - CAP-01
+  - CAP-02
+  - NAV-01
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: CAMERA_READY
+  ENTRY_CONDITION: Permission granted; provider bound; Preview STREAMING; ImageCapture ready
+  EVENT: tap_shutter | open_gallery | system_permission_revoked | app_background | back
+  GUARD: No capture or picker handoff is active
+  SIDE_EFFECT: Enable one capture; open Gallery independently; release provider on route exit/background/revoke
+  NEXT_STATE: CAPTURING | CAPTURE_SUCCESS | PERMISSION_DENIED | CANCELLED
+  BACK_TARGET: EMPTY_HOME
+  ERROR_PATH: Capture/provider error
+  RECOVERY_PATH: Retry camera; open Gallery; return Home
+  PERSISTENCE: No FishRecord
+  OWNER: Capture host / CameraX lifecycle owner
+  TEST_CASE_IDS:
+  - CAP-01
+  - CAP-03
+  - CAP-04
+  - CAP-09
+  - NAV-01
+  - PER-07
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: CAPTURING
+  ENTRY_CONDITION: One eligible shutter action has reserved the only in-flight capture slot
+  EVENT: capture_started | capture_success | capture_failure | back
+  GUARD: permission granted; provider+preview+ImageCapture ready; no request already in flight
+  SIDE_EFFECT: Create unique capture request ID and app-private temporary output; normalize only after terminal callback
+  NEXT_STATE: CAPTURE_SUCCESS | CAPTURE_ERROR | CANCELLED
+  BACK_TARGET: EMPTY_HOME (after safe cancellation)
+  ERROR_PATH: Capture exception, unreadable output, normalize/decode error
+  RECOVERY_PATH: Return to Camera Ready after cleanup; retry or Gallery
+  PERSISTENCE: Temporary file is app-private cache, not a FishRecord
+  OWNER: Capture host / CameraX callback owner
+  TEST_CASE_IDS:
+  - CAP-02
+  - CAP-03
+  - CAP-04
+  - CAP-08
+  - EN-04
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: CAPTURE_SUCCESS
+  ENTRY_CONDITION: Camera image or selected gallery image has decoded and normalized exactly once
+  EVENT: normalized_image_ready
+  GUARD: Non-empty selected image file, stable image ID, orientation normalized, readable bitmap
+  SIDE_EFFECT: Hand off one SelectedImage and create one new Recognition Attempt ID
+  NEXT_STATE: CAPTURED
+  BACK_TARGET: No Back at handoff; Processing Back is defined on processing page
+  ERROR_PATH: Normalization or handoff failure
+  RECOVERY_PATH: Return to Capture Error; keep no stale result
+  PERSISTENCE: Keep app-private normalized file only for current session / explicit retry lifetime
+  OWNER: Image normalization owner
+  TEST_CASE_IDS:
+  - CAP-03
+  - CAP-05
+  - CAP-06
+  - CAP-07
+  - CAP-09
+  - PROC-01
+- PAGE_ID: recognition.capture.v3_1
+  STATE_ID: CAPTURE_ERROR
+  ENTRY_CONDITION: Provider/capture/normalization failed before usable image handoff
+  EVENT: provider_error | capture_error | decode_error | normalize_error
+  GUARD: No readable normalized image has been committed
+  SIDE_EFFECT: Release partial output and mark request terminal; do not start detector
+  NEXT_STATE: CAMERA_INITIALIZING | CAMERA_READY | CAPTURE_SUCCESS | CANCELLED
+  BACK_TARGET: EMPTY_HOME
+  ERROR_PATH: Repeated failure remains CAPTURE_ERROR
+  RECOVERY_PATH: Retry camera; Gallery; Back
+  PERSISTENCE: No FishRecord; delete partial temporary file idempotently
+  OWNER: Capture host / image store
+  TEST_CASE_IDS:
+  - EN-06
+  - CAP-08
+  - CAP-09
+- PAGE_ID: recognition.first_capture_guide.v1
+  STATE_ID: P01
+  ENTRY_CONDITION: Guide eligible only after Camera Ready, not after Gallery entry
+  EVENT: guide_presented | next | skip | back | dismiss
+  GUARD: guideCompleted=false; camera Ready; no gallery picker pending
+  SIDE_EFFECT: Show P01; capture controls are covered and inert
+  NEXT_STATE: P02 | COMPLETED | DISMISSED
+  BACK_TARGET: DISMISSED → EMPTY_HOME
+  ERROR_PATH: Frozen reference/visual resource missing at runtime
+  RECOVERY_PATH: Keep current page or exit dismissed; do not auto-shoot
+  PERSISTENCE: No completion write on entry, page change, Back or dismiss
+  OWNER: First-use guide owner
+  TEST_CASE_IDS:
+  - GUIDE-01
+  - GUIDE-02
+  - GUIDE-03
+  - GUIDE-08
+  - GUIDE-09
+  - GUIDE-10
+- PAGE_ID: recognition.first_capture_guide.v1
+  STATE_ID: P02
+  ENTRY_CONDITION: P01 Next or page swipe reaches second page
+  EVENT: next | previous | swipe | skip | back | dismiss
+  GUARD: Guide is active and current page index is P02
+  SIDE_EFFECT: Show P02 and sync selected/current semantics
+  NEXT_STATE: P03 | P01 | COMPLETED | DISMISSED
+  BACK_TARGET: DISMISSED → EMPTY_HOME
+  ERROR_PATH: Pager input/render failure
+  RECOVERY_PATH: Stay at current page; allow explicit skip/back
+  PERSISTENCE: No completion write until Skip or P03 Start
+  OWNER: First-use guide owner
+  TEST_CASE_IDS:
+  - GUIDE-03
+  - GUIDE-04
+  - GUIDE-05
+  - GUIDE-06
+  - GUIDE-08
+  - GUIDE-09
+  - GUIDE-10
+- PAGE_ID: recognition.first_capture_guide.v1
+  STATE_ID: P03
+  ENTRY_CONDITION: P02 Next or page swipe reaches final page
+  EVENT: previous | start | swipe | skip | back | dismiss
+  GUARD: Guide is active and current page index is P03
+  SIDE_EFFECT: Show P03; Start returns to Camera Ready without triggering capture
+  NEXT_STATE: P02 | COMPLETED | DISMISSED
+  BACK_TARGET: DISMISSED → EMPTY_HOME
+  ERROR_PATH: Pager input/render failure
+  RECOVERY_PATH: Stay at current page; allow explicit skip or Back
+  PERSISTENCE: No completion write until Skip or Start
+  OWNER: First-use guide owner
+  TEST_CASE_IDS:
+  - GUIDE-04
+  - GUIDE-05
+  - GUIDE-06
+  - GUIDE-07
+  - GUIDE-08
+  - GUIDE-09
+  - GUIDE-10
+- PAGE_ID: recognition.first_capture_guide.v1
+  STATE_ID: COMPLETED
+  ENTRY_CONDITION: User explicitly tapped Skip or P03 Start
+  EVENT: skip_confirmed | p03_start_confirmed
+  GUARD: Event source is one of the two approved completion actions
+  SIDE_EFFECT: Persist capture_guide_v1_completed=true; close Overlay; re-enable controls
+  NEXT_STATE: CAMERA_READY
+  BACK_TARGET: No direct route; capture remains on current page
+  ERROR_PATH: Preference write fails
+  RECOVERY_PATH: Do not claim completion persisted; retain first-use eligibility and show retryable capture state
+  PERSISTENCE: yujian_capture_guide_v1/capture_guide_v1_completed=true
+  OWNER: First-use guide store
+  TEST_CASE_IDS:
+  - GUIDE-07
+  - GUIDE-08
+  - GUIDE-11
+- PAGE_ID: recognition.first_capture_guide.v1
+  STATE_ID: DISMISSED
+  ENTRY_CONDITION: User leaves Guide by Top Back/System Back or an allowed dismiss action
+  EVENT: guide_back | system_back | close
+  GUARD: Dismiss is not Skip and not P03 Start
+  SIDE_EFFECT: Close Guide; leave completed=false; clear transient pager UI
+  NEXT_STATE: EMPTY_HOME | CAMERA_READY
+  BACK_TARGET: EMPTY_HOME (explicit guide-dismiss exit); camera host is released if route exits
+  ERROR_PATH: Dismiss lifecycle race
+  RECOVERY_PATH: Re-entering Capture may show P01 again when still eligible
+  PERSISTENCE: completed=false remains unchanged
+  OWNER: First-use guide/navigation owner
+  TEST_CASE_IDS:
+  - GUIDE-09
+  - NAV-02
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: CAPTURED
+  ENTRY_CONDITION: A single normalized image and unique Attempt ID are accepted by Processing
+  EVENT: attempt_started
+  GUARD: Attempt owner is active; image ID/file SHA is readable; no active duplicate Attempt
+  SIDE_EFFECT: Start monotonic inference clock immediately before Detector dispatch; show source photo
+  NEXT_STATE: DETECTING | TECHNICAL_FAILURE | CANCELLED
+  BACK_TARGET: CAMERA_READY per approved NAV-03
+  ERROR_PATH: Image missing/decode exception
+  RECOVERY_PATH: Technical failure if the Attempt exists; Capture error if handoff never completed
+  PERSISTENCE: Attempt metadata is owner-held; image remains app-private until terminal cleanup/retry expiry
+  OWNER: Recognition Attempt coordinator
+  TEST_CASE_IDS:
+  - PROC-01
+  - PROC-02
+  - PROC-06
+  - PROC-07
+  - NAV-03
+  - NAV-07
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: DETECTING
+  ENTRY_CONDITION: Detector dispatch has started and source image is unchanged
+  EVENT: detection_started | detector_outcome | timeout | cancel
+  GUARD: Real detector event and ≥320ms visual beat required to advance
+  SIDE_EFFECT: Record detector model/version, input SHA, monotonic event time and actual detector outcome
+  NEXT_STATE: OUTLINE | RESULT_READY(NO_FISH/INVALID) | TECHNICAL_FAILURE | CANCELLED
+  BACK_TARGET: CAMERA_READY per approved NAV-03
+  ERROR_PATH: Detector exception, timeout or malformed output
+  RECOVERY_PATH: Retry same retained image explicitly with a new Attempt ID; otherwise retake
+  PERSISTENCE: No FishRecord
+  OWNER: Recognition Attempt coordinator / Detector adapter
+  TEST_CASE_IDS:
+  - PROC-03
+  - PROC-06
+  - PROC-07
+  - PROC-08
+  - PROC-09
+  - NAV-03
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: OUTLINE
+  ENTRY_CONDITION: A real classifier-eligible fish box was emitted
+  EVENT: crop_started | crop_success | crop_failure | timeout | cancel
+  GUARD: Real primary bbox and ≥350ms visual beat; no fixture geometry in real-model proof
+  SIDE_EFFECT: Crop only registered bounds from normalized source; emit real contour/focus geometry
+  NEXT_STATE: CLASSIFYING | TECHNICAL_FAILURE | CANCELLED
+  BACK_TARGET: CAMERA_READY per approved NAV-03
+  ERROR_PATH: Crop bounds invalid, crop decode failed, or timeout
+  RECOVERY_PATH: Technical failure; explicit retry/retake; release crop resources
+  PERSISTENCE: No FishRecord
+  OWNER: Recognition Attempt coordinator / Crop adapter
+  TEST_CASE_IDS:
+  - PROC-04
+  - PROC-06
+  - PROC-07
+  - PROC-09
+  - NAV-03
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: CLASSIFYING
+  ENTRY_CONDITION: Real crop has entered Classifier
+  EVENT: classifier_result | classifier_failure | timeout | cancel
+  GUARD: Real classifier callback belongs to active Attempt and ≥250ms visual beat elapsed
+  SIDE_EFFECT: Keep original photo; append actual result and model version to trace
+  NEXT_STATE: RESULT_READY | TECHNICAL_FAILURE | CANCELLED
+  BACK_TARGET: CAMERA_READY per approved NAV-03
+  ERROR_PATH: Exception/timeout maps only to TECHNICAL_FAILURE
+  RECOVERY_PATH: Explicit Retry creates a new Attempt ID and deadline; ignore late old callback
+  PERSISTENCE: No FishRecord
+  OWNER: Recognition Attempt coordinator / Classifier adapter
+  TEST_CASE_IDS:
+  - PROC-05
+  - PROC-06
+  - PROC-07
+  - PROC-09
+  - NAV-03
+  - NAV-07
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: RESULT_READY
+  ENTRY_CONDITION: A complete real model/quality outcome is present and current Attempt remains valid
+  EVENT: pipeline_outcome_ready
+  GUARD: Attempt ID matches active owner; one terminal result delivered exactly once
+  SIDE_EFFECT: Stop inference clock; route by frozen quality/result precedence
+  NEXT_STATE: HIGH | MEDIUM | LOW | NO_FISH | WARNING | INVALID | TECHNICAL_FAILURE
+  BACK_TARGET: Result Back → recorded source Home; Retry/Retake → Capture
+  ERROR_PATH: Incomplete/stale payload rejected
+  RECOVERY_PATH: Start a new attempt explicitly if needed
+  PERSISTENCE: No FishRecord until explicit Save Catch/Continue Memory succeeds
+  OWNER: Recognition Attempt coordinator / Result router
+  TEST_CASE_IDS:
+  - PROC-01
+  - PROC-08
+  - RES-01
+  - RES-04
+  - RES-05
+  - RES-06
+  - NAV-04
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: TECHNICAL_FAILURE
+  ENTRY_CONDITION: Pipeline reports an actual technical failure, timeout, or invalidated run failure
+  EVENT: detector_failure | crop_failure | classifier_failure | timeout | dependency_failure
+  GUARD: No valid result payload can be delivered; failure cause is technical, not input quality
+  SIDE_EFFECT: Terminalize Attempt; release model/crop resources; mark old callbacks stale
+  NEXT_STATE: CANCELLED | explicit_retry → CAPTURED(new Attempt)
+  BACK_TARGET: Camera Ready per approved NAV-03; Result technical issue Back follows its registered route
+  ERROR_PATH: Failure report itself remains evidence; no synthetic species
+  RECOVERY_PATH: Retry retained image explicitly with a fresh Attempt ID; Retake if image unavailable
+  PERSISTENCE: No FishRecord; retain failure trace without retaining live Bitmap
+  OWNER: Recognition Attempt coordinator / Recovery router
+  TEST_CASE_IDS:
+  - PROC-07
+  - PROC-09
+  - NAV-03
+  - NAV-07
+  - E2E-08
+- PAGE_ID: recognition.processing.v3_1
+  STATE_ID: CANCELLED
+  ENTRY_CONDITION: User explicitly leaves active Processing or its owner is invalidated
+  EVENT: user_back | route_exit | owner_lost
+  GUARD: Attempt ID must match active owner to cancel; duplicate cancel is idempotent
+  SIDE_EFFECT: Cancel coroutine/engine work where supported; otherwise invalidate ID; discard stale callbacks
+  NEXT_STATE: CAMERA_READY | ATTEMPT_LOST
+  BACK_TARGET: CAMERA_READY (approved NAV-03)
+  ERROR_PATH: Cancel/close exception cannot restore old Result
+  RECOVERY_PATH: Retake/re-enter creates a fresh session/Attempt
+  PERSISTENCE: No FishRecord; clear old result and release resources
+  OWNER: Recognition Attempt coordinator / Capture navigation owner
+  TEST_CASE_IDS:
+  - NAV-03
+  - NAV-06
+  - NAV-07
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: HIGH
+  ENTRY_CONDITION: Real classifier outcome maps to unambiguous high-confidence result
+  EVENT: outcome_high | edit | top_back | system_back | save
+  GUARD: Payload belongs to current Attempt and source model/version; no controlled response is claimed as real
+  SIDE_EFFECT: Render exact existing High result contract using oriented source photo
+  NEXT_STATE: HIGH | SAVE_IN_PROGRESS | BACK_TO_SOURCE_HOME | RETAKE
+  BACK_TARGET: BACK_TO_SOURCE_HOME; Retake action → Capture
+  ERROR_PATH: Bad/missing model payload
+  RECOVERY_PATH: Remain recoverable; never fabricate High
+  PERSISTENCE: No FishRecord until successful save; metadata remains draft
+  OWNER: Recognition Result owner
+  TEST_CASE_IDS:
+  - RES-01
+  - RES-07
+  - RES-08
+  - RES-09
+  - RES-10
+  - NAV-04
+  - NAV-05
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: MEDIUM
+  ENTRY_CONDITION: Real classifier result resolves medium branch
+  EVENT: outcome_medium | explicit_candidate_select | other_species | back
+  GUARD: Candidate is a suggestion and is not preselected; explicit selection needed to persist
+  SIDE_EFFECT: Show candidates and current source image; save request enters registered selector
+  NEXT_STATE: MEDIUM | species_confirmed | BACK_TO_SOURCE_HOME
+  BACK_TARGET: BACK_TO_SOURCE_HOME; Retake action → Capture
+  ERROR_PATH: Candidate list invalid
+  RECOVERY_PATH: Return to Medium without selection and retain page state
+  PERSISTENCE: No FishRecord until explicit confirmation plus successful save
+  OWNER: Recognition Result owner
+  TEST_CASE_IDS:
+  - RES-02
+  - RES-08
+  - NAV-04
+  - NAV-05
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: LOW
+  ENTRY_CONDITION: Real classifier result resolves low-confidence branch
+  EVENT: outcome_low | edit | save_request | explicit_manual_select
+  GUARD: Species is not confirmed; LOW_MANUAL selection gates persistence
+  SIDE_EFFECT: Keep edits in draft; intercept save with explicit selector
+  NEXT_STATE: LOW | species_confirmed | BACK_TO_SOURCE_HOME
+  BACK_TARGET: BACK_TO_SOURCE_HOME; Retake action → Capture
+  ERROR_PATH: Selector/data error
+  RECOVERY_PATH: Return to Low with draft preserved
+  PERSISTENCE: No FishRecord before explicit species choice and successful save
+  OWNER: Recognition Result owner
+  TEST_CASE_IDS:
+  - RES-03
+  - NAV-04
+  - NAV-05
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: NO_FISH
+  ENTRY_CONDITION: Real Quality Gate determines NO_FISH, including NO_FISH reason with INVALID quality
+  EVENT: outcome_no_fish | retake | gallery | back
+  GUARD: NO_FISH precedence applies before generic invalid image quality copy
+  SIDE_EFFECT: Render separate Frozen No Fish recovery; no species/save action
+  NEXT_STATE: RETAKE | GALLERY | BACK_TO_SOURCE_HOME
+  BACK_TARGET: Back → source Home; Retake/Gallery → Capture
+  ERROR_PATH: Recovery UI/data error
+  RECOVERY_PATH: Retry via new image; do not rerun the same outcome automatically
+  PERSISTENCE: No FishRecord
+  OWNER: Recognition Result recovery owner
+  TEST_CASE_IDS:
+  - PROC-08
+  - RES-04
+  - E2E-06
+  - NAV-04
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: WARNING
+  ENTRY_CONDITION: Quality level is WARNING while real gate says classifier eligible
+  EVENT: warning_emitted | classifier_outcome
+  GUARD: WARNING is a data/quality signal, not a separate recovery page; classifier decides actual High/Medium/Low outcome
+  SIDE_EFFECT: Preserve warning in trace; do not route to Image Quality solely for WARNING
+  NEXT_STATE: HIGH | MEDIUM | LOW (actual classifier route)
+  BACK_TARGET: Back follows actual Result branch
+  ERROR_PATH: Missing eligibility/output is technical, not quality recovery
+  RECOVERY_PATH: Use actual classifier result or report actual failure
+  PERSISTENCE: No FishRecord until normal result save succeeds
+  OWNER: Quality Gate + Recognition Result router
+  TEST_CASE_IDS:
+  - RES-06
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: INVALID
+  ENTRY_CONDITION: Quality Gate returns INVALID and reason is not NO_FISH
+  EVENT: outcome_invalid
+  GUARD: Actual Gate output says classifier-ineligible; NO_FISH precedence already evaluated
+  SIDE_EFFECT: Render existing Image Quality Recovery alias `IMAGE_QUALITY_WARNING` and exact Frozen copy
+  NEXT_STATE: RETAKE | GALLERY | BACK_TO_SOURCE_HOME
+  BACK_TARGET: Back → source Home; Retake/Gallery → Capture
+  ERROR_PATH: Missing quality reason stays generic; do not invent diagnosis
+  RECOVERY_PATH: Retry with new image; no model response is fabricated
+  PERSISTENCE: No FishRecord
+  OWNER: Quality Gate + Recognition Result recovery owner
+  TEST_CASE_IDS:
+  - RES-05
+  - E2E-07
+- PAGE_ID: recognition.recovery.v1
+  STATE_ID: TECHNICAL_FAILURE
+  ENTRY_CONDITION: Pipeline or runtime failure is separately reported
+  EVENT: detector_failure | crop_failure | classifier_failure | timeout | dependency_failure
+  GUARD: No model output has been represented as an input-quality diagnosis
+  SIDE_EFFECT: Render Technical Failure recovery distinct from 3+2/Frozen No Fish/Image Quality
+  NEXT_STATE: RETRY | RETAKE | GALLERY | BACK_TO_SOURCE_HOME
+  BACK_TARGET: Registered recovery Back returns to source Home; explicit Retake/Retry chooses Capture
+  ERROR_PATH: Recovery presentation failure
+  RECOVERY_PATH: Retry same image only on user action; new Attempt ID; retake if source unavailable
+  PERSISTENCE: No FishRecord
+  OWNER: Technical recovery owner
+  TEST_CASE_IDS:
+  - PROC-07
+  - PROC-09
+  - E2E-08
+  - NAV-04
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: SAVE_IN_PROGRESS
+  ENTRY_CONDITION: User explicitly requests a legal save destination and explicit species is available
+  EVENT: save_requested | back | system_back | save_success | save_error
+  GUARD: No save already in flight; species confirmed; idempotency key reserved
+  SIDE_EFFECT: Disable top Back; consume system Back; submit exactly one idempotent persistence request
+  NEXT_STATE: SAVE_SUCCEEDED | SAVE_ERROR
+  BACK_TARGET: No navigation until persistence terminal; on error return to editable Result
+  ERROR_PATH: Save failure retains draft and destination; no successful record asserted
+  RECOVERY_PATH: Retry only explicit after failure; duplicate taps do not duplicate records
+  PERSISTENCE: One record only after success; pending request held by save owner
+  OWNER: Recognition Result save coordinator
+  TEST_CASE_IDS:
+  - NAV-04
+  - NAV-05
+  - RES-08
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: SAVE_ERROR
+  ENTRY_CONDITION: Persistence returned failure and no successful record exists
+  EVENT: retry_save | edit | top_back | system_back
+  GUARD: The retained draft and save destination still belong to the current result
+  SIDE_EFFECT: Show inline save error; clear busy gate and re-enable consistent exit
+  NEXT_STATE: SAVE_IN_PROGRESS | BACK_TO_SOURCE_HOME | RETAKE
+  BACK_TARGET: Unsaved exit uses same Back policy and discard confirmation
+  ERROR_PATH: Repeated errors remain on Result
+  RECOVERY_PATH: Retry the same idempotency key; user can leave after failure
+  PERSISTENCE: Zero new FishRecord on failed write
+  OWNER: Recognition Result save coordinator
+  TEST_CASE_IDS:
+  - NAV-04
+  - NAV-05
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: SAVE_SUCCEEDED
+  ENTRY_CONDITION: Persistence confirms exactly one created record
+  EVENT: save_success
+  GUARD: Record ID is durable and matches idempotency key
+  SIDE_EFFECT: Dispatch already registered successful destination; this page does not show a new success scene
+  NEXT_STATE: OUT_OF_SCOPE_DESTINATION
+  BACK_TARGET: N/A; successful save leaves main journey
+  ERROR_PATH: Destination dispatch failure is separate persistence/navigation incident
+  RECOVERY_PATH: Do not retry save blindly; query/repair by idempotency key
+  PERSISTENCE: Exactly one FishRecord exists after success
+  OWNER: Save coordinator / destination router
+  TEST_CASE_IDS:
+  - RES-08
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: BACK_TO_SOURCE_HOME
+  ENTRY_CONDITION: User invokes Result top Back or Android System Back before a save is pending
+  EVENT: top_back | system_back | discard_confirmed
+  GUARD: If draft edits/species corrections exist, user confirms discard; otherwise exit immediately
+  SIDE_EFFECT: Invalidate attempt/result/image session; pop to stored source Home route
+  NEXT_STATE: EMPTY_HOME (for QA_RECOGNITION_001)
+  BACK_TARGET: Home source recorded at session start
+  ERROR_PATH: 'Back-stack mismatch: fail gate; do not silently go to Capture'
+  RECOVERY_PATH: Re-enter camera creates clean session and fresh image/Attempt IDs
+  PERSISTENCE: Unconfirmed edits discarded only after explicit confirmation; zero FishRecord
+  OWNER: Navigation coordinator
+  TEST_CASE_IDS:
+  - NAV-04
+  - NAV-05
+  - NAV-06
+- PAGE_ID: recognition.result.v3_1
+  STATE_ID: RETAKE
+  ENTRY_CONDITION: User explicitly chooses “重新拍摄” on a result/recovery branch
+  EVENT: retake_confirmed | discard_confirmed
+  GUARD: Unsaved edits trigger discard confirmation; a save request must first become terminal
+  SIDE_EFFECT: Invalidate prior result/Attempt; release image lease; navigate to Capture
+  NEXT_STATE: PERMISSION_REQUIRED | CAMERA_INITIALIZING
+  BACK_TARGET: N/A; this is an explicit action distinct from Back
+  ERROR_PATH: Camera cannot initialize
+  RECOVERY_PATH: Gallery/Back remain available
+  PERSISTENCE: No FishRecord unless prior save already succeeded
+  OWNER: Navigation/Capture coordinator
+  TEST_CASE_IDS:
+  - NAV-06
+  - CAP-01
+- PAGE_ID: recognition.lifecycle.v1
+  STATE_ID: FOREGROUND
+  ENTRY_CONDITION: Process/activity visible and resumed
+  EVENT: on_resume | permission_return
+  GUARD: Recheck current system permission and live Attempt owner; image-file existence/hash checked when needed
+  SIDE_EFFECT: Reconnect observers; rebind CameraX only if Capture owns route and permission is granted
+  NEXT_STATE: FOREGROUND | CAMERA_READY | PERMISSION_DENIED | ATTEMPT_RECOVERABLE | ATTEMPT_LOST | IMAGE_LOST
+  BACK_TARGET: Preserve current route only if current owner/state is valid
+  ERROR_PATH: Stale image or owner fails integrity check
+  RECOVERY_PATH: Prompt explicit Retry or Retake according to image availability
+  PERSISTENCE: Persist only session metadata needed for recovery; no Bitmap in saved state
+  OWNER: Recognition lifecycle coordinator
+  TEST_CASE_IDS:
+  - PER-06
+  - PER-07
+  - NAV-07
+- PAGE_ID: recognition.lifecycle.v1
+  STATE_ID: BACKGROUND
+  ENTRY_CONDITION: App leaves foreground during Capture/Processing/Result
+  EVENT: on_pause | process_background
+  GUARD: No elapsed-time-only resume rule; inspect actual owner, cancellation and image lease
+  SIDE_EFFECT: Capture releases/pauses CameraX; Processing owner retains same live Attempt only while safe
+  NEXT_STATE: FOREGROUND | ATTEMPT_RECOVERABLE | ATTEMPT_LOST | IMAGE_LOST
+  BACK_TARGET: Existing route retained if safe; otherwise explicit recovery screen
+  ERROR_PATH: Owner interrupted or permission revoked
+  RECOVERY_PATH: Recheck at resume; retry/retake, never synthesize Result
+  PERSISTENCE: No long-term Bitmap persistence
+  OWNER: Recognition lifecycle coordinator
+  TEST_CASE_IDS:
+  - EN-04
+  - PER-07
+  - NAV-07
+- PAGE_ID: recognition.lifecycle.v1
+  STATE_ID: ACTIVITY_RECREATED
+  ENTRY_CONDITION: Configuration recreation or Activity recreation occurs
+  EVENT: activity_recreated
+  GUARD: Same ViewModel/navigation owner is proven alive and holds same Attempt object/ID
+  SIDE_EFFECT: Reattach UI observer without invoking detector/classifier again
+  NEXT_STATE: ATTEMPT_RECOVERABLE | ATTEMPT_LOST | IMAGE_LOST
+  BACK_TARGET: Restore current route only with owner proof
+  ERROR_PATH: Attempt owner absent or duplicate invocation detected
+  RECOVERY_PATH: If owner alive, continue same Attempt; else explicit Retry/Retake
+  PERSISTENCE: SavedStateHandle may hold IDs/status only; image bytes remain app-private file
+  OWNER: Recognition Attempt coordinator/ViewModel
+  TEST_CASE_IDS:
+  - NAV-07
+  - SYS-05
+- PAGE_ID: recognition.lifecycle.v1
+  STATE_ID: ATTEMPT_RECOVERABLE
+  ENTRY_CONDITION: Original Attempt owner still executes or safely reattaches and image lease is valid
+  EVENT: owner_alive | callback_for_current_id
+  GUARD: Current ID equals one active attempt; one pipeline invocation only
+  SIDE_EFFECT: Resume observation on same Attempt ID; accept one terminal event
+  NEXT_STATE: FOREGROUND → PROCESSING/RESULT
+  BACK_TARGET: Existing source-home mapping preserved
+  ERROR_PATH: Callback attempt ID mismatch or duplicate event
+  RECOVERY_PATH: Ignore stale/duplicate callback and log reason
+  PERSISTENCE: Do not save live coroutine/Bitmap in persistent state
+  OWNER: Recognition Attempt coordinator
+  TEST_CASE_IDS:
+  - NAV-07
+- PAGE_ID: recognition.lifecycle.v1
+  STATE_ID: ATTEMPT_LOST
+  ENTRY_CONDITION: Execution owner was destroyed or cannot prove in-flight work identity
+  EVENT: owner_lost | process_recreated
+  GUARD: No trustworthy live job exists
+  SIDE_EFFECT: Invalidate old Attempt ID; release orphaned runtime resources; keep no inferred result
+  NEXT_STATE: EXPLICIT_RETRY | RETAKE | IMAGE_LOST
+  BACK_TARGET: Recovery route → source Home or explicit Capture action
+  ERROR_PATH: Old callback arrives after loss
+  RECOVERY_PATH: Ignore old callback; if image is valid offer explicit Retry with new ID
+  PERSISTENCE: Persist only safe session metadata and source image reference/hash
+  OWNER: Recognition Attempt coordinator
+  TEST_CASE_IDS:
+  - NAV-07
+- PAGE_ID: recognition.lifecycle.v1
+  STATE_ID: IMAGE_LOST
+  ENTRY_CONDITION: Normalized source file missing, unreadable, or digest mismatch
+  EVENT: image_missing | file_corrupt | lease_expired
+  GUARD: No verified input remains available for this attempt
+  SIDE_EFFECT: Mark attempt unrecoverable; no automatic detector invocation
+  NEXT_STATE: RETAKE | BACK_TO_SOURCE_HOME
+  BACK_TARGET: Back → source Home
+  ERROR_PATH: Source cannot be reconstructed from result/screenshot
+  RECOVERY_PATH: Explicit Retake or return Home
+  PERSISTENCE: Delete stale metadata; never persist photo reconstruction
+  OWNER: Image store/lifecycle coordinator
+  TEST_CASE_IDS:
+  - NAV-07
+  - RES-07
+transitions:
+- from: EMPTY_HOME
+  event: tap_capture
+  guard: user action; route not already active
+  side_effect: capture source route; request CAMERA only now if required
+  to: PERMISSION_REQUIRED | CAMERA_INITIALIZING
+- from: EMPTY_HOME
+  event: tap_gallery
+  guard: system picker available
+  side_effect: launch image-only Photo Picker; no camera permission request; bypass first-use guide
+  to: CAPTURE_SUCCESS | CAPTURE_ERROR
+- from: PERMISSION_REQUIRED
+  event: permission_granted
+  guard: checkSelfPermission == GRANTED
+  side_effect: start CameraX initialization
+  to: CAMERA_INITIALIZING
+- from: PERMISSION_REQUIRED
+  event: permission_denied_or_dismissed
+  guard: current permission check remains DENIED
+  side_effect: keep Gallery/Back; expose explicit retry and settings option
+  to: PERMISSION_DENIED
+- from: PERMISSION_DENIED
+  event: tap_retry_permission
+  guard: not already in flight; no unsolicited repeat
+  side_effect: one platform request; inspect actual callback/system state
+  to: PERMISSION_REQUIRED
+- from: PERMISSION_DENIED
+  event: tap_open_settings
+  guard: ACTION_APPLICATION_DETAILS_SETTINGS resolves
+  side_effect: launch Intent with package:currentPackageName; recheck grant on resume
+  to: PERMISSION_DENIED | CAMERA_INITIALIZING
+- from: CAMERA_INITIALIZING
+  event: camera_ready
+  guard: permission granted AND provider bound AND Preview STREAMING AND ImageCapture ready
+  side_effect: enable one shutter; evaluate guide eligibility
+  to: GUIDE.P01 | CAMERA_READY
+- from: CAMERA_INITIALIZING
+  event: provider_failure
+  guard: no usable Preview
+  side_effect: release partial CameraX binding and offer retry
+  to: CAPTURE_ERROR
+- from: CAMERA_READY
+  event: tap_shutter
+  guard: cameraCanCapture AND no in-flight capture
+  side_effect: reserve one capture request ID
+  to: CAPTURING
+- from: CAPTURING
+  event: readable_normalized_image
+  guard: exactly one valid image handoff
+  side_effect: create fresh Recognition Attempt ID
+  to: PROCESSING.CAPTURED
+- from: CAPTURE_ERROR
+  event: tap_gallery
+  guard: picker independent of CAMERA
+  side_effect: normalize chosen image; cancellation is non-mutating
+  to: CAPTURE_SUCCESS | CAPTURE_ERROR
+- from: GUIDE.P01
+  event: next
+  guard: active guide
+  side_effect: render P02; preserve incomplete flag
+  to: GUIDE.P02
+- from: GUIDE.P02
+  event: next
+  guard: active guide
+  side_effect: render P03; preserve incomplete flag
+  to: GUIDE.P03
+- from: GUIDE.P03
+  event: start
+  guard: explicit P03 Start
+  side_effect: persist completed; close overlay; no capture request
+  to: GUIDE.COMPLETED → CAMERA_READY
+- from: GUIDE.P01 | GUIDE.P02 | GUIDE.P03
+  event: skip
+  guard: explicit Skip
+  side_effect: persist completed and close overlay; no capture request
+  to: GUIDE.COMPLETED → CAMERA_READY
+- from: GUIDE.P01 | GUIDE.P02 | GUIDE.P03
+  event: back_or_dismiss
+  guard: not Skip/Start
+  side_effect: close without setting completed
+  to: GUIDE.DISMISSED
+- from: PROCESSING.CAPTURED
+  event: detector_started
+  guard: live Attempt owner + readable image
+  side_effect: start total inference monotonic clock immediately before dispatch
+  to: PROCESSING.DETECTING
+- from: PROCESSING.DETECTING
+  event: eligible_real_fish_bbox
+  guard: real detector payload and minimum phase elapsed
+  side_effect: record bbox/model/version and make outline geometry
+  to: PROCESSING.OUTLINE
+- from: PROCESSING.DETECTING
+  event: no_fish_or_invalid
+  guard: actual quality gate; NO_FISH precedence
+  side_effect: terminalize pipeline route without classifier as dictated by gate
+  to: RESULT.NO_FISH | RESULT.INVALID
+- from: PROCESSING.OUTLINE
+  event: crop_success_and_classifier_started
+  guard: actual detector geometry + crop valid + minimum phase elapsed
+  side_effect: release crop at terminal finally; start Classifier
+  to: PROCESSING.CLASSIFYING
+- from: PROCESSING.CLASSIFYING
+  event: actual_classifier_result
+  guard: current Attempt ID + ≥250ms phase beat
+  side_effect: stop timeout clock; deliver exactly once
+  to: PROCESSING.RESULT_READY
+- from: PROCESSING.*
+  event: technical_failure_or_timeout
+  guard: real failure/approved configured timeout; not animation duration
+  side_effect: invalidate attempt and ignore late callbacks
+  to: RESULT.TECHNICAL_FAILURE
+- from: PROCESSING.*
+  event: user_back
+  guard: NAV-03
+  side_effect: cancel/invalidate current Attempt; release owner resources
+  to: CAMERA_READY
+- from: RESULT.HIGH | RESULT.MEDIUM | RESULT.LOW
+  event: top_back_or_system_back
+  guard: no save in progress; confirm discard if draft is dirty
+  side_effect: clear session; pop to source route
+  to: EMPTY_HOME (QA_RECOGNITION_001)
+- from: RESULT.*
+  event: explicit_retake
+  guard: no active save; confirm dirty draft
+  side_effect: invalidate old attempt/result; release image; create a fresh Capture session
+  to: CAMERA_INITIALIZING
+- from: RESULT.SAVE_IN_PROGRESS
+  event: top_back_or_system_back
+  guard: save request not terminal
+  side_effect: top action disabled; consume System Back; await persistence terminal
+  to: RESULT.SAVE_IN_PROGRESS
+- from: RESULT.SAVE_IN_PROGRESS
+  event: save_error
+  guard: no successful record
+  side_effect: retain draft/destination/idempotency key; re-enable exit and retry
+  to: RESULT.SAVE_ERROR
+- from: RESULT.SAVE_IN_PROGRESS
+  event: save_success
+  guard: exactly one persisted record ID
+  side_effect: dispatch requested destination and exit this scope
+  to: OUT_OF_SCOPE_DESTINATION
+- from: LIFECYCLE.BACKGROUND
+  event: foreground_resume
+  guard: evaluate owner alive + active ID + file exists/hash; do not use elapsed seconds alone
+  side_effect: recheck permission and reattach same observer or show explicit recovery
+  to: LIFECYCLE.ATTEMPT_RECOVERABLE | ATTEMPT_LOST | IMAGE_LOST
+- from: LIFECYCLE.ACTIVITY_RECREATED
+  event: owner_check
+  guard: same ViewModel/job owner and ID proven alive
+  side_effect: reattach observer; no second pipeline dispatch
+  to: LIFECYCLE.ATTEMPT_RECOVERABLE
+- from: LIFECYCLE.ATTEMPT_LOST
+  event: explicit_retry
+  guard: image file exists and sha256 matches retained metadata
+  side_effect: new Attempt ID; same immutable normalized image
+  to: PROCESSING.CAPTURED
+- from: LIFECYCLE.ATTEMPT_LOST
+  event: explicit_retake
+  guard: image missing/invalid or user chooses new photo
+  side_effect: delete stale image lease; new capture session
+  to: CAPTURE_INITIALIZING
+state_graph:
+  source: EMPTY_HOME
+  normal_camera_route:
+  - PERMISSION_REQUIRED
+  - CAMERA_INITIALIZING
+  - CAMERA_READY
+  - GUIDE.P01?
+  - GUIDE.P02?
+  - GUIDE.P03?
+  - CAMERA_READY
+  - CAPTURING
+  - CAPTURE_SUCCESS
+  - PROCESSING.CAPTURED
+  - PROCESSING.DETECTING
+  - PROCESSING.OUTLINE?
+  - PROCESSING.CLASSIFYING?
+  - PROCESSING.RESULT_READY
+  - RESULT outcome
+  gallery_route:
+  - EMPTY_HOME
+  - CAPTURE_SUCCESS
+  - PROCESSING.CAPTURED
+  - PROCESSING.DETECTING
+  - PROCESSING.OUTLINE?
+  - PROCESSING.CLASSIFYING?
+  - PROCESSING.RESULT_READY
+  - RESULT outcome
+  recovery_routes:
+  - RESULT.NO_FISH → explicit RETAKE/GALLERY or BACK_TO_SOURCE_HOME
+  - RESULT.INVALID → explicit RETAKE/GALLERY or BACK_TO_SOURCE_HOME
+  - RESULT.TECHNICAL_FAILURE → explicit RETRY/RETAKE/GALLERY or BACK_TO_SOURCE_HOME
+  result_unsaved_back:
+  - RESULT outcome
+  - BACK_TO_SOURCE_HOME
+  - EMPTY_HOME
+  processing_back:
+  - PROCESSING active
+  - CANCELLED
+  - CAMERA_READY
+  save_boundary:
+  - RESULT eligible
+  - SAVE_IN_PROGRESS
+  - SAVE_SUCCEEDED → OUT_OF_SCOPE_DESTINATION | SAVE_ERROR → RESULT
+  lifecycle_overlay:
+  - FOREGROUND ↔ BACKGROUND
+  - ACTIVITY_RECREATED → ATTEMPT_RECOVERABLE | ATTEMPT_LOST | IMAGE_LOST
