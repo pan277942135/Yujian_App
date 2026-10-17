@@ -33,4 +33,6 @@ jobs:
         run: |
           python -m py_compile scripts/verify_runtime_evidence_source_closure.py scripts/verify_normal_home_a4_runtime_evidence.py scripts/create_first_use_camera_guide_visual_evidence.py
       - name: Verify reachable PASS and fail-closed regressions
-        run: python -m unittest discover -s scripts -p 'test_runtime_evidence_source_closure.py' -v
+        run: |
+          python -m unittest discover -s scripts -p 'test_runtime_evidence_source_closure.py' -v
+          python scripts/test_normal_home_hero_fixtures.py

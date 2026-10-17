@@ -88,13 +88,21 @@ def audit(register, root=ROOT):
                 case['source_status'] = 'FIXTURE_PROVENANCE_PENDING'
             originals[digest] = case['fixture_id']
     candidates = []
-    for folder in ('app/src/main/assets/home_normal/fish_record', 'app/src/androidTest/assets'):
+    for folder in ('app/src/main/assets/home_normal/fish_record', 'app/src/androidTest/assets', 'design/system/fish_media_display_v1/assets'):
         for path in sorted((root / folder).glob('*.jpg')):
             candidates.append({'path': str(path.relative_to(root)), **inspect_source(path)})
+    source_groups = {}
+    for candidate in candidates:
+        sha = candidate['source_sha256']
+        source_groups.setdefault(sha, []).append(candidate['path'])
     return {'status': 'SOURCE_READY' if not matrix_errors and all(not c['blockers'] for c in cases) else 'BLOCKED',
             'runtime_status': 'NOT_RUN', 'matrix_errors': matrix_errors, 'cases': cases,
             'repository_candidates': candidates,
-            'limitations': 'Byte-distinct does not establish independent photo provenance. Manual provenance and fish-region inspection remain mandatory. SOURCE_READY is preflight only; HOME+DETAIL device captures at the exact APK SHA are still required.'}
+            'candidate_unique_source_shas': len(source_groups),
+            'candidate_identical_source_groups': [paths for paths in source_groups.values() if len(paths) > 1],
+            'source_ready_case_ids': [c['fixture_id'] for c in cases if not c['blockers']],
+            'source_blocked_case_ids': [c['fixture_id'] for c in cases if c['blockers']],
+            'limitations': 'Repository byte-count, JPEG decode, and unique SHA are inventory only, not independent image ownership. Manual provenance and fish-region inspection remain mandatory. SOURCE_READY is preflight only; HOME+DETAIL device captures at exact APK SHA are required.'}
 
 
 def main():
