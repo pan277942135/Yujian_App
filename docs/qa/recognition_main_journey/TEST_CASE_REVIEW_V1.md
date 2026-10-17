@@ -37,8 +37,8 @@
 | PER-01 | 首次请求相机权限 | P0 | FIRST_USE | L3 | DRAFT |
 | PER-02 | 首次授权成功 | P0 | FIRST_USE | L3 | DRAFT |
 | PER-03 | 首次拒绝授权 | P0 | FIRST_USE | L3 | DRAFT |
-| PER-04 | 拒绝后再次进入 | P0 | PERMISSION_DENIED | L3 | REVIEW |
-| PER-05 | 不再询问或受策略限制 | P1 | PERMISSION_DENIED | L3 | REVIEW |
+| PER-04 | 拒绝后再次进入 | P0 | PERMISSION_DENIED | L3 | FROZEN |
+| PER-05 | 不再询问或受策略限制 | P1 | PERMISSION_DENIED | L3 | FROZEN |
 | PER-06 | 从系统设置恢复授权 | P1 | PERMISSION_DENIED | L3 | DRAFT |
 | PER-07 | 运行时权限被撤销 | P1 | RETURNING | L3 | DRAFT |
 | GUIDE-01 | 首次显示的触发条件 | P0 | GUIDE_PENDING | L3 | DRAFT |
@@ -67,7 +67,7 @@
 | PROC-04 | OUTLINE 使用真实目标几何 | P1 | RETURNING | L3 | DRAFT |
 | PROC-05 | CLASSIFYING 最短视觉时长 | P1 | RETURNING | L2 | DRAFT |
 | PROC-06 | 模型早于最短节拍完成 | P0 | RETURNING | L1 | DRAFT |
-| PROC-07 | 模型延迟返回 | P0 | RETURNING | L1 | REVIEW |
+| PROC-07 | 模型延迟返回 | P0 | RETURNING | L1 | FROZEN |
 | PROC-08 | 真实无鱼分支 | P0 | RETURNING | L3 | DRAFT |
 | PROC-09 | 模型或裁切错误 | P0 | RETURNING | L2 | DRAFT |
 | RES-01 | 高置信结果 UI | P0 | RETURNING | L2 | DRAFT |
@@ -82,11 +82,11 @@
 | RES-10 | 重组不重复识别 | P1 | RETURNING | L2 | DRAFT |
 | NAV-01 | Camera 返回空首页 | P0 | RETURNING | L3 | DRAFT |
 | NAV-02 | Guide 退出状态保持 | P0 | GUIDE_PENDING | L2 | DRAFT |
-| NAV-03 | Processing 中断/返回策略 | P1 | RETURNING | L3 | REVIEW |
-| NAV-04 | Result 顶部返回目的地 | P0 | RETURNING | L3 | REVIEW |
-| NAV-05 | Result 系统 Back 处理 | P1 | RETURNING | L3 | REVIEW |
+| NAV-03 | Processing 中断/返回策略 | P1 | RETURNING | L3 | FROZEN |
+| NAV-04 | Result 顶部返回目的地 | P0 | RETURNING | L3 | FROZEN |
+| NAV-05 | Result 系统 Back 处理 | P1 | RETURNING | L3 | FROZEN |
 | NAV-06 | 返回后第二次识别 | P0 | RETURNING | L3 | DRAFT |
-| NAV-07 | Activity 重建/后台恢复 | P1 | RETURNING | L3 | REVIEW |
+| NAV-07 | Activity 重建/后台恢复 | P1 | RETURNING | L3 | FROZEN |
 | SYS-01 | 基准 API28 主链路 | P0 | RETURNING | L3 | DRAFT |
 | SYS-02 | 长屏边界 | P1 | RETURNING | L3 | DRAFT |
 | SYS-03 | 短屏边界 | P1 | RETURNING | L3 | DRAFT |
@@ -101,7 +101,7 @@
 
 | ID | 场景 | 初始状态 | 执行模式 | 设计状态 |
 |---|---|---|---|---|
-| E2E-01 | 首次安装→权限→P01/P02/P03→真实拍照→真实结果→返回 | FIRST_USE | REAL_DEVICE | REVIEW |
+| E2E-01 | 首次安装→权限→P01/P02/P03→真实拍照→真实结果→返回 | FIRST_USE | REAL_DEVICE | DRAFT |
 | E2E-02 | 返回用户不重复引导的完整复访流程 | RETURNING | REAL_DEVICE | DRAFT |
 | E2E-03 | 拒绝权限→设置恢复→拍照 | FIRST_USE | REAL_DEVICE | DRAFT |
 | E2E-04 | 首次引导跳过并拍照 | GUIDE_PENDING | REAL_DEVICE | DRAFT |
@@ -109,24 +109,30 @@
 | E2E-06 | 真实无鱼图识别 | RETURNING | REAL_DEVICE | REVIEW |
 | E2E-07 | 模糊图质量异常 | RETURNING | REAL_DEVICE | REVIEW |
 | E2E-08 | 识别故障注入后恢复 | RETURNING | CONTROLLED_FAILURE | DRAFT |
-| E2E-09 | 处理中返回/重新进入 | RETURNING | REAL_DEVICE | REVIEW |
+| E2E-09 | 处理中返回/重新进入 | RETURNING | REAL_DEVICE | DRAFT |
 | E2E-10 | 同用户连续识别两次 | RETURNING | REAL_DEVICE | DRAFT |
 
 每条场景以 `covers_case_ids` 绑定基础用例；`E2E-05` 和 `E2E-08` 是受控注入场景，不可以宣传成真实模型全链路验收。
 
-## 待决策事项及潜在阻塞
+## 2026-10-17 七项业务决定已冻结
 
-- **PER-04**：再次弹窗行为依赖系统授权历史；应覆盖 requestable 与 permanently denied。
-- **PER-05**：权限设置入口的 Copy 和视觉需要 Runtime 审核。
-- **PROC-07**：慢速真实推理时的超时/等待策略尚未冻结，禁止定时假成功。
-- **NAV-03**：Processing 中 Back 的取消策略及返回落点待确认。
-- **NAV-04**：Result 顶部返回目标与已冻结导航合同的关系待确认。
-- **NAV-05**：Result System Back 的具体返回目标待确认。
-- **NAV-07**：处理中 Activity 重建应恢复还是重拍仍需明确。
-- **E2E-01**：真实模型不保证 HIGH；Result 返回落点待 NAV-04 确认
-- **E2E-06**：需获取版本锁定的黄金无鱼输入并核验结果稳定性
-- **E2E-07**：图像质量 INVALID 不能借用 PROC-09 的技术故障断言；必须使用真实质量门证据确认目标分支。
-- **E2E-09**：依赖 NAV-03/NAV-07 的明确行为决策
+根据用户明确批准，PER-04、PER-05、PROC-07、NAV-03、NAV-04、NAV-05、NAV-07 的行为验收合同已经 FROZEN。参见 [七项批准决定](SEVEN_DECISIONS_APPROVED_V1.md) 和 [机器可读决策源](seven_decisions_v1.json)。
+
+**执行结果仍为 66/66 NOT_RUN；当前整体 QA 用例目录仍为 REVIEW，不宣称 E2E 或 API28 通过。**
+
+### 仍需量化与真实设备验证
+
+- PROC-07：超时行为已确定为「等真实推理 → 达正式配置超时 → TECHNICAL_FAILURE → 用户主动重试」，但实际超时毫秒数尚未获授权；对应 BLOCKED_PARAMETER，不能用动效时长代替。
+- NAV-07：后台返回/重建时若同一 attempt 能安全恢复就复用，否则明确 Retry Recognition / Retake。是否成功重绑必须运行时验证，不能通过静态断言冒充。
+- PER-05：权限恢复 CTA 已批准；文案/视觉按照既有页面权威进行设备审核。
+- E2E-06：无鱼实际照片及模型稳定输出尚待建立。
+- E2E-07：质量 INVALID 实际输入、来源及模型质量门证据尚待建立。
+
+### 已消除的决策歧义
+
+- NAV-03 主动返回 Capture；迟到模型结果失效。
+- NAV-04/05 顶部返回和系统 Back 一致，进入来源 Home；当前测试用户回 Empty Home，未保存不新增 FishRecord。
+- PER-04/05 依据平台是否还能请求授权选择显式再次请求或系统设置路径，禁止自动弹窗循环。
 
 ### 核查过的冻结边界
 

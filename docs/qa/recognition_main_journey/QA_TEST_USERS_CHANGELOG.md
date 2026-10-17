@@ -1,5 +1,12 @@
 # Recognition QA User Fixture Changelog
 
+## Recognition test catalog 1.1.0 — 2026-10-17 (test user data remains 1.1.0)
+- Approved PER-04/PER-05/PROC-07/NAV-03/NAV-04/NAV-05/NAV-07 behavior rules.
+- Machine-readable seven-decisions policy, approved assertion variants, and CI checks.
+- Base case design state: seven FROZEN, 59 DRAFT; execution still entirely NOT_RUN.
+- E2E-01/E2E-09 behavior ambiguity closed; E2E-06/E2E-07 lack verified real photo data.
+- PROC-07 configured timeout still pending; NAV-07 requires real Android lifecycle evidence.
+
 ## 1.1.0 — 2026-10-17
 - Bind all 66 planned main-flow base cases to one of four deterministic user states, with a bidirectional reverse index.
 - Add 10 composed E2E scenarios (marked REAL_DEVICE or controlled injection) and test input registry.
