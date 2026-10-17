@@ -31,6 +31,45 @@
 | 8 | Result / `BACK_TO_SOURCE_HOME` 或显式 `RETAKE` | 用户点顶部 Back、系统 Back 或“重新拍摄” | 顶部 Back 与系统 Back 均回识别来源 Home（本测试用户为 Empty Home）；“重新拍摄”返回 Camera | 未保存不新增 FishRecord；清除旧 Attempt、结果和旧图像引用；重拍使用新的 image/attempt identity |
 | 9 | 保存接口边界 / `SAVE_IN_PROGRESS` | 用户主动点合法保存动作，必要的鱼种已明确选择 | 成功按既定保存目的地离开识别主线；失败留 Result 并保留草稿 | 保存中顶部 Back 禁用，系统 Back 消费不导航；只有持久化成功后记一条记录。详情页/保存后的流程不进入本次核心验收 |
 
+## Main Journey 状态图
+
+该图聚合主路径；具体 PAGE_ID/STATE_ID、事件 Guard、异常和恢复细节唯一以 02_STATE_MACHINE.yaml 的 38 个状态对象及 transitions 列表为准。
+
+```mermaid
+flowchart TB
+    H["Empty Home"]
+    C["用户进入 Camera"]
+    P["权限判断 / 拒绝恢复"]
+    R["Camera Ready"]
+    G["P01 → P02 → P03"]
+    CAP["Capture → Normalize"]
+    PROC["Processing: CAPTURED → DETECTING → OUTLINE → CLASSIFYING"]
+    O["实际结果或失败"]
+    HOME["Result Back → 来源 Home"]
+    REC["Recovery / Retry / Retake"]
+    SAVE["显式保存接口"]
+    OUT["保存后目的地（本次不验收）"]
+    H --> C --> P
+    P -->|授权| R
+    P -->|拒绝| REC
+    REC -->|显式重试/设置返回| P
+    REC -->|相册| CAP
+    R -->|首次使用| G
+    G -->|Skip / Start，不拍照| R
+    R --> CAP
+    CAP --> PROC --> O
+    PROC -->|Processing Back：取消并返回 Camera| R
+    O -->|Result Top/System Back| HOME
+    O -->|显式重新拍照| R
+    O -->|用户明确保存| SAVE
+    SAVE -->|成功| OUT
+    SAVE -->|失败| O
+```
+
+- 保存过程中 Top Back 禁用，System Back 被消费，直到保存结果返回。
+- 技术失败、无鱼和图像质量恢复为独立 Result/Recovery 分支；没有通过图示把失败合并成一个结果。
+- Empty Home 是固定测试用户的来源 route；其他来源必须由识别会话记录，不从当前 Result route 推断。
+
 ## 页面/状态通用字段
 
 完整字段（`PAGE_ID`、`STATE_ID`、`ENTRY_CONDITION`、`EVENT`、`GUARD`、`SIDE_EFFECT`、`NEXT_STATE`、`BACK_TARGET`、`ERROR_PATH`、`RECOVERY_PATH`、`PERSISTENCE`、`OWNER`、`TEST_CASE_IDS`）在 `02_STATE_MACHINE.yaml` 每个状态对象中逐项定义。每条测试用例仍保留唯一主 `initial_state`；子变体不能偷偷替换测试用户状态。

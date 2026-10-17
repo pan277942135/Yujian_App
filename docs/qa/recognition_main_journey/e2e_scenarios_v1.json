@@ -144,7 +144,7 @@
           "DEVICE_FRESH",
           "CAMERA_LIVE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -289,7 +289,7 @@
         "input_ids": [
           "CAMERA_LIVE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -464,7 +464,7 @@
           "SYSTEM_PERMISSION",
           "CAMERA_LIVE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -608,7 +608,7 @@
         "input_ids": [
           "CAMERA_LIVE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -746,7 +746,7 @@
           "RESP-MEDIUM",
           "RESP-LOW"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "NOT_REAL_MODEL_EVIDENCE; controlled fixture/injection manifest is mandatory.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -886,13 +886,14 @@
         }
       ],
       "scenario_variants": [
-        "Different approved no-fish scenes must be separate fixture IDs/SHA; no one photo copied into multiple independent sample claims"
+        "Primary: independently reviewed, rights-approved natural no-fish image; source annotation must be distinct from model output.",
+        "If actual product output is not NO_FISH, preserve the output and classify against the approved scene contract; do not inject RESP-NO_FISH."
       ],
       "input_and_model_version": {
         "input_ids": [
           "IMG-05"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -924,21 +925,20 @@
       "pass_conditions": [
         "All complete_path checkpoints satisfy their objective state and observable assertions.",
         "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
-        "All evidence hashes/IDs are internally consistent and execution_contract is honored."
+        "All evidence hashes/IDs are internally consistent and execution_contract is honored.",
+        "For the approved real no-fish scene, the actual production Detector/quality route is NO_FISH; any other actual outcome is recorded as PRODUCT_FAIL against the approved scene contract, never replaced by a controlled response."
       ],
       "blocked_conditions": [
-        "IMG-05 missing/unapproved",
-        "Actual model does not produce NO_FISH for the approved image",
-        "Any mocked result, expected response substitution or forced label is present"
+        "IMG-05 missing, source/rights unapproved, or independent no-fish scene annotation absent",
+        "No production model terminal trace or exact model artifact identity is available",
+        "Any mocked result, expected-response substitution or forced label is present; evidence is invalid"
       ],
       "failure_classification": [
-        "PRODUCT_FAIL",
-        "INFRA_BLOCKED",
-        "ASSET_SOURCE_BLOCKED",
-        "EVIDENCE_INCOMPLETE",
-        "CONTRACT_GAP",
-        "REAL_BRANCH_NOT_OBSERVED",
-        "MODEL_BEHAVIOR_REVIEW_REQUIRED"
+        "PRODUCT_FAIL for actual production output not matching an approved no-fish input contract",
+        "ASSET_SOURCE_BLOCKED before the approved fixture exists",
+        "INFRA_BLOCKED if actual inference cannot execute or its trace is missing",
+        "EVIDENCE_INCOMPLETE for missing run/source/APK/input/model bindings",
+        "CONTRACT_GAP if Product/Model owner has not approved the no-fish acceptance label"
       ],
       "review_status": "REVIEW_REQUIRED"
     },
@@ -981,7 +981,7 @@
         "camera_capture_count_zero",
         "camera_capture_trace"
       ],
-      "review_reason": "图像质量 INVALID 不能借用 PROC-09 的技术故障断言；必须使用真实质量门证据确认目标分支。",
+      "review_reason": "The current quality gate has no identified standalone blur metric/threshold contract. A human scene label cannot prescribe INVALID; Product/Model owner review is required before the target oracle can be frozen.",
       "execution_contract": "REAL_MODEL_GALLERY",
       "planned_test_method": "RecognitionInvalidRealModelGalleryE2ETest#actualQualityGateInvalidUsesQualityRecovery",
       "initial_user_state": "RETURNING",
@@ -1035,14 +1035,14 @@
         }
       ],
       "scenario_variants": [
-        "Candidate blur sample with measured quality-gate INVALID",
-        "Other real quality-invalid sample only if the existing approved gate emits INVALID"
+        "Primary: rights-approved blur sample with independent, objective input-quality annotation; do not assume an INVALID product response.",
+        "If Product/Model owners approve a blur outcome contract and the actual quality gate returns INVALID, verify the real recovery path; otherwise keep the target BLOCKED/CONTRACT_GAP."
       ],
       "input_and_model_version": {
         "input_ids": [
           "IMG-06"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -1058,8 +1058,9 @@
         "ordering": true
       },
       "observable_assertions": [
-        "当质量门真实返回 INVALID 才进入质量恢复",
-        "Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.",
+        "Only actual quality-gate INVALID with an approved non-NO_FISH reason can enter image-quality recovery.",
+        "Before the blur oracle is approved, this scenario cannot PASS; after approval, a different actual result is PRODUCT_FAIL and is not replaced.",
+        "Every checkpoint binds one run_id, source_sha, apk_sha256, test_user state, input ID and exact model/gate artifact.",
         "A scenario can pass only from the observation type allowed by its execution_contract."
       ],
       "camera_vs_simulation_boundary": {
@@ -1067,27 +1068,27 @@
         "real_camera": false,
         "real_model": true,
         "controlled_model_or_failure": false,
-        "notes": "Gallery/model only: capture trace must prove zero CameraX requests."
+        "notes": "Real Photo Picker import and production pipeline only. Blur label is independent input annotation, not a model result; no response mock or forced branch."
       },
       "camera_capture_trace_semantics": "Negative evidence only: camera_capture_count=0; positive input proof is gallery_import_trace.",
       "pass_conditions": [
         "All complete_path checkpoints satisfy their objective state and observable assertions.",
-        "No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.",
+        "No unexpected FishRecord is created.",
+        "After a measurable blur contract and fixture are approved, the actual quality gate returns INVALID for a permitted non-NO_FISH reason; mismatch is PRODUCT_FAIL.",
         "All evidence hashes/IDs are internally consistent and execution_contract is honored."
       ],
       "blocked_conditions": [
-        "IMG-06 missing or unapproved",
-        "No actual gate output supports INVALID",
-        "A forced RESP-INVALID or human-only blur label is used as model evidence"
+        "IMG-06 missing, source/rights unapproved, or blur scene measurement absent",
+        "Blur acceptance/quality-gate contract remains unapproved; target oracle is not frozen",
+        "No actual production quality-gate trace or exact model/gate artifact identity is available",
+        "A forced RESP-INVALID or human-only blur label is used as model evidence; evidence is invalid"
       ],
       "failure_classification": [
-        "PRODUCT_FAIL",
-        "INFRA_BLOCKED",
-        "ASSET_SOURCE_BLOCKED",
-        "EVIDENCE_INCOMPLETE",
-        "CONTRACT_GAP",
-        "REAL_BRANCH_NOT_OBSERVED",
-        "MODEL_BEHAVIOR_REVIEW_REQUIRED"
+        "PRODUCT_FAIL for actual quality output not matching an approved measurable blur contract",
+        "CONTRACT_GAP while blur target/threshold/observable rule is unapproved",
+        "ASSET_SOURCE_BLOCKED before IMG-06 approval",
+        "INFRA_BLOCKED if actual model/gate trace is unavailable",
+        "EVIDENCE_INCOMPLETE for missing run/source/APK/input/model bindings"
       ],
       "review_status": "REVIEW_REQUIRED"
     },
@@ -1186,7 +1187,7 @@
           "PIPELINE_FAILURE",
           "CAPTURE_FAILURE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "NOT_REAL_MODEL_EVIDENCE; controlled fixture/injection manifest is mandatory.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -1338,7 +1339,7 @@
         "input_ids": [
           "CAMERA_LIVE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "NOT_REAL_MODEL_EVIDENCE; controlled fixture/injection manifest is mandatory.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },
@@ -1491,7 +1492,7 @@
         "input_ids": [
           "CAMERA_LIVE"
         ],
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "model_artifact": "Actual model SHA/version must be read from the exact APK/build manifest and logged for each run.",
         "fixture_version": "QA_RECOGNITION_001 dataset 1.1.0; input/source asset versions are per input registry."
       },

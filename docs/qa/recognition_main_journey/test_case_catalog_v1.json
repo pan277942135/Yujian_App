@@ -83,7 +83,7 @@
       "input_id": "DEVICE_FRESH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_FRESH"
         ],
@@ -211,7 +211,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -328,7 +328,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -444,7 +444,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -572,7 +572,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -691,7 +691,7 @@
       "input_id": "PROVIDER_FAILURE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PROVIDER_FAILURE"
         ],
@@ -822,7 +822,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION"
         ],
@@ -957,7 +957,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION",
           "CAMERA_LIVE"
@@ -1087,7 +1087,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION"
         ],
@@ -1226,7 +1226,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION"
         ],
@@ -1389,7 +1389,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION"
         ],
@@ -1538,7 +1538,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION",
           "CAMERA_LIVE"
@@ -1676,7 +1676,7 @@
       "input_id": "SYSTEM_PERMISSION",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "SYSTEM_PERMISSION",
           "CAMERA_LIVE"
@@ -1810,7 +1810,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -1928,7 +1928,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2039,7 +2039,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2150,7 +2150,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2261,7 +2261,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2376,7 +2376,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2494,7 +2494,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2621,7 +2621,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2733,7 +2733,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2843,7 +2843,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -2960,7 +2960,7 @@
       "input_id": "DEVICE_RESET",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_RESET"
         ],
@@ -3089,7 +3089,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -3213,7 +3213,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -3338,7 +3338,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -3465,7 +3465,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -3589,7 +3589,7 @@
       "input_id": "IMG-01",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-01"
         ],
@@ -3718,7 +3718,7 @@
       "input_id": "IMG-02",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-02",
           "IMG-03"
@@ -3842,7 +3842,7 @@
       "input_id": "IMG-04",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-04"
         ],
@@ -3964,7 +3964,7 @@
       "input_id": "IMG-08",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-08",
           "CAPTURE_FAILURE"
@@ -4088,7 +4088,7 @@
       "input_id": "PHOTO_PICKER",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PHOTO_PICKER"
         ],
@@ -4218,7 +4218,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -4337,7 +4337,7 @@
       "input_id": "PIPELINE_EVENTS",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PIPELINE_EVENTS"
         ],
@@ -4451,7 +4451,7 @@
       "input_id": "PIPELINE_EVENTS",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PIPELINE_EVENTS"
         ],
@@ -4568,7 +4568,7 @@
       "input_id": "IMG-01",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-01"
         ],
@@ -4689,7 +4689,7 @@
       "input_id": "PIPELINE_EVENTS",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PIPELINE_EVENTS"
         ],
@@ -4801,7 +4801,7 @@
       "input_id": "PIPELINE_EVENTS",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PIPELINE_EVENTS"
         ],
@@ -4942,7 +4942,7 @@
       "input_id": "PIPELINE_EVENTS",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PIPELINE_EVENTS"
         ],
@@ -5091,7 +5091,7 @@
       "input_id": "IMG-05",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-05"
         ],
@@ -5206,7 +5206,7 @@
       "input_id": "PIPELINE_FAILURE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "PIPELINE_FAILURE"
         ],
@@ -5319,7 +5319,7 @@
       "input_id": "RESP-HIGH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-HIGH"
         ],
@@ -5433,7 +5433,7 @@
       "input_id": "RESP-MEDIUM",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-MEDIUM"
         ],
@@ -5553,7 +5553,7 @@
       "input_id": "RESP-LOW",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-LOW"
         ],
@@ -5673,7 +5673,7 @@
       "input_id": "RESP-NO_FISH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-NO_FISH"
         ],
@@ -5792,7 +5792,7 @@
       "input_id": "RESP-INVALID",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-INVALID"
         ],
@@ -5910,7 +5910,7 @@
       "input_id": "RESP-WARNING",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-WARNING"
         ],
@@ -6028,7 +6028,7 @@
       "input_id": "IMG-02",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "IMG-02",
           "IMG-07"
@@ -6145,7 +6145,7 @@
       "input_id": "RESP-HIGH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-HIGH"
         ],
@@ -6269,7 +6269,7 @@
       "input_id": "RESP-HIGH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-HIGH"
         ],
@@ -6382,7 +6382,7 @@
       "input_id": "RESP-HIGH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-HIGH"
         ],
@@ -6500,7 +6500,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -6616,7 +6616,7 @@
       "input_id": null,
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [],
         "model_artifact": "CAPTURE_EXACT_APK_MODEL_MANIFEST_AND_RUNTIME_MODEL_VERSION_PER_RUN; NOT_PINNED_BY_SPEC"
       },
@@ -6756,7 +6756,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -6913,7 +6913,7 @@
       "input_id": "RESP-HIGH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-HIGH"
         ],
@@ -7065,7 +7065,7 @@
       "input_id": "RESP-HIGH",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "RESP-HIGH"
         ],
@@ -7200,7 +7200,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -7345,7 +7345,7 @@
       "input_id": "CAMERA_LIVE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "CAMERA_LIVE"
         ],
@@ -7494,7 +7494,7 @@
       "input_id": "DEVICE_API28",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_API28"
         ],
@@ -7608,7 +7608,7 @@
       "input_id": "DEVICE_LONG",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_LONG"
         ],
@@ -7723,7 +7723,7 @@
       "input_id": "DEVICE_SHORT",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_SHORT"
         ],
@@ -7839,7 +7839,7 @@
       "input_id": "FONT_SCALE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "FONT_SCALE"
         ],
@@ -7956,7 +7956,7 @@
       "input_id": "DEVICE_ROTATE",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_ROTATE"
         ],
@@ -8072,7 +8072,7 @@
       "input_id": "ACCESSIBILITY",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "ACCESSIBILITY"
         ],
@@ -8187,7 +8187,7 @@
       "input_id": "DEVICE_API28",
       "fixture_version": {
         "qa_user_dataset_version": "1.1.0",
-        "input_registry_version": "1.1.0 (after asset audit update)",
+        "input_registry_version": "1.1.0",
         "input_ids": [
           "DEVICE_API28"
         ],

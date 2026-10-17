@@ -38,7 +38,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -61,6 +61,10 @@
 - Runner lacks usable CameraX image source
 - No actual model terminal trace or only a controlled response exists
 - Camera fixture is unreadable or no output file is produced
+
+
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
 
 **测试方法：** `RecognitionFirstUseRealCameraE2ETest#firstRequestGuideCaptureActualInferenceAndReturn`。
 **真实设备与模拟边界：** CameraX and production model must both emit traces.
@@ -88,7 +92,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -109,6 +113,10 @@
 
 - No genuine CameraX feed
 - Any outcome was supplied through controlled response instead of real model
+
+
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
 
 **测试方法：** `RecognitionReturningUserRealCameraE2ETest#repeatEntrySkipsPermissionAndGuide`。
 **真实设备与模拟边界：** CameraX and production model must both emit traces.
@@ -140,7 +148,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -163,6 +171,10 @@
 - Host cannot prove permission request history/state
 - Settings UI not available on the target image
 - Permission is assumed from shouldShowRequestPermissionRationale=false without Host/system observation
+
+
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
 
 **测试方法：** `RecognitionPermissionRecoveryE2ETest#denyThenRecoverThroughSettingsAndCapture`。
 **真实设备与模拟边界：** CameraX and production model must both emit traces.
@@ -189,7 +201,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -209,6 +221,10 @@
 **阻塞条件：**
 
 - No camera feed or capture/inference trace is controlled rather than production
+
+
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
 
 **测试方法：** `RecognitionGuideSkipRealCameraE2ETest#skipGuideThenCaptureOnce`。
 **真实设备与模拟边界：** CameraX and production model must both emit traces.
@@ -236,7 +252,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -258,6 +274,12 @@
 - Any controlled response is reported as real model evidence
 - Controlled sink writes production FishRecord or duplicate save callback occurs
 
+
+
+**审查说明：** 受控 UI 验证而非真实模型端到端。
+
+**执行证据：** source_sha、apk_sha256、controlled_injection_manifest、assertion_trace、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
+
 **测试方法：** `RecognitionResultControlledE2ETest#mediumAndLowRequireExplicitSpeciesConfirmation`。
 **真实设备与模拟边界：** Controlled response/failure is not production-model evidence.
 
@@ -278,12 +300,13 @@
 
 **场景变体：**
 
-- Different approved no-fish scenes must be separate fixture IDs/SHA; no one photo copied into multiple independent sample claims
+- Primary: independently reviewed, rights-approved natural no-fish image; source annotation must be distinct from model output.
+- If actual product output is not NO_FISH, preserve the output and classify against the approved scene contract; do not inject RESP-NO_FISH.
 
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -297,14 +320,19 @@
 **通过条件：**
 
 - All complete_path checkpoints satisfy their objective state and observable assertions.
-- No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.
+- No unexpected FishRecord is created.
+- For the approved real no-fish scene, actual production Detector/quality route is NO_FISH; a different actual output is PRODUCT_FAIL against an approved target, never a substituted response.
 - All evidence hashes/IDs are internally consistent and execution_contract is honored.
 
 **阻塞条件：**
 
-- IMG-05 missing/unapproved
-- Actual model does not produce NO_FISH for the approved image
-- Any mocked result, expected response substitution or forced label is present
+- IMG-05 missing, source/rights unapproved, or independent no-fish annotation absent
+- No production model terminal trace or exact model artifact identity is available
+- Any mocked result, expected-response substitution or forced label is present; evidence is invalid
+
+**审查说明：** 需获取版本锁定的黄金无鱼输入并核验结果稳定性。
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id、gallery_import_trace、camera_capture_count_zero、camera_capture_trace。
 
 **测试方法：** `RecognitionNoFishRealModelGalleryE2ETest#actualNoFishPhotoUsesProductionDetector`。
 **真实设备与模拟边界：** Gallery/model only: capture trace must prove zero CameraX requests.
@@ -326,33 +354,40 @@
 
 **场景变体：**
 
-- Candidate blur sample with measured quality-gate INVALID
-- Other real quality-invalid sample only if the existing approved gate emits INVALID
+- Primary: rights-approved blur sample with independent, objective input-quality annotation; do not assume an INVALID product response.
+- If Product/Model owners approve a blur outcome contract and the actual quality gate returns INVALID, verify the real recovery path; otherwise keep the target BLOCKED/CONTRACT_GAP.
 
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
 **可观察断言：**
 
-- 当质量门真实返回 INVALID 才进入质量恢复
-- Every checkpoint is bound to one run_id, source_sha, apk_sha256, test_user state and image/response input ID.
+- Only actual quality-gate INVALID with an approved non-NO_FISH reason can enter image-quality recovery.
+- Before the blur oracle is approved, this scenario cannot PASS; after approval, a different actual result is PRODUCT_FAIL and is not replaced.
+- Every checkpoint binds one run_id, source_sha, apk_sha256, test_user state, input ID and exact model/gate artifact.
 - A scenario can pass only from the observation type allowed by its execution_contract.
 
 **通过条件：**
 
 - All complete_path checkpoints satisfy their objective state and observable assertions.
-- No unexpected FishRecord is created; expected count is zero unless a separately authorized Save boundary is explicitly in scope.
+- No unexpected FishRecord is created.
+- After a measurable blur contract and fixture are approved, the actual quality gate returns INVALID for a permitted non-NO_FISH reason; mismatch is PRODUCT_FAIL.
 - All evidence hashes/IDs are internally consistent and execution_contract is honored.
 
 **阻塞条件：**
 
-- IMG-06 missing or unapproved
-- No actual gate output supports INVALID
-- A forced RESP-INVALID or human-only blur label is used as model evidence
+- IMG-06 missing, source/rights unapproved, or blur scene measurement absent
+- Blur acceptance/quality-gate contract remains unapproved; target oracle is not frozen
+- No actual production quality-gate trace or exact model/gate artifact identity is available
+- A forced RESP-INVALID or human-only blur label is used as model evidence; evidence is invalid
+
+**审查说明：** 图像质量 INVALID 不能借用 PROC-09 的技术故障断言；必须使用真实质量门证据确认目标分支。
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id、gallery_import_trace、camera_capture_count_zero、camera_capture_trace。
 
 **测试方法：** `RecognitionInvalidRealModelGalleryE2ETest#actualQualityGateInvalidUsesQualityRecovery`。
 **真实设备与模拟边界：** Gallery/model only: capture trace must prove zero CameraX requests.
@@ -383,7 +418,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -405,6 +440,12 @@
 - Mock can be triggered through ordinary Release UI
 - Controlled and real outcomes share one accuracy/result population
 - Retry reuses old Attempt ID or automatically repeats without user action
+
+
+
+**审查说明：** 故障注入场景不是正常真实模型成功识别。
+
+**执行证据：** source_sha、apk_sha256、controlled_injection_manifest、assertion_trace、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
 
 **测试方法：** `RecognitionTechnicalFailureRecoveryE2ETest#injectedStageFailureIsDistinctAndRetryable`。
 **真实设备与模拟边界：** Controlled response/failure is not production-model evidence.
@@ -434,7 +475,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -457,6 +498,10 @@
 - A controlled delayed callback is labeled real model output
 - Same attempt is dispatched twice
 - Restore is based only on background elapsed seconds
+
+
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
 
 **测试方法：** `RecognitionLifecycleControlledE2ETest#backAndRecreationNeverDuplicateAttempt`。
 **真实设备与模拟边界：** Real CameraX capture and controlled pipeline events are mixed in separate checkpoints; never claim the injected pipeline is real model evidence.
@@ -485,7 +530,7 @@
 **事件时序：**
 
 - `clock`：monotonic runtime event timestamps; stage minima from Processing Frozen contract only
-- `minimum_visual_beats_ms`：{'CAPTURED': 220, 'DETECTING': 320, 'OUTLINE': 350, 'CLASSIFYING': 250}
+- `minimum_visual_beats_ms`：CAPTURED ≥220ms; DETECTING ≥320ms; OUTLINE ≥350ms; CLASSIFYING ≥250ms
 - `model_timeout`：PROC-07 configured parameter only; not assigned from these visual minima
 - `ordering`：True
 
@@ -507,13 +552,17 @@
 - Controlled responses stand in for production inference
 - Any record is created without explicit successful save
 
+
+
+**执行证据：** source_sha、apk_sha256、device_profile、camera_capture_trace、model_pipeline_events、native_screenshots、fish_record_count、test_user_id_and_state、seed_receipt_and_manifest_sha256、input_image_sha256_or_controlled_fixture_sha256、model_artifact_sha256_or_controlled=true、checkpoint_state_trace、navigation_trace、result_classification、run_id。
+
 **测试方法：** `RecognitionRepeatedCaptureRealCameraE2ETest#twoRunsUseIndependentImagesAndAttempts`。
 **真实设备与模拟边界：** CameraX and production model must both emit traces.
 
 ## 专项审查结论
 
 - **E2E-05 / E2E-08：**受控响应或故障，只能验证交互和恢复合同，不得报作真实模型成功识别。
-- **E2E-06：**IMG-05 缺失且未获批；测试只有在真实模型对获批图像实际返回 NO_FISH 时才能对目标断言 PASS。模型若返回鱼类结果，应如实记录为该模型/输入组合的实际观察，目标 Gate BLOCKED/未达成，不能置换响应。
-- **E2E-07：**IMG-06 缺失；当前被审代码没有独立模糊度指标合同，因此“模糊”只能是经审查的输入属性，不能预设 `INVALID`。只有被测产品实际输出 INVALID 且原因/事件证据符合合同，才判该目标通过；否则列为产品差距或参数/合同阻塞。
+- **E2E-06：**IMG-05 缺失且未获批；测试只有在真实模型对获批图像实际返回 NO_FISH 时才能对目标断言 PASS。若获批无鱼 scene contract 存在而模型实际返回其他分支，分类为 PRODUCT_FAIL；若目标合同本身尚未批准，分类为 CONTRACT_GAP/BLOCKED。不能置换响应。
+- **E2E-07：**IMG-06 缺失；当前被审代码没有独立模糊度指标合同，因此“模糊”只能是经审查的输入属性，不能预设 `INVALID`。完成 blur oracle 审批后，只有被测产品实际输出 INVALID 且原因/事件证据符合合同才通过；目标未冻结时保持 CONTRACT_GAP/BLOCKED，批准后实际分支不匹配记 PRODUCT_FAIL。
 - **E2E-09：**必须使用真实 CameraX 输入证明捕获链路，但流水线暂停/迟到回调、Activity recreation 与所有权恢复由隔离的受控测试接口注入；不得把受控回调称为真实模型事件。
 - 所有路径均为计划定义，`execution_status` 是 `NOT_RUN`，没有运行证据或 PASS。

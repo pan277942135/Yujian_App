@@ -3,7 +3,7 @@
   "registry_id": "YU_JIAN_RECOGNITION_TEST_INPUTS",
   "registry_version": "1.1.0",
   "status": "REVIEW",
-  "policy": "Photo candidates are not approved fixtures. source_sha256 is reserved for a provenance/rights-approved original; file_bytes_sha256 is only the exact current repository byte digest. Host setups are descriptive; no fabricated runtime image, model result, or live credential data.",
+  "policy": "Photo candidates are not approved fixtures. source_sha256 is reserved for a provenance/rights-approved original; image_sha256 is only the exact current repository byte digest. Host setups are descriptive; no fabricated runtime image, model result, or live credential data.",
   "inputs": [
     {
       "input_id": "IMG-01",
@@ -18,7 +18,6 @@
       "candidate_asset_path": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg (same bytes also at app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg and design/system/fish_media_display_v1/assets/real_catch_source.jpg)",
       "source_type": "REPOSITORY_PHOTO_CANDIDATE; duplicate copies, one content identity",
       "source_authorization": "UNVERIFIED: rights, subject release, source/author and redistribution permission absent; observed image contains an identifiable person and platform watermark.",
-      "file_bytes_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
       "dimensions": "1152x1536",
       "exif_orientation": "Absent (tag 274 not present)",
       "expected_quality_branch": "Observe the actual quality gate; no predetermined result.",
@@ -32,7 +31,8 @@
         "PROC-04"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact detector/classifier artifact SHA and preprocessing contract must be captured at execution; not frozen in current manifest."
+      "model_version_dependency": "Exact detector/classifier artifact SHA and preprocessing contract must be captured at execution; not frozen in current manifest.",
+      "image_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef"
     },
     {
       "input_id": "IMG-02",
@@ -47,7 +47,6 @@
       "candidate_asset_path": null,
       "source_type": "NOT_AVAILABLE",
       "source_authorization": "NOT_APPLICABLE; no candidate found.",
-      "file_bytes_sha256": null,
       "dimensions": null,
       "exif_orientation": null,
       "expected_quality_branch": "Observe actual quality gate.",
@@ -61,7 +60,8 @@
         "RES-07"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact model/preprocessing SHA at execution."
+      "model_version_dependency": "Exact model/preprocessing SHA at execution.",
+      "image_sha256": null
     },
     {
       "input_id": "IMG-03",
@@ -76,7 +76,6 @@
       "candidate_asset_path": null,
       "source_type": "NOT_AVAILABLE",
       "source_authorization": "NOT_APPLICABLE; no candidate found.",
-      "file_bytes_sha256": null,
       "dimensions": null,
       "exif_orientation": null,
       "expected_quality_branch": "Actual detector/quality-gate response; annotation only describes input geometry.",
@@ -89,7 +88,8 @@
         "CAP-06"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact detector/classifier artifact and crop contract at execution."
+      "model_version_dependency": "Exact detector/classifier artifact and crop contract at execution.",
+      "image_sha256": null
     },
     {
       "input_id": "IMG-04",
@@ -104,7 +104,6 @@
       "candidate_asset_path": "app/src/androidTest/assets/detector_case_b_night_flash.jpg",
       "source_type": "REPOSITORY_PHOTO_CANDIDATE",
       "source_authorization": "UNVERIFIED: provenance, subject/privacy and redistribution rights absent; observed watermark/platform ID.",
-      "file_bytes_sha256": "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
       "dimensions": "1152x1536",
       "exif_orientation": "Absent (tag 274 not present)",
       "expected_quality_branch": "Actual gate response only; do not infer INVALID from night scene.",
@@ -117,7 +116,8 @@
         "CAP-07"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact model and preprocessing SHA plus low-light capture metadata."
+      "model_version_dependency": "Exact model and preprocessing SHA plus low-light capture metadata.",
+      "image_sha256": "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b"
     },
     {
       "input_id": "IMG-05",
@@ -132,7 +132,6 @@
       "candidate_asset_path": null,
       "source_type": "NOT_AVAILABLE",
       "source_authorization": "NOT_APPLICABLE; no candidate found.",
-      "file_bytes_sha256": null,
       "dimensions": null,
       "exif_orientation": null,
       "expected_quality_branch": "Must record actual model quality/detector behavior.",
@@ -146,7 +145,8 @@
         "PROC-08"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact model SHA and inference configuration; outcome stability must be measured, not asserted."
+      "model_version_dependency": "Exact model SHA and inference configuration; outcome stability must be measured, not asserted.",
+      "image_sha256": null
     },
     {
       "input_id": "IMG-06",
@@ -161,7 +161,6 @@
       "candidate_asset_path": null,
       "source_type": "NOT_AVAILABLE",
       "source_authorization": "NOT_APPLICABLE; no candidate found.",
-      "file_bytes_sha256": null,
       "dimensions": null,
       "exif_orientation": null,
       "expected_quality_branch": "No frozen blur threshold or dedicated blur metric found in current implementation; parameter/contract review required.",
@@ -174,7 +173,8 @@
         "E2E-07"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact model/gate implementation SHA and any subsequently approved blur contract."
+      "model_version_dependency": "Exact model/gate implementation SHA and any subsequently approved blur contract.",
+      "image_sha256": null
     },
     {
       "input_id": "IMG-07",
@@ -189,7 +189,6 @@
       "candidate_asset_path": null,
       "source_type": "NOT_AVAILABLE",
       "source_authorization": "NOT_APPLICABLE; no candidate found.",
-      "file_bytes_sha256": null,
       "dimensions": null,
       "exif_orientation": "Required future input: 6 or 8, exact original tag captured before decode.",
       "expected_quality_branch": "Orientation normalization should yield correct upright image before detection; output/result still model-dependent.",
@@ -202,7 +201,8 @@
         "RES-07"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Exact image normalization implementation and model artifact at execution."
+      "model_version_dependency": "Exact image normalization implementation and model artifact at execution.",
+      "image_sha256": null
     },
     {
       "input_id": "IMG-08",
@@ -217,7 +217,6 @@
       "candidate_asset_path": null,
       "source_type": "SPEC_ONLY_BYTES_RECIPE_NOT_CREATED",
       "source_authorization": "No image source; a minimal synthetic malformed-byte fixture may be authored later under an approved test-only data process.",
-      "file_bytes_sha256": null,
       "dimensions": null,
       "exif_orientation": "Not applicable",
       "expected_quality_branch": "Decoder failure before detector; must not be reclassified as no-fish or image-quality INVALID unless explicit contract says so.",
@@ -230,7 +229,8 @@
         "CAP-08"
       ],
       "fixture_version": "IMG_FIXTURE_REGISTRY_V1_PENDING_APPROVAL",
-      "model_version_dependency": "Decoder implementation/API level; no model call expected."
+      "model_version_dependency": "Decoder implementation/API level; no model call expected.",
+      "image_sha256": null
     },
     {
       "input_id": "RESP-HIGH",
@@ -362,6 +362,6 @@
   "image_inventory_scope": {
     "raster_file_count": 256,
     "scope": "Repository tree on docs/recognition-main-flow-spec-v1; raster suffixes png/jpg/jpeg/webp/gif/bmp/tif/tiff; read-only inventory. No separate authorized asset directory was configured or supplied.",
-    "sha_semantics": "file_bytes_sha256 hashes the exact present repository file bytes; it is not source provenance, rights approval or Git Blob SHA. source_sha256 is intentionally null until approved."
+    "sha_semantics": "image_sha256 hashes the exact present repository file bytes; it is not source provenance, rights approval or Git Blob SHA. source_sha256 is intentionally null until approved."
   }
 }

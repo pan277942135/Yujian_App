@@ -31,6 +31,10 @@
 5. Settings 测试从当前 package 的 App Details Settings 打开；回前台后重新调用系统权限查询。若系统设置页无法启动、系统状态无法观测或重置失败，归为 `INFRA_BLOCKED`，不把系统工具故障记成产品 PASS。
 6. Photo Picker 测试不得申请 CAMERA；测试报告保存 Picker 启动/选择/取消和 CameraX request/capture 零调用的独立 trace。
 
+## 官方 Android 平台参考
+
+- Android Developers, Request runtime permissions: https://developer.android.com/training/permissions/requesting 。页面说明当前权限查询、理由说明和系统请求流程；测试合同仍要求直接查询系统 grant 状态并独立保存 Host request history，不能从单个 rationale hint 声称永久拒绝。
+
 ## Reset / 清理与数据隔离
 
 - 每个 case 起始前校验上个 case 无未完成 Attempt、无 Pending URI lease、无记录新增；应用状态只按 QA manifest 配置重置。

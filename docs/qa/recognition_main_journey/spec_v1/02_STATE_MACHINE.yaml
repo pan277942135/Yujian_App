@@ -831,7 +831,7 @@ transitions:
   event: explicit_retake
   guard: image missing/invalid or user chooses new photo
   side_effect: delete stale image lease; new capture session
-  to: CAPTURE_INITIALIZING
+  to: CAMERA_INITIALIZING
 state_graph:
   source: EMPTY_HOME
   normal_camera_route:
