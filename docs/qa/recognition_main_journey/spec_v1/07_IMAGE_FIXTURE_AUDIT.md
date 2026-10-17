@@ -53,3 +53,18 @@
 4. 固定输入版本，保留原始文件；衍生 Crop 需引用父级原图哈希和裁剪变换，不覆盖来源文件。
 5. 将通过授权的源哈希、测试用户 Dataset 版本、APK/模型 SHA 与运行证据绑定；设计状态与执行状态保持分离。只有审核批准后才将 `status` 更新到 `APPROVED`。
 6. 本规范阶段不补齐图片、不移除候选图水印、不重新编码、不写入任何新图片。
+
+
+## Runtime asset delivery contract addendum · 2026-10-17
+
+The page-level Frozen PNGs above remain visual references only. The Android runtime demonstration images are a separate asset class and must not be derived by cropping those full-page screenshots.
+
+The normative delivery contract is now:
+- `docs/qa/recognition_main_journey/spec_v1/15_ANDROID_VISUAL_ASSET_DELIVERY_CONTRACT.md`
+- `docs/qa/recognition_main_journey/spec_v1/16_MISSING_ASSET_FAIL_CLOSED_GATE.md`
+- `design/pages/recognition/first_use_camera_guide/runtime_asset_manifest_v1.schema.json`
+- `design/pages/recognition/first_use_camera_guide/runtime_asset_manifest_v1.json`
+
+The runtime manifest defines 12 required slots: one correct Hero and three error examples for each of P01/P02/P03. Its initial status is `BLOCKED_ASSET_SOURCE`; all 12 slots are currently `MISSING`, with no approved source path, source hash, Android resource binding, or semantic review. This is an honest inventory state, not a claim that assets have been delivered.
+
+The source audit remains unchanged: existing photo candidates have unresolved provenance/authorization and cannot be promoted merely because they are in the repository. Asset completeness must be decided per slot and then by the fail-closed G03 sub-gates.
