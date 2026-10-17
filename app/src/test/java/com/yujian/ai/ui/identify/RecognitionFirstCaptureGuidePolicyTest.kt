@@ -95,7 +95,7 @@ class RecognitionFirstCaptureGuidePolicyTest {
                 RecognitionFirstCaptureGuideIntent.START,
             )
             assertTrue("START is only valid on P02 ($page)", prematureStart.visible)
-            assertFalse("START is only valid on P03 ($page)", prematureStart.completed)
+            assertFalse("START is only valid on P02 ($page)", prematureStart.completed)
         }
     }
 
