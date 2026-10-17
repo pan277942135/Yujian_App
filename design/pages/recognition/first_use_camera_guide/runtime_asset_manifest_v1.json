@@ -34,7 +34,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P01_ERROR_HEAD_OUT": {
       "slot_id": "P01_ERROR_HEAD_OUT",
@@ -60,7 +63,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P01_ERROR_TOO_SMALL": {
       "slot_id": "P01_ERROR_TOO_SMALL",
@@ -86,7 +92,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P01_ERROR_OCCLUDED": {
       "slot_id": "P01_ERROR_OCCLUDED",
@@ -112,7 +121,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P02_HERO": {
       "slot_id": "P02_HERO",
@@ -138,7 +150,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P02_ERROR_HEAD_OUT": {
       "slot_id": "P02_ERROR_HEAD_OUT",
@@ -164,7 +179,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P02_ERROR_TOO_SMALL": {
       "slot_id": "P02_ERROR_TOO_SMALL",
@@ -190,7 +208,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P02_ERROR_OCCLUDED": {
       "slot_id": "P02_ERROR_OCCLUDED",
@@ -216,7 +237,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P03_HERO": {
       "slot_id": "P03_HERO",
@@ -242,7 +266,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P03_ERROR_HEAD_OUT": {
       "slot_id": "P03_ERROR_HEAD_OUT",
@@ -268,7 +295,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P03_ERROR_TOO_SMALL": {
       "slot_id": "P03_ERROR_TOO_SMALL",
@@ -294,7 +324,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     },
     "P03_ERROR_OCCLUDED": {
       "slot_id": "P03_ERROR_OCCLUDED",
@@ -320,7 +353,10 @@
       "reviewed_at": null,
       "approved": false,
       "allow_reuse": false,
-      "reuse_group": null
+      "reuse_group": null,
+      "source_git_blob_sha": null,
+      "runtime_git_blob_sha": null,
+      "source_exif_orientation": null
     }
   }
 }
