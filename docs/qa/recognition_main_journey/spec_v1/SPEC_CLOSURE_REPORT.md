@@ -24,7 +24,7 @@
 | 组合场景 | 10/10 详细审查；8 READY_FOR_FREEZE；E2E-06/07 REVIEW_REQUIRED；10 NOT_RUN |
 | 图片输入矩阵 | 8 项：2 CANDIDATE_REVIEW、5 MISSING、1 SPEC_ONLY；IMG-01/04 两个未授权候选内容；256 个仓库栅格文件完成只读扫描 |
 | 其他识别图像 | catch 原图三条路径字节相同，只算 1 张内容；另有一张夜拍候选、一张 224×224 model Golden、一张派生裁剪；Case A 原图未在当前树/可见 git history 中找到 |
-| 首用引导素材 | P01/P02/P03 三张 Frozen 整页参考图已记录尺寸与 SHA；独立运行时 Hero 原图和错误示例图未确认 |
+| 首用引导素材 | P01/P02/P03 三张 Frozen 整页参考图已记录尺寸与 SHA；12 个独立 Runtime 槽位已建立机器可读登记，当前 12/12 MISSING、0/12 APPROVED，来源授权和 Android 绑定未完成 |
 | 受控数据 | 6 类 RESP + Detector/Crop/Classifier failure、timeout、capture/decode failure、stale callback 均有接口 schema / 来源标记 / Retry 边界；未实现 Mock Engine |
 | 自动化追踪 | 76 行（66 base + 10 E2E）逐条映射到需求、状态、代码范围、方法、Gate、执行任务与证据 |
 | 验收 Gate | G01–G15 定义了前提、PASS、自动/人工检查、证据、失败/阻塞及上下游 |
@@ -47,6 +47,9 @@
 13. 13_TEST_IMPLEMENTATION_BACKLOG.md — QA-00…QA-14 后续测试任务
 14. 14_OPEN_DECISIONS_AND_BLOCKERS.md — owner、证据、推荐、影响及关闭条件
 15. SPEC_CLOSURE_REPORT.md — 本报告
+16. 15_ANDROID_VISUAL_ASSET_DELIVERY_CONTRACT.md — 设计资产到 Android 的可执行交付合同
+17. 16_MISSING_ASSET_FAIL_CLOSED_GATE.md — 缺图即阻断的验收门禁
+18. runtime_asset_manifest_v1.schema.json + runtime_asset_manifest_v1.json — 12 个 Runtime 图片槽位的 Schema 与当前登记
 
 机器可读的规范主源仍为 docs/qa/recognition_main_journey/test_case_catalog_v1.json 与 e2e_scenarios_v1.json；标准图片和受控输入主源为 test_inputs_v1.json；固定 QA 用户仍以原始 1.1.0 manifest 为准。本次没有另建平行用例目录或修改 frozen seven decisions。
 
@@ -85,3 +88,15 @@ S1–S5 已分别形成里程碑提交；S6 在本次规范包与本报告完成
 | S6 Gate、追踪、Backlog 与收口报告 | 9eb6dc3994aec91c64e1b6c9f43575b3ef858217 |
 
 PR #161 的源分支 HEAD 是 S6 包提交；本报告随后以单独的元数据提交记录远端 S1–S6 SHA 与 PR URL。最终 HEAD 可从 PR 页面核验。PR 保持 Draft / Open / Unmerged，不合并 main。
+
+
+## Addendum · Android asset delivery and fail-closed gate · 2026-10-17
+
+This standards-only update extends the existing Draft PR #161; it does not change Android production code, test implementation, model artifacts, Frozen PNG bytes, Gradle, CI workflows, or runtime state.
+
+- Android visual asset delivery contract: §15_ANDROID_VISUAL_ASSET_DELIVERY_CONTRACT.md§
+- Fail-closed acceptance gate: §16_MISSING_ASSET_FAIL_CLOSED_GATE.md§
+- Machine-readable slot schema and register: §design/pages/recognition/first_use_camera_guide/runtime_asset_manifest_v1.schema.json§ and §design/pages/recognition/first_use_camera_guide/runtime_asset_manifest_v1.json§
+- Required slots: 12; approved sources: 0; current asset manifest status: BLOCKED_ASSET_SOURCE.
+- G03 is refined into G03A–G03E. Missing/unapproved assets block guide visual acceptance and guide-dependent E2E; no placeholder or camera-background fallback can be reported as PASS.
+- Runtime execution remains NOT_RUN. Overall specification remains REVIEW_REQUIRED, not READY_FOR_DEVELOPMENT.
