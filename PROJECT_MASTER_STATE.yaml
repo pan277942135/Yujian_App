@@ -9,12 +9,12 @@ project:
   current_goal: "Complete and accept the primary photo-recognition journey end-to-end."
 
 state_control:
-  updated_at: "2026-10-17T05:41:19+08:00"
+  updated_at: "2026-10-17T10:07:52+08:00"
   current_repo: "pan277942135/Yujian_App"
   current_branch: "audit/design-system-v3-1-phase1-master-baseline"
-  execution_baseline_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
-  execution_baseline_role: "latest application-code SHA intentionally tracked for acceptance"
-  live_branch_head_at_snapshot: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+  execution_baseline_sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
+  execution_baseline_role: "latest branch HEAD SHA intentionally tracked for exact-head acceptance"
+  live_branch_head_at_snapshot: "0c74b643c498c537b22e4bea77c8864a1207059c"
   live_branch_head_role: "observed branch head at the last state snapshot; re-read before every execution"
   current_pr: 145
   pr_state: "DRAFT_OPEN_UNMERGED"
@@ -57,8 +57,8 @@ repositories:
     default_branch: "main"
     main_sha: "b201d2b6229b629bcbcb9b4a3458a307099d2cfe"
     active_branch: "audit/design-system-v3-1-phase1-master-baseline"
-    active_sha_at_snapshot: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
-    execution_baseline_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+    active_sha_at_snapshot: "0c74b643c498c537b22e4bea77c8864a1207059c"
+    execution_baseline_sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
     runtime:
       os: "Android"
       api_level: 28
@@ -307,8 +307,19 @@ phases:
     status: "BLOCKED"
     freeze: "NOT_FROZEN"
     exact_head:
-      sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+      sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
+      run_id: 38973629825
       runtime_status: "BLOCKED_FAIL_EVIDENCE"
+      build_job_id: 117219993726
+      gate_results:
+        normal-home-v1: "FAIL_EVIDENCE"
+        recognition-frozen: "PASS"
+        empty-home-v2: "PASS"
+        login-v2: "PASS"
+        data-sanitization: "PASS"
+        fish-guide-v1: "PASS"
+        camera-runtime-v1: "FAIL_EVIDENCE / ASSET_SOURCE_BLOCKED"
+        runtime-parity: "COMPLETED_OPTIONAL_NOT_USED_FOR_N001"
     required_evidence:
       - "runtime run ID"
       - "test result"
@@ -326,7 +337,12 @@ phases:
     release_candidate: "NOT_AVAILABLE"
     exact_head_apk:
       artifact_generated: true
-      apk_sha256: "e47a9766da835e3d2f58df02a529aa7b5476b289dfe75fb6fd913b6b7b9ab620"
+      source_sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
+      run_id: 38973629825
+      apk_artifact_id: 12078321943
+      android_test_apk_artifact_id: 12077689880
+      apk_sha256: "3086825ec32c1695a03e75900c1573497abe1ee707612e29df84859d437634b4"
+      android_test_apk_sha256: "a44dc6037a6ee5f17cccfa52ee43e55a22a00e02fe751b3c3aacf571314d43d6"
       release_eligible: false
     release_gate:
       build: "PASS"
@@ -420,7 +436,7 @@ runtime_gates:
     reference_resolution: "1080x1920"
     runner: "self-hosted"
   exact_head:
-    sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+    sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
     status: "BLOCKED_FAIL_EVIDENCE"
   pr_ci:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -465,24 +481,33 @@ runtime_gates:
 
 apk_and_evidence:
   exact_head:
-    source_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
-    run_id: 38965298955
+    source_sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
+    run_id: 38973629825
     artifact_ids:
-      runtime_apk_pair: 12073914737
-      debug_apk: 12074019413
-      full_surface_apk: 12074199154
-      recognition_visual_apk: 12074433749
-      normal_home_runtime: 12074414986
-      recognition_frozen_runtime: 12074953434
-      camera_runtime: 12075127990
-      login_v2_runtime: 12075298682
-      data_sanitization_runtime: 12075309847
-      empty_home_runtime: 12076201405
-      fish_guide_runtime: 12076477029
+      runtime_apk_pair: 12077689880
+      debug_apk: 12078042361
+      full_surface_apk: 12078102412
+      recognition_visual_apk: 12078321943
+      normal_home_runtime: 12078292919
+      recognition_frozen_runtime: 12079096218
+      camera_runtime: 12078647593
+      login_v2_runtime: 12079342350
+      data_sanitization_runtime: 12079560839
+      empty_home_runtime: 12078694295
+      fish_guide_runtime: 12079561140
     artifact_zip_digests: {}
-    apk_sha256: "e47a9766da835e3d2f58df02a529aa7b5476b289dfe75fb6fd913b6b7b9ab620"
-    android_test_apk_sha256: "d674f9897195e469d3e0d536becd4b6d10d047b8668415f7c08e7f4feea0c8f8"
+    apk_sha256: "3086825ec32c1695a03e75900c1573497abe1ee707612e29df84859d437634b4"
+    android_test_apk_sha256: "a44dc6037a6ee5f17cccfa52ee43e55a22a00e02fe751b3c3aacf571314d43d6"
     runtime_evidence: "GENERATED_PARTIAL_FAIL_EVIDENCE"
+    runtime_gate_results:
+      normal_home_v1: "FAIL_EVIDENCE"
+      recognition_frozen: "PASS"
+      empty_home_v2: "PASS"
+      login_v2: "PASS"
+      data_sanitization: "PASS"
+      fish_guide_v1: "PASS"
+      camera_runtime_v1: "FAIL_EVIDENCE / ASSET_SOURCE_BLOCKED"
+      runtime_parity: "COMPLETED_OPTIONAL_NOT_USED_FOR_N001"
 
   last_verified_build:
     source_sha: "a280699da7575aa332f9d00104969161bbe918bd"
@@ -507,6 +532,12 @@ apk_and_evidence:
 
 normal_home_runtime:
   status: "BLOCKED"
+  latest_exact_head:
+    source_sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
+    run_id: 38973629825
+    normal_home_v1: "FAIL_EVIDENCE"
+    camera_runtime_v1: "FAIL_EVIDENCE / ASSET_SOURCE_BLOCKED"
+    evidence_root: "outputs/runtime-normal-home-v1-0c74b643"
   A4_1:
     name: "Hero Evidence Fixture Closure + Camera Mask Finalization"
     status: "BLOCKED"
@@ -556,7 +587,7 @@ execution_control:
   max_automatic_repairs_per_failing_gate: 2
   final_human_gate: "N009"
   machine_validation: "PASS"
-  machine_validated_source_sha: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+  machine_validated_source_sha: "0c74b643c498c537b22e4bea77c8864a1207059c"
 
 current_work:
   id: "RECOGNITION-FIRST-USE-GUIDE-V1"
@@ -565,7 +596,7 @@ current_work:
   status: "BLOCKED"
   source_file: "WORK_EXECUTION_STATE.json"
   task_id: "N001"
-  exact_head: "769def83ca63a76cf92ee063aacd6c6e24484a8f"
+  exact_head: "0c74b643c498c537b22e4bea77c8864a1207059c"
   previous_runtime_baseline: "25203f8d18c831624aa0d5cc0bc6f4cff9cc91d2"
   first_use_guide:
     task_doc: "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
@@ -599,29 +630,29 @@ blockers:
     severity: "P0"
     area: "Android Runtime"
     status: "OPEN"
-    description: "Exact-head API28 matrix run 38965298955 completed the required rows, but normal-home-v1 and camera-runtime-v1 returned FAIL_EVIDENCE; N001 is not PASS."
+    description: "Exact-head API28 matrix run 38973629825 completed the required rows at 0c74b643; normal-home-v1 and camera-runtime-v1 returned FAIL_EVIDENCE, so N001 is not PASS."
     unblock: "Obtain approved source/rights/ground-truth fixtures and authority decisions, then rerun the affected gates without changing Frozen assets or acceptance thresholds."
 
   - id: "B002"
     severity: "P1"
     area: "Recognition Runtime"
     status: "CLOSED"
-    description: "Exact-head recognition-frozen API28 gate passed on run 38965298955, job 117192650550."
+    description: "Exact-head recognition-frozen API28 gate passed on run 38973629825, job 117222071498, source 0c74b643."
     unblock: "No action; preserve artifact and source SHA provenance."
-    closed_at: "2026-10-17T05:41:19+08:00"
+    closed_at: "2026-10-17T10:07:52+08:00"
 
   - id: "B003"
     severity: "P1"
     area: "Normal Home"
     status: "OPEN"
-    description: "Exact-head run 38965298955 / artifact 12074414986 reports FAIL_EVIDENCE: approved originals, rights and ground-truth fish boxes for F01-F08 plus direct visual review are unavailable."
+    description: "Exact-head run 38973629825 / artifact 12078292919 reports FAIL_EVIDENCE: approved originals, rights and ground-truth fish boxes for F01-F08 plus direct visual review are unavailable; the runtime probe also reports the local bottom-treatment assertion."
     unblock: "Approved independent fixtures + provenance/license + duplicate audit + HOME/DETAIL runtime evidence."
 
   - id: "B004"
     severity: "P1"
     area: "Normal Home Camera"
     status: "OPEN"
-    description: "Exact-head camera-runtime-v1 artifact 12075127990 reports FAIL_EVIDENCE with failure_reason ASSET_SOURCE_BLOCKED; device, install and instrumentation passed."
+    description: "Exact-head camera-runtime-v1 artifact 12078647593 reports FAIL_EVIDENCE with failure_reason ASSET_SOURCE_BLOCKED; device, install and instrumentation passed."
     unblock: "Resolve the approved camera/source fixture and complete geometry/pixel acceptance; do not alter Frozen assets."
 
   - id: "B005"
@@ -658,6 +689,15 @@ blockers:
       - "manifest.json sequence = p01,p02,p03"
       - "navigation.json children = p01,p02,p03"
     rule: "B008 covers three-page V1 frozen-binary registration; Design Governance preview, Android runtime behavior, and visual parity remain separate acceptance gates."
+
+  - id: "B009"
+    severity: "P1"
+    area: "Normal Home Runtime Contract"
+    owner: "Work"
+    status: "OPEN"
+    description: "Exact-head normal-home-v1 instrumentation at 0c74b643 failed NormalHomeDataParityTest.differentPortraitRatiosShareCoverViewportAndPreserveHomeDataAndRoutes at NormalHomeDataParityTest.kt:444: the local bottom-treatment brightness assertion did not pass."
+    evidence: "outputs/runtime-normal-home-v1-0c74b643/normal-home-v1/normal_home_profile_1080x1920_fs1_0_instrumentation.log"
+    unblock: "Diagnose and repair the product-side treatment without changing Frozen assets or acceptance predicates, then rerun the exact-head affected gate; automatic repair budget is already exhausted for the prior recovery sequence."
 
 protected_invariants:
   product:
@@ -699,13 +739,13 @@ next_actions:
     priority: "P0"
     owner: "Work"
     status: "READY"
-    action: "Run the authoritative API28 matrix at repair-2 exact HEAD; keep the approved Hero fixture provenance blocker explicit and do not change the acceptance threshold."
+    action: "Resolve B003, B004 and B009 with approved evidence or a product-side repair, then rerun only the affected API28 gates at exact HEAD 0c74b643; keep the acceptance threshold unchanged."
 
   - id: "N001"
     priority: "P0"
     owner: "Work"
     status: "BLOCKED"
-    action: "Complete the current exact-head API28 matrix, then resolve B003 Hero fixture evidence and re-evaluate N001; historical FAIL_EVIDENCE remains non-promotable."
+    action: "Resolve B003, B004 and B009, rerun the affected exact-head API28 gates, and re-evaluate N001; current FAIL_EVIDENCE remains non-promotable."
   - id: "N002"
     priority: "P0"
     owner: "Work"
