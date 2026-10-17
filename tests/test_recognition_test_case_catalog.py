@@ -80,5 +80,56 @@ class CatalogRegressionTest(unittest.TestCase):
         self.assertTrue(any("review case needs reason" in x for x in self.check(
             lambda c,e,i,u: c["cases"][8].update(design_status="REVIEW",review_reason=""))))
 
+    def test_all_seven_decisions_are_behavior_frozen(self):
+        cases = self.original[0]["cases"]
+        approved = {"PER-04", "PER-05", "PROC-07", "NAV-03",
+                    "NAV-04", "NAV-05", "NAV-07"}
+        self.assertEqual(approved, {x["case_id"] for x in cases
+                                    if x["design_status"] == "FROZEN"})
+        self.assertTrue(all(x["execution_status"] == "NOT_RUN" for x in cases))
+
+    def test_approved_policy_cannot_silently_change_assertion(self):
+        def corrupt(c, e, i, u):
+            next(x for x in c["cases"] if x["case_id"] == "NAV-04")["assertions"] = [
+                "Return directly to FishRecordDetail"
+            ]
+        self.assertTrue(any("steps/assertions/evidence diverge" in msg
+                            for msg in self.check(corrupt)))
+
+    def test_approved_variants_are_not_optional(self):
+        def corrupt(c, e, i, u):
+            next(x for x in c["cases"] if x["case_id"] == "PER-04")[
+                "required_policy_variants"] = ["REQUESTABLE"]
+        self.assertTrue(any("decision variant drift" in msg
+                            for msg in self.check(corrupt)))
+
+    def test_timeout_must_not_be_silently_declared_ready(self):
+        def corrupt(c, e, i, u):
+            next(x for x in c["cases"] if x["case_id"] == "PROC-07")[
+                "acceptance_readiness"] = "READY_TO_IMPLEMENT"
+        self.assertTrue(any("timeout must come from approved runtime config" in msg
+                            for msg in self.check(corrupt)))
+
+    def test_recreation_must_keep_device_evidence_requirement(self):
+        def corrupt(c, e, i, u):
+            next(x for x in c["cases"] if x["case_id"] == "NAV-07")[
+                "acceptance_readiness"] = "READY_TO_IMPLEMENT"
+        self.assertTrue(any("real-device lifecycle evidence required" in msg
+                            for msg in self.check(corrupt)))
+
+    def test_removing_approved_decision_binding_fails(self):
+        def corrupt(c, e, i, u):
+            e["scenarios"][0].pop("decision_refs")
+        self.assertTrue(any("E2E navigation bindings" in msg
+                            for msg in self.check(corrupt)))
+
+    def test_pretending_behavior_freeze_is_execution_pass_fails(self):
+        def corrupt(c, e, i, u):
+            next(x for x in c["cases"] if x["case_id"] == "NAV-05")[
+                "execution_status"] = "PASS"
+        self.assertTrue(any("source catalog must not fake execution PASS" in msg
+                            for msg in self.check(corrupt)))
+
+
 if __name__=="__main__":
     unittest.main()
