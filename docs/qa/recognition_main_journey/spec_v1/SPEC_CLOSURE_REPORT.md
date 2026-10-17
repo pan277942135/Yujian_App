@@ -5,7 +5,7 @@
 **规范包：** docs/qa/recognition_main_journey/spec_v1/  
 **分支：** docs/recognition-main-flow-spec-v1  
 **目标基线：** 最新远端 main 经核实为 0d3238e8a41b87363e9a17b04c9cc45fca4c426d  
-**Draft PR：** 待创建并回填 URL  
+**Draft PR：** https://github.com/pan277942135/Yujian_App/pull/161（Draft / Open / Unmerged）  
 **运行状态：** 本阶段无 Android Build、Instrumentation、API28 Runtime 或模型运行；所有 66 基础用例、10 E2E 和 G01–G15 执行状态均 NOT_RUN。
 
 ## 标准包结论
@@ -77,11 +77,11 @@ S1–S5 已分别形成里程碑提交；S6 在本次规范包与本报告完成
 
 | 里程碑 | 提交 |
 |---|---|
-| S1 业务流程与状态机 | 0430f057 |
-| S2 四项开发合同 | d6c23718 |
-| S3 66 条逐条用例审查 | e3f4427c |
-| S4 10 条 E2E 与标准图片审计 | bc7458a3 |
-| S5 异常数据与自动化架构 | d1cc707d |
-| S6 Gate、追踪、Backlog 与收口报告 | 将在本里程碑 commit 后回填 |
+| S1 业务流程与状态机 | a06074de2eb6613872e9b8324f99746b36a074d3 |
+| S2 四项开发合同 | 4c294b460bc2f453c83a778be1526f0a0d01c9ed |
+| S3 66 条逐条用例审查 | 21dfd162b3132201b407cb7a5a5a5f68936e8550 |
+| S4 10 条 E2E 与标准图片审计 | d837ae2920b9f716ae32f5d815dc8896ee0a90d6 |
+| S5 异常数据与自动化架构 | 728bcc6899a39d96eac97ecc290423d9d939f71d |
+| S6 Gate、追踪、Backlog 与收口报告 | 9eb6dc3994aec91c64e1b6c9f43575b3ef858217 |
 
-Draft PR URL 和最终 branch HEAD SHA 在创建/更新 GitHub Draft PR 后回填；PR 保持 Draft / Open / Unmerged，不合并 main。
+PR #161 的源分支 HEAD 是 S6 包提交；本报告随后以单独的元数据提交记录远端 S1–S6 SHA 与 PR URL。最终 HEAD 可从 PR 页面核验。PR 保持 Draft / Open / Unmerged，不合并 main。
