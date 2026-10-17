@@ -725,12 +725,12 @@ class RecognitionCameraRuntimeTest {
 
         device.findObject(By.desc(GUIDE_NEXT_BUTTON))!!.click()
         assertTrue("P01 next did not show P02", device.wait(
-            Until.hasObject(By.text("竖拍鱼类拍摄示意")), 10_000L,
+            Until.hasObject(By.text("横屏拍摄示意")), 10_000L,
         ))
         captureGuidePage(
             page = RecognitionFirstCaptureGuidePage.P02,
-            title = "竖拍鱼类拍摄示意",
-            actionDescription = GUIDE_NEXT_BUTTON,
+            title = "横屏拍摄示意",
+            actionDescription = GUIDE_START_BUTTON,
             screenshotName = "P02_runtime.png",
         )
         device.findObject(By.desc(GUIDE_PREVIOUS_BUTTON))!!.click()
@@ -739,18 +739,8 @@ class RecognitionCameraRuntimeTest {
         ))
         device.findObject(By.desc(GUIDE_NEXT_BUTTON))!!.click()
         assertTrue("P01 next did not return to P02", device.wait(
-            Until.hasObject(By.text("竖拍鱼类拍摄示意")), 10_000L,
-        ))
-        device.findObject(By.desc(GUIDE_NEXT_BUTTON))!!.click()
-        assertTrue("P02 next did not show P03", device.wait(
             Until.hasObject(By.text("横屏拍摄示意")), 10_000L,
         ))
-        captureGuidePage(
-            page = RecognitionFirstCaptureGuidePage.P03,
-            title = "横屏拍摄示意",
-            actionDescription = GUIDE_START_BUTTON,
-            screenshotName = "P03_runtime.png",
-        )
         assertEquals("Guide navigation must not invoke the shutter", 0, countCaptureRequests(productionLogs()))
         device.findObject(By.desc(GUIDE_START_BUTTON))!!.click()
         assertTrue("Final Start did not return to the live camera shutter", device.wait(
@@ -759,7 +749,7 @@ class RecognitionCameraRuntimeTest {
         assertTrue("Final Start must persist completion", guideStore.isCompleted())
         assertTrue("Guide did not dismiss after final Start", waitForGuideHidden(5_000L))
         assertEquals("Final Start must not invoke capture", 0, countCaptureRequests(productionLogs()))
-        record("FIRST_USE_GUIDE_NAVIGATION", "P01_TO_P02_TO_P03_PASS")
+        record("FIRST_USE_GUIDE_NAVIGATION", "P01_TO_P02_PASS")
         writeFirstUseGuideRuntimeReport()
 
         return waitForProductionReady(CAMERA_WAIT_MS)
