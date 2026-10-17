@@ -43,6 +43,10 @@ Current sub-gate state: G03A=BLOCKED, G03B=NOT_RUN (the manifest declares 12 slo
 
 The Frozen full-page PNGs are used to compare layout/typography/spacing and the placement of example slots. Dynamic CameraX background pixels are not expected to match the static design background pixel-for-pixel.
 
+### G03 interpretation note — current implementation baseline
+
+The existing `fish-guide-v1` CI job may pass while the independent Hero/error-photo source remains blocked. The current component instrumentation test records `ASSET_SOURCE_BLOCKED`, `COMPONENT_INSTRUMENTATION_ONLY`, and `runtime_route_evidence=NOT_RUN`; this is successful reporting of a blocker, not Guide Visual PASS. `scripts/verify_first_use_camera_guide_assets.py` checks only Frozen full-page PNG import integrity. It does not close G03A/G03C/G03D/G03E for the 12 runtime photo slots.
+
 ## 当前 Gate 基线状态
 
 所有 Gate 的 runtime state = NOT_RUN。当前文档一致性 validator 通过只说明 JSON/ID/reverse-index 结构可解析，不是任何 G01–G15 PASS。会阻塞未来验收的已知项：IMG-01/04 权限未核；IMG-02/03/05/06/07 缺失；IMG-08 未生成；E2E-07 当前实现无独立 blur 指标合同；PROC-07 数值未批准；workflow AVD 选择不能单独证明 Pixel_2；视觉人工审核未运行；基线运行状态文件按仓库 admission 规则未提供（见 open decisions）。
