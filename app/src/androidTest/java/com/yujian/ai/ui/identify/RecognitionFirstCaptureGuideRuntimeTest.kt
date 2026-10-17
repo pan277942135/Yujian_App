@@ -139,7 +139,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         assertButtonSemantics("recognition-guide-skip", "跳过首次拍照教学")
         assertButtonSemantics("recognition-guide-primary-action", "下一张教学示例")
         assertEquals(
-            "第1页，共3页",
+            "第1页，共2页",
             composeRule.onNodeWithTag("recognition-guide-page-indicator")
                 .fetchSemanticsNode().config[SemanticsProperties.StateDescription],
         )
@@ -155,7 +155,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         }
 
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
-        composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
+        composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
         assertButtonSemantics("recognition-guide-previous", "上一张教学示例")
         composeRule.onNodeWithTag("recognition-guide-previous").assertHasClickAction().performClick()
         composeRule.onNodeWithTag("recognition-guide-page-title-1", useUnmergedTree = true).assertIsDisplayed()
@@ -282,9 +282,9 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         }
 
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
-        composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
+        composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
         restorationTester.emulateSavedInstanceStateRestore()
-        composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
+        composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
         composeRule.runOnIdle {
             assertFalse(store.isCompleted())
         }
