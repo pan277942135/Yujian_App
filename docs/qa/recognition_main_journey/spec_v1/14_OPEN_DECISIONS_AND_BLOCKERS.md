@@ -23,3 +23,14 @@
 - 无权利/来源审核不升级现有照片 candidate。
 - E2E-06/07 在真实输出和素材未满足时保持 BLOCKED/REVIEW_REQUIRED；禁止替换真实模型响应。
 - 本文件中的结论不得通过给状态文件填入“绿色值”消除仓库 admission blocker。
+
+
+## OD-11 · First-use guide Android Runtime assets are absent
+
+**Status:** BLOCKED_ASSET_SOURCE  
+**Owner:** Design/Asset owner for source rights and semantic approval; Android owner for resource binding; QA owner for Runtime gate evidence.  
+**Evidence:** The three Frozen P01/P02/P03 PNGs are full-page references, not independent runtime example images. The current Android policy has §heroAsset = null§ and §errorAssets = listOf(null, null, null)§.  
+**Required scope:** Twelve required slots (P01/P02/P03 × correct Hero + head-out-of-frame + too-small + excessive-occlusion).  
+**Closure conditions:** Populate and review the runtime asset manifest; approve source and app/repository/CI usage rights; verify fish direction and example semantics; bind byte-identical Android resources; pass G03A–G03E using real Runtime evidence.  
+**Prohibited workaround:** Do not crop the Frozen full-page PNG, use live CameraX background as the Hero, substitute a model Golden or generic image, or downgrade a missing slot to a warning.  
+**Downstream impact:** FIRST_USE_GUIDE_VISUAL remains BLOCKED; full-flow E2E paths that require this guide remain BLOCKED; overall recognition acceptance cannot PASS. This is a standards-stage blocker record, not an implementation or test result.
