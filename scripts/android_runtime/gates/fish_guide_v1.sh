@@ -4,6 +4,13 @@ gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.FishGuideRuntimeTest,com.yujian.ai.FishKnowledgeContractTest'
 }
 
+gate_after_instrumentation() {
+  local output_dir="$YUJIAN_EVIDENCE_DIR/fish-guide-v1/partial"
+  local remote_dir="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/fish_guide_v1"
+  mkdir -p "$output_dir"
+  "$YUJIAN_ADB_BIN" pull "$remote_dir/." "$output_dir/" > "$output_dir/adb_pull.log" 2>&1 || true
+}
+
 gate_collect_evidence() {
   local out="$YUJIAN_EVIDENCE_DIR/fish-guide-v1"
   mkdir -p "$out"

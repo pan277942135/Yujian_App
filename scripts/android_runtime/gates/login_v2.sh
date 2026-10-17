@@ -4,6 +4,13 @@ gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.LoginV2RuntimeTest,com.yujian.ai.AccountPrivacyRuntimeTest,com.yujian.ai.ui.recorddetail.FishRecordDetailRuntimeTest,com.yujian.ai.ui.designsystem.DesignSystemComponentPreviewTest'
 }
 
+gate_after_instrumentation() {
+  local output_dir="$YUJIAN_EVIDENCE_DIR/login-v2/partial"
+  local remote="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/login_v2"
+  mkdir -p "$output_dir"
+  "$YUJIAN_ADB_BIN" pull "$remote/." "$output_dir/" > "$output_dir/adb_pull.log" 2>&1 || true
+}
+
 gate_collect_evidence() {
   local login_dir="$YUJIAN_EVIDENCE_DIR/login-v2"
   mkdir -p "$login_dir"

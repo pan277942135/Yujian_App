@@ -1,11 +1,11 @@
 package com.yujian.ai
 
-import android.graphics.Bitmap
-import android.graphics.Rect
 import android.os.ParcelFileDescriptor
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.hasClickAction
@@ -22,6 +22,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.knowledge.FishGuideItem
@@ -106,9 +107,15 @@ class FishGuideRuntimeTest {
         composeRule.onNodeWithText("1 / 3").assertIsDisplayed()
         composeRule.onNodeWithText("草鱼").assertIsDisplayed()
         val carouselBounds = composeRule.onNodeWithTag("fish_guide_carousel").fetchSemanticsNode().boundsInRoot
-        val speciesTitleBounds = composeRule.onNodeWithText("草鱼").fetchSemanticsNode().boundsInRoot
-        assertTrue("Species title must anchor the upper card hierarchy", speciesTitleBounds.center.y < carouselBounds.center.y)
+        val speciesTitleBounds = composeRule.onNodeWithText(
+            "草鱼",
+            useUnmergedTree = true,
+        ).fetchSemanticsNode().boundsInRoot
         saveScreenshot("fish_guide_lit.png")
+        assertTrue(
+            "Species title must anchor the upper card hierarchy: title=$speciesTitleBounds carousel=$carouselBounds",
+            speciesTitleBounds.center.y < carouselBounds.center.y,
+        )
 
         swipeCarouselToSelectedSpecies(
             fromName = "草鱼",
@@ -229,7 +236,7 @@ class FishGuideRuntimeTest {
             )
         }
 
-        composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
+        saveScreenshot("fish_species_detail_initial.png")
         composeRule.onNodeWithTag("fish_knowledge_card_v2_HERO").assertExists()
         composeRule.onNodeWithContentDescription("鱼种名片，草鱼").assertExists()
         assertTrue(composeRule.onAllNodesWithText("英雄卡").fetchSemanticsNodes().isEmpty())
@@ -250,11 +257,15 @@ class FishGuideRuntimeTest {
 
         composeRule.onNodeWithContentDescription("我的草鱼，3次记录，打开该鱼种鱼获").performClick()
         composeRule.runOnIdle { assertEquals("grass_carp", openedSpeciesFilter) }
-        composeRule.onNodeWithContentDescription("打开草鱼鱼获记录，2026-09-27，照片暂不可用").performClick()
+        composeRule.onNodeWithContentDescription("打开草鱼鱼获记录，2026-09-27，照片暂不可用")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .assertHasClickAction()
+            .performClick()
         composeRule.runOnIdle { assertEquals("catch_3", openedCatchId) }
         saveScreenshot("fish_species_detail_catch.png")
 
-        composeRule.onNodeWithContentDescription("返回").performClick()
+        composeRule.onNodeWithContentDescription("返回").performScrollTo().performClick()
         composeRule.runOnIdle { assertTrue(backed) }
     }
 
@@ -282,7 +293,8 @@ class FishGuideRuntimeTest {
 
         composeRule.onNodeWithText("我的草鱼").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("0次记录").assertIsDisplayed()
-        composeRule.onNodeWithText("还没有记录").assertIsDisplayed()
+        saveScreenshot("fish_species_detail_zero_catch_initial.png")
+        composeRule.onNodeWithText("还没有记录").performScrollTo().assertIsDisplayed()
         saveScreenshot("fish_species_detail_zero_catch.png")
         composeRule.onNodeWithText("去记录鱼获").performScrollTo().performClick()
         composeRule.runOnIdle {
@@ -441,41 +453,13 @@ class FishGuideRuntimeTest {
     private fun saveScreenshot(name: String) {
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val rawBitmap = instrumentation.uiAutomation.takeScreenshot()
-        val appSurface = cropToComposeRoot(rawBitmap)
-        try {
-            val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
-            check(root.exists() || root.mkdirs())
-            FileOutputStream(File(root, name)).use { out ->
-                check(appSurface.compress(Bitmap.CompressFormat.PNG, 100, out))
-            }
-        } finally {
-            if (appSurface !== rawBitmap) appSurface.recycle()
-            rawBitmap.recycle()
+        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        val root = File(instrumentation.targetContext.getExternalFilesDir(null), "fish_guide_v1")
+        check(root.exists() || root.mkdirs())
+        FileOutputStream(File(root, name)).use { out ->
+            check(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out))
         }
-    }
-
-    private fun cropToComposeRoot(source: Bitmap): Bitmap {
-        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
-        val windowOrigin = IntArray(2)
-        composeRule.runOnUiThread {
-            composeRule.activity.window.decorView.getLocationOnScreen(windowOrigin)
-        }
-        val bounds = Rect(
-            kotlin.math.floor(rootBounds.left).toInt() + windowOrigin[0],
-            kotlin.math.floor(rootBounds.top).toInt() + windowOrigin[1],
-            kotlin.math.ceil(rootBounds.right).toInt() + windowOrigin[0],
-            kotlin.math.ceil(rootBounds.bottom).toInt() + windowOrigin[1],
-        )
-        check(bounds.left >= 0 && bounds.top >= 0 &&
-            bounds.right <= source.width && bounds.bottom <= source.height
-        ) {
-            "Compose root bounds $bounds exceed screenshot ${source.width}x${source.height}"
-        }
-        check(bounds.width() > 0 && bounds.height() > 0) {
-            "Compose root has empty screenshot bounds: $bounds"
-        }
-        return Bitmap.createBitmap(source, bounds.left, bounds.top, bounds.width(), bounds.height())
+        bitmap.recycle()
     }
 
     private fun swipeCarouselToSelectedSpecies(

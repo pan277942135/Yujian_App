@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.alpha
@@ -15,6 +16,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -43,14 +46,14 @@ fun RemoteImage(
     trimVerifiedLetterbox: Boolean = false,
     cacheIdentity: String? = null,
 ) {
-    val bitmapState = remember(url, authToken, reloadToken, cacheIdentity) { mutableStateOf<Bitmap?>(null) }
+    val bitmapState = remember(url, authToken, reloadToken, cacheIdentity, preserveEvidenceWithFitBackdrop) { mutableStateOf<Bitmap?>(null) }
     val latestOnLoadResult = rememberUpdatedState(onLoadResult)
-    LaunchedEffect(url, authToken, reloadToken, cacheIdentity) {
+    LaunchedEffect(url, authToken, reloadToken, cacheIdentity, preserveEvidenceWithFitBackdrop) {
         if (url.isNullOrBlank()) {
             bitmapState.value = null
             return@LaunchedEffect
         }
-        val loaded = withContext(Dispatchers.IO) { loadBitmap(url, authToken) }
+        val loaded = withContext(Dispatchers.IO) { loadBitmap(url, authToken, orientEvidence = preserveEvidenceWithFitBackdrop) }
         bitmapState.value = loaded
         latestOnLoadResult.value?.invoke(loaded != null)
     }
@@ -63,14 +66,28 @@ fun RemoteImage(
         if (preserveEvidenceWithFitBackdrop) {
             // The original image is both the blurred cover and the fitted evidence.
             // The opaque base keeps transparent source pixels from exposing the page behind the Hero.
-            Box(modifier = modifier) {
+            BoxWithConstraints(modifier = modifier) {
+                val density = LocalDensity.current
+                val coverScale = maxOf(
+                    with(density) { maxWidth.toPx() } / imageBitmap.width,
+                    with(density) { maxHeight.toPx() } / imageBitmap.height,
+                ).coerceAtLeast(0.001f)
+                val sourceBlurRadius = with(density) { 22.dp.toPx() } / coverScale
+                val backdrop = remember(bitmap, sourceBlurRadius) { mutableStateOf<Bitmap?>(null) }
+                LaunchedEffect(bitmap, sourceBlurRadius) {
+                    backdrop.value = withContext(Dispatchers.Default) {
+                        blurEvidenceBackdrop(requireNotNull(bitmap), sourceBlurRadius)
+                    }
+                }
                 Box(Modifier.fillMaxSize().background(Color(0xFF16242C)))
-                Image(
-                    bitmap = imageBitmap,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize().blur(22.dp).alpha(0.82f),
-                    contentScale = ContentScale.Crop,
-                )
+                backdrop.value?.let { blurred ->
+                    Image(
+                        bitmap = blurred.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().alpha(0.82f).testTag("home-evidence-backdrop-ready"),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
                 Box(Modifier.fillMaxSize().background(Color(0xFF16242C).copy(alpha = 0.14f)))
                 Image(
                     bitmap = imageBitmap,
@@ -111,7 +128,28 @@ fun RemoteImage(
     }
 }
 
-private fun loadBitmap(url: String, authToken: String?): Bitmap? = runCatching {
+private fun loadBitmap(url: String, authToken: String?, orientEvidence: Boolean = false): Bitmap? = runCatching {
+    if (orientEvidence) {
+        val bytes = when {
+            url.startsWith("file://") -> File(requireNotNull(Uri.parse(url).path)).readBytes()
+            url.startsWith("/") -> File(url).readBytes()
+            else -> {
+                val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 8_000
+                    readTimeout = 12_000
+                    instanceFollowRedirects = true
+                    authToken?.takeIf(String::isNotBlank)?.let { setRequestProperty("Authorization", "Bearer $it") }
+                }
+                try {
+                    if (connection.responseCode !in 200..299) return null
+                    connection.inputStream.use { it.readBytes() }
+                } finally {
+                    connection.disconnect()
+                }
+            }
+        }
+        return@runCatching decodeOrientedEvidence(bytes)
+    }
     if (url.startsWith("file://")) {
         return@runCatching BitmapFactory.decodeFile(Uri.parse(url).path)
     }

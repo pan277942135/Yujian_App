@@ -6,8 +6,11 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsActions
@@ -26,6 +29,8 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -200,7 +205,9 @@ class NormalHomeDataParityTest {
                 layoutResults.single().getLineEnd(0, visibleEnd = true) > metaText.indexOf("21:50 · ") + 7,
             )
 
-            logTextLayoutMetric("normal-home-brand-title", "normal-home-header", referenceFontPx = 72f)
+            compose.onNodeWithTag("normal-home-brand-title", useUnmergedTree = true).assertIsDisplayed()
+            compose.onNodeWithContentDescription("渔见", useUnmergedTree = true).assertIsDisplayed()
+            assertBrandArtworkAnchor()
             listOf("species", "catches", "record-days").forEach { stat ->
                 logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontPx = 36f)
                 logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontPx = 28f)
@@ -211,8 +218,9 @@ class NormalHomeDataParityTest {
             logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
             logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
+            logHierarchyEvidence()
 
-            assertCoveredCard(firstCard)
+            assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f)
             firstCard.performClick()
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
@@ -232,7 +240,7 @@ class NormalHomeDataParityTest {
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
-            assertCoveredCard(secondCard)
+            assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f)
 
             allAction.performClick()
             compose.runOnIdle { assertEquals(1, allClicks) }
@@ -250,6 +258,73 @@ class NormalHomeDataParityTest {
         } finally {
             narrowPortrait.delete()
             broadPortrait.delete()
+        }
+    }
+
+    @Test
+    fun registeredCameraArtworkResourceMatchesApprovedSourceIdentity() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bytes = context.resources.openRawResource(com.yujian.ai.R.drawable.normal_home_camera_primary_v1).use { it.readBytes() }
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        assertEquals("fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2", digest)
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        assertEquals(208, bitmap.width)
+        assertEquals(208, bitmap.height)
+        assertEquals(0, android.graphics.Color.alpha(bitmap.getPixel(0, 0)))
+        assertEquals(255, android.graphics.Color.alpha(bitmap.getPixel(104, 104)))
+        bitmap.recycle()
+    }
+
+    @Test
+    fun registeredBrandArtworkResourceMatchesFrozenRasterIdentity() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bytes = context.resources.openRawResource(com.yujian.ai.R.drawable.brand_title_primary).use { it.readBytes() }
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        assertEquals("2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc", digest)
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        assertEquals(155, bitmap.width)
+        assertEquals(80, bitmap.height)
+        assertEquals(0, android.graphics.Color.alpha(bitmap.getPixel(0, 0)))
+        assertTrue((0 until bitmap.height).any { y ->
+            (0 until bitmap.width).any { x -> android.graphics.Color.alpha(bitmap.getPixel(x, y)) > 0 }
+        })
+    }
+
+    private fun assertBrandArtworkAnchor() {
+        val root = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
+        val rootBounds = root.fetchSemanticsNode().boundsInRoot
+        val header = compose.onNodeWithTag("normal-home-header", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val pixels = root.captureToImage().toPixelMap()
+        val scale = header.width / 904f
+        val left = (header.left - rootBounds.left + 5f * scale).toInt().coerceAtLeast(0)
+        val top = (header.top - rootBounds.top + 5f * scale).toInt().coerceAtLeast(0)
+        val right = (header.left - rootBounds.left + 170f * scale).toInt().coerceAtMost(pixels.width)
+        val bottom = (header.top - rootBounds.top + 95f * scale).toInt().coerceAtMost(pixels.height)
+        var minX = pixels.width
+        var minY = pixels.height
+        var maxX = -1
+        var maxY = -1
+        for (y in top until bottom) for (x in left until right) {
+            val pixel = pixels[x, y]
+            if (pixel.red < 0.38f && pixel.green < 0.48f && pixel.blue < 0.58f) {
+                minX = minOf(minX, x)
+                minY = minOf(minY, y)
+                maxX = maxOf(maxX, x)
+                maxY = maxOf(maxY, y)
+            }
+        }
+        assertTrue("Frozen brand artwork produced no measurable ink", maxX >= minX && maxY >= minY)
+        val tolerance = maxOf(3f, 0.003f * (header.width * 1080f / 904f))
+        val expected = listOf(15f, 21f, 154f, 84f).map { it * scale }
+        val actual = listOf(
+            minX + rootBounds.left - header.left,
+            minY + rootBounds.top - header.top,
+            maxX + 1f + rootBounds.left - header.left,
+            maxY + 1f + rootBounds.top - header.top,
+        )
+        actual.zip(expected).forEachIndexed { index, (measured, target) ->
+            assertTrue("Brand artwork anchor[$index] measured=$measured target=$target tolerance=$tolerance", kotlin.math.abs(measured - target) <= tolerance)
         }
     }
 
@@ -346,14 +421,22 @@ class NormalHomeDataParityTest {
         }
     }
 
-    private fun assertCoveredCard(card: androidx.compose.ui.test.SemanticsNodeInteraction) {
+    private fun assertEvidenceFit(
+        card: androidx.compose.ui.test.SemanticsNodeInteraction,
+        expectedMarkerCenter: Float,
+    ) {
         val pixels = card.captureToImage().toPixelMap()
         val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
-        val edge = pixels[(pixels.width * 0.02f).toInt().coerceIn(0, pixels.width - 1), y]
-        assertTrue(
-            "The viewport edge should show the source image's side marker, not a fitted-image pillar",
-            edge.red > 0.78f && edge.green > 0.68f && edge.blue < 0.42f,
+        val markerSamples = listOf(
+            pixels[(pixels.width * expectedMarkerCenter).toInt().coerceIn(0, pixels.width - 1), y],
+            pixels[(pixels.width * (1f - expectedMarkerCenter)).toInt().coerceIn(0, pixels.width - 1), y],
         )
+        markerSamples.forEachIndexed { index, marker ->
+            assertTrue(
+                "EvidenceFit keeps source edge marker $index inside the fitted image bounds",
+                marker.red > 0.78f && marker.green > 0.68f && marker.blue < 0.42f,
+            )
+        }
         val quietTop = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.30f).toInt()]
         val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
@@ -367,10 +450,59 @@ class NormalHomeDataParityTest {
         )
         corners.forEachIndexed { index, color ->
             assertTrue(
-                "The synthetic edge marker stays clipped outside shared rounded corner $index",
+                "The synthetic source marker stays clipped outside shared rounded corner $index",
                 !(color.red > 0.78f && color.green > 0.68f && color.blue < 0.42f),
             )
         }
+    }
+
+    private fun logHierarchyEvidence() {
+        fun rect(tag: String, unmerged: Boolean = true): androidx.compose.ui.geometry.Rect =
+            compose.onNodeWithTag(tag, useUnmergedTree = unmerged).fetchSemanticsNode().boundsInWindow
+
+        val bounds = linkedMapOf(
+            "root" to rect("normal-home-content-root"),
+            "header" to rect("normal-home-header"),
+            "brand_title" to rect("normal-home-brand-title"),
+            "guest_avatar" to rect("normal-home-guest-avatar"),
+            "stats" to rect("normal-home-stats"),
+            "recent_header" to rect("normal-home-recent-header"),
+            "hero" to rect("normal-home-catch-card-catch-snakehead"),
+            "hero_media" to rect("normal-home-catch-media-catch-snakehead"),
+            "hero_footer" to rect("normal-home-catch-footer-catch-snakehead"),
+            "cta_layout" to rect("normal-home-capture-cta"),
+            "cta_text" to rect("normal-home-capture-cta-text"),
+            "camera_touch" to rect("normal-home-camera", unmerged = false),
+        )
+        val header = bounds.getValue("header")
+        val title = bounds.getValue("brand_title")
+        val avatar = bounds.getValue("guest_avatar")
+        val recentHeader = bounds.getValue("recent_header")
+        val hero = bounds.getValue("hero")
+        val media = bounds.getValue("hero_media")
+        val footer = bounds.getValue("hero_footer")
+        val cta = bounds.getValue("cta_layout")
+        val camera = bounds.getValue("camera_touch")
+
+        assertTrue("Brand title stays inside the header", title.left >= header.left && title.right <= header.right)
+        assertTrue("Avatar stays inside the header", avatar.left >= header.left && avatar.right <= header.right)
+        assertTrue("Brand title and avatar do not overlap", title.right <= avatar.left || avatar.right <= title.left)
+        assertTrue("Recent header remains separated from Hero", recentHeader.bottom <= hero.top)
+        assertTrue(
+            "Hero media shares the rounded card bounds",
+            kotlin.math.abs(hero.left - media.left) <= 1f &&
+                kotlin.math.abs(hero.top - media.top) <= 1f &&
+                kotlin.math.abs(hero.right - media.right) <= 1f &&
+                kotlin.math.abs(hero.bottom - media.bottom) <= 1f,
+        )
+        assertTrue("Hero footer remains over media and inside the Hero", footer.left >= hero.left && footer.top >= hero.top && footer.right <= hero.right && footer.bottom <= hero.bottom)
+        assertTrue("CTA layout remains outside the camera semantic target", cta.bottom <= camera.top || camera.bottom <= cta.top)
+        assertTrue("Camera touch target remains inside the window", camera.left >= 0f && camera.top >= 0f && camera.right <= bounds.getValue("root").right && camera.bottom <= bounds.getValue("root").bottom)
+
+        val payload = bounds.entries.joinToString(" ") { (name, rect) ->
+            "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
+        }
+        android.util.Log.i("NORMAL_HOME_HIERARCHY_EVIDENCE", payload)
     }
 
     private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontPx: Float) {
@@ -647,6 +779,104 @@ class NormalHomeDataParityTest {
             headerWindow.top,
             1f,
         )
+    }
+
+    @Test
+    fun shortScreenKeepsHeroAndCameraActionReachableAtLargeFontScale() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val photo = createPortraitFixture(
+            context,
+            "normal-home-short-screen-evidence.png",
+            360,
+            640,
+            AndroidColor.rgb(52, 119, 146),
+        )
+        try {
+            compose.setContent {
+                val currentDensity = LocalDensity.current
+                CompositionLocalProvider(
+                    LocalDensity provides Density(currentDensity.density, fontScale = 2f),
+                ) {
+                    Box(
+                        Modifier
+                            .requiredSize(320.dp, 480.dp)
+                            .background(Color.Black),
+                    ) {
+                        NormalHomeContent(
+                            statistics = CatchStatistics(totalCatches = 1, speciesCount = 1),
+                            recentCatches = listOf(
+                                record(
+                                    id = "short-screen-catch",
+                                    image = photo,
+                                    speciesId = "grass-carp",
+                                    speciesName = "草鱼",
+                                    capturedAt = "2026-10-04T18:20:00+08:00",
+                                    lengthCm = 42.6f,
+                                    weightKg = 1.28f,
+                                    location = "千岛湖",
+                                ),
+                            ),
+                            resolveImageUrl = { it },
+                            accessToken = "",
+                            isLoggedIn = false,
+                            avatarUrl = null,
+                            onIdentify = {},
+                            onSpeciesClick = {},
+                            onCatchesClick = {},
+                            onProfileClick = {},
+                            onCatchClick = {},
+                            motionState = HomeMotionState(),
+                            runtimeAssets = null,
+                            safeInsets = SafeDrawingInsetsDp(),
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+
+            compose.onNodeWithTag("normal-home-short-screen-scroll").fetchSemanticsNode()
+            compose.onNodeWithTag("normal-home-header").assertIsDisplayed()
+            compose.onNodeWithTag("normal-home-catch-pager").assertIsDisplayed()
+            compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true).fetchSemanticsNode()
+
+            val rootBounds = compose.onNodeWithTag("normal-home-content-root").fetchSemanticsNode().boundsInRoot
+            val camera = compose.onNodeWithTag("normal-home-camera")
+            val cameraBeforeScroll = camera.fetchSemanticsNode().boundsInRoot
+            val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
+            scroll.performTouchInput {
+                swipeUp(
+                    startY = height * 0.92f,
+                    endY = height * 0.08f,
+                    durationMillis = 500,
+                )
+            }
+            compose.waitForIdle()
+
+            val cameraAfterScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
+                .fetchSemanticsNode().boundsInRoot
+            val density = context.resources.displayMetrics.density
+            val wasOutsideViewport = cameraBeforeScroll.width <= 0f || cameraBeforeScroll.height <= 0f ||
+                cameraBeforeScroll.bottom > rootBounds.bottom + 1f
+            val expectedHeroHeightPx = 880f * rootBounds.width / 1080f
+            val heroAfterScroll = compose.onNodeWithTag("normal-home-catch-pager")
+                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            assertTrue("Short screen places the camera below the viewport before scrolling", wasOutsideViewport)
+            assertTrue("Short screen mode scrolls the capture target into its safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom + 1f)
+            assertTrue("Short screen reveals a full-size Hero instead of shrinking it: bounds=$heroAfterScroll", kotlin.math.abs(heroAfterScroll.height - expectedHeroHeightPx) <= 2f)
+            assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
+            assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= rootBounds.bottom + 1f)
+            assertTrue(
+                "The scroll reveals an offscreen camera target with a nonzero runtime hit area",
+                cameraAfterScroll.width > 0f && cameraAfterScroll.height > 0f,
+            )
+            assertTrue(
+                "Normal Home Hero remains registered during safe overflow",
+                compose.onAllNodesWithTag("normal-home-catch-pager").fetchSemanticsNodes().isNotEmpty(),
+            )
+        } finally {
+            photo.delete()
+        }
     }
 
     private fun createPortraitFixture(

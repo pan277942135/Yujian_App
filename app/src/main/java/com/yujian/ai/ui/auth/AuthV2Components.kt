@@ -96,7 +96,7 @@ internal fun AuthV2Scaffold(
         }
         val resolvedEnvironmentHeight = when (heightBand) {
             AuthHeightBand.STANDARD -> environmentHeight
-            AuthHeightBand.COMPACT -> minOf(environmentHeight, 248.dp)
+            AuthHeightBand.COMPACT -> environmentHeight
             AuthHeightBand.VERY_COMPACT -> 144.dp
         }
         val titleScale = (maxWidth / 320.dp).coerceIn(1f, 1.57f)
@@ -108,6 +108,7 @@ internal fun AuthV2Scaffold(
             painter = painterResource(R.drawable.account_privacy_morning_lake),
             contentDescription = null,
             contentScale = ContentScale.Crop,
+            alignment = Alignment.TopCenter,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(resolvedEnvironmentHeight),

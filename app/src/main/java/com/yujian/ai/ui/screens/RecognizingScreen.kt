@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,17 +55,19 @@ import com.yujian.ai.ui.recognition.result.RecognitionMediaPlanner
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.math.min
 import java.util.ArrayDeque
+import java.util.LinkedHashSet
 
 private const val OUTLINE_THRESHOLD = 36
 // Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
 // still bounded to three local path draws in RecognitionFishFocus.
 private const val OUTLINE_STRIDE = 2
 private const val LOG_TAG = "RecognitionProcessingScene"
+
+private fun recognitionMonotonicNowMs(): Long = SystemClock.uptimeMillis()
 
 @Composable
 fun RecognizingScreen(
@@ -74,11 +77,9 @@ fun RecognizingScreen(
     onFinished: (ProductionRecognitionResult) -> Unit, onFailure: (Throwable) -> Unit = {},
     phaseOverride: RecognitionPhase? = null, visualClockOverrideMs: Long? = null,
     motionPolicyOverride: RecognitionMotionPolicy? = null,
-    resolveProgressOverride: Float? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
-    resolveProgressOverride = resolveProgressOverride,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -93,7 +94,6 @@ fun RecognitionProcessingScene(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
-    resolveProgressOverride: Float? = null,
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -104,8 +104,8 @@ fun RecognitionProcessingScene(
     var subjectResult by remember(image?.imageId) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var finishedResult by remember(image?.imageId) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var delivered by remember(image?.imageId) { mutableStateOf(false) }
-    var visualNowMs by remember(image?.imageId) { mutableStateOf(SystemClock.uptimeMillis()) }
-    val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(SystemClock.uptimeMillis()) } }
+    var visualNowMs by remember(image?.imageId) { mutableStateOf(recognitionMonotonicNowMs()) }
+    val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(recognitionMonotonicNowMs()) } }
 
     LaunchedEffect(image?.imageId, assessment?.primary?.box) {
         val selected = image ?: return@LaunchedEffect
@@ -132,27 +132,35 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(image?.imageId) {
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
-        controller.reset(SystemClock.uptimeMillis()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = SystemClock.uptimeMillis()
+        controller.reset(recognitionMonotonicNowMs()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = recognitionMonotonicNowMs()
         assessment = null
         val result = try {
             recognize { progress ->
                 assessment = progress.assessment ?: assessment
                 realPhase = progress.phase
-                controller.onPipelinePhase(progress.phase, SystemClock.uptimeMillis())
+                controller.onPipelinePhase(
+                    phase = progress.phase,
+                    nowMs = recognitionMonotonicNowMs(),
+                    hasRealFishFocus = assessment?.primary?.box != null,
+                )
             }
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
             Log.e(LOG_TAG, "Recognition runtime failed", error)
             realPhase = RecognitionPhase.FAILURE
-            controller.onPipelinePhase(RecognitionPhase.FAILURE, SystemClock.uptimeMillis())
+            controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs())
             onFailure(error)
             return@LaunchedEffect
         }
         assessment = result.assessment; finishedResult = result
         if (result.ready) {
             realPhase = RecognitionPhase.RESULT
-            controller.onPipelinePhase(RecognitionPhase.RESULT, SystemClock.uptimeMillis())
+            controller.onPipelinePhase(
+                RecognitionPhase.RESULT,
+                recognitionMonotonicNowMs(),
+                hasRealFishFocus = result.assessment.primary?.box != null,
+            )
         } else if (!delivered) {
             delivered = true
             onFinished(result)
@@ -165,13 +173,15 @@ fun RecognitionProcessingScene(
     LaunchedEffect(image?.imageId, phaseOverride) {
         try {
             while (isActive && phaseOverride == null && !delivered) {
-                visualNowMs = SystemClock.uptimeMillis()
+                withFrameNanos { _ ->
+                    // Use one uptime-based source for phase events and all visual layers.
+                    visualNowMs = recognitionMonotonicNowMs()
+                }
                 val nextVisualPhase = controller.current(visualNowMs)
                 if (nextVisualPhase != visualPhase) {
                     Log.i(LOG_TAG, "visual phase $visualPhase -> $nextVisualPhase real=$realPhase")
                     visualPhase = nextVisualPhase
                 }
-                delay(16L)
             }
         } finally {
             Log.i(
@@ -187,7 +197,7 @@ fun RecognitionProcessingScene(
             // Observe what Compose actually presents, independently from the
             // fast detector/classifier callback cadence. Deliver RESULT only
             // after the new state reaches Compose presentation.
-            val presentedAtMs = SystemClock.elapsedRealtime()
+            val presentedAtMs = recognitionMonotonicNowMs()
             onVisualPhasePresented(visualPhase, presentedAtMs)
             if (visualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true && !delivered) {
                 delivered = true
@@ -198,14 +208,9 @@ fun RecognitionProcessingScene(
     }
 
     val rendered = phaseOverride ?: visualPhase
+    val visualClockMs = visualClockOverrideMs ?: visualNowMs
+    val deterministicMotion = visualClockOverrideMs != null
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
-    val resolveProgress = resolveProgressOverride ?: if (phaseOverride != null) {
-        0f
-    } else {
-        controller.resolveProgress(visualNowMs)
-    }
-    val resolveActive = resolveProgressOverride?.let { it > 0f } == true ||
-        (phaseOverride == null && controller.isResolveActive(visualNowMs))
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
@@ -248,7 +253,7 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockOverrideMs, phaseElapsedMs, resolveProgress, resolveActive, motionPolicy, onMotionFrame,
+            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(
@@ -273,16 +278,17 @@ fun RecognitionProcessingScene(
                         rendered == RecognitionPhase.DETECTING
                     ) 84.dp else 34.dp,
                 ),
-            resolveProgress = resolveProgress,
             reduceMotion = motionPolicy.reduceMotion,
+            visualClockMs = visualClockMs,
         )
     }
 }
 @Composable
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
-    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockOverrideMs: Long?,
-    phaseElapsedMs: Long, resolveProgress: Float, resolveActive: Boolean, motionPolicy: RecognitionMotionPolicy,
+    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
+    deterministicMotion: Boolean, motionSessionKey: Any?,
+    phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
@@ -320,17 +326,18 @@ private fun RecognitionPhoto(
         modifier = Modifier.fillMaxSize(),
     )
     RecognitionAmbientField(
-        phase, Modifier.fillMaxSize(), visualClockOverrideMs,
+        phase, Modifier.fillMaxSize(), visualClockMs,
+        motionSessionKey = motionSessionKey,
+        deterministicMotion = deterministicMotion,
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
-        resolveProgress = resolveProgress,
-        resolveActive = resolveActive,
         qualityLevel = motionPolicy.qualityLevel,
         onMotionFrame = onMotionFrame,
+        photoTransform = transform,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
-        visualClockOverrideMs, phaseElapsedMs, resolveProgress,
+        visualClockMs, phaseElapsedMs,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
         focusLevel = focusLevel,
@@ -392,39 +399,135 @@ internal fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
     val minimumComponent = maxOf(4, largest / 200)
     val keep = componentSizes.map { it >= minimumComponent }
 
-    val segments = ArrayList<RecognitionContourSegment>()
+    val boundaryEdges = ArrayList<GridBoundaryEdge>()
     fun kept(gridX: Int, gridY: Int): Boolean {
         if (gridX !in 0 until gridWidth || gridY !in 0 until gridHeight) return false
         val label = labels[gridY * gridWidth + gridX]
         return label >= 0 && keep[label]
     }
-    fun addOrMerge(segment: RecognitionContourSegment) {
-        val previous = segments.lastOrNull()
-        if (previous != null &&
-            previous.endX == segment.startX && previous.endY == segment.startY &&
-            ((previous.startX == previous.endX && segment.startX == segment.endX) ||
-                (previous.startY == previous.endY && segment.startY == segment.endY))
-        ) {
-            segments[segments.lastIndex] = previous.copy(endX = segment.endX, endY = segment.endY)
-        } else {
-            segments += segment
-        }
-    }
     for (gridY in 0 until gridHeight) {
         for (gridX in 0 until gridWidth) {
             if (!kept(gridX, gridY)) continue
-            val left = gridX * OUTLINE_STRIDE / width.toFloat()
-            val top = gridY * OUTLINE_STRIDE / height.toFloat()
-            val right = min((gridX + 1) * OUTLINE_STRIDE, width) / width.toFloat()
-            val bottom = min((gridY + 1) * OUTLINE_STRIDE, height) / height.toFloat()
-            if (!kept(gridX - 1, gridY)) addOrMerge(RecognitionContourSegment(left, top, left, bottom))
-            if (!kept(gridX + 1, gridY)) addOrMerge(RecognitionContourSegment(right, top, right, bottom))
-            if (!kept(gridX, gridY - 1)) addOrMerge(RecognitionContourSegment(left, top, right, top))
-            if (!kept(gridX, gridY + 1)) addOrMerge(RecognitionContourSegment(left, bottom, right, bottom))
+            if (!kept(gridX, gridY - 1)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX, gridY), GridPoint(gridX + 1, gridY))
+            }
+            if (!kept(gridX + 1, gridY)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX + 1, gridY), GridPoint(gridX + 1, gridY + 1))
+            }
+            if (!kept(gridX, gridY + 1)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX + 1, gridY + 1), GridPoint(gridX, gridY + 1))
+            }
+            if (!kept(gridX - 1, gridY)) {
+                boundaryEdges += GridBoundaryEdge(GridPoint(gridX, gridY + 1), GridPoint(gridX, gridY))
+            }
         }
     }
-    return segments
+    fun normalized(point: GridPoint) = ContourPoint(
+        x = min(point.x * OUTLINE_STRIDE, width) / width.toFloat(),
+        y = min(point.y * OUTLINE_STRIDE, height) / height.toFloat(),
+    )
+    return traceGridContours(boundaryEdges).flatMap { gridLoop ->
+        val points = simplifyGridLoop(gridLoop).map(::normalized)
+        if (points.size < 4) return@flatMap emptyList()
+        points.indices.map { index ->
+            val previous = points[(index - 1 + points.size) % points.size]
+            val current = points[index]
+            val next = points[(index + 1) % points.size]
+            val start = midpoint(previous, current)
+            val end = midpoint(current, next)
+            val control1 = interpolate(start, current, 2f / 3f)
+            val control2 = interpolate(end, current, 2f / 3f)
+            RecognitionContourSegment(
+                startX = start.x,
+                startY = start.y,
+                endX = end.x,
+                endY = end.y,
+                control1X = control1.x,
+                control1Y = control1.y,
+                control2X = control2.x,
+                control2Y = control2.y,
+                beginsContour = index == 0,
+                closesContour = index == points.lastIndex,
+            )
+        }
+    }
 }
+
+private data class GridPoint(val x: Int, val y: Int)
+
+private data class GridBoundaryEdge(val start: GridPoint, val end: GridPoint) {
+    val direction: Int
+        get() = when {
+            end.x > start.x -> 0 // east
+            end.y > start.y -> 1 // south
+            end.x < start.x -> 2 // west
+            else -> 3 // north
+        }
+}
+
+private data class ContourPoint(val x: Float, val y: Float)
+
+private fun traceGridContours(edges: List<GridBoundaryEdge>): List<List<GridPoint>> {
+    if (edges.isEmpty()) return emptyList()
+    val outgoing = edges.groupBy(GridBoundaryEdge::start)
+    val remaining = LinkedHashSet(edges)
+    val comparator = compareBy<GridBoundaryEdge> { it.start.y }
+        .thenBy { it.start.x }
+        .thenBy { it.direction }
+    val contours = ArrayList<List<GridPoint>>()
+
+    while (remaining.isNotEmpty()) {
+        val first = remaining.minWithOrNull(comparator) ?: break
+        val points = ArrayList<GridPoint>()
+        points += first.start
+        var edge = first
+        var closed = false
+        var visited = 0
+        while (visited <= edges.size) {
+            if (!remaining.remove(edge)) break
+            points += edge.end
+            visited += 1
+            if (edge.end == first.start) {
+                closed = true
+                break
+            }
+            val candidates = outgoing[edge.end].orEmpty().filter(remaining::contains)
+            if (candidates.isEmpty()) break
+            edge = candidates.minBy { candidate ->
+                val turn = (candidate.direction - edge.direction + 4) % 4
+                when (turn) {
+                    1 -> 0 // keep the foreground on the right at diagonal contacts
+                    0 -> 1
+                    3 -> 2
+                    else -> 3
+                }
+            }
+        }
+        if (closed && points.size >= 5) contours += points.dropLast(1)
+    }
+    return contours
+}
+
+private fun simplifyGridLoop(points: List<GridPoint>): List<GridPoint> {
+    if (points.size < 4) return points
+    return points.filterIndexed { index, point ->
+        val previous = points[(index - 1 + points.size) % points.size]
+        val next = points[(index + 1) % points.size]
+        val vertical = previous.x == point.x && point.x == next.x
+        val horizontal = previous.y == point.y && point.y == next.y
+        !vertical && !horizontal
+    }
+}
+
+private fun midpoint(left: ContourPoint, right: ContourPoint) = ContourPoint(
+    x = (left.x + right.x) / 2f,
+    y = (left.y + right.y) / 2f,
+)
+
+private fun interpolate(start: ContourPoint, end: ContourPoint, fraction: Float) = ContourPoint(
+    x = start.x + (end.x - start.x) * fraction,
+    y = start.y + (end.y - start.y) * fraction,
+)
 
 private fun logFocusDiagnostic(
     subject: FishSubjectResult,

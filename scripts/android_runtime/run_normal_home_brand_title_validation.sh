@@ -7,7 +7,7 @@ RUNTIME_DIR="$SCRIPT_DIR"
 export EVIDENCE_DIR="${EVIDENCE_DIR:-evidence/runtime/normal-home-brand-title-v1}"
 export API_LEVEL="${API_LEVEL:-28}"
 export BUILD_SHA="${BUILD_SHA:-${GITHUB_SHA:-unknown}}"
-export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedTwoAspectPortraitGuestCatches"
+export NORMAL_HOME_EVIDENCE_SEED_METHOD="seedMultipleGuestCatches"
 mkdir -p "$EVIDENCE_DIR/infra"
 
 source "$RUNTIME_DIR/common.sh"
@@ -102,35 +102,87 @@ YUJIAN_INSTALL_STATUS="PASS"
 adb_bin="$YUJIAN_ADB_BIN"
 original_size="$("$adb_bin" shell wm size 2>&1 | tr -d '\r' | paste -sd ';' -)"
 original_override="$("$adb_bin" shell wm size 2>&1 | awk -F': ' '/Override size:/ {print $2}' | tr -d '\r')"
-restore_device_size() {
+original_density="$("$adb_bin" shell wm density 2>&1 | tr -d '\r' | paste -sd ';' -)"
+original_density_override="$("$adb_bin" shell wm density 2>&1 | awk -F': ' '/Override density:/ {print $2}' | tr -d '\r')"
+original_font_scale="$("$adb_bin" shell settings get system font_scale 2>&1 | tr -d '\r')"
+original_animator_scale="$("$adb_bin" shell settings get global animator_duration_scale 2>&1 | tr -d '\r')"
+original_transition_scale="$("$adb_bin" shell settings get global transition_animation_scale 2>&1 | tr -d '\r')"
+original_window_scale="$("$adb_bin" shell settings get global window_animation_scale 2>&1 | tr -d '\r')"
+restore_device_profile() {
   if [[ -n "$original_override" ]]; then
     "$adb_bin" shell wm size "$original_override" >/dev/null 2>&1 || true
   else
     "$adb_bin" shell wm size reset >/dev/null 2>&1 || true
   fi
+  if [[ -n "$original_density_override" ]]; then
+    "$adb_bin" shell wm density "$original_density_override" >/dev/null 2>&1 || true
+  else
+    "$adb_bin" shell wm density reset >/dev/null 2>&1 || true
+  fi
+  "$adb_bin" shell settings put system font_scale "$original_font_scale" >/dev/null 2>&1 || true
+  "$adb_bin" shell settings put global animator_duration_scale "$original_animator_scale" >/dev/null 2>&1 || true
+  "$adb_bin" shell settings put global transition_animation_scale "$original_transition_scale" >/dev/null 2>&1 || true
+  "$adb_bin" shell settings put global window_animation_scale "$original_window_scale" >/dev/null 2>&1 || true
 }
-trap restore_device_size EXIT
+trap restore_device_profile EXIT
 
 "$adb_bin" shell wm size 1080x1920 > "$EVIDENCE_DIR/infra/wm_size_setup.log" 2>&1
+"$adb_bin" shell wm density 480 > "$EVIDENCE_DIR/infra/wm_density_setup.log" 2>&1
+"$adb_bin" shell settings put system font_scale 1.0 > "$EVIDENCE_DIR/infra/font_scale_setup.log" 2>&1
+"$adb_bin" shell settings put global animator_duration_scale 1.0 > "$EVIDENCE_DIR/infra/animator_scale_setup.log" 2>&1
+"$adb_bin" shell settings put global transition_animation_scale 1.0 >> "$EVIDENCE_DIR/infra/animator_scale_setup.log" 2>&1
+"$adb_bin" shell settings put global window_animation_scale 1.0 >> "$EVIDENCE_DIR/infra/animator_scale_setup.log" 2>&1
 device_serial="$("$adb_bin" get-serialno 2>&1 | tr -d '\r')"
 device_api="$("$adb_bin" shell getprop ro.build.version.sdk 2>&1 | tr -d '\r')"
+device_model="$("$adb_bin" shell getprop ro.product.model 2>&1 | tr -d '\r')"
+build_fingerprint="$("$adb_bin" shell getprop ro.build.fingerprint 2>&1 | tr -d '\r')"
 wm_size="$("$adb_bin" shell wm size 2>&1 | tr -d '\r' | paste -sd ';' -)"
 wm_density="$("$adb_bin" shell wm density 2>&1 | tr -d '\r' | paste -sd ';' -)"
 font_scale="$("$adb_bin" shell settings get system font_scale 2>&1 | tr -d '\r')"
-python3 - "$METRICS" "$device_serial" "$device_api" "$wm_size" "$wm_density" "$font_scale" "$original_size" "$BUILD_SHA" <<'PY'
+navigation_mode="$("$adb_bin" shell settings get secure navigation_mode 2>&1 | tr -d '\r')"
+force_fsg_nav_bar="$("$adb_bin" shell settings get global force_fsg_nav_bar 2>&1 | tr -d '\r')"
+window_policy_control="$("$adb_bin" shell settings get global policy_control 2>&1 | tr -d '\r')"
+printf 'device=%s api=%s\n' "$device_model" "$device_api" > "$EVIDENCE_DIR/infra/device_profile.txt"
+"$adb_bin" shell dumpsys window > "$EVIDENCE_DIR/infra/window_insets_dump.txt" 2>&1 || true
+python3 - "$METRICS" "$device_serial" "$device_api" "$device_model" "$build_fingerprint" "$wm_size" "$wm_density" "$font_scale" "$original_size" "$original_density" "$original_font_scale" "$navigation_mode" "$force_fsg_nav_bar" "$window_policy_control" "$BUILD_SHA" <<'PY'
 import json, pathlib, sys
-path, serial, api, size, density, font_scale, original_size, build_sha = sys.argv[1:]
+path, serial, api, model, fingerprint, size, density, font_scale, original_size, original_density, original_font_scale, nav_mode, fsg_nav, policy_control, build_sha = sys.argv[1:]
+import re
+density_values = re.findall(r"(?:Override|Physical) density: (\d+)", density)
+density_dpi = int(density_values[-1]) if density_values else None
 pathlib.Path(path).write_text(json.dumps({
     "build_sha": build_sha,
     "device_serial": serial,
     "api_level": api,
+    "model": model,
+    "build_fingerprint": fingerprint,
     "wm_size": size,
     "wm_density": density,
+    "density_dpi": density_dpi,
+    "density_scale": density_dpi / 160.0 if density_dpi else None,
     "font_scale": font_scale,
     "original_wm_size": original_size,
+    "original_wm_density": original_density,
+    "original_font_scale": original_font_scale,
+    "navigation_mode": nav_mode,
+    "force_fsg_nav_bar": fsg_nav,
+    "window_policy_control": policy_control,
+    "window_insets_dump": "infra/window_insets_dump.txt",
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 cat "$METRICS"
+size_matches=false
+if [[ "$wm_size" == *"Physical size: 1080x1920"* || "$wm_size" == *"Override size: 1080x1920"* ]]; then
+  size_matches=true
+fi
+if [[ "$device_api" != "$API_LEVEL" || "$font_scale" != "1.0" || "$size_matches" != "true" || "$wm_density" != *"Override density: 480"* ]]; then
+  printf 'DEVICE_PROFILE_MISMATCH api=%s size=%s density=%s fontScale=%s\n' "$device_api" "$wm_size" "$wm_density" "$font_scale" > "$EVIDENCE_DIR/infra/device_profile_mismatch.log"
+  runtime_set_failure "PREFLIGHT" "DEVICE_PROFILE_MISMATCH"
+  YUJIAN_CLASSIFICATION="BLOCKED_INFRA"
+  android_runtime_write_result
+  write_result 10 10 10 BLOCKED_INFRA
+  exit 10
+fi
 python3 - "$YUJIAN_REPO_ROOT/app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg" \
   "$EVIDENCE_DIR/photo_provenance.json" <<'PY'
 import hashlib, json, pathlib, sys
@@ -196,8 +248,15 @@ timeout 240s "$adb_bin" shell am instrument -w -r -e class "$suite_classes" \
   "$YUJIAN_INSTRUMENTATION_TARGET" > "$SUITE_LOG" 2>&1
 suite_rc=$?
 if (( suite_rc == 0 )) && ! instrumentation_log_passed "$SUITE_LOG"; then suite_rc=30; fi
+# Keep native real-photo probe outputs distinct from approved fixture acceptance.
+mkdir -p "$EVIDENCE_DIR/real-photo-probes"
+"$adb_bin" pull "/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/normal-home-real-photo-probes/." \
+  "$EVIDENCE_DIR/real-photo-probes/" > "$EVIDENCE_DIR/real-photo-probes/pull.log" 2>&1 || true
+
 grep -E "^NORMAL_HOME_(TEXT_LAYOUT|WINDOW_METRICS)" "$SUITE_LOG" || true
 "$adb_bin" logcat -d -v brief -s NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I > "$EVIDENCE_DIR/normal-home-measurement-logcat.log" 2>&1 || true
+"$adb_bin" logcat -d -v brief -s NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \
+  > "$normal_home_out/normal-home-motion-instrumentation.log" 2>&1 || true
 cat "$EVIDENCE_DIR/normal-home-measurement-logcat.log"
 if (( suite_rc != 0 )); then
   printf 'NORMAL_HOME_SUITE_INSTRUMENTATION_LOG_BEGIN\n'

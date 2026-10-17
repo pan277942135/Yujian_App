@@ -102,6 +102,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.UUID
 
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
@@ -129,6 +130,7 @@ fun YujianApp() {
     var authError by remember { mutableStateOf<String?>(null) }
     var catchesState by remember { mutableStateOf(CatchArchiveState()) }
     var catchReload by remember { mutableIntStateOf(0) }
+    var recognitionSessionId by remember { mutableStateOf<String?>(null) }
     var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
     var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
     var recognitionTechnicalFailure by remember { mutableStateOf(false) }
@@ -136,8 +138,12 @@ fun YujianApp() {
     var subjectModelState by remember { mutableStateOf(SubjectModelState()) }
     var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
     var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
+    var activeRecognitionAttemptId by remember { mutableStateOf<String?>(null) }
+    var captureResetToken by remember { mutableIntStateOf(0) }
     var catchSaving by remember { mutableStateOf(false) }
     var catchSaveError by remember { mutableStateOf<String?>(null) }
+    var catchSaveRequiresLogin by remember { mutableStateOf(false) }
+    var pendingRecognitionLoginReturn by remember { mutableStateOf(false) }
     var guestRegistrationPromptVisible by remember { mutableStateOf(false) }
     var guestMigrationPending by remember { mutableStateOf(false) }
     var guideSpecies by remember { mutableStateOf(emptyList<FishGuideItem>()) }
@@ -181,6 +187,37 @@ fun YujianApp() {
             popUpTo("home") { inclusive = false }
             launchSingleTop = true
         }
+    }
+
+    fun clearRecognitionSession(preserveSession: Boolean = false) {
+        activeRecognitionAttemptId = null
+        sessionImage = null
+        productionResult = null
+        recognitionTechnicalFailure = false
+        subjectResult = FishSubjectResult(SubjectStatus.IDLE)
+        prediction = null
+        inferenceAsset = null
+        catchSaveError = null
+        catchSaveRequiresLogin = false
+        if (!preserveSession) recognitionSessionId = null
+        captureResetToken++
+    }
+
+    fun startCapture(openGallery: Boolean = false, preserveSession: Boolean = false) {
+        clearRecognitionSession(preserveSession)
+        if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
+        nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
+            popUpTo("home") { inclusive = false }
+            launchSingleTop = true
+        }
+    }
+
+    fun returnToRecognitionAfterLogin(): Boolean {
+        if (!pendingRecognitionLoginReturn) return false
+        pendingRecognitionLoginReturn = false
+        catchSaveRequiresLogin = false
+        catchReload++
+        return nav.popBackStack("result", inclusive = false)
     }
 
     fun applyProfile(profile: com.yujian.ai.auth.AccountProfile) {
@@ -340,9 +377,11 @@ fun YujianApp() {
                                     sessionManager.save(loggedIn)
                                     session = loggedIn
                                     adoptGuestArchive(loggedIn)
-                                    nav.navigate("home") {
-                                        popUpTo("auth/login") { inclusive = true }
-                                        launchSingleTop = true
+                                    if (!returnToRecognitionAfterLogin()) {
+                                        nav.navigate("home") {
+                                            popUpTo("auth/login") { inclusive = true }
+                                            launchSingleTop = true
+                                        }
                                     }
                                 } catch (error: CancellationException) {
                                     throw error
@@ -376,9 +415,11 @@ fun YujianApp() {
                                     sessionManager.save(registered)
                                     session = registered
                                     adoptGuestArchive(registered)
-                                    nav.navigate("home") {
-                                        popUpTo("auth/login") { inclusive = true }
-                                        launchSingleTop = true
+                                    if (!returnToRecognitionAfterLogin()) {
+                                        nav.navigate("home") {
+                                            popUpTo("auth/login") { inclusive = true }
+                                            launchSingleTop = true
+                                        }
                                     }
                                 } catch (error: CancellationException) {
                                     throw error
@@ -415,8 +456,8 @@ fun YujianApp() {
                         avatarUrl = active?.avatarUrl,
                         showEmptyState = resolvedHomeState == HomeState.EMPTY,
                         isResolving = resolvedHomeState == null,
-                        onIdentify = { nav.navigate("identify") },
-                        onAlbumClick = { nav.navigate("identify?openGallery=true") },
+                        onIdentify = { startCapture() },
+                        onAlbumClick = { startCapture(openGallery = true) },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
@@ -564,26 +605,44 @@ fun YujianApp() {
                     IdentifyScreen(
                         image = sessionImage,
                         autoOpenGallery = entry.arguments?.getBoolean("openGallery") == true,
-                        onBack = { nav.popBackStack() },
+                        captureResetToken = captureResetToken,
+                        onBack = {
+                            clearRecognitionSession()
+                            nav.popBackStack()
+                        },
                         onImageReady = { selected ->
+                            if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
                             sessionImage = selected
+                            activeRecognitionAttemptId = UUID.randomUUID().toString()
                             productionResult = null
                             recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                             prediction = null
                             inferenceAsset = null
                             catchSaveError = null
+                            catchSaveRequiresLogin = false
                             nav.navigate("recognizing") { launchSingleTop = true }
                         },
                     )
                 }
                 composable("recognizing") {
+                    val attemptId = activeRecognitionAttemptId
                     RecognizingScreen(
                         image = sessionImage,
-                        onBack = { nav.popBackStack() },
+                        onBack = {
+                            if (attemptId != null && activeRecognitionAttemptId == attemptId) {
+                                startCapture(preserveSession = true)
+                            }
+                        },
                         recognize = { onProgress ->
+                            if (attemptId == null || activeRecognitionAttemptId != attemptId) {
+                                throw CancellationException("recognition attempt was superseded")
+                            }
                             val selected = requireNotNull(sessionImage)
                             val result = recognitionPipeline.recognize(selected.bitmap, onProgress)
+                            if (activeRecognitionAttemptId != attemptId) {
+                                throw CancellationException("recognition attempt was superseded")
+                            }
                             inferenceAsset = inferenceRecorder.record(selected, result)
                             result
                         },
@@ -591,48 +650,39 @@ fun YujianApp() {
                             subjectPreviewEngine.generate(selected.bitmap, box)
                         },
                         onFinished = { result ->
-                            productionResult = result
-                            recognitionTechnicalFailure = false
-                            subjectResult = FishSubjectResult(SubjectStatus.IDLE)
-                            prediction = result.prediction
-                            if (result.ready) {
-                                nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
-                            } else {
-                                nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+                            if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
+                                productionResult = result
+                                recognitionTechnicalFailure = false
+                                subjectResult = FishSubjectResult(SubjectStatus.IDLE)
+                                prediction = result.prediction
+                                if (result.ready) {
+                                    nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
+                                } else {
+                                    nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+                                }
                             }
                         },
                         onFailure = {
-                            productionResult = null
-                            recognitionTechnicalFailure = true
-                            nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+                            if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
+                                productionResult = null
+                                recognitionTechnicalFailure = true
+                                nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+                            }
                         },
                     )
                 }
                 composable("recognition_issue") {
                     val current = productionResult
                     if (current == null && !recognitionTechnicalFailure) {
-                        LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("recognition_issue") { inclusive = true } } }
+                        LaunchedEffect(Unit) { startCapture() }
                     } else {
                         RecognitionIssueScreen(
                             image = sessionImage,
                             result = current,
                             technicalFailure = recognitionTechnicalFailure,
-                            onBack = { nav.popBackStack() },
-                            onChooseAnother = {
-                                productionResult = null
-                                recognitionTechnicalFailure = false
-                                prediction = null
-                                nav.navigate("identify") { popUpTo("identify") { inclusive = false }; launchSingleTop = true }
-                            },
-                            onChooseGallery = {
-                                productionResult = null
-                                recognitionTechnicalFailure = false
-                                prediction = null
-                                nav.navigate("identify?openGallery=true") {
-                                    popUpTo("recognition_issue") { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            },
+                            onBack = { startCapture(preserveSession = true) },
+                            onChooseAnother = { startCapture(preserveSession = true) },
+                            onChooseGallery = { startCapture(openGallery = true, preserveSession = true) },
                         )
                     }
                 }
@@ -642,7 +692,7 @@ fun YujianApp() {
                         subjectModelState = subjectModelManager.checkStatus()
                     }
                     if (currentPrediction == null) {
-                        LaunchedEffect(Unit) { nav.navigate("identify") { popUpTo("result") { inclusive = true } } }
+                        LaunchedEffect(Unit) { startCapture() }
                     } else {
                         RecognitionResultScreen(
                             image = sessionImage,
@@ -666,15 +716,15 @@ fun YujianApp() {
                                     }
                                 }
                             },
-                            onBack = { nav.popBackStack() },
-                            onRetry = {
-                                productionResult = null
-                                recognitionTechnicalFailure = false
-                                prediction = null
-                                nav.navigate("recognizing") { popUpTo("result") { inclusive = true } }
-                            },
+                            onBack = { startCapture(preserveSession = true) },
+                            onRetry = { startCapture(preserveSession = true) },
                             saving = catchSaving,
                             saveError = catchSaveError,
+                            saveRequiresLogin = catchSaveRequiresLogin,
+                            onLoginRequired = {
+                                pendingRecognitionLoginReturn = true
+                                nav.navigate("auth/login") { launchSingleTop = true }
+                            },
                             availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             onSave = { draft, feedback, destination ->
@@ -686,6 +736,7 @@ fun YujianApp() {
                                     scope.launch {
                                         catchSaving = true
                                         catchSaveError = null
+                                        catchSaveRequiresLogin = false
                                         val saveResult = runCatching {
                                             if (active == null) {
                                                 guestCatchRepository.saveCatch(File(selected.filePath), draft)
@@ -726,9 +777,10 @@ fun YujianApp() {
                                                 guestRegistrationPromptVisible = true
                                             }
                                             catchSaving = false
+                                            clearRecognitionSession()
                                             if (destination == RecognitionSaveDestination.MEMORY) {
                                                 nav.navigate("catch/${Uri.encode(createdRecord.id)}?section=memory") {
-                                                    popUpTo("result") { inclusive = true }
+                                                    popUpTo("home") { inclusive = false }
                                                     launchSingleTop = true
                                                 }
                                             } else {
@@ -738,8 +790,10 @@ fun YujianApp() {
                                             val error = requireNotNull(saveResult.exceptionOrNull())
                                             catchSaving = false
                                             if ((error as? ApiException)?.statusCode == 401) {
-                                                logoutToHome()
+                                                catchSaveRequiresLogin = true
+                                                catchSaveError = "登录已过期，请重新登录后继续保存。当前鱼获草稿仍保留。"
                                             } else {
+                                                catchSaveRequiresLogin = false
                                                 catchSaveError = "保存鱼获失败，请重试"
                                             }
                                         }

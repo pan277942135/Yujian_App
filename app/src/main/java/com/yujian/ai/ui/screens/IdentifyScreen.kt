@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -38,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
@@ -64,12 +66,16 @@ import com.yujian.ai.R
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureContract
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideOverlay
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuidePage
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
 import com.yujian.ai.ui.identify.RecognitionCameraControlsGeometry
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureOutput
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureState
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
+import com.yujian.ai.ui.identify.shouldShowRecognitionFirstCaptureGuide
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
@@ -104,6 +110,7 @@ private fun logCapture(requestId: String, event: String, fields: String = "") {
 fun IdentifyScreen(
     image: SelectedImage?,
     autoOpenGallery: Boolean = false,
+    captureResetToken: Int = 0,
     onBack: () -> Unit,
     onImageReady: (SelectedImage) -> Unit,
 ) {
@@ -128,6 +135,22 @@ fun IdentifyScreen(
     var cameraBound by remember { mutableStateOf(false) }
     var imageCaptureReady by remember { mutableStateOf(false) }
     var previewStreaming by remember { mutableStateOf(false) }
+    var firstCaptureGuideVisible by rememberSaveable(autoOpenGallery, captureResetToken) {
+        mutableStateOf(false)
+    }
+    var firstCaptureGuidePresented by rememberSaveable(autoOpenGallery, captureResetToken) {
+        mutableStateOf(false)
+    }
+    var firstCaptureGuidePage by rememberSaveable(autoOpenGallery, captureResetToken) {
+        mutableStateOf(RecognitionFirstCaptureGuidePage.P01)
+    }
+    var galleryVisitedThisSession by rememberSaveable(autoOpenGallery, captureResetToken) {
+        mutableStateOf(autoOpenGallery)
+    }
+    val firstCaptureGuideStore = remember(context) { RecognitionFirstCaptureGuideStore(context) }
+    var galleryAutoOpenPending by remember(autoOpenGallery, captureResetToken) {
+        mutableStateOf(autoOpenGallery)
+    }
     var captureState by remember { mutableStateOf(RecognitionCameraCaptureState.INITIALIZING) }
     var cameraRetry by remember { mutableStateOf(0) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
@@ -299,8 +322,9 @@ fun IdentifyScreen(
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent(),
+        ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
+        galleryAutoOpenPending = false
         if (uri == null) {
             galleryBusy = false
             return@rememberLauncherForActivityResult
@@ -324,9 +348,14 @@ fun IdentifyScreen(
 
     fun openGallery() {
         if (!galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
+            galleryVisitedThisSession = true
             galleryBusy = true
             error = null
-            runCatching { galleryLauncher.launch("image/*") }
+            runCatching {
+                galleryLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                )
+            }
                 .onFailure {
                     galleryBusy = false
                     error = GalleryUnavailableHint
@@ -566,12 +595,43 @@ fun IdentifyScreen(
         }
     }
 
-    LaunchedEffect(autoOpenGallery) {
+    LaunchedEffect(captureResetToken) {
+        // Re-entering Capture after a result must restore a live camera preview,
+        // never the last photo that was handed to Processing.
+        handoffImage = null
+        galleryBusy = false
+        error = null
+        galleryAutoOpenPending = autoOpenGallery
+    }
+
+    LaunchedEffect(autoOpenGallery, captureResetToken) {
         if (autoOpenGallery) openGallery()
         else if (!hasCameraPermission && !permissionRequested) {
             permissionRequested = true
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    LaunchedEffect(
+        autoOpenGallery,
+        galleryVisitedThisSession,
+        hasCameraPermission,
+        cameraBound,
+        imageCaptureReady,
+        previewStreaming,
+        galleryAutoOpenPending,
+    ) {
+        if (firstCaptureGuidePresented || galleryAutoOpenPending || !cameraCanCapture()) {
+            return@LaunchedEffect
+        }
+        firstCaptureGuideVisible = shouldShowRecognitionFirstCaptureGuide(
+            cameraPermissionGranted = hasCameraPermission,
+            previewReady = cameraCanCapture(),
+            galleryPickerPending = galleryAutoOpenPending || autoOpenGallery,
+            guideCompleted = firstCaptureGuideStore.isCompleted(),
+            galleryVisitedThisSession = galleryVisitedThisSession || autoOpenGallery,
+        )
+        firstCaptureGuidePresented = true
     }
 
     BackHandler(enabled = captureState == RecognitionCameraCaptureState.CAPTURING) {
@@ -630,7 +690,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
             Box(
                 Modifier
                     .fillMaxSize()
@@ -650,7 +710,7 @@ fun IdentifyScreen(
             }
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !autoOpenGallery) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !galleryAutoOpenPending && !firstCaptureGuideVisible) {
             if (!hasCameraPermission) {
                 Button(
                     onClick = {
@@ -670,7 +730,7 @@ fun IdentifyScreen(
             }
         }
 
-        error?.takeIf { handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING }?.let {
+        error?.takeIf { handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible }?.let {
             Text(
                 text = it,
                 color = Color.White,
@@ -680,7 +740,7 @@ fun IdentifyScreen(
             )
         }
 
-        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING) {
+        if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -730,6 +790,17 @@ fun IdentifyScreen(
                     modifier = Modifier.size(30.dp),
                 )
             }
+        }
+
+        if (firstCaptureGuideVisible) {
+            RecognitionFirstCaptureGuideOverlay(
+                initialPage = firstCaptureGuidePage,
+                onComplete = {
+                    if (firstCaptureGuideStore.markCompleted()) firstCaptureGuideVisible = false
+                },
+                onDismiss = { firstCaptureGuideVisible = false },
+                onPageChanged = { firstCaptureGuidePage = it },
+            )
         }
     }
 }

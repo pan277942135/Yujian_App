@@ -3,6 +3,7 @@ package com.yujian.ai.catches
 import android.net.Uri
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.auth.ApiException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -130,6 +131,7 @@ class CatchRepository(
         val classifier = draft.classifierResult
         val metadata = draft.metadata ?: classifier?.toCatchSaveMetadata() ?: CatchSaveMetadata(null, null, null, null)
         require(draft.clientRecordId.isNotBlank() && draft.clientRecordId.length <= 128) { "鱼获记录标识无效" }
+        findVerifiedByClientRecordId(token, draft, metadata)?.let { return@withContext it }
         val body = JSONObject()
             .put("image_upload_id", upload.uploadId)
             .put("species_id", draft.speciesId)
@@ -144,17 +146,52 @@ class CatchRepository(
             .put("story", metadata.story ?: JSONObject.NULL)
             .put("captured_at", draft.capturedAt ?: JSONObject.NULL)
             .put("client_record_id", draft.clientRecordId)
-        val response = json("POST", "/api/v1/catches", token, body)
-        if (!response.optBoolean("saved", false)) throw IOException("服务端未确认鱼获保存成功")
-        val catchId = response.optString("catch_id").takeIf(String::isNotBlank)
-            ?: throw IOException("保存响应缺少鱼获标识")
-        val returned = parseCatch(response.optJSONObject("catch") ?: throw IOException("保存响应缺少鱼获记录"))
-        if (returned.id != catchId) throw IOException("保存响应中的鱼获标识不一致")
-        validateSavedCatch(returned, draft, metadata)
-        val reread = getCatch(token, catchId)
+        try {
+            val response = json("POST", "/api/v1/catches", token, body)
+            if (!response.optBoolean("saved", false)) throw IOException("服务端未确认鱼获保存成功")
+            val catchId = response.optString("catch_id").takeIf(String::isNotBlank)
+                ?: throw IOException("保存响应缺少鱼获标识")
+            val returned = parseCatch(response.optJSONObject("catch") ?: throw IOException("保存响应缺少鱼获记录"))
+            if (returned.id != catchId) throw IOException("保存响应中的鱼获标识不一致")
+            validateSavedCatch(returned, draft, metadata)
+            val reread = getCatch(token, catchId)
+            validateSavedCatch(reread, draft, metadata)
+            if (reread.imageUrl != returned.imageUrl) throw IOException("重新读取后鱼获照片关联发生变化")
+            reread
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            if (error.isDefiniteSaveRejection()) throw error
+            val recovered = try {
+                findVerifiedByClientRecordId(token, draft, metadata)
+            } catch (lookupError: CancellationException) {
+                throw lookupError
+            } catch (lookupError: Exception) {
+                error.addSuppressed(lookupError)
+                null
+            }
+            recovered ?: throw error
+        }
+    }
+
+    private suspend fun findVerifiedByClientRecordId(
+        token: String,
+        draft: CatchSaveDraft,
+        metadata: CatchSaveMetadata,
+    ): RemoteCatch? {
+        val existing = findByClientRecordId(token, draft.clientRecordId) ?: return null
+        validateSavedCatch(existing, draft, metadata)
+        val reread = getCatch(token, existing.id)
         validateSavedCatch(reread, draft, metadata)
-        if (reread.imageUrl != returned.imageUrl) throw IOException("重新读取后鱼获照片关联发生变化")
-        reread
+        if (reread.id != existing.id || reread.imageUrl != existing.imageUrl) {
+            throw IOException("按 clientRecordId 核验后鱼获身份或照片关联发生变化")
+        }
+        return reread
+    }
+
+    private fun Exception.isDefiniteSaveRejection(): Boolean {
+        val status = (this as? ApiException)?.statusCode ?: return false
+        return status in 400..499 && status !in setOf(408, 409, 425, 429)
     }
 
     suspend fun listCatches(token: String, limit: Int = 100): List<RemoteCatch> = withContext(Dispatchers.IO) {

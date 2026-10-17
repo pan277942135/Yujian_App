@@ -6,52 +6,55 @@ import org.junit.Test
 
 class RecognitionVisualStateControllerTest {
     @Test
-    fun fastResultKeepsThreeProductBeatsAndResolveUntil2950ms() {
+    fun v31SequenceWaitsForEachRealEventAndMinimumBeat() {
         val controller = RecognitionVisualStateController().also { it.reset(0) }
-        controller.onPipelinePhase(RecognitionPhase.RESULT, 10)
+        controller.onPipelinePhase(RecognitionPhase.DETECTING, 10)
 
-        assertEquals(RecognitionPhase.CAPTURED, controller.current(899))
-        assertEquals(RecognitionPhase.OUTLINE, controller.current(900))
-        assertEquals(RecognitionPhase.OUTLINE, controller.current(1_499))
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(1_500))
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(2_949))
-        assertEquals(RecognitionPhase.RESULT, controller.current(2_950))
+        assertEquals(RecognitionPhase.CAPTURED, controller.current(219))
+        assertEquals(RecognitionPhase.DETECTING, controller.current(220))
+
+        controller.onPipelinePhase(RecognitionPhase.OUTLINE, 221, hasRealFishFocus = true)
+        assertEquals(RecognitionPhase.DETECTING, controller.current(539))
+        assertEquals(RecognitionPhase.OUTLINE, controller.current(540))
+
+        controller.onPipelinePhase(RecognitionPhase.CLASSIFYING, 541, hasRealFishFocus = true)
+        assertEquals(RecognitionPhase.OUTLINE, controller.current(889))
+        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(890))
+
+        controller.onPipelinePhase(RecognitionPhase.RESULT, 900, hasRealFishFocus = true)
+        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(1_139))
+        assertEquals(RecognitionPhase.RESULT, controller.current(1_140))
     }
 
     @Test
-    fun resolveIsTheFinal200msOfSpeciesRecognition() {
-        val controller = RecognitionVisualStateController().also { it.reset(0) }
-        controller.onPipelinePhase(RecognitionPhase.RESULT, 1)
-        controller.current(900)
-        controller.current(1_500)
-
-        assertEquals(false, controller.isResolveActive(2_749))
-        assertEquals(true, controller.isResolveActive(2_750))
-        assertEquals(0f, controller.resolveProgress(2_749))
-        assertEquals(0f, controller.resolveProgress(2_750))
-        assertEquals(.25f, controller.resolveProgress(2_800))
-        assertEquals(1f, controller.resolveProgress(2_950))
-    }
-
-    @Test
-    fun capturedAndDetectingShareOneVisibleStateUntilRealFishLocation() {
+    fun lateRealResultHandsOffImmediatelyAfterMinimumBeat() {
         val controller = RecognitionVisualStateController().also { it.reset(0) }
         controller.onPipelinePhase(RecognitionPhase.DETECTING, 1)
+        controller.current(220)
+        controller.onPipelinePhase(RecognitionPhase.OUTLINE, 221, hasRealFishFocus = true)
+        controller.current(540)
+        controller.onPipelinePhase(RecognitionPhase.CLASSIFYING, 541, hasRealFishFocus = true)
+        controller.current(890)
 
-        assertEquals(RecognitionPhase.CAPTURED, controller.current(900))
-        assertEquals(RecognitionPhase.CAPTURED, controller.current(5_000))
-        controller.onPipelinePhase(RecognitionPhase.OUTLINE, 5_001)
-        assertEquals(RecognitionPhase.OUTLINE, controller.current(5_001))
+        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(10_000))
+        controller.onPipelinePhase(RecognitionPhase.RESULT, 10_001, hasRealFishFocus = true)
+        assertEquals(RecognitionPhase.RESULT, controller.current(10_001))
     }
 
     @Test
-    fun slowClassifierRemainsInCurrentTruthfulProductState() {
+    fun noTimerOnlyProgressWithoutDetectionFocusClassificationOrResult() {
         val controller = RecognitionVisualStateController().also { it.reset(0) }
-        controller.onPipelinePhase(RecognitionPhase.CLASSIFYING, 1)
 
-        controller.current(900)
-        controller.current(1_500)
-        assertEquals(RecognitionPhase.CLASSIFYING, controller.current(10_000))
+        assertEquals(RecognitionPhase.CAPTURED, controller.current(10_000))
+        controller.onPipelinePhase(RecognitionPhase.DETECTING, 10_001)
+        assertEquals(RecognitionPhase.DETECTING, controller.current(10_001))
+
+        controller.onPipelinePhase(RecognitionPhase.OUTLINE, 10_002, hasRealFishFocus = false)
+        assertEquals(RecognitionPhase.DETECTING, controller.current(20_000))
+        controller.onPipelinePhase(RecognitionPhase.OUTLINE, 20_001, hasRealFishFocus = true)
+        assertEquals(RecognitionPhase.OUTLINE, controller.current(20_001))
+
+        assertEquals(RecognitionPhase.OUTLINE, controller.current(30_000))
     }
 
     @Test

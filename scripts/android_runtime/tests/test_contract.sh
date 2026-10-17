@@ -37,9 +37,11 @@ run_case() {
   tmp="$(mktemp -d)"
   printf 'fake-apk' > "$tmp/app-debug.apk"
   printf 'fake-test-apk' > "$tmp/app-debug-androidTest.apk"
+  local app_apk_sha256
+  app_apk_sha256="$(sha256sum "$tmp/app-debug.apk" | awk '{print $1}')"
   set +e
     FAKE_ADB_MODE="$mode" \
-    FAKE_ADB_RESTART_LOG="$tmp/restarts" \
+    FAKE_APP_APK_SHA256="$app_apk_sha256" \
     YUJIAN_CAPTURE_RECOGNITION_VIDEO=1 \
     YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
     ADB="$FAKE_ADB" \
@@ -57,9 +59,29 @@ run_case() {
   set -e
   assert_result "$tmp/evidence/runtime_gate_result.json" "$expected_classification" "$expected_rc" "$rc"
   if [[ "$name" == "offline" ]]; then
-    restarts="$(wc -l < "$tmp/restarts")"
-    [[ "$restarts" == "2" ]] || {
-      echo "expected exactly one kill/start ADB restart, observed $restarts calls" >&2
+    restarts="$(cat "$tmp/evidence/infra/adb_restart_count")"
+    [[ "$restarts" == "1" ]] || {
+      echo "expected exactly one kill/start ADB restart (count=1), observed count=$restarts" >&2
+      exit 1
+    }
+  fi
+  if [[ "$name" == "pass" ]]; then
+    mapfile -t instrumentation_classes < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
+    mapfile -t instrumentation_timeouts < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
+    [[ "${#instrumentation_classes[@]}" == "2" ]] || {
+      echo "expected the required suite and one additional evidence invocation" >&2
+      exit 1
+    }
+    [[ "${instrumentation_classes[0]}" == *"DetectorGoldenParityTest" ]] || {
+      echo "required Recognition suite was not run as the first invocation" >&2
+      exit 1
+    }
+    [[ "${instrumentation_classes[1]}" == "com.yujian.ai.RecognitionOpticalFidelityRuntimeTest" ]] || {
+      echo "live optical-fidelity evidence was not isolated into its own invocation" >&2
+      exit 1
+    }
+    [[ "${instrumentation_timeouts[*]}" == "300 420" ]] || {
+      echo "unexpected instrumentation timeout budgets: ${instrumentation_timeouts[*]}" >&2
       exit 1
     }
   fi

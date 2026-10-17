@@ -98,7 +98,30 @@ PY
     # Capture after returning to the physical display size, then restore the
     # frozen logical size for the remaining evidence.
     "${YUJIAN_ADB_BIN}" shell wm size reset
-    sleep 1
+    recording_launch_log="$home_dir/recording_launch.log"
+    "${YUJIAN_ADB_BIN}" shell am start -W -n \
+      "$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity" > "$recording_launch_log" 2>&1 || {
+        cat "$recording_launch_log" >&2
+        echo 'EMPTY_HOME_RECORDING_ACTIVITY_LAUNCH_FAILED' >&2
+        exit 1
+      }
+    recording_home_resumed=0
+    for attempt in $(seq 1 20); do
+      resumed="$("${YUJIAN_ADB_BIN}" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
+      printf 'EMPTY_HOME_RECORDING_ACTIVITY_READINESS attempt=%s resumed=%s\n' "$attempt" "$resumed"
+      if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* ]]; then
+        recording_home_resumed=1
+        break
+      fi
+      sleep 1
+    done
+    if (( recording_home_resumed != 1 )); then
+      echo 'EMPTY_HOME_RECORDING_ACTIVITY_NOT_RESUMED' >&2
+      "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/recording_activity_not_ready.png" || true
+      "${YUJIAN_ADB_BIN}" logcat -d -b all -v threadtime > "$home_dir/recording_activity_logcat.txt" || true
+      exit 1
+    fi
+    sleep 2
     "${YUJIAN_ADB_BIN}" exec-out screencap -p > "$home_dir/runtime_recording_reference.png"
 
     "${YUJIAN_ADB_BIN}" shell rm -f /sdcard/full_runtime_15s.mp4
@@ -107,7 +130,12 @@ PY
     # display is 320x640. Pin the evidence stream to the runner's physical
     # surface so the MP4 contains the same full frame as screencap.
     "${YUJIAN_ADB_BIN}" shell wm size > "$home_dir/screenrecord.log" 2>&1
-    "${YUJIAN_ADB_BIN}" shell screenrecord --size 320x640 --time-limit 15 --verbose /sdcard/full_runtime_15s.mp4 >> "$home_dir/screenrecord.log" 2>&1
+    # wm size reset returns this runner to 1080x1920. Keep the 9:16 frame in
+    # the video so API 28 does not letterbox the 320x640 (1:2) encoder output
+    # into a 320x568 content region before the frozen visual parity check.
+    # A 4Mbps bitrate and 90s wall-clock limit leave the encoder enough time
+    # to produce the required timestamp duration on this runner.
+    "${YUJIAN_ADB_BIN}" shell screenrecord --size 360x640 --bit-rate 4000000 --time-limit 90 --verbose /sdcard/full_runtime_15s.mp4 >> "$home_dir/screenrecord.log" 2>&1
     "${YUJIAN_ADB_BIN}" pull /sdcard/full_runtime_15s.mp4 "$home_dir/full_runtime_15s.mp4" >/dev/null
     cp "$home_dir/full_runtime_15s.mp4" "$home_dir/Empty_Home_V2_Parity_Runtime.mp4"
     "${YUJIAN_ADB_BIN}" shell wm size 1080x1920
@@ -230,11 +258,13 @@ report["regions"]["header"] = {
     "threshold": 42.0,
     "status": header_status,
 }
-report["regions"]["fishing_composition"] = dict(report["regions"]["bobber_water"])
-report["regions"]["fishing_composition"]["authority"] = "Empty_Home_Frozen_Visual_Revision_V2_2"
-report["regions"]["fishing_composition"]["contract"] = "rod_line_bobber_water_contact_ripple"
-report["region_failures"] = sorted(set(report.get("region_failures", [])) | ({"header"} if header_status != "PASS" else set()))
-report["status"] = "PASS" if report.get("full_frame_status") == "PASS" and not report["region_failures"] else "FAIL"
+report["region_failures"] = sorted(
+    name
+    for name, region in report.get("regions", {}).items()
+    if isinstance(region, dict) and region.get("status") != "PASS"
+)
+full_frame_status = report.get("regions", {}).get("full_frame", {}).get("status")
+report["status"] = "PASS" if full_frame_status == "PASS" and not report["region_failures"] else "FAIL"
 report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"EMPTY_HOME_REGION_GATE header_mae={header_mae:.4f} threshold=42 status={header_status} fishing=CONTRACT")
 if report["status"] != "PASS":
