@@ -39,14 +39,14 @@
       "additionalProperties": false,
       "required": [
         "paths_are_reference_only",
-        "runtime_page_background_allowed",
+        "frozen_page_png_as_runtime_background_allowed",
         "forbid_crop_from_full_page"
       ],
       "properties": {
         "paths_are_reference_only": {
           "const": true
         },
-        "runtime_page_background_allowed": {
+        "frozen_page_png_as_runtime_background_allowed": {
           "const": false
         },
         "forbid_crop_from_full_page": {
