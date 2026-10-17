@@ -3,12 +3,13 @@
   "task_id": "RECOGNITION-FIRST-USE-GUIDE-V1.2",
   "scope": "Repository source-byte verification only; no Figma upload or node fill is claimed.",
   "authority_status": "TWO_PAGE_AUTHORITY_PROPOSED_FOR_MAIN_REVIEW",
-  "status": "PASS_BYTE_IDENTITY",
-  "binary_import_status": "PASS_BYTE_IDENTITY_PENDING_ACTIVE_PATH_VALIDATION",
+  "status": "PASS_BYTE_IDENTITY_PENDING_CI_RECOMPUTE",
+  "binary_import_status": "PASS_BYTE_IDENTITY_PENDING_CI_RECOMPUTE",
   "verification": [
     "source Git blob identity",
     "manifest SHA-256/byte-count/dimensions parity",
-    "active page list parity"
+    "active page list parity",
+    "GitHub active-path checks: old active P02 and P03 paths absent; archive paths present; active P02 Git blob SHA equals former P03 Git blob SHA."
   ],
   "assets": [
     {
@@ -33,7 +34,7 @@
       "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
       "git_blob_sha": "2f46b2f2906f258eef8ca67181fc049a55d045af",
       "source_filename": "湖畔横屏拍摄指南(1).png",
-      "status": "PASS_BYTE_IDENTITY",
+      "status": "PASS_GIT_BLOB_IDENTITY",
       "note": "Same Git blob as the former P03 PNG; no image bytes changed."
     }
   ],
@@ -43,7 +44,7 @@
       "path": "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
       "bytes": 2042852,
       "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-      "status": "ARCHIVED_NOT_ACTIVE"
+      "status": "ARCHIVED_NOT_ACTIVE_PATH_VERIFIED"
     }
   ]
 }
