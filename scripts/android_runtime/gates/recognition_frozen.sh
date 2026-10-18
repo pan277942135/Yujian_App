@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# The frozen Recognition gate runs 50 instrumentation tests, including the
-# live FULL/LITE optical-fidelity capture. Its test suite needs more room than
-# the 180-second default; this does not alter any other gate's timeout.
+# The frozen Recognition gate runs the required instrumentation suite,
+# including the live FULL/LITE optical-fidelity capture. Its test suite needs
+# more room than the 180-second default; this does not alter any other gate's timeout.
 gate_instrumentation_timeout_seconds() {
   printf '%s\n' '300'
 }
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionSaveCatchJourneyContractRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
 }
 
 gate_additional_test_classes() {
@@ -22,7 +22,7 @@ gate_additional_test_timeout_seconds() {
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
 # assertions and single proof screenshots.
 YUJIAN_RECOGNITION_DEVICE_RECORDING="/sdcard/recognition_processing_runtime_host.mp4"
-YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v3_1.mp4"
+YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_m1_v3_1.mp4"
 
 gate_before_instrumentation() {
   if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
@@ -75,7 +75,7 @@ gate_collect_evidence() {
   local first_guide_output="$YUJIAN_EVIDENCE_DIR/first_use_camera_guide"
   mkdir -p "$first_guide_output"
   local name
-  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+  for name in P01_compose_component.png P02_compose_component.png first_use_camera_guide_runtime_report.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-first-use-camera-guide/${name}" \
       > "$first_guide_output/$name" 2>/dev/null || true
@@ -150,20 +150,27 @@ PY
   done
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-    "cache/recognition-evidence/recognition_processing_timing_v3_1.txt" \
-    > "$output_dir/recognition_processing_timing_v3_1.txt" 2>/dev/null || true
-  if [[ ! -s "$output_dir/recognition_processing_timing_v3_1.txt" ]]; then
-    rm -f "$output_dir/recognition_processing_timing_v3_1.txt"
+    "cache/recognition-evidence/recognition_processing_timing.txt" \
+    > "$output_dir/recognition_processing_timing.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_processing_timing.txt" ]]; then
+    rm -f "$output_dir/recognition_processing_timing.txt"
   fi
 
   "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
-    "cache/recognition-evidence/recognition_production_flow_trace_v3_1.json" \
-    > "$output_dir/recognition_production_flow_trace_v3_1.json" 2>/dev/null || true
-  if [[ ! -s "$output_dir/recognition_production_flow_trace_v3_1.json" ]]; then
-    rm -f "$output_dir/recognition_production_flow_trace_v3_1.json"
+    "cache/recognition-evidence/recognition_production_flow_trace_m1_v3_1.json" \
+    > "$output_dir/recognition_production_flow_trace_m1_v3_1.json" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_production_flow_trace_m1_v3_1.json" ]]; then
+    rm -f "$output_dir/recognition_production_flow_trace_m1_v3_1.json"
   fi
 
-  for name in recognition_motion_trace_v3_1.json recognition_accessibility_trace_v3_1.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
+  "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+    "cache/recognition-evidence/recognition_production_flow_trace.txt" \
+    > "$output_dir/recognition_production_flow_trace.txt" 2>/dev/null || true
+  if [[ ! -s "$output_dir/recognition_production_flow_trace.txt" ]]; then
+    rm -f "$output_dir/recognition_production_flow_trace.txt"
+  fi
+
+  for name in recognition_motion_trace_m1_v3_1.json recognition_accessibility_trace_v3_1.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi
@@ -260,7 +267,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageStat
 
 output_dir = Path(sys.argv[1])
-video_path = output_dir / "recognition_processing_v3_1.mp4"
+video_path = output_dir / "recognition_processing_m1_v3_1.mp4"
 validation_path = output_dir / "recognition_processing_video_validation.txt"
 reference_names = [
     "01_image_recognizing_early.png",
@@ -371,8 +378,49 @@ PY
     fi
   fi
 
-  if ! python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_runtime_evidence_v3_1.py" --evidence-dir "$output_dir"; then
-    runtime_set_failure "EVIDENCE" "RECOGNITION_V3_1_EVIDENCE_INVALID"
+  local profile_path="$output_dir/device_profile.json"
+  local device_model avd_name display_size display_density font_scale
+  device_model="$("${YUJIAN_ADB_BIN}" shell getprop ro.product.model 2>/dev/null | tr -d '\r' | tail -n 1)"
+  avd_name="$("${YUJIAN_ADB_BIN}" shell getprop qemu.avd_name 2>/dev/null | tr -d '\r' | tail -n 1)"
+  display_size="$("${YUJIAN_ADB_BIN}" shell wm size 2>/dev/null | tr -d '\r' | awk -F': ' '/Override size:/ {print $2; found=1} END {if (!found) exit 1}')" || \
+    display_size="$("${YUJIAN_ADB_BIN}" shell wm size 2>/dev/null | tr -d '\r' | awk -F': ' '/Physical size:/ {print $2; exit}')"
+  display_density="$("${YUJIAN_ADB_BIN}" shell wm density 2>/dev/null | tr -d '\r' | awk -F': ' '/Override density:/ {print $2; found=1} END {if (!found) exit 1}')" || \
+    display_density="$("${YUJIAN_ADB_BIN}" shell wm density 2>/dev/null | tr -d '\r' | awk -F': ' '/Physical density:/ {print $2; exit}')"
+  font_scale="$("${YUJIAN_ADB_BIN}" shell settings get system font_scale 2>/dev/null | tr -d '\r' | tail -n 1)"
+  python3 - "$profile_path" "$device_model" "$avd_name" "$display_size" "$display_density" "$font_scale" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+out, model, avd, size, density, font_scale = sys.argv[1:]
+Path(out).write_text(json.dumps({
+    "device_model": model.strip(),
+    "avd_name": avd.strip(),
+    "display_size": size.strip(),
+    "display_density": int(density),
+    "font_scale": float(font_scale),
+}, indent=2) + "\n", encoding="utf-8")
+PY
+
+  local validation_rc=0
+  python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_m1_v3_1_runtime_evidence.py" \
+    --evidence-dir "$output_dir" \
+    --contract "$YUJIAN_REPO_ROOT/docs/qa/recognition_main_journey/m1_recognition_runtime_gate_contract_v3_1.json" \
+    --catalog "$YUJIAN_REPO_ROOT/docs/qa/recognition_main_journey/test_case_catalog_v1.json" \
+    --guide-evidence-dir "$first_guide_output" \
+    --device-profile "$profile_path" \
+    --source-sha "$YUJIAN_BUILD_SHA" \
+    --workflow-run-id "${GITHUB_RUN_ID:-}" \
+    --api-level "$YUJIAN_API_LEVEL" \
+    --app-apk "${YUJIAN_APP_APK:-}" \
+    --test-apk "${YUJIAN_TEST_APK:-}" \
+    --sha256sums "$(dirname "${YUJIAN_APP_APK:-}")/SHA256SUMS" \
+    --runner-pool "self-hosted/yujian-android/api28" || validation_rc=$?
+  if (( validation_rc == EXIT_BLOCKED_ASSET_SOURCE )); then
+    runtime_set_failure "EVIDENCE" "M1_VISUAL_AUTHORITY_REVIEW_REQUIRED"
+    return "$EXIT_BLOCKED_ASSET_SOURCE"
+  elif (( validation_rc != EXIT_PASS )); then
+    runtime_set_failure "EVIDENCE" "M1_V3_1_EVIDENCE_OR_PROVENANCE_INVALID"
     return "$EXIT_FAIL_EVIDENCE"
   fi
   return "$EXIT_PASS"

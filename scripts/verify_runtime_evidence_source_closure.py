@@ -15,7 +15,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 APPROVED = {"APPROVED", "VERIFIED"}
-PAGES = ("P01", "P02", "P03")
+PAGES = ("P01", "P02")
 CASES = tuple("F%02d" % i for i in range(1, 9))
 
 
@@ -149,8 +149,8 @@ def evaluate_guide(report: dict, pages: list[dict], evidence_root: Path) -> dict
     if report.get("apk_sha256_match") is not True:
         reasons.append("APK_SHA_MISMATCH")
     observed = {item.get("page"): item for item in pages}
-    if set(observed) != set(PAGES) or len(pages) != 3:
-        reasons.append("THREE_PAGE_RUNTIME_COVERAGE_MISSING")
+    if set(observed) != set(PAGES) or len(pages) != len(PAGES):
+        reasons.append("TWO_PAGE_RUNTIME_COVERAGE_MISSING")
     for page in PAGES:
         p = observed.get(page, {})
         assets = p.get("runtime_photo_assets", {})

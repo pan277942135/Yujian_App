@@ -1,31 +1,38 @@
 package com.yujian.ai.ai
 
-/** Android projection of the frozen Recognition Processing V3.1 contract. */
+/** Android timing projection of the frozen Recognition Processing State Machine V3.1. */
 object RecognitionRuntimeContract {
     const val CONTRACT_VERSION = "recognition_processing_state_machine_v3_1"
+    const val CAPTURED_MIN_MS = 220L
+    const val DETECTING_MIN_MS = 320L
+    const val OUTLINE_MIN_MS = 350L
+    const val CLASSIFYING_MIN_MS = 250L
+    /** Frozen visual handoff parameter; not an additional V3.1 presentation state. */
+    const val RESOLVE_FADE_MS = 200L
+    const val CLASSIFYING_BREATH_PERIOD_MS = 1_900L
 
     val states: List<RecognitionProcessingStateContract> = listOf(
         RecognitionProcessingStateContract(
             RecognitionPresentationState.CAPTURED,
-            220L,
+            CAPTURED_MIN_MS,
             "正在准备识别",
             "AI 已获取这张照片",
         ),
         RecognitionProcessingStateContract(
             RecognitionPresentationState.DETECTING,
-            320L,
+            DETECTING_MIN_MS,
             "正在理解这张照片",
             "寻找这次鱼获的线索",
         ),
         RecognitionProcessingStateContract(
             RecognitionPresentationState.OUTLINE,
-            350L,
+            OUTLINE_MIN_MS,
             "已定位到鱼体",
             "正在分析这次鱼获",
         ),
         RecognitionProcessingStateContract(
             RecognitionPresentationState.CLASSIFYING,
-            250L,
+            CLASSIFYING_MIN_MS,
             "正在认识这条鱼",
             "分析鱼体特征",
         ),

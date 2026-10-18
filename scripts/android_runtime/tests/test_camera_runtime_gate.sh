@@ -40,8 +40,7 @@ case "$command" in
     exit "$FAKE_GRANT_EXIT"
     ;;
   "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P01_runtime.png"|\
-  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P02_runtime.png"|\
-  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P03_runtime.png")
+  "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/P02_runtime.png")
     printf 'invalid png fixture'
     ;;
   "exec-out run-as com.yujian.ai cat cache/camera-runtime-v1/first_use_camera_guide_runtime_report.json")
@@ -101,17 +100,17 @@ printf 'BACK_CAMERA_COUNT=1\nCAMERA_SERVICE_RESPONSIVE=true\n' > "$fixture/camer
 for name in \
   01_camera_open.png 02_preview_streaming.png 03_capture_ready.png \
   04_capture_pressed.png 05_post_capture.png 06_recognition_handoff.png \
-  P01_runtime.png P02_runtime.png P03_runtime.png \
+  P01_runtime.png P02_runtime.png \
   first_use_camera_guide_runtime_report.json camera_capture_trace.txt \
   camera_runtime_log.txt instrumentation_result.txt; do
   printf 'fixture\n' > "$fixture/$name"
 done
-for name in P01_overlay.png P02_overlay.png P03_overlay.png \
-  P01_diff.png P02_diff.png P03_diff.png first_use_camera_guide_runtime_report.json; do
+for name in P01_overlay.png P02_overlay.png \
+  P01_diff.png P02_diff.png first_use_camera_guide_runtime_report.json; do
   printf 'fixture\n' > "$fixture/first_use_camera_guide/$name"
 done
 for name in P01_compose_component.png P02_compose_component.png \
-  P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+  first_use_camera_guide_runtime_report.json; do
   printf 'fixture\n' > "$fixture/component/$name"
 done
 printf '{"visual_parity":"BLOCKED_ASSET_SOURCE","pass":false}\n' \

@@ -22,9 +22,24 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ai.RecognitionRuntimeContract
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlin.math.PI
 import kotlin.math.sin
+
+internal fun recognitionClassifyingBreathWave(clockMs: Long): Float {
+    val periodMs = RecognitionRuntimeContract.CLASSIFYING_BREATH_PERIOD_MS
+    val elapsedInPeriodMs = ((clockMs % periodMs) + periodMs) % periodMs
+    val t = elapsedInPeriodMs / periodMs.toFloat()
+    return ((sin(t * 2f * PI - PI / 2f) + 1f) / 2f).toFloat()
+}
+
+internal fun recognitionClassifyingContourCoreAlpha(clockMs: Long, reduceMotion: Boolean): Float =
+    if (reduceMotion) {
+        .39f
+    } else {
+        .36f + .06f * recognitionClassifyingBreathWave(clockMs)
+    }
 
 internal fun recognitionOutlineHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
     if (reduceMotion) return .15f
@@ -248,13 +263,7 @@ fun RecognitionFishFocus(
                 phase == RecognitionPhase.CLASSIFYING &&
                 !reduceMotion
             ) {
-                val t =
-                    ((visualClockMs ?: SystemClock.uptimeMillis()) % 1_900L) /
-                        1_900f
-                (
-                    (sin(t * 2f * PI - PI / 2f) + 1f) /
-                        2f
-                    ).toFloat()
+                recognitionClassifyingBreathWave(visualClockMs ?: SystemClock.uptimeMillis())
             } else {
                 .5f
             }
@@ -273,7 +282,9 @@ fun RecognitionFishFocus(
         val contourCoreTarget = when {
             reduceMotion -> .39f
             phase == RecognitionPhase.OUTLINE -> .36f
-            else -> .30f + .12f * wave
+            phase == RecognitionPhase.CLASSIFYING ->
+                recognitionClassifyingContourCoreAlpha(visualClockMs ?: SystemClock.uptimeMillis(), reduceMotion)
+            else -> .36f
         }
 
         // A real detector box is already enough to acknowledge the fish. Show

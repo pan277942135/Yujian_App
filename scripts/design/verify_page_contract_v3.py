@@ -30,6 +30,9 @@ ENGINEERING_SECTIONS = [
     "Media Fit", "Shared component use", "Animation and interaction", "Error and recovery"
 ]
 DATA_COVERAGE = {"empty", "loading", "error", "partial", "network_failure"}
+# The active V3 FINAL registry contains 669 rows, unique asset IDs, and unique paths.
+# The legacy V3 registry has 658 rows and is not the effective authority.
+EXPECTED_ASSET_REGISTRY_ENTRIES = 669
 
 
 def load_json(path: str) -> dict[str, Any]:
@@ -77,13 +80,18 @@ def main() -> int:
                 tokens[tid] = (path, row)
 
     components = {row.get("component_id"): row for row in components_doc.get("entries", []) if isinstance(row, dict)}
-    assets = {row.get("asset_id"): row for row in assets_doc.get("entries", []) if isinstance(row, dict)}
-    assets_by_path = {row.get("path"): row for row in assets_doc.get("entries", []) if isinstance(row, dict)}
+    asset_entries = assets_doc.get("entries", [])
+    assets = {row.get("asset_id"): row for row in asset_entries if isinstance(row, dict)}
+    assets_by_path = {row.get("path"): row for row in asset_entries if isinstance(row, dict)}
     backgrounds = {row.get("background_id"): row for row in backgrounds_doc.get("backgrounds", []) if isinstance(row, dict)}
     if len(components) != 18:
         issues.append(f"effective Component Registry expected 18 components, found {len(components)}")
-    if len(assets) != 658:
-        issues.append(f"effective Asset Registry expected 658 assets, found {len(assets)}")
+    if len(asset_entries) != EXPECTED_ASSET_REGISTRY_ENTRIES:
+        issues.append(f"effective Asset Registry expected {EXPECTED_ASSET_REGISTRY_ENTRIES} rows, found {len(asset_entries)}")
+    if len(assets) != EXPECTED_ASSET_REGISTRY_ENTRIES:
+        issues.append(f"effective Asset Registry expected {EXPECTED_ASSET_REGISTRY_ENTRIES} unique asset IDs, found {len(assets)}")
+    if len(assets_by_path) != EXPECTED_ASSET_REGISTRY_ENTRIES:
+        issues.append(f"effective Asset Registry expected {EXPECTED_ASSET_REGISTRY_ENTRIES} unique paths, found {len(assets_by_path)}")
 
     pages = registry.get("pages")
     if not isinstance(pages, list) or not pages:

@@ -1,10 +1,12 @@
-# Work Task · Recognition Capture / 07 · 首次拍照教学 V1
+# Historical Work Task · Recognition Capture / 07 · 首次拍照教学 V1 (superseded)
+
+> HISTORICAL / SUPERSEDED: This file records the former three-page P01/P02/P03 implementation task and is retained for provenance only. It is not an active design or QA authority. The approved active guide is P01/P02; see [the current design handoff](WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md). P03 instructions below are historical.
 
 Task ID: RECOGNITION-FIRST-USE-GUIDE-V1
 Repository: pan277942135/Yujian_App
 PR: #145
 Branch: audit/design-system-v3-1-phase1-master-baseline
-Status: IN_PROGRESS
+Status: SUPERSEDED
 Scope: Android runtime implementation + tests + exact Frozen PNG binary import
 Main merge: FORBIDDEN
 Design redesign: FORBIDDEN
