@@ -70,7 +70,7 @@ case "$1" in
       exit 0
     fi
     if [[ "$command_line" == *cache/recognition-first-use-camera-guide/P02_compose_component.png* ]]; then
-      cat "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../design/pages/recognition/first_use_camera_guide/frozen" && pwd)/P02_First_Use_Camera_Guide_Frozen.png"
+      cat "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../design/pages/recognition/first_use_camera_guide/frozen" && pwd)/P02_Landscape_Horizontal_Fish_Frozen.png"
       exit 0
     fi
     # This fake checks Harness classification and evidence-validator routing;
