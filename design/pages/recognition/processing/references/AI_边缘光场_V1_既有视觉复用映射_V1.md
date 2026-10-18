@@ -22,44 +22,16 @@
 | R02 能量岛拆解 | 保留现有拆解视觉，文字纠偏 | R02 Spec + Rendering Contract | 否 |
 | R03 四岛构图 | Contract + 现有完整状态图联合解释 | `02_AI_Understanding_Frozen.png` + Engineering Spec + Static Shape | 否 |
 | R04 光场与鱼体聚焦 | 直接复用双状态高保 | `03_Fish_Highlight_Frozen.png` + `04_Fish_Identifying_Frozen.png` | 否 |
-| R05 强度校准 | 设计参考 + Runtime 闭环 | `01_Capture_Transition_Frozen.png` + `02_AI_Understanding_Frozen.png` + Runtime LITE | 否 |
+| R05 强度校准 | 设计参考 + Runtime 闭环 | `02_AI_Understanding_Frozen.png` + Runtime FULL/LITE | 否 |
 | R06 失败边界 | 文本 taxonomy + 真实失败归档 | F01–F06 QA 规则 | 默认否 |
 
-## 现有四张 Processing 高保的新解释
+## 当前三张 Processing 高保
 
-### 01_Capture_Transition_Frozen.png
+- `02_AI_Understanding_Frozen.png`：图片识别中唯一 Frozen；R03 四岛构图、R05 目标参考。
+- `03_Fish_Highlight_Frozen.png`：已定位到鱼体；R04 Fish Focus。
+- `04_Fish_Identifying_Frozen.png`：鱼种识别中；R04 / R01 光学视觉参考。
 
-现在用于：
-
-- 图片识别中 early reference；
-- R05 强表现上限。
-
-不再代表独立 CAPTURED 产品状态。
-
-### 02_AI_Understanding_Frozen.png
-
-现在用于：
-
-- 图片识别中 late reference；
-- R03 完整照片中的 Edge Field 构图辅助；
-- R05 目标强度方向辅助。
-
-不单独决定当前四岛 Static Shape。
-
-### 03_Fish_Highlight_Frozen.png
-
-现在用于：
-
-- 已定位到鱼体；
-- R04 状态 A。
-
-### 04_Fish_Identifying_Frozen.png
-
-现在用于：
-
-- 鱼种识别中；
-- R04 状态 B；
-- R01 光学语言主视觉 Authority。
+原 Early 图已从当前设计包移除；R05 强度极值需要真实 Runtime 证据，不可复原或假定旧强图 PASS。
 
 ## 最终原则
 
