@@ -89,3 +89,24 @@ PR #163 remained Draft/Open/Unmerged. The latest completed tested source for thi
 - M1 Hosted API28 Runtime Run 39095194693: Build Once PASS; API28 Preflight FAIL at KVM access; formal Runtime SKIPPED. Artifact 12124820081 digest `ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97`.
 - QA Test Users Run 39095194548 and canonical-promotion Admission Run 39095194580 passed. The Admission result does not prove product-branch dynamic Work State.
 - The exact APK hashes are recorded inside the Build Once artifact manifest; no API28 device result or Release PASS is claimed.
+
+
+## Live-head Stage 0 checkpoint — b97f01f6790cea2e2f1cb4bfef07a38086223020
+
+PR #163 is still Draft/Open/Unmerged. The canonical baseline remains `main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d`.
+
+- Android CI Run [39095681153](https://github.com/pan277942135/Yujian_App/actions/runs/39095681153) passed on `b97f01f6790cea2e2f1cb4bfef07a38086223020`; the Page Contract V3 validator ran and passed. API28-dependent jobs were skipped.
+- Hosted API28 Runtime Run [39095681151](https://github.com/pan277942135/Yujian_App/actions/runs/39095681151): Build Once and APK pair upload passed. KVM Preflight failed; API28 emulator preflight and formal Runtime were skipped. This is `BLOCKED_INFRA`, not Runtime PASS.
+- QA Test Users Run [39095681144](https://github.com/pan277942135/Yujian_App/actions/runs/39095681144) passed. Canonical-promotion Admission Run [39095681147](https://github.com/pan277942135/Yujian_App/actions/runs/39095681147) passed but does not validate private PRODUCT_WORK state.
+- Installable test APK artifact [12124671626](https://github.com/pan277942135/Yujian_App/actions/runs/39095681151/artifacts/12124671626); app SHA-256 `b6d37938cdc34230415b7aea7fbf36536803e3908944c6a9665367d7c01c0890`, AndroidTest SHA-256 `356dfcffa5ef98ef2d1f496a2a2835b97e50776a714dab358d71ac03c7844f02`. Artifact ZIP SHA-256 `86b7fda5c6d542d1c57eb9076add52d1934d855aaa20ea9355364b65370ab77b`.
+- Current private state checkpoint is stale at `ffe285aff3818435815f769532fa221d3157917e`; exact-head PRODUCT_WORK Admission remains NOT_RUN. Raw state stays private.
+- The J17–J20 mapping conflict is recorded as P0; PR #162 remains Draft and is not effective on main or PR #163.
+
+
+## Current stage plan and gates — live head b97f01f6790cea2e2f1cb4bfef07a38086223020
+
+1. **Stage 0 · Baseline / Control Plane audit.** Canonical main baseline is `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`; this checkpoint audited PR #163 head `b97f01f6790cea2e2f1cb4bfef07a38086223020`. M1_SIX_LAYER_COMPLIANCE_AUDIT_V1 and M1_QUALITY_ENFORCEMENT_V1_1 are recorded in the existing Gap Register. L1–L6 and Gate A–D remain separate.
+2. **Stage 1 · Parallel implementation.** Track A integrates its isolated Android commit into the existing M1 branch after diff ownership review; Track B closes C01 and J17–J20 through existing design/governance PRs without modifying Frozen bytes; Track C continues exact-SHA runner/runtime tests and reports the KVM blocker. Work owns integration and cross-branch conflict resolution. Independent tasks proceed.
+3. **Stage 2 · Integrated exact-SHA acceptance.** After any product/source or workflow change, run CI and applicable Runtime on the new HEAD; bind source SHA, APK SHA, runner, Run IDs and each gate separately. Execute applicable N001–N010, J01–J20, 66 base and 10 E2E plus save/detail scenarios. Preserve each failure and allow at most initial attempt + 2 repairs per failing Gate.
+4. **Release gate.** Require all applicable P0 defects closed, Gate A–D evidence, exact-SHA API28 runtime, design/logic/motion/accessibility acceptance, and N009 human approval. Until every required gate passes, disposition is `BLOCKED` or `REVIEW_REQUIRED`; testable APK may be delivered with limitations.
+

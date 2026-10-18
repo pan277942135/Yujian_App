@@ -51,3 +51,12 @@ On `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, Android CI Run 39093186726 passed
 ## Exact-source implementation and CI checkpoint — 85dfe92
 
 The product candidate at 85dfe9217e879e0f87d19b41801beb05e502aaa2 passed Android CI Run 39095194583 and Build Once Run 39095194693, including JVM/controller checks and AndroidTest compilation. Build Once artifact 12124820081 is retained. Hosted API28 Preflight failed at KVM access; no Runtime was executed. The exact two-page guide remains unintegrated in PR #163; no new Android implementation is claimed in this checkpoint.
+
+
+## Current stage plan and gates — live head b97f01f6790cea2e2f1cb4bfef07a38086223020
+
+1. **Stage 0 · Baseline / Control Plane audit.** Canonical main baseline is `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`; this checkpoint audited PR #163 head `b97f01f6790cea2e2f1cb4bfef07a38086223020`. M1_SIX_LAYER_COMPLIANCE_AUDIT_V1 and M1_QUALITY_ENFORCEMENT_V1_1 are recorded in the existing Gap Register. L1–L6 and Gate A–D remain separate.
+2. **Stage 1 · Parallel implementation.** Track A integrates its isolated Android commit into the existing M1 branch after diff ownership review; Track B closes C01 and J17–J20 through existing design/governance PRs without modifying Frozen bytes; Track C continues exact-SHA runner/runtime tests and reports the KVM blocker. Work owns integration and cross-branch conflict resolution. Independent tasks proceed.
+3. **Stage 2 · Integrated exact-SHA acceptance.** After any product/source or workflow change, run CI and applicable Runtime on the new HEAD; bind source SHA, APK SHA, runner, Run IDs and each gate separately. Execute applicable N001–N010, J01–J20, 66 base and 10 E2E plus save/detail scenarios. Preserve each failure and allow at most initial attempt + 2 repairs per failing Gate.
+4. **Release gate.** Require all applicable P0 defects closed, Gate A–D evidence, exact-SHA API28 runtime, design/logic/motion/accessibility acceptance, and N009 human approval. Until every required gate passes, disposition is `BLOCKED` or `REVIEW_REQUIRED`; testable APK may be delivered with limitations.
+

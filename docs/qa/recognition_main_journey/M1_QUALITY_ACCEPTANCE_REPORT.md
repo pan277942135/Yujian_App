@@ -152,3 +152,23 @@ C1–C7 are evaluated separately. At source 85dfe9217e879e0f87d19b41801beb05e502
 | C5 | REVIEW_REQUIRED | A review, B retest pending, C blocked, D review pending. |
 | C6 | PASS for repaired build issues | SDK path/license pipeline and AndroidTest compile repairs now pass on a newer exact SHA; KVM remains separate. |
 | C7 | BLOCKED | Testable APK bundle exists; Runtime, P0 closure and N009 approval do not. |
+
+
+## Exact-source quality checkpoint — b97f01f6790cea2e2f1cb4bfef07a38086223020
+
+This checkpoint binds to the tested source `b97f01f6790cea2e2f1cb4bfef07a38086223020` only.
+
+| Gate | Result | Evidence |
+|---|---|---|
+| C1 · Scope/Frozen protection | PASS | Hosted Run 39095681151 scope check passed. Frozen visual bytes, model/API contract and thresholds were not changed. |
+| C2 · Geometry / glyph / ROI visual fidelity | NOT_RUN | No API28 native screenshot or bounds package because KVM preflight failed. |
+| C3 · Recognition motion | REVIEW_REQUIRED | Source/unit checks ran in Android CI 39095681153; no real Pipeline timing Trace, phase PNGs, or Motion MP4 exists. V3.1 minima/event gating remain the authority. |
+| C4 · Business logic / lifecycle | NOT_RUN | AndroidTest compiled, but J01–J20/E2E, save persistence, A/B destination and clean Back were not executed on API28. |
+| Gate A · Authority | REVIEW_REQUIRED | C01 and J17–J20 authority synchronization remain open; several page/state authorities remain incomplete. |
+| Gate B · Implementation | PASS | Android CI 39095681153 completed successfully, including Page Contract validator, unit/controller checks, AndroidTest compile, package/lint; Build Once passed in 39095681151. |
+| Gate C · Runtime | BLOCKED_INFRA | KVM preflight failed in 39095681151; API28 Runtime job was SKIPPED. |
+| Gate D · Independent acceptance | REVIEW_REQUIRED | No independent review of source Frozen assets against native screenshots; naturalness and optics remain human-reviewed. |
+| C5/C6/C7 · Gate discipline | REVIEW_REQUIRED | The 66 base + 10 E2E cases remain unexecuted; preserved failed-run artifacts remain available; N009 human Release approval is NOT_RUN. |
+
+Exact Build Once artifact: [12124671626](https://github.com/pan277942135/Yujian_App/actions/runs/39095681151/artifacts/12124671626). App APK `b6d37938cdc34230415b7aea7fbf36536803e3908944c6a9665367d7c01c0890`; test APK `356dfcffa5ef98ef2d1f496a2a2835b97e50776a714dab358d71ac03c7844f02`; artifact ZIP `86b7fda5c6d542d1c57eb9076add52d1934d855aaa20ea9355364b65370ab77b`. This supports `M1_TESTABLE_APK`, not `M1_RELEASE_PASS`.
+

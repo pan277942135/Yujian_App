@@ -104,3 +104,18 @@ The true branch-local Admission PASS is separate from GitHub run 39093844689, wh
 | L6 · Automatic Recovery | REVIEW_REQUIRED | No current-SHA recovery rehearsal; private checkpoint remains bound to parent ffe285a. |
 
 The new CI/workflow commit adds the 669-entry Page Contract validator to Android CI and logs exact APK hashes. These are not reported as passed until that exact SHA completes.
+
+
+## Live-head six-layer audit — b97f01f6790cea2e2f1cb4bfef07a38086223020
+
+| Layer | Result | Evidence and next action |
+|---|---|---|
+| L1 · Project/Work State | REVIEW_REQUIRED | Private checkpoint is bound to `ffe285aff3818435815f769532fa221d3157917e`, not current `b97f01f6790cea2e2f1cb4bfef07a38086223020`. PRODUCT_WORK Admission and recovery rehearsal are NOT_RUN. GitHub Admission Run 39095681147 is canonical-promotion only. Refresh securely and run the real validator at the live source SHA. |
+| L2 · Feature Matrix | REVIEW_REQUIRED | Static inventory counts (15/20/22/79) pass. Frozen J17–J20 acceptance semantics conflict with Feature Matrix/Unified Contract; see Gap M1-P0-019. |
+| L3 · Phase/Task State Machine | REVIEW_REQUIRED | Canonical P5-02 still requires the expired self-hosted API28 runner. Retry budget remains bounded; update the existing canonical task only through the governed PR and preserve N009. |
+| L4 · Unified Contract/Design Authority | REVIEW_REQUIRED | C01 two-page guide remains a Draft proposal in PR #162, not active on main or #163. Live Design Manager could not be retrieved. V3.1 State_Machine is the M1 timing authority; PROC-07 timeout is unapproved. |
+| L5 · Runtime Evidence | BLOCKED_INFRA | At exact `b97f01f6790cea2e2f1cb4bfef07a38086223020`, Build Once passed in Run 39095681151, but KVM preflight failed. API28 emulator preflight and formal Runtime were skipped; Android CI Run 39095681153 passed. |
+| L6 · Recovery | REVIEW_REQUIRED | No current-SHA private checkpoint refresh/recovery rehearsal is available. Do not reuse the historical ffe Admission/recovery result. |
+
+The repository-local static Page Contract V3 validator now passes on this SHA (669 registry entries). Overall six-layer disposition remains `REVIEW_REQUIRED / BLOCKED_INFRA`; no layer borrows another layer's PASS.
+

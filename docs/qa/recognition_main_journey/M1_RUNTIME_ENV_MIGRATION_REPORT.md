@@ -64,3 +64,13 @@ The prior SDK lookup and license-pipe failures are retained as historical failur
 ## Latest hosted runner evidence — exact source 85dfe92
 
 Run 39095194693 checked out 85dfe9217e879e0f87d19b41801beb05e502aaa2 on `ubuntu-24.04`. Build Once and APK pair upload passed (artifact 12124820081). The artifact ZIP digest is `ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97`; it is not an APK digest. Preflight failed the required `/dev/kvm` character/read/write check; API28/Pixel 2 boot, display, install, CameraX, Instrumentation and Runtime did not run; `api28-runtime` was SKIPPED. Preflight artifact 12124093937 and Runtime-not-run artifact 12124313389 are retained. Run: https://github.com/pan277942135/Yujian_App/actions/runs/39095194693.
+
+
+## Hosted-runner migration checkpoint — b97f01f6790cea2e2f1cb4bfef07a38086223020
+
+- Runner: `ubuntu-24.04`; Java 17 / Gradle 8.9. Workflow uses `reactivecircus/android-emulator-runner@v2`, API 28 `google_apis` x86_64, Pixel 2 profile and 1080×1920 assertion.
+- Hosted Run 39095681151: Build Once succeeded; app APK `b6d37938cdc34230415b7aea7fbf36536803e3908944c6a9665367d7c01c0890`, AndroidTest APK `356dfcffa5ef98ef2d1f496a2a2835b97e50776a714dab358d71ac03c7844f02`; artifact [12124671626](https://github.com/pan277942135/Yujian_App/actions/runs/39095681151/artifacts/12124671626).
+- Preflight failed the KVM availability/read-write check before API28 emulator, CameraX, instrumentation, native screenshot or Runtime Gate execution. Preflight artifact 12124194596; Runtime-not-run artifact 12124388894.
+- Coverage delta: Build/JVM/unit/contract compilation and APK staging are verified at this SHA. Device API28 tests, install/instrumentation, CameraX capture, screenshot/bounds, Pixel Diff, Motion MP4 and end-to-end flows remain `NOT_RUN`.
+- Migration disposition: `BLOCKED_INFRA`. Standard runner was actually attempted; no paid runner or replacement VM was enabled.
+
