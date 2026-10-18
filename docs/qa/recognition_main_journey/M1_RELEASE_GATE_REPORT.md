@@ -3,7 +3,7 @@
 Task: YUJIAN_M1_PARALLEL_DELIVERY_V1  
 PR: [#163 — Draft/Open/Unmerged](https://github.com/pan277942135/Yujian_App/pull/163)  
 Disposition: BLOCKED  
-Current published source under review: 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e
+Current published source under review: c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
 
 ## Gate results
 
@@ -69,3 +69,21 @@ At source 85dfe9217e879e0f87d19b41801beb05e502aaa2, Android CI Run 39095194583 a
 
 Disposition remains `BLOCKED`; the artifact is `M1_TESTABLE_APK` only. No `M1_RELEASE_PASS` is claimed. PR #163 remains Draft/Open/Unmerged; no main merge was performed.
 
+
+
+## Current exact-SHA release gate — c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Exact-SHA PRODUCT_WORK Admission / recovery | REVIEW_REQUIRED / NOT_RUN | No current-SHA private state refresh, branch-local Admission run or recovery rehearsal is recorded. Run 39096212604 validates canonical-promotion only. |
+| C1 scope/Frozen protection | PASS | Hosted Run 39096212590 passed the scope and protected-source check at `c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c`. |
+| Android CI / Page Contract / unit / AndroidTest compile / package / lint | PASS | Run [39096212587](https://github.com/pan277942135/Yujian_App/actions/runs/39096212587). |
+| Build Once / APK provenance | PASS | Run [39096212590](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590); app SHA `7e5ea493277dd42a2a7a72cdbce0c2d5c48273b62b81d39efd26d5e880149d37`; AndroidTest SHA `988dc01f9c31ae6e8cd96856be7cda446b639afc6f0d96fe8f72d05eebbd0f46`; artifact [12124946578](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578), ZIP SHA `caac6f268a189328a053d93880f3e5b86495d4fa5f876376bc3224ab69fe7a71`. |
+| Hosted API28 Preflight | BLOCKED_INFRA | KVM check failed before emulator startup; evidence [12124588053](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124588053). |
+| Formal API28 Runtime and applicable N001–N010 gates | NOT_RUN | Runtime job was skipped; explicit NOT_RUN artifact [12125106065](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065). No device screenshots/bounds/Pixel Diff/Trace/MP4. |
+| C01, J17–J20 and hosted-runner Control Plane synchronization | REVIEW_REQUIRED | PR #162 remains Draft at `1d948b45a3ebc759acef72dd1f81769e9e832d0f`; its Android CI 39096653816 passed with runtime jobs skipped. No main merge occurred. |
+| C02 V3.1 real timing trace / PROC-07 | REVIEW_REQUIRED / BLOCKED_PARAMETER | Static event/timing checks passed in Android CI; no API28 trace. Timeout parameter remains unapproved. |
+| Visual / Motion / Logic / Accessibility and Gate D | NOT_RUN / REVIEW_REQUIRED | No exact-SHA API28 evidence or independent review exists. |
+| N009 human release approval | NOT_RUN | No approval requested or granted. |
+
+Disposition: `M1_TESTABLE_APK` only; `M1_RELEASE_PASS` is not supported. PR #163 remains Draft/Open/Unmerged; no main merge occurred.

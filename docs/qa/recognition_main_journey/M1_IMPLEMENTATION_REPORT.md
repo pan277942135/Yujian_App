@@ -60,3 +60,10 @@ The product candidate at 85dfe9217e879e0f87d19b41801beb05e502aaa2 passed Android
 3. **Stage 2 · Integrated exact-SHA acceptance.** After any product/source or workflow change, run CI and applicable Runtime on the new HEAD; bind source SHA, APK SHA, runner, Run IDs and each gate separately. Execute applicable N001–N010, J01–J20, 66 base and 10 E2E plus save/detail scenarios. Preserve each failure and allow at most initial attempt + 2 repairs per failing Gate.
 4. **Release gate.** Require all applicable P0 defects closed, Gate A–D evidence, exact-SHA API28 runtime, design/logic/motion/accessibility acceptance, and N009 human approval. Until every required gate passes, disposition is `BLOCKED` or `REVIEW_REQUIRED`; testable APK may be delivered with limitations.
 
+
+
+## Exact-source implementation checkpoint — c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
+
+Android CI [39096212587](https://github.com/pan277942135/Yujian_App/actions/runs/39096212587) passed the Page Contract validator, JVM/controller and Runtime Harness contract checks, Debug APK build, AndroidTest compilation, packaging and lint. Hosted Run [39096212590](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590) built and uploaded the exact source APK pair: app SHA-256 `7e5ea493277dd42a2a7a72cdbce0c2d5c48273b62b81d39efd26d5e880149d37`, AndroidTest SHA-256 `988dc01f9c31ae6e8cd96856be7cda446b639afc6f0d96fe8f72d05eebbd0f46`, artifact [12124946578](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578). The API28 KVM preflight failed and the device Runtime job was skipped. The APK is `M1_TESTABLE_APK` only; no device, visual, motion, or end-to-end behavior is claimed as passed.
+
+C01 and the J17–J20/P5-02 canonical changes remain in Draft PR #162 at `1d948b45a3ebc759acef72dd1f81769e9e832d0f`. That PR's Android CI Run 39096653816 passed with API28 Runtime skipped; it is not merged and does not change the product behavior in PR #163 or main. Continue Stage 1 work that does not depend on those authorities; do not claim the two-page guide is implemented in the current product SHA.

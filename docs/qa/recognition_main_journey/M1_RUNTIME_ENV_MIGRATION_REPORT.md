@@ -74,3 +74,12 @@ Run 39095194693 checked out 85dfe9217e879e0f87d19b41801beb05e502aaa2 on `ubuntu-
 - Coverage delta: Build/JVM/unit/contract compilation and APK staging are verified at this SHA. Device API28 tests, install/instrumentation, CameraX capture, screenshot/bounds, Pixel Diff, Motion MP4 and end-to-end flows remain `NOT_RUN`.
 - Migration disposition: `BLOCKED_INFRA`. Standard runner was actually attempted; no paid runner or replacement VM was enabled.
 
+
+
+## Exact-SHA hosted runner result — c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
+
+- Configured runner: GitHub-hosted `ubuntu-24.04`; Build Once used JDK 17 / Gradle 8.9. API28 workflow [39096212590](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590) built source `c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c` once and uploaded the APK pair.
+- APK provenance: app SHA-256 `7e5ea493277dd42a2a7a72cdbce0c2d5c48273b62b81d39efd26d5e880149d37`; AndroidTest SHA-256 `988dc01f9c31ae6e8cd96856be7cda446b639afc6f0d96fe8f72d05eebbd0f46`; artifact [12124946578](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578), ZIP SHA-256 `caac6f268a189328a053d93880f3e5b86495d4fa5f876376bc3224ab69fe7a71`.
+- KVM preflight failed before the `reactivecircus/android-emulator-runner@v2` API28 Pixel 2 step. Emulator boot, SDK API query, 1080×1920/density/insets, APK installation, CameraX, Instrumentation and native screenshot checks did not execute.
+- Runtime status: `BLOCKED_INFRA`; formal API28 Runtime `SKIPPED/NOT_RUN`. Preflight evidence [12124588053](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124588053); explicit NOT_RUN evidence [12125106065](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065).
+- Coverage delta: hosted scheduling, source scope/Frozen guard, Build Once, APK hashes and artifact upload are verified. KVM/AVD/device configuration, install, CameraX, test execution, screenshot/bounds, Pixel Diff, Motion MP4 and journey evidence remain unverified.

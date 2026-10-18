@@ -4,7 +4,7 @@
   "task_id": "YUJIAN_M1_PARALLEL_DELIVERY_V1",
   "repository": "pan277942135/Yujian_App",
   "canonical_baseline_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
-  "verified_at": "2026-10-18T04:08:00Z",
+  "verified_at": "2026-10-18T04:26:34.716Z",
   "status_vocabulary": [
     "OPEN",
     "BLOCKED_INFRA",
@@ -22,29 +22,29 @@
       "gap_id": "M1-P0-001",
       "page_state": "APP / API28_RUNTIME_MATRIX",
       "expected": "All required Android Runtime gates pass on the exact M1 source SHA using the approved API28 Pixel_2 1080x1920 profile.",
-      "actual": "At exact source b97f01f6790cea2e2f1cb4bfef07a38086223020, Hosted Run 39095681151 Build Once passed and uploaded artifact 12124671626 (ZIP SHA-256 86b7fda5c6d542d1c57eb9076add52d1934d855aaa20ea9355364b65370ab77b). App APK SHA-256 b6d37938cdc34230415b7aea7fbf36536803e3908944c6a9665367d7c01c0890; AndroidTest APK SHA-256 356dfcffa5ef98ef2d1f496a2a2835b97e50776a714dab358d71ac03c7844f02. API28 Preflight failed at the required KVM check (artifact 12124194596); the API28 emulator preflight was skipped and formal Runtime job was SKIPPED. Runtime-not-run artifact 12124388894 was retained. Android CI Run 39095681153, QA Test Users 39095681144 and canonical-promotion Admission 39095681147 passed; the latter is not PRODUCT_WORK Admission. Testable APK artifact: https://github.com/pan277942135/Yujian_App/actions/runs/39095681151/artifacts/12124671626.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39095194693 ; https://github.com/pan277942135/Yujian_App/actions/runs/39095194583 ; https://github.com/pan277942135/Yujian_App/actions/runs/39095194693/artifacts/12124820081",
+      "actual": "At exact source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c, Hosted Runtime Run 39096212590 built and uploaded the app/Test APK pair. App APK SHA-256 7e5ea493277dd42a2a7a72cdbce0c2d5c48273b62b81d39efd26d5e880149d37; AndroidTest APK SHA-256 988dc01f9c31ae6e8cd96856be7cda446b639afc6f0d96fe8f72d05eebbd0f46; artifact ZIP SHA-256 caac6f268a189328a053d93880f3e5b86495d4fa5f876376bc3224ab69fe7a71. The required hosted KVM check failed; emulator preflight and formal API28 Runtime were skipped. Android CI 39096212587 and QA Test Users 39096212593 passed. Admission 39096212604 passed canonical-promotion checks only, not live PRODUCT_WORK state.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124588053; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065; https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212593; https://github.com/pan277942135/Yujian_App/actions/runs/39096212604",
       "priority": "P0",
       "owner": "Track C · QA/Runtime/CI",
       "dependency": "Standard GitHub-hosted runner must expose usable KVM for the required API28 Pixel_2 AVD.",
       "acceptance": "All applicable API28 Runtime gates execute and pass at one exact source SHA with the same Build Once APK pair and complete evidence.",
       "status": "BLOCKED_INFRA",
-      "root_cause": "The hosted preflight's explicit /dev/kvm character/read/write check failed on the standard GitHub-hosted runner. No API28 emulator or Runtime gate started.",
-      "retest_evidence": "Build Once succeeded; Preflight evidence artifact 12124093937 and Runtime-not-run artifact 12124313389 are retained. Android CI verifies build and AndroidTest compilation only. No Runtime evidence is inferred."
+      "root_cause": "Standard ubuntu-24.04 hosted runner did not satisfy the required /dev/kvm availability/read-write check; device execution never began.",
+      "retest_evidence": "Retest on a standard GitHub-hosted runner that exposes usable KVM. Preserve current APK and failed-preflight artifacts; execute every applicable exact-SHA Runtime gate after preflight passes."
     },
     {
       "gap_id": "M1-P0-002",
       "page_state": "CAPTURE / FIRST_USE_GUIDE_P01_P02",
       "expected": "Use the approved V1.2 two-page sequence: P01 portrait phone with horizontal fish; P02 landscape phone with horizontal fish; no active vertical-fish page.",
-      "actual": "The approved target is two pages (P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish using former P03 bytes), but current main and PR #163 product code remain on the three-page contract. PR #162 still contains the two-page proposal and app/test synchronization at head 43b8267167d8a948754fe3df7d20edf072955cf9; it remains Draft/Open/unmerged and is not integrated or effective on main.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/pull/162 ; https://github.com/pan277942135/Yujian_App/pull/163 ; active main design paths at 0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+      "actual": "C01's approved two-page sequence is proposed in Draft PR #162 at 1d948b45a3ebc759acef72dd1f81769e9e832d0f: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish reuses the former P03 Frozen PNG byte-identically. PR #162's active/archived path cleanup and Android/design contract synchronization are present at candidate head 1d948b45a3ebc759acef72dd1f81769e9e832d0f. Its Design Governance Run 39096653836 and canonical-promotion Admission Run 39096653855 passed; Android CI Run 39096653816 completed successfully with Runtime jobs skipped. PR #163 at c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c and main remain on the older three-page product implementation/contract. PR #162 remains Draft, so the proposal is not effective on main or #163.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/pull/162; https://github.com/pan277942135/Yujian_App/actions/runs/39096653836; https://github.com/pan277942135/Yujian_App/actions/runs/39096653855; https://github.com/pan277942135/Yujian_App/actions/runs/39096653816; https://github.com/pan277942135/Yujian_App/pull/163; https://github.com/pan277942135/Yujian_App/commit/c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c",
       "priority": "P0",
       "owner": "Track B · Design & Asset Closure",
       "dependency": "Canonical design/contract synchronization and exact-SHA Android/API28 interaction acceptance; no merge to main performed.",
       "acceptance": "P01/P02 active registrations, navigation, page count, contracts and Design Manager all agree; active P02 uses the byte-identical landscape source; the vertical-fish P02 has no active reference; hashes and dimensions verify.",
       "status": "REVIEW_REQUIRED",
-      "root_cause": "Approved two-page contract is still a separate Draft change proposal; current PR #163 code and canonical N010 remain three-page.",
-      "retest_evidence": "Run static page mapping and API28 guide navigation, completion and skip assertions on a candidate containing approved implementation and authorities."
+      "root_cause": "Two-page candidate is isolated in an unmerged Draft PR; exact API28 navigation, completion, repeat-entry and skip runtime evidence is still absent.",
+      "retest_evidence": "Keep the page-count/navigation tests and asset hash checks on the proposal. Integrate only through approved control-plane review, then rerun the required exact-SHA API28 interaction acceptance."
     },
     {
       "gap_id": "M1-P0-003",
@@ -64,8 +64,8 @@
       "gap_id": "M1-P0-004",
       "page_state": "RESULT / METADATA_EDIT_WITH_IME",
       "expected": "Metadata editing remains readable and the field, validation, clear, and completion actions remain reachable when the keyboard opens on supported screen sizes.",
-      "actual": "Track A implemented IME-aware metadata editors and keyboard Back/focus handling. The candidate contains the source change, but exact-SHA API28 IME screenshots/bounds and regression results are unavailable.",
-      "evidence": "RecognitionResultScreen.kt; Track A branch work/m1-track-a-android",
+      "actual": "Track A's IME-aware metadata editor and keyboard Back/focus handling are present in the PR #163 source and compiled on c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c (Android CI 39096212587); hosted Build Once 39096212590 produced the candidate APK. API28 keyboard-visible bounds, screenshots and regression behavior were not run because KVM preflight failed.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578",
       "priority": "P0",
       "owner": "Track A · Android Implementation",
       "dependency": "Preserve the frozen metadata contract; implement against exact Result geometry and run API28 with the approved keyboard profile.",
@@ -73,14 +73,14 @@
       "status": "REVIEW_REQUIRED",
       "root_cause": "Previous sheet did not account for IME-aware content height and keyboard navigation.",
       "remediation_sha": "Track A source commit 61529d1; unpublished candidate SHA pending.",
-      "retest_evidence": "Run edit/save/cancel/back with IME visible/dismissed on API28 and capture bounds."
+      "retest_evidence": "After hosted preflight passes, run the exact-SHA IME/short-screen Android tests and attach native screenshots plus boundsInWindow."
     },
     {
       "gap_id": "M1-P0-005",
       "page_state": "J01_J20 / END_TO_END_EXECUTION",
       "expected": "All J01-J20 acceptance cases execute on a declared source/APK SHA, with explicit PASS/FAIL/BLOCKED_INFRA/BLOCKED_ACCESS/NOT_RUN results.",
-      "actual": "Catalog v1.2.2 and two-page/V3.1 QA contracts are synchronized in Track C; all 66 base cases and 10 E2E execution statuses remain NOT_RUN on candidate source/APK SHA.",
-      "evidence": "test_case_catalog_v1.json; e2e_scenarios_v1.json; M1_TRACK_C_RUNTIME_QA_REPORT_20261018.md",
+      "actual": "Catalog structure and V3.1/two-page scenario contracts are available in the candidate. Android CI 39096212587 passed build/unit/contract compilation; the 66 base cases, 10 E2E cases and J01–J20 remain unexecuted on API28.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065",
       "priority": "P0",
       "owner": "Track C · QA/Runtime/CI",
       "dependency": "Track A implementation SHA, approved QA user/fixtures, and API28 runner availability.",
@@ -88,14 +88,14 @@
       "status": "NOT_RUN",
       "root_cause": "Previous evidence predates candidate and runner pool expired.",
       "remediation_sha": "Track C 69fcf47 updates contracts, not execution.",
-      "retest_evidence": "Execute every applicable case with exact source/APK SHA and per-test status."
+      "retest_evidence": "Execute the approved case inventory on the exact-SHA APK after API28 preflight passes; preserve blocked/asset-source cases individually."
     },
     {
       "gap_id": "M1-P0-006",
       "page_state": "RESULT_SAVE / HOME / FISH_RECORD_DETAIL_A_B / BACK",
       "expected": "Save one durable record, return to the approved Home destination, open the matching record, view A/B state, and verify clean Back navigation.",
-      "actual": "Save Catch → Home → same record Detail A/B AndroidTest is present and AndroidTest compilation passed in Android CI Run 39093846259 at source ffe285aff3818435815f769532fa221d3157917e; the test has not executed on API28 because Hosted Run 39093844697 failed KVM preflight.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39093846259 ; https://github.com/pan277942135/Yujian_App/actions/runs/39093844697",
+      "actual": "The Save Catch → Home → same FishRecord Detail A/B test compiles in Android CI 39096212587; no API28 execution occurred because Hosted Runtime 39096212590 failed KVM preflight.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065",
       "priority": "P0",
       "owner": "Track A · Android Implementation + Track C · QA/Runtime/CI",
       "dependency": "Exact result-save implementation SHA and QA fixtures for guest/authenticated read-back and B-side state.",
@@ -103,14 +103,14 @@
       "status": "NOT_RUN",
       "root_cause": "Device execution is blocked at hosted KVM preflight; compile errors were repaired at earlier source commits and retained in failure history.",
       "remediation_sha": "Track C commit 09534eec7f1cb2bf0567f6b0827905cd93344ee7 adds test.",
-      "retest_evidence": "Re-run the supplemental journey on the approved API28 emulator after Preflight passes; do not treat compilation as Runtime coverage."
+      "retest_evidence": "Execute save persistence, Detail A/B destination, Back stack and multi-tap/recreation cases on API28 at one exact source/APK SHA."
     },
     {
       "gap_id": "M1-P0-007",
       "page_state": "RESULT / FIRST_ENTRY_CTA_IDLE",
       "expected": "Both Result CTAs render idle on first entry and show loading only after explicit save action.",
-      "actual": "Track A source keeps first-entry CTAs idle and activates only the selected loading state after save request; exact-source Result screenshots and save semantics remain unverified.",
-      "evidence": "RecognitionResultScreen.kt on Track A branch",
+      "actual": "The candidate source retains idle first-entry Result CTAs and activates only the selected save/loading state; exact-source Android CI 39096212587 passed. Device screenshots and save semantics were not run on API28.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065",
       "priority": "P0",
       "owner": "Track C · QA/Runtime/CI",
       "dependency": "API28 exact-head Result runtime capture.",
@@ -118,7 +118,7 @@
       "status": "REVIEW_REQUIRED",
       "root_cause": "Source state does not prove device behavior.",
       "remediation_sha": "Track A head 82c49b8d7ced6568ee2d04e3ecbd1c10a06cc018.",
-      "retest_evidence": "Capture first frame/semantics and save success/failure frames on same APK SHA."
+      "retest_evidence": "Verify first entry, single save, multi-tap, navigation and error recovery on exact-SHA API28 Runtime."
     },
     {
       "gap_id": "M1-P0-008",
@@ -138,8 +138,8 @@
       "gap_id": "M1-P0-009",
       "page_state": "ALL_M1_PAGES_STATES / C1_SCOPE_AND_FROZEN_PROTECTION",
       "expected": "Bind every M1 change to Feature/Page/State, owner, paths, tests and evidence; reject undeclared paths and protected Frozen/model/API/token/control-plane changes.",
-      "actual": "C1 scope/Frozen guard passed on exact source b97f01f6790cea2e2f1cb4bfef07a38086223020 in Hosted Run 39095681151. Android CI Run 39095681153 completed PASS, including 211 JVM tests, Camera Runtime contract checks, AndroidTest compilation, lint/package checks, and the corrected Page Contract validator. This is static/build evidence only; API28 Runtime is blocked separately.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39095194693 ; source 85dfe9217e879e0f87d19b41801beb05e502aaa2",
+      "actual": "C1 scope/Frozen-source enforcement passed in Hosted Build Once Run 39096212590 at exact source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c; Android CI 39096212587 also passed, including Page Contract validation. Runtime remains blocked separately.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212587",
       "priority": "P0",
       "owner": "Work + Android + QA",
       "dependency": "Publish candidate and run M1 workflow.",
@@ -147,59 +147,59 @@
       "status": "CLOSED",
       "root_cause": "Initial candidate had no reviewed scope guard; the exact whitelist and protected-source scan now pass on the reported source SHA.",
       "remediation_sha": "6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
-      "retest_evidence": "The closure is exact-SHA scoped; recheck the guard after any later scope change."
+      "retest_evidence": "Retain exact-SHA scope and Frozen protection in every future product-changing PR; do not infer Runtime acceptance."
     },
     {
       "gap_id": "M1-P0-010",
       "page_state": "CONTROL_PLANE / L1_PROJECT_MASTER_AND_WORK_STATE",
       "expected": "Persist dynamic state privately at live source SHA, recover after interruption, and pass Master, Work and full Admission validators without publishing raw state.",
-      "actual": "The private checkpoint currently available is bound to parent source ffe285aff3818435815f769532fa221d3157917e; it is stale for b97f01f6790cea2e2f1cb4bfef07a38086223020. The exact-source product-work validator scripts/validate_control_plane_admission.py has NOT_RUN at this HEAD. GitHub Admission Run 39095681147 validates canonical-promotion policy only. No private raw state was added to the public repository.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39095194580 ; prior local PRODUCT_WORK Admission record at ffe285aff3818435815f769532fa221d3157917e",
+      "actual": "The durable private checkpoint known to this audit is bound to ffe285aff3818435815f769532fa221d3157917e, not c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c. A current-HEAD PRODUCT_WORK run of scripts/validate_control_plane_admission.py and same-SHA private checkpoint/recovery rehearsal are NOT_RUN. GitHub Admission Run 39096212604 checks canonical-promotion rules only. No private state or protected logs were uploaded.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212604; https://github.com/pan277942135/Yujian_App/pull/163#issuecomment-6244627483; M1_SIX_LAYER_COMPLIANCE_REPORT.md",
       "priority": "P0",
       "owner": "Work",
       "dependency": "Publish candidate; refresh private checkpoint and repeat Admission/recovery.",
       "acceptance": "Private checkpoint source SHA equals live remote PR SHA, hashes/validators pass, raw state remains untracked/unpublished.",
       "status": "REVIEW_REQUIRED",
-      "root_cause": "Private checkpoint source_sha lags the live product branch after the latest report/validator commit.",
+      "root_cause": "Current public evidence does not include a refreshed private checkpoint or live PRODUCT_WORK validator/recovery run for the current exact SHA.",
       "remediation_sha": "6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
-      "retest_evidence": "Refresh private branch-local state to exact source SHA ${base} and run python scripts/validate_control_plane_admission.py in the actual M1 product worktree; do not publish raw state."
+      "retest_evidence": "Securely refresh state bound to the current M1 SHA, run the required Admission command in the actual product worktree, perform the controlled recovery rehearsal, and record only redacted summaries."
     },
     {
       "gap_id": "M1-P0-011",
       "page_state": "CONTROL_PLANE / L2_FEATURE_TRACEABILITY",
       "expected": "15 Features, J01-J20, Routes and Child Surfaces trace bidirectionally to M1 files, pages/states, original assets, tests and gates.",
-      "actual": "Static counts are 15 Features, J01–J20, 22 routes and 79 child surfaces. The frozen Recognition_Main_Journey_Acceptance_Matrix_V1 explicitly maps J17 Save Catch, J18 Continue Memory, J19 clean Back from saved destinations and J20 no silent save. Current Feature Matrix/Unified Contract use conflicting J17 Return Home, J18 Recent Catch, J19 Detail A and J20 Detail B/Memory mappings (J18 is duplicated under my_catches_v2). Bidirectional traceability is not closed.",
-      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md ; M1_DESIGN_AUTHORITY_MATRIX.json ; canonical main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+      "actual": "Canonical main and PR #163 still have the J17–J20 mapping conflict. Draft PR #162 at 1d948b45a3ebc759acef72dd1f81769e9e832d0f proposes aligning Feature Matrix and Unified Contract to the frozen acceptance matrix. Design Governance 39096653836 and canonical-promotion Admission 39096653855 passed; Android CI 39096653816 passed, but no proposal is merged/effective and current PR #163 remains on main's mapping.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/pull/163; https://github.com/pan277942135/Yujian_App/pull/162; https://github.com/pan277942135/Yujian_App/actions/runs/39096653836; https://github.com/pan277942135/Yujian_App/actions/runs/39096653855; https://github.com/pan277942135/Yujian_App/actions/runs/39096653816",
       "priority": "P0",
       "owner": "Track B + Work",
       "dependency": "Resolve J18 via canonical authority process and integrate only approved mappings.",
       "acceptance": "Scoped rows have unique authority and reciprocal feature/journey/route/surface, implementation, test and gate links.",
       "status": "REVIEW_REQUIRED",
-      "root_cause": "Static inventory is structurally complete but bidirectional per-surface mapping contains an unresolved J18 ownership conflict and incomplete authority rows.",
+      "root_cause": "Current canonical mappings conflict with the frozen J17–J20 acceptance semantics; the governed candidate correction is not integrated.",
       "remediation_sha": "Track B local matrix commit f98012c0085796750b1dfbc37c87519697f94c38",
-      "retest_evidence": "Static Feature/Unified checks pass at 81a; matrix conflicts remain."
+      "retest_evidence": "Review the Draft canonical mapping change, ensure route/feature/test bidirectional links agree, and rerun current PRODUCT_WORK Admission after authorized synchronization."
     },
     {
       "gap_id": "M1-P0-012",
       "page_state": "CONTROL_PLANE / L3_P5_02_API28_RUNTIME_TASK",
       "expected": "P5-02 runner binding names the approved hosted Ubuntu/API28 Pixel 2 environment after governed sync.",
-      "actual": "The canonical PHASE_TASK_STATE_MACHINE P5-02 still names the expired self-hosted API28 runner. PR #163's hosted workflow attempts ubuntu-24.04 + reactivecircus/android-emulator-runner@v2, but its exact-SHA preflight failed KVM; no governed canonical runner binding is closed.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39093844697 ; canonical harness/PHASE_TASK_STATE_MACHINE.yaml at main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+      "actual": "Canonical main P5-02 still references the expired self-hosted API28 runner. Draft PR #162 at 1d948b45a3ebc759acef72dd1f81769e9e832d0f proposes the hosted ubuntu-24.04/API28 Pixel 2 runner binding. Design Governance and canonical-promotion Admission passed; Android CI 39096653816 passed with Runtime jobs skipped. The actual hosted KVM preflight on PR #163 source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c still fails in Run 39096212590; no governed runner change is effective on main.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/blob/main/harness/PHASE_TASK_STATE_MACHINE.yaml; https://github.com/pan277942135/Yujian_App/pull/162; https://github.com/pan277942135/Yujian_App/actions/runs/39096653816; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590",
       "priority": "P0",
       "owner": "Work + Control Plane owner",
       "dependency": "Authorized Control Plane change and sync/admission; do not edit canonical registry directly on product branch.",
       "acceptance": "Governed P5-02 hosted binding, sync/admission and real preflight/run evidence.",
       "status": "BLOCKED_INFRA",
-      "root_cause": "Canonical task-machine runner requirement is stale and the standard hosted runner currently fails KVM preflight.",
+      "root_cause": "Hosted runner migration code is exercised, but standard runner KVM is unavailable and the control-plane proposal remains Draft/unmerged.",
       "remediation_sha": null,
-      "retest_evidence": "NOT_RUN; no static Control Plane mutation."
+      "retest_evidence": "Keep hosted runner candidate and existing harness; after authorized Control Plane change, demonstrate KVM/API28 preflight and exact-SHA device Runtime before closing."
     },
     {
       "gap_id": "M1-P0-013",
       "page_state": "RECOGNITION_PROCESSING / C02_RESOLVE_AUTHORITY",
       "expected": "V3.1 state machine is sole M1 timing authority with real Pipeline event gating; Resolve visual conflict does not delay real result; PROC-07 timeout remains approved parameter.",
-      "actual": "V3.1 State_Machine is the sole M1 timing authority: CAPTURED≥220ms, DETECTING≥320ms, OUTLINE≥350ms, CLASSIFYING≥250ms with real Pipeline event gating. Android CI 39095681153 passed source-level checks on b97f01f6790cea2e2f1cb4bfef07a38086223020; no real API28 timing Trace/PNG/MP4 exists. PROC-07 timeout remains BLOCKED_PARAMETER until explicitly approved.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/pull/163#issuecomment-6244627483 ; design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json ; https://github.com/pan277942135/Yujian_App/actions/runs/39093846259",
+      "actual": "V3.1 State_Machine remains the M1 timing authority: CAPTURED≥220ms, DETECTING≥320ms, OUTLINE≥350ms, CLASSIFYING≥250ms and actual Pipeline events gate phase changes. Android CI 39096212587 passed source/contract tests on c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c; no API28 timing Trace/phase PNG/Motion MP4 exists. PROC-07 timeout remains BLOCKED_PARAMETER pending approved numeric configuration.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/pull/163#issuecomment-6244627483; https://github.com/pan277942135/Yujian_App/blob/main/design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json; https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065",
       "priority": "P0",
       "owner": "Track A + Track C + Product Authority",
       "dependency": "Formal Resolve conflict disposition; approved PROC-07 config; exact-SHA trace.",
@@ -207,14 +207,14 @@
       "status": "REVIEW_REQUIRED",
       "root_cause": "Runtime trace is blocked by KVM. PROC-07 approved timeout remains unresolved, and the visual Resolve hold must be reconciled against the event-gated page contract.",
       "remediation_sha": "Track A 82c49b8d7ced6568ee2d04e3ecbd1c10a06cc018; Track C 69fcf47e215d47a7f055ebcc095625b0c3d4b942",
-      "retest_evidence": "Unit PASS at 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e; real Pipeline trace and Motion artifacts are still NOT_RUN."
+      "retest_evidence": "Capture real Pipeline event timestamps and phase evidence on API28. Do not use visual minima as model timeout."
     },
     {
       "gap_id": "M1-P0-014",
       "page_state": "DESIGN_AUTHORITY / PAGE_CONTRACT_ASSET_REGISTRY_VALIDATOR",
       "expected": "Page Contract inventory validates against canonical registry without changing protected assets or weakening thresholds.",
-      "actual": "Effective V3 FINAL registry has 669 rows, 669 unique asset IDs and 669 unique paths. The corrected validator ran and passed in Android CI 39095681153 at exact source b97f01f6790cea2e2f1cb4bfef07a38086223020; protected registry/assets and thresholds were not changed.",
-      "evidence": "scripts/design/verify_page_contract_v3.py at 85dfe9217e879e0f87d19b41801beb05e502aaa2 ; docs/qa/recognition_main_journey/M1_SCOPE_MANIFEST.json",
+      "actual": "The effective Page Contract V3 validator passed at exact source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c in Android CI 39096212587; the run reports 669 registry rows, unique asset IDs and unique paths. The legacy 658-count defect is resolved without modifying the protected registry or weakening its content checks.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; scripts/design/verify_page_contract_v3.py at c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c",
       "priority": "P0",
       "owner": "Design System owner + Work",
       "dependency": "Authority decision on validator expectation versus registry inventory; governed sync.",
@@ -222,22 +222,22 @@
       "status": "CLOSED",
       "root_cause": "The validator's old cardinality was copied from the legacy V3 registry instead of the effective V3 FINAL registry.",
       "remediation_sha": null,
-      "retest_evidence": "New Android CI step runs python3 scripts/design/verify_page_contract_v3.py on the next exact source SHA; close only on its actual success."
+      "retest_evidence": "Keep exact registry cardinality/reference validation in CI."
     },
     {
       "gap_id": "M1-P0-015",
       "page_state": "API28_RUNTIME / HOSTED_RUNNER_PREFLIGHT",
       "expected": "Ubuntu 24.04 standard runner has KVM, API28/google_apis/x86_64 Pixel2 AVD, SDK28, 1080x1920, CameraX/instrumentation, installs APK pair and uploads evidence.",
-      "actual": "Hosted Runtime Run 39095681151 at b97f01f6790cea2e2f1cb4bfef07a38086223020 passed Build Once and APK-pair upload, then failed API28 Preflight at the KVM requirement. The API28 emulator/CameraX/instrumentation preflight was skipped; formal api28-runtime was SKIPPED. Preflight artifact 12124194596; Runtime-not-run artifact 12124388894.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39095194693 ; artifacts 12124093937 and 12124313389",
+      "actual": "Hosted Runtime Run 39096212590 at c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c passed Build Once and uploaded the app/Test APK pair, then failed API28 Preflight at the KVM availability/read-write assertion. Emulator startup/API28 checks and formal api28-runtime were skipped. Preflight artifact 12124588053; Runtime-not-run artifact 12125106065.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124588053; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065",
       "priority": "P0",
       "owner": "Track C QA/Runtime/CI",
       "dependency": "Publish candidate and obtain GitHub-hosted Run ID.",
       "acceptance": "Every preflight check and artifact upload passes on same exact source SHA; no skipped job counts.",
       "status": "BLOCKED_INFRA",
-      "root_cause": "GitHub-hosted ubuntu-24.04 did not satisfy the required KVM device access check.",
+      "root_cause": "Standard GitHub-hosted runner failed the required KVM device check before emulator start.",
       "remediation_sha": null,
-      "retest_evidence": "Do not use prior GCP runs or skipped jobs. Retry only after a standards-compliant hosted runner actually exposes KVM; do not switch to paid or self-hosted infrastructure."
+      "retest_evidence": "Rerun on a permitted standard GitHub-hosted runner with usable KVM; do not use a paid larger runner or retired VM."
     },
     {
       "gap_id": "M1-P0-016",
@@ -306,44 +306,45 @@
       "gap_id": "M1-P0-017",
       "page_state": "CONTROL_PLANE / SIX_LAYER_AUDIT_L2_L3_L4_L6",
       "expected": "The live M1 product branch has separate, reviewable status/evidence for L1–L6 and an exact-SHA private state/recovery check; unresolved authority/traceability defects remain explicitly gated.",
-      "actual": "At exact source b97f01f6790cea2e2f1cb4bfef07a38086223020: L1 PRODUCT_WORK Admission and recovery rehearsal are NOT_RUN (private checkpoint stale at ffe285a); L2 REVIEW_REQUIRED (J17–J20 conflict); L3 REVIEW_REQUIRED (P5-02 stale runner authority); L4 REVIEW_REQUIRED (C01 remains proposal in PR #162 and Design Manager live source was inaccessible); L5 BLOCKED_INFRA (KVM, Runtime skipped); L6 REVIEW_REQUIRED (no current-SHA recovery rehearsal). CI 39095681153, Build Once 39095681151, QA Test Users 39095681144 and canonical-promotion Admission 39095681147 are recorded separately.",
-      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md ; canonical-promotion Admission Run 39095194580 ; private checkpoint prior source ffe285aff3818435815f769532fa221d3157917e",
+      "actual": "At exact source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c: L1 REVIEW_REQUIRED (known private checkpoint at ffe285a is stale; no live PRODUCT_WORK validator/recovery on c691); L2 REVIEW_REQUIRED (J17–J20 candidate correction is Draft #162 only); L3 REVIEW_REQUIRED (P5-02 hosted-runner proposal is Draft, N009 remains human gate); L4 REVIEW_REQUIRED (C01 proposal not integrated, Design Manager route inaccessible via web fetch, asset/source review remains); L5 BLOCKED_INFRA (Run 39096212590 KVM failed, emulator/Runtime skipped); L6 REVIEW_REQUIRED (no c691 recovery rehearsal). Android CI 39096212587 passed separately.",
+      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/pull/162",
       "priority": "P0",
       "owner": "Work · Control Plane/Design/QA",
       "dependency": "Governed canonical design/task-machine synchronization; private checkpoint recovery rehearsal; live design-source access.",
       "acceptance": "Each layer reports PASS/FAIL/BLOCKED/NOT_RUN/REVIEW_REQUIRED separately with source SHA, command/run, result, and next action; no layer inherits another layer's PASS.",
       "status": "REVIEW_REQUIRED",
       "root_cause": "Static promotion checks and product-branch live state were previously conflated; several mapping/authority dependencies remain unresolved.",
-      "retest_evidence": "Refresh branch-local private state and rerun full Admission/recovery on the exact current source SHA; resolve authority mappings under the canonical process."
+      "retest_evidence": "Close each layer with its own exact evidence; do not promote a different layer's status or reuse old-SHA private/runtime results."
     },
     {
       "gap_id": "M1-P0-018",
       "page_state": "ALL_M1_PAGES_STATES / QUALITY_ENFORCEMENT_C1_C7",
       "expected": "Gates A–D and C1–C7 are separately evidenced for each applicable page/state; report binds design authority, exact Android source/APK SHA, geometry/pixel/motion/logic evidence, and reviewer status.",
-      "actual": "At b97f01f6790cea2e2f1cb4bfef07a38086223020, C1 scope/Frozen guard and Gate B implementation/build/static checks passed in Hosted Run 39095681151 and Android CI 39095681153. Gate A is REVIEW_REQUIRED; Gate C BLOCKED_INFRA; Gate D REVIEW_REQUIRED. Geometry/ROI Pixel Diff, Motion Trace/MP4, end-to-end business logic, Accessibility and visual independent acceptance are NOT_RUN.",
-      "evidence": "M1_QUALITY_ACCEPTANCE_REPORT.md ; Android CI 39095194583 ; hosted run 39095194693",
+      "actual": "At exact source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c, C1 scope/Frozen guard passed in Hosted Run 39096212590 and Gate B build, unit/contract checks, AndroidTest compile, package/lint and Page Contract validation passed in Android CI 39096212587. Gate A REVIEW_REQUIRED; Gate C BLOCKED_INFRA; Gate D REVIEW_REQUIRED. Geometry/ROI Diff, real Motion Trace/MP4, on-device business logic, Accessibility and independent visual acceptance are NOT_RUN.",
+      "evidence": "M1_QUALITY_ACCEPTANCE_REPORT.md; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590; https://github.com/pan277942135/Yujian_App/actions/runs/39096212587; https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065",
       "priority": "P0",
       "owner": "Work · Android/Design/QA",
       "dependency": "Exact-SHA Design Governance CI; approved API28 KVM; independent reviewer.",
       "acceptance": "Per-page/state report includes every required field; all applicable A–D and C1–C7 locks pass on an exact candidate SHA before release.",
       "status": "REVIEW_REQUIRED",
       "root_cause": "Build and static contracts do not prove UI, motion, business-logic, accessibility, or device-runtime acceptance.",
-      "retest_evidence": "Run the validator on the next SHA, then all applicable exact-SHA API28 and independent-review acceptance gates."
+      "retest_evidence": "Keep C1–C7 and Gate A–D independent. Collect native API28/UI/Motion/Logic/accessibility evidence and independent review."
     },
     {
       "gap_id": "M1-P0-019",
       "page_state": "J17-J20 / FEATURE_MATRIX_UNIFIED_CONTRACT",
       "expected": "Feature Matrix and Unified Contract agree with the frozen Recognition Main Journey Acceptance Matrix for J17 Save Catch, J18 Continue Memory, J19 clean destination Back, and J20 no silent save; each maps bidirectionally to route, child surfaces, Android implementation, and test.",
-      "actual": "Current static authorities conflict with the frozen matrix: J17 Return Home, J18 Recent Catch (duplicated as a my_catches_v2 mapping), J19 Detail A, J20 Detail B/Memory. No governed canonical correction has been integrated.",
-      "evidence": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.md and .json at main; harness/FEATURE_MATRIX.yaml; harness/UNIFIED_CONTRACT_REGISTRY.yaml; PR #162 remains Draft and PR #163 head b97f01f.",
+      "actual": "Frozen J17–J20 acceptance semantics still conflict with canonical main and PR #163. Draft PR #162 candidate 1d948b45a3ebc759acef72dd1f81769e9e832d0f proposes the mapping correction at 1d948b45a3ebc759acef72dd1f81769e9e832d0f; Design Governance and canonical-promotion Admission passed and Android CI 39096653816 passed, but no promotion/merge occurred. The correction is not effective on main or #163.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/blob/main/design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.md; https://github.com/pan277942135/Yujian_App/blob/main/harness/FEATURE_MATRIX.yaml; https://github.com/pan277942135/Yujian_App/blob/main/harness/UNIFIED_CONTRACT_REGISTRY.yaml; https://github.com/pan277942135/Yujian_App/pull/162; https://github.com/pan277942135/Yujian_App/actions/runs/39096653816",
       "priority": "P0",
       "owner": "Work · Control Plane + Product/QA",
       "dependency": "Review and synchronize existing canonical Feature Matrix/Unified Contract through the existing governed proposal, then validate route/Journey and child-surface traceability.",
-      "root_cause": "J17-J20 static index was not synchronized to the frozen acceptance matrix.",
+      "root_cause": "Governed candidate mapping fix remains isolated in a Draft PR and must not be treated as current canonical state.",
       "fix_sha": null,
       "acceptance": "Both validators pass at the proposed SHA, all mappings are bidirectional, and tests preserve Save/Continue/Back/no-silent-save semantics.",
       "retest": "Required on the integrated PR SHA; no runtime is inferred from static validator PASS.",
-      "status": "REVIEW_REQUIRED"
+      "status": "REVIEW_REQUIRED",
+      "retest_evidence": "Review PR #162 mapping against frozen J17–J20 and keep Draft until authorized; after synchronization, verify all feature/journey/route/child-surface links and product tests on exact SHA."
     }
   ],
   "work_head_sha_audited": "b97f01f6790cea2e2f1cb4bfef07a38086223020",

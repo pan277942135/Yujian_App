@@ -4,7 +4,7 @@
 **Parent Work:** `YUJIAN_M1_PARALLEL_DELIVERY_V1`
 **Repository / PR:** `pan277942135/Yujian_App` / [Draft PR #163](https://github.com/pan277942135/Yujian_App/pull/163)
 **Initial product source:** `81aefb1c0eae08df5ea6f451fc7c65be89a9c191`
-**Latest exact-head state and CI audit:** `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`
+**Latest exact-head state and CI audit:** `c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c`
 **Canonical Control Plane:** `main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d`
 **Task comment:** [#6244627483](https://github.com/pan277942135/Yujian_App/pull/163#issuecomment-6244627483)
 **Audit outcome:** `REVIEW_REQUIRED` — Admission and state recovery pass; L2/L4 mappings and exact-SHA hosted Runtime remain open.
@@ -119,3 +119,23 @@ The new CI/workflow commit adds the 669-entry Page Contract validator to Android
 
 The repository-local static Page Contract V3 validator now passes on this SHA (669 registry entries). Overall six-layer disposition remains `REVIEW_REQUIRED / BLOCKED_INFRA`; no layer borrows another layer's PASS.
 
+
+
+## Current live-head audit — exact source c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
+
+Canonical baseline remains `main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d`. PR #163 is Draft/Open/Unmerged. This checkpoint supersedes the earlier b97 live-head table; earlier failures and historical recovery evidence remain preserved at their original SHAs.
+
+- Android CI [39096212587](https://github.com/pan277942135/Yujian_App/actions/runs/39096212587): PASS. Page Contract V3 669-entry validator, unit/controller and harness contract tests, AndroidTest compile, build/package/lint completed successfully. API28-dependent jobs were skipped.
+- Hosted Runtime [39096212590](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590): Build Once PASS; APK pair and provenance uploaded. App SHA-256 `7e5ea493277dd42a2a7a72cdbce0c2d5c48273b62b81d39efd26d5e880149d37`; AndroidTest SHA-256 `988dc01f9c31ae6e8cd96856be7cda446b639afc6f0d96fe8f72d05eebbd0f46`; ZIP SHA-256 `caac6f268a189328a053d93880f3e5b86495d4fa5f876376bc3224ab69fe7a71`. KVM Preflight failed; formal API28 Runtime is SKIPPED. Preflight [artifact 12124588053](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124588053); NOT_RUN [artifact 12125106065](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12125106065).
+- QA Test Users [39096212593](https://github.com/pan277942135/Yujian_App/actions/runs/39096212593): PASS. Admission [39096212604](https://github.com/pan277942135/Yujian_App/actions/runs/39096212604): canonical-promotion check only; live PRODUCT_WORK Admission was not run at c691.
+
+| Layer | Current result at c691 | Evidence and remaining work |
+|---|---|---|
+| L1 · Project/Work State | REVIEW_REQUIRED | Known private checkpoint is bound to ffe285a, not c691. No refreshed current-SHA state, live PRODUCT_WORK `validate_control_plane_admission.py`, or c691 recovery rehearsal is recorded. Protected raw state remains private. |
+| L2 · Feature Matrix | REVIEW_REQUIRED | Main/#163 retain the J17–J20 conflict. PR #162 at `1d948b45a3ebc759acef72dd1f81769e9e832d0f` proposes a governed mapping correction and has passed Design Governance plus Android CI; it remains Draft and has not changed canonical main. |
+| L3 · Phase/Task State Machine | REVIEW_REQUIRED | Main P5-02 still names the retired runner. The hosted-runner update is proposed in Draft PR #162. N009 remains a human gate; retry budget rules remain unchanged. |
+| L4 · Unified Contract / Design | REVIEW_REQUIRED | C01 two-page guide remains an unmerged proposal; main/#163 app code remains three-page. The Design Manager route could not be retrieved by the web tool. Frozen asset/source review remains incomplete. V3.1 timing is authoritative; PROC-07 timeout remains BLOCKED_PARAMETER. |
+| L5 · Evidence Gate | BLOCKED_INFRA | Hosted Runtime 39096212590 failed the required KVM check; no emulator, API28, CameraX, instrumentation, screenshots, bounds, Pixel Diff, Pipeline Trace or Motion MP4 ran. |
+| L6 · Automatic Recovery | REVIEW_REQUIRED | No private current-SHA checkpoint refresh/recovery rehearsal is recorded for c691. Historical recovery is not reused as current evidence. |
+
+Overall audit remains `REVIEW_REQUIRED / BLOCKED_INFRA`; Build and static PASS are not Runtime or Release PASS. No protected state was uploaded, no Frozen authority was altered, and no main merge occurred.

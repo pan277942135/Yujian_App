@@ -15,7 +15,7 @@
 | PR #150 | Closed and merged at `2d7a75efba0ca1b66fc9be1e0860072a5f1b8a5d`. |
 | PR #153 | Closed, not merged. Its two-page proposal did not enter main. |
 | PR #160 | Closed and merged at the current canonical main SHA. It integrated #145/#157/#158/#159. |
-| PR #162 | Existing Draft/Open P02-removal implementation, based on this exact main SHA; head `43b8267167d8a948754fe3df7d20edf072955cf9`. Keep Draft and unmerged. |
+| PR #162 | Existing Draft/Open P02-removal implementation, based on this exact main SHA; head `1d948b45a3ebc759acef72dd1f81769e9e832d0f`. Keep Draft and unmerged. |
 
 Repository Control Plane Admission was run on the canonical checkout and passed: 6 layers; 21 static files; 15 features; 20 journeys; 22 routes; 79 child surfaces; 45 tasks; 0 Feature Matrix gaps; 0 Unified Contract gaps. The local checkout is exactly the reported SHA.
 
@@ -110,3 +110,13 @@ PR #163 is still Draft/Open/Unmerged. The canonical baseline remains `main@0d323
 3. **Stage 2 · Integrated exact-SHA acceptance.** After any product/source or workflow change, run CI and applicable Runtime on the new HEAD; bind source SHA, APK SHA, runner, Run IDs and each gate separately. Execute applicable N001–N010, J01–J20, 66 base and 10 E2E plus save/detail scenarios. Preserve each failure and allow at most initial attempt + 2 repairs per failing Gate.
 4. **Release gate.** Require all applicable P0 defects closed, Gate A–D evidence, exact-SHA API28 runtime, design/logic/motion/accessibility acceptance, and N009 human approval. Until every required gate passes, disposition is `BLOCKED` or `REVIEW_REQUIRED`; testable APK may be delivered with limitations.
 
+
+
+## Current exact-SHA checkpoint — c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
+
+PR #163 remains Draft/Open/Unmerged at `c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c`; canonical `main` remains `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`. PR #162 remains Draft/Open/Unmerged at `1d948b45a3ebc759acef72dd1f81769e9e832d0f`.
+
+- Android CI [39096212587](https://github.com/pan277942135/Yujian_App/actions/runs/39096212587): PASS, including Page Contract 669-row validation and AndroidTest compilation.
+- Hosted Runtime [39096212590](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590): Build Once PASS and APK artifact [12124946578](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578) uploaded; KVM preflight failed, formal Runtime skipped. APK hashes and gate states are listed in the Release Gate and Runtime Environment reports.
+- PR #162 Design Governance [39096653836](https://github.com/pan277942135/Yujian_App/actions/runs/39096653836) and canonical-promotion Admission [39096653855](https://github.com/pan277942135/Yujian_App/actions/runs/39096653855) passed. Android CI [39096653816](https://github.com/pan277942135/Yujian_App/actions/runs/39096653816) passed; API28 runtime jobs were skipped. The candidate remains unmerged and does not change current main/#163 behavior.
+- Exact-SHA PRODUCT_WORK Admission and recovery rehearsal are not recorded at c691. `M1_RELEASE_PASS` remains blocked.

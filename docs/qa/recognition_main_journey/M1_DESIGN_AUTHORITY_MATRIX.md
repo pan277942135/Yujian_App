@@ -4,7 +4,7 @@
 
 **Coverage:** 49 page/state rows + 16 core-component rows = 65 records. Runtime acceptance: **NOT_RUN**.
 
-**Source snapshot:** canonical base `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`; design proposal PR #162 head `43b8267167d8a948754fe3df7d20edf072955cf9`; current M1 candidate audited for this checkpoint `ffe285aff3818435815f769532fa221d3157917e`.
+**Source snapshot:** canonical base `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`; design proposal PR #162 head `1d948b45a3ebc759acef72dd1f81769e9e832d0f`; current exact Build Once candidate `c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c`.
 
 **Authority resolution:** Each row traces Design Manager/feature route → page/state → effective authority → raw full-size Frozen asset and SHA (if available) → page contract → shared foundation/component authority. Canonical reference thumbnails are excluded. Where the raw source is missing, the SHA is null and any declared SHA is separately shown.
 
@@ -131,3 +131,8 @@ L1/L3/L5/L6 process compliance and cross-feature exhaustive runtime execution ar
 ## Exact-source build binding
 
 All 49 page/state rows identify Android source ffe285aff3818435815f769532fa221d3157917e, Build Once Run 39093844697, app APK SHA-256 `bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e`, and artifact https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12124400453. Geometry, ROI Pixel Diff, Motion and Logic results remain NOT_RUN because API28 Preflight failed KVM access; Reviewer Status is NOT_REVIEWED. These rows are source/build traceability, not Runtime or design acceptance.
+
+
+## Current exact-SHA build binding — c69196920a2f3d5fa04a6fd9985e3dadd10f6a3c
+
+The 49 page/state records now identify the same Build Once source and APK provenance: Run [39096212590](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590), app APK SHA-256 `7e5ea493277dd42a2a7a72cdbce0c2d5c48273b62b81d39efd26d5e880149d37`, AndroidTest APK SHA-256 `988dc01f9c31ae6e8cd96856be7cda446b639afc6f0d96fe8f72d05eebbd0f46`, artifact [12124946578](https://github.com/pan277942135/Yujian_App/actions/runs/39096212590/artifacts/12124946578), ZIP SHA-256 `caac6f268a189328a053d93880f3e5b86495d4fa5f876376bc3224ab69fe7a71`. This is build provenance only. KVM preflight failed, so page/state Geometry, Glyph, ROI Pixel Diff, Motion, Logic, Accessibility and independent review remain NOT_RUN or REVIEW_REQUIRED. PR #162 is Draft at `1d948b45a3ebc759acef72dd1f81769e9e832d0f`; its two-page page/asset update is not effective in PR #163 or main. The frozen raw PNG hashes remain unchanged.
