@@ -1,4 +1,4 @@
-name: M1 Minimal Runner KVM Diagnostic
+name: M1 Pixel 2 API28 KVM Smoke
 
 on:
   push:
@@ -10,39 +10,75 @@ permissions:
   contents: read
 
 jobs:
-  kvm-diagnostic:
+  pixel2-api28-smoke:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 45
     env:
-      M1_SOURCE_SHA: 08263fd378c6b2d51fc6b9a48df7c54daeeccd4f
+      M1_SOURCE_SHA: 52f411b3625dcf4edf03f5382794a3296bb39cd8
     steps:
-      - name: Probe hosted runner KVM only
+      - name: Enable KVM group permissions (GitHub documented)
         shell: bash
         run: |
-          set -uo pipefail
-          mkdir -p evidence/kvm
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Verify real non-root KVM access before emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/pixel2-smoke
           {
             printf 'DIAGNOSTIC_COMMIT=%s\n' "$GITHUB_SHA"
-            printf 'M1_SOURCE_SHA=%s\n' "$M1_SOURCE_SHA"
-            printf 'RUNNER_NAME=%s\n' "$RUNNER_NAME"
-            printf 'RUNNER_OS=%s\n' "$RUNNER_OS"
-            printf 'RUNNER_ARCH=%s\n' "$RUNNER_ARCH"
-            cat /etc/os-release
-            printf '\nKVM_DEVICE_CHECK\n'
-            ls -l /dev/kvm 2>&1 || true
-            printf '\nCPU_VIRTUALIZATION_FLAGS\n'
+            printf 'M1_CANDIDATE_SOURCE_SHA=%s\n' "$M1_SOURCE_SHA"
+            printf 'RUNNER=%s\n' "$RUNNER_NAME"
+            id
+            ls -l /dev/kvm
             grep -m1 -E '(^flags|^Features)' /proc/cpuinfo | grep -oE '\b(vmx|svm)\b' | sort -u || true
-          } | tee evidence/kvm/runner-probe.txt
+          } | tee evidence/pixel2-smoke/kvm.txt
           if [[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
-            echo 'KVM_STATUS=AVAILABLE' | tee -a evidence/kvm/runner-probe.txt
+            echo 'KVM_STATUS=AVAILABLE' | tee -a evidence/pixel2-smoke/kvm.txt
           else
-            echo 'KVM_STATUS=BLOCKED_INFRA' | tee -a evidence/kvm/runner-probe.txt
+            echo 'KVM_STATUS=BLOCKED_INFRA' | tee -a evidence/pixel2-smoke/kvm.txt
+            exit 1
           fi
-      - name: Upload minimal KVM diagnostic evidence
+
+      - name: Boot Pixel 2 x86_64 Android API28 - no app build
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          disable-animations: true
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated
+          script: |
+            set -euo pipefail
+            out=evidence/pixel2-smoke
+            mkdir -p "$out"
+            adb wait-for-device
+            adb devices -l | tee "$out/adb-devices.txt"
+            adb shell getprop ro.build.version.sdk | tr -d '\r' | tee "$out/api-level.txt"
+            adb shell getprop ro.product.model | tr -d '\r' | tee "$out/device-model.txt"
+            adb shell wm size | tr -d '\r' | tee "$out/display-size.txt"
+            adb shell wm density | tr -d '\r' | tee "$out/display-density.txt"
+            emulator -list-avds | tee "$out/avd-list.txt"
+            test "$(cat "$out/api-level.txt")" = "28"
+            grep -q 'Physical size: 1080x1920' "$out/display-size.txt"
+            adb shell screencap -p /sdcard/m1-pixel2-smoke.png
+            adb pull /sdcard/m1-pixel2-smoke.png "$out/native-screen.png"
+            test -s "$out/native-screen.png"
+            sha256sum "$out/native-screen.png" > "$out/native-screen.sha256"
+            echo 'PIXEL2_API28_SMOKE=PASS' | tee "$out/result.txt"
+
+      - name: Upload minimal emulator evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: m1-minimal-runner-kvm-diagnostic
-          path: evidence/kvm/runner-probe.txt
-          if-no-files-found: error
+          name: m1-pixel2-api28-smoke
+          path: evidence/pixel2-smoke/
+          if-no-files-found: warn
           retention-days: 14
