@@ -2,7 +2,7 @@
 
 Task: M1_RUNTIME_ENV_MIGRATION_V1  
 Repository and PR: pan277942135/Yujian_App / [Draft PR #163](https://github.com/pan277942135/Yujian_App/pull/163)  
-Status: BLOCKED_INFRA — configuration is in the candidate worktree; no GitHub-hosted Preflight or exact-SHA Runtime run exists.
+Status: BLOCKED_INFRA — exact-SHA workflow run 39092555676 scheduled on ubuntu-24.04 and passed scope enforcement, then failed in Build Once because the Android SDK command-line tool was not resolved. API28 Preflight and Runtime jobs were skipped.
 
 ## Target environment
 
@@ -19,7 +19,7 @@ Status: BLOCKED_INFRA — configuration is in the candidate worktree; no GitHub-
 
 The candidate workflow .github/workflows/m1-hosted-api28-runtime.yml checks KVM, API28 image availability, Pixel 2 AVD startup, SDK 28, native 1080×1920, density and insets. It installs both APKs, runs CameraX and Instrumentation through the existing camera runtime gate, captures native screenshots and uploads the APK pair and evidence.
 
-No Run ID has been issued for this workflow. Each check remains NOT_RUN; no environment PASS is claimed. A failed preflight records BLOCKED_INFRA and the formal gates as NOT_RUN.
+Run 39092555676 is the first hosted workflow execution at source `1d98f48d59132d3d1ea9e226d0e32342459eb002`. It failed in Build Once at `sdkmanager --licenses` (`command not found`); the preflight job and formal gates were skipped. Therefore none of the KVM/API28/Pixel 2/1080×1920/install/CameraX/instrumentation/artifact checks ran, and the environment remains BLOCKED_INFRA. A local repair now resolves `sdkmanager` from the configured Android SDK command-line-tools tree when it is absent from PATH; this repair awaits a new exact-SHA run.
 
 ## Build Once and evidence binding
 
@@ -31,16 +31,16 @@ The formal matrix uses existing recognition-frozen, camera-runtime-v1, empty-hom
 
 GCP run artifacts remain historical. PR #163 Android CI run 39086281726 built successfully but skipped Runtime jobs, so it proves neither hosted preflight nor product Runtime.
 
-The canonical task machine still names self_hosted_api28_runner under P5-02. It was not edited in this product branch because that would bypass Control Plane authority and synchronization. The hosted workflow is not yet the approved P5-02 authority. The pre-existing android.yml and camera-runtime-harness.yml now use ubuntu-24.04, reactivecircus/android-emulator-runner@v2, Pixel 2 API28 profiles and ANDROID_HOME SDK paths. Their hosted configuration has not run on this candidate SHA. The canonical P5-02 task-machine runner binding still names the retired pool and awaits governed Control Plane synchronization. Overall migration and official Runtime remain BLOCKED_INFRA.
+The canonical task machine still names self_hosted_api28_runner under P5-02. It was not edited in this product branch because that would bypass Control Plane authority and synchronization. The hosted workflow is not yet the approved P5-02 authority. The pre-existing android.yml and camera-runtime-harness.yml now use ubuntu-24.04, reactivecircus/android-emulator-runner@v2, Pixel 2 API28 profiles and ANDROID_HOME SDK paths. The first exact-SHA workflow attempt failed before Preflight at SDK manager lookup; a command-line-tools fallback is staged locally but remains unverified. The canonical P5-02 task-machine runner binding still names the retired pool and awaits governed Control Plane synchronization. Overall migration and official Runtime remain BLOCKED_INFRA.
 
-Local migration validation parsed all three workflow YAML files and ran `bash -n` on every `run` and emulator action script block. The first Android workflow parse failure was preserved and repaired in `M1_LOCAL_REPAIR_EVIDENCE.md`; the post-repair local syntax checks pass. This does not qualify the hosted runner: the KVM/API28/Pixel 2/CameraX/Instrumentation/APK/artifact Preflight still has no Run ID and remains NOT_RUN.
+Local migration validation parsed all three workflow YAML files and ran `bash -n` on every `run` and emulator action script block. The first Android workflow parse failure and the first hosted SDK manager lookup failure are preserved in `M1_LOCAL_REPAIR_EVIDENCE.md`. The workflow now searches the configured Android SDK command-line-tools path. No KVM/API28/Pixel 2/CameraX/Instrumentation/APK/artifact Preflight evidence exists; the Preflight job was skipped and remains NOT_RUN.
 
 ## Coverage difference
 
 | Area | Before | Candidate configuration | Proven now |
 |---|---|---|---|
-| AVD creation | Self-hosted pre-created AVD and /opt/android-sdk | Hosted Pixel 2 created by android-emulator-runner@v2 | Not yet; Preflight NOT_RUN |
-| APK production | Existing Build Once artifact | Exact PR head checkout, Build Once APK pair and source manifest | Not yet; workflow not run |
+| AVD creation | Self-hosted pre-created AVD and /opt/android-sdk | Hosted Pixel 2 created by android-emulator-runner@v2 | NOT_RUN; Build Once failed before Preflight |
+| APK production | Existing Build Once artifact | Exact PR head checkout, Build Once APK pair and source manifest | FAIL before Gradle and APK creation in run 39092555676 |
 | Runtime assertions | Existing Runtime Harness gates | Reused without removing assertions; gates run after successful Preflight | Not yet; Runtime NOT_RUN |
 | Evidence | Existing gate artifacts | Per-gate source/APK/Run/device manifest, screenshots and required logs | Not yet; no artifact |
 

@@ -2,7 +2,7 @@
 
 Task: YUJIAN_M1_PARALLEL_DELIVERY_V1
 Parent PR: [#163 — Draft/Open/Unmerged](https://github.com/pan277942135/Yujian_App/pull/163)
-Candidate state: local integration worktree based on audited PR source 81aefb1c0eae08df5ea6f451fc7c65be89a9c191; no integrated remote candidate SHA has been published.
+Published integrated candidate: `1d98f48d59132d3d1ea9e226d0e32342459eb002`; local repair worktree is based on this exact source SHA.
 
 ## Integrated worktree scope
 
@@ -27,3 +27,7 @@ No integrated Build Once APK has been created for the candidate worktree. No APK
 ## Integration validation and repair evidence
 
 The candidate scope guard passes locally against the canonical baseline with 55 changed paths, zero unexpected paths and zero protected paths. PyYAML and `bash -n` pass for all migrated/new workflow files. Harness fake-ADB contract tests, Camera Runtime gate tests, V3.1 contract/finalizer checks, catalog structure and source-closure tests pass locally. An initial malformed YAML insertion in `android.yml` and a scope scan that rejected transient Python bytecode are preserved in `M1_LOCAL_REPAIR_EVIDENCE.md`. These checks are not a Build Once or Runtime run, and are bound only to this dirty worktree parent `81aefb1`; a new remote SHA needs its own CI.
+
+## Exact-SHA build findings
+
+The integrated published candidate is `1d98f48d59132d3d1ea9e226d0e32342459eb002`. Hosted Run 39092555676 passed the declared scope enforcement step but failed SDK manager lookup before Gradle and APK generation. Android CI Run 39092555645 ran 211 unit tests and failed one incorrect CAPTURED timeline assertion; APK assembly did not run. The local repair resolves SDK manager from the configured Android SDK tree and corrects the test timeline without relaxing assertions. Both changes await publication and exact-SHA CI. No candidate APK or APK SHA-256 exists.

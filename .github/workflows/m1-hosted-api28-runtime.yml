@@ -128,8 +128,16 @@ jobs:
       - name: Resolve Android SDK build tools
         run: |
           set -euo pipefail
-          yes | sdkmanager --licenses >/dev/null
-          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          test -n "$android_sdk" -a -d "$android_sdk"
+          sdkmanager_bin="$(command -v sdkmanager || true)"
+          if [[ -z "$sdkmanager_bin" ]]; then
+            sdkmanager_bin="$(find -L "$android_sdk/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+          fi
+          test -x "$sdkmanager_bin"
+          echo "YUJIAN_SDKMANAGER=$sdkmanager_bin" >> "$GITHUB_ENV"
+          yes | "$sdkmanager_bin" --licenses >/dev/null
+          "$sdkmanager_bin" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
           test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
           echo "YUJIAN_AAPT2=$ANDROID_HOME/build-tools/35.0.0/aapt2" >> "$GITHUB_ENV"
 
@@ -231,10 +239,17 @@ jobs:
             set -euo pipefail
             out=evidence/m1-api28-preflight
             mkdir -p "$out"
+            android_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+            test -n "$android_sdk" -a -d "$android_sdk"
             adb version > "$out/adb-version.txt"
             emulator -version > "$out/emulator-version.txt" 2>&1
             emulator -list-avds > "$out/avd-list.txt"
-            sdkmanager --list_installed > "$out/sdk-components.txt"
+            sdkmanager_bin="$(command -v sdkmanager || true)"
+            if [[ -z "$sdkmanager_bin" ]]; then
+              sdkmanager_bin="$(find -L "$android_sdk/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+            fi
+            test -x "$sdkmanager_bin"
+            "$sdkmanager_bin" --list_installed > "$out/sdk-components.txt"
             grep -q 'system-images;android-28;google_apis;x86_64' "$out/sdk-components.txt"
             adb wait-for-device
             sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"

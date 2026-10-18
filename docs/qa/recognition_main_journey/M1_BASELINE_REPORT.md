@@ -60,3 +60,7 @@ The original baseline snapshot and its Stage 0 PASS remain historical. The curre
 C01 remains open: PR #162 holds the two-page guide change, while the PR #163 product guide at its audited remote head still uses three pages. Track C QA now expects P01/P02. C02 code and QA updates align to V3.1 statically; exact Runtime trace is absent and the V1.2 Resolve collision remains. C03 hosted API28 preflight and formal Runtime have not run. See M1_ACCEPTANCE_CONFLICT_REGISTER.json and M1_GAP_REGISTER.json.
 
 The M1 Design Authority Matrix and scope manifest have been reused in the candidate worktree. No PR is merged, no Frozen asset was modified, and no Release PASS is claimed. All three M1 tracks remain active.
+
+## Exact-SHA CI checkpoint
+
+PR #163 remains Draft/Open/Unmerged. The published candidate `1d98f48d59132d3d1ea9e226d0e32342459eb002` passed the hosted scope step, then Build Once failed at Android SDK manager lookup in Run 39092555676. API28 preflight/runtime jobs were skipped and no APK artifact exists. Android CI Run 39092555645 failed one of 211 unit tests; no APK steps executed. These are retained failure records, not release evidence. Minimal SDK lookup and test-timeline repairs are in progress locally and require a new exact-SHA rerun. The P0 gap register and release report carry the current blocker status.

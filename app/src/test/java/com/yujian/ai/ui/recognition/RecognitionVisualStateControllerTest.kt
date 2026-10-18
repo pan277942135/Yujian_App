@@ -80,11 +80,11 @@ class RecognitionVisualStateControllerTest {
 
     @Test
     fun noTimerOnlyProgressWithoutDetectionFocusClassificationOrResult() {
-        val controller = RecognitionVisualStateController().also { it.reset(0) }
+        val controller = RecognitionVisualStateController().also { it.reset(10_000) }
 
-        assertEquals(RecognitionPhase.CAPTURED, controller.current(10_000))
+        assertEquals(RecognitionPhase.CAPTURED, controller.current(10_219))
         assertEquals(1f, controller.resolveStrength(10_000), 0f)
-        controller.onPipelinePhase(RecognitionPhase.DETECTING, 10_001)
+        controller.onPipelinePhase(RecognitionPhase.DETECTING, 10_219)
         assertEquals(RecognitionPhase.CAPTURED, controller.current(10_219))
         assertEquals(RecognitionPhase.DETECTING, controller.current(10_220))
 

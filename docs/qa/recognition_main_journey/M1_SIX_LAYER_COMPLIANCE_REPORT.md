@@ -1,11 +1,12 @@
 # M1 Six-Layer Control Plane Compliance Report
 
-**Task:** `M1_SIX_LAYER_COMPLIANCE_AUDIT_V1`  
-**Parent Work:** `YUJIAN_M1_PARALLEL_DELIVERY_V1`  
-**Repository / PR:** `pan277942135/Yujian_App` / [Draft PR #163](https://github.com/pan277942135/Yujian_App/pull/163)  
-**Audited product source:** `81aefb1c0eae08df5ea6f451fc7c65be89a9c191`  
-**Canonical Control Plane:** `main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d`  
-**Task comment:** [#6244627483](https://github.com/pan277942135/Yujian_App/pull/163#issuecomment-6244627483)  
+**Task:** `M1_SIX_LAYER_COMPLIANCE_AUDIT_V1`
+**Parent Work:** `YUJIAN_M1_PARALLEL_DELIVERY_V1`
+**Repository / PR:** `pan277942135/Yujian_App` / [Draft PR #163](https://github.com/pan277942135/Yujian_App/pull/163)
+**Initial product source:** `81aefb1c0eae08df5ea6f451fc7c65be89a9c191`
+**Latest exact-head state and CI audit:** `1d98f48d59132d3d1ea9e226d0e32342459eb002`
+**Canonical Control Plane:** `main@0d3238e8a41b87363e9a17b04c9cc45fca4c426d`
+**Task comment:** [#6244627483](https://github.com/pan277942135/Yujian_App/pull/163#issuecomment-6244627483)
 **Audit outcome:** `REVIEW_REQUIRED` — Admission and state recovery pass; L2/L4 mappings and exact-SHA hosted Runtime remain open.
 
 ## Audit method and evidence boundary
@@ -64,6 +65,6 @@ The static task machine's N010 completion still requires P01/P02/P03 PNGs. The a
 
 ## Live-head Admission retest and integration static checks
 
-At `2026-10-18`, the required command was rerun from the product worktree on branch `work/m1-pr163-live-audit`, whose `HEAD` is the live PR #163 source `81aefb1c0eae08df5ea6f451fc7c65be89a9c191`. The private state remained untracked; the admission output reported `mode=PRODUCT_WORK`, `CONTROL_PLANE_SYNC=PASS` (616 paths, zero errors), Project Master State PASS, Work Execution State PASS, and `CONTROL_PLANE_ADMISSION=PASS` (exit 0). This establishes the baseline source only; the state checkpoint must be refreshed after publishing a new remote SHA.
+At `2026-10-18`, the required command was rerun from the product worktree at the live PR #163 source `81aefb1c0eae08df5ea6f451fc7c65be89a9c191`, then refreshed and repeated at `1d98f48d59132d3d1ea9e226d0e32342459eb002`. At both sources, private state was restored with matching checkpoint hashes; at 1d98f48, `mode=PRODUCT_WORK`, `CONTROL_PLANE_SYNC=PASS` (616 paths, zero errors), Project Master State PASS, Work Execution State PASS, and `CONTROL_PLANE_ADMISSION=PASS` (exit 0). The same-source interruption/recovery rehearsal also passed. The next source-changing commit requires refreshed state and repeat Admission/recovery.
 
 Local integration checks also passed for the declared path whitelist (55 changed paths, zero unexpected/protected paths), workflow YAML and embedded Bash syntax, Runtime Harness contract tests, Camera Runtime tests, V3.1 timing contract, catalog structure (66 base / 10 E2E), evidence source closure, authority matrix shape and V3.1 finalizer. Full command output and the initial YAML and transient cache findings are summarized in `M1_LOCAL_REPAIR_EVIDENCE.md`. None of these local checks is a GitHub Actions Run or an API28 Runtime result. The Page Contract validator remains FAIL (658 expected / 669 active entries).

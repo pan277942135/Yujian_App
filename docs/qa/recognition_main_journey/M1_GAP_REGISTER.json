@@ -4,7 +4,7 @@
   "task_id": "YUJIAN_M1_PARALLEL_DELIVERY_V1",
   "repository": "pan277942135/Yujian_App",
   "canonical_baseline_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
-  "verified_at": "2026-10-18T03:00:00Z",
+  "verified_at": "2026-10-18T03:17:31Z",
   "status_vocabulary": [
     "OPEN",
     "BLOCKED_INFRA",
@@ -22,15 +22,15 @@
       "gap_id": "M1-P0-001",
       "page_state": "APP / API28_RUNTIME_MATRIX",
       "expected": "All required Android Runtime gates pass on the exact M1 source SHA using the approved API28 Pixel_2 1080x1920 profile.",
-      "actual": "PR #163 head 81aefb1 Android CI run 39086281726 built successfully but skipped android-runtime and normal-home. Hosted M1 workflow is in the candidate worktree and has no Run ID yet.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39086281726 ; PR #163 source 81aefb1c0eae08df5ea6f451fc7c65be89a9c191",
+      "actual": "PR #163 exact source 1d98f48d59132d3d1ea9e226d0e32342459eb002: hosted Runtime run 39092555676 failed at Build Once because sdkmanager was not resolved; api28-preflight/api28-runtime/runtime-not-run were skipped. Android CI run 39092555645 compiled 211 unit tests and failed one RecognitionVisualStateControllerTest timeline assertion; APK steps were skipped. No APK or API28 Runtime evidence exists.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39092555676 ; https://github.com/pan277942135/Yujian_App/actions/runs/39092555645 ; exact source SHA 1d98f48d59132d3d1ea9e226d0e32342459eb002",
       "priority": "P0",
       "owner": "Track C · QA/Runtime/CI",
       "dependency": "Approved API28 runner availability and final integrated source SHA.",
       "acceptance": "Record Run ID, exact github.sha, mandatory API28 gate results, APK provenance/SHA, screenshots, boundsInWindow and required evidence for one exact source SHA.",
-      "status": "BLOCKED_INFRA",
-      "root_cause": "Retired GCP runner unavailable; prior PR run did not execute Runtime.",
-      "retest_evidence": "Hosted preflight and formal gates NOT_RUN pending publication of the candidate SHA."
+      "status": "FAIL",
+      "root_cause": "Hosted SDK manager lookup failed before Build Once; one JVM test used an incorrect CAPTURED phase timeline. Both minimal repairs are staged locally for the next exact-SHA rerun.",
+      "retest_evidence": "Runs 39092555676 and 39092555645 are retained as failures. Fixes are not yet on a published SHA; new Build, unit tests, API28 Preflight and Runtime are required."
     },
     {
       "gap_id": "M1-P0-002",
@@ -138,31 +138,31 @@
       "gap_id": "M1-P0-009",
       "page_state": "ALL_M1_PAGES_STATES / C1_SCOPE_AND_FROZEN_PROTECTION",
       "expected": "Bind every M1 change to Feature/Page/State, owner, paths, tests and evidence; reject undeclared paths and protected Frozen/model/API/token/control-plane changes.",
-      "actual": "Exact-path manifest, validator and negative guards pass locally against canonical baseline: 55 changed paths, zero unexpected paths, zero protected paths. GitHub exact-source CI has not run.",
-      "evidence": "M1_SCOPE_MANIFEST.json; scripts/validate_m1_scope.py; scripts/test_validate_m1_scope.py; M1_LOCAL_REPAIR_EVIDENCE.md",
+      "actual": "Exact-source scope enforcement passed in M1 hosted run 39092555676 at 1d98f48d59132d3d1ea9e226d0e32342459eb002: 55 declared paths, zero unexpected paths, zero protected paths. Negative-guard tests and local scope validation also pass; next repair commit requires a fresh exact-SHA run.",
+      "evidence": "M1 run 39092555676 step “Enforce declared M1 scope and Frozen asset protection”; M1_SCOPE_MANIFEST.json; scripts/validate_m1_scope.py; scripts/test_validate_m1_scope.py",
       "priority": "P0",
       "owner": "Work + Android + QA",
       "dependency": "Publish candidate and run M1 workflow.",
       "acceptance": "Whitelist passes exact PR diff, negative guards reject protected paths, protected source hashes remain unchanged.",
-      "status": "REVIEW_REQUIRED",
+      "status": "CLOSED",
       "root_cause": "No PR scope enforcement existed at initial head.",
-      "remediation_sha": null,
-      "retest_evidence": "Local checks PASS on the dirty worktree parent 81a; exact-source PR workflow remains NOT_RUN."
+      "remediation_sha": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
+      "retest_evidence": "Exact source step PASS on 1d98f48d59132d3d1ea9e226d0e32342459eb002; re-run after the pending repair commit."
     },
     {
       "gap_id": "M1-P0-010",
       "page_state": "CONTROL_PLANE / L1_PROJECT_MASTER_AND_WORK_STATE",
       "expected": "Persist dynamic state privately at live source SHA, recover after interruption, and pass Master, Work and full Admission validators without publishing raw state.",
-      "actual": "At 81a, initial Admission failed because both states were absent. After private checkpoint restore, state hashes matched and Master, Work, full PRODUCT_WORK Admission passed. Refresh is required for next published SHA.",
-      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md; exact-head Admission at 81a; private restore/recovery rehearsal",
+      "actual": "At exact source 1d98f48d59132d3d1ea9e226d0e32342459eb002, private state was refreshed, restored in an interruption rehearsal with matching hashes, and Project Master State, Work Execution State, CONTROL_PLANE_SYNC (616 paths, zero errors), and full PRODUCT_WORK Admission all passed. Raw state remains private and untracked.",
+      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md; exact-head Admission and private restore rehearsal at 1d98f48d59132d3d1ea9e226d0e32342459eb002",
       "priority": "P0",
       "owner": "Work",
       "dependency": "Publish candidate; refresh private checkpoint and repeat Admission/recovery.",
       "acceptance": "Private checkpoint source SHA equals live remote PR SHA, hashes/validators pass, raw state remains untracked/unpublished.",
-      "status": "REVIEW_REQUIRED",
+      "status": "CLOSED",
       "root_cause": "Dynamic branch-local state missing at initial admission.",
-      "remediation_sha": "Private checkpoint restored at 81aefb1c0eae08df5ea6f451fc7c65be89a9c191",
-      "retest_evidence": "PASS at 81a only; next exact remote SHA pending."
+      "remediation_sha": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
+      "retest_evidence": "PASS at 1d98f48d59132d3d1ea9e226d0e32342459eb002; the next source-changing commit requires private state refresh and repeat Admission/recovery."
     },
     {
       "gap_id": "M1-P0-011",
@@ -213,7 +213,7 @@
       "gap_id": "M1-P0-014",
       "page_state": "DESIGN_AUTHORITY / PAGE_CONTRACT_ASSET_REGISTRY_VALIDATOR",
       "expected": "Page Contract inventory validates against canonical registry without changing protected assets or weakening thresholds.",
-      "actual": "verify_page_contract_v3.py exits nonzero: expects 658 assets and finds 669 active entries at live PR #163 head 81a.",
+      "actual": "verify_page_contract_v3.py exits nonzero: expects 658 assets and finds 669 active entries. The finding was observed at 81a and remains uncorrected; no Registry or validator threshold was changed.",
       "evidence": "Validator run at 81aefb1c0eae08df5ea6f451fc7c65be89a9c191; M1_DESIGN_AUTHORITY_MATRIX.json",
       "priority": "P0",
       "owner": "Design System owner + Work",
@@ -222,22 +222,22 @@
       "status": "FAIL",
       "root_cause": "Effective Registry has 669 unique assets; validator hard-codes 658.",
       "remediation_sha": null,
-      "retest_evidence": "FAIL at 81a; no registry/validator threshold change."
+      "retest_evidence": "FAIL at 81a; exact-source retest remains required after an authorized registry/validator decision."
     },
     {
       "gap_id": "M1-P0-015",
       "page_state": "API28_RUNTIME / HOSTED_RUNNER_PREFLIGHT",
       "expected": "Ubuntu 24.04 standard runner has KVM, API28/google_apis/x86_64 Pixel2 AVD, SDK28, 1080x1920, CameraX/instrumentation, installs APK pair and uploads evidence.",
-      "actual": "Hosted workflow implements checks and reuses harness, but has not executed.",
-      "evidence": ".github/workflows/m1-hosted-api28-runtime.yml; M1_RUNTIME_ENV_MIGRATION_REPORT.md",
+      "actual": "Hosted run 39092555676 scheduled on ubuntu-24.04 and passed scope checks, then failed in Build Once at SDK manager resolution; API28 preflight and formal Runtime jobs were skipped. SDK path fallback repair is staged locally, pending a new exact-source run.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39092555676 ; .github/workflows/m1-hosted-api28-runtime.yml ; M1_RUNTIME_ENV_MIGRATION_REPORT.md",
       "priority": "P0",
       "owner": "Track C QA/Runtime/CI",
       "dependency": "Publish candidate and obtain GitHub-hosted Run ID.",
       "acceptance": "Every preflight check and artifact upload passes on same exact source SHA; no skipped job counts.",
       "status": "BLOCKED_INFRA",
-      "root_cause": "GCP pool expired; hosted replacement not run.",
-      "remediation_sha": "Candidate worktree parent 81a; no remote workflow commit.",
-      "retest_evidence": "NOT_RUN."
+      "root_cause": "sdkmanager was not on PATH in the GitHub-hosted image; no emulator/API28 preflight occurred.",
+      "remediation_sha": null,
+      "retest_evidence": "The local sdkmanager lookup fix has not yet run on a published source SHA. Require successful Build Once, non-skipped Preflight, instrumentation and artifact upload."
     },
     {
       "gap_id": "M1-P0-016",
@@ -303,8 +303,8 @@
       "status": "DEFERRED"
     }
   ],
-  "work_head_sha_audited": "81aefb1c0eae08df5ea6f451fc7c65be89a9c191",
-  "pr163_head_sha_at_last_remote_check": "81aefb1c0eae08df5ea6f451fc7c65be89a9c191",
+  "work_head_sha_audited": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
+  "pr163_head_sha_at_last_remote_check": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
   "acceptance_tasks": [
     "M1_SIX_LAYER_COMPLIANCE_AUDIT_V1",
     "M1_QUALITY_ENFORCEMENT_V1_1",

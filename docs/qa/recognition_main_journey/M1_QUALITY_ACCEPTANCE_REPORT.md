@@ -48,3 +48,7 @@ C1: local scope/diff checks PASS; exact-SHA CI on a published candidate is NOT_R
 ## Control Plane authority conflict
 
 N010 in the canonical task machine still requires the historical three-page guide. The approved M1 two-page decision is documented in C01 and PR #162, but static Control Plane authority was not edited from the product branch. Gate A remains REVIEW_REQUIRED until the authorized successor contract and sync are approved.
+
+## Exact-source failure handling update
+
+At source `1d98f48d59132d3d1ea9e226d0e32342459eb002`, scope enforcement passed in Hosted Runtime Run 39092555676. The job then failed because `sdkmanager` was not resolved; API28 jobs were skipped. Android CI Run 39092555645 ran 211 unit tests and failed one timing assertion. Both failures are retained, and minimal local corrections are staged for a new source SHA. No repair is counted as passing until that SHA reruns CI; no Runtime, visual, motion, APK or Release PASS is inferred.

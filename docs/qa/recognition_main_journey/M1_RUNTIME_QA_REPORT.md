@@ -1,22 +1,22 @@
 # M1 Runtime QA Report
 
 Parent: YUJIAN_M1_PARALLEL_DELIVERY_V1 / PR #163
-Audited remote source SHA: 81aefb1c0eae08df5ea6f451fc7c65be89a9c191
-Integrated candidate SHA: not yet published
+Audited initial remote source SHA: 81aefb1c0eae08df5ea6f451fc7c65be89a9c191
+Current published candidate SHA: 1d98f48d59132d3d1ea9e226d0e32342459eb002
 APK SHA-256: NOT_RUN
-GitHub Actions Run ID for the candidate: NOT_RUN
-Device: hosted Ubuntu 24.04 / API28 x86_64 Pixel 2 / 1080×1920 is configured but not yet executed.
+GitHub Actions: Android CI Run `39092555645` (1 of 211 unit tests failed); M1 Hosted API28 Runtime Run `39092555676` (Build Once failure before Preflight).
+Device: hosted Ubuntu 24.04 / API28 x86_64 Pixel 2 / 1080×1920 is configured; no emulator was launched.
 
 ## Individual N001–N010 classifications
 
 | Gate | Result | Current evidence |
 |---|---|---|
-| N001 · API28 Runtime Matrix | BLOCKED_INFRA | Prior PR run 39086281726 built but skipped Runtime; hosted Preflight and matrix have no Run ID. |
+| N001 · API28 Runtime Matrix | BLOCKED_INFRA | M1 Hosted API28 Runtime run 39092555676 failed during Build Once at SDK manager lookup; API28 Preflight and formal matrix jobs were skipped. No Runtime PASS. |
 | N002 · Recognition Frozen | NOT_RUN | V3.1 and guide assertions are in Track A/C candidate worktree; no exact-SHA API28 result. |
 | N003 · J01–J20 journeys | NOT_RUN | Full journey execution record is absent; no candidate Runtime execution. |
 | N004 · Normal Home A4.1 | NOT_RUN | P1 gate is not executed on candidate SHA; source fixture/provenance and device evidence remain outstanding. |
 | N005 · Evidence package | NOT_RUN | No candidate screenshots, boundsInWindow, ROI Pixel Diff, Motion Trace, MP4, device profile artifact or runtime logs. |
-| N006 · APK provenance | NOT_RUN | No candidate APK pair or exact APK SHA-256 exists. |
+| N006 · APK provenance | NOT_RUN | Build Once stopped before Gradle/test/build steps; no candidate APK pair or exact APK SHA-256 exists. |
 | N007 · Phase 3-B provenance | REVIEW_REQUIRED | Matrix records provenance/source gaps; no exact SHA mapping or independently accepted authority evidence. |
 | N008 · Focused report | NOT_RUN | Reports describe static/audit evidence; no exact Runtime gate summary or APK provenance. |
 | N009 · Human release | NOT_RUN | Release package is incomplete; no manual approval requested or granted. |
@@ -39,8 +39,8 @@ The catalog validator reports 66 base cases and 10 E2E scenarios with valid stru
 
 | Result | Classification |
 |---|---|
-| Build Once APK pair | NOT_RUN on candidate SHA |
-| API28 hosted Preflight | NOT_RUN |
+| Build Once APK pair | FAIL — run 39092555676, source `1d98f48d59132d3d1ea9e226d0e32342459eb002`; SDK manager path resolution failed |
+| API28 hosted Preflight | NOT_RUN — job skipped after Build Once failure |
 | Recognition Frozen | NOT_RUN |
 | Camera Runtime | NOT_RUN |
 | Empty Home | NOT_RUN |
@@ -53,4 +53,4 @@ The catalog validator reports 66 base cases and 10 E2E scenarios with valid stru
 | Accessibility | NOT_RUN |
 | Independent review | NOT_RUN |
 
-Track A and Track C unit/static checks on their own branch SHAs are recorded in their reports; they do not close these exact-SHA Runtime classifications. Run 39086281726 is historical Build PASS with skipped Runtime jobs and is not reused. C01, C02, the 658/669 Page Contract validator failure and C03 hosted environment remain open.
+Android CI run 39092555645 compiled 211 unit tests and exposed one failing assertion in `RecognitionVisualStateControllerTest.noTimerOnlyProgressWithoutDetectionFocusClassificationOrResult` at line 88. The assertion expected the 220ms CAPTURED minimum from a late detection event, while the controller correctly measures it from the screen phase start. A minimal test-timeline correction is staged locally; it has not yet run on a new SHA. Hosted run 39092555676 confirms the GitHub-hosted Ubuntu 24.04 build job was scheduled, but SDK manager lookup failed before Gradle and the API28 jobs were skipped. No APK was produced. The repairs now staged for SDK path resolution and the timing assertion require a new exact-SHA CI/Runtime run. Run 39086281726 remains historical and is not reused. C01, C02 trace/Resolve, the 658/669 Page Contract validator failure and C03 hosted environment remain open.
