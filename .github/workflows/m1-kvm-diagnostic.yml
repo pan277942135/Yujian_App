@@ -1,0 +1,48 @@
+name: M1 Minimal Runner KVM Diagnostic
+
+on:
+  push:
+    branches: [ops/m1-kvm-diagnostic-v1]
+    paths:
+      - ".github/workflows/m1-kvm-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  kvm-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      M1_SOURCE_SHA: 08263fd378c6b2d51fc6b9a48df7c54daeeccd4f
+    steps:
+      - name: Probe hosted runner KVM only
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p evidence/kvm
+          {
+            printf 'DIAGNOSTIC_COMMIT=%s\n' "$GITHUB_SHA"
+            printf 'M1_SOURCE_SHA=%s\n' "$M1_SOURCE_SHA"
+            printf 'RUNNER_NAME=%s\n' "$RUNNER_NAME"
+            printf 'RUNNER_OS=%s\n' "$RUNNER_OS"
+            printf 'RUNNER_ARCH=%s\n' "$RUNNER_ARCH"
+            cat /etc/os-release
+            printf '\nKVM_DEVICE_CHECK\n'
+            ls -l /dev/kvm 2>&1 || true
+            printf '\nCPU_VIRTUALIZATION_FLAGS\n'
+            grep -m1 -E '(^flags|^Features)' /proc/cpuinfo | grep -oE '\b(vmx|svm)\b' | sort -u || true
+          } | tee evidence/kvm/runner-probe.txt
+          if [[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
+            echo 'KVM_STATUS=AVAILABLE' | tee -a evidence/kvm/runner-probe.txt
+          else
+            echo 'KVM_STATUS=BLOCKED_INFRA' | tee -a evidence/kvm/runner-probe.txt
+          fi
+      - name: Upload minimal KVM diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-minimal-runner-kvm-diagnostic
+          path: evidence/kvm/runner-probe.txt
+          if-no-files-found: error
+          retention-days: 14
