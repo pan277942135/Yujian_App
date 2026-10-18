@@ -4,7 +4,7 @@
   "task_id": "YUJIAN_M1_PARALLEL_DELIVERY_V1",
   "repository": "pan277942135/Yujian_App",
   "canonical_baseline_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
-  "verified_at": "2026-10-18T03:17:31Z",
+  "verified_at": "2026-10-18T03:25:52Z",
   "status_vocabulary": [
     "OPEN",
     "BLOCKED_INFRA",
@@ -22,15 +22,15 @@
       "gap_id": "M1-P0-001",
       "page_state": "APP / API28_RUNTIME_MATRIX",
       "expected": "All required Android Runtime gates pass on the exact M1 source SHA using the approved API28 Pixel_2 1080x1920 profile.",
-      "actual": "PR #163 exact source 1d98f48d59132d3d1ea9e226d0e32342459eb002: hosted Runtime run 39092555676 failed at Build Once because sdkmanager was not resolved; api28-preflight/api28-runtime/runtime-not-run were skipped. Android CI run 39092555645 compiled 211 unit tests and failed one RecognitionVisualStateControllerTest timeline assertion; APK steps were skipped. No APK or API28 Runtime evidence exists.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39092555676 ; https://github.com/pan277942135/Yujian_App/actions/runs/39092555645 ; exact source SHA 1d98f48d59132d3d1ea9e226d0e32342459eb002",
+      "actual": "Exact source 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e: M1 hosted Run 39093186784 passed scope enforcement but Build Once failed in SDK license pipeline (`yes` got Broken pipe under pipefail); API28 Preflight/Runtime skipped. Android CI Run 39093186726 passed all 211 JVM tests and Camera Runtime contract tests and assembled Debug APK, but AndroidTest compilation failed with unresolved `fishFocusStableMs`, `assertDoesNotExist` import, and `onAllNodesWithTag` import; APK staging/upload and Runtime skipped. No installable artifact is attached.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39093186784 ; https://github.com/pan277942135/Yujian_App/actions/runs/39093186726 ; https://github.com/pan277942135/Yujian_App/actions/runs/39093186768 ; https://github.com/pan277942135/Yujian_App/actions/runs/39093186750 ; exact source 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
       "priority": "P0",
       "owner": "Track C · QA/Runtime/CI",
       "dependency": "Approved API28 runner availability and final integrated source SHA.",
       "acceptance": "Record Run ID, exact github.sha, mandatory API28 gate results, APK provenance/SHA, screenshots, boundsInWindow and required evidence for one exact source SHA.",
       "status": "FAIL",
-      "root_cause": "Hosted SDK manager lookup failed before Build Once; one JVM test used an incorrect CAPTURED phase timeline. Both minimal repairs are staged locally for the next exact-SHA rerun.",
-      "retest_evidence": "Runs 39092555676 and 39092555645 are retained as failures. Fixes are not yet on a published SHA; new Build, unit tests, API28 Preflight and Runtime are required."
+      "root_cause": "`yes | sdkmanager --licenses` returned nonzero through pipefail despite sdkmanager resolution; AndroidTest compile had three source-level symbol/import errors. Minimal fixes are staged locally for the next exact SHA.",
+      "retest_evidence": "Runs 39093186784/726 are retained. The next SHA must rerun Build Once, all 211 JVM tests, AndroidTest compile, API28 Preflight and every applicable Runtime gate; the API28 job cannot be treated as run until it executes."
     },
     {
       "gap_id": "M1-P0-002",
@@ -94,16 +94,16 @@
       "gap_id": "M1-P0-006",
       "page_state": "RESULT_SAVE / HOME / FISH_RECORD_DETAIL_A_B / BACK",
       "expected": "Save one durable record, return to the approved Home destination, open the matching record, view A/B state, and verify clean Back navigation.",
-      "actual": "Track C added a supplemental Save Catch → Home → same stable record → Detail A/B → Back AndroidTest; not compiled or executed on candidate SHA.",
-      "evidence": "RecognitionSaveCatchJourneyContractRuntimeTest.kt; M1_TRACK_C_RUNTIME_QA_REPORT_20261018.md",
+      "actual": "Save Catch → Home → same record Detail A/B → Back AndroidTest exists, but exact-source Android CI Run 39093186726 failed AndroidTest compilation before tests because the new test imported unavailable androidx.compose.ui.test.assertDoesNotExist and omitted onAllNodesWithTag. The runtime case did not execute.",
+      "evidence": "app/src/androidTest/java/com/yujian/ai/RecognitionSaveCatchJourneyContractRuntimeTest.kt; https://github.com/pan277942135/Yujian_App/actions/runs/39093186726",
       "priority": "P0",
       "owner": "Track A · Android Implementation + Track C · QA/Runtime/CI",
       "dependency": "Exact result-save implementation SHA and QA fixtures for guest/authenticated read-back and B-side state.",
       "acceptance": "Runtime verifies exactly one saved record, persisted media/metadata, destination behavior, record identity, A/B state transitions, and absence of stale Result/Processing/Capture routes on Back.",
-      "status": "NOT_RUN",
-      "root_cause": "Catalog excluded post-save and A/B; no integrated route test existed.",
+      "status": "FAIL",
+      "root_cause": "New AndroidTest source compile errors; imports are corrected locally and await exact-SHA compile/runtime rerun.",
       "remediation_sha": "Track C commit 09534eec7f1cb2bf0567f6b0827905cd93344ee7 adds test.",
-      "retest_evidence": "Compile AndroidTest and run on API28 against Build Once APK pair; verify durable record, media/metadata, A/B identity and clean Back."
+      "retest_evidence": "Compile AndroidTest APK and execute M1-SUPP-SAVE-DETAIL-01 on the next exact SHA/API28 runner."
     },
     {
       "gap_id": "M1-P0-007",
@@ -138,31 +138,31 @@
       "gap_id": "M1-P0-009",
       "page_state": "ALL_M1_PAGES_STATES / C1_SCOPE_AND_FROZEN_PROTECTION",
       "expected": "Bind every M1 change to Feature/Page/State, owner, paths, tests and evidence; reject undeclared paths and protected Frozen/model/API/token/control-plane changes.",
-      "actual": "Exact-source scope enforcement passed in M1 hosted run 39092555676 at 1d98f48d59132d3d1ea9e226d0e32342459eb002: 55 declared paths, zero unexpected paths, zero protected paths. Negative-guard tests and local scope validation also pass; next repair commit requires a fresh exact-SHA run.",
-      "evidence": "M1 run 39092555676 step “Enforce declared M1 scope and Frozen asset protection”; M1_SCOPE_MANIFEST.json; scripts/validate_m1_scope.py; scripts/test_validate_m1_scope.py",
+      "actual": "At exact source 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e, Hosted Run 39093186784 passed declared M1 scope and Frozen protection; local validator showed 55 declared paths, zero unexpected, zero protected. Next repair commit requires another exact-source scope gate.",
+      "evidence": "M1 Hosted Run 39093186784 step “Enforce declared M1 scope and Frozen asset protection”; M1_SCOPE_MANIFEST.json; scripts/validate_m1_scope.py",
       "priority": "P0",
       "owner": "Work + Android + QA",
       "dependency": "Publish candidate and run M1 workflow.",
       "acceptance": "Whitelist passes exact PR diff, negative guards reject protected paths, protected source hashes remain unchanged.",
       "status": "CLOSED",
       "root_cause": "No PR scope enforcement existed at initial head.",
-      "remediation_sha": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
-      "retest_evidence": "Exact source step PASS on 1d98f48d59132d3d1ea9e226d0e32342459eb002; re-run after the pending repair commit."
+      "remediation_sha": "6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
+      "retest_evidence": "PASS at 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e; re-run on next SHA."
     },
     {
       "gap_id": "M1-P0-010",
       "page_state": "CONTROL_PLANE / L1_PROJECT_MASTER_AND_WORK_STATE",
       "expected": "Persist dynamic state privately at live source SHA, recover after interruption, and pass Master, Work and full Admission validators without publishing raw state.",
-      "actual": "At exact source 1d98f48d59132d3d1ea9e226d0e32342459eb002, private state was refreshed, restored in an interruption rehearsal with matching hashes, and Project Master State, Work Execution State, CONTROL_PLANE_SYNC (616 paths, zero errors), and full PRODUCT_WORK Admission all passed. Raw state remains private and untracked.",
-      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md; exact-head Admission and private restore rehearsal at 1d98f48d59132d3d1ea9e226d0e32342459eb002",
+      "actual": "At exact source 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e, full PRODUCT_WORK Admission passed after private state refresh; the state interruption/recovery rehearsal restored both files with exact matching SHA-256, and Project Master, Work, synchronization (616 paths, zero errors), and full Admission passed again. Raw state remains private.",
+      "evidence": "M1_SIX_LAYER_COMPLIANCE_REPORT.md; exact-head validators and private checkpoint/recovery rehearsal at 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
       "priority": "P0",
       "owner": "Work",
       "dependency": "Publish candidate; refresh private checkpoint and repeat Admission/recovery.",
       "acceptance": "Private checkpoint source SHA equals live remote PR SHA, hashes/validators pass, raw state remains untracked/unpublished.",
       "status": "CLOSED",
       "root_cause": "Dynamic branch-local state missing at initial admission.",
-      "remediation_sha": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
-      "retest_evidence": "PASS at 1d98f48d59132d3d1ea9e226d0e32342459eb002; the next source-changing commit requires private state refresh and repeat Admission/recovery."
+      "remediation_sha": "6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
+      "retest_evidence": "PASS at 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e; refresh private state and rerun on every subsequent source-changing commit."
     },
     {
       "gap_id": "M1-P0-011",
@@ -198,7 +198,7 @@
       "gap_id": "M1-P0-013",
       "page_state": "RECOGNITION_PROCESSING / C02_RESOLVE_AUTHORITY",
       "expected": "V3.1 state machine is sole M1 timing authority with real Pipeline event gating; Resolve visual conflict does not delay real result; PROC-07 timeout remains approved parameter.",
-      "actual": "Track A uses 220/320/350/250ms and real event handoff; Track C QA contract is V3.1. V1.2 Resolve 200ms conflicts with immediate RESULT_READY; no real trace exists; PROC-07 BLOCKED_PARAMETER.",
+      "actual": "V3.1 source/QA contract still uses 220/320/350/250ms and real Pipeline event gating; Android CI 39093186726 passed the controller JVM suite. No real exact-SHA Pipeline trace, phase PNGs, or Motion MP4; V1.2 Resolve 200ms conflict and PROC-07 approved-timeout blocker remain.",
       "evidence": "State_Machine_V3_1.json SHA fa4f9f7ea371dd46f8a92be8fc0398bee465c05356a8d1d5623a46120d07de02; Track C report; Track A changes",
       "priority": "P0",
       "owner": "Track A + Track C + Product Authority",
@@ -207,7 +207,7 @@
       "status": "REVIEW_REQUIRED",
       "root_cause": "V1.2 Resolve hold and V3.1 immediate handoff are incompatible.",
       "remediation_sha": "Track A 82c49b8d7ced6568ee2d04e3ecbd1c10a06cc018; Track C 69fcf47e215d47a7f055ebcc095625b0c3d4b942",
-      "retest_evidence": "Static/negative tests pass; exact API28 trace NOT_RUN."
+      "retest_evidence": "Unit PASS at 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e; real Pipeline trace and Motion artifacts are still NOT_RUN."
     },
     {
       "gap_id": "M1-P0-014",
@@ -228,16 +228,16 @@
       "gap_id": "M1-P0-015",
       "page_state": "API28_RUNTIME / HOSTED_RUNNER_PREFLIGHT",
       "expected": "Ubuntu 24.04 standard runner has KVM, API28/google_apis/x86_64 Pixel2 AVD, SDK28, 1080x1920, CameraX/instrumentation, installs APK pair and uploads evidence.",
-      "actual": "Hosted run 39092555676 scheduled on ubuntu-24.04 and passed scope checks, then failed in Build Once at SDK manager resolution; API28 preflight and formal Runtime jobs were skipped. SDK path fallback repair is staged locally, pending a new exact-source run.",
-      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39092555676 ; .github/workflows/m1-hosted-api28-runtime.yml ; M1_RUNTIME_ENV_MIGRATION_REPORT.md",
+      "actual": "Hosted Run 39093186784 at 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e scheduled on ubuntu-24.04 and passed scope enforcement and SDK manager path resolution, then failed at the yes/sdkmanager license pipeline with Broken pipe under pipefail. API28 preflight, AVD start, device profile, install, CameraX/instrumentation and artifact upload did not run. Exit handling repair awaits new SHA.",
+      "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/39093186784 ; .github/workflows/m1-hosted-api28-runtime.yml ; M1_RUNTIME_ENV_MIGRATION_REPORT.md",
       "priority": "P0",
       "owner": "Track C QA/Runtime/CI",
       "dependency": "Publish candidate and obtain GitHub-hosted Run ID.",
       "acceptance": "Every preflight check and artifact upload passes on same exact source SHA; no skipped job counts.",
       "status": "BLOCKED_INFRA",
-      "root_cause": "sdkmanager was not on PATH in the GitHub-hosted image; no emulator/API28 preflight occurred.",
+      "root_cause": "Pipeline status treated yes SIGPIPE (normal when sdkmanager exits) as failure under pipefail.",
       "remediation_sha": null,
-      "retest_evidence": "The local sdkmanager lookup fix has not yet run on a published source SHA. Require successful Build Once, non-skipped Preflight, instrumentation and artifact upload."
+      "retest_evidence": "Local exit-status correction passes shell simulation but is uncommitted; re-run actual Build Once and non-skipped API28 Preflight."
     },
     {
       "gap_id": "M1-P0-016",
@@ -303,8 +303,8 @@
       "status": "DEFERRED"
     }
   ],
-  "work_head_sha_audited": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
-  "pr163_head_sha_at_last_remote_check": "1d98f48d59132d3d1ea9e226d0e32342459eb002",
+  "work_head_sha_audited": "6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
+  "pr163_head_sha_at_last_remote_check": "6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e",
   "acceptance_tasks": [
     "M1_SIX_LAYER_COMPLIANCE_AUDIT_V1",
     "M1_QUALITY_ENFORCEMENT_V1_1",

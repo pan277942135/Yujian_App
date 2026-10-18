@@ -136,7 +136,9 @@ jobs:
           fi
           test -x "$sdkmanager_bin"
           echo "YUJIAN_SDKMANAGER=$sdkmanager_bin" >> "$GITHUB_ENV"
-          yes | "$sdkmanager_bin" --licenses >/dev/null
+          license_exit=0
+          yes | "$sdkmanager_bin" --licenses >/dev/null || license_exit=${PIPESTATUS[1]}
+          test "$license_exit" -eq 0
           "$sdkmanager_bin" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
           test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
           echo "YUJIAN_AAPT2=$ANDROID_HOME/build-tools/35.0.0/aapt2" >> "$GITHUB_ENV"

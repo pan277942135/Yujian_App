@@ -64,3 +64,7 @@ The M1 Design Authority Matrix and scope manifest have been reused in the candid
 ## Exact-SHA CI checkpoint
 
 PR #163 remains Draft/Open/Unmerged. The published candidate `1d98f48d59132d3d1ea9e226d0e32342459eb002` passed the hosted scope step, then Build Once failed at Android SDK manager lookup in Run 39092555676. API28 preflight/runtime jobs were skipped and no APK artifact exists. Android CI Run 39092555645 failed one of 211 unit tests; no APK steps executed. These are retained failure records, not release evidence. Minimal SDK lookup and test-timeline repairs are in progress locally and require a new exact-SHA rerun. The P0 gap register and release report carry the current blocker status.
+
+## 6d16bb7 exact-source checkpoint
+
+At `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, full Control Plane Admission and private checkpoint recovery passed; hosted Control Plane and QA Test Users workflows also passed. Hosted API28 Run 39093186784 failed before Preflight at SDK license-pipeline exit handling. Android CI Run 39093186726 passed all unit and harness contract tests, assembled Debug APK, then failed AndroidTest compilation and uploaded no APK. The test and workflow fixes are recorded in `M1_LOCAL_REPAIR_EVIDENCE.md`; current candidate and release remain blocked pending a new exact-SHA run.

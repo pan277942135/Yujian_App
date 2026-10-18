@@ -39,3 +39,13 @@ At source `1d98f48d59132d3d1ea9e226d0e32342459eb002`, the live GitHub Actions ev
 - Android CI Run [39092555645](https://github.com/pan277942135/Yujian_App/actions/runs/39092555645): 211 unit tests ran; one test failed: `RecognitionVisualStateControllerTest.noTimerOnlyProgressWithoutDetectionFocusClassificationOrResult`. Later build/APK and Runtime jobs were skipped. No artifact was produced.
 
 The SDK workflow steps now resolve `sdkmanager` from `ANDROID_HOME`/`ANDROID_SDK_ROOT` command-line tools if it is not on PATH. The test now starts CAPTURED at 10,000ms, verifies it at 10,219ms, and delivers the real DETECTING event at 10,219ms; it verifies the phase transition at 10,220ms. No assertion or gate was removed or lowered. These are local, unpublished repairs, not PASS evidence. A new source SHA and full applicable workflow rerun are required.
+
+## Exact-SHA retry 1 (`6d16bb7`)
+
+At source `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`:
+
+- Hosted Runtime Run [39093186784](https://github.com/pan277942135/Yujian_App/actions/runs/39093186784) ran on Ubuntu 24.04 and passed exact C1 scope plus SDK manager path lookup. Build Once then failed because `yes | sdkmanager --licenses` returned Broken pipe under `set -o pipefail`; API28 Preflight/Runtime were skipped.
+- Android CI Run [39093186726](https://github.com/pan277942135/Yujian_App/actions/runs/39093186726) passed all 211 JVM tests and Camera Runtime contract tests and assembled Debug APK, then failed AndroidTest Kotlin compilation: `fishFocusStableMs` was undefined; `assertDoesNotExist` was imported as an unavailable extension; `onAllNodesWithTag` was not imported. No artifact was uploaded.
+- Control Plane Admission Run [39093186750](https://github.com/pan277942135/Yujian_App/actions/runs/39093186750) passed; Recognition QA Test Users Run [39093186768](https://github.com/pan277942135/Yujian_App/actions/runs/39093186768) passed the 66/10 catalog and negative/regression contract checks.
+
+Minimal fixes now staged: remove the undefined legacy trace field (it is outside V3.1 timing authority), remove the invalid extension import while retaining the member assertion, import `onAllNodesWithTag`, and preserve `sdkmanager`’s own pipeline exit code while tolerating only the producer's expected Broken pipe. No test or Runtime gate is removed. Local shell simulation and YAML syntax pass; new exact-SHA Actions Build, AndroidTest compilation, Preflight and Runtime are required.

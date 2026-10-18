@@ -1161,7 +1161,7 @@ class RecognitionFrozenFlowEmulatorTest {
         trace(
             "TIMING_CAPTURED_MS=$capturedMs TIMING_DETECTING_MS=$detectingMs " +
                 "TIMING_OUTLINE_MS=$outlineMs TIMING_CLASSIFYING_MS=$classifyingMs " +
-                "TIMING_TOTAL_MS=$totalMs TIMING_FISH_FOCUS_STABLE_MS=$fishFocusStableMs",
+                "TIMING_TOTAL_MS=$totalMs",
         )
     }
 

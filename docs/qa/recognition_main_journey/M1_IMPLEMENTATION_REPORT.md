@@ -2,7 +2,7 @@
 
 Task: YUJIAN_M1_PARALLEL_DELIVERY_V1
 Parent PR: [#163 — Draft/Open/Unmerged](https://github.com/pan277942135/Yujian_App/pull/163)
-Published integrated candidate: `1d98f48d59132d3d1ea9e226d0e32342459eb002`; local repair worktree is based on this exact source SHA.
+Published integrated candidate: `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`; local repair worktree is based on this exact source SHA.
 
 ## Integrated worktree scope
 
@@ -30,4 +30,8 @@ The candidate scope guard passes locally against the canonical baseline with 55 
 
 ## Exact-SHA build findings
 
-The integrated published candidate is `1d98f48d59132d3d1ea9e226d0e32342459eb002`. Hosted Run 39092555676 passed the declared scope enforcement step but failed SDK manager lookup before Gradle and APK generation. Android CI Run 39092555645 ran 211 unit tests and failed one incorrect CAPTURED timeline assertion; APK assembly did not run. The local repair resolves SDK manager from the configured Android SDK tree and corrects the test timeline without relaxing assertions. Both changes await publication and exact-SHA CI. No candidate APK or APK SHA-256 exists.
+The integrated published candidate is `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`. Hosted Run 39092555676 passed the declared scope enforcement step but failed SDK manager lookup before Gradle and APK generation. Android CI Run 39092555645 ran 211 unit tests and failed one incorrect CAPTURED timeline assertion; APK assembly did not run. The local repair resolves SDK manager from the configured Android SDK tree and corrects the test timeline without relaxing assertions. Both changes await publication and exact-SHA CI. No candidate APK or APK SHA-256 exists.
+
+## Exact-SHA candidate `6d16bb7`
+
+On `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, Android CI Run 39093186726 passed 211 JVM unit tests and Camera Runtime contract tests and assembled the app Debug APK, but AndroidTest compilation failed on three source references/imports; no APK artifact was staged. Hosted Runtime Run 39093186784 resolved `sdkmanager` but failed the license pipe under pipefail before Build Once; API28 jobs skipped. Four small fixes (license-pipe exit handling and three AndroidTest compile corrections) are staged for the next SHA. Control Plane Admission/recovery and C1 exact-scope checks passed at 6d16bb7; no Runtime or downloadable APK exists.

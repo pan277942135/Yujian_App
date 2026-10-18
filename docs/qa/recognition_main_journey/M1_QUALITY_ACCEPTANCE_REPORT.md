@@ -52,3 +52,7 @@ N010 in the canonical task machine still requires the historical three-page guid
 ## Exact-source failure handling update
 
 At source `1d98f48d59132d3d1ea9e226d0e32342459eb002`, scope enforcement passed in Hosted Runtime Run 39092555676. The job then failed because `sdkmanager` was not resolved; API28 jobs were skipped. Android CI Run 39092555645 ran 211 unit tests and failed one timing assertion. Both failures are retained, and minimal local corrections are staged for a new source SHA. No repair is counted as passing until that SHA reruns CI; no Runtime, visual, motion, APK or Release PASS is inferred.
+
+## Exact-SHA retest at `6d16bb7`
+
+At `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, C1 hosted scope/Frozen-source protection passed (Run 39093186784). Android CI passed 211 unit tests and Camera Runtime contract tests but AndroidTest compile failed before packaging, leaving Gate B incomplete. Hosted Build Once failed at license pipe handling and API28 was skipped; Gate C remains `BLOCKED_INFRA`. Control Plane Admission and QA catalog validation passed, which do not substitute for product Runtime. The exact-source failure→RCA→minimal repair record is in `M1_LOCAL_REPAIR_EVIDENCE.md`; the next SHA must rerun affected checks before these locks can close.
