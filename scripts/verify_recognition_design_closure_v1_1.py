@@ -86,8 +86,8 @@ def main() -> None:
         errors.append("runtime screenshot evidence list mismatch")
 
     refs = manifest.get("references", [])
-    if len(refs) != 9:
-        errors.append(f"expected 9 Frozen references, found {len(refs)}")
+    if len(refs) != 8:
+        errors.append(f"expected 8 current Frozen references after Processing Early retirement, found {len(refs)}")
     for ref in refs:
         name = ref.get("file")
         path = BASE / "design" / str(name)

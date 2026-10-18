@@ -9,7 +9,6 @@ import json
 from pathlib import Path
 
 REQUIRED = [
-    "01_image_recognizing_early.png",
     "02_image_recognizing_late.png",
     "03_fish_located.png",
     "04_species_recognizing.png",

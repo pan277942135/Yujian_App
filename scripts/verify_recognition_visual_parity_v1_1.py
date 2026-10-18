@@ -17,7 +17,6 @@ from typing import Iterable
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 FILES = [
-    ("01_image_recognizing_early.png", "01_Capture_Transition_Frozen.png", "processing_card"),
     ("02_image_recognizing_late.png", "02_AI_Understanding_Frozen.png", "processing_light"),
     ("03_fish_located.png", "03_Fish_Highlight_Frozen.png", "processing_card"),
     ("04_species_recognizing.png", "04_Fish_Identifying_Frozen.png", "processing_card"),
