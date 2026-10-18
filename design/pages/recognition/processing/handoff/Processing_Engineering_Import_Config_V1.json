@@ -10,7 +10,7 @@
     "authority_commit": "31d1483b83038db78821625cd9339ad0e8c19ff3",
     "handoff_pr": 166,
     "handoff_branch": "design/recognition-processing-handoff-p0",
-    "figma_write_status": "DEFERRED_UNTIL_NH01_UNIFIED_PLUGIN_VALIDATION",
+    "figma_write_status": "DEFERRED_UNTIL_NH01_UNIFIED_PLUGIN_PASSES_MINIMUM_IMPORT",
     "figma_node_ids": [],
     "frozen_pixel_diff": "NOT_RUN"
   },
@@ -112,7 +112,7 @@
     },
     {
       "path": "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
-      "blob_sha": "SOURCE_PATH_VERIFIED_BLOB_SHA_NOT_CAPTURED",
+      "blob_sha": "0474b69ff4947d6e7a673f352502a0657073f3ce",
       "role": "parent authority for quality/reduce-motion/degradation"
     },
     {
@@ -129,6 +129,21 @@
       "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
       "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
       "role": "quality/token/render behavior tests"
+    },
+    {
+      "path": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "blob_sha": "fdc8cb9642ededad4ea875b14223e00c5dcb7a6b",
+      "role": "shared component registry"
+    },
+    {
+      "path": "design/system/icon_library_v0_1/assets/ic_back_v1.svg",
+      "blob_sha": "1d9813c5f3262fba9599fb0ec9a772596d1a1d3f",
+      "role": "Layout Contract Back asset ref; SVG itself says candidate/not frozen"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
+      "blob_sha": "958ad857d44a31fa2d93094d28e43320efda7ec4",
+      "role": "V3.1 visual event/minimum controller test/source baseline"
     }
   ],
   "invariants": {
@@ -829,9 +844,7 @@
       "No Android runtime, Figma structure, export, Geometry/Glyph/Optical ROI or Pixel Diff was run."
     ]
   },
-  "pending_modules": [
-    "P5_COMPOSE_COMPONENT_DATA_BINDINGS"
-  ],
+  "pending_modules": [],
   "p2_fish_focus": {
     "status": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
     "visibility_gate": "Only OUTLINE / CLASSIFYING and only with a real detector focus bbox. Never synthesize focus from the photo, placeholder data or timer.",
@@ -1376,5 +1389,381 @@
         "execution": "SOURCE_REVIEWED_NOT_RUN"
       }
     }
-  }
+  },
+  "p5_compose_import_bindings": {
+    "status": "ENGINEERING_HANDOFF_READY_FOR_UNIFIED_IMPORTER_INPUT",
+    "figma_import": {
+      "importer_owner": "NH01 Work A unified importer",
+      "activation_gate": "NH01 unified plugin passes minimum import validation before Processing configuration is connected",
+      "target_page_logical_name": "RP01",
+      "existing_page_policy": "inspect existing RP01 before write; do not create a second RP01 page; if page cannot be found, stop and report without writing",
+      "logical_frames": [
+        "RP01/IMAGE_RECOGNIZING",
+        "RP01/FISH_LOCATED",
+        "RP01/SPECIES_RECOGNIZING"
+      ],
+      "frame_dimensions_px": null,
+      "dimension_rule": "derive from an existing reviewed RP01 frame or retained native design contract; do not infer editable Figma frame size from 941x1672 PNG pixels",
+      "stable_node_ids": [],
+      "node_id_policy": "real node IDs must be read from Figma after a real write; never synthesize IDs",
+      "reference_png_policy": "import or bind each retained Frozen PNG as a locked visual reference; build native editable reconstruction as a sibling group; never replace or edit original reference",
+      "required_capabilities": [
+        "Frame",
+        "Text",
+        "Path",
+        "Component",
+        "PNG import/reference binding"
+      ],
+      "non_destructive": true,
+      "idempotent": true,
+      "repeated_run_policy": "find logical keyed nodes in existing RP01 and update or reuse; never duplicate page, frame, component or source asset",
+      "destructive_delete": false,
+      "write_status": "DEFERRED",
+      "native_structure_gate": "NOT_PASS_PENDING_REAL_FIGMA_NODES"
+    },
+    "component_tree": [
+      {
+        "logical_id": "processing.page",
+        "role": "three-state Processing composition",
+        "android": "RecognitionProcessingScene",
+        "children": [
+          "photo.viewport",
+          "edge.field",
+          "fish.focus",
+          "status.card",
+          "navigation.back"
+        ]
+      },
+      {
+        "logical_id": "photo.viewport",
+        "role": "full-screen original-photo coordinate surface",
+        "android": [
+          "RecognitionPhoto",
+          "RecognitionSourcePhoto",
+          "RecognitionImageTransform",
+          "RecognitionMediaPlanner.planProcessing"
+        ],
+        "children": [
+          "photo.original",
+          "photo.decorative_fit_fill",
+          "edge.field",
+          "fish.focus"
+        ]
+      },
+      {
+        "logical_id": "photo.original",
+        "role": "opaque current user photo; frozen reference is separate",
+        "android": "SelectedImage.bitmap -> RecognitionSourcePhoto"
+      },
+      {
+        "logical_id": "photo.decorative_fit_fill",
+        "role": "same-source CROP underlay only when FIT letterbox exists; alpha 0.16",
+        "android": "RecognitionSourcePhoto with decorativeBackgroundTransform"
+      },
+      {
+        "logical_id": "edge.field",
+        "role": "AI_EDGE_FIELD_V1 local overlay on photoContentRect",
+        "android": "RecognitionAmbientField",
+        "children": [
+          "receiving.light",
+          "primary.paths",
+          "secondary.fragments",
+          "hairline.echoes",
+          "hot.nodes",
+          "sparse.particles"
+        ]
+      },
+      {
+        "logical_id": "fish.focus",
+        "role": "real bbox and mask dependent focus; only after detector focus",
+        "android": "RecognitionFishFocus",
+        "children": [
+          "bbox.halo",
+          "real.mask.contour",
+          "fallback.perimeter"
+        ]
+      },
+      {
+        "logical_id": "status.card",
+        "role": "glass + ring + title + subtitle; product-state keyed",
+        "android": "RecognitionStatusOverlay"
+      },
+      {
+        "logical_id": "navigation.back",
+        "role": "safe-area Back exit; no save",
+        "android": "RecognizingScreen IconButton",
+        "asset_ref": "system_icon_library_v0_1_assets_ic_back_v1_svg",
+        "asset_status": "candidate_not_frozen"
+      }
+    ],
+    "android_to_native_mapping": [
+      {
+        "figma_logical_component": "PhotoViewport",
+        "compose": "RecognitionPhoto/RecognitionSourcePhoto",
+        "source": [
+          "RecognitionImageTransform",
+          "RecognitionMediaPlanner.planProcessing"
+        ],
+        "coordinates": "full source FIT transform; crop underlay not used by overlays"
+      },
+      {
+        "figma_logical_component": "AI Edge Field V1",
+        "compose": "RecognitionAmbientField",
+        "source": [
+          "Static_Shape_Contract",
+          "Rendering_Contract",
+          "Motion_Contract"
+        ],
+        "geometry_source": "p1_edge_field.paths"
+      },
+      {
+        "figma_logical_component": "Fish Focus A/B/C",
+        "compose": "RecognitionFishFocus",
+        "source": [
+          "real focus bbox",
+          "FishSubjectResult mask alpha",
+          "extracted contour"
+        ],
+        "geometry_source": "p2_fish_focus"
+      },
+      {
+        "figma_logical_component": "RecognitionStatusCard",
+        "compose": "RecognitionStatusOverlay",
+        "source": [
+          "RecognitionProcessingVisualTokens",
+          "V3.1 Layout Contract",
+          "Frozen per-state copy"
+        ],
+        "copy_key": "product_state_id"
+      },
+      {
+        "figma_logical_component": "Processing Back",
+        "compose": "RecognizingScreen IconButton",
+        "source": [
+          "V3.1 Layout Contract",
+          "ic_back_v1.svg candidate"
+        ],
+        "touch_minimum_dp": 44
+      }
+    ],
+    "token_bindings": [
+      {
+        "token_id": "color.legacy_1a2c35ff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#1A2C35 @ alpha 0.85"
+      },
+      {
+        "token_id": "color.legacy_bfd0d7ff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#BFD0D7"
+      },
+      {
+        "token_id": "color.legacy_bfeaf2ff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#BFEAF2"
+      },
+      {
+        "token_id": "color.legacy_d8f5faff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#D8F5FA"
+      },
+      {
+        "token_id": "color.legacy_f6d99bff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#F6D99B"
+      },
+      {
+        "token_id": "color.legacy_ffe7aeff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#FFE7AE"
+      },
+      {
+        "token_id": "geometry.media.fit",
+        "path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+        "runtime": "FIT; full normalized source rect"
+      },
+      {
+        "token_id": "geometry.media.cover",
+        "path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+        "runtime": "CROP only as same-source decorative FIT-band fill"
+      },
+      {
+        "token_id": "touch.minimum",
+        "path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+        "runtime_minimum_dp": 44
+      },
+      {
+        "token_id": "type.title",
+        "path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "runtime": "20sp Medium per Processing visual contract"
+      },
+      {
+        "token_id": "type.body_small",
+        "path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "runtime": "14sp secondary"
+      }
+    ],
+    "image_bindings": {
+      "runtime_photo": {
+        "field": "recognition.normalized_image",
+        "android": "SelectedImage.bitmap",
+        "transform": "p1_photoviewport",
+        "required": true,
+        "fallback": "return to Capture; do not start detector"
+      },
+      "frozen_references": [
+        {
+          "state": "IMAGE_RECOGNIZING",
+          "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+          "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
+          "width": 941,
+          "height": 1672,
+          "mode": "import_or_external_reference_locked"
+        },
+        {
+          "state": "FISH_LOCATED",
+          "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+          "sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284",
+          "width": 941,
+          "height": 1672,
+          "mode": "import_or_external_reference_locked"
+        },
+        {
+          "state": "SPECIES_RECOGNIZING",
+          "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+          "sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+          "width": 941,
+          "height": 1672,
+          "mode": "import_or_external_reference_locked"
+        }
+      ],
+      "test_photo": {
+        "path": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg",
+        "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+        "bytes": 292222,
+        "role": "runtime/test fixture only",
+        "mask_or_bbox_binding": "none_trusted"
+      },
+      "back_icon": {
+        "path": "design/system/icon_library_v0_1/assets/ic_back_v1.svg",
+        "sha256": "1d9813c5f3262fba9599fb0ec9a772596d1a1d3f",
+        "status": "candidate_not_frozen",
+        "runtime_current": "Material AutoMirrored ArrowBack"
+      }
+    },
+    "data_bindings": [
+      {
+        "field": "recognition.normalized_image",
+        "type": "SelectedImage / opaque normalized photo",
+        "source": "Identify normalized-image handoff",
+        "required": true,
+        "android": "RecognizingScreen.image",
+        "fallback": "return to Capture",
+        "visual_rule": "original photo remains opaque and dominant"
+      },
+      {
+        "field": "recognition.pipeline_phase",
+        "type": "RecognitionPhase",
+        "source": "real RecognitionProgress.phase callback",
+        "required": true,
+        "android": "RecognitionVisualStateController.onPipelinePhase",
+        "fallback": "remain in current semantic stage",
+        "visual_rule": "internal phases map through p3 product-state table"
+      },
+      {
+        "field": "recognition.detector_outcome",
+        "type": "real detector assessment",
+        "source": "RecognitionProgress.assessment",
+        "required_to_leave": "DETECTING",
+        "android": "assessment.primary",
+        "fallback": "no fabricated candidate or focus"
+      },
+      {
+        "field": "recognition.focus_region",
+        "type": "NormalizedFishBox in source-photo coordinates",
+        "source": "real detector bbox",
+        "required_before": "Fish Focus",
+        "android": "RecognitionFishFocus.focusBox",
+        "fallback": "no focus if absent; B only when bbox exists and contour is unavailable"
+      },
+      {
+        "field": "recognition.subject_mask",
+        "type": "FishSubjectResult bitmap alpha",
+        "source": "generateSubject(SelectedImage,NormalizedFishBox)",
+        "required_for": "Level A contour",
+        "android": "extractContour(subjectBitmap)",
+        "fallback": "Level B; classifier semantics unchanged"
+      },
+      {
+        "field": "recognition.classifier_outcome",
+        "type": "ProductionRecognitionResult",
+        "source": "real classifier result",
+        "required_to_enter": "RESULT_READY",
+        "android": "RecognitionProcessingScene.finishedResult",
+        "fallback": "remain CLASSIFYING until event and min beat"
+      },
+      {
+        "field": "recognition.failure",
+        "type": "NO_FISH | IMAGE_QUALITY_WARNING | TECHNICAL_FAILURE",
+        "source": "existing real recovery route",
+        "required": true,
+        "visual_rule": "three failure classes remain distinct; Processing creates no record"
+      }
+    ],
+    "test_and_acceptance_bindings": [
+      {
+        "acceptance_id": "PROC-V-01",
+        "target": "original photo dominance, retained keyframes and optical layer order",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-V-02",
+        "target": "internal sequence maps into exactly three product visuals",
+        "execution": "SOURCE_CONTRACT_REVIEWED"
+      },
+      {
+        "acceptance_id": "PROC-V-03",
+        "target": "Frozen state copy and 14sp type.body_small",
+        "execution": "COPY_MISMATCH_REGISTERED; NOT_PASS"
+      },
+      {
+        "acceptance_id": "PROC-I-01",
+        "target": "220/320/350/250ms plus real events; no timer-only advance",
+        "execution": "SOURCE_TEST_EXISTS; NOT_RUN_HERE"
+      },
+      {
+        "acceptance_id": "PROC-I-02",
+        "target": "Back exits without saving; touch target >=44x44dp",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-I-03",
+        "target": "continuous motion and no phase reset",
+        "execution": "MOTION_GAP_RP-A11; NOT_PASS"
+      },
+      {
+        "acceptance_id": "PROC-A-01",
+        "target": "FULL/BALANCED/LITE, D0-D4, Reduce Motion preserve semantics",
+        "execution": "SOURCE_MAPPING_REVIEWED; RUNTIME_NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-A-02",
+        "target": "Back 44x44dp minimum",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-E-01",
+        "target": "No Fish / Image Quality / Technical Failure distinct exits",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-E-02",
+        "target": "network/model failure never relabeled",
+        "execution": "NOT_RUN"
+      }
+    ]
+  },
+  "engineering_handoff_status": "ENGINEERING_HANDOFF_READY",
+  "runtime_validation_status": "NOT_RUN",
+  "overall_m1_gate": "NOT_PASS_PENDING_REAL_FIGMA_NODES_EXPORT_AND_INDEPENDENT_QA"
 }
