@@ -51,3 +51,12 @@ The M1 integration branch is `work/m1-parallel-delivery-v1`; track worktrees are
 ## Release disposition
 
 `M1_RELEASE_PASS` is **not** supported at baseline. P0 gaps are listed in the register; the current main runtime jobs remain queued and all declared journey execution cases remain `NOT_RUN`.
+
+
+## Stage 0 P0 acceptance supplement
+
+The original baseline snapshot and its Stage 0 PASS remain historical. The current supplement checkpoint is REVIEW_REQUIRED. PR #163 was last remotely observed OPEN/DRAFT/UNMERGED at 81aefb1c0eae08df5ea6f451fc7c65be89a9c191. The six-layer branch Admission passed after private state restore at that audited SHA, and the initial missing-state failure remains preserved. The next candidate SHA still requires a refreshed private checkpoint and Admission run.
+
+C01 remains open: PR #162 holds the two-page guide change, while the PR #163 product guide at its audited remote head still uses three pages. Track C QA now expects P01/P02. C02 code and QA updates align to V3.1 statically; exact Runtime trace is absent and the V1.2 Resolve collision remains. C03 hosted API28 preflight and formal Runtime have not run. See M1_ACCEPTANCE_CONFLICT_REGISTER.json and M1_GAP_REGISTER.json.
+
+The M1 Design Authority Matrix and scope manifest have been reused in the candidate worktree. No PR is merged, no Frozen asset was modified, and no Release PASS is claimed. All three M1 tracks remain active.

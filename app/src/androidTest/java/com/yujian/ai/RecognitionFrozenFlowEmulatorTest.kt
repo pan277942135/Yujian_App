@@ -56,6 +56,7 @@ import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ai.RecognitionProgress
+import com.yujian.ai.ai.RecognitionRuntimeContract
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
@@ -175,7 +176,7 @@ class RecognitionFrozenFlowEmulatorTest {
     }
 
     @Test
-    fun generatesV31RecognitionScreenshotsAndExercisesProductionNavigation() {
+    fun generatesFrozenRecognitionScreenshotsAndExercisesProductionNavigation() {
         val state = mutableStateOf(FrozenState.IMAGE_RECOGNIZING_EARLY)
         val subject = createAnnotatedSubjectAlphaFixture(
             photo.bitmap,
@@ -862,6 +863,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val completedResult = AtomicReference<ProductionRecognitionResult?>(null)
         val fishFocusTransform = AtomicReference<RecognitionImageTransform?>(null)
         val pipelineTrace = Collections.synchronizedList(mutableListOf<String>())
+        val pipelineEvents = Collections.synchronizedList(mutableListOf<Pair<RecognitionPhase, Long>>())
         val visualTimes = Collections.synchronizedMap(LinkedHashMap<RecognitionPhase, Long>())
         val motionSamples = Collections.synchronizedList(mutableListOf<RecognitionMotionTraceSample>())
         val subjectEvidence = mutableStateOf<FishSubjectResult?>(null)
@@ -883,7 +885,9 @@ class RecognitionFrozenFlowEmulatorTest {
                         onBack = {},
                         recognize = { onProgress ->
                             pipeline.recognize(photo.bitmap) { progress ->
-                                val entry = "PIPELINE phase=${progress.phase} at=${SystemClock.elapsedRealtime()}"
+                                val eventAtMs = SystemClock.uptimeMillis()
+                                pipelineEvents += progress.phase to eventAtMs
+                                val entry = "PIPELINE phase=${progress.phase} at=$eventAtMs"
                                 pipelineTrace += entry
                                 trace(entry)
                                 onProgress(progress)
@@ -895,7 +899,7 @@ class RecognitionFrozenFlowEmulatorTest {
                             }
                         },
                         onFinished = { resultValue ->
-                            finishedAtMs = SystemClock.elapsedRealtime()
+                            finishedAtMs = SystemClock.uptimeMillis()
                             completedResult.set(resultValue)
                             completed.value = resultValue
                             trace("PRODUCTION_FLOW_FINISHED ready=${resultValue.ready} status=${resultValue.status}")
@@ -907,6 +911,10 @@ class RecognitionFrozenFlowEmulatorTest {
                             visualTimes.putIfAbsent(phase, atMs)
                             trace("VISUAL_PRESENTED phase=$phase at=$atMs")
                         },
+                        motionPolicyOverride = RecognitionMotionPolicy(
+                            reduceMotion = false,
+                            lowPerformance = false,
+                        ),
                         onMotionFrame = { sample -> motionSamples += sample },
                         onFishFocusTransform = { transform -> fishFocusTransform.set(transform) },
                     )
@@ -966,39 +974,54 @@ class RecognitionFrozenFlowEmulatorTest {
         val outlineMs = classifyingAt - outlineAt
         val classifyingMs = resultReadyAt - classifyingAt
         val totalMs = resultReadyAt - capturedAt
-        val fishFocusStableMs = classifyingMs
-        // These markers are delivered by separate Compose effects. Frame scheduling can
-        // make their observed interval shorter than the controller's exact minimum;
-        // controller unit tests assert the V3.1 event gates and 220/320/350/250ms beats.
-        val presentationTimestampToleranceMs = 50L
+        val traceSamples = motionSamples.toList()
+        val resolveFadeStartedAt = traceSamples.mapNotNull { it.resolveFadeStartedAtMs }.firstOrNull()
+        val resolveFadeFirstVisibleAt = traceSamples
+            .firstOrNull { it.phase == RecognitionPhase.CLASSIFYING && it.resolveStrength < 1f }
+            ?.uptimeMs
+        val resolveFadeObservedMs = resolveFadeStartedAt?.let { resultReadyAt - it }
+        val resolveFadeObservedMeetsMotionMin = resolveFadeObservedMs?.let {
+            it >= RecognitionRuntimeContract.RESOLVE_FADE_MS
+        } ?: false
+        val classifyingMotionSamples = traceSamples.filter { it.phase == RecognitionPhase.CLASSIFYING }
 
         assertTrue(
             "CAPTURED presentation interval was too short: ${capturedMs}ms",
-            capturedMs >= RecognitionVisualStateController.CAPTURED_MIN_MS - presentationTimestampToleranceMs,
+            capturedMs >= RecognitionVisualStateController.CAPTURED_MIN_MS,
         )
         assertTrue(
             "DETECTING presentation interval was too short: ${detectingMs}ms",
-            detectingMs >= RecognitionVisualStateController.DETECTING_MIN_MS - presentationTimestampToleranceMs,
+            detectingMs >= RecognitionVisualStateController.DETECTING_MIN_MS,
         )
         assertTrue(
             "OUTLINE presentation interval was too short: ${outlineMs}ms",
-            outlineMs >= RecognitionVisualStateController.OUTLINE_MIN_MS - presentationTimestampToleranceMs,
+            outlineMs >= RecognitionVisualStateController.OUTLINE_MIN_MS,
         )
         assertTrue(
             "CLASSIFYING beat was too short: ${classifyingMs}ms",
-            classifyingMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            classifyingMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS,
+        )
+        if (resolveFadeFirstVisibleAt != null && resolveFadeStartedAt != null) {
+            assertTrue(
+                "first faded frame preceded the scheduled Resolve onset",
+                resolveFadeFirstVisibleAt >= resolveFadeStartedAt,
+            )
+        }
+        assertTrue(
+            "OUTLINE ambient-field speed never reached its V1.2 target",
+            traceSamples.any { it.phase == RecognitionPhase.OUTLINE && kotlin.math.abs(it.segmentSpeed - .62f) <= .01f },
         )
         assertTrue(
-            "nominal presentation interval was too short: ${totalMs}ms",
-            totalMs >= RecognitionVisualStateController.CAPTURED_MIN_MS +
-                RecognitionVisualStateController.DETECTING_MIN_MS +
-                RecognitionVisualStateController.OUTLINE_MIN_MS +
-                RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            "CLASSIFYING ambient-field speed never reached its V1.2 target",
+            classifyingMotionSamples.any { kotlin.math.abs(it.segmentSpeed - .42f) <= .01f },
         )
+        assertTrue("CLASSIFYING contour motion was not traced", classifyingMotionSamples.isNotEmpty())
         assertTrue(
-            "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS -
-                presentationTimestampToleranceMs,
+            "CLASSIFYING contour core target escaped its visual-spec range",
+            classifyingMotionSamples.all { sample ->
+                val alpha = sample.contourCoreAlphaTarget
+                alpha != null && alpha >= .36f && alpha <= .42f
+            },
         )
 
         val primary = requireNotNull(result.assessment.primary)
@@ -1014,14 +1037,30 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         } ?: 0
         assertTrue("real-catch Level A fixture produced an empty contour", contourSegments > 0)
-        File(evidenceDir, "recognition_processing_timing_v3_1.txt").writeText(
-            "Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\n" +
-                "Runtime CAPTURED duration: ${capturedMs}ms\n" +
-                "Runtime DETECTING duration: ${detectingMs}ms\n" +
-                "Runtime OUTLINE duration: ${outlineMs}ms\n" +
-                "Runtime CLASSIFYING duration: ${classifyingMs}ms\n" +
-                "Runtime TOTAL duration: ${totalMs}ms\n" +
-                "Runtime FINAL FISH FOCUS STABLE duration: ${fishFocusStableMs}ms\n",
+        File(evidenceDir, "recognition_processing_timing.txt").writeText(
+            "contract_version=${RecognitionRuntimeContract.CONTRACT_VERSION}\n" +
+                "timing_authority=design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json\n" +
+                "timing_authority_sha256=fa4f9f7ea371dd46f8a92be8fc0398bee465c05356a8d1d5623a46120d07de02\n" +
+                "captured_min_ms=${RecognitionRuntimeContract.CAPTURED_MIN_MS}\n" +
+                "detecting_min_ms=${RecognitionRuntimeContract.DETECTING_MIN_MS}\n" +
+                "outline_min_ms=${RecognitionRuntimeContract.OUTLINE_MIN_MS}\n" +
+                "classifying_min_ms=${RecognitionRuntimeContract.CLASSIFYING_MIN_MS}\n" +
+                "captured_ms=${capturedMs}\n" +
+                "detecting_ms=${detectingMs}\n" +
+                "outline_ms=${outlineMs}\n" +
+                "classifying_ms=${classifyingMs}\n" +
+                "total_ms=${totalMs}\n" +
+                "result_ready_at_ms=${resultReadyAt}\n" +
+                "resolve_motion_authority=design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md\n" +
+                "resolve_motion_authority_sha256=00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c\n" +
+                "fish_focus_authority=design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md\n" +
+                "fish_focus_authority_sha256=d589fa88ace2c80df421614e435c439b760e87e6b65302c63eaa1ebba010bd3d\n" +
+                "resolve_fade_ms=${RecognitionRuntimeContract.RESOLVE_FADE_MS}\n" +
+                "classifying_breath_period_ms=${RecognitionRuntimeContract.CLASSIFYING_BREATH_PERIOD_MS}\n" +
+                "resolve_fade_started_at_ms=${resolveFadeStartedAt ?: "null"}\n" +
+                "resolve_fade_first_visible_at_ms=${resolveFadeFirstVisibleAt ?: "null"}\n" +
+                "resolve_fade_observed_ms=${resolveFadeObservedMs ?: "null"}\n" +
+                "resolve_fade_observed_meets_motion_min=$resolveFadeObservedMeetsMotionMin\n",
         )
         File(evidenceDir, "recognition_production_flow_trace.txt").writeText(
             pipelineTrace.joinToString("\n") + "\n" +
@@ -1038,9 +1077,9 @@ class RecognitionFrozenFlowEmulatorTest {
                 "RESULT species=${result.prediction?.top1?.speciesKey} confidence=${result.prediction?.top1?.confidence}\n" +
                 visualTimes.entries.joinToString("\n") { (phase, at) -> "VISUAL phase=$phase at=$at" } + "\n",
         )
-        File(evidenceDir, "recognition_motion_trace_v3_1.json").writeText(
-            motionSamples.toList().joinToString(
-                prefix = "{\"samples\":[",
+        File(evidenceDir, "recognition_motion_trace_m1_v3_1.json").writeText(
+            traceSamples.joinToString(
+                prefix = "{\"contract_version\":\"${RecognitionRuntimeContract.CONTRACT_VERSION}\",\"motion_authority\":\"design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md\",\"motion_authority_sha256\":\"00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c\",\"fish_focus_authority\":\"design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md\",\"fish_focus_authority_sha256\":\"d589fa88ace2c80df421614e435c439b760e87e6b65302c63eaa1ebba010bd3d\",\"samples\":[",
                 postfix = "]}\n",
                 separator = ",",
             ) { sample ->
@@ -1048,6 +1087,9 @@ class RecognitionFrozenFlowEmulatorTest {
                     "\"segment_offset\":${sample.segmentOffset},\"segment_speed\":${sample.segmentSpeed}," +
                     "\"state_strength\":${sample.stateStrength}," +
                     "\"detail_motion_time_ms\":${sample.detailMotionTimeMs}," +
+                    "\"resolve_strength\":${sample.resolveStrength}," +
+                    "\"resolve_fade_started_at_ms\":${sample.resolveFadeStartedAtMs ?: "null"}," +
+                    "\"contour_core_alpha_target\":${sample.contourCoreAlphaTarget ?: "null"}," +
                     "\"reduce_motion\":${sample.reduceMotion}," +
                     "\"quality\":\"${sample.qualityLevel}\"}"
             },
@@ -1062,11 +1104,28 @@ class RecognitionFrozenFlowEmulatorTest {
         val transform = requireNotNull(fishFocusTransform.get()) { "photo-to-screen transform was not captured" }
         val mappedRect = transform.mapBoxRect(primary.box)
         val cropPixelsJson = result.cropPixels?.joinToString(prefix = "[", postfix = "]") ?: "null"
-        File(evidenceDir, "recognition_production_flow_trace_v3_1.json").writeText(
-            "{\"contract_version\":\"recognition_processing_state_machine_v3_1\"," +
+        File(evidenceDir, "recognition_production_flow_trace_m1_v3_1.json").writeText(
+            "{\"contract_version\":\"${RecognitionRuntimeContract.CONTRACT_VERSION}\"," +
+                "\"timing_authority\":\"design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json\"," +
+                "\"timing_authority_sha256\":\"fa4f9f7ea371dd46f8a92be8fc0398bee465c05356a8d1d5623a46120d07de02\"," +
                 "\"visual_state_sequence\":[\"CAPTURED\",\"DETECTING\",\"OUTLINE\",\"CLASSIFYING\",\"RESULT_READY\"]," +
+                "\"minimum_durations_ms\":{\"CAPTURED\":${RecognitionRuntimeContract.CAPTURED_MIN_MS},\"DETECTING\":${RecognitionRuntimeContract.DETECTING_MIN_MS},\"OUTLINE\":${RecognitionRuntimeContract.OUTLINE_MIN_MS},\"CLASSIFYING\":${RecognitionRuntimeContract.CLASSIFYING_MIN_MS},\"RESULT_READY\":0}," +
+                "\"motion_authority\":\"design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md\"," +
+                "\"motion_authority_sha256\":\"00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c\"," +
+                "\"fish_focus_authority\":\"design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md\"," +
+                "\"fish_focus_authority_sha256\":\"d589fa88ace2c80df421614e435c439b760e87e6b65302c63eaa1ebba010bd3d\"," +
                 "\"pipeline_phases\":[${actualPipeline.joinToString(",") { "\"$it\"" }}]," +
                 "\"presentation_events\":[${presentationEvents.joinToString(",") { (state, at) -> "{\"state\":\"$state\",\"at_ms\":$at}" }}]," +
+                "\"pipeline_events\":[${pipelineEvents.toList().joinToString(",") { (phase, at) -> "{\"phase\":\"$phase\",\"at_ms\":$at}" }}]," +
+                "\"captured_ms\":$capturedMs,\"detecting_ms\":$detectingMs,\"outline_ms\":$outlineMs," +
+                "\"classifying_ms\":$classifyingMs,\"total_ms\":$totalMs," +
+                "\"classifying_breath_period_ms\":${RecognitionRuntimeContract.CLASSIFYING_BREATH_PERIOD_MS}," +
+                "\"result_ready_at_ms\":$resultReadyAt," +
+                "\"resolve_fade_ms\":${RecognitionRuntimeContract.RESOLVE_FADE_MS}," +
+                "\"resolve_fade_started_at_ms\":${resolveFadeStartedAt ?: "null"}," +
+                "\"resolve_fade_first_visible_at_ms\":${resolveFadeFirstVisibleAt ?: "null"}," +
+                "\"resolve_fade_observed_ms\":${resolveFadeObservedMs ?: "null"}," +
+                "\"resolve_fade_observed_meets_motion_min\":$resolveFadeObservedMeetsMotionMin," +
                 "\"result_ready\":${result.ready}," +
                 "\"source\":{\"width\":${photo.bitmap.width},\"height\":${photo.bitmap.height},\"orientation\":\"portrait\"}," +
                 "\"detector\":{\"model\":\"${result.detectorRun.modelVersion}\",\"detections\":${result.detectorRun.detections.size},\"confidence\":${primary.confidence}}," +

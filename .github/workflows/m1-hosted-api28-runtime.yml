@@ -1,0 +1,432 @@
+name: M1 Hosted API28 Runtime
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: m1-hosted-api28-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: false
+
+env:
+  YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+  YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+  YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+  M1_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  M1_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+
+jobs:
+  build-once:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.number == 163 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      model_id: ${{ steps.model_trace.outputs.model_id }}
+      app_apk_sha256: ${{ steps.apk_sha.outputs.app_apk_sha256 }}
+      test_apk_sha256: ${{ steps.apk_sha.outputs.test_apk_sha256 }}
+    steps:
+      - name: Checkout exact product source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.M1_SOURCE_SHA }}
+          fetch-depth: 0
+
+      - name: Enforce declared M1 scope and Frozen asset protection
+        env:
+          M1_BASE_SHA: ${{ env.M1_BASE_SHA }}
+        run: |
+          python3 scripts/test_validate_m1_scope.py
+          python3 scripts/validate_m1_scope.py --base-sha "$M1_BASE_SHA"
+
+      - name: Record source SHA
+        id: source
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$M1_SOURCE_SHA"
+          echo "source_sha=$actual" >> "$GITHUB_OUTPUT"
+          printf 'SOURCE_SHA=%s\n' "$actual" | tee build-source-provenance.txt
+
+      - name: Set up Python asset verification
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Pillow for design evidence validators
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Verify source-controlled runtime contracts
+        run: |
+          python3 scripts/verify_empty_home_runtime_v2.py
+          python3 scripts/verify_recognition_runtime_contract.py
+          python3 scripts/test_bootstrap_android_recognition_assets.py
+
+      - name: Record non-blocking Gate A authority findings
+        run: |
+          set +e
+          out=evidence/m1-gate-a
+          mkdir -p "$out"
+          python3 scripts/design/verify_page_contract_v3.py > "$out/page-contract-validator.log" 2>&1
+          page_rc=$?
+          python3 - "$out/gate-a-status.json" "$page_rc" <<'PY'
+          import json, pathlib, sys
+          path = pathlib.Path('design/pages/recognition/first_use_camera_guide/manifest.json')
+          manifest = json.loads(path.read_text())
+          active_pages = len(manifest.get('assets', []))
+          page_status = 'PASS' if sys.argv[2] == '0' else 'FAIL'
+          guide_status = 'PASS' if active_pages == 2 else 'REVIEW_REQUIRED'
+          pathlib.Path(sys.argv[1]).write_text(json.dumps({
+            'source_sha': '${{ env.M1_SOURCE_SHA }}',
+            'workflow_run_id': '${{ github.run_id }}',
+            'page_contract_validator': page_status,
+            'page_contract_validator_exit': int(sys.argv[2]),
+            'guide_active_page_count': active_pages,
+            'C01_guide_contract': guide_status,
+          }, indent=2) + '\n')
+          print(f"Gate A page contract={page_status}; C01 guide={guide_status}; active_pages={active_pages}")
+          PY
+
+      - name: Bootstrap production model and detector assets
+        env:
+          YUJIAN_GITHUB_TOKEN: ${{ github.token }}
+          YUJIAN_BUILD_SHA: ${{ env.M1_SOURCE_SHA }}
+        run: python3 scripts/bootstrap_android_recognition_assets.py
+
+      - name: Verify model snapshot source binding
+        id: model_trace
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib, re
+          contract = json.loads(pathlib.Path('app/src/main/assets/model_release_contract.json').read_text())
+          assert contract.get('build_sha') == '${{ env.M1_SOURCE_SHA }}', 'model snapshot SHA differs from product source'
+          model_id = str(contract.get('model_id') or '')
+          assert re.fullmatch(r'[A-Za-z0-9_.-]+', model_id), f'invalid model id: {model_id!r}'
+          print(f'model_id={model_id}')
+          print(f'model_sha256={contract["sha256"]}')
+          PY
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Record build toolchain
+        run: |
+          mkdir -p build/m1-runtime-apks
+          { java -version; gradle --version; } 2>&1 | tee build/m1-runtime-apks/toolchain.txt
+
+      - name: Resolve Android SDK build tools
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2"
+          echo "YUJIAN_AAPT2=$ANDROID_HOME/build-tools/35.0.0/aapt2" >> "$GITHUB_ENV"
+
+      - name: JVM tests and Android runtime harness contract tests
+        run: |
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" test --stacktrace --no-daemon --max-workers=2
+          bash scripts/android_runtime/tests/test_contract.sh
+
+      - name: Build one Debug APK and AndroidTest APK
+        run: |
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" \
+            :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
+
+      - name: Verify packaged APK and export model trace
+        run: |
+          python3 scripts/verify_packaged_android_apk.py
+          python3 scripts/export_apk_model_trace.py \
+            --apk app/build/outputs/apk/debug/app-debug.apk \
+            --output-dir build/m1-runtime-apks --build-sha "$M1_SOURCE_SHA"
+
+      - name: Record APK SHA-256 and exact provenance
+        id: apk_sha
+        run: |
+          set -euo pipefail
+          mkdir -p build/m1-runtime-apks
+          cp app/build/outputs/apk/debug/app-debug.apk build/m1-runtime-apks/
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk build/m1-runtime-apks/
+          (cd build/m1-runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk > SHA256SUMS)
+          app_sha="$(awk 'NR==1 {print $1}' build/m1-runtime-apks/SHA256SUMS)"
+          test_sha="$(awk 'NR==2 {print $1}' build/m1-runtime-apks/SHA256SUMS)"
+          echo "app_apk_sha256=$app_sha" >> "$GITHUB_OUTPUT"
+          echo "test_apk_sha256=$test_sha" >> "$GITHUB_OUTPUT"
+          APP_APK_SHA256="$app_sha" TEST_APK_SHA256="$test_sha" python3 - <<'PY'
+          import json, os, pathlib
+          out = pathlib.Path('build/m1-runtime-apks')
+          (out / 'm1_source_apk_manifest.json').write_text(json.dumps({
+            'source_sha': os.environ['M1_SOURCE_SHA'],
+            'workflow_run_id': os.environ['GITHUB_RUN_ID'],
+            'runner': os.environ['RUNNER_NAME'],
+            'app_apk_sha256': os.environ['APP_APK_SHA256'],
+            'android_test_apk_sha256': os.environ['TEST_APK_SHA256'],
+          }, indent=2) + '\n')
+          PY
+
+      - name: Upload Build Once APK pair and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-runtime-apks-${{ env.M1_SOURCE_SHA }}
+          path: |
+            build/m1-runtime-apks/**
+            build-source-provenance.txt
+            evidence/m1-gate-a/**
+          if-no-files-found: error
+          retention-days: 14
+
+  api28-preflight:
+    if: ${{ needs.build-once.result == 'success' }}
+    needs: [build-once]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact product source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-once.outputs.source_sha }}
+
+      - name: Download exact Build Once APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: m1-runtime-apks-${{ needs.build-once.outputs.source_sha }}
+          path: build/m1-runtime-apks
+
+      - name: Verify APK pair and KVM on GitHub-hosted runner
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ needs.build-once.outputs.source_sha }}"
+          test -c /dev/kvm -a -r /dev/kvm -a -w /dev/kvm
+          ls -l /dev/kvm | tee runner-kvm.txt
+          (cd build/m1-runtime-apks && sha256sum -c SHA256SUMS)
+          python3 - <<'PY'
+          import json, pathlib
+          p = pathlib.Path('build/m1-runtime-apks/m1_source_apk_manifest.json')
+          m = json.loads(p.read_text())
+          assert m['source_sha'] == '${{ needs.build-once.outputs.source_sha }}'
+          PY
+
+      - name: API28 Pixel 2 SDK / emulator / CameraX / instrumentation preflight
+        id: preflight
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -camera-back emulated -partition-size 4096
+          script: |
+            set -euo pipefail
+            out=evidence/m1-api28-preflight
+            mkdir -p "$out"
+            adb version > "$out/adb-version.txt"
+            emulator -version > "$out/emulator-version.txt" 2>&1
+            emulator -list-avds > "$out/avd-list.txt"
+            sdkmanager --list_installed > "$out/sdk-components.txt"
+            grep -q 'system-images;android-28;google_apis;x86_64' "$out/sdk-components.txt"
+            adb wait-for-device
+            sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+            test "$sdk" = "28"
+            adb devices -l > "$out/adb-devices.txt"
+            {
+              printf 'sdk=%s\n' "$sdk"
+              printf 'model=%s\n' "$(adb shell getprop ro.product.model | tr -d '\r')"
+              printf 'manufacturer=%s\n' "$(adb shell getprop ro.product.manufacturer | tr -d '\r')"
+              printf 'density=%s\n' "$(adb shell wm density | tr -d '\r')"
+            } > "$out/device-profile.txt"
+            adb shell wm size > "$out/wm-size.txt"
+            adb shell wm density > "$out/wm-density.txt"
+            adb shell dumpsys window displays | grep -E 'mCurrentFocus|mFocusedApp|mDisplayId|mDisplayInfo|InsetsState|DisplayFrames|DisplayCutout' > "$out/window-insets.txt" || true
+            adb shell service check media.camera | tr -d '\r' > "$out/camera-service-status.txt" || true
+            cat "$out/wm-size.txt"
+            grep -q 'Physical size: 1080x1920' "$out/wm-size.txt"
+            adb install -r -t build/m1-runtime-apks/app-debug.apk
+            adb install -r -t build/m1-runtime-apks/app-debug-androidTest.apk
+            adb shell pm path com.yujian.ai.uiv2 | tee "$out/app-install.txt"
+            adb shell pm path com.yujian.ai.uiv2.test | tee "$out/android-test-install.txt"
+            adb shell screencap -p /sdcard/m1-preflight-before.png
+            adb pull /sdcard/m1-preflight-before.png "$out/native-before.png"
+            API_LEVEL=28 BUILD_SHA='${{ needs.build-once.outputs.source_sha }}' \
+              EVIDENCE_DIR="$out/camera-runtime-v1" ADB=adb \
+              bash scripts/run_android_runtime_gate.sh \
+                --gate camera-runtime-v1 --api-level 28 \
+                --build-sha '${{ needs.build-once.outputs.source_sha }}' \
+                --app-apk build/m1-runtime-apks/app-debug.apk \
+                --test-apk build/m1-runtime-apks/app-debug-androidTest.apk \
+                --evidence-dir "$out/camera-runtime-v1"
+            adb shell screencap -p /sdcard/m1-preflight-after.png
+            adb pull /sdcard/m1-preflight-after.png "$out/native-after.png"
+            timeout 20s adb logcat -d -v threadtime 2>&1 |
+              grep -Ei 'RecognitionCameraCapture|CameraX|Camera2|CameraManager|CameraService|AndroidRuntime' |
+              tail -n 1200 > "$out/camera-runtime-log-filtered.txt" || true
+            printf 'PREFLIGHT_STATUS=PASS\nSOURCE_SHA=%s\nRUN_ID=%s\n' \
+              '${{ needs.build-once.outputs.source_sha }}' "$GITHUB_RUN_ID" | tee "$out/preflight_result.txt"
+
+      - name: Materialize BLOCKED_INFRA result if preflight job failed
+        if: ${{ always() && steps.preflight.outcome != 'success' }}
+        run: |
+          mkdir -p evidence/m1-api28-preflight
+          printf 'PREFLIGHT_STATUS=BLOCKED_INFRA\nSOURCE_SHA=%s\nRUN_ID=%s\n' \
+            '${{ needs.build-once.outputs.source_sha }}' "$GITHUB_RUN_ID" > evidence/m1-api28-preflight/preflight_result.txt
+          if [[ ! -e /dev/kvm ]]; then echo 'BLOCKER=KVM_UNAVAILABLE' >> evidence/m1-api28-preflight/preflight_result.txt; fi
+
+      - name: Upload API28 preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-api28-preflight-${{ needs.build-once.outputs.source_sha }}
+          path: |
+            evidence/m1-api28-preflight
+            runner-kvm.txt
+            build/m1-runtime-apks
+          if-no-files-found: warn
+          retention-days: 14
+
+  api28-runtime:
+    if: ${{ needs.api28-preflight.result == 'success' }}
+    needs: [build-once, api28-preflight]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        gate:
+          - recognition-frozen
+          - camera-runtime-v1
+          - empty-home-v2
+          - normal-home-v1
+          - login-v2
+          - data-sanitization
+          - fish-guide-v1
+    steps:
+      - name: Checkout exact product source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-once.outputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Download exact Build Once APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: m1-runtime-apks-${{ needs.build-once.outputs.source_sha }}
+          path: build/m1-runtime-apks
+
+      - name: Verify exact source and APK hashes
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ needs.build-once.outputs.source_sha }}"
+          (cd build/m1-runtime-apks && sha256sum -c SHA256SUMS)
+          mkdir -p "evidence/runtime/${{ matrix.gate }}"
+          cp build/m1-runtime-apks/m1_source_apk_manifest.json "evidence/runtime/${{ matrix.gate }}/"
+
+      - name: Install Runtime evidence dependencies
+        if: ${{ contains(fromJSON('["recognition-frozen","empty-home-v2","normal-home-v1","fish-guide-v1"]'), matrix.gate) }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m pip install --user --break-system-packages Pillow==11.3.0
+
+      - name: Run existing Android Runtime Harness on API28 Pixel 2
+        id: runtime
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          disable-animations: false
+          emulator-options: ${{ matrix.gate == 'camera-runtime-v1' && '-no-window -no-audio -no-boot-anim -camera-back emulated -partition-size 4096' || '-no-window -no-audio -no-boot-anim -camera-back none -partition-size 4096' }}
+          script: |
+            set -euo pipefail
+            out="evidence/runtime/${{ matrix.gate }}"
+            mkdir -p "$out/infra"
+            adb shell getprop ro.build.version.sdk | tee "$out/infra/api-level.txt"
+            adb shell wm size | tee "$out/infra/wm-size.txt"
+            adb shell wm density | tee "$out/infra/wm-density.txt"
+            adb shell dumpsys window displays > "$out/infra/window-insets.txt"
+            grep -q 'Physical size: 1080x1920' "$out/infra/wm-size.txt"
+            cp build/m1-runtime-apks/model_release_contract.json "$out/" 2>/dev/null || true
+            python3 scripts/export_apk_model_trace.py \
+              --apk build/m1-runtime-apks/app-debug.apk \
+              --output-dir "$out" --build-sha '${{ needs.build-once.outputs.source_sha }}'
+            bash scripts/run_android_runtime_gate.sh \
+              --gate '${{ matrix.gate }}' --api-level 28 \
+              --build-sha '${{ needs.build-once.outputs.source_sha }}' \
+              --app-apk build/m1-runtime-apks/app-debug.apk \
+              --test-apk build/m1-runtime-apks/app-debug-androidTest.apk \
+              --evidence-dir "$out"
+
+      - name: Record gate result when emulator action stops before harness
+        if: ${{ always() && steps.runtime.outcome != 'success' && !hashFiles(format('evidence/runtime/{0}/runtime_gate_result.json', matrix.gate)) }}
+        run: |
+          mkdir -p "evidence/runtime/${{ matrix.gate }}"
+          python3 scripts/android_runtime/result.py \
+            --output "evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json" \
+            --gate '${{ matrix.gate }}' --api-level 28 --build-sha '${{ needs.build-once.outputs.source_sha }}' \
+            --adb-state unknown --boot-completed unknown --data-free-kb '' \
+            --preflight FAIL --install NOT_RUN --instrumentation NOT_RUN --evidence NOT_RUN \
+            --classification BLOCKED_INFRA --failure-phase EMULATOR_RUNNER \
+            --failure-reason EMULATOR_RUNNER_FAILED_BEFORE_HARNESS
+
+      - name: Upload exact-SHA runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-runtime-${{ matrix.gate }}-${{ needs.build-once.outputs.source_sha }}
+          path: evidence/runtime/${{ matrix.gate }}
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce gate classification
+        if: always()
+        run: |
+          set -euo pipefail
+          result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
+          test -s "$result"
+          classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["classification"])' "$result")"
+          echo "${{ matrix.gate }}=$classification"
+          test "$classification" = PASS
+
+  runtime-not-run:
+    if: ${{ always() && needs.build-once.result == 'success' && needs.api28-preflight.result != 'success' }}
+    needs: [build-once, api28-preflight]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Record every formal Runtime gate as NOT_RUN
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/m1-runtime-not-run
+          python3 - <<'PY'
+          import json, os, pathlib
+          gates = ['recognition-frozen','camera-runtime-v1','empty-home-v2','normal-home-v1','login-v2','data-sanitization','fish-guide-v1']
+          payload = {
+            'source_sha': '${{ needs.build-once.outputs.source_sha }}',
+            'workflow_run_id': os.environ['GITHUB_RUN_ID'],
+            'preflight_status': 'BLOCKED_INFRA',
+            'formal_runtime_gates': {gate: 'NOT_RUN' for gate in gates},
+          }
+          pathlib.Path('evidence/m1-runtime-not-run/gate_statuses.json').write_text(json.dumps(payload, indent=2) + '\n')
+          PY
+
+      - name: Upload blocked Runtime gate status
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-runtime-not-run-${{ needs.build-once.outputs.source_sha }}
+          path: evidence/m1-runtime-not-run
+          if-no-files-found: error
+          retention-days: 14

@@ -13,6 +13,20 @@ import bootstrap_android_recognition_assets as bootstrap
 
 
 class BootstrapContractTest(unittest.TestCase):
+    def test_source_build_sha_prefers_explicit_product_commit(self) -> None:
+        with mock.patch.dict(
+            os.environ,
+            {"YUJIAN_BUILD_SHA": "product-head", "BUILD_SHA": "build-sha", "GITHUB_SHA": "merge-sha"},
+            clear=True,
+        ):
+            self.assertEqual(bootstrap.source_build_sha(), "product-head")
+        with mock.patch.dict(
+            os.environ,
+            {"BUILD_SHA": "build-sha", "GITHUB_SHA": "merge-sha"},
+            clear=True,
+        ):
+            self.assertEqual(bootstrap.source_build_sha(), "build-sha")
+
     def test_production_release_api_requests_use_workflow_token(self) -> None:
         with mock.patch.dict(os.environ, {"YUJIAN_GITHUB_TOKEN": "workflow-token"}):
             with mock.patch.object(bootstrap, "urlopen", return_value=io.BytesIO(b"{}")) as urlopen_mock:

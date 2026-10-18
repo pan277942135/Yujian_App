@@ -211,6 +211,8 @@ fun RecognitionProcessingScene(
     val visualClockMs = visualClockOverrideMs ?: visualNowMs
     val deterministicMotion = visualClockOverrideMs != null
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
+    val resolveStrength = if (phaseOverride != null) 1f else controller.resolveStrength(visualNowMs)
+    val resolveFadeStartedAtMs = if (phaseOverride != null) null else controller.resolveFadeStartAtMs()
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
@@ -253,7 +255,8 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
+            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, resolveStrength,
+            resolveFadeStartedAtMs, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
         )
         IconButton(
@@ -277,7 +280,8 @@ fun RecognitionProcessingScene(
                         rendered == RecognitionPhase.CAPTURED ||
                         rendered == RecognitionPhase.DETECTING
                     ) 84.dp else 34.dp,
-                ),
+                )
+                .graphicsLayer(alpha = resolveStrength),
             reduceMotion = motionPolicy.reduceMotion,
             visualClockMs = visualClockMs,
         )
@@ -288,7 +292,8 @@ private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
     deterministicMotion: Boolean, motionSessionKey: Any?,
-    phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
+    phaseElapsedMs: Long, resolveStrength: Float, resolveFadeStartedAtMs: Long?,
+    motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
@@ -326,17 +331,20 @@ private fun RecognitionPhoto(
         modifier = Modifier.fillMaxSize(),
     )
     RecognitionAmbientField(
-        phase, Modifier.fillMaxSize(), visualClockMs,
+        phase, Modifier.fillMaxSize().graphicsLayer(alpha = resolveStrength), visualClockMs,
         motionSessionKey = motionSessionKey,
         deterministicMotion = deterministicMotion,
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
+        resolveStrength = resolveStrength,
+        resolveFadeStartedAtMs = resolveFadeStartedAtMs,
         qualityLevel = motionPolicy.qualityLevel,
         onMotionFrame = onMotionFrame,
         photoTransform = transform,
     )
     RecognitionFishFocus(
-        phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
+        phase, focusBox, subjectBitmap, subjectBox, contour, transform,
+        Modifier.fillMaxSize().graphicsLayer(alpha = resolveStrength),
         visualClockMs, phaseElapsedMs,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,

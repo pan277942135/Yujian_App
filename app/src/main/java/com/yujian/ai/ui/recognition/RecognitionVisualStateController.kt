@@ -1,8 +1,9 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ai.RecognitionRuntimeContract
 
-/** V3.1 presentation state driven by pipeline events and minimum visual beats. */
+/** V3.1 minimum presentation beats gated by corresponding real pipeline events. */
 class RecognitionVisualStateController(
     private val minVisibleMs: Map<RecognitionPhase, Long> = DEFAULT_MIN_VISIBLE_MS,
 ) {
@@ -66,6 +67,23 @@ class RecognitionVisualStateController(
     fun phaseElapsedMs(nowMs: Long): Long =
         (nowMs - phaseStartedAtMs).coerceAtLeast(0L)
 
+    /** Applies the configured visual Resolve only when it fits inside CLASSIFYING's minimum beat. */
+    fun resolveStrength(nowMs: Long): Float {
+        val fadeStartAtMs = resolveFadeStartAtMs() ?: return 1f
+        val progress = ((nowMs - fadeStartAtMs).toFloat() / RESOLVE_FADE_MS)
+            .coerceIn(0f, 1f)
+        val remaining = 1f - progress
+        return remaining * remaining
+    }
+
+    /** A late real result must not delay the V3.1 handoff with an extra timed phase. */
+    fun resolveFadeStartAtMs(): Long? {
+        if (presented != RecognitionPhase.CLASSIFYING || resultReceivedAtMs == UNSET) return null
+        val latestFullFadeStartAtMs =
+            phaseStartedAtMs + minimum(RecognitionPhase.CLASSIFYING) - RESOLVE_FADE_MS
+        return latestFullFadeStartAtMs.takeIf { resultReceivedAtMs <= it }
+    }
+
     private fun canAdvance(nowMs: Long): Boolean {
         val elapsed = phaseElapsedMs(nowMs)
         if (elapsed < minimum(presented)) return false
@@ -91,10 +109,11 @@ class RecognitionVisualStateController(
     }
 
     companion object {
-        const val CAPTURED_MIN_MS = 220L
-        const val DETECTING_MIN_MS = 320L
-        const val OUTLINE_MIN_MS = 350L
-        const val CLASSIFYING_MIN_MS = 250L
+        const val CAPTURED_MIN_MS = RecognitionRuntimeContract.CAPTURED_MIN_MS
+        const val DETECTING_MIN_MS = RecognitionRuntimeContract.DETECTING_MIN_MS
+        const val OUTLINE_MIN_MS = RecognitionRuntimeContract.OUTLINE_MIN_MS
+        const val CLASSIFYING_MIN_MS = RecognitionRuntimeContract.CLASSIFYING_MIN_MS
+        const val RESOLVE_FADE_MS = RecognitionRuntimeContract.RESOLVE_FADE_MS
         private const val UNSET = Long.MIN_VALUE
 
         val DEFAULT_MIN_VISIBLE_MS = mapOf(

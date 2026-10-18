@@ -65,28 +65,46 @@ case "$1" in
       printf '{"apk_sha256":"%s"}\n' "${FAKE_APP_APK_SHA256:-}"
       exit 0
     fi
+    if [[ "$command_line" == *cache/recognition-first-use-camera-guide/P01_compose_component.png* ]]; then
+      cat "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../design/pages/recognition/first_use_camera_guide/frozen" && pwd)/P01_First_Use_Camera_Guide_Frozen.png"
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/recognition-first-use-camera-guide/P02_compose_component.png* ]]; then
+      cat "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../design/pages/recognition/first_use_camera_guide/frozen" && pwd)/P02_First_Use_Camera_Guide_Frozen.png"
+      exit 0
+    fi
     # This fake checks Harness classification and evidence-validator routing;
     # it does not claim to render application screenshots or validate video.
     fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"
-    if [[ "$command_line" == *recognition_motion_trace_v3_1.json* ]]; then
-      printf '{"samples":['
-      for index in $(seq 0 9); do
-        if (( index > 0 )); then printf ','; fi
-        phase=CAPTURED
-        (( index >= 2 )) && phase=DETECTING
-        (( index >= 4 )) && phase=OUTLINE
-        (( index >= 6 )) && phase=CLASSIFYING
-        printf '{"uptime_ms":%s,"phase":"%s","segment_offset":0.%s,"segment_speed":0.5,"state_strength":0.5,"detail_motion_time_ms":%s,"reduce_motion":false,"quality":"FULL"}' "$((1000 + index))" "$phase" "$index" "$((1000 + index))"
-      done
-      printf ']}\n'
+    if [[ "$command_line" == *recognition_motion_trace_m1_v3_1.json* ]]; then
+      printf '{"contract_version":"recognition_processing_state_machine_v3_1","motion_authority":"design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md","motion_authority_sha256":"00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c","samples":['
+      printf '{"uptime_ms":1000,"phase":"CAPTURED","segment_offset":0.1,"segment_speed":1.0,"state_strength":0.5,"detail_motion_time_ms":1000,"contour_core_alpha_target":null,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1100,"phase":"CAPTURED","segment_offset":0.2,"segment_speed":1.0,"state_strength":0.7,"detail_motion_time_ms":1100,"contour_core_alpha_target":null,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1200,"phase":"DETECTING","segment_offset":0.3,"segment_speed":1.0,"state_strength":0.7,"detail_motion_time_ms":1200,"contour_core_alpha_target":null,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1300,"phase":"DETECTING","segment_offset":0.4,"segment_speed":1.0,"state_strength":0.8,"detail_motion_time_ms":1300,"contour_core_alpha_target":null,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1400,"phase":"OUTLINE","segment_offset":0.5,"segment_speed":0.62,"state_strength":0.7,"detail_motion_time_ms":1400,"contour_core_alpha_target":null,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1500,"phase":"OUTLINE","segment_offset":0.6,"segment_speed":0.62,"state_strength":0.6,"detail_motion_time_ms":1500,"contour_core_alpha_target":null,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1600,"phase":"CLASSIFYING","segment_offset":0.7,"segment_speed":0.42,"state_strength":0.4,"detail_motion_time_ms":1600,"contour_core_alpha_target":0.4,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1700,"phase":"CLASSIFYING","segment_offset":0.8,"segment_speed":0.42,"state_strength":0.4,"detail_motion_time_ms":1700,"contour_core_alpha_target":0.4,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1800,"phase":"CLASSIFYING","segment_offset":0.9,"segment_speed":0.42,"state_strength":0.4,"detail_motion_time_ms":1800,"contour_core_alpha_target":0.4,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":1900,"phase":"CLASSIFYING","segment_offset":0.1,"segment_speed":0.42,"state_strength":0.4,"detail_motion_time_ms":1900,"contour_core_alpha_target":0.4,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"},'
+      printf '{"uptime_ms":2000,"phase":"CLASSIFYING","segment_offset":0.2,"segment_speed":0.42,"state_strength":0.4,"detail_motion_time_ms":2000,"contour_core_alpha_target":0.4,"resolve_strength":1.0,"resolve_fade_started_at_ms":null,"reduce_motion":false,"quality":"FULL"}]}'
       exit 0
     fi
-    if [[ "$command_line" == *recognition_production_flow_trace_v3_1.json* ]]; then
-      printf '{"contract_version":"recognition_processing_state_machine_v3_1","visual_state_sequence":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT_READY"],"pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"CAPTURED","at_ms":0},{"state":"DETECTING","at_ms":220},{"state":"OUTLINE","at_ms":540},{"state":"CLASSIFYING","at_ms":890},{"state":"RESULT_READY","at_ms":1140}],"result_ready":true,"source":{"width":1080,"height":1920},"quality_gate":{"classifier_eligible":true},"focus":{"level":"A"},"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+    if [[ "$command_line" == *recognition_production_flow_trace_m1_v3_1.json* ]]; then
+      detecting_at=1220
+      [[ "${FAKE_M1_SHORT_BEAT:-0}" != "1" ]] || detecting_at=1219
+      printf '{"contract_version":"recognition_processing_state_machine_v3_1","timing_authority":"design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json","timing_authority_sha256":"fa4f9f7ea371dd46f8a92be8fc0398bee465c05356a8d1d5623a46120d07de02","visual_state_sequence":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT_READY"],"minimum_durations_ms":{"CAPTURED":220,"DETECTING":320,"OUTLINE":350,"CLASSIFYING":250,"RESULT_READY":0},"motion_authority":"design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md","motion_authority_sha256":"00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c","pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"CAPTURED","at_ms":1000},{"state":"DETECTING","at_ms":%s},{"state":"OUTLINE","at_ms":1540},{"state":"CLASSIFYING","at_ms":1890},{"state":"RESULT_READY","at_ms":2140}],"pipeline_events":[{"phase":"CAPTURED","at_ms":990},{"phase":"DETECTING","at_ms":1190},{"phase":"OUTLINE","at_ms":1510},{"phase":"CLASSIFYING","at_ms":1800},{"phase":"RESULT","at_ms":2000}],"captured_ms":%s,"detecting_ms":320,"outline_ms":350,"classifying_ms":250,"total_ms":1140,"classifying_breath_period_ms":1900,"result_ready_at_ms":2140,"resolve_fade_ms":200,"resolve_fade_started_at_ms":null,"resolve_fade_first_visible_at_ms":null,"resolve_fade_observed_ms":null,"resolve_fade_observed_meets_motion_min":false,"result_ready":true,"source":{"width":1080,"height":1920},"quality_gate":{"classifier_eligible":true},"focus":{"level":"A"},"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n' "$detecting_at" "$((detecting_at - 1000))"
       exit 0
     fi
-    if [[ "$command_line" == *recognition_processing_timing_v3_1.txt* ]]; then
-      printf 'Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\nRuntime CAPTURED duration: 220ms\nRuntime DETECTING duration: 320ms\nRuntime OUTLINE duration: 350ms\nRuntime CLASSIFYING duration: 250ms\n'
+    if [[ "$command_line" == *recognition_processing_timing.txt* ]]; then
+      captured_ms=220
+      [[ "${FAKE_M1_SHORT_BEAT:-0}" != "1" ]] || captured_ms=219
+      printf 'contract_version=recognition_processing_state_machine_v3_1\ntiming_authority=design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json\ntiming_authority_sha256=fa4f9f7ea371dd46f8a92be8fc0398bee465c05356a8d1d5623a46120d07de02\ncaptured_min_ms=220\ndetecting_min_ms=320\noutline_min_ms=350\nclassifying_min_ms=250\ncaptured_ms=%s\ndetecting_ms=320\noutline_ms=350\nclassifying_ms=250\ntotal_ms=1140\nresult_ready_at_ms=2140\nresolve_motion_authority=design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md\nresolve_motion_authority_sha256=00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c\nresolve_fade_ms=200\nclassifying_breath_period_ms=1900\nresolve_fade_started_at_ms=null\nresolve_fade_first_visible_at_ms=null\nresolve_fade_observed_ms=null\nresolve_fade_observed_meets_motion_min=false\n' "$captured_ms"
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_production_flow_trace.txt* ]]; then
+      printf 'REAL_BBOX=0.1,0.1,0.8,0.9 confidence=0.95\nSUBJECT_STATUS=PASS\nSUBJECT_QUALITY=HIGH\nSUBJECT_MASK_AREA=0.5\nSUBJECT_WIDTH=300\nSUBJECT_HEIGHT=250\nCONTOUR_SEGMENTS=8\nFOCUS_RENDER_MODE=LEVEL_A\nLOW_PERFORMANCE=false\nREDUCE_MOTION=false\nRESULT species=black_bass confidence=0.9\n'
       exit 0
     fi
     if [[ "$command_line" == *recognition_visual_qa_v1_3.json* ]]; then
@@ -183,6 +201,11 @@ PY
       if [[ "$MODE" == "boot-timeout" ]]; then printf '0\n'; else printf '1\n'; fi
       exit 0
     fi
+    if [[ "$command_line" == *'getprop ro.product.model'* ]]; then printf 'Pixel 2\n'; exit 0; fi
+    if [[ "$command_line" == *'getprop qemu.avd_name'* ]]; then printf 'yujian-api28\n'; exit 0; fi
+    if [[ "$command_line" == *'settings get system font_scale'* ]]; then printf '1.0\n'; exit 0; fi
+    if [[ "$command_line" == *'wm size'* ]]; then printf 'Physical size: 1080x1920\nOverride size: 1080x1920\n'; exit 0; fi
+    if [[ "$command_line" == *'wm density'* ]]; then printf 'Physical density: 480\nOverride density: 480\n'; exit 0; fi
     if [[ "$command_line" == *'pm list packages'* || "$command_line" == *'cmd package list packages'* ]]; then
       printf 'package:com.example.fake\n'
       exit 0

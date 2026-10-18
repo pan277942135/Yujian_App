@@ -1,10 +1,12 @@
-# 渔见拍照识别主流程 · 66 条用例 + 10 条组合场景 V1
+# 渔见拍照识别主流程 · 66 条用例 + 10 条组合场景 V1.2.2
 
 **Status: REVIEW · Never claim executed PASS from catalog content.**
 
+**Revision 1.2.2:** The approved first-use guide has two active pages (P01/P02); M1 PROC-01–06 timing assertions follow the V3.1 State Machine: CAPTURED ≥220ms, DETECTING ≥320ms, OUTLINE ≥350ms, and CLASSIFYING ≥250ms, each gated by the corresponding real Pipeline event/focus/result. No fixed total or fast-result window is asserted. The 66 base cases and 10 E2E scenarios retain their counts and remain `NOT_RUN`.
+
 ## 统一边界与数据纪律
 
-- 主线仅 Empty Home → Permission → First-use P01/P02/P03 → CameraX → Detector/Crop/Classifier → Result → Return。不含 Normal Home Hero F01–F08、鱼获详情/B 面、云同步或模型训练。
+- 主线仅 Empty Home → Permission → First-use P01/P02 → CameraX → Detector/Crop/Classifier → Result → Return。不含 Normal Home Hero F01–F08、鱼获详情/B 面、云同步或模型训练。
 - 所有 66 条基础用例各绑定一个 `QA_RECOGNITION_001` 初始状态，并由 `test_users.json` 反向索引。4 个状态是 **同一个本地游客** 的预设，而非 4 个线上用户。
 - **设计状态** (`DRAFT`/`REVIEW`/`FROZEN`) 与 **执行状态** (`NOT_RUN`/`PASS`/`FAIL`/`BLOCKED`) 严格分离。当前全部 `NOT_RUN`；未来运行输出应在带 SHA 的独立执行报告，不能回写设计目录伪造 PASS。
 - 控制 Outcome 的 UI/状态机测试不得证明真实模型识别；真实端到端须保留 CameraX 原始 Trace、Pipeline 事件、设备信息、APK/source SHA、原生截图。
@@ -44,10 +46,10 @@
 | GUIDE-01 | 首次显示的触发条件 | P0 | GUIDE_PENDING | L3 | DRAFT |
 | GUIDE-02 | 默认 P01 | P0 | GUIDE_PENDING | L2 | DRAFT |
 | GUIDE-03 | P01 到 P02 | P0 | GUIDE_PENDING | L2 | DRAFT |
-| GUIDE-04 | P02 到 P03 | P0 | GUIDE_PENDING | L2 | DRAFT |
+| GUIDE-04 | P02 末页拍摄入口 | P0 | GUIDE_PENDING | L2 | DRAFT |
 | GUIDE-05 | 上一步回退 | P1 | GUIDE_PENDING | L2 | DRAFT |
 | GUIDE-06 | Pager 左右滑动 | P1 | GUIDE_PENDING | L2 | DRAFT |
-| GUIDE-07 | P03 开始拍摄 | P0 | GUIDE_PENDING | L2 | DRAFT |
+| GUIDE-07 | P02 开始拍摄 | P0 | GUIDE_PENDING | L2 | DRAFT |
 | GUIDE-08 | 跳过首用指引 | P0 | GUIDE_PENDING | L2 | DRAFT |
 | GUIDE-09 | Back 不误标完成 | P0 | GUIDE_PENDING | L2 | DRAFT |
 | GUIDE-10 | 底层快门/相册不可穿透 | P0 | GUIDE_PENDING | L2 | DRAFT |
@@ -101,7 +103,7 @@
 
 | ID | 场景 | 初始状态 | 执行模式 | 设计状态 |
 |---|---|---|---|---|
-| E2E-01 | 首次安装→权限→P01/P02/P03→真实拍照→真实结果→返回 | FIRST_USE | REAL_DEVICE | DRAFT |
+| E2E-01 | 首次安装→权限→P01/P02→真实拍照→真实结果→返回 | FIRST_USE | REAL_DEVICE | DRAFT |
 | E2E-02 | 返回用户不重复引导的完整复访流程 | RETURNING | REAL_DEVICE | DRAFT |
 | E2E-03 | 拒绝权限→设置恢复→拍照 | FIRST_USE | REAL_DEVICE | DRAFT |
 | E2E-04 | 首次引导跳过并拍照 | GUIDE_PENDING | REAL_DEVICE | DRAFT |
@@ -137,9 +139,13 @@
 ### 核查过的冻结边界
 
 - Capture 权限状态 `CAPTURE_PERMISSION_REQUIRED` / `CAPTURE_PERMISSION_DENIED` / `CAPTURE_READY` / `CAPTURE_ERROR`；相册入口不依赖相机权限。
-- First-use Guide：仅 Skip/P03 Start 写 completed=true；System Back 和其他 dismiss 不应误标完成。
-- Processing：CAPTURED≥220ms、DETECTING≥320ms、OUTLINE≥350ms、CLASSIFYING≥250ms；同时等待真实 Pipeline 事件，不能靠定时器伪造结果。
+- First-use Guide：仅 Skip/P02 Start 写 completed=true；System Back 和其他 dismiss 不应误标完成。
+- Processing（M1 V3.1 timing）：CAPTURED≥220ms、DETECTING≥320ms、OUTLINE≥350ms、CLASSIFYING≥250ms；每次状态推进都同时等待相应真实 Pipeline 事件、鱼体焦点或分类结果。无固定总时长、快速结果窗口、ETA 或自动推进。
 - Result：HIGH/MEDIUM/LOW 与 NO_FISH/IMAGE_QUALITY 分别验收；严重质量问题 INVALID 不等于技术故障 TECHNICAL_FAILURE。
+
+### 2026-10-18 M1 Processing timing authority
+
+M1 用例目录升至 1.2.2。依据 M1 最新批准的 `State_Machine_V3_1.json`，PROC-01–06 使用四个可见状态最短节拍 220/320/350/250ms，并且每次推进必须等待真实 Pipeline 事件、鱼体焦点或分类结果。不得声称固定总时长、快速结果区间或 ETA。`Recognition_Processing_Motion_Spec_V1_2.md` 的 200ms Resolve 与 V3.1 的 RESULT_READY 立即交接存在未解决冲突；Resolve 只作为诊断，M1 Release 保持 `REVIEW_REQUIRED`，直至该冲突获正式裁决。PROC-07 行为继续冻结，超时毫秒参数仍为 `BLOCKED_PARAMETER`，不得以动效时长代替推理超时。66 基础用例、10 E2E 场景数及所有执行状态保持不变。
 
 ## 可持续更新规范
 

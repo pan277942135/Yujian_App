@@ -255,7 +255,7 @@ jobs:
   android-runtime:
     if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || github.event_name == 'workflow_dispatch' }}
     needs: build
-    runs-on: [self-hosted, yujian-android, api28]
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -332,17 +332,38 @@ jobs:
           python3 -m pip install --user --break-system-packages Pillow
           python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
 
-      - name: Prepare GCP self-hosted Android runtime
+      - name: Start GitHub-hosted API28 Pixel 2 emulator
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          disable-animations: false
+          emulator-options: -no-window -no-audio -no-boot-anim -camera-back emulated -partition-size 4096
+          script: |
+            set -euo pipefail
+            api="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+            size="$(adb shell wm size | tr -d '\r')"
+            test "$api" = "28"
+            printf '%s\n' "$size" | grep -q 'Physical size: 1080x1920'
+            mkdir -p "evidence/runtime/${{ matrix.gate }}/infra"
+            printf 'API_LEVEL=%s\nAVD_PROFILE=Pixel_2\n%s\n' "$api" "$size" \
+              > "evidence/runtime/${{ matrix.gate }}/infra/hosted-preflight.txt"
+
+      - name: Prepare GitHub-hosted Android runtime
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         shell: bash
         run: |
           set -euo pipefail
-          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
-          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
           test -e /dev/kvm
 
-          adb=/opt/android-sdk/platform-tools/adb
-          emulator=/opt/android-sdk/emulator/emulator
+          adb=$ANDROID_HOME/platform-tools/adb
+          emulator=$ANDROID_HOME/emulator/emulator
           preflight_log="evidence/runtime/${{ matrix.gate }}/infra/workflow_preflight.log"
           emulator_log="evidence/runtime/${{ matrix.gate }}/infra/emulator.log"
           mkdir -p "$(dirname "$preflight_log")"
@@ -483,7 +504,7 @@ jobs:
         continue-on-error: true
         shell: bash
         env:
-          ADB: /opt/android-sdk/platform-tools/adb
+          ADB: adb
         run: |
           bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
 
@@ -537,7 +558,7 @@ jobs:
   normal-home-brand-title-validation:
     if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || (github.event_name == 'pull_request' && github.event.action != 'synchronize' && github.event.pull_request.head.ref == 'audit/design-system-v3-1-phase1-master-baseline') }}
     needs: build
-    runs-on: [self-hosted, yujian-android, api28]
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - name: Checkout
@@ -563,15 +584,32 @@ jobs:
           python3 -m pip install --user --break-system-packages Pillow
           python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
 
-      - name: Prepare API 28 self-hosted emulator
+      - name: Start GitHub-hosted API28 Pixel 2 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          disable-animations: false
+          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none -partition-size 4096
+          script: |
+            set -euo pipefail
+            api="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+            size="$(adb shell wm size | tr -d '\r')"
+            test "$api" = "28"
+            printf '%s\n' "$size" | grep -q 'Physical size: 1080x1920'
+
+      - name: Prepare GitHub-hosted emulator
         shell: bash
         run: |
           set -euo pipefail
-          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
-          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
           test -e /dev/kvm
-          adb=/opt/android-sdk/platform-tools/adb
-          emulator=/opt/android-sdk/emulator/emulator
+          adb=$ANDROID_HOME/platform-tools/adb
+          emulator=$ANDROID_HOME/emulator/emulator
           evidence="evidence/runtime/normal-home-brand-title-v1/infra"
           mkdir -p "$evidence"
           test -x "$adb"
@@ -623,7 +661,7 @@ jobs:
         id: validation
         continue-on-error: true
         env:
-          ADB: /opt/android-sdk/platform-tools/adb
+          ADB: adb
           APP_APK: build/runtime-apks/app-debug.apk
           TEST_APK: build/runtime-apks/app-debug-androidTest.apk
           API_LEVEL: '28'

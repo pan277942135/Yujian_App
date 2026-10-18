@@ -11,16 +11,20 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,6 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,6 +83,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -230,6 +236,10 @@ fun RecognitionResultScreen(
         else -> SpeciesSelectorEntryContext.EDIT_CONFIRMED
     }
     var editField by remember(prediction) { mutableStateOf<ResultEditableField?>(null) }
+    val lengthFieldFocusRequester = remember { FocusRequester() }
+    val weightFieldFocusRequester = remember { FocusRequester() }
+    val locationFieldFocusRequester = remember { FocusRequester() }
+    var focusReturnField by remember(prediction) { mutableStateOf<ResultEditableField?>(null) }
     var lengthText by rememberSaveable(prediction) { mutableStateOf("") }
     var weightText by rememberSaveable(prediction) { mutableStateOf("") }
     var locationText by rememberSaveable(prediction) { mutableStateOf("") }
@@ -247,6 +257,9 @@ fun RecognitionResultScreen(
     var locationError by remember(prediction) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val placeRecentStore = remember(context) { RecognitionPlaceRecentStore(context) }
     fun resolveCurrentLocation() {
         scope.launch {
@@ -286,6 +299,23 @@ fun RecognitionResultScreen(
             requestedSaveDestination = null
         }
     }
+    LaunchedEffect(editField) {
+        if (editField == null) {
+            val field = focusReturnField ?: return@LaunchedEffect
+            withFrameNanos { }
+            when (field) {
+                ResultEditableField.LENGTH -> lengthFieldFocusRequester.requestFocus()
+                ResultEditableField.WEIGHT -> weightFieldFocusRequester.requestFocus()
+                ResultEditableField.LOCATION -> locationFieldFocusRequester.requestFocus()
+            }
+            focusReturnField = null
+        }
+    }
+    fun openMetadataEditor(field: ResultEditableField) {
+        focusReturnField = field
+        editField = field
+    }
+
     val bbox = productionResult?.assessment?.primary?.box?.let {
         NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2)
     }
@@ -404,7 +434,14 @@ fun RecognitionResultScreen(
                 pendingSaveDestination = null
                 selectorVisible = false
             }
-            editField != null -> editField = null
+            editField != null -> {
+                if (imeVisible) {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                } else {
+                    editField = null
+                }
+            }
             purposeVisible -> purposeVisible = false
             saving || saveRequested -> Unit
             else -> requestExit(PendingExitAction.BACK)
@@ -460,7 +497,8 @@ fun RecognitionResultScreen(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                             enabled = !saveBusy,
-                            onField = { editField = it },
+                            focusRequesters = listOf(lengthFieldFocusRequester, weightFieldFocusRequester, locationFieldFocusRequester),
+                            onField = { openMetadataEditor(it) },
                         )
                         Spacer(Modifier.height(8.dp))
                         ResultMemoryNote(
@@ -525,7 +563,17 @@ fun RecognitionResultScreen(
                             Spacer(Modifier.height(12.dp))
                             SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saveBusy, onChange = { openSpeciesSelector() })
                             Spacer(Modifier.height(8.dp))
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
+                            ResultMetadataStrip(
+                                length = lengthText,
+                                weight = weightText,
+                                location = locationText,
+                                resolvingLocation = resolvingLocation,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                enabled = !saveBusy,
+                                focusRequesters = listOf(lengthFieldFocusRequester, weightFieldFocusRequester, locationFieldFocusRequester),
+                                onField = { openMetadataEditor(it) },
+                            )
                             Spacer(Modifier.height(12.dp))
                             ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                             Spacer(Modifier.height(16.dp))
@@ -573,7 +621,17 @@ fun RecognitionResultScreen(
                                 }
                             } else {
                                 SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saveBusy) { openSpeciesSelector() }
-                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
+                                ResultMetadataStrip(
+                                    length = lengthText,
+                                    weight = weightText,
+                                    location = locationText,
+                                    resolvingLocation = resolvingLocation,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                    enabled = !saveBusy,
+                                    focusRequesters = listOf(lengthFieldFocusRequester, weightFieldFocusRequester, locationFieldFocusRequester),
+                                    onField = { openMetadataEditor(it) },
+                                )
                                 ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                                 ResultInlineError(
                                     safeInlineErrorMessage,
@@ -623,12 +681,12 @@ fun RecognitionResultScreen(
             ResultEditableField.LENGTH -> ResultFieldEditorSheet(
                 title = "鱼获长度", label = "长度", unit = "cm", value = lengthText,
                 keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.length(it) },
-                onDismiss = { editField = null }, onSave = { lengthText = it; editField = null },
+                onDismiss = { editField = null }, onSave = { lengthText = it },
             )
             ResultEditableField.WEIGHT -> ResultFieldEditorSheet(
                 title = "鱼获重量", label = "重量", unit = "kg", value = weightText,
                 keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.weight(it) },
-                onDismiss = { editField = null }, onSave = { weightText = it; editField = null },
+                onDismiss = { editField = null }, onSave = { weightText = it },
             )
             ResultEditableField.LOCATION -> ResultLocationPickerSheet(
                 value = locationText,
@@ -639,9 +697,8 @@ fun RecognitionResultScreen(
                 onSelectPlace = { place ->
                     locationText = place.name.takeUnicodeCodePoints(40)
                     locationError = null
-                    editField = null
                 },
-                onClearLocation = { locationText = ""; locationError = null; editField = null },
+                onClearLocation = { locationText = ""; locationError = null },
                 onClearCurrentLocationError = { locationError = null },
             )
         }
@@ -853,6 +910,7 @@ private fun ResultMetadataStrip(
     modifier: Modifier,
     accessibilityFontScale: Boolean = false,
     enabled: Boolean = true,
+    focusRequesters: List<FocusRequester>,
     onField: (ResultEditableField) -> Unit,
 ) {
     ResultMetadataSurface(
@@ -862,9 +920,9 @@ private fun ResultMetadataStrip(
             Modifier.fillMaxWidth().padding(vertical = 2.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
-            CatchFactRow(Icons.Rounded.Straighten, "长度", if (length.isBlank()) "请输入" else "$length cm", enabled, accessibilityFontScale) { onField(ResultEditableField.LENGTH) }
-            CatchFactRow(Icons.Rounded.Scale, "重量", if (weight.isBlank()) "请输入" else "$weight kg", enabled, accessibilityFontScale) { onField(ResultEditableField.WEIGHT) }
-            CatchFactRow(Icons.Rounded.LocationOn, "地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "请选择" }, enabled, accessibilityFontScale) { onField(ResultEditableField.LOCATION) }
+            CatchFactRow(Icons.Rounded.Straighten, "长度", if (length.isBlank()) "请输入" else "$length cm", enabled, accessibilityFontScale, focusRequesters[0]) { onField(ResultEditableField.LENGTH) }
+            CatchFactRow(Icons.Rounded.Scale, "重量", if (weight.isBlank()) "请输入" else "$weight kg", enabled, accessibilityFontScale, focusRequesters[1]) { onField(ResultEditableField.WEIGHT) }
+            CatchFactRow(Icons.Rounded.LocationOn, "地点", if (resolvingLocation) "正在获取位置…" else location.ifBlank { "请选择" }, enabled, accessibilityFontScale, focusRequesters[2]) { onField(ResultEditableField.LOCATION) }
         }
     }
 }
@@ -950,12 +1008,15 @@ private fun CatchFactRow(
     value: String,
     enabled: Boolean,
     accessibilityFontScale: Boolean,
+    focusRequester: FocusRequester,
     onClick: () -> Unit,
 ) {
     Box(
         Modifier
             .fillMaxWidth()
             .heightIn(min = if (accessibilityFontScale) 68.dp else 48.dp)
+            .focusRequester(focusRequester)
+            .focusable(enabled = enabled)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 5.dp),
         contentAlignment = Alignment.CenterStart,
@@ -1331,23 +1392,77 @@ private fun ResultFieldEditorSheet(
     var text by remember(title, value) { mutableStateOf(initialValue) }
     var error by remember(title) { mutableStateOf<String?>(null) }
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val density = LocalDensity.current
+    val imeVisible = WindowInsets.ime.getBottom(density) > 0
+    val imeBottomDp = with(density) { WindowInsets.ime.getBottom(this).toDp() }
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+    val availableSheetHeight = (screenHeightDp - imeBottomDp - 24.dp).coerceAtLeast(180.dp)
     val focusRequester = remember(title) { FocusRequester() }
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var closeRequested by remember { mutableStateOf(false) }
+
+    fun closeSheet() {
+        if (closeRequested) return
+        closeRequested = true
+        keyboard?.hide()
+        focusManager.clearFocus()
+        scope.launch {
+            sheetState.hide()
+            onDismiss()
+        }
+    }
+
+    fun commit(value: String) {
+        onSave(value)
+        closeSheet()
+    }
+
     fun finishEditing() {
         val invalid = validation(text.text)
         if (invalid != null) {
             error = invalid
         } else {
-            onSave(text.text.trim())
-            keyboard?.hide()
+            commit(text.text.trim())
         }
     }
+
     LaunchedEffect(title) {
         delay(220L)
         focusRequester.requestFocus()
         keyboard?.show()
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    ModalBottomSheet(
+        modifier = Modifier.heightIn(max = availableSheetHeight),
+        onDismissRequest = {
+            if (!closeRequested) {
+                closeRequested = true
+                keyboard?.hide()
+                focusManager.clearFocus()
+                onDismiss()
+            }
+        },
+        sheetState = sheetState,
+    ) {
+        Column(
+            Modifier.fillMaxWidth()
+                .heightIn(max = availableSheetHeight)
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp)
+                .padding(top = 4.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            BackHandler(enabled = !closeRequested) {
+                if (imeVisible) {
+                    keyboard?.hide()
+                    focusManager.clearFocus()
+                } else {
+                    closeSheet()
+                }
+            }
             Text(title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = DeepInk, fontSize = 17.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
                 value = text, onValueChange = { next ->
@@ -1370,7 +1485,7 @@ private fun ResultFieldEditorSheet(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 if (initialValue.text.isNotBlank()) {
                     YuJianTextAction(
-                        text = "清除", onClick = { onSave(""); keyboard?.hide() },
+                        text = "清除", onClick = { commit("") },
                         role = YuJianTextActionRole.MUTED,
                     )
                 } else Spacer(Modifier.width(64.dp))

@@ -128,6 +128,9 @@ data class RecognitionMotionTraceSample(
     val segmentSpeed: Float,
     val stateStrength: Float,
     val detailMotionTimeMs: Long,
+    val resolveStrength: Float,
+    val resolveFadeStartedAtMs: Long?,
+    val contourCoreAlphaTarget: Float?,
     val reduceMotion: Boolean,
     val qualityLevel: RecognitionQualityLevel,
 )
@@ -281,6 +284,8 @@ fun RecognitionAmbientField(
     deterministicMotion: Boolean = visualClockMs != null,
     lowPerformance: Boolean = false,
     reduceMotion: Boolean = false,
+    resolveStrength: Float = 1f,
+    resolveFadeStartedAtMs: Long? = null,
     qualityLevel: RecognitionQualityLevel =
         if (lowPerformance) RecognitionQualityLevel.LITE else RecognitionQualityLevel.FULL,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
@@ -313,6 +318,13 @@ fun RecognitionAmbientField(
                     segmentSpeed = frame.segmentSpeed,
                     stateStrength = frame.stateStrength,
                     detailMotionTimeMs = frame.detailMotionTimeMs,
+                    resolveStrength = resolveStrength,
+                    resolveFadeStartedAtMs = resolveFadeStartedAtMs,
+                    contourCoreAlphaTarget = if (phase == RecognitionPhase.CLASSIFYING) {
+                        recognitionClassifyingContourCoreAlpha(nowMs, reduceMotion)
+                    } else {
+                        null
+                    },
                     reduceMotion = reduceMotion,
                     qualityLevel = qualityLevel,
                 ),
