@@ -25,7 +25,7 @@ Status: REVIEW_REQUIRED
 | Statistics Auto Layout | PASS | Horizontal layout, three statistic instances and two dividers |
 | Hero selection geometry | PASS | Selected instance 41:67 = 740 × 880; 32 px corner radius; pager clips three instances |
 | Main frame not a screenshot or PNG collage | PASS | It contains native frames, text, instances, vector, and slots; no full-page raster child |
-| Source image fills | BLOCKED | Image fill count is 0; original PNG bytes could not be carried from GitHub binary fetch into Figma upload in the available connector path |
+| Source image fills | PARTIAL (current readback unavailable) | One exact source image is imported: brand node 41:34 has an IMAGE fill (FIT); the background node 41:32 is still blocked. The current Figma browser page is unavailable, so no fresh readback/export was possible after the background upload failure. |
 | Independent QA | NOT_RUN | Structural self-audit was performed; a separate QA sign-off is still required |
 
 The page contains a component-source shelf at node 38:2 outside the exported frame. Exporting node 41:30 excludes that shelf.
@@ -36,9 +36,9 @@ The page contains a component-source shelf at node 38:2 outside the exported fra
 |---|---|---|---|
 | 41:30 | FRAME, 1080 × 1920 | Frozen NH01 reference canvas | NormalHomeContent in app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt |
 | 41:31 | FRAME, Environment | Environment/background binding | NormalHomeContent root/background layer |
-| 41:32 | FRAME/SLOT, empty | Morning Lake background source slot | NormalHomeContent runtime background binding |
+| 41:32 | FRAME/SLOT, last pre-attempt readback empty | Morning Lake background source slot | NormalHomeContent runtime background binding |
 | 41:33 | FRAME, Header | Header placement, brand and avatar anchors | NormalHomeHeader in NormalHomeContent.kt |
-| 41:34 | FRAME/SLOT, empty | Frozen brand artwork slot | NormalHomeHeader brand artwork |
+| 41:34 | FRAME, 155×80, IMAGE fill / FIT read back | Frozen brand artwork | NormalHomeHeader brand artwork |
 | 41:35 | FRAME/SLOT, empty | Avatar image slot | NormalHomeDefaultAvatar in NormalHomeContent.kt |
 | 41:36 | FRAME | Header avatar interaction target | NormalHomeHeader profile click target |
 | 41:37 | FRAME, Statistics | Statistics geometry and hierarchy | HomeStats in app/src/main/java/com/yujian/ai/ui/home/HomeStats.kt |
@@ -61,15 +61,15 @@ Frozen page reference: design/system/core_visual_v1/reference/normal_home_v1.png
 
 | Asset | GitHub source / hash | Figma state |
 |---|---|---|
-| Morning Lake background | design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png — SHA-256 5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7 | SLOT 41:32 empty; BLOCKED_ASSET_IMPORT |
-| Brand title | design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png — SHA-256 2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc | SLOT 41:34 empty; BLOCKED_ASSET_IMPORT |
-| Avatar master | design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png — SHA-256 12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643; runtime 3x export SHA-256 b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2 | SLOT 41:35 empty; BLOCKED_ASSET_IMPORT |
-| Normal Home camera artwork | design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png — SHA-256 fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2; shared master SHA-256 501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327 | Camera component source SLOT 38:27 empty; BLOCKED_ASSET_IMPORT |
+| Morning Lake background | design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png — SHA-256 5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7 | Node 41:32 was empty on last pre-attempt readback; raw upload returned HTTP 413. GitHub raw image is accessible in Chrome at the PR SHA, but Figma browser UI is unavailable and no image fill has been verified. BLOCKED_ENV / NOT_IMPORTED |
+| Brand title | design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png — SHA-256 2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc | Node 41:34 read back with IMAGE fill, scaleMode FIT. Figma internal imageHash `8d5ca69fee77b0e0e6589df6cd779701057373d5` is an internal identifier, not the source-file SHA-256. Visual export after import is still NOT_RUN. |
+| Avatar master | design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png — SHA-256 12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643; runtime 3x export SHA-256 b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2 | SLOT 41:35 empty; REVIEW_REQUIRED_AUTHORITY_CONFLICT (NH01-A07) |
+| Normal Home camera artwork | design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png — SHA-256 fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2; shared master SHA-256 501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327 | Camera component source SLOT 38:27 empty; not imported; Figma access blocked |
 | Hero photo fixture | design/pages/home/normal_home/engineering/hero_real_photo_fixture_register_v1.json | F03/F08 rights and provenance NOT_VERIFIED; BLOCKED_ASSET_SOURCE; no fish photo placed |
 | Hero shadow / gradient / outline | app/src/main/assets/normal_home_runtime_v1/fish_card/fish_card_shadow.png (blob 2a782f76a7880cf957b71ec718a0d260099e5f65); fish_card_gradient.png (blob b17776098b76ecc6ce7488fef70c6ad319d58a21); fish_card_outline.png (blob 6ca9464b44b5aadda2819bda74f1dc3244055815) | Runtime manifest has blob IDs only; no SHA-256 or Asset Registry row; BLOCKED_ASSET_HASH_AND_IMPORT |
 | Chevron | design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg — registry SHA-256 3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9; blob de1fe83bfed413ddac8895d9cf02f3d450908dde | Imported as editable vector nodes 41:53–41:55; registry says FROZEN while SVG comment says candidate/not frozen: REVIEW_REQUIRED |
 
-Binary import limitation: the GitHub file connector returns empty data for base64 PNG content and rejects binary blobs as non-UTF-8; the Figma upload operation requires raw bytes posted to a single-use URL. The available connector path did not provide a safe raw-byte transfer, so no image is represented as imported. This is a real blocker, not an asset-source or permission approval.
+Transfer and browser evidence (2026-10-18): the previous single-use raw upload URL for the background returned HTTP 413 (`Request Entity Too Large`, OpenResty); a separate consumed asset URL for the brand returned HTTP 405 (`Not Allowed`). Per the latest instruction, neither URL was retried or recreated. The exact GitHub raw background URL at source SHA `96d0fb96684973526285ec0ff373ab86a3620278` opens in Work Chrome as `Morning_Lake_Master_V1.png (941×1672)` and visually renders. The Figma file URL returns `Site Unavailable` / `Unable to access this site`; one reload produced the same page. Thus the Figma page, Fill panel, and OS file chooser were never reached. The GitHub `Download raw file` button was activated but did not expose a completion/path signal; Chrome's internal downloads URL was rejected by browser policy, so file presence and the local Downloads path remain unverified. No file chooser or browser upload permission prompt appeared; this is not evidence of a denied permission. The last known Figma browser UI edit state is unavailable. A prior successful Figma connector write path used `figma.createImage(bytes)` to import the brand into node 41:34 and read back an IMAGE fill. That is the next proven transport once the connector's current Starter-plan tool-call limit is available again. Do not treat Figma's internal imageHash as source SHA-256.
 
 ## Tokens, typography, and component bindings
 
@@ -103,9 +103,9 @@ Text style node IDs:
 
 ## Frozen comparison and evidence
 
-- Figma export node: 41:30; 1080 × 1920 PNG; SHA-256 e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e; committed as a structure-only preview.
-- Preview shows a transparent/empty canvas with only text and divider geometry visible; brand, background, avatar, camera artwork, and Hero photos are missing. The filename explicitly says STRUCTURE_ONLY_NOT_VISUAL_PASS.
-- Geometry: PARTIAL_PASS at node frame/selected-card contract dimensions. The unavailable original fills prevent region-level geometry attribution.
+- Historical Figma export node: 41:30; 1080 × 1920 PNG; SHA-256 e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e; exported before the brand import and committed as a structure-only preview.
+- That historical preview shows the pre-import structure-only state. It is not evidence of the current Figma render. A fresh export after the brand import and background attempt is unavailable because Figma cannot be opened in the Work browser and Figma connector calls are at the Starter-plan limit.
+- Historical structural node geometry: PARTIAL_PASS at frame/selected-card contract dimensions. Current visual geometry has not been run on a post-import export; unavailable fills prevent region-level attribution.
 - Glyph, ROI Pixel Diff, color, crop, and motion comparison: BLOCKED / NOT_RUN. No project threshold was relaxed and no pixel-diff PASS is claimed.
 - Runtime motion, Android screenshots, Android boundsInWindow, Pixel Diff against Android, and Android Runtime: NOT_RUN in this Figma-only handoff.
 - Frozen visual authority SHA is recorded above; design contracts consulted:
@@ -122,7 +122,7 @@ Text style node IDs:
 
 | ID | Priority | Gap | State | Acceptance to close |
 |---|---|---|---|---|
-| NH01-A01 | P0 | Frozen source raster assets not imported into actual Figma image fills | BLOCKED_ASSET_IMPORT | Transfer canonical source bytes through a supported authorized route; verify source SHA and target node fill readback |
+| NH01-A01 | P0 | Background source raster not imported into target Figma fill | BLOCKED_ENV | Restore Figma browser/connector availability; import exact PNG bytes into 41:32; read back IMAGE fill and verify render/export. Brand is already present at 41:34 but still needs fresh visual export verification. |
 | NH01-A02 | P0 | No authorized real Hero photo fixture available for use | BLOCKED_ASSET_SOURCE | Approve a fixture with provenance and usage rights, or keep dynamic photo behavior outside static visual diff |
 | NH01-A03 | P0 | No Frozen-vs-Figma ROI/glyph/pixel comparison; independent QA not run | NOT_RUN | Re-export after asset import, run existing acceptance thresholds, attach independent QA result |
 | NH01-A04 | P1 | CTA size and camera Y differ between layout contract and Compose source | REVIEW_REQUIRED | Contract owner reconciles the existing authority conflict and records approved values; then update Figma/Compose consistently |
@@ -133,4 +133,4 @@ Text style node IDs:
 
 NH01_FIGMA_STRUCTURAL_HANDOFF = REVIEW_REQUIRED
 
-Structural Figma content exists and is editable. It is not high-fidelity visual PASS and not Android Runtime PASS because the original image assets were not placed, the photo source is not approved, visual diff is blocked, and independent QA has not signed off. Master Board was preserved. No Frozen image or main branch was modified.
+Structural Figma content exists and is editable. The exact brand image fill is present at node 41:34, but the background remains unimported and the brand has no post-import visual export. This is not a high-fidelity visual PASS or Android Runtime PASS: the Hero photo source is not approved, visual diff is blocked, and independent QA has not signed off. Master Board was preserved. No Frozen image or main branch was modified.

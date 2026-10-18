@@ -66,7 +66,7 @@
       }
     ],
     "nativeTextNodeCount": 18,
-    "imageFillCount": 0,
+    "imageFillCount": 1,
     "frameSizePass": true,
     "statsAutoLayout": true,
     "pagerClipsThreeInstances": true,
@@ -87,7 +87,9 @@
       "width": 1080,
       "height": 1920,
       "file": "release/design_manager/NH01_Figma_1080x1920_STRUCTURE_ONLY_NOT_VISUAL_PASS.png",
-      "sha256": "e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e"
+      "sha256": "e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e",
+      "capturedBeforeBrandImport": true,
+      "isCurrentVisualEvidence": false
     },
     "verifiedGeometryAnchors": [
       {
@@ -147,6 +149,18 @@
         "composeY": 1583,
         "layoutContractY": 1564,
         "status": "REVIEW_REQUIRED"
+      }
+    ],
+    "verifiedImageFills": [
+      {
+        "nodeId": "41:34",
+        "name": "Brand Artwork / brand_title_primary.png / FROZEN_IMPORTED",
+        "fillType": "IMAGE",
+        "scaleMode": "FIT",
+        "sourcePath": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "sourceSha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "figmaInternalImageHash": "8d5ca69fee77b0e0e6589df6cd779701057373d5",
+        "visualExportAfterImport": "NOT_RUN"
       }
     ]
   },
@@ -271,21 +285,27 @@
       "componentNode": null,
       "contract": "Morning Lake background source",
       "compose": "NormalHomeContent runtime assets background layer",
-      "sourceStatus": "BLOCKED_ASSET_IMPORT"
+      "sourceStatus": "BLOCKED_ENV_NOT_IMPORTED",
+      "lastKnownNodeState": "empty on last successful readback before browser-native attempt; latest readback unavailable"
     },
     {
       "figmaNode": "41:34",
       "componentNode": null,
       "contract": "Frozen brand title source",
       "compose": "NormalHomeHeader brand image",
-      "sourceStatus": "BLOCKED_ASSET_IMPORT"
+      "sourceStatus": "IMAGE_FILL_READBACK_CONFIRMED",
+      "fillType": "IMAGE",
+      "scaleMode": "FIT",
+      "sourceSha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "figmaInternalImageHash": "8d5ca69fee77b0e0e6589df6cd779701057373d5",
+      "visualExportAfterImport": "NOT_RUN"
     },
     {
       "figmaNode": "41:35",
       "componentNode": null,
       "contract": "Avatar master and runtime 3x export",
       "compose": "NormalHomeDefaultAvatar",
-      "sourceStatus": "BLOCKED_ASSET_IMPORT"
+      "sourceStatus": "REVIEW_REQUIRED_AUTHORITY_CONFLICT"
     }
   ],
   "tokens": {
@@ -356,14 +376,26 @@
       "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
       "nodeId": "41:32",
-      "state": "BLOCKED_ASSET_IMPORT"
+      "state": "BLOCKED_ENV_NOT_IMPORTED",
+      "evidence": {
+        "sourceAccessibleInWorkChrome": true,
+        "sourcePageTitle": "Morning_Lake_Master_V1.png (941×1672)",
+        "figmaNodeLastReadback": "empty before browser-native import attempt",
+        "rawUploadResponse": "HTTP 413 Request Entity Too Large (OpenResty)",
+        "figmaBrowser": "Site Unavailable / Unable to access this site",
+        "browserFileChooser": "NOT_REACHED",
+        "postAttemptFigmaReadback": "UNAVAILABLE"
+      }
     },
     {
       "name": "Brand title",
       "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
       "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
       "nodeId": "41:34",
-      "state": "BLOCKED_ASSET_IMPORT"
+      "state": "IMAGE_FILL_READBACK_CONFIRMED_VISUAL_EXPORT_NOT_RUN",
+      "figmaInternalImageHash": "8d5ca69fee77b0e0e6589df6cd779701057373d5",
+      "fillType": "IMAGE",
+      "scaleMode": "FIT"
     },
     {
       "name": "Avatar master",
@@ -371,19 +403,19 @@
       "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
       "runtime3xSha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2",
       "nodeId": "41:35",
-      "state": "BLOCKED_ASSET_IMPORT"
+      "state": "BLOCKED_AUTHORITY_CONFLICT_NOT_IMPORTED"
     },
     {
       "name": "Normal Home camera derivative",
       "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
       "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
-      "state": "BLOCKED_ASSET_IMPORT"
+      "state": "BLOCKED_ENV_NOT_IMPORTED"
     },
     {
       "name": "Shared camera master",
       "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
       "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
-      "state": "BLOCKED_ASSET_IMPORT"
+      "state": "BLOCKED_ENV_NOT_IMPORTED"
     },
     {
       "name": "Hero fixture register",
@@ -425,19 +457,23 @@
       "sha256": "e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e",
       "path": "release/design_manager/NH01_Figma_1080x1920_STRUCTURE_ONLY_NOT_VISUAL_PASS.png"
     },
-    "geometry": "PARTIAL_PASS",
-    "glyph": "BLOCKED_FONT_AND_MISSING_ASSETS",
-    "roiPixelDiff": "BLOCKED_MISSING_ASSETS",
+    "geometry": "NOT_RUN_ON_CURRENT_EXPORT",
+    "glyph": "NOT_RUN_ON_CURRENT_EXPORT",
+    "roiPixelDiff": "NOT_RUN_NO_CURRENT_EXPORT",
     "motion": "NOT_RUN",
     "androidRuntime": "NOT_RUN",
-    "independentQa": "NOT_RUN"
+    "independentQa": "NOT_RUN",
+    "historicalExportOnly": true,
+    "freshExportAfterBrandImport": "NOT_AVAILABLE_FIGMA_BROWSER_AND_CONNECTOR_LIMIT",
+    "historicalGeometry": "PARTIAL_PASS_FROM_PRE_IMPORT_STRUCTURAL_READBACK"
   },
   "conflicts": [
     {
       "id": "NH01-A01",
       "priority": "P0",
-      "status": "BLOCKED_ASSET_IMPORT",
-      "acceptance": "Import original canonical image bytes and verify target fills/source hashes"
+      "status": "BLOCKED_ENV",
+      "acceptance": "Import the original Morning Lake PNG into 41:32 using the proven figma.createImage(bytes) route when the connector quota is available or browser native Fill upload when Figma UI is accessible; verify IMAGE fill, render, export, and source SHA.",
+      "detail": "Background node 41:32 not imported; browser Figma URL unavailable, single-use raw upload returned HTTP 413, and no post-attempt readback is available. Brand node 41:34 has a confirmed IMAGE fill."
     },
     {
       "id": "NH01-A02",
@@ -448,8 +484,9 @@
     {
       "id": "NH01-A03",
       "priority": "P0",
-      "status": "NOT_RUN",
-      "acceptance": "Existing Geometry/Glyph/ROI thresholds plus independent QA evidence"
+      "status": "BLOCKED_ENV",
+      "acceptance": "Export the current 1080x1920 page and run existing Geometry/Glyph/ROI thresholds; obtain independent QA review.",
+      "detail": "No current export after the exact brand image fill readback; browser Figma unavailable and connector limit reached."
     },
     {
       "id": "NH01-A04",
@@ -468,7 +505,33 @@
       "priority": "P1",
       "status": "REVIEW_REQUIRED",
       "detail": "Chevron registry FROZEN conflicts with SVG candidate comment and Android drawable mapping"
+    },
+    {
+      "id": "NH01-A07",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Home V2 fallback vs NH07 staged supersession and Resource Binding default conflict; Frozen sample contains an unregistered remote personal avatar with no separately authorized source.",
+      "acceptance": "Resolve the effective signed-in avatar authority and the dynamic-photo comparison treatment; preserve Guest avatar as a separate state."
     }
   ],
-  "overall": "NH01_FIGMA_STRUCTURAL_HANDOFF=REVIEW_REQUIRED"
+  "overall": "NH01_FIGMA_STRUCTURAL_HANDOFF=REVIEW_REQUIRED",
+  "browserTransferEvidence": {
+    "observedAt": "2026-10-18",
+    "browser": "Work Chrome (CDP, browser id 1)",
+    "sourceUrl": "https://raw.githubusercontent.com/pan277942135/Yujian_App/96d0fb96684973526285ec0ff373ab86a3620278/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "sourceAccessible": true,
+    "sourceRendered": true,
+    "sourcePageTitle": "Morning_Lake_Master_V1.png (941×1672)",
+    "figmaUrl": "https://www.figma.com/design/VjN7iFviVN9aKeLv8kJivM/Recognition-Main-Journey-Master-Board-V1?node-id=41-30",
+    "figmaPageTitle": "Site Unavailable",
+    "figmaPageMessage": "Unable to access this site.",
+    "reloadAttempt": "same error",
+    "fileChooser": "NOT_REACHED",
+    "localDownloadsPath": "NOT_VERIFIED; no native chooser or completed browser download",
+    "browserPermissionPrompt": "NONE_OBSERVED",
+    "figmaMcpState": "Starter plan tool-call limit reached; no paid upgrade attempted",
+    "rawUploadEndpoint": "HTTP 413 Request Entity Too Large (OpenResty); do not retry consumed URL",
+    "brandUploadEndpoint": "HTTP 405 Not Allowed (OpenResty); do not retry consumed URL",
+    "nextProvenRoute": "Use Figma connector figma.createImage(bytes) after call quota is available; this route previously imported exact brand PNG bytes into node 41:34 and read back IMAGE/FIT."
+  }
 }
