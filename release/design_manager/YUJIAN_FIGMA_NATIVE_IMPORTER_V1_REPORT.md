@@ -18,7 +18,7 @@ Status: `PLUGIN_PACKAGE = PASS` (local static and automated verification); `FIGM
 - Source PNG dimensions: 941 × 1672
 - Expected fill: `IMAGE`, `FIT`
 - ZIP: `release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip`
-- ZIP SHA-256: `f4a97f18b43ce8c5447a25ebee746182ef85bddc0f05ea085d4db8d620d26ca6`
+- ZIP SHA-256: `900df34017fca923827e60ae8f1578ebaaa54a1d8af7b62e7234bf87dd783855`
 
 ## Implemented behavior
 
@@ -52,3 +52,4 @@ Actual Figma Desktop execution was not available to this Work run. Therefore the
 After the user runs the development plugin in Figma Desktop, capture the plugin's source SHA, `nodeId`, `scaleMode`, and Figma `imageHash` separately; verify the rendered canvas; export frame `41:30`; then run the existing project Frozen visual acceptance checks. Keep `NH01_FIGMA_STRUCTURAL_HANDOFF = REVIEW_REQUIRED` until those checks and independent QA close.
 
 Other existing NH01 closure items remain unchanged: Avatar Authority conflict, camera artwork import, authorized Hero photo provenance, and existing typography/anchor/chevron authority questions. This plugin does not resolve them.
+4517262 release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip
