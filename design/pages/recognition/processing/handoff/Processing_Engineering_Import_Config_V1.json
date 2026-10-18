@@ -1,0 +1,691 @@
+{
+  "schema_version": "1.0",
+  "artifact_id": "recognition.processing.engineering_handoff",
+  "artifact_role": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
+  "status": "IN_PROGRESS_P1_PHOTOVIEWPORT_EDGE_FIELD",
+  "purpose": "Structured input for NH01 unified Figma importer and Android engineering handoff; source contracts remain authoritative.",
+  "source_snapshot": {
+    "repository": "pan277942135/Yujian_App",
+    "authority_branch": "design/processing-remove-early-visual-v1",
+    "authority_commit": "31d1483b83038db78821625cd9339ad0e8c19ff3",
+    "handoff_pr": 166,
+    "handoff_branch": "design/recognition-processing-handoff-p0",
+    "figma_write_status": "DEFERRED_UNTIL_NH01_UNIFIED_PLUGIN_VALIDATION",
+    "figma_node_ids": [],
+    "frozen_pixel_diff": "NOT_RUN"
+  },
+  "sources": [
+    {
+      "path": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",
+      "blob_sha": "06e34a28a94e235d43cd7ca84f339e7ebcc6518d",
+      "role": "three product states and Frozen image manifest"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
+      "blob_sha": "0be6a1685a91c0cb4940080b845ad6f7b4a3bf4c",
+      "role": "internal event phases and minimum beats"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json",
+      "blob_sha": "a46e0cecf561282ec5484745a6cd5e7063e4bb77",
+      "role": "components, tokens, assets, page mapping"
+    },
+    {
+      "path": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
+      "blob_sha": "e1d9f71bc97708b0ba877b11561f363a83ec6c6e",
+      "role": "frozen path topology and optical constraints"
+    },
+    {
+      "path": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Rendering_Contract.md",
+      "blob_sha": "d4fa76a15a289334199978cb439c13756325ecb7",
+      "role": "photo coordinate space and draw order"
+    },
+    {
+      "path": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
+      "blob_sha": "2736c169bf31e2ecc8c6e36bc216a264113501c8",
+      "role": "continuous path motion and Resolve"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionImageTransform.kt",
+      "blob_sha": "ce01468faabcef3ab42e523950c3a94b175a6d5e",
+      "role": "source-to-viewport transform implementation"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionSourcePhoto.kt",
+      "blob_sha": "78794674de145ba304a140567df63992bdce63e8",
+      "role": "photo drawing uses same transform"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+      "blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050",
+      "role": "runtime path, glow, quality and motion parameters"
+    }
+  ],
+  "invariants": {
+    "product_state_count": 3,
+    "frozen_png_count": 3,
+    "no_early_visual": true,
+    "product_state_ids": [
+      "IMAGE_RECOGNIZING",
+      "FISH_LOCATED",
+      "SPECIES_RECOGNIZING"
+    ],
+    "source_assets": [
+      {
+        "id": "IMAGE_RECOGNIZING",
+        "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+        "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
+        "width": 941,
+        "height": 1672
+      },
+      {
+        "id": "FISH_LOCATED",
+        "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+        "sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284",
+        "width": 941,
+        "height": 1672
+      },
+      {
+        "id": "SPECIES_RECOGNIZING",
+        "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+        "sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+        "width": 941,
+        "height": 1672
+      }
+    ],
+    "forbidden": [
+      "fourth product state",
+      "Early visual recreation",
+      "timer-only state advance",
+      "fake detector geometry"
+    ]
+  },
+  "p1_photoviewport": {
+    "status": "DERIVED_FROM_ANDROID_RUNTIME_AND_RENDERING_CONTRACT",
+    "source_orientation": "EXIF-oriented normalized source coordinates",
+    "viewport": "full available Recognition screen; safe drawing insets do not remap media or Edge Field",
+    "primary_mode": "FIT",
+    "visible_source_rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "transform": {
+      "fit_scale": "min(viewportWidth/sourceWidth, viewportHeight/sourceHeight)",
+      "crop_scale": "max(viewportWidth/sourceWidth, viewportHeight/sourceHeight)",
+      "drawn_width": "sourceWidth * scale",
+      "drawn_height": "sourceHeight * scale",
+      "translation_x": "(viewportWidth - drawnWidth) / 2",
+      "translation_y": "(viewportHeight - drawnHeight) / 2",
+      "source_normalized_to_viewport": [
+        "translationX + x * drawnWidth",
+        "translationY + y * drawnHeight"
+      ],
+      "optical_normalized_to_photo_content": [
+        "photoContentRect.left + x * photoContentRect.width",
+        "photoContentRect.top + y * photoContentRect.height"
+      ],
+      "photo_content_rect": [
+        "max(0, translationX)",
+        "max(0, translationY)",
+        "min(viewportWidth, translationX+drawnWidth)",
+        "min(viewportHeight, translationY+drawnHeight)"
+      ]
+    },
+    "rules": [
+      "one primary transform drives original photo, detector bbox, mask/contour, halo, Edge Field, nodes and particle anchors",
+      "FIT letterbox bands are excluded from photoContentRect",
+      "same-source CROP may fill letterbox decoratively at alpha 0.16; it is never used for overlays",
+      "Edge Field authored coordinates may overshoot [0,1]; do not clamp them; clip drawing to photoContentRect",
+      "bbox and mask points use the same EXIF-oriented source transform",
+      "detector bbox arrival must not change primary transform",
+      "system safe insets affect Back and Status controls only"
+    ],
+    "example": {
+      "source_px": [
+        2000,
+        1000
+      ],
+      "viewport_px": [
+        1000,
+        1000
+      ],
+      "mode": "FIT",
+      "expected_scale": 0.5,
+      "expected_translation_px": [
+        0,
+        250
+      ],
+      "expected_photo_content_rect_px": [
+        0,
+        250,
+        1000,
+        750
+      ],
+      "source": "RecognitionImageTransformTest.fitModePreservesFullSourceRectAndDiffersFromFrozenProcessingCrop"
+    },
+    "android_mapping": {
+      "planner": "RecognitionMediaPlanner.planProcessing",
+      "transform": "calculateRecognitionImageTransform",
+      "photo": "RecognitionSourcePhoto",
+      "crop_render": "ContentScale.FillBounds + absoluteOffset + requiredSize + clipToBounds"
+    }
+  },
+  "p1_edge_field": {
+    "component_id": "AI_EDGE_FIELD_V1",
+    "coordinate_space": "normalized photoContentRect",
+    "clip": "photoContentRect",
+    "topology": {
+      "islands": [
+        "G_UL",
+        "B_UR",
+        "B_LR",
+        "G_LL"
+      ],
+      "primary_paths": [
+        "B1",
+        "G1",
+        "B3",
+        "G3"
+      ],
+      "secondary_paths": [
+        "B2",
+        "G2",
+        "B4"
+      ],
+      "quiet_gaps": {
+        "Q_TOP": [
+          0.32,
+          0.68
+        ],
+        "Q_LEFT": [
+          0.38,
+          0.62
+        ],
+        "Q_RIGHT": [
+          0.46,
+          0.58
+        ],
+        "Q_BOTTOM": [
+          0.4,
+          0.62
+        ]
+      },
+      "forbidden": [
+        "closed frame",
+        "continuous border",
+        "center crossing primary",
+        "reconnect quiet gaps",
+        "equal corner emphasis"
+      ]
+    },
+    "paths": [
+      {
+        "id": "B1",
+        "island": "B_UR",
+        "family": "blue",
+        "role": "primary",
+        "start": [
+          0.78,
+          -0.02
+        ],
+        "control1": [
+          0.94,
+          0.06
+        ],
+        "control2": [
+          1.02,
+          0.22
+        ],
+        "end": [
+          0.96,
+          0.42
+        ],
+        "core_width_dp": 1.2,
+        "runtime_seed": 0,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.3,
+        "island_weight": 1
+      },
+      {
+        "id": "B2",
+        "island": "B_UR_TO_B_LR_FRAGMENT",
+        "family": "blue",
+        "role": "secondary_only",
+        "start": [
+          1.01,
+          0.18
+        ],
+        "control1": [
+          0.92,
+          0.31
+        ],
+        "control2": [
+          0.95,
+          0.52
+        ],
+        "end": [
+          1.02,
+          0.68
+        ],
+        "core_width_dp": 1,
+        "runtime_seed_candidate": 0.07,
+        "legacy_v1_1_seed": 0.23,
+        "seed_authority": "REVIEW_REQUIRED_CONTRACT_GAP",
+        "visible_ratio": 0.18,
+        "island_weight": 0.3
+      },
+      {
+        "id": "B3",
+        "island": "B_LR",
+        "family": "blue",
+        "role": "primary",
+        "start": [
+          1.02,
+          0.61
+        ],
+        "control1": [
+          0.92,
+          0.75
+        ],
+        "control2": [
+          0.84,
+          0.89
+        ],
+        "end": [
+          0.66,
+          1.02
+        ],
+        "core_width_dp": 1.2,
+        "runtime_seed": 0.47,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.2,
+        "island_weight": 0.54
+      },
+      {
+        "id": "B4",
+        "island": "BOTTOM_SECONDARY_FRAGMENT",
+        "family": "blue",
+        "role": "secondary_only",
+        "start": [
+          0.22,
+          1.02
+        ],
+        "control1": [
+          0.38,
+          0.95
+        ],
+        "control2": [
+          0.52,
+          0.95
+        ],
+        "end": [
+          0.66,
+          1.01
+        ],
+        "core_width_dp": 0.8,
+        "runtime_seed_candidate": 0.11,
+        "legacy_v1_1_seed": 0.71,
+        "seed_authority": "REVIEW_REQUIRED_CONTRACT_GAP",
+        "visible_ratio": 0.14,
+        "island_weight": 0.22
+      },
+      {
+        "id": "G1",
+        "island": "G_UL",
+        "family": "gold",
+        "role": "primary",
+        "start": [
+          -0.02,
+          0.18
+        ],
+        "control1": [
+          0.03,
+          0.08
+        ],
+        "control2": [
+          0.12,
+          0.02
+        ],
+        "end": [
+          0.26,
+          -0.02
+        ],
+        "core_width_dp": 1.1,
+        "runtime_seed": 0.12,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.26,
+        "island_weight": 0.78
+      },
+      {
+        "id": "G2",
+        "island": "G_UL_TO_G_LL_FRAGMENT",
+        "family": "gold",
+        "role": "secondary_only",
+        "start": [
+          -0.02,
+          0.33
+        ],
+        "control1": [
+          0.04,
+          0.47
+        ],
+        "control2": [
+          0.02,
+          0.62
+        ],
+        "end": [
+          -0.01,
+          0.78
+        ],
+        "core_width_dp": 0.9,
+        "runtime_seed_candidate": 0.09,
+        "legacy_v1_1_seed": 0.39,
+        "seed_authority": "REVIEW_REQUIRED_CONTRACT_GAP",
+        "visible_ratio": 0.16,
+        "island_weight": 0.26
+      },
+      {
+        "id": "G3",
+        "island": "G_LL",
+        "family": "gold",
+        "role": "primary",
+        "start": [
+          -0.01,
+          0.74
+        ],
+        "control1": [
+          0.08,
+          0.86
+        ],
+        "control2": [
+          0.2,
+          0.95
+        ],
+        "end": [
+          0.38,
+          1.02
+        ],
+        "core_width_dp": 1.2,
+        "runtime_seed": 0.64,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.22,
+        "island_weight": 0.63
+      }
+    ],
+    "optical_stack": [
+      {
+        "layer": "local_receiving_light",
+        "draw_order": 1,
+        "contract_alpha_before_multipliers": [
+          0.03,
+          0.07
+        ],
+        "contract_edge_depth_ratio": [
+          0.08,
+          0.18
+        ],
+        "android_geometry": "four broad local radial ovals; no full-frame tint; clip photoContentRect",
+        "android_base_alpha": 0.13,
+        "runtime_alpha_cap": 0.14,
+        "issue_id": "RP-A01"
+      },
+      {
+        "layer": "primary_outer_bloom",
+        "draw_order": 2,
+        "width_dp": 10,
+        "contract_alpha_before_multipliers": [
+          0.025,
+          0.055
+        ],
+        "android_base_alpha": 0.04,
+        "blur_radius_dp": 5,
+        "primary_only": true
+      },
+      {
+        "layer": "primary_mid_glow",
+        "draw_order": 3,
+        "width_dp": 4,
+        "contract_alpha_before_multipliers": [
+          0.05,
+          0.1
+        ],
+        "android_base_alpha": 0.075,
+        "blur_radius_dp": 2,
+        "primary_only": true
+      },
+      {
+        "layer": "primary_core",
+        "draw_order": 4,
+        "width_dp": "per-path",
+        "width_by_path_dp": {
+          "B1": 1.2,
+          "B2": 1,
+          "B3": 1.2,
+          "B4": 0.8,
+          "G1": 1.1,
+          "G2": 0.9,
+          "G3": 1.2
+        },
+        "android_base_alpha": 0.46,
+        "maximum_alpha": 0.5,
+        "round_caps": true,
+        "round_joins": true
+      },
+      {
+        "layer": "secondary_fragment_mid_and_core",
+        "draw_order": 4,
+        "width_dp": "per-path",
+        "outer_bloom": false,
+        "android_mid_width_dp": 2,
+        "android_mid_blur_radius_dp": 1,
+        "android_mid_base_alpha": 0.025,
+        "android_core_base_alpha": 0.16,
+        "android_core_alpha_cap": 0.12
+      },
+      {
+        "layer": "companion_hairline",
+        "draw_order": 5,
+        "outer_bloom": false,
+        "core_width_dp": [
+          0.5,
+          0.65
+        ],
+        "local_glow_width_dp": [
+          1.8,
+          2.4
+        ],
+        "phase_delta_by_path": {
+          "B1C": -0.055,
+          "G1C": 0.065,
+          "B3C": -0.06,
+          "G3C": 0.05
+        },
+        "android_core_width_dp": {
+          "B1C": 0.6,
+          "G1C": 0.58,
+          "G3C": 0.6,
+          "B3C": 0.58
+        },
+        "android_local_glow_width_dp": 2.1,
+        "android_visible_ratio": {
+          "B1C": 0.44,
+          "G1C": 0.42,
+          "G3C": 0.38,
+          "B3C": 0.34
+        },
+        "android_weight": 0.3,
+        "visible_ratio_basis": "REVIEW_REQUIRED_LOCAL_PRIMARY_SPAN_VS_CHILD_PATH"
+      },
+      {
+        "layer": "B_UR_micro_hairline",
+        "draw_order": 5,
+        "outer_bloom": false,
+        "core_width_dp": [
+          0.35,
+          0.5
+        ],
+        "local_glow_width_dp": [
+          1.2,
+          1.8
+        ],
+        "phase_delta": 0.085,
+        "android_core_width_dp": 0.42,
+        "android_local_glow_width_dp": 1.5,
+        "android_visible_ratio": 0.12,
+        "visible_ratio_contract": [
+          0.15,
+          0.32
+        ],
+        "android_weight": 0.18,
+        "issue_id": "RP-A02"
+      },
+      {
+        "layer": "hot_nodes",
+        "draw_order": 6,
+        "radius_dp": {
+          "outer": 4,
+          "inner": 1.35
+        },
+        "alpha": {
+          "outer": 0.07,
+          "inner": 0.36,
+          "inner_cap": 0.3
+        },
+        "anchors": [
+          "active B_UR midpoint",
+          "weak G_UL midpoint"
+        ],
+        "weak_node_weight": 0.42,
+        "max_nodes": 2
+      },
+      {
+        "layer": "sparse_particles",
+        "draw_order": 7,
+        "radius_dp": 1.5,
+        "max_alpha": 0.18,
+        "anchors": [
+          [
+            0.84,
+            0.1
+          ],
+          [
+            0.96,
+            0.33
+          ],
+          [
+            0.92,
+            0.64
+          ],
+          [
+            0.73,
+            0.88
+          ],
+          [
+            0.08,
+            0.18
+          ],
+          [
+            0.04,
+            0.51
+          ],
+          [
+            0.18,
+            0.9
+          ],
+          [
+            0.48,
+            0.97
+          ]
+        ],
+        "anchors_by_path": [
+          "B1",
+          "B1",
+          "B3",
+          "B3",
+          "G1",
+          "G1",
+          "G3",
+          "G3"
+        ],
+        "runtime_drift_px": "14 + (index % 4) * 7"
+      }
+    ],
+    "shared_alpha_equation": "BaseAlpha * IslandWeight * StateStrength * ResolveStrength * QualityStrength",
+    "runtime_note": "Current Android multiplies state/entry/quality but has no explicit ResolveStrength and uses independent detail alpha formulas; visual alignment remains unverified."
+  },
+  "android_repairs": [
+    {
+      "id": "RP-A01",
+      "severity": "P1",
+      "target": "RecognitionAmbientField.drawReceivingLight",
+      "defect": "Runtime alpha base 0.13 exceeds frozen pre-multiplier 0.03–0.07 range; four local ovals need optical/device evidence before calibration.",
+      "action": "Reconcile against Rendering Contract and single Frozen 02 reference; retain local falloff and island hierarchy; record before/after FULL runtime captures.",
+      "gate": "Frozen visual comparison and Android runtime evidence; do not tune from unavailable Early PNG."
+    },
+    {
+      "id": "RP-A02",
+      "severity": "P1",
+      "target": "B1M micro hairline",
+      "defect": "Runtime visibleRatio 0.12 is below frozen 0.15–0.32 and denominator may differ.",
+      "action": "Check visible length on common local-primary-span basis; set only after optical comparison."
+    },
+    {
+      "id": "RP-A03",
+      "severity": "P1",
+      "target": "B2/B4/G2 secondary path seeds",
+      "defect": "V1.1 values differ from current runtime; V1.2 Motion freezes only B1/G1/B3/G3.",
+      "action": "Resolve path-seed authority before producing animated native Figma prototype; geometry remains fixed."
+    }
+  ],
+  "validation": {
+    "source_tests": [
+      {
+        "path": "app/src/test/java/com/yujian/ai/ui/identify/RecognitionImageTransformTest.kt",
+        "blob_sha": "b5ae7c52e5f696d19259f695ca70a146cd789805",
+        "coverage": [
+          "FIT/CROP",
+          "FIT photo rect",
+          "overshoot",
+          "shared source transform",
+          "responsive viewports 1080x1920/2160/2340/2400, 720x1600, 320x640"
+        ],
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/result/RecognitionProcessingMediaPlanTest.kt",
+        "blob_sha": "460c9ca6d58f71f02c6a153e28765c3a2137eb85",
+        "coverage": [
+          "FIT full-source",
+          "decorative CROP",
+          "transform invariant when bbox arrives",
+          "five source aspect cases across five viewport classes",
+          "compact 320x640"
+        ],
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      {
+        "path": "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalSegmentRuntimeTest.kt",
+        "blob_sha": "fbaf92562f3cb42a11fc49e7a3a551cd2b58297e",
+        "coverage": [
+          "measured Bézier length",
+          "wraparound split",
+          "segment remains partial"
+        ],
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      }
+    ],
+    "this_module_checks": [
+      "Seven path records and the three-state/three-PNG invariant are machine-validated before commit.",
+      "Coordinate transform formula and overshoot behavior are traceable to Android implementation and named tests.",
+      "No Android runtime, Figma structure, export, Geometry/Glyph/Optical ROI or Pixel Diff was run."
+    ]
+  },
+  "pending_modules": [
+    "P2_FISH_FOCUS",
+    "P3_STATUS_CARD_AND_COPY",
+    "P4_MOTION_QUALITY_RESPONSIVE",
+    "P5_COMPOSE_COMPONENT_DATA_BINDINGS"
+  ]
+}
