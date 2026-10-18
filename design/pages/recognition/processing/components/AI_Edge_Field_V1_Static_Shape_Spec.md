@@ -351,7 +351,6 @@ Any of the following is an automatic Static Shape failure:
 Perceptual reference:
 
 - `design/pages/recognition/design/02_AI_Understanding_Frozen.png`
-- `design/pages/recognition/design/01_Capture_Transition_Frozen.png`
 
 Engineering infographic:
 

@@ -33,8 +33,7 @@ Ownership tag only, not a fourth status. Android Camera Permission Dialog and Ph
 | MB-05 | GUIDE / P03 | 横屏教学页 + 横向鱼 | FROZEN |
 | MB-06 | IDENTIFY / CAPTURE_READY_PORTRAIT_HORIZONTAL | Camera Ready 竖屏 + 横鱼 | FROZEN |
 | MB-07 | IDENTIFY / CAPTURE_READY_LANDSCAPE_HORIZONTAL | Camera Ready 横屏 + 横鱼 | FROZEN |
-| MB-08 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · EARLY | 图片识别中 Early | FROZEN |
-| MB-09 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · LATE | 图片识别中 Late | FROZEN |
+| MB-09 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING | 图片识别中唯一 Frozen | FROZEN |
 | MB-10 | RECOGNIZING / PROCESSING_FISH_LOCATED | 已定位到鱼体 | FROZEN |
 | MB-11 | RECOGNIZING / PROCESSING_SPECIES_RECOGNIZING | 鱼种识别中 | FROZEN |
 | MB-12 | RESULT / RESULT_HIGH | 高置信度 | FROZEN |
@@ -43,7 +42,7 @@ Ownership tag only, not a fourth status. Android Camera Permission Dialog and Ph
 | MB-15 | RESULT / NO_FISH | 未检测到鱼 | FROZEN |
 | MB-16 | RESULT / IMAGE_QUALITY | 图片质量不足 | FROZEN |
 
-Processing rule: Early/Late are two visual keyframes of one product state 图片识别中; product-level Processing remains exactly three user-visible states.
+Processing rule: three product states and three Frozen references. MB-08 Early is retired; MB-09 is the single 图片识别中 reference. The existing Figma Master Board must be synced separately before Figma visual acceptance.
 
 ## 4. Recovery / boundary lane
 | Board ID | Canonical page/state | Status | Rule |

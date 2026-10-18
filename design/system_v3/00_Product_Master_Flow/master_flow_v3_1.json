@@ -113,7 +113,7 @@
       "entry": "Home → identify",
       "exit": "Normalized image calls onImageReady",
       "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/visual_states",
-      "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "visual_authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
       "behavior_authority": "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt",
       "shared_dependencies": [
         "fish_media_display_v1",
@@ -124,7 +124,8 @@
       "evidence": [
         "app/src/main/java/com/yujian/ai/YujianApp.kt:418",
         "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt"
-      ]
+      ],
+      "visual_authority_note": "Camera/gallery is live media, not Processing Early artwork. No static Capture image is inferred."
     },
     {
       "flow_node_id": "capture_gallery",
@@ -137,7 +138,7 @@
       "entry": "Home → identify?openGallery=true",
       "exit": "Same normalized-image handoff as camera",
       "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/visual_states",
-      "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "visual_authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
       "behavior_authority": "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt",
       "shared_dependencies": [
         "fish_media_display_v1"
@@ -147,7 +148,8 @@
       "evidence": [
         "app/src/main/java/com/yujian/ai/YujianApp.kt:419,558-578",
         "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt"
-      ]
+      ],
+      "visual_authority_note": "Camera/gallery is live media, not Processing Early artwork. No static Capture image is inferred."
     },
     {
       "flow_node_id": "captured",
