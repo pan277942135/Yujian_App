@@ -104,6 +104,31 @@
       "path": "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json",
       "blob_sha": "b9fe764896e37516ade27dc71984f47f67f225a2",
       "role": "status copy and motion acceptance gates"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionMotionPolicy.kt",
+      "blob_sha": "1946bf79c451ee99f15756e60318dbf39b92eeee",
+      "role": "D0-D4 and reduce-motion runtime policy"
+    },
+    {
+      "path": "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
+      "blob_sha": "SOURCE_PATH_VERIFIED_BLOB_SHA_NOT_CAPTURED",
+      "role": "parent authority for quality/reduce-motion/degradation"
+    },
+    {
+      "path": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
+      "blob_sha": "1d4384ff25ffeb515659d5b0e13a2863d3a23e83",
+      "role": "motion/resolve cross-check; V3.1 owns event gating"
+    },
+    {
+      "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt",
+      "blob_sha": "958ad857d44a31fa2d93094d28e43320efda7ec4",
+      "role": "real event and minimum-beat presentation gate tests"
+    },
+    {
+      "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
+      "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
+      "role": "quality/token/render behavior tests"
     }
   ],
   "invariants": {
@@ -731,6 +756,34 @@
       "target": "RecognitionStatusOverlay product-state anchors",
       "defect": null,
       "action": "Verify 84dp/safe-bottom for IMAGE_RECOGNIZING and 34dp/safe-bottom for later states against their Frozen compositions; do not force one position across three distinct product states."
+    },
+    {
+      "id": "RP-A11",
+      "severity": "P1",
+      "target": "EdgeFieldMotionAccumulator RESULT/RESOLVE",
+      "defect": "current path continues moving during the 200ms strength fade; no separate quadratic ResolveStrength; nodes/particles do not freeze; Status/Fish do not share explicit fade progress.",
+      "action": "Capture one Resolve start offset, freeze all secondary clocks, apply a shared (1-p)^2 ResolveStrength across Edge Field/Fish Focus/Status, and hand off to Result with no extra wait."
+    },
+    {
+      "id": "RP-A12",
+      "severity": "P1",
+      "target": "Motion evidence",
+      "defect": "10s clock, state transition continuity and exact transition traces have not been independently verified on-device in this handoff.",
+      "action": "Add/execute deterministic trace assertions across CAPTURED→DETECTING→OUTLINE→CLASSIFYING and Verify no path reset or offset jump; keep deterministic screenshot mode separate."
+    },
+    {
+      "id": "RP-A13",
+      "severity": "P2",
+      "target": "Responsive Status/Back",
+      "defect": "Existing responsive tests cover source transforms and fish boxes, not card wrapping, tap target, safe-area positions or full overlay ROIs.",
+      "action": "Add compact/edge-inset Compose verification at 320x640 and portrait targets; assert readable card copy, touch.minimum, and invariant photo-space geometry."
+    },
+    {
+      "id": "RP-A14",
+      "severity": "P1",
+      "target": "R05 strength calibration",
+      "defect": "Early upper-bound PNG is retired; Frozen contract states FULL/LITE runtime calibration is REVIEW_REQUIRED.",
+      "action": "Capture same three product states using FULL and LITE on real device; compare photo dominance, receiving light, core/bloom and particle visibility to retained 02/03/04 only."
     }
   ],
   "validation": {
@@ -777,7 +830,6 @@
     ]
   },
   "pending_modules": [
-    "P4_MOTION_QUALITY_RESPONSIVE",
     "P5_COMPOSE_COMPONENT_DATA_BINDINGS"
   ],
   "p2_fish_focus": {
@@ -1076,5 +1128,253 @@
     },
     "event_gate_change": "NONE",
     "event_gate_note": "Preserve real V3.1 event gates and >=220/320/350/250ms minimum beats exactly; state/copy repair is presentation-only."
+  },
+  "p4_motion_quality_responsive": {
+    "status": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
+    "motion_contract": {
+      "independent_inputs": [
+        "SegmentOffset",
+        "StateStrength",
+        "ResolveStrength"
+      ],
+      "base_cycle_ms": 10000,
+      "continuous_across_product_states": true,
+      "primary_seed": {
+        "B1": 0,
+        "G1": 0.12,
+        "B3": 0.47,
+        "G3": 0.64
+      },
+      "primary_speed": {
+        "IMAGE_RECOGNIZING": 1,
+        "FISH_LOCATED": 0.62,
+        "SPECIES_RECOGNIZING": 0.42,
+        "RESOLVE": 0
+      },
+      "state_strength": {
+        "IMAGE_RECOGNIZING": 1,
+        "FISH_LOCATED": 0.58,
+        "SPECIES_RECOGNIZING": 0.36
+      },
+      "easing": "cubic-bezier(0.22,1,0.36,1)",
+      "transition_ms": {
+        "IMAGE_RECOGNIZING_entry": 420,
+        "to_FISH_LOCATED": 260,
+        "to_SPECIES_RECOGNIZING": 280,
+        "RESOLVE": 200
+      },
+      "entry_staging_ms": {
+        "receiving": [
+          0,
+          180
+        ],
+        "primary": [
+          80,
+          320
+        ],
+        "detail": [
+          180,
+          420
+        ]
+      },
+      "companion_phase_delta": {
+        "B1C": -0.055,
+        "G1C": 0.065,
+        "B3C": -0.06,
+        "G3C": 0.05
+      },
+      "micro_phase_delta": {
+        "B1M": 0.085
+      },
+      "resolve": {
+        "strength": "(1-p)^2",
+        "duration_ms": 200,
+        "freeze_segment_offset": true,
+        "freeze_hairline_offsets": true,
+        "freeze_nodes": true,
+        "freeze_particles": true,
+        "shared_fade_layers": [
+          "Receiving Light",
+          "Outer Bloom",
+          "Mid Glow",
+          "Primary Core",
+          "Hairline",
+          "Hot Node",
+          "Particles",
+          "Fish Focus",
+          "Status Card"
+        ],
+        "additional_processing_wait_ms": 0
+      }
+    },
+    "android_runtime": {
+      "clock": "EdgeFieldMotionAccumulator integrates mean speed per uptime delta into a 10s cycle; CAPTURED and DETECTING share IMAGE_RECOGNIZING stage, so no reset between them.",
+      "initial_state_ramp_ms": 420,
+      "transition_ms": {
+        "to_FISH_LOCATED": 260,
+        "to_SPECIES_RECOGNIZING": 280,
+        "to_TERMINAL": 200
+      },
+      "reduce_motion_detection": "Settings.Global.ANIMATOR_DURATION_SCALE <= 0",
+      "reduce_motion_behavior": [
+        "segment speed set to 0",
+        "primary entry uses a 180ms eased reveal",
+        "node held static",
+        "particles not drawn",
+        "Fish Focus uses reduced/static alpha and 180ms OUTLINE reveal",
+        "minimum event gates remain owned by RecognitionVisualStateController"
+      ],
+      "resolve_gap": "Current terminal stage eases speed toward 0 and StateStrength toward 0 over 200ms, but it does not freeze SegmentOffset at Resolve start, has no independent ResolveStrength=(1-p)^2, and node/particle clocks remain live during the fade. Status and Fish Focus are removed on RESULT phase rather than consuming the same explicit ResolveStrength.",
+      "deterministic_evidence_mode": "visualClockOverride uses deterministic per-phase frames and is a screenshot fixture mode; do not treat its stage-specific offsets as production continuous-clock proof."
+    },
+    "quality_profiles": {
+      "FULL": {
+        "receiving": 1,
+        "outer": 1,
+        "mid": 1,
+        "core": 1,
+        "companions": [
+          "B1C",
+          "G1C",
+          "G3C",
+          "B3C"
+        ],
+        "micro": true,
+        "nodes": 2,
+        "particles": 8,
+        "alpha": 1
+      },
+      "BALANCED": {
+        "receiving": 0.85,
+        "outer": 0.75,
+        "mid": 0.9,
+        "core": 1,
+        "companions": [
+          "B1C",
+          "G1C"
+        ],
+        "micro": false,
+        "nodes": 1,
+        "particles": 4,
+        "alpha": 0.92
+      },
+      "LITE": {
+        "receiving": 0.7,
+        "outer": 0.5,
+        "mid": 0.8,
+        "core": 1,
+        "companions": [],
+        "micro": false,
+        "nodes": 0,
+        "particles": 0,
+        "alpha": 0.82
+      }
+    },
+    "degradation_mapping": {
+      "D0": {
+        "quality": "FULL",
+        "fish_focus": "A"
+      },
+      "D1": {
+        "quality": "BALANCED",
+        "fish_focus": "A"
+      },
+      "D2": {
+        "quality": "LITE",
+        "fish_focus": "A"
+      },
+      "D3": {
+        "quality": "LITE",
+        "fish_focus": "B"
+      },
+      "D4": {
+        "quality": "LITE",
+        "fish_focus": "C"
+      },
+      "compatibility_input": "lowPerformance=true with no explicit level maps to D2",
+      "semantic_invariant": "No quality/degradation/reduce-motion choice changes detector, crop, classifier, confidence, result, event gates, or recovery semantics."
+    },
+    "responsive_contract": {
+      "photo_viewport": "full-size BoxWithConstraints; recompute FIT transform on bitmap/viewport/density change",
+      "overlay_space": "normalized photoContentRect, not safe inset rectangle",
+      "controls": "safe drawing insets; horizontal inset max(24dp,leftInset,rightInset); Back top safeInset+4dp",
+      "status_horizontal_padding": "24dp outer screen inset, then tokenized card horizontal padding 28dp",
+      "existing_viewports_px": [
+        [
+          1080,
+          1920
+        ],
+        [
+          1080,
+          2160
+        ],
+        [
+          1080,
+          2340
+        ],
+        [
+          1080,
+          2400
+        ],
+        [
+          720,
+          1600
+        ],
+        [
+          320,
+          640
+        ]
+      ],
+      "existing_source_aspect_cases": [
+        [
+          2000,
+          1500
+        ],
+        [
+          1536,
+          2304
+        ],
+        [
+          2048,
+          1365
+        ],
+        [
+          1152,
+          1536
+        ],
+        [
+          1600,
+          900
+        ]
+      ],
+      "existing_geometry_cases": [
+        "center fish",
+        "left edge fish",
+        "right edge fish",
+        "top edge fish",
+        "bottom edge fish"
+      ],
+      "coverage_gap": "Current media/transform tests check image/focus geometry but do not assert Status Card text wrapping, Back touch target, safe-area screenshots, or full optical ROI at these viewport classes."
+    },
+    "test_refs": {
+      "event_gate": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt",
+        "blob_sha": "958ad857d44a31fa2d93094d28e43320efda7ec4",
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      "quality_tokens": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
+        "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      "viewport": {
+        "path": "app/src/test/java/com/yujian/ai/ui/identify/RecognitionImageTransformTest.kt",
+        "execution": "SOURCE_REVIEWED_NOT_RUN"
+      },
+      "media": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/result/RecognitionProcessingMediaPlanTest.kt",
+        "execution": "SOURCE_REVIEWED_NOT_RUN"
+      }
+    }
   }
 }
