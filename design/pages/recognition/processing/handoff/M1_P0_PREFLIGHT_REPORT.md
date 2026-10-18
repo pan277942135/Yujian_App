@@ -1,5 +1,49 @@
 # M1 Recognition Processing — P0 Preflight Checkpoint
 
+## Current Work B Addendum · 2026-10-18
+
+**This addendum supersedes the historical “P1–P6 blocked until Figma” statements above.** Work ownership is now explicit: Work B owns Processing engineering handoff; NH01 Work A owns the only unified Figma importer. Work B did not call Figma MCP or Work Chrome again, did not create RP01, and did not create a second plugin.
+
+### Track status
+
+| Track | Current result |
+| --- | --- |
+| A · Engineering handoff | `ENGINEERING_HANDOFF_READY` for P1–P5 configuration and source mapping; Android/runtime acceptance is still `NOT_RUN`. |
+| B · Figma reconstruction | `NOT_PASS_PENDING_NH01_MINIMUM_IMPORT_PASS`; real RP01 page/node discovery and native writes have not occurred. |
+| C · Visual acceptance | `NOT_RUN`; no Figma export, Geometry/Glyph/Optical ROI, Frozen Pixel Diff or independent QA. |
+| Overall `M1_PROCESSING_FIGMA_ENGINEERING_HANDOFF` | `NOT_PASS` until actual Figma nodes, export and independent QA exist. |
+
+### Completed PR #166 engineering modules
+
+All listed GitHub commit SHAs are real commits on `design/recognition-processing-handoff-p0`. The PR remains Draft/Open/Unmerged and based on PR #165 head `31d1483b83038db78821625cd9339ad0e8c19ff3`.
+
+| Module | Commits | Parameter/source basis | Validation and remaining gaps |
+| --- | --- | --- | --- |
+| P1 PhotoViewport / seven Edge Field paths / optical layers | Config `07b1b8961009773b1e2e889caa418f9e9cea9671`; report `74296425c06ae44882f953d9cc8f778f5a5fcceb` | V1.2 visual-state manifest; Static Shape + Rendering + Motion Contracts; `RecognitionImageTransform.kt`, `RecognitionSourcePhoto.kt`, `RecognitionAmbientField.kt` | Machine JSON and 7=4 primary+3 secondary topology checked. Existing FIT/CROP, overshoot, transform and path-wrap tests reviewed but not run. RP-A01..A03 remain open. |
+| P2 Fish Focus | Config `7d680ca51bc302cdfbbd97a5b7a5a84e4312267f`; report `9d5598acb19e5976235da14a8617bf7f38cc1024` | V3.1 Data Contract; V1.1 visual focus clauses; `RecognitionFishFocus.kt`, production subject-mask call path, contour runtime test | Real-bbox-only gate, A/B/C, mask/contour mapping and warm-gold halo parameterized. Contour test is synthetic oval; production mask/provenance and visual alpha comparison remain open. |
+| P3 Three product visuals / status card | Config updates `a27e954995a75aec1b6b9675e264b3799530e236`, `1fc2f17552096b1134341c7d6802095c2fadc23a`, final reconciliation `f89d802464d43cc42991b564ef414eb880bd9cf4`; report corrections `c6efa8ec69b6e886bc15dbbf31d0c173b22e4962`, `dadf4624190bf278f0014408c0fbd7eebc82f984` | V1.2 three-state manifest; V3.1 State Machine/Layout/Acceptance contracts; Status Card spec; Android copy/token/status components | Exactly three product states map CAPTURED+DETECTING to one image visual, OUTLINE to Fish Located, CLASSIFYING to Species Recognizing. Real V3.1 event gates remain unchanged. RP-A07 records old distinct Early copy and the existing test's `assertNotEquals(CAPTURED, DETECTING)`; exact retained 02 copy must be transcribed before string repair. |
+| P4 Motion / quality / responsive | Config `9011a095e97617414a955d99a9602e0585e0445c`; report `4a602fe7937509c434d5f197a5fc19281dfc7f83` | AI Edge Field Motion Contract; Degradation & Accessibility authority; `RecognitionMotionPolicy.kt`, `RecognitionAmbientField.kt`, responsive transform/media tests | 10s clock, strength/speed, easing, FULL/BALANCED/LITE, D0–D4, Reduce Motion and six viewport classes mapped. RP-A11 records missing frozen-offset/shared ResolveStrength behavior; no device traces/R05 calibration run. |
+| P5 Compose / Token / image / data bindings | Config `7c38c631365d8b8c3274b4a508ce2646ab107b47`; report `a27616219c2c8d1d49a94cca4b63f6291944a359` | V3.1 Component Registry/Layout/Data/Acceptance contracts; Compose screen/source/ambient/focus/status implementations | Importer input includes three logical frames only, locked 02/03/04 references, runtime data bindings, Compose mapping, tokens, test fixtures, and idempotent existing-RP01 policy. Frame dimensions intentionally unresolved; no node IDs are present. |
+
+The final machine-readable configuration is `design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json`, latest content blob `bdd6d46784353718612a2d1b8a46f83fc91adc5e`. Checks pass for valid JSON, exactly three states/assets/logical frame keys, five internal pipeline rows, seven unique paths, 4 primary + 3 secondary, zero Figma node IDs, and no placeholder source SHA. Top-level config status is `ENGINEERING_HANDOFF_READY`; `runtime_validation_status=NOT_RUN`.
+
+### Frozen and event-gate invariants
+
+- Exactly three retained Frozen PNGs: 02 / 03 / 04. No Early art, replacement fourth state, or fabricated screenshot.
+- CAPTURED/DETECTING remain internal stages; preserve real `220/320/350/250ms` minimum beats and actual detection/focus/classification/result events.
+- No fake progress, ETA, classifier outcome, bbox, focus, mask, or confidence.
+- No Figma page/frame/component/node is claimed created. Node ID arrays remain empty.
+- Figma Structure, export, Geometry/Glyph/Optical ROI, Frozen Pixel Diff and independent QA remain NOT_PASS/NOT_RUN.
+
+### Android tasks registered
+
+`RP-A01…RP-A14` and `RP-V-A01` are in the machine config and module reports. They cover Receiving Light alpha, B1M length, secondary seed authority, Fish Focus fallback alpha and mask evidence, CAPTURED/DETECTING copy/test correction, Back asset comparison, DETECTING variant authority, RESOLVE freeze/shared fade, motion traces, compact Status/Back verification and FULL/LITE R05 captures. These are concrete follow-up tasks; this PR makes no Android product-code changes and changes no real event gate.
+
+### Verification limitations
+
+The JSON was parsed and structurally checked in the handoff tool runtime. Android unit/instrumentation tests, Gradle builds, API28 gate, real-device FULL/LITE captures, fixture rights closure, Figma writes/exports, visual diff and independent QA were not executed. PR #165's previously recorded Android CI result (`expected classification=FAIL_ARTIFACT actual=BLOCKED_INFRA`) is historical and has not been reclassified or rerun here.
+
+
 **Task:** `M1_PROCESSING_FIGMA_ENGINEERING_HANDOFF_V1`  
 **Checkpoint date:** 2026-10-18  
 **Status:** `BLOCKED_P0_FIGMA_MCP_PLAN_LIMIT`  
@@ -12,7 +56,7 @@
 - Current product visuals are exactly three Frozen states: `02_AI_Understanding_Frozen.png`, `03_Fish_Highlight_Frozen.png`, and `04_Fish_Identifying_Frozen.png`. The deleted Early image is not restored or used.
 - Figma target: [Recognition Main Journey Master Board V1](https://www.figma.com/design/VjN7iFviVN9aKeLv8kJivM/Recognition-Main-Journey-Master-Board-V1).
 
-## 2. P0 Figma access gate
+## 2. Historical P0 Figma access result (current track split supersedes the former P1–P6 block)
 
 A real read-only Figma page inventory was attempted before any write. The Figma connector returned:
 
@@ -28,7 +72,7 @@ The connector returned no page metadata. Therefore page existence, Figma file ed
 | Figma nodes / imports | `NONE` | No successful Figma operation |
 | P1 entry gate | `BLOCKED` | P0 requires real Figma write evidence before P1 |
 
-P1–P6 are not claimed complete. The next Figma step must resume with page inventory, avoid duplicate creation, then run the real write test. Only after that passes may the structural page be built.
+At this historical checkpoint, P1–P6 were not claimed complete. The Work B addendum below now separates engineering handoff from Figma generation. Work B continues P1–P5 without Figma; only Work A resumes Figma when its unified importer passes NH01 minimum validation.
 
 ## 3. Preliminary source authority matrix
 
