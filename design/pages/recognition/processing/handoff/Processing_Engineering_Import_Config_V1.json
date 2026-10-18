@@ -712,13 +712,6 @@
       "action": "Move copy resolution to the three product-state IDs; transcribe exact shared copy from retained Frozen 02 asset. Add equality assertion for both internal phases; preserve controller gate tests."
     },
     {
-      "id": "RP-A08",
-      "severity": "P1",
-      "target": "RecognizingScreen status placement",
-      "defect": "50dp vertical jump between CAPTURED/DETECTING and later phases; CAPTURED and DETECTING themselves match, but anchor is phase-classified instead of product visual.",
-      "action": "Model card placement by product state and validate placement against retained PNG; do not change event phase timing."
-    },
-    {
       "id": "RP-A09",
       "severity": "P2",
       "target": "Back icon",
@@ -731,6 +724,13 @@
       "target": "V1.1 lightweight DETECTING variant",
       "defect": "Old visual spec requests a different DETECTING treatment; V1.2 says CAPTURED/DETECTING share one Frozen product visual.",
       "action": "Resolve against the retained Frozen 02 visual and V1.2 authority; never produce or label Early."
+    },
+    {
+      "id": "RP-V-A01",
+      "severity": "PENDING_VISUAL_VERIFICATION",
+      "target": "RecognitionStatusOverlay product-state anchors",
+      "defect": null,
+      "action": "Verify 84dp/safe-bottom for IMAGE_RECOGNIZING and 34dp/safe-bottom for later states against their Frozen compositions; do not force one position across three distinct product states."
     }
   ],
   "validation": {
@@ -777,10 +777,6 @@
     ]
   },
   "pending_modules": [
-    "P4_MOTION_QUALITY_RESPONSIVE",
-    "P5_COMPOSE_COMPONENT_DATA_BINDINGS",
-    "P4_MOTION_QUALITY_RESPONSIVE",
-    "P5_COMPOSE_COMPONENT_DATA_BINDINGS",
     "P4_MOTION_QUALITY_RESPONSIVE",
     "P5_COMPOSE_COMPONENT_DATA_BINDINGS"
   ],
@@ -1056,12 +1052,6 @@
           "action": "Change the resolver key from internal RecognitionPhase to the three product-state IDs; transcribe the exact IMAGE_RECOGNIZING title/subtitle from the retained 02 Frozen asset before string implementation. Do not add a fourth status."
         },
         {
-          "id": "RP-A08",
-          "target": "RecognizingScreen status anchoring",
-          "issue": "Bottom padding is safeBottom+84dp for CAPTURED/DETECTING and safeBottom+34dp for OUTLINE/CLASSIFYING, creating a 50dp internal-phase jump inside shared IMAGE_RECOGNIZING.",
-          "action": "Use a product-state anchor shared by CAPTURED/DETECTING; set exact placement against the retained Frozen asset when original is visually available."
-        },
-        {
           "id": "RP-A09",
           "target": "Back icon mapping",
           "issue": "V3.1 Layout Contract references the frozen ic_back_v1.svg asset; Android screen currently renders Material AutoMirrored ArrowBack.",
@@ -1072,6 +1062,15 @@
           "target": "DETECTING lightweight card variant",
           "issue": "V1.1 visual spec describes a lightweight DETECTING status treatment, but V1.2 has one IMAGE_RECOGNIZING product visual for CAPTURED/DETECTING.",
           "action": "Treat the shared three-state Frozen visual and V3.1 state machine as current authority; do not expose DETECTING as an additional product state. Confirm card treatment against retained 02 Frozen asset."
+        }
+      ],
+      "layout_verifications": [
+        {
+          "id": "RP-V-A01",
+          "target": "RecognitionStatusOverlay product-state anchors",
+          "source_runtime": "safeBottom+84dp for CAPTURED/DETECTING; safeBottom+34dp for OUTLINE/CLASSIFYING",
+          "finding": "CAPTURED and DETECTING already share one anchor; differing later-state anchor is not confirmed defect.",
+          "action": "Compare each product-state anchor with its retained Frozen PNG when real visual access returns; keep CAPTURED and DETECTING identical."
         }
       ]
     },
