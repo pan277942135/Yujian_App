@@ -143,7 +143,7 @@ PY
     if [[ "$command_line" =~ cache/recognition-evidence/([A-Za-z0-9_.-]+\.png) ]]; then
       name="${BASH_REMATCH[1]}"
       case "$name" in
-        01_image_recognizing_early.png) cat "$fixture_root/01_Capture_Transition_Frozen.png" ;;
+        01_image_recognizing_early.png) cat "$fixture_root/02_AI_Understanding_Frozen.png" ;; # legacy CAPTURED diagnostic only
         02_image_recognizing_late.png) cat "$fixture_root/02_AI_Understanding_Frozen.png" ;;
         03_fish_located.png) cat "$fixture_root/03_Fish_Highlight_Frozen.png" ;;
         04_species_recognizing.png) cat "$fixture_root/04_Fish_Identifying_Frozen.png" ;;

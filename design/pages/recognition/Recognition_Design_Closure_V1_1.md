@@ -1,3 +1,5 @@
+> ARCHIVED V1.1 HISTORICAL DOCUMENT. The 2026-10-18 user-approved three-keyframe design removes `01_Capture_Transition_Frozen.png` from the current tree. This document is retained for history only; do not use its Early image reference as a current asset or design requirement.
+
 # YuJian Recognition Flow — Design Closure V1.1
 
 Status: **FROZEN FOR ANDROID IMPLEMENTATION AND ACCEPTANCE**

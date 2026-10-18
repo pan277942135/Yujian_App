@@ -8,7 +8,7 @@ A Recognition implementation is not complete at Build PASS. Work must prove the 
 
 Exact runtime outputs:
 
-1. `01_capture_transition.png` ↔ `01_Capture_Transition_Frozen.png`
+1. `01_capture_transition.png` — archived V1.1 evidence only. The original Early Frozen image was retired from the current design on 2026-10-18; no active parity gate may require it.
 2. `02_ai_understanding.png` ↔ `02_AI_Understanding_Frozen.png`
 3. `03_fish_highlight.png` ↔ `03_Fish_Highlight_Frozen.png`
 4. `04_fish_identifying.png` ↔ `04_Fish_Identifying_Frozen.png`
