@@ -59,6 +59,31 @@
       "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
       "blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050",
       "role": "runtime path, glow, quality and motion parameters"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json",
+      "blob_sha": "ae1aacad36ba627910e697bacccc572b6696861a",
+      "role": "real focus data contract and no-fabrication boundary"
+    },
+    {
+      "path": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+      "blob_sha": "4e2eb5a3d91ca25fef61eee8369da905f95dcbfc",
+      "role": "focus geometry/contour visual behavior; superseded only where V3.1 or runtime differs"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
+      "blob_sha": "151d3f8494dc0b9edc4165b0d5028a5faeed916c",
+      "role": "bbox halo, contour, focus levels, transitions"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+      "blob_sha": "cce00725a08f5d4c25e3ba6c0003ca6d8f7bf286",
+      "role": "real detector focus input, subject mask generation and contour sampling"
+    },
+    {
+      "path": "app/src/androidTest/java/com/yujian/ai/RecognitionFishContourRuntimeTest.kt",
+      "blob_sha": "a87290588da9c3ba24a40d17a560f229a4dbef11",
+      "role": "synthetic oval-mask contour test; not production mask evidence"
     }
   ],
   "invariants": {
@@ -637,6 +662,27 @@
       "target": "B2/B4/G2 secondary path seeds",
       "defect": "V1.1 values differ from current runtime; V1.2 Motion freezes only B1/G1/B3/G3.",
       "action": "Resolve path-seed authority before producing animated native Figma prototype; geometry remains fixed."
+    },
+    {
+      "id": "RP-A04",
+      "severity": "P1",
+      "target": "RecognitionFishFocus B-level halo/perimeter",
+      "defect": "V1.1 visual contract caps Fish halo at 0.18, while current B fallback runtime reaches 0.36 halo and 0.56 perimeter alpha.",
+      "action": "Compare bbox-only B fallback against the single Frozen 03/04 states and decide the allowed local alpha range; preserve real-bbox gate."
+    },
+    {
+      "id": "RP-A05",
+      "severity": "P2",
+      "target": "extractContour sampling",
+      "defect": "Visual Spec V1.1 states 4px equivalent sampling; current Android OUTLINE_STRIDE is 2px.",
+      "action": "Confirm whether the denser runtime sampling is an accepted quality improvement or a contract mismatch using a real mask fixture; record CPU and contour fidelity."
+    },
+    {
+      "id": "RP-A06",
+      "severity": "P1",
+      "target": "production mask evidence",
+      "defect": "Available Android contour test is synthetic; supplied repository photo fixture has no trusted static bbox/mask provenance.",
+      "action": "Keep runtime-only mask binding; do not encode test bbox/mask as design data. Add consented/provenanced production mask fixture before mask-specific visual QA."
     }
   ],
   "validation": {
@@ -683,9 +729,133 @@
     ]
   },
   "pending_modules": [
-    "P2_FISH_FOCUS",
+    "P3_STATUS_CARD_AND_COPY",
+    "P4_MOTION_QUALITY_RESPONSIVE",
+    "P5_COMPOSE_COMPONENT_DATA_BINDINGS",
     "P3_STATUS_CARD_AND_COPY",
     "P4_MOTION_QUALITY_RESPONSIVE",
     "P5_COMPOSE_COMPONENT_DATA_BINDINGS"
-  ]
+  ],
+  "p2_fish_focus": {
+    "status": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
+    "visibility_gate": "Only OUTLINE / CLASSIFYING and only with a real detector focus bbox. Never synthesize focus from the photo, placeholder data or timer.",
+    "input_contract": {
+      "focus_bbox": "recognition.focus_region normalized detector bbox in EXIF-oriented source-photo coordinates",
+      "transform": "p1_photoviewport.primary FIT transform; detector bbox, subject box, contour and halo share it",
+      "contour_source": "FishSubjectResult bitmap alpha from the real subject-generation pipeline; subjectBox = primary detector bbox expanded by 0.12 before local-mask contour mapping",
+      "missing_bbox": "draw no Fish Focus",
+      "missing_mask_or_contour": "fall back to B; never create a rectangle or bbox-as-contour",
+      "classifier_semantics": "A/B/C affects presentation only"
+    },
+    "levels": {
+      "A": {
+        "trigger": "real bbox + nonempty generated subject bitmap + nonempty extracted contour; promotion after 420ms unless phase override",
+        "draw": [
+          "bbox-centered warm-gold radial halo",
+          "real mask contour"
+        ],
+        "radii": {
+          "x": "mappedBBox.width * 0.62 + 14dp",
+          "y": "mappedBBox.height * 0.72 + 14dp"
+        },
+        "halo_color": "#F6D99B",
+        "halo_alpha_contract": [
+          0.1,
+          0.18
+        ],
+        "contour": {
+          "color": "#FFE7AE",
+          "core_width_dp": 1.5,
+          "core_alpha_outline": 0.36,
+          "core_alpha_classifying": [
+            0.3,
+            0.42
+          ],
+          "glow_color": "#FFD887",
+          "glow_outer_width_dp": 11,
+          "glow_outer_blur_dp": 5,
+          "glow_outer_alpha_multiplier": 0.22,
+          "glow_outer_alpha_cap": 0.1,
+          "glow_mid_width_dp": 4,
+          "glow_mid_blur_dp": 2,
+          "glow_mid_alpha_multiplier": 0.68,
+          "glow_mid_alpha_cap": 0.24,
+          "reveal_easing": "smoothstep",
+          "runtime_reveal_ms": 380,
+          "reduce_motion_reveal_ms": 180
+        }
+      },
+      "B": {
+        "trigger": "real bbox is valid but contour is unavailable; also the 420ms A promotion delay",
+        "draw": [
+          "bbox-derived warm-gold halo",
+          "restrained perimeter ellipse",
+          "no contour"
+        ],
+        "radii": {
+          "x": "mappedBBox.width * 0.54 + 14dp",
+          "y": "mappedBBox.height * 0.60 + 14dp"
+        },
+        "halo_color": "#F6D99B",
+        "runtime_outline_halo_alpha": [
+          0.24,
+          0.36
+        ],
+        "runtime_perimeter_alpha": [
+          0.42,
+          0.56
+        ],
+        "perimeter": {
+          "color": "#FFE7AE",
+          "width_dp": 1.2
+        }
+      },
+      "C": {
+        "trigger": "explicit D4 performance degradation only",
+        "draw": [
+          "real-bbox center-biased warm-gold halo",
+          "no contour",
+          "no perimeter"
+        ],
+        "radius_scale": 0.88
+      }
+    },
+    "geometry": {
+      "radial_outer_extent_multiple": 1.18,
+      "interior_fill": "transparent",
+      "normalized_mask_contour": "map subject-local normalized contour through subjectBox and the primary photo transform",
+      "contour_extraction_runtime": {
+        "alpha_threshold_8bit": 36,
+        "stride_px": 2,
+        "connectivity": 8,
+        "component_filter": "keep component size >= max(4, largestComponentSize/200)",
+        "output": "closed smooth Bezier loops"
+      },
+      "source_spec_stride_px": 4,
+      "stride_conflict": "REVIEW_REQUIRED_SOURCE_VS_RUNTIME"
+    },
+    "timing": {
+      "A_promotion_delay_ms": 420,
+      "outline_contour_reveal_ms": "runtime 380; V1.1 describes approximately 360–380",
+      "classifying_breath_cycle_ms": 1900,
+      "classifying_halo_alpha_runtime": "0.12 + 0.06 * wave",
+      "resolve_behavior": "Fish Focus must fade with the terminal handoff; explicit ResolveStrength is not currently exposed by RecognitionFishFocus."
+    },
+    "fallback": {
+      "no_bbox": "no focus layer",
+      "bbox_no_mask": "B",
+      "explicit_D3": "B",
+      "explicit_D4": "C",
+      "reduce_motion": "retain semantic focus; freeze/shorten motion and use static focus levels",
+      "performance": "apply D0…D4 to visual detail only; do not alter detector/classifier/result semantics"
+    },
+    "verification": {
+      "fixture_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+      "fixture_path": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg",
+      "fixture_bytes": 292222,
+      "fixture_limit": "runtime source-photo fixture only; no trusted static bbox, production mask, provenance or usage-right evidence",
+      "contour_test": "RecognitionFishContourRuntimeTest builds a synthetic 160x120 oval mask and verifies a connected smooth closed contour; it does not validate the production fish mask",
+      "execution": "NOT_RUN_IN_THIS_SESSION"
+    }
+  }
 }
