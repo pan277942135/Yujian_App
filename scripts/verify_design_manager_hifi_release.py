@@ -15,8 +15,11 @@ GUIDE = Path("pages/recognition/first_use_camera_guide")
 ASSETS = Path("system_v3/00_Product_Master_Flow/assets")
 EXPECTED_GUIDE = {
     "p01": (941, 1671, "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"),
-    "p02": (941, 1671, "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"),
-    "p03": (941, 1672, "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
+    "p02": (941, 1672, "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
+}
+EXPECTED_GUIDE_FILENAMES = {
+    "p01": "P01_First_Use_Camera_Guide_Frozen.png",
+    "p02": "P02_Landscape_Horizontal_Fish_Frozen.png",
 }
 EXPECTED_OVERVIEW = "2cf0ea161360888248fb42227d2a2511df64aa94a4c4d3af7c7ffd3f06a0aeea"
 EXPECTED_NEW_STATES = "8cc7c04a4e15bf35ca0f307d0b95940d05901ead0cf6c66742a9f25d4d2e33e5"
@@ -89,7 +92,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(views[-1].get("id") == "boundary_state_release_gate", "08 boundary gate route missing")
     require(guide_view.get("title") == "07 · 首次拍照教学", "legacy 07 guide menu title changed")
     guide_children = {x.get("id"): x for x in guide_view.get("children", [])}
-    require(set(guide_children) == set(EXPECTED_GUIDE), "P01/P02/P03 direct children changed")
+    require(set(guide_children) == set(EXPECTED_GUIDE), "guide must have exactly P01/P02 direct children")
 
     manifest = load_json(design / GUIDE / "manifest.json")
     nav = load_json(design / GUIDE / "navigation.json")
@@ -97,15 +100,15 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(manifest.get("runtime_visual_authority") is False, "guide must not claim Android runtime visual authority")
     nav_children = {x.get("id"): x for x in nav.get("children", [])}
     require(nav.get("manager_parent") == "recognition_flow_v1_2", "guide manager parent changed")
-    require(set(nav_children) == set(EXPECTED_GUIDE), "navigation.json must retain exactly P01/P02/P03")
+    require(set(nav_children) == set(EXPECTED_GUIDE), "navigation.json must retain exactly P01/P02")
     manifest_children = {x.get("id"): x for x in manifest.get("assets", [])}
-    require(set(manifest_children) == set(EXPECTED_GUIDE), "guide manifest P01/P02/P03 set changed")
+    require(set(manifest_children) == set(EXPECTED_GUIDE), "guide manifest must list exactly P01/P02")
 
     files: dict[str, dict] = {}
     for asset_id, (width, height, expected_sha) in EXPECTED_GUIDE.items():
         asset = manifest_children[asset_id]
         child = guide_children[asset_id]
-        expected_path = f"design/pages/recognition/first_use_camera_guide/frozen/P{asset_id[-2:]}_First_Use_Camera_Guide_Frozen.png"
+        expected_path = f"design/pages/recognition/first_use_camera_guide/frozen/{EXPECTED_GUIDE_FILENAMES[asset_id]}"
         require(asset.get("path") == expected_path, f"{asset_id} manifest path drift")
         require(asset.get("sha256") == expected_sha, f"{asset_id} manifest SHA drift")
         require((asset.get("width"), asset.get("height")) == (width, height), f"{asset_id} manifest dimensions drift")
@@ -114,20 +117,19 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         require(child.get("visual_authority_sha256") == expected_sha, f"{asset_id} Registry SHA drift")
         require(child.get("page_id") == "recognition.capture.v3_1" and child.get("state_id") == asset_id.upper(), f"{asset_id} Page/State ID missing")
         require(child.get("runtime_status") == "NOT_RUN", f"{asset_id} incorrectly upgrades Runtime status")
-        require(nav_children[asset_id].get("visual_authority") == f"frozen/P{asset_id[-2:]}_First_Use_Camera_Guide_Frozen.png", f"{asset_id} navigation source drift")
+        require(nav_children[asset_id].get("visual_authority") == f"frozen/{EXPECTED_GUIDE_FILENAMES[asset_id]}", f"{asset_id} navigation source drift")
         files[asset_id] = check_png(root / expected_path, expected_sha, (width, height))
 
     routes = {
         "00 overview": "#page/recognition_flow_v1_2/hifi/main_journey_overview",
         "guide P01": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01",
         "guide P02": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02",
-        "guide P03": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03",
         "master board": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/master_board_v1",
         "review state": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review",
         "capture asset gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/capture_portrait",
         "permission visual gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/camera_permission_visual",
     }
-    for child_id in ("p01", "p02", "p03"):
+    for child_id in ("p01", "p02"):
         child = guide_children[child_id]
         require(child.get("entry_conditions") and child.get("trigger") and child.get("input_contract"), f"{child_id} contract entry fields missing")
         require(child.get("user_actions") and child.get("next_page") and child.get("back_behavior"), f"{child_id} contract actions missing")
@@ -259,7 +261,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         expect_failure(lambda: check_png(temp_png, EXPECTED_GUIDE["p01"][2], (941, 1671)), "modified Frozen PNG SHA")
 
     return [
-        "DM-T01 P01-P03 SHA/dimensions",
+        "DM-T01 P01-P02 SHA/dimensions",
         "DM-T01A overview and review SVG SHA",
         "DM-T02 Registry and guide navigation",
         "DM-T03 Frozen asset presence and negative integrity cases",

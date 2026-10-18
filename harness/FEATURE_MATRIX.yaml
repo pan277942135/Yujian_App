@@ -138,7 +138,7 @@ features:
       - "NH07"
     journey_refs:
       - "J17"
-      - "J18"
+      - "J19"
     route_refs:
       - "home"
     implementation:
@@ -283,6 +283,8 @@ features:
       - "J08"
       - "J09"
       - "J10"
+      - "J19"
+      - "J20"
     route_refs:
       - "identify?openGallery={openGallery}"
       - "recognizing"
@@ -303,7 +305,7 @@ features:
     known_gaps:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
       - "Capture Hi-Fi source PNG binary import remains pending."
-      - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
+      - "The active first-use guide V1.2 uses exactly P01 portrait + horizontal fish and P02 landscape + horizontal fish; former vertical-fish P02 is archive-only. Exact-head API28 runtime and visual parity evidence remain pending."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"
@@ -365,6 +367,10 @@ features:
       - "J14"
       - "J15"
       - "J16"
+      - "J17"
+      - "J18"
+      - "J19"
+      - "J20"
     route_refs:
       - "result"
     implementation:
@@ -429,6 +435,7 @@ features:
       - "populated_memory_media"
       - "no_uploaded_memory"
     journey_refs:
+      - "J18"
       - "J19"
     route_refs:
       - "catch/{catchId}?section={section}"
@@ -546,7 +553,8 @@ features:
       - "video"
       - "generation_lifecycle"
     journey_refs:
-      - "J20"
+      - "J18"
+      - "J19"
     route_refs:
       - "memory_capture/{catchId}/{captureMode}"
     implementation:
@@ -632,8 +640,7 @@ features:
       - "search"
       - "system"
       - "habitat"
-    journey_refs:
-      - "J18"
+    journey_refs: []
     route_refs:
       - "my_catches?speciesId={speciesId}"
       - "my_catches/day/{dayKey}"
@@ -1048,21 +1055,29 @@ journeys:
     feature_refs:
       - "recognition_result_v1"
   J17:
-    name: "Return Home"
+    name: "Save Catch"
     feature_refs:
+      - "recognition_result_v1"
       - "home_normal_v1"
   J18:
-    name: "Recent Catch"
+    name: "Continue Memory"
     feature_refs:
-      - "home_normal_v1"
-  J19:
-    name: "FishRecordDetail A"
-    feature_refs:
+      - "recognition_result_v1"
       - "fish_record_detail_v2"
-  J20:
-    name: "FishRecordDetail B / Memory"
-    feature_refs:
       - "fish_memory_bside_v1"
+  J19:
+    name: "Saved destination Back stack"
+    feature_refs:
+      - "recognition_flow_v1_2"
+      - "recognition_result_v1"
+      - "home_normal_v1"
+      - "fish_record_detail_v2"
+      - "fish_memory_bside_v1"
+  J20:
+    name: "No silent save"
+    feature_refs:
+      - "recognition_flow_v1_2"
+      - "recognition_result_v1"
 routes:
   login:
     mapping_mode: "LEGACY_ALIAS"

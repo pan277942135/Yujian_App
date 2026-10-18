@@ -2,7 +2,6 @@ package com.yujian.ai.ui.identify
 
 internal enum class RecognitionGuideFishOrientation {
     HORIZONTAL,
-    VERTICAL,
 }
 
 internal enum class RecognitionGuideRuntimeAssetStatus {
@@ -13,7 +12,6 @@ internal enum class RecognitionGuideRuntimeAssetStatus {
 internal enum class RecognitionFirstCaptureGuidePage(val index: Int) {
     P01(0),
     P02(1),
-    P03(2),
     ;
 
     companion object {
@@ -61,22 +59,16 @@ private val captureGuideErrorLabels = listOf("鱼头不在画面", "鱼体过小
 internal fun recognitionFirstCaptureGuidePageSpec(
     page: RecognitionFirstCaptureGuidePage,
 ): RecognitionFirstCaptureGuidePageSpec {
-    val fishOrientation = if (page == RecognitionFirstCaptureGuidePage.P02) {
-        RecognitionGuideFishOrientation.VERTICAL
-    } else {
-        RecognitionGuideFishOrientation.HORIZONTAL
-    }
+    val fishOrientation = RecognitionGuideFishOrientation.HORIZONTAL
     val phoneOrientationLabel = when (page) {
-        RecognitionFirstCaptureGuidePage.P01,
-        RecognitionFirstCaptureGuidePage.P02 -> "竖向"
-        RecognitionFirstCaptureGuidePage.P03 -> "横向"
+        RecognitionFirstCaptureGuidePage.P01 -> "竖向"
+        RecognitionFirstCaptureGuidePage.P02 -> "横向"
     }
     val title = when (page) {
         RecognitionFirstCaptureGuidePage.P01 -> "竖屏拍摄示意"
-        RecognitionFirstCaptureGuidePage.P02 -> "竖拍鱼类拍摄示意"
-        RecognitionFirstCaptureGuidePage.P03 -> "横屏拍摄示意"
+        RecognitionFirstCaptureGuidePage.P02 -> "横屏拍摄示意"
     }
-    val fishPose = if (fishOrientation == RecognitionGuideFishOrientation.VERTICAL) "竖直" else "横向"
+    val fishPose = "横向"
     val subtitle = "手机保持$phoneOrientationLabel，整条鱼${fishPose}完整放入取景范围"
     return RecognitionFirstCaptureGuidePageSpec(
         page = page,
@@ -84,7 +76,7 @@ internal fun recognitionFirstCaptureGuidePageSpec(
         fishOrientation = fishOrientation,
         title = title,
         subtitle = subtitle,
-        primaryActionLabel = if (page == RecognitionFirstCaptureGuidePage.P03) "开始拍摄" else "下一张",
+        primaryActionLabel = if (page == RecognitionFirstCaptureGuidePage.P02) "开始拍摄" else "下一张",
         heroAsset = null,
         errorAssets = listOf(null, null, null),
         runtimeAssetStatus = RecognitionGuideRuntimeAssetStatus.ASSET_SOURCE_BLOCKED,
@@ -109,7 +101,7 @@ internal fun reduceRecognitionFirstCaptureGuideState(
             state.copy(currentPage = previousPage)
         }
         RecognitionFirstCaptureGuideIntent.SKIP -> state.copy(visible = false, completed = true)
-        RecognitionFirstCaptureGuideIntent.START -> if (state.currentPage == RecognitionFirstCaptureGuidePage.P03) {
+        RecognitionFirstCaptureGuideIntent.START -> if (state.currentPage == RecognitionFirstCaptureGuidePage.P02) {
             state.copy(visible = false, completed = true)
         } else {
             state
