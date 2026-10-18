@@ -37,7 +37,7 @@ All coordinates below are normalized to the visible photo content; order is `sta
 | G2 | G_UL secondary fragment (must not connect G_UL/G_LL) | `(-.02,.33),(.04,.47),(.02,.62),(-.01,.78)` | .9dp | runtime .09 | .16 / .26 |
 | G3 | G_LL primary | `(-.01,.74),(.08,.86),(.20,.95),(.38,1.02)` | 1.2dp | .64 | .22 / .63 |
 
-Frozen topology keeps four disconnected islands, three secondary fragments and four Quiet Gaps. B2/G2 sit near their respective upper islands but never bridge adjacent primary islands:  top `.32–.68`, left `.38–.62`, right `.46–.58`, bottom `.40–.62`. B1/G1/B3/G3 are the only primary movers. No closed frame, border reconstruction or central crossing is permitted.
+Frozen topology keeps four disconnected islands, three secondary fragments and four Quiet Gaps. B2/G2 sit near their respective upper islands but never bridge adjacent primary islands. Quiet Gap ranges are top `.32–.68`, left `.38–.62`, right `.46–.58`, and bottom `.40–.62`. B1/G1/B3/G3 are the only primary movers. No closed frame, border reconstruction or central crossing is permitted.
 
 B2/B4/G2 runtime seeds are not silently treated as frozen: the Android values are `.07/.11/.09`; superseded V1.1 values are `.23/.71/.39`; V1.2 Motion freezes only the four primary seeds. These remain `REVIEW_REQUIRED_CONTRACT_GAP` before animated Figma prototyping.
 
