@@ -340,7 +340,7 @@
       },
       {
         "id": "B2",
-        "island": "B_UR_TO_B_LR_FRAGMENT",
+        "island": "B_UR_SECONDARY_FRAGMENT",
         "family": "blue",
         "role": "secondary_only",
         "start": [
@@ -450,7 +450,7 @@
       },
       {
         "id": "G2",
-        "island": "G_UL_TO_G_LL_FRAGMENT",
+        "island": "G_UL_SECONDARY_FRAGMENT",
         "family": "gold",
         "role": "secondary_only",
         "start": [
@@ -703,7 +703,8 @@
       }
     ],
     "shared_alpha_equation": "BaseAlpha * IslandWeight * StateStrength * ResolveStrength * QualityStrength",
-    "runtime_note": "Current Android multiplies state/entry/quality but has no explicit ResolveStrength and uses independent detail alpha formulas; visual alignment remains unverified."
+    "runtime_note": "Current Android multiplies state/entry/quality but has no explicit ResolveStrength and uses independent detail alpha formulas; visual alignment remains unverified.",
+    "path_relationship_note": "B2 and G2 are secondary fragments near their upper islands and must not connect upper/lower islands."
   },
   "android_repairs": [
     {
