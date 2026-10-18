@@ -34,7 +34,7 @@ Status placement is already grouped for the shared first product state: safe bot
 
 - **RP-A07:** unify CAPTURED/DETECTING copy by product visual ID; transcribe exact copy from retained Frozen 02, replace the current `assertNotEquals` copy test with an equality assertion, retain all state-controller event/minimum tests.
 - **RP-V-A01:** compare the existing product-grouped 84dp/34dp anchors with the three Frozen PNGs when visual access returns; CAPTURED and DETECTING must remain on the same anchor.
-- **RP-A09:** map the Layout Contract's registered Back asset to Compose after comparison; keep safe-area placement and 44×44dp minimum target.
+- **RP-A09:** map the Layout Contract's Layout-Contract-referenced candidate Back asset to Compose after comparison; keep safe-area placement and 44×44dp minimum target.
 - **RP-A10:** V1.1 calls for a lightweight DETECTING card, but V1.2 defines one shared IMAGE_RECOGNIZING visual. Use current V1.2/V3.1 authority; verify the card treatment against 02 when visual access returns.
 
 Source audit: State Machine SHA `0be6a1685a91c0cb4940080b845ad6f7b4a3bf4c`; status overlay SHA `891caf7473bf2a46c5730bc3586df7bc069f575a`; status token/copy SHA `68a61dae637672337dd8117ae789493f112d97e3`. Existing runtime/controller tests were not run during this handoff.
