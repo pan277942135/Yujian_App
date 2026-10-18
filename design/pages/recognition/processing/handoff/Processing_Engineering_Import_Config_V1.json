@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "artifact_id": "recognition.processing.engineering_handoff",
   "artifact_role": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
-  "status": "IN_PROGRESS_P1_PHOTOVIEWPORT_EDGE_FIELD",
+  "status": "ENGINEERING_HANDOFF_READY",
   "purpose": "Structured input for NH01 unified Figma importer and Android engineering handoff; source contracts remain authoritative.",
   "source_snapshot": {
     "repository": "pan277942135/Yujian_App",
@@ -142,8 +142,13 @@
     },
     {
       "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
-      "blob_sha": "958ad857d44a31fa2d93094d28e43320efda7ec4",
+      "blob_sha": "c96b1c0bd925f051e817e3ad9f67653775fb0828",
       "role": "V3.1 visual event/minimum controller test/source baseline"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/result/RecognitionResultGeometry.kt",
+      "blob_sha": "1032a786d2a6d066cf849bd207011938d3244d5d",
+      "role": "shared RecognitionMediaPlanner geometry source"
     }
   ],
   "invariants": {
@@ -749,7 +754,7 @@
       "severity": "P1",
       "target": "recognitionStatusCopy",
       "defect": "CAPTURED/DETECTING retain distinct superseded Early copy under the one IMAGE_RECOGNIZING visual.",
-      "action": "Move copy resolution to the three product-state IDs; transcribe exact shared copy from retained Frozen 02 asset. Add equality assertion for both internal phases; preserve controller gate tests."
+      "action": "Change resolver key to the three product-state IDs; transcribe exact shared IMAGE_RECOGNIZING copy from retained Frozen 02 before string implementation. Replace RecognitionProcessingVisualTokensTest's CAPTURED != DETECTING assertion with equality for the shared product visual; preserve all controller event/minimum tests."
     },
     {
       "id": "RP-A09",
@@ -1137,7 +1142,14 @@
           "finding": "CAPTURED and DETECTING already share one anchor; differing later-state anchor is not confirmed defect.",
           "action": "Compare each product-state anchor with its retained Frozen PNG when real visual access returns; keep CAPTURED and DETECTING identical."
         }
-      ]
+      ],
+      "existing_test_conflict": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
+        "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
+        "current_assertion": "v31StatusCopyKeepsAllFourPipelineBeatsDistinct asserts CAPTURED != DETECTING",
+        "required_change": "replace four-phase copy assertion with three product-state assertions; assert CAPTURED and DETECTING resolve to exactly the same IMAGE_RECOGNIZING copy while retaining distinct OUTLINE and CLASSIFYING copy",
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      }
     },
     "event_gate_change": "NONE",
     "event_gate_note": "Preserve real V3.1 event gates and >=220/320/350/250ms minimum beats exactly; state/copy repair is presentation-only."
