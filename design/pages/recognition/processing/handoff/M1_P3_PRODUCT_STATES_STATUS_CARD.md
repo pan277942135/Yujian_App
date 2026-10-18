@@ -26,13 +26,13 @@ The Android copy resolver currently keys directly on `RecognitionPhase` and retu
 - CAPTURED: “正在准备识别 / AI 已获取这张照片”
 - DETECTING: “正在理解这张照片 / 寻找这次鱼获的线索”
 
-These phase-specific Early strings conflict with one IMAGE_RECOGNIZING product visual. V1.2 gives the shared display name “图片识别中”, but the text-readable contracts do not transcribe the exact title/subtitle shown on the Frozen 02 PNG. The repair is therefore registered precisely: key the resolver by the three product visual IDs, transcribe the retained 02 copy, and assert CAPTURED and DETECTING resolve identically. I did not invent substitute copy.
+These phase-specific Early strings conflict with one IMAGE_RECOGNIZING product visual. V1.2 gives the shared display name “图片识别中”, but the text-readable contracts do not transcribe the exact title/subtitle shown on the Frozen 02 PNG. The repair is therefore registered precisely: key the resolver by the three product visual IDs, transcribe the retained 02 copy, and assert CAPTURED and DETECTING resolve identically. The current `RecognitionProcessingVisualTokensTest` explicitly asserts all four internal phases have distinct copy and includes `assertNotEquals(CAPTURED, DETECTING)`; replace that assertion with product-state equality while retaining distinct OUTLINE and CLASSIFYING copy. I did not invent substitute copy.
 
 Status placement is already grouped for the shared first product state: safe bottom +84dp for both CAPTURED and DETECTING, and +34dp for OUTLINE/CLASSIFYING. This is not an internal-phase jump. Verify each product-state anchor against its retained Frozen composition; do not force the three distinct product states to share one position.
 
 ## Registered Android tasks
 
-- **RP-A07:** unify CAPTURED/DETECTING copy by product visual ID; transcribe exact copy from retained Frozen 02, add equality test, retain all state-controller event/minimum tests.
+- **RP-A07:** unify CAPTURED/DETECTING copy by product visual ID; transcribe exact copy from retained Frozen 02, replace the current `assertNotEquals` copy test with an equality assertion, retain all state-controller event/minimum tests.
 - **RP-V-A01:** compare the existing product-grouped 84dp/34dp anchors with the three Frozen PNGs when visual access returns; CAPTURED and DETECTING must remain on the same anchor.
 - **RP-A09:** map the Layout Contract's registered Back asset to Compose after comparison; keep safe-area placement and 44×44dp minimum target.
 - **RP-A10:** V1.1 calls for a lightweight DETECTING card, but V1.2 defines one shared IMAGE_RECOGNIZING visual. Use current V1.2/V3.1 authority; verify the card treatment against 02 when visual access returns.
