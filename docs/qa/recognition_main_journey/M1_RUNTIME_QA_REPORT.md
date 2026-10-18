@@ -65,3 +65,8 @@ The CAPTURED timeline assertion failure from Android CI run 39092555645 was corr
 - API28 Preflight: FAIL/BLOCKED_INFRA at `test -c /dev/kvm -a -r /dev/kvm -a -w /dev/kvm`; the emulator, SDK/API assertion, 1080×1920 display, installation, CameraX, Instrumentation, screenshots and formal runtime jobs did not start. Formal `api28-runtime` is SKIPPED.
 - N001 BLOCKED_INFRA; N002–N006 NOT_RUN; N007 REVIEW_REQUIRED; N008 NOT_RUN; N009 NOT_RUN; N010 REVIEW_REQUIRED because canonical and PR #163 guide remain three-page while Draft PR #162 contains the approved two-page proposal.
 - Catalog shape validation, current-source execution, and Build Once packaging remain distinct. No existing 66+10, J01–J20 or save/detail test has an API28 execution result at this SHA.
+
+
+## Exact-SHA result — 85dfe92
+
+At 85dfe9217e879e0f87d19b41801beb05e502aaa2, Android CI Run 39095194583 passed build/unit/contract/AndroidTest compile and packaging. Hosted API28 Run 39095194693 Build Once passed and uploaded artifact 12124820081 (ZIP digest `ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97`). Preflight failed the KVM character/read/write assertion. No device started; formal Runtime, 66/10 execution, J01–J20, screenshots, bounds, Pixel Diff, Motion Trace or MP4 remain NOT_RUN. N001 is BLOCKED_INFRA; N009 NOT_RUN; N010 REVIEW_REQUIRED.

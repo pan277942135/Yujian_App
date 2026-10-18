@@ -46,3 +46,8 @@ On `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, Android CI Run 39093186726 passed
 - Hosted API28 Preflight failed KVM access; formal API28 Runtime is SKIPPED. No Runtime, screenshot, Motion Trace or Pixel Diff evidence exists.
 - C01 remains separate: PR #162 Draft at 43b8267 contains two pages; PR #163 and main remain on the three-page code/contract.
 - C02 follows the latest comment's V3.1 values 220/320/350/250ms plus real pipeline events. Real trace and PROC-07 timeout remain unresolved.
+
+
+## Exact-source implementation and CI checkpoint — 85dfe92
+
+The product candidate at 85dfe9217e879e0f87d19b41801beb05e502aaa2 passed Android CI Run 39095194583 and Build Once Run 39095194693, including JVM/controller checks and AndroidTest compilation. Build Once artifact 12124820081 is retained. Hosted API28 Preflight failed at KVM access; no Runtime was executed. The exact two-page guide remains unintegrated in PR #163; no new Android implementation is claimed in this checkpoint.

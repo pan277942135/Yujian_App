@@ -59,3 +59,8 @@ Run 39093844697 checked out source ffe285aff3818435815f769532fa221d3157917e on `
 Preflight then failed the required `/dev/kvm` character/read/write assertion on the standard GitHub-hosted runner. The job uploaded a BLOCKED_INFRA artifact. The emulator did not start; no API28/Pixel 2/API/size/CameraX/Instrumentation checks or formal Android Runtime gates ran. Job `api28-runtime` is SKIPPED. Run URL: https://github.com/pan277942135/Yujian_App/actions/runs/39093844697; Preflight evidence artifact: https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12123731965.
 
 The prior SDK lookup and license-pipe failures are retained as historical failures at their own source SHAs. Android CI Run 39093846259 now passes on ffe285aff3818435815f769532fa221d3157917e; it does not replace the failed device preflight.
+
+
+## Latest hosted runner evidence — exact source 85dfe92
+
+Run 39095194693 checked out 85dfe9217e879e0f87d19b41801beb05e502aaa2 on `ubuntu-24.04`. Build Once and APK pair upload passed (artifact 12124820081). The artifact ZIP digest is `ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97`; it is not an APK digest. Preflight failed the required `/dev/kvm` character/read/write check; API28/Pixel 2 boot, display, install, CameraX, Instrumentation and Runtime did not run; `api28-runtime` was SKIPPED. Preflight artifact 12124093937 and Runtime-not-run artifact 12124313389 are retained. Run: https://github.com/pan277942135/Yujian_App/actions/runs/39095194693.

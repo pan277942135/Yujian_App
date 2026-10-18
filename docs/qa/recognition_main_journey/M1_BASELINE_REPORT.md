@@ -79,3 +79,13 @@ At `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, full Control Plane Admission and 
 - QA Test Users 39093844684 and canonical-promotion Admission 39093844689: PASS. The latter does not substitute for local PRODUCT_WORK Admission, which passed at ffe285aff3818435815f769532fa221d3157917e.
 - PR #162 is still Draft/Open/Unmerged at 43b8267167d8a948754fe3df7d20edf072955cf9; main and PR #163 still have the three-page product contract. C01 is not reported as integrated.
 - Build Once app APK SHA-256: bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e; AndroidTest APK SHA-256: 249334802bd6ffe7084b9b96b604123db3b7b171640eb86b18344fa3a51749bb. This is a testable build only; no Runtime or Release PASS is claimed.
+
+
+## Latest completed run — source 85dfe92
+
+PR #163 remained Draft/Open/Unmerged. The latest completed tested source for this checkpoint was 85dfe9217e879e0f87d19b41801beb05e502aaa2; the next workflow-only commit adds exact-SHA Page Contract validation and exposes APK hashes in logs.
+
+- Android CI Run 39095194583: PASS; build, JVM/unit, camera runtime contract checks, AndroidTest compilation, packaging and lint passed. API28 CI jobs were SKIPPED.
+- M1 Hosted API28 Runtime Run 39095194693: Build Once PASS; API28 Preflight FAIL at KVM access; formal Runtime SKIPPED. Artifact 12124820081 digest `ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97`.
+- QA Test Users Run 39095194548 and canonical-promotion Admission Run 39095194580 passed. The Admission result does not prove product-branch dynamic Work State.
+- The exact APK hashes are recorded inside the Build Once artifact manifest; no API28 device result or Release PASS is claimed.

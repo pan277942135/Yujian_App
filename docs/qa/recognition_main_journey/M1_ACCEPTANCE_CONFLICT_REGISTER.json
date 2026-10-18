@@ -7,7 +7,7 @@
     "state": "OPEN",
     "draft": true,
     "merged": false,
-    "head_sha": "ffe285aff3818435815f769532fa221d3157917e",
+    "head_sha": "85dfe9217e879e0f87d19b41801beb05e502aaa2",
     "comment_id": 6244627483
   },
   "conflicts": [
@@ -30,7 +30,7 @@
       "old_authority": "Earlier M1 instruction named Recognition_Processing_Motion_Spec_V1_1.md with 350/600/600/1250ms and 2800ms; the latest PR #163 comment explicitly supersedes this as an M1 acceptance threshold.",
       "new_authority": "Latest PR #163 comment selects design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json: CAPTURED ≥220ms, DETECTING ≥320ms, OUTLINE ≥350ms, CLASSIFYING ≥250ms, and every transition waits for the corresponding real Pipeline event. Visual minimums are not model timeouts; PROC-07 needs an approved timeout value.",
       "change_pr": "https://github.com/pan277942135/Yujian_App/pull/163",
-      "test_result": "Android CI Run 39093846259 passed controller JVM tests and AndroidTest compilation at ffe285aff3818435815f769532fa221d3157917e; Hosted Run 39093844697 failed before emulator startup, so there is no real timing trace, phase screenshot or Motion MP4.",
+      "test_result": "Android CI Run 39095194583 passed JVM/controller and AndroidTest compile at 85dfe9217e879e0f87d19b41801beb05e502aaa2; Hosted Run 39095194693 stopped before emulator startup, so there is no real timing trace, phase screenshot or Motion MP4.",
       "status": "REVIEW_REQUIRED",
       "blockers": [
         "Resolve 200ms visual hold and PROC-07 timeout are still unresolved against event-gated V3.1.",
@@ -43,11 +43,12 @@
       "old_authority": "Expired GCP self-hosted API28 runner and older-source artifacts.",
       "new_authority": "GitHub-hosted standard ubuntu-24.04 runner, API28 google_apis x86_64 Pixel 2, 1080×1920, JDK17/Gradle8.9, Build Once APK pair, and existing Harness.",
       "change_pr": "https://github.com/pan277942135/Yujian_App/pull/163",
-      "test_result": "At exact source ffe285aff3818435815f769532fa221d3157917e, Hosted Run 39093844697 Build Once passed and uploaded APKs; Preflight failed the /dev/kvm character/read/write check; formal API28 Runtime skipped. Android CI Run 39093846259 passed, QA Test Users Run 39093844684 passed, canonical-promotion Admission Run 39093844689 passed. APK SHA-256 bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e; AndroidTest APK SHA-256 249334802bd6ffe7084b9b96b604123db3b7b171640eb86b18344fa3a51749bb.",
+      "test_result": "At exact source 85dfe9217e879e0f87d19b41801beb05e502aaa2, Android CI 39095194583 passed; QA Test Users 39095194548 and canonical-promotion Admission 39095194580 passed. Hosted M1 Run 39095194693 Build Once passed and uploaded APK artifact 12124820081 (archive digest ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97). Preflight failed KVM access; Runtime skipped. APK hash values are in the artifact manifest; the next workflow revision prints them in the job log.",
       "status": "BLOCKED_INFRA",
       "blockers": [
-        "GitHub-hosted runner KVM preflight failed; AVD, device, install, CameraX, Instrumentation, screenshots, Motion, Pixel Diff and Runtime did not run.",
-        "No paid large runner or self-hosted fallback is authorized; retain the exact failure evidence."
+        "GitHub-hosted runner KVM preflight failed; AVD/device/install/CameraX/Instrumentation/screenshots/Motion/Pixel Diff/Runtime did not run.",
+        "Branch-local PRODUCT_WORK Admission and recovery are not refreshed at this latest SHA.",
+        "No paid or self-hosted fallback is authorized."
       ]
     }
   ]

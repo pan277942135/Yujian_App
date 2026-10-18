@@ -101,6 +101,9 @@ jobs:
           python3 scripts/test_bootstrap_android_recognition_assets.py
           python3 -m unittest discover -s scripts -p 'test_runtime_evidence_source_closure.py'
 
+      - name: Verify Page Contract V3 registry cardinality and references
+        run: python3 scripts/design/verify_page_contract_v3.py
+
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
         env:

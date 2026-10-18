@@ -133,3 +133,22 @@ The following 49 page/state records bind the effective-authority matrix to the e
 | recognition.capture.v3_1 | exit_unsaved | design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md<br>MISSING | V3.1 | MISSING | ffe285aff3818435815f769532fa221d3157917e | bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | https://github.com/pan277942135/Yujian_App/actions/runs/39093844697<br>https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12124400453 | NOT_REVIEWED | REVIEW_REQUIRED |
 | auth_login_v2 | session_expired_restore | design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md<br>MISSING | V2 conditional recovery | MISSING | ffe285aff3818435815f769532fa221d3157917e | bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | https://github.com/pan277942135/Yujian_App/actions/runs/39093844697<br>https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12124400453 | NOT_REVIEWED | REVIEW_REQUIRED |
 | fish_memory_bside_v1 | b_side_memory | design/pages/fish_record/detail/README.md<br>MISSING | V1 / PARTIAL | MISSING | ffe285aff3818435815f769532fa221d3157917e | bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e | NOT_RUN | NOT_RUN | NOT_RUN | NOT_RUN | https://github.com/pan277942135/Yujian_App/actions/runs/39093844697<br>https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12124400453 | NOT_REVIEWED | BLOCKED_GATE_A |
+
+
+## Latest tested-source checkpoint — 85dfe92
+
+C1–C7 are evaluated separately. At source 85dfe9217e879e0f87d19b41801beb05e502aaa2, C1 scope/Frozen protection passed; Android CI 39095194583 and Build Once Run 39095194693 passed. Build Once artifact: [download](https://github.com/pan277942135/Yujian_App/actions/runs/39095194693/artifacts/12124820081), archive SHA-256 `ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97`. It contains `m1_source_apk_manifest.json`; the app/Test APK hashes are not the ZIP digest and will be printed by the next workflow revision.
+
+| Lock | Current result | Evidence / blocker |
+|---|---|---|
+| Gate A | REVIEW_REQUIRED | C01 and missing/review authority rows. |
+| Gate B | IN_PROGRESS | Android build/tests/AndroidTest compilation pass. Corrected 669-entry validator is added to the next Android CI run; no PASS before that run. |
+| Gate C | BLOCKED_INFRA | Hosted KVM preflight failed before emulator startup; no Runtime. |
+| Gate D | REVIEW_REQUIRED | No independent acceptance. |
+| C1 | PASS | Exact scope and Frozen-source protection passed on 85dfe9217e879e0f87d19b41801beb05e502aaa2. |
+| C2 | NOT_RUN | No native screenshot, bounds, geometry/glyph or ROI Pixel Diff. |
+| C3 | REVIEW_REQUIRED | V3.1 static event-gating checks pass; no real trace/phase PNG/MP4. |
+| C4 | NOT_RUN | Journey, persistence, multi-tap/recreation, save and detail execution not run on device. |
+| C5 | REVIEW_REQUIRED | A review, B retest pending, C blocked, D review pending. |
+| C6 | PASS for repaired build issues | SDK path/license pipeline and AndroidTest compile repairs now pass on a newer exact SHA; KVM remains separate. |
+| C7 | BLOCKED | Testable APK bundle exists; Runtime, P0 closure and N009 approval do not. |

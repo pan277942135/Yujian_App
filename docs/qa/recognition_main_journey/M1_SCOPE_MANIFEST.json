@@ -197,9 +197,12 @@
       ],
       "expected_changes": [
         "Correct the stale 658 count to the effective V3 FINAL registry count of 669.",
-        "Assert row count, unique asset IDs, and unique paths independently; preserve all other registry, Frozen-byte, and contract checks."
+        "Assert row count, unique asset IDs, and unique paths independently; preserve all other registry, Frozen-byte, and contract checks.",
+        "Execute the corrected Page Contract validator in Android CI and emit the Build Once APK SHA-256 values in the hosted job log."
       ],
       "paths": [
+        ".github/workflows/android.yml",
+        ".github/workflows/m1-hosted-api28-runtime.yml",
         "scripts/design/verify_page_contract_v3.py"
       ],
       "frozen_invariants": [
@@ -207,8 +210,9 @@
         "No Frozen PNG/SVG bytes or registered hashes change."
       ],
       "tests": [
-        "scripts/design/verify_page_contract_v3.py",
-        "Design Governance exact-SHA CI"
+        "python3 scripts/design/verify_page_contract_v3.py",
+        "Android CI exact-SHA workflow",
+        "M1 Hosted API28 Runtime Build Once exact-SHA workflow"
       ],
       "evidence": "Correction is grounded in the unchanged 669-entry V3 FINAL registry; exact-SHA CI result is pending.",
       "dependency": "Effective Asset_Registry_V3_FINAL.json at the canonical baseline.",

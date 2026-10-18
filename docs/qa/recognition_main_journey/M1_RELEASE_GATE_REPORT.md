@@ -46,3 +46,8 @@ Candidate source: ffe285aff3818435815f769532fa221d3157917e. PR #163 remains Draf
 | N009 human release approval | NOT_RUN | No release approval requested or granted. |
 
 An installable `M1_TESTABLE_APK` is available for exact source ffe285aff3818435815f769532fa221d3157917e; this is not a Runtime-accepted APK and does not support `M1_RELEASE_PASS`.
+
+
+## Exact-SHA release status — 85dfe92
+
+At source 85dfe9217e879e0f87d19b41801beb05e502aaa2, Android CI Run 39095194583 and Build Once Run 39095194693 passed. C1 scope/Frozen guard passed. API28 Preflight is BLOCKED_INFRA at KVM access; formal Runtime is NOT_RUN. PR #162 remains Draft and current main/PR #163 guide code remain three-page. The Build Once artifact 12124820081 supplies a testable APK pair, but its ZIP digest is not an APK digest. M1_RELEASE_PASS remains unsupported; no independent acceptance or N009 approval exists.

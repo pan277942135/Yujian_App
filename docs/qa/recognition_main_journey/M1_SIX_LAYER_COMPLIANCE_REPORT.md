@@ -90,3 +90,17 @@ This refresh supersedes the prior “latest exact-head” row for the current ca
 | L6 · Automatic Recovery | REVIEW_REQUIRED | Private checkpoint exists at the exact SHA; the current-SHA interruption/recovery rehearsal result is not yet verified. The successful recovery at 6d16bb7 remains historical and is not reused as an ffe result. |
 
 The true branch-local Admission PASS is separate from GitHub run 39093844689, which validates canonical promotion rules only. The current overall audit remains REVIEW_REQUIRED/BLOCKED_INFRA; no layer is promoted from a neighboring layer's result.
+
+
+## Live branch audit checkpoint — exact tested source 85dfe92
+
+| Layer | Result on source 85dfe9217e879e0f87d19b41801beb05e502aaa2 | Evidence / action |
+|---|---|---|
+| L1 · Project/Work State | REVIEW_REQUIRED | The private checkpoint and true PRODUCT_WORK Admission pass are from parent source ffe285a. The GitHub Admission Run 39095194580 validates canonical promotion only. Refresh private state and rerun on this SHA. |
+| L2 · Feature Matrix | REVIEW_REQUIRED | 15/20/22/79 static inventories pass; J18 owner references conflict and some M1 surfaces/assets are unresolved. |
+| L3 · Phase/Task Machine | REVIEW_REQUIRED | P5-02 still names the expired self-hosted API28 pool; N010 still requires three pages; retries are bounded. |
+| L4 · Unified Contract/Design | REVIEW_REQUIRED | C01 remains a Draft proposal in #162, not integrated/effective on main; Design Manager was not retrievable through the web surface; V3.1 timing authority is the current M1 rule. |
+| L5 · Evidence Gate | BLOCKED_INFRA | Run 39095194693 Build Once passed; KVM Preflight failed; API28 runtime skipped. Android CI 39095194583 passed. |
+| L6 · Automatic Recovery | REVIEW_REQUIRED | No current-SHA recovery rehearsal; private checkpoint remains bound to parent ffe285a. |
+
+The new CI/workflow commit adds the 669-entry Page Contract validator to Android CI and logs exact APK hashes. These are not reported as passed until that exact SHA completes.
