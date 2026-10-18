@@ -175,7 +175,7 @@ feature_contracts:
     registry_status: "FROZEN"
     owner_path: "design/pages/home/normal_home"
     child_surfaces: ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06", "NH07"]
-    journey_refs: ["J17", "J18"]
+    journey_refs: ["J17", "J19"]
     route_refs: ["home"]
     domain_contracts:
       behavior:
@@ -257,7 +257,7 @@ feature_contracts:
     registry_status: "ACTIVE_CLOSURE"
     owner_path: "design/pages/recognition"
     child_surfaces: ["capture", "permission", "first_use_guide", "first_use_guide_portrait_horizontal", "first_use_guide_landscape_horizontal", "preview_ready", "capture_ready_portrait_horizontal", "capture_ready_landscape_horizontal", "processing", "issue_retry", "gallery_entry"]
-    journey_refs: ["J03", "J04", "J05", "J06", "J07", "J08", "J09", "J10"]
+    journey_refs: ["J03", "J04", "J05", "J06", "J07", "J08", "J09", "J10", "J19", "J20"]
     route_refs: ["identify?openGallery={openGallery}", "recognizing", "recognition_issue"]
     domain_contracts:
       behavior:
@@ -322,7 +322,7 @@ feature_contracts:
     registry_status: "FROZEN"
     owner_path: "design/pages/recognition/result"
     child_surfaces: ["overview", "high", "medium", "low", "no_fish", "image_quality", "content_edit", "decision_logic"]
-    journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
+    journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16", "J17", "J18", "J19", "J20"]
     route_refs: ["result"]
     domain_contracts:
       behavior:
@@ -363,7 +363,7 @@ feature_contracts:
     registry_status: "PARTIAL"
     owner_path: "design/pages/fish_record/detail"
     child_surfaces: ["overview", "a_side", "b_side", "asset_generation", "editing", "page_states", "populated_memory_media", "no_uploaded_memory"]
-    journey_refs: ["J19"]
+    journey_refs: ["J18", "J19"]
     route_refs: ["catch/{catchId}?section={section}"]
     domain_contracts:
       behavior:
@@ -445,7 +445,7 @@ feature_contracts:
     registry_status: "PARTIAL"
     owner_path: "design/system/core_visual_v1/reference/supplemental"
     child_surfaces: ["b_side_memory", "photo", "video", "generation_lifecycle"]
-    journey_refs: ["J20"]
+    journey_refs: ["J18", "J19"]
     route_refs: ["memory_capture/{catchId}/{captureMode}"]
     domain_contracts:
       behavior:
@@ -486,7 +486,7 @@ feature_contracts:
     registry_status: "PARTIAL"
     owner_path: "design/pages/fish_records/list"
     child_surfaces: ["overview", "main", "timeline", "filter", "empty", "growth", "search", "system", "habitat"]
-    journey_refs: ["J18"]
+    journey_refs: []
     route_refs: ["my_catches?speciesId={speciesId}", "my_catches/day/{dayKey}"]
     domain_contracts:
       behavior:
@@ -847,24 +847,24 @@ journey_contracts:
     contract_refs: ["FC-recognition_result_v1"]
     acceptance_owner: "N003"
   J17:
-    name: "Return Home"
-    feature_refs: ["home_normal_v1"]
-    contract_refs: ["FC-home_normal_v1"]
+    name: "Save Catch"
+    feature_refs: ["recognition_result_v1", "home_normal_v1"]
+    contract_refs: ["FC-recognition_result_v1", "FC-home_normal_v1"]
     acceptance_owner: "N003"
   J18:
-    name: "Recent Catch"
-    feature_refs: ["home_normal_v1"]
-    contract_refs: ["FC-home_normal_v1"]
+    name: "Continue Memory"
+    feature_refs: ["recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    contract_refs: ["FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
     acceptance_owner: "N003"
   J19:
-    name: "FishRecordDetail A"
-    feature_refs: ["fish_record_detail_v2"]
-    contract_refs: ["FC-fish_record_detail_v2"]
+    name: "Saved destination Back stack"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1", "home_normal_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-home_normal_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
     acceptance_owner: "N003"
   J20:
-    name: "FishRecordDetail B / Memory"
-    feature_refs: ["fish_memory_bside_v1"]
-    contract_refs: ["FC-fish_memory_bside_v1"]
+    name: "No silent save"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
     acceptance_owner: "N003"
 
 child_surface_contracts:

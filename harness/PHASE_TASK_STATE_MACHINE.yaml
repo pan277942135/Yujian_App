@@ -467,8 +467,8 @@ tasks:
     depends_on: ["P5-01"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["self_hosted_api28_runner"]
-    completion: "Authoritative API28 runner is available."
+    evidence_required: ["github_hosted_ubuntu_24_04_api28_pixel_2_kvm_preflight"]
+    completion: "GitHub-hosted Ubuntu 24.04 boots the API 28 google_apis x86_64 Pixel 2 at 1080x1920, installs the app and AndroidTest APKs, exercises CameraX and instrumentation, and uploads evidence artifacts."
     human_required: false
   P6-01:
     phase: "P6"
