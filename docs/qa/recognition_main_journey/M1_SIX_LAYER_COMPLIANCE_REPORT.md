@@ -74,3 +74,19 @@ Local integration checks also passed for the declared path whitelist (55 changed
 At `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, the required private Project Master and Work states were refreshed to the current source SHA in a private checkpoint. The local PRODUCT_WORK Admission run passed L1/L2/L3/L4/L6 static checks, Project Master, Work, and Control Plane sync (616 paths, zero errors). The interruption rehearsal removed and restored both private state files from the persisted checkpoint; their SHA-256 hashes matched and a second full Admission passed. GitHub Control Plane Admission Run 39093186750 also passed on this SHA. Raw state remains private.
 
 L5 remains blocked: Hosted Runtime Run 39093186784 failed at SDK license-pipe exit handling before Preflight, and Android CI Run 39093186726 failed AndroidTest compilation after passing unit tests. This exact-SHA audit is not a Release PASS. The next source commit needs refreshed private state and repeated Admission/recovery.
+
+
+## Latest exact-SHA checkpoint
+
+This refresh supersedes the prior “latest exact-head” row for the current candidate while preserving historical failures. Live PR #163 is ffe285aff3818435815f769532fa221d3157917e; canonical main is 0d3238e8a41b87363e9a17b04c9cc45fca4c426d.
+
+| Layer | Current result | Exact evidence / remaining action |
+|---|---|---|
+| L1 · Project/Work State | PASS | Required PRODUCT_WORK Admission ran in the actual M1 worktree at ffe285aff3818435815f769532fa221d3157917e after private state refresh. Private state checkpoint version 7 is bound to this SHA. No raw Work state was committed. |
+| L2 · Feature Matrix | REVIEW_REQUIRED | 15 features, J01–J20, routes/child surfaces and the 65-row design matrix are present, but J18 Feature Matrix/Unified Contract owner references disagree; missing/review/blocked sources remain. Resolve the mapping through canonical authority. |
+| L3 · Phase/Task Machine | REVIEW_REQUIRED | Static validators pass; P5-02 still names the expired self-hosted API28 runner and N010 still expects three guide pages. Retry budget for the prior runner repair loop is exhausted; keep the hosted KVM blocker explicit. |
+| L4 · Unified Contract/Design | REVIEW_REQUIRED | C01 target is the approved two-page proposal in Draft PR #162, but main and PR #163 product code remain three-page. The Design Manager web route could not be retrieved by the browsing surface; GitHub canonical main files remain inspectable. V3.1 is the latest M1 timing authority per comment #6244627483. |
+| L5 · Evidence Gate | BLOCKED_INFRA | Hosted Run 39093844697 Build Once PASS; API28 Preflight failed KVM access and formal Runtime skipped. Android CI 39093846259 passed. No API28 native capture, trace, bounds, ROI diff or MP4. |
+| L6 · Automatic Recovery | REVIEW_REQUIRED | Private checkpoint exists at the exact SHA; the current-SHA interruption/recovery rehearsal result is not yet verified. The successful recovery at 6d16bb7 remains historical and is not reused as an ffe result. |
+
+The true branch-local Admission PASS is separate from GitHub run 39093844689, which validates canonical promotion rules only. The current overall audit remains REVIEW_REQUIRED/BLOCKED_INFRA; no layer is promoted from a neighboring layer's result.

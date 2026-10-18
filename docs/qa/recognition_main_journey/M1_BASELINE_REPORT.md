@@ -68,3 +68,14 @@ PR #163 remains Draft/Open/Unmerged. The published candidate `1d98f48d59132d3d1e
 ## 6d16bb7 exact-source checkpoint
 
 At `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, full Control Plane Admission and private checkpoint recovery passed; hosted Control Plane and QA Test Users workflows also passed. Hosted API28 Run 39093186784 failed before Preflight at SDK license-pipeline exit handling. Android CI Run 39093186726 passed all unit and harness contract tests, assembled Debug APK, then failed AndroidTest compilation and uploaded no APK. The test and workflow fixes are recorded in `M1_LOCAL_REPAIR_EVIDENCE.md`; current candidate and release remain blocked pending a new exact-SHA run.
+
+
+## Latest exact-SHA checkpoint
+
+**Audit refresh:** current remote PR #163 remains Draft/Open/Unmerged at ffe285aff3818435815f769532fa221d3157917e; canonical main remains 0d3238e8a41b87363e9a17b04c9cc45fca4c426d. The earlier Stage 0 inventory is still the source of historical baseline facts; the new P0 compliance acceptance remains REVIEW_REQUIRED and does not inherit the earlier baseline gate.
+
+- Android CI 39093846259: PASS on ffe285aff3818435815f769532fa221d3157917e; JVM/unit, camera runtime contract checks, Debug APK, AndroidTest APK compilation, packaging and lint completed.
+- Hosted Runtime 39093844697: Build Once PASS and APK pair uploaded. API28 Preflight FAIL/BLOCKED_INFRA at the KVM character/read/write assertion. Formal Runtime SKIPPED.
+- QA Test Users 39093844684 and canonical-promotion Admission 39093844689: PASS. The latter does not substitute for local PRODUCT_WORK Admission, which passed at ffe285aff3818435815f769532fa221d3157917e.
+- PR #162 is still Draft/Open/Unmerged at 43b8267167d8a948754fe3df7d20edf072955cf9; main and PR #163 still have the three-page product contract. C01 is not reported as integrated.
+- Build Once app APK SHA-256: bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e; AndroidTest APK SHA-256: 249334802bd6ffe7084b9b96b604123db3b7b171640eb86b18344fa3a51749bb. This is a testable build only; no Runtime or Release PASS is claimed.

@@ -54,3 +54,14 @@ The catalog validator reports 66 base cases and 10 E2E scenarios with valid stru
 | Independent review | NOT_RUN |
 
 The CAPTURED timeline assertion failure from Android CI run 39092555645 was corrected and passed among all 211 JVM tests on source 6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e (Run 39093186726). The same run passed Camera Runtime contract tests and assembled Debug APK, then failed AndroidTest compilation at `fishFocusStableMs`, the `assertDoesNotExist` import, and the missing `onAllNodesWithTag` import; no artifact was uploaded. Hosted run 39093186784 passed C1 scope and SDK manager resolution but failed at `yes | sdkmanager --licenses` due Broken pipe under pipefail; API28 jobs skipped. Minimal corrections are staged for the next exact SHA. Run 39086281726 remains historical and is not reused. C01, C02 trace/Resolve, the 658/669 Page Contract validator failure and C03 hosted environment remain open.
+
+
+## Latest exact-SHA checkpoint
+
+## Exact-SHA update — ffe285aff3818435815f769532fa221d3157917e
+
+- Android CI Run 39093846259: PASS (unit/controller and camera contract tests, Debug APK, AndroidTest compilation, package/lint steps).
+- M1 Hosted API28 Runtime Run 39093844697: Build Once PASS; APK artifact https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12124400453. App SHA-256 `bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e`; AndroidTest APK SHA-256 `249334802bd6ffe7084b9b96b604123db3b7b171640eb86b18344fa3a51749bb`.
+- API28 Preflight: FAIL/BLOCKED_INFRA at `test -c /dev/kvm -a -r /dev/kvm -a -w /dev/kvm`; the emulator, SDK/API assertion, 1080×1920 display, installation, CameraX, Instrumentation, screenshots and formal runtime jobs did not start. Formal `api28-runtime` is SKIPPED.
+- N001 BLOCKED_INFRA; N002–N006 NOT_RUN; N007 REVIEW_REQUIRED; N008 NOT_RUN; N009 NOT_RUN; N010 REVIEW_REQUIRED because canonical and PR #163 guide remain three-page while Draft PR #162 contains the approved two-page proposal.
+- Catalog shape validation, current-source execution, and Build Once packaging remain distinct. No existing 66+10, J01–J20 or save/detail test has an API28 execution result at this SHA.

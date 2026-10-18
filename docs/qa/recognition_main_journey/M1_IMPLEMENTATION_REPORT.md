@@ -35,3 +35,14 @@ The integrated published candidate is `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`
 ## Exact-SHA candidate `6d16bb7`
 
 On `6d16bb7d2c98f0cc2bcf55da3c3eff08984a179e`, Android CI Run 39093186726 passed 211 JVM unit tests and Camera Runtime contract tests and assembled the app Debug APK, but AndroidTest compilation failed on three source references/imports; no APK artifact was staged. Hosted Runtime Run 39093186784 resolved `sdkmanager` but failed the license pipe under pipefail before Build Once; API28 jobs skipped. Four small fixes (license-pipe exit handling and three AndroidTest compile corrections) are staged for the next SHA. Control Plane Admission/recovery and C1 exact-scope checks passed at 6d16bb7; no Runtime or downloadable APK exists.
+
+
+## Latest exact-SHA checkpoint
+
+## Latest exact candidate checkpoint — ffe285aff3818435815f769532fa221d3157917e
+
+- Android CI Run 39093846259: PASS; JVM/controller and camera contract tests, Debug APK, AndroidTest APK compile, packaging and lint succeeded.
+- Hosted Run 39093844697: Build Once PASS and generated the installable APK pair. App SHA-256 `bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e`, AndroidTest SHA-256 `249334802bd6ffe7084b9b96b604123db3b7b171640eb86b18344fa3a51749bb`.
+- Hosted API28 Preflight failed KVM access; formal API28 Runtime is SKIPPED. No Runtime, screenshot, Motion Trace or Pixel Diff evidence exists.
+- C01 remains separate: PR #162 Draft at 43b8267 contains two pages; PR #163 and main remain on the three-page code/contract.
+- C02 follows the latest comment's V3.1 values 220/320/350/250ms plus real pipeline events. Real trace and PROC-07 timeout remain unresolved.

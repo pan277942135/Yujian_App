@@ -45,3 +45,17 @@ Local migration validation parsed all three workflow YAML files and ran `bash -n
 | Evidence | Existing gate artifacts | Per-gate source/APK/Run/device manifest, screenshots and required logs | Not yet; no artifact |
 
 No old GCP result is mixed into hosted evidence. This configuration report or a Build PASS is not a migration PASS.
+
+
+## Latest exact-SHA checkpoint
+
+## Latest exact-SHA runner result
+
+Run 39093844697 checked out source ffe285aff3818435815f769532fa221d3157917e on `ubuntu-24.04`. Build Once successfully produced Debug and AndroidTest APKs with the following SHA-256 values:
+
+- App: `bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e`
+- AndroidTest: `249334802bd6ffe7084b9b96b604123db3b7b171640eb86b18344fa3a51749bb`
+
+Preflight then failed the required `/dev/kvm` character/read/write assertion on the standard GitHub-hosted runner. The job uploaded a BLOCKED_INFRA artifact. The emulator did not start; no API28/Pixel 2/API/size/CameraX/Instrumentation checks or formal Android Runtime gates ran. Job `api28-runtime` is SKIPPED. Run URL: https://github.com/pan277942135/Yujian_App/actions/runs/39093844697; Preflight evidence artifact: https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12123731965.
+
+The prior SDK lookup and license-pipe failures are retained as historical failures at their own source SHAs. Android CI Run 39093846259 now passes on ffe285aff3818435815f769532fa221d3157917e; it does not replace the failed device preflight.

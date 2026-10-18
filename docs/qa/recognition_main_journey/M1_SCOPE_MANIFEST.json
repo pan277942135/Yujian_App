@@ -186,6 +186,33 @@
         "hosted API28 preflight and formal gates"
       ],
       "evidence": "GitHub Actions Run ID, source SHA, APK SHA-256 and gate artifacts"
+    },
+    {
+      "id": "D_PAGE_CONTRACT_REGISTRY_CARDINALITY",
+      "feature_ids": [
+        "recognition_flow_v1_2"
+      ],
+      "page_state_ids": [
+        "page_contract_registry:V3_1"
+      ],
+      "expected_changes": [
+        "Correct the stale 658 count to the effective V3 FINAL registry count of 669.",
+        "Assert row count, unique asset IDs, and unique paths independently; preserve all other registry, Frozen-byte, and contract checks."
+      ],
+      "paths": [
+        "scripts/design/verify_page_contract_v3.py"
+      ],
+      "frozen_invariants": [
+        "Asset_Registry_V3_FINAL.json and all registered asset hashes remain unchanged.",
+        "No Frozen PNG/SVG bytes or registered hashes change."
+      ],
+      "tests": [
+        "scripts/design/verify_page_contract_v3.py",
+        "Design Governance exact-SHA CI"
+      ],
+      "evidence": "Correction is grounded in the unchanged 669-entry V3 FINAL registry; exact-SHA CI result is pending.",
+      "dependency": "Effective Asset_Registry_V3_FINAL.json at the canonical baseline.",
+      "status": "IN_PROGRESS"
     }
   ],
   "allowed_paths": [
@@ -237,6 +264,7 @@
     "scripts/android_runtime/tests/test_recognition_m1_v3_1_finalizer.py",
     "scripts/bootstrap_android_recognition_assets.py",
     "scripts/create_first_use_camera_guide_visual_evidence.py",
+    "scripts/design/verify_page_contract_v3.py",
     "scripts/finalize_recognition_m1_v3_1_runtime_evidence.py",
     "scripts/test_bootstrap_android_recognition_assets.py",
     "scripts/test_runtime_evidence_source_closure.py",
@@ -254,5 +282,6 @@
     "app/src/main/assets/models/**",
     "app/src/main/assets/model_release_contract.json"
   ],
-  "protected_frozen_image_rule": "Any added, modified, deleted, renamed, or copied PNG/SVG inside design paths containing a frozen segment or Frozen basename fails scope validation."
+  "protected_frozen_image_rule": "Any added, modified, deleted, renamed, or copied PNG/SVG inside design paths containing a frozen segment or Frozen basename fails scope validation.",
+  "expected_scope_status": "DECLARED_NOT_RUNTIME_ACCEPTED"
 }

@@ -4,7 +4,7 @@
 
 **Coverage:** 49 page/state rows + 16 core-component rows = 65 records. Runtime acceptance: **NOT_RUN**.
 
-**Source snapshot:** canonical base `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`; matrix derived from PR #162 head `43b8267167d8a948754fe3df7d20edf072955cf9` plus Track B worktree at `9ccfec0f22f4b6b78d277e00b70c4ab36b20d3a6` (pre-audit snapshot).
+**Source snapshot:** canonical base `0d3238e8a41b87363e9a17b04c9cc45fca4c426d`; design proposal PR #162 head `43b8267167d8a948754fe3df7d20edf072955cf9`; current M1 candidate audited for this checkpoint `ffe285aff3818435815f769532fa221d3157917e`.
 
 **Authority resolution:** Each row traces Design Manager/feature route → page/state → effective authority → raw full-size Frozen asset and SHA (if available) → page contract → shared foundation/component authority. Canonical reference thumbnails are excluded. Where the raw source is missing, the SHA is null and any declared SHA is separately shown.
 
@@ -126,3 +126,8 @@ Every matrix row has the requested authority identity fields (`page_id`, `state_
 **Page Contract validator discrepancy:** `python3 scripts/design/verify_page_contract_v3.py` fails on Track B source SHA `9ccfec0f22f4b6b78d277e00b70c4ab36b20d3a6` with `effective Asset Registry expected 658 assets, found 669`. The script hard-codes `658`; `Asset_Registry_V3_FINAL.json` has 669 entries/unique asset IDs/unique paths. Legacy `Asset_Registry_V3.json` has 658 rows but 657 unique IDs due duplicate `pages_recognition_processing_references_ai_v1_v1_md`; FINAL has 12 new distinct IDs relative to legacy and no duplicate IDs. This is a stale validator count, not evidence that the current registry is corrupt. Track A separately reported the same output at SHA `82c49b8d7ced6568ee2d04e3ecbd1c10a06cc018`; those observations remain bound to their respective SHAs. Neither the protected registry nor validator was edited, and Gate A is not declared PASS. See JSON `design_validator_findings` for exact counts and registry SHA.
 
 L1/L3/L5/L6 process compliance and cross-feature exhaustive runtime execution are outside this Track B design-only audit and are not marked PASS here.
+
+
+## Exact-source build binding
+
+All 49 page/state rows identify Android source ffe285aff3818435815f769532fa221d3157917e, Build Once Run 39093844697, app APK SHA-256 `bd98a57334d278e9a3a5129e9d344d8e0de4faf058b7294ee614921664058b3e`, and artifact https://github.com/pan277942135/Yujian_App/actions/runs/39093844697/artifacts/12124400453. Geometry, ROI Pixel Diff, Motion and Logic results remain NOT_RUN because API28 Preflight failed KVM access; Reviewer Status is NOT_REVIEWED. These rows are source/build traceability, not Runtime or design acceptance.

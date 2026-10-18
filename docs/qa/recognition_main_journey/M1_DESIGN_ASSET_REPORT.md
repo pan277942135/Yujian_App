@@ -134,3 +134,12 @@ Reviewed live PR #163 comment `6244627483` against PR #163 Draft/Open/unmerged H
 Audit checks above were run on the Track B working tree rooted at `9ccfec0f22f4b6b78d277e00b70c4ab36b20d3a6`; audit changes in this checkout are documentation/matrix-only. No exact-head Runtime or CI execution is asserted.
 
 The expanded machine-readable matrix is the row-level ledger, with 65 records (49 page/state, 16 core component). The matrix is branch-local on `work/m1-track-b-design`; it is not part of PR #162 or #163 until explicitly integrated. No Gate A–D acceptance or Release PASS is claimed by this design audit.
+
+
+## Latest exact-SHA checkpoint
+
+## M1 authority checkpoint
+
+At PR #163 source ffe285aff3818435815f769532fa221d3157917e, the current implementation still exposes the three-page guide. The approved P01/P02 assets already exist byte-identically in Draft PR #162 and were not regenerated; the raw P02 source SHA is `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`. PR #162 remains open/draft/unmerged, and the published Design Manager route could not be loaded by the available web surface in this audit. GitHub canonical main remains the live inspectable source and retains the three-page registration; therefore C01 is not reported as effective on main or implemented in the current candidate.
+
+Figma source node metadata was synchronized on the PR #162 proposal, but PNG binary fills are still `NOT_IMPORTED`. Original GitHub Frozen bytes and hashes remain the visual source; no thumbnail or generated image is substituted. Frozen P01/P02 assets preserve their original SHA values. No API28 visual acceptance is available.
