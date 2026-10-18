@@ -8,7 +8,10 @@ The builder reads `importer.config.json` from the repository root. Asset paths a
 {
   "schemaVersion": 1,
   "plugin": { "id": "YUJIAN_FIGMA_NATIVE_IMPORTER_V1", "displayName": "YuJian Native Importer" },
-  "document": { "expectedName": "Figma document title" },
+  "document": {
+    "expectedName": "Recognition Main Journey Master Board V1",
+    "alternateExpectedName": "渔见 · Recognition Main Journey Master Board V1"
+  },
   "page": { "expectedName": "Target page title" },
   "assets": [{
     "id": "stable.asset.id",
@@ -33,7 +36,7 @@ The builder reads `importer.config.json` from the repository root. Asset paths a
 }
 ```
 
-Valid scale modes are `FIT`, `FILL`, `CROP`, and `TILE`. V1’s NH01 configuration uses `FIT` as declared by the existing node mapping. A target is resolved only in the named document and active named page. Nodes are never created. An empty fill list may be filled; one existing identical IMAGE/FIT fill is treated as already installed; unrelated fills cause a no-write failure.
+Valid scale modes are `FIT`, `FILL`, `CROP`, and `TILE`. V1’s NH01 configuration uses `FIT` as declared by the existing node mapping. The runtime accepts only the two exact document names shown above; it does not use prefix, substring, wildcard, or fuzzy matching. The builder rejects a configuration that changes this NH01 allowlist. A target is resolved only in an allowed document and the active named page. Nodes are never created. An empty fill list may be filled; one existing identical IMAGE/FIT fill is treated as already installed; unrelated fills cause a no-write failure.
 
 ## Figma UI ⇄ plugin main messages
 

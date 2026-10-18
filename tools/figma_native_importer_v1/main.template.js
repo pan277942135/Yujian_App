@@ -85,8 +85,9 @@ function pageFor(node) {
 function inspectTarget(targetId, allowedTypes) {
   return figma.getNodeByIdAsync(targetId).then((node) => {
     if (!node) throw new Error(`Target node ${targetId} was not found in this file.`);
-    if (figma.root.name !== IMPORT_CONFIG.document.expectedName) {
-      throw new Error(`Wrong Figma file: expected “${IMPORT_CONFIG.document.expectedName}”, got “${figma.root.name}”. No changes made.`);
+    if (figma.root.name !== IMPORT_CONFIG.document.expectedName &&
+        figma.root.name !== IMPORT_CONFIG.document.alternateExpectedName) {
+      throw new Error(`Wrong Figma file: expected exactly “${IMPORT_CONFIG.document.expectedName}” or “${IMPORT_CONFIG.document.alternateExpectedName}”, got “${figma.root.name}”. No changes made.`);
     }
     const page = pageFor(node);
     if (!page || page.name !== IMPORT_CONFIG.page.expectedName || figma.currentPage.id !== page.id) {

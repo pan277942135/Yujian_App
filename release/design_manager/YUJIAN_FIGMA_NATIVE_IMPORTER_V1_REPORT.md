@@ -8,6 +8,8 @@ Status: `PLUGIN_PACKAGE = PASS` (local static and automated verification); `FIGM
 - Delivery PR: [#164](https://github.com/pan277942135/Yujian_App/pull/164), Draft / Open / Unmerged
 - Branch: `design/m1-nh01-figma-structural-handoff-v2`
 - Figma file: `Recognition Main Journey Master Board V1`
+- Exact file-name allowlist: `Recognition Main Journey Master Board V1`; `渔见 · Recognition Main Journey Master Board V1`
+- Actual `figma.root.name`: `NOT_VERIFIED`; the browser title is not treated as Plugin API evidence. The two exact names are an authorized allowlist pending local Desktop execution.
 - Target page: `NH01 / NORMAL HOME / STRUCTURAL HANDOFF`
 - Existing background target: node `41:32` (no node/page/component creation)
 - Verification frame: node `41:30`, 1080 × 1920
@@ -16,11 +18,11 @@ Status: `PLUGIN_PACKAGE = PASS` (local static and automated verification); `FIGM
 - Source PNG dimensions: 941 × 1672
 - Expected fill: `IMAGE`, `FIT`
 - ZIP: `release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip`
-- ZIP SHA-256: `c5c6c64ce3afdac0be6b9c7c8c55ee2784ef193563c658c74debf59ed8093873`
+- ZIP SHA-256: `f4a97f18b43ce8c5447a25ebee746182ef85bddc0f05ea085d4db8d620d26ca6`
 
 ## Implemented behavior
 
-The development plugin is packaged with the original PNG bytes and makes no network requests. Before mutation it checks the active document and page names, resolves the existing node ID, checks type/lock/fills, verifies the SHA-256 and PNG dimensions, then calls `figma.createImage(bytes)`. It writes one `IMAGE` fill using the configured scale mode and reads back the fill and Figma `imageHash`. An exact existing fill is idempotent; unrelated fills are preserved and cause a no-write failure; failed readback restores the original fill list. The source SHA and Figma's internal `imageHash` are reported as distinct values.
+The development plugin is packaged with the original PNG bytes and makes no network requests. Before mutation it checks the active document against the two exact approved names and checks the active page, resolves the existing node ID, checks type/lock/fills, verifies the SHA-256 and PNG dimensions, then calls `figma.createImage(bytes)`. It writes one `IMAGE` fill using the configured scale mode and reads back the fill and Figma `imageHash`. An exact existing fill is idempotent; unrelated fills are preserved and cause a no-write failure; failed readback restores the original fill list. The source SHA and Figma's internal `imageHash` are reported as distinct values.
 
 After a verified import, the plugin can export the existing node `41:30` at 1×, and only when its dimensions match 1080 × 1920. The export is comparison input, not a visual acceptance result.
 
@@ -33,11 +35,13 @@ Commands run against the current PR worktree with Node.js `v24.19.0`:
 | Check | Result |
 |---|---|
 | Plugin package build and source PNG guard | PASS |
-| Automated tests with mocked Figma Plugin API | PASS, 9/9 |
+| Automated tests with mocked Figma Plugin API | PASS, 11/11; both exact names pass; near-match name, wrong page, missing node, and wrong source SHA are rejected; repeated import creates no duplicate fill |
 | Compiled main script syntax check | PASS |
 | ZIP integrity (`unzip -t`) | PASS |
 | Source PNG SHA equals approved SHA | PASS |
 | Packaged PNG SHA equals source SHA | PASS |
+
+The 11 tests include all 9 original cases. The builder enforces the two exact file names, and its runtime check uses direct equality only.
 
 The tests cover exact source bytes and config, successful import and IMAGE/FIT readback, rejection of a mismatched source hash, wrong document/page protection, preservation of unrelated fills, idempotence, rollback after failed readback, 1080 × 1920 frame export parameters, and UI script syntax.
 

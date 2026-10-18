@@ -10,6 +10,8 @@ const buildRoot = path.join(scriptDir, 'build');
 const packageRoot = path.join(buildRoot, 'YUJIAN_FIGMA_NATIVE_IMPORTER_V1');
 const config = JSON.parse(readFileSync(path.join(scriptDir, 'importer.config.json'), 'utf8'));
 const expectedM1Sha = '5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7';
+const expectedDocumentName = 'Recognition Main Journey Master Board V1';
+const alternateExpectedDocumentName = '渔见 · Recognition Main Journey Master Board V1';
 const allowedScaleModes = new Set(['FIT', 'FILL', 'CROP', 'TILE']);
 
 function fail(message) {
@@ -34,7 +36,11 @@ function parsePng(bytes, assetId) {
 if (config.schemaVersion !== 1) fail(`Unsupported schemaVersion ${config.schemaVersion}`);
 if (!Array.isArray(config.assets) || config.assets.length < 1) fail('At least one asset entry is required');
 if (config.plugin?.id !== 'YUJIAN_FIGMA_NATIVE_IMPORTER_V1') fail('Unexpected plugin identifier');
-if (!config.document?.expectedName || !config.page?.expectedName) fail('Expected document and page names are required');
+if (config.document?.expectedName !== expectedDocumentName ||
+    config.document?.alternateExpectedName !== alternateExpectedDocumentName ||
+    !config.page?.expectedName) {
+  fail('NH01 requires exactly the two approved Figma document names and the configured target page name');
+}
 if (!config.verificationFrame?.nodeId) fail('A verification frame is required');
 
 const assetEntries = [];

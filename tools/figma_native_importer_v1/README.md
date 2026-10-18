@@ -31,14 +31,14 @@ The builder refuses to package if the PNG SHA-256, IHDR dimensions, config schem
 
 1. Download and unzip `YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip` to a local folder.
 2. Open the Figma Desktop app and the file **Recognition Main Journey Master Board V1**.
-3. Open page **NH01 / NORMAL HOME / STRUCTURAL HANDOFF**.
+3. Open either exact approved file name (**Recognition Main Journey Master Board V1** or **渔见 · Recognition Main Journey Master Board V1**) and page **NH01 / NORMAL HOME / STRUCTURAL HANDOFF**.
 4. Use **Plugins → Development → Import new plugin from manifest…** and choose the extracted `YUJIAN_FIGMA_NATIVE_IMPORTER_V1/manifest.json`.
 5. Run **YuJian Native Importer** from the Development plugins menu.
 6. Confirm the UI reports the expected source SHA and target node `41:32`; click **Verify and import to 41:32**.
 7. Require the UI result `IMAGE fill verified on 41:32 · FIT`. Record the separate Figma `imageHash` shown there.
 8. Click **Export frame 41:30**. The plugin checks the frame is 1080 × 1920 and downloads `NH01_Figma_1080x1920.png` for comparison. If the Desktop download is blocked, use Figma’s native Export panel on frame `41:30` at 1×.
 
-The plugin refuses a different file, page, node type, locked target, mismatched source hash/dimensions, and unrelated pre-existing fills. If the same image is already installed, it reports an idempotent readback instead of adding another fill. No existing component or page node is created or replaced.
+The plugin accepts only these exact file names: **Recognition Main Journey Master Board V1** or **渔见 · Recognition Main Journey Master Board V1**. The browser title reported by the user does not establish the Plugin API value of `figma.root.name`; actual root-name confirmation remains pending the user's local Desktop run. The plugin refuses any other file name, page, node type, locked target, mismatched source hash/dimensions, and unrelated pre-existing fills. If the same image is already installed, it reports an idempotent readback instead of adding another fill. No existing component or page node is created or replaced.
 
 ## Local source verification
 

@@ -14,7 +14,7 @@ const asset = config.assets[0];
 const sourceBytes = new Uint8Array(readFileSync(path.join(packageRoot, asset.packageFile)));
 const mainSource = readFileSync(path.join(packageRoot, 'main.js'), 'utf8');
 
-function createHarness({ documentName = config.document.expectedName, pageName = config.page.expectedName, fills = [], mismatchReadback = false } = {}) {
+function createHarness({ documentName = config.document.expectedName, pageName = config.page.expectedName, fills = [], mismatchReadback = false, omitTarget = false } = {}) {
   const messages = [];
   const page = { id: 'PAGE:NH01', type: 'PAGE', name: pageName, parent: null };
   let currentFills = fills.slice();
@@ -53,7 +53,8 @@ function createHarness({ documentName = config.document.expectedName, pageName =
       return exportedBytes;
     },
   };
-  const nodeMap = new Map([[target.id, target], [frame.id, frame]]);
+  const nodeMap = new Map([[frame.id, frame]]);
+  if (!omitTarget) nodeMap.set(target.id, target);
   const figma = {
     root: { name: documentName },
     currentPage: page,
@@ -103,6 +104,8 @@ test('package carries exact Morning Lake source and manifest settings', () => {
   const manifest = JSON.parse(readFileSync(path.join(packageRoot, 'manifest.json'), 'utf8'));
   assert.equal(manifest.documentAccess, 'dynamic-page');
   assert.deepEqual(manifest.networkAccess.allowedDomains, ['none']);
+  assert.equal(config.document.expectedName, 'Recognition Main Journey Master Board V1');
+  assert.equal(config.document.alternateExpectedName, '渔见 · Recognition Main Journey Master Board V1');
 });
 
 test('valid source imports to the existing node and readback confirms IMAGE/FIT', async () => {
@@ -120,6 +123,22 @@ test('valid source imports to the existing node and readback confirms IMAGE/FIT'
   assert.equal(JSON.stringify(h.fills.map(({ type, imageHash, scaleMode }) => ({ type, imageHash, scaleMode }))), JSON.stringify([
     { type: 'IMAGE', imageHash: 'figma-internal-image-hash-abc123', scaleMode: 'FIT' },
   ]));
+  const assignmentsAfterFirstImport = h.assignedCount;
+  await h.send({ type: 'IMPORT_ASSET', assetId: asset.id });
+  const repeatedResult = lastMessage(h, 'IMPORT_RESULT');
+  assert.equal(repeatedResult.ok, true);
+  assert.equal(repeatedResult.alreadyPresent, true);
+  assert.equal(h.assignedCount, assignmentsAfterFirstImport);
+  assert.equal(h.fills.length, 1);
+});
+
+test('Chinese-prefixed approved document name imports by exact match', async () => {
+  const h = createHarness({ documentName: config.document.alternateExpectedName });
+  await passSource(h);
+  assert.equal(lastMessage(h, 'TARGET_STATUS').ready, true);
+  await h.send({ type: 'IMPORT_ASSET', assetId: asset.id });
+  assert.equal(lastMessage(h, 'IMPORT_RESULT').ok, true);
+  assert.equal(h.fills.length, 1);
 });
 
 test('source hash mismatch is rejected before figma.createImage or node mutation', async () => {
@@ -132,8 +151,8 @@ test('source hash mismatch is rejected before figma.createImage or node mutation
   assert.equal(h.fills.length, 0);
 });
 
-test('wrong document and wrong page are refused before node mutation', async () => {
-  const wrongDocument = createHarness({ documentName: 'Unrelated file' });
+test('near-match document name and wrong page are refused before node mutation', async () => {
+  const wrongDocument = createHarness({ documentName: '渔见 · Recognition Main Journey Master Board V1 (Copy)' });
   await passSource(wrongDocument);
   assert.equal(lastMessage(wrongDocument, 'TARGET_STATUS').ready, false);
   await wrongDocument.send({ type: 'IMPORT_ASSET', assetId: asset.id });
@@ -146,6 +165,17 @@ test('wrong document and wrong page are refused before node mutation', async () 
   await wrongPage.send({ type: 'IMPORT_ASSET', assetId: asset.id });
   assert.equal(lastMessage(wrongPage, 'IMPORT_RESULT').ok, false);
   assert.equal(wrongPage.fills.length, 0);
+});
+
+test('missing target node is refused before image creation or mutation', async () => {
+  const h = createHarness({ omitTarget: true });
+  await passSource(h);
+  assert.equal(lastMessage(h, 'TARGET_STATUS').ready, false);
+  assert.match(lastMessage(h, 'TARGET_STATUS').error, /Target node 41:32 was not found/);
+  await h.send({ type: 'IMPORT_ASSET', assetId: asset.id });
+  assert.equal(lastMessage(h, 'IMPORT_RESULT').ok, false);
+  assert.equal(h.createImageCalls, 0);
+  assert.equal(h.fills.length, 0);
 });
 
 test('unrelated pre-existing fill is preserved and not overwritten', async () => {
