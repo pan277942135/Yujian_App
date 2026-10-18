@@ -354,7 +354,6 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         listOf(
             Triple(RecognitionFirstCaptureGuidePage.P01, "P01_compose_component.png", "recognition-guide-page-title-1"),
             Triple(RecognitionFirstCaptureGuidePage.P02, "P02_compose_component.png", "recognition-guide-page-title-2"),
-            Triple(
         ).forEachIndexed { index, (guidePage, fileName, titleTag) ->
             if (index > 0) {
                 composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
