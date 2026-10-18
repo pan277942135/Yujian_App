@@ -1,10 +1,12 @@
+> **Superseded 2026-10-17:** this file records the original three-page freeze decision for history. The active authority is now `First_Use_Camera_Guide_Spec_V1_2.md` with exactly P01 portrait + horizontal fish and P02 landscape + horizontal fish. The former portrait + vertical-fish P02 is archived and not active.
+
 # First-use Camera Guide · Freeze Decision 2026-10-16
 
 **Design status: FROZEN**  
 **Active authority:** `First_Use_Camera_Guide_Spec_V1.md`  
 **Task:** `RECOGNITION-FIRST-USE-GUIDE-V1`
 
-The current scope is the original frozen three-page V1 sequence. The two-page V1.1 proposal was not accepted as a product/design decision and is retained as historical proposal material.
+Historical decision text from 2026-10-16. At that time the three-page sequence was active; it was superseded by the approved V1.2 two-page decision on 2026-10-17.
 
 ## Active sequence
 

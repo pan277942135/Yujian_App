@@ -1,7 +1,7 @@
 # 渔见 · 拍照识鱼主链路｜Master Board V1
 
-Status: FROZEN — REVIEW BOARD SCHEMA
-Freeze date: 2026-10-16
+Status: FROZEN — REVIEW BOARD SCHEMA V1.1
+Updated: 2026-10-17 (First-use guide V1.2 authority)
 Purpose: 将“空首页 → 权限 → 首次教学 → Camera → Processing → Result → Recovery”全部高保真状态放入一张统一横向审视板。
 Important: Master Board 仅用于统一审视、流程沟通和缺口管理；不替代任何单独页面的 Frozen Visual Authority。
 
@@ -10,6 +10,7 @@ Important: Master Board 仅用于统一审视、流程沟通和缺口管理；�
 - Reading direction: left → right.
 - Primary flow occupies the upper 72%; Recovery / Boundary occupies the lower 28%.
 - Every tile carries MB-xx, canonical PAGE_ID / STATE_ID and one status badge.
+- Guide sequence is now P01 → P02 only. Former MB-05 / P03 is retired; later MB IDs are not renumbered to preserve frozen identifiers.
 - Frozen source images are displayed as thumbnails only; the board never edits their source content.
 - The board is not a runtime asset.
 
@@ -29,8 +30,7 @@ Ownership tag only, not a fourth status. Android Camera Permission Dialog and Ph
 | MB-01 | HOME / EMPTY | Empty Home V2.2 | FROZEN |
 | MB-02 | IDENTIFY / CAMERA_PERMISSION | Android Camera permission dialog | FROZEN · SYSTEM |
 | MB-03 | GUIDE / P01 | 竖屏手机 + 横向鱼 | FROZEN |
-| MB-04 | GUIDE / P02 | 竖屏手机 + 竖直鱼 | FROZEN |
-| MB-05 | GUIDE / P03 | 横屏教学页 + 横向鱼 | FROZEN |
+| MB-04 | GUIDE / P02 | 横屏手机 + 横向鱼 | FROZEN |
 | MB-06 | IDENTIFY / CAPTURE_READY_PORTRAIT_HORIZONTAL | Camera Ready 竖屏 + 横鱼 | FROZEN |
 | MB-07 | IDENTIFY / CAPTURE_READY_LANDSCAPE_HORIZONTAL | Camera Ready 横屏 + 横鱼 | FROZEN |
 | MB-08 | RECOGNIZING / PROCESSING_IMAGE_RECOGNIZING · EARLY | 图片识别中 Early | FROZEN |
@@ -84,11 +84,17 @@ The Master Board never overrides items 1–4.
 The board must let a reviewer answer at one glance: what is Frozen, what is Review, what is Missing, how normal and recovery routes connect, and whether Camera orientation / Processing product states / Result 3+2 semantics are separated correctly.
 
 ## 9. Inventory
-Frozen: Empty Home; Camera Permission system surface; Camera Permission Denied; Guide P01/P02/P03; Camera Ready portrait/landscape; Processing four Frozen keyframes mapped to three product states; Result High/Medium/Low/No Fish/Image Quality.
+Frozen: Empty Home; Camera Permission system surface; Camera Permission Denied; Guide P01/P02; Camera Ready portrait/landscape; Processing four Frozen keyframes mapped to three product states; Result High/Medium/Low/No Fish/Image Quality.
 Review: Capture Error; Technical Failure; Save Loading; Dirty Draft Confirmation.
 Missing: Save Error.
 
 Master Board is a review artifact only and must not be used as the visual authority of any individual page/state.
+
+## Guide authority update
+- Active authority: `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md`.
+- Active sequence: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish.
+- Former vertical-fish P02 is archived only. Former P03 landscape PNG bytes are promoted byte-identically to active P02.
+- MB-05 is retired as a former P03 board slot; MB-06 and later IDs remain stable.
 
 ## Figma build record
 - File key: `VjN7iFviVN9aKeLv8kJivM`
