@@ -134,3 +134,9 @@ Text style node IDs:
 NH01_FIGMA_STRUCTURAL_HANDOFF = REVIEW_REQUIRED
 
 Structural Figma content exists and is editable. The exact brand image fill is present at node 41:34, but the background remains unimported and the brand has no post-import visual export. This is not a high-fidelity visual PASS or Android Runtime PASS: the Hero photo source is not approved, visual diff is blocked, and independent QA has not signed off. Master Board was preserved. No Frozen image or main branch was modified.
+
+## Native Importer V1 delivery addendum
+
+The exact-source local transfer path is now packaged for Figma Desktop as `release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip`. It targets the existing background node `41:32`, verifies the original PNG SHA-256 `5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7`, and requests an `IMAGE` / `FIT` fill. Local build, static checks, ZIP integrity, and mocked Plugin API tests passed (9/9). This changes the next action from waiting for browser/MCP access to running the local development plugin in Figma Desktop.
+
+Actual Figma Desktop execution and node readback have not yet occurred. The background's current Figma fill, rendered result, fresh frame export, Frozen visual diff, and independent QA therefore remain unverified. NH01-A01 and NH01-A03 stay open; `NH01_FIGMA_STRUCTURAL_HANDOFF = REVIEW_REQUIRED`. The plugin does not alter or recreate the existing NH01 page, Master Board, components, or Frozen PNGs.
