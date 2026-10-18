@@ -30,14 +30,14 @@ All coordinates below are normalized to the visible photo content; order is `sta
 | Path | Island / role | Cubic points | Core | Seed | Segment / weight |
 | --- | --- | --- | ---: | ---: | --- |
 | B1 | B_UR primary | `(.78,-.02),(.94,.06),(1.02,.22),(.96,.42)` | 1.2dp | .00 | .30 / 1.00 |
-| B2 | B_UR↔B_LR secondary fragment | `(1.01,.18),(.92,.31),(.95,.52),(1.02,.68)` | 1.0dp | runtime .07 | .18 / .30 |
+| B2 | B_UR secondary fragment (must not connect B_UR/B_LR) | `(1.01,.18),(.92,.31),(.95,.52),(1.02,.68)` | 1.0dp | runtime .07 | .18 / .30 |
 | B3 | B_LR primary | `(1.02,.61),(.92,.75),(.84,.89),(.66,1.02)` | 1.2dp | .47 | .20 / .54 |
 | B4 | bottom secondary fragment | `(.22,1.02),(.38,.95),(.52,.95),(.66,1.01)` | .8dp | runtime .11 | .14 / .22 |
 | G1 | G_UL primary | `(-.02,.18),(.03,.08),(.12,.02),(.26,-.02)` | 1.1dp | .12 | .26 / .78 |
-| G2 | G_UL↔G_LL secondary fragment | `(-.02,.33),(.04,.47),(.02,.62),(-.01,.78)` | .9dp | runtime .09 | .16 / .26 |
+| G2 | G_UL secondary fragment (must not connect G_UL/G_LL) | `(-.02,.33),(.04,.47),(.02,.62),(-.01,.78)` | .9dp | runtime .09 | .16 / .26 |
 | G3 | G_LL primary | `(-.01,.74),(.08,.86),(.20,.95),(.38,1.02)` | 1.2dp | .64 | .22 / .63 |
 
-Frozen topology keeps four disconnected islands, three secondary fragments and four Quiet Gaps: top `.32–.68`, left `.38–.62`, right `.46–.58`, bottom `.40–.62`. B1/G1/B3/G3 are the only primary movers. No closed frame, border reconstruction or central crossing is permitted.
+Frozen topology keeps four disconnected islands, three secondary fragments and four Quiet Gaps. B2/G2 sit near their respective upper islands but never bridge adjacent primary islands:  top `.32–.68`, left `.38–.62`, right `.46–.58`, bottom `.40–.62`. B1/G1/B3/G3 are the only primary movers. No closed frame, border reconstruction or central crossing is permitted.
 
 B2/B4/G2 runtime seeds are not silently treated as frozen: the Android values are `.07/.11/.09`; superseded V1.1 values are `.23/.71/.39`; V1.2 Motion freezes only the four primary seeds. These remain `REVIEW_REQUIRED_CONTRACT_GAP` before animated Figma prototyping.
 
