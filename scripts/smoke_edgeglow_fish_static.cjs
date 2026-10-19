@@ -217,7 +217,7 @@ async function main() {
   }
   await afterRender(page, () => page.locator('[data-optical-preset="enhanced"]').click());
   const blendTrialHashes = {};
-  for (const blend of ["source-over", "screen", "additive"]) {
+  for (const blend of ["source-over", "screen", "additive", "soft-light"]) {
     await afterRender(page, () => page.locator("#opticalCoreBlend").selectOption(blend));
     blendTrialHashes[blend] = await wholeCanvasHash(page);
   }

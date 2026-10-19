@@ -109,12 +109,12 @@
           <label>Inner Bloom Intensity <output id="innerBloomIntensityValue">62%</output><input id="innerBloomIntensity" type="range" min="0" max="100" value="62"></label>
           <label>Outer Bloom Radius <output id="outerBloomRadiusValue">54 px / 600</output><input id="outerBloomRadius" type="range" min="35" max="75" value="54"></label>
           <label>Outer Bloom Intensity <output id="outerBloomIntensityValue">34%</output><input id="outerBloomIntensity" type="range" min="0" max="100" value="34"></label>
-          <label class="blend-trial">Optical Core Blend Trial<select id="opticalCoreBlend" aria-label="光核混合模式对比"><option value="source-over">Normal Alpha · Source Over</option><option value="screen">Screen</option><option value="additive">Additive</option></select></label>
+          <label class="blend-trial">Optical Core Blend Trial<select id="opticalCoreBlend" aria-label="光核混合模式对比"><option value="source-over">Normal Alpha · Source Over</option><option value="screen">Screen</option><option value="additive">Additive</option><option value="soft-light">Soft Light</option></select></label>
           <label>Atmospheric Spill <output id="atmosphericSpillValue">15%</output><input id="atmosphericSpill" type="range" min="0" max="35" value="15"></label>
           <label>Blue Saturation <output id="blueSaturationValue">82%</output><input id="blueSaturation" type="range" min="35" max="100" value="82"></label>
           <label>Gold Warmth <output id="goldWarmthValue">74%</output><input id="goldWarmth" type="range" min="35" max="100" value="74"></label>
           <label>Background Compensation <output id="backgroundCompensationValue">100%</output><input id="backgroundCompensation" type="range" min="0" max="100" value="100"></label>
-          <small>强度按 G1=.85、B1=1.00、G3=.75、B3=.70 独立控制；局部亮度补偿只改变边缘光，不改变照片曝光。可对比 Source Over、Screen、Additive，默认选择保色 Source Over；Inner 使用 Screen，Outer/Spill 使用 Soft Light。</small>
+          <small>强度按 G1=.90、B1=1.00、G3=.88、B3=.84 独立控制；局部亮度补偿只改变边缘光，不改变照片曝光。光核可对比 Source Over、Screen、Additive、Soft Light，默认选择保色 Source Over；Inner / Outer 使用 Screen，Atmospheric Spill 使用 Source Over。</small>
         </fieldset>
         <fieldset class="island-controls">
           <legend>Corner Islands · 独立强度</legend>
