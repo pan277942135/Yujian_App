@@ -70,9 +70,10 @@ async function perimeterDeltaByCorner(page) {
       for (let y = Math.floor(canvas.height * corner.y0); y < Math.floor(canvas.height * corner.y1); y += 4) {
         for (let x = Math.floor(canvas.width * corner.x0); x < Math.floor(canvas.width * corner.x1); x += 4) {
           const i = (y * canvas.width + x) * 4;
-          const dr = current[i] - reference[i];
-          const dg = current[i + 1] - reference[i + 1];
-          const db = current[i + 2] - reference[i + 2];
+          // Compare the light-on frame against the light-off reference.
+          const dr = reference[i] - current[i];
+          const dg = reference[i + 1] - current[i + 1];
+          const db = reference[i + 2] - current[i + 2];
           if (dr !== 0 || dg !== 0 || db !== 0) changedPixels++;
           deltaR += dr; deltaG += dg; deltaB += db;
         }
