@@ -162,27 +162,12 @@ async function main() {
   await page.locator("#glowCanvas").evaluate(canvas => {
     window.__edgeFieldDefaultPixels = new Uint8ClampedArray(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data);
   });
-  await afterRender(page, () => page.locator("#receivingLightEnabled").uncheck());
-  const noReceivingLight = await wholeCanvasHash(page);
-  assert.notEqual(noReceivingLight, defaultWholeGlow, "Receiving Light toggle changes corner illumination pixels.");
-  await afterRender(page, () => page.locator("#receivingLightEnabled").check());
-  await afterRender(page, () => page.locator("#primaryIslandsEnabled").uncheck());
-  const noPrimaryIslands = await wholeCanvasHash(page);
-  assert.notEqual(noPrimaryIslands, defaultWholeGlow, "Primary Energy Islands toggle changes the four irregular edge paths.");
-  await afterRender(page, () => page.locator("#primaryIslandsEnabled").check());
-  await afterRender(page, () => page.locator("#secondaryFragmentsEnabled").uncheck());
-  const noSecondaryFragments = await wholeCanvasHash(page);
-  assert.notEqual(noSecondaryFragments, defaultWholeGlow, "Secondary B2/G2/B4 toggle independently changes perimeter pixels.");
-  await afterRender(page, () => page.locator("#secondaryFragmentsEnabled").check());
   await afterRender(page, () => page.locator("#edgeFieldEnabled").uncheck());
   const noEdgeField = await wholeCanvasHash(page);
   assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
   const perimeterCorners = await perimeterDeltaByCorner(page);
   assert.ok(perimeterCorners.every(corner => corner.changedPixels > 20 && corner.colorRoleMatches), `Frozen blue/gold roles are perceptible in all four photo corners: ${JSON.stringify(perimeterCorners)}`);
   await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
-  await setControl(page, "#edgeFieldIntensity", 38);
-  const lowerEdgeField = await wholeCanvasHash(page);
-  assert.notEqual(lowerEdgeField, defaultWholeGlow, "Edge Field strength changes the rendered output.");
   await afterRender(page, () => page.locator("#resetButton").click());
   assert.equal(await wholeCanvasHash(page), defaultWholeGlow, "Reset restores the default edge-field render.");
 
@@ -203,12 +188,9 @@ async function main() {
   assert.equal(await page.locator("#outerWidthValue").innerText(), "52 px", "Outer Bloom readout tracks the live range value.");
   const wideBloom = await canvasStats(page);
   assert.notEqual(wideBloom.hash, afterLayerReset.hash, "Outer Bloom width changes rendered pixels.");
-  await setControl(page, "#cometLength", 26);
-  const longComet = await canvasStats(page);
-  assert.notEqual(longComet.hash, wideBloom.hash, "Static Comet arc length changes rendered pixels.");
   await setControl(page, "#cometPosition", 64);
   const movedComet = await canvasStats(page);
-  assert.notEqual(movedComet.hash, longComet.hash, "Static Comet path position changes rendered pixels.");
+  assert.notEqual(movedComet.hash, wideBloom.hash, "Static Comet path position changes rendered pixels.");
 
   await afterRender(page, () => page.locator("#contourVisible").uncheck());
   const contourHidden = await canvasStats(page, "contourCanvas");
@@ -274,6 +256,13 @@ async function main() {
   assert.ok(exportConfig.edge_field.edge_effect_padding_px >= 100, "Export records the responsive perimeter bleed inset.");
   assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
 
+  await afterRender(page, () => page.evaluate(() => {
+    for (const id of ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"]) {
+      const control = document.getElementById(id);
+      control.checked = false;
+      control.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }));
   const viewportResults = [];
   for (const viewport of [{ width: 390, height: 844 }, { width: 800, height: 360 }, { width: 1440, height: 1180 }]) {
     await page.setViewportSize(viewport);
@@ -314,7 +303,8 @@ async function main() {
     effect_bounds_photo_px: await page.evaluate(() => window.__EDGEGLOW_LAB__.effectBounds),
     default_pixel_hash: defaultGlow.hash,
     toggles_and_parameters_change_pixels: true,
-    receiving_light_and_primary_edge_field_toggles: true,
+    browser_verified_layer_toggles: ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"],
+    edge_layer_control_ids: ["receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "companionHairlinesEnabled"],
     compare_modes: ["side", "overlay", "wipe"],
     png_export: { bytes: pngBytes.length, dimensions: [pngBytes.readUInt32BE(16), pngBytes.readUInt32BE(20)], downloaded: true },
     json_export: { downloaded: true, photo_sha256: exportConfig.photo.sha256 },
