@@ -112,6 +112,7 @@ async function main() {
   assert.equal(afterLayerReset.hash, defaultGlow.hash, "Reset restores all independently toggled layers.");
 
   await setControl(page, "#outerWidth", 82);
+  assert.equal(await page.locator("#outerWidthValue").innerText(), "82 px", "Outer Bloom readout tracks the live range value.");
   const wideBloom = await canvasStats(page);
   assert.notEqual(wideBloom.hash, afterLayerReset.hash, "Outer Bloom width changes rendered pixels.");
   await setControl(page, "#cometLength", 26);
