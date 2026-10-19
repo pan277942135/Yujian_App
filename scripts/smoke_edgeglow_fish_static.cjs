@@ -54,6 +54,34 @@ async function wholeCanvasHash(page, id = "glowCanvas") {
   });
 }
 
+async function perimeterDeltaByCorner(page) {
+  return page.locator("#glowCanvas").evaluate(canvas => {
+    const ctx = canvas.getContext("2d");
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const reference = window.__edgeFieldDefaultPixels;
+    const corners = [
+      { id: "top-left-gold", x0: 0, x1: 0.30, y0: 0, y1: 0.24, warmer: true },
+      { id: "top-right-blue", x0: 0.70, x1: 1, y0: 0, y1: 0.30, warmer: false },
+      { id: "bottom-left-gold", x0: 0, x1: 0.38, y0: 0.70, y1: 1, warmer: true },
+      { id: "bottom-right-blue", x0: 0.62, x1: 1, y0: 0.64, y1: 1, warmer: false }
+    ];
+    return corners.map(corner => {
+      let changedPixels = 0, deltaR = 0, deltaG = 0, deltaB = 0;
+      for (let y = Math.floor(canvas.height * corner.y0); y < Math.floor(canvas.height * corner.y1); y += 4) {
+        for (let x = Math.floor(canvas.width * corner.x0); x < Math.floor(canvas.width * corner.x1); x += 4) {
+          const i = (y * canvas.width + x) * 4;
+          const dr = Math.abs(reference[i] - current[i]);
+          const dg = Math.abs(reference[i + 1] - current[i + 1]);
+          const db = Math.abs(reference[i + 2] - current[i + 2]);
+          if (dr + dg + db > 0) changedPixels++;
+          deltaR += dr; deltaG += dg; deltaB += db;
+        }
+      }
+      return { id: corner.id, changedPixels, deltaRGB: [deltaR, deltaG, deltaB], colorRoleMatches: corner.warmer ? deltaR > deltaB : deltaB > deltaR };
+    });
+  });
+}
+
 async function afterRender(page, action) {
   const previous = await page.evaluate(() => Number(document.documentElement.dataset.renderVersion || 0));
   await action();
@@ -109,8 +137,9 @@ async function main() {
   if (process.env.CENTER_SOURCE_SHA) assert.equal(identity.buildInfo.acceptance_center_source_sha, process.env.CENTER_SOURCE_SHA);
   assert.ok(identity.pathLength > 2500, `PathMeasure arc length is plausible: ${identity.pathLength}`);
   assert.ok(identity.contourBounds[2] < 600 && identity.contourBounds[3] > 900, "Contour is irregular fish-sized geometry, not an image-sized frame.");
-  assert.deepEqual(identity.edgeFieldPaths.map(path => path.id), ["B1", "B3", "G1", "G3"], "Four frozen primary edge-field paths are present; secondary fragments stay out of this static study.");
-  assert.deepEqual(identity.edgeFieldPaths.map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22]], "Static path positions and visible arc lengths reuse the Android source values.");
+  assert.deepEqual(identity.edgeFieldPaths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4"], "Four frozen primary paths and three source-backed secondary fragments are present.");
+  assert.deepEqual(identity.edgeFieldPaths.map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22], [0.07, 0.18], [0.09, 0.16], [0.11, 0.14]], "Primary seed values are frozen; secondary seeds are recorded Android runtime values.");
+  assert.ok(identity.edgeFieldPaths.slice(4).every(path => path.seedAuthority === "ANDROID_RUNTIME_RP_A03_NOT_FROZEN"), "Secondary path seeds remain explicitly non-Frozen.");
 
   const canvasDimensions = await page.locator(".photo-stage canvas").evaluateAll(nodes => nodes.map(node => [node.width, node.height]));
   assert.equal(canvasDimensions.length, 3);
@@ -119,6 +148,9 @@ async function main() {
   const defaultGlow = await canvasStats(page);
   const defaultWholeGlow = await wholeCanvasHash(page);
   const defaultCore = await canvasStats(page, "contourCanvas");
+  await page.locator("#glowCanvas").evaluate(canvas => {
+    window.__edgeFieldDefaultPixels = new Uint8ClampedArray(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data);
+  });
   await afterRender(page, () => page.locator("#receivingLightEnabled").uncheck());
   const noReceivingLight = await wholeCanvasHash(page);
   assert.notEqual(noReceivingLight, defaultWholeGlow, "Receiving Light toggle changes corner illumination pixels.");
@@ -127,9 +159,16 @@ async function main() {
   const noPrimaryIslands = await wholeCanvasHash(page);
   assert.notEqual(noPrimaryIslands, defaultWholeGlow, "Primary Energy Islands toggle changes the four irregular edge paths.");
   await afterRender(page, () => page.locator("#primaryIslandsEnabled").check());
+  await afterRender(page, () => page.locator("#secondaryFragmentsEnabled").uncheck());
+  const noSecondaryFragments = await wholeCanvasHash(page);
+  assert.notEqual(noSecondaryFragments, defaultWholeGlow, "Secondary B2/G2/B4 toggle independently changes perimeter pixels.");
+  await afterRender(page, () => page.locator("#secondaryFragmentsEnabled").check());
   await afterRender(page, () => page.locator("#edgeFieldEnabled").uncheck());
   const noEdgeField = await wholeCanvasHash(page);
   assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
+  const perimeterCorners = await perimeterDeltaByCorner(page);
+  assert.ok(perimeterCorners.every(corner => corner.changedPixels > 0), `Blue/gold lighting changes all four photo corners: ${JSON.stringify(perimeterCorners)}`);
+  assert.ok(perimeterCorners.every(corner => corner.colorRoleMatches), `Photo corners retain blue/gold color roles: ${JSON.stringify(perimeterCorners)}`);
   await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
   await setControl(page, "#edgeFieldIntensity", 38);
   const lowerEdgeField = await wholeCanvasHash(page);
@@ -211,7 +250,9 @@ async function main() {
   assert.equal(exportConfig.photo.sha256, expectedPhotoSha);
   assert.equal(exportConfig.contour.source, "MANUAL_REFERENCE_CONTOUR");
   assert.equal(exportConfig.parameters.cometPosition, 21);
-  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3"]);
+  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4"]);
+  assert.deepEqual(exportConfig.edge_field.secondary_path_ids, ["B2", "G2", "B4"]);
+  assert.equal(exportConfig.edge_field.receiving_alpha_default, 0.07, "Corner light uses the Frozen contract upper-bound alpha for visibility.");
   assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
 
   const viewportResults = [];
@@ -247,6 +288,7 @@ async function main() {
     path_length_photo_px: identity.pathLength,
     contour_bounds_photo_px: identity.contourBounds,
     edge_field_paths: identity.edgeFieldPaths.map(({ id, family, widthDp, seed, visibleRatio, weight, length }) => ({ id, family, widthDp, seed, visibleRatio, weight, length })),
+    perimeter_corner_delta: perimeterCorners,
     effect_bounds_photo_px: await page.evaluate(() => window.__EDGEGLOW_LAB__.effectBounds),
     default_pixel_hash: defaultGlow.hash,
     toggles_and_parameters_change_pixels: true,

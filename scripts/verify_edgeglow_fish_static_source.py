@@ -50,8 +50,8 @@ def main() -> None:
     assert all(f'id="{canvas}"' in page for canvas in ("originalCanvas", "contourCanvas", "glowCanvas")), "three photo views are required"
     assert all(token in renderer for token in ("Path2D", "getTotalLength", "getPointAtLength", "screen", "blur(")), "Path-based layered renderer tokens are missing"
     assert "drawRoundRect" not in renderer and "addRoundRect" not in renderer, "fixed rounded-rectangle rendering returned"
-    assert all(f'id="{control}"' in page for control in ("edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "edgeFieldIntensity")), "photo-edge light controls are required"
-    assert all(token in renderer for token in ("drawReceivingLight", "drawPrimaryEdgeIslands", "edgeFieldParts", 'id: "B1"', 'id: "B3"', 'id: "G1"', 'id: "G3"')), "four primary paths and local receiving light are required"
+    assert all(f'id="{control}"' in page for control in ("edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "edgeFieldIntensity")), "photo-edge light controls are required"
+    assert all(token in renderer for token in ("drawReceivingLight", "drawPrimaryEdgeIslands", "drawSecondaryEdgeFragments", "edgeFieldParts", 'id: "B1"', 'id: "B3"', 'id: "G1"', 'id: "G3"', 'id: "B2"', 'id: "B4"', 'id: "G2"')), "four primary paths, three secondary fragments and local receiving light are required"
     assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
     fish_renderer = renderer.split("function createContourGradient", 1)[1].split("function drawReceivingLight", 1)[0]
     assert "params.edgeFieldBlueColor" not in fish_renderer and "params.blueColor" not in fish_renderer, "blue/cyan perimeter color must never enter Fish Focus"
@@ -66,8 +66,14 @@ def main() -> None:
         '{ id: "G3", family: "gold", widthDp: 1.2, seed: 0.64, visibleRatio: 0.22, weight: 0.63, start: [-0.01, 0.74], control1: [0.08, 0.86], control2: [0.20, 0.95], end: [0.38, 1.02] }',
     )
     assert all(definition in renderer for definition in expected_primary_path_definitions), "static Web path values must match the four Android primary values"
-    assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
-    assert "receiving_alpha_default: 0.05" in renderer and "tracked as RP-A01" in renderer, "web receiving light must follow the frozen contract while exposing the Android alpha discrepancy"
+    expected_secondary_path_definitions = (
+        '{ id: "B2", family: "blue", widthDp: 1.0, seed: 0.07, visibleRatio: 0.18, weight: 0.30, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [1.01, 0.18], control1: [0.92, 0.31], control2: [0.95, 0.52], end: [1.02, 0.68] }',
+        '{ id: "B4", family: "blue", widthDp: 0.8, seed: 0.11, visibleRatio: 0.14, weight: 0.22, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [0.22, 1.02], control1: [0.38, 0.95], control2: [0.52, 0.95], end: [0.66, 1.01] }',
+        '{ id: "G2", family: "gold", widthDp: 0.9, seed: 0.09, visibleRatio: 0.16, weight: 0.26, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [-0.02, 0.33], control1: [0.04, 0.47], control2: [0.02, 0.62], end: [-0.01, 0.78] }',
+    )
+    assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
+    assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
+    assert "receiving_alpha_default: 0.07" in renderer and "const alpha = 0.07 * intensity * island.weight" in renderer and "tracked as RP-A01" in renderer, "web receiving light must use a visible in-contract value while exposing the Android alpha discrepancy"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -85,11 +91,13 @@ def main() -> None:
             "android_source": str(ANDROID_EDGE_FIELD),
             "android_git_blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050",
             "primary_path_ids": ["B1", "B3", "G1", "G3"],
-            "receiving_light_default_alpha": 0.05,
+            "secondary_path_ids": ["B2", "G2", "B4"],
+            "secondary_seed_authority": {"source": "Android runtime", "frozen": False, "tracking": "RP-A03"},
+            "receiving_light_default_alpha": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",
         },
-        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light and Primary Island layers", "four Android primary path coordinate matches", "no rounded-rectangle substitute", "source SHA binding"],
+        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island and Secondary Fragment layers", "all seven Android path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

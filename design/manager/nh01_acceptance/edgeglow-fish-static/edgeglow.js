@@ -11,11 +11,16 @@
     { id: "G1", family: "gold", widthDp: 1.1, seed: 0.12, visibleRatio: 0.26, weight: 0.78, start: [-0.02, 0.18], control1: [0.03, 0.08], control2: [0.12, 0.02], end: [0.26, -0.02] },
     { id: "G3", family: "gold", widthDp: 1.2, seed: 0.64, visibleRatio: 0.22, weight: 0.63, start: [-0.01, 0.74], control1: [0.08, 0.86], control2: [0.20, 0.95], end: [0.38, 1.02] }
   ]);
+  const EDGE_FIELD_SECONDARY_PATHS = Object.freeze([
+    { id: "B2", family: "blue", widthDp: 1.0, seed: 0.07, visibleRatio: 0.18, weight: 0.30, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [1.01, 0.18], control1: [0.92, 0.31], control2: [0.95, 0.52], end: [1.02, 0.68] },
+    { id: "G2", family: "gold", widthDp: 0.9, seed: 0.09, visibleRatio: 0.16, weight: 0.26, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [-0.02, 0.33], control1: [0.04, 0.47], control2: [0.02, 0.62], end: [-0.01, 0.78] },
+    { id: "B4", family: "blue", widthDp: 0.8, seed: 0.11, visibleRatio: 0.14, weight: 0.22, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [0.22, 1.02], control1: [0.38, 0.95], control2: [0.52, 0.95], end: [0.66, 1.01] }
+  ]);
   const DEFAULTS = Object.freeze({
     outerEnabled: true, outerWidth: 28, outerIntensity: 62,
     coreEnabled: true, coreWidth: 3, coreIntensity: 92,
     cometEnabled: true, cometLength: 14, cometPosition: 21, cometFalloff: 1.55,
-    edgeFieldEnabled: true, receivingLightEnabled: true, primaryIslandsEnabled: true, edgeFieldIntensity: 100,
+    edgeFieldEnabled: true, receivingLightEnabled: true, primaryIslandsEnabled: true, secondaryFragmentsEnabled: true, edgeFieldIntensity: 100,
     edgeFieldBlueColor: "#bfeaf2", edgeFieldGoldColor: "#f6d99b",
     fishGoldColor: "#ffd887", fishCoreColor: "#ffe7ae",
     compareMode: "side", wipePosition: 50, contourVisible: true
@@ -23,7 +28,7 @@
   const IDS = ["originalCanvas", "contourCanvas", "glowCanvas"];
   const el = Object.fromEntries([
     ...IDS.map(id => [id, document.getElementById(id)]),
-    ...["sourceStatus", "photoSha", "photoDimensions", "buildSha", "fishContourPath", "contourVisible", "compareMode", "wipePosition", "comparisonCaption", "resetButton", "exportPngButton", "exportJsonButton", "outerEnabled", "outerWidth", "outerIntensity", "coreEnabled", "coreWidth", "coreIntensity", "cometEnabled", "cometLength", "cometPosition", "cometFalloff", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "outerWidthValue", "outerIntensityValue", "coreWidthValue", "coreIntensityValue", "cometLengthValue", "cometPositionValue", "cometFalloffValue", "edgeFieldIntensityValue"].map(id => [id, document.getElementById(id)])
+    ...["sourceStatus", "photoSha", "photoDimensions", "buildSha", "fishContourPath", "contourVisible", "compareMode", "wipePosition", "comparisonCaption", "resetButton", "exportPngButton", "exportJsonButton", "outerEnabled", "outerWidth", "outerIntensity", "coreEnabled", "coreWidth", "coreIntensity", "cometEnabled", "cometLength", "cometPosition", "cometFalloff", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "outerWidthValue", "outerIntensityValue", "coreWidthValue", "coreIntensityValue", "cometLengthValue", "cometPositionValue", "cometFalloffValue", "edgeFieldIntensityValue"].map(id => [id, document.getElementById(id)])
   ]);
   const contexts = Object.fromEntries(IDS.map(id => [id, el[id].getContext("2d", { alpha: false })]));
   const contourSvg = el.fishContourPath;
@@ -37,6 +42,7 @@
   let buildInfo = {};
   let pathLength = 0;
   let edgeFieldGeometry = [];
+  let secondaryEdgeFieldGeometry = [];
   let params = { ...DEFAULTS };
   let renderQueued = false;
 
@@ -92,7 +98,7 @@
     contourSvg.setAttribute("d", fixture.contour.path_d);
     pathLength = contourSvg.getTotalLength();
     if (!(pathLength > 1000)) throw new Error("Fish contour path is unexpectedly short.");
-    edgeFieldGeometry = EDGE_FIELD_PATHS.map(definition => {
+    const materializeEdgePaths = definitions => definitions.map(definition => {
       const point = ([x, y]) => `${x * photo.naturalWidth} ${y * photo.naturalHeight}`;
       const path = document.createElementNS(SVG_NS, "path");
       path.setAttribute("data-edge-field-path", definition.id);
@@ -103,6 +109,8 @@
       if (!(length > 100)) throw new Error(`AI Edge Field path ${definition.id} is unexpectedly short.`);
       return { ...definition, path, length };
     });
+    edgeFieldGeometry = materializeEdgePaths(EDGE_FIELD_PATHS);
+    secondaryEdgeFieldGeometry = materializeEdgePaths(EDGE_FIELD_SECONDARY_PATHS);
     const box = contourSvg.getBBox();
     if (box.width > 600 || box.height > 1300 || box.width < 250 || box.height < 900) throw new Error("Contour bounds are outside the selected fish subject.");
     const margin = 96;
@@ -255,7 +263,9 @@
     ctx.globalCompositeOperation = "screen";
     for (const island of islands) {
       const color = island.family === "blue" ? params.edgeFieldBlueColor : params.edgeFieldGoldColor;
-      const alpha = 0.05 * intensity * island.weight;
+      // Use the upper bound of the Frozen Receiving Light contract so the
+      // four local corner illuminations remain visible in this browser study.
+      const alpha = 0.07 * intensity * island.weight;
       const gradient = ctx.createRadialGradient(...island.center, 0, ...island.center, island.radius);
       gradient.addColorStop(0, rgba(color, alpha));
       gradient.addColorStop(0.34, rgba(color, alpha * 0.92));
@@ -293,8 +303,7 @@
     return points;
   }
 
-  function drawPrimaryEdgeIslands(ctx) {
-    if (!params.edgeFieldEnabled || !params.primaryIslandsEnabled || params.edgeFieldIntensity <= 0) return;
+  function drawEdgeFieldPathSet(ctx, geometries, secondary) {
     const displayWidth = el.glowCanvas.getBoundingClientRect().width || photo.naturalWidth;
     const photoPxPerDp = photo.naturalWidth / displayWidth;
     const intensity = params.edgeFieldIntensity / 100;
@@ -303,25 +312,32 @@
     ctx.globalCompositeOperation = "screen";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    for (const geometry of edgeFieldGeometry) {
+    for (const geometry of geometries) {
       const coreColor = geometry.family === "blue" ? params.edgeFieldBlueColor : params.edgeFieldGoldColor;
-      const hotColor = mixHex(coreColor, "#ffffff", 0.35);
+      const hotColor = geometry.family === "blue" ? "#d8f5fa" : "#ffe7ae";
       const common = intensity * geometry.weight;
       for (const [from, to] of edgeFieldParts(geometry)) {
         const points = edgeFieldSegment(ctx, geometry, from, to, sampleStep);
         ctx.save();
-        ctx.filter = `blur(${5 * photoPxPerDp}px)`;
-        ctx.strokeStyle = rgba(coreColor, Math.min(0.055, 0.04 * common));
-        ctx.lineWidth = 10 * photoPxPerDp;
-        ctx.stroke();
-        ctx.filter = `blur(${2 * photoPxPerDp}px)`;
-        ctx.strokeStyle = rgba(coreColor, Math.min(0.10, 0.075 * common));
-        ctx.lineWidth = 4 * photoPxPerDp;
-        ctx.stroke();
+        if (secondary) {
+          ctx.filter = `blur(${1 * photoPxPerDp}px)`;
+          ctx.strokeStyle = rgba(coreColor, Math.min(0.035, 0.025 * common));
+          ctx.lineWidth = 2 * photoPxPerDp;
+          ctx.stroke();
+        } else {
+          ctx.filter = `blur(${5 * photoPxPerDp}px)`;
+          ctx.strokeStyle = rgba(coreColor, Math.min(0.055, 0.05 * common));
+          ctx.lineWidth = 10 * photoPxPerDp;
+          ctx.stroke();
+          ctx.filter = `blur(${2 * photoPxPerDp}px)`;
+          ctx.strokeStyle = rgba(coreColor, Math.min(0.10, 0.10 * common));
+          ctx.lineWidth = 4 * photoPxPerDp;
+          ctx.stroke();
+        }
         ctx.filter = "none";
         const first = points[0], last = points[points.length - 1];
         const gradient = ctx.createLinearGradient(first[0], first[1], last[0], last[1]);
-        const coreAlpha = Math.min(0.50, 0.46 * common);
+        const coreAlpha = secondary ? Math.min(0.12, 0.16 * common) : Math.min(0.50, 0.46 * common);
         gradient.addColorStop(0, rgba(coreColor, coreAlpha * 0.08));
         gradient.addColorStop(0.58, rgba(coreColor, coreAlpha * 0.58));
         gradient.addColorStop(0.88, rgba(hotColor, coreAlpha));
@@ -333,6 +349,16 @@
       }
     }
     ctx.restore();
+  }
+
+  function drawPrimaryEdgeIslands(ctx) {
+    if (!params.edgeFieldEnabled || !params.primaryIslandsEnabled || params.edgeFieldIntensity <= 0) return;
+    drawEdgeFieldPathSet(ctx, edgeFieldGeometry, false);
+  }
+
+  function drawSecondaryEdgeFragments(ctx) {
+    if (!params.edgeFieldEnabled || !params.secondaryFragmentsEnabled || params.edgeFieldIntensity <= 0) return;
+    drawEdgeFieldPathSet(ctx, secondaryEdgeFieldGeometry, true);
   }
 
   function renderGlowBuffer() {
@@ -353,6 +379,7 @@
     paintBase(bufferContext);
     drawReceivingLight(bufferContext);
     drawPrimaryEdgeIslands(bufferContext);
+    drawSecondaryEdgeFragments(bufferContext);
     bufferContext.drawImage(effectLayer, effectBounds.left, effectBounds.top);
   }
 
@@ -400,7 +427,7 @@
   }
 
   function syncControls() {
-    for (const id of ["outerEnabled", "coreEnabled", "cometEnabled", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "contourVisible"]) el[id].checked = Boolean(params[id]);
+    for (const id of ["outerEnabled", "coreEnabled", "cometEnabled", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "contourVisible"]) el[id].checked = Boolean(params[id]);
     for (const id of ["outerWidth", "outerIntensity", "coreWidth", "coreIntensity", "cometLength", "cometPosition", "cometFalloff", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "compareMode", "wipePosition"]) el[id].value = params[id];
     updateOutputs();
   }
@@ -441,7 +468,7 @@
     outerEnabled: "outerEnabled", outerWidth: "outerWidth", outerIntensity: "outerIntensity",
     coreEnabled: "coreEnabled", coreWidth: "coreWidth", coreIntensity: "coreIntensity",
     cometEnabled: "cometEnabled", cometLength: "cometLength", cometPosition: "cometPosition", cometFalloff: "cometFalloff",
-    edgeFieldEnabled: "edgeFieldEnabled", receivingLightEnabled: "receivingLightEnabled", primaryIslandsEnabled: "primaryIslandsEnabled", edgeFieldIntensity: "edgeFieldIntensity",
+    edgeFieldEnabled: "edgeFieldEnabled", receivingLightEnabled: "receivingLightEnabled", primaryIslandsEnabled: "primaryIslandsEnabled", secondaryFragmentsEnabled: "secondaryFragmentsEnabled", edgeFieldIntensity: "edgeFieldIntensity",
     edgeFieldBlueColor: "edgeFieldBlueColor", edgeFieldGoldColor: "edgeFieldGoldColor",
     fishGoldColor: "fishGoldColor", fishCoreColor: "fishCoreColor", contourVisible: "contourVisible",
     compareMode: "compareMode", wipePosition: "wipePosition"
@@ -480,7 +507,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: EDGE_FIELD_PATHS, static_seed_offsets: true, animation: false, receiving_alpha_default: 0.05, receiving_alpha_authority: "AI_Edge_Field_V1_Rendering_Contract.json; Android implementation is 0.13 and tracked as RP-A01" },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", animation: false, receiving_alpha_default: 0.07, receiving_alpha_authority: "Upper bound of AI_Edge_Field_V1_Rendering_Contract.json; Android implementation is 0.13 and tracked as RP-A01" },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo
@@ -498,7 +525,7 @@
     get pathLength() { return pathLength; },
     get photoDimensions() { return [photo.naturalWidth, photo.naturalHeight]; },
     get effectBounds() { return { ...effectBounds }; },
-    get edgeFieldPaths() { return edgeFieldGeometry.map(({ path, ...definition }) => ({ ...definition, length: definition.length })); },
+    get edgeFieldPaths() { return [...edgeFieldGeometry, ...secondaryEdgeFieldGeometry].map(({ path, ...definition }) => ({ ...definition, length: definition.length })); },
     render: renderAll,
     getPixelData(canvasId = "glowCanvas") { return [...contexts[canvasId].getImageData(0, 0, el[canvasId].width, el[canvasId].height).data]; }
   };
