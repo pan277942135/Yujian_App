@@ -220,7 +220,7 @@ class NormalHomeDataParityTest {
             logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
             logHierarchyEvidence()
 
-            assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f)
+            assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f, cardName = "catch-snakehead")
             firstCard.performClick()
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
@@ -240,7 +240,7 @@ class NormalHomeDataParityTest {
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
-            assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f)
+            assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f, cardName = "catch-bass")
 
             allAction.performClick()
             compose.runOnIdle { assertEquals(1, allClicks) }
@@ -424,6 +424,7 @@ class NormalHomeDataParityTest {
     private fun assertEvidenceFit(
         card: androidx.compose.ui.test.SemanticsNodeInteraction,
         expectedMarkerCenter: Float,
+        cardName: String,
     ) {
         val pixels = card.captureToImage().toPixelMap()
         val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
@@ -441,7 +442,14 @@ class NormalHomeDataParityTest {
         val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
         val bottomBrightness = readableBottom.red + readableBottom.green + readableBottom.blue
-        assertTrue("A subtle local bottom treatment keeps card text readable", topBrightness - bottomBrightness > 0.12f)
+        val bottomTreatmentDelta = topBrightness - bottomBrightness
+        assertTrue(
+            "A subtle local bottom treatment keeps card text readable: card=$cardName " +
+                "quietTop=$quietTop readableBottom=$readableBottom " +
+                "topBrightness=$topBrightness bottomBrightness=$bottomBrightness " +
+                "delta=$bottomTreatmentDelta threshold=0.12",
+            bottomTreatmentDelta > 0.12f,
+        )
         val corners = listOf(
             pixels[(pixels.width * 0.01f).toInt(), (pixels.height * 0.01f).toInt()],
             pixels[(pixels.width * 0.99f).toInt(), (pixels.height * 0.01f).toInt()],
