@@ -7,11 +7,12 @@ const ROOT_URL = process.env.LAB_REPO_URL || "http://127.0.0.1:8765/design/manag
 const DESIGN_URL = process.env.LAB_DESIGN_ROOT_URL || "http://127.0.0.1:8766/manager/optical-lab/";
 const REQUIRED_STATES = ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"];
 const RESPONSIVE = [[390, 844], [320, 640], [360, 800], [412, 915], [800, 360]];
+let browser;
 
 (async () => {
   const out = process.env.LAB_OUTPUT_DIR || "optical-lab-artifacts";
   fs.mkdirSync(out, { recursive: true });
-  const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+  browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
   const allErrors = [];
 
   async function openReady(url, label) {
@@ -219,4 +220,8 @@ const RESPONSIVE = [[390, 844], [320, 640], [360, 800], [412, 915], [800, 360]];
   await design.page.close();
   await browser.close();
   console.log(JSON.stringify(summary, null, 2));
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().catch(async error => {
+  console.error(error);
+  try { await browser?.close(); } catch (closeError) { console.error("Chromium cleanup failed:", closeError); }
+  process.exitCode = 1;
+});

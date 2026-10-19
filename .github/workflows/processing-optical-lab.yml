@@ -1,24 +1,6 @@
 name: Recognition Optical Lab · Static Validation
 
 on:
-  push:
-    branches:
-      - design/recognition-processing-handoff-p0
-    paths:
-      - "design/manager/index.html"
-      - "design/manager/optical-lab/**"
-      - "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
-      - "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
-      - "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
-      - "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
-      - "design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json"
-      - "design/system/fish_media_display_v1/real_photo_cases.json"
-      - "design/system/fish_media_display_v1/assets/real_catch_source.jpg"
-      - "app/src/main/java/com/yujian/ai/ui/recognition/**"
-      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
-      - "scripts/verify_processing_optical_lab.mjs"
-      - "scripts/smoke_processing_optical_lab.cjs"
-      - ".github/workflows/processing-optical-lab.yml"
   pull_request:
     branches:
       - design/processing-remove-early-visual-v1
@@ -37,6 +19,10 @@ on:
       - "scripts/verify_processing_optical_lab.mjs"
       - "scripts/smoke_processing_optical_lab.cjs"
       - ".github/workflows/processing-optical-lab.yml"
+
+concurrency:
+  group: recognition-optical-lab-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
