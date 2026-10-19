@@ -20,14 +20,15 @@ const RESPONSIVE = [[390, 844], [320, 640], [360, 800], [412, 915], [800, 360]];
     page.on("pageerror", error => errors.push(error.message));
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     page.on("requestfailed", request => errors.push("requestfailed: " + request.url() + " · " + request.failure()?.errorText));
-    await page.goto(url, { waitUntil: "networkidle", timeout: 120000 });
-    await page.waitForFunction(() => document.querySelector("#overallStatus")?.textContent === "REVIEW_REQUIRED", null, { timeout: 120000 });
+    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForFunction(() => ["REVIEW_REQUIRED", "BLOCKED"].includes(document.querySelector("#overallStatus")?.textContent), null, { timeout: 30000 });
+    assert.equal(await page.locator("#overallStatus").textContent(), "REVIEW_REQUIRED", label + ": asset loader reached a blocked state");
     await page.waitForFunction(() => {
       const image = document.querySelector("#frozenImage");
       return image && image.complete && image.naturalWidth === 941 && image.naturalHeight === 1672 &&
         document.querySelector("#photoName")?.textContent.includes("SHA-256 verified") &&
         document.querySelector("#inputStatus")?.textContent.includes("PASS");
-    }, null, { timeout: 120000 });
+    }, null, { timeout: 30000 });
     const audit = await page.evaluate(() => ({
       assets: Array.from(document.querySelectorAll("#assetRows tr")).map(row => ({
         text: row.innerText,
@@ -143,7 +144,7 @@ const RESPONSIVE = [[390, 844], [320, 640], [360, 800], [412, 915], [800, 360]];
   await page.locator("#candidateGrid").screenshot({ path: path.join(out, "same-source-three-renderers.png") });
 
   async function saveDownload(selector, name) {
-    const pending = page.waitForEvent("download");
+    const pending = page.waitForEvent("download", { timeout: 20000 });
     await page.locator(selector).click();
     const item = await pending;
     await item.saveAs(path.join(out, name || item.suggestedFilename()));
