@@ -21,13 +21,14 @@ let launchedBrowser;
 
 async function canvasStats(page, id = "glowCanvas") {
   return page.locator(`#${id}`).evaluate(canvas => {
-    const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+    const roi = { x: 0, y: 180, width: Math.min(560, canvas.width), height: Math.min(1356, canvas.height - 180) };
+    const data = canvas.getContext("2d").getImageData(roi.x, roi.y, roi.width, roi.height).data;
     let hash = 2166136261;
     let luminance = 0;
     let nonBackgroundSamples = 0;
     let samples = 0;
-    for (let y = 0; y < canvas.height; y += 4) for (let x = 0; x < canvas.width; x += 4) {
-      const i = (y * canvas.width + x) * 4;
+    for (let y = 0; y < roi.height; y += 4) for (let x = 0; x < roi.width; x += 4) {
+      const i = (y * roi.width + x) * 4;
       hash ^= data[i]; hash = Math.imul(hash, 16777619);
       hash ^= data[i + 1]; hash = Math.imul(hash, 16777619);
       hash ^= data[i + 2]; hash = Math.imul(hash, 16777619);
@@ -35,7 +36,7 @@ async function canvasStats(page, id = "glowCanvas") {
       if (data[i] > 245 && data[i + 1] > 245 && data[i + 2] > 245) nonBackgroundSamples++;
       samples++;
     }
-    return { width: canvas.width, height: canvas.height, hash: (hash >>> 0).toString(16), meanLuminance: luminance / samples, nearWhitePixels: nonBackgroundSamples, sampleStep: 4, samples };
+    return { width: canvas.width, height: canvas.height, roi, hash: (hash >>> 0).toString(16), meanLuminance: luminance / samples, nearWhitePixels: nonBackgroundSamples, sampleStep: 4, samples };
   });
 }
 
@@ -206,6 +207,7 @@ async function main() {
     contour_source: "MANUAL_REFERENCE_CONTOUR",
     path_length_photo_px: identity.pathLength,
     contour_bounds_photo_px: identity.contourBounds,
+    effect_bounds_photo_px: await page.evaluate(() => window.__EDGEGLOW_LAB__.effectBounds),
     default_pixel_hash: defaultGlow.hash,
     toggles_and_parameters_change_pixels: true,
     compare_modes: ["side", "overlay", "wipe"],

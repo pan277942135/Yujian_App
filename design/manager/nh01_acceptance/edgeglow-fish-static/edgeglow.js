@@ -20,6 +20,9 @@
   const photo = new Image();
   const buffer = document.createElement("canvas");
   const bufferContext = buffer.getContext("2d", { alpha: false });
+  const effectLayer = document.createElement("canvas");
+  let effectContext = effectLayer.getContext("2d");
+  let effectBounds = null;
   let fixture;
   let buildInfo = {};
   let pathLength = 0;
@@ -80,6 +83,15 @@
     if (!(pathLength > 1000)) throw new Error("Fish contour path is unexpectedly short.");
     const box = contourSvg.getBBox();
     if (box.width > 600 || box.height > 1300 || box.width < 250 || box.height < 900) throw new Error("Contour bounds are outside the selected fish subject.");
+    const margin = 96;
+    const left = Math.max(0, Math.floor(box.x - margin));
+    const top = Math.max(0, Math.floor(box.y - margin));
+    const right = Math.min(photo.naturalWidth, Math.ceil(box.x + box.width + margin));
+    const bottom = Math.min(photo.naturalHeight, Math.ceil(box.y + box.height + margin));
+    effectBounds = { left, top, width: right - left, height: bottom - top, margin };
+    effectLayer.width = effectBounds.width;
+    effectLayer.height = effectBounds.height;
+    effectContext = effectLayer.getContext("2d", { alpha: true });
 
     el.photoSha.textContent = digest;
     el.photoDimensions.textContent = `${photo.naturalWidth} × ${photo.naturalHeight} · EXIF ${fixture.photo.exif_orientation} · FIT / NO CROP`;
@@ -206,14 +218,22 @@
   }
 
   function renderGlowBuffer() {
-    const ctx = bufferContext;
-    paintBase(ctx);
+    const ctx = effectContext;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.filter = "none";
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, effectLayer.width, effectLayer.height);
+    ctx.setTransform(1, 0, 0, 1, -effectBounds.left, -effectBounds.top);
     drawOuterBloom(ctx);
     drawCore(ctx);
     if (params.cometEnabled) {
       drawCometPass(ctx, true);
       drawCometPass(ctx, false);
     }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    paintBase(bufferContext);
+    bufferContext.drawImage(effectLayer, effectBounds.left, effectBounds.top);
   }
 
   function drawGlowComparison() {
@@ -340,6 +360,7 @@
     get state() { return { ...params }; },
     get pathLength() { return pathLength; },
     get photoDimensions() { return [photo.naturalWidth, photo.naturalHeight]; },
+    get effectBounds() { return { ...effectBounds }; },
     render: renderAll,
     getPixelData(canvasId = "glowCanvas") { return [...contexts[canvasId].getImageData(0, 0, el[canvasId].width, el[canvasId].height).data]; }
   };
