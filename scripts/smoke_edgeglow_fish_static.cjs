@@ -119,6 +119,26 @@ async function setControl(page, selector, value) {
     }, value));
 }
 
+async function saveDownload(page, selector, targetPath) {
+  const downloadReady = page.waitForEvent("download");
+  await page.locator(selector).click();
+  const download = await downloadReady;
+  await download.saveAs(targetPath);
+}
+
+async function saveCornerCrop(page, id, x0, y0, x1, y1, targetPath) {
+  const dataUrl = await page.locator("#glowCanvas").evaluate((source, crop) => {
+    const canvas = document.createElement("canvas");
+    const x = Math.floor(source.width * crop.x0), y = Math.floor(source.height * crop.y0);
+    canvas.width = Math.max(1, Math.floor(source.width * (crop.x1 - crop.x0)));
+    canvas.height = Math.max(1, Math.floor(source.height * (crop.y1 - crop.y0)));
+    canvas.getContext("2d").drawImage(source, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+  }, { x0, y0, x1, y1 });
+  await fs.writeFile(targetPath, Buffer.from(dataUrl.split(",")[1], "base64"));
+  return { id, file: path.basename(targetPath) };
+}
+
 async function main() {
   await fs.mkdir(outputDir, { recursive: true });
   const browser = launchedBrowser = await chromium.launch({ headless: true });
@@ -135,6 +155,7 @@ async function main() {
   await entry.click();
   await page.waitForURL(url => url.pathname.includes("/edgeglow-fish-static/"), { timeout: 15000 });
   await page.waitForFunction(() => window.__EDGEGLOW_LAB__?.pathLength > 1000 && window.__EDGEGLOW_LAB__?.edgeFieldInset > 0, { timeout: 15000 });
+  await page.waitForFunction(() => window.__EDGEGLOW_LAB__?.config?.schema_version === "2.0.0", { timeout: 10000 });
 
   const identity = await page.evaluate(async () => ({
     title: document.title,
@@ -159,6 +180,7 @@ async function main() {
   assert.equal((await page.locator("#fishCoreColor").getAttribute("value")), "#ffe7ae", "Fish core uses the warm-gold highlight family.");
   assert.equal(await page.locator("#blueColor").count(), 0, "There is no blue control for the fish-body highlight.");
   assert.equal(identity.buildInfo.photo_sha256, expectedPhotoSha);
+  assert.equal(identity.buildInfo.optical_config_version, "2.0.0");
   if (process.env.PR_SOURCE_SHA) assert.equal(identity.buildInfo.pr_source_sha, process.env.PR_SOURCE_SHA);
   if (process.env.CENTER_SOURCE_SHA) assert.equal(identity.buildInfo.acceptance_center_source_sha, process.env.CENTER_SOURCE_SHA);
   assert.ok(identity.pathLength > 2500, `PathMeasure arc length is plausible: ${identity.pathLength}`);
@@ -167,6 +189,49 @@ async function main() {
   assert.deepEqual(identity.edgeFieldPaths.slice(0, 7).map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22], [0.07, 0.18], [0.09, 0.16], [0.11, 0.14]], "Primary seed values are frozen; secondary seeds are recorded Android runtime values.");
   assert.ok(identity.edgeFieldPaths.slice(4, 7).every(path => path.seedAuthority === "ANDROID_RUNTIME_RP_A03_NOT_FROZEN"), "Secondary path seeds remain explicitly non-Frozen.");
   console.log("SMOKE: source photo, contour and all edge-field paths verified");
+
+  const presetButtons = await page.locator("[data-optical-preset]").evaluateAll(nodes => nodes.map(node => node.dataset.opticalPreset));
+  assert.deepEqual(presetButtons, ["current", "enhanced", "frozen_match"], "The Current, Enhanced and Frozen Match presets are available.");
+  const evidenceDir = path.join(outputDir, "visual-evidence");
+  await fs.mkdir(evidenceDir, { recursive: true });
+  const sourcePhotoUrl = new URL("../../../system/fish_media_display_v1/assets/real_catch_source.jpg", page.url());
+  const photoResponse = await page.request.get(sourcePhotoUrl.href);
+  assert.equal(photoResponse.status(), 200, "The original fixed test photograph is reachable.");
+  await fs.writeFile(path.join(evidenceDir, "Original_Real_Catch_Photo.jpg"), await photoResponse.body());
+  for (const [name, file] of [
+    ["Frozen_02_AI_Understanding.png", "02_AI_Understanding_Frozen.png"],
+    ["Frozen_03_Fish_Highlight.png", "03_Fish_Highlight_Frozen.png"],
+    ["Frozen_04_Fish_Identifying.png", "04_Fish_Identifying_Frozen.png"]
+  ]) {
+    const response = await page.request.get(new URL(`../../../pages/recognition/design/${file}`, page.url()).href);
+    assert.equal(response.status(), 200, `Frozen reference ${file} is reachable.`);
+    await fs.writeFile(path.join(evidenceDir, name), await response.body());
+  }
+  const presetEvidence = [];
+  for (const [preset, fileBase] of [["current", "Current"], ["enhanced", "Enhanced"], ["frozen_match", "Frozen_Match"]]) {
+    await afterRender(page, () => page.locator(`[data-optical-preset="${preset}"]`).click());
+    assert.equal(await page.locator(`[data-optical-preset="${preset}"]`).getAttribute("aria-pressed"), "true", `${preset} preset is selected by the live control.`);
+    await saveDownload(page, "#exportPngButton", path.join(evidenceDir, `EdgeGlow_${fileBase}.png`));
+    await saveDownload(page, "#exportJsonButton", path.join(evidenceDir, `EdgeGlow_${fileBase}_Parameters.json`));
+    presetEvidence.push({ preset, png: `EdgeGlow_${fileBase}.png`, parameters: `EdgeGlow_${fileBase}_Parameters.json`, pixel_hash: await wholeCanvasHash(page) });
+  }
+  await afterRender(page, () => page.locator('[data-optical-preset="enhanced"]').click());
+  const blendTrialHashes = {};
+  for (const blend of ["source-over", "screen", "additive"]) {
+    await afterRender(page, () => page.locator("#opticalCoreBlend").selectOption(blend));
+    blendTrialHashes[blend] = await wholeCanvasHash(page);
+  }
+  assert.ok(new Set(Object.values(blendTrialHashes)).size > 1, `Optical Core blend trials must change visible pixels: ${JSON.stringify(blendTrialHashes)}`);
+  await afterRender(page, () => page.locator("#opticalCoreBlend").selectOption("source-over"));
+  const cornerEvidence = [];
+  for (const corner of [
+    { id: "G1", x0: 0, y0: 0, x1: 0.32, y1: 0.25 },
+    { id: "B1", x0: 0.68, y0: 0, x1: 1, y1: 0.32 },
+    { id: "G3", x0: 0, y0: 0.70, x1: 0.40, y1: 1 },
+    { id: "B3", x0: 0.60, y0: 0.64, x1: 1, y1: 1 }
+  ]) cornerEvidence.push(await saveCornerCrop(page, corner.id, corner.x0, corner.y0, corner.x1, corner.y1, path.join(evidenceDir, `Enhanced_Corner_${corner.id}.png`)));
+  await fs.copyFile(path.join(evidenceDir, "EdgeGlow_Enhanced.png"), path.join(evidenceDir, "Final_Enhanced_Render.png"));
+  console.log("SMOKE: exported exact photo, three presets, full parameter JSON, Frozen references and four enlarged corner crops");
 
   const canvasDimensions = await page.locator(".photo-stage canvas").evaluateAll(nodes => nodes.map(node => [node.width, node.height]));
   assert.equal(canvasDimensions.length, 3);
@@ -276,7 +341,7 @@ async function main() {
 
   assert.deepEqual(errors, [], "No new browser page or console errors.");
   const report = {
-    task_id: "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
+    task_id: "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
     run_id: runId,
     status: "PASS_ENGINEERING_INTERACTION",
     visual_quality: "REVIEW_REQUIRED",
@@ -286,6 +351,10 @@ async function main() {
     acceptance_center_source_sha: identity.buildInfo.acceptance_center_source_sha,
     source_photo_sha256: expectedPhotoSha,
     source_photo_dimensions: [1152, 1536],
+    optical_config_version: "2.0.0",
+    optical_presets: presetEvidence,
+    optical_core_blend_trials: blendTrialHashes,
+    corner_zoom_evidence: cornerEvidence,
     contour_source: "MANUAL_REFERENCE_CONTOUR",
     path_length_photo_px: identity.pathLength,
     contour_bounds_photo_px: identity.contourBounds,
@@ -302,7 +371,7 @@ async function main() {
     responsive: viewportResults,
     browser_errors: errors,
     build_label: identity.buildLabel,
-    artifacts: ["EdgeGlow_Fish_Static_Test_Report.json"]
+    artifacts: ["EdgeGlow_Fish_Static_Test_Report.json", "visual-evidence/Original_Real_Catch_Photo.jpg", "visual-evidence/EdgeGlow_Current.png", "visual-evidence/EdgeGlow_Enhanced.png", "visual-evidence/EdgeGlow_Frozen_Match.png", "visual-evidence/EdgeGlow_Enhanced_Parameters.json", "visual-evidence/Final_Enhanced_Render.png", ...cornerEvidence.map(crop => `visual-evidence/${crop.file}`), "visual-evidence/Frozen_02_AI_Understanding.png", "visual-evidence/Frozen_03_Fish_Highlight.png", "visual-evidence/Frozen_04_Fish_Identifying.png"]
   };
   await fs.writeFile(path.join(outputDir, "EdgeGlow_Fish_Static_Test_Report.json"), `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report, null, 2));

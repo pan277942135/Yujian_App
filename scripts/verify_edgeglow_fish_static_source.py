@@ -12,7 +12,9 @@ from pathlib import Path
 EXPECTED_PHOTO_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef"
 ROUTE = Path("design/manager/nh01_acceptance/edgeglow-fish-static")
 PHOTO = Path("design/system/fish_media_display_v1/assets/real_catch_source.jpg")
+OPTICAL_CONFIG = Path("design/system/recognition_optical_v2/RecognitionOpticalConfigV2.json")
 ANDROID_EDGE_FIELD = Path("app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt")
+ANDROID_OPTICAL_CONFIG = Path("app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt")
 
 
 def sha256(path: Path) -> str:
@@ -37,8 +39,10 @@ def main() -> None:
     assert "edgeglow.js?v=edgeglow-static-r12-corner-rim" in page, "the deployed prototype must load R12 with crisp inset full-length corner arcs and bypass stale cache entries"
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
+    optical_config = json.loads((args.site_root / OPTICAL_CONFIG).read_text(encoding="utf-8"))
     pr_root = Path(__file__).resolve().parents[1]
     android_edge_field = (pr_root / ANDROID_EDGE_FIELD).read_text(encoding="utf-8")
+    android_optical_config = (pr_root / ANDROID_OPTICAL_CONFIG).read_text(encoding="utf-8")
     photo = args.site_root / PHOTO
     actual_sha = sha256(photo)
 
@@ -65,6 +69,31 @@ def main() -> None:
     node_renderer = renderer.split("function drawStaticEnergyNodes", 1)[1].split("function drawPrimaryEdgeIslands", 1)[0]
     assert all('ctx.globalCompositeOperation = "source-over"' in fn and 'ctx.globalCompositeOperation = "screen"' not in fn for fn in (companion_renderer, node_renderer)), "all perimeter layers must preserve hue on bright pixels"
     assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
+    assert optical_config["schema_version"] == "2.0.0" and optical_config["task_id"] == "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2", "shared optical config version/task identity mismatch"
+    assert set(optical_config["presets"]) == {"current", "enhanced", "frozen_match"}, "Current, Enhanced and Frozen Match presets are required"
+    assert optical_config["photo_mapping"]["source_coordinate_space"] == "EXIF_NORMALIZED_PHOTO" and "photoContentRect" in optical_config["photo_mapping"]["overlay_bounds"], "shared contract must bind overlays to the normalized photo content rect"
+    assert [island["id"] for island in optical_config["primary_islands"]] == ["G1", "B1", "G3", "B3"], "four independently calibrated corner islands are required"
+    assert [island["strength"] for island in optical_config["primary_islands"]] == [0.85, 1.0, 0.75, 0.7], "shared corner strengths must match the Android mapping"
+    assert optical_config["recognition_animation"]["minimum_visible_duration_ms"] == {"CAPTURED": 220, "DETECTING": 320, "OUTLINE": 350, "CLASSIFYING": 250}, "state-machine minimum visible durations must be versioned"
+    assert optical_config["fish_mask_contract"]["static_demo_fixture"] == "MANUAL_REFERENCE_CONTOUR; production_mask=false", "manual demo contour provenance must remain explicit"
+    assert optical_config["android_mapping"]["alpha_modifiers"] == {"inner_bloom": 0.78, "outer_bloom": 0.74}, "static and native bloom alpha mappings must agree"
+    assert set(optical_config["android_mapping"]["quality_profiles"]) == {"HIGH", "MEDIUM", "LOW"}, "HIGH/MEDIUM/LOW performance profiles are required"
+    assert optical_config["android_mapping"]["quality_profiles"]["MEDIUM"]["outer_bloom_radius_multiplier"] == 0.75
+    assert optical_config["android_mapping"]["quality_profiles"]["MEDIUM"]["spill_radius_multiplier"] == 0.75
+    assert optical_config["android_mapping"]["quality_profiles"]["LOW"]["outer_bloom_radius_multiplier"] == 0.5
+    assert optical_config["android_mapping"]["quality_profiles"]["LOW"]["spill_radius_multiplier"] == 0.5
+    assert all(f'data-optical-preset="{preset}"' in page for preset in ("current", "enhanced", "frozen_match")), "three live preset controls are required"
+    assert all(f'id="{control}"' in page for control in ("opticalCoreIntensity", "opticalCoreWidth", "opticalCoreBlend", "innerBloomRadius", "innerBloomIntensity", "outerBloomRadius", "outerBloomIntensity", "atmosphericSpill", "blueSaturation", "goldWarmth", "backgroundCompensation", "strengthG1", "strengthB1", "strengthG3", "strengthB3")), "the V2 optical parameter controls are incomplete"
+    assert all(token in renderer for token in ("OPTICAL_CONFIG_VERSION", "drawEnhancedOpticalIslands", "brightBackgroundGain", 'params.opticalCoreBlend || "source-over"', 'blend: "screen"', 'blend: "soft-light"', '"lighter"', "measureIslandLuminance", "params.backgroundCompensation")), "four-layer optical renderer or local background compensation is missing"
+    assert "RecognitionOpticalConfigV2" in android_optical_config and 'VERSION = "2.0.0"' in android_optical_config, "Android must publish the matching V2 parameter mapping"
+    assert all(str(value) in android_optical_config for value in ("0.85f", "1.00f", "0.75f", "0.70f")), "Android island strengths must match the shared config"
+    assert all(token in android_optical_config for token in ("INNER_BLOOM_ALPHA_MODIFIER = .78f", "OUTER_BLOOM_ALPHA_MODIFIER = .74f", "RecognitionQualityLevel.FULL", "RecognitionQualityLevel.BALANCED", "RecognitionQualityLevel.LITE", "RecognitionQualityLevel.BALANCED -> .75f", "RecognitionQualityLevel.LITE -> .50f", "BRIGHT_LUMINANCE_THRESHOLD = .46f", "BRIGHT_BACKGROUND_MAX_GAIN = .28f")), "Android quality, bloom and background-compensation mapping must follow the shared contract"
+    assert "if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)" in android_edge_field and "RecognitionOpticalBlend.SOFT_LIGHT -> PorterDuffXfermode(PorterDuff.Mode.LIGHTEN)" in android_edge_field, "API28 must use the documented Lighten fallback without calling API29 BlendMode methods"
+    api28_blend_block = android_edge_field.split("if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)", 1)[1].split("\n        }", 1)[1].split("\n    }", 1)[0]
+    assert "blendMode = null" not in api28_blend_block, "API28 fallback must not invoke the API29 Paint.blendMode setter"
+    assert all(token in android_edge_field for token in ("RecognitionVisualStateController", "RecognitionImageTransform.photoContentRect")) or "photoContentRect" in android_edge_field, "Android optical geometry must clip to the photo content rect"
+    assert optical_config["android_mapping"]["source"].endswith("RecognitionOpticalConfigV2.kt"), "shared config must declare its Android mapping source"
+    assert all(asset in page for asset in ("02_AI_Understanding_Frozen.png", "03_Fish_Highlight_Frozen.png", "04_Fish_Identifying_Frozen.png")), "all three frozen optical references must be shown"
     fish_renderer = renderer.split("function createContourGradient", 1)[1].split("function drawReceivingLight", 1)[0]
     assert "params.edgeFieldBlueColor" not in fish_renderer and "params.blueColor" not in fish_renderer, "blue/cyan perimeter color must never enter Fish Focus"
     assert "params.fishGoldColor" in fish_renderer and "params.fishCoreColor" in fish_renderer, "Fish Focus must render a warm-gold palette"
@@ -86,7 +115,7 @@ def main() -> None:
         '{ id: "G2", family: "gold", widthDp: 0.9, seed: 0.09, visibleRatio: 0.16, weight: 0.26, seedAuthority: "ANDROID_RUNTIME_RP_A03_NOT_FROZEN", start: [-0.02, 0.33], control1: [0.04, 0.47], control2: [0.02, 0.62], end: [-0.01, 0.78] }',
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
-    assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
+    assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "ATMOSPHERIC_SPILL_INTENSITY * common", "OUTER_BLOOM_INTENSITY *", "INNER_BLOOM_INTENSITY *", "CORE_INTENSITY * islandCommon")), "Android source must keep the existing four primary paths and expose all four V2 optical layers"
     assert "receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS" in renderer and "receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP" in renderer and "receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA" in renderer and "receiving_inset_fraction: EDGE_RECEIVING_INSET" in renderer and "corner_color_roles: { top_left: \"gold\", top_right: \"blue\", bottom_left: \"gold\", bottom_right: \"blue\" }" in renderer and "receiving_width_dp: EDGE_RECEIVING_WIDTH_DP" in renderer and "receiving_blur_dp: EDGE_RECEIVING_BLUR_DP" in renderer and '"R12 four-corner Web visibility candidate with a crisp perimeter ridge; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01"' in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R12 parameter contract must expose its photo inset, crest values, color roles, Web values and Android/Frozen cap discrepancy"
     assert 'web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }' in renderer and 'android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" }' in renderer, "Web Frozen-raster palette must remain distinct from Android tokens"
     expected_companion_path_definitions = (
@@ -99,10 +128,17 @@ def main() -> None:
     assert all(definition in renderer for definition in expected_companion_path_definitions), "companion and B1-only micro geometry must match RecognitionAmbientField.kt"
     assert "drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry)" in renderer and "drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true)" in renderer, "frozen companion/micro layers must be drawn independently"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
+    current_light = optical_config["presets"]["current"]["legacy_receiving_light"]
+    assert current_light["alpha_per_pass"] == [0.78, 0.64] and current_light["path_coverage_ratio"] == 1.0, "Current preset must reflect the live PR #166 R12 renderer"
+    assert current_light["core_width_dp"] == 1.8 and current_light["core_alpha"] == 0.88
+    assert current_light["inset_fraction"] == [0.028, 0.022]
+    assert optical_config["bright_background_compensation"]["scope"] == "perimeter_light_only", "brightness compensation must leave photo exposure untouched"
+    assert optical_config["fish_mask_contract"]["detector_output"].lower().find("bounding box") >= 0, "detector output provenance must distinguish BBox from pixel mask"
+    assert "NOT_VALIDATED" in optical_config["fish_mask_contract"]["fish_specific_semantic_accuracy"], "generic subject segmentation must not be presented as fish-specific accuracy"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     report = {
-        "task_id": "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
+        "task_id": "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
         "status": "PASS_STATIC_SOURCE_AUDIT",
         "pr_source_sha": args.pr_sha,
         "acceptance_center_source_sha": args.center_sha,
@@ -113,30 +149,51 @@ def main() -> None:
         "edge_field": {
             "status": "PASS_STATIC_ADAPTER_SOURCE_CHECK",
             "android_source": str(ANDROID_EDGE_FIELD),
-            "android_git_blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050",
+            "android_git_blob_sha": hashlib.sha1(b"blob " + str(len(android_edge_field.encode("utf-8"))).encode("ascii") + b"\0" + android_edge_field.encode("utf-8")).hexdigest(),
             "primary_path_ids": ["B1", "B3", "G1", "G3"],
             "secondary_path_ids": ["B2", "G2", "B4"],
             "secondary_seed_authority": {"source": "Android runtime", "frozen": False, "tracking": "RP-A03"},
             "companion_path_ids": ["B1C", "G1C", "G3C", "B3C"],
             "micro_path_ids": ["B1M"],
-            "receiving_light_renderer": "four disconnected path-following corner arcs with soft bloom and a crisp luminous ridge; padded offscreen blur bleed; no corner circles",
+            "receiving_light_renderer": "four disconnected path-following corner arcs with two soft blooms and a crisp luminous ridge; padded offscreen blur bleed; no corner circles",
             "receiving_light_web_passes": 3,
             "receiving_light_bloom_passes": 2,
-            "receiving_light_rim_width_dp": 1.8,
-            "receiving_light_rim_alpha": 0.88,
-            "receiving_light_alpha_per_pass": [0.78, 0.64],
-            "receiving_light_unweighted_configured_peak_alpha": round(1 - (1 - 0.78) * (1 - 0.64) * (1 - 0.88), 4),
+            "receiving_light_rim_width_dp": current_light["core_width_dp"],
+            "receiving_light_rim_alpha": current_light["core_alpha"],
+            "receiving_light_alpha_per_pass": current_light["alpha_per_pass"],
+            "receiving_light_unweighted_configured_peak_alpha": round(1 - (1 - current_light["alpha_per_pass"][0]) * (1 - current_light["alpha_per_pass"][1]) * (1 - current_light["core_alpha"]), 4),
             "perimeter_web_blend": "source-over; R02 hue-preserving Web review candidate, not Android runtime validation",
             "web_palette": {"blue": "#5ab2fc", "gold": "#e0b644", "authority": "sampled Frozen 02 photo-edge raster; review candidate"},
             "android_reference_palette": {"blue": "#bfeaf2", "blue_hot": "#d8f5fa", "gold": "#f6d99b", "gold_hot": "#ffe7ae"},
-            "receiving_light_default_alpha_per_pass": [0.78, 0.64],
+            "receiving_light_default_alpha_per_pass": current_light["alpha_per_pass"],
+            "receiving_light_path_coverage_ratio": current_light["path_coverage_ratio"],
+            "receiving_light_minimum_path_weight": current_light["minimum_path_weight"],
+            "receiving_light_width_dp": current_light["width_dp"],
+            "receiving_light_blur_dp": current_light["blur_dp"],
+            "receiving_light_inset_fraction": current_light["inset_fraction"],
+            "receiving_light_corner_color_roles": {"top_left": "gold", "top_right": "blue", "bottom_left": "gold", "bottom_right": "blue"},
             "edge_effect_compositor": "padded transparent offscreen layer; crop back to original photo pixels",
             "edge_effect_padding_px": "responsive; recorded at runtime by the browser lab",
-            "frozen_contract_receiving_light_cap": 0.07,
-            "android_receiving_light_alpha": 0.13,
-            "alpha_reconciliation": "OPEN_RP_A01",
+            "bright_background_compensation": optical_config["bright_background_compensation"],
+            "web_current_authority": "PR #166 current R12 renderer; separate from the V2 enhanced and Frozen Match presets",
+            "alpha_reconciliation": "R12_WEB_CURRENT_IS_NOT_AN_ANDROID_ALPHA_MAPPING",
         },
-        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "four-corner path-following Receiving Light with a crisp crest, padded blur bleed and no circular corner blobs", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
+        "optical_config": {
+            "version": optical_config["schema_version"],
+            "source": str(OPTICAL_CONFIG),
+            "presets": ["current", "enhanced", "frozen_match"],
+            "android_mapping": str(ANDROID_OPTICAL_CONFIG),
+            "renderer": "four-layer per-island normalized optical field with bounded local luminance compensation",
+            "presets_detail": optical_config["presets"],
+            "photo_mapping": optical_config["photo_mapping"],
+            "recognition_animation": optical_config["recognition_animation"],
+            "fish_mask_contract": optical_config["fish_mask_contract"],
+            "android_blend_modes": optical_config["android_mapping"]["blend_modes"],
+            "android_api28_fallback": optical_config["android_mapping"]["api28_fallback"],
+            "android_quality_profiles": optical_config["android_mapping"]["quality_profiles"],
+            "optical_core_blend_trials": optical_config["blend_mode_trials"],
+        },
+        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "three switchable optical presets", "versioned shared parameter config", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "R12 full-length corner arcs with inner inset, two broad blooms and crisp luminous ridge", "four-layer V2 renderer with padding and bounded local luminance compensation", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "EXIF/photoContentRect/window coordinate contract", "state timing and quality profiles", "fish segmentation provenance", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

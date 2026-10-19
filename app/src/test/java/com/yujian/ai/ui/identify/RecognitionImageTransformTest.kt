@@ -176,4 +176,40 @@ class RecognitionImageTransformTest {
             }
         }
     }
+
+    @Test
+    fun opticalPhotoBoundsStayInsideSafeViewportAcrossScreenAndPhotoShapes() {
+        val windows = listOf(
+            Triple(1080f, 1920f, 72f to 96f), // Pixel 2 target with status/navigation safe areas.
+            Triple(720f, 1280f, 48f to 64f),  // Short screen.
+            Triple(1080f, 2400f, 88f to 112f), // Long screen.
+            Triple(1080f, 720f, 24f to 24f),   // Landscape viewport.
+        )
+        val photoShapes = listOf(1152 to 1536, 1920 to 1080, 1200 to 1200)
+        for ((windowWidth, windowHeight, insets) in windows) {
+            val (topInset, bottomInset) = insets
+            val contentHeight = windowHeight - topInset - bottomInset
+            for ((photoWidth, photoHeight) in photoShapes) {
+                for (mode in RecognitionContentScaleMode.entries) {
+                    val transform = calculateRecognitionImageTransform(
+                        containerWidth = windowWidth,
+                        containerHeight = contentHeight,
+                        imageWidth = photoWidth,
+                        imageHeight = photoHeight,
+                        contentScaleMode = mode,
+                    )
+                    val photo = transform.photoContentRect
+                    assertTrue("photo bounds are non-empty for $windowWidth×$windowHeight / $photoWidth×$photoHeight / $mode", photo.width > 0f && photo.height > 0f)
+                    assertTrue(photo.left >= 0f && photo.top >= 0f)
+                    assertTrue(photo.right <= windowWidth && photo.bottom <= contentHeight)
+                    assertEquals(photo.left, transform.mapPhotoContentNormalized(0f, 0f).x, .001f)
+                    assertEquals(photo.top, transform.mapPhotoContentNormalized(0f, 0f).y, .001f)
+                    assertEquals(photo.right, transform.mapPhotoContentNormalized(1f, 1f).x, .001f)
+                    assertEquals(photo.bottom, transform.mapPhotoContentNormalized(1f, 1f).y, .001f)
+                    assertTrue("window top includes the safe-area inset", topInset + photo.top >= topInset)
+                    assertTrue("window bottom excludes the safe-area inset", topInset + photo.bottom <= windowHeight - bottomInset)
+                }
+            }
+        }
+    }
 }

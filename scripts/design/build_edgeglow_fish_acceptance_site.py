@@ -15,6 +15,7 @@ from pathlib import Path
 CENTER_BRANCH = "design/nh01-cloud-structured-parity-v1"
 PHOTO_PATH = "design/system/fish_media_display_v1/assets/real_catch_source.jpg"
 EXPECTED_PHOTO_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef"
+OPTICAL_CONFIG = Path("design/system/recognition_optical_v2/RecognitionOpticalConfigV2.json")
 ROUTE_PATH = Path("design/manager/nh01_acceptance/edgeglow-fish-static")
 ENTRY = (
     '<a class="mode-button edgeglow-entry" data-edgeglow-entry="recognition-processing" '
@@ -59,11 +60,15 @@ def main() -> None:
     registry_path = args.center_root / "design/system/fish_media_display_v1/real_photo_cases.json"
     source_photo = args.center_root / PHOTO_PATH
     fixture_path = args.pr_root / ROUTE_PATH / "fixture.json"
-    if not all(path.is_file() for path in (registry_path, source_photo, fixture_path)):
-        raise SystemExit("Expected photo registry, source image and prototype fixture are required.")
+    config_path = args.pr_root / OPTICAL_CONFIG
+    if not all(path.is_file() for path in (registry_path, source_photo, fixture_path, config_path)):
+        raise SystemExit("Expected photo registry, source image, optical config and prototype fixture are required.")
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     registered = registry["fixture"]
     fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    optical_config = json.loads(config_path.read_text(encoding="utf-8"))
+    if optical_config.get("schema_version") != "2.0.0" or set(optical_config.get("presets", {})) != {"current", "enhanced", "frozen_match"}:
+        raise SystemExit("Optical config must declare V2 and the Current/Enhanced/Frozen Match presets.")
     photo_sha = sha256(source_photo)
     if registered["path"] != PHOTO_PATH or registered["sha256"] != EXPECTED_PHOTO_SHA:
         raise SystemExit("The checked Acceptance Center source registry no longer matches this photo fixture.")
@@ -94,8 +99,12 @@ def main() -> None:
     prototype_source = args.pr_root / ROUTE_PATH
     prototype_output = args.output_root / ROUTE_PATH
     shutil.copytree(prototype_source, prototype_output)
+    shared_config_output = args.output_root / OPTICAL_CONFIG
+    shared_config_output.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(config_path, shared_config_output)
     build_info = {
-        "task_id": "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
+        "task_id": "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
+        "static_demo_task_id": "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
         "status": "CLOUD_PREVIEW_COMPOSED",
         "pr_number": 166,
         "pr_source_sha": args.pr_sha,
@@ -103,6 +112,8 @@ def main() -> None:
         "acceptance_center_source_branch": CENTER_BRANCH,
         "photo_sha256": photo_sha,
         "photo_dimensions": [fixture["photo"]["width"], fixture["photo"]["height"]],
+        "optical_config_version": optical_config["schema_version"],
+        "optical_config_sha256": sha256(config_path),
         "contour_source": fixture["contour"]["source"],
         "android_runtime": "NOT_RUN",
         "visual_quality": "REVIEW_REQUIRED",

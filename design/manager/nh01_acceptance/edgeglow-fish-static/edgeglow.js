@@ -2,6 +2,8 @@
   "use strict";
 
   const EXPECTED_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef";
+  const OPTICAL_CONFIG_URL = "../../../system/recognition_optical_v2/RecognitionOpticalConfigV2.json";
+  const OPTICAL_CONFIG_VERSION = "2.0.0";
   const PHOTO_URL = "../../../system/fish_media_display_v1/assets/real_catch_source.jpg";
   const SVG_NS = "http://www.w3.org/2000/svg";
   const EDGE_FIELD_SOURCE = "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt";
@@ -42,12 +44,19 @@
     edgeFieldEnabled: true, receivingLightEnabled: true, primaryIslandsEnabled: true, secondaryFragmentsEnabled: true, companionHairlinesEnabled: true, edgeFieldIntensity: 100,
     edgeFieldBlueColor: "#5ab2fc", edgeFieldGoldColor: "#e0b644",
     fishGoldColor: "#ffd887", fishCoreColor: "#ffe7ae",
+    preset: "enhanced", opticalCoreIntensity: 88, opticalCoreWidth: 2.6,
+    opticalCoreBlend: "source-over",
+    innerBloomRadius: 18, innerBloomIntensity: 62,
+    outerBloomRadius: 54, outerBloomIntensity: 34,
+    atmosphericSpill: 15, blueSaturation: 82, goldWarmth: 74,
+    backgroundCompensation: 100,
+    strengthG1: 85, strengthB1: 100, strengthG3: 75, strengthB3: 70,
     compareMode: "side", wipePosition: 50, contourVisible: true
   });
   const IDS = ["originalCanvas", "contourCanvas", "glowCanvas"];
   const el = Object.fromEntries([
     ...IDS.map(id => [id, document.getElementById(id)]),
-    ...["sourceStatus", "photoSha", "photoDimensions", "buildSha", "fishContourPath", "contourVisible", "compareMode", "wipePosition", "comparisonCaption", "resetButton", "exportPngButton", "exportJsonButton", "outerEnabled", "outerWidth", "outerIntensity", "coreEnabled", "coreWidth", "coreIntensity", "cometEnabled", "cometLength", "cometPosition", "cometFalloff", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "companionHairlinesEnabled", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "outerWidthValue", "outerIntensityValue", "coreWidthValue", "coreIntensityValue", "cometLengthValue", "cometPositionValue", "cometFalloffValue", "edgeFieldIntensityValue"].map(id => [id, document.getElementById(id)])
+    ...["sourceStatus", "photoSha", "photoDimensions", "buildSha", "presetStatus", "fishContourPath", "contourVisible", "compareMode", "wipePosition", "comparisonCaption", "resetButton", "exportPngButton", "exportJsonButton", "outerEnabled", "outerWidth", "outerIntensity", "coreEnabled", "coreWidth", "coreIntensity", "cometEnabled", "cometLength", "cometPosition", "cometFalloff", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "companionHairlinesEnabled", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "opticalCoreIntensity", "opticalCoreWidth", "opticalCoreBlend", "innerBloomRadius", "innerBloomIntensity", "outerBloomRadius", "outerBloomIntensity", "atmosphericSpill", "blueSaturation", "goldWarmth", "backgroundCompensation", "strengthG1", "strengthB1", "strengthG3", "strengthB3", "outerWidthValue", "outerIntensityValue", "coreWidthValue", "coreIntensityValue", "cometLengthValue", "cometPositionValue", "cometFalloffValue", "edgeFieldIntensityValue", "opticalCoreIntensityValue", "opticalCoreWidthValue", "innerBloomRadiusValue", "innerBloomIntensityValue", "outerBloomRadiusValue", "outerBloomIntensityValue", "atmosphericSpillValue", "blueSaturationValue", "goldWarmthValue", "backgroundCompensationValue", "strengthG1Value", "strengthB1Value", "strengthG3Value", "strengthB3Value"].map(id => [id, document.getElementById(id)])
   ]);
   const contexts = Object.fromEntries(IDS.map(id => [id, el[id].getContext("2d", { alpha: false })]));
   const contourSvg = el.fishContourPath;
@@ -61,6 +70,8 @@
   let effectBounds = null;
   let edgeFieldInset = 0;
   let fixture;
+  let opticalConfig;
+  let islandLuminance = null;
   let buildInfo = {};
   let pathLength = 0;
   let edgeFieldGeometry = [];
@@ -83,6 +94,75 @@
     return `#${aa.map((v, i) => Math.round(v + (bb[i] - v) * t).toString(16).padStart(2, "0")).join("")}`;
   };
 
+  function hexToHsl(hex) {
+    const [r0, g0, b0] = hexRgb(hex).map(value => value / 255);
+    const max = Math.max(r0, g0, b0), min = Math.min(r0, g0, b0), delta = max - min;
+    let h = 0;
+    const l = (max + min) / 2;
+    let s = 0;
+    if (delta !== 0) {
+      s = delta / (1 - Math.abs(2 * l - 1));
+      if (max === r0) h = ((g0 - b0) / delta) % 6;
+      else if (max === g0) h = (b0 - r0) / delta + 2;
+      else h = (r0 - g0) / delta + 4;
+      h = (h * 60 + 360) % 360;
+    }
+    return [h, s, l];
+  }
+
+  function hslToHex(h, s, l) {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    const rgb = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    return `#${rgb.map(value => Math.round((value + m) * 255).toString(16).padStart(2, "0")).join("")}`;
+  }
+
+  function opticalColor(family, role) {
+    const palette = opticalConfig.palette;
+    const userBase = family === "blue" ? params.edgeFieldBlueColor : params.edgeFieldGoldColor;
+    const key = family === "blue"
+      ? (role === "core" ? "perimeter_blue_core" : "perimeter_blue_hot")
+      : (role === "core" ? "perimeter_gold_core" : "perimeter_gold_hot");
+    let [h, s, l] = hexToHsl(role === "base" ? userBase : palette[key]);
+    if (family === "blue") s *= 0.70 + 0.30 * (params.blueSaturation / 100);
+    else {
+      h = 48 - 8 * (params.goldWarmth / 100);
+      s *= 0.78 + 0.22 * (params.goldWarmth / 100);
+    }
+    return hslToHex(h, Math.max(0, Math.min(1, s)), l);
+  }
+
+  function applyPreset(id, render = true) {
+    if (!opticalConfig?.presets?.[id]) return;
+    const preset = opticalConfig.presets[id];
+    params = {
+      ...params,
+      preset: id,
+      opticalCoreWidth: preset.core_width_px,
+      opticalCoreIntensity: Math.round(preset.core_intensity * 100),
+      innerBloomRadius: preset.inner_bloom_radius_px,
+      innerBloomIntensity: Math.round(preset.inner_bloom_intensity * 100),
+      outerBloomRadius: preset.outer_bloom_radius_px,
+      outerBloomIntensity: Math.round(preset.outer_bloom_intensity * 100),
+      atmosphericSpill: Math.round(preset.atmospheric_spill_intensity * 100),
+      strengthG1: Math.round(preset.island_strengths.G1 * 100),
+      strengthB1: Math.round(preset.island_strengths.B1 * 100),
+      strengthG3: Math.round(preset.island_strengths.G3 * 100),
+      strengthB3: Math.round(preset.island_strengths.B3 * 100)
+    };
+    document.querySelectorAll("[data-optical-preset]").forEach(button => {
+      const active = button.dataset.opticalPreset === id;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    if (el.presetStatus) {
+      el.presetStatus.textContent = `${preset.label} · ${preset.renderer} · optical config ${OPTICAL_CONFIG_VERSION}`;
+    }
+    syncControls();
+    if (render) scheduleRender("glow");
+  }
+
   async function sha256(blob) {
     const bytes = await blob.arrayBuffer();
     const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -90,14 +170,19 @@
   }
 
   async function loadAssets() {
-    const [fixtureResponse, buildResponse, photoResponse] = await Promise.all([
+    const [fixtureResponse, buildResponse, photoResponse, configResponse] = await Promise.all([
       fetch("./fixture.json", { cache: "no-store" }),
       fetch("./build-info.json", { cache: "no-store" }).catch(() => null),
-      fetch(PHOTO_URL, { cache: "no-store" })
+      fetch(PHOTO_URL, { cache: "no-store" }),
+      fetch(OPTICAL_CONFIG_URL, { cache: "no-store" })
     ]);
     if (!fixtureResponse.ok) throw new Error(`fixture.json HTTP ${fixtureResponse.status}`);
     if (!photoResponse.ok) throw new Error(`photo HTTP ${photoResponse.status}`);
     fixture = await fixtureResponse.json();
+    if (!configResponse.ok) throw new Error(`optical config HTTP ${configResponse.status}`);
+    opticalConfig = await configResponse.json();
+    if (opticalConfig.schema_version !== OPTICAL_CONFIG_VERSION || opticalConfig.task_id !== "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2") throw new Error("Optical config version or task identity mismatch.");
+    applyPreset("enhanced", false);
     if (buildResponse?.ok) buildInfo = await buildResponse.json();
     if (fixture.photo.sha256 !== EXPECTED_SHA) throw new Error("Fixture photo SHA does not match the registered source.");
     if (fixture.photo.width !== 1152 || fixture.photo.height !== 1536 || fixture.contour.coordinate_space !== "original_photo_px_1152x1536") throw new Error("Photo and contour coordinate contracts disagree.");
@@ -471,6 +556,109 @@
     ctx.restore();
   }
 
+  const OPTICAL_V2_ISLAND_IDS = ["G1", "B1", "G3", "B3"];
+
+  function measureIslandLuminance(geometry) {
+    if (islandLuminance === null) islandLuminance = {};
+    if (Number.isFinite(islandLuminance[geometry.id])) return islandLuminance[geometry.id];
+    const pixels = [];
+    const [from, to] = edgeFieldPartsAt(geometry, geometry.seed + geometry.visibleRatio * 0.12)[0];
+    for (let index = 1; index <= 9; index++) {
+      const point = geometry.path.getPointAtLength(from + (to - from) * index / 10);
+      const x = Math.max(0, Math.min(photo.naturalWidth - 1, Math.round(point.x)));
+      const y = Math.max(0, Math.min(photo.naturalHeight - 1, Math.round(point.y)));
+      pixels.push(bufferContext.getImageData(x, y, 1, 1).data);
+    }
+    const luminance = pixels.reduce((total, pixel) => {
+      const r = pixel[0] / 255, g = pixel[1] / 255, b = pixel[2] / 255;
+      return total + (0.2126 * r + 0.7152 * g + 0.0722 * b);
+    }, 0) / Math.max(1, pixels.length);
+    islandLuminance[geometry.id] = luminance;
+    return luminance;
+  }
+
+  function brightBackgroundGain(geometry) {
+    const policy = opticalConfig.bright_background_compensation;
+    if (!policy.enabled || params.backgroundCompensation <= 0) return 1;
+    const luminance = Math.min(policy.max_luminance_for_gain, measureIslandLuminance(geometry));
+    const over = Math.max(0, luminance - policy.luminance_threshold);
+    const gain = 1 + policy.max_gain * (over / (policy.max_luminance_for_gain - policy.luminance_threshold)) * (params.backgroundCompensation / 100);
+    return Math.max(1, Math.min(1 + policy.max_gain, gain));
+  }
+
+  function opticalPathGradient(ctx, first, last, family, alpha) {
+    const gradient = ctx.createLinearGradient(first[0], first[1], last[0], last[1]);
+    const base = opticalColor(family, "base");
+    const core = opticalColor(family, "core");
+    const hot = opticalColor(family, "hot");
+    gradient.addColorStop(0, rgba(base, alpha * 0.08));
+    gradient.addColorStop(0.18, rgba(base, alpha * 0.44));
+    gradient.addColorStop(0.62, rgba(core, alpha * 0.80));
+    gradient.addColorStop(0.86, rgba(hot, alpha));
+    gradient.addColorStop(0.97, rgba(core, alpha * 0.72));
+    gradient.addColorStop(1, rgba(base, alpha * 0.12));
+    return gradient;
+  }
+
+  function drawOpticalPathLayer(ctx, geometry, from, to, layer) {
+    const scale = photo.naturalWidth / opticalConfig.reference_canvas.width_px;
+    const points = edgeFieldSegment(ctx, geometry, from, to, Math.max(2, scale * 1.5));
+    if (points.length < 2) return;
+    const first = points[0], last = points[points.length - 1];
+    ctx.save();
+    ctx.globalCompositeOperation = layer.blend;
+    ctx.filter = layer.blurPx > 0 ? `blur(${layer.blurPx * scale * EDGE_FIELD_RENDER_SCALE}px)` : "none";
+    ctx.strokeStyle = opticalPathGradient(ctx, first, last, geometry.family, layer.alpha);
+    ctx.lineWidth = Math.max(0.8, layer.widthPx * scale);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawEnhancedOpticalIslands(ctx) {
+    if (!params.edgeFieldEnabled || !params.primaryIslandsEnabled || params.edgeFieldIntensity <= 0) return;
+    const preset = opticalConfig.presets[params.preset] || opticalConfig.presets.enhanced;
+    const scale = photo.naturalWidth / opticalConfig.reference_canvas.width_px;
+    const globalIntensity = params.edgeFieldIntensity / 100;
+    const islandStrength = { G1: params.strengthG1, B1: params.strengthB1, G3: params.strengthG3, B3: params.strengthB3 };
+    const radiusTier = params.preset === "frozen_match" ? 1.12 : 1;
+    for (const id of OPTICAL_V2_ISLAND_IDS) {
+      const geometry = edgeFieldGeometry.find(path => path.id === id);
+      if (!geometry) continue;
+      const strength = islandStrength[id] / 100;
+      const backgroundGain = brightBackgroundGain(geometry);
+      const common = Math.min(1.28, globalIntensity * strength * backgroundGain);
+      const parts = edgeFieldPartsAt(geometry, geometry.seed, Math.max(geometry.visibleRatio, 0.58));
+      for (const [from, to] of parts) {
+        if (params.receivingLightEnabled) {
+          drawOpticalPathLayer(ctx, geometry, from, to, {
+            widthPx: preset.atmospheric_spill_px * 1.7,
+            blurPx: preset.atmospheric_spill_px * 0.56,
+            alpha: params.atmosphericSpill / 100 * common,
+            blend: "soft-light"
+          });
+        }
+        drawOpticalPathLayer(ctx, geometry, from, to, {
+          widthPx: (params.outerBloomRadius * 1.8 * radiusTier) + params.opticalCoreWidth,
+          blurPx: params.outerBloomRadius * 0.46 * radiusTier,
+          alpha: params.outerBloomIntensity / 100 * 0.74 * common,
+          blend: "soft-light"
+        });
+        drawOpticalPathLayer(ctx, geometry, from, to, {
+          widthPx: (params.innerBloomRadius * 1.65) + params.opticalCoreWidth,
+          blurPx: params.innerBloomRadius * 0.42,
+          alpha: params.innerBloomIntensity / 100 * 0.78 * common,
+          blend: "screen"
+        });
+        drawOpticalPathLayer(ctx, geometry, from, to, {
+          widthPx: params.opticalCoreWidth,
+          blurPx: 0,
+          alpha: params.opticalCoreIntensity / 100 * common,
+          blend: params.opticalCoreBlend === "additive" ? "lighter" : (params.opticalCoreBlend || "source-over")
+        });
+      }
+    }
+  }
+
   function drawPrimaryEdgeIslands(ctx) {
     if (!params.edgeFieldEnabled || !params.primaryIslandsEnabled || params.edgeFieldIntensity <= 0) return;
     drawEdgeFieldPathSet(ctx, edgeFieldGeometry, false);
@@ -484,9 +672,20 @@
   function ensurePhotoEdgeLayer() {
     const displayWidth = el.glowCanvas.getBoundingClientRect().width || photo.naturalWidth;
     const photoPxPerDp = photo.naturalWidth / displayWidth;
-    // Render the broad photo-edge field at half resolution, keeping the
-    // original-photo inset and coordinates before upsampling into the buffer.
-    const fullResolutionInset = Math.ceil((22 * 3 + 44 / 2 + 24) * photoPxPerDp);
+    // Pad for the active preset's widest and softest corner pass before
+    // upsampling, so V2 bloom is not clipped at the photo edge.
+    const currentContract = opticalConfig?.presets?.current?.legacy_receiving_light;
+    const enhanced = opticalConfig?.presets?.[params.preset] || opticalConfig?.presets?.enhanced;
+    const referenceScale = photo.naturalWidth / opticalConfig.reference_canvas.width_px;
+    const radiusTier = params.preset === "frozen_match" ? 1.12 : 1;
+    const maxBlurDp = params.preset === "current"
+      ? currentContract.blur_dp[0]
+      : Math.max(enhanced.atmospheric_spill_px * 0.56, enhanced.outer_bloom_radius_px * 0.46 * radiusTier);
+    const maxWidthDp = params.preset === "current"
+      ? currentContract.width_dp[0]
+      : Math.max(enhanced.atmospheric_spill_px * 1.7, enhanced.outer_bloom_radius_px * 1.8 * radiusTier);
+    const layerScale = params.preset === "current" ? photoPxPerDp : referenceScale;
+    const fullResolutionInset = Math.ceil((maxBlurDp * 3 + maxWidthDp / 2 + 24) * layerScale);
     const inset = Math.ceil(fullResolutionInset * EDGE_FIELD_RENDER_SCALE);
     const width = Math.ceil(photo.naturalWidth * EDGE_FIELD_RENDER_SCALE) + inset * 2;
     const height = Math.ceil(photo.naturalHeight * EDGE_FIELD_RENDER_SCALE) + inset * 2;
@@ -522,12 +721,16 @@
     edgeContext.globalCompositeOperation = "source-over";
     edgeContext.clearRect(0, 0, edgeLayer.width, edgeLayer.height);
     edgeContext.setTransform(EDGE_FIELD_RENDER_SCALE, 0, 0, EDGE_FIELD_RENDER_SCALE, inset, inset);
-    drawReceivingLight(edgeContext);
-    drawPrimaryEdgeIslands(edgeContext);
-    drawSecondaryEdgeFragments(edgeContext);
-    drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry);
-    drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true);
-    drawStaticEnergyNodes(edgeContext);
+    if (params.preset === "current") {
+      drawReceivingLight(edgeContext);
+      drawPrimaryEdgeIslands(edgeContext);
+      drawSecondaryEdgeFragments(edgeContext);
+      drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry);
+      drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true);
+      drawStaticEnergyNodes(edgeContext);
+    } else {
+      drawEnhancedOpticalIslands(edgeContext);
+    }
     edgeContext.setTransform(1, 0, 0, 1, 0, 0);
     bufferContext.save();
     bufferContext.setTransform(1, 0, 0, 1, 0, 0);
@@ -566,7 +769,8 @@
     } else {
       ctx.drawImage(buffer, 0, 0);
       el.wipePosition.hidden = true;
-      el.comparisonCaption.textContent = "AI Edge Field · 四周蓝青/暖金 · Fish Focus 暖金高亮";
+      const labels = { current: "Current", enhanced: "Enhanced", frozen_match: "Frozen Match", custom: "Custom" };
+      el.comparisonCaption.textContent = `${labels[params.preset] || "Enhanced"} · 四角蓝金四层光场 · Fish Focus 暖金高亮`;
     }
     ctx.restore();
   }
@@ -580,11 +784,22 @@
     el.cometPositionValue.textContent = `${params.cometPosition}%`;
     el.cometFalloffValue.textContent = Number(params.cometFalloff).toFixed(2);
     el.edgeFieldIntensityValue.textContent = `${params.edgeFieldIntensity}%`;
+    el.opticalCoreIntensityValue.textContent = `${params.opticalCoreIntensity}%`;
+    el.opticalCoreWidthValue.textContent = `${Number(params.opticalCoreWidth).toFixed(1)} px / 600`;
+    el.innerBloomRadiusValue.textContent = `${params.innerBloomRadius} px / 600`;
+    el.innerBloomIntensityValue.textContent = `${params.innerBloomIntensity}%`;
+    el.outerBloomRadiusValue.textContent = `${params.outerBloomRadius} px / 600`;
+    el.outerBloomIntensityValue.textContent = `${params.outerBloomIntensity}%`;
+    el.atmosphericSpillValue.textContent = `${params.atmosphericSpill}%`;
+    el.blueSaturationValue.textContent = `${params.blueSaturation}%`;
+    el.goldWarmthValue.textContent = `${params.goldWarmth}%`;
+    el.backgroundCompensationValue.textContent = `${params.backgroundCompensation}%`;
+    for (const id of OPTICAL_V2_ISLAND_IDS) el[`strength${id}Value`].textContent = `${params[`strength${id}`]}%`;
   }
 
   function syncControls() {
     for (const id of ["outerEnabled", "coreEnabled", "cometEnabled", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "companionHairlinesEnabled", "contourVisible"]) el[id].checked = Boolean(params[id]);
-    for (const id of ["outerWidth", "outerIntensity", "coreWidth", "coreIntensity", "cometLength", "cometPosition", "cometFalloff", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "compareMode", "wipePosition"]) el[id].value = params[id];
+    for (const id of ["outerWidth", "outerIntensity", "coreWidth", "coreIntensity", "cometLength", "cometPosition", "cometFalloff", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "opticalCoreIntensity", "opticalCoreWidth", "opticalCoreBlend", "innerBloomRadius", "innerBloomIntensity", "outerBloomRadius", "outerBloomIntensity", "atmosphericSpill", "blueSaturation", "goldWarmth", "backgroundCompensation", "strengthG1", "strengthB1", "strengthG3", "strengthB3", "compareMode", "wipePosition"]) el[id].value = params[id];
     updateOutputs();
   }
 
@@ -627,21 +842,34 @@
     edgeFieldEnabled: "edgeFieldEnabled", receivingLightEnabled: "receivingLightEnabled", primaryIslandsEnabled: "primaryIslandsEnabled", secondaryFragmentsEnabled: "secondaryFragmentsEnabled", companionHairlinesEnabled: "companionHairlinesEnabled", edgeFieldIntensity: "edgeFieldIntensity",
     edgeFieldBlueColor: "edgeFieldBlueColor", edgeFieldGoldColor: "edgeFieldGoldColor",
     fishGoldColor: "fishGoldColor", fishCoreColor: "fishCoreColor", contourVisible: "contourVisible",
+    opticalCoreIntensity: "opticalCoreIntensity", opticalCoreWidth: "opticalCoreWidth", opticalCoreBlend: "opticalCoreBlend",
+    innerBloomRadius: "innerBloomRadius", innerBloomIntensity: "innerBloomIntensity",
+    outerBloomRadius: "outerBloomRadius", outerBloomIntensity: "outerBloomIntensity",
+    atmosphericSpill: "atmosphericSpill", blueSaturation: "blueSaturation", goldWarmth: "goldWarmth",
+    backgroundCompensation: "backgroundCompensation", strengthG1: "strengthG1", strengthB1: "strengthB1",
+    strengthG3: "strengthG3", strengthB3: "strengthB3",
     compareMode: "compareMode", wipePosition: "wipePosition"
   };
+  const opticalControls = new Set(["opticalCoreIntensity", "opticalCoreWidth", "opticalCoreBlend", "innerBloomRadius", "innerBloomIntensity", "outerBloomRadius", "outerBloomIntensity", "atmosphericSpill", "blueSaturation", "goldWarmth", "backgroundCompensation", "strengthG1", "strengthB1", "strengthG3", "strengthB3"]);
   for (const [controlId, param] of Object.entries(controlToParam)) {
     el[controlId].addEventListener("input", () => {
       const control = el[controlId];
       params[param] = control.type === "checkbox" ? control.checked : (control.type === "range" ? Number(control.value) : control.value);
       if (param === "cometFalloff") params[param] = Number(params[param]);
+      if (opticalControls.has(param) && params.preset === "current") params.preset = "custom";
+      if (params.preset === "custom" && el.presetStatus) el.presetStatus.textContent = "Custom · OPTICAL_FOUR_LAYER_V2 · 手动参数";
       scheduleRender(param === "contourVisible" ? "contour" : (param === "compareMode" || param === "wipePosition" ? "compare" : "glow"));
     });
     el[controlId].addEventListener("change", () => {
       const control = el[controlId];
       params[param] = control.type === "checkbox" ? control.checked : (control.type === "range" ? Number(control.value) : control.value);
+      if (opticalControls.has(param) && params.preset === "current") params.preset = "custom";
       scheduleRender(param === "contourVisible" ? "contour" : (param === "compareMode" || param === "wipePosition" ? "compare" : "glow"));
     });
   }
+  document.querySelectorAll("[data-optical-preset]").forEach(button => {
+    button.addEventListener("click", () => applyPreset(button.dataset.opticalPreset));
+  });
   window.addEventListener("resize", () => scheduleRender("all"), { passive: true });
 
   function downloadBlob(blob, filename) {
@@ -663,28 +891,33 @@
       task_id: "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
+      optical_config: { schema_version: OPTICAL_CONFIG_VERSION, source: "design/system/recognition_optical_v2/RecognitionOpticalConfigV2.json", preset: params.preset, shared_mapping: opticalConfig.android_mapping, bright_background_compensation: opticalConfig.bright_background_compensation, blend_mode_trials: opticalConfig.blend_mode_trials, selected_optical_core_blend: params.opticalCoreBlend, selected_preset_contract: opticalConfig.presets[params.preset] || null },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
       edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "four disconnected full-length blue/gold corner arcs; two broad blooms plus a crisp path-following ridge; no circles or closed frame", receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS, receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP, receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA, receiving_path_coverage_ratio: EDGE_RECEIVING_VISIBLE_RATIO, receiving_inset_fraction: EDGE_RECEIVING_INSET, receiving_min_path_weight: EDGE_RECEIVING_MIN_PATH_WEIGHT, receiving_width_dp: EDGE_RECEIVING_WIDTH_DP, receiving_blur_dp: EDGE_RECEIVING_BLUR_DP, corner_color_roles: { top_left: "gold", top_right: "blue", bottom_left: "gold", bottom_right: "blue" }, receiving_alpha_authority: "R12 four-corner Web visibility candidate with a crisp perimeter ridge; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
       fish_highlight: { source: fixture.contour.source, composite_mode: "source-over hue-preserving warm-gold composition", palette: { outline: params.fishGoldColor, core: params.fishCoreColor }, blue_perimeter_excluded: true, layer_order: ["outer_bloom", "core_highlight", "static_comet"] },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
+      island_luminance_samples: islandLuminance,
       build: buildInfo
     };
     downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }), "EdgeGlowView_Fish_Static_Parameters.json");
   });
   el.resetButton.addEventListener("click", () => {
     params = { ...DEFAULTS };
+    applyPreset("enhanced", false);
     syncControls();
     renderAll();
   });
 
   window.__EDGEGLOW_LAB__ = {
     get state() { return { ...params }; },
+    get config() { return opticalConfig; },
     get pathLength() { return pathLength; },
     get photoDimensions() { return [photo.naturalWidth, photo.naturalHeight]; },
     get effectBounds() { return { ...effectBounds }; },
     get edgeFieldInset() { return edgeFieldInset; },
     get edgeFieldPaths() { return [...edgeFieldGeometry, ...secondaryEdgeFieldGeometry, ...companionEdgeFieldGeometry, ...microEdgeFieldGeometry].map(({ path, ...definition }) => ({ ...definition, length: definition.length })); },
+    setPreset(id) { applyPreset(id); return { ...params }; },
     render: renderAll,
     getPixelData(canvasId = "glowCanvas") { return [...contexts[canvasId].getImageData(0, 0, el[canvasId].width, el[canvasId].height).data]; }
   };

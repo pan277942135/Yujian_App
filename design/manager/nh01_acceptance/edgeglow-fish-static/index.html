@@ -43,6 +43,16 @@
       <div class="panel-card metadata-card"><small>BUILD</small><code id="buildSha">loading…</code></div>
     </section>
 
+    <section class="panel-card preset-card" aria-label="光效预设">
+      <div class="preset-copy"><span class="eyebrow">OPTICAL PRESET</span><strong>切换同一张照片上的光效版本</strong><small>Current 保留现有渲染；Enhanced 与 Frozen Match 使用四层光学结构。参数以照片实际显示宽度归一化。</small></div>
+      <div class="preset-buttons" role="group" aria-label="光效预设">
+        <button class="preset-button" type="button" data-optical-preset="current">Preset A · Current</button>
+        <button class="preset-button active" type="button" data-optical-preset="enhanced">Preset B · Enhanced</button>
+        <button class="preset-button" type="button" data-optical-preset="frozen_match">Preset C · Frozen Match</button>
+      </div>
+      <output class="preset-status" id="presetStatus" aria-live="polite">正在加载光效参数…</output>
+    </section>
+
     <section class="edgeglow-view-grid" aria-label="三个静态光学视图">
       <article class="panel-card edgeglow-view-card">
         <header class="panel-heading">
@@ -91,6 +101,29 @@
         </div>
       </header>
       <div class="control-grid">
+        <fieldset class="optical-v2-controls">
+          <legend>Optical Four-Layer · V2 照片边缘光场</legend>
+          <label>Core Intensity <output id="opticalCoreIntensityValue">88%</output><input id="opticalCoreIntensity" type="range" min="35" max="100" value="88"></label>
+          <label>Core Width <output id="opticalCoreWidthValue">2.6 px / 600</output><input id="opticalCoreWidth" type="range" min="1.5" max="3.5" step="0.1" value="2.6"></label>
+          <label>Inner Bloom Radius <output id="innerBloomRadiusValue">18 px / 600</output><input id="innerBloomRadius" type="range" min="10" max="24" value="18"></label>
+          <label>Inner Bloom Intensity <output id="innerBloomIntensityValue">62%</output><input id="innerBloomIntensity" type="range" min="0" max="100" value="62"></label>
+          <label>Outer Bloom Radius <output id="outerBloomRadiusValue">54 px / 600</output><input id="outerBloomRadius" type="range" min="35" max="75" value="54"></label>
+          <label>Outer Bloom Intensity <output id="outerBloomIntensityValue">34%</output><input id="outerBloomIntensity" type="range" min="0" max="100" value="34"></label>
+          <label class="blend-trial">Optical Core Blend Trial<select id="opticalCoreBlend" aria-label="光核混合模式对比"><option value="source-over">Normal Alpha · Source Over</option><option value="screen">Screen</option><option value="additive">Additive</option></select></label>
+          <label>Atmospheric Spill <output id="atmosphericSpillValue">15%</output><input id="atmosphericSpill" type="range" min="0" max="35" value="15"></label>
+          <label>Blue Saturation <output id="blueSaturationValue">82%</output><input id="blueSaturation" type="range" min="35" max="100" value="82"></label>
+          <label>Gold Warmth <output id="goldWarmthValue">74%</output><input id="goldWarmth" type="range" min="35" max="100" value="74"></label>
+          <label>Background Compensation <output id="backgroundCompensationValue">100%</output><input id="backgroundCompensation" type="range" min="0" max="100" value="100"></label>
+          <small>强度按 G1=.85、B1=1.00、G3=.75、B3=.70 独立控制；局部亮度补偿只改变边缘光，不改变照片曝光。可对比 Source Over、Screen、Additive，默认选择保色 Source Over；Inner 使用 Screen，Outer/Spill 使用 Soft Light。</small>
+        </fieldset>
+        <fieldset class="island-controls">
+          <legend>Corner Islands · 独立强度</legend>
+          <label>G1 · 左上暖金 <output id="strengthG1Value">85%</output><input id="strengthG1" type="range" min="0" max="100" value="85"></label>
+          <label>B1 · 右上蓝晶 <output id="strengthB1Value">100%</output><input id="strengthB1" type="range" min="0" max="100" value="100"></label>
+          <label>G3 · 左下暖金 <output id="strengthG3Value">75%</output><input id="strengthG3" type="range" min="0" max="100" value="75"></label>
+          <label>B3 · 右下蓝晶 <output id="strengthB3Value">70%</output><input id="strengthB3" type="range" min="0" max="100" value="70"></label>
+          <small>Path 与颜色角色沿用现有 Demo 和 Android 识别页；仅增强光学层，不连接成连续霓虹边框。</small>
+        </fieldset>
         <fieldset>
           <legend>AI Edge Field · 图片四周光场</legend>
           <label class="check-line"><input id="edgeFieldEnabled" type="checkbox" checked> 启用照片四周光场</label>
@@ -130,6 +163,16 @@
         </fieldset>
       </div>
       <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。R12 在四条内收后的蓝金外围弧线上增加窄亮脊，让图片角部光场在照片周边清楚可见；鱼体主线、柔光和光尾仍为独立暖金层，蓝光不会进入鱼体。透明离屏层保留模糊外溢后再裁回原图。照片/Path 坐标和三张 Frozen 资产保持不变。蓝金外圈 alpha 仍高于 Android 与 Frozen Contract 上限，仅是 Web 视觉候选；浏览器模糊不等同 Android API 28，视觉质量仍待人工评审。</div>
+    </section>
+
+    <section class="panel-card frozen-reference-card" aria-label="Frozen 高保真视觉参考">
+      <header class="panel-heading"><div><span class="eyebrow">FROZEN VISUAL REFERENCES</span><h3>Frozen 02 / 03 / 04</h3></div><span class="status-pill review">REFERENCE ONLY · DIFFERENT PHOTO</span></header>
+      <div class="frozen-reference-grid">
+        <figure><img src="../../../pages/recognition/design/02_AI_Understanding_Frozen.png" alt="Frozen 02 AI Understanding"><figcaption>02 · Understanding · 周边蓝金光场</figcaption></figure>
+        <figure><img src="../../../pages/recognition/design/03_Fish_Highlight_Frozen.png" alt="Frozen 03 Fish Highlight"><figcaption>03 · Fish Highlight · 鱼体独立暖金 Halo</figcaption></figure>
+        <figure><img src="../../../pages/recognition/design/04_Fish_Identifying_Frozen.png" alt="Frozen 04 Fish Identifying"><figcaption>04 · Identifying · 光场随状态渐变</figcaption></figure>
+      </div>
+      <p class="reference-note">Frozen 图保留原始字节，仅作光学质感和色彩角色参考；本页 Current / Enhanced / Frozen Match 使用上方登记的同一张测试照片。</p>
     </section>
 
     <section class="edgeglow-footer-grid">

@@ -9,6 +9,8 @@ on:
       - 'refactor/**'
       - 'integration/**'
       - audit/design-system-v3-1-phase1-master-baseline
+      # PR #166's native optical work uses the same frozen Pixel 2 / API 28 gate.
+      - design/recognition-processing-handoff-p0
     paths-ignore:
       - ".github/workflows/android.yml"
       - ".github/workflows/control-plane-admission.yml"

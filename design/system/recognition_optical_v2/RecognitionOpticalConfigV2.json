@@ -1,0 +1,330 @@
+{
+  "schema_version": "2.0.0",
+  "task_id": "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
+  "reference_canvas": {
+    "width_px": 600,
+    "coordinate_space": "EXIF_NORMALIZED_PHOTO",
+    "length_unit": "reference-preview-px",
+    "scale_rule": "displayed_photo_width_px / reference_canvas.width_px"
+  },
+  "palette": {
+    "perimeter_blue": "#5ab2fc",
+    "perimeter_blue_core": "#bfeaf2",
+    "perimeter_blue_hot": "#d8f5fa",
+    "perimeter_gold": "#e0b644",
+    "perimeter_gold_core": "#f6d99b",
+    "perimeter_gold_hot": "#ffe7ae",
+    "fish_outline_gold": "#ffd887",
+    "fish_core_gold": "#ffe7ae"
+  },
+  "bright_background_compensation": {
+    "enabled": true,
+    "luminance_threshold": 0.46,
+    "max_gain": 0.28,
+    "max_luminance_for_gain": 0.88,
+    "scope": "perimeter_light_only"
+  },
+  "presets": {
+    "current": {
+      "label": "Current",
+      "renderer": "PR166_CURRENT_R12_WEB_REVIEW",
+      "core_width_px": 1.2,
+      "core_intensity": 0.46,
+      "inner_bloom_radius_px": 4,
+      "inner_bloom_intensity": 0.075,
+      "outer_bloom_radius_px": 22,
+      "outer_bloom_intensity": 0.66,
+      "atmospheric_spill_px": 22,
+      "atmospheric_spill_intensity": 0.13,
+      "island_strengths": {
+        "G1": 0.78,
+        "B1": 1.0,
+        "G3": 0.63,
+        "B3": 0.54
+      },
+      "legacy_receiving_light": {
+        "path_coverage_ratio": 1.0,
+        "minimum_path_weight": 0.92,
+        "alpha_per_pass": [
+          0.78,
+          0.64
+        ],
+        "core_width_dp": 1.8,
+        "core_alpha": 0.88,
+        "inset_fraction": [0.028, 0.022],
+        "width_dp": [
+          48,
+          14
+        ],
+        "blur_dp": [
+          20,
+          4
+        ],
+        "source_commit": "795b7ab7c3a9ed01f1d8dd5ac875cc7b6b107711",
+        "authority": "PR #166 live Current R12 implementation; Web review values, not Frozen contract or Android tokens"
+      }
+    },
+    "enhanced": {
+      "label": "Enhanced",
+      "renderer": "OPTICAL_FOUR_LAYER_V2",
+      "core_width_px": 2.6,
+      "core_intensity": 0.88,
+      "inner_bloom_radius_px": 18,
+      "inner_bloom_intensity": 0.62,
+      "outer_bloom_radius_px": 54,
+      "outer_bloom_intensity": 0.34,
+      "atmospheric_spill_px": 98,
+      "atmospheric_spill_intensity": 0.15,
+      "island_strengths": {
+        "G1": 0.85,
+        "B1": 1.0,
+        "G3": 0.75,
+        "B3": 0.7
+      }
+    },
+    "frozen_match": {
+      "label": "Frozen Match",
+      "renderer": "OPTICAL_FOUR_LAYER_V2",
+      "core_width_px": 2.9,
+      "core_intensity": 0.92,
+      "inner_bloom_radius_px": 21,
+      "inner_bloom_intensity": 0.68,
+      "outer_bloom_radius_px": 64,
+      "outer_bloom_intensity": 0.38,
+      "atmospheric_spill_px": 112,
+      "atmospheric_spill_intensity": 0.17,
+      "island_strengths": {
+        "G1": 0.85,
+        "B1": 1.0,
+        "G3": 0.75,
+        "B3": 0.7
+      }
+    }
+  },
+  "android_mapping": {
+    "version": "RecognitionOpticalConfigV2",
+    "source": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt",
+    "layer_order": [
+      "atmospheric_spill",
+      "outer_bloom",
+      "inner_bloom",
+      "optical_core"
+    ],
+    "blend_modes": {
+      "optical_core": "SOURCE_OVER",
+      "inner_bloom": "SCREEN",
+      "outer_bloom": "SOFT_LIGHT",
+      "atmospheric_spill": "SOFT_LIGHT"
+    },
+    "quality_profiles": {
+      "HIGH": {
+        "android_quality_level": "FULL",
+        "outer_bloom_radius_multiplier": 1.0,
+        "spill_radius_multiplier": 1.0,
+        "retained_layers": [
+          "atmospheric_spill",
+          "outer_bloom",
+          "inner_bloom",
+          "optical_core"
+        ],
+        "four_islands": true
+      },
+      "MEDIUM": {
+        "android_quality_level": "BALANCED",
+        "outer_bloom_radius_multiplier": 0.75,
+        "spill_radius_multiplier": 0.75,
+        "retained_layers": [
+          "atmospheric_spill",
+          "outer_bloom",
+          "inner_bloom",
+          "optical_core"
+        ],
+        "four_islands": true,
+        "alpha_multiplier": 0.92,
+        "receiving_light_multiplier": 0.85
+      },
+      "LOW": {
+        "android_quality_level": "LITE",
+        "outer_bloom_radius_multiplier": 0.5,
+        "spill_radius_multiplier": 0.5,
+        "retained_layers": [
+          "atmospheric_spill",
+          "outer_bloom",
+          "inner_bloom",
+          "optical_core"
+        ],
+        "four_islands": true,
+        "alpha_multiplier": 0.82,
+        "receiving_light_multiplier": 0.7
+      }
+    },
+    "alpha_modifiers": {
+      "inner_bloom": 0.78,
+      "outer_bloom": 0.74
+    },
+    "sources": {
+      "path_geometry": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+      "photo_transform": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionImageTransform.kt",
+      "runtime_photo_bounds": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionSourcePhoto.kt",
+      "state_timing": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
+      "fish_mask": "app/src/main/java/com/yujian/ai/ai/subject/FishSubjectPreviewEngine.kt"
+    },
+    "api28_fallback": {
+      "SOFT_LIGHT": "LIGHTEN",
+      "SCREEN": "PORTER_DUFF_SCREEN",
+      "SOURCE_OVER": "PORTER_DUFF_SRC_OVER",
+      "note": "API 28 has no native Soft Light blend mode; retain distinct blend roles where supported and use the documented Lighten fallback on API 28."
+    }
+  },
+  "blend_mode_trials": {
+    "optical_core_candidates": ["SOURCE_OVER", "SCREEN", "ADDITIVE"],
+    "default_optical_core": "SOURCE_OVER",
+    "inner_bloom": "SCREEN",
+    "outer_bloom": "SOFT_LIGHT",
+    "atmospheric_spill": "SOFT_LIGHT",
+    "decision": "Keep the Core on normal Alpha to preserve blue/gold hue over bright pixels; expose a browser trial control for Screen and Additive comparison."
+  },
+  "photo_mapping": {
+    "source_coordinate_space": "EXIF_NORMALIZED_PHOTO",
+    "normalization": "Apply EXIF orientation before detector, segmentation, and display transforms",
+    "primary_display_mode": "FIT_FULL_SOURCE",
+    "overlay_bounds": "RecognitionImageTransform.photoContentRect; excludes FIT letterbox and surrounding Compose/window bounds",
+    "coordinate_chain": [
+      "original file pixels",
+      "EXIF-normalized bitmap pixels",
+      "photoContentRect in Compose Canvas pixels",
+      "boundsInWindow for runtime evidence"
+    ],
+    "path_coordinates": "Normalized [0,1] relative to the visible EXIF-normalized photo content rectangle; deliberate path overshoot is clipped at that rectangle",
+    "mapping_source": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionImageTransform.kt"
+  },
+  "primary_islands": [
+    {
+      "id": "G1",
+      "family": "gold",
+      "corner": "TOP_LEFT",
+      "strength": 0.85,
+      "width_dp": 1.1,
+      "seed": 0.12,
+      "visible_ratio": 0.26,
+      "path": {
+        "start": [
+          -0.02,
+          0.18
+        ],
+        "control1": [
+          0.03,
+          0.08
+        ],
+        "control2": [
+          0.12,
+          0.02
+        ],
+        "end": [
+          0.26,
+          -0.02
+        ]
+      }
+    },
+    {
+      "id": "B1",
+      "family": "blue",
+      "corner": "TOP_RIGHT",
+      "strength": 1.0,
+      "width_dp": 1.2,
+      "seed": 0.0,
+      "visible_ratio": 0.3,
+      "path": {
+        "start": [
+          0.78,
+          -0.02
+        ],
+        "control1": [
+          0.94,
+          0.06
+        ],
+        "control2": [
+          1.02,
+          0.22
+        ],
+        "end": [
+          0.96,
+          0.42
+        ]
+      }
+    },
+    {
+      "id": "G3",
+      "family": "gold",
+      "corner": "BOTTOM_LEFT",
+      "strength": 0.75,
+      "width_dp": 1.2,
+      "seed": 0.64,
+      "visible_ratio": 0.22,
+      "path": {
+        "start": [
+          -0.01,
+          0.74
+        ],
+        "control1": [
+          0.08,
+          0.86
+        ],
+        "control2": [
+          0.2,
+          0.95
+        ],
+        "end": [
+          0.38,
+          1.02
+        ]
+      }
+    },
+    {
+      "id": "B3",
+      "family": "blue",
+      "corner": "BOTTOM_RIGHT",
+      "strength": 0.7,
+      "width_dp": 1.2,
+      "seed": 0.47,
+      "visible_ratio": 0.2,
+      "path": {
+        "start": [
+          1.02,
+          0.61
+        ],
+        "control1": [
+          0.92,
+          0.75
+        ],
+        "control2": [
+          0.84,
+          0.89
+        ],
+        "end": [
+          0.66,
+          1.02
+        ]
+      }
+    }
+  ],
+  "recognition_animation": {
+    "state_machine_source": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
+    "minimum_visible_duration_ms": {
+      "CAPTURED": 220,
+      "DETECTING": 320,
+      "OUTLINE": 350,
+      "CLASSIFYING": 250
+    },
+    "ambient_field_source": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+    "motion_policy": "Independent seeded island offsets; per-island eased entry and state strength; no synchronized corner pulse"
+  },
+  "fish_mask_contract": {
+    "detector_output": "Production FishDetection currently provides a normalized bounding box, not a pixel mask",
+    "segmentation_output": "FishSubjectPreviewEngine uses ML Kit SubjectSegmentation foregroundConfidenceMask inside the detector-bbox crop",
+    "segmentation_source": "app/src/main/java/com/yujian/ai/ai/subject/FishSubjectPreviewEngine.kt",
+    "contour_source": "Thresholded alpha contour from the segmentation result; 2-pixel sampling; app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+    "fish_specific_semantic_accuracy": "NOT_VALIDATED; do not describe generic subject segmentation as a fish-trained semantic mask",
+    "static_demo_fixture": "MANUAL_REFERENCE_CONTOUR; production_mask=false"
+  }
+}

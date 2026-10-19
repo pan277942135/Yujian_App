@@ -6,6 +6,11 @@ on:
       - design/processing-remove-early-visual-v1
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
+      - "design/system/recognition_optical_v2/**"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
+      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
+      - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
@@ -16,6 +21,11 @@ on:
       - design/recognition-processing-handoff-p0
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
+      - "design/system/recognition_optical_v2/**"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
+      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
+      - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
@@ -28,7 +38,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: edgeglow-fish-static-${{ github.event_name }}-${{ github.ref }}
+  # Serialize the composed branch preview with the canonical main Pages deploy.
+  group: design-manager-pages
   cancel-in-progress: false
 
 env:
