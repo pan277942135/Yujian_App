@@ -117,7 +117,7 @@
       "optical_core": "SOURCE_OVER",
       "inner_bloom": "SCREEN",
       "outer_bloom": "SCREEN",
-      "atmospheric_spill": "SOURCE_OVER"
+      "atmospheric_spill": "SOFT_LIGHT"
     },
     "quality_profiles": {
       "HIGH": {
@@ -189,8 +189,8 @@
     "default_optical_core": "SOURCE_OVER",
     "inner_bloom": "SCREEN",
     "outer_bloom": "SCREEN",
-    "atmospheric_spill": "SOURCE_OVER",
-    "decision": "Use hue-preserving Source Over for the core and broad atmospheric tint, Screen for both bloom radii, and expose Source Over, Screen, Additive, and Soft Light as browser Core blend trials."
+    "atmospheric_spill": "SOFT_LIGHT",
+    "decision": "Use hue-preserving Source Over for the core, Screen for both bloom radii, and Soft Light for broad atmospheric spill (API 28 Lighten fallback); expose Source Over, Screen, Additive, and Soft Light as browser Core blend trials."
   },
   "photo_mapping": {
     "source_coordinate_space": "EXIF_NORMALIZED_PHOTO",

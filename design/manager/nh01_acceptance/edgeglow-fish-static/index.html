@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-r12-corner-rim" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-optical-v2-layered-composite" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -114,7 +114,7 @@
           <label>Blue Saturation <output id="blueSaturationValue">82%</output><input id="blueSaturation" type="range" min="35" max="100" value="82"></label>
           <label>Gold Warmth <output id="goldWarmthValue">74%</output><input id="goldWarmth" type="range" min="35" max="100" value="74"></label>
           <label>Background Compensation <output id="backgroundCompensationValue">100%</output><input id="backgroundCompensation" type="range" min="0" max="100" value="100"></label>
-          <small>强度按 G1=.90、B1=1.00、G3=.88、B3=.84 独立控制；局部亮度补偿只改变边缘光，不改变照片曝光。光核可对比 Source Over、Screen、Additive、Soft Light，默认选择保色 Source Over；Inner / Outer 使用 Screen，Atmospheric Spill 使用 Source Over。</small>
+          <small>强度按 G1=.90、B1=1.00、G3=.88、B3=.84 独立控制；局部亮度补偿只改变边缘光，不改变照片曝光。光核可对比 Source Over、Screen、Additive、Soft Light，默认选择保色 Source Over；Inner / Outer 使用 Screen，Atmospheric Spill 使用 Soft Light（API 28 采用 Lighten 回退）。</small>
         </fieldset>
         <fieldset class="island-controls">
           <legend>Corner Islands · 独立强度</legend>

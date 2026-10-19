@@ -36,7 +36,7 @@ def main() -> None:
     route = args.site_root / ROUTE
     fixture = json.loads((route / "fixture.json").read_text(encoding="utf-8"))
     page = (route / "index.html").read_text(encoding="utf-8")
-    assert "edgeglow.js?v=edgeglow-static-r12-corner-rim" in page, "the deployed prototype must load R12 with crisp inset full-length corner arcs and bypass stale cache entries"
+    assert "edgeglow.js?v=edgeglow-optical-v2-layered-composite" in page, "the deployed prototype must load the V2 optical compositor and bypass stale cache entries"
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
     optical_config = json.loads((args.site_root / OPTICAL_CONFIG).read_text(encoding="utf-8"))
@@ -84,7 +84,10 @@ def main() -> None:
     assert optical_config["android_mapping"]["quality_profiles"]["LOW"]["spill_radius_multiplier"] == 0.5
     assert all(f'data-optical-preset="{preset}"' in page for preset in ("current", "enhanced", "frozen_match")), "three live preset controls are required"
     assert all(f'id="{control}"' in page for control in ("opticalCoreIntensity", "opticalCoreWidth", "opticalCoreBlend", "innerBloomRadius", "innerBloomIntensity", "outerBloomRadius", "outerBloomIntensity", "atmosphericSpill", "blueSaturation", "goldWarmth", "backgroundCompensation", "strengthG1", "strengthB1", "strengthG3", "strengthB3")), "the V2 optical parameter controls are incomplete"
-    assert all(token in renderer for token in ("OPTICAL_CONFIG_VERSION", "drawEnhancedOpticalIslands", "brightBackgroundGain", 'params.opticalCoreBlend || "source-over"', 'blend: "screen"', '"lighter"', "measureIslandLuminance", "params.backgroundCompensation")), "four-layer optical renderer or local background compensation is missing"
+    assert all(token in renderer for token in ("OPTICAL_CONFIG_VERSION", "drawEnhancedOpticalIslands", "brightBackgroundGain", 'params.opticalCoreBlend || "source-over"', 'return "screen"', '"lighter"', "measureIslandLuminance", "params.backgroundCompensation")), "four-layer optical renderer or local background compensation is missing"
+    assert 'function opticalPhotoBlend(layerId)' in renderer and 'return "soft-light"' in renderer and 'bufferContext.globalCompositeOperation = blend' in renderer and 'compositePhotoEdge(bufferContext, inset, opticalPhotoBlend(layerId))' in renderer, "enhanced optical layers must composite directly onto the photo using their configured blend modes"
+    assert optical_config["android_mapping"]["blend_modes"] == {"optical_core": "SOURCE_OVER", "inner_bloom": "SCREEN", "outer_bloom": "SCREEN", "atmospheric_spill": "SOFT_LIGHT"}, "Android and Web layer blend roles must stay aligned"
+    assert "blend = RecognitionOpticalBlend.SOFT_LIGHT" in android_edge_field, "Android atmospheric spill must use Soft Light with its declared API 28 fallback"
     assert '<option value="soft-light">Soft Light</option>' in page and "SOFT_LIGHT" in optical_config["blend_mode_trials"]["optical_core_candidates"], "Source Over, Screen, Additive and Soft Light must be selectable and declared as browser Core trials"
     assert "RecognitionOpticalConfigV2" in android_optical_config and 'VERSION = "2.0.0"' in android_optical_config, "Android must publish the matching V2 parameter mapping"
     assert all(str(value) in android_optical_config for value in ("0.90f", "1.00f", "0.88f", "0.84f")), "Android island strengths must match the Enhanced shared config"

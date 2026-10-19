@@ -614,7 +614,7 @@
     ctx.restore();
   }
 
-  function drawEnhancedOpticalIslands(ctx) {
+  function drawEnhancedOpticalIslands(ctx, layerId) {
     if (!params.edgeFieldEnabled || !params.primaryIslandsEnabled || params.edgeFieldIntensity <= 0) return;
     const preset = opticalConfig.presets[params.preset] || opticalConfig.presets.enhanced;
     const scale = photo.naturalWidth / opticalConfig.reference_canvas.width_px;
@@ -629,7 +629,7 @@
       const common = Math.min(1.28, globalIntensity * strength * backgroundGain);
       const parts = edgeFieldPartsAt(geometry, geometry.seed, Math.max(geometry.visibleRatio, 0.58));
       for (const [from, to] of parts) {
-        if (params.receivingLightEnabled) {
+        if (layerId === "atmospheric_spill" && params.receivingLightEnabled) {
           drawOpticalPathLayer(ctx, geometry, from, to, {
             widthPx: preset.atmospheric_spill_px * 1.7,
             blurPx: preset.atmospheric_spill_px * 0.56,
@@ -637,26 +637,45 @@
             blend: "source-over"
           });
         }
-        drawOpticalPathLayer(ctx, geometry, from, to, {
+        if (layerId === "outer_bloom") drawOpticalPathLayer(ctx, geometry, from, to, {
           widthPx: (params.outerBloomRadius * 1.8 * radiusTier) + params.opticalCoreWidth,
           blurPx: params.outerBloomRadius * 0.46 * radiusTier,
           alpha: params.outerBloomIntensity / 100 * 0.74 * common,
-          blend: "screen"
+          blend: "source-over"
         });
-        drawOpticalPathLayer(ctx, geometry, from, to, {
+        if (layerId === "inner_bloom") drawOpticalPathLayer(ctx, geometry, from, to, {
           widthPx: (params.innerBloomRadius * 1.65) + params.opticalCoreWidth,
           blurPx: params.innerBloomRadius * 0.42,
           alpha: params.innerBloomIntensity / 100 * 0.78 * common,
-          blend: "screen"
+          blend: "source-over"
         });
-        drawOpticalPathLayer(ctx, geometry, from, to, {
+        if (layerId === "optical_core") drawOpticalPathLayer(ctx, geometry, from, to, {
           widthPx: params.opticalCoreWidth,
           blurPx: 0,
           alpha: params.opticalCoreIntensity / 100 * common,
-          blend: params.opticalCoreBlend === "additive" ? "lighter" : (params.opticalCoreBlend || "source-over")
+          blend: "source-over"
         });
       }
     }
+  }
+
+  function opticalPhotoBlend(layerId) {
+    if (layerId === "atmospheric_spill") return "soft-light";
+    if (layerId === "outer_bloom" || layerId === "inner_bloom") return "screen";
+    if (layerId === "optical_core") {
+      return params.opticalCoreBlend === "additive" ? "lighter" : (params.opticalCoreBlend || "source-over");
+    }
+    return "source-over";
+  }
+
+  function compositePhotoEdge(bufferContext, inset, blend) {
+    bufferContext.save();
+    bufferContext.setTransform(1, 0, 0, 1, 0, 0);
+    bufferContext.filter = "none";
+    bufferContext.globalAlpha = 1;
+    bufferContext.globalCompositeOperation = blend;
+    bufferContext.drawImage(edgeLayer, inset, inset, Math.ceil(photo.naturalWidth * EDGE_FIELD_RENDER_SCALE), Math.ceil(photo.naturalHeight * EDGE_FIELD_RENDER_SCALE), 0, 0, photo.naturalWidth, photo.naturalHeight);
+    bufferContext.restore();
   }
 
   function drawPrimaryEdgeIslands(ctx) {
@@ -720,25 +739,29 @@
     edgeContext.globalAlpha = 1;
     edgeContext.globalCompositeOperation = "source-over";
     edgeContext.clearRect(0, 0, edgeLayer.width, edgeLayer.height);
-    edgeContext.setTransform(EDGE_FIELD_RENDER_SCALE, 0, 0, EDGE_FIELD_RENDER_SCALE, inset, inset);
     if (params.preset === "current") {
+      edgeContext.setTransform(EDGE_FIELD_RENDER_SCALE, 0, 0, EDGE_FIELD_RENDER_SCALE, inset, inset);
       drawReceivingLight(edgeContext);
       drawPrimaryEdgeIslands(edgeContext);
       drawSecondaryEdgeFragments(edgeContext);
       drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry);
       drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true);
       drawStaticEnergyNodes(edgeContext);
+      edgeContext.setTransform(1, 0, 0, 1, 0, 0);
+      compositePhotoEdge(bufferContext, inset, "source-over");
     } else {
-      drawEnhancedOpticalIslands(edgeContext);
+      for (const layerId of ["atmospheric_spill", "outer_bloom", "inner_bloom", "optical_core"]) {
+        edgeContext.setTransform(1, 0, 0, 1, 0, 0);
+        edgeContext.filter = "none";
+        edgeContext.globalAlpha = 1;
+        edgeContext.globalCompositeOperation = "source-over";
+        edgeContext.clearRect(0, 0, edgeLayer.width, edgeLayer.height);
+        edgeContext.setTransform(EDGE_FIELD_RENDER_SCALE, 0, 0, EDGE_FIELD_RENDER_SCALE, inset, inset);
+        drawEnhancedOpticalIslands(edgeContext, layerId);
+        edgeContext.setTransform(1, 0, 0, 1, 0, 0);
+        compositePhotoEdge(bufferContext, inset, opticalPhotoBlend(layerId));
+      }
     }
-    edgeContext.setTransform(1, 0, 0, 1, 0, 0);
-    bufferContext.save();
-    bufferContext.setTransform(1, 0, 0, 1, 0, 0);
-    bufferContext.filter = "none";
-    bufferContext.globalAlpha = 1;
-    bufferContext.globalCompositeOperation = "source-over";
-    bufferContext.drawImage(edgeLayer, inset, inset, Math.ceil(photo.naturalWidth * EDGE_FIELD_RENDER_SCALE), Math.ceil(photo.naturalHeight * EDGE_FIELD_RENDER_SCALE), 0, 0, photo.naturalWidth, photo.naturalHeight);
-    bufferContext.restore();
     bufferContext.drawImage(effectLayer, effectBounds.left, effectBounds.top);
   }
 

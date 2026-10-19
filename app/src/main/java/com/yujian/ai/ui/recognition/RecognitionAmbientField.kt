@@ -578,7 +578,7 @@ private fun DrawScope.drawReceivingLight(
             strokeWidthPx = dimensions.spillRadiusPx * 1.7f,
             blurRadiusPx = dimensions.spillRadiusPx * .56f,
             blurPaints = blurPaints,
-            blend = RecognitionOpticalBlend.SOURCE_OVER,
+            blend = RecognitionOpticalBlend.SOFT_LIGHT,
         )
     }
 }
