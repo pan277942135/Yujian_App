@@ -67,7 +67,7 @@ def main() -> None:
     assert "params.fishGoldColor" in fish_renderer and "params.fishCoreColor" in fish_renderer, "Fish Focus must render a warm-gold palette"
     assert "blueColor" not in page and "#58c8f4" not in renderer, "obsolete blue fish-highlight controls/palette must be removed"
     assert 'fishGoldColor: "#ffd887", fishCoreColor: "#ffe7ae"' in renderer, "Fish Focus defaults must use the approved warm-gold family"
-    assert 'edgeFieldBlueColor: "#bfeaf2", edgeFieldGoldColor: "#f6d99b"' in renderer, "photo perimeter retains its separate blue/cyan and gold palette"
+    assert 'edgeFieldBlueColor: "#5ab2fc", edgeFieldGoldColor: "#e0b644"' in renderer, "photo perimeter uses the R05 Frozen-raster Web palette candidate"
     expected_primary_path_definitions = (
         '{ id: "B1", family: "blue", widthDp: 1.2, seed: 0.00, visibleRatio: 0.30, weight: 1.00, start: [0.78, -0.02], control1: [0.94, 0.06], control2: [1.02, 0.22], end: [0.96, 0.42] }',
         '{ id: "B3", family: "blue", widthDp: 1.2, seed: 0.47, visibleRatio: 0.20, weight: 0.54, start: [1.02, 0.61], control1: [0.92, 0.75], control2: [0.84, 0.89], end: [0.66, 1.02] }',
@@ -83,6 +83,7 @@ def main() -> None:
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
     assert "receiving_alpha_per_pass: [0.36, 0.30]" in renderer and "receiving_width_dp: [44, 12]" in renderer and "receiving_blur_dp: [22, 4.5]" in renderer and "above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01" in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R03/R04 receiving-light candidates must expose rendering and contract discrepancies"
+    assert 'web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }' in renderer and 'android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" }' in renderer, "Web Frozen-raster palette must remain distinct from Android tokens"
     expected_companion_path_definitions = (
         '{ id: "B1C", parentId: "B1", family: "blue", widthDp: 0.60, phaseDelta: -0.055, visibleRatio: 0.44, weight: 0.30, start: [0.75, -0.01], control1: [0.91, 0.07], control2: [0.99, 0.20], end: [0.94, 0.37] }',
         '{ id: "G1C", parentId: "G1", family: "gold", widthDp: 0.58, phaseDelta: 0.065, visibleRatio: 0.42, weight: 0.30, start: [-0.01, 0.20], control1: [0.04, 0.11], control2: [0.13, 0.04], end: [0.24, 0.00] }',
@@ -118,6 +119,8 @@ def main() -> None:
             "receiving_light_alpha_per_pass": [0.36, 0.30],
             "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.36) * (1 - 0.30), 4),
             "perimeter_web_blend": "source-over; R02 hue-preserving Web review candidate, not Android runtime validation",
+            "web_palette": {"blue": "#5ab2fc", "gold": "#e0b644", "authority": "sampled Frozen 02 photo-edge raster; review candidate"},
+            "android_reference_palette": {"blue": "#bfeaf2", "blue_hot": "#d8f5fa", "gold": "#f6d99b", "gold_hot": "#ffe7ae"},
             "receiving_light_default_alpha_per_pass": [0.36, 0.30],
             "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,

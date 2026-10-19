@@ -10,7 +10,7 @@
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
 | `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The revised renderer now follows the Frozen four-island role map, layers path-following Receiving Light with primary bands and companion hairlines, and keeps Fish Focus warm gold. The live screenshot must still confirm visibility and balance; source checks are not a visual-quality pass. |
-| `CLOUD_ACCEPTANCE_CENTER` | `PENDING_R04_WIDE_CORNER_BLOOM_DEPLOYMENT` | R03 build `40cf34cd4fc4` is live and the registered photo verifies. A fresh screenshot shows the upper-right blue but the full four-corner field remains too subtle at preview scale. R04 expands the same path-local bloom; cloud screenshot review is pending. |
+| `CLOUD_ACCEPTANCE_CENTER` | `PENDING_R05_FROZEN_PALETTE_DEPLOYMENT` | R04 build `7515ff717083` is live and the registered photo verifies. The wider bloom still appears near-white with the Android pastel colors. R05 switches only the Web perimeter palette to sampled Frozen blue/gold values; cloud screenshot review is pending. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
 The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, production Mask, or `FishSubjectResult`. Overall M1/Figma/Android gates are unaffected and are not marked PASS.
@@ -69,7 +69,7 @@ Visual review of `02_AI_Understanding_Frozen.png`, `03_Fish_Highlight_Frozen.png
 | Core Highlight | 3 px, 92% | Pale-gold soft under-stroke plus sharp warm-gold contour |
 | Static Comet | 14% path arc, head at 21%, falloff 1.55 | Warm-gold path-distance tail with pale-gold head |
 | Fish Focus colors | `#FFD887`, `#FFE7AE` | Warm gold and pale gold; no blue fish-body highlight |
-| Photo-edge colors | `#BFEAF2`, `#F6D99B` | Blue/cyan and gold are confined to the photo perimeter field |
+| Photo-edge colors | R05 Web candidate `#5AB2FC`, `#E0B644`; Android references `#BFEAF2`, `#F6D99B` | Frozen raster sampled blue/gold is confined to the photo perimeter; Android tokens remain separately recorded |
 | AI Edge Field | Receiving Light `0.13` alpha (Android runtime candidate; exceeds Frozen contract cap `0.07`); four primary + three secondary path segments | Four local edge gradients and seven disconnected static path segments; secondary seeds are Android runtime values (`RP-A03`), no particles or motion |
 
 The controls independently toggle the contour, Receiving Light, Primary Islands, overall Edge Field, fish bloom, core and comet. Width, intensity, tail length/position/falloff and the separate perimeter/fish palettes redraw immediately. Reset restores these defaults. Comparison supports side-by-side, 50% Overlay and Before/After Wipe.
@@ -163,3 +163,10 @@ The full Playwright smoke script remains in `scripts/smoke_edgeglow_fish_static.
 - The R03 screenshot confirms some blue/cyan at the upper-right corner while the fish remains gold; the four-corner perimeter field is still too subtle, and the gold island is not distinct enough. Toggling the perimeter layer confirms the image changes, but not enough to meet the stated visual target. This candidate is not accepted as visually fixed.
 - R04 retains the exact path geometry, island weights, color tokens, and R03 alpha (`0.36 / 0.30`) while increasing only the path-local bloom widths to `44 / 12 dp` and blur radii to `22 / 4.5 dp`. These remain Web optical candidates under `RP-A01`; the higher intensity is not Frozen-approved and says nothing about Android Runtime.
 - R04 awaits deployment and a fresh Chrome screenshot. `EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED`; `ANDROID_RUNTIME=NOT_RUN`; Frozen assets and PR #165 remain unchanged.
+
+### R04 cloud review and R05 Frozen palette sample — 2026-10-19
+
+- Push workflow [39252530663](https://github.com/pan277942135/Yujian_App/actions/runs/39252530663) passed composition, source audit, guarded deployment, and live HTTPS/photo identity verification. Chrome loaded build `7515ff717083`, center `08ed847e711f`, and the byte-verified source photo.
+- The R04 screenshot shows a broader path glow, but its pale Android blue/gold colors still blend into the bright photo. It does not yet read like the Frozen perimeter field.
+- R05 changes only the Web perimeter defaults to `#5AB2FC` and `#E0B644`, sampled from the blue and gold corner light pixels in unchanged `02_AI_Understanding_Frozen.png`. The previous Android palette (`#BFEAF2`, `#D8F5FA`, `#F6D99B`, `#FFE7AE`) is preserved separately in renderer metadata and the page note. Fish Focus stays `#FFD887` / `#FFE7AE`.
+- The R05 palette is a raster-sampled Web visual candidate, not a new Android token or Frozen-approved design token. It retains `source-over`, the four disconnected paths and Quiet Gaps. R05 awaits its live screenshot; `EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED`, `ANDROID_RUNTIME=NOT_RUN`.
