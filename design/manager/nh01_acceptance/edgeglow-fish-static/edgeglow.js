@@ -660,12 +660,13 @@
   }
 
   function opticalPhotoBlend(layerId) {
-    if (layerId === "atmospheric_spill") return "soft-light";
-    if (layerId === "outer_bloom" || layerId === "inner_bloom") return "screen";
-    if (layerId === "optical_core") {
-      return params.opticalCoreBlend === "additive" ? "lighter" : (params.opticalCoreBlend || "source-over");
-    }
-    return "source-over";
+    const blendNames = opticalConfig.web_mapping.canvas_blend_mode_names;
+    const configuredMode = opticalConfig.web_mapping.blend_modes[layerId] || "SOURCE_OVER";
+    if (layerId !== "optical_core") return blendNames[configuredMode] || "source-over";
+    const selectedMode = params.opticalCoreBlend === "additive"
+      ? "ADDITIVE"
+      : String(params.opticalCoreBlend || "source-over").replace("-", "_").toUpperCase();
+    return blendNames[selectedMode] || blendNames[configuredMode] || "source-over";
   }
 
   function compositePhotoEdge(bufferContext, inset, blend) {

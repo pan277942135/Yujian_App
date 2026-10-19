@@ -104,6 +104,22 @@
       }
     }
   },
+  "web_mapping": {
+    "version": "RecognitionOpticalConfigV2",
+    "renderer": "Canvas2D",
+    "blend_modes": {
+      "optical_core": "SOURCE_OVER",
+      "inner_bloom": "SCREEN",
+      "outer_bloom": "SCREEN",
+      "atmospheric_spill": "SOFT_LIGHT"
+    },
+    "canvas_blend_mode_names": {
+      "SOURCE_OVER": "source-over",
+      "SCREEN": "screen",
+      "SOFT_LIGHT": "soft-light",
+      "ADDITIVE": "lighter"
+    }
+  },
   "android_mapping": {
     "version": "RecognitionOpticalConfigV2",
     "source": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt",
