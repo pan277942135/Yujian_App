@@ -1,4 +1,452 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíó¾üN‹Z–‹­¦ëeŠw¬ÔŒ„½ÕÍÈ½‰¥¸½•¹Ø‰…Í ()…Ñ•}Ñ•ÍÑ}±…ÍÍ•Ì ¤ì(€ÁÉ¥¹Ñ˜€œ•Íq¸œ€½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•I•…±A¡½Ñ½AÉ½‰•Q•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹½µÁ½¹•¹ÑÌ¹!½µ•Ù¥‘•¹•	¥Ñµ…ÁQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹9½Éµ…±!½µ•IÕ¹Ñ¥µ•½¹ÑÉ…ÑQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹!½µ•MÑ…ÑÍM•µ…¹Ñ¥ÍQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•!•É½	•¡…Ù¥½ÉQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•…Ñ…A…É¥ÑåQ•ÍÐ±½´¹åÕ©¥…¸¹…¤¹Õ¤¹¡½µ”¹9½Éµ…±!½µ•5½Ñ¥½¹Ù¥‘•¹•Q•ÍÐœ)ô()…Ñ•}‰•™½É•}¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸ ¤ì(€€ˆ‘eU)%9}	}	%8ˆ±½…Ð€µŒ€ø½‘•Ø½¹Õ±°€Èø˜ÄñðÑÉÕ”)ô()…Ñ•}…™Ñ•É}¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸ ¤ì(€±½…°½ÕÑÁÕÑ}‘¥Èôˆ‘eU)%9}Y%9}%H½¹½Éµ…°µ¡½µ”µØÄˆ(€µ­‘¥È€µÀ€ˆ‘½ÕÑÁÕÑ}‘¥Èˆ(€€ˆ‘eU)%9}	}	%8ˆ±½…Ð€µ€µØ‰É¥•˜€µÌp(€€€9=I51}!=5}5=Q%=9}QIé$9=I51}!=5}YQI}MQQ}QIé$p(€€€€ø€ˆ‘½ÕÑÁÕÑ}‘¥È½¹½Éµ…°µ¡½µ”µµ½Ñ¥½¸µ¥¹ÍÑÉÕµ•¹Ñ…Ñ¥½¸¹±½œˆ€Èø˜ÄñðÑÉÕ”)ô()¹½Éµ…±}¡½µ•}ÉÕ¹}Í•• ¤ì(€±½…°µ•Ñ¡½ôˆÄˆ(€±½…°±½œôˆÈˆ(€Ñ¥µ•½ÕÐ€ØÁÌ€ˆ‘eU)%9}	}	%8ˆÍ¡•±°…´¥¹ÍÑÉÕµ•¹Ð€µÜ€µÈp(€€€€µ”±…ÍÌ€‰½´¹åÕ©¥…¸¹…¤¹!½µ•Y¥ÍÕ…±Ù¥‘•¹•M••‘Q•ÍÐŒ‘µ•Ñ¡½ˆp(€€€€ˆ‘eU)%9}%9MQIU59QQ%=9}QIPˆ€ø€ˆ‘±½œˆ€Èø˜Ä(€±½…°ÉŒôü(€¥˜€  ÉŒ€„ô€À€¤¤ñðÉ•À€µ¥Ä€%1UIL„„…ñ%9MQIU59QQ%=9}%1ñÍÍ•ÉÑ¥½¸¡ÉÉ½Éñ…¥±•‘ÉÉ½È¥ñAÉ½•ÍÌ€¡É…Í¡•‘ñ¡…Ì‘¥•¥ñAÉ½•ÍÌ€¸¨€¡É…Í¡•‘ñ¡…Ì‘¥•¥ñÍ¡½ÉÑ5ÍœõAÉ½•ÍÌÉ…Í¡•œ€ˆ‘±½œˆìÑ¡•¸(€€€…Ð€ˆ‘±½œˆ€ø˜È(€€€É•ÑÕÉ¸€Ä(€™¤(€É•À€µÄ€%9MQIU59QQ%=9}=émléÍÁ…”éut¨Áñ=,p¡lÀ´åt¬Ñ•ÍÐœ€ˆ‘±½œˆ)ô()¹½Éµ…±}¡½µ•}±…Õ¹¡}…ÁÀ ¤ì(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°…´™½É”µÍÑ½À€ˆ‘eU)%9}AA}A-ˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°µ½¹­•ä€µÀ€ˆ‘eU)%9}AA}A-ˆ€µŒ…¹‘É½¥¹¥¹Ñ•¹Ð¹…Ñ•½Éä¹1U9!H€Ä€ø½‘•Ø½¹Õ±°((€±½…°…ÑÑ•µÁÐÉ•ÍÕµ•Á¥(€™½È…ÑÑ•µÁÐ¥¸€¡Í•Ä€Ä€ÈÀ¤ì‘¼(€€€É•ÍÕµ•ôˆ ˆ‘eU)%9}	}	%8ˆÍ¡•±°‘ÕµÁÍåÌ…Ñ¥Ù¥Ñä…Ñ¥Ù¥Ñ¥•Ì€Èø½‘•Ø½¹Õ±°ðÉ•À€µ€µI•ÍÕµ•‘Ñ¥Ù¥ÑåñI•ÍÕµ•‘Ñ¥Ù¥Ñäœð¡•…€µ¸€ÄñðÑÉÕ”¤ˆ(€€€Á¥ôˆ ˆ‘eU)%9}	}	%8ˆÍ¡•±°Á¥‘½˜€ˆ‘eU)%9}AA}A-ˆ€Èø½‘•Ø½¹Õ±°ðÑÈ€µ€qÈœñðÑÉÕ”¤ˆ(€€€ÁÉ¥¹Ñ˜€9=I51}!=5}Q%Y%Qe}I%9ML…ÑÑ•µÁÐô•ÌÉ•ÍÕµ•ô•ÌÁ¥ô•Íq¸œ€ˆ‘…ÑÑ•µÁÐˆ€ˆ‘É•ÍÕµ•ˆ€ˆ‘Á¥ˆ(€€€¥˜ml€ˆ‘É•ÍÕµ•ˆ€ôô€¨ˆ‘eU)%9}AA}A-½½´¹åÕ©¥…¸¹…¤¹5…¥¹Ñ¥Ù¥Ñäˆ¨€˜˜€ˆ‘Á¥ˆ€õølÀ´åtutìÑ¡•¸(€€€€€€ŒU%ÕÑ½µ…Ñ½ÈÌ½µÁ½Í”‰É¥‘”¥ÌÕ¹É•±¥…‰±”…¹…¸¡…¹œ½¸A$€Èà¸(€€€€€€Œ]…¥Ð½¸É•…°É•¹‘•É•Á¥á•±Ì¥¹ÍÑ•…¸9½Éµ…°!½µ”¥¹Ñ•¹Ñ¥½¹…±±ä±½…‘Ì(€€€€€€Œ¥ÑÌÍ•¹”½…É½Á¡½Ñ¼…ÍÍ•ÑÌ…Íå¹¡É½¹½ÕÍ±ä°Í¼…¸Ñ¥Ù¥ÑäµÉ•ÍÕµ•(€€€€€€ŒÍ¥¹…°…±½¹”¥Ì¹½ÐÍÕ™™¥¥•¹Ð•Ù¥‘•¹”Ñ¡…ÐÑ¡”ÁÉ½‘ÕÑ¥½¸™É…µ”¥Ì(€€€€€€ŒÉ•…‘ä™½È„™É½é•¸µÁ…É¥Ñä…ÁÑÕÉ”¸(€€€€€±½…°…¹‘¥‘…Ñ”ôˆ‘eU)%9}Y%9}%H½¹½Éµ…°µ¡½µ”µØÄ½É•¹‘•É}É•…‘¥¹•ÍÌ¹Á¹œˆ(€€€€€±½…°É•¹‘•É}…ÑÑ•µÁÐ(€€€€€™½ÈÉ•¹‘•É}…ÑÑ•µÁÐ¥¸€¡Í•Ä€Ä€ÈÀ¤ì‘¼(€€€€€€€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘…¹‘¥‘…Ñ”ˆ(€€€€€€€±½…°™…Ñ…±}ÉÕ¹Ñ¥µ”(€€€€€€€™…Ñ…±}ÉÕ¹Ñ¥µ”ôˆ ˆ‘eU)%9}	}	%8ˆ±½…Ð€µ€µØ‰É¥•˜€µÌ¹‘É½¥‘IÕ¹Ñ¥µ”é€Èø½‘•Ø½¹Õ±°ðÉ•À€µ€Q0aAQ%=9ñAÉ½•ÍÌè½µp¹åÕ©¥…¹p¹…¤œðÑ…¥°€µ¸€ÐñðÑÉÕ”¤ˆ(€€€€€€€¥˜ml€µ¸€ˆ‘™…Ñ…±}ÉÕ¹Ñ¥µ”ˆutìÑ¡•¸(€€€€€€€€€ÁÉ¥¹Ñ˜€9=I51}!=5}AA}IM!}QQq¸•Íq¸œ€ˆ‘™…Ñ…±}ÉÕ¹Ñ¥µ”ˆ€ø˜È(€€€€€€€€€É•ÑÕÉ¸€Ä(€€€€€€€™¤(€€€€€€€¥˜ÁåÑ¡½¸Ì€´€ˆ‘…¹‘¥‘…Ñ”ˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”°%µ…•MÑ…Ð)¥µÁ½ÉÐÍåÌ()¥µ…”€ô%µ…”¹½Á•¸¡ÍåÌ¹…ÉÙlÅt¤¹½¹Ù•ÉÐ ‰Iˆ¤)¥˜¥µ…”¹Ý¥‘Ñ €ð€ÈÀÀ½È¥µ…”¹¡•¥¡Ð€ð€ÐÀÀè(€€€É…¥Í”MåÍÑ•µá¥Ð ‰9=I51}!=5}I5}%9Y1%ˆ¤()‘•˜É½À¡à°ä°Ü° ¤è(€€€É•ÑÕÉ¸¥µ…”¹É½À  (€€€€€€€¥¹Ð¡¥µ…”¹Ý¥‘Ñ €¨à¤°(€€€€€€€¥¹Ð¡¥µ…”¹¡•¥¡Ð€¨ä¤°(€€€€€€€¥¹Ð¡¥µ…”¹Ý¥‘Ñ €¨€¡à€¬Ü¤¤°(€€€€€€€¥¹Ð¡¥µ…”¹¡•¥¡Ð€¨€¡ä€¬ ¤¤°(€€€€¤¤((ŒQ¡”ÍÉ••¸µÕÍÐ‰”Ñ¡”9½Éµ…°!½µ”‘…Ñ„Á…”°¹½Ðµ•É•±ä…¹äÉ•ÍÕµ•(Œ…Ñ¥Ù¥Ñä¸Q¡”‰±Õ”½É…ä±…­”…¹Á¡½Ñ½É…Á¡¥Œ!•É¼É•©•ÐÑ¡”A$Èà±…Õ¹¡•È(ŒÝ…±±Á…Á•ÈÑ¡…ÐÁÉ•Ù¥½ÕÍ±äÁ…ÍÍ•Ñ¡”±½½Í”ÍÁÉ•…µ½¹±ä¡•¬¸)‰…­É½Õ¹€ôÉ½À À¸ÀÐ°€À¸ÄØ°€À¸äÈ°€À¸Äà¤)…É‘}Á¡½Ñ¼€ôÉ½À À¸Äà°€À¸ÌÌ°€À¸ØÐ°€À¸Èà¤)‰}ÍÑ…Ð€ô%µ…•MÑ…Ð¹MÑ…Ð¡‰…­É½Õ¹¤)…É‘}ÍÑ…Ð€ô%µ…•MÑ…Ð¹MÑ…Ð¡…É‘}Á¡½Ñ¼¤)‰}ÍÁÉ•…€ôÍÕ´¡‰}ÍÑ…Ð¹ÍÑ‘‘•Ø¤€¼€Ì¸À)…É‘}ÍÁÉ•…€ôÍÕ´¡…É‘}ÍÑ…Ð¹ÍÑ‘‘•Ø¤€¼€Ì¸À)‰}µ•…¸€ôÍÕ´¡‰}ÍÑ…Ð¹µ•…¸¤€¼€Ì¸À)…É‘}µ•…¸€ôÍÕ´¡…É‘}ÍÑ…Ð¹µ•…¸¤€¼€Ì¸À)±…­•}‰±Õ•}½Ù•É}É•€ô‰}ÍÑ…Ð¹µ•…¹lÉt€´‰}ÍÑ…Ð¹µ•…¹lÁt)ÁÉ¥¹Ð (€€€€‰9=I51}!=5}I9I}I%9ML€ˆ(€€€˜‰‰}µ•…¸õí‰}µ•…¸è¸É™ô‰}ÍÁÉ•…õí‰}ÍÁÉ•…è¸É™ô€ˆ(€€€˜‰±…­•}‰±Õ•}½Ù•É}É•õí±…­•}‰±Õ•}½Ù•É}É•è¸É™ô€ˆ(€€€˜‰…É‘}µ•…¸õí…É‘}µ•…¸è¸É™ô…É‘}ÍÁÉ•…õí…É‘}ÍÁÉ•…è¸É™ôˆ(¤)¥˜±…­•}‰±Õ•}½Ù•É}É•€ð€Ø¸À½È…É‘}ÍÁÉ•…€ð€ÌÔ¸À½È…É‘}µ•…¸€ø€ÈÈÔ¸Àè(€€€É…¥Í”MåÍÑ•µá¥Ð ‰9=I51}!=5}I9I}9=Q}MQQ1ˆ¤)Ad(€€€€€€€Ñ¡•¸(€€€€€€€€€ÁÉ¥¹Ñ˜€9=I51}!=5}I9I}Id…ÑÑ•µÁÐô•Íq¸œ€ˆ‘É•¹‘•É}…ÑÑ•µÁÐˆ(€€€€€€€€€É•ÑÕÉ¸€À(€€€€€€€™¤(€€€€€€€ÁÉ¥¹Ñ˜€9=I51}!=5}I9I}MQQ1…ÑÑ•µÁÐô•Íq¸œ€ˆ‘É•¹‘•É}…ÑÑ•µÁÐˆ(€€€€€€€Í±••À€Ä(€€€€€‘½¹”(€€€€€•¡¼€9=I51}!=5}I9I}9=Q}Idœ€ø˜È(€€€€€É•ÑÕÉ¸€Ä(€€€™¤(€€€Í±••À€Ä(€‘½¹”(€•¡¼€9=I51}!=5}Q%Y%Qe}9=Q}Idœ€ø˜È(€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘eU)%9}Y%9}%H½¹½Éµ…°µ¡½µ”µØÄ½½¹Ñ•¹Ñ}¹½Ñ}É•…‘ä¹Á¹œˆñðÑÉÕ”(€É•ÑÕÉ¸€Ä)ô()¹½Éµ…±}¡½µ•}…ÁÑÕÉ•}•á…Ð ¤ì(€±½…°Á…Ñ ôˆÄˆÝ¥‘Ñ ôˆÈˆ¡•¥¡ÐôˆÌˆ(€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘Á…Ñ ˆ(€ÁåÑ¡½¸Ì€´€ˆ‘Á…Ñ ˆ€ˆ‘Ý¥‘Ñ ˆ€ˆ‘¡•¥¡Ðˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”)¥µÁ½ÉÐÍåÌ)Á…Ñ °•áÁ•Ñ•‘}Ü°•áÁ•Ñ•‘} €ôÍåÌ¹…ÉÙlÅt°¥¹Ð¡ÍåÌ¹…ÉÙlÉt¤°¥¹Ð¡ÍåÌ¹…ÉÙlÍt¤)Ý¥Ñ %µ…”¹½Á•¸¡Á…Ñ ¤…Ì¥µ…”è(€€€…ÑÕ…°€ô¥µ…”¹Í¥é”)ÁÉ¥¹Ð¡˜‰MI9M!=Q}%59M%=9L™¥±”õíÁ…Ñ¡ô…ÑÕ…°õí…ÑÕ…±lÁuõáí…ÑÕ…±lÅuô•áÁ•Ñ•õí•áÁ•Ñ•‘}Ýõáí•áÁ•Ñ•‘}¡ôˆ¤)¥˜…ÑÕ…°€„ô€¡•áÁ•Ñ•‘}Ü°•áÁ•Ñ•‘} ¤è(€€€É…¥Í”MåÍÑ•µá¥Ð ÄÀ¤)Ad)ô()¹½Éµ…±}¡½µ•}ÁÉ•Á…É•}±½¹}‘¥ÍÁ±…ä ¤ì(€±½…°Í•ÑÕÁ}±½œôˆ‘eU)%9}Y%9}%H½¥¹™É„½±½¹}ÍÉ••¹}‘•Ù¥•}Í•ÑÕÀ¹±½œˆ(€±½…°ÁÉ½‰”ôˆ‘eU)%9}Y%9}%H½¥¹™É„½±½¹}ÍÉ••¹}ÁÉ½‰”¹Á¹œˆ(€±½…°…ÑÕ…°Í•É¥…°…Ù‘}¹…µ”•µÕ±…Ñ½É}‰¥¸•µÕ±…Ñ½É}±½œ…ÑÑ•µÁÐ‰½½Ð…Á¤(€µ­‘¥È€µÀ€ˆ¡‘¥É¹…µ”€ˆ‘Í•ÑÕÁ}±½œˆ¤ˆ(€€è€ø€ˆ‘Í•ÑÕÁ}±½œˆ(€€ˆ‘eU)%9}	}	%8ˆÍ¡•±°Ý´Í¥é”€ÄÀàÁàÈÌÐÀ€øø€ˆ‘Í•ÑÕÁ}±½œˆ€Èø˜ÄñðÑÉÕ”(€€ˆ‘eU)%9}	}	%8ˆ•á•Œµ½ÕÐÍÉ••¹…À€µÀ€ø€ˆ‘ÁÉ½‰”ˆ€Èøø€ˆ‘Í•ÑÕÁ}±½œˆñðÑÉÕ”(€…ÑÕ…°ôˆ¡ÁåÑ¡½¸Ì€´€ˆ‘ÁÉ½‰”ˆ€ððAdœ)™É½´A%0¥µÁ½ÉÐ%µ…”)¥µÁ½ÉÐÍåÌ)ÑÉäè(€€€Ý¥Ñ %µ…”¹½Á•¸¡ÍåÌ¹…ÉÙlÅt¤…Ì¥µ…”è(€€€€€€€ÁÉ¥¹Ð¡˜‰í¥µ…”¹Ý¥‘Ñ¡õáí¥µ…”¹¡•¥¡Ñôˆ¤)•á•ÁÐá•ÁÑ¥½¸è(€€€ÁÉ¥¹Ð ‰Õ¹…Ù…¥±…‰±”ˆ¤)Ad(¤ˆ(€ÁÉ¥¹Ñ˜€Ýµ}Í¥é•}…ÁÑÕËŽûòÚ$z{-®éÜj×home_background_source.png"
+#!/usr/bin/env bash
+
+gate_test_classes() {
+  printf '%s\n' 'com.yujian.ai.ui.home.NormalHomeRealPhotoProbeTest,com.yujian.ai.ui.components.HomeEvidenceBitmapTest,com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.home.NormalHomeMotionEvidenceTest'
+}
+
+gate_before_instrumentation() {
+  "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
+}
+
+gate_after_instrumentation() {
+  local output_dir="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
+  mkdir -p "$output_dir"
+  "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
+    NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \
+    > "$output_dir/normal-home-motion-instrumentation.log" 2>&1 || true
+}
+
+normal_home_run_seed() {
+  local method="$1"
+  local log="$2"
+  timeout 60s "$YUJIAN_ADB_BIN" shell am instrument -w -r \
+    -e class "com.yujian.ai.HomeVisualEvidenceSeedTest#$method" \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$log" 2>&1
+  local rc=$?
+  if (( rc != 0 )) || grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process (crashed|has died)|Process .* (crashed|has died)|shortMsg=Process crashed' "$log"; then
+    cat "$log" >&2
+    return 1
+  fi
+  grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \([0-9]+ test' "$log"
+}
+
+normal_home_launch_app() {
+  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
+  "$YUJIAN_ADB_BIN" shell monkey -p "$YUJIAN_APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null
+
+  local attempt resumed pid
+  for attempt in $(seq 1 20); do
+    resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
+    pid="$("$YUJIAN_ADB_BIN" shell pidof "$YUJIAN_APP_PACKAGE" 2>/dev/null | tr -d '\r' || true)"
+    printf 'NORMAL_HOME_ACTIVITY_READINESS attempt=%s resumed=%s pid=%s\n' "$attempt" "$resumed" "$pid"
+    if [[ "$resumed" == *"$YUJIAN_APP_PACKAGE/com.yujian.ai.MainActivity"* && "$pid" =~ [0-9] ]]; then
+      # UIAutomator's Compose bridge is unreliable and can hang on API 28.
+      # Wait on real rendered pixels instead. Normal Home intentionally loads
+      # its scene/card/photo assets asynchronously, so an Activity-resumed
+      # signal alone is not sufficient evidence that the production frame is
+      # ready for a frozen-parity capture.
+      local candidate="$YUJIAN_EVIDENCE_DIR/normal-home-v1/render_readiness.png"
+      local render_attempt
+      for render_attempt in $(seq 1 20); do
+        "$YUJIAN_ADB_BIN" exec-out screencap -p > "$candidate"
+        local fatal_runtime
+        fatal_runtime="$("$YUJIAN_ADB_BIN" logcat -d -v brief -s AndroidRuntime:E 2>/dev/null | grep -E 'FATAL EXCEPTION|Process: com\.yujian\.ai' | tail -n 4 || true)"
+        if [[ -n "$fatal_runtime" ]]; then
+          printf 'NORMAL_HOME_APP_CRASH_DETECTED\n%s\n' "$fatal_runtime" >&2
+          return 1
+        fi
+        if python3 - "$candidate" <<'PY'
+from PIL import Image, ImageStat
+import sys
+
+image = Image.open(sys.argv[1]).convert("RGB")
+if image.width < 200 or image.height < 400:
+    raise SystemExit("NORMAL_HOME_FRAME_INVALID")
+
+def crop(x, y, w, h):
+    return image.crop((
+        int(image.width * x),
+        int(image.height * y),
+        int(image.width * (x + w)),
+        int(image.height * (y + h)),
+    ))
+
+# The screen must be the Normal Home data page, not merely any resumed
+# activity. The blue/gray lake and photographic Hero reject the API28 launcher
+# wallpaper that previously passed the loose spread-only check.
+background = crop(0.04, 0.16, 0.92, 0.18)
+card_photo = crop(0.18, 0.33, 0.64, 0.28)
+bg_stat = ImageStat.Stat(background)
+card_stat = ImageStat.Stat(card_photo)
+bg_spread = sum(bg_stat.stddev) / 3.0
+card_spread = sum(card_stat.stddev) / 3.0
+bg_mean = sum(bg_stat.mean) / 3.0
+card_mean = sum(card_stat.mean) / 3.0
+lake_blue_over_red = bg_stat.mean[2] - bg_stat.mean[0]
+print(
+    "NORMAL_HOME_RENDER_READINESS "
+    f"bg_mean={bg_mean:.2f} bg_spread={bg_spread:.2f} "
+    f"lake_blue_over_red={lake_blue_over_red:.2f} "
+    f"card_mean={card_mean:.2f} card_spread={card_spread:.2f}"
+)
+if lake_blue_over_red < 6.0 or card_spread < 35.0 or card_mean > 225.0:
+    raise SystemExit("NORMAL_HOME_RENDER_NOT_SETTLED")
+PY
+        then
+          printf 'NORMAL_HOME_RENDER_READY attempt=%s\n' "$render_attempt"
+          return 0
+        fi
+        printf 'NORMAL_HOME_RENDER_SETTLE attempt=%s\n' "$render_attempt"
+        sleep 1
+      done
+      echo 'NORMAL_HOME_RENDER_NOT_READY' >&2
+      return 1
+    fi
+    sleep 1
+  done
+  echo 'NORMAL_HOME_ACTIVITY_NOT_READY' >&2
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$YUJIAN_EVIDENCE_DIR/normal-home-v1/content_not_ready.png" || true
+  return 1
+}
+
+normal_home_capture_exact() {
+  local path="$1" width="$2" height="$3"
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$path"
+  python3 - "$path" "$width" "$height" <<'PY'
+from PIL import Image
+import sys
+path, expected_w, expected_h = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+with Image.open(path) as image:
+    actual = image.size
+print(f"SCREENSHOT_DIMENSIONS file={path} actual={actual[0]}x{actual[1]} expected={expected_w}x{expected_h}")
+if actual != (expected_w, expected_h):
+    raise SystemExit(10)
+PY
+}
+
+normal_home_prepare_long_display() {
+  local setup_log="$YUJIAN_EVIDENCE_DIR/infra/long_screen_device_setup.log"
+  local probe="$YUJIAN_EVIDENCE_DIR/infra/long_screen_probe.png"
+  local actual serial avd_name emulator_bin emulator_log attempt boot api
+  mkdir -p "$(dirname "$setup_log")"
+  : > "$setup_log"
+  "$YUJIAN_ADB_BIN" shell wm size 1080x2340 >> "$setup_log" 2>&1 || true
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$probe" 2>> "$setup_log" || true
+  actual="$(python3 - "$probe" <<'PY'
+from PIL import Image
+import sys
+try:
+    with Image.open(sys.argv[1]) as image:
+        print(f"{image.width}x{image.height}")
+except Exception:
+    print("unavailable")
+PY
+)"
+  printf 'wm_size_capture_probe=%s\n' "$actual" | tee -a "$setup_log"
+  if [[ "$actual" == "1080x2340" ]]; then
+    return 0
+  fi
+
+  serial="$("$YUJIAN_ADB_BIN" get-serialno 2>/dev/null | tr -d '\r' || true)"
+  avd_name="$("$YUJIAN_ADB_BIN" shell getprop qemu.avd_name 2>/dev/null | tr -d '\r' || true)"
+  local startup_log="$YUJIAN_EVIDENCE_DIR/infra/emulator.log"
+  local sdk_root
+  if [[ -z "$avd_name" && "$serial" == emulator-* ]]; then
+    local avd_console
+    avd_console="$("$YUJIAN_ADB_BIN" -s "$serial" emu avd name 2>/dev/null | tr -d '\r' || true)"
+    avd_name="$(printf '%s\n' "$avd_console" | sed -E '/^[[:space:]]*OK[[:space:]]*$/d; /^[[:space:]]*$/d; s/^[[:space:]]*Name:[[:space:]]*//' | tail -n 1)"
+    printf 'resolved_avd_name=%s source=adb_emulator_console\n' "$avd_name" | tee -a "$setup_log"
+  fi
+  if [[ -z "$avd_name" && -s "$startup_log" ]]; then
+    avd_name="$(sed -nE 's/.*qemu\.avd_name=([^[:space:]]+).*/\1/p' "$startup_log" | tail -n 1)"
+    if [[ -z "$avd_name" ]]; then
+      avd_name="$(sed -nE 's/.*requirements to run avd: `([^`]+)`.*/\1/p' "$startup_log" | tail -n 1)"
+    fi
+    printf 'resolved_avd_name=%s source=%s\n' "$avd_name" "$startup_log" | tee -a "$setup_log"
+  fi
+  sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+  emulator_bin=""
+  if [[ -n "$sdk_root" && -x "$sdk_root/emulator/emulator" ]]; then
+    emulator_bin="$sdk_root/emulator/emulator"
+  else
+    local emulator_candidate
+    emulator_candidate="$(command -v emulator || true)"
+    if [[ -n "$emulator_candidate" && -x "$emulator_candidate" ]]; then
+      emulator_bin="$emulator_candidate"
+    fi
+  fi
+  if [[ "$serial" != emulator-* || -z "$avd_name" || -z "$emulator_bin" ]]; then
+    printf 'LONG_SCREEN_NATIVE_PROFILE_UNAVAILABLE serial=%s avd=%s emulator=%s\n' \
+      "$serial" "$avd_name" "$emulator_bin" | tee -a "$setup_log"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+
+  emulator_log="$YUJIAN_EVIDENCE_DIR/infra/emulator_long_screen.log"
+  printf 'restart_serial=%s avd=%s skin=1080x2340\n' "$serial" "$avd_name" | tee -a "$setup_log"
+  "$YUJIAN_ADB_BIN" -s "$serial" emu kill >> "$setup_log" 2>&1 || true
+  for attempt in $(seq 1 30); do
+    if ! "$YUJIAN_ADB_BIN" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
+      break
+    fi
+    sleep 1
+  done
+  nohup "$emulator_bin" -avd "$avd_name" -no-snapshot -no-window \
+    -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
+    -partition-size 4096 -skin 1080x2340 > "$emulator_log" 2>&1 &
+  printf 'restarted_emulator_pid=%s\n' "$!" | tee -a "$setup_log"
+  timeout 120s "$YUJIAN_ADB_BIN" wait-for-device >> "$setup_log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  boot=0
+  for attempt in $(seq 1 60); do
+    api="$("$YUJIAN_ADB_BIN" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+    if [[ "$("$YUJIAN_ADB_BIN" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)" == "1" && "$api" == "28" ]]; then
+      boot=1
+      break
+    fi
+    sleep 2
+  done
+  if (( boot != 1 )); then
+    printf 'LONG_SCREEN_EMULATOR_BOOT_FAILED api=%s\n' "$api" | tee -a "$setup_log"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+
+  # Preserve the runner's previous logical profile after the wider native skin
+  # has supplied a real 1080x2340 capture surface for this job.
+  original_override="1080x1920"
+  "$YUJIAN_ADB_BIN" shell wm size reset >> "$setup_log" 2>&1 || true
+  "$YUJIAN_ADB_BIN" shell wm density 480 >> "$setup_log" 2>&1 || true
+  "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >> "$setup_log" 2>&1 || true
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$probe" 2>> "$setup_log" || true
+  actual="$(python3 - "$probe" <<'PY'
+from PIL import Image
+import sys
+try:
+    with Image.open(sys.argv[1]) as image:
+        print(f"{image.width}x{image.height}")
+except Exception:
+    print("unavailable")
+PY
+)"
+  printf 'native_skin_capture_probe=%s\n' "$actual" | tee -a "$setup_log"
+  if [[ "$actual" != "1080x2340" ]]; then
+    tail -n 80 "$emulator_log" >> "$setup_log" 2>&1 || true
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  return 0
+}
+
+normal_home_write_profile_record() {
+  local screenshot="$1" profile="$2" size="$3" scale="$4" status="$5" reason="$6"
+  local output="$YUJIAN_EVIDENCE_DIR/normal-home-v1/normal_home_profile_${profile}.json"
+  python3 - "$screenshot" "$output" "$BUILD_SHA" "$profile" "$size" "$scale" \
+    "$YUJIAN_ADB_BIN" "$YUJIAN_APP_APK" "$status" "$reason" <<'PY'
+import hashlib, json, pathlib, subprocess, sys
+from PIL import Image
+image_path, output, build_sha, profile, size, font_scale, adb, apk, status, reason = sys.argv[1:]
+def shell(*args):
+    return subprocess.check_output([adb, "shell", *args], text=True).strip().replace("\r", "")
+with Image.open(image_path) as image:
+    dimensions = list(image.size)
+payload = {
+    "profile_id": profile,
+    "status": status,
+    "reason": reason or None,
+    "page_state": "NORMAL_HOME_DATA",
+    "account_state": "GUEST",
+    "api_level": shell("getprop", "ro.build.version.sdk"),
+    "device": shell("getprop", "ro.product.model"),
+    "device_serial": subprocess.check_output([adb, "get-serialno"], text=True).strip(),
+    "resolution_override": size,
+    "reported_wm_size": shell("wm", "size"),
+    "density_dpi": 480,
+    "font_scale": float(font_scale),
+    "motion_settings": {
+        "animator_duration_scale": shell("settings", "get", "global", "animator_duration_scale"),
+        "transition_animation_scale": shell("settings", "get", "global", "transition_animation_scale"),
+        "window_animation_scale": shell("settings", "get", "global", "window_animation_scale"),
+    },
+    "apk_sha256": hashlib.sha256(pathlib.Path(apk).read_bytes()).hexdigest(),
+    "source_commit": build_sha,
+    "screenshot": {
+        "path": pathlib.Path(image_path).name,
+        "sha256": hashlib.sha256(pathlib.Path(image_path).read_bytes()).hexdigest(),
+        "dimensions": dimensions,
+        "native_capture": True,
+    },
+    "window_metrics_log": pathlib.Path(output).with_name(f"normal_home_profile_{profile}_metrics.log").name,
+    "window_dump": pathlib.Path(output).with_name(f"normal_home_profile_{profile}_window.txt").name,
+}
+pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+print(json.dumps(payload, ensure_ascii=False))
+PY
+}
+
+normal_home_write_blocked_profile_record() {
+  local profile="$1" size="$2" scale="$3" reason="$4"
+  local output="$YUJIAN_EVIDENCE_DIR/normal-home-v1/normal_home_profile_${profile}.json"
+  python3 - "$output" "$BUILD_SHA" "$profile" "$size" "$scale" "$reason" <<'PY'
+import json, pathlib, sys
+output, build_sha, profile, size, font_scale, reason = sys.argv[1:]
+payload = {
+    "profile_id": profile,
+    "status": "BLOCKED_INFRA",
+    "reason": reason,
+    "page_state": "NORMAL_HOME_DATA",
+    "account_state": "GUEST",
+    "requested_resolution": size,
+    "font_scale": float(font_scale),
+    "source_commit": build_sha,
+    "screenshot": None,
+}
+pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+print(json.dumps(payload, ensure_ascii=False))
+PY
+}
+
+normal_home_blocked_dimension() {
+  local size="$1"
+  "$YUJIAN_ADB_BIN" shell wm size reset || true
+  runtime_set_failure "PREFLIGHT" "DEVICE_CANNOT_CAPTURE_${size}"
+  return "$EXIT_BLOCKED_INFRA"
+}
+
+normal_home_capture_runtime_profile() {
+  local profile="$1" size="$2" scale="$3"
+  local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
+  local screenshot="$out/normal_home_runtime_${profile}.png"
+  local test_log="$out/normal_home_profile_${profile}_instrumentation.log"
+  local insets_log="$out/normal_home_profile_${profile}_insets_instrumentation.log"
+  local metrics_log="$out/normal_home_profile_${profile}_metrics.log"
+  local window_dump="$out/normal_home_profile_${profile}_window.txt"
+  local launch_log="$out/normal_home_profile_${profile}_launch.log"
+  local rc capture_rc launch_rc
+
+  if [[ "$size" == "1080x2340" ]]; then
+    local prepare_rc=0
+    normal_home_prepare_long_display || prepare_rc=$?
+    if (( prepare_rc == EXIT_BLOCKED_INFRA )); then
+      normal_home_write_blocked_profile_record "$profile" "$size" "$scale" \
+        "A native 1080x2340 API28 display could not be provisioned; see infra/long_screen_device_setup.log."
+      return "$EXIT_BLOCKED_INFRA"
+    elif (( prepare_rc != 0 )); then
+      return "$prepare_rc"
+    fi
+  fi
+
+  "$YUJIAN_ADB_BIN" shell wm size "$size" > "$out/normal_home_profile_${profile}_wm_size.log" 2>&1
+  "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put system font_scale "$scale" >/dev/null
+  # Frozen pixel masks compare the neutral design frame. Motion is captured
+  # separately below with the platform animation scales restored to 1.
+  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null
+  "$YUJIAN_ADB_BIN" shell am force-stop "$YUJIAN_APP_PACKAGE"
+  "$YUJIAN_ADB_BIN" logcat -c
+
+  local profile_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#differentPortraitRatiosShareCoverViewportAndPreserveHomeDataAndRoutes'
+  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r -e class "$profile_class" \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$test_log" 2>&1
+  local rc=$?
+  if (( rc != 0 )) || ! grep -Eq 'OK \([1-9][0-9]* tests?\)' "$test_log"; then
+    cat "$test_log" >&2
+    return 1
+  fi
+
+  local insets_class='com.yujian.ai.ui.home.NormalHomeDataParityTest#edgeToEdgeNormalHomeUsesOneWindowOriginAndReportsInsets'
+  timeout 180s "$YUJIAN_ADB_BIN" shell am instrument -w -r -e class "$insets_class" \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$insets_log" 2>&1
+  rc=$?
+  if (( rc != 0 )) || ! grep -Eq 'OK \([1-9][0-9]* tests?\)' "$insets_log"; then
+    cat "$insets_log" >&2
+    return 1
+  fi
+
+  # Save real hierarchy/text metrics from the instrumentation activity before
+  # the runtime page is relaunched for the screenshot.
+  "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
+    NORMAL_HOME_HIERARCHY_EVIDENCE:I NORMAL_HOME_WINDOW_METRICS:I NORMAL_HOME_TEXT_LAYOUT:I \
+    > "$metrics_log" 2>&1 || return 1
+  "$YUJIAN_ADB_BIN" shell dumpsys window > "$window_dump" 2>&1 || return 1
+
+  normal_home_launch_app > "$launch_log" 2>&1
+  launch_rc=$?
+  if (( launch_rc != 0 )); then
+    if [[ "$size" == "1080x2340" ]]; then
+      if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>/dev/null; then
+        normal_home_write_profile_record "$screenshot" "$profile" "$size" "$scale" \
+          "BLOCKED_INFRA" "The runtime page did not settle at the requested long-screen profile; see native screenshot and launch log."
+      else
+        normal_home_write_blocked_profile_record "$profile" "$size" "$scale" \
+          "The API28 emulator became unavailable during native long-screen capture; see infra/long_screen_device_setup.log."
+      fi
+      return "$EXIT_BLOCKED_INFRA"
+    fi
+    "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>/dev/null || return 1
+    cat "$launch_log" >&2
+    return 1
+  fi
+
+  normal_home_capture_exact "$screenshot" "${size%x*}" "${size#*x}"
+  capture_rc=$?
+  if (( capture_rc != 0 )); then
+    if [[ "$size" == "1080x2340" ]]; then
+      normal_home_write_profile_record "$screenshot" "$profile" "$size" "$scale" \
+        "BLOCKED_INFRA" "Native screencap dimensions do not match the requested 1080x2340 device profile."
+      return "$EXIT_BLOCKED_INFRA"
+    fi
+    return 1
+  fi
+
+  normal_home_write_profile_record "$screenshot" "$profile" "$size" "$scale" "CAPTURED" ""
+  printf 'NORMAL_HOME_RUNTIME_PROFILE_PASS profile=%s resolution=%s fontScale=%s\n' "$profile" "$size" "$scale"
+}
+
+gate_collect_evidence() {
+  local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
+  mkdir -p "$out"
+  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 || true
+  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 || true
+  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 || true
+
+  local rc
+  "$YUJIAN_ADB_BIN" shell wm size 1080x1920
+  # Runtime screenshots must use the registered photo fixture. Synthetic
+  # aspect-ratio panels remain useful for layout tests, but are not fish-photo
+  # evidence and must never be used to close the visual Hero gate.
+  local seed_method="${NORMAL_HOME_EVIDENCE_SEED_METHOD:-seedMultipleGuestCatches}"
+  normal_home_run_seed "$seed_method" "$out/seed_${seed_method}.log" || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_launch_app || return "$EXIT_FAIL_EVIDENCE"
+  normal_home_capture_exact "$out/01_normal_home_first_card.png" 1080 1920
+  rc=$?
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
+  normal_home_capture_exact "$out/04_normal_home_runtime_1080x1920.png" 1080 1920
+  rc=$?
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
+  "$YUJIAN_ADB_BIN" shell input swipe 900 1200 180 1200 450
+  sleep 2
+  normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 1920
+  rc=$?
+  if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
+python3 - "$out/01_normal_home_first_card.png" "$out/02_normal_home_second_card.png" <<'PY'
+from PIL import Image, ImageChops
+import sys
+
+first, second = (Image.open(path).convert("RGB") for path in sys.argv[1:])
+difference = ImageChops.difference(first.crop((200, 1180, 880, 1460)), second.crop((200, 1180, 880, 1460)))
+changed_pixels = sum(1 for pixel in difference.getdata() if pixel != (0, 0, 0))
+print(f"NORMAL_HOME_PAGER_FOOTER_CHANGED_PIXELS={changed_pixels}")
+if changed_pixels == 0:
+    raise SystemExit("NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE")
+PY
+  rc=$?
+  if (( rc != 0 )); then
+    runtime_set_failure "EVIDENCE" "NORMAL_HOME_SECOND_PAGE_CAPTURE_DID_NOT_CHANGE"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
+  cp "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/normal_home_v1.png" "$out/03_normal_home_frozen_1080x1920.png"
+  cp "$YUJIAN_REPO_ROOT/app/src/main/assets/normal_home_runtime_v1/static/scene_base.png" "$out/07_normal_home_background_runtime.png"
+  cp "$YUJIAN_REPO_ROOT/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" "$out/06_normal_home_background_source.png"
   # Preserve a strict visual failure, but collect the required native font
   # scale profiles first. Those screenshots and window-coordinate metrics are
   # still useful for a validation APK even when the frozen visual anchors do
