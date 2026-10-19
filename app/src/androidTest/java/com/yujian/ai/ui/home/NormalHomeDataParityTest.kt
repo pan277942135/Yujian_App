@@ -106,9 +106,11 @@ class NormalHomeDataParityTest {
                 )
             }
 
+            // Wait for the active card's image only. The adjacent pager page is
+            // composed for layout, but its image semantics may not be exposed until
+            // that page becomes active on this API 28 profile.
             compose.waitUntil(timeoutMillis = 10_000) {
-                compose.onAllNodesWithContentDescription("鳜鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty() &&
-                    compose.onAllNodesWithContentDescription("黑鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
+                compose.onAllNodesWithContentDescription("黑鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
             }
 
             compose.onNodeWithTag("normal-home-stat-species-value", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("2")
@@ -225,6 +227,9 @@ class NormalHomeDataParityTest {
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
             pager.performTouchInput { swipeLeft() }
+            compose.waitUntil(timeoutMillis = 10_000) {
+                compose.onAllNodesWithContentDescription("鳜鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
+            }
             compose.waitForIdle()
             val secondCardBounds = secondCard.fetchSemanticsNode().boundsInRoot
             val secondMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-bass", useUnmergedTree = true)
