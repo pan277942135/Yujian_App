@@ -123,6 +123,22 @@ try {
   await page.goto(`${baseUrl}/design/manager/nh01_acceptance/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.NH01ViewerModelReady === true, { timeout: 10000 });
   const mobile = await page.evaluate(() => {
+    const box = node => {
+      if (!node) return null;
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return {
+        left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width),
+        computed_width: style.width, min_width: style.minWidth, max_width: style.maxWidth,
+        margin_left: style.marginLeft, padding_left: style.paddingLeft,
+        display: style.display, flex_direction: style.flexDirection, align_items: style.alignItems,
+        box_sizing: style.boxSizing, overflow_wrap: style.overflowWrap
+      };
+    };
+    const main = document.querySelector("main");
+    const heading = document.querySelector(".overview-heading");
+    const headingContent = heading?.firstElementChild || null;
+    const eyebrow = heading?.querySelector(".eyebrow") || null;
     const overflowCandidates = [...document.querySelectorAll("body *")]
       .map(node => {
         const rect = node.getBoundingClientRect();
@@ -145,7 +161,20 @@ try {
     return {
       viewport: innerWidth,
       document: document.documentElement.scrollWidth,
-      overflow_candidates: overflowCandidates
+      overflow_candidates: overflowCandidates,
+      layout_diagnostics: {
+        media_max_560_matches: matchMedia("(max-width: 560px)").matches,
+        body_classes: document.body.className,
+        main: box(main),
+        heading: box(heading),
+        heading_content: box(headingContent),
+        eyebrow: box(eyebrow),
+        stylesheets: [...document.styleSheets].map(sheet => ({
+          href: sheet.href,
+          rule_count: (() => { try { return sheet.cssRules.length; } catch { return null; } })(),
+          last_rule: (() => { try { return sheet.cssRules[sheet.cssRules.length - 1]?.cssText || null; } catch { return null; } })()
+        }))
+      }
     };
   });
   if (mobile.document > mobile.viewport + 1) throw new Error(`Viewer has document-level horizontal overflow on mobile: ${JSON.stringify(mobile)}`);
