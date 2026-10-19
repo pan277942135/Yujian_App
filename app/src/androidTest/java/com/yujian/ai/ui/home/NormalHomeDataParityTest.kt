@@ -684,26 +684,31 @@ class NormalHomeDataParityTest {
             // Allow <= 1.5 physical pixels of fractional typography rounding,
             // but reject omitted text, wrapping, or material clipping.
             val characterGeometryRoundingPx = 1.5f
-            val characterBoxesInsideNode = visibleEnd == text.length &&
+            val characterBoxesFitHorizontallyWithinNode = visibleEnd == text.length &&
                 characterBoxBounds.left >= -characterGeometryRoundingPx &&
-                characterBoxBounds.top >= -characterGeometryRoundingPx &&
-                characterBoxBounds.right <= nodeBounds.width + characterGeometryRoundingPx &&
-                characterBoxBounds.bottom <= nodeBounds.height + characterGeometryRoundingPx
-            val characterBoxesInsideParent =
+                characterBoxBounds.right <= nodeBounds.width + characterGeometryRoundingPx
+            val characterBoxesFitHorizontallyWithinParent =
                 nodeBounds.left + characterBoxBounds.left >= parentBounds.left - characterGeometryRoundingPx &&
+                nodeBounds.left + characterBoxBounds.right <= parentBounds.right + characterGeometryRoundingPx
+            val characterBoxesFitVerticallyWithinNode = visibleEnd == text.length &&
+                characterBoxBounds.top >= -characterGeometryRoundingPx &&
+                characterBoxBounds.bottom <= nodeBounds.height + characterGeometryRoundingPx
+            val characterBoxesFitVerticallyWithinParent =
                 nodeBounds.top + characterBoxBounds.top >= parentBounds.top - characterGeometryRoundingPx &&
-                nodeBounds.left + characterBoxBounds.right <= parentBounds.right + characterGeometryRoundingPx &&
-                nodeBounds.top + characterBoxBounds.bottom <= parentBounds.bottom + characterGeometryRoundingPx
-            val measuredGlyphsFit = characterBoxesInsideNode && characterBoxesInsideParent
+                    nodeBounds.top + characterBoxBounds.bottom <= parentBounds.bottom + characterGeometryRoundingPx
+            val measuredGlyphsFitHorizontally =
+                characterBoxesFitHorizontallyWithinNode && characterBoxesFitHorizontallyWithinParent
+            val measuredGlyphsFitVertically =
+                characterBoxesFitVerticallyWithinNode && characterBoxesFitVerticallyWithinParent
             assertTrue(
                 "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth} " +
                     "characterBoxes=$characterBoxBounds node=$nodeBounds",
-                !layout.didOverflowWidth || brandRasterFitsContainers || measuredGlyphsFit,
+                !layout.didOverflowWidth || brandRasterFitsContainers || measuredGlyphsFitHorizontally,
             )
             assertTrue(
                 "$tag has vertical overflow outside its raster container: didOverflowHeight=${layout.didOverflowHeight} " +
                     "characterBoxes=$characterBoxBounds node=$nodeBounds",
-                !layout.didOverflowHeight || brandRasterFitsContainers || measuredGlyphsFit,
+                !layout.didOverflowHeight || brandRasterFitsContainers || measuredGlyphsFitVertically,
             )
         }
         assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
@@ -911,6 +916,14 @@ class NormalHomeDataParityTest {
                 .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
             val hero = compose.onNodeWithTag("normal-home-catch-pager")
+            scroll.performTouchInput {
+                swipeDown(
+                    startY = height * 0.08f,
+                    endY = height * 0.92f,
+                    durationMillis = 500,
+                )
+            }
+            compose.waitForIdle()
             val heroBeforeScroll = hero.fetchSemanticsNode()
             scroll.performTouchInput {
                 swipeUp(
