@@ -151,6 +151,12 @@ PY
   avd_name="$("$YUJIAN_ADB_BIN" shell getprop qemu.avd_name 2>/dev/null | tr -d '\r' || true)"
   local startup_log="$YUJIAN_EVIDENCE_DIR/infra/emulator.log"
   local sdk_root
+  if [[ -z "$avd_name" && "$serial" == emulator-* ]]; then
+    local avd_console
+    avd_console="$("$YUJIAN_ADB_BIN" -s "$serial" emu avd name 2>/dev/null | tr -d '\r' || true)"
+    avd_name="$(printf '%s\n' "$avd_console" | sed -E '/^[[:space:]]*OK[[:space:]]*$/d; /^[[:space:]]*$/d; s/^[[:space:]]*Name:[[:space:]]*//' | tail -n 1)"
+    printf 'resolved_avd_name=%s source=adb_emulator_console\n' "$avd_name" | tee -a "$setup_log"
+  fi
   if [[ -z "$avd_name" && -s "$startup_log" ]]; then
     avd_name="$(sed -nE 's/.*qemu\.avd_name=([^[:space:]]+).*/\1/p' "$startup_log" | tail -n 1)"
     if [[ -z "$avd_name" ]]; then
@@ -158,10 +164,16 @@ PY
     fi
     printf 'resolved_avd_name=%s source=%s\n' "$avd_name" "$startup_log" | tee -a "$setup_log"
   fi
-  emulator_bin="$(command -v emulator || true)"
   sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-  if [[ -z "$emulator_bin" && -n "$sdk_root" && -x "$sdk_root/emulator/emulator" ]]; then
+  emulator_bin=""
+  if [[ -n "$sdk_root" && -x "$sdk_root/emulator/emulator" ]]; then
     emulator_bin="$sdk_root/emulator/emulator"
+  else
+    local emulator_candidate
+    emulator_candidate="$(command -v emulator || true)"
+    if [[ -n "$emulator_candidate" && -x "$emulator_candidate" ]]; then
+      emulator_bin="$emulator_candidate"
+    fi
   fi
   if [[ "$serial" != emulator-* || -z "$avd_name" || -z "$emulator_bin" ]]; then
     printf 'LONG_SCREEN_NATIVE_PROFILE_UNAVAILABLE serial=%s avd=%s emulator=%s\n' \
