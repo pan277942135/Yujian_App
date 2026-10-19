@@ -32,6 +32,12 @@ def main() -> int:
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.insets_dump.parent.mkdir(parents=True, exist_ok=True)
+    acceleration = os.environ.get("NH01_EMULATOR_ACCELERATION", "unknown")
+    kvm_preflight = {
+        "status": os.environ.get("NH01_KVM_PREFLIGHT_STATUS", "NOT_RUN"),
+        "source_run_id": os.environ.get("NH01_KVM_PREFLIGHT_RUN_ID"),
+        "source_sha": os.environ.get("NH01_KVM_PREFLIGHT_SOURCE_SHA"),
+    }
     def write_unavailable() -> int:
         payload = {
             "profile": "Pixel 2",
@@ -41,6 +47,8 @@ def main() -> int:
             "density_scale": None,
             "insets_px": None,
             "runner": os.environ.get("RUNNER_NAME"),
+            "emulator_acceleration": acceleration,
+            "kvm_preflight": kvm_preflight,
             "device_status": "BLOCKED_INFRA",
             "captured_at_utc": datetime.now(timezone.utc).isoformat(),
         }
@@ -83,6 +91,8 @@ def main() -> int:
         "device_model": model,
         "runner": os.environ.get("RUNNER_NAME"),
         "runner_image": os.environ.get("ImageOS"),
+        "emulator_acceleration": acceleration,
+        "kvm_preflight": kvm_preflight,
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
     }
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

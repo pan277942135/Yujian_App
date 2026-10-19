@@ -78,6 +78,8 @@ def main() -> int:
 
     evidence_root = web_root / "design/manager/nh01_acceptance/evidence" / args.source_sha
     selected_files = [
+        ("infra/hosted_runner_kvm_diagnostic_reference.log", "NH01_KVM_Diagnostic_Reference.log"),
+        ("infra/window_insets_dump.txt", "NH01_Window_Insets_Dump.txt"),
         ("normal-home-v1/01_normal_home_first_card.png", "NH01_Android_FirstCard.png"),
         ("normal-home-v1/04_normal_home_runtime_1080x1920.png", "NH01_Android_Runtime_1080x1920.png"),
         ("normal-home-v1/03_normal_home_frozen_1080x1920.png", "NH01_Frozen_1080x1920.png"),
@@ -189,6 +191,8 @@ def main() -> int:
             "insets_px": device.get("insets_px"),
             "build_fingerprint": device.get("build_fingerprint"),
             "runner": device.get("runner"),
+            "emulator_acceleration": device.get("emulator_acceleration"),
+            "kvm_preflight": device.get("kvm_preflight"),
         },
         "artifacts": {
             "screenshot": copied.get("NH01_Android_Runtime_1080x1920.png"),

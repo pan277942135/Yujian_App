@@ -99,7 +99,7 @@ jobs:
           (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json apk_model_trace.json > SHA256SUMS)
           (cd build/runtime-apks && sha256sum -c SHA256SUMS)
 
-      - name: Single hosted-runner KVM preflight
+      - name: Reuse recorded hosted-runner KVM diagnostic
         id: kvm
         run: |
           set -euo pipefail
@@ -107,28 +107,34 @@ jobs:
           {
             echo "runner=$RUNNER_NAME"
             echo "os=$RUNNER_OS"
-            echo "kernel=$(uname -r)"
-            if [[ -e /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
-              echo "kvm_available=true"
-              echo "available=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "kvm_available=false"
-              echo "available=false" >> "$GITHUB_OUTPUT"
-            fi
-          } | tee "$YUJIAN_RUNTIME_EVIDENCE/infra/hosted_runner_kvm_preflight.log"
+            echo "recorded_kvm_available=false"
+            echo "diagnostic_source_run_id=39187403348"
+            echo "diagnostic_source_sha=0df6f68f3d9a2d9f944f8664e878d59edca84edc"
+            echo "diagnostic_source_url=https://github.com/pan277942135/Yujian_App/actions/runs/39187403348"
+            echo "fallback=software_tcg"
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          } | tee "$YUJIAN_RUNTIME_EVIDENCE/infra/hosted_runner_kvm_diagnostic_reference.log"
 
-      - name: Run existing Normal Home harness on Pixel 2 API 28
+      - name: Run existing Normal Home harness on Pixel 2 API 28 via software TCG
         id: emulator_runtime
-        if: steps.kvm.outputs.available == 'true'
+        if: steps.kvm.outputs.available == 'false'
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          ANDROID_I_WANT_MY_TCG: yes
+          NH01_EMULATOR_ACCELERATION: software_tcg
+          NH01_KVM_PREFLIGHT_STATUS: unavailable
+          NH01_KVM_PREFLIGHT_RUN_ID: "39187403348"
+          NH01_KVM_PREFLIGHT_SOURCE_SHA: "0df6f68f3d9a2d9f944f8664e878d59edca84edc"
         with:
           api-level: 28
           target: default
           arch: x86_64
           profile: pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          disable-linux-hw-accel: true
           disable-animations: true
+          emulator-boot-timeout: 900
           script: |
             set -uo pipefail
             mkdir -p "$YUJIAN_RUNTIME_EVIDENCE/infra"
@@ -158,7 +164,16 @@ jobs:
 
       - name: Record unavailable device metadata if Runner did not start
         if: always()
+        env:
+          NH01_EMULATOR_ACCELERATION: software_tcg
+          NH01_KVM_PREFLIGHT_STATUS: unavailable
+          NH01_KVM_PREFLIGHT_RUN_ID: "39187403348"
+          NH01_KVM_PREFLIGHT_SOURCE_SHA: "0df6f68f3d9a2d9f944f8664e878d59edca84edc"
         run: |
+          if [[ -s "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" ]]; then
+            echo "Preserving captured device metadata."
+            exit 0
+          fi
           python3 scripts/design/capture_nh01_device_metadata.py \
             --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
             --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt" \
@@ -172,7 +187,7 @@ jobs:
           if [[ ! -s "$result" ]]; then
             mkdir -p "$(dirname "$result")"
             if [[ "${{ steps.kvm.outputs.available }}" != "true" ]]; then
-              reason="HOSTED_RUNNER_KVM_UNAVAILABLE"
+              reason="SOFTWARE_TCG_EMULATOR_FAILED_BEFORE_HARNESS"
             else
               reason="EMULATOR_RUNNER_FAILED_BEFORE_HARNESS"
             fi

@@ -50,6 +50,13 @@ try {
   });
   fs.writeFileSync(path.join(outputDir, "NH01_Browser_Bounds.json"), `${JSON.stringify(browserGeometry, null, 2)}\n`);
 
+  // The export-only route has no visible controls. Reopen the interactive
+  // Viewer before exercising navigation and Inspector controls.
+  const interactiveUrl = `${baseUrl}/design/manager/nh01_acceptance/?mode=structured`;
+  const interactiveResponse = await page.goto(interactiveUrl, { waitUntil: "networkidle" });
+  if (!interactiveResponse?.ok()) throw new Error(`Interactive Viewer route failed: ${interactiveResponse?.status()}`);
+  await page.waitForFunction(() => window.NH01ViewerModelReady === true, { timeout: 10000 });
+
   const tabs = await page.locator(".mode-button").evaluateAll(nodes => nodes.map(node => node.dataset.mode));
   for (const mode of ["frozen", "structured", "inspector", "runtime", "compare", "heatmap"]) {
     if (!tabs.includes(mode)) throw new Error(`Missing viewer mode: ${mode}`);

@@ -21,8 +21,14 @@ class Nh01RuntimePackageTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="nh01-runtime-package-") as temp:
             root = Path(temp)
             evidence_dir = root / "evidence"
+            infra_dir = evidence_dir / "infra"
             normal_home = evidence_dir / "normal-home-v1"
+            infra_dir.mkdir(parents=True)
             normal_home.mkdir(parents=True)
+            (infra_dir / "hosted_runner_kvm_diagnostic_reference.log").write_text(
+                "recorded_kvm_available=false\ndiagnostic_source_run_id=39187403348\n",
+                encoding="utf-8",
+            )
             web_root = root / "web"
             data_dir = web_root / "design/manager/nh01_acceptance/data"
             data_dir.mkdir(parents=True)
@@ -46,7 +52,19 @@ class Nh01RuntimePackageTest(unittest.TestCase):
             apk = root / "app-debug.apk"
             apk.write_bytes(b"test-apk-payload")
             device = root / "device.json"
-            device.write_text('{"profile":"Pixel 2","api_level":28}\n', encoding="utf-8")
+            device.write_text(
+                json.dumps({
+                    "profile": "Pixel 2",
+                    "api_level": 28,
+                    "emulator_acceleration": "software_tcg",
+                    "kvm_preflight": {
+                        "status": "unavailable",
+                        "source_run_id": "39187403348",
+                        "source_sha": SOURCE_SHA,
+                    },
+                }) + "\n",
+                encoding="utf-8",
+            )
             artifact_dir = root / "artifact"
 
             subprocess.run(
@@ -72,6 +90,7 @@ class Nh01RuntimePackageTest(unittest.TestCase):
                 "app-debug.apk",
                 "device_metadata.json",
                 "runtime_gate_result.json",
+                "evidence/1234567890abcdef1234567890abcdef12345678/NH01_KVM_Diagnostic_Reference.log",
                 f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920.png",
                 f"evidence/{SOURCE_SHA}/NH01_Android_Bounds.json",
                 f"evidence/{SOURCE_SHA}/private/NH01_Instrumentation.log",
@@ -79,6 +98,9 @@ class Nh01RuntimePackageTest(unittest.TestCase):
             manifest = json.loads((artifact_dir / "NH01_Runtime_Manifest_V1.json").read_text())
             self.assertEqual(manifest["source_sha"], SOURCE_SHA)
             self.assertEqual(manifest["classification"], "BLOCKED_INFRA")
+            self.assertEqual(manifest["device"]["emulator_acceleration"], "software_tcg")
+            self.assertEqual(manifest["device"]["kvm_preflight"]["source_run_id"], "39187403348")
+            self.assertIn("NH01_KVM_Diagnostic_Reference.log", manifest["evidence_files"])
             self.assertIn(f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920.png", manifest["evidence_files"].values())
             self.assertIn(f"evidence/{SOURCE_SHA}/private/NH01_Instrumentation.log", manifest["private_evidence_files"].values())
             self.assertFalse((web_root / "design/manager/nh01_acceptance/evidence" / SOURCE_SHA / "NH01_Instrumentation.log").exists())
@@ -88,6 +110,9 @@ class Nh01RuntimePackageTest(unittest.TestCase):
                 digest, relpath = line.split("  ", 1)
                 checksums[relpath] = digest
             self.assertTrue(expected.issubset(checksums.keys()))
+            viewer_runtime = json.loads((data_dir / "NH01_Android_Runtime_V1.json").read_text())
+            self.assertEqual(viewer_runtime["device"]["emulator_acceleration"], "software_tcg")
+            self.assertEqual(viewer_runtime["device"]["kvm_preflight"]["source_run_id"], "39187403348")
             for relpath in expected:
                 self.assertEqual(
                     hashlib.sha256((artifact_dir / relpath).read_bytes()).hexdigest(),
