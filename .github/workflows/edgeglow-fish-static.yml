@@ -24,7 +24,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: edgeglow-fish-static-pages
+  group: edgeglow-fish-static-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 env:
