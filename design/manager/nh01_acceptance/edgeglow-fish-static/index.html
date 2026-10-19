@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="edgeglow-photo-sha256" content="6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef">
+  <meta name="edgeglow-contour-source" content="MANUAL_REFERENCE_CONTOUR">
+  <title>EdgeGlowView Fish Static Prototype · 渔见</title>
+  <link rel="stylesheet" href="../viewer.css">
+  <link rel="stylesheet" href="./edgeglow.css">
+  <script src="./edgeglow.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand-lockup" href="../" aria-label="返回云端高保真验收中心">
+      <span class="brand-symbol">渔见</span>
+      <span class="brand-caption">DESIGN MANAGER</span>
+    </a>
+    <div class="header-page">
+      <div class="eyebrow">RECOGNITION PROCESSING · STATIC OPTICAL STUDY</div>
+      <h1>EdgeGlowView Fish Static Prototype</h1>
+    </div>
+    <div class="header-meta">
+      <span class="status-pill review">REVIEW_REQUIRED</span>
+      <a class="quiet-button" href="../">返回验收中心</a>
+    </div>
+  </header>
+
+  <main class="edgeglow-main">
+    <section class="workspace-heading edgeglow-heading">
+      <div>
+        <div class="eyebrow">ORIGINAL PHOTO → MANUAL CONTOUR → EDGEGLOWVIEW ADAPTED</div>
+        <h2>鱼体不规则轮廓静态光效</h2>
+        <p>三张画布复用同一原图尺寸和坐标，显示 FIT 不裁切。滑动参数即时重绘；此处的 Path 是人工参考轮廓，不代表生产 FishSubjectResult Mask。</p>
+      </div>
+      <div class="edgeglow-source-stamp" id="sourceStatus" role="status">正在核验照片来源…</div>
+    </section>
+
+    <section class="edgeglow-meta-grid" aria-label="资产和来源">
+      <div class="panel-card metadata-card"><small>PHOTO SOURCE · SHA-256</small><code id="photoSha">6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef</code></div>
+      <div class="panel-card metadata-card"><small>PHOTO · ORIGINAL PIXELS</small><strong id="photoDimensions">1152 × 1536 · EXIF 1 · FIT / NO CROP</strong></div>
+      <div class="panel-card metadata-card"><small>CONTOUR SOURCE</small><strong>MANUAL_REFERENCE_CONTOUR · NOT PRODUCTION MASK</strong></div>
+      <div class="panel-card metadata-card"><small>BUILD</small><code id="buildSha">loading…</code></div>
+    </section>
+
+    <section class="edgeglow-view-grid" aria-label="三个静态光学视图">
+      <article class="panel-card edgeglow-view-card">
+        <header class="panel-heading">
+          <div><span class="eyebrow">VIEW 1</span><h3>Original Photo</h3></div>
+          <span class="status-pill pass">READ ONLY</span>
+        </header>
+        <div class="photo-stage"><canvas id="originalCanvas" width="1152" height="1536" aria-label="原始鱼获照片"></canvas></div>
+        <p class="view-caption">仓库已登记真实鱼获照片；原始比例完整显示。</p>
+      </article>
+
+      <article class="panel-card edgeglow-view-card">
+        <header class="panel-heading">
+          <div><span class="eyebrow">VIEW 2</span><h3>Contour</h3></div>
+          <label class="compact-toggle"><input type="checkbox" id="contourVisible" checked> 显示轮廓</label>
+        </header>
+        <div class="photo-stage"><canvas id="contourCanvas" width="1152" height="1536" aria-label="鱼获照片与人工参考轮廓"></canvas></div>
+        <p class="view-caption">青色路径沿照片可见边缘手工描绘，坐标锁定原图像素。</p>
+      </article>
+
+      <article class="panel-card edgeglow-view-card">
+        <header class="panel-heading">
+          <div><span class="eyebrow">VIEW 3</span><h3>EdgeGlowView Adapted</h3></div>
+          <label class="compare-select">对比
+            <select id="compareMode" aria-label="高亮图与原图的比较方式">
+              <option value="side">并排预览</option>
+              <option value="overlay">50% Overlay</option>
+              <option value="wipe">Before / After Wipe</option>
+            </select>
+          </label>
+        </header>
+        <div class="photo-stage glow-stage">
+          <canvas id="glowCanvas" width="1152" height="1536" aria-label="鱼体多层静态光效"></canvas>
+          <input id="wipePosition" class="wipe-position" type="range" min="5" max="95" value="50" aria-label="擦拭比较位置" hidden>
+        </div>
+        <p class="view-caption" id="comparisonCaption">Outer Bloom · Core Highlight · Static Comet</p>
+      </article>
+    </section>
+
+    <section class="panel-card controls-card">
+      <header class="panel-heading">
+        <div><span class="eyebrow">STATIC CONTROLS</span><h3>光效参数</h3></div>
+        <div class="toolbar">
+          <button class="quiet-button" id="resetButton" type="button">恢复默认参数</button>
+          <button class="quiet-button" id="exportJsonButton" type="button">导出参数 JSON</button>
+          <button class="primary-button" id="exportPngButton" type="button">导出当前 PNG</button>
+        </div>
+      </header>
+      <div class="control-grid">
+        <fieldset>
+          <legend>Outer Bloom · 外层柔光</legend>
+          <label class="check-line"><input id="outerEnabled" type="checkbox" checked> 启用外层柔光</label>
+          <label>宽度 <output id="outerWidthValue">52 px</output><input id="outerWidth" type="range" min="18" max="96" value="52"></label>
+          <label>强度 <output id="outerIntensityValue">72%</output><input id="outerIntensity" type="range" min="0" max="100" value="72"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Core Highlight · 核心描边</legend>
+          <label class="check-line"><input id="coreEnabled" type="checkbox" checked> 启用核心高亮</label>
+          <label>宽度 <output id="coreWidthValue">8 px</output><input id="coreWidth" type="range" min="2" max="22" value="8"></label>
+          <label>强度 <output id="coreIntensityValue">92%</output><input id="coreIntensity" type="range" min="0" max="100" value="92"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Static Comet · 静态光尾</legend>
+          <label class="check-line"><input id="cometEnabled" type="checkbox" checked> 启用静态渐变光尾</label>
+          <label>弧长 <output id="cometLengthValue">14%</output><input id="cometLength" type="range" min="4" max="30" value="14"></label>
+          <label>固定位置 <output id="cometPositionValue">21%</output><input id="cometPosition" type="range" min="0" max="100" value="21"></label>
+          <label>渐变衰减 <output id="cometFalloffValue">1.55</output><input id="cometFalloff" type="range" min="0.5" max="3" step="0.05" value="1.55"></label>
+        </fieldset>
+        <fieldset>
+          <legend>EdgeGlow Color · 渐变颜色</legend>
+          <label class="color-line">冷蓝 <input id="blueColor" type="color" value="#58c8f4"></label>
+          <label class="color-line">暖金 <input id="goldColor" type="color" value="#f2cc78"></label>
+          <label class="color-line">核心白 <input id="coreColor" type="color" value="#fff5d8"></label>
+          <small>颜色沿路径进度映射；光尾颜色与透明度随弧长衰减。</small>
+        </fieldset>
+      </div>
+      <div class="render-note"><strong>绘制层级：</strong>原图 → 宽外层 Bloom → 柔化 Mid Glow → Path 渐变 Core → 沿同一 SVG Path 弧长采样的 Static Comet。此页面使用浏览器 Canvas 2D；Blur/合成与 Android Canvas 不等价。</div>
+    </section>
+
+    <section class="edgeglow-footer-grid">
+      <article class="panel-card">
+        <span class="eyebrow">SOURCE CONTRACT</span>
+        <p><strong>照片：</strong><code>design/system/fish_media_display_v1/assets/real_catch_source.jpg</code></p>
+        <p><strong>轮廓：</strong><code>MANUAL_REFERENCE_CONTOUR</code>，坐标范围 1152×1536 原图像素，FIT 保持全图不裁切。</p>
+        <p><strong>上游：</strong><a href="https://github.com/yu-day/EdgeGlowView/tree/46ce28221ed30bcd7763ff13ecdd96171756eb60" target="_blank" rel="noreferrer">EdgeGlowView @ 46ce282</a> · MIT · Copyright (c) 2025 WANG YU.</p>
+      </article>
+      <article class="panel-card">
+        <span class="eyebrow">OPEN ACCEPTANCE ITEMS</span>
+        <p>人工轮廓需要视觉审查；生产 Mask 未验证。</p>
+        <p>光晕、抗锯齿和混色只在浏览器验证；Android API 28 Runtime 为 <strong>NOT_RUN</strong>。</p>
+        <p>视觉质量为 <strong>REVIEW_REQUIRED</strong>，自动化交互测试不代替人工判断。</p>
+      </article>
+    </section>
+    <footer class="edgeglow-footer">YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1 · STATIC WEB ADAPTATION · NOT ANDROID RUNTIME PASS</footer>
+  </main>
+
+  <svg class="path-measure-source" aria-hidden="true" viewBox="0 0 1152 1536" width="1152" height="1536">
+    <path id="fishContourPath" d="" />
+  </svg>
+</body>
+</html>
