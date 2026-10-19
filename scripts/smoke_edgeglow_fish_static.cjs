@@ -143,6 +143,7 @@ async function main() {
   assert.deepEqual(identity.edgeFieldPaths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4", "B1C", "G1C", "G3C", "B3C", "B1M"], "Four frozen primary paths, three source-backed secondary fragments, four companion hairlines and one micro path are present.");
   assert.deepEqual(identity.edgeFieldPaths.slice(0, 7).map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22], [0.07, 0.18], [0.09, 0.16], [0.11, 0.14]], "Primary seed values are frozen; secondary seeds are recorded Android runtime values.");
   assert.ok(identity.edgeFieldPaths.slice(4, 7).every(path => path.seedAuthority === "ANDROID_RUNTIME_RP_A03_NOT_FROZEN"), "Secondary path seeds remain explicitly non-Frozen.");
+  console.log("SMOKE: source photo, contour and all edge-field paths verified");
 
   const canvasDimensions = await page.locator(".photo-stage canvas").evaluateAll(nodes => nodes.map(node => [node.width, node.height]));
   assert.equal(canvasDimensions.length, 3);
@@ -170,6 +171,7 @@ async function main() {
   await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
   await afterRender(page, () => page.locator("#resetButton").click());
   assert.equal(await wholeCanvasHash(page), defaultWholeGlow, "Reset restores the default edge-field render.");
+  console.log("SMOKE: photo-edge field, four corner color roles and reset verified");
 
   await afterRender(page, () => page.locator("#outerEnabled").uncheck());
   const noOuter = await canvasStats(page);
@@ -183,6 +185,7 @@ async function main() {
   await afterRender(page, () => page.locator("#resetButton").click());
   const afterLayerReset = await canvasStats(page);
   assert.equal(afterLayerReset.hash, defaultGlow.hash, "Reset restores all independently toggled layers.");
+  console.log("SMOKE: gold Bloom, Core and Comet layer toggles verified");
 
   await setControl(page, "#outerWidth", 52);
   assert.equal(await page.locator("#outerWidthValue").innerText(), "52 px", "Outer Bloom readout tracks the live range value.");
@@ -191,6 +194,7 @@ async function main() {
   await setControl(page, "#cometPosition", 64);
   const movedComet = await canvasStats(page);
   assert.notEqual(movedComet.hash, wideBloom.hash, "Static Comet path position changes rendered pixels.");
+  console.log("SMOKE: live optical parameter changes verified");
 
   await afterRender(page, () => page.locator("#contourVisible").uncheck());
   const contourHidden = await canvasStats(page, "contourCanvas");
@@ -209,6 +213,7 @@ async function main() {
   const wipeB = await canvasStats(page);
   assert.notEqual(wipeA.hash, wipeB.hash, "Wipe handle changes the image comparison boundary.");
   assert.equal(await page.locator("#wipePosition").isVisible(), true);
+  console.log("SMOKE: Overlay and Wipe comparison modes verified");
 
   await afterRender(page, () => page.evaluate(() => {
     document.querySelectorAll(".photo-stage canvas").forEach(canvas => {
@@ -239,6 +244,7 @@ async function main() {
   assert.equal(pngBytes.readUInt32BE(20), 1536);
   assert.ok(pngBytes.length > 100000, "PNG export contains the rendered photograph and glow layers.");
   assert.deepEqual(pngBytes, expectedPng, "Exported PNG bytes are the current visible canvas encoding.");
+  console.log("SMOKE: original-size PNG export matches the visible canvas");
 
   const jsonDownload = page.waitForEvent("download", { timeout: 15000 });
   await page.locator("#exportJsonButton").click();
@@ -255,6 +261,7 @@ async function main() {
   assert.match(exportConfig.edge_field.edge_effect_compositor, /padded transparent offscreen layer/);
   assert.ok(exportConfig.edge_field.edge_effect_padding_px >= 100, "Export records the responsive perimeter bleed inset.");
   assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
+  console.log("SMOKE: exported parameters and source provenance verified");
 
   await afterRender(page, () => page.evaluate(() => {
     for (const id of ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"]) {
@@ -280,6 +287,7 @@ async function main() {
     assert.ok(layout.edgeFieldInset >= 100, `Responsive resize retains padded perimeter blur at ${viewport.width}x${viewport.height}.`);
     viewportResults.push({ viewport, scrollWidth: layout.scrollWidth, cardWidths: layout.cards.map(card => card.width) });
     if (viewport.width === 390) await page.screenshot({ path: path.join(outputDir, "04_Responsive_390x844.png"), fullPage: true });
+    console.log(`SMOKE: responsive layout verified at ${viewport.width}x${viewport.height}`);
   }
 
   assert.deepEqual(errors, [], "No new browser page or console errors.");
