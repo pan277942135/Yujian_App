@@ -60,7 +60,7 @@ class GeminiNormalHomeResponsiveTest {
     @Test
     fun responsiveWindowAndFontScaleMatrixKeepsSectionsAndActionsUsable() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v2/compose-simulation")
+        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v3/compose-simulation")
             .apply { mkdirs() }
         val photo = File(context.cacheDir, "gemini-responsive-fish.jpg").apply {
             context.assets.open("home_normal/fish_record/sample_recent_catch.jpg").use { input ->
@@ -122,6 +122,13 @@ class GeminiNormalHomeResponsiveTest {
         profiles.forEachIndexed { index, window ->
             compose.runOnUiThread { profile.value = window }
             compose.waitForIdle()
+            compose.waitUntil(15_000) {
+                compose.onAllNodesWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
+            }
+            assertTrue("source-fit foreground must remain composed ${window.name}",
+                compose.onAllNodesWithTag("home-evidence-fit-foreground", useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty())
 
             val root = bounds("gemini-home-screen")
             val top = bounds("gemini-home-top-section")
@@ -131,9 +138,45 @@ class GeminiNormalHomeResponsiveTest {
             val cameraArt = bounds("gemini-home-camera-art")
             val ctaLabel = bounds("gemini-home-cta-label")
             val activeCard = bounds("gemini-home-catch-card-gemini-fixture-01")
+            val footerContent = bounds("gemini-home-catch-footer-gemini-fixture-01")
             val species = bounds("gemini-home-catch-species-gemini-fixture-01")
             val measurement = bounds("gemini-home-catch-measurement-gemini-fixture-01")
             val metadata = bounds("gemini-home-catch-metadata-gemini-fixture-01")
+            val heroBounds = JSONObject().apply {
+                put("profile", window.name)
+                put("root", root.toJson())
+                put("top", top.toJson())
+                put("middle", middle.toJson())
+                put("footer", footer.toJson())
+                put("camera_target", camera.toJson())
+                put("camera_art", cameraArt.toJson())
+                put("cta_label", ctaLabel.toJson())
+                put("active_card", activeCard.toJson())
+                put("footer_container", footerContent.toJson())
+                put("species", species.toJson())
+                put("measurement", measurement.toJson())
+                put("metadata", metadata.toJson())
+            }
+            Log.i("GEMINI_HOME_HERO_BOUNDS", heroBounds.toString())
+
+            // Persist screenshot and exact measured Bounds before any visual assertion so
+            // a failed profile remains diagnosable in the runtime artifact.
+            val image = compose.onNodeWithTag("gemini-home-screen", useUnmergedTree = true)
+                .assertIsDisplayed().captureToImage().let { it.asAndroidBitmap() }
+            val screenshot = File(output, "${window.name}.png")
+            screenshot.outputStream().use { stream ->
+                assertTrue("failed to save ${window.name}", image.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+            File(output, "${window.name}.json").writeText(JSONObject().apply {
+                put("profile", window.name)
+                put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
+                put("status", "CHECKING")
+                put("font_scale", window.fontScale)
+                put("window_dp", JSONArray(listOf(window.widthDp, window.heightDp)))
+                put("screenshot", screenshot.name)
+                put("bounds_dp", heroBounds)
+                put("interaction_state", "NOT_RUN_BEFORE_PROFILE_ASSERTIONS")
+            }.toString(2))
 
             assertEquals("root width ${window.name}", window.widthDp.toFloat(), root.width(), 1f)
             assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height(), 1f)
@@ -147,15 +190,15 @@ class GeminiNormalHomeResponsiveTest {
             assertTrue("camera art must be centered in its target ${window.name}", cameraCenterDistance <= 2f)
             assertTrue("CTA label and camera may not overlap ${window.name}", ctaLabel.bottom <= camera.top + 1f)
             assertTrue("camera must remain above the bottom safe inset ${window.name}", camera.bottom <= root.bottom - 24f + 1f)
-            assertTrue("Hero footer content remains inside the card ${window.name}",
-                listOf(species, measurement, metadata).all { it.isInside(activeCard) })
-
-            val image = compose.onNodeWithTag("gemini-home-screen", useUnmergedTree = true)
-                .assertIsDisplayed().captureToImage().let { it.asAndroidBitmap() }
-            val screenshot = File(output, "${window.name}.png")
-            screenshot.outputStream().use { stream ->
-                assertTrue("failed to save ${window.name}", image.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            val heroOffenders = listOf("species" to species, "measurement" to measurement, "metadata" to metadata)
+                .filterNot { (_, bounds) -> bounds.isInside(activeCard) }
+                .joinToString { (name, bounds) -> "$name=$bounds" }
+            val heroContentInside = heroOffenders.isEmpty()
+            if (!heroContentInside) {
+                Log.e("GEMINI_HOME_HERO_BOUNDS", "OUT_OF_CARD offenders=$heroOffenders card=$activeCard footer=$footerContent")
             }
+            assertTrue("Hero footer content remains inside the card ${window.name}; offenders=$heroOffenders; card=$activeCard; footer=$footerContent",
+                heroContentInside)
             assertEquals(window.widthDp, image.width)
             assertEquals(window.heightDp, image.height)
 
@@ -225,12 +268,14 @@ class GeminiNormalHomeResponsiveTest {
                     put("camera_art", cameraArt.toJson())
                     put("cta_label", ctaLabel.toJson())
                     put("active_card", activeCard.toJson())
+                    put("footer_content", footerContent.toJson())
                     put("species", species.toJson())
                     put("measurement", measurement.toJson())
                     put("metadata", metadata.toJson())
                 })
             }
             profileResults.put(result)
+            File(output, "${window.name}.json").writeText(result.toString(2))
             Log.i("GEMINI_HOME_RESPONSIVE_PROFILE", result.toString())
 
             if (compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
@@ -253,6 +298,7 @@ class GeminiNormalHomeResponsiveTest {
         assertEquals(profiles.size, profileResults.length())
 
         val report = JSONObject().apply {
+            put("schema", "NH01_GEMINI_RESPONSIVE_COMPOSE_REPORT_V3")
             put("test", "GeminiNormalHomeResponsiveTest.responsiveWindowAndFontScaleMatrixKeepsSectionsAndActionsUsable")
             put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
             put("device_api_level", Build.VERSION.SDK_INT)
@@ -270,9 +316,173 @@ class GeminiNormalHomeResponsiveTest {
     }
 
     @Test
+    fun finiteCarouselPageCountsIdentityAndDataChangesStayBoundToRealCatches() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v3/compose-simulation/carousel")
+            .apply { mkdirs() }
+        val records = mutableStateOf(fixtureCatches(null, count = 3))
+        val clickedIds = mutableListOf<String>()
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f, 1f)) {
+                Box(Modifier.requiredSize(390.dp, 844.dp)) {
+                    GeminiNormalHomeContent(
+                        statistics = CatchStatistics(),
+                        recentCatches = records.value,
+                        resolveImageUrl = { null },
+                        accessToken = "",
+                        isLoggedIn = false,
+                        avatarUrl = null,
+                        onIdentify = {},
+                        onLoginClick = {},
+                        onSpeciesClick = {},
+                        onCatchesClick = {},
+                        onProfileClick = {},
+                        onCatchClick = { clickedIds += it },
+                        motionState = rememberHomeMotionState(),
+                        runtimeAssets = null,
+                        safeInsets = SafeDrawingInsetsDp(top = 24.dp, bottom = 24.dp),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+
+        val countCases = JSONArray()
+        listOf(0, 1, 2, 3, 10).forEach { count ->
+            val source = fixtureCatches(null, count = count)
+            compose.runOnUiThread { records.value = source }
+            compose.waitForIdle()
+            val orderedIds = orderedHomeRecords(source).map(RemoteCatch::id)
+            val carouselTag = if (count == 0) "gemini-home-empty-carousel" else "gemini-home-catch-pager"
+            val carouselNode = compose.onNodeWithTag(carouselTag, useUnmergedTree = true).fetchSemanticsNode()
+            val columns = carouselNode.config[SemanticsProperties.CollectionInfo].columnCount
+            assertEquals("carousel must expose one finite page per valid unique catch", count, columns)
+
+            if (count == 0) {
+                val emptyShot = File(output, "carousel_0.png")
+                writeScreenshot("gemini-home-screen", emptyShot)
+                countCases.put(JSONObject().apply {
+                    put("catch_count", count)
+                    put("page_count", columns)
+                    put("current_catch_id", JSONObject.NULL)
+                    put("screenshot", emptyShot.name)
+                    put("bounds_dp", bounds("gemini-home-empty-carousel").toJson())
+                    put("interaction", "EMPTY_STATE_PASS")
+                })
+                return@forEach
+            }
+
+            val pageTrace = JSONArray()
+            orderedIds.forEachIndexed { index, expectedId ->
+                val state = compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                    .fetchSemanticsNode().config[SemanticsProperties.StateDescription]
+                assertTrue("pager must select the real ordered id $expectedId; state=$state", state.contains(expectedId))
+                compose.onNodeWithTag("gemini-home-catch-card-$expectedId", useUnmergedTree = true)
+                    .assertHasClickAction().performClick()
+                compose.runOnIdle { assertEquals(expectedId, clickedIds.last()) }
+                pageTrace.put(JSONObject().put("page", index).put("catch_id", expectedId).put("click_id", clickedIds.last()))
+                if (index < orderedIds.lastIndex) {
+                    compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                        .performTouchInput { swipeLeft() }
+                    compose.waitUntil(5_000) {
+                        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                            .fetchSemanticsNode().config[SemanticsProperties.StateDescription].contains(orderedIds[index + 1])
+                    }
+                }
+            }
+            val lastId = orderedIds.last()
+            compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                .performTouchInput { swipeLeft() }
+            compose.waitForIdle()
+            assertTrue("finite pager end may not clone-wrap to the first item", currentCarouselId().contains(lastId))
+
+            if (count > 1) {
+                repeat(count - 1) {
+                    compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                        .performTouchInput { swipeRight() }
+                    compose.waitForIdle()
+                }
+                val firstId = orderedIds.first()
+                assertTrue("previous-page mapping must return the immediately preceding real catch", currentCarouselId().contains(firstId))
+                compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                    .performTouchInput { swipeRight() }
+                compose.waitForIdle()
+                assertTrue("finite pager start may not clone-wrap to the last item", currentCarouselId().contains(firstId))
+            }
+
+            val screenshot = File(output, "carousel_${count}.png")
+            writeScreenshot("gemini-home-screen", screenshot)
+            countCases.put(JSONObject().apply {
+                put("catch_count", count)
+                put("page_count", columns)
+                put("first_catch_id", orderedIds.first())
+                put("last_catch_id", orderedIds.last())
+                put("page_trace", pageTrace)
+                put("screenshot", screenshot.name)
+                put("bounds_dp", JSONObject().apply {
+                    put("pager", bounds("gemini-home-catch-pager").toJson())
+                    put("selected_card", bounds("gemini-home-catch-card-${orderedIds.first()}").toJson())
+                })
+                put("click_mapping", "PASS")
+                put("finite_previous_next_mapping", "PASS")
+            })
+        }
+
+        // Adding a newer catch preserves the visible catch by stable id. Deleting it
+        // updates count and selected id to an item that still exists in the collection.
+        compose.runOnUiThread { records.value = fixtureCatches(null, count = 3) }
+        compose.waitForIdle()
+        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+            .performTouchInput { swipeLeft() }
+        compose.waitForIdle()
+        val selectedBeforeInsert = currentCarouselId().substringAfter("当前鱼获 ").substringBefore('，')
+        val insertedRecords = fixtureCatches(null, count = 4).map { item ->
+            if (item.id.endsWith("04")) item.copy(
+                capturedAt = "2027-01-01T00:00:00Z",
+                createdAt = "2027-01-01T00:00:00Z",
+            ) else item
+        }
+        compose.runOnUiThread { records.value = insertedRecords }
+        compose.waitForIdle()
+        assertTrue("insert/reorder must retain selection by stable catch_id", currentCarouselId().contains(selectedBeforeInsert))
+        val selectedForDelete = selectedBeforeInsert
+        compose.runOnUiThread { records.value = insertedRecords.filterNot { it.id == selectedForDelete } }
+        compose.waitForIdle()
+        val remainingIds = orderedHomeRecords(records.value).map(RemoteCatch::id)
+        val selectedAfterDelete = currentCarouselId().substringAfter("当前鱼获 ").substringBefore('，')
+        assertTrue("after deleting the selected record the pager must resolve to a live catch", selectedAfterDelete in remainingIds)
+        assertEquals(3, compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+            .fetchSemanticsNode().config[SemanticsProperties.CollectionInfo].columnCount)
+        val duplicateSource = fixtureCatches(null, count = 3) + fixtureCatches(null, count = 1).first().copy(
+            capturedAt = "2027-02-01T00:00:00Z",
+            createdAt = "2027-02-01T00:00:00Z",
+            imageUrl = "duplicate-latest.jpg",
+        )
+        compose.runOnUiThread { records.value = duplicateSource }
+        compose.waitForIdle()
+        assertEquals("same stable catch_id must occupy one page", 3, compose.onNodeWithTag(
+            "gemini-home-catch-pager", useUnmergedTree = true,
+        ).fetchSemanticsNode().config[SemanticsProperties.CollectionInfo].columnCount)
+
+        val report = JSONObject().apply {
+            put("schema", "NH01_GEMINI_CAROUSEL_COUNT_REPORT_V3")
+            put("test", "GeminiNormalHomeResponsiveTest.finiteCarouselPageCountsIdentityAndDataChangesStayBoundToRealCatches")
+            put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
+            put("window_dp", JSONArray(listOf(390, 844)))
+            put("font_scale", 1.0)
+            put("count_cases", countCases)
+            put("insert_keeps_selected_catch_id", "PASS")
+            put("delete_keeps_selection_on_live_id", "PASS")
+            put("duplicate_ids_deduplicated_by_ordered_home_records", "PASS_COMPOSE_AND_UNIT_TEST")
+        }
+        File(output, "gemini_catch_carousel_count_report.json").writeText(report.toString(2))
+        Log.i("GEMINI_CAROUSEL_COUNT_REPORT", report.toString())
+    }
+
+    @Test
     fun approvedAvatarFallbackAndAccountTransitionsNeverRetainOldAvatar() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v2/avatar")
+        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v3/avatar")
             .apply { mkdirs() }
         val userAvatar = avatarFixture(context.cacheDir, "gemini-user-a.png", android.graphics.Color.MAGENTA)
         val failedAvatar = File(context.cacheDir, "gemini-user-b-missing.png")
@@ -354,6 +564,7 @@ class GeminiNormalHomeResponsiveTest {
         }
 
         val report = JSONObject().apply {
+            put("schema", "NH01_GEMINI_AVATAR_TRANSITION_REPORT_V3")
             put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
             put("avatar_asset", "drawable/normal_home_default_avatar_v2.png")
             put("avatar_asset_sha256", "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528")
@@ -374,7 +585,7 @@ class GeminiNormalHomeResponsiveTest {
         userAvatar.delete()
     }
 
-    private fun fixtureCatches(imagePath: String?): List<RemoteCatch> {
+    private fun fixtureCatches(imagePath: String?, count: Int = 3): List<RemoteCatch> {
         val names = listOf("草鱼", "鲤鱼", "鲫鱼", "黑鱼", "鳜鱼", "鲢鱼", "鳙鱼", "鲈鱼", "鲶鱼", "黄颡鱼", "青鱼", "鲑鱼")
         val firstDay = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai")).apply {
             add(Calendar.DAY_OF_YEAR, -1)
@@ -383,7 +594,7 @@ class GeminiNormalHomeResponsiveTest {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        return (0 until 3).map { index ->
+        return (0 until count).map { index ->
             val dayOffset = 1
             val time = (firstDay.clone() as Calendar).apply {
                 add(Calendar.DAY_OF_YEAR, -(dayOffset - 1))
@@ -424,6 +635,19 @@ class GeminiNormalHomeResponsiveTest {
     private fun bounds(tag: String): RectF {
         val rect = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
         return RectF(rect.left, rect.top, rect.right, rect.bottom)
+    }
+
+    private fun currentCarouselId(): String = compose.onNodeWithTag(
+        "gemini-home-catch-pager", useUnmergedTree = true,
+    ).fetchSemanticsNode().config[SemanticsProperties.StateDescription]
+
+    private fun writeScreenshot(tag: String, output: File) {
+        val image = compose.onNodeWithTag(tag, useUnmergedTree = true)
+            .assertIsDisplayed().captureToImage().asAndroidBitmap()
+        output.outputStream().use { stream ->
+            assertTrue("failed to save ${output.name}", image.compress(Bitmap.CompressFormat.PNG, 100, stream))
+        }
+        image.recycle()
     }
 
     private fun RectF.isInside(parent: RectF): Boolean =

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify NH01 Gemini V2 page routing, authority mapping, and approved image provenance."""
+"""Verify NH01 Gemini V3 page routing, structure, carousel, and approved image provenance."""
 from __future__ import annotations
 
 import hashlib
@@ -38,6 +38,7 @@ FORBIDDEN_NEW_PAGE_REFERENCES = (
     "NormalHomeHeaderY",
     "NormalHomeCardY",
     "NormalHomeCtaY",
+    "recordAtVirtualPage",
     "normal_home_runtime_v1/avatar/guest_avatar.png",
     "nh07_default_avatar_3x_192",
 )
@@ -53,8 +54,9 @@ def main() -> None:
     runtime = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeRuntimeAssets.kt").read_text()
     avatar_contract_path = ROOT / "design/pages/home/normal_home/assets/normal_home_default_avatar_v2_manifest.json"
     avatar_contract = json.loads(avatar_contract_path.read_text(encoding="utf-8"))
-    gemini_contract_path = ROOT / "design/pages/home/normal_home/engineering/Gemini_Native_Implementation_Contract_V2.md"
+    gemini_contract_path = ROOT / "design/pages/home/normal_home/engineering/Gemini_Native_Implementation_Contract_V3.md"
     gemini_contract = gemini_contract_path.read_text(encoding="utf-8")
+    remote_image = (ROOT / "app/src/main/java/com/yujian/ai/ui/components/RemoteImage.kt").read_text(encoding="utf-8")
     gemini_loader = runtime.split("private fun loadGeminiNormalHomeRuntimeAssets", 1)[-1].split("\n@Composable", 1)[0]
 
     checks: list[tuple[str, bool, str]] = []
@@ -68,7 +70,11 @@ def main() -> None:
     checks.append(("gemini_runtime_bundle_excludes_guest_and_nh07_images", "guest_avatar.png" not in gemini_loader and "nh07_default_avatar_3x_192" not in gemini_loader, "loadGeminiNormalHomeRuntimeAssets"))
     checks.append(("gemini_page_uses_exact_v2_avatar_drawable", "painterResource(R.drawable.normal_home_default_avatar_v2)" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("global_avatar_contract_keeps_existing_guest_mapping", avatar_contract["display_states"].get("guest") == "normal_home_runtime_v1/avatar/guest_avatar.png", str(avatar_contract_path.relative_to(ROOT))))
-    checks.append(("gemini_page_contract_records_local_override_and_hash", "this NH01 Gemini V2 validation page only" in gemini_contract and V2_AVATAR_SHA in gemini_contract and "local visual-policy override" in gemini_contract, str(gemini_contract_path.relative_to(ROOT))))
+    checks.append(("gemini_page_uses_finite_real_catch_pages", "val pageCount = records.size" in page and "key = { page -> records[page].id }" in page and "recordAtVirtualPage" not in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("gemini_page_exposes_carousel_collection_semantics", "collectionInfo = CollectionInfo(rowCount = 1, columnCount = pageCount)" in page and "stateDescription = activeId?.let" in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("evidence_fit_fills_bands_with_same_source_crop_then_blur", "home-evidence-backdrop-crop-fallback" in remote_image and "home-evidence-backdrop-ready" in remote_image and "contentScale = ContentScale.Fit" in remote_image and "contentScale = ContentScale.Crop" in remote_image, "RemoteImage.kt"))
+    checks.append(("remote_bitmap_cache_is_bounded_and_does_not_keep_token", "MAX_BYTES = 24 * 1024 * 1024" in remote_image and "sha256Hex" in remote_image, "RemoteImage.kt"))
+    checks.append(("gemini_page_contract_records_local_override_and_hash", "this NH01 Gemini V3 validation page only" in gemini_contract and V2_AVATAR_SHA in gemini_contract and "local visual-policy override" in gemini_contract, str(gemini_contract_path.relative_to(ROOT))))
 
     for relative, expected in ASSETS.items():
         actual = sha256(ROOT / relative)

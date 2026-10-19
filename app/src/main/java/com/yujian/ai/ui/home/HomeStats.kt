@@ -41,7 +41,7 @@ internal fun resolveHomeStatValues(
     statistics: CatchStatistics,
     catches: List<RemoteCatch>,
 ): HomeStatValues {
-    val validCatches = validHomeRecords(catches)
+    val validCatches = orderedHomeRecords(catches)
     val localSpeciesCount = validCatches
         .map { it.speciesId.ifBlank { it.speciesName } }
         .filter(String::isNotBlank)

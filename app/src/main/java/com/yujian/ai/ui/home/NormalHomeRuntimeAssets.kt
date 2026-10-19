@@ -26,7 +26,7 @@ internal data class NormalHomeRuntimeAssets(
     override val cameraBreathGlow: Bitmap,
 ) : HomeCameraRasterAssets
 
-/** Gemini V2 runtime bundle intentionally excludes the retired guest illustration. */
+/** Gemini runtime bundle intentionally excludes the retired guest illustration. */
 internal data class GeminiNormalHomeRuntimeAssets(
     val sceneBase: Bitmap,
     val fishCardGradient: Bitmap,

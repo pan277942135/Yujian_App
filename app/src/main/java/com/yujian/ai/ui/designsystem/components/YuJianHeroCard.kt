@@ -65,6 +65,7 @@ fun YuJianHeroCard(
     cornerRadius: Dp = YuJianRadius.extraLarge,
     footerPaddingHorizontal: Dp? = null,
     footerPaddingVertical: Dp? = null,
+    footerContentFillWidth: Boolean = false,
     editLabel: String? = if (variant == YuJianHeroVariant.DETAIL) "编辑 >" else null,
     onClick: (() -> Unit)? = null,
     semanticsTag: String? = null,
@@ -116,6 +117,7 @@ fun YuJianHeroCard(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
+                    .then(if (footerContentFillWidth) Modifier.fillMaxWidth() else Modifier)
                     .padding(
                         horizontal = footerPaddingHorizontal ?: footerPadding,
                         vertical = footerPaddingVertical ?: footerPadding,

@@ -46,6 +46,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -75,7 +77,7 @@ import kotlin.math.abs
 private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
 
 /**
- * NH01 Gemini V2 page. The Compose tree follows Gemini's Top / Middle / Footer
+ * NH01 Gemini V3 page. The Compose tree follows Gemini's Top / Middle / Footer
  * containers and deliberately does not consume legacy NormalHome coordinates.
  */
 @Composable
@@ -195,9 +197,11 @@ private fun GeminiTopSection(
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
 ) {
-    val topInset = clampDp(safeHeight.value * 0.055f, 24f, 44f)
+    // Keep the approved Gemini Top container but spend less of a short window
+    // above the content. System safe insets are already applied by the parent.
+    val topInset = clampDp(safeHeight.value * 0.032f, 12f, 28f)
     val horizontalInset = clampDp(safeWidth.value * 0.075f, 24f, 40f)
-    val headerGap = clampDp(safeHeight.value * 0.036f, 14f, 32f)
+    val headerGap = clampDp(safeHeight.value * 0.026f, 10f, 22f)
     val avatarTargetSize = maxOf(48.dp, avatarSize + 4.dp)
     val brandWidth = clampDp(safeWidth.value * (155f / 1080f), 46f, 70f)
     val brandHeight = brandWidth * (80f / 155f)
@@ -406,8 +410,8 @@ private fun GeminiMiddleSection(
     onCatchClick: (String) -> Unit,
 ) {
     val fontScale = LocalDensity.current.fontScale
-    val verticalMargin = clampDp(safeHeight.value * 0.015f, 6f, 16f)
-    val headerGap = clampDp(safeHeight.value * 0.018f, 8f, 14f)
+    val verticalMargin = clampDp(safeHeight.value * 0.01f, 4f, 10f)
+    val headerGap = clampDp(safeHeight.value * 0.015f, 6f, 12f)
     val headerHeight = maxOf(48.dp, responsiveSp(safeHeight, 0.027f, 16f, 19f).value.dp * 1.25f)
     val minCardTrackHeight = maxOf(180.dp, 180.dp * fontScale.coerceIn(1f, 1.5f))
 
@@ -434,7 +438,12 @@ private fun GeminiMiddleSection(
             Spacer(Modifier.height(headerGap))
             if (records.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(trackHeight).testTag("gemini-home-empty-carousel"),
+                    modifier = Modifier.fillMaxWidth().height(trackHeight)
+                        .semantics {
+                            collectionInfo = CollectionInfo(rowCount = 1, columnCount = 0)
+                            stateDescription = "暂无鱼获，0 条记录"
+                        }
+                        .testTag("gemini-home-empty-carousel"),
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
@@ -535,10 +544,9 @@ private fun GeminiCatchCarousel(
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     onCatchClick: (String) -> Unit,
 ) {
-    val hasNeighborPages = records.size > 1
-    val pageCount = if (hasNeighborPages) records.size + 2 else records.size
-    val initialPage = if (hasNeighborPages) 1 else 0
-    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { pageCount })
+    val pageCount = records.size
+    val hasNeighborPages = pageCount > 1
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val cardWidth = minOf(trackWidth * 0.686f, 360.dp)
     val cardHeight = minOf(trackHeight, 480.dp)
@@ -549,18 +557,33 @@ private fun GeminiCatchCarousel(
     val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    val activeId = records.getOrNull(pagerState.currentPage)?.id
+    Box(
+        modifier = modifier.semantics {
+            collectionInfo = CollectionInfo(rowCount = 1, columnCount = pageCount)
+            stateDescription = activeId?.let { "当前鱼获 $it，第 ${pagerState.currentPage + 1} 条，共 $pageCount 条" }
+                ?: "暂无鱼获，0 条记录"
+        },
+        contentAlignment = Alignment.Center,
+    ) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth().height(cardHeight).testTag("gemini-home-catch-pager"),
+            modifier = Modifier.fillMaxWidth().height(cardHeight)
+                .semantics {
+                    collectionInfo = CollectionInfo(rowCount = 1, columnCount = pageCount)
+                    stateDescription = activeId?.let {
+                        "当前鱼获 $it，第 ${pagerState.currentPage + 1} 条，共 $pageCount 条"
+                    } ?: "暂无鱼获，0 条记录"
+                }
+                .testTag("gemini-home-catch-pager"),
             pageSize = PageSize.Fixed(cardWidth),
             contentPadding = PaddingValues(horizontal = contentInset),
             pageSpacing = pageSpacing,
             beyondViewportPageCount = if (hasNeighborPages) 1 else 0,
             userScrollEnabled = hasNeighborPages,
-            key = { page -> "gemini-page-$page-${recordAtVirtualPage(records, page, pageCount).id}" },
+            key = { page -> records[page].id },
         ) { page ->
-            val record = recordAtVirtualPage(records, page, pageCount)
+            val record = records[page]
             val distance = abs((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
             val active = page == pagerState.currentPage
             val pageTag = when {
@@ -592,15 +615,6 @@ private fun GeminiCatchCarousel(
     }
 }
 
-private fun recordAtVirtualPage(records: List<RemoteCatch>, page: Int, pageCount: Int): RemoteCatch {
-    if (records.size <= 1) return records.first()
-    return when (page) {
-        0 -> records.last()
-        pageCount - 1 -> records.first()
-        else -> records[(page - 1).coerceIn(0, records.lastIndex)]
-    }
-}
-
 @Composable
 private fun GeminiCatchCard(
     item: RemoteCatch,
@@ -616,6 +630,7 @@ private fun GeminiCatchCard(
     val speciesSize = responsiveSp(safeHeight, 0.036f, 20f, 26f)
     val measurementSize = responsiveSp(safeHeight, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, 0.019f, 11f, 13f)
+    val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
     val species = presentationSpeciesName(item.speciesName)
     val measurements = buildList {
         item.lengthCm?.takeIf { it > 0f }?.let { add("${formatGeminiNumber(it)} cm") }
@@ -633,7 +648,8 @@ private fun GeminiCatchCard(
         heightOverride = cardHeight,
         cornerRadius = 22.dp,
         footerPaddingHorizontal = 20.dp,
-        footerPaddingVertical = 20.dp,
+        footerPaddingVertical = footerVerticalPadding,
+        footerContentFillWidth = true,
         onClick = onClick,
         semanticsTag = if (isActive) "gemini-home-catch-card-${item.id}" else "gemini-home-catch-neighbor-${item.id}",
         footerTag = "gemini-home-catch-footer-${item.id}",

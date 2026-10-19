@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package exact-SHA NH01 Gemini V2 APK, device captures, and Compose profile evidence."""
+"""Package exact-SHA NH01 Gemini V3 APK, device captures, and Compose profile evidence."""
 from __future__ import annotations
 
 import argparse
@@ -68,11 +68,14 @@ def main() -> int:
     runtime = read_json(evidence / "runtime_gate_result.json")
     device_1920 = read_json(evidence / "android-device/api28_1080x1920.json")
     device_2340 = read_json(evidence / "android-device/api28_1080x2340.json")
+    device_720 = read_json(evidence / "android-device/api28_720x1280.json")
     compose_report = read_json(evidence / "compose-simulation/compose-simulation/gemini_responsive_compose_report.json")
     avatar_report = read_json(evidence / "compose-simulation/avatar/gemini_avatar_transition_report.json")
-    responsive_report = read_json(evidence / "Gemini_NH01_Responsive_Runtime_Report_V2.json")
+    carousel_report = read_json(evidence / "compose-simulation/compose-simulation/carousel/gemini_catch_carousel_count_report.json")
+    responsive_report = read_json(evidence / "Gemini_NH01_Responsive_Runtime_Report_V3.json")
     device_bounds_1920 = read_json(evidence / "android-device/api28_1080x1920_bounds.json")
     device_bounds_2340 = read_json(evidence / "android-device/api28_1080x2340_bounds.json")
+    device_bounds_720 = read_json(evidence / "android-device/api28_720x1280_bounds.json")
     classification = runtime.get("classification", "BLOCKED_INFRA")
     profiles = compose_report.get("profiles", [])
     fixture = compose_report.get("business_fixture", {})
@@ -90,11 +93,12 @@ def main() -> int:
     physical_fixture = {
         "api28_1080x1920": device_bounds_1920.get("business_fixture", {"verification": "NOT_RUN"}),
         "api28_1080x2340": device_bounds_2340.get("business_fixture", {"verification": "NOT_RUN"}),
+        "api28_720x1280": device_bounds_720.get("business_fixture", {"verification": "NOT_RUN"}),
     }
 
     manifest = {
-        "schema": "NH01_GEMINI_NATIVE_RUNTIME_MANIFEST_V2",
-        "task_id": "YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V2",
+        "schema": "NH01_GEMINI_NATIVE_RUNTIME_MANIFEST_V3",
+        "task_id": "YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V3",
         "source_sha": args.source_sha,
         "workflow_run_id": args.run_id,
         "workflow_run_url": args.run_url,
@@ -103,25 +107,27 @@ def main() -> int:
         "classification": classification,
         "app_apk": {"filename": "NH01_GEMINI_VALIDATION_DEBUG.apk", "sha256": app_sha, "size_bytes": args.apk.stat().st_size},
         "android_test_apk": {"filename": "app-debug-androidTest.apk", "sha256": test_sha, "size_bytes": args.test_apk.stat().st_size},
-        "device_profiles": [device_1920, device_2340],
+        "device_profiles": [device_1920, device_2340, device_720],
         "reference_business_fixture": expected_fixture,
         "compose_fixture_match": compose_fixture_match,
         "physical_business_fixture_checks": physical_fixture,
+        "responsive_runtime_report": responsive_report,
         "compose_profile_count": len(profiles),
         "compose_profiles": profiles,
         "avatar_transition_report": avatar_report,
-        "frozen_pixel_parity": "NOT_CLAIMED_INTENTIONAL_GEMINI_V2_LAYOUT",
+        "carousel_count_report": carousel_report,
+        "frozen_pixel_parity": "NOT_CLAIMED_INTENTIONAL_GEMINI_V3_LAYOUT",
         "visual_review": "PENDING_SEPARATE_REVIEW",
         "artifact_files": [],
     }
-    (artifact / "NH01_Gemini_Runtime_Manifest_V2.json").write_text(
+    (artifact / "NH01_Gemini_Runtime_Manifest_V3.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 
     lines = [
-        "# NH01 Gemini V2 Native Validation APK",
+        "# NH01 Gemini V3 Native Validation APK",
         "",
-        f"- Task: `YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V2`",
+        f"- Task: `YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V3`",
         f"- PR: {args.pr_url} (kept Draft / Open / Unmerged)",
         f"- Source HEAD: `{args.source_sha}`",
         f"- CI Run ID: [{args.run_id}]({args.run_url})",
@@ -135,12 +141,12 @@ def main() -> int:
         f"- Android debug build: `{'PASS' if args.apk.is_file() else 'FAIL'}`",
         f"- Android test APK: `{'PASS' if args.test_apk.is_file() else 'FAIL'}`",
         f"- Device preflight/install/instrumentation/evidence: `{runtime.get('preflight', 'NOT_RUN')}` / `{runtime.get('install', 'NOT_RUN')}` / `{runtime.get('instrumentation', 'NOT_RUN')}` / `{runtime.get('evidence', 'NOT_RUN')}`",
-        "- Frozen pixel parity: `NOT_CLAIMED`; this is an intentional Gemini V2 container rebuild.",
+        "- Frozen pixel parity: `NOT_CLAIMED`; this is an intentional Gemini V3 container rebuild.",
         "- Separate visual review: `PENDING`; the runtime pass does not claim visual sign-off.",
         "",
         "## Android device captures",
         "",
-        "Both device captures are required to expose the same business data as the PR #167 baseline screenshot: 3 species, 3 catches, 1 record day, the 草鱼 card at 42.6 cm / 1.28 kg, 浙江 · 千岛湖, and the registered sample fish photo. The screenshot is guest-mode so the V2 validation page also exercises its guest avatar fallback; the signed-in fallback and remote-avatar transitions are tested separately in Compose.",
+        "All three emulator profiles are required to expose the same business data as the PR #167 baseline screenshot: 3 species, 3 catches, 1 record day, the 草鱼 card at 42.6 cm / 1.28 kg, 浙江 · 千岛湖, and the registered sample fish photo. The screenshot is guest-mode so the V3 validation page also exercises its approved V2 avatar fallback; the signed-in fallback and remote-avatar transitions are tested separately in Compose.",
         "",
         "| Profile | Mode | Status | Screenshot | Node bounds |",
         "|---|---|---|---|---|",
@@ -148,6 +154,7 @@ def main() -> int:
     for device, screenshot in (
         (device_1920, "evidence/android-device/gemini_home_1080x1920.png"),
         (device_2340, "evidence/android-device/gemini_home_1080x2340.png"),
+        (device_720, "evidence/android-device/gemini_home_720x1280.png"),
     ):
         image = device.get("screenshot", {}).get("path", "NOT_RUN")
         profile = device.get("profile_id", "NOT_RUN")
@@ -163,7 +170,7 @@ def main() -> int:
         "",
         f"Reference business fixture match: `{'PASS' if compose_fixture_match else 'FAIL_OR_NOT_RUN'}` ({fixture or 'no Compose fixture report'}).",
         "",
-        "These rows are test-window simulations, not physical-device captures. Each executed row includes its screenshot, section/action Bounds, CTA/camera spacing check, Hero metadata visibility/scroll result, and callback results in `evidence/compose-simulation/compose-simulation/gemini_responsive_compose_report.json`.",
+        "These rows are test-window simulations, not physical-device captures. Each executed row includes its screenshot, section/action Bounds, CTA/camera spacing check, Hero metadata visibility/scroll result, and callback results in `evidence/compose-simulation/compose-simulation/gemini_responsive_compose_report.json`. The finite 0/1/2/3/10 carousel count, stable selection, click ID, boundary, insert, and delete cases are in `evidence/compose-simulation/compose-simulation/carousel/gemini_catch_carousel_count_report.json`.",
         "",
         "| Window | Font scale | Status | Screenshot | Hero footer | Actions |",
         "|---|---:|---|---|---|---|",
@@ -187,13 +194,13 @@ def main() -> int:
         "",
         "## Runtime limitations",
         "",
-        "The API 28 screenshots are real Android emulator screencaps. The 1080×2340 profile uses the emulator's `wm size` display override and is identified as such in its JSON. The requested 320–480dp windows and font scales are Compose constraint simulations. A missing physical node dump is recorded as `NOT_RUN` in its device profile; it is not backfilled from the Compose simulation.",
+        "The API 28 screenshots are real Android emulator screencaps. The 1080×2340 profile uses the emulator's `wm size` display override; the 720×1280 profile uses `wm size` with 320 dpi to represent a 360×640dp viewport. Both overrides are identified in profile JSON. The requested 320–480dp windows and font scales are Compose constraint simulations. A missing physical node dump is recorded as `NOT_RUN` in its device profile; it is not backfilled from the Compose simulation.",
         "",
         "The APK is a validation build. A `PASS` runtime classification means build, install, launch, required Compose interaction tests, and captured device evidence passed; it does not certify Frozen pixel parity or replace separate visual review.",
     ])
     (artifact / "NH01_Gemini_Native_Validation_Report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    manifest_path = artifact / "NH01_Gemini_Runtime_Manifest_V2.json"
+    manifest_path = artifact / "NH01_Gemini_Runtime_Manifest_V3.json"
     files = sorted(
         path for path in artifact.rglob("*")
         if path.is_file() and path.name != "SHA256SUMS" and path != manifest_path
@@ -202,7 +209,7 @@ def main() -> int:
         {"path": path.relative_to(artifact).as_posix(), "sha256": sha256(path), "size_bytes": path.stat().st_size}
         for path in files
     ]
-    (artifact / "NH01_Gemini_Runtime_Manifest_V2.json").write_text(
+    (artifact / "NH01_Gemini_Runtime_Manifest_V3.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     files = sorted(

@@ -12,6 +12,14 @@ gate_before_instrumentation() {
   "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
 }
 
+gate_after_instrumentation() {
+  local output="$YUJIAN_EVIDENCE_DIR/compose-simulation"
+  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  mkdir -p "$output" "$YUJIAN_EVIDENCE_DIR/android-device"
+  "$YUJIAN_ADB_BIN" pull "$external" "$output" \
+    > "$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log" 2>&1 || true
+}
+
 gemini_v2_run_seed() {
   local method="$1"
   local log="$YUJIAN_EVIDENCE_DIR/seed_${method}.log"
@@ -249,13 +257,34 @@ gate_collect_evidence() {
     "$output/gemini_home_1080x2340.png" \
     "$bounds_2340" true || return "$EXIT_FAIL_EVIDENCE"
 
+  "$YUJIAN_ADB_BIN" shell wm size 720x1280 > "$output/720x1280_wm_size.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  "$YUJIAN_ADB_BIN" shell wm density 320 > "$output/720x1280_wm_density.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  "$YUJIAN_ADB_BIN" shell am force-stop "$app_package"
+  "$YUJIAN_ADB_BIN" shell monkey -p "$app_package" -c android.intent.category.LAUNCHER 1 >/dev/null
+  gemini_v2_wait_for_app 720x1280 || {
+    runtime_set_failure "EVIDENCE" "GEMINI_HOME_API28_DID_NOT_RENDER_720X1280"
+    return "$EXIT_FAIL_EVIDENCE"
+  }
+  local bounds_720
+  bounds_720="$(gemini_v2_wait_for_reference_home api28_720x1280)" || {
+    runtime_set_failure "EVIDENCE" "GEMINI_REFERENCE_HOME_DATA_OR_ROUTE_NOT_VERIFIED_720X1280"
+    return "$EXIT_FAIL_EVIDENCE"
+  }
+  "$YUJIAN_ADB_BIN" exec-out screencap -p > "$output/gemini_home_720x1280.png" || return "$EXIT_FAIL_EVIDENCE"
+  gemini_v2_write_device_profile \
+    api28_720x1280 \
+    720x1280 \
+    "$output/gemini_home_720x1280.png" \
+    "$bounds_720" true || return "$EXIT_FAIL_EVIDENCE"
+
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null 2>&1 || true
+  "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null 2>&1 || true
   "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >/dev/null || true
   "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 >/dev/null || true
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null || true
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null || true
 
-  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v2"
+  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
   "$YUJIAN_ADB_BIN" pull "$external" "$YUJIAN_EVIDENCE_DIR/compose-simulation" \
     > "$output/compose_evidence_pull.log" 2>&1 || {
       runtime_set_failure "EVIDENCE" "GEMINI_COMPOSE_PROFILE_EVIDENCE_NOT_RETRIEVED"
@@ -266,10 +295,12 @@ import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 compose = root / "compose-simulation/gemini_responsive_compose_report.json"
 avatar = root / "avatar/gemini_avatar_transition_report.json"
-if not compose.is_file() or not avatar.is_file():
-    raise SystemExit("Gemini Compose or avatar report missing")
+carousel = root / "compose-simulation/carousel/gemini_catch_carousel_count_report.json"
+if not compose.is_file() or not avatar.is_file() or not carousel.is_file():
+    raise SystemExit("Gemini Compose, avatar, or carousel report missing")
 profile_report = json.loads(compose.read_text(encoding="utf-8"))
 avatar_report = json.loads(avatar.read_text(encoding="utf-8"))
+carousel_report = json.loads(carousel.read_text(encoding="utf-8"))
 profiles = profile_report.get("profiles", [])
 if len(profiles) != 15 or any(item.get("status") != "PASS" for item in profiles):
     raise SystemExit("Gemini Compose constraint profile matrix is incomplete or failed")
@@ -277,23 +308,28 @@ if any(item.get("interactions", {}).get("guest_avatar_login") != "PASS" for item
     raise SystemExit("Guest login click callback did not pass across Compose profiles")
 if avatar_report.get("account_switch_clears_previous_avatar") != "PASS" or avatar_report.get("logout_clears_previous_avatar") != "PASS":
     raise SystemExit("Gemini avatar transition checks did not pass")
+cases = carousel_report.get("count_cases", [])
+if [item.get("catch_count") for item in cases] != [0, 1, 2, 3, 10]:
+    raise SystemExit("Gemini carousel count matrix is incomplete")
 PY
-  local report="$YUJIAN_EVIDENCE_DIR/Gemini_NH01_Responsive_Runtime_Report_V2.json"
-  python3 - "$report" "$BUILD_SHA" "$bounds_1920" "$bounds_2340" <<'PY'
+  local report="$YUJIAN_EVIDENCE_DIR/Gemini_NH01_Responsive_Runtime_Report_V3.json"
+  python3 - "$report" "$BUILD_SHA" "$bounds_1920" "$bounds_2340" "$bounds_720" <<'PY'
 import json, pathlib, sys
-output, source_sha, bounds_1920, bounds_2340 = sys.argv[1:]
+output, source_sha, bounds_1920, bounds_2340, bounds_720 = sys.argv[1:]
 payload = {
-    "schema": "NH01_GEMINI_RESPONSIVE_RUNTIME_REPORT_V2",
+    "schema": "NH01_GEMINI_RESPONSIVE_RUNTIME_REPORT_V3",
     "source_commit": source_sha,
     "physical_device_profiles": [
         {"profile": "API28_1080x1920", "execution_mode": "ANDROID_DEVICE_RUNTIME", "status": "CAPTURED", "bounds_status": bounds_1920},
         {"profile": "API28_1080x2340", "execution_mode": "ANDROID_DEVICE_RUNTIME", "status": "CAPTURED", "display_size_override": True, "bounds_status": bounds_2340},
+        {"profile": "API28_720x1280", "execution_mode": "ANDROID_EMULATOR_DISPLAY_OVERRIDE", "status": "CAPTURED", "display_size_override": True, "density_dpi": 320, "bounds_status": bounds_720},
     ],
     "compose_constraint_simulation": {"report": "compose-simulation/compose-simulation/gemini_responsive_compose_report.json", "status": "PASS", "profiles": 15},
     "avatar_transitions": {"report": "compose-simulation/avatar/gemini_avatar_transition_report.json", "status": "PASS"},
+    "finite_carousel": {"report": "compose-simulation/compose-simulation/carousel/gemini_catch_carousel_count_report.json", "status": "PASS", "cases": [0, 1, 2, 3, 10]},
     "reference_business_fixture": {"species_count": 3, "catch_count": 3, "record_days": 1, "species_name": "草鱼", "length_cm": 42.6, "weight_kg": 1.28, "location": "浙江 · 千岛湖", "fish_photo_source": "home_normal/fish_record/sample_recent_catch.jpg"},
-    "physical_screenshot_business_state_verified_by": "Android UIAutomator hierarchy text on both captures",
-    "frozen_pixel_parity": "NOT_CLAIMED_INTENTIONAL_GEMINI_V2_LAYOUT",
+    "physical_screenshot_business_state_verified_by": "Android UIAutomator hierarchy text on all three captures",
+    "frozen_pixel_parity": "NOT_CLAIMED_INTENTIONAL_GEMINI_V3_LAYOUT",
     "visual_review": "PENDING_SEPARATE_REVIEW",
 }
 pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

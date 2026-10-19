@@ -1,4 +1,4 @@
-name: NH01 Gemini Native V2 Runtime
+name: NH01 Gemini Native V3 Runtime
 
 on:
   pull_request:
@@ -14,7 +14,7 @@ on:
       - ".github/workflows/nh01-cloud-runtime.yml"
 
 concurrency:
-  group: nh01-gemini-v2-runtime-${{ github.ref }}
+  group: nh01-gemini-v3-runtime-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -22,7 +22,7 @@ permissions:
 
 env:
   YUJIAN_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
-  YUJIAN_RUNTIME_EVIDENCE: evidence/runtime/gemini-home-v2
+  YUJIAN_RUNTIME_EVIDENCE: evidence/runtime/gemini-home-v3
 
 jobs:
   runtime:
@@ -127,7 +127,7 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run Gemini V2 Android gate on Pixel 2 API 28
+      - name: Run Gemini V3 Android gate on Pixel 2 API 28
         id: emulator_runtime
         if: steps.emulator_env.outputs.available == 'true'
         continue-on-error: true
@@ -186,7 +186,7 @@ jobs:
               --summary-file "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Package Gemini V2 APK and runtime evidence
+      - name: Package Gemini V3 APK and runtime evidence
         id: package
         if: always() && steps.android_build.outcome == 'success'
         run: |
@@ -206,11 +206,11 @@ jobs:
           classification="$(python3 -c 'import json; print(json.load(open("build/nh01-gemini-artifact/evidence/runtime_gate_result.json"))["classification"])')"
           echo "classification=$classification" >> "$GITHUB_OUTPUT"
 
-      - name: Upload installable Gemini V2 APK and evidence
+      - name: Upload installable Gemini V3 APK and evidence
         if: always() && steps.package.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-NH01-Gemini-V2-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
+          name: YuJian-NH01-Gemini-V3-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
           path: build/nh01-gemini-artifact
           if-no-files-found: error
           retention-days: 30
