@@ -135,11 +135,11 @@ class GeminiNormalHomeResponsiveTest {
             val measurement = bounds("gemini-home-catch-measurement-gemini-fixture-01")
             val metadata = bounds("gemini-home-catch-metadata-gemini-fixture-01")
 
-            assertEquals("root width ${window.name}", window.widthDp.toFloat(), root.width, 1f)
-            assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height, 1f)
+            assertEquals("root width ${window.name}", window.widthDp.toFloat(), root.width(), 1f)
+            assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height(), 1f)
             assertTrue("top must precede the flexible middle ${window.name}", top.bottom <= middle.top + 1f)
             assertTrue("middle must precede the footer ${window.name}", middle.bottom <= footer.top + 1f)
-            assertTrue("camera hit target must be at least 48dp ${window.name}", camera.width >= 48f && camera.height >= 48f)
+            assertTrue("camera hit target must be at least 48dp ${window.name}", camera.width() >= 48f && camera.height() >= 48f)
             val cameraCenterDistance = kotlin.math.hypot(
                 cameraArt.centerX() - camera.centerX(),
                 cameraArt.centerY() - camera.centerY(),
