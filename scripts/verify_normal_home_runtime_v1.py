@@ -297,6 +297,7 @@ def main() -> int:
     source_files = [
         ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt",
         ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
+        ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt",
         ROOT / "app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt",
         ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeRuntimeAssets.kt",
     ]

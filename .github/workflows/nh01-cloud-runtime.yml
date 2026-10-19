@@ -1,4 +1,4 @@
-name: NH01 Exact-SHA API28 Runtime
+name: NH01 Gemini Native V2 Runtime
 
 on:
   pull_request:
@@ -9,22 +9,20 @@ on:
       - "scripts/android_runtime/**"
       - "scripts/run_android_runtime_gate.sh"
       - "scripts/verify_normal_home_*.py"
+      - "scripts/verify_nh01_gemini_native_source.py"
       - "scripts/design/**"
       - ".github/workflows/nh01-cloud-runtime.yml"
-      - ".github/workflows/design-manager-pages.yml"
 
 concurrency:
-  group: nh01-cloud-runtime-${{ github.ref }}
+  group: nh01-gemini-v2-runtime-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 env:
   YUJIAN_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
-  YUJIAN_RUNTIME_EVIDENCE: evidence/runtime/normal-home-v1
+  YUJIAN_RUNTIME_EVIDENCE: evidence/runtime/gemini-home-v2
 
 jobs:
   runtime:
@@ -32,8 +30,7 @@ jobs:
     timeout-minutes: 100
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
-      pages_ready: ${{ steps.pages_ready.outputs.ready }}
-      runtime_status: ${{ steps.status.outputs.classification }}
+      runtime_status: ${{ steps.package.outputs.classification }}
     steps:
       - name: Checkout exact pull request source commit
         uses: actions/checkout@v4
@@ -47,14 +44,14 @@ jobs:
           actual="$(git rev-parse HEAD)"
           test "$actual" = "$YUJIAN_SOURCE_SHA"
           echo "sha=$actual" >> "$GITHUB_OUTPUT"
-          echo "NH01_SOURCE_SHA=$actual"
+          echo "NH01_GEMINI_SOURCE_SHA=$actual"
 
       - name: Set up Python evidence dependencies
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Install GNU coreutils for Harness contract tests and bounded timeouts
+      - name: Install GNU coreutils for runtime gate contract tests and timeouts
         run: |
           set -euo pipefail
           if ! command -v timeout >/dev/null 2>&1 || ! command -v sha256sum >/dev/null 2>&1; then
@@ -64,24 +61,18 @@ jobs:
           command -v timeout
           command -v sha256sum
 
-      - name: Install ffmpeg for API28 motion evidence
-        shell: bash
+      - name: Validate source package and Gemini route
         run: |
           set -euo pipefail
-          if ! command -v ffprobe >/dev/null 2>&1 || ! command -v ffmpeg >/dev/null 2>&1; then
-            brew install ffmpeg
-          fi
-          ffprobe -version | head -n 1
-          ffmpeg -version | head -n 1
-
-      - name: Validate NH01 source package
-        run: |
+          mkdir -p "$YUJIAN_RUNTIME_EVIDENCE"
           python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt Pillow==11.3.0
           python3 scripts/design/build_nh01_cloud_bundle.py
           python3 scripts/design/validate_nh01_cloud_bundle.py
           python3 scripts/design/build_nh01_authority_inventory.py
           python3 scripts/design/verify_nh01_cloud_viewer.py
           python3 -m unittest discover -s scripts/design/tests -p 'test_*.py' -v
+          python3 scripts/verify_nh01_gemini_native_source.py | tee "$YUJIAN_RUNTIME_EVIDENCE/source_audit.txt"
+          python3 -m py_compile scripts/design/package_nh01_gemini_runtime_evidence.py
           bash scripts/android_runtime/tests/test_contract.sh
 
       - name: Set up JDK 17
@@ -107,7 +98,8 @@ jobs:
           test -x "$YUJIAN_AAPT2"
           echo "YUJIAN_AAPT2=$YUJIAN_AAPT2" >> "$GITHUB_ENV"
 
-      - name: Android unit tests and one-time APK build
+      - name: Android unit tests and exact-source APK build
+        id: android_build
         run: |
           set -euo pipefail
           gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" test --stacktrace --no-daemon --max-workers=2
@@ -129,33 +121,17 @@ jobs:
             echo "os=$RUNNER_OS"
             echo "architecture=$(uname -m)"
             echo "selected_acceleration=Apple_Hypervisor_Framework"
-            echo "current_kvm_status=NOT_APPLICABLE_ON_MACOS"
-            echo "previous_ubuntu_kvm_status=UNAVAILABLE"
-            echo "previous_ubuntu_kvm_run_id=39187403348"
-            echo "previous_ubuntu_kvm_source_sha=0df6f68f3d9a2d9f944f8664e878d59edca84edc"
-            echo "previous_software_tcg_status=BLOCKED_INFRA"
-            echo "previous_software_tcg_run_id=39188457350"
-            echo "previous_software_tcg_source_sha=5f209b83debbd810bcd841d68f1ea75c9f003380"
-            echo "available=false" >> "$GITHUB_OUTPUT"
-          } | tee "$YUJIAN_RUNTIME_EVIDENCE/infra/hosted_runner_kvm_diagnostic_reference.log"
+            echo "available=false"
+          } | tee "$YUJIAN_RUNTIME_EVIDENCE/infra/hosted_runner_emulator_diagnostic.log"
           if [[ "$RUNNER_OS" == "macOS" && "$(uname -m)" == "x86_64" ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run existing Normal Home harness on Pixel 2 API 28 with Apple Hypervisor
+      - name: Run Gemini V2 Android gate on Pixel 2 API 28
         id: emulator_runtime
         if: steps.emulator_env.outputs.available == 'true'
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
-        env:
-          NH01_EMULATOR_ACCELERATION: apple_hypervisor_framework
-          NH01_KVM_PREFLIGHT_STATUS: not_applicable_macos
-          NH01_KVM_PREFLIGHT_RUN_ID: "39187403348"
-          NH01_KVM_PREFLIGHT_SOURCE_SHA: "0df6f68f3d9a2d9f944f8664e878d59edca84edc"
-          NH01_TCG_ATTEMPT_STATUS: BLOCKED_INFRA
-          NH01_TCG_ATTEMPT_RUN_ID: "39188457350"
-          NH01_TCG_ATTEMPT_SOURCE_SHA: "5f209b83debbd810bcd841d68f1ea75c9f003380"
-          NH01_TCG_ATTEMPT_FAILURE: "AVD boot failed on Ubuntu hosted runner: KVM permission unavailable; TCG did not support requested AVX/F16C and ADB never connected."
         with:
           api-level: 28
           target: default
@@ -168,17 +144,8 @@ jobs:
           script: |
             bash scripts/design/run_nh01_emulator_runtime.sh
 
-      - name: Record unavailable device metadata if Runner did not start
+      - name: Record device metadata when no emulator evidence exists
         if: always()
-        env:
-          NH01_EMULATOR_ACCELERATION: apple_hypervisor_framework
-          NH01_KVM_PREFLIGHT_STATUS: not_applicable_macos
-          NH01_KVM_PREFLIGHT_RUN_ID: "39187403348"
-          NH01_KVM_PREFLIGHT_SOURCE_SHA: "0df6f68f3d9a2d9f944f8664e878d59edca84edc"
-          NH01_TCG_ATTEMPT_STATUS: BLOCKED_INFRA
-          NH01_TCG_ATTEMPT_RUN_ID: "39188457350"
-          NH01_TCG_ATTEMPT_SOURCE_SHA: "5f209b83debbd810bcd841d68f1ea75c9f003380"
-          NH01_TCG_ATTEMPT_FAILURE: "AVD boot failed on Ubuntu hosted runner: KVM permission unavailable; TCG did not support requested AVX/F16C and ADB never connected."
         run: |
           if [[ -s "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" ]]; then
             echo "Preserving captured device metadata."
@@ -189,8 +156,8 @@ jobs:
             --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt" \
             --allow-unavailable
 
-      - name: Materialize truthful BLOCKED_INFRA when Runtime did not start
-        if: always()
+      - name: Materialize truthful BLOCKED_INFRA when the emulator gate did not start
+        if: always() && steps.android_build.outcome == 'success'
         run: |
           set -euo pipefail
           result="$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json"
@@ -199,11 +166,11 @@ jobs:
             if [[ "${{ steps.emulator_env.outputs.available }}" != "true" ]]; then
               reason="STANDARD_INTEL_MACOS_EMULATOR_RUNNER_UNAVAILABLE"
             else
-              reason="ANDROID_EMULATOR_FAILED_BEFORE_HARNESS_ON_MACOS"
+              reason="ANDROID_EMULATOR_FAILED_BEFORE_GEMINI_GATE"
             fi
             python3 scripts/android_runtime/result.py \
               --output "$result" \
-              --gate normal-home-v1 \
+              --gate gemini-home-v2 \
               --api-level 28 \
               --build-sha "$YUJIAN_SOURCE_SHA" \
               --adb-state unknown \
@@ -219,13 +186,13 @@ jobs:
               --summary-file "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Stage source SHA, APK, Runtime and visual evidence
-        id: status
-        if: always()
+      - name: Package Gemini V2 APK and runtime evidence
+        id: package
+        if: always() && steps.android_build.outcome == 'success'
         run: |
           set -euo pipefail
-          mkdir -p build/nh01-runtime-artifact
-          python3 scripts/design/package_nh01_runtime_evidence.py \
+          mkdir -p build/nh01-gemini-artifact
+          python3 scripts/design/package_nh01_gemini_runtime_evidence.py \
             --evidence-dir "$YUJIAN_RUNTIME_EVIDENCE" \
             --source-sha "$YUJIAN_SOURCE_SHA" \
             --run-id "$GITHUB_RUN_ID" \
@@ -233,208 +200,28 @@ jobs:
             --pr-url "${{ github.event.pull_request.html_url }}" \
             --apk build/runtime-apks/app-debug.apk \
             --test-apk build/runtime-apks/app-debug-androidTest.apk \
-            --model-contract build/runtime-apks/model_release_contract.json \
-            --model-trace build/runtime-apks/apk_model_trace.json \
+            --source-audit "$YUJIAN_RUNTIME_EVIDENCE/source_audit.txt" \
             --device-metadata "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
-            --artifact-dir build/nh01-runtime-artifact \
-            --web-root .
-          classification="$(python3 -c 'import json; print(json.load(open("build/nh01-runtime-artifact/runtime_gate_result.json"))["classification"])')"
+            --artifact-dir build/nh01-gemini-artifact
+          classification="$(python3 -c 'import json; print(json.load(open("build/nh01-gemini-artifact/evidence/runtime_gate_result.json"))["classification"])')"
           echo "classification=$classification" >> "$GITHUB_OUTPUT"
 
-      - name: Upload installable APK and Runtime evidence
-        id: upload_runtime
-        if: always()
+      - name: Upload installable Gemini V2 APK and evidence
+        if: always() && steps.package.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-NH01-API28-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
-          path: build/nh01-runtime-artifact
+          name: YuJian-NH01-Gemini-V2-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
+          path: build/nh01-gemini-artifact
           if-no-files-found: error
           retention-days: 30
 
-      - name: Prepare exact-SHA Acceptance Center source
-        if: always()
+      - name: Enforce Android build, install, launch, and core interaction gate
+        if: always() && steps.package.outcome == 'success'
         run: |
-          set -euo pipefail
-          rm -rf _site
-          mkdir -p _site
-          cp -R design _site/design
-          BUILD_SHORT="$(printf '%.12s' "$YUJIAN_SOURCE_SHA")"
-          python3 - "$YUJIAN_SOURCE_SHA" "$BUILD_SHORT" <<'PY'
-          import sys
-          from pathlib import Path
-
-          source_sha, build_short = sys.argv[1:3]
-          replacements = {
-              "__DESIGN_MANAGER_BUILD__": source_sha,
-              "__DESIGN_MANAGER_BUILD_SHORT__": build_short,
-              "__NH01_SOURCE_SHA__": source_sha,
-              "__NH01_VIEWER_BUILD__": source_sha,
-          }
-          files = (
-              Path("_site/design/manager/index.html"),
-              Path("_site/design/manager/nh01_acceptance/index.html"),
-          )
-          for path in files:
-              content = path.read_text(encoding="utf-8")
-              for token, value in replacements.items():
-                  content = content.replace(token, value)
-              path.write_text(content, encoding="utf-8")
-          PY
-          printf '{"sha":"%s","short_sha":"%s"}\n' "$YUJIAN_SOURCE_SHA" "$BUILD_SHORT" > _site/design/manager/build.json
-          touch _site/.nojekyll
-
-      - name: Install Chromium for exact-source Viewer checks
-        if: always()
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/nh01-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/nh01-playwright/node_modules/.bin/playwright" install chromium
-
-      - name: Build Runtime Viewer and verify with Chromium
-        id: browser
-        if: always()
-        run: |
-          set -euo pipefail
-          python3 scripts/design/package_nh01_runtime_evidence.py \
-            --evidence-dir "$YUJIAN_RUNTIME_EVIDENCE" \
-            --source-sha "$YUJIAN_SOURCE_SHA" \
-            --run-id "$GITHUB_RUN_ID" \
-            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --pr-url "${{ github.event.pull_request.html_url }}" \
-            --apk build/runtime-apks/app-debug.apk \
-            --device-metadata "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
-            --web-root _site
-          python3 -m http.server 8766 --directory _site > "$RUNNER_TEMP/nh01-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8766/design/manager/nh01_acceptance/ >/dev/null; then break; fi
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:8766/design/manager/nh01_acceptance/ >/dev/null
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/nh01-playwright/node_modules" \
-            node scripts/design/verify_nh01_viewer_browser.mjs \
-              --base-url=http://127.0.0.1:8766 \
-              --expected-source-sha="$YUJIAN_SOURCE_SHA" \
-              --output-dir "$RUNNER_TEMP/nh01-browser"
-          mkdir -p "$RUNNER_TEMP/nh01-preview-diff"
-          python3 scripts/design/compare_nh01_structured_preview.py \
-            --structured "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
-            --output-dir "$RUNNER_TEMP/nh01-preview-diff" \
-            --source-sha "$YUJIAN_SOURCE_SHA"
-          python3 scripts/design/record_nh01_browser_evidence.py \
-            --report "$RUNNER_TEMP/nh01-browser/NH01_Browser_Viewer_Report.json" \
-            --site-root _site \
-            --expected-source-sha "$YUJIAN_SOURCE_SHA" \
-            --workflow-run-id "$GITHUB_RUN_ID" \
-            --workflow-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --preview-diff-report "$RUNNER_TEMP/nh01-preview-diff/NH01_ROI_Report.json" \
-            --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
-            --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/nh01-playwright/node_modules" \
-            node scripts/design/verify_nh01_viewer_browser.mjs \
-              --base-url=http://127.0.0.1:8766 \
-              --expected-source-sha="$YUJIAN_SOURCE_SHA" \
-              --require-browser-diff \
-              --output-dir "$RUNNER_TEMP/nh01-browser-final"
-          python3 scripts/design/record_nh01_browser_evidence.py \
-            --report "$RUNNER_TEMP/nh01-browser-final/NH01_Browser_Viewer_Report.json" \
-            --site-root _site \
-            --expected-source-sha "$YUJIAN_SOURCE_SHA" \
-            --workflow-run-id "$GITHUB_RUN_ID" \
-            --workflow-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --preview-diff-report "$RUNNER_TEMP/nh01-preview-diff/NH01_ROI_Report.json" \
-            --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
-            --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
-          python3 scripts/design/package_nh01_runtime_evidence.py \
-            --evidence-dir "$YUJIAN_RUNTIME_EVIDENCE" \
-            --source-sha "$YUJIAN_SOURCE_SHA" \
-            --run-id "$GITHUB_RUN_ID" \
-            --run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --artifact-url "${{ steps.upload_runtime.outputs.artifact-url }}" \
-            --pr-url "${{ github.event.pull_request.html_url }}" \
-            --apk build/runtime-apks/app-debug.apk \
-            --device-metadata "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
-            --web-root _site
-          echo "ready=true" >> "$GITHUB_OUTPUT"
-
-      - name: Upload NH01 browser and structured-diff evidence
-        if: always() && steps.browser.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
-        with:
-          name: NH01-Browser-Comparison-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/nh01-browser/
-            ${{ runner.temp }}/nh01-browser-final/
-            ${{ runner.temp }}/nh01-preview-diff/
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Upload Acceptance Center Pages artifact
-        id: upload_pages
-        if: always() && steps.browser.outcome == 'success'
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: _site
-
-      - name: Mark Pages artifact ready
-        id: pages_ready
-        if: steps.upload_pages.outcome == 'success'
-        run: echo "ready=true" >> "$GITHUB_OUTPUT"
-
-      - name: Enforce real Android Runtime gate
-        if: always()
-        run: |
-          python3 - "$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json" <<'PY'
+          python3 - "build/nh01-gemini-artifact/evidence/runtime_gate_result.json" <<'PY'
           import json, sys
           result = json.load(open(sys.argv[1], encoding="utf-8"))
           print(json.dumps(result, ensure_ascii=False, indent=2))
           if result.get("classification") != "PASS":
-              raise SystemExit("NH01_ANDROID_RUNTIME_NOT_PASS: " + str(result.get("classification")))
+              raise SystemExit("NH01_GEMINI_ANDROID_RUNTIME_NOT_PASS: " + str(result.get("classification")))
           PY
-
-  deploy:
-    if: always() && needs.runtime.outputs.pages_ready == 'true'
-    needs: runtime
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    environment:
-      name: design-manager-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Checkout exact source for live-browser verifier
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.runtime.outputs.source_sha }}
-
-      - name: Deploy NH01 Acceptance Center
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Set up Node for live browser verification
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install Playwright and Chromium
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/nh01-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/nh01-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Verify published Viewer against exact source SHA
-        env:
-          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/nh01-playwright/node_modules
-        run: |
-          node scripts/design/verify_nh01_viewer_browser.mjs \
-            --base-url="${{ steps.deployment.outputs.page_url }}" \
-            --expected-source-sha="${{ needs.runtime.outputs.source_sha }}" \
-            --output-dir "$RUNNER_TEMP/nh01-live-browser"
-
-      - name: Upload published Viewer verification
-        uses: actions/upload-artifact@v4
-        with:
-          name: NH01-Published-Viewer-${{ github.run_id }}-${{ needs.runtime.outputs.source_sha }}
-          path: ${{ runner.temp }}/nh01-live-browser
-          if-no-files-found: error
-          retention-days: 30

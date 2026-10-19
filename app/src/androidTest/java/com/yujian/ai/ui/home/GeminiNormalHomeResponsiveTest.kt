@@ -1,0 +1,446 @@
+package com.yujian.ai.ui.home
+
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.RectF
+import android.os.Build
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.yujian.ai.catches.CatchStatistics
+import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
+import java.util.concurrent.atomic.AtomicInteger
+
+/** Constraint-window evidence is Compose simulation and is reported separately from device captures. */
+@RunWith(AndroidJUnit4::class)
+class GeminiNormalHomeResponsiveTest {
+    @get:Rule
+    val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun responsiveWindowAndFontScaleMatrixKeepsSectionsAndActionsUsable() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v2/compose-simulation")
+            .apply { mkdirs() }
+        val photo = File(context.cacheDir, "gemini-responsive-fish.jpg").apply {
+            context.assets.open("home_normal/fish_record/sample_recent_catch.jpg").use { input ->
+                outputStream().use { target -> input.copyTo(target) }
+            }
+        }
+        val records = fixtureCatches(photo.absolutePath)
+        val profile = mutableStateOf(Profile(320, 480, 1.0f, "320x480"))
+        val avatarClicks = AtomicInteger()
+        val cameraClicks = AtomicInteger()
+        val albumClicks = AtomicInteger()
+        val speciesClicks = AtomicInteger()
+        val catchClicks = AtomicInteger()
+        val recordClicks = AtomicInteger()
+
+        compose.setContent {
+            val window = profile.value
+            CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = window.fontScale)) {
+                Box(Modifier.requiredSize(window.widthDp.dp, window.heightDp.dp)) {
+                    GeminiNormalHomeContent(
+                        statistics = CatchStatistics(totalCatches = 3, speciesCount = 3),
+                        recentCatches = records,
+                        resolveImageUrl = { it },
+                        accessToken = "",
+                        isLoggedIn = false,
+                        avatarUrl = null,
+                        onIdentify = { cameraClicks.incrementAndGet() },
+                        onLoginClick = { avatarClicks.incrementAndGet() },
+                        onSpeciesClick = { speciesClicks.incrementAndGet() },
+                        onCatchesClick = { albumClicks.incrementAndGet() },
+                        onProfileClick = { error("Guest avatar must open login, not profile") },
+                        onCatchClick = { if (it.isNotBlank()) recordClicks.incrementAndGet() },
+                        motionState = rememberHomeMotionState(),
+                        runtimeAssets = null,
+                        safeInsets = SafeDrawingInsetsDp(top = 24.dp, bottom = 24.dp),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+
+        compose.onNodeWithTag("gemini-home-stat-species-value", useUnmergedTree = true).assertTextEquals("3")
+        compose.onNodeWithTag("gemini-home-stat-catches-value", useUnmergedTree = true).assertTextEquals("3")
+        compose.onNodeWithTag("gemini-home-stat-record-days-value", useUnmergedTree = true).assertTextEquals("1")
+        compose.onNodeWithTag("gemini-home-catch-species-gemini-fixture-01", useUnmergedTree = true)
+            .assertTextEquals("草鱼")
+        compose.onNodeWithTag("gemini-home-catch-measurement-gemini-fixture-01", useUnmergedTree = true)
+            .assertTextEquals("42.6 cm · 1.28 kg")
+
+        val profiles = buildList {
+            listOf(320 to 480, 360 to 640, 390 to 844, 430 to 932, 480 to 840).forEach { (width, height) ->
+                listOf(1.0f, 1.3f, 1.5f).forEach { scale ->
+                    add(Profile(width, height, scale, "${width}x${height}-font-${scaleToken(scale)}"))
+                }
+            }
+        }
+        val profileResults = JSONArray()
+
+        profiles.forEachIndexed { index, window ->
+            compose.runOnUiThread { profile.value = window }
+            compose.waitForIdle()
+
+            val root = bounds("gemini-home-screen")
+            val top = bounds("gemini-home-top-section")
+            val middle = bounds("gemini-home-middle-section")
+            val footer = bounds("gemini-home-footer-cta")
+            val camera = bounds("gemini-home-camera")
+            val cameraArt = bounds("gemini-home-camera-art")
+            val ctaLabel = bounds("gemini-home-cta-label")
+            val activeCard = bounds("gemini-home-catch-card-gemini-fixture-01")
+            val species = bounds("gemini-home-catch-species-gemini-fixture-01")
+            val measurement = bounds("gemini-home-catch-measurement-gemini-fixture-01")
+            val metadata = bounds("gemini-home-catch-metadata-gemini-fixture-01")
+
+            assertEquals("root width ${window.name}", window.widthDp.toFloat(), root.width, 1f)
+            assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height, 1f)
+            assertTrue("top must precede the flexible middle ${window.name}", top.bottom <= middle.top + 1f)
+            assertTrue("middle must precede the footer ${window.name}", middle.bottom <= footer.top + 1f)
+            assertTrue("camera hit target must be at least 48dp ${window.name}", camera.width >= 48f && camera.height >= 48f)
+            val cameraCenterDistance = kotlin.math.hypot(
+                cameraArt.centerX() - camera.centerX(),
+                cameraArt.centerY() - camera.centerY(),
+            )
+            assertTrue("camera art must be centered in its target ${window.name}", cameraCenterDistance <= 2f)
+            assertTrue("CTA label and camera may not overlap ${window.name}", ctaLabel.bottom <= camera.top + 1f)
+            assertTrue("camera must remain above the bottom safe inset ${window.name}", camera.bottom <= root.bottom - 24f + 1f)
+            assertTrue("Hero footer content remains inside the card ${window.name}",
+                listOf(species, measurement, metadata).all { it.isInside(activeCard) })
+
+            val image = compose.onNodeWithTag("gemini-home-screen", useUnmergedTree = true)
+                .assertIsDisplayed().captureToImage().let { it.asAndroidBitmap() }
+            val screenshot = File(output, "${window.name}.png")
+            screenshot.outputStream().use { stream ->
+                assertTrue("failed to save ${window.name}", image.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+            assertEquals(window.widthDp, image.width)
+            assertEquals(window.heightDp, image.height)
+
+            val initiallyVisible = metadata.isInside(middle)
+            var afterScrollVisible = initiallyVisible
+            if (!initiallyVisible) {
+                assertTrue(
+                    "${window.name} clips Hero footer without a scroll path",
+                    compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                        .fetchSemanticsNodes().isNotEmpty(),
+                )
+                compose.onNodeWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                    .performTouchInput { repeat(3) { swipeUp() } }
+                compose.waitForIdle()
+                afterScrollVisible = bounds("gemini-home-catch-metadata-gemini-fixture-01").isInside(
+                    bounds("gemini-home-middle-section"),
+                )
+                assertTrue("${window.name} must scroll the whole Hero footer into view", afterScrollVisible)
+            }
+
+            compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-stat-species", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-section-all", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-catch-card-gemini-fixture-01", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.runOnIdle {
+                assertEquals(index + 1, avatarClicks.get())
+                assertEquals(index + 1, cameraClicks.get())
+                assertEquals(index + 1, speciesClicks.get())
+                assertEquals(index + 1, albumClicks.get())
+                assertEquals(index + 1, recordClicks.get())
+            }
+
+            val result = JSONObject().apply {
+                put("profile", window.name)
+                put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
+                put("status", "PASS")
+                put("font_scale", window.fontScale)
+                put("density", 1.0)
+                put("window_dp", JSONArray(listOf(window.widthDp, window.heightDp)))
+                put("safe_insets_dp", JSONObject().put("top", 24).put("bottom", 24).put("start", 0).put("end", 0))
+                put("screenshot", screenshot.name)
+                put("screenshot_dimensions_px", JSONArray(listOf(image.width, image.height)))
+                put("hero_metadata_initially_visible", initiallyVisible)
+                put("hero_metadata_visible_after_scroll", afterScrollVisible)
+                put("scrollability", if (initiallyVisible) "NOT_REQUIRED" else "PASS")
+                put("camera_touch_target_min_dp", 48)
+                put("cta_camera_overlap", false)
+                put("interactions", JSONObject().apply {
+                    put("guest_avatar_login", "PASS")
+                    put("camera_identify", "PASS")
+                    put("species_stats", "PASS")
+                    put("all_catches", "PASS")
+                    put("catch_record", "PASS")
+                })
+                put("bounds_dp", JSONObject().apply {
+                    put("root", root.toJson())
+                    put("top", top.toJson())
+                    put("middle", middle.toJson())
+                    put("footer", footer.toJson())
+                    put("camera_target", camera.toJson())
+                    put("camera_art", cameraArt.toJson())
+                    put("cta_label", ctaLabel.toJson())
+                    put("active_card", activeCard.toJson())
+                    put("species", species.toJson())
+                    put("measurement", measurement.toJson())
+                    put("metadata", metadata.toJson())
+                })
+            }
+            profileResults.put(result)
+            Log.i("GEMINI_HOME_RESPONSIVE_PROFILE", result.toString())
+
+            if (compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
+            ) {
+                compose.onNodeWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                    .performTouchInput { repeat(3) { swipeDown() } }
+            }
+            image.recycle()
+        }
+
+        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+            .performTouchInput { swipeLeft() }
+        compose.waitForIdle()
+        assertTrue(
+            "horizontal carousel must expose the next card after a horizontal swipe",
+            compose.onAllNodesWithTag("gemini-home-catch-card-gemini-fixture-02", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty(),
+        )
+        assertEquals(profiles.size, profileResults.length())
+
+        val report = JSONObject().apply {
+            put("test", "GeminiNormalHomeResponsiveTest.responsiveWindowAndFontScaleMatrixKeepsSectionsAndActionsUsable")
+            put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
+            put("device_api_level", Build.VERSION.SDK_INT)
+            put("device_capture", "NOT_RUN_BY_THIS_TEST")
+            put("business_fixture", JSONObject().put("species_count", 3).put("catch_count", 3).put("record_days", 1)
+                .put("first_catch", "草鱼").put("length_cm", 42.6).put("weight_kg", 1.28).put("location", "浙江 · 千岛湖"))
+            put("fish_photo_source", "home_normal/fish_record/sample_recent_catch.jpg")
+            put("fish_photo_render_mode", "FIT_WITH_BLURRED_BACKGROUND")
+            put("profiles", profileResults)
+            put("horizontal_pager_swipe", "PASS")
+            put("profile_count", profiles.size)
+        }
+        File(output, "gemini_responsive_compose_report.json").writeText(report.toString(2))
+        photo.delete()
+    }
+
+    @Test
+    fun approvedAvatarFallbackAndAccountTransitionsNeverRetainOldAvatar() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val output = File(requireNotNull(context.getExternalFilesDir(null)), "nh01-gemini-v2/avatar")
+            .apply { mkdirs() }
+        val userAvatar = avatarFixture(context.cacheDir, "gemini-user-a.png", android.graphics.Color.MAGENTA)
+        val failedAvatar = File(context.cacheDir, "gemini-user-b-missing.png")
+        val auth = mutableStateOf(AvatarProfile(isLoggedIn = true, avatarUrl = userAvatar.absolutePath))
+        val profileClicks = AtomicInteger()
+        val loginClicks = AtomicInteger()
+
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f, 1.0f)) {
+                Box(Modifier.requiredSize(390.dp, 844.dp)) {
+                    GeminiNormalHomeContent(
+                        statistics = CatchStatistics(totalCatches = 38, speciesCount = 12),
+                        recentCatches = fixtureCatches(null),
+                        resolveImageUrl = { it },
+                        accessToken = "token-a",
+                        isLoggedIn = auth.value.isLoggedIn,
+                        avatarUrl = auth.value.avatarUrl,
+                        onIdentify = {},
+                        onLoginClick = { loginClicks.incrementAndGet() },
+                        onSpeciesClick = {},
+                        onCatchesClick = {},
+                        onProfileClick = { profileClicks.incrementAndGet() },
+                        onCatchClick = {},
+                        motionState = rememberHomeMotionState(),
+                        runtimeAssets = null,
+                        safeInsets = SafeDrawingInsetsDp(top = 24.dp, bottom = 24.dp),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+        }
+
+        compose.waitUntil(10_000) {
+            val state = compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
+                .fetchSemanticsNode().config[SemanticsProperties.StateDescription]
+            state == "用户头像"
+        }
+        compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
+            .assertHasClickAction().performClick()
+        compose.runOnIdle { assertEquals(1, profileClicks.get()) }
+        val loadedImage = compose.onNodeWithTag("gemini-home-avatar-visual", useUnmergedTree = true)
+            .captureToImage().toPixelMap()
+        val center = loadedImage[loadedImage.width / 2, loadedImage.height / 2]
+        assertTrue("real user avatar must replace the V2 placeholder after successful load", center.red > 0.8f && center.blue > 0.8f)
+
+        auth.value = AvatarProfile(isLoggedIn = true, avatarUrl = failedAvatar.absolutePath)
+        compose.waitUntil(10_000) {
+            compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
+                .fetchSemanticsNode().config[SemanticsProperties.StateDescription] == "默认头像"
+        }
+        assertEquals(0, compose.onAllNodesWithTag("gemini-home-remote-avatar", useUnmergedTree = true)
+            .fetchSemanticsNodes().size)
+        compose.onNodeWithTag("gemini-home-default-avatar-v2", useUnmergedTree = true).assertIsDisplayed()
+        val fallback = compose.onNodeWithTag("gemini-home-avatar-visual", useUnmergedTree = true)
+            .captureToImage().asAndroidBitmap()
+        val buttonBounds = bounds("gemini-home-avatar-button")
+        val visualBounds = bounds("gemini-home-avatar-visual")
+        assertTrue("avatar action target must be at least 48dp", buttonBounds.width() >= 48f && buttonBounds.height() >= 48f)
+        assertTrue("avatar visual must stay within its independent action target", visualBounds.isInside(buttonBounds))
+        val fallbackPixels = fallback.asImageBitmap().toPixelMap()
+        val centerPixel = fallbackPixels[fallbackPixels.width / 2, fallbackPixels.height / 2]
+        val cornerPixel = fallbackPixels[0, 0]
+        val edgeDistance = kotlin.math.abs(centerPixel.red - cornerPixel.red) +
+            kotlin.math.abs(centerPixel.green - cornerPixel.green) + kotlin.math.abs(centerPixel.blue - cornerPixel.blue)
+        assertTrue("avatar visual must retain its circular edge boundary", edgeDistance > 0.08f)
+        val fallbackFile = File(output, "gemini_signed_in_failed_avatar_fallback.png")
+        fallbackFile.outputStream().use { assertTrue(fallback.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+
+        auth.value = AvatarProfile(isLoggedIn = false, avatarUrl = null)
+        compose.waitForIdle()
+        assertEquals(0, compose.onAllNodesWithTag("gemini-home-remote-avatar", useUnmergedTree = true)
+            .fetchSemanticsNodes().size)
+        compose.onNodeWithTag("gemini-home-default-avatar-v2", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
+            .assertHasClickAction().performClick()
+        compose.runOnIdle {
+            assertEquals("logout/user-switch must drop the previous remote avatar", 1, loginClicks.get())
+            assertEquals("Guest tap must not be treated as profile", 1, profileClicks.get())
+        }
+
+        val report = JSONObject().apply {
+            put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
+            put("avatar_asset", "drawable/normal_home_default_avatar_v2.png")
+            put("avatar_asset_sha256", "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528")
+            put("avatar_visual_crop", "CIRCLE_CLIP_CONTENT_SCALE_FIT")
+            put("avatar_visual_bounds_dp", visualBounds.toJson())
+            put("avatar_button_bounds_dp", buttonBounds.toJson())
+            put("user_avatar_load", "PASS")
+            put("user_avatar_failure_fallback", "PASS")
+            put("account_switch_clears_previous_avatar", "PASS")
+            put("logout_clears_previous_avatar", "PASS")
+            put("guest_click", "LOGIN_PASS")
+            put("signed_in_click", "PROFILE_PASS")
+            put("avatar_screenshot", fallbackFile.name)
+        }
+        File(output, "gemini_avatar_transition_report.json").writeText(report.toString(2))
+        Log.i("GEMINI_HOME_AVATAR_TRANSITIONS", report.toString())
+        fallback.recycle()
+        userAvatar.delete()
+    }
+
+    private fun fixtureCatches(imagePath: String?): List<RemoteCatch> {
+        val names = listOf("草鱼", "鲤鱼", "鲫鱼", "黑鱼", "鳜鱼", "鲢鱼", "鳙鱼", "鲈鱼", "鲶鱼", "黄颡鱼", "青鱼", "鲑鱼")
+        val firstDay = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai")).apply {
+            add(Calendar.DAY_OF_YEAR, -1)
+            set(Calendar.HOUR_OF_DAY, 18)
+            set(Calendar.MINUTE, 20)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return (0 until 3).map { index ->
+            val dayOffset = 1
+            val time = (firstDay.clone() as Calendar).apply {
+                add(Calendar.DAY_OF_YEAR, -(dayOffset - 1))
+                if (index == 1) add(Calendar.MINUTE, -60)
+                else if (index > 1) {
+                    set(Calendar.HOUR_OF_DAY, 12)
+                    set(Calendar.MINUTE, 55 - (index % 50))
+                }
+            }.time
+            val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("Asia/Shanghai")
+            }.format(time)
+            RemoteCatch(
+                id = "gemini-fixture-${(index + 1).toString().padStart(2, '0')}",
+                imageUrl = imagePath.orEmpty(),
+                speciesId = "species-${index % 12}",
+                speciesName = names[index % names.size],
+                confidence = 0.92f,
+                modelVersion = "nh01-gemini-responsive-fixture",
+                capturedAt = timestamp,
+                createdAt = timestamp,
+                lengthCm = if (index == 0) 42.6f else 28f + index,
+                weightKg = if (index == 0) 1.28f else 0.75f + index * 0.05f,
+                location = if (index == 0) "浙江 · 千岛湖" else "清晨湖畔",
+            )
+        }
+    }
+
+    private fun avatarFixture(directory: File, name: String, color: Int): File {
+        val bitmap = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
+        Canvas(bitmap).drawColor(color)
+        val target = File(directory, name)
+        target.outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+        bitmap.recycle()
+        return target
+    }
+
+    private fun bounds(tag: String): RectF {
+        val rect = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        return RectF(rect.left, rect.top, rect.right, rect.bottom)
+    }
+
+    private fun RectF.isInside(parent: RectF): Boolean =
+        left >= parent.left - 1f && top >= parent.top - 1f && right <= parent.right + 1f && bottom <= parent.bottom + 1f
+
+    private fun RectF.toJson(): JSONObject = JSONObject().apply {
+        put("left", left)
+        put("top", top)
+        put("right", right)
+        put("bottom", bottom)
+        put("width", width())
+        put("height", height())
+    }
+
+    private fun scaleToken(scale: Float): String = String.format(Locale.US, "%.1f", scale).replace('.', '_')
+
+    private data class Profile(val widthDp: Int, val heightDp: Int, val fontScale: Float, val name: String)
+
+    private data class AvatarProfile(val isLoggedIn: Boolean, val avatarUrl: String?)
+}

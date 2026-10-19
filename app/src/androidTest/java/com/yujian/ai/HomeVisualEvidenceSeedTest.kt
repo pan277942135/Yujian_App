@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import com.yujian.ai.session.UserSessionManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.CatchSaveDraft
@@ -15,6 +16,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /** Seeds deterministic local guest data only; the shell runtime gate owns app launch/evidence. */
 @RunWith(AndroidJUnit4::class)
@@ -27,6 +32,35 @@ class HomeVisualEvidenceSeedTest {
 
     @Test
     fun seedMultipleGuestCatches() = seed(3)
+
+    @Test
+    fun seedGeminiReferenceGuestHome() {
+        UserSessionManager(context).clear()
+        seed(3)
+        val preferences = context.getSharedPreferences(GUEST_ARCHIVE_PREFERENCES, Context.MODE_PRIVATE)
+        val serialized = preferences.getString(GUEST_RECORDS_KEY, null)
+        assertTrue("Gemini guest evidence was not persisted", serialized != null)
+        val records = JSONArray(requireNotNull(serialized))
+        assertEquals("reference screenshot has three catches", 3, records.length())
+        val capturedAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("Asia/Shanghai")
+        }.format(Date())
+        for (index in 0 until records.length()) {
+            records.getJSONObject(index).put("captured_at", capturedAt).put("created_at", capturedAt)
+        }
+        val referenceCatch = records.getJSONObject(0)
+        assertEquals("草鱼", referenceCatch.getString("species_name"))
+        assertEquals(42.6, referenceCatch.getDouble("length_cm"), 0.01)
+        assertEquals(1.28, referenceCatch.getDouble("weight_kg"), 0.01)
+        assertEquals("浙江 · 千岛湖", referenceCatch.getString("location"))
+        val capturedDays = (0 until records.length()).map {
+            records.getJSONObject(it).getString("captured_at").take(10)
+        }.toSet()
+        assertEquals("reference screenshot has one record day", 1, capturedDays.size)
+        assertTrue("normalized reference fixture was not persisted", preferences.edit()
+            .putString(GUEST_RECORDS_KEY, records.toString()).commit())
+        assertEquals("seed must leave the user in guest state", null, UserSessionManager(context).current())
+    }
 
     @Test
     fun seedTwoAspectPortraitGuestCatches() {

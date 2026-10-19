@@ -6,6 +6,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENTRYPOINT="$ROOT_DIR/scripts/run_android_runtime_gate.sh"
 FAKE_ADB="$ROOT_DIR/scripts/android_runtime/tests/fake_adb.sh"
 
+grep -q 'gemini-home-v2' "$ENTRYPOINT" || {
+  echo "Gemini Home V2 runtime gate is not registered" >&2
+  exit 1
+}
+
 assert_result() {
   local result_file="$1"
   local expected_classification="$2"
