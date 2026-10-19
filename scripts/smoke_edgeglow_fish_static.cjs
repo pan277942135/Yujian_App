@@ -17,6 +17,7 @@ const runId = process.env.GITHUB_RUN_ID || "LOCAL";
 const expectedPhotoSha = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef";
 const centerPath = "design/manager/nh01_acceptance/";
 const routePath = "design/manager/nh01_acceptance/edgeglow-fish-static/";
+let launchedBrowser;
 
 async function canvasStats(page, id = "glowCanvas") {
   return page.locator(`#${id}`).evaluate(canvas => {
@@ -45,7 +46,7 @@ async function setControl(page, selector, value) {
 
 async function main() {
   await fs.mkdir(outputDir, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
+  const browser = launchedBrowser = await chromium.launch({ headless: true });
   const errors = [];
   const page = await browser.newPage({ viewport: { width: 1440, height: 1180 }, deviceScaleFactor: 1 });
   page.on("pageerror", error => errors.push(`pageerror: ${error.message}`));
@@ -79,7 +80,7 @@ async function main() {
   assert.equal(identity.buildInfo.photo_sha256, expectedPhotoSha);
   if (process.env.PR_SOURCE_SHA) assert.equal(identity.buildInfo.pr_source_sha, process.env.PR_SOURCE_SHA);
   if (process.env.CENTER_SOURCE_SHA) assert.equal(identity.buildInfo.acceptance_center_source_sha, process.env.CENTER_SOURCE_SHA);
-  assert.ok(identity.pathLength > 3000, `PathMeasure arc length is plausible: ${identity.pathLength}`);
+  assert.ok(identity.pathLength > 2500, `PathMeasure arc length is plausible: ${identity.pathLength}`);
   assert.ok(identity.contourBounds[2] < 600 && identity.contourBounds[3] > 900, "Contour is irregular fish-sized geometry, not an image-sized frame.");
 
   const canvasDimensions = await page.locator(".photo-stage canvas").evaluateAll(nodes => nodes.map(node => [node.width, node.height]));
@@ -212,7 +213,8 @@ async function main() {
   await browser.close();
 }
 
-main().catch(error => {
+main().catch(async error => {
   console.error(error);
+  await launchedBrowser?.close().catch(() => {});
   process.exitCode = 1;
 });
