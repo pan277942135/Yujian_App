@@ -51,7 +51,7 @@ jobs:
       - name: Checkout verified current NH01 Acceptance Center source
         uses: actions/checkout@v4
         with:
-          ref: 08ed847e711f8c7accd4ebba08a74e55e756882f
+          ref: b65cbdd5fad07e0fddeea1acb38664690f01a9cc
           path: center-source
           fetch-depth: 1
 
