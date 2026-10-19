@@ -28,7 +28,7 @@ env:
 
 jobs:
   runtime:
-    runs-on: ubuntu-24.04
+    runs-on: macos-15-intel
     timeout-minutes: 100
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
@@ -75,6 +75,16 @@ jobs:
         with:
           gradle-version: "8.9"
 
+      - name: Install GNU coreutils for bounded Android test timeouts
+        run: |
+          set -euo pipefail
+          if ! command -v timeout >/dev/null 2>&1 || ! command -v sha256sum >/dev/null 2>&1; then
+            brew install coreutils
+            echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+          fi
+          command -v timeout
+          command -v sha256sum
+
       - name: Bootstrap verified Android recognition assets
         env:
           YUJIAN_GITHUB_TOKEN: ${{ github.token }}
@@ -99,40 +109,50 @@ jobs:
           (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json apk_model_trace.json > SHA256SUMS)
           (cd build/runtime-apks && sha256sum -c SHA256SUMS)
 
-      - name: Reuse recorded hosted-runner KVM diagnostic
-        id: kvm
+      - name: Select standard Intel macOS emulator environment
+        id: emulator_env
         run: |
           set -euo pipefail
           mkdir -p "$YUJIAN_RUNTIME_EVIDENCE/infra"
           {
             echo "runner=$RUNNER_NAME"
             echo "os=$RUNNER_OS"
-            echo "recorded_kvm_available=false"
-            echo "diagnostic_source_run_id=39187403348"
-            echo "diagnostic_source_sha=0df6f68f3d9a2d9f944f8664e878d59edca84edc"
-            echo "diagnostic_source_url=https://github.com/pan277942135/Yujian_App/actions/runs/39187403348"
-            echo "fallback=software_tcg"
+            echo "architecture=$(uname -m)"
+            echo "selected_acceleration=Apple_Hypervisor_Framework"
+            echo "current_kvm_status=NOT_APPLICABLE_ON_MACOS"
+            echo "previous_ubuntu_kvm_status=UNAVAILABLE"
+            echo "previous_ubuntu_kvm_run_id=39187403348"
+            echo "previous_ubuntu_kvm_source_sha=0df6f68f3d9a2d9f944f8664e878d59edca84edc"
+            echo "previous_software_tcg_status=BLOCKED_INFRA"
+            echo "previous_software_tcg_run_id=39188457350"
+            echo "previous_software_tcg_source_sha=5f209b83debbd810bcd841d68f1ea75c9f003380"
             echo "available=false" >> "$GITHUB_OUTPUT"
           } | tee "$YUJIAN_RUNTIME_EVIDENCE/infra/hosted_runner_kvm_diagnostic_reference.log"
+          if [[ "$RUNNER_OS" == "macOS" && "$(uname -m)" == "x86_64" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Run existing Normal Home harness on Pixel 2 API 28 via software TCG
+      - name: Run existing Normal Home harness on Pixel 2 API 28 with Apple Hypervisor
         id: emulator_runtime
-        if: steps.kvm.outputs.available == 'false'
+        if: steps.emulator_env.outputs.available == 'true'
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          ANDROID_I_WANT_MY_TCG: yes
-          NH01_EMULATOR_ACCELERATION: software_tcg
-          NH01_KVM_PREFLIGHT_STATUS: unavailable
+          NH01_EMULATOR_ACCELERATION: apple_hypervisor_framework
+          NH01_KVM_PREFLIGHT_STATUS: not_applicable_macos
           NH01_KVM_PREFLIGHT_RUN_ID: "39187403348"
           NH01_KVM_PREFLIGHT_SOURCE_SHA: "0df6f68f3d9a2d9f944f8664e878d59edca84edc"
+          NH01_TCG_ATTEMPT_STATUS: BLOCKED_INFRA
+          NH01_TCG_ATTEMPT_RUN_ID: "39188457350"
+          NH01_TCG_ATTEMPT_SOURCE_SHA: "5f209b83debbd810bcd841d68f1ea75c9f003380"
+          NH01_TCG_ATTEMPT_FAILURE: "AVD boot failed on Ubuntu hosted runner: KVM permission unavailable; TCG did not support requested AVX/F16C and ADB never connected."
         with:
           api-level: 28
           target: default
           arch: x86_64
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -camera-back none -partition-size 4096
-          disable-linux-hw-accel: true
+          disable-linux-hw-accel: false
           disable-animations: true
           emulator-boot-timeout: 900
           script: |
@@ -165,10 +185,14 @@ jobs:
       - name: Record unavailable device metadata if Runner did not start
         if: always()
         env:
-          NH01_EMULATOR_ACCELERATION: software_tcg
-          NH01_KVM_PREFLIGHT_STATUS: unavailable
+          NH01_EMULATOR_ACCELERATION: apple_hypervisor_framework
+          NH01_KVM_PREFLIGHT_STATUS: not_applicable_macos
           NH01_KVM_PREFLIGHT_RUN_ID: "39187403348"
           NH01_KVM_PREFLIGHT_SOURCE_SHA: "0df6f68f3d9a2d9f944f8664e878d59edca84edc"
+          NH01_TCG_ATTEMPT_STATUS: BLOCKED_INFRA
+          NH01_TCG_ATTEMPT_RUN_ID: "39188457350"
+          NH01_TCG_ATTEMPT_SOURCE_SHA: "5f209b83debbd810bcd841d68f1ea75c9f003380"
+          NH01_TCG_ATTEMPT_FAILURE: "AVD boot failed on Ubuntu hosted runner: KVM permission unavailable; TCG did not support requested AVX/F16C and ADB never connected."
         run: |
           if [[ -s "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" ]]; then
             echo "Preserving captured device metadata."
@@ -186,10 +210,10 @@ jobs:
           result="$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json"
           if [[ ! -s "$result" ]]; then
             mkdir -p "$(dirname "$result")"
-            if [[ "${{ steps.kvm.outputs.available }}" != "true" ]]; then
-              reason="SOFTWARE_TCG_EMULATOR_FAILED_BEFORE_HARNESS"
+            if [[ "${{ steps.emulator_env.outputs.available }}" != "true" ]]; then
+              reason="STANDARD_INTEL_MACOS_EMULATOR_RUNNER_UNAVAILABLE"
             else
-              reason="EMULATOR_RUNNER_FAILED_BEFORE_HARNESS"
+              reason="ANDROID_EMULATOR_FAILED_BEFORE_HARNESS_ON_MACOS"
             fi
             python3 scripts/android_runtime/result.py \
               --output "$result" \
@@ -261,7 +285,7 @@ jobs:
         run: |
           set -euo pipefail
           npm install --no-save --prefix "$RUNNER_TEMP/nh01-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/nh01-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          "$RUNNER_TEMP/nh01-playwright/node_modules/.bin/playwright" install chromium
 
       - name: Build Runtime Viewer and verify with Chromium
         id: browser
@@ -332,14 +356,15 @@ jobs:
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload NH01 browser and structured-diff evidence
-        if: always() && steps.browser.outcome == 'success'
+        if: always() && steps.browser.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: NH01-Browser-Comparison-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
           path: |
+            ${{ runner.temp }}/nh01-browser/
             ${{ runner.temp }}/nh01-browser-final/
             ${{ runner.temp }}/nh01-preview-diff/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Upload Acceptance Center Pages artifact

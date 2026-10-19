@@ -193,6 +193,7 @@ def main() -> int:
             "runner": device.get("runner"),
             "emulator_acceleration": device.get("emulator_acceleration"),
             "kvm_preflight": device.get("kvm_preflight"),
+            "software_tcg_attempt": device.get("software_tcg_attempt"),
         },
         "artifacts": {
             "screenshot": copied.get("NH01_Android_Runtime_1080x1920.png"),

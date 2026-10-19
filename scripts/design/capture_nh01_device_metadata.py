@@ -38,6 +38,12 @@ def main() -> int:
         "source_run_id": os.environ.get("NH01_KVM_PREFLIGHT_RUN_ID"),
         "source_sha": os.environ.get("NH01_KVM_PREFLIGHT_SOURCE_SHA"),
     }
+    software_tcg_attempt = {
+        "status": os.environ.get("NH01_TCG_ATTEMPT_STATUS", "NOT_RUN"),
+        "source_run_id": os.environ.get("NH01_TCG_ATTEMPT_RUN_ID"),
+        "source_sha": os.environ.get("NH01_TCG_ATTEMPT_SOURCE_SHA"),
+        "failure": os.environ.get("NH01_TCG_ATTEMPT_FAILURE"),
+    }
     def write_unavailable() -> int:
         payload = {
             "profile": "Pixel 2",
@@ -47,8 +53,11 @@ def main() -> int:
             "density_scale": None,
             "insets_px": None,
             "runner": os.environ.get("RUNNER_NAME"),
+            "runner_os": os.environ.get("RUNNER_OS"),
+            "runner_architecture": os.environ.get("RUNNER_ARCH"),
             "emulator_acceleration": acceleration,
             "kvm_preflight": kvm_preflight,
+            "software_tcg_attempt": software_tcg_attempt,
             "device_status": "BLOCKED_INFRA",
             "captured_at_utc": datetime.now(timezone.utc).isoformat(),
         }
@@ -90,9 +99,12 @@ def main() -> int:
         "build_fingerprint": fingerprint,
         "device_model": model,
         "runner": os.environ.get("RUNNER_NAME"),
+        "runner_os": os.environ.get("RUNNER_OS"),
+        "runner_architecture": os.environ.get("RUNNER_ARCH"),
         "runner_image": os.environ.get("ImageOS"),
         "emulator_acceleration": acceleration,
         "kvm_preflight": kvm_preflight,
+        "software_tcg_attempt": software_tcg_attempt,
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
     }
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

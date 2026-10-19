@@ -62,6 +62,12 @@ class Nh01RuntimePackageTest(unittest.TestCase):
                         "source_run_id": "39187403348",
                         "source_sha": SOURCE_SHA,
                     },
+                    "software_tcg_attempt": {
+                        "status": "BLOCKED_INFRA",
+                        "source_run_id": "39188457350",
+                        "source_sha": "5f209b83debbd810bcd841d68f1ea75c9f003380",
+                        "failure": "KVM permission unavailable; unsupported AVX/F16C; ADB did not connect.",
+                    },
                 }) + "\n",
                 encoding="utf-8",
             )
@@ -100,6 +106,8 @@ class Nh01RuntimePackageTest(unittest.TestCase):
             self.assertEqual(manifest["classification"], "BLOCKED_INFRA")
             self.assertEqual(manifest["device"]["emulator_acceleration"], "software_tcg")
             self.assertEqual(manifest["device"]["kvm_preflight"]["source_run_id"], "39187403348")
+            self.assertEqual(manifest["device"]["software_tcg_attempt"]["status"], "BLOCKED_INFRA")
+            self.assertEqual(manifest["device"]["software_tcg_attempt"]["source_run_id"], "39188457350")
             self.assertIn("NH01_KVM_Diagnostic_Reference.log", manifest["evidence_files"])
             self.assertIn(f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920.png", manifest["evidence_files"].values())
             self.assertIn(f"evidence/{SOURCE_SHA}/private/NH01_Instrumentation.log", manifest["private_evidence_files"].values())
@@ -113,6 +121,7 @@ class Nh01RuntimePackageTest(unittest.TestCase):
             viewer_runtime = json.loads((data_dir / "NH01_Android_Runtime_V1.json").read_text())
             self.assertEqual(viewer_runtime["device"]["emulator_acceleration"], "software_tcg")
             self.assertEqual(viewer_runtime["device"]["kvm_preflight"]["source_run_id"], "39187403348")
+            self.assertEqual(viewer_runtime["device"]["software_tcg_attempt"]["source_run_id"], "39188457350")
             for relpath in expected:
                 self.assertEqual(
                     hashlib.sha256((artifact_dir / relpath).read_bytes()).hexdigest(),
