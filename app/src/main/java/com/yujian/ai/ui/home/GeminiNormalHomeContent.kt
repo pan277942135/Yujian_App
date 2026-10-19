@@ -623,7 +623,7 @@ private fun GeminiCatchCard(
     }.joinToString(" · ")
     val time = PresentationSanitizer.formatHomeTimestamp(item.capturedAt, item.createdAt)
     val location = sanitizeOptionalText(item.location)
-    val metadata = listOfNotNull(time.takeIf(String::isNotBlank), location).joinToString(" · ")
+    val metadata = listOfNotNull(time?.takeIf { it.isNotBlank() }, location).joinToString(" · ")
 
     YuJianHeroCard(
         title = species,
