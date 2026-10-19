@@ -267,9 +267,9 @@
     const intensity = params.edgeFieldIntensity / 100;
     ctx.save();
     // The receiving light follows each frozen island instead of painting four
-    // circular corner blobs. Screen blending keeps the edge light luminous on
-    // both bright sky and dark foliage while remaining localized to the paths.
-    ctx.globalCompositeOperation = "screen";
+    // circular corner blobs. Source-over retains the blue/gold hue on bright
+    // sky pixels; screen would wash those regions to near-white.
+    ctx.globalCompositeOperation = "source-over";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     for (const geometry of edgeFieldGeometry) {
@@ -287,8 +287,8 @@
           gradient.addColorStop(1, rgba(hotColor, peakAlpha * 0.76 * common));
           return gradient;
         };
-        // R01 web review emphasis: brighter than Android runtime and the Frozen
-        // contract cap so the edge illumination can be judged on this daylight photo.
+        // R01 intensity candidate under R02 source-over color handling. The
+        // alpha remains a review value, above Android runtime and the Frozen cap.
         ctx.filter = `blur(${9 * photoPxPerDp}px)`;
         ctx.strokeStyle = receivingGradient(0.22);
         ctx.lineWidth = 18 * photoPxPerDp;
@@ -335,7 +335,7 @@
     const intensity = params.edgeFieldIntensity / 100;
     const sampleStep = Math.max(2, photoPxPerDp * 1.25);
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = "source-over";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     for (const geometry of geometries) {
@@ -384,7 +384,7 @@
     const intensity = params.edgeFieldIntensity / 100;
     const primaryById = new Map(EDGE_FIELD_PATHS.map(definition => [definition.id, definition]));
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = "source-over";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     for (const geometry of geometries) {
@@ -422,7 +422,7 @@
       { path: edgeFieldGeometry.find(path => path.id === "G1"), t: 0.68, color: "#fff1c8", weight: 0.42 }
     ];
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = "source-over";
     for (const node of nodes) {
       const point = node.path.path.getPointAtLength(node.path.length * node.t);
       const alpha = (params.edgeFieldIntensity / 100) * node.weight;
@@ -601,7 +601,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following local illumination; no circular corner glows", receiving_alpha_per_pass: [0.22, 0.18], receiving_alpha_authority: "R01 Web visual emphasis; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "screen for luminous edge field; fish contour remains separately warm gold" },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following local illumination; no circular corner glows", receiving_alpha_per_pass: [0.22, 0.18], receiving_alpha_authority: "R01 Web visual emphasis; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold" },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo
