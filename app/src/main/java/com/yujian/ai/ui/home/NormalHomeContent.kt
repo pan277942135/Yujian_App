@@ -134,15 +134,15 @@ internal fun NormalHomeContent(
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
-        val captureCtaTextHeight = remember(maxWidth.value, density.fontScale) {
-            mutableStateOf(ref(58f))
-        }
-        // The frozen glyph anchor sits below the layout origin;
-        // include that placement in the measured parent so semantics and bounds
-        // contain the rendered text at every system font scale.
+        // The text line-height contract already scales with system fontScale.
+        // Derive the parent height from it instead of mutating layout state
+        // from onTextLayout while Compose is measuring.
+        val captureCtaTextHeight = (typography.captureCta.lineHeight.value * density.fontScale).dp
+        // The frozen glyph anchor sits below the layout origin; include it in
+        // the measured parent so the rendered text remains inside its bounds.
         val captureCtaHeight = maxOf(
             ref(58f),
-            captureCtaTextHeight.value + ref(NormalHomeCtaGlyphOffsetY),
+            captureCtaTextHeight + ref(NormalHomeCtaGlyphOffsetY),
         )
         val cameraY = maxOf(
             refY(NormalHomeCameraY) + recentHeaderExtra,
@@ -298,12 +298,6 @@ internal fun NormalHomeContent(
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            onTextLayout = { result ->
-                                val measuredHeight = with(density) { result.size.height.toDp() }
-                                if (measuredHeight != captureCtaTextHeight.value) {
-                                    captureCtaTextHeight.value = measuredHeight
-                                }
-                            },
                             modifier = Modifier
                                 .offset(y = ref(NormalHomeCtaGlyphOffsetY))
                                 .testTag("normal-home-capture-cta-text"),
