@@ -252,7 +252,7 @@ async function main() {
   assert.equal(exportConfig.photo.sha256, expectedPhotoSha);
   assert.equal(exportConfig.contour.source, "MANUAL_REFERENCE_CONTOUR");
   assert.equal(exportConfig.parameters.cometPosition, 21);
-  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4"]);
+  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4", "B1C", "G1C", "G3C", "B3C", "B1M"]);
   assert.deepEqual(exportConfig.edge_field.secondary_path_ids, ["B2", "G2", "B4"]);
   assert.deepEqual(exportConfig.edge_field.receiving_alpha_per_pass, [0.66, 0.50], "The Web-only corner-light candidate is explicit and separately tracked under RP-A01.");
   assert.match(exportConfig.edge_field.edge_effect_compositor, /padded transparent offscreen layer/);
