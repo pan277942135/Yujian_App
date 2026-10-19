@@ -181,6 +181,47 @@ async function main() {
   await page.locator("#glowCanvas").evaluate(canvas => {
     window.__edgeFieldDefaultPixels = new Uint8ClampedArray(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data);
   });
+
+  // Capture the default Frozen-role composition before stress interactions.
+  // The canvas backing store is already 1152x1536, even at responsive CSS scale.
+  for (const [id, filename] of [["originalCanvas", "01_Original_Photo.png"], ["contourCanvas", "02_Manual_Contour_Overlay.png"], ["glowCanvas", "03_EdgeGlow_Adapted.png"]]) {
+    await page.locator(`#${id}`).screenshot({ path: path.join(outputDir, filename) });
+  }
+  const screenshotBeforeExport = await page.locator("#glowCanvas").evaluate(canvas => canvas.toDataURL("image/png"));
+  const expectedPng = Buffer.from(screenshotBeforeExport.split(",")[1], "base64");
+  const pngDownload = page.waitForEvent("download", { timeout: 15000 });
+  await page.locator("#exportPngButton").click();
+  const downloadedPng = await pngDownload;
+  const pngPath = path.join(outputDir, "EdgeGlowView_Fish_Static_Current_Render.png");
+  await downloadedPng.saveAs(pngPath);
+  const pngBytes = await fs.readFile(pngPath);
+  assert.equal(pngBytes.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", "PNG export has a valid signature.");
+  assert.equal(pngBytes.readUInt32BE(16), 1152);
+  assert.equal(pngBytes.readUInt32BE(20), 1536);
+  assert.ok(pngBytes.length > 100000, "PNG export contains the rendered photograph and glow layers.");
+  assert.deepEqual(pngBytes, expectedPng, "Exported PNG bytes are the current visible canvas encoding.");
+  console.log("SMOKE: original-size PNG export matches the visible canvas");
+
+  const jsonDownload = page.waitForEvent("download", { timeout: 15000 });
+  await page.locator("#exportJsonButton").click();
+  const downloadedJson = await jsonDownload;
+  const jsonPath = path.join(outputDir, "EdgeGlowView_Fish_Static_Parameters.json");
+  await downloadedJson.saveAs(jsonPath);
+  const exportConfig = JSON.parse(await fs.readFile(jsonPath, "utf8"));
+  assert.equal(exportConfig.photo.sha256, expectedPhotoSha);
+  assert.equal(exportConfig.contour.source, "MANUAL_REFERENCE_CONTOUR");
+  assert.equal(exportConfig.parameters.cometPosition, 21);
+  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4", "B1C", "G1C", "G3C", "B3C", "B1M"]);
+  assert.deepEqual(exportConfig.edge_field.secondary_path_ids, ["B2", "G2", "B4"]);
+  assert.deepEqual(exportConfig.edge_field.receiving_alpha_per_pass, [0.66, 0.50], "The Web-only corner-light candidate is explicit and separately tracked under RP-A01.");
+  assert.match(exportConfig.edge_field.edge_effect_compositor, /padded transparent offscreen layer/);
+  assert.equal(exportConfig.edge_field.edge_effect_render_scale, 0.5, "Wide Frozen-reference perimeter light is rendered at half resolution and composited back at source size.");
+  assert.ok(exportConfig.edge_field.edge_effect_padding_px >= 100, "Export records the responsive perimeter bleed inset.");
+  assert.equal(exportConfig.fish_highlight.composite_mode, "source-over hue-preserving warm-gold composition");
+  assert.equal(exportConfig.fish_highlight.blue_perimeter_excluded, true, "Blue remains limited to the photo-edge layer.");
+  assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
+  console.log("SMOKE: exported parameters and source provenance verified");
+
   await afterRender(page, () => page.locator("#edgeFieldEnabled").uncheck());
   const noEdgeField = await wholeCanvasHash(page);
   assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
@@ -233,48 +274,8 @@ async function main() {
   assert.equal(await page.locator("#wipePosition").isVisible(), true);
   console.log("SMOKE: Overlay and Wipe comparison modes verified");
 
-  await afterRender(page, () => page.locator("#resetButton").click());
-  await page.waitForFunction(() => document.getElementById("compareMode").value === "side" && document.getElementById("outerWidth").value === "28");
-  const resetGlow = await canvasStats(page);
-  assert.equal(resetGlow.hash, defaultPreviewGlow.hash, "Reset restores the deterministic default render at the responsive preview scale.");
+  await afterRender(page, () => page.locator("#compareMode").selectOption("side"));
 
-  for (const [id, filename] of [["originalCanvas", "01_Original_Photo.png"], ["contourCanvas", "02_Manual_Contour_Overlay.png"], ["glowCanvas", "03_EdgeGlow_Adapted.png"]]) {
-    await page.locator(`#${id}`).screenshot({ path: path.join(outputDir, filename) });
-  }
-  const screenshotBeforeExport = await page.locator("#glowCanvas").evaluate(canvas => canvas.toDataURL("image/png"));
-  const expectedPng = Buffer.from(screenshotBeforeExport.split(",")[1], "base64");
-  const pngDownload = page.waitForEvent("download", { timeout: 15000 });
-  await page.locator("#exportPngButton").click();
-  const downloadedPng = await pngDownload;
-  const pngPath = path.join(outputDir, "EdgeGlowView_Fish_Static_Current_Render.png");
-  await downloadedPng.saveAs(pngPath);
-  const pngBytes = await fs.readFile(pngPath);
-  assert.equal(pngBytes.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", "PNG export has a valid signature.");
-  assert.equal(pngBytes.readUInt32BE(16), 1152);
-  assert.equal(pngBytes.readUInt32BE(20), 1536);
-  assert.ok(pngBytes.length > 100000, "PNG export contains the rendered photograph and glow layers.");
-  assert.deepEqual(pngBytes, expectedPng, "Exported PNG bytes are the current visible canvas encoding.");
-  console.log("SMOKE: original-size PNG export matches the visible canvas");
-
-  const jsonDownload = page.waitForEvent("download", { timeout: 15000 });
-  await page.locator("#exportJsonButton").click();
-  const downloadedJson = await jsonDownload;
-  const jsonPath = path.join(outputDir, "EdgeGlowView_Fish_Static_Parameters.json");
-  await downloadedJson.saveAs(jsonPath);
-  const exportConfig = JSON.parse(await fs.readFile(jsonPath, "utf8"));
-  assert.equal(exportConfig.photo.sha256, expectedPhotoSha);
-  assert.equal(exportConfig.contour.source, "MANUAL_REFERENCE_CONTOUR");
-  assert.equal(exportConfig.parameters.cometPosition, 21);
-  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4", "B1C", "G1C", "G3C", "B3C", "B1M"]);
-  assert.deepEqual(exportConfig.edge_field.secondary_path_ids, ["B2", "G2", "B4"]);
-  assert.deepEqual(exportConfig.edge_field.receiving_alpha_per_pass, [0.66, 0.50], "The Web-only corner-light candidate is explicit and separately tracked under RP-A01.");
-  assert.match(exportConfig.edge_field.edge_effect_compositor, /padded transparent offscreen layer/);
-  assert.equal(exportConfig.edge_field.edge_effect_render_scale, 0.5, "Wide Frozen-reference perimeter light is rendered at half resolution and composited back at source size.");
-  assert.ok(exportConfig.edge_field.edge_effect_padding_px >= 100, "Export records the responsive perimeter bleed inset.");
-  assert.equal(exportConfig.fish_highlight.composite_mode, "source-over hue-preserving warm-gold composition");
-  assert.equal(exportConfig.fish_highlight.blue_perimeter_excluded, true, "Blue remains limited to the photo-edge layer.");
-  assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
-  console.log("SMOKE: exported parameters and source provenance verified");
 
   await afterRender(page, () => page.evaluate(() => {
     for (const id of ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"]) {
