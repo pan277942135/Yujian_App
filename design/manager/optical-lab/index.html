@@ -19,7 +19,7 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
 .compare-toolbar{display:flex;gap:7px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);align-items:center}.segmented{display:flex;gap:4px;background:#0d191d;border-radius:10px;padding:4px}.segmented button{font-size:11px;padding:7px 9px;border:0;background:transparent;color:#a8b9bd}.segmented button.active{background:#2a4851;color:#f1fbfd}.toolbar-select{width:auto;padding:7px 9px;font-size:11px}
 .stage-banner{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 14px;background:#19282c;border-bottom:1px solid var(--line);font-size:11px;color:#bacbce}.stage-banner strong{color:#f2ce91}.workspace{padding:14px}
 .boards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.board{min-width:0}.board figcaption{height:34px;display:flex;justify-content:space-between;align-items:center;color:#ccdcdf;font-size:11px;padding:0 3px}.board figcaption span:last-child{color:var(--muted)}.screen{width:min(100%,390px);margin:0 auto;position:relative;background:#0b181c;border:1px solid #49616a;border-radius:12px;overflow:hidden;box-shadow:0 12px 34px #0005} .screen canvas,.screen img{display:block;width:100%;height:100%;aspect-ratio:auto;object-fit:contain;background:#122b32}.screen .image-overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;display:none}
-.compare-screen{display:none;max-width:100%;margin:0 auto}.candidate-grid{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.candidate-card{min-width:0}.candidate-card h4{font-size:10px;height:30px;margin:0 0 5px;color:#d3e2e4}.candidate-card img,.candidate-card canvas{display:block;width:100%;height:auto;aspect-ratio:941/1672;object-fit:contain;border:1px solid #49616a;border-radius:8px;background:#102b32}.compare-screen canvas{display:block;width:min(100%,600px);height:auto;max-height:72vh;aspect-ratio:941/1672;object-fit:contain;border:1px solid #49616a;border-radius:12px;background:#0c171b}
+.compare-screen{display:none;max-width:100%;margin:0 auto}.candidate-grid{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.candidate-card{min-width:0}.candidate-card h4{font-size:10px;height:30px;margin:0 0 5px;color:#d3e2e4}.candidate-card img,.candidate-card canvas{display:block;width:100%;height:auto;aspect-ratio:941/1672;object-fit:contain;border:1px solid #49616a;border-radius:8px;background:#102b32}.compare-screen canvas{display:block;width:min(100%,600px);height:auto;max-height:72vh;aspect-ratio:941/1672;object-fit:contain;border:1px solid #49616a;border-radius:12px;background:#0c171b}
 .wipe-row{display:none;align-items:center;gap:10px;padding:10px 0}.wipe-row input{flex:1;accent-color:#bfeaf2}.roi-box{margin-top:12px;border-top:1px solid var(--line);padding-top:11px}.roi-box .roi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.roi-box canvas{width:100%;height:auto;max-height:240px;background:#0c171b;border:1px solid var(--line);border-radius:9px}
 .metric-strip{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.metric{background:#102026;border:1px solid #294148;border-radius:9px;padding:7px 9px;font-size:10px;color:#a8b9bd}.metric b{display:block;color:#dce8ea;font-size:12px;font-variant-numeric:tabular-nums}
 .source-warning{border:1px solid #775a34;background:#34281b;border-radius:10px;padding:10px 11px;color:#f0d3a6;font-size:11px;margin-bottom:10px}.locked{opacity:.58}.disabled-tag{font-size:10px;color:#f3c985;border:1px solid #775b37;border-radius:999px;padding:3px 7px}.report-list{padding-left:18px;margin:8px 0;display:grid;gap:6px;color:#b8c9cc;font-size:11px}.report-list b{color:#e5eeee}.tech-card{padding:9px;border:1px solid #2a4147;border-radius:9px;margin:7px 0;background:#102026}.tech-card strong{display:block;color:#dae8ea;font-size:11px}.tech-card p{margin:5px 0 0;color:#a8b9bd;font-size:10px}.table-wrap{overflow:auto}.state-map{width:100%;border-collapse:collapse;font-size:10px}.state-map td,.state-map th{padding:6px 4px;border-bottom:1px solid #294047;text-align:left;vertical-align:top}.state-map th{color:#9eb4b9;font-weight:600}.footer-note{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;color:#9fb3b8;background:#101d22;font-size:11px}
@@ -27,6 +27,19 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
 @media(max-width:1100px){.layout{grid-template-columns:minmax(250px,320px) minmax(400px,1fr)}.right-col{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.right-col .panel{margin:0}}
 @media(max-width:720px){.shell{padding:14px 10px 30px}header{display:block}.header-actions{margin-top:12px}.gatebar{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.right-col{grid-column:auto;display:grid;grid-template-columns:1fr}.boards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.candidate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.board figcaption{font-size:9px}.screen{border-radius:8px}.compare-toolbar{padding:9px}.workspace{padding:8px}.segmented{max-width:100%;overflow:auto}.segmented button{white-space:nowrap}}
 @media(max-width:440px){.boards{grid-template-columns:1fr}.board .screen{width:min(100%,290px)}}
+/* Stage A.1 review shell: compact comparison first; engineering detail stays collapsed. */
+.review-status-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin:-6px 0 12px;border:1px solid var(--line);border-radius:11px;background:#111e22;color:#b7c9cd;font-size:11px}
+.review-status-left{display:flex;align-items:center;gap:9px;min-width:0;flex-wrap:wrap}.review-status-chip{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border:1px solid #775b37;border-radius:999px;color:#f2d29d;background:#302719;font-weight:750;letter-spacing:.05em}.review-status-chip[data-status="READY"]{border-color:#396d56;color:#a7e4c4;background:#142a21}.review-status-chip[data-status="BLOCKED"]{border-color:#784940;color:#ffb4a8;background:#321d1c}
+.review-toolbar{display:grid;grid-template-columns:minmax(280px,1.5fr) minmax(230px,1fr);align-items:center;gap:10px;margin:0 0 12px;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:#132127}
+.review-toolbar .section{border:0;padding:0;margin:0;min-width:0}.review-toolbar .section-title{margin-bottom:7px}.review-toolbar .state-buttons button{min-height:40px}.review-toolbar .renderer-control select{max-width:100%}.review-toolbar #rendererNote{display:none}
+.layout{grid-template-columns:minmax(0,1fr) minmax(220px,280px);gap:12px}.layout>.panel{grid-column:1;grid-row:1;min-width:0}.layout>.quick-panel{grid-column:2;grid-row:1;min-width:0}.layout>.right-col,.layout>aside:first-child{display:none}
+.quick-panel .panel-body{padding:12px}.quick-control{padding:9px 0;border-top:1px solid #263b42}.quick-control:first-of-type{border-top:0;padding-top:0}.quick-control .field-label{font-size:12px}.quick-control input{width:100%;accent-color:#b6e5eb}.quick-control output{color:var(--cyan);font-variant-numeric:tabular-nums}.quick-control small{display:block;color:var(--muted);font-size:10px}.quick-control input:disabled{opacity:.4}
+.visual-panel .stage-banner{font-size:11px}.source-identity-flag{color:#f2ce91;font-weight:700}.visual-panel .compare-toolbar{padding:9px 12px}.visual-panel .workspace{padding:11px}.visual-panel .boards{gap:9px}.visual-panel .board figcaption{font-size:10px}.visual-panel .screen{max-width:min(100%,410px)}
+#advancedDiagnostics{margin-top:13px;border:1px solid var(--line);border-radius:13px;background:#111d22;overflow:hidden}#advancedDiagnostics>summary{cursor:pointer;padding:13px 15px;color:#c6d7da;font-weight:700;font-size:12px;list-style-position:inside}#advancedDiagnostics[open]>summary{border-bottom:1px solid var(--line)}.advanced-body{padding:13px}.advanced-body .gatebar{margin:0 0 12px}.advanced-body .right-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.advanced-body .right-col .panel{margin:0}.advanced-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.advanced-modes{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.advanced-card{padding:11px;border:1px solid #293f46;border-radius:10px;background:#122127;min-width:0}.asset-table{width:100%;border-collapse:collapse;font-size:10px}.asset-table th,.asset-table td{padding:7px 5px;border-bottom:1px solid #294047;text-align:left;vertical-align:top;overflow-wrap:anywhere}.asset-table th{color:#9fb8be}.asset-table code{font-size:9px}.asset-status{font-weight:700}.asset-status.VERIFIED{color:var(--good)}.asset-status.MISSING,.asset-status.MISMATCH{color:#ff9b8c}.asset-status.NOT_VERIFIED{color:#f4c784}
+.stage-b-hidden{display:none!important}.footer-note{font-size:10px;padding:9px 12px}.diagnostic-error{white-space:pre-wrap;overflow-wrap:anywhere;color:#ffb4a8}.review-toolbar a{white-space:nowrap}
+@media(max-width:900px){.review-toolbar{grid-template-columns:1fr}.layout{grid-template-columns:minmax(0,1fr) 240px}.advanced-body .right-col{grid-template-columns:1fr}}
+@media(max-width:720px){.shell{padding:12px 9px 24px}header{display:flex;align-items:flex-start;gap:10px;margin-bottom:11px}.header-actions{margin:0;gap:5px}.header-actions a:first-child{display:none}.header-actions button{font-size:10px;padding:7px 8px}.title-row h1{font-size:22px}.eyebrow{font-size:9px}.subtitle{font-size:10px}.review-status-bar{margin:0 0 9px;padding:8px 9px}.review-toolbar{grid-template-columns:1fr;gap:8px;padding:9px}.layout{grid-template-columns:1fr}.layout>.panel,.layout>.quick-panel{grid-column:1;grid-row:auto}.layout>.quick-panel{order:2}.visual-panel .boards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.visual-panel .workspace{padding:8px}.visual-panel .screen{width:100%;max-width:none;border-radius:8px}.visual-panel .board figcaption{height:auto;min-height:30px;font-size:9px}.visual-panel .compare-toolbar{padding:8px}.main-compare-modes{width:100%;justify-content:flex-start;overflow:auto}.main-compare-modes button{white-space:nowrap}.candidate-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.advanced-tools{grid-template-columns:1fr}.advanced-body{padding:9px}.gatebar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.visual-panel .boards{grid-template-columns:1fr}.visual-panel .board .screen{width:min(100%,290px)}.review-toolbar .state-buttons{grid-template-columns:1fr}.review-toolbar .state-buttons button{min-height:34px;text-align:left}.header-actions #resetButton{max-width:112px;white-space:normal;line-height:1.15}}
 </style>
 </head>
 <body>
@@ -51,7 +64,7 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
 </div>
 <div class="layout">
   <aside class="panel">
-    <div class="panel-head"><h2>实验控制</h2><small id="stateLabel">—</small></div>
+      <div class="panel-head"><h2>实验控制</h2><small id="stateDetailLabel">—</small></div>
     <div class="panel-body">
       <div class="section">
         <div class="section-title">产品视觉状态 <span class="tiny">固定三态</span></div>
@@ -60,8 +73,8 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
       <div class="section">
         <div class="section-title">Renderer 候选</div>
         <select id="rendererSelect" class="control-select">
-          <option value="android-current">当前 Android · MaskFilter 浏览器近似</option>
-          <option value="hardware-gradient">API 28 映射 · Path + Gradient 叠层</option>
+          <option value="android-current">android-current · 当前 Android 近似</option>
+          <option value="hardware-gradient" selected>hardware-gradient · API 28 研究主候选</option>
           <option value="software-cache">软件离屏缓存 · 浏览器模糊近似</option>
         </select>
         <div id="rendererNote" class="tiny" style="margin-top:7px"></div>
@@ -88,7 +101,7 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
       </div>
       <div class="section">
         <div class="section-title">输入绑定 <span class="tiny">不造数据</span></div>
-        <div class="source-warning" id="sourceWarning">默认照片是仓库 Android test fixture。与 Frozen 截图的原图身份尚未有可机器验证的绑定；比较数值仅作探索记录。</div>
+        <div class="source-warning" id="sourceWarning">Frozen Visual QA = BLOCKED：Processing Frozen 中的照片未与仓库 test fixture 建立来源绑定；test fixture 只用于三种 Renderer 的同源相对比较。</div>
         <label class="field-label" for="photoInput">当前照片 <span id="photoName">加载中…</span></label>
         <input id="photoInput" type="file" accept="image/*" class="control-select" style="margin-top:6px">
         <label class="field-label" for="maskInput" style="margin-top:10px">真实 subject Mask PNG <span id="maskName">未绑定</span></label>
@@ -141,7 +154,7 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
         <figure class="board"><figcaption><span id="frozenCaption">Frozen · —</span><span>原件只读</span></figcaption><div class="screen"><img id="frozenImage" alt="Frozen state visual"></div></figure>
         <figure class="board"><figcaption><span id="webCaption">WEB · 静态</span><span id="renderBadge">—</span></figcaption><div class="screen"><canvas id="previewCanvas" width="390" height="844" aria-label="Web optical preview"></canvas></div></figure>
       </div>
-      <div id="candidateGrid" class="candidate-grid"><div class="candidate-card"><h4>Frozen · 原件只读</h4><img id="candidateFrozen" alt="Frozen state"></div><div class="candidate-card"><h4>当前 Android · 浏览器近似</h4><canvas id="candidateCurrent"></canvas></div><div class="candidate-card"><h4>硬件 Gradient · API 28 候选</h4><canvas id="candidateHardware"></canvas></div><div class="candidate-card"><h4>软件离屏缓存 · 浏览器近似</h4><canvas id="candidateSoftware"></canvas></div></div>
+      <div id="candidateGrid" class="candidate-grid"><div class="candidate-card"><h4>android-current · 同源输入</h4><canvas id="candidateCurrent"></canvas></div><div class="candidate-card"><h4>hardware-gradient · 同源输入</h4><canvas id="candidateHardware"></canvas></div><div class="candidate-card"><h4>software-cache · 同源输入</h4><canvas id="candidateSoftware"></canvas></div></div>
       <div id="compareScreen" class="compare-screen"><canvas id="compareCanvas" width="390" height="844" aria-label="Visual comparison"></canvas></div>
       <div class="wipe-row" id="wipeRow"><span class="tiny">Frozen / Web 分割位置</span><input id="wipeInput" type="range" min="0" max="100" value="50"><span id="wipeValue" class="tiny">50%</span></div>
       <div class="metric-strip" id="metrics">
@@ -180,8 +193,9 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
     </section>
   </aside>
 </div>
-<div class="footer-note"><b>边界：</b>原型直接读取 PR #166 的 Processing_Engineering_Import_Config_V1.json、三态 Manifest 和仓库 Android test photo；不写回 Frozen PNG，不调用 Figma，不产生设计节点。WEB 像素差异、字体、色彩合成和抗锯齿均不代表 Android Runtime 通过。高保真整体 M1 仍为 NOT_PASS。</div>
+<div class="footer-note"><b>研究原型：</b>浏览器结果用于静态 Renderer 相对比较，不代表 Frozen 高保真或 Android Runtime PASS。整体 M1 保持 NOT_PASS。</div>
 </div>
+<script src="./build-info.js"></script>
 <script>
 (function(){
 "use strict";
@@ -190,8 +204,8 @@ const elements = {
   frozenImage:$("frozenImage"), preview:$("previewCanvas"), compare:$("compareCanvas"), roi:$("roiCanvas"),
   stateButtons:$("stateButtons"), pathChecks:$("pathChecks"), layerControls:$("layerControls"),
   mode:"side", stateIndex:0, config:null, manifest:null, photo:null, photoUrl:null, mask:null, maskUrl:null, maskBoundaryCache:null,
-  frozenByState:new Map(), params:{}, layers:{}, renderer:"android-current", quality:"FULL", dLevel:"D0",
-  width:390,height:844, reduceMotion:false, maskDiagnostic:false, cache:null
+  frozenByState:new Map(), params:{}, layers:{}, renderer:"hardware-gradient", quality:"FULL", dLevel:"D0",
+  width:390,height:844, reduceMotion:false, maskDiagnostic:false, cache:null, assetAudit:[], assetErrors:[], buildInfo:null, uiBuilt:false
 };
 const referenceExpected = {
   "IMAGE_RECOGNIZING":"02_AI_Understanding_Frozen.png",
@@ -204,9 +218,68 @@ const webLayerNames=[
   ["fishHalo","Fish Focus Halo"],["fishContour","Fish Focus Contour"],["status","Status Card"]
 ];
 const references={};
+function mountReviewLayout(){
+  const shell=document.querySelector(".shell"),header=document.querySelector("header"),layout=document.querySelector(".layout");
+  const left=layout.children[0],visual=layout.children[1],right=layout.children[2],sections=[...left.querySelector(".panel-body").children];
+  const stateSection=sections.shift(),rendererSection=sections.shift(),advanced=document.createElement("details"),advancedBody=document.createElement("div");
+  advanced.id="advancedDiagnostics";advanced.innerHTML="<summary>高级诊断 · P1–P5 来源、资产 SHA、PhotoViewport、Mask、ROI、Pixel Diff 与视口验证</summary>";
+  advancedBody.className="advanced-body";advanced.appendChild(advancedBody);
+  const status=document.createElement("div");status.className="review-status-bar";status.innerHTML="<div class=\"review-status-left\"><span id=\"overallStatus\" class=\"review-status-chip\" data-status=\"LOADING\">LOADING</span><span id=\"buildRevision\">PR #166 Draft · build SHA pending</span><span id=\"stateLabel\" class=\"tiny\">—</span></div><button id=\"retryAssets\" type=\"button\">重新加载资源</button>";
+  const toolbar=document.createElement("div");toolbar.id="reviewToolbar";toolbar.className="review-toolbar";toolbar.append(stateSection,rendererSection);
+  header.querySelector(".eyebrow").textContent="RECOGNITION PROCESSING";
+  header.querySelector("h1").textContent="Recognition Processing · Optical Lab";
+  header.querySelector(".pill").textContent="STATIC PHASE A · VISUAL REVIEW";
+  header.querySelector(".subtitle").textContent="三态 Frozen 参考与三种同源静态 Renderer 对照。";
+  const actions=header.querySelector(".header-actions");actions.querySelector("a:first-child").remove();
+  actions.appendChild(document.getElementById("exportPreview"));
+  const advancedModes=document.createElement("div");advancedModes.id="advancedModes";advancedModes.className="advanced-modes";advancedModes.innerHTML="<span class=\"tiny\">高级比较：</span>";
+  const modeRoot=document.getElementById("compareModes");modeRoot.classList.add("main-compare-modes");
+  for(const mode of ["candidates","diff"]){const button=modeRoot.querySelector("[data-mode=\""+mode+"\"]");if(button)advancedModes.appendChild(button);}
+  const roiSelect=document.getElementById("roiSelect"),exportCompare=document.getElementById("exportCompare"),exportRoi=document.getElementById("exportRoi");
+  const roiActions=document.createElement("div");roiActions.className="row advanced-card";roiActions.append(roiSelect,exportCompare,exportRoi);
+  const quick=document.createElement("aside");quick.id="quickPanel";quick.className="panel quick-panel";
+  quick.innerHTML="<div class=\"panel-head\"><h2>视觉层次</h2><small>静态实验参数</small></div><div class=\"panel-body\"><p class=\"tiny\" style=\"margin:0 0 8px\">数值只改变本地预览；Frozen 默认值为 1.00。</p>"+[
+    ["quickReceiving","Receiving Light","receiving"],["quickOuter","Outer Bloom","outer"],["quickMid","Mid Glow","mid"],["quickCore","Primary Core","core"],["quickFish","Fish Focus","fish"],["quickStatus","Status Card","status"]
+  ].map(([id,label,key])=>"<label class=\"quick-control\"><span class=\"field-label\"><span>"+label+"</span><output id=\""+id+"Value\">1.00</output></span><input id=\""+id+"\" data-strength=\""+key+"\" type=\"range\" min=\"0\" max=\"1.5\" step=\"0.01\" value=\"1\" aria-label=\""+label+" intensity\"><small>默认 1.00 · 当前 <span id=\""+id+"Current\">1.00</span></small></label>").join("")+"</div>";
+  left.remove();layout.replaceChildren(visual,quick);visual.classList.add("visual-panel");
+  visual.querySelector(".panel-head h2").textContent="Frozen 参考 ↔ Web Renderer";
+  visual.querySelector(".stage-banner").innerHTML="<span><strong>STATIC PHASE A</strong>　同一 test fixture 用于 Renderer 相对比较</span><span id=\"sourceMode\" class=\"source-identity-flag\">Frozen 原图身份未绑定 · Pixel Diff 仅探索</span>";
+  visual.querySelector("#frozenCaption").textContent="Frozen 参考 · 原件只读";
+  visual.querySelector("#webCaption").textContent="Web 候选 · 同源 test fixture";
+  const gates=document.querySelector(".gatebar");advancedBody.append(gates);
+  const assetCard=document.createElement("section");assetCard.className="advanced-card";assetCard.innerHTML="<div class=\"section-title\"><span>资源自动加载与来源清单</span><button id=\"exportAssetManifest\" type=\"button\">导出资产清单 JSON</button></div><div id=\"assetSummary\" class=\"tiny\">正在校验配置与图片…</div><div class=\"table-wrap\"><table class=\"asset-table\"><thead><tr><th>资产</th><th>来源路径 / SHA-256 / 尺寸</th><th>状态</th></tr></thead><tbody id=\"assetRows\"></tbody></table></div><div id=\"assetErrors\" class=\"diagnostic-error tiny\"></div>";
+  advancedBody.append(assetCard);
+  const diagIntro=document.createElement("section");diagIntro.className="advanced-card";diagIntro.innerHTML="<div class=\"section-title\">高级控制</div><p class=\"tiny\">设备视口、FULL / BALANCED / LITE、D0–D4、Reduce Motion、路径单独开关、全部调参和本地输入绑定仅在展开诊断后出现。Stage B 动效控件在静态评审完成前隐藏。</p><div id=\"advancedModeMount\"></div><div id=\"advancedActionMount\"></div><div id=\"advancedMetricsMount\"></div><div id=\"advancedRoiMount\"></div><div id=\"advancedRuntimeMount\"></div><div class=\"row\" style=\"margin-top:9px\"><button id=\"exportExperiment\" type=\"button\">导出实验参数 JSON</button><label class=\"file-button\" for=\"importExperiment\">导入实验参数 JSON</label><input id=\"importExperiment\" type=\"file\" accept=\"application/json\" hidden></div>";
+  advancedBody.append(diagIntro);
+  const advancedControlCard=document.createElement("section");advancedControlCard.className="advanced-card";advancedControlCard.innerHTML="<div class=\"section-title\">可选本地诊断输入</div>";
+  sections.forEach(section=>{if(section.querySelector("#motionTimeline"))section.classList.add("stage-b-hidden");advancedControlCard.append(section);});
+  advancedBody.append(advancedControlCard,right);
+  document.getElementById("advancedModeMount").append(advancedModes);
+  document.getElementById("advancedActionMount").append(roiActions);
+  document.getElementById("advancedMetricsMount").append(document.getElementById("metrics"));
+  document.getElementById("advancedRoiMount").append(document.querySelector(".roi-box"));
+  document.getElementById("advancedRuntimeMount").append(document.getElementById("runtimeStatus"));
+  shell.insertBefore(status,toolbar);shell.insertBefore(toolbar,layout);shell.insertBefore(advanced,document.querySelector(".footer-note"));
+  status.querySelector("#retryAssets").addEventListener("click",()=>loadAssets().catch(handleAssetLoadFailure));
+  document.getElementById("exportAssetManifest").addEventListener("click",downloadAssetManifest);
+  document.getElementById("exportExperiment").addEventListener("click",exportExperiment);
+  document.getElementById("importExperiment").addEventListener("change",importExperiment);
+}
+function designRootUrl(path){
+  const relative=String(path).replace(/^design\//,"");
+  return new URL("../../"+relative,location.href).href;
+}
+function repositoryAssetUrl(path){
+  if(!/\/design\/manager\/optical-lab(?:\/|$)/.test(location.pathname))return null;
+  return new URL("../../../"+String(path).replace(/^\//,""),location.href).href;
+}
+function setOverallStatus(status,message){
+  const chip=$("overallStatus");if(!chip)return;chip.textContent=status;chip.dataset.status=status;
+  if(message)$("buildRevision").textContent=message;
+}
 function runtimeSnapshot(){return elements.config.optical_lab_runtime_snapshot;}
 function reportError(message){$("runtimeStatus").textContent=message;$("runtimeStatus").className="statusline error";}
-function rootPath(path){return new URL("../../../"+path,location.href).href;}
+function rootPath(path){return designRootUrl(path);}
 function androidArgbColorToCss(argb){const value=String(argb||"#D91A2C35").replace("#","");if(value.length!==8)return "#102D35";const a=parseInt(value.slice(0,2),16)/255,r=parseInt(value.slice(2,4),16),g=parseInt(value.slice(4,6),16),b=parseInt(value.slice(6,8),16);return "rgba("+r+","+g+","+b+","+a+")";}
 function safeAlphaColor(hex,alpha){
   const c=String(hex||"#ffffff").replace("#","");
@@ -234,6 +307,7 @@ function initialParams(){
     alpha:1, glowWidth:1, blurRadius:1, falloff:1, tailLength:1, tailPosition:0,
     fishHalo:(focus.levels.A.halo_alpha_contract[0]+focus.levels.A.halo_alpha_contract[1])/2,
     fishContour:A.contour.core_alpha_outline, stateStrength:null,
+    layerStrength:{receiving:1,outer:1,mid:1,core:1,fish:1,status:1},
     safeTop:0,safeBottom:0,
     primaryOuter:primary.width_dp, primaryMid:mid.width_dp
   };
@@ -253,6 +327,7 @@ function buildUI(){
   elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
   elements.pathChecks.innerHTML=elements.config.p1_edge_field.paths.map(p=>'<label title="'+p.role+' · '+p.island+'"><input type="checkbox" data-path="'+p.id+'" checked>'+p.id+'</label>').join("");
   const p=initialParams();elements.params=p;
+  $("rendererSelect").value=elements.renderer;
   $("rangeControls").innerHTML=[
     rangeRow("paramAlpha","全局 Alpha",0,1.5,.01,1,"BaseAlpha × 控制值"),
     rangeRow("paramGlow","Glow Width",.4,2,.02,1,"相对 P1 宽度 dp"),
@@ -273,7 +348,7 @@ function buildUI(){
   $("inputStatus").textContent="PR #166 P1–P5 配置加载成功";
   $("inputStatus").parentElement.classList.add("success");
   bindEvents();
-  loadDefaultPhoto();
+  bindQuickControls();
   selectState(0);
   updateRendererNote();
   render();
@@ -281,7 +356,8 @@ function buildUI(){
 }
 function bindEvents(){
   $("stateButtons").addEventListener("click",e=>{const b=e.target.closest("[data-state]");if(b)selectState(Number(b.dataset.state));});
-  $("compareModes").addEventListener("click",e=>{const b=e.target.closest("[data-mode]");if(!b)return;elements.mode=b.dataset.mode;document.querySelectorAll("#compareModes button").forEach(x=>x.classList.toggle("active",x===b));render();});
+  const chooseMode=e=>{const b=e.target.closest("[data-mode]");if(!b)return;elements.mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x===b));render();};
+  $("compareModes").addEventListener("click",chooseMode);$("advancedModes").addEventListener("click",chooseMode);
   $("rendererSelect").addEventListener("change",()=>{elements.renderer=$("rendererSelect").value;elements.cache=null;updateRendererNote();render();});
   $("viewportSelect").addEventListener("change",()=>{const v=$("viewportSelect").value.split("x").map(Number);elements.width=v[0];elements.height=v[1];render();runResponsiveFixtures();});
   $("degradationSelect").addEventListener("change",()=>{elements.dLevel=$("degradationSelect").value;applyDLevel();elements.cache=null;render();});
@@ -305,9 +381,23 @@ function bindEvents(){
   }));
   $("resetButton").addEventListener("click",resetDefaults);
   $("exportPreview").addEventListener("click",()=>downloadCanvas(elements.preview,"web-"+stateId()+"-"+elements.renderer+".png"));
-  $("exportCompare").addEventListener("click",()=>downloadCanvas(elements.compare,"compare-"+elements.mode+"-"+stateId()+".png"));
+  $("exportCompare").addEventListener("click",()=>{renderComparison();downloadCanvas(elements.compare,"compare-"+elements.mode+"-"+stateId()+".png");});
   $("exportRoi").addEventListener("click",()=>downloadCanvas(elements.roi,"roi-"+stateId()+".png"));
   document.addEventListener("keydown",e=>{if(e.key==="Escape"){elements.mask=null;elements.maskBoundaryCache=null;elements.maskUrl&&URL.revokeObjectURL(elements.maskUrl);elements.maskUrl=null;$("maskName").textContent="未绑定";updateFocusReadiness();render();}});
+}
+function bindQuickControls(){
+  document.querySelectorAll(".quick-control input[data-strength]").forEach(input=>input.addEventListener("input",()=>{
+    elements.params.layerStrength[input.dataset.strength]=Number(input.value);elements.cache=null;updateQuickControlValues();render();
+  }));
+  updateQuickControlValues();
+}
+function updateQuickControlValues(){
+  const values=elements.params.layerStrength||{};
+  document.querySelectorAll(".quick-control input[data-strength]").forEach(input=>{
+    const value=Number(values[input.dataset.strength]??1).toFixed(2);input.value=value;
+    $(input.id+"Value").textContent=value;$(input.id+"Current").textContent=value;
+  });
+  const box=readBBox(),focusInput=$("quickFish");if(focusInput){focusInput.disabled=!box||box.invalid;focusInput.title=focusInput.disabled?"真实 BBox 缺失或无效；Fish Focus 当前不可绘制":"只调整真实 BBox 对应的 Fish Focus 层";}
 }
 function stateId(){return elements.config.p3_states_and_status.product_states[elements.stateIndex].id;}
 function applyDLevel(){
@@ -324,8 +414,8 @@ function selectState(index){
   $("paramStrength").value=strength;$("paramMotionSpeed").value=speed;
   document.querySelectorAll("#stateButtons button").forEach((b,i)=>b.classList.toggle("active",i===elements.stateIndex));
   $("stateLabel").textContent=state.id;
-  $("frozenCaption").textContent="Frozen · "+state.display_name;
-  $("webCaption").textContent="WEB · "+state.display_name;
+  $("frozenCaption").textContent="Frozen · "+state.display_name+" · source unbound";
+  $("webCaption").textContent="WEB · "+state.display_name+" · same test fixture";
   const manifestState=elements.manifest.product_states.find(item=>item.id===state.id);
   const frame=manifestState&&manifestState.keyframes&&manifestState.keyframes[0];
   if(!frame)throw new Error("Frozen Manifest binding missing for "+state.id);
@@ -337,25 +427,72 @@ function selectState(index){
   elements.cache=null;
   render();
 }
-function loadImage(url){
-  return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("图片读取失败："+url));img.src=url;});
+function hexDigest(bytes){return Array.from(new Uint8Array(bytes)).map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function gitBlobSha(bytes){
+  const prefix=new TextEncoder().encode("blob "+bytes.byteLength+"\0"),joined=new Uint8Array(prefix.length+bytes.byteLength);
+  joined.set(prefix,0);joined.set(new Uint8Array(bytes),prefix.length);return hexDigest(await crypto.subtle.digest("SHA-1",joined));
 }
-async function loadVerifiedImage(url,expectedSha,expectedWidth,expectedHeight){
-  const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw new Error("HTTP "+response.status+" "+url);
-  const buffer=await response.arrayBuffer();
-  if(!crypto.subtle)throw new Error("浏览器没有可用的 SHA-256 API；请使用 localhost 或 HTTPS。");
-  const digest=await crypto.subtle.digest("SHA-256",buffer),actual=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
-  if(actual!==expectedSha)throw new Error("SHA-256 不匹配："+url);
-  const blobUrl=URL.createObjectURL(new Blob([buffer]));const img=await loadImage(blobUrl);
-  if((expectedWidth&&img.naturalWidth!==expectedWidth)||(expectedHeight&&img.naturalHeight!==expectedHeight))throw new Error("尺寸不匹配："+url+" "+img.naturalWidth+"×"+img.naturalHeight);
-  return {image:img,url:blobUrl,sha256:actual};
+function pushAssetError(code,path,error){
+  const message=error&&error.message?error.message:String(error);elements.assetErrors.push({code,path,reason:message});renderAssetAudit();
+  return Object.assign(new Error(code+" · "+path+" · "+message),{code,assetPath:path});
+}
+function recordAsset(record){
+  const index=elements.assetAudit.findIndex(item=>item.asset_id===record.asset_id);
+  if(index>=0)elements.assetAudit[index]=record;else elements.assetAudit.push(record);renderAssetAudit();
+}
+function sourceRevisionFor(role){
+  if(role==="frozen"||role==="state_manifest")return elements.config&&elements.config.source_snapshot.authority_commit||"31d1483b83038db78821625cd9339ad0e8c19ff3";
+  if(role==="photo_fixture")return elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED";
+  if(elements.buildInfo&&elements.buildInfo.head_sha)return elements.buildInfo.head_sha;
+  return "NOT_EMBEDDED";
+}
+function loadImage(url){
+  return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("图片解码失败："+url));img.src=url;});
+}
+async function fetchBuffer(url,path,code){
+  let response;try{response=await fetch(url,{cache:"no-store"});}catch(error){throw pushAssetError(code,path,error);}
+  if(!response.ok)throw pushAssetError(code,path,new Error("HTTP "+response.status+" "+url));
+  try{return await response.arrayBuffer();}catch(error){throw pushAssetError(code,path,error);}
+}
+async function loadJsonAsset(url,assetId,path,role,expectedBlobSha){
+  const fetchCode=assetId==="processing-config"?"CONFIG_LOAD_FAILED":(assetId==="processing-state-manifest"?"FROZEN_ASSET_MISSING":"SOURCE_MISMATCH_BLOCKED");
+  const bytes=await fetchBuffer(url,path,fetchCode);
+  const sha=hexDigest(await crypto.subtle.digest("SHA-256",bytes));
+  if(expectedBlobSha){const blobSha=await gitBlobSha(bytes);if(blobSha!==expectedBlobSha)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",path,new Error("Git blob SHA mismatch; expected "+expectedBlobSha+", got "+blobSha));}
+  let value;try{value=JSON.parse(new TextDecoder().decode(bytes));}catch(error){throw pushAssetError(assetId==="processing-config"?"CONFIG_LOAD_FAILED":"SOURCE_MISMATCH_BLOCKED",path,new Error("JSON parse failed: "+error.message));}
+  recordAsset({asset_id:assetId,repository_path:path,source_revision:sourceRevisionFor(role),sha256:sha,dimensions:null,role,provenance:expectedBlobSha?"P1–P5 source snapshot Git blob SHA verified":"Fetched and parsed from the current Optical Lab deployment",status:"VERIFIED"});
+  return {value,bytes,sha256:sha};
+}
+async function loadVerifiedImage(url,expectedSha,expectedWidth,expectedHeight,record){
+  const frozen=record.asset_id.startsWith("frozen-");
+  const bytes=await fetchBuffer(url,record.repository_path,frozen?"FROZEN_ASSET_MISSING":"TEST_FIXTURE_MISSING");
+  const actual=hexDigest(await crypto.subtle.digest("SHA-256",bytes));
+  if(actual!==expectedSha)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",record.repository_path,new Error("SHA-256 mismatch; expected "+expectedSha+", got "+actual));
+  const blobUrl=URL.createObjectURL(new Blob([bytes]));let img;
+  try{img=await loadImage(blobUrl);}catch(error){URL.revokeObjectURL(blobUrl);throw pushAssetError(frozen?"FROZEN_ASSET_MISSING":"TEST_FIXTURE_MISSING",record.repository_path,error);}
+  if((expectedWidth&&img.naturalWidth!==expectedWidth)||(expectedHeight&&img.naturalHeight!==expectedHeight)){URL.revokeObjectURL(blobUrl);throw pushAssetError("SOURCE_MISMATCH_BLOCKED",record.repository_path,new Error("dimensions expected "+expectedWidth+"×"+expectedHeight+", got "+img.naturalWidth+"×"+img.naturalHeight));}
+  recordAsset({...record,sha256:actual,dimensions:[img.naturalWidth,img.naturalHeight],status:"VERIFIED"});
+  return {image:img,url:blobUrl,sha256:actual,bytes:bytes.byteLength,path:record.repository_path};
 }
 async function loadDefaultPhoto(){
   const binding=elements.config.p5_compose_import_bindings.image_bindings.test_photo;
-  const url=rootPath(binding.path);
+  const candidates=[{url:designRootUrl("design/system/fish_media_display_v1/assets/real_catch_source.jpg"),path:"design/system/fish_media_display_v1/assets/real_catch_source.jpg"}],direct=repositoryAssetUrl(binding.path);
+  if(direct)candidates.push({url:direct,path:binding.path});
   $("photoName").textContent=binding.path.split("/").pop()+" · SHA 校验中";
-  try{const result=await loadVerifiedImage(url,binding.sha256,undefined,undefined);elements.photo=result.image;elements.photoUrl=result.url;$("photoName").textContent=binding.path.split("/").pop()+" · SHA-256 verified";render();}
-  catch(e){$("photoName").textContent="校验失败";$("sourceWarning").textContent="仓库测试照片加载 / SHA 校验失败："+e.message+"。可绑定本地原图；不生成替代照片。";}
+  let lastError=null;
+  for(const candidate of candidates){
+    const errorCount=elements.assetErrors.length;
+    try{
+      const result=await loadVerifiedImage(candidate.url,binding.sha256,undefined,undefined,{asset_id:"processing-test-photo",repository_path:candidate.path,source_revision:sourceRevisionFor("photo_fixture"),role:"photo_fixture",provenance:"P5 test-photo SHA-256; design published copy is registered byte-identical in real_photo_cases.json; not linked as the Frozen screenshot source"});
+      if(result.bytes!==binding.bytes)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",candidate.path,new Error("byte length expected "+binding.bytes+", got "+result.bytes));
+      elements.photo=result.image;elements.photoUrl=result.url;
+      $("photoName").textContent=candidate.path.split("/").pop()+" · SHA-256 verified";
+      $("sourceWarning").textContent="同源 Renderer 比较使用 P5 SHA 已验证的 test fixture。它与 Frozen 截图内照片不同，Frozen Visual QA = BLOCKED。";
+      render();return result;
+    }catch(error){elements.assetErrors.length=errorCount;lastError=error;}
+  }
+  $("photoName").textContent="未加载";
+  throw lastError||pushAssetError("TEST_FIXTURE_MISSING",binding.path,new Error("No repository or Design Manager asset alias resolved"));
 }
 async function onPhotoUpload(event){
   const file=event.target.files&&event.target.files[0];if(!file)return;
@@ -389,6 +526,7 @@ function updateFocusReadiness(){
   else message+="真实 BBox + Mask 已绑定 → A 级真实轮廓";
   $("focusReadiness").textContent=message;
   $("focusReadiness").className="statusline "+(box&& !box.invalid&&enabled?"success":"warn");
+  updateQuickControlValues();
 }
 function updateRendererNote(){
   const notes={
@@ -400,7 +538,7 @@ function updateRendererNote(){
   $("renderBadge").textContent=elements.renderer;
 }
 function resetDefaults(){
-  elements.params=initialParams();elements.renderer="android-current";elements.quality="FULL";elements.dLevel="D0";
+  elements.params=initialParams();elements.renderer="hardware-gradient";elements.quality="FULL";elements.dLevel="D0";
   elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
   elements.reduceMotion=false;elements.maskDiagnostic=false;elements.cache=null;
   $("rendererSelect").value=elements.renderer;$("qualitySelect").value="FULL";$("degradationSelect").value="D0";$("reduceMotion").checked=false;$("maskDiagnostic").checked=false;
@@ -408,7 +546,7 @@ function resetDefaults(){
   document.querySelectorAll("#pathChecks input").forEach(x=>x.checked=true);
   const refs={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
   Object.keys(refs).forEach(id=>$(id).value=elements.params[refs[id]]??0);
-  selectState(0);updateRendererNote();render();
+  updateQuickControlValues();selectState(0);updateRendererNote();render();
 }
 function tokenAlpha(value){return "rgba("+parseInt(value.slice(1,3),16)+","+parseInt(value.slice(3,5),16)+","+parseInt(value.slice(5,7),16)+","+arguments[1]+")";}
 function transformPhoto(sourceWidth,sourceHeight,viewportWidth,viewportHeight,mode){
@@ -518,7 +656,7 @@ function drawReceiving(ctx,rect,mode,quality,colors){
     const radius=minDim*item.radius_min_dimension,ov=item.oval,ox=rect.left+ov[0]*(rect.right-rect.left),oy=rect.top+ov[1]*(rect.bottom-rect.top),ow=ov[2]*(rect.right-rect.left),oh=ov[3]*(rect.bottom-rect.top);
     const record=elements.config.p1_edge_field.paths.find(path=>path.island===item.id||path.id===item.id);
     const weight=record?record.island_weight:1,color=String(item.id).startsWith("G")?colors.gold:colors.blue;
-    const alpha=Math.min(cap,base*weight*elements.params.stateStrength*elements.params.alpha*(quality.receiving||1)*(quality.alpha||1));
+    const alpha=Math.min(cap,base*weight*elements.params.stateStrength*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1));
     const grad=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,radius);
     runtimeSnapshot().receiving_light_alpha_stops.forEach(stop=>grad.addColorStop(stop[0],safeAlphaColor(color,alpha*stop[1])));
     ctx.save();ctx.globalAlpha=1;ctx.fillStyle=grad;ctx.beginPath();ctx.ellipse(ox+ow/2,oy+oh/2,Math.abs(ow/2),Math.abs(oh/2),0,0,Math.PI*2);ctx.fill();ctx.restore();
@@ -533,25 +671,25 @@ function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visi
   const pieces=pathPieces(points,start,length);
   const primary=record.role==="primary",isSecondary=record.role==="secondary_only";
   const weight=record.island_weight||1,state=elements.params.stateStrength,global=elements.params.alpha*(quality.alpha||1),width=widthOverride||record.core_width_dp||.8;
-  const outer=getStack("primary_outer_bloom"),mid=getStack("primary_mid_glow"),secondary=getStack("secondary_fragment_mid_and_core"),core=getStack("primary_core");
+  const outer=getStack("primary_outer_bloom"),mid=getStack("primary_mid_glow"),secondary=getStack("secondary_fragment_mid_and_core"),core=getStack("primary_core"),strength=elements.params.layerStrength;
   pieces.forEach(piece=>{
     if(primary&&elements.layers.outer){
-      if(mode==="hardware-gradient")drawHardwareBloom(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,weight*state*global,quality);
-      else strokePolyline(ctx,piece,record.family==="blue"?colors.blue:colors.gold,outer.width_dp*elements.params.glowWidth,(outer.android_base_alpha||.04)*weight*state*global*(quality.outer||1),elements.params.blurRadius*(outer.blur_radius_dp||5),mode);
+      if(mode==="hardware-gradient")drawHardwareBloom(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,weight*state*global*(strength.outer||0),quality);
+      else strokePolyline(ctx,piece,record.family==="blue"?colors.blue:colors.gold,outer.width_dp*elements.params.glowWidth,(outer.android_base_alpha||.04)*weight*state*global*(strength.outer||0)*(quality.outer||1),elements.params.blurRadius*(outer.blur_radius_dp||5),mode);
     }
     if(elements.layers.mid){
       const base=primary?(mid.android_base_alpha||.075):(secondary.android_mid_base_alpha||.025);
       const mw=primary?mid.width_dp:secondary.android_mid_width_dp;
       const blur=primary?mid.blur_radius_dp:secondary.android_mid_blur_radius_dp;
-      const alpha=Math.min(primary ? .10 : .035,base*weight*state*global*(quality.mid||1));
+      const alpha=Math.min(primary ? .10 : .035,base*weight*state*global*(strength.mid||0)*(quality.mid||1));
       const color=record.family==="blue"?colors.blue:colors.gold,hot=record.family==="blue"?colors.blueHot:colors.goldHot;
-      if(mode==="hardware-gradient")drawHardwareMidGlow(ctx,piece,color,hot,width,weight*state*global,quality,primary);
+      if(mode==="hardware-gradient")drawHardwareMidGlow(ctx,piece,color,hot,width,weight*state*global*(strength.mid||0),quality,primary);
       else strokePolyline(ctx,piece,color,mw*elements.params.glowWidth,alpha,elements.params.blurRadius*blur,mode);
     }
     if(elements.layers.core){
       const base=primary?(core.android_base_alpha||.46):(secondary.android_core_base_alpha||.16);
       const cap=primary?(core.maximum_alpha||.5):(secondary.android_core_alpha_cap||.12);
-      const alpha=Math.min(cap,base*weight*state*global*(quality.core||1));
+      const alpha=Math.min(cap,base*weight*state*global*(strength.core||0)*(quality.core||1));
       if(mode==="hardware-gradient")strokeGradientTail(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,alpha,elements.params.falloff);
       else strokeGradientTail(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,alpha,elements.params.falloff);
     }
@@ -634,12 +772,12 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
   const rxParts=radiusParts(levelcfg.radii.x),ryParts=radiusParts(levelcfg.radii.y);
   if(!rxParts||!ryParts){$("focusReadiness").textContent="Fish halo radius formula missing from P2 config";return;}
   const rx=(bx.right-bx.left)*rxParts[0]+rxParts[1],ry=(bx.bottom-bx.top)*ryParts[0]+ryParts[1],scale=level==="C"?(levelcfg.radius_scale||.88):1;
-  const haloDefault=Number(elements.params.fishHalo)||.14;
+  const haloDefault=Number(elements.params.fishHalo)||.14,focusStrength=elements.params.layerStrength.fish||0;
   if(elements.layers.fishHalo){
     const gx=rx*scale,gy=ry*scale,outer=elements.config.p2_fish_focus.geometry.radial_outer_extent_multiple||1.18;
     const g=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,Math.max(gx,gy)*outer);
     const staticValues=runtimeSnapshot().fish_focus_static_values[stateId()][level];
-    const alpha=(staticValues.halo_alpha*(elements.params.fishHalo/runtimeSnapshot().fish_focus_static_values.defaults.halo_alpha))*elements.params.alpha;
+    const alpha=(staticValues.halo_alpha*(elements.params.fishHalo/runtimeSnapshot().fish_focus_static_values.defaults.halo_alpha))*elements.params.alpha*focusStrength;
     runtimeSnapshot().fish_halo_alpha_stops.forEach(stop=>g.addColorStop(stop[0],safeAlphaColor(colors.gold,alpha*stop[1])));
     ctx.save();ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(center.x,center.y,gx*outer,gy*outer,0,0,Math.PI*2);ctx.fill();ctx.restore();
   }
@@ -649,7 +787,7 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
   }
   if(level==="B"&&elements.layers.fishContour){
     const perimeter=levelcfg.perimeter,staticValues=runtimeSnapshot().fish_focus_static_values[stateId()][level];
-    const alpha=(staticValues.perimeter_alpha*(elements.params.fishContour/runtimeSnapshot().fish_focus_static_values.defaults.contour_alpha))*elements.params.alpha;
+    const alpha=(staticValues.perimeter_alpha*(elements.params.fishContour/runtimeSnapshot().fish_focus_static_values.defaults.contour_alpha))*elements.params.alpha*focusStrength;
     ctx.save();ctx.strokeStyle=safeAlphaColor(perimeter.color,alpha);ctx.lineWidth=perimeter.width_dp;ctx.beginPath();ctx.ellipse(center.x,center.y,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.restore();
   }
   if(level==="A"&&elements.mask&&elements.layers.fishContour){
@@ -658,7 +796,7 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
     const map=(p)=>({x:px(sb.x1+(p[0]/boundary.maskWidth)*(sb.x2-sb.x1)),y:py(sb.y1+(p[1]/boundary.maskHeight)*(sb.y2-sb.y1))});
     const contour=levelcfg.contour,staticValues=runtimeSnapshot().fish_focus_static_values[stateId()][level];
     const contourCap=stateId()==="FISH_LOCATED"?contour.core_alpha_outline:Math.max(...contour.core_alpha_classifying);
-    const coreAlpha=Math.min(contourCap,staticValues.contour_alpha*(elements.params.fishContour/runtimeSnapshot().fish_focus_static_values.defaults.contour_alpha))*elements.params.alpha;
+    const coreAlpha=Math.min(contourCap,staticValues.contour_alpha*(elements.params.fishContour/runtimeSnapshot().fish_focus_static_values.defaults.contour_alpha))*elements.params.alpha*focusStrength;
     boundary.segments.forEach(seg=>{
       const a=map(seg[0]),b=map(seg[1]);
       strokePolyline(ctx,[a,b],contour.glow_color,contour.glow_outer_width_dp*elements.params.glowWidth,Math.min(contour.glow_outer_alpha_cap,coreAlpha*contour.glow_outer_alpha_multiplier),contour.glow_outer_blur_dp*elements.params.blurRadius,mode);
@@ -676,7 +814,7 @@ function drawStatus(ctx,w,h,safeBottom,safeTop,mode,colors){
   const safeHorizontal=statusLayout.safe_horizontal_min_dp,cardW=w-safeHorizontal*2,cardH=card.height_dp;
   const bottom=statusLayout.status_bottom_padding_dp[state.id];
   const x=safeHorizontal,y=h-cardH-bottom-safeBottom;
-  ctx.save();roundedRect(ctx,x,y,cardW,cardH,card.corner_radius_dp);ctx.fillStyle=androidArgbColorToCss(card.background);ctx.fill();
+  ctx.save();ctx.globalAlpha=elements.params.layerStrength.status||0;roundedRect(ctx,x,y,cardW,cardH,card.corner_radius_dp);ctx.fillStyle=androidArgbColorToCss(card.background);ctx.fill();
   const border=ctx.createLinearGradient(x,y,x+cardW,y+cardH);
   statusLayout.border_gradient_stops.forEach(stop=>border.addColorStop(stop.position,safeAlphaColor(colorToken(stop.color_token),stop.alpha)));
   ctx.strokeStyle=border;ctx.lineWidth=card.border_width_dp;ctx.stroke();
@@ -738,7 +876,7 @@ function paintScene(ctx,w,h,rendererOverride){
   drawStatus(ctx,w,h,elements.params.safeBottom,elements.params.safeTop,mode,colors);
   $("compareSize").textContent=w+" × "+h+" · PhotoViewport FIT";
   $("renderBadge").textContent=mode+" · "+elements.quality+" / "+elements.dLevel;
-  $("sourceMode").textContent="same selected viewport · Frozen FIT · source identity unverified";
+  $("sourceMode").textContent="同一视口 · Frozen FIT · 照片身份未绑定";
 }
 function render(){
   if(!elements.config)return;
@@ -763,20 +901,25 @@ function makeAlignedFrozenCanvas(img,w,h){
   const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;drawFrozenReference(canvas.getContext("2d"),img,0,0,w,h);return canvas;
 }
 function renderCandidateGrid(){
-  const grid=$("candidateGrid"),ref=referenceReady(),w=elements.width,h=elements.height;
-  grid.style.display="grid";$("candidateFrozen").src=ref?ref.src:"";
+  const grid=$("candidateGrid"),w=elements.width,h=elements.height;
+  grid.style.display="grid";
   document.querySelectorAll(".candidate-card img,.candidate-card canvas").forEach(item=>item.style.aspectRatio=w+"/"+h);
   const candidates=[["candidateCurrent","android-current"],["candidateHardware","hardware-gradient"],["candidateSoftware","software-cache"]];
-  const composite=elements.compare;composite.width=w*4;composite.height=h;const cc=composite.getContext("2d");cc.clearRect(0,0,composite.width,composite.height);
-  if(ref)drawFrozenReference(cc,ref,0,0,w,h);
-  candidates.forEach((item,index)=>{const canvas=$(item[0]);canvas.width=w;canvas.height=h;paintScene(canvas.getContext("2d"),w,h,item[1]);cc.drawImage(canvas,(index+1)*w,0,w,h);});
+  const composite=elements.compare;composite.width=w*3;composite.height=h;const cc=composite.getContext("2d");cc.clearRect(0,0,composite.width,composite.height);
+  candidates.forEach((item,index)=>{const canvas=$(item[0]);canvas.width=w;canvas.height=h;paintScene(canvas.getContext("2d"),w,h,item[1]);cc.drawImage(canvas,index*w,0,w,h);});
   $("metricMean").textContent="—";$("metricThreshold").textContent="—";$("metricCoverage").textContent="3 个同视口静态候选";$("metricGate").textContent="探索性";$("metricGate").className="warn";
 }
 function renderComparison(){
   const b=$("boards"),comp=$("compareScreen"),wipe=$("wipeRow"),grid=$("candidateGrid");
   const canvas=elements.compare;canvas.width=elements.width;canvas.height=elements.height;canvas.style.aspectRatio=elements.width+"/"+elements.height;
   const ctx=canvas.getContext("2d"),ref=referenceReady(),prev=elements.preview;
-  if(elements.mode==="side"){b.style.display="grid";comp.style.display="none";grid.style.display="none";wipe.style.display="none";$("metricGate").textContent="未对齐";}
+  if(elements.mode==="side"){
+    b.style.display="grid";comp.style.display="none";grid.style.display="none";wipe.style.display="none";
+    canvas.width=elements.width*2;canvas.height=elements.height;canvas.style.aspectRatio=canvas.width+"/"+canvas.height;ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(ref)drawFrozenReference(ctx,ref,0,0,elements.width,elements.height);else{ctx.fillStyle="#18262b";ctx.fillRect(0,0,elements.width,elements.height);}
+    ctx.drawImage(prev,elements.width,0,elements.width,elements.height);
+    $("metricGate").textContent="探索性 · Frozen photo identity unverified";$("metricGate").className="warn";
+  }
   else if(elements.mode==="candidates"){b.style.display="none";comp.style.display="none";wipe.style.display="none";renderCandidateGrid();return;}
   else{
     b.style.display="none";grid.style.display="none";comp.style.display="block";wipe.style.display=elements.mode==="wipe"?"flex":"none";
@@ -846,26 +989,95 @@ function buildStaticModelReport(){
   const early=manifestStates.some(s=>String(s.id).includes("EARLY")||s.keyframes.some(k=>k.path.includes("01_Capture_Transition")));
   if(early)throw new Error("Retired Early visual must not be loaded.");
   frozenStates.forEach(s=>{const frame=manifestStates.find(item=>item.id===s.id)?.keyframes?.[0];if(!frame)throw new Error("Frozen reference binding missing for "+s.id);const name=frame.path.split("/").pop();if(name!==referenceExpected[s.id])throw new Error("Frozen reference binding mismatch for "+s.id+": "+name);const configRef=elements.config.p5_compose_import_bindings.image_bindings.frozen_references.find(item=>item.state===s.id);if(!configRef||configRef.path!==frame.path||configRef.sha256!==frame.sha256)throw new Error("P5 / Frozen manifest mismatch for "+s.id);});
-  $("staticGate").textContent="ENGINEERING MODEL CHECKS PASS · VISUAL REVIEW PENDING";
-  $("decisionStatus").textContent="PENDING · 实机及同源 Frozen 视觉评审";
+  const frozenReady=frozenStates.every(s=>Boolean(references[s.id]));
+  const photoReady=Boolean(elements.photo);
+  $("staticGate").textContent=photoReady&&frozenReady?"REVIEW_REQUIRED · Frozen source-photo identity unverified":"BLOCKED · required image asset missing";
+  $("decisionStatus").textContent="REVIEW_REQUIRED · human static visual review pending";
   $("decisionStatus").className="warn";
-  $("runtimeStatus").textContent="配置校验：7 条路径 / 3 个产品状态 / Early 资产 0 / 真实 BBox 与 Mask 按需绑定。";
+  $("inputStatus").textContent=photoReady&&frozenReady?"PASS · config / Manifest / 3 Frozen / test fixture SHA verified":"BLOCKED · inspect asset paths below";
+  $("runtimeStatus").textContent="Gate A asset auto-loading: "+(photoReady&&frozenReady?"PASS":"BLOCKED")+" · 7 条路径 / 3 个产品状态 / Early 资产 0 · source-photo identity unverified · BBox / Mask missing by design.";
+  setOverallStatus(photoReady&&frozenReady?"REVIEW_REQUIRED":"BLOCKED","PR #166 Draft · HEAD "+(elements.buildInfo&&elements.buildInfo.head_sha||"not embedded; see PR evidence"));
+  renderAssetAudit();
 }
-function loadAssets(){
-  const manifestUrl=new URL("../../pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",location.href);
-  const configUrl=new URL("../../pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json",location.href);
-  return Promise.all([fetchText(configUrl),fetchText(manifestUrl)]).then(async values=>{
-    elements.config=JSON.parse(values[0]);elements.manifest=JSON.parse(values[1]);
-    const configStates=elements.config.p3_states_and_status.product_states;
-    if(configStates.length!==3||elements.manifest.product_states.length!==3)throw new Error("The source contracts must expose exactly three Frozen product states.");
-    await Promise.all(elements.manifest.product_states.map(async s=>{const item=s.keyframes[0],loaded=await loadVerifiedImage(rootPath(item.path),item.sha256,item.width,item.height);references[s.id]=loaded.image;elements.frozenByState.set(s.id,loaded);}));
-    buildUI();buildStaticModelReport();
-  });
+function renderAssetAudit(){
+  const rows=$("assetRows");if(!rows)return;
+  const esc=s=>String(s??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  rows.innerHTML=elements.assetAudit.map(item=>"<tr><td>"+esc(item.asset_id)+"<br><span class=\"tiny\">"+esc(item.role)+"</span></td><td><code>"+esc(item.repository_path)+"</code><br><span class=\"tiny\">SHA-256 "+esc(item.sha256)+" · "+esc(item.dimensions?item.dimensions.join("×"):"n/a")+" px · source "+esc(item.source_revision)+"</span></td><td class=\"asset-status "+esc(item.status)+"\">"+esc(item.status)+"</td></tr>").join("");
+  const verified=elements.assetAudit.filter(item=>item.status==="VERIFIED").length;
+  $("assetSummary").textContent=verified+" / "+elements.assetAudit.length+" 个已加载资源校验通过；Frozen/source-photo identity gate 另行判定。";
+  $("assetErrors").textContent=elements.assetErrors.map(item=>item.code+" · "+item.path+" · "+item.reason).join("\n");
 }
-loadAssets().catch(error=>{
-  $("inputStatus").textContent="配置加载失败";$("staticGate").textContent="未运行";
-  reportError("无法读取现有 P1–P5 / Frozen Manifest。请从仓库根目录运行 HTTP 服务，不能从 file:// 直接打开。详情："+error.message);
-});
+function currentAssetManifest(){
+  const sources=elements.config&&elements.config.sources||[];
+  const verified=Boolean(elements.buildInfo&&elements.buildInfo.source_dependency_verification==="PASS");
+  return {schema_version:"1.0",task:"RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE",repository:"pan277942135/Yujian_App",pull_request:166,source_revision:elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED",generated_at:new Date().toISOString(),assets:elements.assetAudit,source_dependencies:sources.map((source,index)=>({asset_id:"p1-p5-source-"+String(index+1).padStart(2,"0"),repository_path:source.path,source_revision:elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED",sha256:null,git_blob_sha256_or_sha1:source.blob_sha,dimensions:null,role:source.role,provenance:"Declared by existing Processing_Engineering_Import_Config_V1.json sources; verified by CI Git Blob check",status:verified?"VERIFIED":"NOT_VERIFIED"})),photo_identity_to_frozen:"UNVERIFIED",frozen_visual_qa:"BLOCKED",overall_m1:"NOT_PASS"};
+}
+function downloadAssetManifest(){const blob=new Blob([JSON.stringify(currentAssetManifest(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Recognition-Optical-Lab-Asset-Manifest.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function currentExperiment(){
+  return {schema_version:"1.0",task:"RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE",state:stateId(),renderer:elements.renderer,viewport:[elements.width,elements.height],quality:elements.quality,degradation:elements.dLevel,reduce_motion:elements.reduceMotion,params:elements.params,layers:elements.layers,paths:Object.fromEntries([...document.querySelectorAll("#pathChecks input")].map(input=>[input.dataset.path,input.checked])),provenance:{configuration:elements.config&&elements.config.artifact_id,source_revision:elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED",parameter_values_are_experimental:true}};
+}
+function exportExperiment(){const blob=new Blob([JSON.stringify(currentExperiment(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Recognition-Optical-Lab-Experiment.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+async function importExperiment(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());if(data.schema_version!=="1.0"||data.task!=="RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE")throw new Error("Unsupported experiment schema/task.");
+    const rendererIds=["android-current","hardware-gradient","software-cache"],stateIndex=elements.config.p3_states_and_status.product_states.findIndex(item=>item.id===data.state);
+    if(!rendererIds.includes(data.renderer)||stateIndex<0)throw new Error("Unknown renderer or product state.");
+    elements.renderer=data.renderer;$("rendererSelect").value=data.renderer;
+    if(Array.isArray(data.viewport)&&data.viewport.length===2){const value=data.viewport.join("x");if([...$("viewportSelect").options].some(option=>option.value===value)){$("viewportSelect").value=value;elements.width=data.viewport[0];elements.height=data.viewport[1];}}
+    if(["FULL","BALANCED","LITE"].includes(data.quality)){$("qualitySelect").value=data.quality;elements.quality=data.quality;}
+    if(["D0","D1","D2","D3","D4"].includes(data.degradation)){$("degradationSelect").value=data.degradation;elements.dLevel=data.degradation;}
+    elements.reduceMotion=Boolean(data.reduce_motion);$("reduceMotion").checked=elements.reduceMotion;
+    const numericRanges={alpha:[0,1.5],glowWidth:[.4,2],blurRadius:[0,2],falloff:[.5,1.6],tailLength:[.4,1.6],tailPosition:[-.5,.5],fishHalo:[0,.3],fishContour:[0,.5],stateStrength:[0,1],safeTop:[0,64],safeBottom:[0,80]};
+    for(const [key,[min,max]] of Object.entries(numericRanges)){const raw=data.params&&data.params[key];if(raw===null||raw===undefined||raw==="")continue;const value=Number(raw);if(Number.isFinite(value))elements.params[key]=clamp(value,min,max);}
+    for(const key of ["receiving","outer","mid","core","fish","status"]){const value=Number(data.params&&data.params.layerStrength&&data.params.layerStrength[key]);if(Number.isFinite(value))elements.params.layerStrength[key]=clamp(value,0,1.5);}
+    for(const [layer,value] of Object.entries(data.layers||{}))if(Object.hasOwn(elements.layers,layer))elements.layers[layer]=Boolean(value);
+    for(const input of document.querySelectorAll("#layerControls input"))input.checked=elements.layers[input.dataset.layer];
+    for(const input of document.querySelectorAll("#pathChecks input"))if(Object.hasOwn(data.paths||{},input.dataset.path))input.checked=Boolean(data.paths[input.dataset.path]);
+    const rangeRefs={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
+    for(const [id,key] of Object.entries(rangeRefs))$(id).value=elements.params[key];
+    selectState(stateIndex);updateRendererNote();updateQuickControlValues();render();
+  }catch(error){reportError("Experiment import failed · "+error.message);}
+  event.target.value="";
+}
+function handleAssetLoadFailure(error){
+  const code=error&&error.code||"CONFIG_LOAD_FAILED",path=error&&error.assetPath||"design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json";
+  $("inputStatus").textContent=code;$("staticGate").textContent="BLOCKED · "+code;setOverallStatus("BLOCKED","PR #166 Draft · asset load needs retry");
+  if(!elements.assetErrors.some(item=>item.code===code&&item.path===path))elements.assetErrors.push({code,path,reason:error&&error.message||String(error)});
+  reportError(code+" · "+path+"\n"+(error&&error.message||String(error))+"\n重试：使用 localhost/HTTPS 打开当前 Optical Lab 页面，再按“重新加载资源”。");renderAssetAudit();
+}
+async function loadAssets(){
+  elements.buildInfo=window.OPTICAL_LAB_BUILD_INFO__||null;elements.assetAudit=[];elements.assetErrors=[];elements.config=null;elements.manifest=null;elements.photo=null;elements.photoCaseRegistry=null;
+  for(const loaded of elements.frozenByState.values())if(loaded.url)URL.revokeObjectURL(loaded.url);
+  if(elements.photoUrl)URL.revokeObjectURL(elements.photoUrl);if(elements.maskUrl)URL.revokeObjectURL(elements.maskUrl);
+  elements.photoUrl=null;elements.maskUrl=null;elements.mask=null;elements.maskBoundaryCache=null;
+  elements.frozenByState.clear();for(const key of Object.keys(references))delete references[key];
+  setOverallStatus("LOADING","PR #166 Draft · loading checked assets");
+  if(location.protocol==="file:")throw pushAssetError("CONFIG_LOAD_FAILED","HTTP local preview root",new Error("file:// blocks repository asset fetches; start python3 -m http.server 8765 at the supplied package root."));
+  if(!crypto.subtle)throw pushAssetError("CONFIG_LOAD_FAILED","Web Crypto SHA-256",new Error("secure-context SHA verification is unavailable; open localhost or HTTPS."));
+  const configPath="design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json",manifestPath="design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",registryPath="design/system/fish_media_display_v1/real_photo_cases.json";
+  const configLoaded=await loadJsonAsset(designRootUrl(configPath),"processing-config",configPath,"config",null);elements.config=configLoaded.value;
+  const manifestSource=elements.config.sources.find(source=>source.path===manifestPath);
+  const manifestLoaded=await loadJsonAsset(designRootUrl(manifestPath),"processing-state-manifest",manifestPath,"state_manifest",manifestSource&&manifestSource.blob_sha);elements.manifest=manifestLoaded.value;
+  const registryLoaded=await loadJsonAsset(designRootUrl(registryPath),"photo-provenance-registry",registryPath,"photo_registry",null);elements.photoCaseRegistry=registryLoaded.value;
+  const binding=elements.config.p5_compose_import_bindings.image_bindings.test_photo,fixture=elements.photoCaseRegistry.fixture;
+  if(!fixture||fixture.sha256!==binding.sha256||fixture.bytes!==binding.bytes)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",registryPath,new Error("photo registry does not match the existing P5 test-photo SHA/byte binding."));
+  const configStates=elements.config.p3_states_and_status.product_states;
+  if(configStates.length!==3||elements.manifest.product_states.length!==3)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",manifestPath,new Error("source contracts must expose exactly three Frozen product states."));
+  const frozenLoads=await Promise.allSettled(elements.manifest.product_states.map(async state=>{
+    const frame=state.keyframes[0],assetId="frozen-"+state.id;
+    const loaded=await loadVerifiedImage(rootPath(frame.path),frame.sha256,frame.width,frame.height,{asset_id:assetId,repository_path:frame.path,source_revision:sourceRevisionFor("frozen"),role:"frozen",provenance:"PR #165 Frozen State Manifest + P5 image binding SHA-256; read-only reference"});
+    references[state.id]=loaded.image;elements.frozenByState.set(state.id,loaded);return loaded;
+  }));
+  if(!elements.uiBuilt){buildUI();elements.uiBuilt=true;}else{selectState(elements.stateIndex);updateRendererNote();}
+  let photoReady=false;try{await loadDefaultPhoto();photoReady=true;}catch(error){if(!elements.assetErrors.some(item=>item.code==="TEST_FIXTURE_MISSING"||item.code==="SOURCE_MISMATCH_BLOCKED"))elements.assetErrors.push({code:error.code||"TEST_FIXTURE_MISSING",path:error.assetPath||binding.path,reason:error.message});}
+  buildStaticModelReport();
+  const frozenReady=frozenLoads.every(result=>result.status==="fulfilled");
+  if(!photoReady||!frozenReady){const code=!frozenReady?"FROZEN_ASSET_MISSING":"TEST_FIXTURE_MISSING";$('inputStatus').textContent="BLOCKED · "+code;setOverallStatus("BLOCKED","PR #166 Draft · required asset missing; retry or inspect paths");}
+  renderAssetAudit();return {photoReady,frozenReady};
+}
+mountReviewLayout();
+loadAssets().catch(handleAssetLoadFailure);
 })();
 </script>
 </body>

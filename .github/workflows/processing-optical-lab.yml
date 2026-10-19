@@ -12,6 +12,8 @@ on:
       - "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
       - "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
       - "design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json"
+      - "design/system/fish_media_display_v1/real_photo_cases.json"
+      - "design/system/fish_media_display_v1/assets/real_catch_source.jpg"
       - "app/src/main/java/com/yujian/ai/ui/recognition/**"
       - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
       - "scripts/verify_processing_optical_lab.mjs"
@@ -28,6 +30,8 @@ on:
       - "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
       - "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
       - "design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json"
+      - "design/system/fish_media_display_v1/real_photo_cases.json"
+      - "design/system/fish_media_display_v1/assets/real_catch_source.jpg"
       - "app/src/main/java/com/yujian/ai/ui/recognition/**"
       - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
       - "scripts/verify_processing_optical_lab.mjs"
@@ -36,6 +40,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  LAB_SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   static-lab:
@@ -58,7 +65,31 @@ jobs:
           "$RUNNER_TEMP/processing-lab/node_modules/.bin/playwright" install --with-deps chromium
 
       - name: Verify P1–P5 bindings, source SHAs and Frozen bytes
-        run: node scripts/verify_processing_optical_lab.mjs
+        shell: bash
+        env:
+          LAB_OUTPUT_DIR: optical-lab-artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p "$LAB_OUTPUT_DIR"
+          node scripts/verify_processing_optical_lab.mjs
+
+      - name: Embed verified PR revision and asset manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { writeFile } from 'node:fs/promises';
+          const head = process.env.LAB_SOURCE_REVISION;
+          if (!/^[a-f0-9]{40}$/i.test(head || '')) throw new Error('Expected a full Git commit SHA in LAB_SOURCE_REVISION');
+          const info = {
+            pull_request: 166,
+            head_sha: head,
+            source_dependency_verification: 'PASS',
+            built_at_utc: new Date().toISOString(),
+          };
+          await writeFile('design/manager/optical-lab/build-info.js', 'window.OPTICAL_LAB_BUILD_INFO__ = ' + JSON.stringify(info, null, 2) + ';\n');
+          NODE
+          cp optical-lab-artifacts/asset-manifest.json design/manager/optical-lab/asset-manifest.json
 
       - name: Run browser smoke and export static evidence
         shell: bash
@@ -68,13 +99,18 @@ jobs:
           set -euo pipefail
           mkdir -p "$LAB_OUTPUT_DIR"
           python3 -m http.server 8765 --bind 127.0.0.1 --directory . > "$RUNNER_TEMP/processing-optical-lab-http.log" 2>&1 &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          REPO_SERVER_PID=$!
+          python3 -m http.server 8766 --bind 127.0.0.1 --directory design > "$RUNNER_TEMP/processing-optical-lab-design-http.log" 2>&1 &
+          DESIGN_SERVER_PID=$!
+          trap 'kill "$REPO_SERVER_PID" "$DESIGN_SERVER_PID" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:8765/design/manager/optical-lab/ >/dev/null; then break; fi
+            if curl --fail --silent http://127.0.0.1:8765/design/manager/optical-lab/ >/dev/null && curl --fail --silent http://127.0.0.1:8766/manager/optical-lab/ >/dev/null; then break; fi
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:8765/design/manager/optical-lab/ >/dev/null
+          curl --fail --silent http://127.0.0.1:8766/manager/optical-lab/ >/dev/null
+          LAB_REPO_URL=http://127.0.0.1:8765/design/manager/optical-lab/ \
+          LAB_DESIGN_ROOT_URL=http://127.0.0.1:8766/manager/optical-lab/ \
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
 
       - name: Package a runnable browser preview with the verified source assets
@@ -86,14 +122,19 @@ jobs:
           mkdir -p "$PACKAGE_DIR/design/manager/optical-lab"
           mkdir -p "$PACKAGE_DIR/design/pages/recognition/processing/handoff"
           mkdir -p "$PACKAGE_DIR/design/pages/recognition/design"
+          mkdir -p "$PACKAGE_DIR/design/system/fish_media_display_v1/assets"
           mkdir -p "$PACKAGE_DIR/app/src/androidTest/assets"
           cp design/manager/optical-lab/index.html "$PACKAGE_DIR/design/manager/optical-lab/index.html"
           cp design/manager/optical-lab/README.md "$PACKAGE_DIR/design/manager/optical-lab/README.md"
+          cp design/manager/optical-lab/build-info.js "$PACKAGE_DIR/design/manager/optical-lab/build-info.js"
+          cp design/manager/optical-lab/asset-manifest.json "$PACKAGE_DIR/design/manager/optical-lab/asset-manifest.json"
           cp design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json "$PACKAGE_DIR/design/pages/recognition/processing/handoff/"
           cp design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json "$PACKAGE_DIR/design/pages/recognition/design/"
           cp design/pages/recognition/design/02_AI_Understanding_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
           cp design/pages/recognition/design/03_Fish_Highlight_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
           cp design/pages/recognition/design/04_Fish_Identifying_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
+          cp design/system/fish_media_display_v1/real_photo_cases.json "$PACKAGE_DIR/design/system/fish_media_display_v1/"
+          cp design/system/fish_media_display_v1/assets/real_catch_source.jpg "$PACKAGE_DIR/design/system/fish_media_display_v1/assets/"
           cp app/src/androidTest/assets/recognition_real_catch_fixture.jpg "$PACKAGE_DIR/app/src/androidTest/assets/"
           (cd "$PACKAGE_DIR" && zip -qr "$GITHUB_WORKSPACE/optical-lab-artifacts/Recognition-Optical-Lab-Browser-Package.zip" .)
 
@@ -105,3 +146,4 @@ jobs:
           path: optical-lab-artifacts/
           if-no-files-found: warn
           retention-days: 30
+
