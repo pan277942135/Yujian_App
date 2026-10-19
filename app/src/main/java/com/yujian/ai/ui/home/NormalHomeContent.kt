@@ -277,18 +277,22 @@ internal fun NormalHomeContent(
                         modifier = Modifier.offset(y = refY(NormalHomeCardY) + recentHeaderExtra),
                     )
 
-                    Box(
+                    Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .offset(y = refY(NormalHomeCtaY) + recentHeaderExtra)
                             .heightIn(min = captureCtaHeight)
                             .width(ref(420f))
                             .testTag("normal-home-capture-cta"),
-                        // The measured parent includes the frozen 17px glyph
-                        // offset. Top alignment keeps that offset inside the
-                        // CTA's layout/semantics bounds at every font scale.
-                        contentAlignment = Alignment.TopCenter,
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        // Keep the frozen glyph anchor in measured layout so
+                        // larger font metrics remain inside the CTA container.
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(ref(NormalHomeCtaGlyphOffsetY)),
+                        )
                         Text(
                             text = "记录下一条鱼",
                             style = YuJianTypography.body.copy(
@@ -302,7 +306,6 @@ internal fun NormalHomeContent(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .offset(y = ref(NormalHomeCtaGlyphOffsetY))
                                 .testTag("normal-home-capture-cta-text"),
                         )
                     }
