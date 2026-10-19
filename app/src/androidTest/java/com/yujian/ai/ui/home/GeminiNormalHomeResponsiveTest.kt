@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
@@ -25,9 +26,9 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.TouchInjectionScope
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeDown
-import androidx.compose.ui.test.swipeLeft
-import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -160,6 +161,21 @@ class GeminiNormalHomeResponsiveTest {
             }
             Log.i("GEMINI_HOME_HERO_BOUNDS", heroBounds.toString())
 
+            compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-stat-species", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.onNodeWithTag("gemini-home-section-all", useUnmergedTree = true)
+                .assertHasClickAction().performClick()
+            compose.runOnIdle {
+                assertEquals(index + 1, avatarClicks.get())
+                assertEquals(index + 1, cameraClicks.get())
+                assertEquals(index + 1, speciesClicks.get())
+                assertEquals(index + 1, albumClicks.get())
+            }
+
             // Persist screenshot and exact measured Bounds before any visual assertion so
             // a failed profile remains diagnosable in the runtime artifact.
             val image = compose.onNodeWithTag("gemini-home-screen", useUnmergedTree = true)
@@ -251,14 +267,6 @@ class GeminiNormalHomeResponsiveTest {
             assertTrue("Hero footer content remains inside the card ${window.name}; offenders=$heroOffenders; card=$finalActiveCard; footer=$finalFooterContent",
                 heroContentInside)
 
-            compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
-                .assertHasClickAction().performClick()
-            compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true)
-                .assertHasClickAction().performClick()
-            compose.onNodeWithTag("gemini-home-stat-species", useUnmergedTree = true)
-                .assertHasClickAction().performClick()
-            compose.onNodeWithTag("gemini-home-section-all", useUnmergedTree = true)
-                .assertHasClickAction().performClick()
             compose.onNodeWithTag("gemini-home-catch-card-gemini-fixture-01", useUnmergedTree = true)
                 .assertHasClickAction().performClick()
             compose.runOnIdle {
@@ -337,7 +345,7 @@ class GeminiNormalHomeResponsiveTest {
         }
 
         compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-            .performTouchInput { swipeLeft() }
+            .performTouchInput { swipeOnePagerPage(forward = true) }
         compose.waitForIdle()
         assertTrue(
             "horizontal carousel must expose the next card after a horizontal swipe",
@@ -447,7 +455,7 @@ class GeminiNormalHomeResponsiveTest {
                     val expectedNextId = orderedIds[index + 1]
                     Log.i("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_START count=$count from=$expectedId to=$expectedNextId state=$state")
                     compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                        .performTouchInput { swipeLeft() }
+                        .performTouchInput { swipeOnePagerPage(forward = true) }
                     compose.waitForIdle()
                     try {
                         compose.waitUntil(5_000) {
@@ -483,20 +491,20 @@ class GeminiNormalHomeResponsiveTest {
             }
             val lastId = orderedIds.last()
             compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                .performTouchInput { swipeLeft() }
+                .performTouchInput { swipeOnePagerPage(forward = true) }
             compose.waitForIdle()
             assertTrue("finite pager end may not clone-wrap to the first item", currentCarouselId().contains(lastId))
 
             if (count > 1) {
                 repeat(count - 1) {
                     compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                        .performTouchInput { swipeRight() }
+                        .performTouchInput { swipeOnePagerPage(forward = false) }
                     compose.waitForIdle()
                 }
                 val firstId = orderedIds.first()
                 assertTrue("previous-page mapping must return the immediately preceding real catch", currentCarouselId().contains(firstId))
                 compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                    .performTouchInput { swipeRight() }
+                    .performTouchInput { swipeOnePagerPage(forward = false) }
                 compose.waitForIdle()
                 assertTrue("finite pager start may not clone-wrap to the last item", currentCarouselId().contains(firstId))
             }
@@ -532,7 +540,7 @@ class GeminiNormalHomeResponsiveTest {
         compose.runOnUiThread { records.value = fixtureCatches(null, count = 3) }
         compose.waitForIdle()
         compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-            .performTouchInput { swipeLeft() }
+            .performTouchInput { swipeOnePagerPage(forward = true) }
         compose.waitForIdle()
         val selectedBeforeInsert = currentCarouselId().substringAfter("当前鱼获 ").substringBefore('，')
         val insertedRecords = fixtureCatches(null, count = 4).map { item ->
@@ -739,6 +747,16 @@ class GeminiNormalHomeResponsiveTest {
     private fun currentCarouselId(): String = compose.onNodeWithTag(
         "gemini-home-catch-pager", useUnmergedTree = true,
     ).fetchSemanticsNode().config[SemanticsProperties.StateDescription]
+
+    private fun TouchInjectionScope.swipeOnePagerPage(forward: Boolean) {
+        val startX = if (forward) size.width * 0.84f else size.width * 0.16f
+        val endX = if (forward) size.width * 0.16f else size.width * 0.84f
+        swipe(
+            start = Offset(startX, size.height * 0.5f),
+            end = Offset(endX, size.height * 0.5f),
+            durationMillis = 1_100L,
+        )
+    }
 
     private fun writeScreenshot(tag: String, output: File) {
         val image = compose.onNodeWithTag(tag, useUnmergedTree = true)
