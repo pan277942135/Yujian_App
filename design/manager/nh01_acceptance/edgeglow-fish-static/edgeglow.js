@@ -45,8 +45,11 @@
   const buffer = document.createElement("canvas");
   const bufferContext = buffer.getContext("2d", { alpha: false });
   const effectLayer = document.createElement("canvas");
+  const edgeLayer = document.createElement("canvas");
   let effectContext = effectLayer.getContext("2d");
+  let edgeContext = edgeLayer.getContext("2d", { alpha: true });
   let effectBounds = null;
+  let edgeFieldInset = 0;
   let fixture;
   let buildInfo = {};
   let pathLength = 0;
@@ -453,6 +456,24 @@
     drawEdgeFieldPathSet(ctx, secondaryEdgeFieldGeometry, true);
   }
 
+  function ensurePhotoEdgeLayer() {
+    const displayWidth = el.glowCanvas.getBoundingClientRect().width || photo.naturalWidth;
+    const photoPxPerDp = photo.naturalWidth / displayWidth;
+    // Keep the whole blurred stroke available outside the photo bounds, then
+    // crop the composited result back to the original photo pixel rectangle.
+    // This avoids losing half of each edge bloom where Frozen paths overshoot.
+    const inset = Math.ceil((22 * 3 + 44 / 2 + 24) * photoPxPerDp);
+    const width = photo.naturalWidth + inset * 2;
+    const height = photo.naturalHeight + inset * 2;
+    if (edgeLayer.width !== width || edgeLayer.height !== height) {
+      edgeLayer.width = width;
+      edgeLayer.height = height;
+      edgeContext = edgeLayer.getContext("2d", { alpha: true });
+    }
+    edgeFieldInset = inset;
+    return inset;
+  }
+
   function renderGlowBuffer() {
     const ctx = effectContext;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -469,12 +490,27 @@
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     paintBase(bufferContext);
-    drawReceivingLight(bufferContext);
-    drawPrimaryEdgeIslands(bufferContext);
-    drawSecondaryEdgeFragments(bufferContext);
-    drawCompanionHairlines(bufferContext, companionEdgeFieldGeometry);
-    drawCompanionHairlines(bufferContext, microEdgeFieldGeometry, true);
-    drawStaticEnergyNodes(bufferContext);
+    const inset = ensurePhotoEdgeLayer();
+    edgeContext.setTransform(1, 0, 0, 1, 0, 0);
+    edgeContext.filter = "none";
+    edgeContext.globalAlpha = 1;
+    edgeContext.globalCompositeOperation = "source-over";
+    edgeContext.clearRect(0, 0, edgeLayer.width, edgeLayer.height);
+    edgeContext.setTransform(1, 0, 0, 1, inset, inset);
+    drawReceivingLight(edgeContext);
+    drawPrimaryEdgeIslands(edgeContext);
+    drawSecondaryEdgeFragments(edgeContext);
+    drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry);
+    drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true);
+    drawStaticEnergyNodes(edgeContext);
+    edgeContext.setTransform(1, 0, 0, 1, 0, 0);
+    bufferContext.save();
+    bufferContext.setTransform(1, 0, 0, 1, 0, 0);
+    bufferContext.filter = "none";
+    bufferContext.globalAlpha = 1;
+    bufferContext.globalCompositeOperation = "source-over";
+    bufferContext.drawImage(edgeLayer, inset, inset, photo.naturalWidth, photo.naturalHeight, 0, 0, photo.naturalWidth, photo.naturalHeight);
+    bufferContext.restore();
     bufferContext.drawImage(effectLayer, effectBounds.left, effectBounds.top);
   }
 
@@ -581,6 +617,7 @@
       scheduleRender(param === "contourVisible" ? "contour" : (param === "compareMode" || param === "wipePosition" ? "compare" : "glow"));
     });
   }
+  window.addEventListener("resize", () => scheduleRender("all"), { passive: true });
 
   function downloadBlob(blob, filename) {
     const anchor = document.createElement("a");
@@ -602,7 +639,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility review candidate; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility review candidate; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "padded transparent offscreen layer; crop back to original photo pixels; preserves blur bleed at photo bounds", edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo
@@ -620,6 +657,7 @@
     get pathLength() { return pathLength; },
     get photoDimensions() { return [photo.naturalWidth, photo.naturalHeight]; },
     get effectBounds() { return { ...effectBounds }; },
+    get edgeFieldInset() { return edgeFieldInset; },
     get edgeFieldPaths() { return [...edgeFieldGeometry, ...secondaryEdgeFieldGeometry, ...companionEdgeFieldGeometry, ...microEdgeFieldGeometry].map(({ path, ...definition }) => ({ ...definition, length: definition.length })); },
     render: renderAll,
     getPixelData(canvasId = "glowCanvas") { return [...contexts[canvasId].getImageData(0, 0, el[canvasId].width, el[canvasId].height).data]; }

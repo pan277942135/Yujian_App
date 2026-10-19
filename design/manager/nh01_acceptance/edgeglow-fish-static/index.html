@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-r06-four-corner-visibility-v1" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-static-r07-padded-photo-edge-v1" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -129,7 +129,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>Frozen 对照：</strong>02 / 03 / 04 原型中的照片外围光场为四个断开的蓝金能量岛，不是完整边框；右上蓝岛最强，左上/左下金岛承托，右下蓝岛最弱。<br><strong>绘制层级：</strong>原图 → 沿冻结岛路径的蓝金 Receiving Light → Primary Outer / Mid / Core → Companion / B1 Micro → 静态能量节点 → 鱼体独立暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不会进入鱼体高亮。R03/R04 的 alpha 与模糊虽已调高，线上仍读不出完整四角光场；R05 外围色 #5AB2FC / #E0B644 取自 Frozen 02 光线像素，Android 原色 #BFEAF2 / #F6D99B 另行保留。R06 只增强相同四岛 Receiving Light 的 Web 评审强度（0.66 / 0.50），保持既有 Path 和 Quiet Gaps；它高于 Android 0.13 与 Frozen Rendering Contract 0.07 上限，必须作为待评估 Web 候选，不是已批准 Token 或 Android Runtime 结果，由 RP-A01 跟踪。Canvas 2D Blur / 混色与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>Frozen 对照：</strong>02 / 03 / 04 原型中的照片外围光场为四个断开的蓝金能量岛，不是完整边框；右上蓝岛最强，左上/左下金岛承托，右下蓝岛最弱。<br><strong>绘制层级：</strong>原图 → 沿冻结岛路径的蓝金 Receiving Light → Primary Outer / Mid / Core → Companion / B1 Micro → 静态能量节点 → 鱼体独立暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不会进入鱼体高亮。R03/R04 的模糊在照片边界处被 Canvas 裁切，线上四角仍不够清楚；R05 外围色 #5AB2FC / #E0B644 取自 Frozen 02 光线像素，Android 原色 #BFEAF2 / #F6D99B 另行保留。R06 提高四岛 Receiving Light 的 Web 评审强度（0.66 / 0.50）。R07 把同一四岛光效放到有边界留白的透明离屏层绘制，再裁回原照片像素，避免边缘模糊被提前截断；Path、Quiet Gaps、FIT 坐标和鱼体金色不变。R06/R07 alpha 高于 Android 0.13 与 Frozen Rendering Contract 0.07 上限，仅是 Web 视觉候选，RP-A01 仍待处理；不代表 Frozen Token 或 Android Runtime 通过。Canvas 2D Blur / 混色与 Android Canvas 不等价。</div>
     </section>
 
     <section class="edgeglow-footer-grid">

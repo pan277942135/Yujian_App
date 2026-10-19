@@ -58,6 +58,7 @@ def main() -> None:
     assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
     assert receiving_renderer.count("ctx.stroke();") == 2 and "22 * photoPxPerDp" in receiving_renderer and "4.5 * photoPxPerDp" in receiving_renderer and "44 * photoPxPerDp" in receiving_renderer and "12 * photoPxPerDp" in receiving_renderer, "R06 Receiving Light needs layered bloom and close glow along the same path"
     assert "receivingGradient(0.66)" in receiving_renderer and "receivingGradient(0.50)" in receiving_renderer and "R06 strengthens the Frozen blue/gold corner field" in receiving_renderer, "R06 visibility candidate must be explicit and distinct from Android runtime"
+    assert "function ensurePhotoEdgeLayer()" in renderer and "const inset = ensurePhotoEdgeLayer()" in renderer and "drawImage(edgeLayer, inset, inset, photo.naturalWidth, photo.naturalHeight, 0, 0, photo.naturalWidth, photo.naturalHeight)" in renderer, "edge blur must render with offscreen bleed then crop to the original photo pixels"
     companion_renderer = renderer.split("function drawCompanionHairlines", 1)[1].split("function drawStaticEnergyNodes", 1)[0]
     node_renderer = renderer.split("function drawStaticEnergyNodes", 1)[1].split("function drawPrimaryEdgeIslands", 1)[0]
     assert all('ctx.globalCompositeOperation = "source-over"' in fn and 'ctx.globalCompositeOperation = "screen"' not in fn for fn in (companion_renderer, node_renderer)), "all perimeter layers must preserve hue on bright pixels"
@@ -92,7 +93,7 @@ def main() -> None:
         '{ id: "B1M", parentId: "B1", family: "blue", widthDp: 0.42, phaseDelta: 0.085, visibleRatio: 0.12, weight: 0.18, start: [0.84, -0.01], control1: [0.94, 0.05], control2: [0.99, 0.13], end: [0.985, 0.24] }',
     )
     assert all(definition in renderer for definition in expected_companion_path_definitions), "companion and B1-only micro geometry must match RecognitionAmbientField.kt"
-    assert "drawCompanionHairlines(bufferContext, companionEdgeFieldGeometry)" in renderer and "drawCompanionHairlines(bufferContext, microEdgeFieldGeometry, true)" in renderer, "frozen companion/micro layers must be drawn independently"
+    assert "drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry)" in renderer and "drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true)" in renderer, "frozen companion/micro layers must be drawn independently"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -114,7 +115,7 @@ def main() -> None:
             "secondary_seed_authority": {"source": "Android runtime", "frozen": False, "tracking": "RP-A03"},
             "companion_path_ids": ["B1C", "G1C", "G3C", "B3C"],
             "micro_path_ids": ["B1M"],
-            "receiving_light_renderer": "path-following local illumination; no corner circles",
+            "receiving_light_renderer": "path-following four-island illumination; padded offscreen blur bleed; no corner circles",
             "receiving_light_web_passes": 2,
             "receiving_light_alpha_per_pass": [0.66, 0.50],
             "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.66) * (1 - 0.50), 4),
@@ -122,11 +123,13 @@ def main() -> None:
             "web_palette": {"blue": "#5ab2fc", "gold": "#e0b644", "authority": "sampled Frozen 02 photo-edge raster; review candidate"},
             "android_reference_palette": {"blue": "#bfeaf2", "blue_hot": "#d8f5fa", "gold": "#f6d99b", "gold_hot": "#ffe7ae"},
             "receiving_light_default_alpha_per_pass": [0.66, 0.50],
+            "edge_effect_compositor": "padded transparent offscreen layer; crop back to original photo pixels",
+            "edge_effect_padding_px": "responsive; recorded at runtime by the browser lab",
             "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",
         },
-        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "path-following Receiving Light with no circular corner blobs", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
+        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "path-following Receiving Light with padded blur bleed and no circular corner blobs", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

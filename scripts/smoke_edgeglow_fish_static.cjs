@@ -110,7 +110,7 @@ async function main() {
   assert.match(await entry.innerText(), /Recognition Processing.*EdgeGlowView Fish Static Prototype/);
   await entry.click();
   await page.waitForURL(url => url.pathname.includes("/edgeglow-fish-static/"), { timeout: 15000 });
-  await page.waitForFunction(() => window.__EDGEGLOW_LAB__?.pathLength > 1000, { timeout: 15000 });
+  await page.waitForFunction(() => window.__EDGEGLOW_LAB__?.pathLength > 1000 && window.__EDGEGLOW_LAB__?.edgeFieldInset > 0, { timeout: 15000 });
 
   const identity = await page.evaluate(async () => ({
     title: document.title,
@@ -119,6 +119,7 @@ async function main() {
     width: window.__EDGEGLOW_LAB__.photoDimensions[0],
     height: window.__EDGEGLOW_LAB__.photoDimensions[1],
     pathLength: window.__EDGEGLOW_LAB__.pathLength,
+    edgeFieldInset: window.__EDGEGLOW_LAB__.edgeFieldInset,
     contourBounds: (() => { const b = document.getElementById("fishContourPath").getBBox(); return [b.x, b.y, b.width, b.height]; })(),
     photoSha: document.getElementById("photoSha").textContent,
     buildLabel: document.getElementById("buildSha").textContent,
@@ -128,6 +129,7 @@ async function main() {
   assert.equal(identity.statusCode, "PASS", identity.status);
   assert.equal(identity.width, 1152);
   assert.equal(identity.height, 1536);
+  assert.ok(identity.edgeFieldInset >= 100, `Photo-edge blur bleed is rendered on an expanded offscreen layer: ${identity.edgeFieldInset}px inset.`);
   assert.equal(identity.photoSha, expectedPhotoSha);
   assert.equal((await page.locator("#fishGoldColor").getAttribute("value")), "#ffd887", "Fish Focus starts in warm gold, separate from the perimeter field palette.");
   assert.equal((await page.locator("#fishCoreColor").getAttribute("value")), "#ffe7ae", "Fish core uses the warm-gold highlight family.");
@@ -251,7 +253,9 @@ async function main() {
   assert.equal(exportConfig.parameters.cometPosition, 21);
   assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4"]);
   assert.deepEqual(exportConfig.edge_field.secondary_path_ids, ["B2", "G2", "B4"]);
-  assert.equal(exportConfig.edge_field.receiving_alpha_default, 0.13, "Corner light candidate follows the current Android runtime alpha and reports its RP-A01 discrepancy.");
+  assert.deepEqual(exportConfig.edge_field.receiving_alpha_per_pass, [0.66, 0.50], "The Web-only corner-light candidate is explicit and separately tracked under RP-A01.");
+  assert.match(exportConfig.edge_field.edge_effect_compositor, /padded transparent offscreen layer/);
+  assert.ok(exportConfig.edge_field.edge_effect_padding_px >= 100, "Export records the responsive perimeter bleed inset.");
   assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
 
   const viewportResults = [];
@@ -262,11 +266,13 @@ async function main() {
       innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
       cards: [...document.querySelectorAll(".edgeglow-view-card")].map(x => { const r = x.getBoundingClientRect(); return { x: r.x, width: r.width, y: r.y, height: r.height }; }),
-      canvas: (() => { const r = document.getElementById("glowCanvas").getBoundingClientRect(); return { width: r.width, height: r.height }; })()
+      canvas: (() => { const r = document.getElementById("glowCanvas").getBoundingClientRect(); return { width: r.width, height: r.height }; })(),
+      edgeFieldInset: window.__EDGEGLOW_LAB__.edgeFieldInset
     }));
     assert.ok(layout.scrollWidth <= viewport.width + 1, `No horizontal overflow at ${viewport.width}x${viewport.height}: ${layout.scrollWidth}`);
     assert.equal(layout.cards.length, 3);
     assert.ok(Math.abs(layout.canvas.width / layout.canvas.height - 0.75) < 0.005, "Photo FIT preserves the original 3:4 ratio.");
+    assert.ok(layout.edgeFieldInset >= 100, `Responsive resize retains padded perimeter blur at ${viewport.width}x${viewport.height}.`);
     viewportResults.push({ viewport, scrollWidth: layout.scrollWidth, cardWidths: layout.cards.map(card => card.width) });
     if (viewport.width === 390) await page.screenshot({ path: path.join(outputDir, "04_Responsive_390x844.png"), fullPage: true });
   }
@@ -286,6 +292,7 @@ async function main() {
     contour_source: "MANUAL_REFERENCE_CONTOUR",
     path_length_photo_px: identity.pathLength,
     contour_bounds_photo_px: identity.contourBounds,
+    edge_effect_padding_px: identity.edgeFieldInset,
     edge_field_paths: identity.edgeFieldPaths.map(({ id, family, widthDp, seed, visibleRatio, weight, length }) => ({ id, family, widthDp, seed, visibleRatio, weight, length })),
     perimeter_corner_delta: perimeterCorners,
     effect_bounds_photo_px: await page.evaluate(() => window.__EDGEGLOW_LAB__.effectBounds),
