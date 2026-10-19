@@ -262,7 +262,7 @@ function mountReviewLayout(){
   document.getElementById("advancedMetricsMount").append(document.getElementById("metrics"));
   document.getElementById("advancedRoiMount").append(document.querySelector(".roi-box"));
   document.getElementById("advancedRuntimeMount").append(document.getElementById("runtimeStatus"));
-  shell.insertBefore(status,toolbar);shell.insertBefore(toolbar,layout);shell.insertBefore(advanced,document.querySelector(".footer-note"));
+  shell.insertBefore(status,layout);shell.insertBefore(toolbar,layout);shell.insertBefore(advanced,document.querySelector(".footer-note"));
   status.querySelector("#retryAssets").addEventListener("click",()=>loadAssets().catch(handleAssetLoadFailure));
   document.getElementById("exportAssetManifest").addEventListener("click",downloadAssetManifest);
   document.getElementById("exportExperiment").addEventListener("click",exportExperiment);
