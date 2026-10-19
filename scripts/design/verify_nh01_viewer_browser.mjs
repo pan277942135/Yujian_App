@@ -122,7 +122,32 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${baseUrl}/design/manager/nh01_acceptance/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.NH01ViewerModelReady === true, { timeout: 10000 });
-  const mobile = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
+  const mobile = await page.evaluate(() => {
+    const overflowCandidates = [...document.querySelectorAll("body *")]
+      .map(node => {
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        return {
+          tag: node.tagName.toLowerCase(),
+          id: node.id || null,
+          class_name: typeof node.className === "string" ? node.className : null,
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width),
+          client_width: node.clientWidth,
+          scroll_width: node.scrollWidth,
+          overflow_x: style.overflowX
+        };
+      })
+      .filter(node => node.right > innerWidth + 1 || node.left < -1)
+      .sort((a, b) => b.right - a.right)
+      .slice(0, 12);
+    return {
+      viewport: innerWidth,
+      document: document.documentElement.scrollWidth,
+      overflow_candidates: overflowCandidates
+    };
+  });
   if (mobile.document > mobile.viewport + 1) throw new Error(`Viewer has document-level horizontal overflow on mobile: ${JSON.stringify(mobile)}`);
   if (errors.length) throw new Error(`Browser errors: ${errors.join(" | ")}`);
 
@@ -132,6 +157,7 @@ try {
     source_sha: measuredSourceSha,
     scope: "Static Viewer route, asset loading, six navigation modes, Inspector, NOT_RUN controls and mobile shell",
     runtime_status: runtimeModel.status || "NOT_RUN",
+    mobile_measurement: mobile,
     browser_preview_diff_status: browserDiffModel?.status || "NOT_RUN",
     visual_parity_status: await page.evaluate(() => window.NH01ViewerData.evidence.gate_status.G5_VISUAL_PARITY_VALID || "NOT_RUN"),
     errors,
