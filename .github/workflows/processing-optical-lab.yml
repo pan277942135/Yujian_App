@@ -99,6 +99,36 @@ jobs:
           LAB_DESIGN_ROOT_URL=http://127.0.0.1:8766/manager/optical-lab/ \
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
 
+      - name: Record passing browser runtime and responsive gates
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises';
+          const reportPath = 'optical-lab-artifacts/asset-manifest.json';
+          const report = JSON.parse(await readFile(reportPath, 'utf8'));
+          const smoke = JSON.parse(await readFile('optical-lab-artifacts/browser-smoke.json', 'utf8'));
+          if (smoke.result !== 'PASS' || !Array.isArray(smoke.responsive) || smoke.browserErrors.length !== 0) {
+            throw new Error('Cannot record browser pass without a complete Playwright smoke result.');
+          }
+          report.gates.browser_route_and_runtime_assets = 'PASS';
+          report.gates.responsive_viewport_fixtures = 'PASS';
+          report.browser_smoke = {
+            source_revision: smoke.source_revision,
+            states: smoke.states,
+            responsive_viewports: smoke.responsive,
+            renderer_pixel_changes: smoke.renderers,
+            frozen_diff: smoke.diff,
+            frozen_photo_identity: smoke.frozen_photo_identity,
+            fish_focus: smoke.fishFocus,
+            stage_b: smoke.stageB,
+            browser_errors: smoke.browserErrors,
+          };
+          await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');
+          await writeFile('design/manager/optical-lab/asset-manifest.json', JSON.stringify(report, null, 2) + '\n');
+          NODE
+
       - name: Package a runnable browser preview with the verified source assets
         if: success()
         shell: bash
