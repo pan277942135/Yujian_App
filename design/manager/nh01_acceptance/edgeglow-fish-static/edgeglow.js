@@ -24,6 +24,7 @@
   let buildInfo = {};
   let pathLength = 0;
   let params = { ...DEFAULTS };
+  let renderQueued = false;
 
   const hexRgb = hex => {
     const n = Number.parseInt(hex.slice(1), 16);
@@ -273,6 +274,15 @@
     document.documentElement.dataset.renderVersion = String(Number(document.documentElement.dataset.renderVersion || 0) + 1);
   }
 
+  function scheduleRender() {
+    if (renderQueued) return;
+    renderQueued = true;
+    requestAnimationFrame(() => {
+      renderQueued = false;
+      renderAll();
+    });
+  }
+
   const controlToParam = {
     outerEnabled: "outerEnabled", outerWidth: "outerWidth", outerIntensity: "outerIntensity",
     coreEnabled: "coreEnabled", coreWidth: "coreWidth", coreIntensity: "coreIntensity",
@@ -285,12 +295,12 @@
       const control = el[controlId];
       params[param] = control.type === "checkbox" ? control.checked : (control.type === "range" ? Number(control.value) : control.value);
       if (param === "cometFalloff") params[param] = Number(params[param]);
-      renderAll();
+      scheduleRender();
     });
     el[controlId].addEventListener("change", () => {
       const control = el[controlId];
       params[param] = control.type === "checkbox" ? control.checked : (control.type === "range" ? Number(control.value) : control.value);
-      renderAll();
+      scheduleRender();
     });
   }
 

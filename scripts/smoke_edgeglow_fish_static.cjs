@@ -25,23 +25,31 @@ async function canvasStats(page, id = "glowCanvas") {
     let hash = 2166136261;
     let luminance = 0;
     let nonBackgroundSamples = 0;
-    for (let i = 0; i < data.length; i += 4) {
+    let samples = 0;
+    for (let y = 0; y < canvas.height; y += 4) for (let x = 0; x < canvas.width; x += 4) {
+      const i = (y * canvas.width + x) * 4;
       hash ^= data[i]; hash = Math.imul(hash, 16777619);
       hash ^= data[i + 1]; hash = Math.imul(hash, 16777619);
       hash ^= data[i + 2]; hash = Math.imul(hash, 16777619);
       luminance += data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
       if (data[i] > 245 && data[i + 1] > 245 && data[i + 2] > 245) nonBackgroundSamples++;
+      samples++;
     }
-    return { width: canvas.width, height: canvas.height, hash: (hash >>> 0).toString(16), meanLuminance: luminance / (data.length / 4), nearWhitePixels: nonBackgroundSamples };
+    return { width: canvas.width, height: canvas.height, hash: (hash >>> 0).toString(16), meanLuminance: luminance / samples, nearWhitePixels: nonBackgroundSamples, sampleStep: 4, samples };
   });
 }
 
+async function afterRender(page, action) {
+  const previous = await page.evaluate(() => Number(document.documentElement.dataset.renderVersion || 0));
+  await action();
+  await page.waitForFunction(version => Number(document.documentElement.dataset.renderVersion || 0) > version, previous, { timeout: 10000 });
+}
+
 async function setControl(page, selector, value) {
-  await page.locator(selector).evaluate((node, next) => {
-    node.value = String(next);
-    node.dispatchEvent(new Event("input", { bubbles: true }));
-    node.dispatchEvent(new Event("change", { bubbles: true }));
-  }, value);
+  await afterRender(page, () => page.locator(selector).evaluate((node, next) => {
+      node.value = String(next);
+      node.dispatchEvent(new Event("input", { bubbles: true }));
+    }, value));
 }
 
 async function main() {
@@ -89,18 +97,18 @@ async function main() {
 
   const defaultGlow = await canvasStats(page);
   const defaultCore = await canvasStats(page, "contourCanvas");
-  await page.locator("#outerEnabled").uncheck();
+  await afterRender(page, () => page.locator("#outerEnabled").uncheck());
   const noOuter = await canvasStats(page);
   assert.notEqual(noOuter.hash, defaultGlow.hash, "Outer Bloom toggle changes rendered pixels.");
-  await page.locator("#outerEnabled").check();
-  await page.locator("#coreEnabled").uncheck();
+  await afterRender(page, () => page.locator("#outerEnabled").check());
+  await afterRender(page, () => page.locator("#coreEnabled").uncheck());
   const noCore = await canvasStats(page);
   assert.notEqual(noCore.hash, defaultGlow.hash, "Core Highlight toggle changes rendered pixels.");
-  await page.locator("#coreEnabled").check();
-  await page.locator("#cometEnabled").uncheck();
+  await afterRender(page, () => page.locator("#coreEnabled").check());
+  await afterRender(page, () => page.locator("#cometEnabled").uncheck());
   const noComet = await canvasStats(page);
   assert.notEqual(noComet.hash, defaultGlow.hash, "Static Comet toggle changes rendered pixels.");
-  await page.locator("#cometEnabled").check();
+  await afterRender(page, () => page.locator("#cometEnabled").check());
 
   await setControl(page, "#outerWidth", 82);
   const wideBloom = await canvasStats(page);
@@ -115,17 +123,17 @@ async function main() {
   assert.notEqual(movedComet.hash, defaultGlow.hash, "Static Comet path position changes rendered pixels.");
   await setControl(page, "#cometPosition", 21);
 
-  await page.locator("#contourVisible").uncheck();
+  await afterRender(page, () => page.locator("#contourVisible").uncheck());
   const contourHidden = await canvasStats(page, "contourCanvas");
   assert.notEqual(contourHidden.hash, defaultCore.hash, "Contour visibility control changes only contour view output.");
-  await page.locator("#contourVisible").check();
+  await afterRender(page, () => page.locator("#contourVisible").check());
   assert.equal((await canvasStats(page, "contourCanvas")).hash, defaultCore.hash);
 
-  await page.locator("#compareMode").selectOption("overlay");
+  await afterRender(page, () => page.locator("#compareMode").selectOption("overlay"));
   const overlay = await canvasStats(page);
   assert.notEqual(overlay.hash, defaultGlow.hash, "50% overlay uses a separate blended comparison output.");
   assert.match(await page.locator("#comparisonCaption").innerText(), /50% Overlay/);
-  await page.locator("#compareMode").selectOption("wipe");
+  await afterRender(page, () => page.locator("#compareMode").selectOption("wipe"));
   await setControl(page, "#wipePosition", 32);
   const wipeA = await canvasStats(page);
   await setControl(page, "#wipePosition", 68);
@@ -133,7 +141,7 @@ async function main() {
   assert.notEqual(wipeA.hash, wipeB.hash, "Wipe handle changes the image comparison boundary.");
   assert.equal(await page.locator("#wipePosition").isVisible(), true);
 
-  await page.locator("#resetButton").click();
+  await afterRender(page, () => page.locator("#resetButton").click());
   await page.waitForFunction(() => document.getElementById("compareMode").value === "side" && document.getElementById("outerWidth").value === "52");
   const resetGlow = await canvasStats(page);
   assert.equal(resetGlow.hash, defaultGlow.hash, "Reset restores the deterministic default render.");
