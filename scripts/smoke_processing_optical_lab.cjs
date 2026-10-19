@@ -217,7 +217,7 @@ let browser;
   const repoErrors = repo.errors;
   await page.close();
   const design = await openReady(DESIGN_URL, "design-root / Pages preview");
-  const designAlias = await design.page.evaluate(() => Array.from(document.querySelectorAll("#assetRows tr")).find(row => row.innerText.includes("processing-test-photo"))?.innerText);
+  const designAlias = await design.page.evaluate(() => Array.from(document.querySelectorAll("#assetRows tr")).find(row => row.textContent.includes("processing-test-photo"))?.textContent);
   assert.match(designAlias, /real_catch_source\.jpg/);
   assert.match(designAlias, /VERIFIED/);
   await design.page.screenshot({ path: path.join(out, "design-root-pages-entry.png"), fullPage: true });
