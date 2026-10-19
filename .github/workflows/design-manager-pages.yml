@@ -30,7 +30,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "design-manager-pages"
+  group: "design-manager-pages-${{ github.ref }}"
   cancel-in-progress: false
 
 env:
@@ -198,6 +198,7 @@ jobs:
           retention-days: 30
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}

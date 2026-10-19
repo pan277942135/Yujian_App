@@ -14,7 +14,7 @@ on:
       - ".github/workflows/design-manager-pages.yml"
 
 concurrency:
-  group: design-manager-pages
+  group: nh01-cloud-runtime-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
