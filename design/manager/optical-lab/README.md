@@ -12,6 +12,8 @@ Open:
 
     http://localhost:8765/design/manager/optical-lab/
 
+The PR Actions artifact also includes `Recognition-Optical-Lab-Browser-Package.zip` with this page, the exact three Frozen references, the Manifest, the Processing config and the verified test photo. Unzip it, run the same HTTP server from the extracted package root, then open the path above.
+
 Use HTTP localhost rather than file:// so the page can fetch the existing JSON and images and use browser SHA-256 verification.
 
 ## Stage A controls
@@ -41,4 +43,4 @@ Run:
 
     node scripts/verify_processing_optical_lab.mjs
 
-The PR workflow also launches Chromium, verifies the route, exact three-state Manifest/P5 bindings, source hashes, controls and renderer behavior, exports all three state previews, the three-renderer comparison, ROI, and exploratory pixel heatmap to a 30-day Actions artifact. Static visual review is still required before Stage B motion is unlocked. These browser results do not prove Android runtime, native Figma structure, source-photo identity, or a Frozen visual PASS.
+The PR workflow also launches Chromium, verifies the route, exact three-state Manifest/P5 bindings, source hashes, controls and renderer behavior, exports all three state previews, the three-renderer comparison, ROI, and exploratory pixel heatmap, and packages a runnable local-browser bundle in a 30-day Actions artifact. Static visual review is still required before Stage B motion is unlocked. These browser results do not prove Android runtime, native Figma structure, source-photo identity, or a Frozen visual PASS.

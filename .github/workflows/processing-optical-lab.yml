@@ -77,6 +77,26 @@ jobs:
           curl --fail --silent http://127.0.0.1:8765/design/manager/optical-lab/ >/dev/null
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
 
+      - name: Package a runnable browser preview with the verified source assets
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE_DIR="$RUNNER_TEMP/recognition-optical-lab-preview"
+          mkdir -p "$PACKAGE_DIR/design/manager/optical-lab"
+          mkdir -p "$PACKAGE_DIR/design/pages/recognition/processing/handoff"
+          mkdir -p "$PACKAGE_DIR/design/pages/recognition/design"
+          mkdir -p "$PACKAGE_DIR/app/src/androidTest/assets"
+          cp design/manager/optical-lab/index.html "$PACKAGE_DIR/design/manager/optical-lab/index.html"
+          cp design/manager/optical-lab/README.md "$PACKAGE_DIR/design/manager/optical-lab/README.md"
+          cp design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json "$PACKAGE_DIR/design/pages/recognition/processing/handoff/"
+          cp design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json "$PACKAGE_DIR/design/pages/recognition/design/"
+          cp design/pages/recognition/design/02_AI_Understanding_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
+          cp design/pages/recognition/design/03_Fish_Highlight_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
+          cp design/pages/recognition/design/04_Fish_Identifying_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
+          cp app/src/androidTest/assets/recognition_real_catch_fixture.jpg "$PACKAGE_DIR/app/src/androidTest/assets/"
+          (cd "$PACKAGE_DIR" && zip -qr "$GITHUB_WORKSPACE/optical-lab-artifacts/Recognition-Optical-Lab-Browser-Package.zip" .)
+
       - name: Upload browser screenshots and comparison report
         if: always()
         uses: actions/upload-artifact@v4
