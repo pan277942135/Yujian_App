@@ -280,13 +280,19 @@
         const points = edgeFieldSegment(ctx, geometry, from, to, Math.max(2, photoPxPerDp));
         const first = points[0], last = points[points.length - 1];
         const gradient = ctx.createLinearGradient(first[0], first[1], last[0], last[1]);
-        gradient.addColorStop(0, rgba(color, 0.035 * common));
-        gradient.addColorStop(0.50, rgba(color, 0.085 * common));
+        gradient.addColorStop(0, rgba(color, 0.055 * common));
+        gradient.addColorStop(0.50, rgba(color, 0.11 * common));
         gradient.addColorStop(0.90, rgba(hotColor, 0.13 * common));
-        gradient.addColorStop(1, rgba(hotColor, 0.09 * common));
-        ctx.filter = `blur(${16 * photoPxPerDp}px)`;
+        gradient.addColorStop(1, rgba(hotColor, 0.10 * common));
+        // Wide atmospheric pass: diffuses along the photo-facing side of each island.
+        ctx.filter = `blur(${9 * photoPxPerDp}px)`;
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 16 * photoPxPerDp;
+        ctx.lineWidth = 18 * photoPxPerDp;
+        ctx.stroke();
+        // Close pass uses the same path and per-pass Android runtime alpha. The
+        // two screen layers accumulate into a more legible Web optical study.
+        ctx.filter = `blur(${2.5 * photoPxPerDp}px)`;
+        ctx.lineWidth = 7 * photoPxPerDp;
         ctx.stroke();
       }
     }

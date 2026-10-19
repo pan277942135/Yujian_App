@@ -56,6 +56,7 @@ def main() -> None:
     perimeter_path_renderer = renderer.split("function drawEdgeFieldPathSet", 1)[1].split("function drawCompanionHairlines", 1)[0]
     assert 'ctx.globalCompositeOperation = "screen"' in receiving_renderer and 'ctx.globalCompositeOperation = "screen"' in perimeter_path_renderer, "photo-edge light must use a luminous blend in the Web visual study"
     assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
+    assert receiving_renderer.count("ctx.stroke();") == 2 and "9 * photoPxPerDp" in receiving_renderer and "2.5 * photoPxPerDp" in receiving_renderer, "Receiving Light needs a wide bloom and a close glow along the same path"
     assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
     fish_renderer = renderer.split("function createContourGradient", 1)[1].split("function drawReceivingLight", 1)[0]
     assert "params.edgeFieldBlueColor" not in fish_renderer and "params.blueColor" not in fish_renderer, "blue/cyan perimeter color must never enter Fish Focus"
@@ -109,6 +110,8 @@ def main() -> None:
             "companion_path_ids": ["B1C", "G1C", "G3C", "B3C"],
             "micro_path_ids": ["B1M"],
             "receiving_light_renderer": "path-following local illumination; no corner circles",
+            "receiving_light_web_passes": 2,
+            "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.13) ** 2, 4),
             "perimeter_web_blend": "screen; visual study only, not Android-equivalent",
             "receiving_light_default_alpha": 0.13,
             "frozen_contract_receiving_light_cap": 0.07,
