@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-r03-corner-bloom-v1" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-static-r04-wide-corner-bloom-v1" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -129,7 +129,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>Frozen 对照：</strong>02 / 03 / 04 原型中的照片外围光场为四个断开的蓝金能量岛，不是完整边框；右上蓝岛最强，左上/左下金岛承托，右下蓝岛最弱。<br><strong>绘制层级：</strong>原图 → 沿冻结岛路径的宽柔光与近路径 Receiving Light → Primary Outer / Mid / Core → Companion / B1 Micro → 静态能量节点 → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不会进入鱼体高亮。R03 Web 视觉候选将 Receiving Light 加宽并增强至每次 0.36 / 0.30；外围使用 source-over 保留晴亮背景上的蓝金色相。两次 Alpha 均高于 Android 当前 0.13 和 Frozen Rendering Contract 的 0.07 上限。此值仅用于高保真视觉评估，由 RP-A01 跟踪，不代表 Frozen Token 或 Android Runtime 通过。B2/G2/B4 种子标记 RP-A03。Canvas 2D Blur / 混色与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>Frozen 对照：</strong>02 / 03 / 04 原型中的照片外围光场为四个断开的蓝金能量岛，不是完整边框；右上蓝岛最强，左上/左下金岛承托，右下蓝岛最弱。<br><strong>绘制层级：</strong>原图 → 沿冻结岛路径的宽柔光与近路径 Receiving Light → Primary Outer / Mid / Core → Companion / B1 Micro → 静态能量节点 → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不会进入鱼体高亮。R03 Web 视觉候选将 Receiving Light 增强至每次 0.36 / 0.30；R04 将宽柔光扩至 44 dp / 22 dp Blur、近路径光扩至 12 dp / 4.5 dp Blur。外围使用 source-over 保留晴亮背景上的蓝金色相；两次 Alpha 均高于 Android 当前 0.13 和 Frozen Rendering Contract 的 0.07 上限。此值仅用于高保真视觉评估，由 RP-A01 跟踪，不代表 Frozen Token 或 Android Runtime 通过。B2/G2/B4 种子标记 RP-A03。Canvas 2D Blur / 混色与 Android Canvas 不等价。</div>
     </section>
 
     <section class="edgeglow-footer-grid">

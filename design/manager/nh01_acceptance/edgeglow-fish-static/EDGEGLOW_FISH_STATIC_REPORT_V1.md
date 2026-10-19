@@ -10,7 +10,7 @@
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
 | `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The revised renderer now follows the Frozen four-island role map, layers path-following Receiving Light with primary bands and companion hairlines, and keeps Fish Focus warm gold. The live screenshot must still confirm visibility and balance; source checks are not a visual-quality pass. |
-| `CLOUD_ACCEPTANCE_CENTER` | `PENDING_R03_CORNER_BLOOM_DEPLOYMENT` | R02 build `d6c2b0190bc3` is live and the registered photo verifies. Source-over made the upper-right blue visible, but a fresh Chrome screenshot still does not show a clear four-corner blue/gold field. R03 widens and strengthens the path-local bloom; cloud screenshot review is pending. |
+| `CLOUD_ACCEPTANCE_CENTER` | `PENDING_R04_WIDE_CORNER_BLOOM_DEPLOYMENT` | R03 build `40cf34cd4fc4` is live and the registered photo verifies. A fresh screenshot shows the upper-right blue but the full four-corner field remains too subtle at preview scale. R04 expands the same path-local bloom; cloud screenshot review is pending. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
 The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, production Mask, or `FishSubjectResult`. Overall M1/Figma/Android gates are unaffected and are not marked PASS.
@@ -156,3 +156,10 @@ The full Playwright smoke script remains in `scripts/smoke_edgeglow_fish_static.
 - With all field controls on, R02 `source-over` preserved a blue cast at the upper-right island and kept Fish Focus warm gold. The four perimeter corners still did not read as the requested blue/gold field: the gold island and the remaining corner light were too faint at the page's actual preview scale. This is a visual review finding, not a pass.
 - R03 preserves all frozen path geometry and controls but increases the two path-local Receiving Light peaks to `0.36 / 0.30`, widens the bloom from `18 / 7 dp` to `26 / 10 dp`, and increases blur from `9 / 2.5 dp` to `13 / 3.5 dp`. Peak source-over alpha is `0.552` before island weight; this remains an unapproved Web candidate, well above Android `0.13` and the Frozen cap `0.07` tracked by `RP-A01`.
 - The live cloud status is pending R03 deployment. `EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED`; `ANDROID_RUNTIME=NOT_RUN`; Frozen assets and PR #165 remain unchanged.
+
+### R03 cloud review and R04 wider perimeter bloom — 2026-10-19
+
+- Push workflow [39252028788](https://github.com/pan277942135/Yujian_App/actions/runs/39252028788) passed the guarded composition, source audit, deployment, and live HTTPS/photo identity check. Chrome loaded build `40cf34cd4fc4`, center `08ed847e711f`, the registered photo SHA, and all perimeter toggles enabled.
+- The R03 screenshot confirms some blue/cyan at the upper-right corner while the fish remains gold; the four-corner perimeter field is still too subtle, and the gold island is not distinct enough. Toggling the perimeter layer confirms the image changes, but not enough to meet the stated visual target. This candidate is not accepted as visually fixed.
+- R04 retains the exact path geometry, island weights, color tokens, and R03 alpha (`0.36 / 0.30`) while increasing only the path-local bloom widths to `44 / 12 dp` and blur radii to `22 / 4.5 dp`. These remain Web optical candidates under `RP-A01`; the higher intensity is not Frozen-approved and says nothing about Android Runtime.
+- R04 awaits deployment and a fresh Chrome screenshot. `EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED`; `ANDROID_RUNTIME=NOT_RUN`; Frozen assets and PR #165 remain unchanged.
