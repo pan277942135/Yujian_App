@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
@@ -29,8 +30,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
-import androidx.compose.ui.test.swipeDown
-import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -172,9 +172,6 @@ class NormalHomeDataParityTest {
             }
             logTextLayoutMetric("normal-home-recent-title", "normal-home-recent-header", referenceFontPx = 48f)
             logTextLayoutMetric("normal-home-recent-all-label", "normal-home-recent-header", referenceFontPx = 40f)
-            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
-            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
-            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta-text-region", referenceFontPx = 40f)
             logHierarchyEvidence()
 
@@ -185,7 +182,12 @@ class NormalHomeDataParityTest {
             val isShortScreen = shortScreenScroll.fetchSemanticsNodes().isNotEmpty()
             if (isShortScreen) {
                 compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
-                    swipeUp(startY = height * 0.92f, endY = height * 0.08f, durationMillis = 500)
+                    val gutterX = width * 0.04f
+                    swipe(
+                        start = Offset(gutterX, height * 0.92f),
+                        end = Offset(gutterX, height * 0.08f),
+                        durationMillis = 500,
+                    )
                 }
                 compose.waitForIdle()
             }
@@ -224,6 +226,9 @@ class NormalHomeDataParityTest {
             assertTrue(metaText.contains("江苏省苏州市吴中区太湖国家湿地公园东岸东岸东岸国家级风景区游客中心北侧临水平台"))
             assertTrue("Long location stays on one constrained line", longMeta.boundsInRoot.height < firstCardBounds.height / 8f)
             assertTrue("Metadata stays inside the card", longMeta.boundsInRoot.right <= firstCardBounds.right + 1f)
+            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
+            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
+            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             val layoutResults = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
             val layoutAction = longMeta.config[SemanticsActions.GetTextLayoutResult].action
             assertTrue("Metadata exposes its rendered text layout", layoutAction != null)
@@ -262,7 +267,12 @@ class NormalHomeDataParityTest {
 
             if (isShortScreen) {
                 compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
-                    swipeDown(startY = height * 0.08f, endY = height * 0.92f, durationMillis = 500)
+                    val gutterX = width * 0.04f
+                    swipe(
+                        start = Offset(gutterX, height * 0.08f),
+                        end = Offset(gutterX, height * 0.92f),
+                        durationMillis = 500,
+                    )
                 }
                 compose.waitForIdle()
             }
@@ -399,7 +409,12 @@ class NormalHomeDataParityTest {
             val shortScreenScroll = compose.onAllNodesWithTag("normal-home-short-screen-scroll")
             if (shortScreenScroll.fetchSemanticsNodes().isNotEmpty()) {
                 compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
-                    swipeUp(startY = height * 0.92f, endY = height * 0.08f, durationMillis = 500)
+                    val gutterX = width * 0.04f
+                    swipe(
+                        start = Offset(gutterX, height * 0.92f),
+                        end = Offset(gutterX, height * 0.08f),
+                        durationMillis = 500,
+                    )
                 }
                 compose.waitForIdle()
             }
@@ -916,23 +931,28 @@ class NormalHomeDataParityTest {
                 .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
             val hero = compose.onNodeWithTag("normal-home-catch-pager")
+            val maximumScrollPx = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].maxValue()
+            assertTrue("Large-font short screen exposes a real vertical scroll range: max=$maximumScrollPx", maximumScrollPx > 0f)
             scroll.performTouchInput {
-                swipeDown(
-                    startY = height * 0.08f,
-                    endY = height * 0.92f,
+                val gutterX = width * 0.04f
+                swipe(
+                    start = Offset(gutterX, height * 0.08f),
+                    end = Offset(gutterX, height * 0.92f),
                     durationMillis = 500,
                 )
             }
             compose.waitForIdle()
-            val heroBeforeScroll = hero.fetchSemanticsNode()
+            val scrollOffsetBefore = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
             scroll.performTouchInput {
-                swipeUp(
-                    startY = height * 0.92f,
-                    endY = height * 0.08f,
+                val gutterX = width * 0.04f
+                swipe(
+                    start = Offset(gutterX, height * 0.92f),
+                    end = Offset(gutterX, height * 0.08f),
                     durationMillis = 500,
                 )
             }
             compose.waitForIdle()
+            val scrollOffsetAfter = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
 
             val cameraAfterScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
@@ -960,7 +980,10 @@ class NormalHomeDataParityTest {
                 heroAfterScrollNode.layoutInfo.height.toFloat(),
                 2f,
             )
-            assertTrue("The Hero remains visibly scrollable: before=${heroBeforeScroll.boundsInRoot} after=$heroAfterScroll", heroAfterScroll.top < heroBeforeScroll.boundsInRoot.top)
+            assertTrue(
+                "An upward touch gesture advances the real scroll state: before=$scrollOffsetBefore after=$scrollOffsetAfter max=$maximumScrollPx",
+                scrollOffsetAfter > scrollOffsetBefore,
+            )
             assertTrue("The Hero keeps a nonzero visible window bound after scrolling", heroAfterScroll.height > 0f)
             assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
             assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= cameraAfterScroll.top + 1f)
