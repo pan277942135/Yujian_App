@@ -262,7 +262,8 @@ async function main() {
   const noEdgeField = await wholeCanvasHash(page);
   assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
   const perimeterCorners = await perimeterDeltaByCorner(page);
-  assert.ok(perimeterCorners.every(corner => corner.changedRatio > 0.55 && corner.colorRoleMargin > 12 && corner.colorRoleMatches), `Frozen blue/gold perimeter light must produce a substantial color signal in every photo corner: ${JSON.stringify(perimeterCorners)}`);
+  await fs.writeFile(path.join(evidenceDir, "Perimeter_Corner_Signals.json"), `${JSON.stringify(perimeterCorners, null, 2)}\n`);
+  assert.ok(perimeterCorners.every(corner => corner.changedRatio > 0.55 && corner.colorRoleMargin > 12 && corner.colorRoleMatches), `Enhanced blue/gold perimeter light must produce a substantial color signal in every photo corner: ${JSON.stringify(perimeterCorners)}`);
   await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
   await afterRender(page, () => page.locator("#resetButton").click());
   assert.equal(await wholeCanvasHash(page), defaultWholeGlow, "Reset restores the default edge-field render.");

@@ -136,11 +136,12 @@ jobs:
               --output-dir "$RUNNER_TEMP/edgeglow-evidence/browser-smoke"
 
       - name: Upload static visual evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: EdgeGlow-Fish-Static-Source-Audit-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/edgeglow-evidence/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Upload composed GitHub Pages site
