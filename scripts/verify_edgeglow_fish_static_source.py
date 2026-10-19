@@ -34,6 +34,7 @@ def main() -> None:
     route = args.site_root / ROUTE
     fixture = json.loads((route / "fixture.json").read_text(encoding="utf-8"))
     page = (route / "index.html").read_text(encoding="utf-8")
+    assert "edgeglow.js?v=edgeglow-static-r09-four-corner-receiving-82" in page, "the deployed prototype must load the current R09 renderer and bypass stale R08 cache entries"
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
     pr_root = Path(__file__).resolve().parents[1]
