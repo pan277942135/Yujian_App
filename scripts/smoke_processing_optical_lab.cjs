@@ -53,7 +53,23 @@ const { chromium } = require(path.join(process.env.PLAYWRIGHT_MODULE_DIR || "", 
   for (let i = 0; i < basePixels.length; i += 4) {
     if (basePixels[i] !== hardwarePixels[i] || basePixels[i + 1] !== hardwarePixels[i + 1] || basePixels[i + 2] !== hardwarePixels[i + 2]) changed++;
   }
-  assert.ok(changed > 0, "renderer candidates should produce distinct static pixels");
+  assert.ok(changed > 0, "hardware-gradient should differ from current Android approximation");
+  await page.selectOption("#rendererSelect", "software-cache");
+  const softwarePixels = await page.locator("#previewCanvas").evaluate(canvas => Array.from(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data));
+  let softwareChanged = 0;
+  for (let i = 0; i < basePixels.length; i += 4) {
+    if (basePixels[i] !== softwarePixels[i] || basePixels[i + 1] !== softwarePixels[i + 1] || basePixels[i + 2] !== softwarePixels[i + 2]) softwareChanged++;
+  }
+  assert.ok(softwareChanged > 0, "software-cache should differ from current Android approximation");
+  await page.selectOption("#rendererSelect", "android-current");
+  await page.locator("#paramAlpha").evaluate(input => { input.value = "0.5"; input.dispatchEvent(new Event("input", { bubbles: true })); });
+  const alphaPixels = await page.locator("#previewCanvas").evaluate(canvas => Array.from(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data));
+  let alphaChanged = 0;
+  for (let i = 0; i < basePixels.length; i += 4) {
+    if (basePixels[i] !== alphaPixels[i] || basePixels[i + 1] !== alphaPixels[i + 1] || basePixels[i + 2] !== alphaPixels[i + 2]) alphaChanged++;
+  }
+  assert.ok(alphaChanged > 0, "parameter changes should redraw the preview immediately");
+  await page.locator("#resetButton").click();
 
   await page.locator("#compareModes [data-mode='overlay']").click();
   await page.locator("#compareModes [data-mode='wipe']").click();
@@ -96,7 +112,7 @@ const { chromium } = require(path.join(process.env.PLAYWRIGHT_MODULE_DIR || "", 
     assert.deepEqual(actual, dims);
     responsive.push(value);
   }
-  const summary = { result: "PASS", states: referenceStates, rendererChangedPixels: changed, diff: metrics, responsive, fishFocus: "NO_BBOX_NO_FOCUS", stageB: "LOCKED_PENDING_STATIC_VISUAL_REVIEW", pageErrors: errors };
+  const summary = { result: "PASS", states: referenceStates, rendererChangedPixels: changed, softwareRendererChangedPixels: softwareChanged, parameterChangedPixels: alphaChanged, diff: metrics, responsive, fishFocus: "NO_BBOX_NO_FOCUS", stageB: "LOCKED_PENDING_STATIC_VISUAL_REVIEW", pageErrors: errors };
   fs.writeFileSync(path.join(out, "browser-smoke.json"), JSON.stringify(summary, null, 2));
   assert.deepEqual(errors, [], "no browser runtime or console errors");
   await browser.close();
