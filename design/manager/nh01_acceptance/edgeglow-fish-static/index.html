@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-r10-four-corner-arc-98" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-static-r11-inset-full-arcs" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -129,7 +129,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。R10 扩展四角蓝金 Receiving Light 的可见弧段，并按四角路径权重校准外围柔光；透明离屏层在带留白画布中绘制，再裁回原图。鱼体金色层仍使用 source-over 保持色相。照片/Path 坐标和三张 Frozen 资产保持不变。蓝金外圈 alpha 仍高于 Android 与 Frozen Contract 上限，仅是 Web 视觉候选；浏览器模糊不等同 Android API 28，视觉质量仍待人工评审。</div>
+      <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。R11 将四条完整 Receiving Light 弧线按照片尺寸轻微内收，使外围柔光留在照片可视区域；鱼体主线、柔光和光尾仍为独立暖金层，蓝光不会进入鱼体。透明离屏层保留模糊外溢后再裁回原图。照片/Path 坐标和三张 Frozen 资产保持不变。蓝金外圈 alpha 仍高于 Android 与 Frozen Contract 上限，仅是 Web 视觉候选；浏览器模糊不等同 Android API 28，视觉质量仍待人工评审。</div>
     </section>
 
     <section class="edgeglow-footer-grid">
