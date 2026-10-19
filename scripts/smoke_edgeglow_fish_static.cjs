@@ -233,13 +233,6 @@ async function main() {
   assert.equal(await page.locator("#wipePosition").isVisible(), true);
   console.log("SMOKE: Overlay and Wipe comparison modes verified");
 
-  await afterRender(page, () => page.evaluate(() => {
-    document.querySelectorAll(".photo-stage canvas").forEach(canvas => {
-      canvas.style.removeProperty("width");
-      canvas.style.removeProperty("height");
-    });
-    window.__EDGEGLOW_LAB__.render();
-  }));
   await afterRender(page, () => page.locator("#resetButton").click());
   await page.waitForFunction(() => document.getElementById("compareMode").value === "side" && document.getElementById("outerWidth").value === "28");
   const resetGlow = await canvasStats(page);
