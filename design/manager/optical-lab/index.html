@@ -254,6 +254,9 @@ function mountReviewLayout(){
   const advancedControlCard=document.createElement("section");advancedControlCard.className="advanced-card";advancedControlCard.innerHTML="<div class=\"section-title\">可选本地诊断输入</div>";
   sections.forEach(section=>{if(section.querySelector("#motionTimeline"))section.classList.add("stage-b-hidden");advancedControlCard.append(section);});
   advancedBody.append(advancedControlCard,right);
+  // Connect the diagnostics subtree before resolving its mount points with document.getElementById.
+  // The subtree is assembled off-DOM above; querying document while detached returns null.
+  shell.insertBefore(advanced,document.querySelector(".footer-note"));
   document.getElementById("advancedModeMount").append(advancedModes);
   document.getElementById("advancedActionMount").append(roiActions);
   document.getElementById("advancedMetricsMount").append(document.getElementById("metrics"));
