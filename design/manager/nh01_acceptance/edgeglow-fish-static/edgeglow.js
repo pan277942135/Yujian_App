@@ -301,6 +301,7 @@
   let queuedRenderKind = "none";
   const renderPriority = { none: 0, compare: 1, contour: 1, glow: 2, all: 3 };
   function scheduleRender(kind = "glow") {
+    updateOutputs();
     if (renderPriority[kind] > renderPriority[queuedRenderKind]) queuedRenderKind = kind;
     if (renderQueued) return;
     renderQueued = true;
