@@ -182,3 +182,17 @@ This addendum supersedes the prior note that an online Figma write was needed be
 - CAPTURED/DETECTING stay internal, share IMAGE_RECOGNIZING, and retain real event gates. RP-A07 copy mismatch remains open.
 
 Track A now has a reproducible browser engineering prototype and automation pass; this is not an optical fidelity pass. Track B still awaits NH01 Work A’s unified importer and real Figma nodes. Track C remains pending source/image verification, Figma exports and independent QA. Overall `M1_PROCESSING_FIGMA_ENGINEERING_HANDOFF` is still `NOT_PASS`; PR #166 stays Draft/Open/Unmerged.
+
+
+
+## Work B · Optical Lab Stage A.1 · 2026-10-19
+
+The browser Optical Lab loader and end-to-end static validation now pass from PR #166 code head `f9184974a05aa6a66da8acbde450fbf2a5214bac` (based on PR #165 authority `31d1483b83038db78821625cd9339ad0e8c19ff3`). CI run [#39198463901](https://github.com/pan277942135/Yujian_App/actions/runs/39198463901) passed; artifact `Recognition-Optical-Lab-Static`, ID `12162907327`, contains the runnable package, manifest, state previews, renderer comparisons, Overlay/Wipe/Diff/ROI screenshots, Fish Focus no-BBox downgrade, and responsive evidence.
+
+- Source contract dependencies: 27/27 declared Git Blob SHAs verified. Three Frozen PNG hashes and dimensions verified unchanged; P5 fixture and registered Design Manager alias are byte-identical. FIT oracle, exact three product visuals, seven paths and no Early visual pass.
+- Browser run: repo-root and design-root asset loading PASS; renderer variants and live adjustment PASS; five viewport fixtures PASS; no browser runtime/console/request errors. Full metrics and artifact contents are listed in `M1_OPTICAL_WEB_LAB_STAGE_A1.md`.
+- Browser Pixel Diff remains exploratory because the P5 test photo is not bound to the photo in the Frozen references. Fish Focus remains disabled because a trusted detector BBox and production `FishSubjectResult` Mask are absent.
+- Static route choice is pending human review. Motion/Resolve/recording remains locked; Android API 28 and Figma structure/export/QA were not run.
+- CAPTURED and DETECTING remain internal phases mapped to `IMAGE_RECOGNIZING`; RP-A07 records the old user-copy discrepancy. Product event gates, the three visual states and all Frozen PNG bytes are unchanged.
+
+`ENGINEERING_HANDOFF_READY` and the Optical Lab browser smoke can pass independently. `M1_PROCESSING_FIGMA_ENGINEERING_HANDOFF` remains `NOT_PASS` until the actual unified-importer/Figma-node and visual QA gates, source-photo identity, and Android runtime verification are complete. PR #166 remains Draft/Open/Unmerged; PR #165 remains unchanged.
