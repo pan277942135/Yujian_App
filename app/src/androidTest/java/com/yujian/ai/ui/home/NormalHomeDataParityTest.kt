@@ -438,8 +438,9 @@ class NormalHomeDataParityTest {
                 marker.red > 0.78f && marker.green > 0.68f && marker.blue < 0.42f,
             )
         }
-        val quietTop = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.30f).toInt()]
-        val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
+        // Sample inside the fitted source photo; x=0.97 is the dark side backdrop for portrait media.
+        val quietTop = pixels[(pixels.width * 0.50f).toInt(), (pixels.height * 0.30f).toInt()]
+        val readableBottom = pixels[(pixels.width * 0.50f).toInt(), (pixels.height * 0.88f).toInt()]
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
         val bottomBrightness = readableBottom.red + readableBottom.green + readableBottom.blue
         val bottomTreatmentDelta = topBrightness - bottomBrightness
