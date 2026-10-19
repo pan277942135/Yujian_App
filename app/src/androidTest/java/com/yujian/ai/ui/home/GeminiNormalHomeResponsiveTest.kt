@@ -191,20 +191,17 @@ class GeminiNormalHomeResponsiveTest {
             assertTrue("camera art must be centered in its target ${window.name}", cameraCenterDistance <= 2f)
             assertTrue("CTA label and camera may not overlap ${window.name}", ctaLabel.bottom <= camera.top + 1f)
             assertTrue("camera must remain above the bottom safe inset ${window.name}", camera.bottom <= root.bottom - 24f + 1f)
-            val heroOffenders = listOf("species" to species, "measurement" to measurement, "metadata" to metadata)
-                .filterNot { (_, bounds) -> bounds.isInside(activeCard) }
-                .joinToString { (name, bounds) -> "$name=$bounds" }
-            val heroContentInside = heroOffenders.isEmpty()
-            if (!heroContentInside) {
-                Log.e("GEMINI_HOME_HERO_BOUNDS", "OUT_OF_CARD offenders=$heroOffenders card=$activeCard footer=$footerContent")
-            }
-            assertTrue("Hero footer content remains inside the card ${window.name}; offenders=$heroOffenders; card=$activeCard; footer=$footerContent",
-                heroContentInside)
             assertEquals(window.widthDp, image.width)
             assertEquals(window.heightDp, image.height)
 
             val initiallyVisible = metadata.isInside(middle)
             var afterScrollVisible = initiallyVisible
+            var postScrollScreenshot: String? = null
+            var finalActiveCard = activeCard
+            var finalFooterContent = footerContent
+            var finalSpecies = species
+            var finalMeasurement = measurement
+            var finalMetadata = metadata
             if (!initiallyVisible) {
                 assertTrue(
                     "${window.name} clips Hero footer without a scroll path",
@@ -214,11 +211,45 @@ class GeminiNormalHomeResponsiveTest {
                 compose.onNodeWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
                     .performTouchInput { repeat(3) { swipeUp() } }
                 compose.waitForIdle()
-                afterScrollVisible = bounds("gemini-home-catch-metadata-gemini-fixture-01").isInside(
-                    bounds("gemini-home-middle-section"),
-                )
+                val scrolledMiddle = bounds("gemini-home-middle-section")
+                finalActiveCard = bounds("gemini-home-catch-card-gemini-fixture-01")
+                finalFooterContent = bounds("gemini-home-catch-footer-gemini-fixture-01")
+                finalSpecies = bounds("gemini-home-catch-species-gemini-fixture-01")
+                finalMeasurement = bounds("gemini-home-catch-measurement-gemini-fixture-01")
+                finalMetadata = bounds("gemini-home-catch-metadata-gemini-fixture-01")
+                afterScrollVisible = finalMetadata.isInside(scrolledMiddle)
+                val scrolledHeroBounds = JSONObject().apply {
+                    put("profile", window.name)
+                    put("middle", scrolledMiddle.toJson())
+                    put("active_card", finalActiveCard.toJson())
+                    put("footer_container", finalFooterContent.toJson())
+                    put("species", finalSpecies.toJson())
+                    put("measurement", finalMeasurement.toJson())
+                    put("metadata", finalMetadata.toJson())
+                }
+                Log.i("GEMINI_HOME_HERO_BOUNDS", "AFTER_SCROLL $scrolledHeroBounds")
+                val scrolledScreenshot = File(output, "${window.name}-hero-footer-visible.png")
+                writeScreenshot("gemini-home-screen", scrolledScreenshot)
+                postScrollScreenshot = scrolledScreenshot.name
+                File(output, "${window.name}-hero-footer-visible.json").writeText(JSONObject().apply {
+                    put("profile", window.name)
+                    put("mode", "COMPOSE_CONSTRAINT_SIMULATION_AFTER_SCROLL")
+                    put("status", "CHECKING")
+                    put("screenshot", scrolledScreenshot.name)
+                    put("bounds_dp", scrolledHeroBounds)
+                }.toString(2))
                 assertTrue("${window.name} must scroll the whole Hero footer into view", afterScrollVisible)
             }
+
+            val heroOffenders = listOf("species" to finalSpecies, "measurement" to finalMeasurement, "metadata" to finalMetadata)
+                .filterNot { (_, bounds) -> bounds.isInside(finalActiveCard) }
+                .joinToString { (name, bounds) -> "$name=$bounds" }
+            val heroContentInside = heroOffenders.isEmpty()
+            if (!heroContentInside) {
+                Log.e("GEMINI_HOME_HERO_BOUNDS", "OUT_OF_CARD offenders=$heroOffenders card=$finalActiveCard footer=$finalFooterContent")
+            }
+            assertTrue("Hero footer content remains inside the card ${window.name}; offenders=$heroOffenders; card=$finalActiveCard; footer=$finalFooterContent",
+                heroContentInside)
 
             compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
                 .assertHasClickAction().performClick()
@@ -247,6 +278,7 @@ class GeminiNormalHomeResponsiveTest {
                 put("window_dp", JSONArray(listOf(window.widthDp, window.heightDp)))
                 put("safe_insets_dp", JSONObject().put("top", 24).put("bottom", 24).put("start", 0).put("end", 0))
                 put("screenshot", screenshot.name)
+                put("post_scroll_screenshot", postScrollScreenshot)
                 put("screenshot_dimensions_px", JSONArray(listOf(image.width, image.height)))
                 put("hero_metadata_initially_visible", initiallyVisible)
                 put("hero_metadata_visible_after_scroll", afterScrollVisible)
@@ -268,15 +300,31 @@ class GeminiNormalHomeResponsiveTest {
                     put("camera_target", camera.toJson())
                     put("camera_art", cameraArt.toJson())
                     put("cta_label", ctaLabel.toJson())
-                    put("active_card", activeCard.toJson())
-                    put("footer_content", footerContent.toJson())
-                    put("species", species.toJson())
-                    put("measurement", measurement.toJson())
-                    put("metadata", metadata.toJson())
+                    put("initial_hero_bounds", heroBounds)
+                    put("active_card", finalActiveCard.toJson())
+                    put("footer_content", finalFooterContent.toJson())
+                    put("species", finalSpecies.toJson())
+                    put("measurement", finalMeasurement.toJson())
+                    put("metadata", finalMetadata.toJson())
                 })
             }
             profileResults.put(result)
             File(output, "${window.name}.json").writeText(result.toString(2))
+            if (postScrollScreenshot != null) {
+                File(output, "${window.name}-hero-footer-visible.json").writeText(JSONObject().apply {
+                    put("profile", window.name)
+                    put("mode", "COMPOSE_CONSTRAINT_SIMULATION_AFTER_SCROLL")
+                    put("status", "PASS")
+                    put("screenshot", postScrollScreenshot)
+                    put("bounds_dp", JSONObject().apply {
+                        put("active_card", finalActiveCard.toJson())
+                        put("footer_container", finalFooterContent.toJson())
+                        put("species", finalSpecies.toJson())
+                        put("measurement", finalMeasurement.toJson())
+                        put("metadata", finalMetadata.toJson())
+                    })
+                }.toString(2))
+            }
             Log.i("GEMINI_HOME_RESPONSIVE_PROFILE", result.toString())
 
             if (compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
@@ -374,6 +422,7 @@ class GeminiNormalHomeResponsiveTest {
             }
 
             val pageTrace = JSONArray()
+            val pageScreenshotNames = JSONArray()
             orderedIds.forEachIndexed { index, expectedId ->
                 val state = compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
                     .fetchSemanticsNode().config[SemanticsProperties.StateDescription]
@@ -381,14 +430,55 @@ class GeminiNormalHomeResponsiveTest {
                 compose.onNodeWithTag("gemini-home-catch-card-$expectedId", useUnmergedTree = true)
                     .assertHasClickAction().performClick()
                 compose.runOnIdle { assertEquals(expectedId, clickedIds.last()) }
-                pageTrace.put(JSONObject().put("page", index).put("catch_id", expectedId).put("click_id", clickedIds.last()))
+                val pageScreenshot = File(output, "carousel_${count}_page_${index + 1}.png")
+                writeScreenshot("gemini-home-screen", pageScreenshot)
+                pageScreenshotNames.put(pageScreenshot.name)
+                pageTrace.put(JSONObject().put("page", index).put("catch_id", expectedId)
+                    .put("click_id", clickedIds.last()).put("state_before_swipe", state)
+                    .put("screenshot", pageScreenshot.name))
+                File(output, "carousel_${count}_progress.json").writeText(JSONObject().apply {
+                    put("catch_count", count)
+                    put("page_count", columns)
+                    put("page_trace", pageTrace)
+                    put("page_screenshots", pageScreenshotNames)
+                    put("status", "IN_PROGRESS")
+                }.toString(2))
                 if (index < orderedIds.lastIndex) {
+                    val expectedNextId = orderedIds[index + 1]
+                    Log.i("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_START count=$count from=$expectedId to=$expectedNextId state=$state")
                     compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
                         .performTouchInput { swipeLeft() }
-                    compose.waitUntil(5_000) {
-                        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                            .fetchSemanticsNode().config[SemanticsProperties.StateDescription].contains(orderedIds[index + 1])
+                    compose.waitForIdle()
+                    try {
+                        compose.waitUntil(5_000) {
+                            currentCarouselId().contains(expectedNextId)
+                        }
+                    } catch (failure: Throwable) {
+                        val stateAfterSwipe = currentCarouselId()
+                        val failedShot = File(output, "carousel_${count}_swipe_${index + 1}_failed.png")
+                        writeScreenshot("gemini-home-screen", failedShot)
+                        val diagnostic = JSONObject().apply {
+                            put("catch_count", count)
+                            put("page_count", columns)
+                            put("from_catch_id", expectedId)
+                            put("expected_catch_id", expectedNextId)
+                            put("state_before_swipe", state)
+                            put("state_after_swipe", stateAfterSwipe)
+                            put("screenshot", failedShot.name)
+                            put("page_trace", pageTrace)
+                        }
+                        File(output, "carousel_${count}_swipe_${index + 1}_failed.json").writeText(diagnostic.toString(2))
+                        Log.e("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_FAILED $diagnostic", failure)
+                        throw AssertionError(
+                            "finite carousel swipe count=$count from=$expectedId to=$expectedNextId; state=$stateAfterSwipe",
+                            failure,
+                        )
                     }
+                    compose.waitForIdle()
+                    val stateAfterSwipe = currentCarouselId()
+                    Log.i("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_PASS count=$count from=$expectedId to=$expectedNextId state=$stateAfterSwipe")
+                    assertTrue("pager state must settle on the real next catch $expectedNextId; state=$stateAfterSwipe",
+                        stateAfterSwipe.contains(expectedNextId))
                 }
             }
             val lastId = orderedIds.last()
@@ -420,6 +510,7 @@ class GeminiNormalHomeResponsiveTest {
                 put("last_catch_id", orderedIds.last())
                 put("page_trace", pageTrace)
                 put("screenshot", screenshot.name)
+                put("page_screenshots", pageScreenshotNames)
                 put("bounds_dp", JSONObject().apply {
                     put("pager", bounds("gemini-home-catch-pager").toJson())
                     put("selected_card", bounds("gemini-home-catch-card-${orderedIds.first()}").toJson())
@@ -427,6 +518,13 @@ class GeminiNormalHomeResponsiveTest {
                 put("click_mapping", "PASS")
                 put("finite_previous_next_mapping", "PASS")
             })
+            File(output, "carousel_${count}_progress.json").writeText(JSONObject().apply {
+                put("catch_count", count)
+                put("page_count", columns)
+                put("page_trace", pageTrace)
+                put("page_screenshots", pageScreenshotNames)
+                put("status", "PASS")
+            }.toString(2))
         }
 
         // Adding a newer catch preserves the visible catch by stable id. Deleting it
