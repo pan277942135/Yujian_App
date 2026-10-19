@@ -26,7 +26,6 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.TouchInjectionScope
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
@@ -344,8 +343,7 @@ class GeminiNormalHomeResponsiveTest {
             image.recycle()
         }
 
-        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-            .performTouchInput { swipeOnePagerPage(forward = true) }
+        swipeOnePagerPage(forward = true)
         compose.waitForIdle()
         assertTrue(
             "horizontal carousel must expose the next card after a horizontal swipe",
@@ -454,8 +452,7 @@ class GeminiNormalHomeResponsiveTest {
                 if (index < orderedIds.lastIndex) {
                     val expectedNextId = orderedIds[index + 1]
                     Log.i("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_START count=$count from=$expectedId to=$expectedNextId state=$state")
-                    compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                        .performTouchInput { swipeOnePagerPage(forward = true) }
+                    swipeOnePagerPage(forward = true)
                     compose.waitForIdle()
                     try {
                         compose.waitUntil(5_000) {
@@ -490,21 +487,18 @@ class GeminiNormalHomeResponsiveTest {
                 }
             }
             val lastId = orderedIds.last()
-            compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                .performTouchInput { swipeOnePagerPage(forward = true) }
+            swipeOnePagerPage(forward = true)
             compose.waitForIdle()
             assertTrue("finite pager end may not clone-wrap to the first item", currentCarouselId().contains(lastId))
 
             if (count > 1) {
                 repeat(count - 1) {
-                    compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                        .performTouchInput { swipeOnePagerPage(forward = false) }
+                    swipeOnePagerPage(forward = false)
                     compose.waitForIdle()
                 }
                 val firstId = orderedIds.first()
                 assertTrue("previous-page mapping must return the immediately preceding real catch", currentCarouselId().contains(firstId))
-                compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                    .performTouchInput { swipeOnePagerPage(forward = false) }
+                swipeOnePagerPage(forward = false)
                 compose.waitForIdle()
                 assertTrue("finite pager start may not clone-wrap to the last item", currentCarouselId().contains(firstId))
             }
@@ -539,8 +533,7 @@ class GeminiNormalHomeResponsiveTest {
         // updates count and selected id to an item that still exists in the collection.
         compose.runOnUiThread { records.value = fixtureCatches(null, count = 3) }
         compose.waitForIdle()
-        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-            .performTouchInput { swipeOnePagerPage(forward = true) }
+        swipeOnePagerPage(forward = true)
         compose.waitForIdle()
         val selectedBeforeInsert = currentCarouselId().substringAfter("当前鱼获 ").substringBefore('，')
         val insertedRecords = fixtureCatches(null, count = 4).map { item ->
@@ -748,14 +741,19 @@ class GeminiNormalHomeResponsiveTest {
         "gemini-home-catch-pager", useUnmergedTree = true,
     ).fetchSemanticsNode().config[SemanticsProperties.StateDescription]
 
-    private fun TouchInjectionScope.swipeOnePagerPage(forward: Boolean) {
-        val startX = if (forward) size.width * 0.84f else size.width * 0.16f
-        val endX = if (forward) size.width * 0.16f else size.width * 0.84f
-        swipe(
-            start = Offset(startX, size.height * 0.5f),
-            end = Offset(endX, size.height * 0.5f),
-            durationMillis = 1_100L,
-        )
+    private fun swipeOnePagerPage(forward: Boolean) {
+        val tag = "gemini-home-catch-pager"
+        val carouselBounds = compose.onNodeWithTag(tag, useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val startX = if (forward) carouselBounds.width * 0.84f else carouselBounds.width * 0.16f
+        val endX = if (forward) carouselBounds.width * 0.16f else carouselBounds.width * 0.84f
+        compose.onNodeWithTag(tag, useUnmergedTree = true).performTouchInput {
+            swipe(
+                start = Offset(startX, carouselBounds.height * 0.5f),
+                end = Offset(endX, carouselBounds.height * 0.5f),
+                durationMillis = 1_100L,
+            )
+        }
     }
 
     private fun writeScreenshot(tag: String, output: File) {
