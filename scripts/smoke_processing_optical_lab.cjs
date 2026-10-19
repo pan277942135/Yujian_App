@@ -191,7 +191,10 @@ let browser;
   const responsive = [];
   for (const [width, height] of RESPONSIVE) {
     await page.setViewportSize({ width, height });
-    await page.selectOption("#viewportSelect", width + "x" + height);
+    await page.locator("#viewportSelect").evaluate((select, value) => {
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }, width + "x" + height);
     const check = await page.evaluate(() => ({
       width: innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
