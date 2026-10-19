@@ -15,6 +15,7 @@ import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 /**
  * Production DET_FISH_v0.1 runtime.
@@ -39,6 +40,35 @@ data class DetectorAttemptTrace(
     val topConfidence: Float?,
     val qualityStatus: String,
     val qualityLevel: String,
+)
+
+internal data class DetectorTensorChannelStats(
+    val channel: String,
+    val min: Float,
+    val max: Float,
+    val mean: Float,
+    val standardDeviation: Float,
+)
+
+/** Full per-direction evidence returned only to Android instrumentation diagnostics. */
+internal data class DetectorOrientationDiagnostic(
+    val orientationAttempt: String,
+    val modelVersion: String,
+    val onnxSha256: String,
+    val inputSize: Int,
+    val inputScale: Float,
+    val inputDrawWidth: Int,
+    val inputDrawHeight: Int,
+    val inputTensorSha256: String,
+    val inputTensorChannelStats: List<DetectorTensorChannelStats>,
+    val rawOutputShape: List<Int>,
+    val rawOutputSha256: String,
+    val rawOutputRows: Array<FloatArray>,
+    val topRawCandidates: List<FloatArray>,
+    val mappedDetections: List<FishDetection>,
+    val primaryBox: NormalizedFishBox?,
+    val status: FishInputStatus,
+    val cropPixels: IntArray?,
 )
 
 internal data class DetectorAssessmentCandidate(
@@ -180,7 +210,11 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         )
     }
 
-    private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
+    private fun detectOnce(
+        bitmap: Bitmap,
+        model: VerifiedModel,
+        onRawOutput: ((PreparedInput, Array<FloatArray>) -> Unit)? = null,
+    ): DetectorRun {
         val attemptStarted = System.nanoTime()
         val prepared = prepareInput(bitmap, model.inputSize)
         val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
@@ -192,6 +226,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
                 materializeRows(output.value)
             }
         }
+        onRawOutput?.invoke(prepared, rows)
 
         val detections = decodeAndNms(
             rows = rows,
@@ -211,6 +246,104 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             latencyMs = (System.nanoTime() - attemptStarted) / 1_000_000,
             detections = detections,
         )
+    }
+
+    /**
+     * Executes all three detector orientations without changing production selection.
+     * This is intentionally internal and exists for exact-build Android evidence only.
+     */
+    internal suspend fun diagnoseAllOrientations(bitmap: Bitmap): List<DetectorOrientationDiagnostic> =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            require(bitmap.width > 0 && bitmap.height > 0) { "鱼体检测输入图片尺寸无效" }
+            val model = verifiedModel
+            ORIENTATION_ATTEMPTS.map { orientation ->
+                val attemptBitmap = orientBitmap(bitmap, orientation)
+                var prepared: PreparedInput? = null
+                var capturedRows: Array<FloatArray>? = null
+                val attemptRun = try {
+                    detectOnce(attemptBitmap, model) { input, rows ->
+                        prepared = input
+                        capturedRows = Array(rows.size) { index -> rows[index].copyOf() }
+                    }
+                } finally {
+                    if (attemptBitmap !== bitmap && !attemptBitmap.isRecycled) attemptBitmap.recycle()
+                }
+                val input = requireNotNull(prepared)
+                val rows = requireNotNull(capturedRows)
+                val mapped = attemptRun.detections.map { detection ->
+                    detection.copy(box = mapBoxToOriginal(detection.box, orientation))
+                }
+                val assessment = FishDetectionQualityGate.assess(mapped)
+                DetectorOrientationDiagnostic(
+                    orientationAttempt = orientation.wireName,
+                    modelVersion = attemptRun.modelVersion,
+                    onnxSha256 = attemptRun.onnxSha256,
+                    inputSize = attemptRun.inputSize,
+                    inputScale = attemptRun.inputScale,
+                    inputDrawWidth = attemptRun.inputDrawWidth,
+                    inputDrawHeight = attemptRun.inputDrawHeight,
+                    inputTensorSha256 = input.buffer.bytes().sha256(),
+                    inputTensorChannelStats = channelStats(input.buffer, attemptRun.inputSize),
+                    rawOutputShape = listOf(1, rows.size, rows.firstOrNull()?.size ?: 0),
+                    rawOutputSha256 = rawOutputBytes(rows).sha256(),
+                    rawOutputRows = rows,
+                    topRawCandidates = rows.asSequence()
+                        .filter { row -> row.size >= 6 && row[4].isFinite() && row[5].isFinite() }
+                        .sortedByDescending { row -> row[4] * row[5] }
+                        .take(20)
+                        .map { row -> row.copyOf() }
+                        .toList(),
+                    mappedDetections = mapped,
+                    primaryBox = assessment.primary?.box,
+                    status = assessment.status,
+                    cropPixels = assessment.cropBox?.let {
+                        FishDetectionQualityGate.cropBoxPixels(it, bitmap.width, bitmap.height)
+                    },
+                )
+            }
+        }
+
+    private fun channelStats(buffer: ByteBuffer, inputSize: Int): List<DetectorTensorChannelStats> {
+        val floatBuffer = buffer.asReadOnlyBuffer().order(ByteOrder.nativeOrder()).asFloatBuffer()
+        val channelSize = inputSize * inputSize
+        return listOf("B", "G", "R").mapIndexed { channel, name ->
+            val offset = channel * channelSize
+            var minValue = Float.POSITIVE_INFINITY
+            var maxValue = Float.NEGATIVE_INFINITY
+            var sum = 0.0
+            for (index in 0 until channelSize) {
+                val value = floatBuffer.get(offset + index)
+                minValue = min(minValue, value)
+                maxValue = max(maxValue, value)
+                sum += value.toDouble()
+            }
+            val mean = sum / channelSize
+            var squaredDeviation = 0.0
+            for (index in 0 until channelSize) {
+                val delta = floatBuffer.get(offset + index).toDouble() - mean
+                squaredDeviation += delta * delta
+            }
+            DetectorTensorChannelStats(
+                channel = name,
+                min = minValue,
+                max = maxValue,
+                mean = mean.toFloat(),
+                standardDeviation = sqrt(squaredDeviation / channelSize).toFloat(),
+            )
+        }
+    }
+
+    private fun rawOutputBytes(rows: Array<FloatArray>): ByteArray {
+        val floatCount = rows.sumOf { it.size }
+        val bytes = ByteBuffer.allocate(floatCount * Float.SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN)
+        rows.forEach { row -> row.forEach { value -> bytes.putFloat(value) } }
+        return bytes.array()
+    }
+
+    private fun ByteBuffer.bytes(): ByteArray {
+        val duplicate = asReadOnlyBuffer()
+        duplicate.clear()
+        return ByteArray(duplicate.remaining()).also { bytes -> duplicate.get(bytes) }
     }
 
     private fun orientBitmap(bitmap: Bitmap, orientation: DetectorOrientationAttempt): Bitmap {
