@@ -56,8 +56,8 @@ def main() -> None:
     perimeter_path_renderer = renderer.split("function drawEdgeFieldPathSet", 1)[1].split("function drawCompanionHairlines", 1)[0]
     assert 'ctx.globalCompositeOperation = "source-over"' in receiving_renderer and 'ctx.globalCompositeOperation = "source-over"' in perimeter_path_renderer, "photo-edge light must preserve blue/gold hue over bright photo pixels"
     assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
-    assert receiving_renderer.count("ctx.stroke();") == 2 and "9 * photoPxPerDp" in receiving_renderer and "2.5 * photoPxPerDp" in receiving_renderer, "Receiving Light needs a wide bloom and a close glow along the same path"
-    assert "receivingGradient(0.22)" in receiving_renderer and "receivingGradient(0.18)" in receiving_renderer and "R01 intensity candidate under R02 source-over color handling" in receiving_renderer, "R01/R02 optical candidate must be explicit and distinct from Android runtime"
+    assert receiving_renderer.count("ctx.stroke();") == 2 and "13 * photoPxPerDp" in receiving_renderer and "3.5 * photoPxPerDp" in receiving_renderer and "26 * photoPxPerDp" in receiving_renderer and "10 * photoPxPerDp" in receiving_renderer, "R03 Receiving Light needs a wide bloom and close glow along the same path"
+    assert "receivingGradient(0.36)" in receiving_renderer and "receivingGradient(0.30)" in receiving_renderer and "R03 web review emphasis" in receiving_renderer, "R03 optical emphasis must be explicit and distinct from Android runtime"
     companion_renderer = renderer.split("function drawCompanionHairlines", 1)[1].split("function drawStaticEnergyNodes", 1)[0]
     node_renderer = renderer.split("function drawStaticEnergyNodes", 1)[1].split("function drawPrimaryEdgeIslands", 1)[0]
     assert all('ctx.globalCompositeOperation = "source-over"' in fn and 'ctx.globalCompositeOperation = "screen"' not in fn for fn in (companion_renderer, node_renderer)), "all perimeter layers must preserve hue on bright pixels"
@@ -82,7 +82,7 @@ def main() -> None:
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
-    assert "receiving_alpha_per_pass: [0.22, 0.18]" in renderer and "above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01" in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R01/R02 receiving-light candidates must expose rendering and contract discrepancies"
+    assert "receiving_alpha_per_pass: [0.36, 0.30]" in renderer and "above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01" in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R03/R02 receiving-light candidates must expose rendering and contract discrepancies"
     expected_companion_path_definitions = (
         '{ id: "B1C", parentId: "B1", family: "blue", widthDp: 0.60, phaseDelta: -0.055, visibleRatio: 0.44, weight: 0.30, start: [0.75, -0.01], control1: [0.91, 0.07], control2: [0.99, 0.20], end: [0.94, 0.37] }',
         '{ id: "G1C", parentId: "G1", family: "gold", widthDp: 0.58, phaseDelta: 0.065, visibleRatio: 0.42, weight: 0.30, start: [-0.01, 0.20], control1: [0.04, 0.11], control2: [0.13, 0.04], end: [0.24, 0.00] }',
@@ -115,10 +115,10 @@ def main() -> None:
             "micro_path_ids": ["B1M"],
             "receiving_light_renderer": "path-following local illumination; no corner circles",
             "receiving_light_web_passes": 2,
-            "receiving_light_alpha_per_pass": [0.22, 0.18],
-            "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.22) * (1 - 0.18), 4),
+            "receiving_light_alpha_per_pass": [0.36, 0.30],
+            "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.36) * (1 - 0.30), 4),
             "perimeter_web_blend": "source-over; R02 hue-preserving Web review candidate, not Android runtime validation",
-            "receiving_light_default_alpha_per_pass": [0.22, 0.18],
+            "receiving_light_default_alpha_per_pass": [0.36, 0.30],
             "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",
