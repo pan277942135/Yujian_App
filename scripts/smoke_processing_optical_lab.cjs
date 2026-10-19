@@ -119,7 +119,7 @@ let browser;
   await page.locator("#compareModes [data-mode='overlay']").click();
   await page.screenshot({ path: path.join(out, "frozen-web-overlay.png"), fullPage: true });
   await page.locator("#compareModes [data-mode='wipe']").click();
-  await page.locator("#wipeInput").fill("62");
+  await page.locator("#wipeInput").evaluate(input => { input.value = "62"; input.dispatchEvent(new Event("input", { bubbles: true })); });
   await page.locator("#compareScreen").screenshot({ path: path.join(out, "frozen-web-wipe.png") });
   await page.locator("#advancedDiagnostics").evaluate(node => { node.open = true; });
   await page.locator("#advancedModes [data-mode='diff']").click();
