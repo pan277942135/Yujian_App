@@ -156,10 +156,35 @@ try {
           class_name: typeof node.className === "string" ? node.className : null,
           left: Math.round(rect.left),
           right: Math.round(rect.right),
+          top: Math.round(rect.top),
+          bottom: Math.round(rect.bottom),
           width: Math.round(rect.width),
           client_width: node.clientWidth,
           scroll_width: node.scrollWidth,
-          overflow_x: style.overflowX
+          overflow_x: style.overflowX,
+          parent_chain: (() => {
+            const chain = [];
+            let parent = node.parentElement;
+            while (parent && chain.length < 6) {
+              const parentRect = parent.getBoundingClientRect();
+              const parentStyle = getComputedStyle(parent);
+              chain.push({
+                tag: parent.tagName.toLowerCase(),
+                id: parent.id || null,
+                class_name: typeof parent.className === "string" ? parent.className : null,
+                left: Math.round(parentRect.left),
+                right: Math.round(parentRect.right),
+                top: Math.round(parentRect.top),
+                bottom: Math.round(parentRect.bottom),
+                width: Math.round(parentRect.width),
+                overflow_x: parentStyle.overflowX,
+                display: parentStyle.display,
+                position: parentStyle.position
+              });
+              parent = parent.parentElement;
+            }
+            return chain;
+          })()
         };
       })
       .filter(node => node.right > innerWidth + 1 || node.left < -1)
