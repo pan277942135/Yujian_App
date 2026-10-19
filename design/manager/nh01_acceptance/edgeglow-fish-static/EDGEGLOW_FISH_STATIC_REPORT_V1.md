@@ -9,8 +9,8 @@
 | Gate | Status | Evidence and limit |
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
-| `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The Web static study separates blue/cyan + warm-gold photo-edge lighting from warm-gold Fish Focus. The seven source-backed path segments and corner light need human review for visibility, contour alignment and balance. Automated/source checks are not a visual-quality pass. |
-| `CLOUD_ACCEPTANCE_CENTER` | `PASS` for code build `4281a3206466`; revision `bf20bc7` awaiting rerun | The first `0.13` candidate run stopped at the current-center SHA guard before deploy. The source branch is now verified at `08ed847e711f8c7accd4ebba08a74e55e756882f`, and this PR updates the pin before rerunning. |
+| `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The revised renderer now follows the Frozen four-island role map, layers path-following Receiving Light with primary bands and companion hairlines, and keeps Fish Focus warm gold. The live screenshot must still confirm visibility and balance; source checks are not a visual-quality pass. |
+| `CLOUD_ACCEPTANCE_CENTER` | `PENDING_UPDATED_RENDERER_DEPLOYMENT` | The currently deployed build `58686cef1e8f` has a visible fish outline but its perimeter field is too weak. The revised four-island renderer and cloud screenshot check have not yet deployed. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
 The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, production Mask, or `FishSubjectResult`. Overall M1/Figma/Android gates are unaffected and are not marked PASS.
@@ -123,3 +123,19 @@ The full Playwright smoke script remains in `scripts/smoke_edgeglow_fish_static.
 - Push run [39247769893](https://github.com/pan277942135/Yujian_App/actions/runs/39247769893) and PR run [39247774275](https://github.com/pan277942135/Yujian_App/actions/runs/39247774275) both stopped at `Guard current Acceptance Center branch identity`. The exact log reports expected `1d6d21bf3ffb887fb0b3c34584c02cb2c0449a63`, remote `08ed847e711f8c7accd4ebba08a74e55e756882f`; the push run skipped deployment, so it did not replace the live site.
 - The center branch comparison verified no Acceptance Center design/asset changes (only `scripts/android_runtime/gates/normal_home_v1.sh`). This PR advances its workflow SHA pin to `08ed847e711f8c7accd4ebba08a74e55e756882f` and will rerun the guarded deployment.
 - No full Playwright screenshot suite ran in this environment: the required Chromium download returned 0 bytes and Playwright could not launch. Source audit, renderer syntax and composition checks passed locally; cloud visual review remains required after redeployment.
+
+### Perimeter blend-mode correction — 2026-10-19
+
+- Live Chrome build `58686cef1e8f` loaded the `0.13` Receiving Light and seven path segments, but blue/gold stayed washed out on the bright photo. The Web perimeter layers had explicitly used `screen`; Android Compose `drawOval` / `drawPath` use the default `SrcOver` blend mode.
+- The next renderer revision changes only Receiving Light and the perimeter path layers to Canvas `source-over`, preserving the exact photo, seven path geometries, separate blue/gold perimeter palette, and warm-gold Fish Focus. Fish Bloom/Core/Comet blending remains unchanged.
+- The source audit now requires `source-over` on both photo-edge drawing functions. This is a Web implementation alignment, not a Frozen visual approval. The current Receiving Light alpha remains `0.13` and `RP-A01` remains open.
+
+### Frozen-reference perimeter reconstruction — 2026-10-19
+
+- The user review correctly identified that the prior live screenshot did not show the Frozen edge field. The source-over-only correction was insufficient and is superseded.
+- Frozen 02/03/04 and the Static Shape / Rendering contracts specify four **disconnected** energy islands: upper-left gold (G1), upper-right blue (B1, strongest), lower-left gold (G3), and lower-right blue (B3, weakest). Their Quiet Gaps remain empty. A complete perimeter frame, oval orbit, or four circular corner blobs would be incorrect.
+- The Web renderer now follows the actual primary path segments for local Receiving Light instead of painting broad corner ellipses; then draws the primary Outer / Mid / Core stack, existing B2/G2/B4 secondary fragments, four Android-source Companion Hairlines, the B1-only Micro Hairline, and two static local energy nodes. It does not add animated particles or a perimeter animation.
+- Exact primary, secondary, companion, and micro geometry is sourced from Android `RecognitionAmbientField.kt` (existing code); secondary seeds remain Android-runtime values tracked as non-Frozen `RP-A03`. The perimeter uses Canvas 2D `screen` compositing for luminous Web review; this is a deliberate optical-study choice and is not Android blend parity.
+- Fish Focus remains a separate warm-gold contour/bloom/core/comet palette (`#FFD887` / `#FFE7AE`); no blue/cyan enters the fish body. The existing real-catch photo SHA and manual reference contour are unchanged.
+- Receiving Light still uses Android runtime candidate alpha `0.13`, above the Frozen Rendering Contract cap `0.07`; `RP-A01` remains open. The new source audit verifies frozen color roles, path-following light, companion geometry, and no circular corner glows.
+- Local verification: source audit `PASS_STATIC_SOURCE_AUDIT`, JavaScript syntax check passed, `git diff --check` passed. This does not verify the live rendering. Cloud deployment and a fresh Chrome screenshot remain pending; `EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED`, Android Runtime `NOT_RUN`.

@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-v3" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-static-frozen-islands-v4" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -29,9 +29,9 @@
   <main class="edgeglow-main">
     <section class="workspace-heading edgeglow-heading">
       <div>
-        <div class="eyebrow">ORIGINAL PHOTO → MANUAL CONTOUR → EDGEGLOWVIEW ADAPTED</div>
-        <h2>鱼体不规则轮廓静态光效</h2>
-        <p>三张画布复用同一原图尺寸和坐标，显示 FIT 不裁切。滑动参数即时重绘；此处的 Path 是人工参考轮廓，不代表生产 FishSubjectResult Mask。</p>
+        <div class="eyebrow">FROZEN 02 / 03 / 04 · PHOTO EDGE FIELD + FISH FOCUS</div>
+        <h2>四岛蓝金光场 · 鱼体暖金高亮</h2>
+        <p>对齐 Frozen 原型的颜色分工：外围是左上金、右上蓝、左下金、右下蓝的四个断开光岛；鱼体轮廓只用暖金。三张画布复用同一原图尺寸和坐标，FIT 不裁切；Path 是人工参考轮廓，不代表生产 Mask。</p>
       </div>
       <div class="edgeglow-source-stamp" id="sourceStatus" role="status">正在核验照片来源…</div>
     </section>
@@ -59,7 +59,7 @@
           <label class="compact-toggle"><input type="checkbox" id="contourVisible" checked> 显示轮廓</label>
         </header>
         <div class="photo-stage"><canvas id="contourCanvas" width="1152" height="1536" aria-label="鱼获照片与人工参考轮廓"></canvas></div>
-        <p class="view-caption">暖金参考路径沿照片可见鱼体边缘手工描绘，坐标锁定原图像素。</p>
+        <p class="view-caption">仅鱼体轮廓使用暖金；参考路径沿照片可见边缘手绘，坐标锁定原图像素。</p>
       </article>
 
       <article class="panel-card edgeglow-view-card">
@@ -77,7 +77,7 @@
           <canvas id="glowCanvas" width="1152" height="1536" aria-label="鱼体多层静态光效"></canvas>
           <input id="wipePosition" class="wipe-position" type="range" min="5" max="95" value="50" aria-label="擦拭比较位置" hidden>
         </div>
-        <p class="view-caption" id="comparisonCaption">照片四周蓝青/暖金光场 · 鱼体暖金 Bloom/Core/Comet</p>
+        <p class="view-caption" id="comparisonCaption">照片四边四岛蓝金光场 · 鱼体独立暖金 Bloom/Core/Comet</p>
       </article>
     </section>
 
@@ -94,13 +94,14 @@
         <fieldset>
           <legend>AI Edge Field · 图片四周光场</legend>
           <label class="check-line"><input id="edgeFieldEnabled" type="checkbox" checked> 启用照片四周光场</label>
-          <label class="check-line"><input id="receivingLightEnabled" type="checkbox" checked> Receiving Light · 角落柔光</label>
+          <label class="check-line"><input id="receivingLightEnabled" type="checkbox" checked> Receiving Light · 沿岛局部受光</label>
           <label class="check-line"><input id="primaryIslandsEnabled" type="checkbox" checked> 四条断开的主能量岛</label>
           <label class="check-line"><input id="secondaryFragmentsEnabled" type="checkbox" checked> 三条次级边缘光丝 · B2 / G2 / B4</label>
+          <label class="check-line"><input id="companionHairlinesEnabled" type="checkbox" checked> 伴随细丝 · 4 条 Companion + 1 条 B1 Micro</label>
           <label>整体强度 <output id="edgeFieldIntensityValue">100%</output><input id="edgeFieldIntensity" type="range" min="0" max="100" value="100"></label>
           <label class="color-line">光场蓝 <input id="edgeFieldBlueColor" type="color" value="#bfeaf2"></label>
           <label class="color-line">光场暖金 <input id="edgeFieldGoldColor" type="color" value="#f6d99b"></label>
-          <small>7 条断开路径按照片原始坐标绘制，不连成完整边框；B1/G1/B3/G3 使用冻结主路径，B2/G2/B4 种子沿用 Android 当前值并标记为 RP-A03，尚非 Frozen 值。</small>
+          <small>按冻结构图呈现四个断开光岛：左上金、右上蓝、左下金、右下蓝。主线、同路径柔光与 Android 既有伴随细丝分层绘制；保留 Quiet Gaps，不连成完整边框。B2/G2/B4 种子沿用 Android 当前值并标记 RP-A03，尚非 Frozen 值。</small>
         </fieldset>
         <fieldset>
           <legend>Outer Bloom · 鱼体暖金柔光</legend>
@@ -128,7 +129,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>绘制层级：</strong>原图 → 照片四周蓝青/暖金 Receiving Light 与 7 条断开 Edge Field 路径 → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不进入鱼体高亮。Receiving Light 使用 Android 当前值 Alpha 0.13，超过 Frozen Rendering Contract 上限 0.07，作为待审视觉候选并由 RP-A01 跟踪；不可标记 Frozen 参数通过。B2/G2/B4 沿用 Android 当前种子并标记 RP-A03，未声称为 Frozen 值。此页面使用浏览器 Canvas 2D；Blur / 合成与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>Frozen 对照：</strong>02 / 03 / 04 原型中的照片外围光场为四个断开的蓝金能量岛，不是完整边框；右上蓝岛最强，左上/左下金岛承托，右下蓝岛最弱。<br><strong>绘制层级：</strong>原图 → 沿冻结岛路径的局部 Receiving Light → Primary Outer / Mid / Core → Companion / B1 Micro → 静态能量节点 → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不会进入鱼体高亮。Receiving Light 使用 Android 当前值 Alpha 0.13，高于 Frozen Rendering Contract 的 0.07 上限，继续由 RP-A01 跟踪；这是浏览器视觉候选，不代表 Frozen 参数或 Android Runtime 通过。B2/G2/B4 种子标记 RP-A03。Canvas 2D Blur / 混色与 Android Canvas 不等价。</div>
     </section>
 
     <section class="edgeglow-footer-grid">

@@ -50,8 +50,12 @@ def main() -> None:
     assert all(f'id="{canvas}"' in page for canvas in ("originalCanvas", "contourCanvas", "glowCanvas")), "three photo views are required"
     assert all(token in renderer for token in ("Path2D", "getTotalLength", "getPointAtLength", "screen", "blur(")), "Path-based layered renderer tokens are missing"
     assert "drawRoundRect" not in renderer and "addRoundRect" not in renderer, "fixed rounded-rectangle rendering returned"
-    assert all(f'id="{control}"' in page for control in ("edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "edgeFieldIntensity")), "photo-edge light controls are required"
-    assert all(token in renderer for token in ("drawReceivingLight", "drawPrimaryEdgeIslands", "drawSecondaryEdgeFragments", "edgeFieldParts", 'id: "B1"', 'id: "B3"', 'id: "G1"', 'id: "G3"', 'id: "B2"', 'id: "B4"', 'id: "G2"')), "four primary paths, three secondary fragments and local receiving light are required"
+    assert all(f'id="{control}"' in page for control in ("edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "companionHairlinesEnabled", "edgeFieldIntensity")), "photo-edge light controls are required"
+    assert all(token in renderer for token in ("drawReceivingLight", "drawPrimaryEdgeIslands", "drawSecondaryEdgeFragments", "drawCompanionHairlines", "drawStaticEnergyNodes", "edgeFieldPartsAt", 'id: "B1"', 'id: "B3"', 'id: "G1"', 'id: "G3"', 'id: "B2"', 'id: "B4"', 'id: "G2"', 'id: "B1C"', 'id: "B1M"')), "four primary islands, legacy fragments, companion hairlines and path-following local light are required"
+    receiving_renderer = renderer.split("function drawReceivingLight", 1)[1].split("function edgeFieldPartsAt", 1)[0]
+    perimeter_path_renderer = renderer.split("function drawEdgeFieldPathSet", 1)[1].split("function drawCompanionHairlines", 1)[0]
+    assert 'ctx.globalCompositeOperation = "screen"' in receiving_renderer and 'ctx.globalCompositeOperation = "screen"' in perimeter_path_renderer, "photo-edge light must use a luminous blend in the Web visual study"
+    assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
     assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
     fish_renderer = renderer.split("function createContourGradient", 1)[1].split("function drawReceivingLight", 1)[0]
     assert "params.edgeFieldBlueColor" not in fish_renderer and "params.blueColor" not in fish_renderer, "blue/cyan perimeter color must never enter Fish Focus"
@@ -73,7 +77,16 @@ def main() -> None:
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
-    assert "receiving_alpha_default: 0.13" in renderer and "const alpha = 0.13 * intensity * island.weight" in renderer and "exceeds Frozen Rendering Contract cap 0.07; open RP-A01" in renderer, "Android-runtime receiving light candidate must expose its Frozen contract discrepancy"
+    assert "receiving_alpha_default: 0.13" in renderer and "0.13 * common" in receiving_renderer and "exceeds Frozen Rendering Contract cap 0.07; open RP-A01" in renderer, "Android-runtime receiving light candidate must expose its Frozen contract discrepancy"
+    expected_companion_path_definitions = (
+        '{ id: "B1C", parentId: "B1", family: "blue", widthDp: 0.60, phaseDelta: -0.055, visibleRatio: 0.44, weight: 0.30, start: [0.75, -0.01], control1: [0.91, 0.07], control2: [0.99, 0.20], end: [0.94, 0.37] }',
+        '{ id: "G1C", parentId: "G1", family: "gold", widthDp: 0.58, phaseDelta: 0.065, visibleRatio: 0.42, weight: 0.30, start: [-0.01, 0.20], control1: [0.04, 0.11], control2: [0.13, 0.04], end: [0.24, 0.00] }',
+        '{ id: "G3C", parentId: "G3", family: "gold", widthDp: 0.60, phaseDelta: 0.050, visibleRatio: 0.38, weight: 0.30, start: [0.01, 0.77], control1: [0.09, 0.87], control2: [0.20, 0.94], end: [0.34, 0.99] }',
+        '{ id: "B3C", parentId: "B3", family: "blue", widthDp: 0.58, phaseDelta: -0.060, visibleRatio: 0.34, weight: 0.30, start: [0.99, 0.65], control1: [0.91, 0.77], control2: [0.82, 0.90], end: [0.69, 0.99] }',
+        '{ id: "B1M", parentId: "B1", family: "blue", widthDp: 0.42, phaseDelta: 0.085, visibleRatio: 0.12, weight: 0.18, start: [0.84, -0.01], control1: [0.94, 0.05], control2: [0.99, 0.13], end: [0.985, 0.24] }',
+    )
+    assert all(definition in renderer for definition in expected_companion_path_definitions), "companion and B1-only micro geometry must match RecognitionAmbientField.kt"
+    assert "drawCompanionHairlines(bufferContext, companionEdgeFieldGeometry)" in renderer and "drawCompanionHairlines(bufferContext, microEdgeFieldGeometry, true)" in renderer, "frozen companion/micro layers must be drawn independently"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -93,12 +106,16 @@ def main() -> None:
             "primary_path_ids": ["B1", "B3", "G1", "G3"],
             "secondary_path_ids": ["B2", "G2", "B4"],
             "secondary_seed_authority": {"source": "Android runtime", "frozen": False, "tracking": "RP-A03"},
+            "companion_path_ids": ["B1C", "G1C", "G3C", "B3C"],
+            "micro_path_ids": ["B1M"],
+            "receiving_light_renderer": "path-following local illumination; no corner circles",
+            "perimeter_web_blend": "screen; visual study only, not Android-equivalent",
             "receiving_light_default_alpha": 0.13,
             "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",
         },
-        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island and Secondary Fragment layers", "all seven Android path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
+        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "path-following Receiving Light with no circular corner blobs", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
