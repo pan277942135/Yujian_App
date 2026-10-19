@@ -101,28 +101,25 @@ async function main() {
   await afterRender(page, () => page.locator("#outerEnabled").uncheck());
   const noOuter = await canvasStats(page);
   assert.notEqual(noOuter.hash, defaultGlow.hash, "Outer Bloom toggle changes rendered pixels.");
-  await afterRender(page, () => page.locator("#outerEnabled").check());
   await afterRender(page, () => page.locator("#coreEnabled").uncheck());
   const noCore = await canvasStats(page);
-  assert.notEqual(noCore.hash, defaultGlow.hash, "Core Highlight toggle changes rendered pixels.");
-  await afterRender(page, () => page.locator("#coreEnabled").check());
+  assert.notEqual(noCore.hash, noOuter.hash, "Core Highlight toggle changes rendered pixels independently of the preceding state.");
   await afterRender(page, () => page.locator("#cometEnabled").uncheck());
   const noComet = await canvasStats(page);
-  assert.notEqual(noComet.hash, defaultGlow.hash, "Static Comet toggle changes rendered pixels.");
-  await afterRender(page, () => page.locator("#cometEnabled").check());
+  assert.notEqual(noComet.hash, noCore.hash, "Static Comet toggle changes rendered pixels independently of the preceding state.");
+  await afterRender(page, () => page.locator("#resetButton").click());
+  const afterLayerReset = await canvasStats(page);
+  assert.equal(afterLayerReset.hash, defaultGlow.hash, "Reset restores all independently toggled layers.");
 
   await setControl(page, "#outerWidth", 82);
   const wideBloom = await canvasStats(page);
-  assert.notEqual(wideBloom.hash, defaultGlow.hash, "Outer Bloom width changes rendered pixels.");
-  await setControl(page, "#outerWidth", 52);
+  assert.notEqual(wideBloom.hash, afterLayerReset.hash, "Outer Bloom width changes rendered pixels.");
   await setControl(page, "#cometLength", 26);
   const longComet = await canvasStats(page);
-  assert.notEqual(longComet.hash, defaultGlow.hash, "Static Comet arc length changes rendered pixels.");
-  await setControl(page, "#cometLength", 14);
+  assert.notEqual(longComet.hash, wideBloom.hash, "Static Comet arc length changes rendered pixels.");
   await setControl(page, "#cometPosition", 64);
   const movedComet = await canvasStats(page);
-  assert.notEqual(movedComet.hash, defaultGlow.hash, "Static Comet path position changes rendered pixels.");
-  await setControl(page, "#cometPosition", 21);
+  assert.notEqual(movedComet.hash, longComet.hash, "Static Comet path position changes rendered pixels.");
 
   await afterRender(page, () => page.locator("#contourVisible").uncheck());
   const contourHidden = await canvasStats(page, "contourCanvas");

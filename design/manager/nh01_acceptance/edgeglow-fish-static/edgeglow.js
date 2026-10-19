@@ -284,6 +284,10 @@
     updateOutputs();
   }
 
+  function markRendered() {
+    document.documentElement.dataset.renderVersion = String(Number(document.documentElement.dataset.renderVersion || 0) + 1);
+  }
+
   function renderAll() {
     updateOutputs();
     if (!fixture || !photo.complete || !photo.naturalWidth) return;
@@ -291,15 +295,23 @@
     drawContour();
     renderGlowBuffer();
     drawGlowComparison();
-    document.documentElement.dataset.renderVersion = String(Number(document.documentElement.dataset.renderVersion || 0) + 1);
+    markRendered();
   }
 
-  function scheduleRender() {
+  let queuedRenderKind = "none";
+  const renderPriority = { none: 0, compare: 1, contour: 1, glow: 2, all: 3 };
+  function scheduleRender(kind = "glow") {
+    if (renderPriority[kind] > renderPriority[queuedRenderKind]) queuedRenderKind = kind;
     if (renderQueued) return;
     renderQueued = true;
     requestAnimationFrame(() => {
       renderQueued = false;
-      renderAll();
+      const requested = queuedRenderKind;
+      queuedRenderKind = "none";
+      if (requested === "all") renderAll();
+      else if (requested === "compare") { drawGlowComparison(); markRendered(); }
+      else if (requested === "contour") { drawContour(); markRendered(); }
+      else if (requested === "glow") { renderGlowBuffer(); drawGlowComparison(); markRendered(); }
     });
   }
 
@@ -315,12 +327,12 @@
       const control = el[controlId];
       params[param] = control.type === "checkbox" ? control.checked : (control.type === "range" ? Number(control.value) : control.value);
       if (param === "cometFalloff") params[param] = Number(params[param]);
-      scheduleRender();
+      scheduleRender(param === "contourVisible" ? "contour" : (param === "compareMode" || param === "wipePosition" ? "compare" : "glow"));
     });
     el[controlId].addEventListener("change", () => {
       const control = el[controlId];
       params[param] = control.type === "checkbox" ? control.checked : (control.type === "range" ? Number(control.value) : control.value);
-      scheduleRender();
+      scheduleRender(param === "contourVisible" ? "contour" : (param === "compareMode" || param === "wipePosition" ? "compare" : "glow"));
     });
   }
 
