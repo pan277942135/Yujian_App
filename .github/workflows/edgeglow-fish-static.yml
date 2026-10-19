@@ -33,7 +33,7 @@ concurrency:
 
 env:
   CENTER_SOURCE_BRANCH: design/nh01-cloud-structured-parity-v1
-  CENTER_SOURCE_SHA: 08ed847e711f8c7accd4ebba08a74e55e756882f
+  CENTER_SOURCE_SHA: b65cbdd5fad07e0fddeea1acb38664690f01a9cc
   PR_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
