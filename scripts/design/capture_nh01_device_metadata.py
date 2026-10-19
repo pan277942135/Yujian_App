@@ -24,6 +24,24 @@ def adb(*args: str) -> str:
     return result.stdout.replace("\r", "").strip()
 
 
+def parse_wm_size(output: str) -> tuple[int, int] | None:
+    """Prefer an explicitly configured WindowManager size over physical size."""
+    for source in ("Override", "Physical"):
+        match = re.search(rf"{source} size: (\d+)x(\d+)", output)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+    return None
+
+
+def parse_wm_density(output: str) -> int | None:
+    """Prefer the WindowManager density override over the panel's physical DPI."""
+    for source in ("Override", "Physical"):
+        match = re.search(rf"{source} density: (\d+)", output)
+        if match:
+            return int(match.group(1))
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
@@ -85,14 +103,14 @@ def main() -> int:
             raise SystemExit(f"ADB device metadata capture failed: {error}")
         return write_unavailable()
     args.insets_dump.write_text(window_dump + "\n", encoding="utf-8")
-    size = re.search(r"(?:Override|Physical) size: (\d+)x(\d+)", size_text)
-    density = re.search(r"(?:Override|Physical) density: (\d+)", density_text)
+    size = parse_wm_size(size_text)
+    density = parse_wm_density(density_text)
     payload = {
         "profile": "Pixel 2",
         "api_level": int(api) if api.isdigit() else api,
-        "resolution_px": [int(size.group(1)), int(size.group(2))] if size else None,
-        "density_dpi": int(density.group(1)) if density else None,
-        "density_scale": round(int(density.group(1)) / 160, 3) if density else None,
+        "resolution_px": list(size) if size else None,
+        "density_dpi": density,
+        "density_scale": round(density / 160, 3) if density else None,
         "font_scale": 1.0,
         "insets_px": None,
         "insets_capture": str(args.insets_dump),
