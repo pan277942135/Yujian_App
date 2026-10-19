@@ -405,13 +405,13 @@ function applyDLevel(){
   if(mapping&&mapping.quality){elements.quality=mapping.quality;$("qualitySelect").value=mapping.quality;}
   render();
 }
-function selectState(index){
+function selectState(index,preserveStrength=false){
   elements.stateIndex=clamp(index,0,elements.config.p3_states_and_status.product_states.length-1);
   const state=elements.config.p3_states_and_status.product_states[elements.stateIndex];
   const strength=elements.config.p4_motion_quality_responsive.motion_contract.state_strength[state.id];
   const speed=elements.config.p4_motion_quality_responsive.motion_contract.primary_speed[state.id];
-  elements.params.stateStrength=strength;
-  $("paramStrength").value=strength;$("paramMotionSpeed").value=speed;
+  if(!preserveStrength||elements.params.stateStrength==null)elements.params.stateStrength=strength;
+  $("paramStrength").value=elements.params.stateStrength;$("paramMotionSpeed").value=speed;
   document.querySelectorAll("#stateButtons button").forEach((b,i)=>b.classList.toggle("active",i===elements.stateIndex));
   $("stateLabel").textContent=state.id;
   $("frozenCaption").textContent="Frozen · "+state.display_name+" · source unbound";
@@ -1036,7 +1036,7 @@ async function importExperiment(event){
     for(const input of document.querySelectorAll("#pathChecks input"))if(Object.hasOwn(data.paths||{},input.dataset.path))input.checked=Boolean(data.paths[input.dataset.path]);
     const rangeRefs={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
     for(const [id,key] of Object.entries(rangeRefs))$(id).value=elements.params[key];
-    selectState(stateIndex);updateRendererNote();updateQuickControlValues();render();
+    selectState(stateIndex,true);updateRendererNote();updateQuickControlValues();render();
   }catch(error){reportError("Experiment import failed · "+error.message);}
   event.target.value="";
 }
