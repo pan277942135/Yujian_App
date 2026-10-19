@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "document_type": "source_manifest",
+  "status": "PASS",
+  "source": {
+    "canonical_main_sha_at_handoff": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+    "pr164_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7"
+  },
+  "pr164": {
+    "number": 164,
+    "source_branch": "design/m1-nh01-figma-structural-handoff-v2",
+    "source_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7",
+    "mapping_repo_path": "design/manager/nh01_acceptance/data/source/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+    "mapping_sha256": "0a9880d1250969d85104641686efe1b1f85c965b8d9b2f7954d387d3b72c0b6a",
+    "importer_report_url": "https://github.com/pan277942135/Yujian_App/blob/77a9aabc2648bda2942575d6600b74c9fe7d3ad7/release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1_REPORT.md",
+    "importer_zip_url": "https://github.com/pan277942135/Yujian_App/raw/77a9aabc2648bda2942575d6600b74c9fe7d3ad7/release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip",
+    "importer_scope": "Reused as handoff evidence; not rebuilt or claimed as real Figma visual acceptance."
+  },
+  "frozen_authority": {
+    "repo_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "width": 1080,
+    "height": 1920,
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "expected_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "status": "PASS",
+    "use": "Read-only reference image displayed separately; never used as the structured preview layer."
+  },
+  "source_contracts": [
+    {
+      "repo_path": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Component_Anchor_Map_V1.json",
+      "sha256": "72905e1be060f33028ded095d58a54bad21df3fc39ad5277609ce1e3c79c2350",
+      "role": "component anchor authority"
+    },
+    {
+      "repo_path": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Pixel_Targets_V1.json",
+      "sha256": "e0b2d8f84b3a1f719417e8a1bff3784252b01cd375c8fb92a7a20b5db4d852f0",
+      "role": "pixel/ROI thresholds and responsive profile authority"
+    },
+    {
+      "repo_path": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json",
+      "sha256": "959b753875d6c43aa5bc440995836e7345814e3c0737d169de4f3a79f4206209",
+      "role": "Android resource binding authority"
+    },
+    {
+      "repo_path": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+      "sha256": "837f5aada51ad5d7de3cf9a7129235828027f27d8f4a73159515f6e6935cb307",
+      "role": "responsive geometry authority"
+    },
+    {
+      "repo_path": "design/pages/home/normal_home/engineering/Quantitative_Visual_Acceptance_Contract_V1.md",
+      "sha256": "318adfb3dacde1384acacf424cb1e5f3cd41958b89f01d1fa7a74c25db91b44e",
+      "role": "visual comparison tolerance authority"
+    },
+    {
+      "repo_path": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Hero_EvidenceFit_Contract_V1.md",
+      "sha256": "6579d1156e3202e84a3e79a74cc4d66707dfa9097fcb0f49c8364abf0c1f4509",
+      "role": "hero photo crop and evidence-fit authority"
+    },
+    {
+      "repo_path": "design/pages/home/normal_home/engineering/hero_real_photo_fixture_register_v1.json",
+      "sha256": "959b292c2d9b27403834456dcce90ef372cee9638e28e41e0ba5537f1aeaa88d",
+      "role": "photo source and usage-rights status"
+    }
+  ],
+  "public_asset_review": {
+    "repo_is_public": true,
+    "source_assets_are_in_public_repository": true,
+    "frozen_full_reference_already_registered_in_design_manager_pages_copy": true,
+    "hero_fixture_usage_rights": "NOT_VERIFIED; do not expose fixture photo as an approved preview asset.",
+    "sensitive_credentials_or_internal_runner_logs_in_viewer": false
+  }
+}
