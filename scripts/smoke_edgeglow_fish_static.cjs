@@ -66,10 +66,11 @@ async function perimeterDeltaByCorner(page) {
       { id: "bottom-right-blue", x0: 0.62, x1: 1, y0: 0.64, y1: 1, warmer: false }
     ];
     return corners.map(corner => {
-      let changedPixels = 0, deltaR = 0, deltaG = 0, deltaB = 0;
+      let changedPixels = 0, sampleCount = 0, deltaR = 0, deltaG = 0, deltaB = 0;
       for (let y = Math.floor(canvas.height * corner.y0); y < Math.floor(canvas.height * corner.y1); y += 4) {
         for (let x = Math.floor(canvas.width * corner.x0); x < Math.floor(canvas.width * corner.x1); x += 4) {
           const i = (y * canvas.width + x) * 4;
+          sampleCount++;
           // Compare the light-on frame against the light-off reference.
           const dr = reference[i] - current[i];
           const dg = reference[i + 1] - current[i + 1];
@@ -78,7 +79,8 @@ async function perimeterDeltaByCorner(page) {
           deltaR += dr; deltaG += dg; deltaB += db;
         }
       }
-      return { id: corner.id, changedPixels, signedDeltaRGB: [deltaR, deltaG, deltaB], colorRoleMatches: corner.warmer ? deltaR > deltaB : deltaB > deltaR };
+      const colorRoleMargin = (corner.warmer ? deltaR - deltaB : deltaB - deltaR) / sampleCount;
+      return { id: corner.id, changedPixels, changedRatio: changedPixels / sampleCount, colorRoleMargin, signedDeltaRGB: [deltaR, deltaG, deltaB], colorRoleMatches: colorRoleMargin > 0 };
     });
   });
 }
@@ -195,7 +197,7 @@ async function main() {
   const noEdgeField = await wholeCanvasHash(page);
   assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
   const perimeterCorners = await perimeterDeltaByCorner(page);
-  assert.ok(perimeterCorners.every(corner => corner.changedPixels > 20 && corner.colorRoleMatches), `Frozen blue/gold roles are perceptible in all four photo corners: ${JSON.stringify(perimeterCorners)}`);
+  assert.ok(perimeterCorners.every(corner => corner.changedRatio > 0.55 && corner.colorRoleMargin > 12 && corner.colorRoleMatches), `Frozen blue/gold perimeter light must produce a substantial color signal in every photo corner: ${JSON.stringify(perimeterCorners)}`);
   await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
   await afterRender(page, () => page.locator("#resetButton").click());
   assert.equal(await wholeCanvasHash(page), defaultWholeGlow, "Reset restores the default edge-field render.");
