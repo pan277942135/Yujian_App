@@ -1778,5 +1778,517 @@
   },
   "engineering_handoff_status": "ENGINEERING_HANDOFF_READY",
   "runtime_validation_status": "NOT_RUN",
-  "overall_m1_gate": "NOT_PASS_PENDING_REAL_FIGMA_NODES_EXPORT_AND_INDEPENDENT_QA"
+  "overall_m1_gate": "NOT_PASS_PENDING_REAL_FIGMA_NODES_EXPORT_AND_INDEPENDENT_QA",
+  "optical_lab_runtime_snapshot": {
+    "status": "ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN",
+    "purpose": "Only fills rendering inputs absent from the P1-P5 JSON so the browser lab can compare current Android behavior. This extension is runtime provenance, not Frozen design authority or a visual PASS.",
+    "source_files": [
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+        "git_blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
+        "git_blob_sha": "151d3f8494dc0b9edc4165b0d5028a5faeed916c"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokens.kt",
+        "git_blob_sha": "68a61dae637672337dd8117ae789493f112d97e3"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionStatusOverlay.kt",
+        "git_blob_sha": "891caf7473bf2a46c5730bc3586df7bc069f575a"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+        "git_blob_sha": "cce00725a08f5d4c25e3ba6c0003ca6d8f7bf286"
+      }
+    ],
+    "scene_background_color": "#102D35",
+    "decorative_crop_alpha": 0.16,
+    "receiving_light_layout": [
+      {
+        "id": "B_UR",
+        "center": [
+          1,
+          0.12
+        ],
+        "radius_min_dimension": 0.28,
+        "oval": [
+          0.62,
+          -0.04,
+          0.46,
+          0.4
+        ]
+      },
+      {
+        "id": "G_UL",
+        "center": [
+          0,
+          0.1
+        ],
+        "radius_min_dimension": 0.25,
+        "oval": [
+          -0.08,
+          -0.04,
+          0.46,
+          0.36
+        ]
+      },
+      {
+        "id": "G_LL",
+        "center": [
+          0,
+          0.88
+        ],
+        "radius_min_dimension": 0.26,
+        "oval": [
+          -0.08,
+          0.64,
+          0.48,
+          0.38
+        ]
+      },
+      {
+        "id": "B_LR",
+        "center": [
+          1,
+          0.86
+        ],
+        "radius_min_dimension": 0.25,
+        "oval": [
+          0.6,
+          0.64,
+          0.48,
+          0.38
+        ]
+      }
+    ],
+    "receiving_light_alpha_stops": [
+      [
+        0,
+        1
+      ],
+      [
+        0.34,
+        0.92
+      ],
+      [
+        0.72,
+        0.4
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "gradient_tail_stops": [
+      [
+        0,
+        0.08
+      ],
+      [
+        0.58,
+        0.58
+      ],
+      [
+        0.88,
+        1
+      ],
+      [
+        1,
+        0.78
+      ]
+    ],
+    "hairline_runtime_alpha": {
+      "companion": {
+        "glow_multiplier": 0.18,
+        "glow_cap": 0.08,
+        "core_multiplier": 0.52,
+        "core_cap": 0.2
+      },
+      "micro": {
+        "glow_multiplier": 0.18,
+        "glow_cap": 0.08,
+        "core_multiplier": 0.52,
+        "core_cap": 0.2
+      }
+    },
+    "companion_hairline_geometry": [
+      {
+        "id": "B1C",
+        "parent": "B1",
+        "start": [
+          0.75,
+          -0.01
+        ],
+        "control1": [
+          0.91,
+          0.07
+        ],
+        "control2": [
+          0.99,
+          0.2
+        ],
+        "end": [
+          0.94,
+          0.37
+        ]
+      },
+      {
+        "id": "G1C",
+        "parent": "G1",
+        "start": [
+          -0.01,
+          0.2
+        ],
+        "control1": [
+          0.04,
+          0.11
+        ],
+        "control2": [
+          0.13,
+          0.04
+        ],
+        "end": [
+          0.24,
+          0
+        ]
+      },
+      {
+        "id": "G3C",
+        "parent": "G3",
+        "start": [
+          0.01,
+          0.77
+        ],
+        "control1": [
+          0.09,
+          0.87
+        ],
+        "control2": [
+          0.2,
+          0.94
+        ],
+        "end": [
+          0.34,
+          0.99
+        ]
+      },
+      {
+        "id": "B3C",
+        "parent": "B3",
+        "start": [
+          0.99,
+          0.65
+        ],
+        "control1": [
+          0.91,
+          0.77
+        ],
+        "control2": [
+          0.82,
+          0.9
+        ],
+        "end": [
+          0.69,
+          0.99
+        ]
+      }
+    ],
+    "micro_hairline_geometry": {
+      "id": "B1M",
+      "parent": "B1",
+      "start": [
+        0.84,
+        -0.01
+      ],
+      "control1": [
+        0.94,
+        0.05
+      ],
+      "control2": [
+        0.99,
+        0.13
+      ],
+      "end": [
+        0.985,
+        0.24
+      ]
+    },
+    "fish_halo_alpha_stops": [
+      [
+        0,
+        0
+      ],
+      [
+        0.52,
+        0
+      ],
+      [
+        0.75,
+        0
+      ],
+      [
+        0.88,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "status_layout": {
+      "safe_horizontal_min_dp": 24,
+      "back_button_size_dp": 48,
+      "back_top_extra_dp": 4,
+      "back_stroke_dp": 2,
+      "status_bottom_padding_dp": {
+        "IMAGE_RECOGNIZING": 84,
+        "FISH_LOCATED": 34,
+        "SPECIES_RECOGNIZING": 34
+      },
+      "ring_static_start_degrees": -90,
+      "ring_track_color": "#8A979B",
+      "ring_track_alpha": 0.4,
+      "border_gradient_stops": [
+        {
+          "position": 0,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 0.44
+        },
+        {
+          "position": 0.34,
+          "color_token": "color.legacy_f6d99bff",
+          "alpha": 0.28
+        },
+        {
+          "position": 0.68,
+          "color_token": "color.legacy_bfeaf2ff",
+          "alpha": 0.28
+        },
+        {
+          "position": 1,
+          "color_token": "color.legacy_d8f5faff",
+          "alpha": 0.44
+        }
+      ],
+      "ring_gradient_stops": [
+        {
+          "position": 0,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 0.22
+        },
+        {
+          "position": 0.25,
+          "color_token": "color.legacy_f6d99bff",
+          "alpha": 1
+        },
+        {
+          "position": 0.5,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 1
+        },
+        {
+          "position": 0.75,
+          "color_token": "color.legacy_bfeaf2ff",
+          "alpha": 0.85
+        },
+        {
+          "position": 1,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 0.22
+        }
+      ]
+    },
+    "renderer_candidates": {
+      "status": "BROWSER_ENGINEERING_CANDIDATE_NOT_FROZEN_PENDING_STATIC_VISUAL_REVIEW",
+      "cubic_subdivisions": 220,
+      "software_canvas_filter_blur_multiplier": 1,
+      "mask_diagnostic_alpha": 0.18,
+      "hardware_outer_bloom_layers": [
+        {
+          "width_multiplier": 2.8,
+          "alpha_multiplier": 0.2
+        },
+        {
+          "width_multiplier": 1.8,
+          "alpha_multiplier": 0.36
+        },
+        {
+          "width_multiplier": 1,
+          "alpha_multiplier": 0.6
+        }
+      ],
+      "hardware_mid_glow_layers": [
+        {
+          "width_multiplier": 1.8,
+          "alpha_multiplier": 0.3
+        },
+        {
+          "width_multiplier": 1,
+          "alpha_multiplier": 0.7
+        }
+      ],
+      "parameter_provenance": "Browser renderer multipliers and tessellation count are local engineering knobs; they are absent from Frozen design and P1–P5 and require visual review.",
+      "back_icon_geometry": {
+        "status": "BROWSER_APPROXIMATION_OF_ANDROID_AUTOMIRRORED_ARROW_BACK",
+        "viewbox_dp": [
+          24,
+          24
+        ],
+        "segments": [
+          [
+            [
+              19,
+              12
+            ],
+            [
+              5,
+              12
+            ]
+          ],
+          [
+            [
+              12,
+              19
+            ],
+            [
+              5,
+              12
+            ],
+            [
+              12,
+              5
+            ]
+          ]
+        ]
+      },
+      "roi_regions": {
+        "all": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "top-left": [
+          0,
+          0,
+          0.32,
+          0.25
+        ],
+        "top-right": [
+          0.68,
+          0,
+          0.32,
+          0.25
+        ],
+        "bottom-right": [
+          0.68,
+          0.72,
+          0.32,
+          0.28
+        ],
+        "bottom-left": [
+          0,
+          0.72,
+          0.32,
+          0.28
+        ],
+        "center": [
+          0.32,
+          0.32,
+          0.36,
+          0.36
+        ],
+        "status": [
+          0.05,
+          0.73,
+          0.9,
+          0.25
+        ]
+      },
+      "roi_fish_expansion_ratio": 0.12,
+      "roi_status": "BROWSER_DIAGNOSTIC_REGION_CANDIDATE_NOT_DESIGN_GEOMETRY"
+    },
+    "fish_focus_static_values": {
+      "status": "ANDROID_RUNTIME_REDUCE_MOTION_STATIC_SAMPLE_NOT_FROZEN_DESIGN",
+      "basis": "Settled/Reduce Motion snapshot sampled from RecognitionFishFocus.kt; native runtime still requires Android validation.",
+      "defaults": {
+        "halo_alpha": 0.15,
+        "contour_alpha": 0.39
+      },
+      "FISH_LOCATED": {
+        "A": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0.39
+        },
+        "B": {
+          "halo_alpha": 0.28,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0.48
+        },
+        "C": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0
+        }
+      },
+      "SPECIES_RECOGNIZING": {
+        "A": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0.39
+        },
+        "B": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0.36
+        },
+        "C": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0
+        }
+      }
+    },
+    "responsive_lab": {
+      "default_viewport_px": [
+        390,
+        844
+      ],
+      "extra_viewports_px": [
+        [
+          360,
+          800
+        ],
+        [
+          412,
+          915
+        ],
+        [
+          800,
+          360
+        ],
+        [
+          941,
+          1672
+        ]
+      ],
+      "test_viewports_from_p4": true,
+      "note": "The canonical responsive fixtures remain in p4_motion_quality_responsive.responsive_contract.existing_viewports_px."
+    },
+    "comparison_contract": {
+      "frozen_fit": "Uniform FIT into selected preview viewport; never stretch a Frozen reference to a different aspect ratio.",
+      "pixel_diff": "Same canvas dimensions and coordinate space; experimental because source-photo identity is not attested.",
+      "status": "BROWSER_COMPARISON_METHOD_NOT_FROZEN_DESIGN"
+    }
+  },
+  "optical_lab_input_baseline": {
+    "repository": "pan277942135/Yujian_App",
+    "pr_165_head_sha": "31d1483b83038db78821625cd9339ad0e8c19ff3",
+    "pr_166_head_sha_before_optical_lab": "f6ee9ddebb6036e9f3ce5629e5ff9f9b3c10a209",
+    "base_tree_sha": "87699ca418eafe09b2cdf09c157396acdae5c6ef",
+    "pre_extension_config_blob_sha": "b1646d1379682ad3c0df9e628792e180d1f5437e",
+    "gating_note": "PR #166 remains Draft/Open/Unmerged; no Figma node, Frozen diff, or Android Runtime PASS is claimed."
+  }
 }

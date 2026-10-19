@@ -1,0 +1,87 @@
+name: Recognition Optical Lab · Static Validation
+
+on:
+  push:
+    branches:
+      - design/recognition-processing-handoff-p0
+    paths:
+      - "design/manager/index.html"
+      - "design/manager/optical-lab/**"
+      - "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
+      - "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
+      - "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
+      - "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
+      - "design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/**"
+      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
+      - "scripts/verify_processing_optical_lab.mjs"
+      - "scripts/smoke_processing_optical_lab.cjs"
+      - ".github/workflows/processing-optical-lab.yml"
+  pull_request:
+    branches:
+      - design/processing-remove-early-visual-v1
+    paths:
+      - "design/manager/index.html"
+      - "design/manager/optical-lab/**"
+      - "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
+      - "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
+      - "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
+      - "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
+      - "design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/**"
+      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
+      - "scripts/verify_processing_optical_lab.mjs"
+      - "scripts/smoke_processing_optical_lab.cjs"
+      - ".github/workflows/processing-optical-lab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/processing-lab" playwright@1.63.0
+          "$RUNNER_TEMP/processing-lab/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Verify P1–P5 bindings, source SHAs and Frozen bytes
+        run: node scripts/verify_processing_optical_lab.mjs
+
+      - name: Run browser smoke and export static evidence
+        shell: bash
+        env:
+          LAB_OUTPUT_DIR: optical-lab-artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p "$LAB_OUTPUT_DIR"
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory . > "$RUNNER_TEMP/processing-optical-lab-http.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8765/design/manager/optical-lab/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8765/design/manager/optical-lab/ >/dev/null
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
+
+      - name: Upload browser screenshots and comparison report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Recognition-Optical-Lab-Static
+          path: optical-lab-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
