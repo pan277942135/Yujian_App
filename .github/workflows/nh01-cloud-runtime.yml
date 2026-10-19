@@ -273,10 +273,27 @@ jobs:
           mkdir -p _site
           cp -R design _site/design
           BUILD_SHORT="$(printf '%.12s' "$YUJIAN_SOURCE_SHA")"
-          sed -i "s/__DESIGN_MANAGER_BUILD__/$YUJIAN_SOURCE_SHA/g" _site/design/manager/index.html
-          sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/$BUILD_SHORT/g" _site/design/manager/index.html
-          sed -i "s/__NH01_SOURCE_SHA__/$YUJIAN_SOURCE_SHA/g" _site/design/manager/nh01_acceptance/index.html
-          sed -i "s/__NH01_VIEWER_BUILD__/$YUJIAN_SOURCE_SHA/g" _site/design/manager/nh01_acceptance/index.html
+          python3 - "$YUJIAN_SOURCE_SHA" "$BUILD_SHORT" <<'PY'
+          import sys
+          from pathlib import Path
+
+          source_sha, build_short = sys.argv[1:3]
+          replacements = {
+              "__DESIGN_MANAGER_BUILD__": source_sha,
+              "__DESIGN_MANAGER_BUILD_SHORT__": build_short,
+              "__NH01_SOURCE_SHA__": source_sha,
+              "__NH01_VIEWER_BUILD__": source_sha,
+          }
+          files = (
+              Path("_site/design/manager/index.html"),
+              Path("_site/design/manager/nh01_acceptance/index.html"),
+          )
+          for path in files:
+              content = path.read_text(encoding="utf-8")
+              for token, value in replacements.items():
+                  content = content.replace(token, value)
+              path.write_text(content, encoding="utf-8")
+          PY
           printf '{"sha":"%s","short_sha":"%s"}\n' "$YUJIAN_SOURCE_SHA" "$BUILD_SHORT" > _site/design/manager/build.json
           touch _site/.nojekyll
 
