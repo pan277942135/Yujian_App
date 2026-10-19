@@ -139,9 +139,9 @@ async function main() {
   if (process.env.CENTER_SOURCE_SHA) assert.equal(identity.buildInfo.acceptance_center_source_sha, process.env.CENTER_SOURCE_SHA);
   assert.ok(identity.pathLength > 2500, `PathMeasure arc length is plausible: ${identity.pathLength}`);
   assert.ok(identity.contourBounds[2] < 600 && identity.contourBounds[3] > 900, "Contour is irregular fish-sized geometry, not an image-sized frame.");
-  assert.deepEqual(identity.edgeFieldPaths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4"], "Four frozen primary paths and three source-backed secondary fragments are present.");
-  assert.deepEqual(identity.edgeFieldPaths.map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22], [0.07, 0.18], [0.09, 0.16], [0.11, 0.14]], "Primary seed values are frozen; secondary seeds are recorded Android runtime values.");
-  assert.ok(identity.edgeFieldPaths.slice(4).every(path => path.seedAuthority === "ANDROID_RUNTIME_RP_A03_NOT_FROZEN"), "Secondary path seeds remain explicitly non-Frozen.");
+  assert.deepEqual(identity.edgeFieldPaths.map(path => path.id), ["B1", "B3", "G1", "G3", "B2", "G2", "B4", "B1C", "G1C", "G3C", "B3C", "B1M"], "Four frozen primary paths, three source-backed secondary fragments, four companion hairlines and one micro path are present.");
+  assert.deepEqual(identity.edgeFieldPaths.slice(0, 7).map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22], [0.07, 0.18], [0.09, 0.16], [0.11, 0.14]], "Primary seed values are frozen; secondary seeds are recorded Android runtime values.");
+  assert.ok(identity.edgeFieldPaths.slice(4, 7).every(path => path.seedAuthority === "ANDROID_RUNTIME_RP_A03_NOT_FROZEN"), "Secondary path seeds remain explicitly non-Frozen.");
 
   const canvasDimensions = await page.locator(".photo-stage canvas").evaluateAll(nodes => nodes.map(node => [node.width, node.height]));
   assert.equal(canvasDimensions.length, 3);
