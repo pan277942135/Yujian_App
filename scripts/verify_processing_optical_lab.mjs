@@ -108,7 +108,7 @@ for (const required of [
 assert.equal(html.includes("01_Capture_Transition_Frozen.png"), false);
 assert.equal(html.includes("requestAnimationFrame"), false, "Stage A must remain static until reviewed");
 assert.equal(html.includes("max=\"10000\""), false, "Stage B clock duration must be sourced from P4 config");
-assert.ok(html.includes("manifestState.product_states.find"), "Frozen bindings must come from the existing state Manifest");
+assert.ok(html.includes("elements.manifest.product_states.find(item=>item.id===state.id)"), "Frozen bindings must come from the existing state Manifest");
 assert.ok(html.includes("ENGINEERING MODEL CHECKS PASS · VISUAL REVIEW PENDING"));
 assert.equal(html.includes("createImageBitmap"), false, "no derived/fabricated Frozen source");
 
