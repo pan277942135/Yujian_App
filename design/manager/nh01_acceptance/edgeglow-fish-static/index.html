@@ -128,7 +128,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>绘制层级：</strong>原图 → 照片四周蓝青/暖金 Receiving Light 与 7 条断开 Edge Field 路径 → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不进入鱼体高亮。Receiving Light 使用冻结 Rendering Contract 上限 Alpha 0.07；Android 当前 0.13 的实现差异由 RP-A01 跟踪。B2/G2/B4 沿用 Android 当前种子并标记 RP-A03，未声称为 Frozen 值。此页面使用浏览器 Canvas 2D；Blur / 合成与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>绘制层级：</strong>原图 → 照片四周蓝青/暖金 Receiving Light 与 7 条断开 Edge Field 路径 → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不进入鱼体高亮。Receiving Light 使用 Android 当前值 Alpha 0.13，超过 Frozen Rendering Contract 上限 0.07，作为待审视觉候选并由 RP-A01 跟踪；不可标记 Frozen 参数通过。B2/G2/B4 沿用 Android 当前种子并标记 RP-A03，未声称为 Frozen 值。此页面使用浏览器 Canvas 2D；Blur / 合成与 Android Canvas 不等价。</div>
     </section>
 
     <section class="edgeglow-footer-grid">

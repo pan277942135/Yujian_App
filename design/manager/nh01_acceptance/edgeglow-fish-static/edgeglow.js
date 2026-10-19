@@ -263,9 +263,9 @@
     ctx.globalCompositeOperation = "screen";
     for (const island of islands) {
       const color = island.family === "blue" ? params.edgeFieldBlueColor : params.edgeFieldGoldColor;
-      // Use the upper bound of the Frozen Receiving Light contract so the
-      // four local corner illuminations remain visible in this browser study.
-      const alpha = 0.07 * intensity * island.weight;
+      // Use the current Android runtime alpha for this optical candidate.
+      // This exceeds the Frozen contract's 0.07 cap and remains RP-A01 review work.
+      const alpha = 0.13 * intensity * island.weight;
       const gradient = ctx.createRadialGradient(...island.center, 0, ...island.center, island.radius);
       gradient.addColorStop(0, rgba(color, alpha));
       gradient.addColorStop(0.34, rgba(color, alpha * 0.92));
@@ -507,7 +507,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", animation: false, receiving_alpha_default: 0.07, receiving_alpha_authority: "Upper bound of AI_Edge_Field_V1_Rendering_Contract.json; Android implementation is 0.13 and tracked as RP-A01" },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", animation: false, receiving_alpha_default: 0.13, receiving_alpha_authority: "Android RecognitionAmbientField current runtime value; exceeds Frozen Rendering Contract cap 0.07; open RP-A01" },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo

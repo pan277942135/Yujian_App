@@ -73,7 +73,7 @@ def main() -> None:
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
-    assert "receiving_alpha_default: 0.07" in renderer and "const alpha = 0.07 * intensity * island.weight" in renderer and "tracked as RP-A01" in renderer, "web receiving light must use a visible in-contract value while exposing the Android alpha discrepancy"
+    assert "receiving_alpha_default: 0.13" in renderer and "const alpha = 0.13 * intensity * island.weight" in renderer and "exceeds Frozen Rendering Contract cap 0.07; open RP-A01" in renderer, "Android-runtime receiving light candidate must expose its Frozen contract discrepancy"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -93,7 +93,8 @@ def main() -> None:
             "primary_path_ids": ["B1", "B3", "G1", "G3"],
             "secondary_path_ids": ["B2", "G2", "B4"],
             "secondary_seed_authority": {"source": "Android runtime", "frozen": False, "tracking": "RP-A03"},
-            "receiving_light_default_alpha": 0.07,
+            "receiving_light_default_alpha": 0.13,
+            "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",
         },
