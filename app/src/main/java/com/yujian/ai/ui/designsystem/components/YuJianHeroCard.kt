@@ -105,7 +105,9 @@ fun YuJianHeroCard(
                         colors = listOf(
                             YuJianColors.DeepOverlay.copy(alpha = 0f),
                             YuJianColors.DeepOverlay.copy(alpha = 0.10f),
-                            YuJianColors.DeepOverlay,
+                            // Match the approved fish_card_gradient.png endpoint when the
+                            // runtime asset bundle is not available yet.
+                            YuJianColors.DeepOverlay.copy(alpha = 0.48f),
                         ),
                     ),
                 ),
