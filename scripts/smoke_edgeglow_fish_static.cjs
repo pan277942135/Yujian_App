@@ -170,15 +170,8 @@ async function main() {
   assert.equal(canvasDimensions.length, 3);
   assert.deepEqual(canvasDimensions, [[1152, 1536], [1152, 1536], [1152, 1536]], "All three views share the photo pixel coordinate system.");
 
-  const defaultFullScaleGlow = await canvasStats(page);
-  await afterRender(page, () => page.evaluate(() => {
-    document.querySelectorAll(".photo-stage canvas").forEach(canvas => {
-      canvas.style.width = `${canvas.width}px`;
-      canvas.style.height = `${canvas.height}px`;
-    });
-    window.__EDGEGLOW_LAB__.render();
-  }));
-  const defaultGlow = await canvasStats(page);
+  const defaultPreviewGlow = await canvasStats(page);
+  const defaultGlow = defaultPreviewGlow;
   const defaultWholeGlow = await wholeCanvasHash(page);
   const fishWarmSamples = await fishWarmthSamples(page);
   const goldSamples = fishWarmSamples.filter(sample => sample.redMinusBlue >= 24 && sample.greenMinusBlue >= 10);
@@ -250,9 +243,8 @@ async function main() {
   await afterRender(page, () => page.locator("#resetButton").click());
   await page.waitForFunction(() => document.getElementById("compareMode").value === "side" && document.getElementById("outerWidth").value === "28");
   const resetGlow = await canvasStats(page);
-  assert.equal(resetGlow.hash, defaultFullScaleGlow.hash, "Reset restores the deterministic default render at the responsive preview scale.");
+  assert.equal(resetGlow.hash, defaultPreviewGlow.hash, "Reset restores the deterministic default render at the responsive preview scale.");
 
-  await page.screenshot({ path: path.join(outputDir, "EdgeGlow_Fish_Static_Full_Page.png"), fullPage: true });
   for (const [id, filename] of [["originalCanvas", "01_Original_Photo.png"], ["contourCanvas", "02_Manual_Contour_Overlay.png"], ["glowCanvas", "03_EdgeGlow_Adapted.png"]]) {
     await page.locator(`#${id}`).screenshot({ path: path.join(outputDir, filename) });
   }
