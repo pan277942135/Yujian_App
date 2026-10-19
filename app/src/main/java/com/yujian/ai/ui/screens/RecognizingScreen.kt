@@ -26,6 +26,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -328,11 +330,23 @@ private fun RecognitionPhoto(
         transform = transform,
         contentDescription = "正在识别的鱼获照片",
         modifier = Modifier.fillMaxSize(),
-        testTag = "recognition-photo-source",
-        onBoundsInWindow = onPhotoBoundsInWindow,
     )
     RecognitionAmbientField(
-        phase, Modifier.fillMaxSize(), visualClockMs,
+        phase,
+        Modifier.fillMaxSize().onGloballyPositioned { coordinates ->
+            val viewportWindow = coordinates.boundsInWindow()
+            val content = transform.photoContentRect
+            onPhotoBoundsInWindow?.invoke(
+                Rect(
+                    viewportWindow.left + content.left,
+                    viewportWindow.top + content.top,
+                    viewportWindow.left + content.right,
+                    viewportWindow.top + content.bottom,
+                ),
+                viewportWindow,
+            )
+        },
+        visualClockMs,
         motionSessionKey = motionSessionKey,
         deterministicMotion = deterministicMotion,
         lowPerformance = motionPolicy.lowPerformance,

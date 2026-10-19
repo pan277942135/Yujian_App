@@ -57,7 +57,7 @@
     },
     {
       "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
-      "blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050",
+      "blob_sha": "62fccf49df72f7d4c36f780d1a969e4c2cdeffff",
       "role": "runtime path, glow, quality and motion parameters"
     },
     {
@@ -72,12 +72,12 @@
     },
     {
       "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
-      "blob_sha": "151d3f8494dc0b9edc4165b0d5028a5faeed916c",
+      "blob_sha": "d465bfeb8408d235a8e3ee1eaac2d50e812f92f2",
       "role": "bbox halo, contour, focus levels, transitions"
     },
     {
       "path": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
-      "blob_sha": "cce00725a08f5d4c25e3ba6c0003ca6d8f7bf286",
+      "blob_sha": "d005a291baef35248a1bd573ee44e79c4035a09e",
       "role": "real detector focus input, subject mask generation and contour sampling"
     },
     {
@@ -1785,11 +1785,11 @@
     "source_files": [
       {
         "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
-        "git_blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050"
+        "git_blob_sha": "62fccf49df72f7d4c36f780d1a969e4c2cdeffff"
       },
       {
         "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
-        "git_blob_sha": "151d3f8494dc0b9edc4165b0d5028a5faeed916c"
+        "git_blob_sha": "d465bfeb8408d235a8e3ee1eaac2d50e812f92f2"
       },
       {
         "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokens.kt",
@@ -1801,7 +1801,7 @@
       },
       {
         "path": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
-        "git_blob_sha": "cce00725a08f5d4c25e3ba6c0003ca6d8f7bf286"
+        "git_blob_sha": "d005a291baef35248a1bd573ee44e79c4035a09e"
       }
     ],
     "scene_background_color": "#102D35",

@@ -9,13 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.testTag
 
 /** Draw the original pixels with the exact scale and translation used by focus geometry. */
 @Composable
@@ -24,8 +20,6 @@ fun RecognitionSourcePhoto(
     transform: RecognitionImageTransform,
     contentDescription: String?,
     modifier: Modifier = Modifier,
-    testTag: String? = null,
-    onBoundsInWindow: ((photo: Rect, viewport: Rect) -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val offsetX = with(density) { transform.translationX.toDp() }
@@ -41,21 +35,7 @@ fun RecognitionSourcePhoto(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .absoluteOffset(x = offsetX, y = offsetY)
-                .requiredSize(width = width, height = height)
-                .then(
-                    if (onBoundsInWindow == null) {
-                        Modifier
-                    } else {
-                        Modifier.onGloballyPositioned { coordinates ->
-                            val photoBounds = coordinates.boundsInWindow()
-                            val viewportBounds = coordinates.parentLayoutCoordinates
-                                ?.boundsInWindow()
-                                ?: photoBounds
-                            onBoundsInWindow(photoBounds, viewportBounds)
-                        }
-                    },
-                )
-                .then(if (testTag == null) Modifier else Modifier.testTag(testTag)),
+                .requiredSize(width = width, height = height),
         )
     }
 }
