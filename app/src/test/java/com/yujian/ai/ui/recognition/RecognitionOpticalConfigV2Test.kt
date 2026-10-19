@@ -8,10 +8,10 @@ class RecognitionOpticalConfigV2Test {
     @Test
     fun usesNormalizedReferenceWidthAndPreservesCornerStrengthRoles() {
         assertEquals("2.0.0", RecognitionOpticalConfigV2.VERSION)
-        assertEquals(.85f, RecognitionOpticalConfigV2.islandStrength("G1"), .0001f)
+        assertEquals(.90f, RecognitionOpticalConfigV2.islandStrength("G1"), .0001f)
         assertEquals(1.00f, RecognitionOpticalConfigV2.islandStrength("B1"), .0001f)
-        assertEquals(.75f, RecognitionOpticalConfigV2.islandStrength("G3"), .0001f)
-        assertEquals(.70f, RecognitionOpticalConfigV2.islandStrength("B3"), .0001f)
+        assertEquals(.88f, RecognitionOpticalConfigV2.islandStrength("G3"), .0001f)
+        assertEquals(.84f, RecognitionOpticalConfigV2.islandStrength("B3"), .0001f)
         assertEquals(0f, RecognitionOpticalConfigV2.islandStrength("unknown"), .0001f)
 
         val reference = RecognitionOpticalConfigV2.layerDimensions(
@@ -22,12 +22,12 @@ class RecognitionOpticalConfigV2Test {
             displayedPhotoWidthPx = 1080f,
             quality = RecognitionQualityLevel.FULL,
         )
-        assertEquals(2.6f, reference.coreWidthPx, .001f)
-        assertEquals(18f, reference.innerRadiusPx, .001f)
+        assertEquals(2.8f, reference.coreWidthPx, .001f)
+        assertEquals(20f, reference.innerRadiusPx, .001f)
         assertEquals(.78f, RecognitionOpticalConfigV2.INNER_BLOOM_ALPHA_MODIFIER, .001f)
-        assertEquals(54f, reference.outerRadiusPx, .001f)
+        assertEquals(62f, reference.outerRadiusPx, .001f)
         assertEquals(.74f, RecognitionOpticalConfigV2.OUTER_BLOOM_ALPHA_MODIFIER, .001f)
-        assertEquals(98f, reference.spillRadiusPx, .001f)
+        assertEquals(105f, reference.spillRadiusPx, .001f)
         assertEquals(reference.coreWidthPx * 1.8f, device.coreWidthPx, .001f)
         assertEquals(reference.spillRadiusPx * 1.8f, device.spillRadiusPx, .001f)
     }
@@ -55,9 +55,9 @@ class RecognitionOpticalConfigV2Test {
         assertTrue(high.outerRadiusPx > medium.outerRadiusPx)
         assertTrue(medium.outerRadiusPx > low.outerRadiusPx)
         assertTrue(high.spillRadiusPx > low.spillRadiusPx)
-        assertEquals(.85f, RecognitionOpticalConfigV2.islandStrength("G1"), .0001f)
+        assertEquals(.90f, RecognitionOpticalConfigV2.islandStrength("G1"), .0001f)
         assertEquals(1f, RecognitionOpticalConfigV2.islandStrength("B1"), .0001f)
-        assertEquals(.75f, RecognitionOpticalConfigV2.islandStrength("G3"), .0001f)
-        assertEquals(.70f, RecognitionOpticalConfigV2.islandStrength("B3"), .0001f)
+        assertEquals(.88f, RecognitionOpticalConfigV2.islandStrength("G3"), .0001f)
+        assertEquals(.84f, RecognitionOpticalConfigV2.islandStrength("B3"), .0001f)
     }
 }

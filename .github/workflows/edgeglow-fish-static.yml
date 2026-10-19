@@ -39,7 +39,9 @@ permissions:
 
 concurrency:
   # Serialize the composed branch preview with the canonical main Pages deploy.
-  group: design-manager-pages
+  # Pull-request validation never deploys, so it must not evict a pending push
+  # deployment from GitHub's single-pending-run concurrency slot.
+  group: ${{ github.event_name == 'push' && 'design-manager-pages' || format('edgeglow-static-pr-{0}', github.event.pull_request.number) }}
   cancel-in-progress: false
 
 env:

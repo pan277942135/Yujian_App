@@ -192,8 +192,11 @@ def main() -> None:
         fail("bbox mapping has invalid normalized coordinates")
 
     parity = read_json(root / "recognition_visual_parity_v1_2.json")
-    if parity.get("classification") != "PASS" or len(parity.get("states", [])) != 9:
-        fail("frozen visual parity did not pass all nine reference states")
+    # The repository retains eight Frozen V1.2 references. The separately
+    # captured technical-failure screenshot is required evidence, but has no
+    # Frozen counterpart and must not be represented as a ninth parity pass.
+    if parity.get("classification") != "PASS" or len(parity.get("states", [])) != 8:
+        fail("frozen visual parity did not pass all eight available reference states")
 
     artifacts = [
         {"path": name, "bytes": (root / name).stat().st_size, "sha256": sha256(root / name)}

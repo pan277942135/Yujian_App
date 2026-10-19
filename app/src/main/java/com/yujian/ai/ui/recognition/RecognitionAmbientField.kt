@@ -575,10 +575,10 @@ private fun DrawScope.drawReceivingLight(
         drawLocalBlur(
             path = measuredPath.path,
             color = island.color.copy(alpha = RecognitionOpticalConfigV2.ATMOSPHERIC_SPILL_INTENSITY * common),
-            strokeWidthPx = dimensions.spillRadiusPx * 1.55f,
-            blurRadiusPx = dimensions.spillRadiusPx * .48f,
+            strokeWidthPx = dimensions.spillRadiusPx * 1.7f,
+            blurRadiusPx = dimensions.spillRadiusPx * .56f,
             blurPaints = blurPaints,
-            blend = RecognitionOpticalBlend.SOFT_LIGHT,
+            blend = RecognitionOpticalBlend.SOURCE_OVER,
         )
     }
 }
@@ -623,7 +623,7 @@ private fun DrawScope.drawCompositePrimary(
             strokeWidthPx = outerRadius * 1.8f + coreWidth,
             blurRadiusPx = outerRadius * .46f,
             blurPaints = blurPaints,
-            blend = RecognitionOpticalBlend.SOFT_LIGHT,
+            blend = RecognitionOpticalBlend.SCREEN,
         )
         drawLocalBlur(
             segment.path,

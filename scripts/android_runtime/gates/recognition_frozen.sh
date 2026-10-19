@@ -162,7 +162,7 @@ PY
     rm -f "$output_dir/recognition_production_flow_trace_v3_1.json"
   fi
 
-  for name in recognition_motion_trace_v3_1.json recognition_accessibility_trace_v3_1.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
+  for name in recognition_motion_trace_v3_1.json recognition_accessibility_trace_v3_1.json recognition_visual_qa_v1_3.json fish_focus_bbox_mapping.json fish_subject_segmentation_trace_v1.json fish_subject_mlkit_mask_attempt.png recognition_visual_parity_v1_2.json recognition_visual_parity_contact_sheet_v1_2.png portrait_low_confidence_original.jpg portrait_low_confidence_classifier_crop.png portrait_low_confidence_model_input_224.png portrait_low_confidence_inference_report.txt portrait_low_confidence_class_map.json portrait_low_confidence_diagnostic.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-evidence/${name}" > "$output_dir/${name}" 2>/dev/null || true
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi

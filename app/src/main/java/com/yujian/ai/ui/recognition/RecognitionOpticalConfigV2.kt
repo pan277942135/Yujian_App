@@ -5,26 +5,26 @@ internal object RecognitionOpticalConfigV2 {
     const val VERSION = "2.0.0"
     const val REFERENCE_WIDTH_PX = 600f
 
-    const val CORE_WIDTH_PX = 2.6f
-    const val CORE_INTENSITY = .88f
-    const val INNER_BLOOM_RADIUS_PX = 18f
-    const val INNER_BLOOM_INTENSITY = .62f
+    const val CORE_WIDTH_PX = 2.8f
+    const val CORE_INTENSITY = .92f
+    const val INNER_BLOOM_RADIUS_PX = 20f
+    const val INNER_BLOOM_INTENSITY = .68f
     const val INNER_BLOOM_ALPHA_MODIFIER = .78f
-    const val OUTER_BLOOM_RADIUS_PX = 54f
-    const val OUTER_BLOOM_INTENSITY = .34f
+    const val OUTER_BLOOM_RADIUS_PX = 62f
+    const val OUTER_BLOOM_INTENSITY = .48f
     const val OUTER_BLOOM_ALPHA_MODIFIER = .74f
-    const val ATMOSPHERIC_SPILL_RADIUS_PX = 98f
-    const val ATMOSPHERIC_SPILL_INTENSITY = .15f
+    const val ATMOSPHERIC_SPILL_RADIUS_PX = 105f
+    const val ATMOSPHERIC_SPILL_INTENSITY = .23f
 
     const val BRIGHT_LUMINANCE_THRESHOLD = .46f
     const val BRIGHT_LUMINANCE_MAX = .88f
     const val BRIGHT_BACKGROUND_MAX_GAIN = .28f
 
     private val islandStrengths = mapOf(
-        "G1" to 0.85f,
+        "G1" to 0.90f,
         "B1" to 1.00f,
-        "G3" to 0.75f,
-        "B3" to 0.70f,
+        "G3" to 0.88f,
+        "B3" to 0.84f,
     )
 
     fun islandStrength(islandId: String): Float = islandStrengths[islandId] ?: 0f

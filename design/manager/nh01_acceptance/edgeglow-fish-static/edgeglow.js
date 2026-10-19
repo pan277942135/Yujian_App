@@ -634,14 +634,14 @@
             widthPx: preset.atmospheric_spill_px * 1.7,
             blurPx: preset.atmospheric_spill_px * 0.56,
             alpha: params.atmosphericSpill / 100 * common,
-            blend: "soft-light"
+            blend: "source-over"
           });
         }
         drawOpticalPathLayer(ctx, geometry, from, to, {
           widthPx: (params.outerBloomRadius * 1.8 * radiusTier) + params.opticalCoreWidth,
           blurPx: params.outerBloomRadius * 0.46 * radiusTier,
           alpha: params.outerBloomIntensity / 100 * 0.74 * common,
-          blend: "soft-light"
+          blend: "screen"
         });
         drawOpticalPathLayer(ctx, geometry, from, to, {
           widthPx: (params.innerBloomRadius * 1.65) + params.opticalCoreWidth,
