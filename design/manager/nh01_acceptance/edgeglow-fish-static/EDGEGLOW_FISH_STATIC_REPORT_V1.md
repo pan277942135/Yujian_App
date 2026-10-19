@@ -10,7 +10,7 @@
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
 | `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The Web static study separates blue/cyan + warm-gold photo-edge lighting from warm-gold Fish Focus. The seven source-backed path segments and corner light need human review for visibility, contour alignment and balance. Automated/source checks are not a visual-quality pass. |
-| `CLOUD_ACCEPTANCE_CENTER` | `PASS` for code build `4281a3206466`; stronger Receiving Light revision pending | Live Chrome confirms the route and registered photo load; the current browser screenshot showed the corner field remained too weak. The `0.13` Receiving Light revision described below is awaiting deployment. |
+| `CLOUD_ACCEPTANCE_CENTER` | `PASS` for code build `4281a3206466`; revision `bf20bc7` awaiting rerun | The first `0.13` candidate run stopped at the current-center SHA guard before deploy. The source branch is now verified at `08ed847e711f8c7accd4ebba08a74e55e756882f`, and this PR updates the pin before rerunning. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
 The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, production Mask, or `FishSubjectResult`. Overall M1/Figma/Android gates are unaffected and are not marked PASS.
@@ -18,7 +18,7 @@ The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, productio
 ## Live route and source identity
 
 - Public HTTPS route: [EdgeGlowView Fish Static Prototype](https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/).
-- It is linked under **Recognition Processing → EdgeGlowView Fish Static Prototype** in the existing NH01 Acceptance Center. The current center was composed from branch `design/nh01-cloud-structured-parity-v1`, SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`; no Center source file was changed. The center branch advanced from the earlier `06fd4a5` pin; its diff contains only an Android test change, with no Acceptance Center static files changed.
+- It is linked under **Recognition Processing → EdgeGlowView Fish Static Prototype** in the existing NH01 Acceptance Center. The last deployed center source was `1d6d21bf3ffb887fb0b3c34584c02cb2c0449a63`. The branch has since advanced to `08ed847e711f8c7accd4ebba08a74e55e756882f`; a GitHub comparison shows its only two-commit diff is `scripts/android_runtime/gates/normal_home_v1.sh` (13 additions, 1 deletion), with no Acceptance Center design or asset changes. The PR workflow pin now targets that verified head.
 - Latest recovery source: PR code/workflow SHA `0bfc6c0452ed58db46c371cb431a062196ecad49`; NH01 source SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`. The current cold requests to the public page and `build-info.json` returned HTTP 200; metadata matches both SHAs and the registered photo SHA.
 - Push run ID `39241912112` passed the exact-PR checkout, current-center branch/SHA guard, composition, renderer/source audit, Pages upload, deploy and live HTTPS/photo identity check. The report update below triggers another composition and deployment so the committed report and live build remain aligned.
 - The current PR head after this report update may advance by a documentation-only commit; the renderer source and tested route remain unchanged by the report edit.
@@ -115,3 +115,11 @@ The full Playwright smoke script remains in `scripts/smoke_edgeglow_fish_static.
 - A fresh Chrome view of the exact route showed `buildSha=bba61bda4da9` and the previous blue-to-gold fish contour, while PR #166 had advanced to `372c7b0e1af38419125fc66ea21f7b9146dd4fa6`. The active route was stale; the missing perimeter field was not a browser rendering setting.
 - Frozen reference review confirmed blue/cyan + gold on the photo perimeter and warm gold on the fish. This correction is now in PR source; recheck the live `build-info.json` and rendered image before calling the cloud route current.
 - The visual-quality gate stays `REVIEW_REQUIRED`; Android runtime stays `NOT_RUN`.
+
+### Perimeter-strength revision and deployment guard — 2026-10-19
+
+- The `4281a3206466bb24bf0154be048a8700c17a03df` live screenshot confirmed the fish remained warm gold, but the blue/gold corner field still read too faintly against this daytime photo.
+- Follow-up commit `bf20bc7e4e6bfa84a81a0a3270776cd5ccdf95a0` adds the existing B2/G2/B4 fragments, strengthens the static edge-field stack, and uses current Android Receiving Light alpha `0.13` for a visible browser candidate. That alpha exceeds the Frozen Rendering Contract cap `0.07`, so it remains an `RP-A01` review candidate and cannot be called Frozen-approved.
+- Push run [39247769893](https://github.com/pan277942135/Yujian_App/actions/runs/39247769893) and PR run [39247774275](https://github.com/pan277942135/Yujian_App/actions/runs/39247774275) both stopped at `Guard current Acceptance Center branch identity`. The exact log reports expected `1d6d21bf3ffb887fb0b3c34584c02cb2c0449a63`, remote `08ed847e711f8c7accd4ebba08a74e55e756882f`; the push run skipped deployment, so it did not replace the live site.
+- The center branch comparison verified no Acceptance Center design/asset changes (only `scripts/android_runtime/gates/normal_home_v1.sh`). This PR advances its workflow SHA pin to `08ed847e711f8c7accd4ebba08a74e55e756882f` and will rerun the guarded deployment.
+- No full Playwright screenshot suite ran in this environment: the required Chromium download returned 0 bytes and Playwright could not launch. Source audit, renderer syntax and composition checks passed locally; cloud visual review remains required after redeployment.
