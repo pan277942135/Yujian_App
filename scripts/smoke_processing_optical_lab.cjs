@@ -187,6 +187,7 @@ let browser;
   assert.equal(await page.locator("#paramStrength").inputValue(), "0.73", "experiment JSON import restores State Strength");
   await page.locator("#resetButton").click();
 
+  await page.locator("#compareModes [data-mode='side']").click();
   await page.locator("#advancedDiagnostics").evaluate(node => { node.open = false; });
   const responsive = [];
   for (const [width, height] of RESPONSIVE) {
