@@ -34,7 +34,7 @@ P5 already contains the unified importer’s component tree, Compose mapping, To
 
 ## Browser verification and artifacts
 
-PR workflow run [#39190440709](https://github.com/pan277942135/Yujian_App/actions/runs/39190440709) completed successfully. It checked:
+PR workflow run [#39190440709](https://github.com/pan277942135/Yujian_App/actions/runs/39190440709) completed successfully. The first run, #39189938076, failed only because the verifier expected the wrong Manifest lookup string; commit `e4f8748837e600e35b49ff2c8fd7ad2c8bd6d80e` corrected that test assertion. Later runs #39190028903, #39190298288, and this PR run passed. It checked:
 
 - Exactly three product states, three Frozen bindings and seven Edge Field paths; no Early asset.
 - SHA-256 and dimensions of the Frozen images, SHA/byte count of the test photo, the FIT oracle and Android source Git blob SHAs.

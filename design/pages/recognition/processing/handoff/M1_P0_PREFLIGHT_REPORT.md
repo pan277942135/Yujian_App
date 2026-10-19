@@ -175,6 +175,7 @@ This addendum supersedes the prior note that an online Figma write was needed be
 - PR #166 handoff input: `f6ee9ddebb6036e9f3ce5629e5ff9f9b3c10a209`.
 - Optical Lab implementation commits: `4bf6a97fe5a45897aef35594132062c15c879651`, `e4f8748837e600e35b49ff2c8fd7ad2c8bd6d80e`, `0ed237cc087f94816c16cf7b3ac639f8c41b847c`, `432d3a3179e5a421341e1697d88a662e4f77962d`.
 - Chromium PR run [#39190440709](https://github.com/pan277942135/Yujian_App/actions/runs/39190440709) passed source/Frozen verification, browser interaction smoke and runnable preview packaging. Artifact ID: `12159453683`.
+- The initial Optical Lab run #39189938076 failed on a verifier-only Manifest lookup string assertion; commit `e4f8748837e600e35b49ff2c8fd7ad2c8bd6d80e` fixed the assertion, and all subsequent runs listed above passed.
 - Browser smoke covers all three states, all three renderer variants, live parameter redraw, Frozen FIT alignment, overlay/wipe/Pixel Diff/ROI, export, and P4 responsive fixture sizes. It reports no page errors.
 - Pixel values remain exploratory because the P5 Android test photo has no trusted original-photo match to Frozen, and no trusted BBox or production FishSubjectResult Mask is bound. No Frozen Pixel Diff, fish-mask visual QA, Android Runtime or human static optical review has passed.
 - The recommended next Android experiment is the API-28-mappable `hardware-gradient` candidate, pending static visual selection. Stage B motion/recording remains locked until that selection.
