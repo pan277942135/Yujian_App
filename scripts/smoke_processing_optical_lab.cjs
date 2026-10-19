@@ -22,7 +22,24 @@ let browser;
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     page.on("requestfailed", request => errors.push("requestfailed: " + request.url() + " · " + request.failure()?.errorText));
     await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
-    await page.waitForFunction(() => ["REVIEW_REQUIRED", "BLOCKED"].includes(document.querySelector("#overallStatus")?.textContent), null, { timeout: 30000 });
+    try {
+      await page.waitForFunction(() => ["REVIEW_REQUIRED", "BLOCKED"].includes(document.querySelector("#overallStatus")?.textContent), null, { timeout: 30000 });
+    } catch (error) {
+      let state = {};
+      try {
+        state = await page.evaluate(() => ({
+          status: document.querySelector("#overallStatus")?.textContent,
+          inputStatus: document.querySelector("#inputStatus")?.textContent,
+          runtime: document.querySelector("#runtimeStatus")?.textContent,
+          assetErrors: document.querySelector("#assetErrors")?.textContent,
+          assetsLoaded: document.querySelectorAll("#assetRows tr").length,
+          scriptBuildInfo: window.OPTICAL_LAB_BUILD_INFO__?.head_sha || "MISSING",
+        }));
+      } catch (diagnosticError) {
+        state = { diagnostic_error: diagnosticError.message };
+      }
+      throw new Error(label + ": loader failed to reach a terminal status · " + JSON.stringify({ state, errors }) + " · " + error.message);
+    }
     assert.equal(await page.locator("#overallStatus").textContent(), "REVIEW_REQUIRED", label + ": asset loader reached a blocked state");
     await page.waitForFunction(() => {
       const image = document.querySelector("#frozenImage");
