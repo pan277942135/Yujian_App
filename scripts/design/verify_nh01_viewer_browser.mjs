@@ -8,7 +8,10 @@ const { chromium } = await import(pathToFileURL(path.join(moduleDir, "playwright
 const baseUrl = process.argv.find(value => value.startsWith("--base-url="))?.slice("--base-url=".length) || "http://127.0.0.1:8765";
 const expectedSourceSha = process.argv.find(value => value.startsWith("--expected-source-sha="))?.slice("--expected-source-sha=".length) || null;
 const requireBrowserDiff = process.argv.includes("--require-browser-diff");
-const outputDir = process.argv.find(value => value.startsWith("--output-dir="))?.slice("--output-dir=".length) || ".tmp/nh01-browser";
+const outputDirIndex = process.argv.indexOf("--output-dir");
+const outputDir = process.argv.find(value => value.startsWith("--output-dir="))?.slice("--output-dir=".length)
+  || (outputDirIndex >= 0 ? process.argv[outputDirIndex + 1] : null)
+  || ".tmp/nh01-browser";
 fs.mkdirSync(outputDir, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const errors = [];
