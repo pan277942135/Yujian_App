@@ -66,8 +66,14 @@ run_case() {
     }
   fi
   if [[ "$name" == "pass" ]]; then
-    mapfile -t instrumentation_classes < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
-    mapfile -t instrumentation_timeouts < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
+    instrumentation_classes=()
+    while IFS= read -r instrumentation_class; do
+      instrumentation_classes+=("$instrumentation_class")
+    done < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
+    instrumentation_timeouts=()
+    while IFS= read -r instrumentation_timeout; do
+      instrumentation_timeouts+=("$instrumentation_timeout")
+    done < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
     [[ "${#instrumentation_classes[@]}" == "2" ]] || {
       echo "expected the required suite and one additional evidence invocation" >&2
       exit 1
