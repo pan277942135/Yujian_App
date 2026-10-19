@@ -12,6 +12,7 @@ from pathlib import Path
 EXPECTED_PHOTO_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef"
 ROUTE = Path("design/manager/nh01_acceptance/edgeglow-fish-static")
 PHOTO = Path("design/system/fish_media_display_v1/assets/real_catch_source.jpg")
+ANDROID_EDGE_FIELD = Path("app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt")
 
 
 def sha256(path: Path) -> str:
@@ -35,6 +36,8 @@ def main() -> None:
     page = (route / "index.html").read_text(encoding="utf-8")
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
+    pr_root = Path(__file__).resolve().parents[1]
+    android_edge_field = (pr_root / ANDROID_EDGE_FIELD).read_text(encoding="utf-8")
     photo = args.site_root / PHOTO
     actual_sha = sha256(photo)
 
@@ -47,6 +50,17 @@ def main() -> None:
     assert all(f'id="{canvas}"' in page for canvas in ("originalCanvas", "contourCanvas", "glowCanvas")), "three photo views are required"
     assert all(token in renderer for token in ("Path2D", "getTotalLength", "getPointAtLength", "screen", "blur(")), "Path-based layered renderer tokens are missing"
     assert "drawRoundRect" not in renderer and "addRoundRect" not in renderer, "fixed rounded-rectangle rendering returned"
+    assert all(f'id="{control}"' in page for control in ("edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "edgeFieldIntensity")), "photo-edge light controls are required"
+    assert all(token in renderer for token in ("drawReceivingLight", "drawPrimaryEdgeIslands", "edgeFieldParts", 'id: "B1"', 'id: "B3"', 'id: "G1"', 'id: "G3"')), "four primary paths and local receiving light are required"
+    expected_primary_path_definitions = (
+        '{ id: "B1", family: "blue", widthDp: 1.2, seed: 0.00, visibleRatio: 0.30, weight: 1.00, start: [0.78, -0.02], control1: [0.94, 0.06], control2: [1.02, 0.22], end: [0.96, 0.42] }',
+        '{ id: "B3", family: "blue", widthDp: 1.2, seed: 0.47, visibleRatio: 0.20, weight: 0.54, start: [1.02, 0.61], control1: [0.92, 0.75], control2: [0.84, 0.89], end: [0.66, 1.02] }',
+        '{ id: "G1", family: "gold", widthDp: 1.1, seed: 0.12, visibleRatio: 0.26, weight: 0.78, start: [-0.02, 0.18], control1: [0.03, 0.08], control2: [0.12, 0.02], end: [0.26, -0.02] }',
+        '{ id: "G3", family: "gold", widthDp: 1.2, seed: 0.64, visibleRatio: 0.22, weight: 0.63, start: [-0.01, 0.74], control1: [0.08, 0.86], control2: [0.20, 0.95], end: [0.38, 1.02] }',
+    )
+    assert all(definition in renderer for definition in expected_primary_path_definitions), "static Web path values must match the four Android primary values"
+    assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
+    assert "receiving_alpha_default: 0.05" in renderer and "tracked as RP-A01" in renderer, "web receiving light must follow the frozen contract while exposing the Android alpha discrepancy"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -59,7 +73,16 @@ def main() -> None:
         "source_photo_dimensions": [fixture["photo"]["width"], fixture["photo"]["height"]],
         "contour_source": fixture["contour"]["source"],
         "coordinate_space": fixture["contour"]["coordinate_space"],
-        "checks": ["photo identity", "manual contour provenance", "irregular path geometry", "three aligned canvas views", "Path-length comet renderer", "layered glow tokens", "no rounded-rectangle substitute", "source SHA binding"],
+        "edge_field": {
+            "status": "PASS_STATIC_ADAPTER_SOURCE_CHECK",
+            "android_source": str(ANDROID_EDGE_FIELD),
+            "android_git_blob_sha": "1969409c2f903a16ea38ed2f73b705daa424c050",
+            "primary_path_ids": ["B1", "B3", "G1", "G3"],
+            "receiving_light_default_alpha": 0.05,
+            "android_receiving_light_alpha": 0.13,
+            "alpha_reconciliation": "OPEN_RP_A01",
+        },
+        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light and Primary Island layers", "four Android primary path coordinate matches", "no rounded-rectangle substitute", "source SHA binding"],
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

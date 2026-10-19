@@ -40,6 +40,20 @@ async function canvasStats(page, id = "glowCanvas") {
   });
 }
 
+async function wholeCanvasHash(page, id = "glowCanvas") {
+  return page.locator(`#${id}`).evaluate(canvas => {
+    const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+    let hash = 2166136261;
+    for (let y = 0; y < canvas.height; y += 4) for (let x = 0; x < canvas.width; x += 4) {
+      const i = (y * canvas.width + x) * 4;
+      hash ^= data[i]; hash = Math.imul(hash, 16777619);
+      hash ^= data[i + 1]; hash = Math.imul(hash, 16777619);
+      hash ^= data[i + 2]; hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16);
+  });
+}
+
 async function afterRender(page, action) {
   const previous = await page.evaluate(() => Number(document.documentElement.dataset.renderVersion || 0));
   await action();
@@ -80,6 +94,7 @@ async function main() {
     contourBounds: (() => { const b = document.getElementById("fishContourPath").getBBox(); return [b.x, b.y, b.width, b.height]; })(),
     photoSha: document.getElementById("photoSha").textContent,
     buildLabel: document.getElementById("buildSha").textContent,
+    edgeFieldPaths: window.__EDGEGLOW_LAB__.edgeFieldPaths,
     buildInfo: await fetch("./build-info.json", { cache: "no-store" }).then(response => response.json())
   }));
   assert.equal(identity.statusCode, "PASS", identity.status);
@@ -91,13 +106,34 @@ async function main() {
   if (process.env.CENTER_SOURCE_SHA) assert.equal(identity.buildInfo.acceptance_center_source_sha, process.env.CENTER_SOURCE_SHA);
   assert.ok(identity.pathLength > 2500, `PathMeasure arc length is plausible: ${identity.pathLength}`);
   assert.ok(identity.contourBounds[2] < 600 && identity.contourBounds[3] > 900, "Contour is irregular fish-sized geometry, not an image-sized frame.");
+  assert.deepEqual(identity.edgeFieldPaths.map(path => path.id), ["B1", "B3", "G1", "G3"], "Four frozen primary edge-field paths are present; secondary fragments stay out of this static study.");
+  assert.deepEqual(identity.edgeFieldPaths.map(path => [path.seed, path.visibleRatio]), [[0, 0.3], [0.47, 0.2], [0.12, 0.26], [0.64, 0.22]], "Static path positions and visible arc lengths reuse the Android source values.");
 
   const canvasDimensions = await page.locator(".photo-stage canvas").evaluateAll(nodes => nodes.map(node => [node.width, node.height]));
   assert.equal(canvasDimensions.length, 3);
   assert.deepEqual(canvasDimensions, [[1152, 1536], [1152, 1536], [1152, 1536]], "All three views share the photo pixel coordinate system.");
 
   const defaultGlow = await canvasStats(page);
+  const defaultWholeGlow = await wholeCanvasHash(page);
   const defaultCore = await canvasStats(page, "contourCanvas");
+  await afterRender(page, () => page.locator("#receivingLightEnabled").uncheck());
+  const noReceivingLight = await wholeCanvasHash(page);
+  assert.notEqual(noReceivingLight, defaultWholeGlow, "Receiving Light toggle changes corner illumination pixels.");
+  await afterRender(page, () => page.locator("#receivingLightEnabled").check());
+  await afterRender(page, () => page.locator("#primaryIslandsEnabled").uncheck());
+  const noPrimaryIslands = await wholeCanvasHash(page);
+  assert.notEqual(noPrimaryIslands, defaultWholeGlow, "Primary Energy Islands toggle changes the four irregular edge paths.");
+  await afterRender(page, () => page.locator("#primaryIslandsEnabled").check());
+  await afterRender(page, () => page.locator("#edgeFieldEnabled").uncheck());
+  const noEdgeField = await wholeCanvasHash(page);
+  assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
+  await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
+  await setControl(page, "#edgeFieldIntensity", 38);
+  const lowerEdgeField = await wholeCanvasHash(page);
+  assert.notEqual(lowerEdgeField, defaultWholeGlow, "Edge Field strength changes the rendered output.");
+  await afterRender(page, () => page.locator("#resetButton").click());
+  assert.equal(await wholeCanvasHash(page), defaultWholeGlow, "Reset restores the default edge-field render.");
+
   await afterRender(page, () => page.locator("#outerEnabled").uncheck());
   const noOuter = await canvasStats(page);
   assert.notEqual(noOuter.hash, defaultGlow.hash, "Outer Bloom toggle changes rendered pixels.");
@@ -172,6 +208,8 @@ async function main() {
   assert.equal(exportConfig.photo.sha256, expectedPhotoSha);
   assert.equal(exportConfig.contour.source, "MANUAL_REFERENCE_CONTOUR");
   assert.equal(exportConfig.parameters.cometPosition, 21);
+  assert.deepEqual(exportConfig.edge_field.paths.map(path => path.id), ["B1", "B3", "G1", "G3"]);
+  assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
 
   const viewportResults = [];
   for (const viewport of [{ width: 390, height: 844 }, { width: 800, height: 360 }, { width: 1440, height: 1180 }]) {
@@ -205,9 +243,11 @@ async function main() {
     contour_source: "MANUAL_REFERENCE_CONTOUR",
     path_length_photo_px: identity.pathLength,
     contour_bounds_photo_px: identity.contourBounds,
+    edge_field_paths: identity.edgeFieldPaths.map(({ id, family, widthDp, seed, visibleRatio, weight, length }) => ({ id, family, widthDp, seed, visibleRatio, weight, length })),
     effect_bounds_photo_px: await page.evaluate(() => window.__EDGEGLOW_LAB__.effectBounds),
     default_pixel_hash: defaultGlow.hash,
     toggles_and_parameters_change_pixels: true,
+    receiving_light_and_primary_edge_field_toggles: true,
     compare_modes: ["side", "overlay", "wipe"],
     png_export: { bytes: pngBytes.length, dimensions: [pngBytes.readUInt32BE(16), pngBytes.readUInt32BE(20)], downloaded: true },
     json_export: { downloaded: true, photo_sha256: exportConfig.photo.sha256 },

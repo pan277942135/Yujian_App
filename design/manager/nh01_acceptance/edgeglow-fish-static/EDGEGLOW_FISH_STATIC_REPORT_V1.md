@@ -9,7 +9,7 @@
 | Gate | Status | Evidence and limit |
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
-| `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | Bloom, core and static path-following comet render on the fish. A human still needs to judge edge tracing, texture retention and optical balance. Automated/source checks are not a visual-quality pass. |
+| `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The Web static study now includes photo-edge Receiving Light and four primary islands plus fish Bloom/Core/Comet. A human still needs to judge path alignment, texture retention and optical balance. Automated/source checks are not a visual-quality pass. |
 | `CLOUD_ACCEPTANCE_CENTER` | `PASS` | After the repeated 404, public route and `build-info.json` returned HTTP 200 with PR code SHA `0bfc6c0452ed58db46c371cb431a062196ecad49` and NH01 source SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`; deploy run [39241912112](https://github.com/pan277942135/Yujian_App/actions/runs/39241912112) passed. Another full-site deployment can still omit this additive route. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
@@ -47,6 +47,16 @@ The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, productio
 - License: MIT, Copyright (c) 2025 WANG YU. Notice is preserved in [`UPSTREAM_NOTICE.md`](UPSTREAM_NOTICE.md).
 - The upstream three-paint/path-measure approach is adapted to the manual fish SVG Path using Canvas 2D strokes and SVG `getTotalLength()`/`getPointAtLength()` arc sampling. A bounded offscreen layer renders the glow. This is static and has no animator, particles or state machine.
 
+## Photo-edge light field
+
+The first static page revision omitted the light around the photo perimeter. This revision adds the existing AI Edge Field as a separate, editable Web layer over the same verified photo; it does not use a Frozen screenshot as a background.
+
+- Local Receiving Light uses four clipped corner ovals with radial falloff and no full-photo tint. Primary paths draw only the visible static segment, with Outer Bloom (10dp / 5dp blur), Mid Glow (4dp / 2dp blur), and per-path Core width.
+- The four paths are `B1`, `G1`, `B3`, and `G3`, sourced from `RecognitionAmbientField.kt` at Git blob `1969409c2f903a16ea38ed2f73b705daa424c050`. Cubic controls, weights, visible ratios, seeds and per-path widths match that source. Secondary fragments, hairlines, nodes, particles and animation are not included in this static study.
+- FIT/no-crop photo coordinates are reused for the receiving gradients, edge paths and fish contour. Overhang control points remain outside `[0,1]` and are clipped by the canvas bounds.
+- Defaults use Receiving Light alpha `0.05` from `AI_Edge_Field_V1_Rendering_Contract.md`; current Android `RecognitionAmbientField.kt` uses `0.13` (`RP-A01`). This preview keeps the discrepancy visible in the UI and exported JSON rather than silently changing either authority. The default and intensity range are for Web review, not Frozen approval.
+- The Receiving Light, Primary Islands and full Edge Field each have working toggles; intensity and blue/gold colors update immediately and reset with the rest of the controls. PNG and JSON export include the current visible render and field parameters.
+
 ### Default parameters
 
 | Layer | Default | Render role |
@@ -55,8 +65,9 @@ The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, productio
 | Core Highlight | 8 px, 92% | Soft under-stroke plus sharp gradient stroke |
 | Static Comet | 14% path arc, head at 21%, falloff 1.55 | Path-distance tail with blue-to-gold alpha falloff |
 | Colors | `#58c8f4`, `#f2cc78`, `#fff5d8` | Blue, warm gold and core white |
+| AI Edge Field | Receiving Light `0.05` alpha; B1/G1/B3/G3 at source seeds and spans | Four local edge glows and four disconnected static primary paths; no particles or motion |
 
-The controls independently toggle the contour, bloom, core and comet. Width, intensity, tail length/position/falloff and colors redraw immediately. Reset restores these defaults. Comparison supports side-by-side, 50% Overlay and Before/After Wipe.
+The controls independently toggle the contour, Receiving Light, Primary Islands, overall Edge Field, fish bloom, core and comet. Width, intensity, tail length/position/falloff and colors redraw immediately. Reset restores these defaults. Comparison supports side-by-side, 50% Overlay and Before/After Wipe.
 
 ## Live verification and exports
 

@@ -77,7 +77,7 @@
           <canvas id="glowCanvas" width="1152" height="1536" aria-label="鱼体多层静态光效"></canvas>
           <input id="wipePosition" class="wipe-position" type="range" min="5" max="95" value="50" aria-label="擦拭比较位置" hidden>
         </div>
-        <p class="view-caption" id="comparisonCaption">Outer Bloom · Core Highlight · Static Comet</p>
+        <p class="view-caption" id="comparisonCaption">AI Edge Field · Receiving Light + 4 Primary Islands · Fish Bloom/Core/Comet</p>
       </article>
     </section>
 
@@ -91,6 +91,16 @@
         </div>
       </header>
       <div class="control-grid">
+        <fieldset>
+          <legend>AI Edge Field · 图片四周光场</legend>
+          <label class="check-line"><input id="edgeFieldEnabled" type="checkbox" checked> 启用照片四周光场</label>
+          <label class="check-line"><input id="receivingLightEnabled" type="checkbox" checked> Receiving Light · 角落柔光</label>
+          <label class="check-line"><input id="primaryIslandsEnabled" type="checkbox" checked> 四条断开的主能量岛</label>
+          <label>整体强度 <output id="edgeFieldIntensityValue">100%</output><input id="edgeFieldIntensity" type="range" min="0" max="100" value="100"></label>
+          <label class="color-line">光场蓝 <input id="edgeFieldBlueColor" type="color" value="#bfeaf2"></label>
+          <label class="color-line">光场暖金 <input id="edgeFieldGoldColor" type="color" value="#f6d99b"></label>
+          <small>B1 / G1 / B3 / G3 · 按照片原始坐标渲染，使用固定路径种子，不播放动画。</small>
+        </fieldset>
         <fieldset>
           <legend>Outer Bloom · 外层柔光</legend>
           <label class="check-line"><input id="outerEnabled" type="checkbox" checked> 启用外层柔光</label>
@@ -118,7 +128,7 @@
           <small>颜色沿路径进度映射；光尾颜色与透明度随弧长衰减。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>绘制层级：</strong>原图 → 宽外层 Bloom → 柔化 Mid Glow → Path 渐变 Core → 沿同一 SVG Path 弧长采样的 Static Comet。此页面使用浏览器 Canvas 2D；Blur/合成与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>绘制层级：</strong>原图 → 局部 Receiving Light → 四条断开的 Primary Edge Field Path（Outer Bloom / Mid Glow / 渐变 Core）→ 鱼体 Bloom / Mid Glow / Core / Static Comet。边缘几何复用 Android RecognitionAmbientField；Receiving Light 默认 Alpha 0.05 遵循冻结 Rendering Contract，Android 当前 0.13 实现差异由 RP-A01 跟踪。此页面使用浏览器 Canvas 2D；Blur / 合成与 Android Canvas 不等价。</div>
     </section>
 
     <section class="edgeglow-footer-grid">
