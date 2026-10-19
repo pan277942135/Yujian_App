@@ -184,7 +184,7 @@ class NormalHomeDataParityTest {
             val shortScreenScroll = compose.onAllNodesWithTag("normal-home-short-screen-scroll")
             val isShortScreen = shortScreenScroll.fetchSemanticsNodes().isNotEmpty()
             if (isShortScreen) {
-                shortScreenScroll.onFirst().performTouchInput {
+                compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
                     swipeUp(startY = height * 0.92f, endY = height * 0.08f, durationMillis = 500)
                 }
                 compose.waitForIdle()
@@ -261,7 +261,7 @@ class NormalHomeDataParityTest {
             assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f, cardName = "catch-bass")
 
             if (isShortScreen) {
-                shortScreenScroll.onFirst().performTouchInput {
+                compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
                     swipeDown(startY = height * 0.08f, endY = height * 0.92f, durationMillis = 500)
                 }
                 compose.waitForIdle()
@@ -398,7 +398,7 @@ class NormalHomeDataParityTest {
             }
             val shortScreenScroll = compose.onAllNodesWithTag("normal-home-short-screen-scroll")
             if (shortScreenScroll.fetchSemanticsNodes().isNotEmpty()) {
-                shortScreenScroll.onFirst().performTouchInput {
+                compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
                     swipeUp(startY = height * 0.92f, endY = height * 0.08f, durationMillis = 500)
                 }
                 compose.waitForIdle()
