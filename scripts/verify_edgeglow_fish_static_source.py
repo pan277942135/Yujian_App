@@ -34,7 +34,7 @@ def main() -> None:
     route = args.site_root / ROUTE
     fixture = json.loads((route / "fixture.json").read_text(encoding="utf-8"))
     page = (route / "index.html").read_text(encoding="utf-8")
-    assert "edgeglow.js?v=edgeglow-static-r11-inset-full-arcs" in page, "the deployed prototype must load R11 with inset full-length corner arcs and bypass stale cache entries"
+    assert "edgeglow.js?v=edgeglow-static-r12-corner-rim" in page, "the deployed prototype must load R12 with crisp inset full-length corner arcs and bypass stale cache entries"
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
     pr_root = Path(__file__).resolve().parents[1]
@@ -57,9 +57,9 @@ def main() -> None:
     perimeter_path_renderer = renderer.split("function drawEdgeFieldPathSet", 1)[1].split("function drawCompanionHairlines", 1)[0]
     assert 'ctx.globalCompositeOperation = "source-over"' in receiving_renderer and 'ctx.globalCompositeOperation = "source-over"' in perimeter_path_renderer, "photo-edge light must preserve blue/gold hue over bright photo pixels"
     assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
-    assert receiving_renderer.count("ctx.stroke();") == 2 and "EDGE_RECEIVING_BLUR_DP[0] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE" in receiving_renderer and "EDGE_RECEIVING_BLUR_DP[1] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE" in receiving_renderer and "EDGE_RECEIVING_WIDTH_DP[0] * photoPxPerDp" in receiving_renderer and "EDGE_RECEIVING_WIDTH_DP[1] * photoPxPerDp" in receiving_renderer, "R10 requires two broad/close path-following Receiving Light passes"
-    assert "const EDGE_RECEIVING_VISIBLE_RATIO = 1.0;" in renderer and "const EDGE_RECEIVING_INSET = Object.freeze([0.028, 0.022]);" in renderer and "const EDGE_RECEIVING_MIN_PATH_WEIGHT = 0.92;" in renderer and "const common = intensity * Math.max(EDGE_RECEIVING_MIN_PATH_WEIGHT, geometry.weight);" in receiving_renderer and "[[0, geometry.length]]" in receiving_renderer and "ctx.translate(photo.naturalWidth * insetXRatio, photo.naturalHeight * insetYRatio);" in receiving_renderer and "ctx.scale(1 - 2 * insetXRatio, 1 - 2 * insetYRatio);" in receiving_renderer, "R11 must draw full-strength inset Receiving Light arcs for all four corners while the thin path layers retain their source geometry and Quiet Gaps"
-    assert "const EDGE_RECEIVING_ALPHA_PER_PASS = Object.freeze([0.78, 0.64]);" in renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[0])" in receiving_renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[1])" in receiving_renderer and "R11" in renderer, "R11 blue/gold corner visibility candidate must remain explicit and distinct from Android runtime"
+    assert receiving_renderer.count("ctx.stroke();") == 3 and "EDGE_RECEIVING_BLUR_DP[0] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE" in receiving_renderer and "EDGE_RECEIVING_BLUR_DP[1] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE" in receiving_renderer and "EDGE_RECEIVING_WIDTH_DP[0] * photoPxPerDp" in receiving_renderer and "EDGE_RECEIVING_WIDTH_DP[1] * photoPxPerDp" in receiving_renderer and "EDGE_RECEIVING_CORE_WIDTH_DP * photoPxPerDp" in receiving_renderer and "receivingGradient(EDGE_RECEIVING_CORE_ALPHA)" in receiving_renderer, "R12 requires two broad path-following blooms plus a crisp third perimeter-ridge pass"
+    assert "const EDGE_RECEIVING_VISIBLE_RATIO = 1.0;" in renderer and "const EDGE_RECEIVING_INSET = Object.freeze([0.028, 0.022]);" in renderer and "const EDGE_RECEIVING_MIN_PATH_WEIGHT = 0.92;" in renderer and "const common = intensity * Math.max(EDGE_RECEIVING_MIN_PATH_WEIGHT, geometry.weight);" in receiving_renderer and "[[0, geometry.length]]" in receiving_renderer and "ctx.translate(photo.naturalWidth * insetXRatio, photo.naturalHeight * insetYRatio);" in receiving_renderer and "ctx.scale(1 - 2 * insetXRatio, 1 - 2 * insetYRatio);" in receiving_renderer, "R12 keeps the four inset path arcs full length while adding only a luminous crest; thin source paths retain Quiet Gaps"
+    assert "const EDGE_RECEIVING_ALPHA_PER_PASS = Object.freeze([0.78, 0.64]);" in renderer and "const EDGE_RECEIVING_CORE_WIDTH_DP = 1.8;" in renderer and "const EDGE_RECEIVING_CORE_ALPHA = 0.88;" in renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[0])" in receiving_renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[1])" in receiving_renderer and "R12" in renderer, "R12 blue/gold corner visibility candidate must remain explicit and distinct from Android runtime"
     assert "const EDGE_FIELD_RENDER_SCALE = 0.5;" in renderer and "function ensurePhotoEdgeLayer()" in renderer and "const inset = ensurePhotoEdgeLayer()" in renderer and "drawImage(edgeLayer, inset, inset, Math.ceil(photo.naturalWidth * EDGE_FIELD_RENDER_SCALE), Math.ceil(photo.naturalHeight * EDGE_FIELD_RENDER_SCALE), 0, 0, photo.naturalWidth, photo.naturalHeight)" in renderer, "half-resolution edge blur must bleed past photo bounds before cropping back to original pixels"
     companion_renderer = renderer.split("function drawCompanionHairlines", 1)[1].split("function drawStaticEnergyNodes", 1)[0]
     node_renderer = renderer.split("function drawStaticEnergyNodes", 1)[1].split("function drawPrimaryEdgeIslands", 1)[0]
@@ -87,7 +87,7 @@ def main() -> None:
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
-    assert "receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS" in renderer and "receiving_inset_fraction: EDGE_RECEIVING_INSET" in renderer and "corner_color_roles: { top_left: \"gold\", top_right: \"blue\", bottom_left: \"gold\", bottom_right: \"blue\" }" in renderer and "receiving_width_dp: EDGE_RECEIVING_WIDTH_DP" in renderer and "receiving_blur_dp: EDGE_RECEIVING_BLUR_DP" in renderer and '"R11 four-corner Web visibility candidate; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01"' in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R11 parameter contract must expose its photo inset, color roles, Web values and Android/Frozen cap discrepancy"
+    assert "receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS" in renderer and "receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP" in renderer and "receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA" in renderer and "receiving_inset_fraction: EDGE_RECEIVING_INSET" in renderer and "corner_color_roles: { top_left: \"gold\", top_right: \"blue\", bottom_left: \"gold\", bottom_right: \"blue\" }" in renderer and "receiving_width_dp: EDGE_RECEIVING_WIDTH_DP" in renderer and "receiving_blur_dp: EDGE_RECEIVING_BLUR_DP" in renderer and '"R12 four-corner Web visibility candidate with a crisp perimeter ridge; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01"' in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R12 parameter contract must expose its photo inset, crest values, color roles, Web values and Android/Frozen cap discrepancy"
     assert 'web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }' in renderer and 'android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" }' in renderer, "Web Frozen-raster palette must remain distinct from Android tokens"
     expected_companion_path_definitions = (
         '{ id: "B1C", parentId: "B1", family: "blue", widthDp: 0.60, phaseDelta: -0.055, visibleRatio: 0.44, weight: 0.30, start: [0.75, -0.01], control1: [0.91, 0.07], control2: [0.99, 0.20], end: [0.94, 0.37] }',
@@ -119,21 +119,24 @@ def main() -> None:
             "secondary_seed_authority": {"source": "Android runtime", "frozen": False, "tracking": "RP-A03"},
             "companion_path_ids": ["B1C", "G1C", "G3C", "B3C"],
             "micro_path_ids": ["B1M"],
-            "receiving_light_renderer": "path-following four-island illumination; padded offscreen blur bleed; no corner circles",
-            "receiving_light_web_passes": 2,
-            "receiving_light_alpha_per_pass": [0.66, 0.50],
-            "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.66) * (1 - 0.50), 4),
+            "receiving_light_renderer": "four disconnected path-following corner arcs with soft bloom and a crisp luminous ridge; padded offscreen blur bleed; no corner circles",
+            "receiving_light_web_passes": 3,
+            "receiving_light_bloom_passes": 2,
+            "receiving_light_rim_width_dp": 1.8,
+            "receiving_light_rim_alpha": 0.88,
+            "receiving_light_alpha_per_pass": [0.78, 0.64],
+            "receiving_light_unweighted_configured_peak_alpha": round(1 - (1 - 0.78) * (1 - 0.64) * (1 - 0.88), 4),
             "perimeter_web_blend": "source-over; R02 hue-preserving Web review candidate, not Android runtime validation",
             "web_palette": {"blue": "#5ab2fc", "gold": "#e0b644", "authority": "sampled Frozen 02 photo-edge raster; review candidate"},
             "android_reference_palette": {"blue": "#bfeaf2", "blue_hot": "#d8f5fa", "gold": "#f6d99b", "gold_hot": "#ffe7ae"},
-            "receiving_light_default_alpha_per_pass": [0.66, 0.50],
+            "receiving_light_default_alpha_per_pass": [0.78, 0.64],
             "edge_effect_compositor": "padded transparent offscreen layer; crop back to original photo pixels",
             "edge_effect_padding_px": "responsive; recorded at runtime by the browser lab",
             "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",
         },
-        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "path-following Receiving Light with padded blur bleed and no circular corner blobs", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
+        "checks": ["photo identity", "manual contour provenance", "irregular fish geometry", "three aligned canvas views", "Path-length comet renderer", "independent Receiving Light, Primary Island, Secondary Fragment and Companion/Micro layers", "four-corner path-following Receiving Light with a crisp crest, padded blur bleed and no circular corner blobs", "Frozen four-island color-role mapping", "all seven Android path coordinates and five companion/micro path coordinates", "secondary seeds marked non-Frozen", "no rounded-rectangle substitute", "source SHA binding"],
     }
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

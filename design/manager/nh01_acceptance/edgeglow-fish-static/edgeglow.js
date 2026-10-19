@@ -6,13 +6,15 @@
   const SVG_NS = "http://www.w3.org/2000/svg";
   const EDGE_FIELD_SOURCE = "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt";
   const EDGE_FIELD_RENDER_SCALE = 0.5;
-  // R11 Web review candidate: full receiving arcs are inset into the photo so cropping does not discard their visible half.
+  // R12 Web review candidate: full corner arcs use broad bloom plus a narrow luminous rim; fish focus remains a separate warm-gold path.
   const EDGE_RECEIVING_VISIBLE_RATIO = 1.0;
   const EDGE_RECEIVING_INSET = Object.freeze([0.028, 0.022]);
   const EDGE_RECEIVING_MIN_PATH_WEIGHT = 0.92;
   const EDGE_RECEIVING_ALPHA_PER_PASS = Object.freeze([0.78, 0.64]);
   const EDGE_RECEIVING_WIDTH_DP = Object.freeze([48, 14]);
   const EDGE_RECEIVING_BLUR_DP = Object.freeze([20, 4]);
+  const EDGE_RECEIVING_CORE_WIDTH_DP = 1.8;
+  const EDGE_RECEIVING_CORE_ALPHA = 0.88;
   const EDGE_FIELD_PATHS = Object.freeze([
     { id: "B1", family: "blue", widthDp: 1.2, seed: 0.00, visibleRatio: 0.30, weight: 1.00, start: [0.78, -0.02], control1: [0.94, 0.06], control2: [1.02, 0.22], end: [0.96, 0.42] },
     { id: "B3", family: "blue", widthDp: 1.2, seed: 0.47, visibleRatio: 0.20, weight: 0.54, start: [1.02, 0.61], control1: [0.92, 0.75], control2: [0.84, 0.89], end: [0.66, 1.02] },
@@ -307,7 +309,7 @@
           gradient.addColorStop(1, rgba(hotColor, peakAlpha * 0.68 * common));
           return gradient;
         };
-        // R11 insets the full blue/gold Receiving Light arcs so their blooms remain visible inside all four photo corners.
+        // R12 draws a narrow luminous ridge over the four inset blue/gold Receiving Light corner arcs.
         // Its color roles follow Frozen 02/03; fine island paths keep their Quiet Gaps.
         // Values are Web review candidates, not Android tokens or Frozen PASS.
         ctx.filter = `blur(${EDGE_RECEIVING_BLUR_DP[0] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE}px)`;
@@ -317,6 +319,12 @@
         ctx.filter = `blur(${EDGE_RECEIVING_BLUR_DP[1] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE}px)`;
         ctx.strokeStyle = receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[1]);
         ctx.lineWidth = EDGE_RECEIVING_WIDTH_DP[1] * photoPxPerDp;
+        ctx.stroke();
+        // R12 adds a crisp colored crest to each perimeter arc after its two soft-bloom passes.
+        // The four corner arcs become readable at preview scale without changing the fish's gold layer.
+        ctx.filter = "none";
+        ctx.strokeStyle = receivingGradient(EDGE_RECEIVING_CORE_ALPHA);
+        ctx.lineWidth = EDGE_RECEIVING_CORE_WIDTH_DP * photoPxPerDp;
         ctx.stroke();
       }
     }
@@ -656,7 +664,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "full-length path-following blue/gold corner field; four disconnected inset arcs; no circular blobs or closed frame", receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS, receiving_path_coverage_ratio: EDGE_RECEIVING_VISIBLE_RATIO, receiving_inset_fraction: EDGE_RECEIVING_INSET, receiving_min_path_weight: EDGE_RECEIVING_MIN_PATH_WEIGHT, receiving_width_dp: EDGE_RECEIVING_WIDTH_DP, receiving_blur_dp: EDGE_RECEIVING_BLUR_DP, corner_color_roles: { top_left: "gold", top_right: "blue", bottom_left: "gold", bottom_right: "blue" }, receiving_alpha_authority: "R11 four-corner Web visibility candidate; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "four disconnected full-length blue/gold corner arcs; two broad blooms plus a crisp path-following ridge; no circles or closed frame", receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS, receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP, receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA, receiving_path_coverage_ratio: EDGE_RECEIVING_VISIBLE_RATIO, receiving_inset_fraction: EDGE_RECEIVING_INSET, receiving_min_path_weight: EDGE_RECEIVING_MIN_PATH_WEIGHT, receiving_width_dp: EDGE_RECEIVING_WIDTH_DP, receiving_blur_dp: EDGE_RECEIVING_BLUR_DP, corner_color_roles: { top_left: "gold", top_right: "blue", bottom_left: "gold", bottom_right: "blue" }, receiving_alpha_authority: "R12 four-corner Web visibility candidate with a crisp perimeter ridge; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
       fish_highlight: { source: fixture.contour.source, composite_mode: "source-over hue-preserving warm-gold composition", palette: { outline: params.fishGoldColor, core: params.fishCoreColor }, blue_perimeter_excluded: true, layer_order: ["outer_bloom", "core_highlight", "static_comet"] },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
