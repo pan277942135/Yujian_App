@@ -388,7 +388,7 @@ private fun DrawScope.drawLocalContourBlur(
     blurRadiusPx: Float,
     blurPaints: RecognitionBlurPaintCache,
 ) {
-    val paint = blurPaints.obtain(color, widthPx, blurRadiusPx) ?: return
+    val paint = blurPaints.obtain(color, widthPx, blurRadiusPx, RecognitionOpticalBlend.SCREEN) ?: return
     drawIntoCanvas { canvas ->
         canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }
