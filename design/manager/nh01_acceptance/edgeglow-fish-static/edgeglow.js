@@ -269,13 +269,13 @@
   }
 
   function updateOutputs() {
-    el.outerWidthValue.value = `${params.outerWidth} px`;
-    el.outerIntensityValue.value = `${params.outerIntensity}%`;
-    el.coreWidthValue.value = `${params.coreWidth} px`;
-    el.coreIntensityValue.value = `${params.coreIntensity}%`;
-    el.cometLengthValue.value = `${params.cometLength}%`;
-    el.cometPositionValue.value = `${params.cometPosition}%`;
-    el.cometFalloffValue.value = Number(params.cometFalloff).toFixed(2);
+    el.outerWidthValue.textContent = `${params.outerWidth} px`;
+    el.outerIntensityValue.textContent = `${params.outerIntensity}%`;
+    el.coreWidthValue.textContent = `${params.coreWidth} px`;
+    el.coreIntensityValue.textContent = `${params.coreIntensity}%`;
+    el.cometLengthValue.textContent = `${params.cometLength}%`;
+    el.cometPositionValue.textContent = `${params.cometPosition}%`;
+    el.cometFalloffValue.textContent = Number(params.cometFalloff).toFixed(2);
   }
 
   function syncControls() {
