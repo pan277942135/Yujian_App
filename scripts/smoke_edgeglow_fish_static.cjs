@@ -70,14 +70,14 @@ async function perimeterDeltaByCorner(page) {
       for (let y = Math.floor(canvas.height * corner.y0); y < Math.floor(canvas.height * corner.y1); y += 4) {
         for (let x = Math.floor(canvas.width * corner.x0); x < Math.floor(canvas.width * corner.x1); x += 4) {
           const i = (y * canvas.width + x) * 4;
-          const dr = Math.abs(reference[i] - current[i]);
-          const dg = Math.abs(reference[i + 1] - current[i + 1]);
-          const db = Math.abs(reference[i + 2] - current[i + 2]);
-          if (dr + dg + db > 0) changedPixels++;
+          const dr = current[i] - reference[i];
+          const dg = current[i + 1] - reference[i + 1];
+          const db = current[i + 2] - reference[i + 2];
+          if (dr !== 0 || dg !== 0 || db !== 0) changedPixels++;
           deltaR += dr; deltaG += dg; deltaB += db;
         }
       }
-      return { id: corner.id, changedPixels, deltaRGB: [deltaR, deltaG, deltaB], colorRoleMatches: corner.warmer ? deltaR > deltaB : deltaB > deltaR };
+      return { id: corner.id, changedPixels, signedDeltaRGB: [deltaR, deltaG, deltaB], colorRoleMatches: corner.warmer ? deltaR > deltaB : deltaB > deltaR };
     });
   });
 }
@@ -167,7 +167,7 @@ async function main() {
   const noEdgeField = await wholeCanvasHash(page);
   assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
   const perimeterCorners = await perimeterDeltaByCorner(page);
-  assert.ok(perimeterCorners.every(corner => corner.changedPixels > 0), `Blue/gold lighting changes all four photo corners: ${JSON.stringify(perimeterCorners)}`);
+  assert.ok(perimeterCorners.every(corner => corner.changedPixels > 20 && corner.colorRoleMatches), `Frozen blue/gold roles are perceptible in all four photo corners: ${JSON.stringify(perimeterCorners)}`);
   await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
   await setControl(page, "#edgeFieldIntensity", 38);
   const lowerEdgeField = await wholeCanvasHash(page);

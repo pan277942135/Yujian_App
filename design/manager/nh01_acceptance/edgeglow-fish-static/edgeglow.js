@@ -287,14 +287,15 @@
           gradient.addColorStop(1, rgba(hotColor, peakAlpha * 0.76 * common));
           return gradient;
         };
-        // R04 expands the soft bloom around the four existing corner paths;
-        // it does not connect their Quiet Gaps or touch the fish highlight.
+        // R06 strengthens the Frozen blue/gold corner field along the same four
+        // disconnected paths. Quiet Gaps and the separate warm-gold fish layer
+        // remain unchanged; these are Web review values, not Android tokens.
         ctx.filter = `blur(${22 * photoPxPerDp}px)`;
-        ctx.strokeStyle = receivingGradient(0.36);
+        ctx.strokeStyle = receivingGradient(0.66);
         ctx.lineWidth = 44 * photoPxPerDp;
         ctx.stroke();
         ctx.filter = `blur(${4.5 * photoPxPerDp}px)`;
-        ctx.strokeStyle = receivingGradient(0.30);
+        ctx.strokeStyle = receivingGradient(0.50);
         ctx.lineWidth = 12 * photoPxPerDp;
         ctx.stroke();
       }
@@ -601,7 +602,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following local illumination; no circular corner glows", receiving_alpha_per_pass: [0.36, 0.30], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R03 Web visual emphasis; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility review candidate; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo
