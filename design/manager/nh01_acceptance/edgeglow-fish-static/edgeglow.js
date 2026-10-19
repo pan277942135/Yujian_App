@@ -186,7 +186,7 @@
     if (!params.outerEnabled || params.outerIntensity <= 0) return;
     const gradient = createContourGradient(ctx);
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = "source-over";
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.strokeStyle = gradient;
@@ -205,7 +205,7 @@
     if (!params.coreEnabled || params.coreIntensity <= 0) return;
     const gradient = createContourGradient(ctx);
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = "source-over";
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.filter = `blur(${Math.max(1, params.coreWidth * 0.42)}px)`;
@@ -235,7 +235,7 @@
     const segments = Math.ceil(tailLength / segmentPx);
     const glowWidth = Math.max(params.coreWidth * (softness ? 3 : 1.8), softness ? 15 : 7);
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    ctx.globalCompositeOperation = "source-over";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.filter = softness ? `blur(${Math.max(5, params.coreWidth * 1.5)}px)` : "none";
@@ -270,9 +270,10 @@
     const photoPxPerDp = photo.naturalWidth / displayWidth;
     const intensity = params.edgeFieldIntensity / 100;
     ctx.save();
-    // The receiving light follows each frozen island instead of painting four
-    // circular corner blobs. Source-over retains the blue/gold hue on bright
-    // sky pixels; screen would wash those regions to near-white.
+    // Frozen 02/03 keep blue/gold light on the photo perimeter and warm gold on
+    // the fish. These broad receiving bands follow the four disconnected edge
+    // paths; the padded offscreen layer preserves their blur past photo bounds.
+    // Source-over keeps the blue/gold hues visible on bright sky pixels.
     ctx.globalCompositeOperation = "source-over";
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -640,7 +641,8 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility review candidate; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves blur bleed at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility candidate carried into R08; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
+      fish_highlight: { source: fixture.contour.source, composite_mode: "source-over hue-preserving warm-gold composition", palette: { outline: params.fishGoldColor, core: params.fishCoreColor }, blue_perimeter_excluded: true, layer_order: ["outer_bloom", "core_highlight", "static_comet"] },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo

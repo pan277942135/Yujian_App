@@ -83,6 +83,27 @@ async function perimeterDeltaByCorner(page) {
   });
 }
 
+async function fishWarmthSamples(page) {
+  return page.locator("#glowCanvas").evaluate(canvas => {
+    const contour = document.getElementById("fishContourPath");
+    const total = contour.getTotalLength();
+    const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+    const positions = [0.04, 0.11, 0.18, 0.25, 0.32, 0.39, 0.46, 0.53, 0.60, 0.67, 0.74, 0.81, 0.88, 0.95];
+    return positions.map(t => {
+      const point = contour.getPointAtLength(total * t);
+      const x = Math.max(1, Math.min(canvas.width - 2, Math.round(point.x)));
+      const y = Math.max(1, Math.min(canvas.height - 2, Math.round(point.y)));
+      let r = 0, g = 0, b = 0, count = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const i = ((y + dy) * canvas.width + x + dx) * 4;
+        r += pixels[i]; g += pixels[i + 1]; b += pixels[i + 2]; count++;
+      }
+      r /= count; g /= count; b /= count;
+      return { position: t, redMinusBlue: r - b, greenMinusBlue: g - b };
+    });
+  });
+}
+
 async function afterRender(page, action) {
   const previous = await page.evaluate(() => Number(document.documentElement.dataset.renderVersion || 0));
   await action();
@@ -159,6 +180,10 @@ async function main() {
   }));
   const defaultGlow = await canvasStats(page);
   const defaultWholeGlow = await wholeCanvasHash(page);
+  const fishWarmSamples = await fishWarmthSamples(page);
+  const goldSamples = fishWarmSamples.filter(sample => sample.redMinusBlue >= 24 && sample.greenMinusBlue >= 10);
+  assert.ok(goldSamples.length >= 9, `Frozen 03 fish contour should stay chromatically warm gold, not wash to white: ${JSON.stringify(fishWarmSamples)}`);
+  console.log("SMOKE: fish highlight retains warm-gold color at the contour");
   const defaultCore = await canvasStats(page, "contourCanvas");
   await page.locator("#glowCanvas").evaluate(canvas => {
     window.__edgeFieldDefaultPixels = new Uint8ClampedArray(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data);
@@ -259,7 +284,10 @@ async function main() {
   assert.deepEqual(exportConfig.edge_field.secondary_path_ids, ["B2", "G2", "B4"]);
   assert.deepEqual(exportConfig.edge_field.receiving_alpha_per_pass, [0.66, 0.50], "The Web-only corner-light candidate is explicit and separately tracked under RP-A01.");
   assert.match(exportConfig.edge_field.edge_effect_compositor, /padded transparent offscreen layer/);
+  assert.equal(exportConfig.edge_field.edge_effect_render_scale, 0.5, "Wide Frozen-reference perimeter light is rendered at half resolution and composited back at source size.");
   assert.ok(exportConfig.edge_field.edge_effect_padding_px >= 100, "Export records the responsive perimeter bleed inset.");
+  assert.equal(exportConfig.fish_highlight.composite_mode, "source-over hue-preserving warm-gold composition");
+  assert.equal(exportConfig.fish_highlight.blue_perimeter_excluded, true, "Blue remains limited to the photo-edge layer.");
   assert.equal(exportConfig.parameters.edgeFieldEnabled, true);
   console.log("SMOKE: exported parameters and source provenance verified");
 

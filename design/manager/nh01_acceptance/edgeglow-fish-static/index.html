@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-r07-padded-photo-edge-v1" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-static-r08-frozen-color-separation-v1" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -30,8 +30,8 @@
     <section class="workspace-heading edgeglow-heading">
       <div>
         <div class="eyebrow">FROZEN 02 / 03 / 04 · PHOTO EDGE FIELD + FISH FOCUS</div>
-        <h2>四岛蓝金光场 · 鱼体暖金高亮</h2>
-        <p>对齐 Frozen 原型的颜色分工：外围是左上金、右上蓝、左下金、右下蓝的四个断开光岛；鱼体轮廓只用暖金。三张画布复用同一原图尺寸和坐标，FIT 不裁切；Path 是人工参考轮廓，不代表生产 Mask。</p>
+        <h2>图片四周蓝金光场 · 鱼体暖金高亮</h2>
+        <p>严格按 Frozen 02 / 03 分工：蓝金光场围绕照片四周的四个断开边缘岛；鱼体轮廓、柔光和光尾单独使用暖金。三张画布复用同一张原图和 1152×1536 FIT 坐标；Path 是人工参考轮廓，不代表生产 Mask。</p>
       </div>
       <div class="edgeglow-source-stamp" id="sourceStatus" role="status">正在核验照片来源…</div>
     </section>
@@ -74,7 +74,7 @@
           </label>
         </header>
         <div class="photo-stage glow-stage">
-          <canvas id="glowCanvas" width="1152" height="1536" aria-label="鱼体多层静态光效"></canvas>
+          <canvas id="glowCanvas" width="1152" height="1536" aria-label="照片四周蓝金光场与鱼体暖金高亮"></canvas>
           <input id="wipePosition" class="wipe-position" type="range" min="5" max="95" value="50" aria-label="擦拭比较位置" hidden>
         </div>
         <p class="view-caption" id="comparisonCaption">照片四边四岛蓝金光场 · 鱼体独立暖金 Bloom/Core/Comet</p>
@@ -129,7 +129,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>Frozen 对照：</strong>02 / 03 / 04 原型中的照片外围光场为四个断开的蓝金能量岛，不是完整边框；右上蓝岛最强，左上/左下金岛承托，右下蓝岛最弱。<br><strong>绘制层级：</strong>原图 → 沿冻结岛路径的蓝金 Receiving Light → Primary Outer / Mid / Core → Companion / B1 Micro → 静态能量节点 → 鱼体独立暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不会进入鱼体高亮。R03/R04 的模糊在照片边界处被 Canvas 裁切，线上四角仍不够清楚；R05 外围色 #5AB2FC / #E0B644 取自 Frozen 02 光线像素，Android 原色 #BFEAF2 / #F6D99B 另行保留。R06 提高四岛 Receiving Light 的 Web 评审强度（0.66 / 0.50）。R07 把同一四岛光效放到有边界留白的透明离屏层绘制，再裁回原照片像素，避免边缘模糊被提前截断；Path、Quiet Gaps、FIT 坐标和鱼体金色不变。R06/R07 alpha 高于 Android 0.13 与 Frozen Rendering Contract 0.07 上限，仅是 Web 视觉候选，RP-A01 仍待处理；不代表 Frozen Token 或 Android Runtime 通过。Canvas 2D Blur / 混色与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。R08 使用有边界留白的透明离屏层绘制照片边缘光，再裁回原图，避免外圈模糊被画布截断；鱼体金色层使用 source-over 保持色相，不再用 screen 混合冲白。照片/Path 坐标和三张 Frozen 资产保持不变。蓝金外圈 alpha 仍高于 Android 与 Frozen Contract 上限，仅是 Web 视觉候选；浏览器模糊不等同 Android API 28，视觉质量仍待人工评审。</div>
     </section>
 
     <section class="edgeglow-footer-grid">
