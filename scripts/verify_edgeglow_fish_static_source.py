@@ -57,6 +57,7 @@ def main() -> None:
     assert 'ctx.globalCompositeOperation = "screen"' in receiving_renderer and 'ctx.globalCompositeOperation = "screen"' in perimeter_path_renderer, "photo-edge light must use a luminous blend in the Web visual study"
     assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
     assert receiving_renderer.count("ctx.stroke();") == 2 and "9 * photoPxPerDp" in receiving_renderer and "2.5 * photoPxPerDp" in receiving_renderer, "Receiving Light needs a wide bloom and a close glow along the same path"
+    assert "receivingGradient(0.22)" in receiving_renderer and "receivingGradient(0.18)" in receiving_renderer and "R01 web review emphasis" in receiving_renderer, "R01 optical emphasis must be explicit and distinct from Android runtime"
     assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
     fish_renderer = renderer.split("function createContourGradient", 1)[1].split("function drawReceivingLight", 1)[0]
     assert "params.edgeFieldBlueColor" not in fish_renderer and "params.blueColor" not in fish_renderer, "blue/cyan perimeter color must never enter Fish Focus"
@@ -78,7 +79,7 @@ def main() -> None:
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "alpha = (.13f * common * weight)")), "Android source binding changed; review the Web adapter and the tracked Receiving Light alpha discrepancy"
-    assert "receiving_alpha_default: 0.13" in renderer and "0.13 * common" in receiving_renderer and "exceeds Frozen Rendering Contract cap 0.07; open RP-A01" in renderer, "Android-runtime receiving light candidate must expose its Frozen contract discrepancy"
+    assert "receiving_alpha_per_pass: [0.22, 0.18]" in renderer and "above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01" in renderer, "R01 receiving-light values must expose their Android and Frozen contract discrepancy"
     expected_companion_path_definitions = (
         '{ id: "B1C", parentId: "B1", family: "blue", widthDp: 0.60, phaseDelta: -0.055, visibleRatio: 0.44, weight: 0.30, start: [0.75, -0.01], control1: [0.91, 0.07], control2: [0.99, 0.20], end: [0.94, 0.37] }',
         '{ id: "G1C", parentId: "G1", family: "gold", widthDp: 0.58, phaseDelta: 0.065, visibleRatio: 0.42, weight: 0.30, start: [-0.01, 0.20], control1: [0.04, 0.11], control2: [0.13, 0.04], end: [0.24, 0.00] }',
@@ -111,9 +112,10 @@ def main() -> None:
             "micro_path_ids": ["B1M"],
             "receiving_light_renderer": "path-following local illumination; no corner circles",
             "receiving_light_web_passes": 2,
-            "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.13) ** 2, 4),
+            "receiving_light_alpha_per_pass": [0.22, 0.18],
+            "receiving_light_effective_alpha_at_peak": round(1 - (1 - 0.22) * (1 - 0.18), 4),
             "perimeter_web_blend": "screen; visual study only, not Android-equivalent",
-            "receiving_light_default_alpha": 0.13,
+            "receiving_light_default_alpha_per_pass": [0.22, 0.18],
             "frozen_contract_receiving_light_cap": 0.07,
             "android_receiving_light_alpha": 0.13,
             "alpha_reconciliation": "OPEN_RP_A01",

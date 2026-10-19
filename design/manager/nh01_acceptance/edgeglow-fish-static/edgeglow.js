@@ -279,19 +279,22 @@
       for (const [from, to] of edgeFieldParts(geometry)) {
         const points = edgeFieldSegment(ctx, geometry, from, to, Math.max(2, photoPxPerDp));
         const first = points[0], last = points[points.length - 1];
-        const gradient = ctx.createLinearGradient(first[0], first[1], last[0], last[1]);
-        gradient.addColorStop(0, rgba(color, 0.055 * common));
-        gradient.addColorStop(0.50, rgba(color, 0.11 * common));
-        gradient.addColorStop(0.90, rgba(hotColor, 0.13 * common));
-        gradient.addColorStop(1, rgba(hotColor, 0.10 * common));
-        // Wide atmospheric pass: diffuses along the photo-facing side of each island.
+        const receivingGradient = peakAlpha => {
+          const gradient = ctx.createLinearGradient(first[0], first[1], last[0], last[1]);
+          gradient.addColorStop(0, rgba(color, peakAlpha * 0.30 * common));
+          gradient.addColorStop(0.50, rgba(color, peakAlpha * 0.72 * common));
+          gradient.addColorStop(0.90, rgba(hotColor, peakAlpha * common));
+          gradient.addColorStop(1, rgba(hotColor, peakAlpha * 0.76 * common));
+          return gradient;
+        };
+        // R01 web review emphasis: brighter than Android runtime and the Frozen
+        // contract cap so the edge illumination can be judged on this daylight photo.
         ctx.filter = `blur(${9 * photoPxPerDp}px)`;
-        ctx.strokeStyle = gradient;
+        ctx.strokeStyle = receivingGradient(0.22);
         ctx.lineWidth = 18 * photoPxPerDp;
         ctx.stroke();
-        // Close pass uses the same path and per-pass Android runtime alpha. The
-        // two screen layers accumulate into a more legible Web optical study.
         ctx.filter = `blur(${2.5 * photoPxPerDp}px)`;
+        ctx.strokeStyle = receivingGradient(0.18);
         ctx.lineWidth = 7 * photoPxPerDp;
         ctx.stroke();
       }
@@ -598,7 +601,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following local illumination; no circular corner glows", receiving_alpha_default: 0.13, receiving_alpha_authority: "Android RecognitionAmbientField current runtime value; exceeds Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "screen for luminous edge field; fish contour remains separately warm gold" },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following local illumination; no circular corner glows", receiving_alpha_per_pass: [0.22, 0.18], receiving_alpha_authority: "R01 Web visual emphasis; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", perimeter_blend_mode: "screen for luminous edge field; fish contour remains separately warm gold" },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
       build: buildInfo
