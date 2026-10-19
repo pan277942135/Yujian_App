@@ -20,11 +20,11 @@ Figma 原生编辑是进入 Android 生产修改的强制门禁。本次 Figma M
 | 原始 Gemini HTML | `粘贴的文本 (1)(6).txt`，18,331 bytes，SHA-256 `1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714` | 原件保留，未修改 |
 | Frozen NH01 全屏参考 | `design/system/core_visual_v1/reference/normal_home_v1.png`，1080×1920，SHA-256 `6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377` | `PASS`；未修改 |
 | `main` | `0d3238e8a41b87363e9a17b04c9cc45fca4c426d` | 基线 |
-| PR #164 | `design/m1-nh01-figma-structural-handoff-v2`，HEAD `77a9aabc2648bda2942575d6600b74c9fe7d3ad7` | Draft / Open / Unmerged；本次结构交接承接分支 |
-| PR #167 | `design/nh01-cloud-structured-parity-v1`，HEAD `8481cecebd057f84858e5548163fbb61bb4d50e7` | Draft / Open / Unmerged；只读取现有 Viewer 与运行证据 |
+| PR #164 | `design/m1-nh01-figma-structural-handoff-v2`，工作起点 HEAD `77a9aabc2648bda2942575d6600b74c9fe7d3ad7` | Draft / Open / Unmerged；本次结构交接承接分支 |
+| PR #167 | `design/nh01-cloud-structured-parity-v1`，本次审计 HEAD `8481cecebd057f84858e5548163fbb61bb4d50e7` | Draft / Open / Unmerged；只读取现有 Viewer 与运行证据 |
 | 既有 Node Mapping V2 | `release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json`，Git blob `606bf5470181a0201f0723adbc24ca27c5a50401` | `REVIEW_REQUIRED`；ID 仅为候选锚点 |
 
-本次产物拟放在 PR #164，不改写旧 Node Mapping V2，不修改 PR #167 的 Android 或 Viewer 源码，也不合并 `main`。
+本次产物拟放在 PR #164，不改写旧 Node Mapping V2，不修改 PR #167 的 Android 或 Viewer 源码，也不合并 `main`。 三个文件依次提交后，PR #164 分支达到 `6766c2a46da8cd76220b58bc2a45f5be2854f3e3`（映射 `ec538c7f45271148673c45282765e769db2ea7af`、报告 `6abff2960fdbf3fc12934cf9117907d5ba85614a`、原型 `6766c2a46da8cd76220b58bc2a45f5be2854f3e3`）。
 
 ## 3. Figma 门禁
 
@@ -67,7 +67,7 @@ Figma 原生编辑是进入 Android 生产修改的强制门禁。本次 Figma M
 
 ## 6. 现有 PR 与 API 28 证据
 
-PR #164 当前 HEAD 的 control-plane、Native Importer Validation 和 Android CI 三项均成功（Runs `39177894762`、`39177894709`、`39177894769`）。Importer Validation 的绿色结果不证明本次 Figma 文件已写入。
+PR #164 工作起点 HEAD `77a9aabc2648bda2942575d6600b74c9fe7d3ad7` 的 control-plane、Native Importer Validation 和 Android CI 三项均成功（Runs `39177894762`、`39177894709`、`39177894769`）。Importer Validation 的绿色结果不证明本次 Figma 文件已写入。
 
 PR #167 当前 HEAD 的 Android CI、control-plane、Design Governance、Design Manager Pages 均成功（Runs `39219487032`、`39219487054`、`39219487061`、`39219487087`）。现有 API28 运行 [Run 39219487046](https://github.com/pan277942135/Yujian_App/actions/runs/39219487046) 已构建、安装并运行仪器测试，但 `Enforce real Android Runtime gate` 失败，最终状态为 `FAIL_EVIDENCE`：
 
