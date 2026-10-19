@@ -549,7 +549,7 @@ private fun GeminiCatchCarousel(
     val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
-    BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth().height(cardHeight).testTag("gemini-home-catch-pager"),
