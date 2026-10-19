@@ -6,6 +6,8 @@
   const SVG_NS = "http://www.w3.org/2000/svg";
   const EDGE_FIELD_SOURCE = "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt";
   const EDGE_FIELD_RENDER_SCALE = 0.5;
+  // R09 Web review candidate: broad Receiving Light follows most of each Frozen corner arc; fine paths retain their Quiet Gaps.
+  const EDGE_RECEIVING_VISIBLE_RATIO = 0.82;
   const EDGE_FIELD_PATHS = Object.freeze([
     { id: "B1", family: "blue", widthDp: 1.2, seed: 0.00, visibleRatio: 0.30, weight: 1.00, start: [0.78, -0.02], control1: [0.94, 0.06], control2: [1.02, 0.22], end: [0.96, 0.42] },
     { id: "B3", family: "blue", widthDp: 1.2, seed: 0.47, visibleRatio: 0.20, weight: 0.54, start: [1.02, 0.61], control1: [0.92, 0.75], control2: [0.84, 0.89], end: [0.66, 1.02] },
@@ -281,7 +283,7 @@
       const color = geometry.family === "blue" ? params.edgeFieldBlueColor : params.edgeFieldGoldColor;
       const hotColor = geometry.family === "blue" ? "#e7fbff" : "#fff1c8";
       const common = intensity * geometry.weight;
-      for (const [from, to] of edgeFieldParts(geometry)) {
+      for (const [from, to] of edgeFieldPartsAt(geometry, geometry.seed, EDGE_RECEIVING_VISIBLE_RATIO)) {
         const points = edgeFieldSegment(ctx, geometry, from, to, Math.max(2, photoPxPerDp));
         const first = points[0], last = points[points.length - 1];
         const receivingGradient = peakAlpha => {
@@ -292,9 +294,9 @@
           gradient.addColorStop(1, rgba(hotColor, peakAlpha * 0.76 * common));
           return gradient;
         };
-        // R06 strengthens the Frozen blue/gold corner field along the same four
-        // disconnected paths. Quiet Gaps and the separate warm-gold fish layer
-        // remain unchanged; these are Web review values, not Android tokens.
+        // R09 extends only the broad blue/gold Receiving Light across each photo corner arc.
+        // The thin path layers keep their original Quiet Gaps; Fish Focus remains warm gold.
+        // These are Web review values, not Android tokens.
         ctx.filter = `blur(${22 * photoPxPerDp * EDGE_FIELD_RENDER_SCALE}px)`;
         ctx.strokeStyle = receivingGradient(0.66);
         ctx.lineWidth = 44 * photoPxPerDp;
@@ -308,8 +310,8 @@
     ctx.restore();
   }
 
-  function edgeFieldPartsAt(geometry, seed = geometry.seed) {
-    const visibleLength = geometry.length * geometry.visibleRatio;
+  function edgeFieldPartsAt(geometry, seed = geometry.seed, visibleRatio = geometry.visibleRatio) {
+    const visibleLength = geometry.length * Math.max(0, Math.min(1, visibleRatio));
     const start = ((seed % 1) + 1) % 1 * geometry.length;
     const end = start + visibleLength;
     return end <= geometry.length
@@ -641,7 +643,7 @@
       photo: { repository_path: fixture.photo.repository_path, sha256: EXPECTED_SHA, dimensions: [photo.naturalWidth, photo.naturalHeight], fit: fixture.photo.fit },
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility candidate carried into R08; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "path-following blue/gold corner field; four disconnected islands; no circular blobs or closed frame", receiving_alpha_per_pass: [0.66, 0.50], receiving_path_coverage_ratio: EDGE_RECEIVING_VISIBLE_RATIO, receiving_width_dp: [44, 12], receiving_blur_dp: [22, 4.5], receiving_alpha_authority: "R06 Web visibility candidate carried into R08; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#bfeaf2", blue_hot: "#d8f5fa", gold: "#f6d99b", gold_hot: "#ffe7ae" } },
       fish_highlight: { source: fixture.contour.source, composite_mode: "source-over hue-preserving warm-gold composition", palette: { outline: params.fishGoldColor, core: params.fishCoreColor }, blue_perimeter_excluded: true, layer_order: ["outer_bloom", "core_highlight", "static_comet"] },
       renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
       parameters: { ...params },
