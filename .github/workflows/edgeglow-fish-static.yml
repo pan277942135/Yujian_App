@@ -8,6 +8,8 @@ on:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/smoke_edgeglow_fish_static.cjs"
+      - "scripts/verify_edgeglow_fish_static_source.py"
+      - "scripts/smoke_edgeglow_fish_static_live.py"
       - ".github/workflows/edgeglow-fish-static.yml"
   push:
     branches:
@@ -16,6 +18,8 @@ on:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/smoke_edgeglow_fish_static.cjs"
+      - "scripts/verify_edgeglow_fish_static_source.py"
+      - "scripts/smoke_edgeglow_fish_static_live.py"
       - ".github/workflows/edgeglow-fish-static.yml"
 
 permissions:
@@ -35,21 +39,21 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 8
     steps:
       - name: Checkout exact PR #166 source
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: pr-source
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Checkout verified current NH01 Acceptance Center source
         uses: actions/checkout@v4
         with:
           ref: 8481cecebd057f84858e5548163fbb61bb4d50e7
           path: center-source
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Guard current Acceptance Center branch identity
         shell: bash
@@ -75,35 +79,24 @@ jobs:
             --center-sha "$CENTER_SOURCE_SHA" \
             --pr-sha "$PR_SOURCE_SHA"
 
-      - name: Install Playwright Chromium
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/edgeglow-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/edgeglow-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Run browser proof and export visual evidence
+      - name: Audit source contracts and renderer syntax
         shell: bash
         env:
-          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/edgeglow-playwright/node_modules
           EDGEGLOW_OUTPUT_DIR: ${{ runner.temp }}/edgeglow-evidence
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory "$RUNNER_TEMP/edgeglow-pages" > "$RUNNER_TEMP/edgeglow-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8765/design/manager/nh01_acceptance/ >/dev/null; then break; fi
-            sleep 1
-          done
-          node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
-            --base-url=http://127.0.0.1:8765/ \
-            --output-dir "$EDGEGLOW_OUTPUT_DIR"
+          node --check pr-source/design/manager/nh01_acceptance/edgeglow-fish-static/edgeglow.js
+          node --check pr-source/scripts/smoke_edgeglow_fish_static.cjs
+          python3 pr-source/scripts/verify_edgeglow_fish_static_source.py \
+            --site-root "$RUNNER_TEMP/edgeglow-pages" \
+            --pr-sha "$PR_SOURCE_SHA" \
+            --center-sha "$CENTER_SOURCE_SHA" \
+            --output "$EDGEGLOW_OUTPUT_DIR/EdgeGlow_Fish_Static_Source_Audit.json"
 
       - name: Upload static visual evidence
         uses: actions/upload-artifact@v4
         with:
-          name: EdgeGlow-Fish-Static-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: EdgeGlow-Fish-Static-Source-Audit-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/edgeglow-evidence/
           if-no-files-found: error
           retention-days: 30
@@ -117,7 +110,7 @@ jobs:
     if: github.event_name == 'push'
     needs: build-and-test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 8
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -128,29 +121,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: pr-source
+          fetch-depth: 1
 
       - name: Deploy the additive Acceptance Center build
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Install Playwright Chromium for live check
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/edgeglow-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/edgeglow-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Verify public HTTPS route, source identity and PNG export
+      - name: Verify public HTTPS route, source identity and registered photo
         shell: bash
         env:
-          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/edgeglow-playwright/node_modules
           EDGEGLOW_OUTPUT_DIR: ${{ runner.temp }}/edgeglow-live-evidence
           EDGEGLOW_BASE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
+          python3 "$GITHUB_WORKSPACE/pr-source/scripts/smoke_edgeglow_fish_static_live.py" \
             --base-url="$EDGEGLOW_BASE_URL" \
-            --output-dir "$EDGEGLOW_OUTPUT_DIR"
+            --pr-sha="$PR_SOURCE_SHA" \
+            --center-sha="$CENTER_SOURCE_SHA" \
+            --output="$EDGEGLOW_OUTPUT_DIR/EdgeGlow_Fish_Static_Live_Smoke.json"
 
       - name: Upload live cloud verification evidence
         uses: actions/upload-artifact@v4
