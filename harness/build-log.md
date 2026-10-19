@@ -18,4 +18,4 @@
 - Added static audit report and machine-readable manifest. User images remain private and absent from this filesystem; historical PR #164 V3 results are labeled HISTORICAL. Ground Truth and user-image IoU remain missing.
 - Local checks passed: runtime gate shell syntax; fake-ADB harness (9 scenarios); runtime evidence source-closure tests (6); Recognition contract verifier; production classifier release verifier.
 - Android Gradle build/unit tests/androidTest compile/lint and API 28 run remain NOT_RUN because this container has no Gradle, Android SDK, adb or emulator. No GCP resources were accessed.
-- Exact implementation source SHA: `430a616ce8070ae20c354d0bda80ed4828dd44cc`. The isolated branch push, independent Draft PR, hosted Android build and existing API 28 runner remain pending.
+- Exact implementation source SHA: `265f99c5157e347f91a942681ce514e21ca46c63`. The isolated branch push, independent Draft PR, hosted Android build and existing API 28 runner remain pending.

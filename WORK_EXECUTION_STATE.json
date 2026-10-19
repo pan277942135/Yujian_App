@@ -1,0 +1,38 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_BBOX_LOCALIZATION_ANDROID_FIX_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "fix/bbox-localization-android-v1",
+  "control_plane_revision": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+  "base_branch": "main",
+  "base_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+  "phase": "P6",
+  "task_id": "P6-02",
+  "stage": "E1",
+  "status": "RUNNING",
+  "source_sha": "265f99c5157e347f91a942681ce514e21ca46c63",
+  "checkpoint_updated_at": "2026-10-19T15:36:40Z",
+  "next_action": "Push the isolated branch, open the independent Draft PR, and run exact-head Android build/API28 validation.",
+  "dependencies": ["P5-02"],
+  "blockers": [
+    "BBOX-GT-001: reviewed Ground Truth boxes are unavailable for the user-provided photo candidate, screenshot, and Case B fixture.",
+    "BBOX-IMG-001: exact original Case A and user image bytes are absent from the Android Work filesystem; PR #164 V3 values are historical CPU evidence only."
+  ],
+  "evidence": {
+    "canonical_main_admission": "PASS",
+    "base_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+    "pr_145": "CLOSED_MERGED; design-system scope, not the Recognition implementation authority",
+    "recognition_baseline": "Recognition Processing V1.3 is an ancestor of current main",
+    "case_a_candidate_sha256": "0fc341627e4345131a15fbf3514454f053dcb349db17bf1171c8f2f8756226cf",
+    "case_a_historical_sha256": "2dd703a46b378093604e10f0add454606393138f7501774bd3bbcca75352c9fe",
+    "case_a_identity": "USER_PROVIDED_CASE_A_CANDIDATE; not historical-byte confirmed",
+    "source_commit": "265f99c5157e347f91a942681ce514e21ca46c63",
+    "static_coordinate_audit": "PASS; decode, orientation inverse, crop, and display mappings consistent; mirrored EXIF 2/4/5/7 defect fixed",
+    "local_contract_and_harness_checks": "PASS",
+    "android_build": "NOT_RUN; Gradle and Android SDK unavailable locally",
+    "api28_runtime": "NOT_RUN; use existing GitHub self-hosted runner after push",
+    "bbox_metrics": "INSUFFICIENT_GROUND_TRUTH",
+    "gcp": "not accessed"
+  }
+}
