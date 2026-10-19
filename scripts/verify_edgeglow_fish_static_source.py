@@ -52,6 +52,13 @@ def main() -> None:
     assert "drawRoundRect" not in renderer and "addRoundRect" not in renderer, "fixed rounded-rectangle rendering returned"
     assert all(f'id="{control}"' in page for control in ("edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "edgeFieldIntensity")), "photo-edge light controls are required"
     assert all(token in renderer for token in ("drawReceivingLight", "drawPrimaryEdgeIslands", "edgeFieldParts", 'id: "B1"', 'id: "B3"', 'id: "G1"', 'id: "G3"')), "four primary paths and local receiving light are required"
+    assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
+    fish_renderer = renderer.split("function createContourGradient", 1)[1].split("function drawReceivingLight", 1)[0]
+    assert "params.edgeFieldBlueColor" not in fish_renderer and "params.blueColor" not in fish_renderer, "blue/cyan perimeter color must never enter Fish Focus"
+    assert "params.fishGoldColor" in fish_renderer and "params.fishCoreColor" in fish_renderer, "Fish Focus must render a warm-gold palette"
+    assert "blueColor" not in page and "#58c8f4" not in renderer, "obsolete blue fish-highlight controls/palette must be removed"
+    assert 'fishGoldColor: "#ffd887", fishCoreColor: "#ffe7ae"' in renderer, "Fish Focus defaults must use the approved warm-gold family"
+    assert 'edgeFieldBlueColor: "#bfeaf2", edgeFieldGoldColor: "#f6d99b"' in renderer, "photo perimeter retains its separate blue/cyan and gold palette"
     expected_primary_path_definitions = (
         '{ id: "B1", family: "blue", widthDp: 1.2, seed: 0.00, visibleRatio: 0.30, weight: 1.00, start: [0.78, -0.02], control1: [0.94, 0.06], control2: [1.02, 0.22], end: [0.96, 0.42] }',
         '{ id: "B3", family: "blue", widthDp: 1.2, seed: 0.47, visibleRatio: 0.20, weight: 0.54, start: [1.02, 0.61], control1: [0.92, 0.75], control2: [0.84, 0.89], end: [0.66, 1.02] }',

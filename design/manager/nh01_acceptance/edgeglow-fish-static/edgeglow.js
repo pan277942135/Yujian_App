@@ -12,18 +12,18 @@
     { id: "G3", family: "gold", widthDp: 1.2, seed: 0.64, visibleRatio: 0.22, weight: 0.63, start: [-0.01, 0.74], control1: [0.08, 0.86], control2: [0.20, 0.95], end: [0.38, 1.02] }
   ]);
   const DEFAULTS = Object.freeze({
-    outerEnabled: true, outerWidth: 52, outerIntensity: 72,
-    coreEnabled: true, coreWidth: 8, coreIntensity: 92,
+    outerEnabled: true, outerWidth: 28, outerIntensity: 62,
+    coreEnabled: true, coreWidth: 3, coreIntensity: 92,
     cometEnabled: true, cometLength: 14, cometPosition: 21, cometFalloff: 1.55,
     edgeFieldEnabled: true, receivingLightEnabled: true, primaryIslandsEnabled: true, edgeFieldIntensity: 100,
     edgeFieldBlueColor: "#bfeaf2", edgeFieldGoldColor: "#f6d99b",
-    blueColor: "#58c8f4", goldColor: "#f2cc78", coreColor: "#fff5d8",
+    fishGoldColor: "#ffd887", fishCoreColor: "#ffe7ae",
     compareMode: "side", wipePosition: 50, contourVisible: true
   });
   const IDS = ["originalCanvas", "contourCanvas", "glowCanvas"];
   const el = Object.fromEntries([
     ...IDS.map(id => [id, document.getElementById(id)]),
-    ...["sourceStatus", "photoSha", "photoDimensions", "buildSha", "fishContourPath", "contourVisible", "compareMode", "wipePosition", "comparisonCaption", "resetButton", "exportPngButton", "exportJsonButton", "outerEnabled", "outerWidth", "outerIntensity", "coreEnabled", "coreWidth", "coreIntensity", "cometEnabled", "cometLength", "cometPosition", "cometFalloff", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "blueColor", "goldColor", "coreColor", "outerWidthValue", "outerIntensityValue", "coreWidthValue", "coreIntensityValue", "cometLengthValue", "cometPositionValue", "cometFalloffValue", "edgeFieldIntensityValue"].map(id => [id, document.getElementById(id)])
+    ...["sourceStatus", "photoSha", "photoDimensions", "buildSha", "fishContourPath", "contourVisible", "compareMode", "wipePosition", "comparisonCaption", "resetButton", "exportPngButton", "exportJsonButton", "outerEnabled", "outerWidth", "outerIntensity", "coreEnabled", "coreWidth", "coreIntensity", "cometEnabled", "cometLength", "cometPosition", "cometFalloff", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "outerWidthValue", "outerIntensityValue", "coreWidthValue", "coreIntensityValue", "cometLengthValue", "cometPositionValue", "cometFalloffValue", "edgeFieldIntensityValue"].map(id => [id, document.getElementById(id)])
   ]);
   const contexts = Object.fromEntries(IDS.map(id => [id, el[id].getContext("2d", { alpha: false })]));
   const contourSvg = el.fishContourPath;
@@ -135,10 +135,10 @@
 
   function createContourGradient(ctx) {
     const g = ctx.createLinearGradient(210, 290, 220, 1445);
-    g.addColorStop(0, params.blueColor);
-    g.addColorStop(0.43, params.blueColor);
-    g.addColorStop(0.73, params.goldColor);
-    g.addColorStop(1, params.goldColor);
+    g.addColorStop(0, params.fishGoldColor);
+    g.addColorStop(0.34, mixHex(params.fishGoldColor, params.fishCoreColor, 0.28));
+    g.addColorStop(0.72, params.fishCoreColor);
+    g.addColorStop(1, params.fishGoldColor);
     return g;
   }
 
@@ -149,8 +149,8 @@
     ctx.save();
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
-    ctx.strokeStyle = "rgba(87, 224, 255, 0.96)";
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = rgba(params.fishGoldColor, 0.96);
+    ctx.lineWidth = 4;
     ctx.shadowColor = "rgba(5, 28, 40, 0.95)";
     ctx.shadowBlur = 4;
     ctx.stroke(new Path2D(fixture.contour.path_d));
@@ -220,7 +220,7 @@
       const p0 = pathPoint(start + tailLength * t0);
       const p1 = pathPoint(start + tailLength * t1);
       const headness = Math.pow((t0 + t1) / 2, params.cometFalloff);
-      const color = mixHex(params.blueColor, params.goldColor, Math.min(1, 0.18 + headness * 1.05));
+      const color = mixHex(params.fishGoldColor, params.fishCoreColor, Math.min(0.82, 0.16 + headness * 0.66));
       ctx.globalAlpha = (params.coreIntensity / 100) * (softness ? 0.18 : 0.20 + headness * 0.8);
       ctx.strokeStyle = color;
       ctx.lineWidth = glowWidth * (0.55 + headness * 0.45);
@@ -232,7 +232,7 @@
     const headPoint = pathPoint(head);
     ctx.filter = softness ? "blur(12px)" : "none";
     ctx.globalAlpha = params.coreIntensity / 100;
-    ctx.fillStyle = params.coreColor;
+    ctx.fillStyle = params.fishCoreColor;
     ctx.beginPath();
     ctx.arc(headPoint.x, headPoint.y, softness ? params.coreWidth * 2 : params.coreWidth * 0.72, 0, Math.PI * 2);
     ctx.fill();
@@ -383,7 +383,7 @@
     } else {
       ctx.drawImage(buffer, 0, 0);
       el.wipePosition.hidden = true;
-      el.comparisonCaption.textContent = "AI Edge Field · Receiving Light + 4 Primary Islands · Fish Bloom/Core/Comet";
+      el.comparisonCaption.textContent = "AI Edge Field · 四周蓝青/暖金 · Fish Focus 暖金高亮";
     }
     ctx.restore();
   }
@@ -401,7 +401,7 @@
 
   function syncControls() {
     for (const id of ["outerEnabled", "coreEnabled", "cometEnabled", "edgeFieldEnabled", "receivingLightEnabled", "primaryIslandsEnabled", "contourVisible"]) el[id].checked = Boolean(params[id]);
-    for (const id of ["outerWidth", "outerIntensity", "coreWidth", "coreIntensity", "cometLength", "cometPosition", "cometFalloff", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "blueColor", "goldColor", "coreColor", "compareMode", "wipePosition"]) el[id].value = params[id];
+    for (const id of ["outerWidth", "outerIntensity", "coreWidth", "coreIntensity", "cometLength", "cometPosition", "cometFalloff", "edgeFieldIntensity", "edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor", "compareMode", "wipePosition"]) el[id].value = params[id];
     updateOutputs();
   }
 
@@ -443,7 +443,7 @@
     cometEnabled: "cometEnabled", cometLength: "cometLength", cometPosition: "cometPosition", cometFalloff: "cometFalloff",
     edgeFieldEnabled: "edgeFieldEnabled", receivingLightEnabled: "receivingLightEnabled", primaryIslandsEnabled: "primaryIslandsEnabled", edgeFieldIntensity: "edgeFieldIntensity",
     edgeFieldBlueColor: "edgeFieldBlueColor", edgeFieldGoldColor: "edgeFieldGoldColor",
-    blueColor: "blueColor", goldColor: "goldColor", coreColor: "coreColor", contourVisible: "contourVisible",
+    fishGoldColor: "fishGoldColor", fishCoreColor: "fishCoreColor", contourVisible: "contourVisible",
     compareMode: "compareMode", wipePosition: "wipePosition"
   };
   for (const [controlId, param] of Object.entries(controlToParam)) {

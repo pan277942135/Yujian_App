@@ -8,7 +8,7 @@
   <title>EdgeGlowView Fish Static Prototype · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
-  <script src="./edgeglow.js?v=edgeglow-static-v2" defer></script>
+  <script src="./edgeglow.js?v=edgeglow-static-v3" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -59,7 +59,7 @@
           <label class="compact-toggle"><input type="checkbox" id="contourVisible" checked> 显示轮廓</label>
         </header>
         <div class="photo-stage"><canvas id="contourCanvas" width="1152" height="1536" aria-label="鱼获照片与人工参考轮廓"></canvas></div>
-        <p class="view-caption">青色路径沿照片可见边缘手工描绘，坐标锁定原图像素。</p>
+        <p class="view-caption">暖金参考路径沿照片可见鱼体边缘手工描绘，坐标锁定原图像素。</p>
       </article>
 
       <article class="panel-card edgeglow-view-card">
@@ -77,7 +77,7 @@
           <canvas id="glowCanvas" width="1152" height="1536" aria-label="鱼体多层静态光效"></canvas>
           <input id="wipePosition" class="wipe-position" type="range" min="5" max="95" value="50" aria-label="擦拭比较位置" hidden>
         </div>
-        <p class="view-caption" id="comparisonCaption">AI Edge Field · Receiving Light + 4 Primary Islands · Fish Bloom/Core/Comet</p>
+        <p class="view-caption" id="comparisonCaption">照片四周蓝青/暖金光场 · 鱼体暖金 Bloom/Core/Comet</p>
       </article>
     </section>
 
@@ -102,15 +102,15 @@
           <small>B1 / G1 / B3 / G3 · 按照片原始坐标渲染，使用固定路径种子，不播放动画。</small>
         </fieldset>
         <fieldset>
-          <legend>Outer Bloom · 外层柔光</legend>
+          <legend>Outer Bloom · 鱼体暖金柔光</legend>
           <label class="check-line"><input id="outerEnabled" type="checkbox" checked> 启用外层柔光</label>
-          <label>宽度 <output id="outerWidthValue">52 px</output><input id="outerWidth" type="range" min="18" max="96" value="52"></label>
-          <label>强度 <output id="outerIntensityValue">72%</output><input id="outerIntensity" type="range" min="0" max="100" value="72"></label>
+          <label>宽度 <output id="outerWidthValue">28 px</output><input id="outerWidth" type="range" min="12" max="72" value="28"></label>
+          <label>强度 <output id="outerIntensityValue">62%</output><input id="outerIntensity" type="range" min="0" max="100" value="62"></label>
         </fieldset>
         <fieldset>
           <legend>Core Highlight · 核心描边</legend>
           <label class="check-line"><input id="coreEnabled" type="checkbox" checked> 启用核心高亮</label>
-          <label>宽度 <output id="coreWidthValue">8 px</output><input id="coreWidth" type="range" min="2" max="22" value="8"></label>
+          <label>宽度 <output id="coreWidthValue">3 px</output><input id="coreWidth" type="range" min="1" max="12" value="3"></label>
           <label>强度 <output id="coreIntensityValue">92%</output><input id="coreIntensity" type="range" min="0" max="100" value="92"></label>
         </fieldset>
         <fieldset>
@@ -121,14 +121,13 @@
           <label>渐变衰减 <output id="cometFalloffValue">1.55</output><input id="cometFalloff" type="range" min="0.5" max="3" step="0.05" value="1.55"></label>
         </fieldset>
         <fieldset>
-          <legend>EdgeGlow Color · 渐变颜色</legend>
-          <label class="color-line">冷蓝 <input id="blueColor" type="color" value="#58c8f4"></label>
-          <label class="color-line">暖金 <input id="goldColor" type="color" value="#f2cc78"></label>
-          <label class="color-line">核心白 <input id="coreColor" type="color" value="#fff5d8"></label>
-          <small>颜色沿路径进度映射；光尾颜色与透明度随弧长衰减。</small>
+          <legend>Fish Focus Palette · 鱼体金色层次</legend>
+          <label class="color-line">鱼体暖金 <input id="fishGoldColor" type="color" value="#ffd887"></label>
+          <label class="color-line">核心浅金 <input id="fishCoreColor" type="color" value="#ffe7ae"></label>
+          <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>绘制层级：</strong>原图 → 局部 Receiving Light → 四条断开的 Primary Edge Field Path（Outer Bloom / Mid Glow / 渐变 Core）→ 鱼体 Bloom / Mid Glow / Core / Static Comet。边缘几何复用 Android RecognitionAmbientField；Receiving Light 默认 Alpha 0.05 遵循冻结 Rendering Contract，Android 当前 0.13 实现差异由 RP-A01 跟踪。此页面使用浏览器 Canvas 2D；Blur / 合成与 Android Canvas 不等价。</div>
+      <div class="render-note"><strong>绘制层级：</strong>原图 → 照片四周蓝青/暖金 Receiving Light 与 Edge Field → 鱼体暖金 Bloom / Mid Glow / Core / Static Comet。蓝青色不进入鱼体高亮。边缘几何复用 Android RecognitionAmbientField；Receiving Light 默认 Alpha 0.05 遵循冻结 Rendering Contract，Android 当前 0.13 实现差异由 RP-A01 跟踪。此页面使用浏览器 Canvas 2D；Blur / 合成与 Android Canvas 不等价。</div>
     </section>
 
     <section class="edgeglow-footer-grid">

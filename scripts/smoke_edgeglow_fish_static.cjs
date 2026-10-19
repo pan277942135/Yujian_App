@@ -101,6 +101,9 @@ async function main() {
   assert.equal(identity.width, 1152);
   assert.equal(identity.height, 1536);
   assert.equal(identity.photoSha, expectedPhotoSha);
+  assert.equal((await page.locator("#fishGoldColor").getAttribute("value")), "#ffd887", "Fish Focus starts in warm gold, separate from the perimeter field palette.");
+  assert.equal((await page.locator("#fishCoreColor").getAttribute("value")), "#ffe7ae", "Fish core uses the warm-gold highlight family.");
+  assert.equal(await page.locator("#blueColor").count(), 0, "There is no blue control for the fish-body highlight.");
   assert.equal(identity.buildInfo.photo_sha256, expectedPhotoSha);
   if (process.env.PR_SOURCE_SHA) assert.equal(identity.buildInfo.pr_source_sha, process.env.PR_SOURCE_SHA);
   if (process.env.CENTER_SOURCE_SHA) assert.equal(identity.buildInfo.acceptance_center_source_sha, process.env.CENTER_SOURCE_SHA);
@@ -147,8 +150,8 @@ async function main() {
   const afterLayerReset = await canvasStats(page);
   assert.equal(afterLayerReset.hash, defaultGlow.hash, "Reset restores all independently toggled layers.");
 
-  await setControl(page, "#outerWidth", 82);
-  assert.equal(await page.locator("#outerWidthValue").innerText(), "82 px", "Outer Bloom readout tracks the live range value.");
+  await setControl(page, "#outerWidth", 52);
+  assert.equal(await page.locator("#outerWidthValue").innerText(), "52 px", "Outer Bloom readout tracks the live range value.");
   const wideBloom = await canvasStats(page);
   assert.notEqual(wideBloom.hash, afterLayerReset.hash, "Outer Bloom width changes rendered pixels.");
   await setControl(page, "#cometLength", 26);
@@ -177,7 +180,7 @@ async function main() {
   assert.equal(await page.locator("#wipePosition").isVisible(), true);
 
   await afterRender(page, () => page.locator("#resetButton").click());
-  await page.waitForFunction(() => document.getElementById("compareMode").value === "side" && document.getElementById("outerWidth").value === "52");
+  await page.waitForFunction(() => document.getElementById("compareMode").value === "side" && document.getElementById("outerWidth").value === "28");
   const resetGlow = await canvasStats(page);
   assert.equal(resetGlow.hash, defaultGlow.hash, "Reset restores the deterministic default render.");
 

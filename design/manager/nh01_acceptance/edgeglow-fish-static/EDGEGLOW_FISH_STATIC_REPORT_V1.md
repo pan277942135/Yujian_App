@@ -10,7 +10,7 @@
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
 | `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | The Web static study now includes photo-edge Receiving Light and four primary islands plus fish Bloom/Core/Comet. A human still needs to judge path alignment, texture retention and optical balance. Automated/source checks are not a visual-quality pass. |
-| `CLOUD_ACCEPTANCE_CENTER` | `PASS` | After the repeated 404, public route and `build-info.json` returned HTTP 200 with PR code SHA `0bfc6c0452ed58db46c371cb431a062196ecad49` and NH01 source SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`; deploy run [39241912112](https://github.com/pan277942135/Yujian_App/actions/runs/39241912112) passed. Another full-site deployment can still omit this additive route. |
+| `CLOUD_ACCEPTANCE_CENTER` | `NOT_VERIFIED` | A fresh browser review found the public route still rendering old PR source `bba61bda4da9`, without the photo-edge light field. The route must be re-deployed and its `build-info.json` checked against the corrected PR SHA before this gate can return to PASS. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
 The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, production Mask, or `FishSubjectResult`. Overall M1/Figma/Android gates are unaffected and are not marked PASS.
@@ -51,6 +51,10 @@ The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, productio
 
 The first static page revision omitted the light around the photo perimeter. This revision adds the existing AI Edge Field as a separate, editable Web layer over the same verified photo; it does not use a Frozen screenshot as a background.
 
+### Frozen-reference color correction — 2026-10-19
+
+Visual review of `02_AI_Understanding_Frozen.png`, `03_Fish_Highlight_Frozen.png`, and `04_Fish_Identifying_Frozen.png` establishes two separate color roles: blue/cyan and warm gold trace the photo perimeter and corners; the fish-body contour, bloom, core, and comet are warm gold. The earlier EdgeGlow renderer incorrectly applied a blue-to-gold gradient to the fish and the live page remained on a build without the perimeter field. The correction removes blue from Fish Focus entirely, changes the contour guide to warm gold, and keeps blue/cyan controls under Photo Edge Field only. Fish Focus defaults are narrowed to a 28 px bloom at 62% and a 3 px core at 92% to preserve the fish scale and texture in the registered 1152×1536 fixture. These remain Web review parameters; no Frozen pixel or Android runtime pass is implied.
+
 - Local Receiving Light uses four clipped corner ovals with radial falloff and no full-photo tint. Primary paths draw only the visible static segment, with Outer Bloom (10dp / 5dp blur), Mid Glow (4dp / 2dp blur), and per-path Core width.
 - The four paths are `B1`, `G1`, `B3`, and `G3`, sourced from `RecognitionAmbientField.kt` at Git blob `1969409c2f903a16ea38ed2f73b705daa424c050`. Cubic controls, weights, visible ratios, seeds and per-path widths match that source. Secondary fragments, hairlines, nodes, particles and animation are not included in this static study.
 - FIT/no-crop photo coordinates are reused for the receiving gradients, edge paths and fish contour. Overhang control points remain outside `[0,1]` and are clipped by the canvas bounds.
@@ -61,15 +65,18 @@ The first static page revision omitted the light around the photo perimeter. Thi
 
 | Layer | Default | Render role |
 |---|---:|---|
-| Outer Bloom | 52 px, 72% | Broad and mid blurred `screen` strokes around the contour |
-| Core Highlight | 8 px, 92% | Soft under-stroke plus sharp gradient stroke |
-| Static Comet | 14% path arc, head at 21%, falloff 1.55 | Path-distance tail with blue-to-gold alpha falloff |
-| Colors | `#58c8f4`, `#f2cc78`, `#fff5d8` | Blue, warm gold and core white |
+| Outer Bloom | 28 px, 62% | Broad and mid blurred warm-gold `screen` strokes around the fish contour |
+| Core Highlight | 3 px, 92% | Pale-gold soft under-stroke plus sharp warm-gold contour |
+| Static Comet | 14% path arc, head at 21%, falloff 1.55 | Warm-gold path-distance tail with pale-gold head |
+| Fish Focus colors | `#FFD887`, `#FFE7AE` | Warm gold and pale gold; no blue fish-body highlight |
+| Photo-edge colors | `#BFEAF2`, `#F6D99B` | Blue/cyan and gold are confined to the photo perimeter field |
 | AI Edge Field | Receiving Light `0.05` alpha; B1/G1/B3/G3 at source seeds and spans | Four local edge glows and four disconnected static primary paths; no particles or motion |
 
-The controls independently toggle the contour, Receiving Light, Primary Islands, overall Edge Field, fish bloom, core and comet. Width, intensity, tail length/position/falloff and colors redraw immediately. Reset restores these defaults. Comparison supports side-by-side, 50% Overlay and Before/After Wipe.
+The controls independently toggle the contour, Receiving Light, Primary Islands, overall Edge Field, fish bloom, core and comet. Width, intensity, tail length/position/falloff and the separate perimeter/fish palettes redraw immediately. Reset restores these defaults. Comparison supports side-by-side, 50% Overlay and Before/After Wipe.
 
 ## Live verification and exports
+
+The following interaction/export results were captured before the Frozen-reference color correction and apply only to that earlier build. They do not verify the corrected palette or latest cloud deployment; those are recorded separately below after the new source is published.
 
 Manual live-page checks were performed on the deployed renderer (build `4952ab80860d`, whose route code is unchanged at build `3bb85e58bad5`) and again on the run #29 build:
 
@@ -102,3 +109,9 @@ The full Playwright smoke script remains in `scripts/smoke_edgeglow_fish_static.
 - Push workflow run [39241912112](https://github.com/pan277942135/Yujian_App/actions/runs/39241912112) passed composition, source audit, Pages deployment and live HTTPS/photo identity verification. A fresh external request returned HTTP 200 for the route. build-info.json reports status CLOUD_PREVIEW_COMPOSED, PR source 0bfc6c0452ed58db46c371cb431a062196ecad49, center source 13387efee9c2785930a07a8ff9fbda0e70e76445, and photo SHA 6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef. A fresh Chrome reload also rendered the prototype and completed the photo identity check.
 - The live route is restored now, but not guaranteed to survive a future NH01 full-site Pages publish until that deployment composes the additive route. No NH01 source branch, workflow, production Design Manager content, Frozen asset, or PR #165 was changed. Durable integration remains outside Work B's PR #166-only scope.
 - PR #166 remains Draft/Open/Unmerged. EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED; ANDROID_RUNTIME=NOT_RUN.
+
+### User visual review — 2026-10-19
+
+- A fresh Chrome view of the exact route showed `buildSha=bba61bda4da9` and the previous blue-to-gold fish contour, while PR #166 had advanced to `372c7b0e1af38419125fc66ea21f7b9146dd4fa6`. The active route was stale; the missing perimeter field was not a browser rendering setting.
+- Frozen reference review confirmed blue/cyan + gold on the photo perimeter and warm gold on the fish. This correction is now in PR source; recheck the live `build-info.json` and rendered image before calling the cloud route current.
+- The visual-quality gate stays `REVIEW_REQUIRED`; Android runtime stays `NOT_RUN`.
