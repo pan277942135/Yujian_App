@@ -38,6 +38,46 @@ class Nh01RuntimePackageTest(unittest.TestCase):
             Image.new("RGB", (1080, 1920), (8, 16, 24)).save(
                 normal_home / "04_normal_home_runtime_1080x1920.png"
             )
+            Image.new("RGB", (1080, 1920), (12, 24, 36)).save(
+                normal_home / "normal_home_runtime_1080x1920_fs1_0.png"
+            )
+            Image.new("RGB", (1080, 1920), (18, 30, 42)).save(
+                normal_home / "normal_home_runtime_1080x1920_fs1_3.png"
+            )
+            Image.new("RGB", (1080, 2340), (24, 36, 48)).save(
+                normal_home / "normal_home_runtime_1080x2340_fs1_0.png"
+            )
+            (normal_home / "normal_home_profile_1080x1920_fs1_0.json").write_text(
+                json.dumps({"font_scale": 1.0, "status": "CAPTURED", "source_commit": SOURCE_SHA}) + "\n",
+                encoding="utf-8",
+            )
+            (normal_home / "normal_home_profile_1080x1920_fs1_3.json").write_text(
+                json.dumps({"font_scale": 1.3, "status": "CAPTURED", "source_commit": SOURCE_SHA}) + "\n",
+                encoding="utf-8",
+            )
+            (normal_home / "normal_home_profile_1080x2340_fs1_0.json").write_text(
+                json.dumps({"font_scale": 1.0, "status": "CAPTURED", "source_commit": SOURCE_SHA}) + "\n",
+                encoding="utf-8",
+            )
+            for profile_id, camera_top, camera_bottom in (
+                ("1080x1920_fs1_0", 1583, 1799),
+                ("1080x1920_fs1_3", 1592, 1808),
+                ("1080x2340_fs1_0", 1583, 1799),
+            ):
+                root_height = 2340 if profile_id.startswith("1080x2340") else 1920
+                (normal_home / f"normal_home_profile_{profile_id}_metrics.log").write_text(
+                    "I/NORMAL_HOME_HIERARCHY_EVIDENCE: "
+                    f"root=0.0,0.0,1080.0,{root_height}.0 "
+                    "cta_layout=330.0,1495.0,750.0,1553.0 "
+                    f"cta_text_region=330.0,1495.0,750.0,{1570.0 if camera_top == 1583 else 1584.0} "
+                    f"cta_text=360.0,1516.0,720.0,{1570.0 if camera_top == 1583 else 1584.0} "
+                    f"camera_touch=432.0,{camera_top}.0,648.0,{camera_bottom}.0\n",
+                    encoding="utf-8",
+                )
+                (normal_home / f"normal_home_profile_{profile_id}_insets_instrumentation.log").write_text(
+                    "insets instrumentation evidence\n",
+                    encoding="utf-8",
+                )
             (normal_home / "Normal_Home_Runtime_Bounds_Report.json").write_text(
                 '{"classification":"CAPTURED","build_sha":"' + SOURCE_SHA + '"}\n',
                 encoding="utf-8",
@@ -94,15 +134,36 @@ class Nh01RuntimePackageTest(unittest.TestCase):
 
             expected = {
                 "app-debug.apk",
+                "NH01_VALIDATION_DEBUG.apk",
+                "NH01_Android_Validation_Report.md",
                 "device_metadata.json",
                 "runtime_gate_result.json",
                 "evidence/1234567890abcdef1234567890abcdef12345678/NH01_KVM_Diagnostic_Reference.log",
                 f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920.png",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920_FontScale1_0.png",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920_FontScale1_3.png",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x2340_FontScale1_0.png",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Profile_FontScale1_0.json",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Profile_FontScale1_3.json",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Profile_1080x2340.json",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Metrics_FontScale1_0.log",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Metrics_FontScale1_3.log",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Metrics_1080x2340.log",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Insets_FontScale1_0.log",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Insets_FontScale1_3.log",
+                f"evidence/{SOURCE_SHA}/NH01_Android_Insets_1080x2340.log",
                 f"evidence/{SOURCE_SHA}/NH01_Android_Bounds.json",
                 f"evidence/{SOURCE_SHA}/private/NH01_Instrumentation.log",
             }
             manifest = json.loads((artifact_dir / "NH01_Runtime_Manifest_V1.json").read_text())
             self.assertEqual(manifest["source_sha"], SOURCE_SHA)
+            self.assertEqual(manifest["app_apk_filename"], "NH01_VALIDATION_DEBUG.apk")
+            report = (artifact_dir / "NH01_Android_Validation_Report.md").read_text()
+            self.assertIn(SOURCE_SHA, report)
+            self.assertIn("`FIGMA_VISUAL_PARITY`: `NOT_RUN`", report)
+            self.assertIn("NH01_VALIDATION_DEBUG.apk", report)
+            self.assertIn("`TOUCH_TARGET`: `PASS`", report)
+            self.assertIn("`FONT_SCALE_1_3`: `CAPTURED`", report)
             self.assertEqual(manifest["classification"], "BLOCKED_INFRA")
             self.assertEqual(manifest["device"]["emulator_acceleration"], "software_tcg")
             self.assertEqual(manifest["device"]["kvm_preflight"]["source_run_id"], "39187403348")
@@ -110,6 +171,9 @@ class Nh01RuntimePackageTest(unittest.TestCase):
             self.assertEqual(manifest["device"]["software_tcg_attempt"]["source_run_id"], "39188457350")
             self.assertIn("NH01_KVM_Diagnostic_Reference.log", manifest["evidence_files"])
             self.assertIn(f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920.png", manifest["evidence_files"].values())
+            self.assertIn(f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920_FontScale1_0.png", manifest["evidence_files"].values())
+            self.assertIn(f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x1920_FontScale1_3.png", manifest["evidence_files"].values())
+            self.assertIn(f"evidence/{SOURCE_SHA}/NH01_Android_Runtime_1080x2340_FontScale1_0.png", manifest["evidence_files"].values())
             self.assertIn(f"evidence/{SOURCE_SHA}/private/NH01_Instrumentation.log", manifest["private_evidence_files"].values())
             self.assertFalse((web_root / "design/manager/nh01_acceptance/evidence" / SOURCE_SHA / "NH01_Instrumentation.log").exists())
 
@@ -128,6 +192,10 @@ class Nh01RuntimePackageTest(unittest.TestCase):
                     checksums[relpath],
                     relpath,
                 )
+            self.assertEqual(
+                hashlib.sha256((artifact_dir / "NH01_VALIDATION_DEBUG.apk").read_bytes()).hexdigest(),
+                hashlib.sha256((artifact_dir / "app-debug.apk").read_bytes()).hexdigest(),
+            )
 
     def test_browser_diff_recording_keeps_runtime_and_parity_unpassed(self) -> None:
         with tempfile.TemporaryDirectory(prefix="nh01-browser-record-") as temp:

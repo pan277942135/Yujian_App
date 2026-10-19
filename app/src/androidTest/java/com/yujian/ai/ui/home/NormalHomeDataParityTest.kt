@@ -219,7 +219,7 @@ class NormalHomeDataParityTest {
             logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
             logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
             logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
-            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
+            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta-text-region", referenceFontPx = 40f)
             logHierarchyEvidence()
 
             assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f, cardName = "catch-snakehead")
@@ -485,6 +485,7 @@ class NormalHomeDataParityTest {
             "hero_media" to rect("normal-home-catch-media-catch-snakehead"),
             "hero_footer" to rect("normal-home-catch-footer-catch-snakehead"),
             "cta_layout" to rect("normal-home-capture-cta"),
+            "cta_text_region" to rect("normal-home-capture-cta-text-region"),
             "cta_text" to rect("normal-home-capture-cta-text"),
             "camera_touch" to rect("normal-home-camera", unmerged = false),
         )
@@ -496,7 +497,12 @@ class NormalHomeDataParityTest {
         val media = bounds.getValue("hero_media")
         val footer = bounds.getValue("hero_footer")
         val cta = bounds.getValue("cta_layout")
+        val ctaTextRegion = bounds.getValue("cta_text_region")
+        val ctaText = bounds.getValue("cta_text")
         val camera = bounds.getValue("camera_touch")
+        val root = bounds.getValue("root")
+        val referenceScale = root.width / 1080f
+        val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
 
         val payload = bounds.entries.joinToString(" ") { (name, rect) ->
             "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
@@ -519,7 +525,18 @@ class NormalHomeDataParityTest {
             "CTA layout remains outside the camera semantic target: cta=$cta camera=$camera",
             cta.bottom <= camera.top || camera.bottom <= cta.top,
         )
-        assertTrue("Camera touch target remains inside the window", camera.left >= 0f && camera.top >= 0f && camera.right <= bounds.getValue("root").right && camera.bottom <= bounds.getValue("root").bottom)
+        assertEquals("CTA keeps its frozen 420 px reference width", 420f * referenceScale, cta.width, 1.5f)
+        assertEquals("CTA container keeps its frozen 58 px reference height", 58f * referenceScale, cta.height, 1.5f)
+        assertEquals("CTA text region follows the CTA width", cta.width, ctaTextRegion.width, 1f)
+        assertTrue("CTA text fits its measured text region", ctaText.top >= ctaTextRegion.top - 1f && ctaText.bottom <= ctaTextRegion.bottom + 1f)
+        assertTrue("CTA text and camera touch target do not overlap", ctaText.bottom <= camera.top || camera.bottom <= ctaText.top)
+        assertEquals("Camera touch target remains a full square in the window", 216f * referenceScale, camera.width, 1.5f)
+        assertEquals("Camera touch target remains a full square in the window", 216f * referenceScale, camera.height, 1.5f)
+        assertTrue("Camera touch target meets 48dp in both dimensions", camera.width / density >= 48f && camera.height / density >= 48f)
+        assertTrue(
+            "Camera touch target remains inside the measured window",
+            camera.left >= root.left && camera.top >= root.top && camera.right <= root.right && camera.bottom <= root.bottom,
+        )
 
     }
 
@@ -859,7 +876,11 @@ class NormalHomeDataParityTest {
 
             val rootBounds = compose.onNodeWithTag("normal-home-content-root").fetchSemanticsNode().boundsInRoot
             val camera = compose.onNodeWithTag("normal-home-camera")
-            val cameraBeforeScroll = camera.fetchSemanticsNode().boundsInRoot
+            val cameraBeforeScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            val ctaBeforeScroll = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
+                .fetchSemanticsNode().boundsInRoot
+            val ctaTextBeforeScroll = compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true)
+                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
             scroll.performTouchInput {
                 swipeUp(
@@ -873,17 +894,24 @@ class NormalHomeDataParityTest {
             val cameraAfterScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
                 .fetchSemanticsNode().boundsInRoot
+            val ctaTextBounds = compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true)
+                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val density = context.resources.displayMetrics.density
-            val wasOutsideViewport = cameraBeforeScroll.width <= 0f || cameraBeforeScroll.height <= 0f ||
-                cameraBeforeScroll.bottom > rootBounds.bottom + 1f
             val expectedHeroHeightPx = 880f * rootBounds.width / 1080f
             val heroAfterScroll = compose.onNodeWithTag("normal-home-catch-pager")
                 .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-            assertTrue("Short screen places the camera below the viewport before scrolling", wasOutsideViewport)
-            assertTrue("Short screen mode scrolls the capture target into its safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom + 1f)
+            assertTrue(
+                "Pinned camera target remains within the viewport before scrolling",
+                cameraBeforeScroll.bottom <= rootBounds.bottom - 16f * density + 1f,
+            )
+            assertTrue("Short screen mode keeps the camera target inside the safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom - 16f * density + 1f)
+            assertEquals("Scrolling the Hero does not move the pinned camera", cameraBeforeScroll.top, cameraAfterScroll.top, 1f)
             assertTrue("Short screen reveals a full-size Hero instead of shrinking it: bounds=$heroAfterScroll", kotlin.math.abs(heroAfterScroll.height - expectedHeroHeightPx) <= 2f)
             assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
-            assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= rootBounds.bottom + 1f)
+            assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= cameraAfterScroll.top + 1f)
+            assertEquals("Scrolling the Hero does not move the pinned CTA", ctaBeforeScroll.top, ctaBounds.top, 1f)
+            assertEquals("Scrolling the Hero does not move the scaled CTA label", ctaTextBeforeScroll.top, ctaTextBounds.top, 1f)
+            assertTrue("Scaled CTA label stays above the camera target", ctaTextBounds.bottom <= cameraAfterScroll.top + 1f)
             assertTrue(
                 "The scroll reveals an offscreen camera target with a nonzero runtime hit area",
                 cameraAfterScroll.width > 0f && cameraAfterScroll.height > 0f,
