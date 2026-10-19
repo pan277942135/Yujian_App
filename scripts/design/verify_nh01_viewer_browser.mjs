@@ -136,6 +136,13 @@ try {
       };
     };
     const main = document.querySelector("main");
+    const siteHeader = document.querySelector(".site-header");
+    const headerChildren = siteHeader ? [...siteHeader.children].map(node => ({
+      tag: node.tagName.toLowerCase(),
+      class_name: typeof node.className === "string" ? node.className : null,
+      text: node.innerText.slice(0, 80),
+      ...box(node)
+    })) : [];
     const heading = document.querySelector(".overview-heading");
     const headingContent = heading?.firstElementChild || null;
     const eyebrow = heading?.querySelector(".eyebrow") || null;
@@ -165,6 +172,8 @@ try {
       layout_diagnostics: {
         media_max_560_matches: matchMedia("(max-width: 560px)").matches,
         body_classes: document.body.className,
+        site_header: box(siteHeader),
+        header_children: headerChildren,
         main: box(main),
         heading: box(heading),
         heading_content: box(headingContent),
