@@ -10,7 +10,7 @@
 |---|---|---|
 | `STATIC_FISH_CONTOUR_RENDERING` | `PASS` | The selected registered photo and manual Path load on the public page in original-photo coordinates. The contour is visibly toggleable and the three canvases share 1152×1536 FIT/no-crop geometry. This pass is for this manual fixture only. |
 | `EDGEGLOW_VISUAL_QUALITY` | `REVIEW_REQUIRED` | Bloom, core and static path-following comet render on the fish. A human still needs to judge edge tracing, texture retention and optical balance. Automated/source checks are not a visual-quality pass. |
-| `CLOUD_ACCEPTANCE_CENTER` | `PASS` | The route was restored from current PR #166 source using NH01 SHA `1949fa34096c5709f914e11107d38c74a6747160`; push/deploy run [#35](https://github.com/pan277942135/Yujian_App/actions/runs/39240140809) succeeded, and the route plus `build-info.json` returned HTTP 200 on a cold request. Future center-only Pages publishes can still replace it. |
+| `CLOUD_ACCEPTANCE_CENTER` | `PASS` | After the repeated 404, public route and `build-info.json` returned HTTP 200 with PR code SHA `0bfc6c0452ed58db46c371cb431a062196ecad49` and NH01 source SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`; deploy run [39241912112](https://github.com/pan277942135/Yujian_App/actions/runs/39241912112) passed. Another full-site deployment can still omit this additive route. |
 | `ANDROID_RUNTIME` | `NOT_RUN` | Canvas 2D is a Web adaptation, not Android API 28 rendering. |
 
 The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, production Mask, or `FishSubjectResult`. Overall M1/Figma/Android gates are unaffected and are not marked PASS.
@@ -18,9 +18,9 @@ The contour remains `MANUAL_REFERENCE_CONTOUR`, not a detector result, productio
 ## Live route and source identity
 
 - Public HTTPS route: [EdgeGlowView Fish Static Prototype](https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/).
-- It is linked under **Recognition Processing → EdgeGlowView Fish Static Prototype** in the existing NH01 Acceptance Center. The center was composed from branch `design/nh01-cloud-structured-parity-v1`, SHA `1949fa34096c5709f914e11107d38c74a6747160`; no Center source file was changed. The center branch advanced from the earlier `06fd4a5` pin; its diff contains only an Android test change, with no Acceptance Center static files changed.
-- Recovery source used by successful push/deploy run #35: PR SHA `d9607b3e3853305b09a6473ce3db2a6821c9f73e`; NH01 source SHA `1949fa34096c5709f914e11107d38c74a6747160`. The cold request to the page and `build-info.json` returned HTTP 200 and the metadata matched both SHAs and photo SHA.
-- Run #35 passed the exact-PR checkout, current-center branch/SHA guard, composition, renderer/source audit, Pages upload, deploy and live HTTPS/photo identity check. Source audit artifact ID: `12181695046`; live smoke artifact ID: `12180642307`. The report/status update after this run triggers another identical composition and deployment.
+- It is linked under **Recognition Processing → EdgeGlowView Fish Static Prototype** in the existing NH01 Acceptance Center. The current center was composed from branch `design/nh01-cloud-structured-parity-v1`, SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`; no Center source file was changed. The center branch advanced from the earlier `06fd4a5` pin; its diff contains only an Android test change, with no Acceptance Center static files changed.
+- Latest recovery source: PR code/workflow SHA `0bfc6c0452ed58db46c371cb431a062196ecad49`; NH01 source SHA `13387efee9c2785930a07a8ff9fbda0e70e76445`. The current cold requests to the public page and `build-info.json` returned HTTP 200; metadata matches both SHAs and the registered photo SHA.
+- Push run ID `39241912112` passed the exact-PR checkout, current-center branch/SHA guard, composition, renderer/source audit, Pages upload, deploy and live HTTPS/photo identity check. The report update below triggers another composition and deployment so the committed report and live build remain aligned.
 - The current PR head after this report update may advance by a documentation-only commit; the renderer source and tested route remain unchanged by the report edit.
 
 ### Pages replacement incident — 2026-10-19
@@ -81,3 +81,13 @@ The full Playwright smoke script remains in `scripts/smoke_edgeglow_fish_static.
 3. Production contour/Mask is unavailable for this image.
 4. Browser blur, compositing and anti-aliasing still require separate Android API 28 runtime validation before native adoption.
 5. Full CI browser capture did not complete because the runner terminated Chromium with code 143; no CI screenshot artifact is claimed.
+
+
+### Repeated public 404 and recovery — 2026-10-19
+
+- After the first recovery report, the exact public child route again returned HTTP 404; build-info.json also returned 404. The Acceptance Center parent and Design Manager parent still returned HTTP 200. A fresh Chrome reload showed GitHub Pages' actual 404 page. This disproved the prior wording that treated the route as persistently available.
+- I did not identify a specific later deployment run that removed the route. The replacement risk is verified in repository source: the NH01 Design Manager Pages workflow copies the center branch's whole design tree to _site and can deploy through the same design-manager-pages environment, while the additive EdgeGlow route exists only in PR #166. A center-only full-site deployment can therefore omit the route.
+- The live NH01 branch was rechecked with git ls-remote at 13387efee9c2785930a07a8ff9fbda0e70e76445. PR #166's composition workflow pin was updated to that exact SHA in commit 0bfc6c0452ed58db46c371cb431a062196ecad49.
+- Push workflow run [39241912112](https://github.com/pan277942135/Yujian_App/actions/runs/39241912112) passed composition, source audit, Pages deployment and live HTTPS/photo identity verification. A fresh external request returned HTTP 200 for the route. build-info.json reports status CLOUD_PREVIEW_COMPOSED, PR source 0bfc6c0452ed58db46c371cb431a062196ecad49, center source 13387efee9c2785930a07a8ff9fbda0e70e76445, and photo SHA 6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef. A fresh Chrome reload also rendered the prototype and completed the photo identity check.
+- The live route is restored now, but not guaranteed to survive a future NH01 full-site Pages publish until that deployment composes the additive route. No NH01 source branch, workflow, production Design Manager content, Frozen asset, or PR #165 was changed. Durable integration remains outside Work B's PR #166-only scope.
+- PR #166 remains Draft/Open/Unmerged. EDGEGLOW_VISUAL_QUALITY=REVIEW_REQUIRED; ANDROID_RUNTIME=NOT_RUN.
