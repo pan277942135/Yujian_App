@@ -50,8 +50,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -135,10 +138,25 @@ internal fun NormalHomeContent(
         val verticalOffset = normalHomeVerticalOffset(referenceScale.value, usableHeight).dp
         fun refY(value: Float): Dp = ref(value) + verticalOffset
 
-        // The text line-height contract already scales with system fontScale.
-        // Derive the parent height from it instead of mutating layout state
-        // from onTextLayout while Compose is measuring.
-        val captureCtaTextHeight = (typography.captureCta.lineHeight.value * density.fontScale).dp
+        val captureCtaText = "记录下一条鱼"
+        val captureCtaStyle = YuJianTypography.body.copy(
+            color = YuJianColors.OnDark.copy(alpha = 0.92f),
+            fontSize = typography.captureCta.fontSize,
+            lineHeight = typography.captureCta.lineHeight,
+            shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
+        )
+        val captureCtaTextMeasurer = rememberTextMeasurer()
+        // Use the same resolved font metrics as the Text composable so the
+        // responsive camera target stays below the actual CTA layout bounds.
+        val captureCtaTextHeight = with(density) {
+            captureCtaTextMeasurer.measure(
+                text = AnnotatedString(captureCtaText),
+                style = captureCtaStyle,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                constraints = Constraints(maxWidth = ref(420f).roundToPx()),
+            ).size.height.toDp()
+        }
         // The frozen glyph anchor sits below the layout origin; include it in
         // the measured parent so the rendered text remains inside its bounds.
         val captureCtaHeight = maxOf(
@@ -294,13 +312,8 @@ internal fun NormalHomeContent(
                                 .height(ref(NormalHomeCtaGlyphOffsetY)),
                         )
                         Text(
-                            text = "记录下一条鱼",
-                            style = YuJianTypography.body.copy(
-                                color = YuJianColors.OnDark.copy(alpha = 0.92f),
-                                fontSize = typography.captureCta.fontSize,
-                                lineHeight = typography.captureCta.lineHeight,
-                                shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.24f), blurRadius = 3f),
-                            ),
+                            text = captureCtaText,
+                            style = captureCtaStyle,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,

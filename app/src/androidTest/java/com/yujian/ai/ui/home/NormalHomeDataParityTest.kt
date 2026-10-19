@@ -498,6 +498,11 @@ class NormalHomeDataParityTest {
         val cta = bounds.getValue("cta_layout")
         val camera = bounds.getValue("camera_touch")
 
+        val payload = bounds.entries.joinToString(" ") { (name, rect) ->
+            "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
+        }
+        android.util.Log.i("NORMAL_HOME_HIERARCHY_EVIDENCE", payload)
+
         assertTrue("Brand title stays inside the header", title.left >= header.left && title.right <= header.right)
         assertTrue("Avatar stays inside the header", avatar.left >= header.left && avatar.right <= header.right)
         assertTrue("Brand title and avatar do not overlap", title.right <= avatar.left || avatar.right <= title.left)
@@ -510,13 +515,12 @@ class NormalHomeDataParityTest {
                 kotlin.math.abs(hero.bottom - media.bottom) <= 1f,
         )
         assertTrue("Hero footer remains over media and inside the Hero", footer.left >= hero.left && footer.top >= hero.top && footer.right <= hero.right && footer.bottom <= hero.bottom)
-        assertTrue("CTA layout remains outside the camera semantic target", cta.bottom <= camera.top || camera.bottom <= cta.top)
+        assertTrue(
+            "CTA layout remains outside the camera semantic target: cta=$cta camera=$camera",
+            cta.bottom <= camera.top || camera.bottom <= cta.top,
+        )
         assertTrue("Camera touch target remains inside the window", camera.left >= 0f && camera.top >= 0f && camera.right <= bounds.getValue("root").right && camera.bottom <= bounds.getValue("root").bottom)
 
-        val payload = bounds.entries.joinToString(" ") { (name, rect) ->
-            "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
-        }
-        android.util.Log.i("NORMAL_HOME_HIERARCHY_EVIDENCE", payload)
     }
 
     private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontPx: Float) {
