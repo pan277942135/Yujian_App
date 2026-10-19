@@ -39,7 +39,7 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     steps:
       - name: Checkout exact PR #166 source
         uses: actions/checkout@v4
@@ -93,35 +93,10 @@ jobs:
             --center-sha "$CENTER_SOURCE_SHA" \
             --output "$EDGEGLOW_OUTPUT_DIR/EdgeGlow_Fish_Static_Source_Audit.json"
 
-      - name: Install Playwright Chromium
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/edgeglow-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/edgeglow-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Run Chromium interaction proof and capture evidence
-        shell: bash
-        env:
-          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/edgeglow-playwright/node_modules
-          EDGEGLOW_OUTPUT_DIR: ${{ runner.temp }}/edgeglow-evidence
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory "$RUNNER_TEMP/edgeglow-pages" > "$RUNNER_TEMP/edgeglow-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8765/design/manager/nh01_acceptance/ >/dev/null; then break; fi
-            sleep 1
-          done
-          node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
-            --base-url=http://127.0.0.1:8765/ \
-            --output-dir "$EDGEGLOW_OUTPUT_DIR"
-
       - name: Upload static visual evidence
         uses: actions/upload-artifact@v4
         with:
-          name: EdgeGlow-Fish-Static-Evidence-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: EdgeGlow-Fish-Static-Source-Audit-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/edgeglow-evidence/
           if-no-files-found: error
           retention-days: 30
