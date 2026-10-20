@@ -36,8 +36,17 @@ gemini_v2_run_seed() {
 
 gemini_v2_wait_for_app() {
   local expected_size="$1"
-  local attempt resumed pid screenshot
-  screenshot="$YUJIAN_EVIDENCE_DIR/android-device/readiness_${expected_size}.png"
+  local attempt resumed pid screenshot wm_size physical_size override_size logical_size
+  screenshot="$YUJIAN_EVIDENCE_DIR/android-device/readiness_"$expected_size".png"
+  wm_size="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  physical_size="$(sed -n 's/^Physical size: //p' <<< "$wm_size" | head -n 1)"
+  override_size="$(sed -n 's/^Override size: //p' <<< "$wm_size" | head -n 1)"
+  logical_size="$physical_size"
+  if [[ -n "$override_size" ]]; then logical_size="$override_size"; fi
+  if [[ "$logical_size" != "$expected_size" || -z "$physical_size" ]]; then
+    printf 'expected_logical_size=%s\nreported_wm_size=%s\n' "$expected_size" "$wm_size" >&2
+    return 1
+  fi
   for attempt in $(seq 1 30); do
     resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
     pid="$("$YUJIAN_ADB_BIN" shell pidof "$YUJIAN_APP_PACKAGE" 2>/dev/null | tr -d '\r' || true)"
@@ -45,7 +54,7 @@ gemini_v2_wait_for_app() {
       local render_attempt
       for render_attempt in $(seq 1 20); do
         "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" || return 1
-        if python3 - "$screenshot" "$expected_size" <<'PY'
+        if python3 - "$screenshot" "$physical_size" <<'PY'
 from PIL import Image, ImageStat
 import sys
 path, expected = sys.argv[1], tuple(int(part) for part in sys.argv[2].split("x"))
@@ -68,28 +77,48 @@ PY
 }
 
 gemini_v2_verify_display_profile() {
-  local expected_size="$1" output="$2" actual_wm attempt screenshot
-  screenshot="$output/display_profile_${expected_size}.png"
-  actual_wm="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  local expected_size="$1" output="$2" wm_size physical_size override_size logical_size attempt screenshot
+  screenshot="$output/display_profile_"$expected_size".png"
+  local profile_log="$output/display_profile_"$expected_size".log"
+  wm_size="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  physical_size="$(sed -n 's/^Physical size: //p' <<< "$wm_size" | head -n 1)"
+  override_size="$(sed -n 's/^Override size: //p' <<< "$wm_size" | head -n 1)"
+  logical_size="$physical_size"
+  if [[ -n "$override_size" ]]; then logical_size="$override_size"; fi
   {
-    printf 'expected_size=%s\n' "$expected_size"
-    printf 'reported_wm_size=%s\n' "${actual_wm//$'\n'/; }"
-  } > "$output/display_profile_${expected_size}.log"
+    printf 'expected_logical_size=%s\n' "$expected_size"
+    printf 'physical_size=%s\n' "$physical_size"
+    if [[ -n "$override_size" ]]; then
+      printf 'override_size=%s\n' "$override_size"
+    else
+      printf 'override_size=NONE\n'
+    fi
+    printf 'logical_size=%s\n' "$logical_size"
+    printf 'reported_wm_size=%s\n' "$wm_size"
+  } > "$profile_log"
+  if [[ -z "$physical_size" || "$logical_size" != "$expected_size" ]]; then
+    echo "logical_display_size_mismatch=true" >> "$profile_log"
+    return 1
+  fi
   for attempt in $(seq 1 5); do
-    if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>> "$output/display_profile_${expected_size}.log" && \
-       python3 - "$screenshot" "$expected_size" >> "$output/display_profile_${expected_size}.log" 2>&1 <<'PY'
+    if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>> "$profile_log" && \
+       python3 - "$screenshot" "$physical_size" >> "$profile_log" 2>&1 <<'PY'
 from PIL import Image
 import pathlib, sys
-with Image.open(pathlib.Path(sys.argv[1])) as image:
+path = pathlib.Path(sys.argv[1])
+with Image.open(path) as image:
     actual = f"{image.width}x{image.height}"
-expected = sys.argv[2]
+expected_physical = sys.argv[2]
 print(f"screencap_size={actual}")
-if actual != expected:
+print(f"expected_physical_size={expected_physical}")
+if actual != expected_physical:
+    print("screencap_physical_size_mismatch=true")
     raise SystemExit(1)
 PY
     then
       return 0
     fi
+    echo "screencap_attempt=$attempt did not match physical size" >> "$profile_log"
     sleep 1
   done
   return 1
