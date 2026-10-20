@@ -204,6 +204,17 @@ async function main() {
     assert.ok(candidateSignal.A.mean_abs_rgb_delta < candidateSignal.B.mean_abs_rgb_delta && candidateSignal.B.mean_abs_rgb_delta < candidateSignal.C.mean_abs_rgb_delta,
       "static A/B/C Receiving Light scales must produce increasing render signal");
 
+    // The static field uses screen blending, so both renderers must have the
+    // actual photo as their blend destination. Compare the measured field
+    // signal for the same B candidate before collecting layer exports.
+    await page.selectOption("#rendererSelect", "software-cache");
+    const softwareCacheReceivingSignal = await measureReceiving(page, "B");
+    const rendererSignalRatio = softwareCacheReceivingSignal.mean_abs_rgb_delta / Math.max(.001, candidateSignal.B.mean_abs_rgb_delta);
+    assert.ok(rendererSignalRatio >= 0.80 && rendererSignalRatio <= 1.40,
+      `software-cache static Receiving Light should stay close to hardware-gradient (${rendererSignalRatio.toFixed(3)}×)`);
+    await canvasPng(page, "receiving-light-over-photo-software-cache.png");
+    await page.selectOption("#rendererSelect", "hardware-gradient");
+
     await page.selectOption("#staticCandidate", "B");
     await page.setViewportSize({ width: 1440, height: 1100 });
     await setTargetViewport(page, 390, 844);
@@ -272,11 +283,17 @@ async function main() {
       receiving_field_geometry_authority: "P1 receiving_light_layout and receiving_light_alpha_stops",
       frozen_path_authority: "P1 exact seven paths and one shared photoContentRect",
       receiving_field_opacity_cap: 0.32,
-      receiving_field_composite: "screen · Web Review static only",
+      receiving_field_composite: "screen over the P1 FIT photo · Web Review static only",
       receiving_field_depth_ratio: 0.15,
       contract_alpha_before_multipliers: config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light").contract_alpha_before_multipliers,
-      candidate_differences: "Web-only Receiving Light gain plus primary path and secondary filament gains; the corner ovals use 0.24 review gain and the broad field uses the exact P1 primary curves at depth ratio 0.15 with one shared screen composite; contract and Native values unchanged",
-      receiving_oval_review_gain: 0.24,
+      candidate_differences: "Web-only Receiving Light gain plus primary path and secondary filament gains; the corner ovals use 1.0 review gain and the broad field uses the exact P1 primary curves at depth ratio 0.15 with one shared screen composite; contract and Native values unchanged",
+      receiving_oval_review_gain: 1.0,
+      renderer_signal_parity: {
+        hardware_gradient_mean_abs_rgb_delta: candidateSignal.B.mean_abs_rgb_delta,
+        software_cache_mean_abs_rgb_delta: softwareCacheReceivingSignal.mean_abs_rgb_delta,
+        software_to_hardware_ratio: rendererSignalRatio,
+        interpretation: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS",
+      },
       path_bloom_passes: [{ width_ratio: 0.15, blur_ratio: 0.0405, opacity: 1.0 }, { width_ratio: 0.087, blur_ratio: 0.0195, opacity: 0.85 }],
       path_bloom_uses_exact_primary_curves: true,
       path_bloom_depth_ratio: 0.15,
@@ -387,6 +404,16 @@ async function main() {
         assessment: "Real Chromium screenshots confirmed the Receiving Light still appeared as four faint corner dabs; constraining the diffuse field to short visible path segments reduced covered edge area. Next pass keeps exact P1 cubic control curves as the diffuse field's shape, raises the width/depth within the P1 depth interval, and attenuates only the separate corner ovals.",
         status: "REAL_BROWSER_CAPTURE_VISUALLY_TOO_WEAK_AND_PATCHED",
       },
+      eighth_v3_failed_render: {
+        source_sha: "58ca8b4d6c29266dd7d87a755442e22aa96cfa0e",
+        workflow_run_id: 39435256712,
+        artifact_id: 12269443136,
+        artifact_url: "https://github.com/pan277942135/Yujian_App/actions/runs/39435256712/artifacts/12269443136",
+        candidate_b_mean_abs_rgb_delta: 6.858093665604347,
+        candidate_c_mean_abs_rgb_delta: 8.461301181379524,
+        assessment: "Actual Receiving-Light-over-photo and A/B/C Chromium PNGs still showed little edge illumination beside Frozen; B was predominantly faint path traces. Source inspection identified the 0.24 oval multiplier as reducing B's .07 × 3.2 peak alpha to .05376 before P1 island weighting and radial falloff. The next pass uses 1.0 oval review gain and fixes screen compositing in the software-cache renderer by caching the P1 FIT photo with its optical layers.",
+        status: "REAL_BROWSER_CAPTURE_VISUALLY_TOO_WEAK_AND_PATCHED",
+      },
       root_causes: [
         "The pre-V3 static helper used a second assumed 3:4 coordinate space, was not clipped to the renderer photoContentRect, and produced broad patches instead of edge-following light.",
         "The first V3 fix removed the helper but used four low-alpha radial ovals. The actual Browser Receiving Light-only capture stayed below visibility thresholds in three of four corner samples; its pastel P1 tokens at the 0.07 contract alpha were largely swallowed by the bright fixture.",
@@ -395,11 +422,13 @@ async function main() {
         "The fourth V3 pass kept the P1 ovals, alpha stops, colors, island weights and shared photoContentRect, but its 0.48 Web-only opacity cap still read as faint traces on the real photo. This pass raises only the Web-review gain/cap and adds a same-photo Receiving-Light-only capture; P1 and Native values remain unchanged.",
         "The 0.84-cap source-over capture adds only a small average luminance change across broad corner sample windows on the bright P5 fixture; most pixels in those windows receive no field at all. This pass tests screen blending for the static Web Receiving Light so local incident light can lift midtones without changing P1 colors, stops or geometry. The result remains REVIEW_REQUIRED until human inspection of the real PNGs.",
         "The actual screen-composite Chromium capture at 64880 still read as four corner spots rather than a photo-edge field; candidate B changed the broad corner samples by a mean absolute RGB delta of 9.38, but the real page comparison remained too weak. This pass retains the P1 ovals at a bounded cap and adds only broad, blurred energy sampled from the exact four P1 primary cubic paths, with a 0.13 depth ratio inside P1's 0.08–0.18 range. It adds no path or perimeter and leaves P1/Native values unchanged.",
+        "The eighth browser capture shows that 0.24 oval gain suppresses the corner receiving field: candidate B's .07 × 3.2 peak becomes .05376 before P1 island weighting and radial falloff, while broad curve bloom alone still reads as faint edge traces. The new candidate restores the registered ovals to 1.0 review gain; A/B/C remain bounded by the existing .32 Web-only cap.",
+        "The software-cache renderer previously screen-blended an overlay on a transparent offscreen canvas and then source-over composited that cache onto the already painted photo. The cache now contains the same FIT photo and its field, making both renderer choices blend against the real photo; the new browser check compares their field signal only for compositing parity.",
         "The prior smoke measured pixel changes and blue/gold deltas but did not test whether the edge field was visually clear, localized, or natural.",
         "Frozen 02 and the registered P5 source photo are different images, so strict same-source Frozen pixel diff is unavailable.",
       ],
       geometry: { transform_authority: "RecognitionImageTransform FIT oracle / renderer photoContentRect", photoContentRect: geometry.photoContentRect, viewports: viewportMatrix, paths: geometry.paths.map(pickGeometry), mapped_path_points: geometry.mapped_path_points, quiet_gaps: geometry.quiet_gaps, path_points_clamped: false, diagnostic_paths_clipped_to_photoContentRect: false, status: "PASS_FOR_GEOMETRY_MAPPING" },
-      receiving_field_geometry: { authority: "P1 receiving_light_layout, alpha stops, primary paths and contract_edge_depth_ratio", layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: 0.32, depth_ratio: 0.15, composite: "screen · static Web Review only", field_path_ids: ["B1", "G1", "B3", "G3"], photoContentRect: geometry.photoContentRect, geometry_added: false, status: "P1_GEOMETRY_MAPPED_TO_SHARED_RECT" },
+      receiving_field_geometry: { authority: "P1 receiving_light_layout, alpha stops, primary paths and contract_edge_depth_ratio", layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: 0.32, oval_gain: 1.0, depth_ratio: 0.15, composite: "screen over the P1 FIT photo · static Web Review only", field_path_ids: ["B1", "G1", "B3", "G3"], photoContentRect: geometry.photoContentRect, geometry_added: false, renderer_signal_parity: { software_cache_to_hardware_gradient_ratio: rendererSignalRatio, result: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS" }, status: "P1_GEOMETRY_MAPPED_TO_SHARED_RECT" },
       static_candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,
@@ -412,7 +441,7 @@ async function main() {
       candidate_parameter_json: { path: "static-candidate-parameters.json", sha256: sha256(fs.readFileSync(path.join(OUTPUT_DIR, "static-candidate-parameters.json"))) },
       rendered_png_artifacts: renderedArtifacts,
       artifact_manifest: "static-evidence-artifact-manifest.json",
-      layer_images: ["receiving-light-only.png", "receiving-light-over-photo.png", "outer-bloom-only.png", "mid-glow-only.png", "core-only.png", "hairline-echoes-only.png", "full-composite-B-390x844.png"],
+      layer_images: ["receiving-light-only.png", "receiving-light-over-photo.png", "receiving-light-over-photo-software-cache.png", "outer-bloom-only.png", "mid-glow-only.png", "core-only.png", "hairline-echoes-only.png", "full-composite-B-390x844.png"],
       fish_focus: {
         production: "BLOCKED · no production FishSubjectResult mask is bound to this Web review input",
         review_only: "REVIEW_PROXY_NOT_PRODUCTION · Case B historical BBox + manually annotated alpha",
