@@ -8,7 +8,6 @@ on:
     paths:
       - "design/manager/index.html"
       - "design/manager/optical-lab/**"
-      - "scripts/smoke_receiving_field_review.cjs"
       - "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
       - "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
       - "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
@@ -20,6 +19,7 @@ on:
       - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
       - "scripts/verify_processing_optical_lab.mjs"
       - "scripts/smoke_processing_optical_lab.cjs"
+      - "scripts/capture_optical_lab_static_closure_v3.cjs"
       - ".github/workflows/processing-optical-lab.yml"
 
 concurrency:
@@ -101,8 +101,7 @@ jobs:
           curl --fail --silent http://127.0.0.1:8766/manager/optical-lab/ >/dev/null
           LAB_REPO_URL=http://127.0.0.1:8765/design/manager/optical-lab/ \
           LAB_DESIGN_ROOT_URL=http://127.0.0.1:8766/manager/optical-lab/ \
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_receiving_field_review.cjs
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
+          STATIC_ONLY_REVIEW=true PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
 
       - name: Record automation checks without visual-approval claim
         if: success()

@@ -21,7 +21,7 @@ ROUTE_PATH = Path("design/manager/nh01_acceptance/edgeglow-fish-static")
 OPTICAL_REVIEW_SOURCE = Path("design/manager/optical-lab")
 OPTICAL_REVIEW_ROUTE = ROUTE_PATH / "optical-review"
 CASE_B_FIXTURE = Path("app/src/androidTest/assets/detector_case_b_night_flash.jpg")
-EVIDENCE_GALLERY_URL = "https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/"
+EVIDENCE_GALLERY_URL = "https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-v3/"
 ENTRY = (
     '<a class="mode-button edgeglow-entry" data-edgeglow-entry="recognition-processing" '
     'href="./edgeglow-fish-static/" aria-label="Recognition Processing → EdgeGlow Fish Static + Dynamic Review">'
@@ -154,8 +154,9 @@ def main() -> None:
     shared_config_output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(config_path, shared_config_output)
     build_info = {
-        "task_id": "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
-        "static_demo_task_id": "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
+        "task_id": "YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3",
+        "task_scope": "WEB_STATIC_ONLY",
+        "previous_project_task_id": "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
         "status": "CLOUD_PREVIEW_COMPOSED",
         "pr_number": 166,
         "pr_source_sha": args.pr_sha,
@@ -169,6 +170,7 @@ def main() -> None:
         "evidence_gallery_url": EVIDENCE_GALLERY_URL,
         "contour_source": fixture["contour"]["source"],
         "android_runtime": "NOT_RUN",
+        "native_implementation": "NOT_RUN",
         "visual_quality": "REVIEW_REQUIRED",
     }
     (prototype_output / "build-info.json").write_text(json.dumps(build_info, indent=2) + "\n", encoding="utf-8")

@@ -120,6 +120,10 @@
   }
 
   function fieldVisible() {
+    const staticMode = document.querySelector('[data-preview-mode="static"].active');
+    // Static candidates use the P1 Receiving Light in the shared renderer.
+    // This auxiliary canvas is retained only for the pre-existing dynamic review.
+    if (staticMode) return false;
     const field = document.getElementById("fieldToggle");
     const decomposition = value("fieldLayerView", "composite");
     return (!field || field.checked) && (decomposition === "composite" || decomposition === "receiving");

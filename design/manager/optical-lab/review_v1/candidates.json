@@ -9,10 +9,10 @@
     "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 1.75, "primary_path_scale": 1.35, "secondary_filament_scale": 0.48 }
   },
   "static_path_corner_profile": {
-    "A": { "B1": { "alpha": 1.1, "length": 1.0 }, "G1": { "alpha": 0.72, "length": 0.76 }, "G3": { "alpha": 0.26, "length": 0.44 }, "B3": { "alpha": 0.04, "length": 0.24 } },
-    "B": { "B1": { "alpha": 1.35, "length": 1.0 }, "G1": { "alpha": 0.95, "length": 0.86 }, "G3": { "alpha": 0.38, "length": 0.54 }, "B3": { "alpha": 0.14, "length": 0.34 } },
-    "C": { "B1": { "alpha": 1.65, "length": 1.0 }, "G1": { "alpha": 1.24, "length": 0.98 }, "G3": { "alpha": 0.58, "length": 0.72 }, "B3": { "alpha": 0.26, "length": 0.48 } },
-    "intent": "Right-upper blue long lead; upper-left gold second; lower-left short residue; lower-right short fading trace. Web review color and multipliers only; P1 path source is not edited."
+    "A": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
+    "B": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
+    "C": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
+    "intent": "V3 static candidates preserve every P1 visible_ratio and seven-path geometry. Asymmetry comes from the frozen P1 path weights and Receiving Light layout; A/B/C use only global optical multipliers."
   },
   "field_corner_weights": {
     "top_right_blue": 1.0,

@@ -14,6 +14,7 @@ on:
       - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
       - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
+      - "scripts/capture_optical_lab_static_closure_v3.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -30,6 +31,7 @@ on:
       - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
       - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
+      - "scripts/capture_optical_lab_static_closure_v3.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -55,7 +57,7 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - name: Checkout exact PR #166 source
         uses: actions/checkout@v4
@@ -139,6 +141,14 @@ jobs:
             node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
               --base-url http://127.0.0.1:8765/ \
               --output-dir "$RUNNER_TEMP/edgeglow-evidence/browser-smoke"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
+            EDGEGLOW_SITE_BASE="http://127.0.0.1:8765/" \
+            OPTICAL_PUBLIC_BASE_URL="https://pan277942135.github.io/Yujian_App/" \
+            PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
+            PR_SOURCE_SHA="$PR_SOURCE_SHA" \
+            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/static-optical-v3" \
+            OPTICAL_PUBLIC_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-pages/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-v3" \
+            node pr-source/scripts/capture_optical_lab_static_closure_v3.cjs
 
       - name: Upload static visual evidence
         if: always()

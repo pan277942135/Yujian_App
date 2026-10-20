@@ -28,12 +28,13 @@ async function captureReceivingFieldSignal(page, evidence, label) {
       { id: "bottom-left-gold", x0: 0, x1: .38, y0: .70, y1: 1, gold: true },
       { id: "bottom-right-blue", x0: .62, x1: 1, y0: .64, y1: 1, gold: false },
     ];
-    const photoWidth = Math.min(canvas.width, canvas.height * .75), photoHeight = photoWidth / .75;
-    const photoRect = { left: (canvas.width - photoWidth) / 2, top: (canvas.height - photoHeight) / 2, width: photoWidth, height: photoHeight };
+    const contentRect = JSON.parse(canvas.dataset.photoContentRect || "null");
+    if (!contentRect) throw new Error("renderer did not publish photoContentRect");
+    const photoRect = { x: contentRect.left, y: contentRect.top, width: contentRect.right - contentRect.left, height: contentRect.bottom - contentRect.top };
     return { photo_rect_px: photoRect, corners: corners.map(corner => {
       let changed = 0, samples = 0, roleDelta = 0, deltaR = 0, deltaG = 0, deltaB = 0;
-      const x0 = Math.floor(photoRect.left + photoRect.width * corner.x0), x1 = Math.floor(photoRect.left + photoRect.width * corner.x1);
-      const y0 = Math.floor(photoRect.top + photoRect.height * corner.y0), y1 = Math.floor(photoRect.top + photoRect.height * corner.y1);
+      const x0 = Math.floor(photoRect.x + photoRect.width * corner.x0), x1 = Math.floor(photoRect.x + photoRect.width * corner.x1);
+      const y0 = Math.floor(photoRect.y + photoRect.height * corner.y0), y1 = Math.floor(photoRect.y + photoRect.height * corner.y1);
       for (let y = y0; y < y1; y += 2) {
         for (let x = x0; x < x1; x += 2) {
           const i = (y * canvas.width + x) * 4, dr = data[i] - before[i], dg = data[i + 1] - before[i + 1], db = data[i + 2] - before[i + 2];
@@ -64,7 +65,7 @@ async function captureReceivingFieldSignal(page, evidence, label) {
   const staticEvidence = path.join(out, "static-candidates");
   const dynamicEvidence = path.join(out, "dynamic-candidates");
   fs.mkdirSync(staticEvidence, { recursive: true });
-  fs.mkdirSync(dynamicEvidence, { recursive: true });
+  if (process.env.STATIC_ONLY_REVIEW !== "true") fs.mkdirSync(dynamicEvidence, { recursive: true });
   browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
   const allErrors = [];
 
@@ -209,8 +210,10 @@ async function captureReceivingFieldSignal(page, evidence, label) {
 
   const dynamicCandidates = [];
   const dynamicEnabled = await page.evaluate(() => window.OPTICAL_DYNAMIC_REVIEW_ENABLED === true);
+  const staticOnlyReview = process.env.STATIC_ONLY_REVIEW === "true";
+  const runDynamicReview = dynamicEnabled && !staticOnlyReview;
   let speedPlaybackChecks = null;
-  if (dynamicEnabled) for (const candidate of ["A", "B", "C"]) {
+  if (runDynamicReview) for (const candidate of ["A", "B", "C"]) {
     await page.locator("#previewModeButtons [data-preview-mode='dynamic']").click();
     await page.selectOption("#dynamicCandidate", candidate);
     await page.selectOption("#motionSpeed", "1");
@@ -251,8 +254,8 @@ async function captureReceivingFieldSignal(page, evidence, label) {
     assert.ok(fs.statSync(clipPath).size > 10000, `Dynamic ${candidate} clip must contain encoded frames`);
     dynamicCandidates.push(candidate);
   }
-  if (dynamicEnabled) assert.deepEqual(dynamicCandidates, ["A", "B", "C"], "all three dynamic candidates must export a three-state WebM");
-  if (dynamicEnabled) await page.locator("#playPause").click().catch(() => {});
+  if (runDynamicReview) assert.deepEqual(dynamicCandidates, ["A", "B", "C"], "all three dynamic candidates must export a three-state WebM");
+  if (runDynamicReview) await page.locator("#playPause").click().catch(() => {});
   await page.locator("#focusSource").selectOption("blocked");
   await page.locator("#resetButton").click();
 
@@ -389,7 +392,7 @@ async function captureReceivingFieldSignal(page, evidence, label) {
     dynamicCandidates,
     speedPlaybackChecks,
     fishFocus: "Production BLOCKED · Case B review-only annotated alpha rendered at 0.72× Web review scale · no production Mask asserted",
-    stageB: dynamicEnabled ? "WEB_REVIEW_ONLY · three motion candidates and 12s state-cycle WebM recordings exported" : "LOCKED_PENDING_STATIC_VISUAL_GATE",
+    stageB: staticOnlyReview ? "NOT_RUN · V3 task is static-only" : (dynamicEnabled ? "WEB_REVIEW_ONLY · three motion candidates and 12s state-cycle WebM recordings exported" : "LOCKED_PENDING_STATIC_VISUAL_GATE"),
     visualReview: "PENDING_USER_CHOICE · automation evidence does not equal visual approval",
     browserErrors: allErrors,
   };

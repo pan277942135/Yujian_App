@@ -463,7 +463,8 @@ async function main() {
 
   assert.deepEqual(errors, [], "No new browser page or console errors.");
   const report = {
-    task_id: "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
+    task_id: "YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3",
+    task_scope: "WEB_STATIC_ONLY",
     run_id: runId,
     status: "PASS_ENGINEERING_INTERACTION",
     visual_quality: "REVIEW_REQUIRED",

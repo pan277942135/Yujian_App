@@ -58,7 +58,7 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
   <div class="header-actions">
     <a id="opticalBackLink" href="../" style="text-decoration:none"><button type="button">← 验收中心</button></a>
     <a href="https://github.com/pan277942135/Yujian_App/pull/166" target="_blank" rel="noreferrer" style="text-decoration:none"><button type="button">PR #166 Draft</button></a>
-    <a href="https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/" target="_blank" rel="noreferrer" style="text-decoration:none"><button type="button">截图与 WebM 证据</button></a>
+    <a href="./evidence/static-v3/" target="_blank" rel="noreferrer" id="staticEvidenceLink" style="text-decoration:none"><button type="button">静态 PNG 证据 · V3</button></a>
     <button id="resetButton" type="button">恢复 Frozen 默认参数</button>
   </div>
 </header>
@@ -264,7 +264,7 @@ function mountReviewLayout(){
   advancedBody.className="advanced-body";advanced.appendChild(advancedBody);
   const status=document.createElement("div");status.className="review-status-bar";status.innerHTML="<div class=\"review-status-left\"><span id=\"overallStatus\" class=\"review-status-chip\" data-status=\"LOADING\">LOADING</span><span id=\"buildRevision\">PR #166 Draft · build SHA pending</span><span id=\"stateLabel\" class=\"tiny\">—</span></div><button id=\"retryAssets\" type=\"button\">重新加载资源</button>";
   const toolbar=document.createElement("div");toolbar.id="reviewToolbar";toolbar.className="review-toolbar";toolbar.append(stateSection,rendererSection);
-  const reviewControls=document.createElement("section");reviewControls.id="previewControls";reviewControls.className="preview-controls";reviewControls.innerHTML='<div class="preview-controls-head"><div><div class="preview-controls-title">OPTICAL FIELD REVIEW · STATIC + DYNAMIC</div><div class="preview-controls-note">A/B/C 都是本次 Web Review 候选，不修改 P1–P5 权威合同，也不代表 Android Runtime。</div></div><span class="pill">REVIEW ONLY · NOT ANDROID</span></div><div class="preview-control-grid"><label class="preview-control"><span>Preview</span><div id="previewModeButtons" class="preview-buttons"><button type="button" data-preview-mode="static" class="active">静态</button><button type="button" data-preview-mode="dynamic">动态</button></div></label><label id="staticCandidateControl" class="preview-control"><span>静态光场候选</span><select id="staticCandidate"><option value="A">REVIEW_CANDIDATE_A · Soft Field</option><option value="B" selected>REVIEW_CANDIDATE_B · Balanced Field · 推荐评审</option><option value="C">REVIEW_CANDIDATE_C · Strong Atmosphere</option></select></label><label id="dynamicCandidateControl" class="preview-control"><span>动态节奏候选</span><select id="dynamicCandidate"><option value="A">DYNAMIC_CANDIDATE_A · Calm</option><option value="B" selected>DYNAMIC_CANDIDATE_B · Balanced · 推荐评审</option><option value="C">DYNAMIC_CANDIDATE_C · Atmospheric</option></select></label><label class="preview-control"><span>动态控制</span><div class="preview-buttons"><button id="playPause" type="button" aria-pressed="false">▶ 播放</button><select id="motionSpeed" aria-label="动态倍速"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select><button id="recordSequence" type="button">录制三态 WebM</button></div></label></div><div class="preview-control-grid"><label class="preview-control"><span>Fish Focus 来源模式</span><select id="focusSource"><option value="blocked" selected>BLOCKED · 默认无可信 BBox / Mask</option><option value="production" disabled>PRODUCTION · 当前未提供生产 Mask</option><option value="review">REVIEW_PROXY_NOT_PRODUCTION · Case B 手工 alpha</option></select></label><label class="preview-control"><span>光场分解</span><select id="fieldLayerView"><option value="composite" selected>最终合成</option><option value="receiving">评审候选 Receiving Field alone</option><option value="primary">主路径 alone</option><option value="filaments">次级光丝 alone</option></select></label><div class="preview-control"><span>图层开关</span><div class="preview-toggles"><label><input type="checkbox" id="fieldToggle" checked>底场</label><label><input type="checkbox" id="pathToggle" checked>主路径</label><label><input type="checkbox" id="filamentToggle" checked>次级光丝</label><label><input type="checkbox" id="fishToggle" checked>鱼体高亮</label></div></div><label class="preview-control"><span>录制状态</span><div><span id="focusProvenance" class="focus-provenance">Production: BLOCKED · Review-only: 可切换 · 无 BBox 时不绘制</span><div id="recordStatus" class="record-status">WebM 导出由当前浏览器编码；仅是页面 Preview 证据。</div></div></label></div><div class="preview-meta-row"><span class="tiny" id="candidateDescription">候选参数只作用于 Web Review 层，静态候选 B 为默认显示。</span><span class="tiny" id="previewSourceMeta">build/source SHA 加载中 · P5 test fixture</span></div>';
+  const reviewControls=document.createElement("section");reviewControls.id="previewControls";reviewControls.className="preview-controls";reviewControls.innerHTML='<div class="preview-controls-head"><div><div class="preview-controls-title">OPTICAL FIELD REVIEW · STATIC + DYNAMIC</div><div class="preview-controls-note">静态 A/B/C 复用冻结 P1 七路径与同一 PhotoViewport；候选只调整光学强度，不改变路径几何。</div></div><span class="pill">REVIEW ONLY · NOT ANDROID</span></div><div class="preview-control-grid"><label class="preview-control"><span>Preview</span><div id="previewModeButtons" class="preview-buttons"><button type="button" data-preview-mode="static" class="active">静态</button><button type="button" data-preview-mode="dynamic">动态</button></div></label><label id="staticCandidateControl" class="preview-control"><span>静态光场候选</span><select id="staticCandidate"><option value="A">REVIEW_CANDIDATE_A · Soft Field</option><option value="B" selected>REVIEW_CANDIDATE_B · Balanced Field · 推荐评审</option><option value="C">REVIEW_CANDIDATE_C · Strong Atmosphere</option></select></label><label id="dynamicCandidateControl" class="preview-control"><span>动态节奏候选</span><select id="dynamicCandidate"><option value="A">DYNAMIC_CANDIDATE_A · Calm</option><option value="B" selected>DYNAMIC_CANDIDATE_B · Balanced · 推荐评审</option><option value="C">DYNAMIC_CANDIDATE_C · Atmospheric</option></select></label><label class="preview-control"><span>动态控制</span><div class="preview-buttons"><button id="playPause" type="button" aria-pressed="false">▶ 播放</button><select id="motionSpeed" aria-label="动态倍速"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select><button id="recordSequence" type="button">录制三态 WebM</button></div></label></div><div class="preview-control-grid"><label class="preview-control"><span>Fish Focus 来源模式</span><select id="focusSource"><option value="blocked" selected>BLOCKED · 默认无可信 BBox / Mask</option><option value="production" disabled>PRODUCTION · 当前未提供生产 Mask</option><option value="review">REVIEW_PROXY_NOT_PRODUCTION · Case B 手工 alpha</option></select></label><label class="preview-control"><span>光场分解</span><select id="fieldLayerView"><option value="composite" selected>最终合成</option><option value="receiving">Receiving Light only · P1</option><option value="primary">主路径图层</option><option value="filaments">次级碎片图层</option><option value="hairline">Hairline echoes only</option></select></label><div class="preview-control"><span>图层开关</span><div class="preview-toggles"><label><input type="checkbox" id="fieldToggle" checked>底场</label><label><input type="checkbox" id="pathToggle" checked>主路径</label><label><input type="checkbox" id="filamentToggle" checked>次级光丝</label><label><input type="checkbox" id="fishToggle" checked>鱼体高亮</label></div></div><label class="preview-control"><span>静态 PNG / 参数证据</span><div><span id="focusProvenance" class="focus-provenance">Production: BLOCKED · Review-only: 可切换 · 无 BBox 时不绘制</span><div id="recordStatus" class="record-status">A/B/C、P1 图层拆分、几何诊断和照片来源记录。</div></div></label></div><div class="preview-meta-row"><span class="tiny" id="candidateDescription">候选参数只作用于 Web Review 层，静态候选 B 为默认显示。</span><span class="tiny" id="previewSourceMeta">build/source SHA 加载中 · P5 test fixture</span></div>';
   const focusEvidence=document.createElement("div");focusEvidence.id="focusEvidenceLinks";focusEvidence.className="tiny";focusEvidence.innerHTML='<a href="./review_v1/fish_focus_case_b_bbox.json" target="_blank" rel="noreferrer">Case B BBox JSON</a> · <a href="./review_v1/fish_focus_review_only_alpha.png" target="_blank" rel="noreferrer">Review-only alpha PNG</a> · <a href="https://github.com/pan277942135/Yujian_App/blob/design/recognition-processing-handoff-p0/app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt" target="_blank" rel="noreferrer">Android test source</a>';
   reviewControls.insertBefore(focusEvidence,reviewControls.querySelector(".preview-meta-row"));
   header.querySelector(".eyebrow").textContent="RECOGNITION PROCESSING";
@@ -822,15 +822,21 @@ function drawReviewReceivingField(ctx,rect,colors,quality){
 function drawReceiving(ctx,rect,mode,quality,colors){
   if(!elements.layers.receiving||!elements.reviewLayers.field)return;
   const receiving=getStack("local_receiving_light"),contractRange=receiving.contract_alpha_before_multipliers;
-  const base=mode==="hardware-gradient"?(contractRange[0]+contractRange[1])/2:(receiving.android_base_alpha||.13);
+  const staticReview=elements.previewMode==="static";
+  // P1 alpha is defined before global multipliers. Static A/B/C apply their
+  // review gain to this registered field; do not clip that gain back to 0.07.
+  const base=staticReview?contractRange[1]:
+    (mode==="hardware-gradient"?(contractRange[0]+contractRange[1])/2:(receiving.android_base_alpha||.13));
   const cap=mode==="hardware-gradient"?contractRange[1]:(receiving.runtime_alpha_cap||.14);
+  const candidateGain=staticReview?(STATIC_REVIEW_CANDIDATES[elements.staticCandidate]?.field||1):1;
   const minDim=Math.min(rect.right-rect.left,rect.bottom-rect.top);
   runtimeSnapshot().receiving_light_layout.forEach(item=>{
     const center={x:rect.left+item.center[0]*(rect.right-rect.left),y:rect.top+item.center[1]*(rect.bottom-rect.top)};
     const radius=minDim*item.radius_min_dimension,ov=item.oval,ox=rect.left+ov[0]*(rect.right-rect.left),oy=rect.top+ov[1]*(rect.bottom-rect.top),ow=ov[2]*(rect.right-rect.left),oh=ov[3]*(rect.bottom-rect.top);
     const record=elements.config.p1_edge_field.paths.find(path=>path.island===item.id||path.id===item.id);
     const weight=record?record.island_weight:1,color=String(item.id).startsWith("G")?colors.gold:colors.blue;
-    const alpha=Math.min(cap,base*weight*elements.params.stateStrength*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1));
+    const scaled=base*candidateGain*weight*elements.params.stateStrength*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1);
+    const alpha=staticReview?scaled:Math.min(cap,scaled);
     const grad=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,radius);
     runtimeSnapshot().receiving_light_alpha_stops.forEach(stop=>grad.addColorStop(stop[0],safeAlphaColor(color,alpha*stop[1])));
     ctx.save();ctx.globalAlpha=1;ctx.fillStyle=grad;ctx.beginPath();ctx.ellipse(ox+ow/2,oy+oh/2,Math.abs(ow/2),Math.abs(oh/2),0,0,Math.PI*2);ctx.fill();ctx.restore();
@@ -902,7 +908,7 @@ function drawHairlines(ctx,rect,mode,quality,colors){
     if(!(quality.companions||[]).includes(e.id))return;
     let visibility=[.76,.42,.19,.08][index%4];
     if(dynamic){const cycle=(elements.previewTime/(p.periods[(index+1)%p.periods.length]*1.19)+index*.217)%1;visibility=cycle<.34?Math.sin(Math.PI*cycle/.34):0;if(visibility<.035)return;}
-    const parent=byId.get(e.parent),profile=STATIC_PATH_REVIEW_PROFILES[dynamic?"B":elements.staticCandidate][e.parent];if(parent)drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false,visibility*(profile?.alpha??1));
+    const parent=byId.get(e.parent),profile=dynamic?STATIC_PATH_REVIEW_PROFILES.B[e.parent]:null;if(parent)drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false,visibility*(profile?.alpha??1));
   });
   if(quality.micro){let visibility=.38;if(dynamic){const cycle=(elements.previewTime/(p.periods[2]*1.53)+.61)%1;visibility=cycle<.19?Math.sin(Math.PI*cycle/.19):0;}if(visibility>.035)drawEcho(ctx,runtimeSnapshot().micro_hairline_geometry,byId.get("B1"),micro,rect,mode,quality,colors,true,visibility);}
 }
@@ -1035,26 +1041,36 @@ function drawField(ctx,rect,mode,quality,colors){
   const config=elements.config.edge||elements.config.p1_edge_field;
   const reviewPathColors={blue:"#4F9EB8",blueHot:"#97D3E4",gold:"#C89548",goldHot:"#F2D18A"};
   ctx.save();ctx.beginPath();ctx.rect(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top);ctx.clip();
-  const view=elements.fieldLayerView,showReviewField=view==="composite"||view==="receiving",showBaseReceiving=view==="composite",showPaths=view==="composite"||view==="primary",showFilaments=view==="composite"||view==="filaments";
+  const view=elements.fieldLayerView,staticReview=elements.previewMode==="static";
+  const showReviewField=!staticReview&&(view==="composite"||view==="receiving");
+  const showBaseReceiving=view==="composite"||(staticReview&&view==="receiving");
+  const showPaths=(view==="composite"||view==="primary")&&elements.reviewLayers.paths;
+  const showFilaments=(view==="composite"||view==="filaments")&&elements.reviewLayers.filaments;
+  const showHairlineOnly=staticReview&&view==="hairline"&&elements.reviewLayers.filaments;
+  // The old review-only corner blobs remain confined to the existing dynamic
+  // preview. Static candidates now use only P1's registered Receiving Light.
   if(showReviewField)drawReviewReceivingField(ctx,rect,colors,quality);
   if(showBaseReceiving)drawReceiving(ctx,rect,mode,quality,colors);
   config.paths.forEach(record=>{
     const primary=record.role==="primary";
-    if(primary&&(!showPaths||!elements.reviewLayers.paths))return;
-    if(!primary&&(!showFilaments||!elements.reviewLayers.filaments))return;
-    if(view==="primary"&&!primary)return;
-    if(view==="filaments"&&primary)return;
-    const seed=record.runtime_seed??record.runtime_seed_candidate??0,profile=STATIC_PATH_REVIEW_PROFILES[elements.previewMode==="dynamic"?"B":elements.staticCandidate][record.id]||{alpha:1,length:1};
+    if(primary&&!showPaths)return;
+    if(!primary&&!showFilaments)return;
+    const seed=record.runtime_seed??record.runtime_seed_candidate??0;
+    const profile=staticReview?{alpha:1,length:1}:(STATIC_PATH_REVIEW_PROFILES.B[record.id]||{alpha:1,length:1});
     drawPathRecord(ctx,record,rect,mode,quality,reviewPathColors,primary?"primary":"fragment",seed,record.visible_ratio*profile.length,record.core_width_dp,profile.alpha);
   });
-  if(showFilaments)drawHairlines(ctx,rect,mode,quality,reviewPathColors);
-  if(showPaths&&elements.reviewLayers.paths)drawDynamicFlow(ctx,rect,quality,colors);
+  if(showFilaments||showHairlineOnly)drawHairlines(ctx,rect,mode,quality,reviewPathColors);
+  if(showPaths)drawDynamicFlow(ctx,rect,quality,colors);
   ctx.restore();
 }
 function paintScene(ctx,w,h,rendererOverride){
   const mode=rendererOverride||elements.renderer;
   ctx.clearRect(0,0,w,h);
   const media=drawPhoto(ctx,w,h),rect=media.rect;
+  if(ctx.canvas&&ctx.canvas.id==="previewCanvas"){
+    ctx.canvas.dataset.photoContentRect=JSON.stringify(rect);
+    ctx.canvas.dataset.photoTransform=JSON.stringify({scale:media.transform.scale,drawnWidth:media.transform.drawnWidth,drawnHeight:media.transform.drawnHeight,translationX:media.transform.translationX,translationY:media.transform.translationY,sourceWidth:elements.photo?.naturalWidth||0,sourceHeight:elements.photo?.naturalHeight||0});
+  }
   const quality=getQuality(),colors=tokenColors();
   if(mode==="software-cache"&&elements.previewMode!=="dynamic"){
     const key=[mode,w,h,stateId(),elements.quality,elements.dLevel,elements.previewMode,elements.staticCandidate,elements.fieldLayerView,JSON.stringify(elements.params),JSON.stringify(elements.layers),JSON.stringify(elements.reviewLayers),elements.focusMode,Array.from(document.querySelectorAll("[data-path]")).map(x=>x.checked?1:0).join(""),elements.mask&&elements.mask.src].join("|");
@@ -1078,6 +1094,27 @@ function paintScene(ctx,w,h,rendererOverride){
   $("renderBadge").textContent=mode+" · "+elements.quality+" / "+elements.dLevel;
   $("sourceMode").textContent="同一视口 · Frozen FIT · 照片身份未绑定";
 }
+window.OPTICAL_LAB_STATIC_GEOMETRY_DIAGNOSTIC=function(){
+  if(!elements.config||!elements.photo||!elements.photo.naturalWidth)throw new Error("P1 photo/config is not ready");
+  const w=elements.width,h=elements.height,photo=elements.photo,t=transformPhoto(photo.naturalWidth,photo.naturalHeight,w,h,"FIT"),r=t.photoContentRect;
+  const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d");
+  ctx.fillStyle=runtimeSnapshot().scene_background_color;ctx.fillRect(0,0,w,h);
+  if((t.translationX>0||t.translationY>0)&&Math.abs(t.translationX)<w&&Math.abs(t.translationY)<h){const crop=transformPhoto(photo.naturalWidth,photo.naturalHeight,w,h,"CROP");ctx.save();ctx.globalAlpha=runtimeSnapshot().decorative_crop_alpha;ctx.drawImage(photo,crop.translationX,crop.translationY,crop.drawnWidth,crop.drawnHeight);ctx.restore();}
+  ctx.drawImage(photo,t.translationX,t.translationY,t.drawnWidth,t.drawnHeight);
+  ctx.save();ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=1.5;ctx.strokeRect(r.left+.5,r.top+.5,r.right-r.left-1,r.bottom-r.top-1);
+  ctx.font="12px system-ui";ctx.fillStyle="#ffffff";ctx.fillText("photoContentRect · FIT",r.left+7,r.top+17);
+  for(let i=1;i<10;i++){const x=r.left+(r.right-r.left)*i/10,y=r.top+(r.bottom-r.top)*i/10;ctx.strokeStyle="rgba(235,245,248,.22)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,r.top);ctx.lineTo(x,r.bottom);ctx.moveTo(r.left,y);ctx.lineTo(r.right,y);ctx.stroke();ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText(String(i*10)+"%",x+2,r.top+31);}
+  const paths=elements.config.p1_edge_field.paths,quiet=elements.config.p1_edge_field.topology.quiet_gaps;
+  paths.forEach(path=>{const color=path.family==="blue"?"#65c4f6":"#f2c86f",p0=mapPoint(path.start,r),p1=mapPoint(path.control1,r),p2=mapPoint(path.control2,r),p3=mapPoint(path.end,r);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.moveTo(p2.x,p2.y);ctx.lineTo(p3.x,p3.y);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.bezierCurveTo(p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);ctx.stroke();[p0,p1,p2,p3].forEach((point,index)=>{ctx.beginPath();ctx.arc(point.x,point.y,index===0||index===3?3.2:2.4,0,Math.PI*2);ctx.fill();});const label=path.id;ctx.font="bold 12px system-ui";ctx.fillText(label,p0.x+4,p0.y-4);});
+  const gapColor="rgba(237,246,248,.8)";ctx.setLineDash([3,4]);ctx.lineWidth=2;ctx.strokeStyle=gapColor;ctx.fillStyle=gapColor;const drawGap=(label,range,a,b)=>{ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.font="10px system-ui";ctx.fillText(label,a[0]+2,a[1]+(label==="Q_TOP"?13:-4));};
+  drawGap("Q_TOP",quiet.Q_TOP,[r.left+quiet.Q_TOP[0]*(r.right-r.left),r.top+2],[r.left+quiet.Q_TOP[1]*(r.right-r.left),r.top+2]);
+  drawGap("Q_BOTTOM",quiet.Q_BOTTOM,[r.left+quiet.Q_BOTTOM[0]*(r.right-r.left),r.bottom-2],[r.left+quiet.Q_BOTTOM[1]*(r.right-r.left),r.bottom-2]);
+  drawGap("Q_LEFT",quiet.Q_LEFT,[r.left+2,r.top+quiet.Q_LEFT[0]*(r.bottom-r.top)],[r.left+2,r.top+quiet.Q_LEFT[1]*(r.bottom-r.top)]);
+  drawGap("Q_RIGHT",quiet.Q_RIGHT,[r.right-2,r.top+quiet.Q_RIGHT[0]*(r.bottom-r.top)],[r.right-2,r.top+quiet.Q_RIGHT[1]*(r.bottom-r.top)]);
+  ctx.restore();
+  const mappedPaths=paths.map(path=>({id:path.id,start:mapPoint(path.start,r),control1:mapPoint(path.control1,r),control2:mapPoint(path.control2,r),end:mapPoint(path.end,r)}));
+  return {png_data_url:canvas.toDataURL("image/png"),photo:{width:photo.naturalWidth,height:photo.naturalHeight,sha256:elements.config.p5_compose_import_bindings.image_bindings.test_photo.sha256},viewport:[w,h],transform:{scale:t.scale,translationX:t.translationX,translationY:t.translationY},photoContentRect:r,paths,mapped_path_points:mappedPaths,quiet_gaps:quiet,path_points_clamped:false,draw_clipped_to_photoContentRect:false};
+};
 function render(){
   if(!elements.config)return;
   const c=elements.preview;c.width=elements.width;c.height=elements.height;
