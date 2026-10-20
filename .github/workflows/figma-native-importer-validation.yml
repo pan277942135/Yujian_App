@@ -1,0 +1,48 @@
+name: Figma Native Importer Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/figma-native-importer-validation.yml"
+      - "tools/figma_native_importer_v1/**"
+      - "release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip"
+      - "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build plugin from verified source assets
+        run: node tools/figma_native_importer_v1/build.mjs
+
+      - name: Run mocked Figma Plugin API tests
+        run: node --test tools/figma_native_importer_v1/test/*.test.mjs
+
+      - name: Validate compiled JavaScript and package archive
+        run: |
+          node --check tools/figma_native_importer_v1/build/YUJIAN_FIGMA_NATIVE_IMPORTER_V1/main.js
+          unzip -t release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip
+          sha256sum design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png
+          sha256sum release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip
+
+      - name: Upload installable plugin package
+        uses: actions/upload-artifact@v4
+        with:
+          name: YUJIAN_FIGMA_NATIVE_IMPORTER_V1-${{ github.sha }}
+          path: release/design_manager/YUJIAN_FIGMA_NATIVE_IMPORTER_V1.zip
+          if-no-files-found: error
+          retention-days: 30
