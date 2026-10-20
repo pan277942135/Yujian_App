@@ -61,8 +61,8 @@ on:
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}
-  # Preserve exact-head runtime evidence while newer PR commits are queued.
-  cancel-in-progress: false
+  # Keep only the latest PR head; do not cancel manual/push release runs.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
