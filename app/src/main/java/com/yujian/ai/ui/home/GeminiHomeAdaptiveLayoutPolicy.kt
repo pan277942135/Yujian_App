@@ -133,3 +133,11 @@ internal fun resolveGeminiHomeLayoutSpec(
 
 internal fun geminiHomeCardWidth(trackWidthDp: Float, spec: GeminiHomeLayoutSpec): Float =
     minOf(trackWidthDp * spec.cardWidthFraction, spec.maxCardWidth.value)
+
+/** Keeps a real side-card sliver visible when the adaptive Hero reaches its width cap. */
+internal fun geminiHomeNeighborWidth(trackWidthDp: Float, cardWidthDp: Float, pageSpacingDp: Float): Float {
+    val targetPeekWidth = (trackWidthDp * 0.05f).coerceIn(12f, 28f)
+    val existingNeighborWidth = minOf(trackWidthDp * 0.62f, 260f)
+    val minimumWidthForPeek = 2f * targetPeekWidth + 2f * pageSpacingDp + 2f * cardWidthDp - trackWidthDp
+    return maxOf(existingNeighborWidth, minimumWidthForPeek).coerceIn(0f, cardWidthDp)
+}

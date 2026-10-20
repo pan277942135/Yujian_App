@@ -284,19 +284,6 @@ gate_collect_evidence() {
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null || true
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null || true
 
-  if ! YUJIAN_ADB_BIN="$YUJIAN_ADB_BIN" \
-    YUJIAN_APP_PACKAGE="$YUJIAN_APP_PACKAGE" \
-    YUJIAN_INSTRUMENTATION_TARGET="$YUJIAN_INSTRUMENTATION_TARGET" \
-    YUJIAN_EVIDENCE_DIR="$YUJIAN_EVIDENCE_DIR" \
-    BUILD_SHA="$BUILD_SHA" \
-    GITHUB_RUN_ID="${GITHUB_RUN_ID:-local}" \
-    GITHUB_SERVER_URL="${GITHUB_SERVER_URL:-https://github.com}" \
-    GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-pan277942135/Yujian_App}" \
-    bash scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh; then
-    runtime_set_failure "EVIDENCE" "NH01_ADAPTIVE_API28_3X3_MATRIX_FAILED"
-    return "$EXIT_FAIL_EVIDENCE"
-  fi
-
   local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
   "$YUJIAN_ADB_BIN" pull "$external" "$YUJIAN_EVIDENCE_DIR/compose-simulation" \
     > "$output/compose_evidence_pull.log" 2>&1 || {

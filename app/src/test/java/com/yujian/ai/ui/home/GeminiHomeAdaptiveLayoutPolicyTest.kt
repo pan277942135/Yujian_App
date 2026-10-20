@@ -64,6 +64,25 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         assertEquals(13f, baseline.titleToCardGap.value, 0.001f)
     }
 
+    @Test
+    fun cappedHeroKeepsAVisibleRealNeighborPreviewAcrossWidths() {
+        val profiles = listOf(
+            Triple(320f, 243.2f, 10.24f),
+            Triple(393f, 298.68f, 12.576f),
+            Triple(411f, 312.36f, 13.152f),
+            Triple(480f, 360f, 15.36f),
+            Triple(560f, 360f, 16f),
+        )
+
+        profiles.forEach { (trackWidth, cardWidth, pageSpacing) ->
+            val neighborWidth = geminiHomeNeighborWidth(trackWidth, cardWidth, pageSpacing)
+            val visiblePeek = ((trackWidth - 2f * cardWidth + neighborWidth) / 2f - pageSpacing)
+                .coerceAtLeast(0f)
+            assertTrue("neighbor preview remains visible at ${trackWidth}dp: $visiblePeek dp", visiblePeek >= 12f)
+            assertTrue("neighbor remains no wider than the main card", neighborWidth <= cardWidth)
+        }
+    }
+
     private fun resolve(
         widthDp: Float,
         heightDp: Float,

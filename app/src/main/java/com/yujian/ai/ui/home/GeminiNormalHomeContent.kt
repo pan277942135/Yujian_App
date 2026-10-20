@@ -611,13 +611,13 @@ private fun GeminiCatchCarousel(
     val hasNeighborPages = pageCount > 1
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
-    val neighborWidth = minOf(trackWidth * 0.62f, 260.dp)
+    val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
+    val neighborWidth = geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value).dp
     val sideScaleX = (neighborWidth / cardWidth).coerceIn(0.5f, 1f)
     val sideScaleY = GeminiHomeNeighborHeightFraction
     val neighborTranslationY = with(LocalDensity.current) {
         (GeminiHomePeekTopOffset - cardHeight * ((1f - sideScaleY) / 2f)).toPx()
     }
-    val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
     val activeId = records.getOrNull(pagerState.currentPage)?.id

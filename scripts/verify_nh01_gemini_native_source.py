@@ -71,6 +71,8 @@ def main() -> None:
     checks.append(("adaptive_policy_has_frozen_candidate_width_breakpoints_and_gaps", "ADAPTIVE_CARD_WIDTH_FRACTION = 0.76f" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text() and "safeWidthDp < 360f || safeHeightDp < 700f" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text(), "GeminiHomeAdaptiveLayoutPolicy.kt"))
     checks.append(("font_scaled_title_gap_uses_measured_text_bounds", "measuredTitleHeightPx" in page and "onTitleMeasuredHeight" in page and "measuredTitleHeightDp" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("neighbor_cards_keep_top_offset_and_height", "GeminiHomeNeighborHeightFraction = 0.667f" in page and "GeminiHomePeekTopOffset = 15.dp" in page and "translationY = if (active) 0f else neighborTranslationY" in page, "GeminiNormalHomeContent.kt"))
+    policy = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
+    checks.append(("adaptive_card_cap_preserves_visible_neighbor_preview", "geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value)" in page and "minimumWidthForPeek" in policy, "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt"))
     checks.append(("official_morning_lake_uses_top_center_crop", page.count("alignment = Alignment.TopCenter") == 2, "GeminiNormalHomeContent.kt"))
     checks.append(("stats_dividers_are_capped_at_26dp", "dividerHeight = 26.dp" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_page_tree_tags_present", all(tag in page for tag in LAYERS), "GeminiNormalHomeContent.kt"))

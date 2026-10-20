@@ -20,6 +20,8 @@ The policy is in `app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayo
 
 All bands keep the existing **247:293** aspect ratio. If the measured Middle height limits the target card and at least 200dp of card width remains, the card shrinks proportionally. Below that readability floor, the Middle content scrolls and the Footer remains outside the scroll viewport. Content width remains capped at 560dp. These width, maximum-size, and band values are candidates until the captured runtime results are reviewed.
 
+The carousel viewport is centered within the 560dp content cap. Neighbor width stays at least large enough to expose a 5% viewport sliver, bounded to 12–28dp and never wider than the main card; this compensates for the side-card scale when the main card reaches 360dp. The runtime gate runs the adaptive matrix independently after the existing Gemini instrumentation suite so that an unrelated legacy assertion cannot suppress the requested matrix evidence.
+
 | Gap | Compact 1.0× / 1.3× / 1.5× | Medium 1.0× / 1.3× / 1.5× | Expanded 1.0× / 1.3× / 1.5× |
 |---|---|---|---|
 | Brand/header to stats | 16 / 14 / 12dp | 20 / 18 / 16dp | 24 / 20 / 18dp |
