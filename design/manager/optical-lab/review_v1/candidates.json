@@ -4,20 +4,20 @@
   "design_contracts_modified": false,
   "source_contracts": ["P1", "P2", "P3", "P4", "P5"],
   "static_candidates": {
-    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 2.1, "primary_path_scale": 0.85, "secondary_filament_scale": 0.2 },
-    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 3.4, "primary_path_scale": 1.08, "secondary_filament_scale": 0.34, "recommended_for_first_review": true },
-    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 4.8, "primary_path_scale": 1.35, "secondary_filament_scale": 0.48 }
+    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 2.5, "primary_path_scale": 0.85, "secondary_filament_scale": 0.2 },
+    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 4.4, "primary_path_scale": 1.08, "secondary_filament_scale": 0.34, "recommended_for_first_review": true },
+    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 5.6, "primary_path_scale": 1.35, "secondary_filament_scale": 0.48 }
   },
   "static_path_corner_profile": {
     "A": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
     "B": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
     "C": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
-    "intent": "V3 static candidates preserve every P1 visible_ratio and seven-path geometry. The Web-only Receiving Light follows the exact B1/G1/G3/B3 primary curves with two bounded blur passes; A/B/C vary optical multipliers only."
+    "intent": "V3 static candidates preserve P1 photo geometry, receiving oval geometry, alpha stops, all seven path control points and visible ratios. A/B/C vary Web-only optical multipliers only."
   },
   "field_geometry": {
-    "authority": "P1 frozen B1/G1/G3/B3 primary curves",
-    "rendering": "two bounded blur passes following the exact cubic paths; clipped to photoContentRect",
-    "quiet_gaps": "preserved between the four disconnected path islands",
+    "authority": "P1 receiving_light_layout and receiving_light_alpha_stops",
+    "rendering": "four registered radial ovals mapped through the shared photoContentRect; seven frozen paths draw in separate layers above the field",
+    "quiet_gaps": "the four P1 receiving ovals remain separated; the seven frozen path topology and Quiet Gaps are unchanged",
     "geometry_added": false,
     "color_tokens": "existing P1 blue/gold tokens"
   },

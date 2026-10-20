@@ -54,14 +54,14 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 - Frozen 02 embeds a different source photo. The Frozen reference and current registered fixture therefore remain `SOURCE_PHOTO_IDENTITY_UNVERIFIED`; this comparison is visual-only, not a same-source pixel diff.
 - The 34de baseline screenshot shows the former review helper bleeding into the FIT letterbox and broad translucent color areas occupying much of the photo. That was a separate-coordinate overlay, not a faithful use of the P1 field.
 - The first V3 P1-layout attempt removed that helper from static rendering, but its real Chromium capture still showed a weak field. At `REVIEW_CANDIDATE_B`, the Receiving Light-only signal changed 0.055% of the upper-left sample, 0.804% of the upper-right, 0% of the lower-left, and 4.057% of the lower-right. The [failed Chromium artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39422517210/artifacts/12263717925) preserves those images and measurements. The pastel P1 tokens multiplied by the 0.07 alpha ceiling were largely swallowed by this bright fixture; the check correctly failed.
-- The first V3 attempt also represented the static field as four isolated radial ovals. Although those ovals came from the runtime snapshot, they did not make the light read as a field that follows the photo edge. The corrected static renderer follows the existing P1 primary curves and leaves the Quiet Gaps between them.
+- The next real browser capture used a path-derived Receiving Light made by blurring the four primary curves. It still looked like fine corner traces instead of a broad field: candidate B measured only 2.89 mean absolute RGB delta in the sampled photo corners. See [run 39425637563 and its V3 artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39425637563). This second result is also recorded as a visual failure, despite the render smoke completing.
 - The earlier smoke only proved that pixels changed. The current smoke records per-corner signal from the renderer's actual `photoContentRect`; neither it nor a numerical threshold is treated as a visual quality pass.
 - The static candidate path profiles also changed path lengths. That obscured whether the exact frozen seven paths were being reviewed.
 
 ### V3 static renderer changes
 
-- Static A/B/C draw two bounded blur passes along the exact frozen P1 primary curves `B1`, `G1`, `G3`, and `B3`, within the same `photoContentRect` as the photo and seven paths. No new curve or closed perimeter is added; the four Quiet Gaps remain open. Existing dynamic preview code remains untouched.
-- The field uses the P1 blue/gold color tokens, `contract_edge_depth_ratio` width bounds, and P1 island weights. Candidate gains apply to the P1 0.07 pre-multiplier alpha in Web Review only; no P1/P5 contract token or Native renderer value changes.
+- Static A/B/C now use the four registered `receiving_light_layout` radial ovals and `receiving_light_alpha_stops` from P1. They are mapped through the renderer's single `photoContentRect` and clipped to the photo; the seven frozen paths draw above them in separate layers. No new receiving geometry, path, or closed perimeter is added.
+- The field uses P1 blue/gold tokens and island weights. Candidate gains apply to the P1 0.07 pre-multiplier alpha in Web Review only and are capped at 0.34 opacity per island; no P1/P5 contract token or Native renderer value changes.
 - Static A/B/C preserve the exact P1 path start, control points, end points and visible ratios. Candidate differences are limited to the three review optical multipliers: Receiving Light, primary paths and secondary filaments.
 - Geometry diagnostics expose the actual mapped control points, FIT transform, `photoContentRect`, seven P1 paths and four Quiet Gaps. The static capture matrix is 390×844, 320×640, 412×915, 800×360 and the 1152×1536 source proportion.
 - The official evidence gallery is generated from real Chromium Canvas/page captures and published under the canonical Optical Review route. Its JSON records source/build SHA, photo provenance, per-view coordinates, candidate parameters, PNG names and SHA-256 values.
@@ -70,9 +70,9 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 
 | Candidate | Receiving Light | Primary paths | Secondary filaments | Review intent |
 | --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 2.10× | 0.85× | 0.20× | Softest field and traces |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 3.40× | 1.08× | 0.34× | Recommended first review |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 4.80× | 1.35× | 0.48× | Visibility ceiling for comparison |
+| `REVIEW_CANDIDATE_A` · Soft Field | 2.50× | 0.85× | 0.20× | Softest field and traces |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 4.40× | 1.08× | 0.34× | Recommended first review |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 5.60× | 1.35× | 0.48× | Visibility ceiling for comparison |
 
 These are unapproved review candidates, not frozen product values. Automation reports only renderer, source, geometry and asset checks. Human visual acceptance remains `REVIEW_REQUIRED`.
 
