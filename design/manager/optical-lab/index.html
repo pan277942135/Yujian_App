@@ -217,16 +217,15 @@ const elements = {
   reviewLayers:{field:true,paths:true,filaments:true,fish:true}
 };
 const STATIC_REVIEW_CANDIDATES={
-  A:{name:"Soft Field",field:4.0,paths:1.0,filaments:0.25,description:"REVIEW_CANDIDATE_A · 柔光先可感知，主路径保持轻量。"},
-  B:{name:"Balanced Field",field:6.5,paths:1.35,filaments:0.38,description:"REVIEW_CANDIDATE_B · 明确的照片侧受光场，冻结路径只作引导。"},
-  C:{name:"Strong Atmosphere",field:8.5,paths:1.65,filaments:0.50,description:"REVIEW_CANDIDATE_C · 更强的局部受光上限评审，不是冻结值。"}
+  A:{name:"Soft Field",field:0.50,paths:0.65,filaments:0.25,description:"REVIEW_CANDIDATE_A · 柔光先可感知，主路径保持轻量。"},
+  B:{name:"Balanced Field",field:0.82,paths:0.85,filaments:0.45,description:"REVIEW_CANDIDATE_B · 使用 P1 alpha 上限内的照片侧受光场，冻结路径只作引导。"},
+  C:{name:"Strong Atmosphere",field:1.0,paths:1.0,filaments:0.65,description:"REVIEW_CANDIDATE_C · 在 P1 alpha 上限内评审更完整的光场与路径层。"}
 };
 const STATIC_RECEIVING_OPTICS={
-  // The previous .32 Web cap kept even candidate C below .28 peak alpha and
-  // remained visually weak on the bright registered photo. These higher gains
-  // are bounded Web-only review candidates; P1 and Native values remain frozen.
+  // Enforce P1's maximum Receiving Light alpha before shared state/quality
+  // multipliers. Static candidates never amplify any frozen per-layer alpha.
   ovalGain:1.0,
-  opacityCap:.60,
+  opacityCap:.07,
   depthRatio:.15,
   fieldInwardOffsetDepthRatio:.30,
   pathPasses:[{widthRatio:.70,blurRatio:.13,opacity:.72},{widthRatio:.40,blurRatio:.06,opacity:.64}]
