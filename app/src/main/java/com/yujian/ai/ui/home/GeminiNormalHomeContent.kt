@@ -437,7 +437,11 @@ private fun GeminiMiddleSection(
     // The row keeps its 48dp action target; this compensates its centered text
     // so the visible title-to-card gap remains 13dp at each system font scale.
     val titleBottomInset = ((headerHeight.value - titleLineHeight) / 2f).coerceAtLeast(0f)
-    val headerGap = (13f - titleBottomInset).coerceAtLeast(0f).dp
+    // Compose's visible Text bounds contract by up to 3dp at larger system font scales,
+    // even though the line box is scaled. Compensate the layout gap so the measured
+    // visible title-to-card distance remains 13dp; this does not alter the card geometry.
+    val visibleGapCorrection = ((fontScale - 1f) * 10f).coerceAtLeast(0f)
+    val headerGap = (13f + visibleGapCorrection - titleBottomInset).coerceAtLeast(0f).dp
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val desiredCardWidth = minOf(trackWidth * GeminiHomeCardWidthFraction, GeminiHomeCardMaxWidth)
     val desiredCardHeight = (desiredCardWidth / GeminiHomeCardAspectRatio).coerceAtMost(GeminiHomeCardMaxHeight)
