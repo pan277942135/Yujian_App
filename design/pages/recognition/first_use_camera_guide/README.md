@@ -25,3 +25,18 @@ P01/P02/P03 are Design Manager visual authorities, not Android runtime backgroun
 - P03: 941×1672, 2,001,322 bytes, SHA-256 `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`
 
 The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The later two-page freeze proposal remains preserved as history and does not replace this explicitly requested V1 task scope.
+
+
+## Android Runtime example assets — separate delivery contract
+
+The Frozen P01/P02/P03 PNGs above are full-page visual references only. They are not runtime Hero/error images and must not be cropped to manufacture those examples.
+
+The separate runtime asset contract is defined in:
+- ../../../../docs/qa/recognition_main_journey/spec_v1/15_ANDROID_VISUAL_ASSET_DELIVERY_CONTRACT.md — source rights, image semantics, path and Android resource binding.
+- ../../../../docs/qa/recognition_main_journey/spec_v1/16_MISSING_ASSET_FAIL_CLOSED_GATE.md — missing-image block and G03A–G03E acceptance rules.
+- runtime_asset_manifest_v1.schema.json — manifest schema.
+- runtime_asset_manifest_v1.json — authoritative register for 12 required runtime slots.
+
+Current status: `BLOCKED_ASSET_SOURCE`. All 12 slots are MISSING, with 0 approved sources and 0 Android bindings. This is intentional and must not be reported as ASSET_READY. A page with missing Hero or error examples cannot pass FIRST_USE_GUIDE_VISUAL.
+
+No Android source, image bytes, Frozen artwork or Runtime tests are changed by this documentation update.
