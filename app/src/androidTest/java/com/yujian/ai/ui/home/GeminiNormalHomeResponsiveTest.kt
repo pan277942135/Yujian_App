@@ -112,7 +112,7 @@ class GeminiNormalHomeResponsiveTest {
             .assertTextEquals("42.6 cm · 1.28 kg")
 
         val profiles = buildList {
-            listOf(320 to 480, 360 to 640, 390 to 844, 430 to 932, 480 to 840).forEach { (width, height) ->
+            listOf(320 to 480, 360 to 640, 390 to 844, 430 to 932, 480 to 840, 600 to 960).forEach { (width, height) ->
                 listOf(1.0f, 1.3f, 1.5f).forEach { scale ->
                     add(Profile(width, height, scale, "${width}x${height}-font-${scaleToken(scale)}"))
                 }

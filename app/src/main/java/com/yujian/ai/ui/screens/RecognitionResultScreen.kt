@@ -103,6 +103,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.TextStyle
 import com.yujian.ai.ai.ProductionRecognitionResult
+import com.yujian.ai.ai.FishInputStatus
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
@@ -115,6 +116,7 @@ import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.components.FishIllustration
+import com.yujian.ai.ui.components.FishPhotoBitmapImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
@@ -130,11 +132,6 @@ import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.recognitionFeedbackType
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
-import com.yujian.ai.ui.recognition.result.NormalizedSourceRect
-import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaMode
-import com.yujian.ai.ui.recognition.result.createRecognitionHeroAmbientBackdrop
-import com.yujian.ai.ui.recognition.result.RecognitionHeroMediaPlanner
-import com.yujian.ai.ui.recognition.result.usesSourceDerivedHeroBackdrop
 import com.yujian.ai.ui.recognition.result.RecognitionPlace
 import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
@@ -143,6 +140,8 @@ import com.yujian.ai.ui.recognition.result.RecognitionResultVisualState
 import com.yujian.ai.ui.recognition.result.resultNumericEditorInitialValue
 import com.yujian.ai.ui.recognition.result.resultSpeciesDisplayName
 import com.yujian.ai.ui.recognition.result.resolveCurrentRecognitionPlace
+import com.yujian.ai.ui.imagery.FishBoxCoordinateSpace
+import com.yujian.ai.ui.imagery.FishPhotoBoundingBox
 import com.yujian.ai.ui.recognition.result.SpeciesSelectorEntryContext
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
@@ -286,9 +285,18 @@ fun RecognitionResultScreen(
             requestedSaveDestination = null
         }
     }
-    val bbox = productionResult?.assessment?.primary?.box?.let {
-        NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2)
+    val resultAssessment = productionResult?.assessment
+    val bbox = resultAssessment?.primary?.let { detection ->
+        FishPhotoBoundingBox(
+            box = detection.box,
+            confidence = detection.confidence,
+            coordinateSpace = FishBoxCoordinateSpace.DISPLAY_ORIENTED,
+            version = "${productionResult?.modelVersion.orEmpty()}-${resultAssessment.status.wireName}",
+        )
     }
+    val primaryFishAmbiguous = resultAssessment?.let {
+        it.status == FishInputStatus.MULTIPLE_FISH || it.strongDetections.size > 1
+    } == true
 
     fun save(destination: RecognitionSaveDestination) {
         if (saving || saveRequested) return
@@ -418,7 +426,10 @@ fun RecognitionResultScreen(
         Column(Modifier.fillMaxSize()) {
             YuJianBackCenterTitleTopBar(title = "识别结果", onBack = { requestExit(PendingExitAction.BACK) }, backEnabled = !saving && !saveRequested)
             Column(
-                Modifier.weight(1f).fillMaxWidth()
+                Modifier.weight(1f)
+                    .widthIn(max = RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
                     .padding(start = safeInsets.start, end = safeInsets.end)
                     // Result content is allowed to exceed a short viewport and is
                     // reached by natural scrolling. Compose does not draw an
@@ -433,11 +444,11 @@ fun RecognitionResultScreen(
                     ResultHeroViewport(
                         bitmap = it.bitmap.asImageBitmap(),
                         bbox = bbox,
+                        primaryAmbiguous = primaryFishAmbiguous,
                         widthDp = geometry.heroWidthDp,
                         heightDp = geometry.heroHeightDp,
                         evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
                             uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
-                        sourceBackdropEnabled = visualState.usesSourceDerivedHeroBackdrop(),
                     )
                 }
                 Spacer(Modifier.height(12.dp))
@@ -710,86 +721,30 @@ internal fun BgContentSurface() {
 @Composable
 fun ResultHeroViewport(
     bitmap: ImageBitmap,
-    bbox: NormalizedSourceRect?,
+    bbox: FishPhotoBoundingBox?,
+    primaryAmbiguous: Boolean = false,
     widthDp: Int,
     heightDp: Int,
     evidenceFirst: Boolean = false,
-    sourceBackdropEnabled: Boolean = false,
 ) {
-    val plan = remember(bitmap, bbox, widthDp, heightDp, evidenceFirst) {
-        RecognitionHeroMediaPlanner.plan(
-            bitmap.width,
-            bitmap.height,
-            widthDp.toFloat(),
-            heightDp.toFloat(),
-            bbox,
-            evidenceFirst = evidenceFirst,
-        )
-    }
-    val sourceBackdrop = remember(bitmap, plan.mode, sourceBackdropEnabled) {
-        if (sourceBackdropEnabled && plan.requiresSourceBackdrop) {
-            createRecognitionHeroAmbientBackdrop(bitmap.asAndroidBitmap()).asImageBitmap()
-        } else {
-            null
-        }
-    }
     val shape = YuJianRadius.resultHero
     Box(
         Modifier
             .width(widthDp.dp)
             .height(heightDp.dp)
             .clip(shape)
-            .background(Color.Black, shape)
+            .background(Color(0xFF16242C), shape)
             .border(1.dp, Color.White.copy(alpha = 0.42f), shape)
             .testTag("recognition-result-hero"),
     ) {
-        sourceBackdrop?.let { ambient ->
-            Canvas(
-                Modifier
-                    .fillMaxSize()
-                    .testTag("recognition-result-hero-source-backdrop"),
-            ) {
-                val scale = maxOf(size.width / ambient.width, size.height / ambient.height)
-                val dstW = ambient.width * scale
-                val dstH = ambient.height * scale
-                drawImage(
-                    image = ambient,
-                    dstOffset = IntOffset(((size.width - dstW) / 2f).toInt(), ((size.height - dstH) / 2f).toInt()),
-                    dstSize = IntSize(dstW.toInt(), dstH.toInt()),
-                    alpha = 0.84f,
-                    filterQuality = FilterQuality.Medium,
-                )
-                drawRect(Color.Black.copy(alpha = 0.10f))
-            }
-        }
-        Canvas(Modifier.fillMaxSize()) {
-            val src = plan.sourceRect
-            val sourceLeft = (src.left * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
-            val sourceTop = (src.top * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
-            val sourceRight = (src.right * bitmap.width).toInt().coerceIn(sourceLeft + 1, bitmap.width)
-            val sourceBottom = (src.bottom * bitmap.height).toInt().coerceIn(sourceTop + 1, bitmap.height)
-            val cropW = sourceRight - sourceLeft
-            val cropH = sourceBottom - sourceTop
-            val scale = if (plan.mode == RecognitionHeroMediaMode.SUBJECT_CROP_FILL) {
-                maxOf(size.width / cropW, size.height / cropH)
-            } else {
-                minOf(size.width / cropW, size.height / cropH)
-            }
-            val dstW = cropW * scale
-            val dstH = cropH * scale
-            val dstX = (size.width - dstW) / 2f
-            val dstY = (size.height - dstH) / 2f
-            clipRect {
-                drawImage(
-                    image = bitmap,
-                    srcOffset = IntOffset(sourceLeft, sourceTop),
-                    srcSize = IntSize(cropW, cropH),
-                    dstOffset = IntOffset(dstX.toInt(), dstY.toInt()),
-                    dstSize = IntSize(dstW.toInt(), dstH.toInt()),
-                    filterQuality = FilterQuality.Medium,
-                )
-            }
-        }
+        FishPhotoBitmapImage(
+            bitmap = bitmap,
+            modifier = Modifier.fillMaxSize(),
+            contentDescription = "识别鱼获照片",
+            boundingBox = bbox,
+            primaryAmbiguous = primaryAmbiguous,
+            allowSubjectCrop = !evidenceFirst,
+        )
     }
 }
 

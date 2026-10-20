@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.catches.RemoteCatch
+import com.yujian.ai.ui.components.FishPhotoErrorPlaceholder
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
@@ -70,10 +71,12 @@ fun FishRecordHeroCard(
             contentScale = if (mediaMode == FishRecordHeroImageMode.EVIDENCE_FIT) ContentScale.Fit else ContentScale.Crop,
             preserveEvidenceWithFitBackdrop = mediaMode == FishRecordHeroImageMode.EVIDENCE_FIT,
             trimVerifiedLetterbox = mediaMode == FishRecordHeroImageMode.EVIDENCE_FIT,
+            smartFishPhoto = !showBside,
+            fishPhotoSourceVersion = record.id,
             reloadToken = if (showBside) bsideReloadToken else 0,
             onLoadResult = if (showBside) onBsideLoadResult else null,
             placeholder = {
-                Box(Modifier.fillMaxSize().background(Color(0xFF6D8491)))
+                FishPhotoErrorPlaceholder()
             },
         )
         Box(

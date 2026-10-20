@@ -760,7 +760,8 @@ private fun GeminiCatchCard(
                     authToken = accessToken,
                     modifier = Modifier.fillMaxSize().testTag("gemini-home-catch-media-${item.id}"),
                     contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                    preserveEvidenceWithFitBackdrop = true,
+                    smartFishPhoto = true,
+                    fishPhotoSourceVersion = item.id,
                     placeholder = {
                         Box(
                             Modifier.fillMaxSize()

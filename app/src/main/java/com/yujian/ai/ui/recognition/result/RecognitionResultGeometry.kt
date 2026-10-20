@@ -2,6 +2,9 @@ package com.yujian.ai.ui.recognition.result
 
 import com.yujian.ai.ui.adaptive.AdaptiveLayoutProfile
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.imagery.FishPhotoBoundingBox
+import com.yujian.ai.ui.imagery.FishPhotoCropPlanner
+import com.yujian.ai.ui.imagery.FishPhotoDisplayMode
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
@@ -32,6 +35,7 @@ fun RecognitionResultVisualState.usesSourceDerivedHeroBackdrop(): Boolean =
 
 /** Pure adaptive resolver for the frozen Recognition Result geometry. */
 object RecognitionResultGeometryResolver {
+    const val MAX_CONTENT_WIDTH_DP = 560
     fun resolve(
         profile: AdaptiveLayoutProfile,
         state: RecognitionResultVisualState = RecognitionResultVisualState.HIGH,
@@ -46,7 +50,7 @@ object RecognitionResultGeometryResolver {
         contentHeightDp: Int,
         state: RecognitionResultVisualState = RecognitionResultVisualState.HIGH,
     ): RecognitionResultGeometry {
-        val width = windowWidthDp.coerceAtLeast(1)
+        val width = windowWidthDp.coerceAtMost(MAX_CONTENT_WIDTH_DP).coerceAtLeast(1)
         val margin = when {
             width <= 320 -> 16
             width <= 393 -> 19
@@ -61,15 +65,10 @@ object RecognitionResultGeometryResolver {
             RecognitionResultVisualState.NO_FISH -> (heroWidth * 245f / 322f).roundToInt()
             RecognitionResultVisualState.IMAGE_QUALITY -> (heroWidth / 1.62f).roundToInt()
         }
-        val adaptedHeroHeight = if (contentHeightDp < 600) {
-            (heroHeight * 0.88f).roundToInt().coerceAtLeast(160)
-        } else {
-            heroHeight
-        }
         return RecognitionResultGeometry(
             horizontalMarginDp = margin,
             heroWidthDp = heroWidth,
-            heroHeightDp = adaptedHeroHeight,
+            heroHeightDp = heroHeight,
             candidateWidthDp = ((contentWidth - 16f) / 3f).coerceIn(88f, 116f),
             compactHeightPolicy = contentHeightDp < 600,
         )
@@ -210,11 +209,13 @@ object RecognitionMediaPlanner {
         viewportHeightDp: Float,
         bbox: NormalizedSourceRect?,
         evidenceFirst: Boolean,
+        bboxConfidence: Float? = null,
     ): RecognitionHeroMediaPlan {
         val full = NormalizedSourceRect(0f, 0f, 1f, 1f)
         if (evidenceFirst) return RecognitionHeroMediaPlan(RecognitionHeroMediaMode.EVIDENCE_FIT, full, emptySet())
-        if (sourceWidth <= 0 || sourceHeight <= 0 || viewportWidthDp <= 24f || viewportHeightDp <= 24f ||
-            bbox == null || !bbox.isValid()
+        if (sourceWidth <= 0 || sourceHeight <= 0 || viewportWidthDp <= 0f || viewportHeightDp <= 0f ||
+            bbox == null || bbox.left < 0f || bbox.top < 0f || bbox.right > 1f || bbox.bottom > 1f ||
+            bbox.width <= 0.001f || bbox.height <= 0.001f
         ) return RecognitionHeroMediaPlan(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, full, emptySet())
 
         val clipped = buildSet {
@@ -223,46 +224,41 @@ object RecognitionMediaPlanner {
             if (1f - bbox.right <= 0.02f) add(SourceEdge.RIGHT)
             if (1f - bbox.bottom <= 0.02f) add(SourceEdge.BOTTOM)
         }
-        // A source-clipped fish edge must never receive another crop.
-        if (clipped.isNotEmpty()) return RecognitionHeroMediaPlan(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, full, clipped)
-
-        val safe = NormalizedSourceRect(
-            left = (bbox.left - bbox.width * 0.14f).coerceAtLeast(0f),
-            top = (bbox.top - bbox.height * 0.18f).coerceAtLeast(0f),
-            right = (bbox.right + bbox.width * 0.14f).coerceAtMost(1f),
-            bottom = (bbox.bottom + bbox.height * 0.18f).coerceAtMost(1f),
+        val confidence = bboxConfidence ?: return RecognitionHeroMediaPlan(
+            RecognitionHeroMediaMode.SUBJECT_SAFE_FIT,
+            full,
+            clipped,
         )
-        val targetAspect = viewportWidthDp / viewportHeightDp
-        val minCropWidthPx = safe.width * sourceWidth / (1f - 24f / viewportWidthDp)
-        val minCropHeightPx = safe.height * sourceHeight / (1f - 24f / viewportHeightDp)
-        var cropWidthPx = maxOf(minCropWidthPx, minCropHeightPx * targetAspect)
-        var cropHeightPx = cropWidthPx / targetAspect
-        if (cropWidthPx > sourceWidth || cropHeightPx > sourceHeight) {
-            cropHeightPx = minOf(sourceHeight.toFloat(), sourceWidth / targetAspect)
-            cropWidthPx = cropHeightPx * targetAspect
-        }
-        val cropWidth = cropWidthPx / sourceWidth
-        val cropHeight = cropHeightPx / sourceHeight
-        val centerX = (safe.left + safe.right) / 2f
-        val centerY = (safe.top + safe.bottom) / 2f
-        val left = (centerX - cropWidth / 2f).coerceIn(0f, 1f - cropWidth)
-        val top = (centerY - cropHeight / 2f).coerceIn(0f, 1f - cropHeight)
-        val crop = NormalizedSourceRect(left, top, left + cropWidth, top + cropHeight)
-        val insetX = crop.width * 12f / viewportWidthDp
-        val insetY = crop.height * 12f / viewportHeightDp
-        val contained = safe.left >= crop.left + insetX - 0.0001f &&
-            safe.right <= crop.right - insetX + 0.0001f &&
-            safe.top >= crop.top + insetY - 0.0001f &&
-            safe.bottom <= crop.bottom - insetY + 0.0001f
-        return if (contained) {
-            RecognitionHeroMediaPlan(RecognitionHeroMediaMode.SUBJECT_CROP_FILL, crop, clipped)
-        } else {
-            RecognitionHeroMediaPlan(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, full, clipped)
-        }
+        val plan = FishPhotoCropPlanner.plan(
+            sourceWidthPx = sourceWidth,
+            sourceHeightPx = sourceHeight,
+            targetAspectRatio = viewportWidthDp / viewportHeightDp,
+            boundingBox = FishPhotoBoundingBox(
+                box = NormalizedFishBox(bbox.left, bbox.top, bbox.right, bbox.bottom),
+                confidence = confidence,
+                version = "legacy-result-adapter-v1",
+            ),
+        )
+        val crop = plan.cropRect ?: return RecognitionHeroMediaPlan(
+            RecognitionHeroMediaMode.SUBJECT_SAFE_FIT,
+            full,
+            clipped,
+        )
+        return RecognitionHeroMediaPlan(
+            mode = if (plan.mode == FishPhotoDisplayMode.SUBJECT_CROP) {
+                RecognitionHeroMediaMode.SUBJECT_CROP_FILL
+            } else {
+                RecognitionHeroMediaMode.SUBJECT_SAFE_FIT
+            },
+            sourceRect = NormalizedSourceRect(
+                crop.left / sourceWidth,
+                crop.top / sourceHeight,
+                crop.right / sourceWidth,
+                crop.bottom / sourceHeight,
+            ),
+            sourceClippedEdges = clipped,
+        )
     }
-
-    private fun NormalizedSourceRect.isValid(): Boolean =
-        left >= 0f && top >= 0f && right <= 1f && bottom <= 1f && width > 0.001f && height > 0.001f
 }
 
 /** Backwards-compatible result entry point; the shared planner owns the policy. */
@@ -274,6 +270,7 @@ object RecognitionHeroMediaPlanner {
         viewportHeightDp: Float,
         bbox: NormalizedSourceRect?,
         evidenceFirst: Boolean,
+        bboxConfidence: Float? = null,
     ): RecognitionHeroMediaPlan = RecognitionMediaPlanner.planResult(
         sourceWidth,
         sourceHeight,
@@ -281,5 +278,6 @@ object RecognitionHeroMediaPlanner {
         viewportHeightDp,
         bbox,
         evidenceFirst,
+        bboxConfidence,
     )
 }

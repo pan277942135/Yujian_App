@@ -61,6 +61,31 @@ class HomeEvidenceBitmapTest {
     }
 
     @Test
+    fun sampledExifDecodeUsesMeasuredTargetAxesForRotatedAndMirroredPhotos() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val photo = File(context.cacheDir, "fish-photo-sampled-exif-test.jpg")
+        val source = Bitmap.createBitmap(800, 600, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.CYAN) }
+        try {
+            for (orientation in 1..8) {
+                photo.outputStream().use { assertTrue(source.compress(Bitmap.CompressFormat.JPEG, 92, it)) }
+                ExifInterface(photo).apply {
+                    setAttribute(ExifInterface.TAG_ORIENTATION, orientation.toString())
+                    saveAttributes()
+                }
+                val decoded = requireNotNull(decodeOrientedEvidenceSampled(photo.readBytes(), 200, 300))
+                val swapsAxes = orientation >= 5
+                assertEquals(if (swapsAxes) 300 else 400, decoded.width)
+                assertEquals(if (swapsAxes) 400 else 300, decoded.height)
+                assertTrue(colorDistance(decoded.getPixel(decoded.width / 2, decoded.height / 2), Color.CYAN) < 20)
+                decoded.recycle()
+            }
+        } finally {
+            photo.delete()
+            source.recycle()
+        }
+    }
+
+    @Test
     fun softwareBackdropBlursOnApi28WithoutMutatingSource() {
         val source = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
         val original = IntArray(96 * 96) { index ->

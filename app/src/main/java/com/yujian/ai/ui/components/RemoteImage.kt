@@ -31,6 +31,8 @@ import java.net.URL
 import java.io.File
 import java.security.MessageDigest
 import java.util.LinkedHashMap
+import com.yujian.ai.ui.imagery.FishPhotoBoundingBox
+import com.yujian.ai.ui.imagery.FishPhotoCropPlanner
 
 /** Small process-wide cache for repeated Home pages; auth secrets are never retained in keys. */
 private object RemoteBitmapMemoryCache {
@@ -71,7 +73,26 @@ fun RemoteImage(
     colorFilter: ColorFilter? = null,
     trimVerifiedLetterbox: Boolean = false,
     cacheIdentity: String? = null,
+    smartFishPhoto: Boolean = false,
+    fishBoundingBox: FishPhotoBoundingBox? = null,
+    fishSubjectAmbiguous: Boolean = false,
+    fishPhotoSourceVersion: String? = null,
 ) {
+    if (smartFishPhoto) {
+        SmartRemoteFishPhoto(
+            url = url,
+            modifier = modifier,
+            contentDescription = contentDescription,
+            authToken = authToken,
+            placeholder = placeholder,
+            reloadToken = reloadToken,
+            onLoadResult = onLoadResult,
+            cacheIdentity = fishPhotoSourceVersion ?: cacheIdentity,
+            boundingBox = fishBoundingBox,
+            primaryAmbiguous = fishSubjectAmbiguous,
+        )
+        return
+    }
     val cacheKey = remember(url, authToken, reloadToken, cacheIdentity, preserveEvidenceWithFitBackdrop) {
         url?.takeIf(String::isNotBlank)?.let {
             val tokenDigest = authToken?.takeIf(String::isNotBlank)?.let(::sha256Hex).orEmpty()
@@ -175,6 +196,145 @@ fun RemoteImage(
     }
 }
 
+@Composable
+private fun SmartRemoteFishPhoto(
+    url: String?,
+    modifier: Modifier,
+    contentDescription: String?,
+    authToken: String?,
+    placeholder: @Composable () -> Unit,
+    reloadToken: Int,
+    onLoadResult: ((Boolean) -> Unit)?,
+    cacheIdentity: String?,
+    boundingBox: FishPhotoBoundingBox?,
+    primaryAmbiguous: Boolean,
+) {
+    BoxWithConstraints(modifier = modifier) {
+        val density = LocalDensity.current
+        val targetWidth = with(density) { maxWidth.toPx() }.takeIf { it.isFinite() }?.toInt()?.coerceAtLeast(1) ?: 480
+        val targetHeight = with(density) { maxHeight.toPx() }.takeIf { it.isFinite() }?.toInt()?.coerceAtLeast(1) ?: 480
+        val tokenDigest = remember(authToken) { authToken?.takeIf(String::isNotBlank)?.let(::sha256Hex).orEmpty() }
+        val sourceVersion = listOf(
+            cacheIdentity?.takeIf(String::isNotBlank).orEmpty(),
+            url.orEmpty(),
+            reloadToken.toString(),
+            tokenDigest,
+        )
+            .filter(String::isNotBlank).joinToString("|")
+        val decodeWidth = (((targetWidth + 63) / 64) * 64).coerceAtLeast(64)
+        val decodeHeight = (((targetHeight + 63) / 64) * 64).coerceAtLeast(64)
+        val decodeBucket = "${decodeWidth}x${decodeHeight}"
+        val sourceKey = remember(url, tokenDigest, reloadToken, sourceVersion, decodeBucket) {
+            url?.takeIf(String::isNotBlank)?.let {
+                "fish-source-v1-${sha256Hex(listOf(sourceVersion, it, tokenDigest, reloadToken, decodeBucket).joinToString("\u0000"))}"
+            }
+        }
+        val derivativeSourceVersion = remember(sourceVersion) { sha256Hex(sourceVersion) }
+        val sourceState = remember(sourceVersion) {
+            mutableStateOf(sourceKey?.let(RemoteBitmapMemoryCache::get))
+        }
+        val latestOnLoadResult = rememberUpdatedState(onLoadResult)
+        LaunchedEffect(sourceKey, url, authToken, targetWidth, targetHeight) {
+            if (sourceKey == null || url.isNullOrBlank()) {
+                sourceState.value = null
+                latestOnLoadResult.value?.invoke(false)
+                return@LaunchedEffect
+            }
+            val cachedSource = RemoteBitmapMemoryCache.get(sourceKey)
+            val source = cachedSource ?: withContext(Dispatchers.IO) {
+                loadSampledOrientedBitmap(url, authToken, decodeWidth, decodeHeight)
+                    ?.also { RemoteBitmapMemoryCache.put(sourceKey, it) }
+            }
+            if (source == null) {
+                android.util.Log.w("FishPhotoCrop", "image_decode_failed")
+                latestOnLoadResult.value?.invoke(sourceState.value != null)
+            } else {
+                sourceState.value = source
+            }
+        }
+
+        val source = sourceState.value.takeIf { sourceKey != null }
+        val renderKey = remember(sourceKey, source, targetWidth, targetHeight, boundingBox, primaryAmbiguous) {
+            source?.let {
+                FishPhotoRenderer.cacheKey(
+                    sourceVersion = derivativeSourceVersion,
+                    targetWidthPx = targetWidth,
+                    targetHeightPx = targetHeight,
+                    boundingBox = boundingBox,
+                    primaryAmbiguous = primaryAmbiguous,
+                    sourceWidthPx = it.width,
+                    sourceHeightPx = it.height,
+                )
+            }
+        }
+        val targetAspect = targetWidth.toFloat() / targetHeight.coerceAtLeast(1)
+        val renderedState = remember(sourceVersion, boundingBox, primaryAmbiguous, targetAspect) {
+            mutableStateOf<RenderedFishPhoto?>(null)
+        }
+        LaunchedEffect(source, renderKey, targetWidth, targetHeight, boundingBox, primaryAmbiguous) {
+            if (source == null || renderKey == null) {
+                renderedState.value = null
+                return@LaunchedEffect
+            }
+            val existing = FishPhotoDerivativeCache.get(renderKey)
+            val rendered = existing?.let {
+                val plan = FishPhotoCropPlanner.plan(
+                    source.width, source.height, FishPhotoRenderer.outputAspectRatio(targetWidth, targetHeight),
+                    boundingBox, primaryAmbiguous,
+                )
+                RenderedFishPhoto(it, plan, renderKey)
+            } ?: runCatching {
+                withContext(Dispatchers.Default) {
+                    FishPhotoRenderer.render(
+                        source = source,
+                        targetWidthPx = targetWidth,
+                        targetHeightPx = targetHeight,
+                        sourceVersion = derivativeSourceVersion,
+                        boundingBox = boundingBox,
+                        primaryAmbiguous = primaryAmbiguous,
+                    )
+                }
+            }.onFailure { android.util.Log.w("FishPhotoCrop", "image_render_failed", it) }.getOrNull()
+            renderedState.value = rendered
+            latestOnLoadResult.value?.invoke(rendered != null)
+        }
+
+        val cachedRender = if (source != null && renderKey != null) {
+            FishPhotoDerivativeCache.get(renderKey)?.let { bitmap ->
+                RenderedFishPhoto(
+                    bitmap,
+                    FishPhotoCropPlanner.plan(
+                        source.width,
+                        source.height,
+                        FishPhotoRenderer.outputAspectRatio(targetWidth, targetHeight),
+                        boundingBox,
+                        primaryAmbiguous,
+                    ),
+                    renderKey,
+                )
+            }
+        } else null
+        val rendered = (cachedRender ?: renderedState.value).takeIf { sourceKey != null }
+        if (rendered != null) {
+            Box(Modifier.fillMaxSize().testTag("home-evidence-backdrop-ready")) {
+                val imageTag = if (rendered.plan.mode == com.yujian.ai.ui.imagery.FishPhotoDisplayMode.FULL_FRAME_WITH_SOURCE_BACKDROP) {
+                    "home-evidence-fit-foreground"
+                } else {
+                    "fish-photo-subject-crop"
+                }
+                Image(
+                    bitmap = rendered.bitmap.asImageBitmap(),
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize().testTag(imageTag),
+                contentScale = ContentScale.Crop,
+                )
+            }
+        } else {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { placeholder() }
+        }
+    }
+}
+
 private fun sha256Hex(value: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))
     return bytes.joinToString(separator = "") { byte -> "%02x".format(byte.toInt() and 0xff) }
@@ -220,6 +380,28 @@ private fun loadBitmap(url: String, authToken: String?, orientEvidence: Boolean 
     } finally {
         connection.disconnect()
     }
+}.getOrNull()
+
+private fun loadSampledOrientedBitmap(url: String, authToken: String?, targetWidth: Int, targetHeight: Int): Bitmap? = runCatching {
+    val bytes = when {
+        url.startsWith("file://") -> File(requireNotNull(Uri.parse(url).path)).readBytes()
+        url.startsWith("/") -> File(url).readBytes()
+        else -> {
+            val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 8_000
+                readTimeout = 12_000
+                instanceFollowRedirects = true
+                authToken?.takeIf(String::isNotBlank)?.let { setRequestProperty("Authorization", "Bearer $it") }
+            }
+            try {
+                if (connection.responseCode !in 200..299) return null
+                connection.inputStream.use { it.readBytes() }
+            } finally {
+                connection.disconnect()
+            }
+        }
+    }
+    decodeOrientedEvidenceSampled(bytes, targetWidth, targetHeight)
 }.getOrNull()
 
 /** Crop only verified, uniform near-black source margins for presentation. The source file/bytes are never edited. */
