@@ -10,6 +10,8 @@ on:
       - "scripts/run_android_runtime_gate.sh"
       - "scripts/verify_normal_home_*.py"
       - "scripts/verify_nh01_gemini_native_source.py"
+      - "scripts/verify_yujian_resource_package.py"
+      - "scripts/materialize_yujian_resource_package.py"
       - "scripts/design/**"
       - ".github/workflows/nh01-cloud-runtime.yml"
 
@@ -70,6 +72,7 @@ jobs:
           python3 scripts/design/validate_nh01_cloud_bundle.py
           python3 scripts/design/build_nh01_authority_inventory.py
           python3 scripts/design/verify_nh01_cloud_viewer.py
+          python3 scripts/verify_yujian_resource_package.py
           python3 -m unittest discover -s scripts/design/tests -p 'test_*.py' -v
           python3 -m unittest discover -s scripts/android_runtime/tests -p 'test_nh01_*.py' -v
           python3 scripts/verify_nh01_gemini_native_source.py | tee "$YUJIAN_RUNTIME_EVIDENCE/source_audit.txt"

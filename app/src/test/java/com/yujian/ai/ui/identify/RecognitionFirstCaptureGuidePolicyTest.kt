@@ -7,6 +7,15 @@ import org.junit.Test
 
 class RecognitionFirstCaptureGuidePolicyTest {
     @Test
+    fun guideActionsStackForCompactWidthOrLargeAccessibilityText() {
+        assertTrue(shouldStackRecognitionGuideActions(379.9f, 1.0f))
+        assertFalse(shouldStackRecognitionGuideActions(380f, 1.0f))
+        assertFalse(shouldStackRecognitionGuideActions(393f, 1.3f))
+        assertTrue(shouldStackRecognitionGuideActions(393f, 1.5f))
+        assertTrue(shouldStackRecognitionGuideActions(640f, 2.0f))
+    }
+
+    @Test
     fun guideAppearsOnlyAfterCameraPreviewIsReadyForTheFirstCameraEntry() {
         fun decision(permission: Boolean, preview: Boolean, galleryPending: Boolean, completed: Boolean) =
             shouldShowRecognitionFirstCaptureGuide(permission, preview, galleryPending, completed)

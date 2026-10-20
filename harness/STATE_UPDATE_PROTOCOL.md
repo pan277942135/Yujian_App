@@ -387,3 +387,17 @@ Legacy feature-specific Work state paths such as `docs/qa/recognition_main_journ
 Required identity fields: `work_id`, `branch`, `control_plane_revision`, `base_sha`, `phase`, `task_id`, `stage`, `status`, `source_sha` and `next_action`.
 
 The Work state records the live pointer; the Phase/Task Machine records the static definition. Never put the live pointer back into the machine.
+
+## Work V2 failure convergence (optional field in existing state)
+
+`execution_v2` is an optional structured field in the existing branch-local
+`WORK_EXECUTION_STATE.json`, not an independent authority. The field stores
+a stable failure ID from (task_id, gate_id, symptom_key), failed source SHAs,
+hypotheses and evidence. Before each repair, the Work must run the
+`tools/work_execution_v2/failure_gate.py check` command; after a failure,
+run `record`. Exit status 3 means stop and escalate. A third distinct failed
+source SHA makes the work `BLOCKED`; a fourth is rejected. The Work must
+persist checkpoints at its already approved private or safe location and
+apply the usual Project Master/log/evidence transaction. A locally verified
+fix does not close a release or Runtime Evidence Gate. Never make a new
+dynamic-state file into a parallel master or upload restricted metadata.
