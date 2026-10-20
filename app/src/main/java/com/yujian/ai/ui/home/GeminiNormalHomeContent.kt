@@ -434,15 +434,14 @@ private fun GeminiMiddleSection(
     val actionFontSize = responsiveSp(safeHeight, 0.021f, 13f, 15f)
     val titleLineHeight = titleFontSize.value * 1.2f * fontScale
     val headerHeight = maxOf(48.dp, (titleLineHeight + 8f).dp)
-    // The row keeps its 48dp action target; this compensates its centered text
-    // so the visible title-to-card gap remains 13dp at each system font scale.
-    val titleBottomInset = ((headerHeight.value - titleLineHeight) / 2f).coerceAtLeast(0f)
-    // Compose's visible Text bounds contract by up to 3dp at larger system font scales,
-    // even though the line box is scaled. Compensate the layout gap so the measured
-    // visible title-to-card distance remains 13dp; this does not alter the card geometry.
-    val visibleGapCorrection = if (fontScale > 1f) 3f else 0f
-    val baseHeaderGap = (13f - titleBottomInset).coerceAtLeast(0f)
-    val headerGap = (baseHeaderGap + visibleGapCorrection).dp
+    val measuredTitleHeightPx = remember(titleFontSize, fontScale) { mutableStateOf(0) }
+    val measuredTitleHeightDp = measuredTitleHeightPx.value.takeIf { it > 0 }?.let { heightPx ->
+        with(LocalDensity.current) { heightPx.toDp().value }
+    } ?: titleLineHeight
+    // The row keeps its 48dp action target. Use Compose's measured Text height,
+    // including platform font metrics, to keep the visible title-to-card gap at 13dp.
+    val titleBottomInset = ((headerHeight.value - measuredTitleHeightDp) / 2f).coerceAtLeast(0f)
+    val headerGap = (13f - titleBottomInset).coerceAtLeast(0f).dp
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val desiredCardWidth = minOf(trackWidth * GeminiHomeCardWidthFraction, GeminiHomeCardMaxWidth)
     val desiredCardHeight = (desiredCardWidth / GeminiHomeCardAspectRatio).coerceAtMost(GeminiHomeCardMaxHeight)
@@ -479,6 +478,7 @@ private fun GeminiMiddleSection(
                 titleFontSize = titleFontSize,
                 actionFontSize = actionFontSize,
                 onCatchesClick = onCatchesClick,
+                onTitleMeasuredHeight = { heightPx -> measuredTitleHeightPx.value = heightPx },
             )
             Spacer(Modifier.height(headerGap))
             if (records.isEmpty()) {
@@ -523,6 +523,7 @@ private fun GeminiSectionHeader(
     titleFontSize: TextUnit,
     actionFontSize: TextUnit,
     onCatchesClick: () -> Unit,
+    onTitleMeasuredHeight: (Int) -> Unit,
 ) {
     val horizontalInset = clampDp(safeWidth.value * 0.088f, 24f, 42f)
     Row(
@@ -540,6 +541,7 @@ private fun GeminiSectionHeader(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            onTextLayout = { onTitleMeasuredHeight(it.size.height) },
             modifier = Modifier.testTag("gemini-home-section-title"),
         )
         Row(
