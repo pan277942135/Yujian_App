@@ -14,11 +14,11 @@ The current first-phase package exposes static A/B/C candidates, the three produ
 
 | Candidate | Receiving field | Primary paths | Secondary filaments | Intent |
 | --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 0.72× | 0.56× | 0.28× | Softer, more restrained comparison |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 1.00× | 0.76× | 0.40× | Clear asymmetric blue/gold field with subordinate paths; recommended for first review |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.28× | 0.90× | 0.56× | Visibility boundary comparison |
+| `REVIEW_CANDIDATE_A` · Soft Field | 0.86× | 0.52× | 0.22× | Softer field; lower corners are nearly fog only |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 1.30× | 0.72× | 0.35× | More visible blue/gold field; strong upper-right, softer upper-left, short lower traces; recommended for first review |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.75× | 0.88× | 0.50× | Visibility boundary comparison |
 
-Each keeps the existing P1 geometry and adds an asymmetric Receiving Light field before the paths: a strongest blue pool at upper right, a softer gold field at upper left, a restrained gold residue at lower left, and a short, weaker blue trace at lower right. The candidate composition can be decomposed into receiving field, primary paths, secondary filaments and final composite.
+Each keeps P1 path geometry intact and adds an asymmetric, more saturated review-only Receiving Light field: strongest blue at upper right, softer gold at upper left, a restrained gold residue at lower left, and a short weak blue trace at lower right. Web-only per-corner path length/alpha multipliers make the upper-right arc longest, upper-left second, and both lower corners partial/faded. P1–P5 token values and PR #165 Frozen PNGs are unchanged. The candidate composition can be decomposed into receiving field, primary paths, secondary filaments and final composite.
 
 ## Dynamic candidates
 

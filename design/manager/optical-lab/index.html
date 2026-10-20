@@ -216,9 +216,14 @@ const elements = {
   reviewLayers:{field:true,paths:true,filaments:true,fish:true}
 };
 const STATIC_REVIEW_CANDIDATES={
-  A:{name:"Soft Field",field:0.72,paths:0.56,filaments:0.28,description:"底场柔和、主路径退后，适合比较克制感。"},
-  B:{name:"Balanced Field",field:1.0,paths:0.76,filaments:0.40,description:"蓝金底场先建立空间，再由少量主路径带方向；推荐优先评审。"},
-  C:{name:"Strong Atmosphere",field:1.28,paths:0.90,filaments:0.56,description:"氛围场更明显，作为可见度上限对照。"}
+  A:{name:"Soft Field",field:0.86,paths:0.52,filaments:0.22,description:"底场柔和，保留右上长弧与左上短弧；下方只留余辉。"},
+  B:{name:"Balanced Field",field:1.30,paths:0.72,filaments:0.35,description:"蓝金底场先建立空间；右上长弧、左上柔弧、下角短尾；推荐优先评审。"},
+  C:{name:"Strong Atmosphere",field:1.75,paths:0.88,filaments:0.50,description:"氛围场与局部尾光更明显，作为可见度上限对照。"}
+};
+const STATIC_PATH_REVIEW_PROFILES={
+  A:{B1:{alpha:.64,length:1},G1:{alpha:.48,length:.76},G3:{alpha:.22,length:.44},B3:{alpha:.05,length:.24},B2:{alpha:.12,length:.45},G2:{alpha:.08,length:.34},B4:{alpha:.03,length:.20}},
+  B:{B1:{alpha:.90,length:1},G1:{alpha:.70,length:.86},G3:{alpha:.30,length:.54},B3:{alpha:.12,length:.34},B2:{alpha:.22,length:.50},G2:{alpha:.14,length:.40},B4:{alpha:.06,length:.24}},
+  C:{B1:{alpha:1,length:1},G1:{alpha:.88,length:.98},G3:{alpha:.50,length:.72},B3:{alpha:.24,length:.48},B2:{alpha:.34,length:.64},G2:{alpha:.24,length:.52},B4:{alpha:.14,length:.40}}
 };
 const DYNAMIC_REVIEW_ENABLED=false;
 window.OPTICAL_DYNAMIC_REVIEW_ENABLED=DYNAMIC_REVIEW_ENABLED;
@@ -787,20 +792,21 @@ function drawReviewReceivingField(ctx,rect,colors,quality){
     const configs=[[p.periods[0],.08],[p.periods[1],1.72],[p.periods[2],3.41],[p.periods[3],4.86]];
     configs.forEach(([period,phase],i)=>{breaths[i]=1+p.breath*Math.sin(2*Math.PI*t/period+phase);});
   }
+  const reviewColors={blue:"#6CB8D2",gold:"#D5A34E"};
   const blobs=[
-    {x:.98,y:.035,rx:.62,ry:.255,angle:.32,color:colors.blue,weight:1.0,breath:breaths[0]},
-    {x:.025,y:.08,rx:.49,ry:.23,angle:-.24,color:colors.gold,weight:.71,breath:breaths[1]},
-    {x:.005,y:.97,rx:.38,ry:.20,angle:-.39,color:colors.gold,weight:.34,breath:breaths[2]},
-    {x:1.025,y:.965,rx:.35,ry:.17,angle:.43,color:colors.blue,weight:.19,breath:breaths[3]}
+    {x:.98,y:.035,rx:.57,ry:.27,angle:.32,color:reviewColors.blue,weight:1.0,breath:breaths[0]},
+    {x:.025,y:.08,rx:.47,ry:.24,angle:-.24,color:reviewColors.gold,weight:.68,breath:breaths[1]},
+    {x:.005,y:.97,rx:.38,ry:.20,angle:-.39,color:reviewColors.gold,weight:.30,breath:breaths[2]},
+    {x:1.025,y:.965,rx:.32,ry:.17,angle:.43,color:reviewColors.blue,weight:.15,breath:breaths[3]}
   ];
   const common=candidate.field*stateScale*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1);
-  ctx.save();ctx.beginPath();ctx.rect(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top);ctx.clip();ctx.globalCompositeOperation="screen";
+  ctx.save();ctx.globalCompositeOperation="source-over";
   blobs.forEach(blob=>{
     const cx=rect.left+blob.x*(rect.right-rect.left),cy=rect.top+blob.y*(rect.bottom-rect.top),rx=(rect.right-rect.left)*blob.rx,ry=(rect.bottom-rect.top)*blob.ry;
-    const intensity=Math.min(.72,.59*common*blob.weight*blob.breath);
+    const intensity=Math.min(.56,.36*common*blob.weight*blob.breath);
     ctx.save();ctx.translate(cx,cy);ctx.rotate(blob.angle);ctx.scale(rx,ry);
     const gradient=ctx.createRadialGradient(0,0,0,0,0,1);
-    gradient.addColorStop(0,safeAlphaColor(blob.color,intensity*.76));gradient.addColorStop(.34,safeAlphaColor(blob.color,intensity*.55));gradient.addColorStop(.69,safeAlphaColor(blob.color,intensity*.23));gradient.addColorStop(1,safeAlphaColor(blob.color,0));
+    gradient.addColorStop(0,safeAlphaColor(blob.color,intensity*.88));gradient.addColorStop(.34,safeAlphaColor(blob.color,intensity*.58));gradient.addColorStop(.69,safeAlphaColor(blob.color,intensity*.22));gradient.addColorStop(1,safeAlphaColor(blob.color,0));
     ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(0,0,1,1,0,0,Math.PI*2);ctx.fill();ctx.restore();
   });
   ctx.restore();
@@ -822,7 +828,7 @@ function drawReceiving(ctx,rect,mode,quality,colors){
     ctx.save();ctx.globalAlpha=1;ctx.fillStyle=grad;ctx.beginPath();ctx.ellipse(ox+ow/2,oy+oh/2,Math.abs(ow/2),Math.abs(oh/2),0,0,Math.PI*2);ctx.fill();ctx.restore();
   });
 }
-function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visibleRatio,widthOverride){
+function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visibleRatio,widthOverride,reviewOpacity=1){
   const showPath=document.querySelector('[data-path="'+record.id+'"]');
   if(showPath&&!showPath.checked)return;
   const points=cubicPoints(record,rect,runtimeSnapshot().renderer_candidates.cubic_subdivisions);
@@ -831,7 +837,7 @@ function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visi
   const pieces=pathPieces(points,start,length);
   const primary=record.role==="primary",isSecondary=record.role==="secondary_only";
   const candidate=activeOpticalCandidate(),roleScale=primary?candidate.paths:candidate.filaments;
-  const weight=record.island_weight||1,state=elements.params.stateStrength,global=elements.params.alpha*(quality.alpha||1)*roleScale,width=widthOverride||record.core_width_dp||.8;
+  const weight=record.island_weight||1,state=elements.params.stateStrength,global=elements.params.alpha*(quality.alpha||1)*roleScale*reviewOpacity,width=widthOverride||record.core_width_dp||.8;
   const outer=getStack("primary_outer_bloom"),mid=getStack("primary_mid_glow"),secondary=getStack("secondary_fragment_mid_and_core"),core=getStack("primary_core"),strength=elements.params.layerStrength;
   pieces.forEach(piece=>{
     if(primary&&elements.layers.outer){
@@ -888,7 +894,7 @@ function drawHairlines(ctx,rect,mode,quality,colors){
     if(!(quality.companions||[]).includes(e.id))return;
     let visibility=[.76,.42,.19,.08][index%4];
     if(dynamic){const cycle=(elements.previewTime/(p.periods[(index+1)%p.periods.length]*1.19)+index*.217)%1;visibility=cycle<.34?Math.sin(Math.PI*cycle/.34):0;if(visibility<.035)return;}
-    const parent=byId.get(e.parent);if(parent)drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false,visibility);
+    const parent=byId.get(e.parent),profile=STATIC_PATH_REVIEW_PROFILES[dynamic?"B":elements.staticCandidate][e.parent];if(parent)drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false,visibility*(profile?.alpha??1));
   });
   if(quality.micro){let visibility=.38;if(dynamic){const cycle=(elements.previewTime/(p.periods[2]*1.53)+.61)%1;visibility=cycle<.19?Math.sin(Math.PI*cycle/.19):0;}if(visibility>.035)drawEcho(ctx,runtimeSnapshot().micro_hairline_geometry,byId.get("B1"),micro,rect,mode,quality,colors,true,visibility);}
 }
@@ -1028,8 +1034,8 @@ function drawField(ctx,rect,mode,quality,colors){
     if(!primary&&(!showFilaments||!elements.reviewLayers.filaments))return;
     if(view==="primary"&&!primary)return;
     if(view==="filaments"&&primary)return;
-    const seed=record.runtime_seed??record.runtime_seed_candidate??0;
-    drawPathRecord(ctx,record,rect,mode,quality,colors,primary?"primary":"fragment",seed,record.visible_ratio,record.core_width_dp);
+    const seed=record.runtime_seed??record.runtime_seed_candidate??0,profile=STATIC_PATH_REVIEW_PROFILES[elements.previewMode==="dynamic"?"B":elements.staticCandidate][record.id]||{alpha:1,length:1};
+    drawPathRecord(ctx,record,rect,mode,quality,colors,primary?"primary":"fragment",seed,record.visible_ratio*profile.length,record.core_width_dp,profile.alpha);
   });
   if(showFilaments)drawHairlines(ctx,rect,mode,quality,colors);
   if(showPaths&&elements.reviewLayers.paths)drawDynamicFlow(ctx,rect,quality,colors);
