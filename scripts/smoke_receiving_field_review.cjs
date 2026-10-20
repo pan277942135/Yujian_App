@@ -50,7 +50,7 @@ function cornerSignal(canvas) {
     }, null, { timeout: 30000 });
 
     const sourceRevision = await windowRevision(page);
-    const result = { task: "RECOGNITION_OPTICAL_STATIC_DYNAMIC_CLOSURE_V1", source_revision: sourceRevision, automation_signal_status: "RENDER_SIGNAL_ONLY_REVIEW_REQUIRED", visual_approval: "NOT_AUTOMATED", candidates: [], dynamic_states: [], browser_errors: errors };
+    const result = { task: "RECOGNITION_OPTICAL_STATIC_DYNAMIC_CLOSURE_V1", source_revision: sourceRevision, automation_signal_status: "RENDER_SIGNAL_ONLY_REVIEW_REQUIRED", visual_approval: "NOT_AUTOMATED", candidates: [], dynamic_states: [], dynamic_recordings: [], browser_errors: errors };
     for (const candidate of ["A", "B", "C"]) {
       await page.locator("#previewModeButtons [data-preview-mode='static']").click();
       await page.locator("#staticCandidate").selectOption(candidate);
@@ -124,6 +124,21 @@ function cornerSignal(canvas) {
       await page.locator("#boards").screenshot({ path: path.join(OUT, `dynamic-balanced-state-${index + 1}.png`) });
     }
     assert.equal(new Set(result.dynamic_states.map((entry) => entry.state)).size, 3);
+    const clockStart = await page.locator("#previewCanvas").evaluate((canvas) => Number(canvas.dataset.previewTime));
+    await page.waitForTimeout(600);
+    const clockEnd = await page.locator("#previewCanvas").evaluate((canvas) => Number(canvas.dataset.previewTime));
+    assert.ok(clockEnd - clockStart > 0.35, `Dynamic preview clock advanced too slowly (${(clockEnd - clockStart).toFixed(3)}s in 600ms).`);
+    for (const candidate of ["A", "B", "C"]) {
+      await page.locator("#dynamicCandidate").selectOption(candidate);
+      const downloadEvent = page.waitForEvent("download", { timeout: 25000 });
+      await page.locator("#recordSequence").click();
+      const download = await downloadEvent;
+      const outputPath = path.join(OUT, `dynamic-candidate-${candidate}-state-cycle.webm`);
+      await download.saveAs(outputPath);
+      const bytes = fs.statSync(outputPath).size;
+      assert.ok(bytes > 12000, `Dynamic candidate ${candidate} WebM was unexpectedly small (${bytes} bytes).`);
+      result.dynamic_recordings.push({ candidate: `DYNAMIC_CANDIDATE_${candidate}`, path: path.basename(outputPath), bytes, states: ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"], provenance: "WEB_REVIEW_ONLY; Fish Focus Review-only proxy" });
+    }
     assert.equal(errors.length, 0, `Browser page errors: ${errors.join(" | ")}`);
     fs.writeFileSync(path.join(OUT, "receiving-field-review-signal.json"), JSON.stringify(result, null, 2) + "\n");
   } finally {

@@ -26,7 +26,7 @@ These are review parameters, not frozen product values. The overlay is labelled 
 
 Dynamic A/B/C controls use the existing page playback, speed, state and recording controls. The candidate field breathes at four different periods (9.2s, 12.8s, 10.6s and 15.4s) with different phases; the breath amplitude varies by candidate (4.5%, 10.5%, 16%). Existing local path flow remains separate; no full-perimeter chase is introduced by the review layer. Three-state WebM is browser evidence only. This iteration remains `REVIEW_REQUIRED` until the deployed screenshot is judged against the Frozen reference by a person.
 
-The added browser smoke captures desktop and narrow A/B/C comparisons and all three dynamic states. Its JSON status is `RENDER_SIGNAL_ONLY_REVIEW_REQUIRED`, and visual approval is `NOT_AUTOMATED`. A screenshot must still be reviewed by a person; automation cannot declare naturalness, taste, or visual PASS.
+The added browser smoke captures desktop and narrow A/B/C comparisons, all three dynamic states, and A/B/C three-state WebM clips into the workflow artifact. It checks that the preview clock advances during playback and that exported clips are non-empty. Its JSON status is `RENDER_SIGNAL_ONLY_REVIEW_REQUIRED`, and visual approval is `NOT_AUTOMATED`. A screenshot and clip must still be reviewed by a person; automation cannot declare naturalness, taste, or visual PASS.
 
 ## Fish Focus provenance
 

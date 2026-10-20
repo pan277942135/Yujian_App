@@ -131,6 +131,7 @@ jobs:
             static_candidates: smoke.staticCandidates,
             receiving_field_visibility: smoke.receiving_field_visibility,
             dynamic_candidates: smoke.dynamicCandidates,
+            dynamic_recordings: smoke.dynamic_recordings,
             visual_review: smoke.visualReview,
             browser_errors: smoke.browserErrors,
           };
