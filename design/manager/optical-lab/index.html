@@ -216,14 +216,14 @@ const elements = {
   reviewLayers:{field:true,paths:true,filaments:true,fish:true}
 };
 const STATIC_REVIEW_CANDIDATES={
-  A:{name:"Soft Field",field:0.86,paths:0.52,filaments:0.22,description:"底场柔和，保留右上长弧与左上短弧；下方只留余辉。"},
-  B:{name:"Balanced Field",field:1.30,paths:0.72,filaments:0.35,description:"蓝金底场先建立空间；右上长弧、左上柔弧、下角短尾；推荐优先评审。"},
-  C:{name:"Strong Atmosphere",field:1.75,paths:0.88,filaments:0.50,description:"氛围场与局部尾光更明显，作为可见度上限对照。"}
+  A:{name:"Soft Field",field:0.86,paths:0.85,filaments:0.20,description:"底场柔和，保留右上长弧与左上短弧；下方只留余辉。"},
+  B:{name:"Balanced Field",field:1.30,paths:1.08,filaments:0.34,description:"蓝金底场先建立空间；右上长弧、左上柔弧、下角短尾；推荐优先评审。"},
+  C:{name:"Strong Atmosphere",field:1.75,paths:1.35,filaments:0.48,description:"氛围场与局部尾光更明显，作为可见度上限对照。"}
 };
 const STATIC_PATH_REVIEW_PROFILES={
-  A:{B1:{alpha:.64,length:1},G1:{alpha:.48,length:.76},G3:{alpha:.22,length:.44},B3:{alpha:.05,length:.24},B2:{alpha:.12,length:.45},G2:{alpha:.08,length:.34},B4:{alpha:.03,length:.20}},
-  B:{B1:{alpha:.90,length:1},G1:{alpha:.70,length:.86},G3:{alpha:.30,length:.54},B3:{alpha:.12,length:.34},B2:{alpha:.22,length:.50},G2:{alpha:.14,length:.40},B4:{alpha:.06,length:.24}},
-  C:{B1:{alpha:1,length:1},G1:{alpha:.88,length:.98},G3:{alpha:.50,length:.72},B3:{alpha:.24,length:.48},B2:{alpha:.34,length:.64},G2:{alpha:.24,length:.52},B4:{alpha:.14,length:.40}}
+  A:{B1:{alpha:1.10,length:1},G1:{alpha:.72,length:.76},G3:{alpha:.26,length:.44},B3:{alpha:.04,length:.24},B2:{alpha:.12,length:.45},G2:{alpha:.08,length:.34},B4:{alpha:.03,length:.20}},
+  B:{B1:{alpha:1.35,length:1},G1:{alpha:.95,length:.86},G3:{alpha:.38,length:.54},B3:{alpha:.14,length:.34},B2:{alpha:.26,length:.50},G2:{alpha:.16,length:.40},B4:{alpha:.07,length:.24}},
+  C:{B1:{alpha:1.65,length:1},G1:{alpha:1.24,length:.98},G3:{alpha:.58,length:.72},B3:{alpha:.26,length:.48},B2:{alpha:.38,length:.64},G2:{alpha:.28,length:.52},B4:{alpha:.16,length:.40}}
 };
 const DYNAMIC_REVIEW_ENABLED=false;
 window.OPTICAL_DYNAMIC_REVIEW_ENABLED=DYNAMIC_REVIEW_ENABLED;
@@ -1025,6 +1025,7 @@ function drawBack(ctx,safeTop){
 }
 function drawField(ctx,rect,mode,quality,colors){
   const config=elements.config.edge||elements.config.p1_edge_field;
+  const reviewPathColors={blue:"#4F9EB8",blueHot:"#97D3E4",gold:"#C89548",goldHot:"#F2D18A"};
   ctx.save();ctx.beginPath();ctx.rect(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top);ctx.clip();
   const view=elements.fieldLayerView,showField=view==="composite"||view==="receiving",showPaths=view==="composite"||view==="primary",showFilaments=view==="composite"||view==="filaments";
   if(showField){drawReviewReceivingField(ctx,rect,colors,quality);drawReceiving(ctx,rect,mode,quality,colors);}
@@ -1035,9 +1036,9 @@ function drawField(ctx,rect,mode,quality,colors){
     if(view==="primary"&&!primary)return;
     if(view==="filaments"&&primary)return;
     const seed=record.runtime_seed??record.runtime_seed_candidate??0,profile=STATIC_PATH_REVIEW_PROFILES[elements.previewMode==="dynamic"?"B":elements.staticCandidate][record.id]||{alpha:1,length:1};
-    drawPathRecord(ctx,record,rect,mode,quality,colors,primary?"primary":"fragment",seed,record.visible_ratio*profile.length,record.core_width_dp,profile.alpha);
+    drawPathRecord(ctx,record,rect,mode,quality,reviewPathColors,primary?"primary":"fragment",seed,record.visible_ratio*profile.length,record.core_width_dp,profile.alpha);
   });
-  if(showFilaments)drawHairlines(ctx,rect,mode,quality,colors);
+  if(showFilaments)drawHairlines(ctx,rect,mode,quality,reviewPathColors);
   if(showPaths&&elements.reviewLayers.paths)drawDynamicFlow(ctx,rect,quality,colors);
   ctx.restore();
 }
