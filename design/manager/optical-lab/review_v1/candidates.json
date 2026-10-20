@@ -18,19 +18,20 @@
   "receiving_light_oval_gain": 1.0,
   "receiving_light_web_review_composite": "screen",
   "receiving_light_depth_ratio": 0.15,
+  "receiving_light_photo_side_offset_depth_ratio": 0.30,
   "receiving_light_path_bloom_passes": [
-    { "width_ratio": 0.15, "blur_ratio": 0.0405, "opacity": 1.0 },
-    { "width_ratio": 0.087, "blur_ratio": 0.0195, "opacity": 0.85 }
+    { "width_ratio": 0.70, "blur_ratio": 0.13, "opacity": 0.72 },
+    { "width_ratio": 0.40, "blur_ratio": 0.06, "opacity": 0.64 }
   ],
   "contract_alpha_before_multipliers": [0.03, 0.07],
   "static_candidate_status": "REVIEW_REQUIRED · gains above 1 are Web-only study multipliers; no P1 or Native value changed",
   "field_geometry": {
     "authority": "P1 receiving_light_layout and receiving_light_alpha_stops",
-    "rendering": "four registered P1 radial ovals at 1.0 review gain plus broad diffuse bloom sampled from the exact four P1 primary cubic curves; depth ratio 0.15 remains within P1's 0.08–0.18 range; clipped through the shared photoContentRect",
+    "rendering": "four registered P1 radial ovals at 1.0 review gain plus a broad photo-side diffuse field sampled from the exact four P1 primary cubic curves; field-only samples offset 0.30×P1 depth inward toward the photo center; depth ratio 0.15 remains within P1's 0.08–0.18 range; clipped through the shared photoContentRect",
     "quiet_gaps": "the four P1 receiving ovals remain separated; the seven frozen path topology and Quiet Gaps are unchanged",
     "geometry_added": false,
     "color_tokens": "existing P1 blue/gold tokens",
-    "path_source": "P1 B1/G1/B3/G3 primary records only; each exact cubic control curve is used to shape Receiving Light without changing the seven line paths, endpoints, visible ratios or Quiet Gaps",
+    "path_source": "P1 B1/G1/B3/G3 primary records only; each exact cubic control curve is sampled and the Receiving Light samples alone are offset photo-side, without changing P1 path records, endpoints, visible ratios or Quiet Gaps",
     "composite_authority": "Screen and diffuse path bloom are Web static review candidates only; P1 and Native remain unchanged"
   },
   "dynamic_candidates": {
