@@ -111,6 +111,46 @@ def record(state_path, event):
     return {"failure_id": key, "decision": action, "failed_attempts": len(failures), "allowed": action != "STOP_AND_ESCALATE", "state_path": str(path)}
 
 
+
+def validate_recorded_failures(state):
+    """Return durable-state ledger errors; callable by the existing validator."""
+    root = state.get("execution_v2")
+    if root is None:
+        return []
+    if not isinstance(root, dict) or root.get("schema_version") != "1.0":
+        return ["invalid execution_v2 schema"]
+    issues = root.get("issues")
+    if not isinstance(issues, dict):
+        return ["execution_v2.issues must be an object"]
+    errors = []
+    for key, issue in issues.items():
+        if not isinstance(issue, dict):
+            errors.append("invalid failure issue: " + str(key))
+            continue
+        try:
+            fingerprint = failure_id(issue)
+        except (KeyError, TypeError, ValueError):
+            errors.append("invalid failure issue identity: " + str(key))
+            continue
+        if key != fingerprint:
+            errors.append("failure ID does not match issue identity: " + str(key))
+        failures = issue.get("failures")
+        if not isinstance(failures, list) or len(failures) > MAX_ATTEMPTS:
+            errors.append("invalid failure retry budget: " + str(key))
+            continue
+        sources = set()
+        for item in failures:
+            if not isinstance(item, dict) or any(not isinstance(item.get(k), str) or not item[k].strip() for k in ("source_sha", "hypothesis", "evidence")):
+                errors.append("invalid failure evidence: " + str(key))
+                continue
+            if item["source_sha"] in sources:
+                errors.append("duplicate failed source SHA: " + str(key))
+            sources.add(item["source_sha"])
+        if len(failures) >= MAX_ATTEMPTS and not issue.get("closed", False) and state.get("status") != "BLOCKED":
+            errors.append("exhausted failure must be BLOCKED: " + str(key))
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description="Work V2 failure guard for existing branch-local state")
     parser.add_argument("operation", choices=("check", "record"))
