@@ -92,7 +92,7 @@ async function main() {
     const assetStatuses = await page.locator("#assetRows tr .asset-status").allTextContents();
     assert.equal(assetStatuses.length, 7, "the Optical Review verifies its seven declared source assets");
     assert.ok(assetStatuses.every(status => status === "VERIFIED"), `all declared review assets load: ${assetStatuses.join(", ")}`);
-    assert.match(await page.locator("#photoName").innerText(), /SHA-256 verified/, "the registered photo is hash-verified by the page");
+    assert.match(await page.locator("#photoName").textContent(), /SHA-256 verified/, "the registered photo is hash-verified by the page");
 
     const sourceRows = await page.locator("#stateButtons button").evaluateAll(buttons => buttons.map(button => button.dataset.state));
     assert.deepEqual(sourceRows, ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"], "exactly the three Frozen product states remain selectable");
