@@ -46,6 +46,8 @@ def main() -> None:
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
     optical_config = json.loads((args.site_root / OPTICAL_CONFIG).read_text(encoding="utf-8"))
+    processing_config_path = args.site_root / "design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json"
+    processing_config = json.loads(processing_config_path.read_text(encoding="utf-8"))
     pr_root = Path(__file__).resolve().parents[1]
     android_edge_field = (pr_root / ANDROID_EDGE_FIELD).read_text(encoding="utf-8")
     android_optical_config = (pr_root / ANDROID_OPTICAL_CONFIG).read_text(encoding="utf-8")
@@ -84,6 +86,7 @@ def main() -> None:
     assert sha256(review_alpha) == bbox_record["alpha_sha256"] == "ebcf100e49934065f318d5a37f9f1465601838d6af12dd48312045bbb776ae42", "Review-only alpha must remain byte-identical and provenance-bound"
     assert bbox_record["source_mode"] == "REVIEW_PROXY_NOT_PRODUCTION" and "manual" in bbox_record["alpha_provenance"].lower(), "annotated alpha must not be presented as a production Mask"
     assert optical_config["schema_version"] == "2.0.0" and optical_config["task_id"] == "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2", "shared optical config version/task identity mismatch"
+    assert processing_config["artifact_id"] == "recognition.processing.engineering_handoff" and len(processing_config["sources"]) == 27, "the composed Optical Review must include PR #166's existing P1-P5 source contract"
     assert set(optical_config["presets"]) == {"current", "enhanced", "frozen_match"}, "Current, Enhanced and Frozen Match presets are required"
     assert optical_config["photo_mapping"]["source_coordinate_space"] == "EXIF_NORMALIZED_PHOTO" and "photoContentRect" in optical_config["photo_mapping"]["overlay_bounds"], "shared contract must bind overlays to the normalized photo content rect"
     assert [island["id"] for island in optical_config["primary_islands"]] == ["G1", "B1", "G3", "B3"], "four independently calibrated corner islands are required"
