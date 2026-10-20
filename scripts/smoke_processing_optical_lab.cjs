@@ -119,7 +119,7 @@ let browser;
   const staticCandidates = [];
   for (const candidate of ["A", "B", "C"]) {
     await page.locator("#stateButtons button").nth(0).click();
-    await page.locator("[data-preview-mode='static']").click();
+    await page.locator("#previewModeButtons [data-preview-mode='static']").click();
     await page.selectOption("#staticCandidate", candidate);
     await page.selectOption("#fieldLayerView", "composite");
     await page.setViewportSize({ width: 1440, height: 1100 });
@@ -150,7 +150,7 @@ let browser;
   const dynamicCandidates = [];
   const dynamicEnabled = await page.evaluate(() => window.OPTICAL_DYNAMIC_REVIEW_ENABLED === true);
   if (dynamicEnabled) for (const candidate of ["A", "B", "C"]) {
-    await page.locator("[data-preview-mode='dynamic']").click();
+    await page.locator("#previewModeButtons [data-preview-mode='dynamic']").click();
     await page.selectOption("#dynamicCandidate", candidate);
     await page.selectOption("#motionSpeed", "1");
     await page.locator("#stateButtons button").nth(0).click();

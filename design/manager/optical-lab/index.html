@@ -455,8 +455,8 @@ function stateId(){return elements.config.p3_states_and_status.product_states[el
 function syncReviewControls(){
   $("staticCandidate").value=elements.staticCandidate;$("dynamicCandidate").value=elements.dynamicCandidate;$("fieldLayerView").value=elements.fieldLayerView;$("motionSpeed").value=String(elements.motionSpeed);
   $("fieldToggle").checked=elements.reviewLayers.field;$("pathToggle").checked=elements.reviewLayers.paths;$("filamentToggle").checked=elements.reviewLayers.filaments;$("fishToggle").checked=elements.reviewLayers.fish;
-  document.querySelectorAll("[data-preview-mode]").forEach(b=>b.classList.toggle("active",b.dataset.previewMode===elements.previewMode));
-  const dynamicButton=document.querySelector('[data-preview-mode="dynamic"]');dynamicButton.disabled=!DYNAMIC_REVIEW_ENABLED;dynamicButton.title=DYNAMIC_REVIEW_ENABLED?"":"开放前先完成静态视觉 Gate";
+  document.querySelectorAll("#previewModeButtons button").forEach(b=>b.classList.toggle("active",b.dataset.previewMode===elements.previewMode));
+  const dynamicButton=document.querySelector('#previewModeButtons [data-preview-mode="dynamic"]');dynamicButton.disabled=!DYNAMIC_REVIEW_ENABLED;dynamicButton.title=DYNAMIC_REVIEW_ENABLED?"":"开放前先完成静态视觉 Gate";
   $("playPause").disabled=!DYNAMIC_REVIEW_ENABLED;$("recordSequence").disabled=!DYNAMIC_REVIEW_ENABLED;$("motionSpeed").disabled=!DYNAMIC_REVIEW_ENABLED;
   $("staticCandidateControl").style.display=elements.previewMode==="static"?"grid":"none";$("dynamicCandidateControl").style.display=elements.previewMode==="dynamic"?"grid":"none";
   updateCandidateDescription();updateFocusProvenance();
