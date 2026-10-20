@@ -147,6 +147,19 @@ def main():
     if not isinstance(state.get("blockers"),list): errors.append("blockers must be array")
     if not isinstance(state.get("evidence"),dict): errors.append("evidence must be object")
     if not state.get("next_action"): errors.append("next_action is required")
+    # Optional V2 ledger uses the existing Work state; never infer a Gate PASS.
+    from importlib.util import module_from_spec, spec_from_file_location
+    guard_path = ROOT / "tools/work_execution_v2/failure_gate.py"
+    if state.get("execution_v2") is not None:
+        if not guard_path.exists():
+            errors.append("execution_v2 present but failure guard is unavailable")
+        else:
+            sys.path.insert(0, str(guard_path.parent))
+            try:
+                from failure_gate import validate_recorded_failures
+                errors.extend(validate_recorded_failures(state))
+            except (ImportError, ValueError, TypeError) as exc:
+                errors.append(f"execution_v2 validation error: {exc}")
     if errors:
         print("WORK_EXECUTION_STATE_VALIDATION=FAIL")
         for error in errors: print("- "+error,file=sys.stderr)

@@ -5,7 +5,12 @@ on:
     branches: [main]
     paths:
       - "app/**"
-      - "design/**"
+      - "design/pages/home/**"
+      - "design/system_v3/**"
+      - "design/manager/nh01_acceptance/index.html"
+      - "design/manager/nh01_acceptance/viewer.js"
+      - "design/manager/nh01_acceptance/viewer.css"
+      - "design/manager/nh01_acceptance/data/**"
       - "scripts/android_runtime/**"
       - "scripts/run_android_runtime_gate.sh"
       - "scripts/verify_normal_home_*.py"
@@ -15,7 +20,8 @@ on:
 
 concurrency:
   group: nh01-gemini-v3-runtime-${{ github.ref }}
-  cancel-in-progress: false
+  # A new PR head supersedes unneeded earlier PR runtime attempts.
+  cancel-in-progress: true
 
 permissions:
   contents: read
