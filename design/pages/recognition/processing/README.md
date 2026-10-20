@@ -26,7 +26,7 @@ Current design source of truth for Recognition Processing presentation.
 → Result
 ```
 
-The first state uses two Frozen visual keyframes (Early/Late). This does not create two product states.
+Each of the three product states uses one Frozen keyframe. IMAGE_RECOGNIZING uses only 02_AI_Understanding_Frozen.png. CAPTURED/DETECTING remain technical pipeline phases, not two visible designs.
 
 ## Current motion
 

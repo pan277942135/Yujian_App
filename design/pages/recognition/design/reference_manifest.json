@@ -3,13 +3,6 @@
   "version": "1.1",
   "references": [
     {
-      "file": "01_Capture_Transition_Frozen.png",
-      "status": "FROZEN",
-      "width": 941,
-      "height": 1672,
-      "sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58"
-    },
-    {
       "file": "02_AI_Understanding_Frozen.png",
       "status": "FROZEN",
       "width": 941,

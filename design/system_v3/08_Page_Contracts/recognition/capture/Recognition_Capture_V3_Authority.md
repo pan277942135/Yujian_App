@@ -7,7 +7,7 @@
 
 ## Unique visual source
 
-This is the sole page-level visual and layout authority for Recognition Capture. The Product Master Flow continues to own route order only. Its historical reference to 01_Capture_Transition_Frozen.png is not a Camera screen reference: that image remains a Recognition Processing keyframe. Do not use it as Capture artwork.
+This is the sole page-level visual and layout authority for Recognition Capture. The Product Master Flow continues to own route order only. The former Processing Early PNG has been retired; it must not be used as Camera artwork or restored as a Processing visual keyframe.
 
 Camera Preview is a live runtime surface supplied by the camera provider. It is not Frozen Artwork, a static image asset, a screenshot, or a Processing frame. The preview has no static SHA. BG_CAPTURE means the current user camera/gallery image with no Morning Lake underlay.
 
@@ -51,7 +51,7 @@ Gallery cancellation is non-mutating. An unreadable selected image maps to CAPTU
 
 ## Asset identity boundary
 
-The capture-button master remains the existing Asset Registry entry and SHA. Its RGBA pixel size is not a dp dimension. Live camera pixels are runtime data and must never be added to the frozen artwork list. The Processing Early PNG remains read-only and is not a camera visual.
+The capture-button master remains the existing Asset Registry entry and SHA. Its RGBA pixel size is not a dp dimension. Live camera pixels are runtime data and must never be added to the frozen artwork list. The retired Processing Early PNG remains read-only and is not a camera visual.
 
 ## Additive first-use guide authority
 

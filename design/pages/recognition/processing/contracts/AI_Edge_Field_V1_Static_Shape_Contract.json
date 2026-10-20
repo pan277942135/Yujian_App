@@ -5,8 +5,7 @@
   "scope": "static_topology_only",
   "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
   "perceptual_references": [
-    "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
-    "design/pages/recognition/design/01_Capture_Transition_Frozen.png"
+    "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
   ],
   "primary_islands": [
     {

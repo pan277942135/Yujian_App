@@ -108,16 +108,6 @@
   ],
   "asset_refs": [
     {
-      "asset_id": "pages_recognition_design_01_capture_transition_frozen_png",
-      "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
-      "sha256": "e3101806e7e850cbcb46eb46b184ae049acbf379e2cf36ba04549421e8d16b58",
-      "type": "PNG",
-      "size": 2204457,
-      "dimensions": "941x1672",
-      "registry_status": "REVIEW",
-      "role": "IMAGE_RECOGNIZING Early keyframe; Processing only"
-    },
-    {
       "asset_id": "pages_recognition_design_02_ai_understanding_frozen_png",
       "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
       "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
@@ -125,7 +115,7 @@
       "size": 2180190,
       "dimensions": "941x1672",
       "registry_status": "REVIEW",
-      "role": "IMAGE_RECOGNIZING Late keyframe; Processing only"
+      "role": "Single Frozen reference for IMAGE_RECOGNIZING shared by CAPTURED/DETECTING internal phases"
     },
     {
       "asset_id": "pages_recognition_design_03_fish_highlight_frozen_png",
@@ -160,13 +150,13 @@
   "unresolved_dependencies": [],
   "rules": {
     "visible_state_mapping": {
-      "CAPTURED": "IMAGE_RECOGNIZING / Early reference",
-      "DETECTING": "IMAGE_RECOGNIZING / Late reference",
+      "CAPTURED": "IMAGE_RECOGNIZING / 02_AI_Understanding_Frozen.png",
+      "DETECTING": "IMAGE_RECOGNIZING / 02_AI_Understanding_Frozen.png",
       "OUTLINE": "FISH_LOCATED / existing Frozen reference",
       "CLASSIFYING": "SPECIES_RECOGNIZING / existing Frozen reference",
       "RESULT_READY": "Immediate handoff to Recognition Result; not an additional Processing visual state"
     },
-    "visual_scope": "Frozen keyframes are read-only; first two PNGs are one user-visible product state.",
+    "visual_scope": "Three product visual states; three Frozen PNGs. CAPTURED/DETECTING are internal event phases, not an extra Early visual.",
     "page_private_tokens": false,
     "canonical_state_machine": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
     "legacy_stage_labels": "Legacy three-step Stage labels are deprecated and are not State IDs.",

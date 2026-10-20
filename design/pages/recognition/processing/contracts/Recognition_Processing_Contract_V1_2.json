@@ -45,14 +45,13 @@
     "rule": "freeze current SegmentOffset, then fade the shared field using ResolveStrength"
   },
   "legacy_mapping": {
-    "CAPTURED": "IMAGE_RECOGNIZING_EARLY_REFERENCE_ONLY",
-    "DETECTING": "IMAGE_RECOGNIZING_LATE_REFERENCE_ONLY",
+    "CAPTURED": "IMAGE_RECOGNIZING_PRIMARY_REFERENCE_ONLY",
+    "DETECTING": "IMAGE_RECOGNIZING_PRIMARY_REFERENCE_ONLY",
     "OUTLINE": "FISH_LOCATED",
     "CLASSIFYING": "SPECIES_RECOGNIZING"
   },
   "visual_keyframes": {
     "IMAGE_RECOGNIZING": [
-      "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
       "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
     ],
     "FISH_LOCATED": [
@@ -74,7 +73,8 @@
     "Photo remains visually dominant",
     "AI Edge Field keeps four Primary Energy Islands and mandatory Quiet Gaps",
     "State changes do not restart the continuous Edge Field motion clock",
-    "Runtime and evidence closure remain independent from design freeze"
+    "Runtime and evidence closure remain independent from design freeze",
+    "Exactly one Frozen visual per user-visible Processing state; Early keyframe retired"
   ],
   "visual_layer": {
     "status_overlay": {
@@ -85,14 +85,32 @@
       "horizontal_padding_dp": 28,
       "indicator_size_dp": 54,
       "indicator_stroke_dp": 4,
-      "opening_copy": ["图片识别中", "正在理解照片并寻找鱼获线索"],
-      "located": ["已定位到鱼体", "正在分析这次鱼获"],
-      "classifying": ["正在认识这条鱼", "分析鱼体特征"],
+      "opening_copy": [
+        "图片识别中",
+        "正在理解照片并寻找鱼获线索"
+      ],
+      "located": [
+        "已定位到鱼体",
+        "正在分析这次鱼获"
+      ],
+      "classifying": [
+        "正在认识这条鱼",
+        "分析鱼体特征"
+      ],
       "resolve": "fade_with_shared_resolve_strength"
     },
     "edge_field": {
-      "primary_islands": ["G_UL", "B_UR", "B_LR", "G_LL"],
-      "secondary_fragments": ["B2", "G2", "B4"],
+      "primary_islands": [
+        "G_UL",
+        "B_UR",
+        "B_LR",
+        "G_LL"
+      ],
+      "secondary_fragments": [
+        "B2",
+        "G2",
+        "B4"
+      ],
       "secondary_outer_bloom": false,
       "photo_remains_dominant": true
     },

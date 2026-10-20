@@ -25,10 +25,9 @@ Exactly three user-visible Processing states are allowed. RESOLVE is a transitio
 
 ## Visual authority
 
-The existing four Frozen Processing PNGs are retained byte-identically and form the V1.2 three-state Keyframe Set:
+Three Frozen Processing PNGs now remain byte-identical, one per user-visible product state, after the user-approved Early reference retirement:
 
-- `design/01_Capture_Transition_Frozen.png` — 图片识别中 / Early
-- `design/02_AI_Understanding_Frozen.png` — 图片识别中 / Late
+- `design/02_AI_Understanding_Frozen.png` — 图片识别中 / 唯一视觉参考
 - `design/03_Fish_Highlight_Frozen.png` — 已定位到鱼体
 - `design/04_Fish_Identifying_Frozen.png` — 鱼种识别中
 

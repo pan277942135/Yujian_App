@@ -1017,10 +1017,10 @@
           "status": "FROZEN",
           "authority_type": "visual",
           "render_mode": "recognition_visual_states",
-          "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+          "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
           "visual_authority_manifest": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",
           "authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
-          "summary": "FROZEN：现有 4 张历史 Frozen Processing PNG 组成三状态 Keyframe Set。01+02 为“图片识别中”Early/Late，同属一个产品状态；03=已定位到鱼体；04=鱼种识别中。不生成替代 PNG。",
+          "summary": "FROZEN：现行 Processing 恰好 3 个用户状态、3 张 Frozen PNG，每状态仅 1 张。图片识别中仅使用 02_AI_Understanding_Frozen.png；原 Early 视觉已移除。",
           "visual_states": [
             {
               "id": "image_recognizing",
@@ -1029,15 +1029,11 @@
               "title": "01 · 图片识别中",
               "sources": [
                 {
-                  "label": "Early · 原 Capture Transition",
-                  "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png"
-                },
-                {
-                  "label": "Late · 原 AI Understanding",
+                  "label": "唯一 Frozen · 图片识别中",
                   "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
                 }
               ],
-              "note": "原 CAPTURED + DETECTING 合并为同一产品状态。两张旧 UI 只作为该状态的早/晚视觉参考，不再代表两个独立用户步骤。"
+              "note": "CAPTURED/DETECTING 是技术管线阶段，共享同一图片识别中视觉，不再存在独立的 Early/Late 视觉关键帧。"
             },
             {
               "id": "fish_located",
@@ -1135,7 +1131,7 @@
               "authority_type": "visual",
               "render_mode": "recognition_ai_edge_field_static",
               "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
-              "secondary_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+              "secondary_authority": null,
               "authority": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Static_Shape_Spec.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
               "summary": "Static Shape 已融合 HarmonyOS 官方光场原则：保留 4 Energy Islands + Primary/Hairline 的渔见身份，但加入“光场先于线、局部受光、唯一主光场、柔和物理层级、热点克制”的视觉规则。",
@@ -1955,7 +1951,7 @@
               "authority_type": "visual",
               "menu_group": "visual_reference",
               "render_mode": "recognition_visual_reference_spec",
-              "summary": "R05 不再额外生成三联设计图。强表现直接复用 01，目标方向复用 02；最低可接受强度在实现阶段由 LITE Runtime Evidence 闭环，避免为了校准再造一套重复视觉。",
+              "summary": "R05 保留唯一 02_AI_Understanding_Frozen.png 目标视觉。强度上限/下限由实际 Runtime FULL/LITE 验收，不再引用 Early PNG。",
               "authority": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
               "generation_spec": {
                 "purpose": "建立 AI 边缘光场的视觉强度参照区间，明确上限、目标值与最低可接受值。",
@@ -1994,20 +1990,14 @@
               "visual_authority_status": "PARTIAL_RUNTIME_CLOSURE",
               "supporting_visual_references": [
                 {
-                  "role": "强表现参考",
-                  "path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
-                  "status": "FROZEN",
-                  "scope": "视觉上限：Receiving Light、Bloom、Hairline、Node、Particle 都更明显，但照片仍主导。"
-                },
-                {
-                  "role": "目标强度辅助参考",
+                  "role": "唯一目标 Frozen 参考",
                   "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
                   "status": "FROZEN_SOURCE",
                   "scope": "用于目标强度方向的既有高保辅助，不单独覆盖当前四岛 Static Shape；最终目标强度以 Runtime parity 调校为准。"
                 }
               ],
-              "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
-              "visual_authority_scope": "当前 visual_authority 指向已冻结的“强表现”参考，仅代表强度上限；R05 整体仍为 PARTIAL，目标档与最低可接受档尚未冻结。"
+              "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+              "visual_authority_scope": "仅代表目标 Frozen 视觉；原 Early 强表现上限已删除。FULL 上限与 LITE 下限待真实 Runtime 验证 (REVIEW_REQUIRED)。"
             },
             {
               "id": "ai_edge_field_ref_r06",
@@ -2922,16 +2912,10 @@
             ],
             "keyframe_mapping": [
               {
-                "runtime": "01_image_recognizing_early.png",
-                "product_state": "图片识别中",
-                "historical_reference": "01_Capture_Transition_Frozen.png",
-                "role": "early"
-              },
-              {
                 "runtime": "02_image_recognizing_late.png",
                 "product_state": "图片识别中",
                 "historical_reference": "02_AI_Understanding_Frozen.png",
-                "role": "late"
+                "role": "primary"
               },
               {
                 "runtime": "03_fish_located.png",

@@ -122,7 +122,6 @@ PY
   fi
 
   for name in \
-    01_image_recognizing_early.png \
     02_image_recognizing_late.png \
     03_fish_located.png \
     04_species_recognizing.png \
@@ -227,8 +226,7 @@ PY
     rm -f "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME"
   fi
 
-  if [[ -s "$output_dir/01_image_recognizing_early.png" &&
-        -s "$output_dir/02_image_recognizing_late.png" &&
+  if [[ -s "$output_dir/02_image_recognizing_late.png" &&
         -s "$output_dir/03_fish_located.png" &&
         -s "$output_dir/04_species_recognizing.png" ]]; then
     python3 "$YUJIAN_REPO_ROOT/scripts/verify_recognition_visual_parity_v1_1.py" \
@@ -263,7 +261,6 @@ output_dir = Path(sys.argv[1])
 video_path = output_dir / "recognition_processing_v3_1.mp4"
 validation_path = output_dir / "recognition_processing_video_validation.txt"
 reference_names = [
-    "01_image_recognizing_early.png",
     "02_image_recognizing_late.png",
     "03_fish_located.png",
     "04_species_recognizing.png",

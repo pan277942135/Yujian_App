@@ -11,16 +11,11 @@
   "resolve_is_processing_state": false,
   "visual_keyframes": [
     {
-      "file": "01_image_recognizing_early.png",
-      "state": "IMAGE_RECOGNIZING",
-      "role": "EARLY",
-      "reference": "01_Capture_Transition_Frozen.png"
-    },
-    {
       "file": "02_image_recognizing_late.png",
       "state": "IMAGE_RECOGNIZING",
-      "role": "LATE",
-      "reference": "02_AI_Understanding_Frozen.png"
+      "role": "PRIMARY",
+      "reference": "02_AI_Understanding_Frozen.png",
+      "legacy_runtime_filename": true
     },
     {
       "file": "03_fish_located.png",

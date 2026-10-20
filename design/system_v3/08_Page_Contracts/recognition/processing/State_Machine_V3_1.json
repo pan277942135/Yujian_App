@@ -15,13 +15,13 @@
     {
       "id": "CAPTURED",
       "duration": ">=220ms",
-      "visual_behavior": "Original photo is immediately visible and unchanged. Use the existing IMAGE_RECOGNIZING Early reference and Frozen copy: title 正在准备识别; subtitle AI 已获取这张照片. No fish focus is implied.",
+      "visual_behavior": "Show unchanged original photo immediately. Reuse the IMAGE_RECOGNIZING product visual and sole Frozen 02_AI_Understanding_Frozen.png; no separate Early product frame. Remain internally CAPTURED until the real detection-start event and >=220ms minimum. No fish focus.",
       "transition_rule": "Enter when a normalized image is accepted. Advance to DETECTING only after both the 220ms minimum beat and the real detection-start event; remain here while either condition is missing. A real pipeline failure exits to TECHNICAL_FAILURE."
     },
     {
       "id": "DETECTING",
       "duration": ">=320ms",
-      "visual_behavior": "Keep the original photo dominant. Use the existing IMAGE_RECOGNIZING Late reference and Frozen copy: title 正在理解这张照片; subtitle 寻找这次鱼获的线索. No bbox, halo or contour before a real focus.",
+      "visual_behavior": "Continue the same IMAGE_RECOGNIZING product visual and sole Frozen 02_AI_Understanding_Frozen.png; no new user-visible step. Keep photo dominant. No fish focus before real detector evidence.",
       "transition_rule": "Advance to OUTLINE only after both the 320ms minimum beat and a real classifier-eligible fish focus. A real NO_FISH/quality issue follows its existing Result recovery route; a reported exception follows TECHNICAL_FAILURE. No timer-only advance."
     },
     {

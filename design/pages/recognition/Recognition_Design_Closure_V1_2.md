@@ -31,11 +31,11 @@ Authority:
 
 No replacement Processing PNGs are generated for V1.2.
 
-The existing four Frozen PNGs are retained byte-for-byte and remapped into the three-state product model:
+After the 2026-10-18 approved Early keyframe removal, three Frozen PNGs remain byte-identical and map one-to-one to the three product states:
 
 | Product state | Frozen keyframe authority |
 | --- | --- |
-| 图片识别中 | `01_Capture_Transition_Frozen.png` Early + `02_AI_Understanding_Frozen.png` Late |
+| 图片识别中 | `02_AI_Understanding_Frozen.png` only |
 | 已定位到鱼体 | `03_Fish_Highlight_Frozen.png` |
 | 鱼种识别中 | `04_Fish_Identifying_Frozen.png` |
 
@@ -44,7 +44,7 @@ Machine mapping:
 - `design/Recognition_Processing_Visual_State_Set_V1_2.json`
 - original SHA authority remains `design/reference_manifest.json`
 
-The Early/Late pair belongs to one product state and must never be reconstructed as CAPTURED + DETECTING product states.
+The deleted Early image is not current visual authority. CAPTURED and DETECTING retain real internal event gates but share the single IMAGE_RECOGNIZING user-visible design.
 
 ## 3. AI Edge Field / Layer Ownership
 

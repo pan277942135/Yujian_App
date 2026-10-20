@@ -208,17 +208,17 @@ Do not:
 
 ## 9. Legacy UI mapping
 
-The previously archived four Processing UI references remain preserved as design source material.
+The active design set has three Processing PNG references. The deleted Early PNG is retrievable only from Git history, not a current design source.
 
 They are remapped as follows:
 
 | New product state | Existing source UI |
 | --- | --- |
-| 图片识别中 | `01_Capture_Transition_Frozen.png` + `02_AI_Understanding_Frozen.png` |
+| 图片识别中 | `02_AI_Understanding_Frozen.png` |
 | 已定位到鱼体 | `03_Fish_Highlight_Frozen.png` |
 | 鱼种识别中 | `04_Fish_Identifying_Frozen.png` |
 
-The first two PNGs now represent **early / late reference frames of the same product state**, not two separate user-visible steps.
+CAPTURED and DETECTING remain internal V3.1 event phases and share the sole IMAGE_RECOGNIZING Frozen visual; no separate Early keyframe is authorized.
 
 ## 10. Timing boundary
 

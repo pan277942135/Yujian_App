@@ -26,24 +26,22 @@ Recognition Processing has three product states:
 → Result
 ```
 
-Historical Frozen PNGs remain valid as visual references, but the first two no longer represent separate product states.
+The current design has exactly three Frozen PNGs: one for each user-visible Processing state. The retired Early image cannot be required for visual parity.
 
 Runtime mapping:
 
 | Runtime evidence | Product state | Historical visual reference | Role |
 | --- | --- | --- | --- |
-| 01_image_recognizing_early.png | 图片识别中 | 01_Capture_Transition_Frozen.png | Early |
-| 02_image_recognizing_late.png | 图片识别中 | 02_AI_Understanding_Frozen.png | Late |
+| 02_image_recognizing_late.png | 图片识别中 | 02_AI_Understanding_Frozen.png | PRIMARY (legacy artifact filename) |
 | 03_fish_located.png | 已定位到鱼体 | 03_Fish_Highlight_Frozen.png | Primary |
 | 04_species_recognizing.png | 鱼种识别中 | 04_Fish_Identifying_Frozen.png | Primary |
 
-The old CAPTURED / DETECTING visual split must not be reconstructed as two user-visible states merely to satisfy old evidence names.
+The CAPTURED/DETECTING technical phase trace remains mandatory, but there is no separate Early visual authority. The `02_image_recognizing_late.png` artifact retains a historical filename solely for test-harness compatibility.
 
 ## 3. Evidence Group 01 — Visual Keyframes & Parity
 
 Required runtime artifacts:
 
-1. `01_image_recognizing_early.png`
 2. `02_image_recognizing_late.png`
 3. `03_fish_located.png`
 4. `04_species_recognizing.png`

@@ -3266,7 +3266,7 @@
       "exit": "No product transition inferred for a registry index item.",
       "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/visual_states",
       "manager_visibility": "MENU_VISIBLE",
-      "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
       "visual_authority_scope": "view_specific",
       "visual_verification_status": "BLOCKED_ACCESS_API_CONTENT_OMITTED",
       "behavior_authority": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
@@ -3280,7 +3280,7 @@
       "design_status": "FROZEN",
       "registry_status": "ACTIVE_CLOSURE",
       "verification_status": "REGISTRY_ENTRY_AND_MANAGER_HASH_ROUTE_PATTERN_VERIFIED",
-      "visual_authority_declared_path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "visual_authority_declared_path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
       "authority_reference": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md"
     },
     {
@@ -3512,7 +3512,7 @@
       "exit": "No product transition inferred for a registry index item.",
       "manager_route": "design/manager/#page/recognition_flow_v1_2/hifi/layer_component_ownership/ai_edge_field_ref_r05",
       "manager_visibility": "MENU_VISIBLE",
-      "visual_authority": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
       "visual_authority_scope": "child_specific",
       "visual_verification_status": "BLOCKED_ACCESS_API_CONTENT_OMITTED",
       "behavior_authority": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md",
@@ -3527,7 +3527,7 @@
       "registry_status": "ACTIVE_CLOSURE",
       "verification_status": "REGISTRY_ENTRY_AND_MANAGER_HASH_ROUTE_PATTERN_VERIFIED",
       "parent_state_id": "layer_component_ownership",
-      "visual_authority_declared_path": "design/pages/recognition/design/01_Capture_Transition_Frozen.png",
+      "visual_authority_declared_path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
       "authority_reference": "design/pages/recognition/processing/references/R05_强度校准_生成规范_V1.md"
     },
     {
