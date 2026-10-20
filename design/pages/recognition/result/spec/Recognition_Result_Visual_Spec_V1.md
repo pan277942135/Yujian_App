@@ -1,4 +1,4 @@
-# Recognition Result Visual Spec V1.1
+# Recognition Result Visual Spec V1.2
 
 Status: **FROZEN — SEVEN PNG AUTHORITIES**
 
@@ -15,15 +15,23 @@ not a universal component default.
 - no Processing edge field, Fish Focus, detector box, debug metadata, or
   continuous AI animation survives into Result.
 
-## Hero media
+## Hero media — V1.2 media policy
 
-High / Medium / Low use bbox-guided FishSafeRect and prefer Subject Crop Fill;
-unsafe Fill falls back to Subject Safe Fit. No Fish / Image Quality use complete
-source Evidence Fit. No stretch, generated fill, blurred duplicate, or
-detector/classifier crop is allowed.
+High / Medium / Low use the frozen BBox sequence: anchored expansion → one-sided
+edge compensation → margin profiles 10%/12%, 8%/8%, 4%/4%, 0%/0% → same-source
+ambient fallback only if no safe crop window exists. Missing/untrusted BBox uses
+the complete oriented source as foreground plus same-source blurred background.
 
-State Hero targets at 360dp are High 322×210, Medium/Low 322×178, No Fish
-322×245, and Image Quality 322×214.
+No Fish / Image Quality do not run fish-BBox crop. Keep the complete oriented
+source visible in the foreground and fill remaining container space with a
+same-source blurred background. Generated fill, outpainting, stretch, and
+detector/classifier crops remain prohibited.
+
+Container width responds to available screen content width. Each result state
+retains its existing aspect ratio; photo orientation must not switch that ratio.
+At the 360dp reference layout, Hero targets remain High 322×210, Medium/Low
+322×178, No Fish 322×245, and Image Quality 322×214. These are reference
+geometries, not hard-coded pixel sizes for every device.
 
 ## High
 
