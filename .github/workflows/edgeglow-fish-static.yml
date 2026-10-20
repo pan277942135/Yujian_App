@@ -123,7 +123,7 @@ jobs:
             --center-sha "$CENTER_SOURCE_SHA" \
             --output "$EDGEGLOW_OUTPUT_DIR/EdgeGlow_Fish_Static_Source_Audit.json"
 
-      - name: Run Chromium interaction, corner-color, export and responsive smoke
+      - name: Run Chromium static geometry, layer-toggle and PNG smoke
         shell: bash
         run: |
           set -euo pipefail
@@ -137,11 +137,6 @@ jobs:
             sleep 1
           done
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
-            PR_SOURCE_SHA="$PR_SOURCE_SHA" CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
-            node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
-              --base-url http://127.0.0.1:8765/ \
-              --output-dir "$RUNNER_TEMP/edgeglow-evidence/browser-smoke"
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
             EDGEGLOW_SITE_BASE="http://127.0.0.1:8765/" \
             OPTICAL_PUBLIC_BASE_URL="https://pan277942135.github.io/Yujian_App/" \
             PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
@@ -149,6 +144,11 @@ jobs:
             OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/static-optical-v3" \
             OPTICAL_PUBLIC_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-pages/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-v3" \
             node pr-source/scripts/capture_optical_lab_static_closure_v3.cjs
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
+            PR_SOURCE_SHA="$PR_SOURCE_SHA" CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
+            node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
+              --base-url http://127.0.0.1:8765/ \
+              --output-dir "$RUNNER_TEMP/edgeglow-evidence/browser-smoke"
 
       - name: Upload static visual evidence
         if: always()

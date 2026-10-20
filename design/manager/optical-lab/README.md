@@ -8,27 +8,13 @@ This is a browser review surface based on the existing P1–P5 contract. Candida
 - Integrated static + dynamic review: <https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/>
 - PR #166: <https://github.com/pan277942135/Yujian_App/pull/166>
 
-## Receiving Field correction · prior iterations
+## Historical Web Review iterations
 
-The descriptions in this section record earlier Web Review iterations. They are not the V3 static renderer contract or evidence of a visual pass. The V3 addendum below supersedes their independent corner-blob field for static candidates.
+Earlier iterations used independent corner blobs, guessed 3:4 photo geometry, path-derived blur, elevated Web-only alpha caps and pixel-change smoke checks. Those attempts either remained visually weak or exceeded / diverged from P1, so they are not the current V3 implementation. The V3 findings and source-bound parameters are recorded below.
 
-The earlier automation compared pixels with the Receiving Light layer off and on. That proved the renderer changed pixels; it did not prove that a person could perceive a light field around the photo. In the actual cloud capture, the change read mostly as a faint blue/gold tint across the photo, while the edge still looked bare. The pixel-difference threshold was therefore too weak to support a visual claim.
+## Existing dynamic review (not part of V3)
 
-The new candidates add a separate transparent, browser-only Receiving Field layer around the registered 3:4 photo area. The first live capture exposed a remaining gap: B/C added a blue/gold tint, but its broad radii and near-connected arcs still read too faint and too regular beside Frozen. This iteration tightens the corner blooms, breaks the upper arcs apart, raises the review gain, and gives the four corners different breathing depths. Upper-right blue stays strongest, upper-left gold is softer, lower-left gold is residue, and lower-right blue is a short trace. The existing Canvas paths remain visible beneath the candidate field, and Fish Focus remains a separate warm-gold layer.
-
-| Candidate | Review layer gain | Character |
-| --- | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 0.75 | Restrained edge field with visible corner blooms |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 1.50 | Stronger blue/gold edge field with broken arcs; compare first |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 2.25 | Review-only visibility ceiling |
-
-These are review parameters, not frozen product values. The overlay is labelled `REVIEW-ONLY`; it is composited into Web PNG/WebM export so evidence matches the visible preview. The PNG export regression now checks that its output contains overlay pixels. The native Android renderer is unchanged.
-
-## Dynamic review
-
-Dynamic A/B/C controls use the existing page playback, speed, state and recording controls. The candidate field breathes at four different periods (9.2s, 12.8s, 10.6s and 15.4s) with different phases; the breath amplitude varies by candidate (4.5%, 10.5%, 16%). Existing local path flow remains separate; no full-perimeter chase is introduced by the review layer. Three-state WebM is browser evidence only. This iteration remains `REVIEW_REQUIRED` until the deployed screenshot is judged against the Frozen reference by a person.
-
-The added browser smoke captures desktop and narrow A/B/C comparisons, all three dynamic states, and A/B/C three-state WebM clips into the workflow artifact. It checks that the preview clock advances during playback and that exported clips are non-empty. Its JSON status is `RENDER_SIGNAL_ONLY_REVIEW_REQUIRED`, and visual approval is `NOT_AUTOMATED`. A screenshot and clip must still be reviewed by a person; automation cannot declare naturalness, taste, or visual PASS.
+The Optical Review page retains its earlier dynamic controls and implementation. V3 does not modify or exercise those controls, run animation, or create WebM/GIF/recordings. Dynamic behavior is outside this static task and has no V3 test result.
 
 ## Fish Focus provenance
 
@@ -62,32 +48,35 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 
 ### V3 static renderer changes
 
-- Static A/B/C now use the four registered `receiving_light_layout` radial ovals and `receiving_light_alpha_stops` from P1. They are mapped through the renderer's single `photoContentRect` and clipped to the photo; the seven frozen paths draw above them in separate layers. No new Edge Field path or closed perimeter is added; the diffuse photo-side samples are derived from the frozen primary curves.
-- The field uses P1 blue/gold tokens, alpha stops, geometry and island weights. A prior rejected Web-only iteration raised the review gain and local alpha ceiling to `.84` while probing visibility on the bright P5 photo; it did not change P1/P5 contract tokens or Native values and was not accepted as a visual fix. The `5553fb7` iteration used a separate `.32` review cap and remained too weak; the current `.60` cap remains an exploratory Web value, not a frozen product value. The photo interior receives no blanket tint.
-- The evidence includes `receiving-light-only.png`, `receiving-light-off-photo.png` and `receiving-light-over-photo.png`. The off/on captures use the same real P5 photo with other overlays disabled, so the field can be judged directly over its source.
-- Raising source-over opacity alone did not close the visual gap. Screen compositing increased B's broad corner sample delta to 9.38 and C's to 11.87, but the actual Chromium page still read as four corner spots and remained too weak beside Frozen. See [run 39431484510 and its real Chromium artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39431484510/artifacts/12267708759); this is a recorded visual failure, not a pass. The next pass retains bounded P1 ovals and tests a broad, blurred field sampled from the exact P1 primary cubic curves, using depth ratio 0.13 from P1's 0.08–0.18 range. It adds no paths or closed perimeter. Screen and broad path bloom remain Web static review settings only.
-- The actual Chromium PNG at `f646cf17aab05740299d133abcfcc99060e871b8` remained too weak: B's mean absolute RGB delta was 5.06, C's was 6.27, and `receiving-light-only.png` still read as four corner patches. See [run 39433014752 and its actual screenshot artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39433014752/artifacts/12268278853). This is a visual failure. The next review pass attenuates the P1 radial ovals to 0.36 gain and increases the broad field on the exact P1 primary path segments without extending their frozen runtime seed or visible ratio. The depth ratio remains 0.13 and all effects remain clipped to the shared `photoContentRect`; these are Web static review settings only.
-- That segment-limited pass at `93f5e9a0f6f2686bb921685a99d8aaaef033ada1` was weaker again: actual Chromium deltas were B=2.84 and C=3.55, and its single-layer output still looked like faint corner dabs. See [run 39434352243 and its actual screenshot artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39434352243/artifacts/12270140451). The next pass keeps all seven P1 line paths unchanged while using the exact four primary cubic curves to shape a broader receiving field. It lowers corner oval gain to 0.24 and sets field depth to 0.15, inside P1's 0.08–0.18 range, with clipping to the shared photo rectangle. This remains a Web static review candidate.
-- The eighth real browser capture at `58ca8b4d6c29266dd7d87a755442e22aa96cfa0e` still showed weak edge illumination: the 390×844 B image contained mostly faint path traces, not a broad receiving field. B's `.07 × 3.2 × .24` oval peak is only `.05376` before P1 island weighting and radial falloff, while diffuse primary-curve bloom covers the curves rather than the broader P1 ovals. The field remains visually `REVIEW_REQUIRED`; smoke signal is not a pass.
-- The `5553fb7` iteration restored the four exact P1 radial ovals to a 1.0 Web review gain. Before island weighting and falloff, nominal peak opacity was A `.168`, B `.224`, C `.280`, under its separate `.32` Web review cap. P1's `[.03,.07]` contract input, geometry, stops, colors, seven paths, and Quiet Gaps stayed unchanged; those were review-only multipliers and the render remained too weak.
-- Static `software-cache` previously cached only transparent overlays. That gave `screen` no photograph behind it, then copied the result over the photo as source-over. It now caches the same P1 FIT photo and overlays together, so screen receives the photo as its actual destination and both Web renderer candidates use the same visible source. The browser capture compares the Receiving Light signal between renderers as a compositing regression check; that check does not decide visual quality.
-- The ninth capture at `dc00e51516837e0cd3d19203f29a7220d7240022` remained visually weak even though B changed sampled photo corners by mean RGB delta `8.84`; the PNG still read as faint edge arcs. Review found the frozen primary curves overshoot `photoContentRect`, so a diffuse stroke centered on them loses much of its photo-side half at the clip. The report also hard-coded bloom ratios that differed from the page constants. See [run 39436867001 and its Chromium artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39436867001/artifacts/12271421944); this is a recorded visual failure.
-- The deployed `5553fb7` page corrected the inward sampling and made the capture read the exact bloom parameters from the renderer. Direct inspection of the live 390×844 comparison still showed faint line traces beside Frozen; B/C corner render deltas were 6.67/8.25 and are not visual scores. The failure and screenshot are recorded in [run 39439145572](https://github.com/pan277942135/Yujian_App/actions/runs/39439145572).
-- The next static pass keeps P1 path records and the shared FIT transform intact. Only the diffuse Receiving Light samples move photo-side by `0.30 ×` the selected P1 depth, using the exact B1/G1/B3/G3 curves; the glow remains clipped to `photoContentRect`, and the maximum depth ratio is `0.15` inside P1's `[0.08,0.18]` interval. The capture now reads those pass values from the live page and fails if the candidate JSON differs.
-- Static A/B/C preserve the exact P1 path start, control points, end points and visible ratios. Candidate differences are limited to the three review optical multipliers: Receiving Light, primary paths and secondary filaments. The capture report reads the live page constants for oval gain, depth ratio, inward field offset and both bloom passes; a page/report mismatch fails the capture.
-- A proposed `.60` cap and gains above `1.0×` were withdrawn before the final static capture because they would exceed the frozen per-layer alpha ranges. The final candidates scale down from the P1 values: Receiving Light `0.50× / 0.82× / 1.00×`, primary paths `0.65× / 0.85× / 1.00×`, and secondary filaments `0.25× / 0.45× / 0.65×`. The Receiving Light cap is `.07`, P1's maximum pre-multiplier alpha. If these contract-compliant settings remain visually weak, that is reported as an unresolved contract/design gap; no higher-alpha candidate is presented as compliant.
-- Geometry diagnostics expose the actual mapped control points, FIT transform, `photoContentRect`, seven P1 paths and four Quiet Gaps. The static capture matrix is 390×844, 320×640, 412×915, 800×360 and the 1152×1536 source proportion.
-- The official evidence gallery is generated from real Chromium Canvas/page captures and published under the canonical Optical Review route. Its JSON records source/build SHA, photo provenance, per-view coordinates, candidate parameters, PNG names and SHA-256 values.
+This is a static Web Review implementation only. It does not modify P1–P5, PR #165 Frozen PNGs, Android source, or the existing dynamic implementation. Dynamic playback, animation, WebM, GIF and recording are not run in this task.
 
-### Candidate parameters
+#### Baseline findings
 
-| Candidate | Receiving Light | Primary paths | Secondary filaments | Review intent |
-| --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 0.50× | 0.65× | 0.25× | Softest field and quiet path core |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 0.82× | 0.85× | 0.45× | Recommended first review; the local field keeps visual priority |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.00× | 1.00× | 0.65× | Contract maximum for the frozen optical layers; P1 depth `0.15` |
+- The live Optical Review page at the start of this pass reported deployed page/source SHA `af78989301e49d689228b83f538ee931b76a6a7c`. The P5 fixture `real_catch_source.jpg` is 1152×1536, EXIF Orientation 1, FIT / no crop, SHA-256 `6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef`.
+- The screenshot showed the registered-photo perimeter field was nearly invisible against the photo. Frozen 02 contains a different photo, so the visual comparison is not a same-source Pixel Diff; status is `SOURCE_PHOTO_IDENTITY_UNVERIFIED`.
+- Earlier Web versions mixed a guessed 3:4 rectangle with the shared canvas transform, let the receiving field fall into FIT letterbox, and sometimes relied on broad path strokes or non-P1 blend behavior. A small pixel delta from the old smoke proved only that pixels changed; it did not prove that a person could see an optical field.
+- The current runtime source snapshot is explicitly `ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN`. It contains four oval locations/stops/weights, but P1 freezes only the local radial-oval class, photo-side relationship, alpha `0.03–0.07`, and depth `0.08–0.18`. Exact oval placement is review-only, not a frozen geometry contract.
 
-These are unapproved Web-only review candidates, not frozen product values. No candidate amplifies a frozen per-layer alpha beyond its contract range. Automation reports renderer, source, geometry and asset checks; it does not judge visibility, naturalness, or visual quality. Human visual acceptance remains `REVIEW_REQUIRED`.
+#### Static reconstruction
+
+- The source photo, Receiving Light, seven P1 paths, and Fish Focus share the page renderer's `photoContentRect`; path control points remain unclamped and overlays are clipped to the photo content rect. The independent `min(width,height×0.75)` assumption is removed from the receiving signal diagnostic.
+- Receiving Light draws only the four local radial ovals from the identified non-frozen runtime snapshot. There is no path-derived bloom in that layer, no full-frame tint, and no additional perimeter path. The implementation uses source-over, the existing P1 blue/gold tokens, the existing `.14` runtime cap as a ceiling, and candidate base alpha values no greater than P1's `.07` maximum.
+- The frozen seven paths remain on their separate layers and retain their exact P1 coordinates, widths, roles, colors and Quiet Gaps. A/B/C use one photo, one FIT mapping, one path topology and the same `IMAGE_RECOGNIZING` state.
+- Chromium evidence includes the deployed pre-update page capture when reachable, a pure geometry map, FIT viewport PNGs, A/B/C actual composites and Receiving Light single-layer / over-photo PNGs, Outer/Mid/Core/Hairline layer PNGs, and blocked/Review-only Fish Focus views. The isolated field PNGs retain transparent and translucent pixels; the browser capture fails if alpha is lost. Each PNG is hashed in the evidence manifest. The capture is a real browser render; it is not an automated aesthetic verdict.
+
+#### Root cause and remaining visual gate
+
+The prior result looked weak because the light field was reduced to a few low-alpha ovals over a bright photo, and earlier versions clipped a second guessed photo rect or used thin path traces as the field. It looked too regular because the field was presented as four similar corner blobs or evenly weighted path traces. The current code fixes coordinate ownership and removes the extra path bloom while keeping the frozen seven path topology. The exact oval layout remains a review candidate. The current A/B/C images must still be inspected by the user; the code and smoke never mark visual quality PASS.
+
+#### Candidate parameters
+
+| Candidate | Base alpha scale | Nominal peak before island/state/quality | Primary paths | Secondary filaments | Depth | Intent |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `REVIEW_CANDIDATE_A` · Soft Field | 0.50× | 0.035 | 0.65× | 0.25× | 0.12 | Softest field and quietest path layer |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 0.82× | 0.0574 | 0.85× | 0.45× | 0.15 | Recommended first direction to review |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.00× | 0.070 | 1.00× | 0.65× | 0.18 | Upper P1 alpha/depth boundary |
+
+The nominal peaks use the P1 `.07` base-alpha upper bound multiplied by each candidate's scale; state, island and quality multipliers follow. The existing `.14` runtime cap is only a ceiling, not permission to exceed P1's base-alpha range. Candidate B is a review direction, not a user-approved value.
 
 ### Fish Focus and explicit status
 

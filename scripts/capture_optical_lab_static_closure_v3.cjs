@@ -34,6 +34,19 @@ async function canvasPng(page, filename) {
   const dataUrl = await page.locator("#previewCanvas").evaluate(canvas => canvas.toDataURL("image/png"));
   writeDataUrl(filename, dataUrl);
 }
+async function canvasAlphaSummary(page) {
+  return page.locator("#previewCanvas").evaluate(canvas => {
+    const ctx=canvas.getContext("2d",{willReadFrequently:true});
+    const rgba=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    let transparent=0,translucent=0,opaque=0,visible=0;
+    for(let i=3;i<rgba.length;i+=4){
+      const a=rgba[i];
+      if(a===0)transparent++;else if(a<255)translucent++;else opaque++;
+      if(a>0)visible++;
+    }
+    return {width:canvas.width,height:canvas.height,transparent_pixels:transparent,translucent_pixels:translucent,opaque_pixels:opaque,visible_pixels:visible};
+  });
+}
 async function setTargetViewport(page, width, height) {
   await page.locator("#viewportSelect").evaluate((select, value) => {
     if (![...select.options].some(option => option.value === value)) select.add(new Option(value, value));
@@ -102,6 +115,42 @@ async function measureReceiving(page, candidate) {
   });
 }
 
+async function captureLivePredeployPage(browser, url, targetSourceSha, outputDir) {
+  const result = { status: "BLOCKED", url, target_source_sha: targetSourceSha };
+  let page;
+  try {
+    page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
+    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForFunction(() => window.OPTICAL_LAB_BUILD_INFO__?.head_sha && document.querySelector("#previewCanvas"), null, { timeout: 15000 });
+    const build = await page.evaluate(() => window.OPTICAL_LAB_BUILD_INFO__);
+    result.page_source_sha = build.head_sha;
+    result.page_acceptance_center_source_sha = build.acceptance_center_source_sha;
+    result.status = build.head_sha === targetSourceSha ? "CAPTURED_TARGET_SHA_ALREADY_ONLINE" : "CAPTURED_PREDEPLOY_PAGE";
+    await page.locator("#previewModeButtons [data-preview-mode='static']").click();
+    await page.locator("#stateButtons button").nth(0).click();
+    await page.locator("#staticCandidate").selectOption("B");
+    await page.screenshot({ path: path.join(outputDir, "baseline-cloud-default.png"), fullPage: true });
+    result.default_page_png = "baseline-cloud-default.png";
+    await page.locator("#advancedDiagnostics").evaluate(node => { node.open = true; });
+    for (const [name, enabled] of Object.entries({ photo: true, receiving: true, outer: false, mid: false, core: false, hairlines: false, fishHalo: false, fishContour: false, status: false })) {
+      await setLayer(page, name, enabled);
+    }
+    await page.locator("#fieldToggle").setChecked(true);
+    await page.locator("#pathToggle").setChecked(false);
+    await page.locator("#filamentToggle").setChecked(false);
+    await page.locator("#fishToggle").setChecked(false);
+    await page.locator("#fieldLayerView").selectOption("receiving");
+    await waitForPaint(page);
+    await page.locator("#previewCanvas").screenshot({ path: path.join(outputDir, "baseline-cloud-receiving-only.png") });
+    result.receiving_only_png = "baseline-cloud-receiving-only.png";
+  } catch (error) {
+    result.error = error.message;
+  } finally {
+    await page?.close().catch(() => {});
+  }
+  return result;
+}
+
 async function main() {
   fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -140,6 +189,7 @@ async function main() {
     const reviewCaptureUrl = new URL(REVIEW_PATH, SITE_BASE).href;
     const acceptanceUrl = new URL(ACCEPTANCE_PATH, PUBLIC_SITE_BASE).href;
     const reviewUrl = new URL(REVIEW_PATH, PUBLIC_SITE_BASE).href;
+    const livePredeployCapture = await captureLivePredeployPage(browser, reviewUrl, SOURCE_SHA, OUTPUT_DIR);
     await page.goto(reviewCaptureUrl, { waitUntil: "networkidle", timeout: 30000 });
     await page.waitForFunction(() => {
       const canvas = document.querySelector("#previewCanvas");
@@ -155,16 +205,21 @@ async function main() {
     assert.ok(pageCandidates, "static candidate parameters must be exposed by the rendered page");
     const declaredOptics = readJson("design/manager/optical-lab/review_v1/candidates.json");
     const receivingContract = config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light");
-    assert.equal(receivingOptics.opacityCap, declaredOptics.receiving_light_web_review_alpha_cap, "reported Receiving Light opacity cap must match page code");
-    assert.ok(receivingOptics.opacityCap <= receivingContract.contract_alpha_before_multipliers[1], "Web Receiving Light cap must remain within P1's per-layer alpha range");
-    assert.equal(receivingOptics.depthRatio, declaredOptics.receiving_light_depth_ratio, "reported Receiving Light depth must match page code");
-    assert.equal(receivingOptics.fieldInwardOffsetDepthRatio, declaredOptics.receiving_light_photo_side_offset_depth_ratio, "reported photo-side field offset must match page code");
-    assert.deepEqual(receivingOptics.pathPasses.map(pass => ({ width_ratio: pass.widthRatio, blur_ratio: pass.blurRatio, opacity: pass.opacity })), declaredOptics.receiving_light_path_bloom_passes, "reported Receiving Light bloom passes must match page code");
+    const receivingDepthRange = declaredOptics.receiving_light_depth_contract;
+    assert.deepEqual(receivingDepthRange, receivingContract.contract_edge_depth_ratio, "declared candidate depth interval must match frozen P1");
+    assert.equal(receivingOptics.opacityCap, declaredOptics.receiving_light_web_review_alpha_cap, "reported Receiving Light cap must match page code");
+    assert.ok(receivingOptics.opacityCap <= receivingContract.runtime_alpha_cap, "post-multiplier Receiving Light cap must not exceed P1's runtime ceiling");
+    assert.deepEqual(receivingContract.contract_alpha_before_multipliers, declaredOptics.contract_alpha_before_multipliers, "candidate base-alpha interval must match P1");
+    assert.equal(receivingOptics.ovalGain, declaredOptics.receiving_light_oval_gain, "oval gain must match the candidate declaration");
+    assert.equal(receivingOptics.composite, declaredOptics.receiving_light_composite, "Receiving Light must use the declared source-over composition");
     for (const candidate of ["A", "B", "C"]) {
-      for (const key of ["id", "name", "receiving_field_scale", "primary_path_scale", "secondary_filament_scale"]) {
+      for (const key of ["id", "name", "receiving_field_scale", "primary_path_scale", "secondary_filament_scale", "receiving_depth_ratio"]) {
         assert.equal(pageCandidates[candidate][key], declaredOptics.static_candidates[candidate][key], `${candidate} ${key} must match the live page candidate`);
       }
-      assert.ok(pageCandidates[candidate].receiving_field_scale <= 1 && pageCandidates[candidate].primary_path_scale <= 1 && pageCandidates[candidate].secondary_filament_scale <= 1, '${candidate} must not amplify frozen per-layer alpha');
+      assert.ok(pageCandidates[candidate].receiving_field_scale <= 1 && pageCandidates[candidate].primary_path_scale <= 1 && pageCandidates[candidate].secondary_filament_scale <= 1, `${candidate} scales must not amplify frozen P1 values`);
+      assert.ok(pageCandidates[candidate].receiving_depth_ratio >= receivingDepthRange[0] && pageCandidates[candidate].receiving_depth_ratio <= receivingDepthRange[1], `${candidate} Receiving Light depth must remain in the P1 range`);
+      const nominalBaseAlpha = receivingContract.contract_alpha_before_multipliers[1] * pageCandidates[candidate].receiving_field_scale;
+      assert.ok(nominalBaseAlpha >= receivingContract.contract_alpha_before_multipliers[0] && nominalBaseAlpha <= receivingContract.contract_alpha_before_multipliers[1], `${candidate} nominal base alpha must remain in P1's pre-multiplier range`);
     }
     assert.equal(await page.locator("#stateButtons button").count(), 3, "keep exactly the three frozen product visuals");
     await page.locator("#previewModeButtons [data-preview-mode='static']").click();
@@ -204,7 +259,11 @@ async function main() {
     }
 
     const candidateDefinitions = declaredOptics.static_candidates;
-    const candidateSignal = {};
+    const candidateSignal = {}, candidateAlphaSummary = {};
+    const allLayerNames = ["photo", "receiving", "outer", "mid", "core", "hairlines", "fishHalo", "fishContour", "status"];
+    const setOnlyLayers = async enabled => {
+      for (const name of allLayerNames) await setLayer(page, name, enabled.includes(name));
+    };
     for (const candidate of ["A", "B", "C"]) {
       await page.selectOption("#staticCandidate", candidate);
       await page.selectOption("#fieldLayerView", "composite");
@@ -217,13 +276,26 @@ async function main() {
       await captureBoard(page, `static-${candidate}-narrow-board.png`);
       await page.screenshot({ path: path.join(OUTPUT_DIR, `static-${candidate}-narrow-page.png`), fullPage: true });
       candidateSignal[candidate] = await measureReceiving(page, candidate);
+
+      await setOnlyLayers(["receiving"]);
+      await setReviewLayer(page, "fieldToggle", true); await setReviewLayer(page, "pathToggle", false); await setReviewLayer(page, "filamentToggle", false); await setReviewLayer(page, "fishToggle", false);
+      await page.selectOption("#fieldLayerView", "receiving"); await waitForPaint(page);
+      await canvasPng(page, `receiving-light-only-${candidate}.png`);
+      candidateAlphaSummary[candidate]=await canvasAlphaSummary(page);
+      assert.ok(candidateAlphaSummary[candidate].visible_pixels>0 && candidateAlphaSummary[candidate].translucent_pixels>0 && candidateAlphaSummary[candidate].transparent_pixels>0,
+        `${candidate} isolated Receiving Light PNG must preserve translucent pixels and a transparent canvas`);
+      await setOnlyLayers(["photo", "receiving"]); await waitForPaint(page);
+      await canvasPng(page, `receiving-light-over-photo-${candidate}.png`);
+      await setOnlyLayers(allLayerNames);
+      await setReviewLayer(page, "fieldToggle", true); await setReviewLayer(page, "pathToggle", true); await setReviewLayer(page, "filamentToggle", true); await setReviewLayer(page, "fishToggle", true);
+      await page.selectOption("#fieldLayerView", "composite");
     }
     assert.ok(candidateSignal.A.mean_abs_rgb_delta < candidateSignal.B.mean_abs_rgb_delta && candidateSignal.B.mean_abs_rgb_delta < candidateSignal.C.mean_abs_rgb_delta,
       "static A/B/C Receiving Light scales must produce increasing render signal");
 
-    // The static field uses screen blending, so both renderers must have the
-    // actual photo as their blend destination. Compare the measured field
-    // signal for the same B candidate before collecting layer exports.
+    // Source-over Receiving Light is composited over the same P1 FIT photo in
+    // both renderer modes. Compare the measured field signal for candidate B
+    // before collecting the separate layer exports.
     await page.selectOption("#rendererSelect", "software-cache");
     const softwareCacheReceivingSignal = await measureReceiving(page, "B");
     const rendererSignalRatio = softwareCacheReceivingSignal.mean_abs_rgb_delta / Math.max(.001, candidateSignal.B.mean_abs_rgb_delta);
@@ -240,10 +312,6 @@ async function main() {
     await page.locator("#pathToggle").check();
     await page.locator("#filamentToggle").check();
     await page.locator("#fishToggle").check();
-    const allLayerNames = ["photo", "receiving", "outer", "mid", "core", "hairlines", "fishHalo", "fishContour", "status"];
-    const setOnlyLayers = async enabled => {
-      for (const name of allLayerNames) await setLayer(page, name, enabled.includes(name));
-    };
     await setLayer(page, "photo", false);
     await setLayer(page, "status", false);
     await setLayer(page, "receiving", true);
@@ -285,6 +353,12 @@ async function main() {
     await waitForPaint(page);
     await captureBoard(page, "fish-focus-review-proxy-fish-located.png");
     await canvasPng(page, "fish-focus-review-proxy-fish-located-canvas.png");
+    await setOnlyLayers(["fishHalo", "fishContour"]);
+    await setReviewLayer(page, "fieldToggle", false); await setReviewLayer(page, "pathToggle", false); await setReviewLayer(page, "filamentToggle", false); await setReviewLayer(page, "fishToggle", true);
+    await page.selectOption("#fieldLayerView", "composite"); await waitForPaint(page);
+    await canvasPng(page, "fish-focus-review-proxy-only.png");
+    await setOnlyLayers(allLayerNames);
+    await setReviewLayer(page, "fieldToggle", true); await setReviewLayer(page, "pathToggle", true); await setReviewLayer(page, "filamentToggle", true); await setReviewLayer(page, "fishToggle", true);
     await page.locator("#stateButtons button").nth(2).click();
     await waitForPaint(page);
     await captureBoard(page, "fish-focus-review-proxy-species-recognizing.png");
@@ -298,25 +372,21 @@ async function main() {
       authority: "REVIEW_ONLY_NOT_FROZEN",
       source_sha: SOURCE_SHA,
       data_source_photo_sha256: photoSha,
-      receiving_field_geometry_authority: "P1 receiving_light_layout and receiving_light_alpha_stops",
-      frozen_path_authority: "P1 exact seven paths and one shared photoContentRect",
+      receiving_field_geometry_authority: "P1 freezes the radial-oval class and alpha/depth bounds; exact layout/stops/weights are from the non-frozen runtime source snapshot",
+      frozen_path_authority: "P1 exact seven paths and the shared photoContentRect",
       receiving_field_opacity_cap: receivingOptics.opacityCap,
-      receiving_field_composite: "screen over the P1 FIT photo · Web Review static only",
-      receiving_field_depth_ratio: receivingOptics.depthRatio,
-      receiving_field_photo_side_offset_depth_ratio: receivingOptics.fieldInwardOffsetDepthRatio,
-      contract_alpha_before_multipliers: config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light").contract_alpha_before_multipliers,
-      candidate_differences: "Web-only Receiving Light, primary path and secondary filament gains; the four P1 ovals retain their geometry/stops, and the broad field uses photo-side samples from the exact P1 primary curves; P1 and Native contract values are unchanged",
+      receiving_field_composite: receivingOptics.composite,
+      receiving_field_depth_contract: receivingDepthRange,
+      contract_alpha_before_multipliers: receivingContract.contract_alpha_before_multipliers,
+      candidate_differences: "P1-bounded base alpha/depth and separate static path-strength scales; all candidates share the same non-frozen review oval layout/stops and shared photoContentRect; Receiving Light adds no path geometry",
       receiving_oval_review_gain: receivingOptics.ovalGain,
+      isolated_receiving_layer_alpha_integrity: candidateAlphaSummary,
       renderer_signal_parity: {
         hardware_gradient_mean_abs_rgb_delta: candidateSignal.B.mean_abs_rgb_delta,
         software_cache_mean_abs_rgb_delta: softwareCacheReceivingSignal.mean_abs_rgb_delta,
         software_to_hardware_ratio: rendererSignalRatio,
         interpretation: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS",
       },
-      path_bloom_passes: receivingOptics.pathPasses,
-      path_bloom_uses_exact_primary_curves: true,
-      path_bloom_path_samples_offset_photo_side_only: true,
-      path_bloom_depth_ratio: receivingOptics.depthRatio,
       candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,
@@ -331,8 +401,10 @@ async function main() {
     const baselineSource = readJson(`${baselineEvidencePath}/source.json`);
     const baselineFiles = ["receiving-field-signal.json", "source.json"];
     for (const file of baselineFiles) fs.copyFileSync(path.join(SOURCE_ROOT, baselineEvidencePath, file), path.join(OUTPUT_DIR, `baseline-34de-${file}`));
+    fs.copyFileSync(path.join(SOURCE_ROOT, "design/manager/optical-lab/review_v1/evidence/pre-change-cloud-default.jpg"), path.join(OUTPUT_DIR, "baseline-pre-change-cloud-default.jpg"));
     fs.copyFileSync(path.join(SOURCE_ROOT, reviewBboxPath), path.join(OUTPUT_DIR, "fish-focus-case-b-bbox.json"));
     fs.copyFileSync(path.join(SOURCE_ROOT, reviewAlphaPath), path.join(OUTPUT_DIR, "fish-focus-review-only-alpha.png"));
+    fs.copyFileSync(path.join(SOURCE_ROOT, bboxEvidence.fixture_path), path.join(OUTPUT_DIR, "fish-focus-review-case-b-photo.jpg"));
     fs.writeFileSync(path.join(OUTPUT_DIR, "static-candidate-parameters.json"), JSON.stringify(candidateParameters, null, 2) + "\n");
     const renderedArtifacts = fs.readdirSync(OUTPUT_DIR).filter(file => /\.png$/i.test(file)).sort().map(file => {
       const bytes = fs.readFileSync(path.join(OUTPUT_DIR, file));
@@ -347,7 +419,8 @@ async function main() {
       pr_number: 166,
       source_sha: SOURCE_SHA,
       build_sha: buildInfo.head_sha,
-      deployment_source_sha: "NOT_VERIFIED_BY_STATIC_CAPTURE",
+      deployment_source_sha: SOURCE_SHA,
+      deployment_source_sha_basis: "expected from this branch push; public route identity is verified by the post-deploy live smoke",
       data_source: { path: photoPath, sha256: photoSha, bytes: photoBytes.length, dimensions: [fixture.photo.width, fixture.photo.height], exif_orientation: fixture.photo.exif_orientation, display_mode: "FIT / NO CROP", identity: "REGISTERED_P5_FIXTURE; Frozen photo identity is SOURCE_PHOTO_IDENTITY_UNVERIFIED" },
       frozen_reference: { path: frozenState.keyframes[0].path, sha256: frozenPhotoSha, dimensions: [frozenState.keyframes[0].width, frozenState.keyframes[0].height], source_photo_identity: "SOURCE_PHOTO_IDENTITY_UNVERIFIED" },
       baseline: {
@@ -359,7 +432,9 @@ async function main() {
         original_screenshot_sha256: baselineSource.files["optical-review-page.png"].sha256,
         original_receiving_layer_sha256: baselineSource.files["receiving-field-only.png"].sha256,
         pixel_signal: "baseline-34de-receiving-field-signal.json",
-        assessment: "The baseline field reads as broad patches and bleeds into FIT letterbox; prior pixel signal proves render changes only, not optical quality.",
+        live_predeploy_capture: livePredeployCapture,
+        screenshot_from_reviewed_local_baseline: "baseline-pre-change-cloud-default.jpg",
+        assessment: "Baseline screenshots document the weak/default field; historical pixel signal proves only render changes, not optical quality.",
         status: "BASELINE_EVIDENCE_REVIEW_REQUIRED",
       },
       first_v3_failed_render: {
@@ -457,38 +532,33 @@ async function main() {
         status: "REAL_DEPLOYED_PAGE_VISUALLY_TOO_WEAK",
       },
       root_causes: [
-        "The pre-V3 static helper used a second assumed 3:4 coordinate space, was not clipped to the renderer photoContentRect, and produced broad patches instead of edge-following light.",
-        "The first V3 fix removed the helper but used four low-alpha radial ovals. The actual Browser Receiving Light-only capture stayed below visibility thresholds in three of four corner samples; its pastel P1 tokens at the 0.07 contract alpha were largely swallowed by the bright fixture.",
-        "The second V3 fix turned the Receiving Light into blurred primary-path strokes. That preserved the path curves but made the bottom field too narrow and faint; the real browser PNG still read as a few fine traces.",
-        "The third V3 fix restored the exact P1 receiving_light_layout ovals and alpha stops, but the 0.34 local opacity ceiling still left the corner field too faint on the real photograph.",
-        "The fourth V3 pass kept the P1 ovals, alpha stops, colors, island weights and shared photoContentRect, but its 0.48 Web-only opacity cap still read as faint traces on the real photo. This pass raises only the Web-review gain/cap and adds a same-photo Receiving-Light-only capture; P1 and Native values remain unchanged.",
-        "The 0.84-cap source-over capture adds only a small average luminance change across broad corner sample windows on the bright P5 fixture; most pixels in those windows receive no field at all. This pass tests screen blending for the static Web Receiving Light so local incident light can lift midtones without changing P1 colors, stops or geometry. The result remains REVIEW_REQUIRED until human inspection of the real PNGs.",
-        "The actual screen-composite Chromium capture at 64880 still read as four corner spots rather than a photo-edge field; candidate B changed the broad corner samples by a mean absolute RGB delta of 9.38, but the real page comparison remained too weak. This pass retains the P1 ovals at a bounded cap and adds only broad, blurred energy sampled from the exact four P1 primary cubic paths, with a 0.13 depth ratio inside P1's 0.08–0.18 range. It adds no path or perimeter and leaves P1/Native values unchanged.",
-        "The eighth browser capture shows that 0.24 oval gain suppresses the corner receiving field: candidate B's .07 × 3.2 peak becomes .05376 before P1 island weighting and radial falloff, while broad curve bloom alone still reads as faint edge traces. The new candidate restores the registered ovals to 1.0 review gain; A/B/C remain bounded by the existing .32 Web-only cap.",
-        "The software-cache renderer previously screen-blended an overlay on a transparent offscreen canvas and then source-over composited that cache onto the already painted photo. The cache now contains the same FIT photo and its field, making both renderer choices blend against the real photo; the new browser check compares their field signal only for compositing parity.",
-        "At dc00e51 the renderer's diffuse bloom followed P1 primary curves whose control points overshoot the photoContentRect; clipping the centered bloom discarded most of the exterior half and left only faint arcs on the photo. The new static field-only sample offset follows the same curves inward within the shared photoContentRect without changing P1 path records.",
-        "The dc00e51 candidate report hard-coded path-bloom ratios that differed from the live page implementation. The capture now reads the page's immutable Receiving Light parameters and fails if the report/candidate declaration disagrees with the rendered code.",
-        "The deployed 5553fb7 page remained visibly weak beside Frozen during direct review. A proposed .60 Web cap would exceed P1's per-layer alpha range and was withdrawn; the final candidates must remain at or below the contract maximum and stay REVIEW_REQUIRED unless direct browser images show a clear field.",
-        "The prior smoke measured pixel changes and blue/gold deltas but did not test whether the edge field was visually clear, localized, or natural.",
-        "Frozen 02 and the registered P5 source photo are different images, so strict same-source Frozen pixel diff is unavailable.",
+        "The live default field was nearly invisible; the old pixel-delta smoke checked only for changed pixels and was incorrectly treated as visual evidence.",
+        "Earlier Web rendering inferred a separate 3:4 photo rectangle, so portions of the receiving field landed in FIT letterbox or drifted from the displayed photo.",
+        "A bright photo and P1-bounded low-alpha local ovals left little perceptual contrast; earlier attempts amplified alpha beyond P1 or added path-derived Receiving Light geometry, so those variants were rejected.",
+        "Four similar corner patches and thin path-only traces read as regular decoration; this pass removes the path bloom and preserves the frozen seven path topology while recording the remaining human-review gate.",
+        "Frozen 02 and the registered P5 source photo are different images, so same-source Pixel Diff is unavailable."
       ],
+
       geometry: { transform_authority: "RecognitionImageTransform FIT oracle / renderer photoContentRect", photoContentRect: geometry.photoContentRect, viewports: viewportMatrix, paths: geometry.paths.map(pickGeometry), mapped_path_points: geometry.mapped_path_points, quiet_gaps: geometry.quiet_gaps, path_points_clamped: false, diagnostic_paths_clipped_to_photoContentRect: false, status: "PASS_FOR_GEOMETRY_MAPPING" },
-      receiving_field_geometry: { authority: "P1 receiving_light_layout, alpha stops, primary paths and contract_edge_depth_ratio", layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: receivingOptics.opacityCap, oval_gain: receivingOptics.ovalGain, depth_ratio: receivingOptics.depthRatio, photo_side_offset_depth_ratio: receivingOptics.fieldInwardOffsetDepthRatio, path_bloom_passes: receivingOptics.pathPasses, composite: "screen over the P1 FIT photo · static Web Review only", field_path_ids: ["B1", "G1", "B3", "G3"], photoContentRect: geometry.photoContentRect, geometry_added: false, renderer_signal_parity: { software_cache_to_hardware_gradient_ratio: rendererSignalRatio, result: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS" }, status: "P1_GEOMETRY_MAPPED_TO_SHARED_RECT" },
+      receiving_field_geometry: { authority: "P1 freezes the local radial-oval class and alpha/depth bounds; exact placements/stops/weights are from the non-frozen runtime snapshot", layout_source_status: config.optical_lab_runtime_snapshot.status, layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: receivingOptics.opacityCap, oval_gain: receivingOptics.ovalGain, depth_contract: receivingDepthRange, composite: receivingOptics.composite, field_path_ids: [], photoContentRect: geometry.photoContentRect, geometry_added: false, renderer_signal_parity: { software_cache_to_hardware_gradient_ratio: rendererSignalRatio, result: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS" }, status: "REVIEW_CANDIDATE_LAYOUT_NOT_FROZEN_DESIGN" },
       static_candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,
         parameters: candidateDefinitions[candidate],
-        receiving_base_alpha_before_global_multipliers: config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light").contract_alpha_before_multipliers[1],
-        receiving_nominal_peak_alpha_after_review_gain_before_island_state_quality: Math.min(receivingOptics.opacityCap,
-          config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light").contract_alpha_before_multipliers[1] * candidateDefinitions[candidate].receiving_field_scale),
+        receiving_base_alpha_before_global_multipliers: receivingContract.contract_alpha_before_multipliers[1],
+        receiving_depth_ratio: candidateDefinitions[candidate].receiving_depth_ratio,
+        receiving_composite: receivingOptics.composite,
+        receiving_nominal_peak_alpha_before_island_state_quality: Math.min(receivingOptics.opacityCap,
+          receivingContract.contract_alpha_before_multipliers[1] * candidateDefinitions[candidate].receiving_field_scale),
         receiving_render_signal: candidateSignal[candidate],
+        receiving_layer_alpha_integrity: candidateAlphaSummary[candidate],
         same_review_fixture_geometry_and_paths: true,
         screenshots: [`static-${candidate}-desktop-board.png`, `static-${candidate}-narrow-board.png`, `static-${candidate}-390x844.png`],
       }])) ,
       candidate_parameter_json: { path: "static-candidate-parameters.json", sha256: sha256(fs.readFileSync(path.join(OUTPUT_DIR, "static-candidate-parameters.json"))) },
       rendered_png_artifacts: renderedArtifacts,
       artifact_manifest: "static-evidence-artifact-manifest.json",
-      layer_images: ["receiving-light-only.png", "receiving-light-off-photo.png", "receiving-light-over-photo.png", "receiving-light-over-photo-software-cache.png", "outer-bloom-only.png", "mid-glow-only.png", "core-only.png", "hairline-echoes-only.png", "full-composite-B-390x844.png"],
+      layer_images: ["receiving-light-only-A.png", "receiving-light-only-B.png", "receiving-light-only-C.png", "receiving-light-over-photo-A.png", "receiving-light-over-photo-B.png", "receiving-light-over-photo-C.png", "receiving-light-off-photo.png", "receiving-light-over-photo-software-cache.png", "outer-bloom-only.png", "mid-glow-only.png", "core-only.png", "hairline-echoes-only.png", "full-composite-B-390x844.png", "fish-focus-review-proxy-only.png"],
       fish_focus: {
         production: "BLOCKED · no production FishSubjectResult mask is bound to this Web review input",
         review_only: "REVIEW_PROXY_NOT_PRODUCTION · Case B historical BBox + manually annotated alpha",
@@ -499,8 +569,9 @@ async function main() {
         alpha_path: reviewAlphaPath,
         alpha_sha256: alphaSha,
         alpha_provenance: bboxEvidence.alpha_provenance,
+        case_b_photo_copy: "fish-focus-review-case-b-photo.jpg",
         current_runtime_log: "NOT_ATTACHED; BBox record is historical and is not a current-head runtime run",
-        screenshots: ["fish-focus-blocked-fish-located.png", "fish-focus-review-proxy-fish-located.png", "fish-focus-review-proxy-species-recognizing.png"],
+        screenshots: ["fish-focus-blocked-fish-located.png", "fish-focus-review-proxy-fish-located.png", "fish-focus-review-proxy-species-recognizing.png", "fish-focus-review-proxy-only.png"],
       },
       gates: {
         composed_page_build_binding: "PASS",
@@ -536,10 +607,14 @@ async function main() {
 function galleryHtml(report) {
   const cand = ["A", "B", "C"].map(candidate => {
     const entry = report.static_candidates[candidate];
-    return `<section><h2>${entry.id} · ${entry.name}</h2><p>底场 ${entry.parameters.receiving_field_scale}× · 主路径 ${entry.parameters.primary_path_scale}× · 次级光丝 ${entry.parameters.secondary_filament_scale}×</p><div class="grid"><figure><img src="static-${candidate}-desktop-board.png"><figcaption>桌面页面截图（左侧 Frozen 与右侧 P5 fixture 并非同源）</figcaption></figure><figure><img src="static-${candidate}-narrow-board.png"><figcaption>窄屏页面截图（左侧 Frozen 与右侧 P5 fixture 并非同源）</figcaption></figure><figure><img src="static-${candidate}-390x844.png"><figcaption>实际渲染 Canvas PNG · IMAGE_RECOGNIZING · 390×844</figcaption></figure></div></section>`;
+    return `<section><h2>${entry.id} · ${entry.name}</h2><p>底场 alpha scale ${entry.parameters.receiving_field_scale}× · 名义峰值 ${entry.receiving_nominal_peak_alpha_before_island_state_quality.toFixed(4)} · 深度 ${entry.receiving_depth_ratio} · 主路径 ${entry.parameters.primary_path_scale}× · 次级光丝 ${entry.parameters.secondary_filament_scale}×</p><div class="grid"><figure><img src="static-${candidate}-desktop-board.png"><figcaption>桌面截图（Frozen 与 P5 fixture 不同源）</figcaption></figure><figure><img src="static-${candidate}-narrow-board.png"><figcaption>窄屏截图（Frozen 与 P5 fixture 不同源）</figcaption></figure><figure><img src="static-${candidate}-390x844.png"><figcaption>实际 Canvas Composite · IMAGE_RECOGNIZING · 390×844</figcaption></figure><figure><img src="receiving-light-only-${candidate}.png"><figcaption>Receiving Light 单层 · ${candidate}</figcaption></figure><figure><img src="receiving-light-over-photo-${candidate}.png"><figcaption>Receiving Light over same photo · ${candidate}</figcaption></figure></div></section>`;
   }).join("\n");
+  const predeploy = report.baseline.live_predeploy_capture;
+  const liveBaselineHtml = predeploy.status.startsWith("CAPTURED")
+    ? `<div class="grid"><figure><img src="baseline-cloud-default.png"><figcaption>部署前正式 HTTPS 页面 · source ${predeploy.page_source_sha}</figcaption></figure><figure><img src="baseline-cloud-receiving-only.png"><figcaption>部署前页面的 Receiving Light 单层</figcaption></figure></div>`
+    : `<p>部署前正式 HTTPS 页面捕获状态：${predeploy.status} · ${predeploy.error || "未返回错误详情"}。</p>`;
   const viewports = report.geometry.viewports.map(row => `<figure><img src="viewport-B-${row.viewport[0]}x${row.viewport[1]}.png"><figcaption>${row.viewport.join("×")} · photoContentRect ${JSON.stringify(row.photoContentRect)}</figcaption></figure>`).join("\n");
-  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EdgeGlow 静态光场证据 V3</title><style>body{font:15px/1.5 system-ui,sans-serif;background:#101b20;color:#eaf3f5;margin:0 auto;padding:24px;max-width:1440px}a{color:#9edbe8}section{border-top:1px solid #38535c;padding:20px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}figure{margin:0}img{display:block;width:100%;height:auto;border:1px solid #38535c;border-radius:8px;background:#152329}figcaption{font-size:12px;color:#aac0c6;padding:6px 0}.badge{display:inline-block;border:1px solid #8c7550;border-radius:999px;padding:4px 10px;color:#ffdda3}pre{white-space:pre-wrap;background:#17272d;padding:12px;border-radius:8px}</style><h1>EdgeGlow 静态光场 · 浏览器真实渲染证据 V3</h1><p class="badge">REVIEW_REQUIRED · 未替用户批准候选</p><p>页面：<a href="${report.page_url}">Optical Review</a> · <a href="${report.acceptance_url}">正式验收中心</a></p><p>source SHA <code>${report.source_sha}</code> · build SHA <code>${report.build_sha}</code> · deploy source <code>${report.deployment_source_sha}</code>（部署仅由 post-deploy live smoke 验证）· 目标状态 IMAGE_RECOGNIZING · P5 FIT 真实 fixture</p><p>源照片 <code>${report.data_source.sha256}</code> · ${report.data_source.dimensions.join("×")} · EXIF ${report.data_source.exif_orientation} · FIT / NO CROP。Frozen source photo identity: <strong>SOURCE_PHOTO_IDENTITY_UNVERIFIED</strong>。</p><section><h2>修复前真实页面 · HEAD 34de</h2><p>GitHub Actions run <code>${report.baseline.workflow_run_id}</code>，artifact <code>${report.baseline.artifact_id}</code>。<a href="${report.baseline.workflow_run_url}">打开原 browser artifact</a>，其中含完整页面截图与 Receiving Field-only PNG。两份图的原始 SHA-256 记录在 <a href="baseline-34de-source.json">来源清单</a>。原图与当前 P5 fixture 同一 SHA；Frozen 图身份仍未确认。</p><p><a href="${report.baseline.pixel_signal}">原像素差 JSON</a>（仅渲染信号，不是视觉通过）</p><p>首轮径向候选可见度门失败：<a href="${report.first_v3_failed_render.artifact_url}">打开首轮 Chromium 证据</a>。第二轮沿主路径绘制仍偏弱，B 的角区平均绝对 RGB 差为 ${report.second_v3_failed_render.candidate_b_mean_abs_rgb_delta_in_sampled_photo_corners.toFixed(2)}：<a href="${report.second_v3_failed_render.artifact_url}">打开第二轮真实截图</a>。第三轮恢复 P1 椭圆后 B 的角区平均绝对 RGB 差仍只有 ${report.third_v3_failed_render.candidate_b_mean_abs_rgb_delta_in_sampled_photo_corners.toFixed(2)}，继续判为偏弱：<a href="${report.third_v3_failed_render.artifact_url}">打开第三轮真实截图</a>。三轮都不冒充视觉通过。</p></section><h2>静态候选 A/B/C</h2>${cand}<section><h2>B · 正式视口矩阵 PNG</h2><div class="grid">${viewports}</div></section><section><h2>图层与几何</h2><p><a href="geometry-diagnostic-390x844.png">纯几何诊断（photoContentRect、网格、七路径、控制点、Quiet Gaps）</a> · <a href="static-closure-v3-report.json">静态闭环 JSON</a> · <a href="static-candidate-parameters.json">A/B/C 参数 JSON</a> · <a href="static-evidence-artifact-manifest.json">PNG SHA-256 清单</a> · <a href="fish-focus-case-b-bbox.json">Case B BBox JSON</a> · <a href="fish-focus-review-only-alpha.png">Review-only alpha PNG</a></p><div class="grid">${report.layer_images.map(file => `<figure><img src="${file}"><figcaption>${file}</figcaption></figure>`).join("")}</div></section><section><h2>Fish Focus 输入来源</h2><p>Production: <strong>BLOCKED</strong>。仅 Review-only Case B 手工 alpha 可见，状态必须保持 <code>REVIEW_PROXY_NOT_PRODUCTION</code>。报告包含历史 BBox 值、fixture SHA、alpha SHA 与缺失的当前 runtime log 说明。</p><div class="grid">${report.fish_focus.screenshots.map(file => `<figure><img src="${file}"><figcaption>${file}</figcaption></figure>`).join("")}</div></section><section><h2>候选参数</h2><pre>${JSON.stringify(report.static_candidates,null,2)}</pre></section><p>这些 PNG 是 Chromium Canvas 页面构建的实际输出；自动化只验证资源、坐标、候选差异和浏览器渲染信号。视觉审美结论仍为 REVIEW_REQUIRED。动态和 Android Runtime 本轮 NOT_RUN。</p></html>`;
+  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EdgeGlow 静态光场证据 V3</title><style>body{font:15px/1.5 system-ui,sans-serif;background:#101b20;color:#eaf3f5;margin:0 auto;padding:24px;max-width:1440px}a{color:#9edbe8}section{border-top:1px solid #38535c;padding:20px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}figure{margin:0}img{display:block;width:100%;height:auto;border:1px solid #38535c;border-radius:8px;background:#152329}figcaption{font-size:12px;color:#aac0c6;padding:6px 0}.badge{display:inline-block;border:1px solid #8c7550;border-radius:999px;padding:4px 10px;color:#ffdda3}pre{white-space:pre-wrap;background:#17272d;padding:12px;border-radius:8px}</style><h1>EdgeGlow 静态光场 · 浏览器真实渲染证据 V3</h1><p class="badge">REVIEW_REQUIRED · 未替用户批准候选</p><p>页面：<a href="${report.page_url}">Optical Review</a> · <a href="${report.acceptance_url}">正式验收中心</a></p><p>source SHA <code>${report.source_sha}</code> · build SHA <code>${report.build_sha}</code> · deploy source <code>${report.deployment_source_sha}</code>（部署仅由 post-deploy live smoke 验证）· 目标状态 IMAGE_RECOGNIZING · P5 FIT 真实 fixture</p><p>源照片 <code>${report.data_source.sha256}</code> · ${report.data_source.dimensions.join("×")} · EXIF ${report.data_source.exif_orientation} · FIT / NO CROP。Frozen source photo identity: <strong>SOURCE_PHOTO_IDENTITY_UNVERIFIED</strong>。</p><section><h2>修复前真实页面与 G0 基线</h2><p>正式页部署前 source SHA：<code>${report.baseline.live_predeploy_capture.page_source_sha || "NOT_CAPTURED"}</code> · 截图状态：<code>${report.baseline.live_predeploy_capture.status}</code>。</p>${liveBaselineHtml}<p><img src="baseline-pre-change-cloud-default.jpg" style="max-width:720px" alt="修复前浏览器截图"><br>修复前存档截图；历史 34de run <code>${report.baseline.workflow_run_id}</code>，<a href="${report.baseline.workflow_run_url}">原始 Actions artifact</a>。历史图 SHA <code>${report.baseline.original_screenshot_sha256}</code>、Receiving Light PNG SHA <code>${report.baseline.original_receiving_layer_sha256}</code> 记录在来源清单。</p><p>旧像素差只证明渲染信号，不是视觉通过。Frozen 02 与当前 P5 photo 不同源，因此标记 SOURCE_PHOTO_IDENTITY_UNVERIFIED。</p></section><h2>静态候选 A/B/C</h2>${cand}<section><h2>B · 正式视口矩阵 PNG</h2><div class="grid">${viewports}</div></section><section><h2>图层与几何</h2><p><a href="geometry-diagnostic-390x844.png">纯几何诊断（photoContentRect、网格、七路径、控制点、Quiet Gaps）</a> · <a href="static-closure-v3-report.json">静态闭环 JSON</a> · <a href="static-candidate-parameters.json">A/B/C 参数 JSON</a> · <a href="static-evidence-artifact-manifest.json">PNG SHA-256 清单</a> · <a href="fish-focus-case-b-bbox.json">Case B BBox JSON</a> · <a href="fish-focus-review-only-alpha.png">Review-only alpha PNG</a></p><div class="grid">${report.layer_images.map(file => `<figure><img src="${file}"><figcaption>${file}</figcaption></figure>`).join("")}</div></section><section><h2>Fish Focus 输入来源</h2><p>Production: <strong>BLOCKED</strong>。Case B 使用历史 BBox 与人工标注 alpha，必须标记 <code>REVIEW_PROXY_NOT_PRODUCTION</code>。<a href="fish-focus-case-b-bbox.json">BBox JSON</a> · <a href="fish-focus-review-only-alpha.png">review alpha PNG</a> · <a href="fish-focus-review-case-b-photo.jpg">Case B fixture photo</a> · <a href="fish-focus-review-proxy-only.png">暖金 Fish Focus 单层 PNG</a>。</p><div class="grid">${report.fish_focus.screenshots.map(file => `<figure><img src="${file}"><figcaption>${file}</figcaption></figure>`).join("")}</div></section><section><h2>候选参数</h2><pre>${JSON.stringify(report.static_candidates,null,2)}</pre></section><p>这些 PNG 是 Chromium Canvas 页面构建的实际输出；自动化验证资源、坐标、图层开关和导出完整性，不替代视觉判断。视觉结论为 REVIEW_REQUIRED；动态实现/录制和 Android Runtime 本轮 NOT_RUN。</p></html>`;
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });
