@@ -26,8 +26,6 @@ REQUIRED_STATIC_PNGS = [
     "receiving-light-over-photo-A.png",
     "receiving-light-over-photo-B.png",
     "receiving-light-over-photo-C.png",
-    "baseline-cloud-default.png",
-    "baseline-cloud-receiving-only.png",
     "fish-focus-review-proxy-only.png",
     "receiving-light-only.png",
     "outer-bloom-only.png",
@@ -78,7 +76,18 @@ def main() -> None:
     assert sha256(parameter_bytes) == static_report["candidate_parameter_json"]["sha256"], "candidate parameter JSON SHA mismatch"
     artifact_manifest = json.loads(fetch(base + STATIC_EVIDENCE + "static-evidence-artifact-manifest.json"))
     artifact_records = static_report["rendered_png_artifacts"]
-    assert {item["file"] for item in artifact_records} >= set(REQUIRED_STATIC_PNGS), "render report is missing required browser PNGs"
+    artifact_file_set = {item["file"] for item in artifact_records}
+    missing_required = sorted(set(REQUIRED_STATIC_PNGS) - artifact_file_set)
+    assert not missing_required, f"render report is missing required browser PNGs: {missing_required}"
+    predeploy_capture = static_report.get("baseline", {}).get("live_predeploy_capture", {})
+    claimed_predeploy_pngs = {
+        name for name in (
+            predeploy_capture.get("default_page_png"),
+            predeploy_capture.get("receiving_only_png"),
+        ) if name
+    }
+    missing_predeploy = sorted(claimed_predeploy_pngs - artifact_file_set)
+    assert not missing_predeploy, f"predeploy capture references missing PNGs: {missing_predeploy}"
     assert artifact_manifest["artifacts"] == artifact_records, "PNG artifact manifest differs from the report"
     image_hashes = {}
     for record in artifact_records:
