@@ -220,8 +220,12 @@ class GeminiNormalHomeResponsiveTest {
                 )
             }
             assertEquals(
-                "visible section title stays 13dp above the active card ${window.name}",
-                13f,
+                "visible section title follows its bounded adaptive gap ${window.name}",
+                resolveGeminiHomeLayoutSpec(
+                    safeWidthDp = window.widthDp.toFloat(),
+                    safeHeightDp = (window.heightDp - 48f).coerceAtLeast(1f),
+                    fontScale = window.fontScale,
+                ).titleToCardGap.value,
                 activeCard.top - sectionTitle.bottom,
                 1.1f,
             )

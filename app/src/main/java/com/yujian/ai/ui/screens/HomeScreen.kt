@@ -61,6 +61,7 @@ import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.calculateEmptyHomeLayoutMapping
 import com.yujian.ai.ui.home.HomeMotionState
 import com.yujian.ai.ui.home.GeminiNormalHomeContent
+import com.yujian.ai.ui.home.GeminiHomeLayoutVariant
 import com.yujian.ai.ui.adaptive.AdaptiveWidthClass
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
@@ -86,6 +87,7 @@ fun HomeScreen(
     onCatchesClick: () -> Unit,
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
+    layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V1,
 ) {
     val view = LocalView.current
     val safeInsets = rememberSafeDrawingInsets()
@@ -165,6 +167,7 @@ fun HomeScreen(
                 motionState = homeMotionState,
                 runtimeAssets = geminiRuntimeAssets,
                 safeInsets = safeInsets,
+                layoutVariant = layoutVariant,
                 modifier = Modifier.fillMaxSize(),
             )
         }
