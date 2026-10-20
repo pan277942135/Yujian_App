@@ -102,6 +102,24 @@ class CanonicalStateGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ISSUE_ALREADY_CLOSED"):
             record(self.path, event(SHA2))
 
+    def test_validator_detects_invalid_status_and_fingerprint(self):
+        from failure_gate import validate_recorded_failures
+        saved = json.loads(self.path.read_text(encoding="utf-8"))
+        self.assertEqual(validate_recorded_failures(saved), [])
+        record(self.path, event(SHA1))
+        self.advance_source(SHA2)
+        record(self.path, event(SHA2))
+        self.advance_source(SHA3)
+        record(self.path, event(SHA3, "distinct diagnosis"))
+        saved = json.loads(self.path.read_text(encoding="utf-8"))
+        self.assertEqual(validate_recorded_failures(saved), [])
+        saved["status"] = "RUNNING"
+        self.assertTrue(any("must be BLOCKED" in e for e in validate_recorded_failures(saved)))
+        saved["status"] = "BLOCKED"
+        key = next(iter(saved["execution_v2"]["issues"]))
+        saved["execution_v2"]["issues"]["forged-id"] = saved["execution_v2"]["issues"].pop(key)
+        self.assertTrue(any("does not match" in e for e in validate_recorded_failures(saved)))
+
     def test_cli_returns_nonzero_after_third_failure(self):
         script = CURRENT / "failure_gate.py"
         for i, sha in enumerate((SHA1, SHA2, SHA3), 1):
