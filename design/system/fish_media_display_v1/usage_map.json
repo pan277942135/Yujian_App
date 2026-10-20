@@ -1,23 +1,30 @@
 {
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN",
   "system_id": "fish_media_display_v1",
   "mappings": {
     "recognition_flow_v1_2": {
       "variant": "FIT_EVIDENCE",
-      "usage": "选择图库原图与已提交识别照片预览"
+      "usage": "识别前原图预览；原图完整显示。若此预览容器要求满幅，前景保留完整原图、同源背景只填充剩余区域。",
+      "geometry_policy": "keep_existing_component_ratio; responsive_width; do_not_switch_ratio_for_photo_orientation"
     },
     "recognition_result_v1": {
       "variant": "CROP_RESULT",
-      "recovery_override": "EVIDENCE_FIT"
+      "recovery_override": "FULL_SOURCE_FOREGROUND_SAME_SOURCE_AMBIENT",
+      "geometry_policy": "responsive_width_keep_result_state_ratio_not_photo_orientation",
+      "crop_order": "BBox锚定扩展→单侧补偿→10/12、8/8、4/4、0/0边距配置→仍不合法才同源背景填充"
     },
     "fish_record_detail_v2": {
       "variant": "ADAPTIVE_DETAIL",
-      "surface": "A_SIDE"
+      "surface": "A_SIDE",
+      "geometry_policy": "responsive_width_keep_detail_hero_ratio",
+      "crop_order": "BBox锚定扩展→单侧补偿→逐步缩小留白→同源背景填充兜底"
     },
     "home_normal_v1": {
       "variant": "ADAPTIVE_DETAIL",
-      "surface": "SHARED_HERO"
+      "surface": "SHARED_HERO",
+      "geometry_policy": "responsive_card_width_keep_component_ratio_bbox_controls_crop_not_card_geometry",
+      "crop_order": "BBox锚定扩展→单侧补偿→逐步缩小留白→同源背景填充兜底"
     },
     "my_catches_v2": {
       "variant": "CROP_THUMBNAIL",
@@ -25,12 +32,29 @@
         82,
         82
       ],
-      "radius_dp": 14
+      "radius_dp": 14,
+      "geometry_policy": "retain_existing_82dp_square_thumbnail; row_layout_responds_to_screen",
+      "crop_order": "BBox锚定扩展→单侧补偿→逐步缩小留白→同源背景填充；源图不可用时中性占位"
     }
   },
   "excluded": [
     "FishRecordDetail B_SIDE",
     "Fish Guide knowledge assets"
   ],
-  "geometry_policy": "existing_page_frozen_geometry_unchanged"
+  "geometry_policy": "responsive_width_keep_component_aspect_ratio_independent_of_photo_orientation",
+  "authority_spec": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md",
+  "supersedes": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
+  "frozen_crop_order": [
+    "bbox_anchored_expansion",
+    "one_sided_boundary_compensation_transfer_missing_margin_to_opposite_side",
+    "reduce_safe_margin_profiles_10x12_then_8x8_then_4x4_then_0x0",
+    "same_source_blurred_background_fill_only_if_no_safe_crop_window"
+  ],
+  "fallback_policy": {
+    "reliable_bbox": "same_source_ambient_fill_only_after_all_safe_crop_profiles_fail",
+    "missing_or_unreliable_bbox": "full_original_foreground_plus_same_source_ambient_background",
+    "invalid_source": "neutral_error_placeholder",
+    "generated_fill": "PROHIBITED",
+    "source_overwrite": "PROHIBITED"
+  }
 }

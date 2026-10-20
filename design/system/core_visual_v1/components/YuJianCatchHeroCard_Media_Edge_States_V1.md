@@ -17,3 +17,18 @@ The board covers Landscape, Portrait, Extreme Portrait, and Embedded Letterbox m
 - No synthetic replacement fish, screenshot reconstruction, content in-painting, or solid black information strip.
 - Preserve existing Hero outer geometry and radius for both variants. Keep the readability gradient light.
 - HOME retains its existing species / measurement / time / location content rules. DETAIL retains measurement / location and low-weight `编辑 >`, without time.
+
+
+## V1.1 current media-policy addendum — 2026-10-20
+
+This addendum supersedes conflicting crop/fallback behavior in this V1 document. The existing raster remains the visual reference for surface, radius, hierarchy and edge-state intent; it is not evidence of Android runtime completion.
+
+- Card width responds to available screen content width; the approved component aspect ratio remains stable. The photo's portrait/landscape orientation must not change card geometry.
+- Keep the exact original FishRecord source untouched and apply all crop/ambient operations only to presentation derivatives.
+- Use a verified oriented-source BBox as crop anchor. Initial margins: 10% horizontal and 12% vertical.
+- When one side reaches the source edge, stop expanding on that side and transfer unavailable expansion to the opposite side where space exists.
+- Retry safe margins in order: 10%/12%, 8%/8%, 4%/4%, 0%/0%. Every candidate must contain the complete BBox and remain within source bounds after pixel rounding.
+- Only if all candidates fail, or BBox is missing/untrusted, use full original foreground plus same-source blurred ambient background.
+- The foreground remains sharp and complete; blend its perimeter only where it does not obscure known fish pixels. No black/pure-color letterboxing, non-uniform stretch, generated fill, inpainting, or synthetic fish.
+- This policy applies to HOME and DETAIL shared Hero media. Each page retains its own approved outer geometry and content layout.
+- The reference raster is not a device screenshot. Record Runtime and device evidence separately.

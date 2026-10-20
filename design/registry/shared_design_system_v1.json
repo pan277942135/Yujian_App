@@ -142,14 +142,14 @@
       "display_name": "鱼获图片自适应显示设计",
       "category": "foundation",
       "overall": "FROZEN",
-      "current_version": "V1",
+      "current_version": "V1.1",
       "navigation_mode": "submenu_direct",
       "show_variant_index": false,
       "preview": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
       "preview_note": "真实鱼获素材来自原始仓库 fixture，按 Git blob 字节完全一致的副本发布至 design 供 GitHub Pages 预览；容器比例是展示测试，非安全 bbox 验收。",
-      "note": "Fit 保护整张原图；Result Crop 必须通过 FishSafeRect 安全裁切；Detail/HOME 采用同源 Adaptive；我的鱼获沿用 82dp 方形主体裁切。页面专属冻结合同优先。设计 FROZEN，不代表运行已验收。",
+      "note": "V1.1 已冻结：容器宽度随屏幕响应、同类卡片比例稳定且不随照片方向切换；BBox 锚定扩展→单侧补偿→逐步缩小留白→仍不可行才同源背景填充。原图不覆盖、不拉伸、不生成式补画。设计冻结不代表 Android Runtime 已验收。",
       "authority_paths": [
-        "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
+        "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md",
         "design/system/fish_media_display_v1/usage_map.json",
         "design/system/fish_media_display_v1/real_photo_cases.json",
         "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
@@ -163,15 +163,15 @@
           "name": "01 · Fit｜选择图片识别",
           "status": "FROZEN",
           "usage": "选择图库图片后进入识别前，原图 100% 完整显示。",
-          "note": "EVIDENCE_FIT：contain，不裁切照片四边，留白用中性背景；相机实时 Preview 不在本合同中。",
-          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
+          "note": "选择图片识别保留完整原图；容器若要求满幅，可使用完整原图前景 + 同源背景填充，不裁掉源图边缘。",
+          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md"
         },
         {
           "id": "CROP_RESULT",
           "name": "02 · Crop｜识别结果",
           "status": "FROZEN",
-          "usage": "High / Medium / Low 优先安全 Fill；No Fish / Image Quality 强制完整 Fit。",
-          "note": "真实 bbox → FishSafeRect（0.14 横向、0.18 纵向扩展；12dp 安全边距）；不能证明安全则 SUBJECT_SAFE_FIT；结果页禁止 blur ambient。",
+          "usage": "High / Medium / Low 使用可靠 BBox 安全裁切；No Fish / Image Quality 不执行鱼体裁切，完整原图前景 + 同源背景填充。",
+          "note": "BBox锚定扩展→单侧补偿→10/12、8/8、4/4、0/0边距配置；仍无合法窗口才同源背景填充。无可靠 BBox 时直接完整原图前景 + 同源背景。卡片宽度响应屏幕，比例不随照片方向切换。",
           "authority_path": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
         },
         {
@@ -179,7 +179,7 @@
           "name": "03 · Adaptive｜鱼获详情 A 面",
           "status": "FROZEN",
           "usage": "鱼获详情 A 面与有数据首页共用 Hero；安全 Fill 优先，必要时完整前景 + 同源柔化背景。",
-          "note": "沿用 YuJianCatchHeroCard Frozen 外框；不能裁断鱼体，不能出现硬黑边。",
+          "note": "HOME/DETAIL 保留各自既有组件比例，宽度随可用屏幕响应；可靠 BBox 按冻结顺序裁切，失败时完整原图前景 + 同源柔化背景。原图不变。",
           "authority_path": "design/system/core_visual_v1/components/YuJianCatchHeroCard_Media_Edge_States_V1.md"
         },
         {
@@ -187,7 +187,7 @@
           "name": "04 · Crop｜我的鱼获",
           "status": "FROZEN",
           "usage": "V2 时间线 FishRecordRowCard 的真实照片方形缩略图。",
-          "note": "82dp × 82dp；R14dp；真实鱼体锚点优先、无 bbox 时中心裁切；主体不能完整保留时回退 Fit/SoftWater。",
+          "note": "保留当前 82dp×82dp、R14dp 方形缩略图；可靠 BBox 按冻结顺序裁切，缺失/不可信时完整原图前景 + 同源背景填充，源图不可用时中性占位。",
           "authority_path": "design/pages/fish_records/list/My_Catches_List_Image_Spec_V1.md"
         },
         {
@@ -195,9 +195,12 @@
           "name": "05 · 边界案例与验收",
           "status": "FROZEN",
           "usage": "跨页面方向、比例、贴边、无 bbox、黑边及图片异常的设计验收矩阵。",
-          "note": "案例区展示的是同一张真实照片映射至不同容器的差异；无真实原图对应的极端拍摄比例仍列待实测，不得冒充通过。",
-          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
+          "note": "验收横竖照片、贴边、极端比例、BBox 缺失、EXIF、不同屏幕宽度和字体缩放；静态示意不得作为 Android 真机证据。",
+          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md"
         }
+      ],
+      "historical_authority_paths": [
+        "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
       ]
     },
     {

@@ -668,12 +668,18 @@ function fishMediaFrameHtml(photoPath, mode, frame) {
 function fishMediaOverviewHtml(item) {
   const photo = item.preview;
   const definitions = [
-    {mode:"fit", name:"FIT", usage:"图片选择 · 完整原图", frame:"portrait"},
-    {mode:"crop", name:"CROP", usage:"识别结果 / 我的鱼获 · 有条件的主体裁切", frame:"square"},
-    {mode:"adaptive", name:"ADAPTIVE", usage:"详情 A 面 / HOME · 同源柔化环境", frame:"hero"}
+    {mode:"crop", name:"BBox SAFE CROP", usage:"可信 BBox：先锚定扩展、单侧补偿，再缩小留白", frame:"square"},
+    {mode:"adaptive", name:"SAME-SOURCE FALLBACK", usage:"裁切不安全或 BBox 不可信：完整原图前景 + 同源模糊背景", frame:"hero"},
+    {mode:"fit", name:"ORIGINAL SOURCE", usage:"原图证据始终保留；展示裁切不覆盖原图", frame:"portrait"}
   ];
   return '<div class="fish-media-overview">' +
-    '<div class="fish-media-overview-title">同一真实鱼获照片 · 三种容器内部显示方案</div>' +
+    '<div class="fish-media-overview-title">V1.1 冻结：卡片比例稳定、按屏幕响应；鱼体构图由 BBox 决定</div>' +
+    '<section class="fish-media-policy-panel">' +
+      '<div class="fish-media-policy-row"><b>响应式容器</b><span>宽度按可用屏幕内容宽度计算；同类卡片比例保持稳定，不随照片横拍 / 纵拍切换。</span></div>' +
+      '<div class="fish-media-policy-row"><b>裁切优先级</b><span>BBox 锚定扩展 → 单侧边界补偿 → 10%/12%、8%/8%、4%/4%、0%/0% 留白配置。</span></div>' +
+      '<div class="fish-media-policy-row"><b>最后兜底</b><span>仍无合法安全窗口，或 BBox 缺失 / 不可信：完整原图前景 + 同源模糊背景；禁止生成式补图和非等比拉伸。</span></div>' +
+      '<p class="fish-media-policy-foot">原始照片永不被覆盖。HOME、识别结果、详情 / 编辑和我的鱼获列表保留各自既有容器比例。设计规则冻结不代表 Android Runtime 或真机验收已通过。</p>' +
+    '</section>' +
     '<div class="fish-media-overview-grid">' + definitions.map(x =>
       '<article class="fish-media-demo">' +
         '<h4>' + esc(x.name) + '</h4>' +
@@ -681,11 +687,10 @@ function fishMediaOverviewHtml(item) {
         '<p>' + esc(x.usage) + '</p>' +
       '</article>'
     ).join("") + '</div>' +
-    '<p class="fish-media-disclaimer">真实素材来自仓库既有 sample_recent_catch.jpg；容器比例是展示测试，不代表原图比例。Crop 图像仅说明铺满效果，未经鱼体 bbox 安全裁切验证。</p>' +
+    '<p class="fish-media-disclaimer">真实素材来自仓库既有 sample_recent_catch.jpg；容器比例是静态展示测试，不代表原图比例或安全 BBox 裁切 PASS。正式运行须提供真实 BBox 与 Android 设备证据。</p>' +
     '<a class="fish-media-source-link" href="' + esc(repoHref(photo)) + '" target="_blank" rel="noreferrer">查看原始真实鱼获照片 ↗</a>' +
   '</div>';
 }
-
 function fishMediaExamplesHtml(item, variant) {
   const fixture = fishMediaCases?.fixture;
   const cases = (fishMediaCases?.examples || []).filter(x => x.variant === variant.id);
@@ -711,7 +716,7 @@ function fishMediaExamplesHtml(item, variant) {
         '<div class="fish-media-case-caution">' + esc(c.qualification || "") + '</div>' +
       '</article>'
     ).join("") + '</div>' + pending +
-    '<p class="fish-media-disclaimer">本页面展示原始真实鱼获素材的 CSS 容器映射；未修改原图字节，也不是 Android 设备运行截图。正式运行需按原有 FishSafeRect、Safe Fit、Hero/列表合同验收。</p>' +
+    '<p class="fish-media-disclaimer">本页面展示原始真实鱼获素材的 CSS 容器映射；未修改原图字节，也不是 Android 设备运行截图。正式运行需按 Fish Media Display V1.1 的 BBox 锚定、边界补偿、留白递减和同源背景回退合同验收。</p>' +
   '</div>';
 }
 

@@ -1,48 +1,48 @@
-# Normal Home — Real Catch HOME Hero Media Contract V1
-Status: FROZEN_PRESENTATION_RULES / INDEPENDENT_REAL_PHOTO_COVERAGE_NOT_YET_VERIFIED
-Authority: NH01/NH02 Hero 740x880 reference outer frame, shared YuJianHeroCard/HOME, current Home screenshot and FishRecordDetail evidence semantics.
+# Normal Home — Real Catch HOME Hero Media Contract V1.1
 
-## Media principles and object priority
+Status: **FROZEN_PRESENTATION_RULES V1.1 / ANDROID RUNTIME EVIDENCE SEPARATE**
 
-The Home Hero is a **presentation crop**, not an archived original photograph. The original fish-catch media and FishRecord identity MUST be preserved in the data layer and opened FishRecordDetail, unmodified. Do not fake/create/replace a fish. No portrait illustration, model-generated fish or other catch substituted into missing photos.
+Authority: NH01/NH02 shared HOME Hero, real source-photo evidence semantics, and current Fish Media Display V1.1 contract.
 
-1. Use the exact real stored FishRecord photo, oriented according to its EXIF/decoded orientation. Keep photo color, species evidence, timestamp and original image provenance. Recognize source black bars before deciding crop; no stretched, rotated, synthesized scene.
-2. For photos that safely support a center cover crop without cutting off the identified fish, use `ContentScale.Crop` (centered image-to-frame cover) with single rounded Hero clip and restrained lower legibility gradient. Crop-to-fill does not mean crop-away-the-fish.
-3. When a verified fish bbox/segmentation is available, choose the smallest translate-only crop within the original photo that keeps the whole fish's verified silhouette and at least a small contextual margin, where feasible; do not resize the Hero card. Verified bbox MUST be in the actual decoded orientation and source photo coordinate frame; reject inconsistent boxes.
-4. If object cannot fit within a cover crop or bbox is untrusted/missing and central cover visibly harms evidence, choose **EVIDENCE_FIT**: fit the entire unaltered image in a front layer and fill unused Hero area with a soft defocused crop of the **same photo**, bounded within the same rounded card. The back layer is explicitly a display derivative, never a source/archived original; source bitmap remains untouched. No black/pure page-background letterboxing. Do not invent image content.
-5. If no bbox is available, do not pretend center crop is fish-safe. Use center Crop for non-extreme aspect similarity only where a QA/photo fixture establishes safety; otherwise default to EVIDENCE_FIT. Preserve real evidence over photographic full bleed. Exact mode and reason are required in per-record debug diagnostics.
-6. If source media already contains black bars, distinguish actual captured black background from letterboxing using reliable edge/format evidence. Only trim **verified technical borders**, and retain original file. If uncertain, treat as captured content and use EVIDENCE_FIT; never blindly crop visually dark fish fins.
-7. For portrait, landscape, near-edge fish, incomplete fish, flash/night capture: no hallucinated completion, inpainting or generated extra fish; do not zoom past the source's edge or rewrite the captured image.
-8. Image unavailable: neutral NH03 placeholder with species and record ID preserved. Loading/recovery replaces media surface only, no entering celebration.
+## Core principle
 
-The Home outer card must remain reference 740x880 at S=1, radius32, footer metadata inset left56 bottom32 and 20px text row spacing. Preserve color/contrast of source fish photograph; lower readability treatment must keep metadata readable without opaque black strips. No additional inside-Hero navigation. Swipe gestures and clickable Hero retain full size.
+The card geometry responds to available screen width but retains the component's frozen aspect ratio. The source photo's portrait/landscape orientation never changes the card ratio. BBox controls presentation crop and subject positioning, not card geometry.
 
-## Deterministic decision state
+The 740×880 HOME Hero reference is a design canvas and aspect-ratio reference, not a fixed device-pixel size. Runtime width follows available content width after insets and margins; height follows the approved ratio. Keep the existing maximum-width and layout constraints. Do not alter footer metadata, radius, typography, or CTA as part of this media update.
 
-- `VALID_CROP`: verified object box fully contained by displayed cover crop with margin; no source clipping of fish; output `CROP`.
-- `SAFE_CENTER_CROP`: source aspect ratio near Hero aspect 740/880 with no evidence of subject clipping; output `CROP`. Near ratio is an *optimization hint*, not fish-validity proof: if missing trusted box and subject position uncertain choose EVIDENCE_FIT.
-- `INCOMPATIBLE_CROP`: real source image would lose verified fish region under cover; output `EVIDENCE_FIT`.
-- `BBOX_UNTRUSTED` or `BBOX_ABSENT` with extreme aspect/edge risk: `EVIDENCE_FIT`.
-- `IMAGE_UNAVAILABLE`: approved NH03 placeholder.
+## Frozen media rules
 
-No fixed numerical confidence threshold is invented here, because detector thresholds belong to the frozen Recognition pipeline. A trusted bbox is one already approved by that pipeline with coordinate/orientation consistency; it is NOT inferred by an image aesthetic classifier.
+1. Use the exact real stored FishRecord photo, oriented according to EXIF/decoded orientation. Keep original color, species evidence, timestamp, and provenance. The original media bytes must remain unchanged.
+2. If a trusted BBox exists, use it as the anchor for a safe presentation crop. Start with 10% horizontal and 12% vertical margin.
+3. If a requested expansion reaches a source edge, stop on that side and transfer the unavailable expansion to the opposite side where space exists. Apply this independently horizontally and vertically.
+4. If no legal crop window exists, retry with margin profiles 10%/12%, 8%/8%, 4%/4%, then 0%/0%. Recompute edge compensation and crop geometry for every profile.
+5. Use crop-to-fill only when the complete valid BBox remains visible and the crop window is inside the oriented source after pixel rounding. Do not cut fish head, tail, fins, or other verified fish pixels.
+6. If every safe crop profile fails, or BBox is absent/untrusted, use the complete original photo as the foreground and a soft low-contrast cover of the same photo as the background. The background is a presentation derivative, never a replacement source photo.
+7. Avoid a hard rectangular foreground seam. Use restrained edge blending where it will not soften or obscure the known fish region. Do not apply a uniform blur to the fish body.
+8. The final media surface fills the rounded card. No black bars, pure-color letterboxing, empty bands, non-uniform stretching, AI outpainting, inpainting, synthetic fish, or unrelated image substitution.
+9. If the source image already contains dark areas or technical bars, do not trim them unless technical letterboxing is reliably identified. When uncertain, preserve the captured image and use same-source background fallback.
+10. Missing or undecodable media uses the approved neutral placeholder while preserving FishRecord identity and metadata.
 
-## Eight independent source cases for acceptance
+## Deterministic decision states
 
-F01 horizontal 4:3; F02 horizontal 16:9; F03 vertical 3:4; F04 vertical 9:16; F05 extreme vertical (<0.5 aspect); F06 fish touches capture edge; F07 technical letterbox; F08 no reliable bbox. Each case requires a real, individually identifiable original photo with clear provenance, SHA-256, width/height, source/usage permission and fish region ground-truth or inspection label. F07 may be a **clearly marked processed derivative** of an approved real photo to create known technical bars, not a falsely presented independent original. F08 can use an approved real photograph without bbox and record `bbox=ABSENT`.
+- VALID_BBOX_CROP: crop passes complete-BBox and source-boundary checks.
+- EDGE_COMPENSATED_CROP: edge expansion was transferred to the opposite side and the resulting window passes all checks.
+- REDUCED_MARGIN_CROP: a reduced margin profile passes all checks.
+- SAME_SOURCE_AMBIENT_FALLBACK: no safe crop exists or BBox is not trustworthy; complete source remains in foreground.
+- IMAGE_UNAVAILABLE: neutral approved placeholder.
 
-Existing repository media `app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg` and `app/src/androidTest/assets/recognition_real_catch_fixture.jpg` require byte-hash comparison and license/source review; they must NOT be claimed as two independent real photos merely because two paths exist. Do not generate AI fish to fill missing slots. If provenance is absent, keep `FIXTURE_PROVENANCE_PENDING` and the test `NOT_RUN`.
+Record the selected mode and reason in diagnostic output. Do not claim a BBox is valid solely because a visually attractive crop was produced.
 
-## Android test and evidence
+## Responsive and device acceptance
 
-For each fixture/mode capture:
-- source original SHA/dimensions/EXIF orientation/source and permission;
-- fish bbox if valid, bbox orientation frame and whether crop would remove any verified fish pixels;
-- chosen mode CROP/EVIDENCE_FIT/PLACEHOLDER and reason;
-- resulting visible fish body coverage or full-image visibility;
-- original-resolution HOME screenshot and matching DETAIL screenshot from SAME FishRecord ID; no confusing source photo crop with stored original;
-- no black bar exposure, no nonuniform image warp, one rounded card clip, footer text legible at standard and fontScale1.3;
-- overlays are display layers only, saved FishRecord image must have identical hash before/after;
-- run output records APK commit and SHA, screenshot/fixture hashes, case ID and PASS/FAIL/BLOCKED_INFRA/NOT_RUN.
+- Test 320dp, 360dp, 393dp, 430dp content widths; include ≥600dp only if tablet/wide-window layout is supported.
+- Test font scale 1.0× and 1.3×, plus 1.5× where supported.
+- Test gesture navigation, three-button navigation, edge-to-edge and safe insets.
+- Verify the card width follows available content width and the component ratio remains stable.
+- Verify HOME and DETAIL surfaces use the same original FishRecord ID and preserve the original source hash.
+- Verify loading/caching does not cause card geometry changes.
+- Each case must record original SHA, oriented dimensions, EXIF orientation, BBox provenance, crop window or fallback reason, screenshot hash, APK commit and test environment.
 
-Minimum 8 fixture cases, at least 16 Android runtime screenshots (HOME+DETAIL) when the required distinct sources are available. Those numbers are evidence targets, not pre-claimed results.
+Required source cases: landscape, portrait, extreme portrait, fish near each edge, embedded technical letterbox, night/flash capture, no reliable BBox, and decode failure. Missing source provenance remains BLOCKED/NOT_RUN; do not synthesize AI fish to fill test slots.
+
+The design contract is frozen; Android runtime and real-device evidence remain separate gates.

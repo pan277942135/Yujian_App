@@ -193,18 +193,20 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 
 新增 `#page/home_normal_v1/hifi/NH07` 二级菜单，由 `design/registry/experience_registry_v1.json` 的 `home_normal_v1.hifi_views` 注册。五态独立预览：真实头像、默认头像、加载、失败、游客。读取 `07_avatar_states/README.md` 与 PNG SHA Manifest；Guest 资源和登录 fallback 分离。本工作区属于设计稿与规范展示，不包含 Android 代码改动。NH01 Frozen PNG 不重写。新菜单进入部署后才会出现在公开的 GitHub Pages 网站。
 
-## 鱼获图片自适应显示设计 V1（公共设计系统）
+## 鱼获图片自适应显示设计 V1.1（公共设计系统）
 
-设计冻结：2026-10-10。一级菜单：`#shared/fish_media_display_v1`（默认收起）。
+当前冻结权威：`design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md`。V1 原文作为历史记录保留，V1.1 在响应式容器几何、BBox 裁切顺序和背景回退方面取代冲突规则。
 
-子菜单：01 Fit / 选择识别、02 Crop / 识别结果、03 Adaptive / 详情 A 面、04 Crop / 我的鱼获、05 边界案例与验收。
+- 公共入口：`#shared/fish_media_display_v1`，默认收起。
+- 组件宽度随可用屏幕内容宽度响应；同一组件比例保持稳定，不因照片横拍/纵拍切换卡片比例。
+- 固定处理顺序：BBox 锚定扩展 → 单侧边界补偿 → 留白 10%/12%、8%/8%、4%/4%、0%/0% 逐级缩小 → 仍无安全窗口时同源模糊背景填充。
+- BBox 缺失或不可信时不进行激进中心裁切；使用完整原图前景 + 同源背景填充。
+- 禁止非等比拉伸、生成式扩图、inpainting 或伪造鱼体；原始媒体字节保持不变。
+- 规则适用 HOME 最近鱼获/轮播、识别结果、详情/编辑 Hero 和我的鱼获列表缩略图；各组件保留其现有参考比例和页面状态几何。
+- 真实照片演示见 `design/system/fish_media_display_v1/real_photo_cases.json`。演示只是 CSS 容器映射，不是真机截图，也不是没有真实 BBox 时的安全裁切证明。
+- 设计冻结、代码实现、APK 构建、模拟器测试和真机验收分别记录，不能互相代替。
 
-- 规则主文档：`design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md`。
-- 四页面及 HOME 共享 Hero 映射：`design/system/fish_media_display_v1/usage_map.json`。
-- 真实照片演示：`design/system/fish_media_display_v1/real_photo_cases.json`。使用仓库已有 `sample_recent_catch.jpg` 原始 JPEG；真实鱼获、同源不同容器，不是 AI 合成，也不声称无 bbox Crop 的视觉示意为安全裁切实测 PASS。
-- 外层冻结页面 Geometry 和独立媒体合同不变；设计冻结不表示 Android runtime 已完成验收。
-
-GitHub Pages 仅复制 `design/`，因此真实照片展示资产固定为 `design/system/fish_media_display_v1/assets/real_catch_source.jpg`（与原始 app 测试照片字节相同）。
+GitHub Pages 仅复制 `design/`。合并到 main 并完成 Pages 部署后，上述规则才会出现在公开 Design Manager 页面。
 
 ## NH07 高清母图
 
