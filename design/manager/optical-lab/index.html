@@ -56,8 +56,9 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
     <p class="subtitle">复用 PR #165 三状态视觉权威与 PR #166 P1–P5 配置，在浏览器里研究 PhotoViewport、边缘光场、Fish Focus 和卡片叠层。这里的浏览器结果不代表 Figma 原生结构或 Android Runtime 验收。</p>
   </div>
   <div class="header-actions">
-    <a href="../" style="text-decoration:none"><button type="button">← Design Manager</button></a>
+    <a id="opticalBackLink" href="../" style="text-decoration:none"><button type="button">← 验收中心</button></a>
     <a href="https://github.com/pan277942135/Yujian_App/pull/166" target="_blank" rel="noreferrer" style="text-decoration:none"><button type="button">PR #166 Draft</button></a>
+    <a href="https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/" target="_blank" rel="noreferrer" style="text-decoration:none"><button type="button">截图与 WebM 证据</button></a>
     <button id="resetButton" type="button">恢复 Frozen 默认参数</button>
   </div>
 </header>
@@ -270,7 +271,8 @@ function mountReviewLayout(){
   header.querySelector("h1").textContent="Recognition Processing · Optical Lab";
   header.querySelector(".pill").textContent="STATIC + DYNAMIC · WEB REVIEW";
   header.querySelector(".subtitle").textContent="接收光场的静态候选与动态节奏评审。";
-  const actions=header.querySelector(".header-actions");actions.querySelector("a:first-child").remove();
+  const actions=header.querySelector(".header-actions"),backLink=actions.querySelector("#opticalBackLink");
+  if(backLink){const nested=/\/nh01_acceptance\/edgeglow-fish-static\/optical-review(?:\/|$)/.test(location.pathname);backLink.href=nested?"../":"../nh01_acceptance/edgeglow-fish-static/";backLink.querySelector("button").textContent=nested?"← EdgeGlow 静态评审":"← Acceptance Center";}
   actions.appendChild(document.getElementById("exportPreview"));
   const advancedModes=document.createElement("div");advancedModes.id="advancedModes";advancedModes.className="advanced-modes";advancedModes.innerHTML="<span class=\"tiny\">高级比较：</span>";
   const modeRoot=document.getElementById("compareModes");modeRoot.classList.add("main-compare-modes");
@@ -312,12 +314,14 @@ function mountReviewLayout(){
   document.getElementById("importExperiment").addEventListener("change",importExperiment);
 }
 function designRootUrl(path){
+  const marker="/design/manager/", index=location.pathname.indexOf(marker), siteBase=index>=0?location.pathname.slice(0,index)+"/":"/";
   const relative=String(path).replace(/^design\//,"");
-  return new URL("../../"+relative,location.href).href;
+  return new URL(siteBase+"design/"+relative,location.origin).href;
 }
 function repositoryAssetUrl(path){
-  if(!/\/design\/manager\/optical-lab(?:\/|$)/.test(location.pathname))return null;
-  return new URL("../../../"+String(path).replace(/^\//,""),location.href).href;
+  if(!/\/design\/manager\/(?:optical-lab|nh01_acceptance\/edgeglow-fish-static\/optical-review)(?:\/|$)/.test(location.pathname))return null;
+  const marker="/design/manager/", index=location.pathname.indexOf(marker), siteBase=index>=0?location.pathname.slice(0,index)+"/":"/";
+  return new URL(siteBase+String(path).replace(/^\//,""),location.origin).href;
 }
 function setOverallStatus(status,message){
   const chip=$("overallStatus");if(!chip)return;chip.textContent=status;chip.dataset.status=status;
@@ -506,7 +510,8 @@ async function setFocusMode(mode){
   try{
     if(!elements.reviewCaseB){
       const photo=await loadVerifiedImage(repositoryAssetUrl(REVIEW_CASE_B.fixture),REVIEW_CASE_B.fixtureSha256,1152,1536,{asset_id:"case-b-production-detector-photo",repository_path:REVIEW_CASE_B.fixture,source_revision:sourceRevisionFor("photo_fixture"),role:"detector_fixture",provenance:"Case B fixture consumed by the real FishRecognitionPipeline Android orientation test; Review-only overlay uses an independently manual alpha annotation"});
-      const mask=await loadVerifiedImage(repositoryAssetUrl(REVIEW_CASE_B.mask),REVIEW_CASE_B.maskSha256,undefined,undefined,{asset_id:"case-b-review-only-alpha",repository_path:REVIEW_CASE_B.mask,source_revision:sourceRevisionFor("review_candidate"),role:"review_only_mask",provenance:"human-annotated alpha from source photo; not a production FishSubjectResult mask"});
+      const maskUrl=new URL("./review_v1/fish_focus_review_only_alpha.png",location.href).href;
+      const mask=await loadVerifiedImage(maskUrl,REVIEW_CASE_B.maskSha256,undefined,undefined,{asset_id:"case-b-review-only-alpha",repository_path:REVIEW_CASE_B.mask,source_revision:sourceRevisionFor("review_candidate"),role:"review_only_mask",provenance:"human-annotated alpha from source photo; not a production FishSubjectResult mask"});
       elements.reviewCaseB={photo,mask};
     }
     elements.focusMode="REVIEW_PROXY_NOT_PRODUCTION";elements.photo=elements.reviewCaseB.photo.image;elements.photoUrl=elements.reviewCaseB.photo.url;elements.mask=elements.reviewCaseB.mask.image;elements.maskBoundaryCache=null;

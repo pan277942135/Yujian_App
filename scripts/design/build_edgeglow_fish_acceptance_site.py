@@ -12,15 +12,19 @@ import subprocess
 from pathlib import Path
 
 
-CENTER_BRANCH = "design/nh01-cloud-structured-parity-v1"
+CENTER_BRANCH = "main"
 PHOTO_PATH = "design/system/fish_media_display_v1/assets/real_catch_source.jpg"
 EXPECTED_PHOTO_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef"
 OPTICAL_CONFIG = Path("design/system/recognition_optical_v2/RecognitionOpticalConfigV2.json")
 ROUTE_PATH = Path("design/manager/nh01_acceptance/edgeglow-fish-static")
+OPTICAL_REVIEW_SOURCE = Path("design/manager/optical-lab")
+OPTICAL_REVIEW_ROUTE = ROUTE_PATH / "optical-review"
+CASE_B_FIXTURE = Path("app/src/androidTest/assets/detector_case_b_night_flash.jpg")
+EVIDENCE_GALLERY_URL = "https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/"
 ENTRY = (
     '<a class="mode-button edgeglow-entry" data-edgeglow-entry="recognition-processing" '
-    'href="./edgeglow-fish-static/" aria-label="Recognition Processing → EdgeGlowView Fish Static Prototype">'
-    'Recognition Processing → EdgeGlowView Fish Static Prototype</a>'
+    'href="./edgeglow-fish-static/" aria-label="Recognition Processing → EdgeGlow Fish Static + Dynamic Review">'
+    'Recognition Processing → EdgeGlow Fish Static Prototype · Static + Dynamic Review</a>'
 )
 
 
@@ -61,8 +65,12 @@ def main() -> None:
     source_photo = args.center_root / PHOTO_PATH
     fixture_path = args.pr_root / ROUTE_PATH / "fixture.json"
     config_path = args.pr_root / OPTICAL_CONFIG
-    if not all(path.is_file() for path in (registry_path, source_photo, fixture_path, config_path)):
-        raise SystemExit("Expected photo registry, source image, optical config and prototype fixture are required.")
+    optical_page = args.pr_root / OPTICAL_REVIEW_SOURCE / "index.html"
+    case_b_photo = args.pr_root / CASE_B_FIXTURE
+    review_alpha = args.pr_root / OPTICAL_REVIEW_SOURCE / "review_v1/fish_focus_review_only_alpha.png"
+    bbox_record = args.pr_root / OPTICAL_REVIEW_SOURCE / "review_v1/fish_focus_case_b_bbox.json"
+    if not all(path.is_file() for path in (registry_path, source_photo, fixture_path, config_path, optical_page, case_b_photo, review_alpha, bbox_record)):
+        raise SystemExit("Expected photo registry, source image, static fixture, optical review, Case B fixture and provenance files are required.")
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     registered = registry["fixture"]
     fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
@@ -99,6 +107,21 @@ def main() -> None:
     prototype_source = args.pr_root / ROUTE_PATH
     prototype_output = args.output_root / ROUTE_PATH
     shutil.copytree(prototype_source, prototype_output)
+    optical_output = args.output_root / OPTICAL_REVIEW_ROUTE
+    shutil.copytree(args.pr_root / OPTICAL_REVIEW_SOURCE, optical_output)
+    review_build_info = {
+        "pull_request": 166,
+        "head_sha": args.pr_sha,
+        "workflow": "edgeglow-fish-static-pages-composition",
+        "acceptance_center_source_sha": args.center_sha,
+    }
+    (optical_output / "build-info.js").write_text(
+        "window.OPTICAL_LAB_BUILD_INFO__ = " + json.dumps(review_build_info, separators=(",", ":")) + ";\n",
+        encoding="utf-8",
+    )
+    case_b_output = args.output_root / CASE_B_FIXTURE
+    case_b_output.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(case_b_photo, case_b_output)
     shared_config_output = args.output_root / OPTICAL_CONFIG
     shared_config_output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(config_path, shared_config_output)
@@ -114,6 +137,8 @@ def main() -> None:
         "photo_dimensions": [fixture["photo"]["width"], fixture["photo"]["height"]],
         "optical_config_version": optical_config["schema_version"],
         "optical_config_sha256": sha256(config_path),
+        "optical_review_route": "/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/",
+        "evidence_gallery_url": EVIDENCE_GALLERY_URL,
         "contour_source": fixture["contour"]["source"],
         "android_runtime": "NOT_RUN",
         "visual_quality": "REVIEW_REQUIRED",
@@ -143,8 +168,11 @@ def main() -> None:
 
     if not (prototype_output / "index.html").is_file() or not (prototype_output / "edgeglow.js").is_file():
         raise SystemExit("Prototype route is incomplete after composition.")
+    if not all(path.is_file() for path in (optical_output / "index.html", optical_output / "review_v1/fish_focus_case_b_bbox.json", optical_output / "review_v1/fish_focus_review_only_alpha.png", case_b_output)):
+        raise SystemExit("Static/dynamic Optical Review route or Fish Focus provenance inputs are incomplete after composition.")
     print(json.dumps({"status": "PASS", "pr_source_sha": args.pr_sha, "center_source_sha": args.center_sha,
                       "photo_sha256": photo_sha, "route": "/design/manager/nh01_acceptance/edgeglow-fish-static/",
+                      "optical_review_route": "/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/",
                       "entry_count": html.count('data-edgeglow-entry="recognition-processing"')}, indent=2))
 
 

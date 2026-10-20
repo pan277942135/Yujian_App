@@ -154,6 +154,7 @@ async function main() {
   assert.match(await entry.innerText(), /Recognition Processing.*EdgeGlowView Fish Static Prototype/);
   await entry.click();
   await page.waitForURL(url => url.pathname.includes("/edgeglow-fish-static/"), { timeout: 15000 });
+  const staticRouteUrl = page.url();
   await page.waitForFunction(() => window.__EDGEGLOW_LAB__?.pathLength > 1000 && window.__EDGEGLOW_LAB__?.edgeFieldInset > 0, { timeout: 15000 });
   await page.waitForFunction(() => window.__EDGEGLOW_LAB__?.config?.schema_version === "2.0.0", { timeout: 10000 });
 
@@ -340,6 +341,53 @@ async function main() {
     console.log(`SMOKE: responsive layout verified at ${viewport.width}x${viewport.height}`);
   }
 
+  const opticalEntry = page.locator("#opticalReviewEntry");
+  assert.equal(await opticalEntry.count(), 1, "the existing EdgeGlow page links to the static/dynamic Optical Review");
+  await opticalEntry.click();
+  await page.waitForURL(url => url.pathname.endsWith("/edgeglow-fish-static/optical-review/"), { timeout: 15000 });
+  await page.waitForFunction(() => window.OPTICAL_LAB_BUILD_INFO__?.head_sha && document.querySelector("#overallStatus")?.textContent === "REVIEW_REQUIRED", null, { timeout: 30000 });
+  const opticalReview = await page.evaluate(() => ({
+    title: document.title,
+    sourceSha: window.OPTICAL_LAB_BUILD_INFO__?.head_sha,
+    status: document.querySelector("#overallStatus")?.textContent,
+    assetCount: document.querySelectorAll("#assetRows tr").length,
+    assetStatuses: [...document.querySelectorAll("#assetRows tr .asset-status")].map(node => node.textContent),
+    stateCount: document.querySelectorAll("#stateButtons button").length,
+    modeCount: document.querySelectorAll("#previewModeButtons button").length,
+    productionDisabled: document.querySelector('#focusSource option[value="production"]')?.disabled,
+    productionBlocked: document.querySelector("#focusProvenance")?.textContent.includes("Production: BLOCKED"),
+    canvas: Boolean(document.querySelector("#previewCanvas")),
+  }));
+  assert.equal(opticalReview.sourceSha, process.env.PR_SOURCE_SHA, "the nested review page exposes the current PR SHA");
+  assert.equal(opticalReview.status, "REVIEW_REQUIRED");
+  assert.equal(opticalReview.assetCount, 7, "the nested page verifies config, state manifest, registry, three Frozen images and photo fixture");
+  assert.ok(opticalReview.assetStatuses.every(status => status === "VERIFIED"), "all optical review source assets verify in the composed GitHub Pages site");
+  assert.equal(opticalReview.stateCount, 3, "three product states remain available");
+  assert.equal(opticalReview.modeCount, 2, "static and dynamic preview modes are available");
+  assert.equal(opticalReview.productionDisabled, true, "Production Fish Focus remains unavailable without current production evidence");
+  assert.equal(opticalReview.productionBlocked, true, "the provenance UI explicitly reports Production BLOCKED");
+  assert.equal(opticalReview.canvas, true, "the optical review canvas is mounted");
+  await page.locator("#previewModeButtons [data-preview-mode='dynamic']").click();
+  await page.selectOption("#dynamicCandidate", "B");
+  await page.locator("#stateButtons button").nth(1).click();
+  await page.selectOption("#focusSource", "review");
+  await page.waitForFunction(() => document.querySelector("#photoName")?.textContent.includes("detector_case_b_night_flash") && document.querySelector("#maskName")?.textContent.includes("REVIEW ONLY"), null, { timeout: 15000 });
+  await page.locator("#playPause").click();
+  await page.waitForTimeout(450);
+  const dynamicReview = await page.evaluate(() => ({
+    candidate: document.querySelector("#dynamicCandidate")?.value,
+    state: document.querySelector("#stateButtons button.active")?.dataset.state,
+    provenance: document.querySelector("#focusReadiness")?.textContent,
+    previewTime: Number(document.querySelector("#previewCanvas")?.dataset.previewTime || 0),
+  }));
+  assert.equal(dynamicReview.candidate, "B");
+  assert.equal(dynamicReview.state, "1");
+  assert.match(dynamicReview.provenance, /REVIEW_PROXY_NOT_PRODUCTION/);
+  assert.ok(dynamicReview.previewTime > 0, "the integrated dynamic B preview advances in the Acceptance Center route");
+  await page.locator("#playPause").click();
+  await page.screenshot({ path: path.join(evidenceDir, "Acceptance_Center_Optical_Review_Dynamic_B_Fish_Located.png"), fullPage: true });
+  console.log("SMOKE: integrated optical review route, exact source assets, dynamic playback and Review-only provenance verified");
+
   assert.deepEqual(errors, [], "No new browser page or console errors.");
   const report = {
     task_id: "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
@@ -347,7 +395,10 @@ async function main() {
     status: "PASS_ENGINEERING_INTERACTION",
     visual_quality: "REVIEW_REQUIRED",
     android_runtime: "NOT_RUN",
-    cloud_route_url: page.url(),
+    cloud_route_url: staticRouteUrl,
+    optical_review_route_url: page.url(),
+    optical_review_source_sha: opticalReview.sourceSha,
+    dynamic_review: { candidate: dynamicReview.candidate, state: dynamicReview.state, preview_time: dynamicReview.previewTime, fish_focus_source: "REVIEW_PROXY_NOT_PRODUCTION" },
     pr_source_sha: identity.buildInfo.pr_source_sha,
     acceptance_center_source_sha: identity.buildInfo.acceptance_center_source_sha,
     source_photo_sha256: expectedPhotoSha,

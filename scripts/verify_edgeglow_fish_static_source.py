@@ -36,6 +36,12 @@ def main() -> None:
     route = args.site_root / ROUTE
     fixture = json.loads((route / "fixture.json").read_text(encoding="utf-8"))
     page = (route / "index.html").read_text(encoding="utf-8")
+    optical_route = route / "optical-review"
+    optical_page = (optical_route / "index.html").read_text(encoding="utf-8")
+    optical_build_info = (optical_route / "build-info.js").read_text(encoding="utf-8")
+    bbox_record = json.loads((optical_route / "review_v1/fish_focus_case_b_bbox.json").read_text(encoding="utf-8"))
+    review_alpha = optical_route / "review_v1/fish_focus_review_only_alpha.png"
+    case_b_photo = args.site_root / "app/src/androidTest/assets/detector_case_b_night_flash.jpg"
     assert "edgeglow.js?v=edgeglow-optical-v2-layered-composite" in page, "the deployed prototype must load the V2 optical compositor and bypass stale cache entries"
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
@@ -69,6 +75,14 @@ def main() -> None:
     node_renderer = renderer.split("function drawStaticEnergyNodes", 1)[1].split("function drawPrimaryEdgeIslands", 1)[0]
     assert all('ctx.globalCompositeOperation = "source-over"' in fn and 'ctx.globalCompositeOperation = "screen"' not in fn for fn in (companion_renderer, node_renderer)), "all perimeter layers must preserve hue on bright pixels"
     assert all(f'id="{control}"' in page for control in ("edgeFieldBlueColor", "edgeFieldGoldColor", "fishGoldColor", "fishCoreColor")), "perimeter and fish palettes must have separate controls"
+    assert 'id="opticalReviewEntry" href="./optical-review/"' in page, "the existing EdgeGlow page must link to the integrated static/dynamic review"
+    assert "DYNAMIC_REVIEW_ENABLED=true" in optical_page and "DYNAMIC_CANDIDATE_B" in optical_page, "the composed review route must include the enabled dynamic candidates"
+    assert all(f'id="{control}"' in optical_page for control in ("previewModeButtons", "dynamicCandidate", "playPause", "motionSpeed", "focusSource", "fieldLayerView")), "the composed optical review must expose mode, candidates, playback, states and Fish Focus source controls"
+    assert "REVIEW_PROXY_NOT_PRODUCTION" in optical_page and "Production: BLOCKED" in optical_page, "review-only and production-blocked provenance must stay explicit"
+    assert f'"head_sha":"{args.pr_sha}"' in optical_build_info, "nested review route must publish the exact PR source SHA"
+    assert sha256(case_b_photo) == bbox_record["fixture_sha256"] == "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b", "the Case B detector fixture must remain byte-identical"
+    assert sha256(review_alpha) == bbox_record["alpha_sha256"] == "ebcf100e49934065f318d5a37f9f1465601838d6af12dd48312045bbb776ae42", "Review-only alpha must remain byte-identical and provenance-bound"
+    assert bbox_record["source_mode"] == "REVIEW_PROXY_NOT_PRODUCTION" and "manual" in bbox_record["alpha_provenance"].lower(), "annotated alpha must not be presented as a production Mask"
     assert optical_config["schema_version"] == "2.0.0" and optical_config["task_id"] == "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2", "shared optical config version/task identity mismatch"
     assert set(optical_config["presets"]) == {"current", "enhanced", "frozen_match"}, "Current, Enhanced and Frozen Match presets are required"
     assert optical_config["photo_mapping"]["source_coordinate_space"] == "EXIF_NORMALIZED_PHOTO" and "photoContentRect" in optical_config["photo_mapping"]["overlay_bounds"], "shared contract must bind overlays to the normalized photo content rect"
@@ -149,6 +163,8 @@ def main() -> None:
         "acceptance_center_source_sha": args.center_sha,
         "source_photo_sha256": actual_sha,
         "source_photo_dimensions": [fixture["photo"]["width"], fixture["photo"]["height"]],
+        "optical_review_route": "/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/",
+        "optical_review_source_sha": args.pr_sha,
         "contour_source": fixture["contour"]["source"],
         "coordinate_space": fixture["contour"]["coordinate_space"],
         "edge_field": {

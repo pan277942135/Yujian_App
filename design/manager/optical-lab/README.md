@@ -4,9 +4,13 @@ An isolated browser preview of review candidates based on the existing P1–P5 c
 
 ## Open the cloud preview
 
-The public HTTPS preview remains the existing Recognition Optical Lab site:
+The primary HTTPS preview is composed into the existing NH01 Acceptance Center:
 
-`https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/`
+`https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/`
+
+The existing static EdgeGlow page links directly to this review route. Static screenshots, dynamic WebM recordings, and provenance evidence are available in the public evidence gallery:
+
+`https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/`
 
 The current package exposes static A/B/C candidates, dynamic A/B/C candidates, the three product states, layer decomposition, playback speed, layer toggles, and Fish Focus provenance. The static review gate passed for opening this candidate review; the user has not selected or approved a final direction. Browser playback and WebM output are Web Review evidence only.
 

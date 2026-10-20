@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
+      - "design/manager/optical-lab/**"
       - "design/system/recognition_optical_v2/**"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
@@ -22,6 +23,7 @@ on:
       - design/recognition-processing-handoff-p0
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
+      - "design/manager/optical-lab/**"
       - "design/system/recognition_optical_v2/**"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
