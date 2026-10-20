@@ -51,7 +51,7 @@ concurrency:
 
 env:
   CENTER_SOURCE_BRANCH: main
-  CENTER_SOURCE_SHA: 003c5de7ed546cc68383ff67fd45a78f88794dee
+  CENTER_SOURCE_SHA: 796edb4b4ecdab1bcdc7c7076238a0ec8817e32f
   PR_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
@@ -69,7 +69,7 @@ jobs:
       - name: Checkout verified current NH01 Acceptance Center source
         uses: actions/checkout@v4
         with:
-          ref: 003c5de7ed546cc68383ff67fd45a78f88794dee
+          ref: 796edb4b4ecdab1bcdc7c7076238a0ec8817e32f
           path: center-source
           fetch-depth: 1
 
