@@ -27,7 +27,9 @@
       overlay = document.createElement("canvas");
       overlay.id = "receivingFieldReviewOverlay";
       overlay.setAttribute("aria-hidden", "true");
-      overlay.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;";
+      // .screen canvas sets an opaque background for the base renderer. Override
+      // it here so this auxiliary canvas cannot cover the photo underneath.
+      overlay.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;background:transparent;";
       screen.appendChild(overlay);
     }
     overlayContext = overlay.getContext("2d", { alpha: true });

@@ -58,6 +58,7 @@ function cornerSignal(canvas) {
       const overlay = await page.locator("#receivingFieldReviewOverlay").evaluate((canvas) => ({
         source: canvas.dataset.reviewSource,
         candidate: canvas.dataset.candidate,
+        computed_background: getComputedStyle(canvas).backgroundColor,
         signal: (function () {
           const ctx = canvas.getContext("2d");
           const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -72,6 +73,7 @@ function cornerSignal(canvas) {
       }));
       assert.equal(overlay.source, "REVIEW_ONLY_RECEIVING_FIELD");
       assert.equal(overlay.candidate, candidate);
+      assert.equal(overlay.computed_background, "rgba(0, 0, 0, 0)", "Review overlay must remain transparent so it cannot hide the photo renderer.");
       assert.ok(overlay.signal.nonzero_samples > 100, `Receiving Field ${candidate} did not draw a visible overlay signal.`);
       assert.ok(overlay.signal.blue_samples > 10 && overlay.signal.gold_samples > 10, `Receiving Field ${candidate} lost the blue/gold hierarchy.`);
       const corners = await page.locator("#receivingFieldReviewOverlay").evaluate(cornerSignal);

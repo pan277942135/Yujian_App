@@ -129,7 +129,14 @@ def main() -> None:
         f"s.src='./receiving-field-review.js?source={args.pr_sha}';document.head.appendChild(s);"
         "};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();\n"
     )
+    design_root_alias = (
+        "(function(){if(!/^\\/manager\\/optical-lab(?:\\/|$)/.test(location.pathname))return;"
+        "const original=window.fetch.bind(window);window.fetch=(input,init)=>{const url=new URL(typeof input==='string'?input:input.url,location.href);"
+        "if(url.origin===location.origin&&url.pathname.startsWith('/design/'))url.pathname=url.pathname.slice(7);"
+        "return original(url.href,init);};})();\n"
+    )
     with (optical_output / "build-info.js").open("a", encoding="utf-8") as build_info_script:
+        build_info_script.write(design_root_alias)
         build_info_script.write(helper_loader)
     optical_page = optical_output / "index.html"
     optical_html = optical_page.read_text(encoding="utf-8")

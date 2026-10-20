@@ -75,8 +75,9 @@ jobs:
             source_dependency_verification: 'PASS',
             built_at_utc: new Date().toISOString(),
           };
+          const designRootAlias = '(function(){if(!location.pathname.startsWith("/manager/optical-lab/"))return;const original=window.fetch.bind(window);window.fetch=(input,init)=>{const url=new URL(typeof input==="string"?input:input.url,location.href);if(url.origin===location.origin&&url.pathname.startsWith("/design/"))url.pathname=url.pathname.slice(7);return original(url.href,init);};})();\n';
           const loader = '(function(){const load=()=>{const s=document.createElement("script");s.src="./receiving-field-review.js?source=' + head + '";document.head.appendChild(s);};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",load,{once:true});else load();})();\n';
-          await writeFile('design/manager/optical-lab/build-info.js', 'window.OPTICAL_LAB_BUILD_INFO__ = ' + JSON.stringify(info, null, 2) + ';\n' + loader);
+          await writeFile('design/manager/optical-lab/build-info.js', 'window.OPTICAL_LAB_BUILD_INFO__ = ' + JSON.stringify(info, null, 2) + ';\n' + designRootAlias + loader);
           NODE
           cp optical-lab-artifacts/asset-manifest.json design/manager/optical-lab/asset-manifest.json
 
@@ -100,8 +101,8 @@ jobs:
           curl --fail --silent http://127.0.0.1:8766/manager/optical-lab/ >/dev/null
           LAB_REPO_URL=http://127.0.0.1:8765/design/manager/optical-lab/ \
           LAB_DESIGN_ROOT_URL=http://127.0.0.1:8766/manager/optical-lab/ \
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_receiving_field_review.cjs
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
 
       - name: Record automation checks without visual-approval claim
         if: success()
