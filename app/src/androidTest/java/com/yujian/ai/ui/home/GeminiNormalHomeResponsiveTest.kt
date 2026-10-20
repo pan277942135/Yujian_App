@@ -825,11 +825,12 @@ class GeminiNormalHomeResponsiveTest {
         val tag = "gemini-home-catch-pager"
         val carouselBounds = compose.onNodeWithTag(tag, useUnmergedTree = true)
             .fetchSemanticsNode().boundsInRoot
-        // Keep both touch points inside the centered hero card. The old 84% / 16%
-        // positions landed on a preview or outside the real window when a 600dp
-        // Compose constraint fixture ran inside the 480dp API 28 emulator.
-        val startX = if (forward) carouselBounds.width * 0.66f else carouselBounds.width * 0.34f
-        val endX = if (forward) carouselBounds.width * 0.34f else carouselBounds.width * 0.66f
+        // Move far enough to cross the pager threshold: the hero page is about
+        // 76% of the track, so 66% -> 34% only travels ~42% of a page. At 75%
+        // -> 25% the gesture exceeds half a page while staying in the active
+        // hero and inside the 480dp API 28 window for the 600dp fixture.
+        val startX = if (forward) carouselBounds.width * 0.75f else carouselBounds.width * 0.25f
+        val endX = if (forward) carouselBounds.width * 0.25f else carouselBounds.width * 0.75f
         compose.onNodeWithTag(tag, useUnmergedTree = true).performTouchInput {
             swipe(
                 start = Offset(startX, carouselBounds.height * 0.5f),
