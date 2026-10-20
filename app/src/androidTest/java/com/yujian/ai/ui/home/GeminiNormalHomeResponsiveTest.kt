@@ -767,7 +767,23 @@ class GeminiNormalHomeResponsiveTest {
     }
 
     private fun bounds(tag: String): RectF {
-        val rect = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val nodes = compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes()
+        assertTrue("expected a semantics node for $tag", nodes.isNotEmpty())
+        val node = if (tag == "gemini-home-card-peek-right" && nodes.size > 1) {
+            // HorizontalPager may keep more than one off-screen forward page composed.
+            // The responsive geometry contract is for the immediate neighbor beside the active card.
+            val active = compose.onNodeWithTag(
+                "gemini-home-catch-card-gemini-fixture-01", useUnmergedTree = true,
+            ).fetchSemanticsNode().boundsInRoot
+            val activeCenterX = (active.left + active.right) / 2f
+            nodes.minBy { candidate ->
+                kotlin.math.abs((candidate.boundsInRoot.left + candidate.boundsInRoot.right) / 2f - activeCenterX)
+            }
+        } else {
+            assertEquals("expected exactly one semantics node for $tag", 1, nodes.size)
+            nodes.single()
+        }
+        val rect = node.boundsInRoot
         return RectF(rect.left, rect.top, rect.right, rect.bottom)
     }
 
