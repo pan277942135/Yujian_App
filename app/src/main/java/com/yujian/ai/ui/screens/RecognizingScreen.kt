@@ -25,6 +25,9 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -94,6 +97,7 @@ fun RecognitionProcessingScene(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
+    onPhotoBoundsInWindow: ((photo: Rect, viewport: Rect) -> Unit)? = null,
 ) {
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -254,7 +258,7 @@ fun RecognitionProcessingScene(
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
             visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
-            displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
+            displayedFocusLevel, onFishFocusTransform, onPhotoBoundsInWindow, Modifier.fillMaxSize(),
         )
         IconButton(
             onClick = onBack,
@@ -291,7 +295,9 @@ private fun RecognitionPhoto(
     phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
-    onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
+    onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?,
+    onPhotoBoundsInWindow: ((photo: Rect, viewport: Rect) -> Unit)?,
+    modifier: Modifier,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
     val mediaPlan = remember(bitmap, maxWidth, maxHeight, density) {
@@ -326,7 +332,21 @@ private fun RecognitionPhoto(
         modifier = Modifier.fillMaxSize(),
     )
     RecognitionAmbientField(
-        phase, Modifier.fillMaxSize(), visualClockMs,
+        phase,
+        Modifier.fillMaxSize().onGloballyPositioned { coordinates ->
+            val viewportWindow = coordinates.boundsInWindow()
+            val content = transform.photoContentRect
+            onPhotoBoundsInWindow?.invoke(
+                Rect(
+                    viewportWindow.left + content.left,
+                    viewportWindow.top + content.top,
+                    viewportWindow.left + content.right,
+                    viewportWindow.top + content.bottom,
+                ),
+                viewportWindow,
+            )
+        },
+        visualClockMs,
         motionSessionKey = motionSessionKey,
         deterministicMotion = deterministicMotion,
         lowPerformance = motionPolicy.lowPerformance,
@@ -334,6 +354,7 @@ private fun RecognitionPhoto(
         qualityLevel = motionPolicy.qualityLevel,
         onMotionFrame = onMotionFrame,
         photoTransform = transform,
+        sourcePhoto = bitmap,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),

@@ -1,0 +1,235 @@
+{
+  "task": "YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3",
+  "authority": "REVIEW_ONLY",
+  "design_contracts_modified": false,
+  "source_contracts": [
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5"
+  ],
+  "static_candidates": {
+    "A": {
+      "id": "REVIEW_CANDIDATE_A",
+      "name": "Soft Field",
+      "receiving_field_scale": 0.5,
+      "primary_path_scale": 0.65,
+      "secondary_filament_scale": 0.25,
+      "receiving_depth_ratio": 0.12
+    },
+    "B": {
+      "id": "REVIEW_CANDIDATE_B",
+      "name": "Balanced Field",
+      "receiving_field_scale": 0.82,
+      "primary_path_scale": 0.85,
+      "secondary_filament_scale": 0.45,
+      "recommended_for_first_review": true,
+      "receiving_depth_ratio": 0.15
+    },
+    "C": {
+      "id": "REVIEW_CANDIDATE_C",
+      "name": "Strong Atmosphere",
+      "receiving_field_scale": 1,
+      "primary_path_scale": 1,
+      "secondary_filament_scale": 0.65,
+      "receiving_depth_ratio": 0.18
+    }
+  },
+  "static_path_corner_profile": {
+    "A": {
+      "B1": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B2": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B3": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B4": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G1": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G2": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G3": {
+        "alpha": 1,
+        "length": 1
+      }
+    },
+    "B": {
+      "B1": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B2": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B3": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B4": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G1": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G2": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G3": {
+        "alpha": 1,
+        "length": 1
+      }
+    },
+    "C": {
+      "B1": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B2": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B3": {
+        "alpha": 1,
+        "length": 1
+      },
+      "B4": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G1": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G2": {
+        "alpha": 1,
+        "length": 1
+      },
+      "G3": {
+        "alpha": 1,
+        "length": 1
+      }
+    },
+    "intent": "A/B/C share the same non-frozen review-only oval layout/stops, photoContentRect, and seven exact P1 path records; only P1-bounded base-alpha/depth and separate static path-strength scales vary."
+  },
+  "receiving_light_web_review_alpha_cap": 0.14,
+  "receiving_light_oval_gain": 1,
+  "contract_alpha_before_multipliers": [
+    0.03,
+    0.07
+  ],
+  "static_candidate_status": "REVIEW_REQUIRED · nominal base alpha stays within P1 0.03–0.07; candidate scale ≤1.0; depth 0.08–0.18; source-over; .14 remains only the existing runtime ceiling",
+  "field_geometry": {
+    "authority": "P1 freezes the local radial-oval class and alpha/depth bounds; matching P1 path island_weight values set the island hierarchy; exact oval placement and stops remain review-only",
+    "layout_source_status": "ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN",
+    "rendering": "four local radial ovals from the existing runtime source snapshot; matching P1 path island_weight values set corner hierarchy; candidate base alpha stays within 0.03–0.07, candidate scale ≤1, depth in 0.08–0.18; source-over; clipped to shared photoContentRect",
+    "quiet_gaps": "review-only oval layout remains separated; the seven frozen paths and Quiet Gaps remain unchanged",
+    "geometry_added": false,
+    "color_tokens": "existing configured P1 blue/gold tokens",
+    "path_source": "P1 B1/G1/B3/G3 paths remain separate layers above Receiving Light; no path samples are added to Receiving Light",
+    "composite_authority": "source-over for the Web P1 Receiving Light layer; P1 and Native source values are unchanged",
+    "island_weight_source": "matching P1 path record island_weight for each primary island"
+  },
+  "dynamic_candidates": {
+    "A": {
+      "id": "DYNAMIC_CANDIDATE_A",
+      "name": "Calm",
+      "field_scale": 1,
+      "path_scale": 0.88,
+      "path_flow_scale": 0.24,
+      "filament_scale": 0.22,
+      "breath_amplitude": 0.035,
+      "corner_periods_seconds": [
+        15.4,
+        20.8,
+        24.6,
+        29.1
+      ]
+    },
+    "B": {
+      "id": "DYNAMIC_CANDIDATE_B",
+      "name": "Balanced",
+      "field_scale": 1.3,
+      "path_scale": 1.08,
+      "path_flow_scale": 0.39,
+      "filament_scale": 0.34,
+      "breath_amplitude": 0.065,
+      "corner_periods_seconds": [
+        12.7,
+        17.3,
+        21.9,
+        26.5
+      ],
+      "recommended_for_first_review": true
+    },
+    "C": {
+      "id": "DYNAMIC_CANDIDATE_C",
+      "name": "Atmospheric",
+      "field_scale": 1.65,
+      "path_scale": 1.3,
+      "path_flow_scale": 0.52,
+      "filament_scale": 0.48,
+      "breath_amplitude": 0.095,
+      "corner_periods_seconds": [
+        10.8,
+        14.9,
+        19.7,
+        23.6
+      ]
+    }
+  },
+  "state_field_scale": {
+    "IMAGE_RECOGNIZING": 1,
+    "FISH_LOCATED": 0.84,
+    "SPECIES_RECOGNIZING": 0.72
+  },
+  "motion": {
+    "speed_options": [
+      0.5,
+      1,
+      1.5
+    ],
+    "recording_duration_seconds": 12,
+    "state_sequence": [
+      "IMAGE_RECOGNIZING",
+      "FISH_LOCATED",
+      "SPECIES_RECOGNIZING"
+    ],
+    "recording_format": "WebM",
+    "animation_authority": "Browser Canvas review only",
+    "static_review_gate": "REVIEW_REQUIRED_STATIC_ONLY_V3_DYNAMIC_NOT_RUN"
+  },
+  "fish_focus": {
+    "production": "BLOCKED: no current-head production FishSubjectResult or production Mask evidence was executed or attached.",
+    "review_only": "REVIEW_PROXY_NOT_PRODUCTION: Case B fixture plus manual alpha annotation and previously reported historical detector BBox.",
+    "review_only_visual_scale": 0.72,
+    "review_only_visual_scale_note": "Web presentation multiplier only; does not change P2 contract values or claim production Mask behavior.",
+    "default": "BLOCKED: no Fish Focus is drawn until the review-only source is selected.",
+    "mask_provenance": "Manual photo annotation; not a production mask.",
+    "evidence_record": "fish_focus_case_b_bbox.json"
+  },
+  "android_runtime_completed": false,
+  "native_implementation_completed": false,
+  "receiving_light_composite": "source-over",
+  "receiving_light_depth_contract": [
+    0.08,
+    0.18
+  ]
+}

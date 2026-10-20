@@ -58,6 +58,7 @@ import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.FishSubjectResult
+import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.model.RecognitionCandidate
@@ -82,6 +83,7 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.security.MessageDigest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.Collections
@@ -1120,6 +1122,82 @@ class RecognitionFrozenFlowEmulatorTest {
             result.ready,
         )
         val realBox = requireNotNull(result.assessment.primary).box
+
+        // Attempt the existing generic ML Kit subject segmenter with the real
+        // detector BBox. Its output is retained as an engineering experiment,
+        // never labeled as fish-trained semantic segmentation. The annotated
+        // alpha fixture below remains the explicitly separate review contour.
+        val fixtureBytes = InstrumentationRegistry.getInstrumentation().context.assets
+            .open("recognition_real_catch_fixture.jpg").use { it.readBytes() }
+        val fixtureSha256 = MessageDigest.getInstance("SHA-256")
+            .digest(fixtureBytes).joinToString("") { "%02x".format(it) }
+        val segmentationAttempt = FishSubjectPreviewEngine(targetContext).use { engine ->
+            kotlinx.coroutines.runBlocking { engine.generate(photo.bitmap, realBox) }
+        }
+        val attemptMaskFile = segmentationAttempt.bitmapPath
+            ?.let(::File)
+            ?.takeIf { segmentationAttempt.status == SubjectStatus.READY && it.isFile }
+        if (attemptMaskFile != null) {
+            attemptMaskFile.copyTo(File(evidenceDir, "fish_subject_mlkit_mask_attempt.png"), overwrite = true)
+        }
+        val attemptMaskSha256 = attemptMaskFile?.readBytes()?.let { bytes ->
+            MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        }
+        val primary = requireNotNull(result.assessment.primary)
+        val normalizedBox = realBox.normalized()
+        val segmentationCropPixels = FishDetectionQualityGate.cropBoxPixels(
+            realBox.expand(.12f), photo.bitmap.width, photo.bitmap.height,
+        )
+        val segmentationTrace = org.json.JSONObject()
+            .put("evidence_version", "FISH_SUBJECT_SEGMENTATION_ATTEMPT_V1")
+            .put("fixture", org.json.JSONObject()
+                .put("asset", "recognition_real_catch_fixture.jpg")
+                .put("sha256", fixtureSha256)
+                .put("dimensions_px", org.json.JSONArray(listOf(photo.bitmap.width, photo.bitmap.height))))
+            .put("detector", org.json.JSONObject()
+                .put("model_version", result.detectorRun.modelVersion)
+                .put("model_sha256", result.detectorRun.onnxSha256)
+                .put("selected_attempt", result.detectorRun.selectedAttempt)
+                .put("selection_reason", result.detectorRun.selectionReason)
+                .put("confidence", primary.confidence)
+                .put("attempts", org.json.JSONArray().apply {
+                    result.detectorRun.attemptTrace.forEach { attempt ->
+                        put(org.json.JSONObject()
+                            .put("orientation", attempt.orientationAttempt)
+                            .put("detection_count", attempt.detectionCount)
+                            .put("top_confidence", attempt.topConfidence)
+                            .put("quality_status", attempt.qualityStatus)
+                            .put("quality_level", attempt.qualityLevel))
+                    }
+                }))
+            .put("detector_bbox_normalized", org.json.JSONObject()
+                .put("x1", normalizedBox.x1).put("y1", normalizedBox.y1)
+                .put("x2", normalizedBox.x2).put("y2", normalizedBox.y2))
+            .put("segmentation_crop_pixels", org.json.JSONArray(segmentationCropPixels.toList()))
+            .put("segmentation", org.json.JSONObject()
+                .put("engine", "ML_KIT_SUBJECT_SEGMENTATION")
+                .put("semantic_scope", "GENERIC_SUBJECT; FISH_SPECIFIC_ACCURACY_NOT_VALIDATED")
+                .put("status", segmentationAttempt.status.name)
+                .put("error_code", segmentationAttempt.errorCode)
+                .put("mlkit_error_code", segmentationAttempt.mlKitErrorCode)
+                .put("exception_class", segmentationAttempt.exceptionClass)
+                .put("error_message", segmentationAttempt.errorMessage)
+                .put("quality", segmentationAttempt.quality?.name)
+                .put("mask_area_ratio", segmentationAttempt.maskAreaRatio)
+                .put("mask_size", segmentationAttempt.maskSize)
+                .put("expected_mask_size", segmentationAttempt.expectedMaskSize)
+                .put("roi_width", segmentationAttempt.roiWidth)
+                .put("roi_height", segmentationAttempt.roiHeight)
+                .put("processing_ms", segmentationAttempt.processingMs)
+                .put("artifact", if (attemptMaskFile != null) "fish_subject_mlkit_mask_attempt.png" else org.json.JSONObject.NULL)
+                .put("artifact_sha256", attemptMaskSha256 ?: org.json.JSONObject.NULL)
+                .put("artifact_bytes", attemptMaskFile?.length() ?: 0L))
+            .put("review_contour", org.json.JSONObject()
+                .put("source", "ANNOTATED_REVIEW_MASK")
+                .put("production_mask", false))
+        File(evidenceDir, "fish_subject_segmentation_trace_v1.json")
+            .writeText(segmentationTrace.toString(2) + "\n", Charsets.UTF_8)
+
         val subject = createAnnotatedSubjectAlphaFixture(photo.bitmap, realBox)
         val contourSegments = subject.bitmapPath?.let { path ->
             BitmapFactory.decodeFile(path)?.let { bitmap ->

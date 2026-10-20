@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
+  "fixture_id": "REAL_CATCH_MANUAL_REFERENCE_01",
+  "photo": {
+    "repository_path": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
+    "published_url_from_page": "../../../system/fish_media_display_v1/assets/real_catch_source.jpg",
+    "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "bytes": 292222,
+    "width": 1152,
+    "height": 1536,
+    "exif_orientation": 1,
+    "registry": "design/system/fish_media_display_v1/real_photo_cases.json",
+    "android_test_alias": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg",
+    "fit": "contain; natural pixel coordinates; no crop"
+  },
+  "contour": {
+    "source": "MANUAL_REFERENCE_CONTOUR",
+    "production_mask": false,
+    "coordinate_space": "original_photo_px_1152x1536",
+    "approximate_bbox_px": [58, 292, 435, 1445],
+    "path_d": "M 217 296 C 234 292 251 302 266 319 C 281 337 288 360 285 386 C 282 411 291 439 305 461 C 315 478 329 489 336 510 C 348 546 358 588 362 631 C 368 687 378 744 385 792 C 387 802 393 811 404 818 C 419 826 430 842 433 862 C 436 883 426 902 410 915 C 399 924 389 927 385 941 C 381 969 374 1000 362 1028 C 375 1049 391 1081 394 1106 C 396 1124 385 1139 369 1146 C 349 1152 327 1143 308 1144 C 303 1132 307 1113 318 1091 C 331 1066 330 1048 319 1034 C 315 1077 323 1118 323 1154 C 322 1190 318 1228 309 1250 C 330 1284 349 1325 361 1368 C 365 1383 354 1390 338 1395 C 299 1404 258 1426 221 1441 C 207 1447 190 1435 176 1416 C 160 1395 151 1376 152 1356 C 153 1328 162 1308 160 1285 C 158 1263 146 1244 138 1222 C 133 1199 133 1175 138 1149 C 144 1122 140 1098 135 1077 C 131 1055 130 1034 132 1014 C 131 992 125 968 118 951 C 102 943 80 941 66 930 C 58 924 60 911 64 899 C 75 877 90 856 101 831 C 115 808 125 786 135 770 C 134 729 136 681 136 640 C 137 594 138 550 140 508 C 141 486 139 466 139 448 C 139 421 146 394 149 375 C 153 346 173 321 195 306 C 203 300 211 297 217 296 Z"
+  },
+  "limitations": [
+    "The photograph is already registered for real-catch display and is not bound to a production detector result.",
+    "The contour is a hand-traced visual fixture; it is not a FishSubjectResult mask or production segmentation evidence.",
+    "The source image includes a person and existing social-platform watermark; it is reused byte-for-byte from the repository asset and is not copied into a new asset path."
+  ]
+}
