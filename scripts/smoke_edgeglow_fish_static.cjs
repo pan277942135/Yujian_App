@@ -175,7 +175,7 @@ async function main() {
     await page.locator("#stateButtons button").nth(1).click();
     await page.locator("#focusSource").selectOption("review");
     await page.waitForFunction(() => document.querySelector("#focusReadiness")?.textContent.includes("REVIEW_PROXY_NOT_PRODUCTION"), null, { timeout: 30000 });
-    assert.match(await page.locator("#focusReadiness").innerText(), /REVIEW_PROXY_NOT_PRODUCTION/);
+    assert.match(await page.locator("#focusReadiness").textContent(), /REVIEW_PROXY_NOT_PRODUCTION/);
     await nextPaint(page);
     captures.push(await saveCanvas(page, "fish-focus-review-proxy-fish-located.png"));
     await page.locator("#stateButtons button").nth(2).click();
