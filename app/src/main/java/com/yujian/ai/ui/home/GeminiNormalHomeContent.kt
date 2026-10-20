@@ -440,7 +440,7 @@ private fun GeminiMiddleSection(
     // Compose's visible Text bounds contract by up to 3dp at larger system font scales,
     // even though the line box is scaled. Compensate the layout gap so the measured
     // visible title-to-card distance remains 13dp; this does not alter the card geometry.
-    val visibleGapCorrection = ((fontScale - 1f) * 10f).coerceAtLeast(0f)
+    val visibleGapCorrection = if (fontScale > 1f) 3f else 0f
     val baseHeaderGap = (13f - titleBottomInset).coerceAtLeast(0f)
     val headerGap = (baseHeaderGap + visibleGapCorrection).dp
     val trackWidth = safeWidth.coerceAtMost(560.dp)
