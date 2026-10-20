@@ -8,7 +8,7 @@ The public HTTPS preview remains the existing Recognition Optical Lab site:
 
 `https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/`
 
-The current first-phase package exposes static A/B/C candidates, the three product states, layer decomposition and Fish Focus provenance. Playback and recording stay locked until the static optical screenshots have been reviewed. Browser output is Web Review evidence only.
+The current package exposes static A/B/C candidates, dynamic A/B/C candidates, the three product states, layer decomposition, playback speed, layer toggles, and Fish Focus provenance. The static review gate passed for opening this candidate review; the user has not selected or approved a final direction. Browser playback and WebM output are Web Review evidence only.
 
 ## Static optical candidates
 
@@ -24,11 +24,11 @@ Each keeps P1 path geometry intact and adds an asymmetric, more saturated review
 
 | Candidate | Field breathing | Path flow | Filaments | Intent |
 | --- | --- | --- | --- | --- |
-| `Dynamic A` · Calm | 3.5% amplitude, independent periods | 0.24 scale, short moving segments | 0.25 scale, rare | Most restrained |
-| `Dynamic B` · Balanced | 6.5% amplitude, independent corner phases | 0.39 scale, slow local energy travel | 0.38 scale, intermittent | Recommended first motion review |
-| `Dynamic C` · Atmospheric | 9.5% amplitude, independent corner phases | 0.52 scale | 0.56 scale, more frequent | Upper-bound comparison |
+| `DYNAMIC_CANDIDATE_A` · Calm | 3.5% amplitude, independent periods | 0.24 flow scale, short moving segments | 0.22 scale, rare | Most restrained |
+| `DYNAMIC_CANDIDATE_B` · Balanced | 6.5% amplitude, independent corner phases | 0.39 flow scale, slow local energy travel | 0.34 scale, intermittent | Recommended first motion review |
+| `DYNAMIC_CANDIDATE_C` · Atmospheric | 9.5% amplitude, independent corner phases | 0.52 flow scale | 0.48 scale, more frequent | Upper-bound comparison |
 
-Dynamic A/B/C candidate controls are prepared but remain gated in this static review version. After the static screenshot gate is visually checked, playback and 12-second three-state WebM recordings will be enabled. Those recordings show browser Canvas output, not Android or a native renderer.
+Dynamic A/B/C all build on a receiving-field and path baseline of their stated field/path scales (A 1.00×/0.88×, B 1.30×/1.08×, C 1.65×/1.30×). Each corner has its own breathing period and phase; state changes lower the field as Fish Focus becomes more prominent. The main paths keep a slow, local traveling energy segment instead of a full perimeter chase. Playback and 12-second three-state WebM recordings are available at 0.5×/1×/1.5×. These controls and recordings show browser Canvas output, not Android or a native renderer.
 
 ## Fish Focus provenance
 

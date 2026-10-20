@@ -225,12 +225,12 @@ const STATIC_PATH_REVIEW_PROFILES={
   B:{B1:{alpha:1.35,length:1},G1:{alpha:.95,length:.86},G3:{alpha:.38,length:.54},B3:{alpha:.14,length:.34},B2:{alpha:.26,length:.50},G2:{alpha:.16,length:.40},B4:{alpha:.07,length:.24}},
   C:{B1:{alpha:1.65,length:1},G1:{alpha:1.24,length:.98},G3:{alpha:.58,length:.72},B3:{alpha:.26,length:.48},B2:{alpha:.38,length:.64},G2:{alpha:.28,length:.52},B4:{alpha:.16,length:.40}}
 };
-const DYNAMIC_REVIEW_ENABLED=false;
+const DYNAMIC_REVIEW_ENABLED=true;
 window.OPTICAL_DYNAMIC_REVIEW_ENABLED=DYNAMIC_REVIEW_ENABLED;
 const DYNAMIC_REVIEW_CANDIDATES={
-  A:{name:"Calm",field:0.90,paths:0.62,filaments:0.25,breath:0.035,flow:0.24,periods:[15.4,20.8,24.6,29.1],description:"呼吸最柔，路径短段低亮流过，次级光丝极少。"},
-  B:{name:"Balanced",field:1.02,paths:0.76,filaments:0.38,breath:0.065,flow:0.39,periods:[12.7,17.3,21.9,26.5],description:"四角错相呼吸，主路径缓慢局部流动，次级光丝低频出现；推荐优先评审。"},
-  C:{name:"Atmospheric",field:1.16,paths:0.92,filaments:0.56,breath:0.095,flow:0.52,periods:[10.8,14.9,19.7,23.6],description:"能量变化更明显，作为边界评审；需检查是否接近特效感。"}
+  A:{name:"Calm",field:1.00,paths:0.88,filaments:0.22,breath:0.035,flow:0.24,periods:[15.4,20.8,24.6,29.1],description:"呼吸最柔，路径短段低亮流过，次级光丝极少。"},
+  B:{name:"Balanced",field:1.30,paths:1.08,filaments:0.34,breath:0.065,flow:0.39,periods:[12.7,17.3,21.9,26.5],description:"四角错相呼吸，主路径缓慢局部流动，次级光丝低频出现；推荐优先评审。"},
+  C:{name:"Atmospheric",field:1.65,paths:1.30,filaments:0.48,breath:0.095,flow:0.52,periods:[10.8,14.9,19.7,23.6],description:"能量变化更明显，作为边界评审；需检查是否接近特效感。"}
 };
 const REVIEW_CASE_B={
   fixture:"app/src/androidTest/assets/detector_case_b_night_flash.jpg",
@@ -1074,7 +1074,7 @@ function render(){
   const c=elements.preview;c.width=elements.width;c.height=elements.height;
   paintScene(c.getContext("2d"),c.width,c.height,elements.renderer);
   c.style.aspectRatio=elements.width+"/"+elements.height;
-  c.dataset.previewMode=elements.previewMode;c.dataset.state=stateId();c.dataset.candidate=elements.previewMode==="dynamic"?elements.dynamicCandidate:elements.staticCandidate;
+  c.dataset.previewMode=elements.previewMode;c.dataset.state=stateId();c.dataset.candidate=elements.previewMode==="dynamic"?elements.dynamicCandidate:elements.staticCandidate;c.dataset.previewTime=elements.previewTime.toFixed(3);
   $("webCaption").textContent="WEB · "+getState().display_name+" · "+(elements.previewMode==="dynamic"?"动态 "+elements.dynamicCandidate:"静态 "+elements.staticCandidate);
   document.querySelectorAll(".screen").forEach(s=>s.style.aspectRatio=elements.width+"/"+elements.height);
   const params={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};

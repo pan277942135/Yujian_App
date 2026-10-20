@@ -149,11 +149,29 @@ let browser;
 
   const dynamicCandidates = [];
   const dynamicEnabled = await page.evaluate(() => window.OPTICAL_DYNAMIC_REVIEW_ENABLED === true);
+  let speedPlaybackChecks = null;
   if (dynamicEnabled) for (const candidate of ["A", "B", "C"]) {
     await page.locator("#previewModeButtons [data-preview-mode='dynamic']").click();
     await page.selectOption("#dynamicCandidate", candidate);
     await page.selectOption("#motionSpeed", "1");
     await page.locator("#stateButtons button").nth(0).click();
+    if (candidate === "A") {
+      await page.selectOption("#motionSpeed", "0.5");
+      await page.locator("#playPause").click();
+      await page.waitForTimeout(650);
+      const slowPreviewTime = await page.locator("#previewCanvas").evaluate(canvas => Number(canvas.dataset.previewTime));
+      await page.selectOption("#motionSpeed", "1.5");
+      await page.waitForTimeout(650);
+      const speedState = await page.evaluate(() => ({
+        previewTime: Number(document.querySelector("#previewCanvas").dataset.previewTime || 0),
+        currentSpeed: document.querySelector("#motionSpeed").value,
+      }));
+      await page.locator("#playPause").click();
+      assert.equal(speedState.currentSpeed, "1.5", "1.5× playback speed can be selected while motion is playing");
+      assert.ok(speedState.previewTime > slowPreviewTime + 0.2, "preview time advances faster after switching from 0.5× to 1.5×");
+      speedPlaybackChecks = { slowPreviewTime, fastPreviewTime: speedState.previewTime };
+      await page.selectOption("#motionSpeed", "1");
+    }
     await page.locator("#playPause").click();
     await page.waitForTimeout(1500);
     await page.screenshot({ path: path.join(dynamicEvidence, `dynamic-${candidate}-image-recognizing.png`), fullPage: true });
@@ -173,6 +191,7 @@ let browser;
     assert.ok(fs.statSync(clipPath).size > 10000, `Dynamic ${candidate} clip must contain encoded frames`);
     dynamicCandidates.push(candidate);
   }
+  if (dynamicEnabled) assert.deepEqual(dynamicCandidates, ["A", "B", "C"], "all three dynamic candidates must export a three-state WebM");
   if (dynamicEnabled) await page.locator("#playPause").click().catch(() => {});
   await page.locator("#focusSource").selectOption("blocked");
   await page.locator("#resetButton").click();
@@ -307,6 +326,7 @@ let browser;
     responsive,
     staticCandidates,
     dynamicCandidates,
+    speedPlaybackChecks,
     fishFocus: "Production BLOCKED · Case B review-only annotated alpha available · no production Mask asserted",
     stageB: dynamicEnabled ? "WEB_REVIEW_ONLY · three motion candidates and 12s state-cycle WebM recordings exported" : "LOCKED_PENDING_STATIC_VISUAL_GATE",
     visualReview: "PENDING_USER_CHOICE · automation evidence does not equal visual approval",
