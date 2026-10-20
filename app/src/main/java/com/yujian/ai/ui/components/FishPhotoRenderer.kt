@@ -2,13 +2,8 @@ package com.yujian.ai.ui.components
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.ComposeShader
-import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
-import android.graphics.Shader
 import android.util.Log
 import android.util.LruCache
 import androidx.compose.foundation.Image
@@ -63,7 +58,7 @@ internal object FishPhotoDerivativeCache {
 }
 
 internal object FishPhotoRenderer {
-    const val BACKDROP_PARAMETERS_VERSION = "source-blur-cover-fit-feather-v2"
+    const val BACKDROP_PARAMETERS_VERSION = "source-blur-cover-fit-underlay-v3"
     private const val MAX_OUTPUT_EDGE_PX = 2048
     private const val BLUR_RADIUS_SOURCE_PX = 30f
 
@@ -162,7 +157,13 @@ internal object FishPhotoRenderer {
                 (outputWidth + fitWidth) / 2f,
                 (outputHeight + fitHeight) / 2f,
             )
-            drawFittedPhotoWithFeatheredEdges(canvas, source, fitRect, paint)
+            // Keep the complete source at full opacity. A blurred same-source
+            // underlay inside the fitted bounds prevents transparent edges from
+            // exposing a flat fill while avoiding an artificial frame.
+            paint.alpha = 112
+            canvas.drawBitmap(blurred, null, fitRect, paint)
+            paint.alpha = 255
+            canvas.drawBitmap(source, null, fitRect, paint)
             if (blurred !== source) blurred.recycle()
         }
         FishPhotoDerivativeCache.put(key, output)
@@ -183,44 +184,6 @@ internal object FishPhotoRenderer {
         canvas.drawBitmap(blurred, src, RectF(0f, 0f, width.toFloat(), height.toFloat()), paint)
         // Lower contrast without introducing a flat fill color.
         canvas.drawColor(0x12000000)
-    }
-
-    /** Keeps the entire fitted photo while blending its perimeter into the same-source backdrop. */
-    private fun drawFittedPhotoWithFeatheredEdges(
-        canvas: Canvas,
-        source: Bitmap,
-        fitRect: RectF,
-        paint: Paint,
-    ) {
-        val feather = minOf(18f, fitRect.width() * 0.025f, fitRect.height() * 0.025f).coerceAtLeast(1f)
-        val horizontal = LinearGradient(
-            fitRect.left,
-            fitRect.centerY(),
-            fitRect.right,
-            fitRect.centerY(),
-            intArrayOf(0x00000000, -0x1, -0x1, 0x00000000),
-            floatArrayOf(0f, (feather / fitRect.width()).coerceAtMost(0.25f),
-                1f - (feather / fitRect.width()).coerceAtMost(0.25f), 1f),
-            Shader.TileMode.CLAMP,
-        )
-        val vertical = LinearGradient(
-            fitRect.centerX(),
-            fitRect.top,
-            fitRect.centerX(),
-            fitRect.bottom,
-            intArrayOf(0x00000000, -0x1, -0x1, 0x00000000),
-            floatArrayOf(0f, (feather / fitRect.height()).coerceAtMost(0.25f),
-                1f - (feather / fitRect.height()).coerceAtMost(0.25f), 1f),
-            Shader.TileMode.CLAMP,
-        )
-        val saveCount = canvas.saveLayer(fitRect, null)
-        canvas.drawBitmap(source, null, fitRect, paint)
-        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = ComposeShader(horizontal, vertical, PorterDuff.Mode.MULTIPLY)
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
-        }
-        canvas.drawRect(fitRect, maskPaint)
-        canvas.restoreToCount(saveCount)
     }
 
     fun outputAspectRatio(width: Int, height: Int): Float {
