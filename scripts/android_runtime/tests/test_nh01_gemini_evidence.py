@@ -10,7 +10,13 @@ from pathlib import Path
 RUNTIME_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RUNTIME_DIR))
 
-from validate_nh01_gemini_evidence import EvidenceValidationError, validate  # noqa: E402
+from validate_nh01_gemini_evidence import (  # noqa: E402
+    EXPECTED_FONT_SCALES,
+    EXPECTED_PROFILE_COUNT,
+    EXPECTED_WINDOWS,
+    EvidenceValidationError,
+    validate,
+)
 
 
 class Nh01GeminiEvidenceValidationTest(unittest.TestCase):
@@ -18,6 +24,19 @@ class Nh01GeminiEvidenceValidationTest(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
+
+    def valid_profiles(self) -> list[dict[str, object]]:
+        return [
+            {
+                "profile": f"{width}x{height}-font-{font_scale}",
+                "window_dp": [width, height],
+                "font_scale": font_scale,
+                "status": "PASS",
+                "interactions": {"guest_avatar_login": "PASS"},
+            }
+            for width, height in EXPECTED_WINDOWS
+            for font_scale in EXPECTED_FONT_SCALES
+        ]
 
     def write_valid_reports(self) -> None:
         compose_path = self.root / "compose-simulation/gemini_responsive_compose_report.json"
@@ -27,16 +46,7 @@ class Nh01GeminiEvidenceValidationTest(unittest.TestCase):
         avatar_path.parent.mkdir(parents=True)
         carousel_path.parent.mkdir(parents=True)
         compose_path.write_text(
-            json.dumps({
-                "profiles": [
-                    {
-                        "profile": f"profile-{index}",
-                        "status": "PASS",
-                        "interactions": {"guest_avatar_login": "PASS"},
-                    }
-                    for index in range(15)
-                ]
-            }),
+            json.dumps({"profiles": self.valid_profiles()}),
             encoding="utf-8",
         )
         avatar_path.write_text(
@@ -55,7 +65,8 @@ class Nh01GeminiEvidenceValidationTest(unittest.TestCase):
         self.write_valid_reports()
         result = validate(self.root)
         self.assertEqual(result["status"], "PASS")
-        self.assertEqual(result["compose_profiles"], 15)
+        self.assertEqual(result["compose_profiles"], EXPECTED_PROFILE_COUNT)
+        self.assertEqual(result["compose_profile_matrix"]["font_scales"], [1.0, 1.3, 1.5])
         self.assertEqual(result["carousel_count_cases"], [0, 1, 2, 3, 10])
 
     def test_missing_reports_are_reported_as_missing(self) -> None:
@@ -80,16 +91,22 @@ class Nh01GeminiEvidenceValidationTest(unittest.TestCase):
         payload = json.loads(compose.read_text(encoding="utf-8"))
         payload["profiles"].pop()
         compose.write_text(json.dumps(payload), encoding="utf-8")
-        with self.assertRaisesRegex(EvidenceValidationError, "expected 15 rows"):
+        with self.assertRaisesRegex(EvidenceValidationError, f"expected {EXPECTED_PROFILE_COUNT} rows"):
             validate(self.root)
 
-        payload["profiles"] = [
-            {"profile": f"profile-{index}", "status": "PASS", "interactions": {"guest_avatar_login": "PASS"}}
-            for index in range(15)
-        ]
+        payload["profiles"] = self.valid_profiles()
         payload["profiles"][4]["status"] = "FAIL"
         compose.write_text(json.dumps(payload), encoding="utf-8")
         with self.assertRaisesRegex(EvidenceValidationError, "did not pass"):
+            validate(self.root)
+
+    def test_compose_profile_set_must_match_the_six_windows_and_three_scales(self) -> None:
+        self.write_valid_reports()
+        compose = self.root / "compose-simulation/gemini_responsive_compose_report.json"
+        payload = json.loads(compose.read_text(encoding="utf-8"))
+        payload["profiles"][0]["window_dp"] = [321, 480]
+        compose.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(EvidenceValidationError, "profile set mismatch"):
             validate(self.root)
 
     def test_avatar_transition_failure_is_rejected(self) -> None:
