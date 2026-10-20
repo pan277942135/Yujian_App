@@ -124,6 +124,15 @@ def main() -> None:
         "window.OPTICAL_LAB_BUILD_INFO__ = " + json.dumps(review_build_info, separators=(",", ":")) + ";\n",
         encoding="utf-8",
     )
+    optical_page = optical_output / "index.html"
+    optical_html = optical_page.read_text(encoding="utf-8")
+    build_script = '<script src="./build-info.js"></script>'
+    if optical_html.count(build_script) != 1:
+        raise SystemExit("Expected one Optical Lab build-info script reference for cache-busting.")
+    optical_page.write_text(
+        optical_html.replace(build_script, f'<script src="./build-info.js?source={args.pr_sha}"></script>'),
+        encoding="utf-8",
+    )
     case_b_output = args.output_root / CASE_B_FIXTURE
     case_b_output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(case_b_photo, case_b_output)

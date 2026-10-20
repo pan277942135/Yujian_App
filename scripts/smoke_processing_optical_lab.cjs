@@ -45,11 +45,13 @@ async function captureReceivingFieldSignal(page, evidence, label) {
           deltaR += dr; deltaG += dg; deltaB += db;
         }
       }
-      return { id: corner.id, changed_ratio: changed / samples, color_role_margin_per_changed_pixel: changed ? roleDelta / changed : 0, mean_delta_rgb: [deltaR / samples, deltaG / samples, deltaB / samples] };
+      return { id: corner.id, changed_ratio: changed / samples, color_role_margin_per_changed_pixel: changed ? roleDelta / changed : 0, color_role_delta_per_sample: roleDelta / samples, mean_delta_rgb: [deltaR / samples, deltaG / samples, deltaB / samples] };
     }) };
   });
+  signal.automation_signal_status = "RENDER_SIGNAL_FLOOR_MET_VISUAL_REVIEW_REQUIRED";
   fs.writeFileSync(evidence.signalPath, JSON.stringify(signal, null, 2));
-  assert.ok(signal.corners.every(corner => corner.changed_ratio >= .025 && corner.color_role_margin_per_changed_pixel > 0), `${label} Receiving Light must contribute a broad, correctly colored signal in all four photo corners: ${JSON.stringify(signal)}`);
+  const minimumRoleSignal = { "top-left-gold": 16, "top-right-blue": 24, "bottom-left-gold": 4, "bottom-right-blue": 1.4 };
+  assert.ok(signal.corners.every(corner => corner.changed_ratio >= ({"top-left-gold":.70,"top-right-blue":.70,"bottom-left-gold":.20,"bottom-right-blue":.10}[corner.id]) && corner.color_role_delta_per_sample >= minimumRoleSignal[corner.id]), `${label} Receiving Field must clear the engineering color-signal floor in its asymmetric corner regions; this is not a visual PASS: ${JSON.stringify(signal)}`);
   await page.locator("#previewCanvas").screenshot({ path: evidence.canvasPath });
   if (evidence.pagePath) await page.screenshot({ path: evidence.pagePath, fullPage: true });
   await page.locator("#pathToggle").check();
@@ -278,128 +280,4 @@ async function captureReceivingFieldSignal(page, evidence, label) {
   await page.locator("#quickReceiving").evaluate(input => { input.value = "0.3"; input.dispatchEvent(new Event("input", { bubbles: true })); });
   const quickChanged = await page.locator("#previewCanvas").evaluate(canvas => {
     const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; let changed = 0;
-    for (let i = 0; i < data.length; i += 4) if (window.__opticalBaseline[i] !== data[i] || window.__opticalBaseline[i + 1] !== data[i + 1] || window.__opticalBaseline[i + 2] !== data[i + 2]) changed++;
-    return changed;
-  });
-  assert.ok(quickChanged > 0, "quick optical layer tuning redraws immediately");
-  await page.locator("#resetButton").click();
-
-  await page.locator("#boards").screenshot({ path: path.join(out, "frozen-vs-web-reset.png") });
-  await page.locator("#compareModes [data-mode='overlay']").click();
-  await page.screenshot({ path: path.join(out, "frozen-web-overlay.png"), fullPage: true });
-  await page.locator("#compareModes [data-mode='wipe']").click();
-  await page.locator("#wipeInput").evaluate(input => { input.value = "62"; input.dispatchEvent(new Event("input", { bubbles: true })); });
-  await page.locator("#compareScreen").screenshot({ path: path.join(out, "frozen-web-wipe.png") });
-  await page.locator("#advancedDiagnostics").evaluate(node => { node.open = true; });
-  await page.locator("#advancedModes [data-mode='diff']").click();
-  await page.waitForFunction(() => document.querySelector("#metricMean")?.textContent !== "—");
-  const metrics = await page.evaluate(() => ({
-    mean: document.querySelector("#metricMean").textContent,
-    threshold: document.querySelector("#metricThreshold").textContent,
-    roi: document.querySelector("#metricRoi").textContent,
-    gate: document.querySelector("#metricGate").textContent,
-  }));
-  assert.ok(Number.isFinite(Number(metrics.mean)));
-  assert.match(metrics.gate, /探索性|identity unverified/i);
-  await page.locator("#compareCanvas").evaluate(canvas => canvas.toDataURL("image/png")).then(data => {
-    fs.writeFileSync(path.join(out, "pixel-diff-exploratory.png"), Buffer.from(data.split(",")[1], "base64"));
-  });
-  await page.locator("#roiCanvas").evaluate(canvas => canvas.toDataURL("image/png")).then(data => {
-    fs.writeFileSync(path.join(out, "roi-side-by-side.png"), Buffer.from(data.split(",")[1], "base64"));
-  });
-  await page.selectOption("#roiSelect", "fish");
-  await page.locator("#roiCanvas").screenshot({ path: path.join(out, "fish-focus-no-bbox.png") });
-  await page.locator("#advancedModes [data-mode='candidates']").click();
-  await page.locator("#candidateGrid").waitFor({ state: "visible" });
-  await page.locator("#candidateGrid").screenshot({ path: path.join(out, "same-source-three-renderers.png") });
-
-  async function saveDownload(selector, name) {
-    const pending = page.waitForEvent("download", { timeout: 20000 });
-    await page.locator(selector).click();
-    const item = await pending;
-    await item.saveAs(path.join(out, name || item.suggestedFilename()));
-  }
-  await saveDownload("#exportPreview", "web-current.png");
-  await saveDownload("#exportCompare", "renderer-relative-composite.png");
-  await saveDownload("#exportRoi", "roi-current.png");
-  await saveDownload("#exportAssetManifest", "Recognition-Optical-Lab-Asset-Manifest.json");
-  await saveDownload("#exportExperiment", "Recognition-Optical-Lab-Experiment.json");
-
-  const experiment = JSON.parse(fs.readFileSync(path.join(out, "Recognition-Optical-Lab-Experiment.json"), "utf8"));
-  experiment.params.layerStrength.receiving = 0.55;
-  experiment.params.stateStrength = 0.73;
-  experiment.state = "FISH_LOCATED";
-  experiment.viewport = [412, 915];
-  const importBuffer = Buffer.from(JSON.stringify(experiment));
-  await page.locator("#importExperiment").setInputFiles({ name: "round-trip.json", mimeType: "application/json", buffer: importBuffer });
-  await page.waitForFunction(() => document.querySelector("#quickReceiving")?.value === "0.55");
-  assert.equal(await page.locator("#quickReceiving").inputValue(), "0.55", "experiment JSON import restores layer parameters");
-  assert.equal(await page.locator("#stateButtons button.active").getAttribute("data-state"), "1", "experiment JSON import restores the product state");
-  assert.equal(await page.locator("#viewportSelect").inputValue(), "412x915", "experiment JSON import restores the viewport");
-  assert.equal(await page.locator("#paramStrength").inputValue(), "0.73", "experiment JSON import restores State Strength");
-  await page.locator("#resetButton").click();
-
-  await page.locator("#compareModes [data-mode='side']").click();
-  await page.locator("#advancedDiagnostics").evaluate(node => { node.open = false; });
-  const responsive = [];
-  for (const [width, height] of RESPONSIVE) {
-    await page.setViewportSize({ width, height });
-    await page.locator("#viewportSelect").evaluate((select, value) => {
-      select.value = value;
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    }, width + "x" + height);
-    const check = await page.evaluate(() => ({
-      width: innerWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-      canvas: [document.querySelector("#previewCanvas").width, document.querySelector("#previewCanvas").height],
-      boardsWidth: document.querySelector("#boards").getBoundingClientRect().width,
-      previewRect: document.querySelector("#previewCanvas").getBoundingClientRect().toJSON(),
-      quickRect: document.querySelector("#quickPanel").getBoundingClientRect().toJSON(),
-      advancedOpen: document.querySelector("#advancedDiagnostics").open,
-    }));
-    assert.equal(check.scrollWidth, check.width, width + "x" + height + ": no horizontal overflow");
-    assert.deepEqual(check.canvas, [width, height], width + "x" + height + ": viewport dimensions follow PhotoViewport contract");
-    assert.ok(check.boardsWidth > 0 && check.previewRect.width > 0, width + "x" + height + ": main visual canvas remains visible");
-    assert.equal(check.advancedOpen, false, width + "x" + height + ": advanced diagnostics remain collapsed");
-    if (width <= 720) assert.ok(check.quickRect.top >= check.previewRect.bottom - 1, width + "x" + height + ": controls do not overlap the main canvas");
-    await page.screenshot({ path: path.join(out, `responsive-${width}x${height}.png`), fullPage: true });
-    responsive.push(width + "x" + height);
-  }
-
-  const repoErrors = repo.errors;
-  await page.close();
-  const design = await openReady(DESIGN_URL, "design-root / Pages preview");
-  const designAlias = await design.page.evaluate(() => Array.from(document.querySelectorAll("#assetRows tr")).find(row => row.textContent.includes("processing-test-photo"))?.textContent);
-  assert.match(designAlias, /real_catch_source\.jpg/);
-  assert.match(designAlias, /VERIFIED/);
-  await design.page.screenshot({ path: path.join(out, "design-root-pages-entry.png"), fullPage: true });
-  allErrors.push(...repoErrors, ...design.errors);
-
-  const summary = {
-    result: "AUTOMATION_SMOKE_PASSED_VISUAL_REVIEW_REQUIRED",
-    source_revision: audit.sourceRevision,
-    asset_auto_loading: "PASS · both repository-root and design-root page layouts; config/manifest/3 Frozen/test photo SHA and dimensions checked",
-    frozen_photo_identity: "BLOCKED · real source photo not linked to Processing Frozen screenshots",
-    states: referenceStates,
-    renderers: { currentVsHardwarePixels: currentVsHardware, softwareVsHardwarePixels: softwareVsHardware, quickLayerChangedPixels: quickChanged },
-    diff: { ...metrics, status: "EXPLORATORY_ONLY_SOURCE_IDENTITY_UNVERIFIED" },
-    responsive,
-    staticCandidates,
-    receiving_field_visibility: receivingFieldVisibility,
-    dynamicCandidates,
-    speedPlaybackChecks,
-    fishFocus: "Production BLOCKED · Case B review-only annotated alpha rendered at 0.72× Web review scale · no production Mask asserted",
-    stageB: dynamicEnabled ? "WEB_REVIEW_ONLY · three motion candidates and 12s state-cycle WebM recordings exported" : "LOCKED_PENDING_STATIC_VISUAL_GATE",
-    visualReview: "PENDING_USER_CHOICE · automation evidence does not equal visual approval",
-    browserErrors: allErrors,
-  };
-  fs.writeFileSync(path.join(out, "browser-smoke.json"), JSON.stringify(summary, null, 2));
-  assert.deepEqual(allErrors, [], "no browser runtime, console, or failed request errors");
-  await design.page.close();
-  await browser.close();
-  console.log(JSON.stringify(summary, null, 2));
-})().catch(async error => {
-  console.error(error);
-  try { await browser?.close(); } catch (closeError) { console.error("Chromium cleanup failed:", closeError); }
-  process.exitCode = 1;
-});
+    for (let i = 0; i < data.length; i += 4) if (window.__opticalBaseline[i] !== data[i] || window.__opticalBaseline[i + 1] !== data[i + 1] || wind

@@ -18,17 +18,19 @@ The current package exposes static A/B/C candidates, dynamic A/B/C candidates, t
 
 | Candidate | Receiving field | Primary paths | Secondary filaments | Intent |
 | --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 0.86× | 0.85× | 0.20× | Softer field; lower corners are nearly fog only |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 1.30× | 1.08× | 0.34× | More visible blue/gold field; strong upper-right, softer upper-left, short lower traces; recommended for first review |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.75× | 1.35× | 0.48× | Visibility boundary comparison |
+| `REVIEW_CANDIDATE_A` · Soft Field | 1.00× | 0.85× | 0.20× | Softer broad edge field; lower corners remain haze only |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 1.45× | 1.08× | 0.34× | Broad blue/gold edge field; strongest upper-right, softer upper-left, partial lower traces; recommended for first review |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.90× | 1.35× | 0.48× | Visibility boundary comparison |
 
 Each keeps P1 path geometry intact and adds an asymmetric, more saturated review-only Receiving Light field: strongest blue at upper right, softer gold at upper left, a restrained gold residue at lower left, and a short weak blue trace at lower right. Web-only per-corner path length/alpha multipliers make the upper-right arc longest, upper-left second, and both lower corners partial/faded. P1–P5 token values and PR #165 Frozen PNGs are unchanged. The candidate composition can be decomposed into receiving field, primary paths, secondary filaments and final composite.
 
 ## Receiving-field rendering correction
 
-The pre-change cloud capture at `review_v1/evidence/pre-change-cloud-default.jpg` shows the failure: in the real `optical-review` route, the photo perimeter reads almost as the raw photo even when the Receiving Light layer is isolated. The separate Optical Lab renderer used a unit-radius radial gradient with a transformed unit ellipse; it now builds the radial gradient and rotated ellipse in photo/canvas coordinates, with the gradient radius scaled to the photo dimensions. Its asymmetric blue/gold candidate layout is preserved.
+The pre-change cloud capture at `review_v1/evidence/pre-change-cloud-default.jpg` shows the failure: in the real `optical-review` route, the photo perimeter reads almost as the raw photo even when the Receiving Light layer is isolated. The separate Optical Lab renderer used a unit-radius radial gradient with a transformed unit ellipse; it now builds the radial gradient and rotated ellipse in photo/canvas coordinates, with the gradient radius scaled to the photo dimensions. That coordinate fix restored measurable pixel changes, but the cloud page still read as a raw photo because its broad washes tinted the image without creating a perceptible perimeter field.
 
-The first deployed correction still looked too weak in the real page, so that result was not accepted as closure. The old "Receiving Light alone" view also included the low-alpha P1 contract layer, allowing its pixel changes to mask a missing Review candidate field. The view now isolates the Review candidate field; the full composite continues to include the unchanged P1 layer. Browser smoke compares that candidate layer off/on within the actual FIT photo rectangle across four corners and saves `static-B-receiving-field-alone-visible.png` plus `static-B-receiving-field-signal.json`. The 2.5% changed-pixel threshold is an engineering regression check for broad signal only; it is not a visual PASS. The actual canvas capture must still be judged for strength and naturalness against the Frozen reference.
+The first deployed correction still looked too weak in the real page, so that result was not accepted as closure. The old "Receiving Light alone" view also included the low-alpha P1 contract layer, allowing its pixel changes to mask a missing Review candidate field. The view now isolates the Review candidate field; the full composite continues to include the unchanged P1 layer. The next rendering iteration increases candidate field scale, anchors larger lobes on the photo corners, and adds four unequal, blurred edge ribbons: the upper-right blue sweep is strongest, upper-left gold is second, lower-left gold is a dim residue, and lower-right blue is a short trace. This gives the field a legible perimeter shape without drawing a complete ring.
+
+The Chromium regression samples the isolated candidate layer off/on within the FIT photo rectangle and records per-corner color signal. It now uses a stronger engineering floor and labels its result `RENDER_SIGNAL_FLOOR_MET_VISUAL_REVIEW_REQUIRED`. The check verifies that the renderer contributes blue/gold pixels in the intended asymmetric regions; it cannot decide whether a person sees natural light. The actual cloud canvas must still be visually compared with Frozen, and no automation result is a visual PASS.
 
 ## Dynamic candidates
 
@@ -38,7 +40,7 @@ The first deployed correction still looked too weak in the real page, so that re
 | `DYNAMIC_CANDIDATE_B` · Balanced | 6.5% amplitude, independent corner phases | 0.39 flow scale, slow local energy travel | 0.34 scale, intermittent | Recommended first motion review |
 | `DYNAMIC_CANDIDATE_C` · Atmospheric | 9.5% amplitude, independent corner phases | 0.52 flow scale | 0.48 scale, more frequent | Upper-bound comparison |
 
-Dynamic A/B/C all build on a receiving-field and path baseline of their stated field/path scales (A 1.00×/0.88×, B 1.30×/1.08×, C 1.65×/1.30×). Each corner has its own breathing period and phase; state changes lower the field as Fish Focus becomes more prominent. The main paths keep a slow, local traveling energy segment instead of a full perimeter chase. Playback and 12-second three-state WebM recordings are available at 0.5×/1×/1.5×. These controls and recordings show browser Canvas output, not Android or a native renderer.
+Dynamic A/B/C all build on the widened receiving-field baseline and existing path scales (A 1.12×/0.88×, B 1.48×/1.08×, C 1.82×/1.30×). Each corner has its own breathing period and phase; state changes lower the field as Fish Focus becomes more prominent. The main paths keep a slow, local traveling energy segment instead of a full perimeter chase. Playback and 12-second three-state WebM recordings are available at 0.5×/1×/1.5×. These controls and recordings show browser Canvas output, not Android or a native renderer.
 
 ## Fish Focus provenance
 
