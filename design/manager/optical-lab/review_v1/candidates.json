@@ -38,6 +38,8 @@
   "fish_focus": {
     "production": "BLOCKED: no current-head production FishSubjectResult or production Mask evidence was executed or attached.",
     "review_only": "REVIEW_PROXY_NOT_PRODUCTION: Case B fixture plus manual alpha annotation and previously reported historical detector BBox.",
+    "review_only_visual_scale": 0.72,
+    "review_only_visual_scale_note": "Web presentation multiplier only; does not change P2 contract values or claim production Mask behavior.",
     "default": "BLOCKED: no Fish Focus is drawn until the review-only source is selected.",
     "mask_provenance": "Manual photo annotation; not a production mask.",
     "evidence_record": "fish_focus_case_b_bbox.json"

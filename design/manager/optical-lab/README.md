@@ -34,6 +34,7 @@ Dynamic A/B/C all build on a receiving-field and path baseline of their stated f
 
 - `Production`: **BLOCKED**. This build has no current-head production `FishSubjectResult` / production Mask evidence to bind. No production contour is drawn.
 - `Review-only`: `REVIEW_PROXY_NOT_PRODUCTION`, using the Case B photo, a historical detector BBox, and a human-traced alpha fixture. The alpha is not a production Mask. Case B is described by `app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt`; source photo SHA-256 is `a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b`.
+- The Review-only browser rendering uses a `0.72×` presentation multiplier to soften the hand-traced contour. This affects only the Web review overlay; P2 contract values are unchanged.
 - `Blocked`: the default page state. With no selected review proxy or current production result, the page draws no Fish Focus contour.
 
 The review alpha and its BBox/source record are in `review_v1/`. The BBox values come from the previously reported Case B runtime result. The latest PR-head CI compiled instrumentation tests but skipped runtime execution, so those values were not re-run against this commit.

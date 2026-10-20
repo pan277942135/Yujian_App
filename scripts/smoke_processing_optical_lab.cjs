@@ -143,6 +143,7 @@ let browser;
   await page.selectOption("#focusSource", "review");
   await page.waitForFunction(() => document.querySelector("#photoName")?.textContent.includes("detector_case_b_night_flash") && document.querySelector("#maskName")?.textContent.includes("REVIEW ONLY"), null, { timeout: 30000 });
   assert.match(await page.locator("#focusProvenance").textContent(), /Production: BLOCKED.*Review-only/);
+  assert.match(await page.locator("#focusProvenance").textContent(), /0\.72×/);
   await page.screenshot({ path: path.join(out, "fish-focus-review-proxy-fish-located.png"), fullPage: true });
   await page.locator("#stateButtons button").nth(2).click();
   await page.screenshot({ path: path.join(out, "fish-focus-review-proxy-species-recognizing.png"), fullPage: true });
@@ -327,7 +328,7 @@ let browser;
     staticCandidates,
     dynamicCandidates,
     speedPlaybackChecks,
-    fishFocus: "Production BLOCKED · Case B review-only annotated alpha available · no production Mask asserted",
+    fishFocus: "Production BLOCKED · Case B review-only annotated alpha rendered at 0.72× Web review scale · no production Mask asserted",
     stageB: dynamicEnabled ? "WEB_REVIEW_ONLY · three motion candidates and 12s state-cycle WebM recordings exported" : "LOCKED_PENDING_STATIC_VISUAL_GATE",
     visualReview: "PENDING_USER_CHOICE · automation evidence does not equal visual approval",
     browserErrors: allErrors,

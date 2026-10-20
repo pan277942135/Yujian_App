@@ -232,6 +232,7 @@ const DYNAMIC_REVIEW_CANDIDATES={
   B:{name:"Balanced",field:1.30,paths:1.08,filaments:0.34,breath:0.065,flow:0.39,periods:[12.7,17.3,21.9,26.5],description:"四角错相呼吸，主路径缓慢局部流动，次级光丝低频出现；推荐优先评审。"},
   C:{name:"Atmospheric",field:1.65,paths:1.30,filaments:0.48,breath:0.095,flow:0.52,periods:[10.8,14.9,19.7,23.6],description:"能量变化更明显，作为边界评审；需检查是否接近特效感。"}
 };
+const REVIEW_PROXY_VISUAL_SCALE=0.72;
 const REVIEW_CASE_B={
   fixture:"app/src/androidTest/assets/detector_case_b_night_flash.jpg",
   fixtureSha256:"a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
@@ -472,7 +473,7 @@ function updateCandidateDescription(){
   const info=elements.buildInfo||{};$("previewSourceMeta").textContent="build "+(info.head_sha||"UNAVAILABLE")+" · source "+(info.source_sha||info.head_sha||"UNAVAILABLE")+" · P5 SHA-verified fixture";
 }
 function updateFocusProvenance(){
-  const label=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"Production: BLOCKED · Review-only: Case B 手工 alpha 已加载":"Production: BLOCKED · Review-only: 可切换 · 无 BBox / Mask 时不绘制";
+  const label=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"Production: BLOCKED · Review-only: Case B 手工 alpha · 0.72× 评审视觉缩放":"Production: BLOCKED · Review-only: 可切换 · 无 BBox / Mask 时不绘制";
   $("focusProvenance").textContent=label;
   const badge=document.getElementById("reviewFocusBadge");if(badge){badge.dataset.mode=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"REVIEW":"BLOCKED";badge.textContent=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"REVIEW_PROXY_NOT_PRODUCTION":"FISH FOCUS · BLOCKED";}
 }
@@ -959,7 +960,7 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
   const rx=(bx.right-bx.left)*rxParts[0]+rxParts[1],ry=(bx.bottom-bx.top)*ryParts[0]+ryParts[1],scale=level==="C"?(levelcfg.radius_scale||.88):1;
   const stateElapsed=Math.max(0,elements.previewTime-(elements.stateStartedAt||0));
   const build=elements.previewMode==="dynamic"?(stateId()==="FISH_LOCATED"?clamp(stateElapsed/2.3,0,1):clamp(.82+stateElapsed*.045,.82,1)):1;
-  const focusStrength=(elements.params.layerStrength.fish||0)*build;
+  const focusStrength=(elements.params.layerStrength.fish||0)*build*REVIEW_PROXY_VISUAL_SCALE;
   if(elements.layers.fishHalo){
     const gx=rx*scale,gy=ry*scale,outer=elements.config.p2_fish_focus.geometry.radial_outer_extent_multiple||1.18;
     const g=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,Math.max(gx,gy)*outer);
