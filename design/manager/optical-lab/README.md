@@ -75,7 +75,7 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 - The deployed `5553fb7` page corrected the inward sampling and made the capture read the exact bloom parameters from the renderer. Direct inspection of the live 390×844 comparison still showed faint line traces beside Frozen; B/C corner render deltas were 6.67/8.25 and are not visual scores. The failure and screenshot are recorded in [run 39439145572](https://github.com/pan277942135/Yujian_App/actions/runs/39439145572).
 - The next static pass keeps P1 path records and the shared FIT transform intact. Only the diffuse Receiving Light samples move photo-side by `0.30 ×` the selected P1 depth, using the exact B1/G1/B3/G3 curves; the glow remains clipped to `photoContentRect`, and the maximum depth ratio is `0.15` inside P1's `[0.08,0.18]` interval. The capture now reads those pass values from the live page and fails if the candidate JSON differs.
 - Static A/B/C preserve the exact P1 path start, control points, end points and visible ratios. Candidate differences are limited to the three review optical multipliers: Receiving Light, primary paths and secondary filaments. The capture report reads the live page constants for oval gain, depth ratio, inward field offset and both bloom passes; a page/report mismatch fails the capture.
-- The current review-only iteration raises the bounded Web candidate opacity ceiling to `.60`, with receiving gains A/B/C `4.0× / 6.5× / 8.5×`. At B this produces `.455` nominal peak alpha before island/state/quality weighting. These are study values used to test a clearly perceptible local field on the bright P5 fixture; they do not change P1's `[.03,.07]` input, colors, ovals, path geometry, or Native renderer. The PNG remains `REVIEW_REQUIRED` until direct inspection.
+- A proposed `.60` cap and gains above `1.0×` were withdrawn before the final static capture because they would exceed the frozen per-layer alpha ranges. The final candidates scale down from the P1 values: Receiving Light `0.50× / 0.82× / 1.00×`, primary paths `0.65× / 0.85× / 1.00×`, and secondary filaments `0.25× / 0.45× / 0.65×`. The Receiving Light cap is `.07`, P1's maximum pre-multiplier alpha. If these contract-compliant settings remain visually weak, that is reported as an unresolved contract/design gap; no higher-alpha candidate is presented as compliant.
 - Geometry diagnostics expose the actual mapped control points, FIT transform, `photoContentRect`, seven P1 paths and four Quiet Gaps. The static capture matrix is 390×844, 320×640, 412×915, 800×360 and the 1152×1536 source proportion.
 - The official evidence gallery is generated from real Chromium Canvas/page captures and published under the canonical Optical Review route. Its JSON records source/build SHA, photo provenance, per-view coordinates, candidate parameters, PNG names and SHA-256 values.
 
@@ -83,11 +83,11 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 
 | Candidate | Receiving Light | Primary paths | Secondary filaments | Review intent |
 | --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 4.00× | 1.00× | 0.25× | Softest visible field; quiet path core |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 6.50× | 1.35× | 0.38× | Recommended first review; local receiving light leads the frozen paths |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 8.50× | 1.65× | 0.50× | Upper visibility review; `.60` Web-only local opacity cap, P1 depth `0.15` |
+| `REVIEW_CANDIDATE_A` · Soft Field | 0.50× | 0.65× | 0.25× | Softest field and quiet path core |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 0.82× | 0.85× | 0.45× | Recommended first review; the local field keeps visual priority |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.00× | 1.00× | 0.65× | Contract maximum for the frozen optical layers; P1 depth `0.15` |
 
-These are unapproved Web-only review candidates, not frozen product values. Values above the P1 alpha range intentionally probe visibility only in this review; they do not redefine P1 and cannot be copied into Native implementation without contract review. Automation reports only renderer, source, geometry and asset checks. Human visual acceptance remains `REVIEW_REQUIRED`.
+These are unapproved Web-only review candidates, not frozen product values. No candidate amplifies a frozen per-layer alpha beyond its contract range. Automation reports renderer, source, geometry and asset checks; it does not judge visibility, naturalness, or visual quality. Human visual acceptance remains `REVIEW_REQUIRED`.
 
 ### Fish Focus and explicit status
 
