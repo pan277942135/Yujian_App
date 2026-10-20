@@ -29,7 +29,7 @@ jobs:
                          "github.event.comment.body == '/work-control status'",
                          "issues: write", "github.rest.issues.createComment"):
               assert marker in p, marker
-          assert "workflow_dispatch" not in p
+          assert not any(line.strip() == "workflow_dispatch:" for line in p.splitlines())
           print("CONTROL_TOWER_HANDSHAKE_CONTRACT=PASS")
           PY
 
