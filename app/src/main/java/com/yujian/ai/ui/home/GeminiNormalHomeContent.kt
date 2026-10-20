@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yujian.ai.R
@@ -75,6 +76,13 @@ import java.util.Locale
 import kotlin.math.abs
 
 private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
+private const val GeminiHomeCardAspectRatio = 247f / 293f
+private const val GeminiHomeCardWidthFraction = 0.686f
+private const val GeminiHomeNeighborHeightFraction = 0.667f
+private val GeminiHomeCardMaxHeight = 400.dp
+private val GeminiHomeCardMaxWidth = GeminiHomeCardMaxHeight * GeminiHomeCardAspectRatio
+private val GeminiHomeMinimumReadableCardHeight = 220.dp
+private val GeminiHomePeekTopOffset = 15.dp
 
 /**
  * NH01 Gemini V3 page. The Compose tree follows Gemini's Top / Middle / Footer
@@ -117,12 +125,14 @@ internal fun GeminiNormalHomeContent(
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize().testTag("gemini-home-background"),
                             contentScale = ContentScale.Crop,
+                            alignment = Alignment.TopCenter,
                         )
                     } ?: AssetImage(
                         GeminiHomeBackground,
                         Modifier.fillMaxSize().testTag("gemini-home-background"),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
+                        alignment = Alignment.TopCenter,
                     )
                 }
             }
@@ -167,6 +177,7 @@ internal fun GeminiNormalHomeContent(
                     modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()
                         .align(Alignment.CenterHorizontally),
                     safeHeight = safeHeight,
+                    safeBottomInset = safeInsets.bottom,
                     isResolving = isResolving,
                     motionState = motionState,
                     runtimeAssets = runtimeAssets,
@@ -197,11 +208,11 @@ private fun GeminiTopSection(
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
 ) {
-    // Keep the approved Gemini Top container but spend less of a short window
-    // above the content. System safe insets are already applied by the parent.
-    val topInset = clampDp(safeHeight.value * 0.032f, 12f, 28f)
+    // Keep a stable status-area buffer; let only the bounded header-to-stats
+    // gap respond to height. System safe insets are already applied by parent.
+    val topInset = 8.dp
     val horizontalInset = clampDp(safeWidth.value * 0.075f, 24f, 40f)
-    val headerGap = clampDp(safeHeight.value * 0.026f, 10f, 22f)
+    val headerGap = clampDp(safeHeight.value * 0.042f, 18f, 34f)
     val avatarTargetSize = maxOf(48.dp, avatarSize + 4.dp)
     val brandWidth = clampDp(safeWidth.value * (155f / 1080f), 46f, 70f)
     val brandHeight = brandWidth * (80f / 155f)
@@ -242,7 +253,7 @@ private fun GeminiTopSection(
             isResolving = isResolving,
             valueFontSize = responsiveSp(safeHeight, 0.03f, 17f, 21f),
             labelFontSize = responsiveSp(safeHeight, 0.019f, 11f, 13f),
-            dividerHeight = clampDp(safeHeight.value * 0.08f, 40f, 56f),
+            dividerHeight = 26.dp,
             onSpeciesClick = onSpeciesClick,
             onCatchesClick = onCatchesClick,
         )
@@ -338,13 +349,21 @@ private fun GeminiStatsBar(
             label = "鱼种", valueFontSize = valueFontSize, labelFontSize = labelFontSize,
             onClick = onSpeciesClick.takeUnless { isResolving },
         )
-        Box(Modifier.width(1.dp).height(dividerHeight).background(YuJianColors.TextPrimary.copy(alpha = 0.20f)))
+        Box(
+            Modifier.width(1.dp).height(dividerHeight)
+                .background(YuJianColors.TextPrimary.copy(alpha = 0.20f))
+                .testTag("gemini-home-stats-divider"),
+        )
         GeminiStatItem(
             tag = "catches", value = if (isResolving) "—" else values.catchCount.toString(),
             label = "鱼获", valueFontSize = valueFontSize, labelFontSize = labelFontSize,
             onClick = onCatchesClick.takeUnless { isResolving },
         )
-        Box(Modifier.width(1.dp).height(dividerHeight).background(YuJianColors.TextPrimary.copy(alpha = 0.20f)))
+        Box(
+            Modifier.width(1.dp).height(dividerHeight)
+                .background(YuJianColors.TextPrimary.copy(alpha = 0.20f))
+                .testTag("gemini-home-stats-divider"),
+        )
         GeminiStatItem(
             tag = "record-days", value = if (isResolving) "—" else values.recordDays.toString(),
             label = "记录天数", valueFontSize = valueFontSize, labelFontSize = labelFontSize,
@@ -411,13 +430,31 @@ private fun GeminiMiddleSection(
 ) {
     val fontScale = LocalDensity.current.fontScale
     val verticalMargin = clampDp(safeHeight.value * 0.01f, 4f, 10f)
-    val headerGap = clampDp(safeHeight.value * 0.015f, 6f, 12f)
-    val headerHeight = maxOf(48.dp, responsiveSp(safeHeight, 0.027f, 16f, 19f).value.dp * 1.25f)
-    val minCardTrackHeight = maxOf(180.dp, 180.dp * fontScale.coerceIn(1f, 1.5f))
+    val titleFontSize = responsiveSp(safeHeight, 0.027f, 16f, 19f)
+    val actionFontSize = responsiveSp(safeHeight, 0.021f, 13f, 15f)
+    val titleLineHeight = titleFontSize.value * 1.2f * fontScale
+    val headerHeight = maxOf(48.dp, (titleLineHeight + 8f).dp)
+    // The row keeps its 48dp action target; this compensates its centered text
+    // so the visible title-to-card gap remains 13dp at each system font scale.
+    val titleBottomInset = ((headerHeight.value - titleLineHeight) / 2f).coerceAtLeast(0f)
+    val headerGap = (13f - titleBottomInset).coerceAtLeast(0f).dp
+    val trackWidth = safeWidth.coerceAtMost(560.dp)
+    val desiredCardWidth = minOf(trackWidth * GeminiHomeCardWidthFraction, GeminiHomeCardMaxWidth)
+    val desiredCardHeight = (desiredCardWidth / GeminiHomeCardAspectRatio).coerceAtMost(GeminiHomeCardMaxHeight)
 
     BoxWithConstraints(modifier = modifier) {
-        val contentHeight = (maxHeight - verticalMargin * 2 - headerHeight - headerGap).coerceAtLeast(0.dp)
-        val needsScroll = maxHeight < verticalMargin * 2 + headerHeight + headerGap + minCardTrackHeight
+        val availableCardHeight = (maxHeight - verticalMargin * 2 - headerHeight - headerGap).coerceAtLeast(0.dp)
+        // When a short viewport has enough room for a legible card, reduce both
+        // axes together. Below the readable floor, preserve the approved card
+        // size and let only the Middle container scroll.
+        val cardHeight = if (availableCardHeight >= GeminiHomeMinimumReadableCardHeight) {
+            minOf(desiredCardHeight, availableCardHeight)
+        } else {
+            desiredCardHeight
+        }
+        val cardWidth = cardHeight * GeminiHomeCardAspectRatio
+        val groupHeight = verticalMargin * 2 + headerHeight + headerGap + cardHeight
+        val needsScroll = groupHeight > maxHeight
         val scrollState = rememberScrollState()
         val contentModifier = if (needsScroll) {
             Modifier.fillMaxWidth().heightIn(min = maxHeight).verticalScroll(scrollState)
@@ -425,20 +462,23 @@ private fun GeminiMiddleSection(
         } else {
             Modifier.fillMaxSize().testTag("gemini-home-middle-layout")
         }
-        val trackHeight = if (needsScroll) maxOf(contentHeight, minCardTrackHeight) else contentHeight
 
-        Column(modifier = contentModifier) {
+        Column(
+            modifier = contentModifier,
+            verticalArrangement = if (needsScroll) Arrangement.Top else Arrangement.Center,
+        ) {
             Spacer(Modifier.height(verticalMargin))
             GeminiSectionHeader(
                 modifier = Modifier.fillMaxWidth().height(headerHeight),
                 safeWidth = safeWidth,
-                safeHeight = safeHeight,
+                titleFontSize = titleFontSize,
+                actionFontSize = actionFontSize,
                 onCatchesClick = onCatchesClick,
             )
             Spacer(Modifier.height(headerGap))
             if (records.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(trackHeight)
+                    modifier = Modifier.fillMaxWidth().height(cardHeight)
                         .semantics {
                             collectionInfo = CollectionInfo(rowCount = 1, columnCount = 0)
                             stateDescription = "暂无鱼获，0 条记录"
@@ -447,20 +487,21 @@ private fun GeminiMiddleSection(
                     contentAlignment = Alignment.Center,
                 ) {
                     Box(
-                        Modifier.size(width = minOf(safeWidth * 0.686f, 360.dp), height = minOf(trackHeight, 480.dp))
+                        Modifier.size(width = cardWidth, height = cardHeight)
                             .clip(RoundedCornerShape(22.dp))
                             .background(YuJianColors.MistWhite.copy(alpha = 0.26f)),
                     )
                 }
             } else {
                 GeminiCatchCarousel(
-                    modifier = Modifier.fillMaxWidth().height(trackHeight).testTag("gemini-home-carousel-track"),
+                    modifier = Modifier.fillMaxWidth().height(cardHeight).testTag("gemini-home-carousel-track"),
                     records = records,
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     safeWidth = safeWidth,
                     safeHeight = safeHeight,
-                    trackHeight = trackHeight,
+                    cardWidth = cardWidth,
+                    cardHeight = cardHeight,
                     runtimeAssets = runtimeAssets,
                     onCatchClick = onCatchClick,
                 )
@@ -474,12 +515,11 @@ private fun GeminiMiddleSection(
 private fun GeminiSectionHeader(
     modifier: Modifier,
     safeWidth: Dp,
-    safeHeight: Dp,
+    titleFontSize: TextUnit,
+    actionFontSize: TextUnit,
     onCatchesClick: () -> Unit,
 ) {
     val horizontalInset = clampDp(safeWidth.value * 0.088f, 24f, 42f)
-    val titleFontSize = responsiveSp(safeHeight, 0.027f, 16f, 19f)
-    val actionFontSize = responsiveSp(safeHeight, 0.021f, 13f, 15f)
     Row(
         modifier = modifier.padding(horizontal = horizontalInset).testTag("gemini-home-section-header"),
         verticalAlignment = Alignment.CenterVertically,
@@ -540,7 +580,8 @@ private fun GeminiCatchCarousel(
     accessToken: String,
     safeWidth: Dp,
     safeHeight: Dp,
-    trackHeight: Dp,
+    cardWidth: Dp,
+    cardHeight: Dp,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     onCatchClick: (String) -> Unit,
 ) {
@@ -548,12 +589,12 @@ private fun GeminiCatchCarousel(
     val hasNeighborPages = pageCount > 1
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
-    val cardWidth = minOf(trackWidth * 0.686f, 360.dp)
-    val cardHeight = minOf(trackHeight, 480.dp)
     val neighborWidth = minOf(trackWidth * 0.62f, 260.dp)
-    val neighborHeight = minOf(cardHeight * 0.67f, 340.dp)
     val sideScaleX = (neighborWidth / cardWidth).coerceIn(0.5f, 1f)
-    val sideScaleY = if (cardHeight > 0.dp) (neighborHeight / cardHeight).coerceIn(0.5f, 1f) else 1f
+    val sideScaleY = GeminiHomeNeighborHeightFraction
+    val neighborTranslationY = with(LocalDensity.current) {
+        (GeminiHomePeekTopOffset - cardHeight * ((1f - sideScaleY) / 2f)).toPx()
+    }
     val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
@@ -564,7 +605,7 @@ private fun GeminiCatchCarousel(
             stateDescription = activeId?.let { "当前鱼获 $it，第 ${pagerState.currentPage + 1} 条，共 $pageCount 条" }
                 ?: "暂无鱼获，0 条记录"
         },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
         HorizontalPager(
             state = pagerState,
@@ -596,9 +637,10 @@ private fun GeminiCatchCarousel(
                 modifier = Modifier.fillMaxSize().graphicsLayer {
                     scaleX = 1f - distance * (1f - sideScaleX)
                     scaleY = 1f - distance * (1f - sideScaleY)
+                    translationY = if (active) 0f else neighborTranslationY
                     alpha = 1f - distance * 0.08f
                 }.testTag(pageTag),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.TopCenter,
             ) {
                 GeminiCatchCard(
                     item = record,
@@ -732,6 +774,7 @@ private fun GeminiCatchCard(
 private fun GeminiFooterSection(
     modifier: Modifier,
     safeHeight: Dp,
+    safeBottomInset: Dp,
     isResolving: Boolean,
     motionState: HomeMotionState,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
@@ -739,8 +782,12 @@ private fun GeminiFooterSection(
     cameraTouchSize: Dp,
     onIdentify: () -> Unit,
 ) {
-    val verticalPadding = clampDp(safeHeight.value * 0.042f, 18f, 36f)
-    val gap = clampDp(safeHeight.value * 0.016f, 8f, 14f)
+    val verticalPadding = if (safeBottomInset >= 40.dp) {
+        10.dp
+    } else {
+        (maxOf(safeBottomInset + 12.dp, 28.dp) - safeBottomInset).coerceAtLeast(12.dp)
+    }
+    val gap = 11.dp
     val labelSize = responsiveSp(safeHeight, 0.021f, 12f, 14f)
     val horizontalInset = clampDp(safeHeight.value * 0.01f, 8f, 12f)
     Column(

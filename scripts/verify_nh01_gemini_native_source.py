@@ -66,6 +66,11 @@ def main() -> None:
     checks.append(("new_page_uses_registered_brand", "R.drawable.brand_title_primary" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("new_page_uses_registered_camera", "R.drawable.normal_home_camera_primary_v1" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("new_page_preserves_fish_photo_with_fit_backdrop", "preserveEvidenceWithFitBackdrop = true" in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("home_hero_uses_bounded_gemini_aspect", "GeminiHomeCardAspectRatio = 247f / 293f" in page and "GeminiHomeCardMaxHeight = 400.dp" in page and "availableCardHeight" in page and "GeminiHomeMinimumReadableCardHeight" in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("section_title_and_main_card_have_bounded_gap", "13f - titleBottomInset" in page and "title-to-card gap remains 13dp" in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("neighbor_cards_keep_top_offset_and_height", "GeminiHomeNeighborHeightFraction = 0.667f" in page and "GeminiHomePeekTopOffset = 15.dp" in page and "translationY = if (active) 0f else neighborTranslationY" in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("official_morning_lake_uses_top_center_crop", page.count("alignment = Alignment.TopCenter") == 2, "GeminiNormalHomeContent.kt"))
+    checks.append(("stats_dividers_are_capped_at_26dp", "dividerHeight = 26.dp" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_page_tree_tags_present", all(tag in page for tag in LAYERS), "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_runtime_bundle_excludes_guest_and_nh07_images", "guest_avatar.png" not in gemini_loader and "nh07_default_avatar_3x_192" not in gemini_loader, "loadGeminiNormalHomeRuntimeAssets"))
     checks.append(("gemini_page_uses_exact_v2_avatar_drawable", "painterResource(R.drawable.normal_home_default_avatar_v2)" in page, "GeminiNormalHomeContent.kt"))
@@ -75,6 +80,7 @@ def main() -> None:
     checks.append(("evidence_fit_fills_bands_with_same_source_crop_then_blur", "home-evidence-backdrop-crop-fallback" in remote_image and "home-evidence-backdrop-ready" in remote_image and "contentScale = ContentScale.Fit" in remote_image and "contentScale = ContentScale.Crop" in remote_image, "RemoteImage.kt"))
     checks.append(("remote_bitmap_cache_is_bounded_and_does_not_keep_token", "MAX_BYTES = 24 * 1024 * 1024" in remote_image and "sha256Hex" in remote_image, "RemoteImage.kt"))
     checks.append(("gemini_page_contract_records_local_override_and_hash", "this NH01 Gemini V3 validation page only" in gemini_contract and V2_AVATAR_SHA in gemini_contract and "local visual-policy override" in gemini_contract, str(gemini_contract_path.relative_to(ROOT))))
+    checks.append(("responsive_contract_documents_card_and_photo_policy", "247:293" in gemini_contract and "15dp below" in gemini_contract and "unconditional `centerCrop`" in gemini_contract, str(gemini_contract_path.relative_to(ROOT))))
 
     for relative, expected in ASSETS.items():
         actual = sha256(ROOT / relative)

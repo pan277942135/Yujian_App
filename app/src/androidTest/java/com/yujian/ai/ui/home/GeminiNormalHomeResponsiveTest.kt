@@ -138,7 +138,9 @@ class GeminiNormalHomeResponsiveTest {
             val camera = bounds("gemini-home-camera")
             val cameraArt = bounds("gemini-home-camera-art")
             val ctaLabel = bounds("gemini-home-cta-label")
+            val sectionTitle = bounds("gemini-home-section-title")
             val activeCard = bounds("gemini-home-catch-card-gemini-fixture-01")
+            val rightPeek = bounds("gemini-home-card-peek-right")
             val footerContent = bounds("gemini-home-catch-footer-gemini-fixture-01")
             val species = bounds("gemini-home-catch-species-gemini-fixture-01")
             val measurement = bounds("gemini-home-catch-measurement-gemini-fixture-01")
@@ -152,7 +154,9 @@ class GeminiNormalHomeResponsiveTest {
                 put("camera_target", camera.toJson())
                 put("camera_art", cameraArt.toJson())
                 put("cta_label", ctaLabel.toJson())
+                put("section_title", sectionTitle.toJson())
                 put("active_card", activeCard.toJson())
+                put("right_peek", rightPeek.toJson())
                 put("footer_container", footerContent.toJson())
                 put("species", species.toJson())
                 put("measurement", measurement.toJson())
@@ -198,6 +202,36 @@ class GeminiNormalHomeResponsiveTest {
             assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height(), 1f)
             assertTrue("top must precede the flexible middle ${window.name}", top.bottom <= middle.top + 1f)
             assertTrue("middle must precede the footer ${window.name}", middle.bottom <= footer.top + 1f)
+            assertEquals(
+                "active Hero card keeps the Gemini 247:293 ratio ${window.name}",
+                247f / 293f,
+                activeCard.width() / activeCard.height(),
+                0.015f,
+            )
+            assertEquals(
+                "visible section title stays 13dp above the active card ${window.name}",
+                13f,
+                activeCard.top - sectionTitle.bottom,
+                1.1f,
+            )
+            assertEquals(
+                "neighbor card top is offset 15dp ${window.name}",
+                15f,
+                rightPeek.top - activeCard.top,
+                1.5f,
+            )
+            assertEquals(
+                "neighbor card height remains 66.7% ${window.name}",
+                0.667f,
+                rightPeek.height() / activeCard.height(),
+                0.015f,
+            )
+            val statDividers = compose.onAllNodesWithTag("gemini-home-stats-divider", useUnmergedTree = true)
+                .fetchSemanticsNodes()
+            assertEquals("stats bar keeps two separators ${window.name}", 2, statDividers.size)
+            statDividers.forEach { divider ->
+                assertEquals("stats separator is 26dp ${window.name}", 26f, divider.boundsInRoot.height, 0.5f)
+            }
             assertTrue("camera hit target must be at least 48dp ${window.name}", camera.width() >= 48f && camera.height() >= 48f)
             val cameraCenterDistance = kotlin.math.hypot(
                 cameraArt.centerX() - camera.centerX(),

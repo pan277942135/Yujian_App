@@ -19,7 +19,7 @@ The implementation follows the Gemini split-page tree recorded in PR #164's `NH0
 |---|---|
 | `Screen-Yujian-Home` | `GeminiNormalHomeContent`, tag `gemini-home-screen` |
 | `BG-Scenic-Group` | full-screen background group, tag `gemini-layer-bg-scenic-group` |
-| `BG-Mountain-Mist` | official Morning Lake bitmap in `ContentScale.Crop`, tag `gemini-layer-bg-mountain-mist` |
+| `BG-Mountain-Mist` | official Morning Lake bitmap in top-centered `ContentScale.Crop`, tag `gemini-layer-bg-mountain-mist` |
 | `Top-Section-AutoLayout` | `GeminiTopSection`, tag `gemini-home-top-section` |
 | `Header-Bar` | `gemini-home-header-bar` |
 | `Brand-Title` | registered `R.drawable.brand_title_primary` |
@@ -33,7 +33,7 @@ The implementation follows the Gemini split-page tree recorded in PR #164's `NH0
 | `CTA-Label-RecordNext` | dynamic CTA label above the capture control |
 | `CTA-Camera-Button` | shared `HomeCameraButton` with registered raster assets; approved camera PNG is shown while masks load |
 
-The Morning Lake master already contains the mountain-mist scene. The Compose layer preserves that artwork as one registered bitmap and does not add the prototype's unapproved atmospheric overlays or foreground reeds.
+The Morning Lake master already contains the mountain-mist scene. The Compose layer preserves that artwork as one registered bitmap, aligns the crop to TopCenter for short-window framing, and does not add the prototype's unapproved atmospheric overlays or foreground reeds.
 
 ## Page assets and dynamic data
 
@@ -62,12 +62,17 @@ The avatar is checked in three independent ways: the visual resource/crop, the c
 ## Responsive rules
 
 - Safe-drawing insets wrap the content; the scene bitmap remains edge-to-edge.
-- The top section uses clamped vertical and horizontal insets and is capped at 560dp. V3 compresses the top blank inset and inter-section gaps while preserving the same Top / Middle / Footer container order.
-- The middle section receives the remaining column height. The active card width is `min(68.6% of track, 360dp)` and its height is capped at 480dp. Neighbor cards use `min(62% of track, 260dp)` and 67% of active height, capped at 340dp.
-- In a short viewport, only the Middle section scrolls. The Footer remains in the bottom slot. Long screens do not stretch the card beyond its cap. Hero footer content fills the card's available inner width and uses vertical padding derived from card height so all three metadata rows stay within the card bounds.
+- The top section uses bounded vertical and horizontal spacing and is capped at 560dp. Its brand/avatar row, stats row, section title, card and footer remain grouped in the Gemini Top / Middle / Footer hierarchy. Stats separators are 26dp tall.
+- The active card uses the Gemini reference ratio `247:293` (`width / height = 0.843`). Width is based on `min(68.6% of track, 337.2dp)`; height is derived from that width and capped at 400dp. If the Middle viewport is tight but can still show a readable 220dp card, both axes shrink together. Below that floor, the card retains its target size and only the Middle section scrolls.
+- The section title's visible text stays 13dp above the main card across font scales. Neighbor cards use `min(62% of track, 260dp)`, remain 66.7% of the main card height, and are translated so their visible top edge is 15dp below the active card's top edge.
+- In a short viewport, only the Middle section scrolls; the Footer remains in the bottom slot. The carousel group is measured as one unit and vertically centered in the remaining Middle space, so extra track height cannot separate the title from the card. Hero footer content uses card-height-derived padding so all three metadata rows stay inside the card.
+- Bottom action padding derives from safe-drawing insets: legacy three-button navigation keeps a compact inner clearance; gesture navigation retains the system inset plus a visible breathing gap. The camera target remains at least 72dp and CTA text stays above it.
 - Text uses height-responsive sizes, system font scaling, one-line ellipsis where the Gemini row is single-line, and 48dp minimum targets for actions.
-- The capture target is at least 72dp, exceeding the 48dp minimum. The CTA label is laid out before it and cannot overlap the target.
 - The finite horizontal catch pager owns horizontal gestures; vertical scrolling is confined to the Middle container.
+
+### Fish photo framing boundary
+
+The responsive card ratio removes the unbounded-tall-card failure that created top/bottom filler bands on long screens. The Home card still follows `Hero_Real_Photo_EvidenceFit_Contract_V1.md`. The current Home data has no trusted fish bounding box or per-record crop-safety signal, so the runtime continues to use `EVIDENCE_FIT`: the complete original photo over its same-source soft crop. A future crop path needs verified crop-safe fixtures; the recommendation's unconditional `centerCrop`, Unsplash demo photo, and hand-drawn camera SVG are not used.
 
 ## Intentional visual change
 
