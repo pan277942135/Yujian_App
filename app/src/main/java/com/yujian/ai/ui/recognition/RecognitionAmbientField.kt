@@ -42,8 +42,8 @@ import kotlin.math.sin
 
 private val AiBlueCore = Color(0xFF8BC9E8)
 private val AiBlueHot = Color(0xFFB2E5F5)
-private val AiGoldCore = Color(0xFFE9C05C)
-private val AiGoldHot = Color(0xFFF4D17A)
+private val AiGoldCore = Color(0xFFEFC14C)
+private val AiGoldHot = Color(0xFFF7D05B)
 private val MotionEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
 
 internal val recognitionAmbientPrimaryIslandIds = setOf("B1", "G1", "B3", "G3")
